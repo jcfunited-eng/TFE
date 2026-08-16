@@ -2,8 +2,7 @@
 
 Date: 2026-08-16
 
-Status: Active release candidate. A-013 is not Live-Closed until production
-cutover and live observation finish.
+Status: **Live-Closed** on `dsf-ai-task:1098` at 2026-08-16 18:45:30 UTC.
 
 ## Task identity
 
@@ -16,8 +15,9 @@ cutover and live observation finish.
   beyond this bounded Phase-1 base-VR closure boundary.
 - Predecessor update: A-011.6 and A-011.7 are Live-Closed. A-011.7 closed on
   task 1095 by body-owned laughter receipt `8d1b7bfe...de32aa`.
-- Production baseline is task `dsf-ai-task:1096`, commit `11a33a34`, one
-  healthy organism process, the same organism identity, and zero Python
+- The pre-cutover production baseline was task `dsf-ai-task:1096`, commit
+  `11a33a34`. A-013 closed on task `dsf-ai-task:1098`, commit `bb085947`, with
+  one healthy organism process, the same organism identity, and zero Python
   cognition callbacks.
 
 ## Architecture honesty gate
@@ -56,9 +56,9 @@ cutover and live observation finish.
    reward, random selection, scripted movement, detailed robotic
    face/tongue/skin mechanics, vendor-specific actuator assumptions, or a
    speculative final android body.
-5. Single exact next item: complete the exact-predecessor A-013 rehearsal and
-   production cutover. Do not add hand geometry, a rigid-body simulator, or
-   hardware-specific mechanics to this Phase-1 release.
+5. Single exact next item: preserve this closed Phase-1 body boundary. Do not
+   add hand geometry, a rigid-body simulator, or hardware-specific mechanics
+   without an actual selected embodiment platform and a later scoped item.
 6. DSF scope: unchanged full joint seven-field L0-L4 remains authoritative at
    every reached occurrence. Embodiment mechanics neither evaluate a reduced
    projection nor change DSF.
@@ -76,7 +76,7 @@ cutover and live observation finish.
 | Mouth/breath/glottis | persistent mouth/glottal axes, lung volume, and eight tract areas plus native articulatory body | persistent local state; vocal mechanics remain active |
 | Voice/self-hearing | radiated pressure -> cochlear return | live physical actuation |
 | Whole-body proprioception | 74 typed afferent endings; complete initial source once; sparse consequence sources thereafter | immediate same-transaction native return |
-| Motor direction | sparse layer-12 motor mounts retain their own typed efferent terminal; `GLRCC08` cold-restores it | directionally truthful locally; not deployed |
+| Motor direction | sparse layer-12 motor mounts retain their own typed efferent terminal; `GLRCC08` cold-restores it | directionally truthful and live |
 | Posture/limbs/joints | torso, shoulders, elbows, wrists, grips, hips, knees, and ankles | locally persistent and typed |
 | Locomotion | authenticated environment owns root motion and collision | base VR authority retained; detailed native gait deferred |
 | Manipulation | authenticated environment owns reach/held-object settlement | base VR authority retained; dexterous hand mechanics deferred |
@@ -162,13 +162,13 @@ Verification on the fresh wheel
 
 ## Required acceptance
 
-A-013 can become Live-Closed after this bounded Phase-1 body is cut over to the
-same production organism; all 37 axes and 74 typed terminals cold-restore;
-neutral observation manufactures no movement; any actual motor discharge uses
-only its retained typed terminal and returns its sparse consequence; identity,
-learned state, one-process topology, zero Python cognition callbacks, and
-resource ceilings remain true. Later physical-body nuance is explicitly not a
-closure gate for this phase.
+A-013 is Live-Closed because this bounded Phase-1 body is cut over to the same
+production organism; all 37 axes and 74 typed terminals cold-restore; neutral
+observation manufactures no movement; any actual motor discharge uses only its
+retained typed terminal and returns its sparse consequence; identity, learned
+state, one-process topology, zero Python cognition callbacks, and resource
+ceilings remain true. Later physical-body nuance is explicitly not a closure
+gate for this phase.
 
 ## Bounded verification on the current release candidate
 
@@ -232,6 +232,33 @@ The release wheel SHA-256 is
   test surfaces were removed instead of retaining an unmounted mechanism. The
   removal deleted 128 candidate lines and introduced no compatibility shim.
 
-This evidence makes the bounded Phase-1 body eligible for production
-rehearsal. It does not by itself Live-Close A-013; deployment, live observation,
-resource evidence, ledger closure, and completion notification still remain.
+## Live closure evidence
+
+- Clean reviewed release commit:
+  `bb085947a24f820888cb75fa79921653641a0dc7`.
+- Digest-pinned live image:
+  `sha256:1f091e57ef1c4f38d64c14cb5965a599282c1b056dc55b0db7a0cfd0f434fbe5`.
+- ECS task definition `dsf-ai-task:1098`; one PRIMARY COMPLETED deployment,
+  desired/running/pending `1/1/0`; one RUNNING and HEALTHY task
+  `5b5039a557b4420d8fa7dd791d2c54ea`.
+- The full-run rehearsal used the live-moving source at tick `131916`, retained
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, retained 313 complete
+  neurons and 196,416 developmental resting neurons, migrated current format
+  exactly, and cold-restored the 37-axis/74-terminal/195-byte body with zero
+  Python cognition workers or callbacks.
+- Independent live readiness at tick `132021` reported the same identity,
+  exact commit and digest, 313 complete neurons, 196,416 developmental resting
+  neurons, body receipt
+  `1430fd82d66c21f626029ee00f055b89d0e824dc75c7e577d5ea3d4dd2edccd3`,
+  initialized proprioception, all 37 bounded axes, and zero Python callbacks.
+- The first settled post-cutover memory minute averaged 6.20 percent and
+  reached 6.39 percent maximum of the fixed 16-GiB task envelope, below the
+  predecessor's observed several-hour range. Persisted state was 59,557,026
+  bytes at that live observation, inside the fixed 64-MiB organism envelope.
+- The persistent root remains `/app/guala/native-organism-gen5`; current-only
+  raw `GLORUN01` persistence and one-time exact migration were verified by the
+  candidate rehearsal and live deployment controller.
+
+This evidence Live-Closes only the bounded Phase-1 A-013 embodiment. It does
+not claim final android morphology, detailed gait, dexterous hands, expressive
+materials, or a selected physical actuator/sensor platform.
