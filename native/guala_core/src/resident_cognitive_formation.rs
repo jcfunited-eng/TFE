@@ -1137,6 +1137,12 @@ pub(crate) struct MotorUnitRecruitment {
     pub(crate) neuron_lineage: [u8; 16],
     pub(crate) topology_index: u32,
     pub(crate) outward_elementary_carriers: u128,
+    /// Exact sparse afferent ancestry already retained behind this motor cell:
+    /// layer 12 -> layer 8 body regulation -> layer 6 local integration ->
+    /// one named layer-5 physical body receptor. This is transient anatomy
+    /// evidence only. An afferent site is not silently promoted into an
+    /// effector, action name, or command.
+    pub(crate) body_afferent_paths: Vec<MotorBodyAfferentPath>,
     /// Every exact whole-carrier transfer across this motor cell's direct
     /// contact with a mounted layer-11 ordering cell in the settled actuator
     /// interval. The potential difference of both endpoints causes the
@@ -1144,6 +1150,14 @@ pub(crate) struct MotorUnitRecruitment {
     /// excitation. This is transient causal evidence, not a plan, score,
     /// command, or retained action object.
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct MotorBodyAfferentPath {
+    pub(crate) body_regulation_lineage: [u8; 16],
+    pub(crate) integration_lineage: [u8; 16],
+    pub(crate) receptor_lineage: [u8; 16],
+    pub(crate) receptor_site: NeuronSourceSite,
 }
 
 /// One transient efferent event produced by an already-mounted layer-13
@@ -9614,6 +9628,80 @@ fn one_interval_electrical_frontier(
     Ok(reached)
 }
 
+fn exact_motor_body_afferent_paths(
+    motor_flat: usize,
+    flat_locations: &[(usize, usize, [u8; 16])],
+    cohorts: &[ResidentReachedCohort],
+    neighbours_by_flat: &[Vec<usize>],
+) -> Result<Vec<MotorBodyAfferentPath>, FormationError> {
+    let mount_at = |flat: usize| {
+        let (cohort_index, neuron_index, _) = flat_locations
+            .get(flat)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        cohorts
+            .get(cohort_index)
+            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+    };
+    if mount_at(motor_flat)?.place().layer() != 12 {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    let mut paths = Vec::new();
+    for regulation_flat in neighbours_by_flat
+        .get(motor_flat)
+        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+    {
+        if mount_at(*regulation_flat)?.place().layer() != 8 {
+            continue;
+        }
+        for integration_flat in neighbours_by_flat
+            .get(*regulation_flat)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+        {
+            if mount_at(*integration_flat)?.place().layer() != 6 {
+                continue;
+            }
+            for receptor_flat in neighbours_by_flat
+                .get(*integration_flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            {
+                let receptor_mount = mount_at(*receptor_flat)?;
+                let Some(receptor_site) = receptor_mount.source_site() else {
+                    continue;
+                };
+                if receptor_mount.place().layer() != 5 {
+                    continue;
+                }
+                paths.push(MotorBodyAfferentPath {
+                    body_regulation_lineage: flat_locations[*regulation_flat].2,
+                    integration_lineage: flat_locations[*integration_flat].2,
+                    receptor_lineage: flat_locations[*receptor_flat].2,
+                    receptor_site: receptor_site.clone(),
+                });
+            }
+        }
+    }
+    paths.sort_by(|left, right| {
+        (
+            left.body_regulation_lineage,
+            left.integration_lineage,
+            left.receptor_lineage,
+            left.receptor_site.sensor_id(),
+            left.receptor_site.substream_id(),
+        )
+            .cmp(&(
+                right.body_regulation_lineage,
+                right.integration_lineage,
+                right.receptor_lineage,
+                right.receptor_site.sensor_id(),
+                right.receptor_site.substream_id(),
+            ))
+    });
+    paths.dedup();
+    Ok(paths)
+}
+
 /// Settle the bounded contact-connected frontier reached by this external
 /// occurrence, form one native membrane-potential occurrence from its exact
 /// predecessor/successor states, evaluate unchanged full DSF once, and let
@@ -9753,7 +9841,6 @@ fn settle_internal_contact_interval(
             origin: ResidentContactOrigin::Fabric { contact_index },
         });
     }
-
     // One physical interval reaches only its explicitly carried causal
     // frontier and immediate electrical neighbours. Absolute nonzero
     // membrane charge is not activity: the phase-one pump gives a living
@@ -10592,6 +10679,7 @@ fn settle_internal_contact_interval(
                         neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
                         topology_index: mount.place().topology_index(),
                         outward_elementary_carriers: outward.unsigned_abs(),
+                        body_afferent_paths: Vec::new(),
                         preparation_transfers,
                     })
             })
@@ -10797,6 +10885,30 @@ fn settle_internal_contact_interval(
             articulatory_unit_recruitments.extend(cohort_articulatory_recruitments);
             emitted_neuron_fractals.extend(cohort_fractals);
             layer_ten_plasticity_settlements.extend(cohort_layer_ten_plasticity);
+        }
+    }
+    if !motor_unit_recruitments.is_empty() {
+        let mut neighbours_by_flat = vec![Vec::<usize>::new(); flat_locations.len()];
+        for edge in &edges {
+            neighbours_by_flat[edge.left].push(edge.right);
+            neighbours_by_flat[edge.right].push(edge.left);
+        }
+        for neighbours in &mut neighbours_by_flat {
+            neighbours.sort_unstable();
+            neighbours.dedup();
+        }
+        for recruitment in &mut motor_unit_recruitments {
+            let motor_flat = lineage_member(recruitment.neuron_lineage)?;
+            let paths = exact_motor_body_afferent_paths(
+                motor_flat,
+                &flat_locations,
+                cohorts,
+                &neighbours_by_flat,
+            )?;
+            if paths.is_empty() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            recruitment.body_afferent_paths = paths;
         }
     }
     let mut affective_balance_trajectories = Vec::new();
@@ -14706,6 +14818,123 @@ mod tests {
             population.as_ref().unwrap().resting_cell_count(),
             resting_before - 1
         );
+    }
+
+    #[test]
+    fn motor_effector_exposes_exact_sparse_body_afferent_ancestry() {
+        let receptor_site =
+            NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Body, 7);
+        let receptor_place = DeclaredNeuronPlace::from_source_site(&receptor_site);
+        let receptor_neuron = create_quiescent_virtual_material_neuron(receptor_place).unwrap();
+        let local_anatomy = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+        let receptor_lineage = local_lineage(1);
+        let receptor_anatomy = ReachedCohortAnatomy::new_mounted(
+            vec![receptor_neuron.anatomy],
+            vec![receptor_lineage],
+            vec![ReachedNeuronMount::Receptor(receptor_site.clone())],
+            local_anatomy.clone(),
+        )
+        .unwrap();
+        let mut cohorts = vec![ResidentReachedCohort {
+            state: ReachedCohortState::new(
+                &receptor_anatomy,
+                vec![receptor_neuron.state],
+                SparseElectricalState::genesis(&local_anatomy),
+            )
+            .unwrap(),
+            anatomy: receptor_anatomy,
+            pending_experience: None,
+            retained_experience: None,
+            pending_recurrence: None,
+        }];
+        let occupied = vec![receptor_place];
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &occupied).unwrap(),
+        );
+        let mut next_lineage = 2;
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_reached_local_integration(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[(receptor_lineage, receptor_place)],
+        )
+        .unwrap();
+        let regulation = mount_reached_body_regulation(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[receptor_lineage],
+        )
+        .unwrap();
+        assert_eq!(regulation.len(), 1);
+        let ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[regulation[0], ordering],
+        )
+        .unwrap();
+
+        let flat_locations = cohorts
+            .iter()
+            .enumerate()
+            .flat_map(|(cohort_index, cohort)| {
+                cohort
+                    .anatomy
+                    .neuron_lineages()
+                    .iter()
+                    .enumerate()
+                    .map(move |(neuron_index, lineage)| {
+                        (cohort_index, neuron_index, *lineage)
+                    })
+            })
+            .collect::<Vec<_>>();
+        let flat_for_lineage = |lineage: [u8; 16]| {
+            flat_locations
+                .iter()
+                .position(|(_, _, candidate)| *candidate == lineage)
+                .unwrap()
+        };
+        let mut neighbours = vec![Vec::new(); flat_locations.len()];
+        for (left, right) in fabric.contact_endpoints() {
+            let left_flat = flat_for_lineage(fabric.lineages()[left]);
+            let right_flat = flat_for_lineage(fabric.lineages()[right]);
+            neighbours[left_flat].push(right_flat);
+            neighbours[right_flat].push(left_flat);
+        }
+        let motor_flat = flat_locations
+            .iter()
+            .enumerate()
+            .find_map(|(flat, (cohort_index, neuron_index, _))| {
+                (cohorts[*cohort_index].anatomy.mounts()[*neuron_index]
+                    .place()
+                    .layer()
+                    == 12)
+                    .then_some(flat)
+            })
+            .unwrap();
+        let paths = exact_motor_body_afferent_paths(
+            motor_flat,
+            &flat_locations,
+            &cohorts,
+            &neighbours,
+        )
+        .unwrap();
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0].body_regulation_lineage, regulation[0]);
+        assert_eq!(paths[0].receptor_lineage, receptor_lineage);
+        assert_eq!(paths[0].receptor_site, receptor_site);
     }
 
     #[test]

@@ -370,6 +370,7 @@ class ResidentCausalIntervalEvidence:
             int,
             int,
             tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
         ],
         ...,
     ]
@@ -440,6 +441,7 @@ class ResidentPrepareEvidence:
             int,
             int,
             tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
         ],
         ...,
     ] = ()
@@ -706,6 +708,7 @@ def _motor_unit_recruitment_evidence(
         int,
         int,
         tuple[tuple[str, int, str, int, int, int], ...],
+        tuple[tuple[str, str, str, int, int, str, str], ...],
     ],
     ...,
 ]:
@@ -713,7 +716,7 @@ def _motor_unit_recruitment_evidence(
         raise RuntimeError("motor-unit recruitments changed format")
     observed = []
     for raw in value:
-        if not isinstance(raw, tuple) or len(raw) != 4:
+        if not isinstance(raw, tuple) or len(raw) != 5:
             raise RuntimeError("motor-unit recruitment changed format")
         lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
         topology_index = _nonnegative_integer(
@@ -771,12 +774,58 @@ def _motor_unit_recruitment_evidence(
                     transferred_whole_carriers,
                 )
             )
+        if not isinstance(raw[4], list) or not raw[4]:
+            raise RuntimeError("motor-unit body afferent paths changed format")
+        body_afferent_paths = []
+        for path in raw[4]:
+            if not isinstance(path, tuple) or len(path) != 7:
+                raise RuntimeError("motor-unit body afferent path changed format")
+            regulation = _canonical_lineage_hex(
+                path[0], "motor body-regulation lineage"
+            )
+            integration = _canonical_lineage_hex(
+                path[1], "motor body-integration lineage"
+            )
+            receptor = _canonical_lineage_hex(
+                path[2], "motor body-receptor lineage"
+            )
+            sense_layer = _nonnegative_integer(
+                path[3], "motor body-receptor sense layer"
+            )
+            receptor_topology = _nonnegative_integer(
+                path[4], "motor body-receptor topology index"
+            )
+            sensor_id = path[5]
+            substream_id = path[6]
+            if (
+                sense_layer != 5
+                or len({lineage, regulation, integration, receptor}) != 4
+                or not isinstance(sensor_id, str)
+                or not sensor_id
+                or not isinstance(substream_id, str)
+                or not substream_id
+            ):
+                raise RuntimeError("motor-unit body afferent path is not physical")
+            body_afferent_paths.append(
+                (
+                    regulation,
+                    integration,
+                    receptor,
+                    sense_layer,
+                    receptor_topology,
+                    sensor_id,
+                    substream_id,
+                )
+            )
+        if tuple(sorted(set(body_afferent_paths))) != tuple(body_afferent_paths):
+            raise RuntimeError("motor-unit body afferent paths are not canonical")
         observed.append(
             (
                 lineage,
                 topology_index,
                 outward_elementary_carriers,
                 tuple(preparation_transfers),
+                tuple(body_afferent_paths),
             )
         )
     return tuple(observed)

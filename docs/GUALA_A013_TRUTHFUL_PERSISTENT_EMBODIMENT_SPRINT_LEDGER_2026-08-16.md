@@ -9,13 +9,12 @@ Status: Active architecture boundary. A-013 is not Live-Closed.
 - Active item: `A-013` — complete truthful persistent embodiment: pose, gaze,
   eyes, blinking, face, mouth, breath, voice, locomotion, manipulation, and
   body state.
-- Dependency: A-012 has live unattended recovery, recurrence, learning, yaw,
-  and sensed consequence, but complete sleep/exploration/interaction remains
-  open until the body can become externally quiescent and move through or act
-  on its world.
-- Predecessor update: A-011.6 was later Live-Closed under the creator's
-  clarified circuit qualification; A-011.7 has not begun.
-- Production baseline remains task `dsf-ai-task:1091`, commit `3eacc6cd`, one
+- Dependency: A-012 is Live-Closed by the already-live physical rest/wake,
+  consolidation, later causal-use, unattended interaction, and changed-world
+  exploration circuit. Complete locomotion and manipulation remain A-013.
+- Predecessor update: A-011.6 and A-011.7 are Live-Closed. A-011.7 closed on
+  task 1095 by body-owned laughter receipt `8d1b7bfe...de32aa`.
+- Production baseline remains task `dsf-ai-task:1095`, commit `d0a1956b`, one
   healthy organism process, the same organism identity, and zero Python
   cognition callbacks.
 
@@ -81,6 +80,41 @@ Python bridge, and could not identify which physical motor site authorized
 translation. Keeping it would have added correct arithmetic around the wrong
 wiring boundary. The worktree returned to clean without changing existing yaw
 or production code.
+
+## First retained increment: exact motor/body ancestry receipt
+
+The missing bookkeeping receipt is now implemented locally and remains
+pre-production:
+
+- native layer-12 recruitment carries the exact mounted sparse path
+  `motor layer 12 -> body-regulation layer 8 -> local-integration layer 6 ->
+  named physical receptor layer 5`;
+- the path is derived only after an actual motor recruitment, from the contact
+  edges already enumerated by that transition; quiet and non-motor intervals
+  allocate no A-013 adjacency structure;
+- the path is transient observation only and adds zero retained organism
+  fields, codec bytes, owners, locks, tables, action labels, or Python
+  cognition;
+- the Python/native boundary rejects a motor with absent, malformed,
+  duplicated, unordered, or non-layer-5 ancestry;
+- the at-most-once motor action receipt binds the exact ancestry, while the
+  existing yaw physics remains unchanged;
+- the body receptor is truthfully classified as an afferent site. It is not
+  relabeled as an effector. Explicit effector anatomy remains the next A-013
+  implementation boundary.
+
+Verification on the fresh wheel
+`ec9b3542761dbae499043d50d6b5c85f0fcf77673eb5ce51d94ec039a081fc3d`:
+
+- focused native sparse-ancestry proof: 1 passed, 0 failed;
+- affected native/Python causal, physical-choice, yaw, cold-replay, and play
+  boundaries: 84 passed, 0 failed;
+- complete native suite after the allocation deferral: 577 passed, 0 failed,
+  11 intentionally ignored;
+- repository-wide Python collection is not a release result: it contains an
+  unavailable Playwright dependency and retired modules that no longer
+  import. The maintained `tests/` run reached 537 passes before stopping on
+  30 inherited legacy-world/L6 fixture failures unrelated to this increment.
 
 ## Required acceptance
 

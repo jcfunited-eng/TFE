@@ -472,7 +472,7 @@ def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypat
                 metabolically_perturbed_body_receptor_count=2,
                 endogenous_partial_cue_reassembly_count=1,
                 rest_recovered_neuron_count=4,
-                motor_unit_recruitments=(("04" * 16, 1, 1, ()),),
+                motor_unit_recruitments=(("04" * 16, 1, 1, (), ()),),
                 articulatory_unit_recruitments=(("05" * 16, 1, 1, ()),),
             )
 

@@ -24,12 +24,34 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
                 0,
                 7,
                 (("11" * 16, 12, "33" * 16, 11, 0, 5),),
+                (
+                    (
+                        "55" * 16,
+                        "66" * 16,
+                        "77" * 16,
+                        5,
+                        0,
+                        "vestibular-organ",
+                        "yaw-canal-positive",
+                    ),
+                ),
             ),
             (
                 "22" * 16,
                 1,
                 2,
                 (("44" * 16, 11, "22" * 16, 12, 0, 3),),
+                (
+                    (
+                        "88" * 16,
+                        "99" * 16,
+                        "aa" * 16,
+                        5,
+                        1,
+                        "vestibular-organ",
+                        "yaw-canal-negative",
+                    ),
+                ),
             ),
         ),
     )
@@ -51,12 +73,34 @@ def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -
                 0,
                 7,
                 (("11" * 16, 12, "33" * 16, 11, 0, 6),),
+                (
+                    (
+                        "55" * 16,
+                        "66" * 16,
+                        "77" * 16,
+                        5,
+                        0,
+                        "vestibular-organ",
+                        "yaw-canal-positive",
+                    ),
+                ),
             ),
             (
                 "22" * 16,
                 1,
                 2,
                 (("44" * 16, 11, "22" * 16, 12, 0, 3),),
+                (
+                    (
+                        "88" * 16,
+                        "99" * 16,
+                        "aa" * 16,
+                        5,
+                        1,
+                        "vestibular-organ",
+                        "yaw-canal-negative",
+                    ),
+                ),
             ),
         ),
     )

@@ -175,6 +175,7 @@ class _NativeResidentOrganismPrepare:
             int,
             int,
             list[tuple[str, int, str, int, int, int]],
+            list[tuple[str, str, str, int, int, str, str]],
         ]
     ] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
@@ -817,17 +818,52 @@ def test_prepare_carries_exact_layer_eleven_motor_contact_transfer(
     runtime.pending = None
     motor = "12" * 16
     ordering = "11" * 16
+    regulation = "08" * 16
+    integration = "06" * 16
+    receptor = "05" * 16
     runtime.prepare_result_override = replace(
         genuine,
         motor_unit_recruitments=[
-            (motor, 3, 9, [(motor, 12, ordering, 11, 0, 4)])
+            (
+                motor,
+                3,
+                9,
+                [(motor, 12, ordering, 11, 0, 4)],
+                [
+                    (
+                        regulation,
+                        integration,
+                        receptor,
+                        5,
+                        17,
+                        "mounted-vestibular-organ",
+                        "yaw-canal",
+                    )
+                ],
+            )
         ],
     )
 
     prepared = organism.prepare(_Source())
 
     assert prepared.motor_unit_recruitments == (
-        (motor, 3, 9, ((motor, 12, ordering, 11, 0, 4),)),
+        (
+            motor,
+            3,
+            9,
+            ((motor, 12, ordering, 11, 0, 4),),
+            (
+                (
+                    regulation,
+                    integration,
+                    receptor,
+                    5,
+                    17,
+                    "mounted-vestibular-organ",
+                    "yaw-canal",
+                ),
+            ),
+        ),
     )
 
 
@@ -845,11 +881,36 @@ def test_prepare_refuses_motor_transfer_not_incident_to_motor(
                 3,
                 9,
                 [("11" * 16, 11, "22" * 16, 12, 0, 4)],
+                [],
             )
         ],
     )
 
     with pytest.raises(RuntimeError, match="exact layer 11/layer 12 contact"):
+        organism.prepare(_Source())
+
+
+def test_prepare_refuses_motor_without_exact_body_afferent_ancestry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    motor = "12" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        motor_unit_recruitments=[
+            (
+                motor,
+                3,
+                9,
+                [(motor, 12, "11" * 16, 11, 0, 4)],
+                [],
+            )
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="body afferent paths changed format"):
         organism.prepare(_Source())
 
 

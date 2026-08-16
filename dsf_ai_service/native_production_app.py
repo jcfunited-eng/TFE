@@ -2564,9 +2564,9 @@ def _attention_motor_binding_from_hop(
         return None
     transfers_to_motors: dict[tuple[str, str, int, int], set[str]] = {}
     for recruitment in hop.get("motor_unit_recruitments", ()):
-        if len(recruitment) != 4:
+        if len(recruitment) != 5:
             return None
-        motor_lineage, _topology, _carriers, preparation = recruitment
+        motor_lineage, _topology, _carriers, preparation, _body_paths = recruitment
         for transfer in preparation:
             if len(transfer) != 6:
                 return None
@@ -7799,7 +7799,13 @@ def _advance_causal_motor_traces(
         if organism_tick <= origin_tick:
             continue
         for recruitment in hop["motor_unit_recruitments"]:
-            motor_lineage, topology_index, outward_carriers, preparation = recruitment
+            (
+                motor_lineage,
+                topology_index,
+                outward_carriers,
+                preparation,
+                body_afferent_paths,
+            ) = recruitment
             for (
                 sender,
                 sender_layer,
@@ -7832,6 +7838,7 @@ def _advance_causal_motor_traces(
                         "motor_layer": 12,
                         "motor_topology_index": topology_index,
                         "outward_elementary_carriers": outward_carriers,
+                        "body_afferent_paths": body_afferent_paths,
                     },
                 }
                 matched_changes = []
@@ -8094,6 +8101,7 @@ def _prepare_motor_yaw_action(
             int,
             int,
             tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
         ],
         ...,
     ],
@@ -8117,14 +8125,20 @@ def _prepare_motor_yaw_action(
         predecessor_heading_millidegrees=body.pose.heading_millidegrees,
         recruitments=tuple(
             (topology, carriers)
-            for _, topology, carriers, _ in recruitments
+            for _, topology, carriers, _, _ in recruitments
         ),
     )
     if not any(trajectory):
         return None
-    intent_material = bytearray(b"guala.native-motor-yaw.v1\0")
+    intent_material = bytearray(b"guala.native-motor-yaw.v2\0")
     intent_material.extend(bytes.fromhex(predecessor_state_sha256))
-    for lineage, topology, carriers, preparation_transfers in recruitments:
+    for (
+        lineage,
+        topology,
+        carriers,
+        preparation_transfers,
+        body_afferent_paths,
+    ) in recruitments:
         intent_material.extend(bytes.fromhex(lineage))
         intent_material.extend(topology.to_bytes(4, "little"))
         intent_material.extend(carriers.to_bytes(16, "little"))
@@ -8145,6 +8159,25 @@ def _prepare_motor_yaw_action(
             intent_material.extend(
                 transferred_whole_carriers.to_bytes(16, "little")
             )
+        intent_material.extend(len(body_afferent_paths).to_bytes(8, "little"))
+        for (
+            regulation,
+            integration,
+            receptor,
+            sense_layer,
+            receptor_topology,
+            sensor_id,
+            substream_id,
+        ) in body_afferent_paths:
+            intent_material.extend(bytes.fromhex(regulation))
+            intent_material.extend(bytes.fromhex(integration))
+            intent_material.extend(bytes.fromhex(receptor))
+            intent_material.extend(sense_layer.to_bytes(4, "little"))
+            intent_material.extend(receptor_topology.to_bytes(4, "little"))
+            for declared_value in (sensor_id, substream_id):
+                encoded_value = declared_value.encode("utf-8")
+                intent_material.extend(len(encoded_value).to_bytes(8, "little"))
+                intent_material.extend(encoded_value)
     prepared = authority.prepare_port_command(
         port_id=PORT_ID,
         command_payload=encode_command(
@@ -8252,6 +8285,7 @@ def _perform_admitted_intake_locked(
             int,
             int,
             tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
         ]
     ] = []
     articulatory_unit_recruitments: list[
@@ -8826,6 +8860,32 @@ def _perform_admitted_intake_locked(
                 "moved": True,
                 "signed_yaw_millidegrees": sum(trajectory),
                 "motor_unit_recruitment_count": len(motor_unit_recruitments),
+                "motor_body_afferent_paths": [
+                    {
+                        "body_regulation_lineage": regulation,
+                        "integration_lineage": integration,
+                        "receptor_lineage": receptor,
+                        "receptor_sense_layer": sense_layer,
+                        "receptor_topology_index": receptor_topology,
+                        "sensor_id": sensor_id,
+                        "substream_id": substream_id,
+                    }
+                    for (
+                        regulation,
+                        integration,
+                        receptor,
+                        sense_layer,
+                        receptor_topology,
+                        sensor_id,
+                        substream_id,
+                    ) in sorted(
+                        {
+                            path
+                            for recruitment in motor_unit_recruitments
+                            for path in recruitment[4]
+                        }
+                    )
+                ],
                 "observed_world_revision": execution.observed_revision,
                 "prepared_recruitments": [
                     {
@@ -8859,6 +8919,7 @@ def _perform_admitted_intake_locked(
                         topology,
                         carriers,
                         preparation_transfers,
+                        _body_afferent_paths,
                     ) in motor_unit_recruitments
                 ],
                 "vestibular_tick_count": len(trajectory),

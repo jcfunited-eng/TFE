@@ -126,6 +126,7 @@ type MotorUnitRecruitmentProjection = (
     u32,
     u128,
     Vec<(String, u32, String, u32, u32, u128)>,
+    Vec<(String, String, String, u8, u32, String, String)>,
 );
 type OrderedPhysicalPathProjection = (
     DirectedPhysicalTransferProjection,
@@ -5055,6 +5056,21 @@ fn project_motor_unit_recruitments(
                             receiver_layer,
                             transfer.bond.parallel_ordinal(),
                             transfer.transferred_whole_carriers,
+                        )
+                    })
+                    .collect(),
+                event
+                    .body_afferent_paths
+                    .iter()
+                    .map(|path| {
+                        (
+                            hex_bytes(&path.body_regulation_lineage),
+                            hex_bytes(&path.integration_lineage),
+                            hex_bytes(&path.receptor_lineage),
+                            path.receptor_site.sense().declared_layer(),
+                            path.receptor_site.topology_index(),
+                            path.receptor_site.sensor_id().to_owned(),
+                            path.receptor_site.substream_id().to_owned(),
                         )
                     })
                     .collect(),

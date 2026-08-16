@@ -25,7 +25,9 @@ def _hop(
     predecessor_tick: int,
     *,
     cues: tuple[tuple[str, tuple[str, ...]], ...] = (),
-    motors: tuple[tuple[str, int, int, tuple[object, ...]], ...] = (),
+    motors: tuple[
+        tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
+    ] = (),
 ) -> dict[str, object]:
     return {
         "predecessor_organism_tick": predecessor_tick,
@@ -73,7 +75,15 @@ def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() 
         proof,
         _hop(
             12,
-            motors=((motor, 7, 21, ((association, 11, motor, 12, 0, 67),)),),
+            motors=(
+                (
+                    motor,
+                    7,
+                    21,
+                    ((association, 11, motor, 12, 0, 67),),
+                    (),
+                ),
+            ),
         ),
     )
 
@@ -99,7 +109,7 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
             "internally_reassembled_formation_cues": (
                 ("11" * 32, ("01" * 16,)),
             ),
-            "motor_unit_recruitments": (("02" * 16, 1, 1, ()),),
+            "motor_unit_recruitments": (("02" * 16, 1, 1, (), ()),),
         },
     )
 

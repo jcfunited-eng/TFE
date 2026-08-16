@@ -42,7 +42,9 @@ def _hop(
     *,
     emitted: tuple[str, ...] = (),
     cues: tuple[tuple[str, tuple[str, ...]], ...] = (),
-    motors: tuple[tuple[str, int, int, tuple[object, ...]], ...] = (),
+    motors: tuple[
+        tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
+    ] = (),
 ) -> dict[str, object]:
     return {
         "predecessor_organism_tick": predecessor_tick,
@@ -90,7 +92,15 @@ def test_new_impression_advances_only_after_formation_then_reaches_motor() -> No
         completed,
         _hop(
             12,
-            motors=((motor, 4, 7, ((association, 11, motor, 12, 0, 7),)),),
+            motors=(
+                (
+                    motor,
+                    4,
+                    7,
+                    ((association, 11, motor, 12, 0, 7),),
+                    (),
+                ),
+            ),
         ),
     )
 
@@ -162,7 +172,15 @@ def test_external_participant_receptor_pulse_crosses_intervals_to_motor() -> Non
         completed,
         _hop(
             32,
-            motors=((motor, 4, 5, ((association, 11, motor, 12, 0, 5),)),),
+            motors=(
+                (
+                    motor,
+                    4,
+                    5,
+                    ((association, 11, motor, 12, 0, 5),),
+                    (),
+                ),
+            ),
         ),
     )
 
@@ -211,6 +229,7 @@ def test_one_seal_trajectory_preserves_external_cause_across_exact_intervals() -
                                 4,
                                 5,
                                 ((association, 11, motor, 12, 0, 5),),
+                                (),
                             ),
                         ),
                     ),
@@ -265,7 +284,15 @@ def test_retained_contact_change_is_bound_only_to_its_later_motor_path() -> None
         completed,
         _hop(
             11,
-            motors=((motor, 4, 7, ((association, 11, motor, 12, 0, 7),)),),
+            motors=(
+                (
+                    motor,
+                    4,
+                    7,
+                    ((association, 11, motor, 12, 0, 7),),
+                    (),
+                ),
+            ),
         ),
     )
 
@@ -328,7 +355,15 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
         completed,
         _hop(
             32,
-            motors=((motor, 3, 5, ((ordering, 11, motor, 12, 0, 5),)),),
+            motors=(
+                (
+                    motor,
+                    3,
+                    5,
+                    ((ordering, 11, motor, 12, 0, 5),),
+                    (),
+                ),
+            ),
         ),
         (trajectory,),
     )
@@ -412,7 +447,15 @@ def test_transaction_assembled_affective_trajectory_reaches_motor() -> None:
     motor_hop = {
         **_hop(
             33,
-            motors=((motor, 3, 5, ((ordering, 11, motor, 12, 0, 5),)),),
+            motors=(
+                (
+                    motor,
+                    3,
+                    5,
+                    ((ordering, 11, motor, 12, 0, 5),),
+                    (),
+                ),
+            ),
         ),
         "affective_balance_trajectories": (),
     }

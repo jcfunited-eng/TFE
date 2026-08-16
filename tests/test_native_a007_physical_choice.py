@@ -38,12 +38,14 @@ def _transition() -> dict[str, object]:
                 0,
                 7,
                 ((ORDERING, 11, POSITIVE_MOTOR, 12, 0, 3),),
+                (),
             ),
             (
                 NEGATIVE_MOTOR,
                 1,
                 2,
                 ((ORDERING, 11, NEGATIVE_MOTOR, 12, 0, 3),),
+                (),
             ),
         ),
         "causal_cross_context_use": {
