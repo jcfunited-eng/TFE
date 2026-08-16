@@ -28,7 +28,7 @@ def _plasticity(ordinal: int) -> tuple[object, ...]:
         (1, 8),
         (7, 8),
         (0, 1),
-        (1, 1),
+        (4, 3),
         (4, 3),
         ((1, 1), (0, 1), (0, 1)),
         ((7, 8), (1, 8), (0, 1)),
@@ -107,6 +107,15 @@ def _transition(
                 (SHARED_AFFECTIVE_LINEAGE, "03" * 16, 0, 4),
                 ("03" * 16, "04" * 16, 0, 3),
             ),
+            "changed_contact_channel_state": {
+                "change_organism_tick": origin_tick,
+                "contact_cognitive_ordinal": origin_tick,
+                "left_lineage": SHARED_AFFECTIVE_LINEAGE,
+                "right_lineage": "03" * 16,
+                "parallel_ordinal": 0,
+                "predecessor_state": (50, (0, 1), (1, 1)),
+                "successor_state": (51, (0, 1), (51, 50)),
+            },
             "localized_gradient_settlement_organism_tick": origin_tick + 1,
             "localized_plasticity_settlement_organism_tick": origin_tick,
             "motor_organism_tick": motor_tick,
@@ -714,7 +723,17 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
     assert participation["affective_neuron_lineage"] == SHARED_AFFECTIVE_LINEAGE
     assert participation["affective_motor_organism_tick"] == 473
     assert participation["retained_formation_motor_organism_tick"] == 472
-    assert participation["localized_plasticity_settlement_ordinal"] == 470
+    assert participation["contact_reinforcement_organism_tick"] == 470
+    assert participation["contact_reinforcement_predecessor_state"] == (
+        50,
+        (0, 1),
+        (1, 1),
+    )
+    assert participation["contact_reinforcement_successor_state"] == (
+        51,
+        (0, 1),
+        (51, 50),
+    )
     assert participation["localized_gradient_settlement_ordinal"] == 471
 
     new_impression = transition["new_impression_causal_use"]
@@ -729,6 +748,43 @@ def test_local_plastic_contact_and_retained_formation_converge_by_motor_event() 
     )
     assert refused is not None
     assert "affective_body_participation" not in refused
+
+    new_impression["action"] = transition["causal_cross_context_use"]["action"]
+    new_impression["changed_contact_channel_state"] = {
+        **new_impression["changed_contact_channel_state"],
+        "predecessor_state": (50, (0, 1), (1, 1)),
+        "successor_state": (50, (1, 8), (1, 1)),
+    }
+    phase_only = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:phase-only",
+    )
+    assert phase_only is not None
+    assert "affective_body_participation" not in phase_only
+
+    unchanged = new_impression["changed_contact_channel_state"]
+    unchanged["successor_state"] = unchanged["predecessor_state"]
+    refused = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:unchanged-contact",
+    )
+    assert refused is not None
+    assert "affective_body_participation" not in refused
+
+    unchanged["successor_state"] = (51, (0, 1), (51, 50))
+    new_impression["directed_physical_transfers"] = (
+        (SHARED_AFFECTIVE_LINEAGE, "03" * 16, 1, 4),
+        ("03" * 16, "06" * 16, 0, 3),
+    )
+    off_path = production._sensorimotor_play_episode_from_transition(
+        transition,
+        choice,
+        "continuous-environment:off-path-contact",
+    )
+    assert off_path is not None
+    assert "affective_body_participation" not in off_path
 
 
 def test_unmet_dissipation_refuses_overload_exclusion() -> None:

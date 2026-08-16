@@ -2651,9 +2651,9 @@ def _same_transition_affective_body_participation(
     """Bind one causal occurrence to its localized affect/body trajectory.
 
     The retained formation and one complete layer-10 affect/body trajectory
-    must each contribute to the same exact motor-population event and action
-    receipt. A direct shared motor lineage is accepted when present; otherwise
-    the affect/body branch must include its exact locally changed contact.
+    must each contribute to the same exact action receipt. The affect/body
+    branch must include its exact locally changed contact, and that contact
+    must occur on the branch's later physical motor path.
     Temporal proximity alone is not causal participation.
     The projection retains only exact paths, clocks, and receipts; it neither
     selects an action nor calls the trajectory positive, preferred, rewarding,
@@ -2669,107 +2669,62 @@ def _same_transition_affective_body_participation(
     motor_ordinal = causal.get("motor_organism_tick")
     if not isinstance(motor_ordinal, int) or motor_ordinal <= reassembly_ordinal:
         return None
-    affective_cause = evidence.get("affective_motor_causal_use")
     causal_motor = causal.get("motor_unit_recruitment")
-    affective_motor = (
-        affective_cause.get("motor_unit_recruitment")
-        if isinstance(affective_cause, dict)
-        else None
-    )
     causal_action_receipt = causal.get("action", {}).get(
         "causal_intent_receipt_sha256"
     )
-    direct_affective_path = (
-        isinstance(affective_cause, dict)
-        and isinstance(causal_motor, dict)
-        and isinstance(affective_motor, dict)
-        and affective_cause.get("motor_organism_tick") == motor_ordinal
-        and affective_motor.get("motor_lineage") == causal_motor.get("motor_lineage")
-        and affective_cause.get("action", {}).get(
-            "causal_intent_receipt_sha256"
-        )
-        == causal_action_receipt
-    )
-    changed_contact: dict[str, Any] | None = None
-    if not direct_affective_path:
-        affective_cause = evidence.get("new_impression_causal_use")
-        affective_motor = (
-            affective_cause.get("motor_unit_recruitment")
-            if isinstance(affective_cause, dict)
-            else None
-        )
-        changed_contact = (
-            affective_cause.get("changed_contact_channel_state")
-            if isinstance(affective_cause, dict)
-            else None
-        )
+    if not isinstance(causal_motor, dict) or not isinstance(
+        causal_action_receipt, str
+    ):
+        return None
+
+    candidates: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for key in ("affective_motor_causal_use", "new_impression_causal_use"):
+        candidate = evidence.get(key)
+        if not isinstance(candidate, dict):
+            continue
+        changed_contact = candidate.get("changed_contact_channel_state")
         if (
-            not isinstance(affective_cause, dict)
-            or not isinstance(causal_motor, dict)
-            or not isinstance(affective_motor, dict)
-            or not isinstance(changed_contact, dict)
-            or affective_cause.get("action", {}).get(
+            not isinstance(candidate.get("motor_unit_recruitment"), dict)
+            or candidate.get("action", {}).get(
                 "causal_intent_receipt_sha256"
             )
             != causal_action_receipt
+            or not _retained_contact_channel_reinforcement(changed_contact)
         ):
-            return None
+            continue
         changed_left = changed_contact.get("left_lineage")
         changed_right = changed_contact.get("right_lineage")
         changed_ordinal = changed_contact.get("parallel_ordinal")
-        if (
-            not isinstance(changed_left, str)
-            or not isinstance(changed_right, str)
-            or not isinstance(changed_ordinal, int)
-            or not any(
-                isinstance(transfer, (list, tuple))
-                and len(transfer) == 4
-                and {transfer[0], transfer[1]} == {changed_left, changed_right}
-                and transfer[2] == changed_ordinal
-                for transfer in affective_cause.get(
-                    "directed_physical_transfers", ()
-                )
-            )
+        if any(
+            isinstance(transfer, (list, tuple))
+            and len(transfer) == 4
+            and {transfer[0], transfer[1]} == {changed_left, changed_right}
+            and transfer[2] == changed_ordinal
+            for transfer in candidate.get("directed_physical_transfers", ())
         ):
-            return None
-    if direct_affective_path:
-        if not isinstance(affective_cause, dict):
-            return None
-        affective_motor_ordinal = motor_ordinal
-        affective_lineages = (affective_cause.get("affective_neuron_lineage"),)
-        gradient_ordinal = affective_cause.get(
-            "localized_gradient_settlement_organism_tick"
-        )
-        plasticity_ordinal = affective_cause.get(
-            "localized_plasticity_settlement_organism_tick"
-        )
-        trajectory_receipt = affective_cause.get(
-            "affective_trajectory_receipt_sha256"
-        )
-        if (
-            not isinstance(affective_lineages[0], str)
-            or not isinstance(gradient_ordinal, int)
-            or not isinstance(plasticity_ordinal, int)
-            or not isinstance(trajectory_receipt, str)
-        ):
-            return None
-    else:
-        if not isinstance(affective_cause, dict) or not isinstance(
-            changed_contact, dict
-        ):
-            return None
-        affective_lineages = (
-            changed_contact["left_lineage"],
-            changed_contact["right_lineage"],
-        )
-        affective_motor_ordinal = affective_cause.get("motor_organism_tick")
-        gradient_ordinal = None
-        plasticity_ordinal = changed_contact.get("change_organism_tick")
-        trajectory_receipt = None
-        if not isinstance(affective_motor_ordinal, int) or not isinstance(
-            plasticity_ordinal, int
-        ):
-            return None
+            candidates.append((candidate, changed_contact))
+    if not candidates:
+        return None
+    affective_cause, changed_contact = candidates[0]
+    affective_lineages = (
+        changed_contact["left_lineage"],
+        changed_contact["right_lineage"],
+    )
+    affective_motor_ordinal = affective_cause.get("motor_organism_tick")
+    contact_ordinal = changed_contact.get("change_organism_tick")
+    gradient_ordinal = affective_cause.get(
+        "localized_gradient_settlement_organism_tick"
+    )
+    trajectory_receipt = affective_cause.get(
+        "affective_trajectory_receipt_sha256"
+    )
+    if (
+        not isinstance(affective_motor_ordinal, int)
+        or not isinstance(contact_ordinal, int)
+        or contact_ordinal >= affective_motor_ordinal
+    ):
+        return None
     complete = tuple(
         trajectory
         for trajectory in tuple(evidence.get("affective_balance_trajectories", ()))
@@ -2780,17 +2735,14 @@ def _same_transition_affective_body_participation(
         and trajectory[3] is not None
         and trajectory[4] is not None
         and trajectory[5] is not None
-        and _retained_local_plasticity(trajectory[6])
-        and trajectory[6][0] == plasticity_ordinal
         and (
-            gradient_ordinal is None
+            not isinstance(gradient_ordinal, int)
             or trajectory[5][0] == gradient_ordinal
         )
         and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
         and trajectory[5][0] < affective_motor_ordinal
-        and trajectory[6][0] < affective_motor_ordinal
-        and trajectory[6][0] == trajectory[3][0]
-        and trajectory[6][0] == trajectory[4][0]
+        and contact_ordinal == trajectory[3][0]
+        and contact_ordinal == trajectory[4][0]
         and (
             trajectory_receipt is None
             or _receipt(tuple(trajectory)) == trajectory_receipt
@@ -2811,6 +2763,7 @@ def _same_transition_affective_body_participation(
         body,
         gradient,
         plasticity,
+        _receipt(changed_contact),
         tuple(affective_cause.get("directed_physical_transfers", ())),
     )
     return {
@@ -2825,8 +2778,19 @@ def _same_transition_affective_body_participation(
         "retained_formation_motor_organism_tick": motor_ordinal,
         "localized_gradient_settlement_ordinal": gradient[0],
         "localized_gradient_settlement_receipt_sha256": _receipt(gradient),
-        "localized_plasticity_settlement_ordinal": plasticity[0],
-        "localized_plasticity_settlement_receipt_sha256": _receipt(plasticity),
+        "contact_reinforcement_organism_tick": contact_ordinal,
+        "contact_reinforcement_receipt_sha256": _receipt(changed_contact),
+        "contact_reinforcement_left_lineage": changed_contact["left_lineage"],
+        "contact_reinforcement_right_lineage": changed_contact["right_lineage"],
+        "contact_reinforcement_parallel_ordinal": changed_contact[
+            "parallel_ordinal"
+        ],
+        "contact_reinforcement_predecessor_state": changed_contact[
+            "predecessor_state"
+        ],
+        "contact_reinforcement_successor_state": changed_contact[
+            "successor_state"
+        ],
         "affective_motor_path_receipt_sha256": _receipt(
             tuple(affective_cause.get("directed_physical_transfers", ()))
         ),
@@ -3421,8 +3385,9 @@ def _sensorimotor_play_record() -> dict[str, object]:
             ),
             (
                 "each autonomous play action's exact retained formation and a "
-                "layer-10 association/body path with retained plasticity and "
-                "later localized membrane-gradient settlement converged on "
+                "layer-10 association/body path with retained contact-channel "
+                "reinforcement and later localized membrane-gradient settlement "
+                "converged on "
                 "the same exact motor event and action receipt; this is "
                 "affective participation, not a named emotion or fun"
                 if affective_available
@@ -3698,14 +3663,7 @@ def _affective_balance_record() -> dict[str, object]:
         (
             trajectory
             for trajectory in trajectories
-            if isinstance(trajectory, (list, tuple))
-            and len(trajectory) == 7
-            and trajectory[3] is not None
-            and trajectory[4] is not None
-            and trajectory[5] is not None
-            and trajectory[5][0] > max(trajectory[3][0], trajectory[4][0])
-            and _retained_local_plasticity(trajectory[6])
-            and trajectory[6][0] > max(trajectory[3][0], trajectory[4][0])
+            if _complete_local_affective_balance_trajectory(trajectory)
         ),
         None,
     )
@@ -3722,8 +3680,7 @@ def _affective_balance_record() -> dict[str, object]:
             "layer-7 association, layer-8 body regulation, layer-10 junction, "
             "and localized membrane-gradient recovery are mounted, but this "
             "process has not yet observed both physical influences followed "
-            "by a later nonzero local gradient and retained plastic settlement "
-            "on the same cell",
+            "by a later nonzero local gradient on the same cell",
             evidence_scope=(
                 "latest_tested_physical_event"
                 if retained_test is not None
@@ -3749,13 +3706,42 @@ def _affective_balance_record() -> dict[str, object]:
     def rational_record(value: tuple[int, int]) -> dict[str, int]:
         return {"numerator": value[0], "denominator": value[1]}
 
+    localized_recovery: dict[str, object] | None = None
+    if isinstance(plasticity, (list, tuple)) and len(plasticity) == 10:
+        localized_recovery = {
+            "cognitive_ordinal": plasticity[0],
+            "incident_catalyst_quanta": plasticity[1],
+            "reaction_extent": plasticity[2],
+            "delivered_energy_zeptojoules": rational_record(plasticity[3]),
+            "predecessor_gate_work_residue_zeptojoules": rational_record(
+                plasticity[4]
+            ),
+            "successor_gate_work_residue_zeptojoules": rational_record(
+                plasticity[5]
+            ),
+            "predecessor_plastic_rest_length_nanometres": rational_record(
+                plasticity[6]
+            ),
+            "successor_plastic_rest_length_nanometres": rational_record(
+                plasticity[7]
+            ),
+            "predecessor_reservoir": tuple(
+                rational_record(value) for value in plasticity[8]
+            ),
+            "successor_reservoir": tuple(
+                rational_record(value) for value in plasticity[9]
+            ),
+            "retained_support_changed": plasticity[6] != plasticity[7],
+        }
+
     return _section(
         True,
-        "body_association_perturbation_followed_by_local_gradient_and_plastic_return",
+        "body_association_perturbation_followed_by_local_gradient",
         "the same physical layer-10 cell received exact association and body "
         "contact consequences and, at a strictly later cognitive ordinal, "
         "its own localized recovery-fluid compartment moved its retained "
-        "membrane gradient and plastic support geometry; this is affective-"
+        "membrane gradient; any support geometry shown is exact adjacent "
+        "recovery evidence, not reinforcement authority. This is affective-"
         "balance physics, not a named "
         "emotion, preference, reward, or score",
         evidence_scope=(
@@ -3788,30 +3774,7 @@ def _affective_balance_record() -> dict[str, object]:
                     gradient[9]
                 ),
             },
-            "localized_plasticity_settlement": {
-                "cognitive_ordinal": plasticity[0],
-                "incident_catalyst_quanta": plasticity[1],
-                "reaction_extent": plasticity[2],
-                "delivered_energy_zeptojoules": rational_record(plasticity[3]),
-                "predecessor_gate_work_residue_zeptojoules": rational_record(
-                    plasticity[4]
-                ),
-                "successor_gate_work_residue_zeptojoules": rational_record(
-                    plasticity[5]
-                ),
-                "predecessor_plastic_rest_length_nanometres": rational_record(
-                    plasticity[6]
-                ),
-                "successor_plastic_rest_length_nanometres": rational_record(
-                    plasticity[7]
-                ),
-                "predecessor_reservoir": tuple(
-                    rational_record(value) for value in plasticity[8]
-                ),
-                "successor_reservoir": tuple(
-                    rational_record(value) for value in plasticity[9]
-                ),
-            },
+            "localized_recovery_settlement": localized_recovery,
         },
         **authority,
     )
@@ -6984,6 +6947,32 @@ def _advance_bounded_prediction_evidence(
     return next_alternatives, next_consequence
 
 
+def _retained_contact_channel_reinforcement(change: Any) -> bool:
+    """Validate one retained contact change that alters later conductance.
+
+    The native boundary has already authenticated unequal predecessor and
+    successor states. This observer additionally refuses a phase-only residue:
+    A-011.6 requires the conducting population or exact conductance to change.
+    """
+
+    if not isinstance(change, dict):
+        return False
+    predecessor = change.get("predecessor_state")
+    successor = change.get("successor_state")
+    if (
+        not isinstance(predecessor, (list, tuple))
+        or len(predecessor) != 3
+        or not isinstance(successor, (list, tuple))
+        or len(successor) != 3
+        or predecessor == successor
+    ):
+        return False
+    return (
+        predecessor[0] != successor[0]
+        or predecessor[2] != successor[2]
+    )
+
+
 def _retained_local_plasticity(plasticity: Any) -> bool:
     """Validate one bounded native local-fluid/plastic return observation."""
 
@@ -7176,7 +7165,7 @@ def _complete_local_affective_balance_trajectory(trajectory: Any) -> bool:
 
     if not isinstance(trajectory, (list, tuple)) or len(trajectory) != 7:
         return False
-    lineage, layer, _topology, association, body, gradient, plasticity = trajectory
+    lineage, layer, _topology, association, body, gradient, _plasticity = trajectory
     return (
         layer == 10
         and isinstance(lineage, str)
@@ -7187,9 +7176,6 @@ def _complete_local_affective_balance_trajectory(trajectory: Any) -> bool:
         and len(body) == 2
         and len(gradient) == 10
         and gradient[0] > max(association[0], body[0])
-        and _retained_local_plasticity(plasticity)
-        and plasticity[0] == association[0]
-        and plasticity[0] == body[0]
     )
 
 
@@ -7397,10 +7383,11 @@ def _advance_causal_motor_traces(
                         localized_gradient_settlement_organism_tick=(
                             affective_trajectory[5][0]
                         ),
-                        localized_plasticity_settlement_organism_tick=(
-                            affective_trajectory[6][0]
-                        ),
                     )
+                    if isinstance(affective_trajectory[6], (list, tuple)):
+                        proof[
+                            "localized_recovery_settlement_organism_tick"
+                        ] = affective_trajectory[6][0]
                 else:
                     proof["motor_unit_recruitment"][
                         "matched_preparation_transfer"

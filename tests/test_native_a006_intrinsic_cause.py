@@ -231,7 +231,7 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
     proof = completed["affective_gradient"]
     assert proof["affective_neuron_lineage"] == affective
     assert proof["localized_gradient_settlement_organism_tick"] == 31
-    assert proof["localized_plasticity_settlement_organism_tick"] == 30
+    assert proof["localized_recovery_settlement_organism_tick"] == 30
     assert proof["motor_organism_tick"] == 33
     assert proof["directed_physical_transfers"] == (first, second)
     assert proof["motor_unit_recruitment"]["motor_lineage"] == motor
@@ -324,7 +324,7 @@ def test_transaction_assembled_affective_trajectory_reaches_motor() -> None:
 
     proof = completed["affective_gradient"]
     assert proof["localized_gradient_settlement_organism_tick"] == 32
-    assert proof["localized_plasticity_settlement_organism_tick"] == 31
+    assert proof["localized_recovery_settlement_organism_tick"] == 31
     assert proof["directed_physical_transfers"] == (
         first,
         (ordering, motor, 0, 5),

@@ -670,7 +670,7 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
         (1, 8),
         (7, 8),
         (0, 1),
-        (1, 1),
+        (4, 3),
         (4, 3),
         ((1, 1), (0, 1), (0, 1)),
         ((7, 8), (1, 8), (0, 1)),
@@ -693,7 +693,7 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
 
     assert value["available"] is True
     assert value["status"] == (
-        "body_association_perturbation_followed_by_local_gradient_and_plastic_return"
+        "body_association_perturbation_followed_by_local_gradient"
     )
     assert value["trajectory"]["neuron_layer"] == 10
     assert value["trajectory"]["association_influence"]["source_layer"] == 7
@@ -701,9 +701,12 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
     assert value["trajectory"]["localized_gradient_settlement"][
         "cognitive_ordinal"
     ] == 9
-    assert value["trajectory"]["localized_plasticity_settlement"][
+    assert value["trajectory"]["localized_recovery_settlement"][
         "successor_plastic_rest_length_nanometres"
     ] == {"numerator": 4, "denominator": 3}
+    assert value["trajectory"]["localized_recovery_settlement"][
+        "retained_support_changed"
+    ] is False
     assert value["named_emotion_authority"] is False
     assert value["python_decision_authority"] is False
 

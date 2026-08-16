@@ -1701,3 +1701,49 @@ second persistence authority remain out of scope and must not be extended.
   native-module provenance class RF-003/RF-036, not evidence about this
   deployment-race correction. It remains explicitly unresolved here rather
   than triggering a native rebuild or expanding A-011.6.
+
+### A-011.6 approved contact-reinforcement observer reconciliation
+
+- **Authority and task identity:** Joseph's 2026-08-15 approval in
+  `GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md` remains sufficient.
+  A-011.6 continues; A-011.5 remains Live-Closed and A-011.7 does not begin.
+  Production baseline is task 1082, runtime commit `57c7585f`, digest
+  `7cf416a4...`, preserved organism identity, and zero Python cognition.
+- **Falsified observer rule:** `_same_transition_affective_body_participation`
+  requires both the approved repeatable changed electrical-contact state and a
+  fresh neuron-wide plastic-support rest-length change. Mature live layer-10
+  supports are already settled at `4/3 nm`; repeating that first-yield event is
+  neither required by the approved contact constitution nor physically
+  repeatable. This is an observer false negative, not a missing architecture
+  decision.
+- **Single correction:** accept retained reinforcement only from a changed
+  conducting-channel population/conductance on the exact sparse contact later
+  used by the affective motor path. Continue to require the same action receipt,
+  layer-7 association and layer-8 body convergence on one layer-10 endpoint,
+  strictly later localized gradient settlement, retained-formation motor
+  causation, physical choice, action, sensed consequence, localized strain,
+  zero unmet dissipation, and zero exhausted intervals. A phase-only residue,
+  reservoir movement alone, timing coincidence, or an unchanged contact cannot
+  qualify.
+- **Translation boundary:** native `changed_contact_channel_states` already
+  validates exact unequal predecessor/successor states and crosses PyO3/Python
+  once. The observer will consume that existing compact record; no native state,
+  codec, persistence, scan, field, action, or cognitive authority changes.
+- **Acceptance:** a recurrent fixture with unchanged `4/3 -> 4/3 nm` neuron
+  support must qualify only when the exact contact population/conductance
+  changes and later reaches the same action. The same fixture must fail when the
+  contact is absent, unchanged, phase-only, off-path, differently receipted, or
+  lacks ordered association/body/gradient evidence. After focused proof, one
+  immutable release and one bounded other/Guala/other/Guala live witness remain
+  mandatory before A-011.6 can Live-Close.
+- **Observed local evidence:** the Python observer now consumes the native
+  changed-contact record already carried on the exact motor path. A recurrent
+  `4/3 -> 4/3 nm` support fixture qualifies when its conducting population and
+  exact conductance change, while missing, phase-only, unchanged, off-path, and
+  differently receipted contacts fail closed. The adjacent causal-trace and
+  public-observation surfaces now call the still-observed local chemistry
+  recovery rather than falsely calling it the reinforcement authority. The
+  focused A-011, A-006, public-observation, and C-017 suite passes `39/39` while
+  loading the task-1082-capable native module from
+  `/tmp/guala-a0116-native.1IuTlI/python`. No native organism, DSF, codec,
+  persistence, world, selection, or curriculum source changed.
