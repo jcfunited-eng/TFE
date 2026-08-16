@@ -4047,19 +4047,19 @@ def _experience_stage_ledger_record() -> dict[str, object]:
 
     absent = {
         "intent": _unmounted_stage(
-            "not_mounted",
-            "She cannot intend anything. Nothing in her forms an intention, "
-            "so there is nothing here to report.",
+            "not_observed_in_this_experience",
+            "This most recent committed experience contains no observed "
+            "native attention-to-motor preparation.",
         ),
         "action": _unmounted_stage(
-            "not_mounted",
-            "She has never done anything. She has no way to act on the world, "
-            "so no action can ever appear here yet.",
+            "not_observed_in_this_experience",
+            "This most recent committed experience contains no applied "
+            "native body action.",
         ),
         "consequence": _unmounted_stage(
-            "not_mounted",
-            "Nothing came back to her, because she has never acted. When she "
-            "can act, what her action causes will appear here.",
+            "not_observed_in_this_experience",
+            "This most recent committed experience contains no returned "
+            "sensory consequence from an applied body action.",
         ),
     }
     if _last_transition_evidence is None:
@@ -4105,6 +4105,62 @@ def _experience_stage_ledger_record() -> dict[str, object]:
     reassemblies = summed("partial_cue_reassembly_count")
     mosaics = evidence.get("cognitive_mosaic_count", 0)
     cohorts = summed("current_cohort_evaluation_count")
+    attention_motor_binding = evidence.get("attention_motor_binding")
+    motor_action = evidence.get("motor_action")
+    applied_action = (
+        motor_action
+        if isinstance(motor_action, dict)
+        and motor_action.get("disposition") == "applied"
+        and motor_action.get("moved") is True
+        and isinstance(motor_action.get("signed_yaw_millidegrees"), int)
+        and motor_action.get("signed_yaw_millidegrees") != 0
+        else None
+    )
+    sensory_consequence = (
+        applied_action.get("sensory_consequence")
+        if applied_action is not None
+        and isinstance(applied_action.get("sensory_consequence"), dict)
+        and applied_action.get("sensory_consequence", {}).get(
+            "action_receipt_sha256"
+        )
+        == applied_action.get("causal_intent_receipt_sha256")
+        else None
+    )
+    if isinstance(attention_motor_binding, dict):
+        matched_routes = attention_motor_binding.get("matched_attention_route_count")
+        matched_routes = matched_routes if isinstance(matched_routes, int) else 0
+    else:
+        matched_routes = 0
+    if matched_routes > 0:
+        absent["intent"] = _stage(
+            True,
+            "native_attention_motor_preparation_observed",
+            "the current experience itself retained the exact physical "
+            "attention-to-motor binding; no authored goal, score, semantic "
+            "command, or Python selector supplies it",
+            f"Her changing physical attention reached motor preparation "
+            f"through {matched_routes} matched route(s).",
+        )
+    if applied_action is not None:
+        signed_yaw = applied_action.get("signed_yaw_millidegrees")
+        absent["action"] = _stage(
+            True,
+            "native_body_action_applied",
+            "the current experience carries the committed native motor "
+            "receipt and its applied world displacement",
+            f"Her native motor discharge moved her body by {signed_yaw} "
+            "millidegrees of yaw.",
+        )
+    if sensory_consequence is not None:
+        consequence_tick = sensory_consequence.get("organism_tick")
+        absent["consequence"] = _stage(
+            True,
+            "native_action_consequence_returned",
+            "the applied action's own receipt returned through the mounted "
+            "sensory body in this committed experience",
+            f"Her action consequence returned through her senses at organism "
+            f"tick {consequence_tick}.",
+        )
 
     what, carried = _describe_intake(intake)
     seconds = (hops * INTAKE_HOP_MILLISECONDS) / 1000 if hops else 0

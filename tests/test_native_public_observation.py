@@ -334,6 +334,73 @@ def test_public_observation_reports_exact_sparse_attention_without_a_score(
     assert stage["status"] == attention["status"]
 
 
+def test_experience_stage_ledger_reports_native_action_and_its_consequence(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    receipt = "9" * 64
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "cognitive_mosaic_count": 0,
+            "complete_neuron_fractal_count": 0,
+            "hop_count": 1,
+            "intake": "continuous-environment:test",
+            "attention_motor_binding": {"matched_attention_route_count": 7},
+            "motor_action": {
+                "causal_intent_receipt_sha256": receipt,
+                "disposition": "applied",
+                "moved": True,
+                "signed_yaw_millidegrees": -6,
+                "sensory_consequence": {
+                    "action_receipt_sha256": receipt,
+                    "organism_tick": 24,
+                },
+            },
+            "totals": {
+                "complete_neuron_fractal_count": 0,
+                "current_cohort_evaluation_count": 1,
+                "dsf_delivery_count": 1,
+                "partial_cue_reassembly_count": 0,
+                "physically_transitioned_neuron_count": 1,
+                "recurrent_complete_neuron_fractal_count": 0,
+            },
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    stages = json.loads(serving.native_observation().body)[
+        "experience_stage_ledger"
+    ]["stages"]
+
+    assert stages["intent"]["status"] == (
+        "native_attention_motor_preparation_observed"
+    )
+    assert stages["action"]["status"] == "native_body_action_applied"
+    assert stages["consequence"]["status"] == (
+        "native_action_consequence_returned"
+    )
+    assert all(
+        stages[name]["available"] is True
+        for name in ("intent", "action", "consequence")
+    )
+
+
+def test_experience_stage_ledger_does_not_turn_current_absence_into_never(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    stages = json.loads(serving.native_observation().body)[
+        "experience_stage_ledger"
+    ]["stages"]
+
+    for name in ("intent", "action", "consequence"):
+        assert stages[name]["available"] is False
+        assert stages[name]["status"] == "not_observed_in_this_experience"
+        assert "never" not in stages[name]["summary"].lower()
+
+
 def test_public_observation_reports_bounded_working_cause_and_exact_settlement(
     monkeypatch,
 ) -> None:
