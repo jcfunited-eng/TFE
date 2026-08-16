@@ -525,9 +525,15 @@ box remains unchecked until live acceptance passes.
 
 ## Genuine learning and curriculum
 
-- [ ] **L-001** Replace button-as-learning with an embodied invitation and
+- [x] **L-001** Replace button-as-learning with an embodied invitation and
   presentation path: teacher approaches/calls, Guala may attend or decline, and
   the physical card/media reaches her senses in her persistent world.
+  **Live-closed 2026-08-16:** task 1104 bound one six-receptor persistent-world
+  approach to Guala's exact native changed reached/foregone route event without
+  requiring motor output. Her attended single-use receipt then admitted one
+  13-hop A-card presentation, persisted tick 137520/state `e34c2cc9...30627`,
+  delivered the full DSF 1,430 times, and stored durable receipt
+  `0aac21ca...cf633`; zero Python/scripted/semantic attention authority.
 - [ ] **L-002** Teach and analyze the complete novel ABC card deck through live
   multisensory experience; report full cognitive-chain effects and errors.
 - [ ] **L-003** Teach and analyze the complete 0–10 number/counting deck,

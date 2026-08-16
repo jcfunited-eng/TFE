@@ -53,7 +53,10 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   `loomscan.html` designs. Treat them only as current transport/observation
   surfaces. Do not incrementally polish them during L-series work; replace both
   completely when the U-series interface work becomes current.
-- Immediate next increment: `L-001`.
+- `L-001` is Live-Closed on task 1104 by one persistent-world participant
+  approach, Guala's exact native sparse-attention settlement, and one
+  receipt-gated retained A-card presentation.
+- Immediate next increment: `L-002`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -61,14 +64,14 @@ worktree with the Guala project-truth root check before acting.
 ## Exact live-production state
 
 Current override after the original task-1090 snapshot: production is one
-healthy settled `dsf-ai-task:1098` process, commit
-`bb085947a24f820888cb75fa79921653641a0dc7`, image
-`sha256:1f091e57ef1c4f38d64c14cb5965a599282c1b056dc55b0db7a0cfd0f434fbe5`,
-and the same organism identity. Independent post-cutover readiness reached
-tick `132021`, state bytes `59,557,026`, retained 313 complete neurons and
-196,416 developmental resting neurons, exposed the exact initialized 37-axis
-body, and reported zero Python cognition callbacks. The task-1090 facts below
-remain the historical starting snapshot, not the current task identity.
+healthy settled `dsf-ai-task:1104` process, commit
+`a2ac01feacd495cbefcb4c53064c083aba0f5b67`, image
+`sha256:c8cf7e8aa09e06c29e1a0e9b8ce8d8c20dfa75f7b416875ce0d9ad27e64e689c`,
+and the same organism identity. The L-001 retained presentation reached tick
+`137520`, state bytes `63,315,110`, and exact CURRENT state
+`e34c2cc9...30627`; zero Python cognition callbacks remain. The task-1090
+facts below remain the historical starting snapshot, not the current task
+identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
 
@@ -149,9 +152,10 @@ unproved and was not relabeled.
 ## Complete carried-forward delivery ledger
 
 The stale attachment sentence naming `S-017` as current work is superseded.
-All A-011 increments, A-012, and A-013 are now Live-Closed. Current production
-is task 1098; it preserves the earlier circuits and adds the exact bounded
-Phase-1 articulated body without an injected action or Python cognition.
+All A-011 increments through A-015 and L-001 are now Live-Closed. Current
+production is task 1104; it preserves the earlier circuits and body, and adds
+the exact participant-path/native-attention invitation boundary without
+Python cognition.
 
 ### A-011 play, fun, social joy, and body-owned laughter
 
@@ -204,9 +208,10 @@ Phase-1 articulated body without an injected action or Python cognition.
 
 ### Genuine learning and curriculum
 
-- [ ] **L-001:** replace button-as-learning with an embodied invitation and
+- [x] **L-001:** replace button-as-learning with an embodied invitation and
   presentation path: teacher approaches or calls, Guala may attend or decline,
   and physical card/media reaches her senses in the persistent world.
+  Live-Closed on task 1104; see the L-001 sprint ledger.
 - [ ] **L-002:** teach and analyze the complete novel A-Z card deck through
   live multisensory experience and report complete cognitive-chain effects and
   errors.
@@ -327,7 +332,8 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin L-001 from its embodied invitation and physical-presentation acceptance.
+Begin L-002 from the complete novel A-Z live teaching and cognitive-chain
+analysis acceptance.
 Do not reopen or repeat A-011, A-012, A-013, A-014, or A-015
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
@@ -360,6 +366,11 @@ closure unless new live evidence directly contradicts a recorded circuit.
   persisted activity, physical recovery, bounded non-monotonic state, unchanged
   storage, one organism process, and zero Python cognition callbacks. P-011 is
   not implied and remains open.
+- L-001 embodied invitation: Live-Closed on task 1104 by one six-receptor
+  persistent-world participant approach, the exact participant causal path
+  entering Guala's native changed reached/foregone route event, and one
+  consumed receipt admitting a 13-hop A-card presentation with durable receipt
+  `0aac21ca...cf633`. Learned-word and speech claims remain open.
 - Complete D3 objective: not complete.
 - Complete creator-accepted Loom and Loom Scan replacements: not implemented or
   live-proven; the current pages are transport/observation surfaces only.
