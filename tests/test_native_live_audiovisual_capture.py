@@ -147,4 +147,4 @@ def test_browser_uses_one_bounded_audiovisual_request() -> None:
     assert "micChunks=[];micFrames=[];micSamples=0;const controller" not in page
     assert "/api/v1/auditory/pcm/" not in page
     assert "if(!cameraStream)return" in page
-    assert "if(cameraInFlightEpoch!==null)return" in page
+    assert "if(cameraInFlightEpoch!==null)return" not in page
