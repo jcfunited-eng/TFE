@@ -24,7 +24,7 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   equal the commit embedded in the task-1090 production image.
 - Worktree status after the final handoff commit must be clean.
 - Most recently closed detailed ledger:
-  `docs/GUALA_A014_REAL_AND_VIRTUAL_INGRESS_SPRINT_LEDGER_2026-08-16.md`
+  `docs/GUALA_L002_COMPLETE_ALPHABET_LIVE_TEACHING_SPRINT_LEDGER_2026-08-16.md`
 - Binding complete scope:
   `docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md`
 - `A-011.6` remains Live-Closed by the creator-clarified circuit acceptance and
@@ -56,7 +56,13 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 - `L-001` is Live-Closed on task 1104 by one persistent-world participant
   approach, Guala's exact native sparse-attention settlement, and one
   receipt-gated retained A-card presentation.
-- Immediate next increment: `L-002`.
+- `L-002` is Live-Closed on task 1104 at its teaching-and-analysis boundary:
+  every A-Z card has exactly one durable attended presentation; B-Y were the
+  24 first-exposure cards and A/Z were disclosed controls. The pass produced
+  full physical cognitive-chain activity and zero exhaustion, but zero
+  complete recurrent fractals, so it proves neither alphabet recognition nor
+  speech.
+- Immediate next increment: `L-003`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -67,11 +73,12 @@ Current override after the original task-1090 snapshot: production is one
 healthy settled `dsf-ai-task:1104` process, commit
 `a2ac01feacd495cbefcb4c53064c083aba0f5b67`, image
 `sha256:c8cf7e8aa09e06c29e1a0e9b8ce8d8c20dfa75f7b416875ce0d9ad27e64e689c`,
-and the same organism identity. The L-001 retained presentation reached tick
-`137520`, state bytes `63,315,110`, and exact CURRENT state
-`e34c2cc9...30627`; zero Python cognition callbacks remain. The task-1090
-facts below remain the historical starting snapshot, not the current task
-identity.
+and the same organism identity. The completed L-002 A-Z pass reached its final
+lesson at tick `138891`, state `6a248c1c...10e4`, and `78,013,517` bytes; a
+later recovery observation at generation `138915` was `76,936,951` bytes.
+Identity stayed unchanged, complete/resting neuron counts were `417/196,312`,
+and Python cognition callbacks remained zero. The task-1090 facts below remain
+the historical starting snapshot, not the current task identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
 
@@ -212,9 +219,12 @@ Python cognition.
   presentation path: teacher approaches or calls, Guala may attend or decline,
   and physical card/media reaches her senses in the persistent world.
   Live-Closed on task 1104; see the L-001 sprint ledger.
-- [ ] **L-002:** teach and analyze the complete novel A-Z card deck through
+- [x] **L-002:** teach and analyze the complete novel A-Z card deck through
   live multisensory experience and report complete cognitive-chain effects and
-  errors.
+  errors. Live-Closed on task 1104 at the teaching-and-analysis boundary; B-Y
+  were first exposures, A/Z were disclosed controls, and zero complete
+  recurrent fractals prohibits a learned-alphabet claim. See the L-002 sprint
+  ledger.
 - [ ] **L-003:** teach and analyze the complete 0-10 number/counting deck,
   including zero, through distinct physical experiences.
 - [ ] **L-004:** present and analyze alphabet and counting songs with
@@ -332,8 +342,8 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin L-002 from the complete novel A-Z live teaching and cognitive-chain
-analysis acceptance.
+Begin L-003 with the complete 0-10 number/counting deck, including zero, as
+distinct embodied multisensory experiences.
 Do not reopen or repeat A-011, A-012, A-013, A-014, or A-015
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,

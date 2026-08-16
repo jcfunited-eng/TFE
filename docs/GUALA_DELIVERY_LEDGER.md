@@ -534,8 +534,18 @@ box remains unchecked until live acceptance passes.
   13-hop A-card presentation, persisted tick 137520/state `e34c2cc9...30627`,
   delivered the full DSF 1,430 times, and stored durable receipt
   `0aac21ca...cf633`; zero Python/scripted/semantic attention authority.
-- [ ] **L-002** Teach and analyze the complete novel ABC card deck through live
+- [x] **L-002** Teach and analyze the complete novel ABC card deck through live
   multisensory experience; report full cognitive-chain effects and errors.
+  **Live-closed 2026-08-16 at the teaching-and-analysis boundary:** task 1104
+  committed exactly one attended full presentation for every A-Z card. B-Y
+  were 24 first-exposure cards; previously exposed A and Z were reported as
+  controls. Across 383 hops the same organism executed 42,130 full DSF
+  deliveries, 141,790 physical neuron transitions, 799 complete-neuron-
+  fractal change occurrences, 4,672 partial-cue reassemblies including 208
+  endogenous, and 11,226 recovery occurrences with zero exhaustion. Complete
+  recurrent fractals remained zero, so no alphabet/word-learning claim is
+  made. Four tutor-geometry refusals caused no lesson mutation; five gateway
+  timeouts were reconciled by exact durable receipts without retry.
 - [ ] **L-003** Teach and analyze the complete 0–10 number/counting deck,
   including zero, through distinct physical experiences.
 - [ ] **L-004** Present and analyze the alphabet and counting songs with their
