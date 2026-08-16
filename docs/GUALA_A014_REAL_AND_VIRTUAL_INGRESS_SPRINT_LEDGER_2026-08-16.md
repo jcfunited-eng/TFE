@@ -2,17 +2,18 @@
 
 Date: 2026-08-16
 
-Status: Active; one offered-picture window is Live-Proven and concurrent
-camera/microphone ingress is Candidate-Proven locally. A-014 is not
-Live-Closed.
+Status: Active; one offered-picture window is Live-Proven, and concurrent
+camera/microphone ingress is deployed and Live-Mounted. Real browser hardware
+capture remains unproved, so A-014 is not Live-Closed.
 
 ## Task identity
 
 - Active item: `A-014` — make real-world camera, microphone, text, and media
   ingress coexist with the persistent virtual world as windows into one causal
   organism life.
-- Production baseline: task `dsf-ai-task:1091`, release commit `3eacc6cd`, one
-  healthy process, organism identity
+- Current production: task `dsf-ai-task:1093`, release commit `50ba31d8`, image
+  digest `sha256:6112924c7f6c217877969096445fe5e9a436c63623845d87d6d07e12f9066df1`,
+  one healthy process, organism identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and zero Python cognition callbacks.
 - A-011.7 remains untouched. A-012 and A-013 remain open at the truthful
   embodiment dependencies recorded in their own ledgers.
@@ -24,35 +25,36 @@ Live-Closed.
    organism only through authenticated physical receptor episodes.
 2. Current code reality: the production interaction surface exposes mounted
    camera, rendered-light, picture, PDF/book, audio/song, and virtual-world
-   routes. Candidate source replaces the microphone's earlier audio-only
+   routes. The deployed source replaces the microphone's earlier audio-only
    session route with one bounded concurrent camera/microphone request. Each
    camera frame and exact 4,000-sample 16-kHz pressure hop enters the existing
    retinal and cochlear rosters in the same native whole-sensorium occurrence.
-   Picture ingress has direct live evidence; real browser camera/microphone
-   hardware has not yet committed on the production process.
-3. Conflict with requested architecture: yes, now confined to delivery and
-   live proof. Candidate source implements physical concurrency, but the
-   deployed production surface has not yet been proven with a real browser's
-   camera and microphone. Source and local acceptance are not Live proof.
+   Picture ingress has direct live evidence; the combined route and its
+   fail-closed boundaries are live, but real browser camera/microphone hardware
+   has not yet committed on the production process.
+3. Conflict with requested architecture: yes, now confined to real-hardware
+   proof. Deployed source implements physical concurrency, but the production
+   surface has not yet admitted a real browser's camera and microphone. A
+   mounted route and local acceptance are not real-capture proof.
 4. Mechanisms not extended: typed chat or chatbot fallback, text strings as
    meaning, filenames/titles as cognition, browser-rendered fake organism
    state, upload/archive memory, Python sensory interpretation or action
    selection, duplicate receptor pipelines, or an earlier-camera Boolean
    represented as simultaneous sight.
-5. Single exact next item: deploy the candidate, then capture and admit one
-   concurrent bounded real-browser camera/microphone window through the
-   existing retinal and cochlear physics. Until that succeeds, the production
-   camera/microphone row remains not Live-Proven.
+5. Single exact next item: capture and admit one concurrent bounded
+   real-browser camera/microphone window through the deployed retinal and
+   cochlear physics. Until that succeeds, the production camera/microphone row
+   remains not Live-Proven.
 6. DSF scope: every participating receptor/neuron continues to receive the
    unchanged full joint seven-field L0-L4 result.
 7. Lost field structure: none.
 
 ## Source and live capability reconciliation
 
-| Window | Production route | Live status on task 1091 |
+| Window | Production route | Live status on task 1093 |
 |---|---|---|
 | Camera | `/api/v1/visual/live-frames` | mounted; no batch committed in this process |
-| Microphone | candidate `/api/v1/sensory/audiovisual`; deployed `/api/v1/auditory/pcm/*` until cutover | concurrent candidate is locally proven; no real browser batch committed in production |
+| Microphone | `/api/v1/sensory/audiovisual` | combined route is Live-Mounted and standalone PCM refuses; no real browser batch committed in production |
 | Rendered text | `/api/v1/material/rendered-light` | mounted; browser submits pixels, never the string |
 | Picture | `/api/v1/material/offered` | **Live-Proven 2026-08-16** |
 | PDF/book pages | `/api/v1/material/offered` | mounted; not live-proven in this sprint |
@@ -164,10 +166,46 @@ full `576`-test native verification and the six-window audiovisual probe are
 green after this correction. A second guarded release rehearsal is required;
 this remains Candidate-Proven and is not a deployment claim.
 
-This is Candidate-Proven only. A generated camera raster and PCM trajectory
-prove the server/native causal path and repeated persistence; they do not
-prove browser permissions, real capture hardware, deployed routing, or a
-human-present production encounter.
+## Corrected guarded deployment and live mount proof
+
+The controller built a new immutable artifact only after correction commit
+`50ba31d824663f56344a84e196b90bef57cc3740`. Its read-only candidate rehearsal
+restored the current production body exactly before cutover:
+
+- source identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and tick `122516`;
+- `cold_restore_exact=true`, `source_mount_read_only=true`, and
+  `raw_glorun_current_only=true`;
+- reached/resting inventory `313 / 196,416`, canonical state bytes
+  `58,438,004`, and zero Python cognition workers or callbacks;
+- the existing A-011.6 contact receipt, local junction, later causal use, and
+  exact cold restore all remained true; and
+- current-format migration remained disabled, so this was not a hidden body
+  rewrite.
+
+After that gate passed, the controller performed one verified cutover with no
+automatic rollback. Current production is one healthy settled task
+`dsf-ai-task:1093`, commit `50ba31d8`, and exact image digest
+`sha256:6112924c7f6c217877969096445fe5e9a436c63623845d87d6d07e12f9066df1`.
+Independent post-cutover observation preserved the same organism identity,
+reported advancing generation/tick `122628`, state bytes `58,440,226`, state
+SHA `b59ab40580522c68d84547fa587d32f145446d5cd4383ccf867194407517b0c7`,
+and zero Python cognition callbacks.
+
+The live capability surface now reports microphone endpoint
+`/api/v1/sensory/audiovisual`, source `live-camera-microphone`, concurrent
+camera required, and no committed hardware capture in this new process. An
+empty combined request was rejected at its exact schema boundary with HTTP
+422. Both `/sound_frame` and `/api/v1/auditory/pcm/open` rejected standalone
+hearing with HTTP 503 and the concurrent-sight requirement. These were refusal
+checks, not sensory mutations. The deployed Loom contains the paired capture
+source and epoch/abort ownership. This proves the production mount and
+fail-closed routing, not a real camera/microphone encounter.
+
+The route is Live-Mounted, while concurrent physical admission remains
+Candidate-Proven only. A generated camera raster and PCM trajectory prove the
+server/native causal path and repeated persistence; they do not prove browser
+permissions, real capture hardware, or a human-present production encounter.
 
 ## Closure rule
 
