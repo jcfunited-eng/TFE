@@ -69,6 +69,13 @@ _APPROVED_NUMBER_ASSET_NAMES = (
     "number-10-ten-v1.png",
 )
 
+# Zero was approved after the original 60 surface identities were already
+# persistent.  It therefore keeps a new object identity and placement instead
+# of renumbering or reinterpreting any lived surface.
+_APPROVED_ZERO_ASSET_NAMES = (
+    "number-00-zero-v1.png",
+)
+
 # THE FIRST WORDS SHE IS TAUGHT. Each reviewed surface carries one word
 # in plain letters on cream, and its picture, exactly as the alphabet and
 # number surfaces do. They were added to her curriculum and NEVER added
@@ -109,7 +116,9 @@ _APPROVED_SURFACE_PLACEMENTS = tuple(
         _ASSET_ROOT / asset_name,
         PositionMM(
             (
-                6_200 + 700 * (index - 27)
+                5_300 + 700 * (index - 47)
+                if index > 46
+                else 6_200 + 700 * (index - 27)
                 if index > 26
                 else 5_500 + 700 * (index - 1)
                 if index <= 14
@@ -119,7 +128,7 @@ _APPROVED_SURFACE_PLACEMENTS = tuple(
                     else 500 + 700 * (index - 22)
                 )
             ),
-            2_500 if index > 26 else 4_500,
+            1_800 if index > 46 else 2_500 if index > 26 else 4_500,
             0,
         ),
     )
@@ -129,6 +138,12 @@ _APPROVED_SURFACE_PLACEMENTS = tuple(
         + _APPROVED_WORD_ASSET_NAMES,
         1,
     )
+) + (
+    (
+        "W1-optical-surface-61",
+        _ASSET_ROOT / _APPROVED_ZERO_ASSET_NAMES[0],
+        PositionMM(15_700, 1_800, 0),
+    ),
 )
 
 

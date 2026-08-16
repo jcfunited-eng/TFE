@@ -463,7 +463,7 @@ async function refreshPlace(){const cap=capability("world");const ep=cap.record&
 
 // HER CURRICULUM, READ FROM HER OWN MANIFEST (2026-08-08).  The page used to
 // carry a copy of the 36-card deck and its filenames, which went stale the
-// moment the curriculum grew past the alphabet — and it has (60 and rising).
+// moment the curriculum grew past the alphabet — and it has (61 and rising).
 async function loadCurriculum(){try{let m=null;for(const path of ["/api/v1/curriculum/manifest","/curriculum/card_experience_manifest-v1.json"]){try{const r=await fetch(path,{cache:"no-store"});if(!r.ok)continue;const t=await r.text();if(t.trim().startsWith("<"))continue;m=JSON.parse(t);break}catch(_e){}}if(!m)return;if(!Array.isArray(m.experiences))throw new Error("manifest has no experiences");CURRICULUM_CARDS=m.experiences.map(e=>e.experience_id);CARD_FILES=Object.fromEntries(m.experiences.map(e=>[e.experience_id,e.surface.path.split("/").pop()]));paintCardStrip()}catch(e){setText("card-name","curriculum unavailable: "+e.message)}}
 loadCurriculum();
 document.getElementById("card-prev").addEventListener("click",()=>{if(curriculumInvitation)return;curriculumIndex=(curriculumIndex+CURRICULUM_CARDS.length-1)%CURRICULUM_CARDS.length;paintCardStrip()});

@@ -22,6 +22,8 @@ from dsf_ai_service.substrate import embodiment_world as world_module
 from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
     _APPROVED_ALPHABET_ASSET_NAMES,
     _APPROVED_NUMBER_ASSET_NAMES,
+    _APPROVED_WORD_ASSET_NAMES,
+    _APPROVED_ZERO_ASSET_NAMES,
 )
 from dsf_ai_service.substrate.embodiment_world import (
     MAX_MATERIAL_ACTION_DURATION_US,
@@ -556,6 +558,8 @@ def test_authenticated_v4_migrates_without_inventing_material_senses():
     assert len(migrated_surfaces) == len(
         _APPROVED_ALPHABET_ASSET_NAMES
         + _APPROVED_NUMBER_ASSET_NAMES
+        + _APPROVED_WORD_ASSET_NAMES
+        + _APPROVED_ZERO_ASSET_NAMES
     )
     assert all(item.material is not None for item in migrated_surfaces)
     assert all(item.material is None for item in migrated_prior_objects)

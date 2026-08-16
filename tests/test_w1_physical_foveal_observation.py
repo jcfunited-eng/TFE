@@ -18,6 +18,8 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
 from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
     _APPROVED_ALPHABET_ASSET_NAMES,
     _APPROVED_NUMBER_ASSET_NAMES,
+    _APPROVED_WORD_ASSET_NAMES,
+    _APPROVED_ZERO_ASSET_NAMES,
     approved_curriculum_physical_surfaces,
 )
 from dsf_ai_service.substrate.embodiment_world import (
@@ -636,13 +638,13 @@ def test_palette_surface_state_cold_restores_exactly_and_is_authenticated():
 def test_default_world_contains_all_approved_curriculum_surfaces():
     world = EmbodimentWorldAuthority(authority_key=KEY)
     observation = world.observation_snapshot()
-    assert len(observation.objects) == 42
+    assert len(observation.objects) == 67
     surfaces = tuple(
         item
         for item in observation.objects
         if item.optical_surface is not None
     )
-    assert len(surfaces) == 36
+    assert len(surfaces) == 61
     assert all(
         item.optical_surface.columns == 56
         and item.optical_surface.rows == 70
@@ -651,12 +653,15 @@ def test_default_world_contains_all_approved_curriculum_surfaces():
     approved = approved_curriculum_physical_surfaces()
     assert approved == surfaces
     assert len(_APPROVED_NUMBER_ASSET_NAMES) == 10
-    assert len({item.optical_surface for item in approved}) == 36
+    assert len(_APPROVED_ZERO_ASSET_NAMES) == 1
+    assert len({item.optical_surface for item in approved}) == 61
 
     for card, asset_name in zip(
         approved,
         _APPROVED_ALPHABET_ASSET_NAMES
-        + _APPROVED_NUMBER_ASSET_NAMES,
+        + _APPROVED_NUMBER_ASSET_NAMES
+        + _APPROVED_WORD_ASSET_NAMES
+        + _APPROVED_ZERO_ASSET_NAMES,
         strict=True,
     ):
         surface = card.optical_surface

@@ -218,6 +218,7 @@
         "guala_curriculum/cards/Z-is-for-Zebra.png",
         "guala_curriculum/cards/alphabet-a-apple-v1.png",
         "guala_curriculum/cards/alphabet-b-bee-v1.png",
+        "guala_curriculum/cards/number-00-zero-v1.png",
         "guala_curriculum/cards/number-01-one-v1.png",
         "guala_curriculum/cards/number-02-two-v1.png",
         "guala_curriculum/cards/number-03-three-v1.png",
@@ -254,7 +255,7 @@
         "guala_curriculum/cards/word-water-v1.png"
       ],
       "name": "physical_curriculum_surfaces",
-      "reason": "The 36 reviewed alphabet and number teaching-card rasters mounted as ordinary W1 physical surfaces; no labels or semantic metadata enter the receptor boundary."
+      "reason": "The 61 reviewed alphabet, number, and first-word teaching-card rasters mounted as ordinary W1 physical surfaces; no labels or semantic metadata enter the receptor boundary."
     },
     {
       "archive_prefix": "runtime",
@@ -273,6 +274,7 @@
         "guala_curriculum/audio/l-lion-tutor-v1.wav",
         "guala_curriculum/audio/m-mushroom-tutor-v1.wav",
         "guala_curriculum/audio/n-nest-tutor-v1.wav",
+        "guala_curriculum/audio/number-00-zero-tutor-v1.wav",
         "guala_curriculum/audio/number-01-one-tutor-v1.wav",
         "guala_curriculum/audio/number-02-two-tutor-v1.wav",
         "guala_curriculum/audio/number-03-three-tutor-v1.wav",
@@ -298,7 +300,7 @@
         "guala_curriculum/card_experience_manifest-v1.json"
       ],
       "name": "candidate_rehearsal_pressure",
-      "reason": "The exact 36-card external teaching manifest and 36 reviewed tutor-pressure recordings are served as bounded physical curriculum transport; no transcript, label, meaning, recognition, or PCM retention is inserted into cognition."
+      "reason": "The exact 61-card external teaching manifest and 37 reviewed tutor-pressure recordings are served as bounded physical curriculum transport; no transcript, label, meaning, recognition, or PCM retention is inserted into cognition."
     },
     {
       "archive_prefix": "runtime",

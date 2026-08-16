@@ -13,6 +13,7 @@ from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
     _APPROVED_ALPHABET_ASSET_NAMES,
     _APPROVED_NUMBER_ASSET_NAMES,
     _APPROVED_WORD_ASSET_NAMES,
+    _APPROVED_ZERO_ASSET_NAMES,
 )
 from tools.package_guala_release import (
     CANONICAL_FILE_MODE,
@@ -268,6 +269,7 @@ def test_candidate_manifest_is_exact_current_runtime_import_closure() -> None:
             _APPROVED_ALPHABET_ASSET_NAMES
             + _APPROVED_NUMBER_ASSET_NAMES
             + _APPROVED_WORD_ASSET_NAMES
+            + _APPROVED_ZERO_ASSET_NAMES
         )
     }
     assert by_category["physical_curriculum_surfaces"] == expected_physical_surfaces

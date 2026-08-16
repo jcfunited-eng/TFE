@@ -1,5 +1,5 @@
 {
-  "approved_experience_count": 60,
+  "approved_experience_count": 61,
   "authority_boundary": {
     "external_tutor_pairing": true,
     "internal_identity_authority": false,
@@ -387,6 +387,20 @@
         "path": "guala_curriculum/audio/z-zebra-tutor-v1.wav",
         "sample_count": 31915,
         "sha256": "b64aa3eda768d9d75e24ec88af36baab43cdd95df8b197fb51403ca71c71f76b"
+      },
+      "presentation_milliseconds": 15000
+    },
+    {
+      "experience_id": "number-00",
+      "surface": {
+        "object_id": "W1-optical-surface-61",
+        "path": "guala_curriculum/cards/number-00-zero-v1.png",
+        "sha256": "8a6fea71e5b46cb4791a125c9954183eba5da3fdc2d1775f0d3606d500b446fa"
+      },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/number-00-zero-tutor-v1.wav",
+        "sample_count": 20792,
+        "sha256": "de064659338a2ab3f61ff5af64782b8c862fda0cce2c57945037f6268f79360d"
       },
       "presentation_milliseconds": 15000
     },
