@@ -29,7 +29,7 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-PROOF_SCHEMA = "guala.production_native_current_cold_restore.v6"
+PROOF_SCHEMA = "guala.production_native_current_cold_restore.v7"
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -1124,6 +1124,94 @@ def _rehearse_contact_local_junction(
     }
 
 
+def _rehearse_a013_articulated_body(
+    current_envelope: bytes,
+    *,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> dict[str, object]:
+    """Prove one exact body observation, commit, and cold restoration."""
+
+    budget = {
+        "max_envelope_bytes": max_envelope_bytes,
+        "max_fabric_bytes": max_fabric_bytes,
+        "max_logical_peak_bytes": max_logical_peak_bytes,
+    }
+    organism = restore_native_resident_organism(
+        current_envelope=current_envelope,
+        **budget,
+    )
+    before = organism.readiness()
+    before_axes = tuple(before.articulated_body_axes)
+    if len(before_axes) != 37 or before.articulated_body_state_bytes != 195:
+        raise RuntimeError("A-013 restored body anatomy changed")
+
+    prepared = organism.prepare_articulated_body_observation()
+    unchanged = organism.readiness()
+    if (
+        unchanged.state_sha256 != before.state_sha256
+        or unchanged.organism_tick != before.organism_tick
+        or prepared.predecessor_state_sha256 != before.state_sha256
+        or prepared.predecessor_organism_tick != before.organism_tick
+        or prepared.organism_tick != before.organism_tick + 1
+        or prepared.receptor_ingress_sense_counts != (0, 0, 0, 0, 0, 74)
+        or prepared.python_callback_count != 0
+        or prepared.successor_seal_count != 1
+        or prepared.motor_unit_recruitments
+        or prepared.body_effector_bindings
+        or prepared.articulated_body_consequences
+        or prepared.body_proprioceptive_sources
+    ):
+        raise RuntimeError("A-013 neutral body observation changed its causal boundary")
+
+    hot = organism.commit(prepared.token)
+    successor_envelope = bytes(organism.save())
+    cold_organism = restore_native_resident_organism(
+        current_envelope=successor_envelope,
+        **budget,
+    )
+    cold = cold_organism.readiness()
+    if (
+        hot.identity != before.identity
+        or hot.organism_tick != before.organism_tick + 1
+        or hot.state_sha256 != prepared.prepared_state_sha256
+        or tuple(hot.articulated_body_axes) != before_axes
+        or len(hot.articulated_body_axes) != 37
+        or hot.articulated_body_state_bytes != 195
+        or hot.articulated_body_proprioception_initialized is not True
+        or cold.identity != hot.identity
+        or cold.organism_tick != hot.organism_tick
+        or cold.state_sha256 != hot.state_sha256
+        or cold.articulated_body_state_sha256
+        != hot.articulated_body_state_sha256
+        or tuple(cold.articulated_body_axes)
+        != tuple(hot.articulated_body_axes)
+        or cold.articulated_body_proprioception_initialized is not True
+        or cold.python_callback_count != 0
+        or len(successor_envelope) != hot.state_bytes
+        or hashlib.sha256(successor_envelope).hexdigest() != hot.state_sha256
+    ):
+        raise RuntimeError("A-013 articulated body did not cold-restore exactly")
+    return {
+        "a013_articulated_body_rehearsed": True,
+        "a013_articulated_body_predecessor_state_sha256": before.state_sha256,
+        "a013_articulated_body_successor_state_sha256": hot.state_sha256,
+        "a013_articulated_body_predecessor_tick": before.organism_tick,
+        "a013_articulated_body_successor_tick": hot.organism_tick,
+        "a013_articulated_body_axis_count": len(hot.articulated_body_axes),
+        "a013_articulated_body_terminal_count": 74,
+        "a013_articulated_body_state_bytes": hot.articulated_body_state_bytes,
+        "a013_articulated_body_state_sha256": (
+            hot.articulated_body_state_sha256
+        ),
+        "a013_articulated_body_proprioception_initialized": True,
+        "a013_articulated_body_neutral_observation": True,
+        "a013_articulated_body_cold_restore_exact": True,
+        "a013_articulated_body_python_callback_count": 0,
+    }
+
+
 def _exact_articulatory_trajectory_or_none(
     recruitments: tuple[tuple[object, int, int, object], ...],
 ) -> object | None:
@@ -1637,7 +1725,7 @@ def main() -> int:
         )
     ):
         raise RuntimeError("native CURRENT cold restore changed")
-    contact_local_proof = _rehearse_contact_local_junction(
+    articulated_body_proof = _rehearse_a013_articulated_body(
         state,
         max_envelope_bytes=admission.max_envelope_bytes,
         max_fabric_bytes=admission.max_fabric_bytes,
@@ -1669,8 +1757,7 @@ def main() -> int:
         "source_mount_read_only": True,
         "tick": before.organism_tick,
         **motor_proof,
-        **contact_local_proof,
-        **_observe_c024_cognitive_capital(restored, admission, before.state_sha256),
+        **articulated_body_proof,
     }
     proof = {
         **record,

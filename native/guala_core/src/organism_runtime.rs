@@ -15,6 +15,9 @@
 //! advances nothing. It performs no Python callback and owns no
 //! persistence, owner, lock, or global clock.
 
+use crate::articulated_body_joint_source_builder::{
+    admit_articulated_body_proprioceptive_source, admit_complete_articulated_body_state_source,
+};
 use crate::complete_neuron::{ExactPhysicalStateDelta, PhysicalStateCoordinate};
 use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
 use crate::exact_rational::ExactRational;
@@ -38,15 +41,13 @@ use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::resident_cognitive_formation::{
     coalesce_emitted_neuron_fractals, has_reached_and_foregone_frontier_routes,
-    AffectiveBalanceTrajectoryObservation,
-    ArticulatoryUnitRecruitment, AuthoredDeclaredContact, CausalFrontierTransferObservation,
-    ChangedContactChannelStateObservation, CognitiveFormationObservation,
-    CognitiveFormationSummary, DirectedPhysicalTransferObservation, EmittedNeuronFractal,
-    InternallyReassembledFormationCueObservation,
+    AffectiveBalanceTrajectoryObservation, ArticulatoryUnitRecruitment, AuthoredDeclaredContact,
+    CausalFrontierTransferObservation, ChangedContactChannelStateObservation,
+    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
+    EmittedNeuronFractal, InternallyReassembledFormationCueObservation,
     LocalizedFluidChemistryObservation, LocalizedMetabolicStrainObservation, MotorUnitRecruitment,
     OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
-    PhysicalFrontierRouteObservation,
-    PreparedCognitiveFormationTransition,
+    PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
     ResidentCognitiveFormationState,
 };
 use crate::resident_receptor_transition::{
@@ -59,11 +60,17 @@ use crate::vestibular_neuron_path::{
     phase_one_virtual_vestibular_anatomy, FunctionalVestibularAnatomy,
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES,
 };
-use crate::virtual_body_yaw_motion::{
-    settle_motor_unit_yaw_actuation, settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
+use crate::virtual_articulated_body::{
+    settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
+    ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
+    BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
+    BODY_EFFECTOR_TERMINAL_COUNT,
 };
 use crate::virtual_articulatory_body::{
     settle_articulatory_unit_discharge, ARTICULATORY_SAMPLE_RATE_HZ,
+};
+use crate::virtual_body_yaw_motion::{
+    settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
 };
 use crate::virtual_vestibular_canal::{decode_canal_state, encode_canal_state, CanalState};
 use num_bigint::BigInt;
@@ -72,6 +79,7 @@ use num_traits::Zero;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Arc;
 
@@ -81,8 +89,10 @@ const LEGACY_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB04";
 const LEGACY_FABRIC_VERSION: u16 = 4;
 const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
 const PRE_VESTIBULAR_FABRIC_VERSION: u16 = 7;
-const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
-const FABRIC_VERSION: u16 = 8;
+const PRE_ARTICULATED_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
+const PRE_ARTICULATED_FABRIC_VERSION: u16 = 8;
+const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB09";
+const FABRIC_VERSION: u16 = 9;
 const CANAL_STATE_BYTES: usize = 32;
 const VESTIBULAR_BODY_BYTES: usize =
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES + CANAL_STATE_BYTES + std::mem::size_of::<u64>();
@@ -101,7 +111,8 @@ const FABRIC_FIXED_BYTES: usize = FABRIC_MAGIC.len()
     + std::mem::size_of::<u64>()
     + std::mem::size_of::<u32>()
     + std::mem::size_of::<u32>()
-    + VESTIBULAR_BODY_BYTES;
+    + VESTIBULAR_BODY_BYTES
+    + ARTICULATED_BODY_STATE_BYTES;
 const LEGACY_FABRIC_FIXED_BYTES: usize = LEGACY_FABRIC_MAGIC.len()
     + std::mem::size_of::<u16>()
     + std::mem::size_of::<u64>()
@@ -127,6 +138,19 @@ type MotorUnitRecruitmentProjection = (
     u128,
     Vec<(String, u32, String, u32, u32, u128)>,
     Vec<(String, String, String, u8, u32, String, String)>,
+);
+type ArticulatedBodyConsequenceProjection = (
+    u64,
+    String,
+    String,
+    i32,
+    i32,
+    i32,
+    u128,
+    u128,
+    u128,
+    u128,
+    u128,
 );
 type OrderedPhysicalPathProjection = (
     DirectedPhysicalTransferProjection,
@@ -236,15 +260,7 @@ type LocalizedFluidChemistryProjection = (
         ExactRationalProjection,
     ),
 );
-type LocalizedMetabolicStrainProjection = (
-    String,
-    u32,
-    u32,
-    u64,
-    Vec<String>,
-    String,
-    String,
-);
+type LocalizedMetabolicStrainProjection = (String, u32, u32, u64, Vec<String>, String, String);
 const TASK853_IDENTITY: &str = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1";
 const TASK853_ORGANISM_TICK: u64 = 23_723_846;
 const TASK853_GLMFAB03_SHA256: [u8; 32] = [
@@ -337,6 +353,7 @@ pub(crate) enum RuntimeError {
     ResidentMountedInvariantChanged,
     CognitiveFormation(String),
     Vestibular(String),
+    ArticulatedBody(String),
     /// The bare (unadmitted) source path stays severed by the
     /// mandatory-admission law.  It used to be refused for want of a cold
     /// custody port; cold custody is gone, so it is refused for the reason it
@@ -441,6 +458,9 @@ impl fmt::Display for RuntimeError {
                     "resident body-and-balance transition failed: {reason}"
                 )
             }
+            Self::ArticulatedBody(reason) => {
+                write!(output, "resident articulated body failed: {reason}")
+            }
             Self::AdmittedSourceRequired => write!(
                 output,
                 "resident cognition requires an explicit admitted joint source episode"
@@ -495,8 +515,7 @@ pub(crate) struct RuntimeObservation {
     pub(crate) body_consequence_transfers: Vec<DirectedPhysicalTransferObservation>,
     pub(crate) affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     pub(crate) localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
-    pub(crate) localized_metabolic_strain_evaluated_body_receptor_lineages:
-        Vec<[u8; 16]>,
+    pub(crate) localized_metabolic_strain_evaluated_body_receptor_lineages: Vec<[u8; 16]>,
     pub(crate) localized_metabolic_strain: Vec<LocalizedMetabolicStrainObservation>,
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) recurrent_complete_neuron_fractal_count: usize,
@@ -643,6 +662,7 @@ struct ActiveResidentOrganismState {
     mounted: ResidentMountedState,
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
+    articulated_body: ArticulatedBodyState,
     observation: RuntimeObservation,
 }
 
@@ -653,6 +673,7 @@ struct PendingResidentOrganismState {
     mounted: ResidentMountedState,
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
+    articulated_body: ArticulatedBodyState,
     observation: RuntimeObservation,
 }
 
@@ -665,13 +686,30 @@ struct ResidentPrepareReceipt {
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
+    articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
+    body_proprioceptive_sources: Vec<BodyProprioceptiveSourceReceipt>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct TimedBodyProprioceptiveConsequence {
+    source_tick: u64,
+    consequence: BodyProprioceptiveConsequence,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct BodyProprioceptiveSourceReceipt {
+    source_tick: u64,
+    payload: Vec<u8>,
+    port_count: usize,
+    sample_count: usize,
+    occurrence_count: usize,
+    occurrence_frame_count: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct CausalIntervalEvidence {
     externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
-    internally_reassembled_formation_cues:
-        Vec<InternallyReassembledFormationCueObservation>,
+    internally_reassembled_formation_cues: Vec<InternallyReassembledFormationCueObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     emitted_neuron_lineages: Vec<[u8; 16]>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
@@ -708,6 +746,7 @@ pub struct NativeResidentOrganismRuntime {
 pub struct NativeResidentOrganismObservation {
     observation: RuntimeObservation,
     cold_restore_work: ResidentMountedRestoreWork,
+    articulated_body: ArticulatedBodyState,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -719,6 +758,8 @@ pub struct NativeResidentOrganismPrepare {
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
+    articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
+    body_proprioceptive_sources: Vec<BodyProprioceptiveSourceReceipt>,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -889,6 +930,59 @@ impl NativeResidentOrganismObservation {
     #[getter]
     fn fabric_sha256(&self) -> String {
         hex_digest(&self.observation.fabric_receipt)
+    }
+
+    /// Read-only exact local body configuration. Anatomical identifiers are
+    /// observation coordinates only; cognition cannot consume this surface.
+    #[getter]
+    fn articulated_body_axes(&self) -> Vec<(u8, String, String, i32, i32, i32, i32)> {
+        BODY_AXES
+            .iter()
+            .copied()
+            .map(|axis| {
+                let anatomy = axis.anatomy();
+                (
+                    u8::try_from(axis.index()).expect("body axis count fits u8"),
+                    axis.anatomical_name().to_owned(),
+                    anatomy.unit.physical_name().to_owned(),
+                    self.articulated_body.axis(axis),
+                    anatomy.minimum,
+                    anatomy.neutral,
+                    anatomy.maximum,
+                )
+            })
+            .collect()
+    }
+
+    #[getter]
+    fn articulated_body_lung_air_microlitres(&self) -> u32 {
+        self.articulated_body.lung_air_microlitres()
+    }
+
+    #[getter]
+    fn articulated_body_vocal_tract_areas_square_millimetres(&self) -> Vec<i32> {
+        self.articulated_body
+            .vocal_tract_areas_square_millimetres()
+            .to_vec()
+    }
+
+    #[getter]
+    fn articulated_body_state_bytes(&self) -> usize {
+        ArticulatedBodyState::resident_bytes()
+    }
+
+    #[getter]
+    fn articulated_body_proprioception_initialized(&self) -> bool {
+        self.articulated_body.proprioception_initialized()
+    }
+
+    #[getter]
+    fn articulated_body_state_sha256(&self) -> String {
+        let encoded = self
+            .articulated_body
+            .encode()
+            .expect("resident articulated body was admitted before observation");
+        hex_digest(&sha256(&encoded))
     }
 
     #[getter]
@@ -1256,6 +1350,16 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn causal_interval_count(&self) -> usize {
+        self.causal_interval_evidence.len().max(1)
+    }
+
+    #[getter]
+    fn reached_source_port_count(&self) -> usize {
+        self.phase_counts.reached_neuron_lookup_count
+    }
+
+    #[getter]
     fn successor_seal_count(&self) -> usize {
         self.phase_counts.successor_seal_count
     }
@@ -1264,10 +1368,85 @@ impl NativeResidentOrganismPrepare {
     /// exact outward whole-carrier discharge remains the authority; reading
     /// this projection stores and advances nothing.
     #[getter]
-    fn motor_unit_recruitments(
-        &self,
-    ) -> Vec<MotorUnitRecruitmentProjection> {
+    fn motor_unit_recruitments(&self) -> Vec<MotorUnitRecruitmentProjection> {
         project_motor_unit_recruitments(&self.motor_unit_recruitments)
+    }
+
+    /// Exact typed motor-to-terminal bindings retained on the motor mounts.
+    /// Afferent receptor ancestry and topology never select a terminal.
+    #[getter]
+    fn body_effector_bindings(&self) -> Vec<(String, String, String, u128)> {
+        self.motor_unit_recruitments
+            .iter()
+            .map(|recruitment| {
+                let terminal = recruitment.body_effector_terminal;
+                let direction = match terminal.direction() {
+                    crate::virtual_articulated_body::BodyEffectorDirection::TowardMinimum => {
+                        "toward_minimum"
+                    }
+                    crate::virtual_articulated_body::BodyEffectorDirection::TowardMaximum => {
+                        "toward_maximum"
+                    }
+                };
+                (
+                    hex_bytes(&recruitment.neuron_lineage),
+                    terminal.axis().anatomical_name().to_owned(),
+                    direction.to_owned(),
+                    recruitment.outward_elementary_carriers,
+                )
+            })
+            .collect()
+    }
+
+    /// Sparse physical body successor facts. These are observation only; the
+    /// persisted successor body remains the authority.
+    #[getter]
+    fn articulated_body_consequences(&self) -> Vec<ArticulatedBodyConsequenceProjection> {
+        self.articulated_body_consequences
+            .iter()
+            .map(|timed| {
+                let consequence = timed.consequence;
+                (
+                    timed.source_tick,
+                    consequence.axis.anatomical_name().to_owned(),
+                    consequence.unit.physical_name().to_owned(),
+                    consequence.predecessor_position,
+                    consequence.successor_position,
+                    consequence.signed_displacement,
+                    consequence.toward_minimum_carriers,
+                    consequence.toward_maximum_carriers,
+                    consequence.opposed_carriers_per_terminal,
+                    consequence.applied_displacement_quanta,
+                    consequence.stalled_carriers,
+                )
+            })
+            .collect()
+    }
+
+    /// Exact GLJSRC03 proprioceptive occurrence for the next causal organism
+    /// interval. Python may transport these bytes but cannot choose meaning.
+    #[getter]
+    fn body_proprioceptive_sources<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyBytes>> {
+        self.body_proprioceptive_sources
+            .iter()
+            .map(|source| PyBytes::new(py, &source.payload))
+            .collect()
+    }
+
+    #[getter]
+    fn body_proprioceptive_source_extents(&self) -> Vec<(u64, usize, usize, usize, usize)> {
+        self.body_proprioceptive_sources
+            .iter()
+            .map(|source| {
+                (
+                    source.source_tick,
+                    source.port_count,
+                    source.sample_count,
+                    source.occurrence_count,
+                    source.occurrence_frame_count,
+                )
+            })
+            .collect()
     }
 
     /// Exact per-interval causal observation retained only for the lifetime of
@@ -1483,9 +1662,7 @@ impl NativeResidentOrganismPrepare {
 
     #[getter]
     fn changed_contact_channel_states(&self) -> Vec<ChangedContactChannelStateProjection> {
-        project_changed_contact_channel_states(
-            &self.observation.changed_contact_channel_states,
-        )
+        project_changed_contact_channel_states(&self.observation.changed_contact_channel_states)
     }
 
     #[getter]
@@ -2112,7 +2289,9 @@ fn retain_cognitive_trajectory_observation(
     if observation.mosaic_formed.is_some() {
         total.mosaic_formed = observation.mosaic_formed;
     }
-    total.activations.extend(observation.activations.iter().cloned());
+    total
+        .activations
+        .extend(observation.activations.iter().cloned());
     total.dsf_delivery_count = total
         .dsf_delivery_count
         .checked_add(observation.dsf_delivery_count)
@@ -2137,10 +2316,9 @@ fn retain_cognitive_trajectory_observation(
     total
         .emitted_neuron_fractals
         .extend(observation.emitted_neuron_fractals.iter().cloned());
-    total.emitted_neuron_fractals = coalesce_emitted_neuron_fractals(
-        std::mem::take(&mut total.emitted_neuron_fractals),
-    )
-    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    total.emitted_neuron_fractals =
+        coalesce_emitted_neuron_fractals(std::mem::take(&mut total.emitted_neuron_fractals))
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
     total.complete_neuron_fractal_count = total.emitted_neuron_fractals.len();
     for change in &observation.changed_contact_channel_states {
         if !total
@@ -2158,8 +2336,7 @@ fn retain_cognitive_trajectory_observation(
         .articulatory_unit_recruitments
         .extend(observation.articulatory_unit_recruitments.iter().cloned());
     if observation.physical_frontier_routes != total.physical_frontier_routes {
-        total.preceding_distinct_physical_frontier_routes =
-            total.physical_frontier_routes.clone();
+        total.preceding_distinct_physical_frontier_routes = total.physical_frontier_routes.clone();
         total.physical_frontier_routes = observation.physical_frontier_routes.clone();
     }
     if total
@@ -2233,7 +2410,9 @@ fn retain_cognitive_trajectory_observation(
         .ok_or(RuntimeError::OrganismTickOverflow)?;
     for cue in &observation.internally_reassembled_formation_cues {
         if !total.internally_reassembled_formation_cues.contains(cue) {
-            total.internally_reassembled_formation_cues.push(cue.clone());
+            total
+                .internally_reassembled_formation_cues
+                .push(cue.clone());
         }
     }
     total.rest_recovered_neuron_count = total
@@ -2255,8 +2434,7 @@ fn retain_cognitive_trajectory_observation(
     total.resting_neuron_count = observation.resting_neuron_count;
     total.mosaic_of_mosaics_count = observation.mosaic_of_mosaics_count;
     total.energy = observation.energy;
-    total.membrane_returned_elementary_charges =
-        observation.membrane_returned_elementary_charges;
+    total.membrane_returned_elementary_charges = observation.membrane_returned_elementary_charges;
     total.membrane_unreturned_elementary_charges =
         observation.membrane_unreturned_elementary_charges;
     Ok(())
@@ -2265,40 +2443,51 @@ fn retain_cognitive_trajectory_observation(
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
-        let (mounted, cognitive, vestibular, observation) = {
-            let parsed = parse_current_envelope(&envelope, budget)?;
-            let vestibular =
-                parsed
-                .vestibular
-                .clone()
-                .ok_or(RuntimeError::UnsupportedFabricVersion(
-                    PRE_VESTIBULAR_FABRIC_VERSION,
-                ))?;
-            let (mounted, summary) = restore_resident_mounted_state(
-                parsed.joint_bytes,
-                derived_budget.max_joint_state_bytes,
-                derived_budget.max_joint_working_bytes,
-            )
-            .map_err(RuntimeError::MountedTransition)?;
-            let cognitive = restore_cognitive_state(&parsed, budget)?;
-            let observation = make_restored_observation(
-                &envelope,
-                parsed,
-                summary,
-                cognitive.summary(),
-                cognitive
-                    .mosaic_of_mosaics_count()
-                    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?,
-                derived_budget,
-            );
-            (mounted, cognitive, vestibular, observation)
-        };
+        let (mounted, cognitive, vestibular, articulated_body, observation) =
+            {
+                let parsed = parse_current_envelope(&envelope, budget)?;
+                let vestibular =
+                    parsed
+                        .vestibular
+                        .clone()
+                        .ok_or(RuntimeError::UnsupportedFabricVersion(
+                            PRE_VESTIBULAR_FABRIC_VERSION,
+                        ))?;
+                let articulated_body = parsed.articulated_body.clone().ok_or(
+                    RuntimeError::UnsupportedFabricVersion(PRE_ARTICULATED_FABRIC_VERSION),
+                )?;
+                let (mounted, summary) = restore_resident_mounted_state(
+                    parsed.joint_bytes,
+                    derived_budget.max_joint_state_bytes,
+                    derived_budget.max_joint_working_bytes,
+                )
+                .map_err(RuntimeError::MountedTransition)?;
+                let cognitive = restore_cognitive_state(&parsed, budget)?;
+                let observation = make_restored_observation(
+                    &envelope,
+                    parsed,
+                    summary,
+                    cognitive.summary(),
+                    cognitive
+                        .mosaic_of_mosaics_count()
+                        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?,
+                    derived_budget,
+                );
+                (
+                    mounted,
+                    cognitive,
+                    vestibular,
+                    articulated_body,
+                    observation,
+                )
+            };
         Ok(Self {
             active: ActiveResidentOrganismState {
                 envelope,
                 mounted,
                 cognitive,
                 vestibular,
+                articulated_body,
                 observation,
             },
             pending: None,
@@ -2314,7 +2503,21 @@ impl ResidentOrganismRuntime {
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         // The mandatory-admission law: a bare source episode carries no
         // occurrence admissions, so the cognitive boundary refuses it below.
-        self.prepare_typed(source, None, None)
+        self.prepare_typed(source, None, None, false)
+    }
+
+    fn prepare_articulated_body_observation(
+        &mut self,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        let source = admit_complete_articulated_body_state_source(
+            self.active.observation.organism_tick,
+            &self.active.articulated_body,
+        )
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+        let intervals = vec![(1_i64, 1_000_i64); BODY_AXES.len()];
+        let admitted = admitted_episode_with_authored_intervals(&source, &intervals)
+            .map_err(RuntimeError::CognitiveFormation)?;
+        self.prepare_typed(&source, Some(&admitted), None, true)
     }
 
     fn prepare_vestibular_tick(
@@ -2328,7 +2531,7 @@ impl ResidentOrganismRuntime {
             signed_body_motion_millidegrees,
         )?;
         let (source, _) = ingress.source().joint_source_with_contacts();
-        self.prepare_typed(source, None, Some(&ingress))
+        self.prepare_typed(source, None, Some(&ingress), false)
     }
 
     fn prepare_admitted_trajectory(
@@ -2345,28 +2548,61 @@ impl ResidentOrganismRuntime {
         }
         let derived_budget = self.budget.derive()?;
         let predecessor = self.active.observation.clone();
-        let interval_count = u64::try_from(episodes.len())
-            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
-        let organism_tick = predecessor
-            .organism_tick
-            .checked_add(interval_count)
-            .ok_or(RuntimeError::OrganismTickOverflow)?;
-        let fabric_generation = predecessor
-            .fabric_generation
-            .checked_add(interval_count)
-            .ok_or(RuntimeError::FabricGenerationOverflow)?;
+        let initial_body_source = if self
+            .active
+            .articulated_body
+            .proprioception_initialized()
+        {
+            None
+        } else {
+            Some(
+                admit_complete_articulated_body_state_source(
+                    predecessor.organism_tick,
+                    &self.active.articulated_body,
+                )
+                .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
+            )
+        };
+        let initial_body_intervals =
+            vec![(1_i64, 1_000_i64); initial_body_source.as_ref().map_or(0, |_| BODY_AXES.len())];
+        let mut causal_sources = Vec::with_capacity(
+            episodes
+                .len()
+                .checked_add(usize::from(initial_body_source.is_some()))
+                .ok_or(RuntimeError::OrganismTickOverflow)?,
+        );
+        if let Some(source) = initial_body_source.as_ref() {
+            causal_sources.push((source, initial_body_intervals.as_slice()));
+        }
+        causal_sources.extend(
+            episodes
+                .iter()
+                .map(|(source, intervals)| (source, intervals.as_slice())),
+        );
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
-        let mut cognitive = self.active.cognitive.clone();
+        let mut cognitive = Some(self.active.cognitive.clone());
         let mut aggregate = None;
-        let mut causal_interval_evidence = Vec::with_capacity(episodes.len());
+        let mut causal_interval_evidence = Vec::with_capacity(causal_sources.len());
         let mut receptor_ingress = ResidentReceptorIngressObservation::default();
         let mut source_port_count = 0usize;
         let mut source_occurrence_count = 0usize;
-        for (source, intervals) in episodes {
+        let mut articulated_body = self.active.articulated_body.clone();
+        let mut articulated_body_consequences = Vec::new();
+        let mut body_proprioceptive_sources = Vec::new();
+        let mut trajectory_authority_entries = Vec::new();
+        let mut processed_interval_count = 0usize;
+        let mut advance_interval = |
+            source: &NativeJointSourceEpisode,
+            intervals: &[(i64, i64)],
+        | -> Result<Option<NativeJointSourceEpisode>, RuntimeError> {
             let admitted = admitted_episode_with_authored_intervals(source, intervals)
                 .map_err(RuntimeError::CognitiveFormation)?;
+            trajectory_authority_entries.push((
+                source.joint_source_authority_receipt(),
+                intervals.to_vec(),
+            ));
             receptor_ingress = receptor_ingress
                 .checked_merge(observe_canonical_receptor_ingress(source))
                 .ok_or(RuntimeError::OrganismTickOverflow)?;
@@ -2377,8 +2613,44 @@ impl ResidentOrganismRuntime {
                 .checked_add(source.joint_source_occurrences().len())
                 .ok_or(RuntimeError::OrganismTickOverflow)?;
             let (successor, observation) = cognitive
+                .take()
+                .expect("trajectory cognition is restored after every interval")
                 .advance_admitted_transition(&admitted, cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            let source_tick = predecessor
+                .organism_tick
+                .checked_add(
+                    u64::try_from(processed_interval_count)
+                        .map_err(|_| RuntimeError::OrganismTickOverflow)?,
+                )
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            processed_interval_count = processed_interval_count
+                .checked_add(1)
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            let body_transition = settle_motor_recruitments_into_articulated_body(
+                &articulated_body,
+                &observation.motor_unit_recruitments,
+            )?;
+            let feedback_source = if let Some((source, source_receipt)) = body_proprioceptive_source(
+                source_tick,
+                &body_transition.proprioceptive_consequences,
+            )? {
+                body_proprioceptive_sources.push(source_receipt);
+                Some(source)
+            } else {
+                None
+            };
+            articulated_body_consequences.extend(
+                body_transition
+                    .proprioceptive_consequences
+                    .iter()
+                    .copied()
+                    .map(|consequence| TimedBodyProprioceptiveConsequence {
+                        source_tick,
+                        consequence,
+                    }),
+            );
+            articulated_body = body_transition.successor;
             causal_interval_evidence.push(CausalIntervalEvidence {
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
@@ -2392,17 +2664,45 @@ impl ResidentOrganismRuntime {
                     .iter()
                     .map(|fractal| fractal.neuron_lineage)
                     .collect(),
-                changed_contact_channel_states: observation
-                    .changed_contact_channel_states
-                    .clone(),
-                affective_balance_trajectories: observation
-                    .affective_balance_trajectories
-                    .clone(),
+                changed_contact_channel_states: observation.changed_contact_channel_states.clone(),
+                affective_balance_trajectories: observation.affective_balance_trajectories.clone(),
                 frontier_advances: successor.observe_active_electrical_frontier_advances(),
             });
-            cognitive = successor;
+            cognitive = Some(successor);
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
+            Ok(feedback_source)
+        };
+        for (source, intervals) in &causal_sources {
+            let mut feedback_source = advance_interval(source, intervals)?;
+            let mut feedback_interval_count = 0usize;
+            while let Some(source) = feedback_source {
+                if feedback_interval_count >= BODY_EFFECTOR_TERMINAL_COUNT {
+                    return Err(RuntimeError::ArticulatedBody(
+                        "body feedback did not quiesce inside one complete fixed terminal frontier"
+                            .into(),
+                    ));
+                }
+                feedback_interval_count += 1;
+                let feedback_intervals =
+                    vec![(1_i64, 1_000_i64); source.joint_source_occurrences().len()];
+                feedback_source = advance_interval(&source, &feedback_intervals)?;
+            }
         }
+        drop(advance_interval);
+        let cognitive = cognitive.expect("trajectory cognition has a final successor");
+        if initial_body_source.is_some() {
+            articulated_body.initialize_proprioception();
+        }
+        let interval_count = u64::try_from(processed_interval_count)
+            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+        let organism_tick = predecessor
+            .organism_tick
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::OrganismTickOverflow)?;
+        let fabric_generation = predecessor
+            .fabric_generation
+            .checked_add(interval_count)
+            .ok_or(RuntimeError::FabricGenerationOverflow)?;
         let cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::CognitiveFormation(
                 "admitted trajectory carried no cognitive interval".into(),
@@ -2422,10 +2722,12 @@ impl ResidentOrganismRuntime {
             &joint_state,
             &cognitive_state,
             &self.active.vestibular,
+            &articulated_body,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
-        let trajectory_authority = admitted_trajectory_authority(episodes)?;
+        let trajectory_authority =
+            admitted_trajectory_authority(&trajectory_authority_entries)?;
         let transition = MountedJointDsfTransition {
             joint_field_count: source_occurrence_count,
             joint_neuron_count: 0,
@@ -2468,6 +2770,7 @@ impl ResidentOrganismRuntime {
             mounted,
             cognitive,
             vestibular: self.active.vestibular.clone(),
+            articulated_body,
             observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -2485,9 +2788,10 @@ impl ResidentOrganismRuntime {
             },
             receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
-            articulatory_unit_recruitments: cognitive_observation
-                .articulatory_unit_recruitments,
+            articulatory_unit_recruitments: cognitive_observation.articulatory_unit_recruitments,
             causal_interval_evidence,
+            articulated_body_consequences,
+            body_proprioceptive_sources,
         })
     }
 
@@ -2528,11 +2832,13 @@ impl ResidentOrganismRuntime {
         let mut aggregate: Option<CognitiveFormationObservation> = None;
         let mut causal_interval_evidence =
             Vec::with_capacity(signed_body_motion_millidegrees.len());
-        let mut receptor_ingress = None;
+        let mut receptor_ingress = ResidentReceptorIngressObservation::default();
         for signed_step in signed_body_motion_millidegrees.iter().copied() {
             let ingress = resident_vestibular_tick_ingress(&vestibular, heading, signed_step)?;
             let (source, _) = ingress.source().joint_source_with_contacts();
-            receptor_ingress = Some(observe_canonical_receptor_ingress(source));
+            receptor_ingress = receptor_ingress
+                .checked_merge(observe_canonical_receptor_ingress(source))
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
             let (successor, observation) = cognitive
                 .advance_vestibular_transition(&ingress, cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
@@ -2549,12 +2855,8 @@ impl ResidentOrganismRuntime {
                     .iter()
                     .map(|fractal| fractal.neuron_lineage)
                     .collect(),
-                changed_contact_channel_states: observation
-                    .changed_contact_channel_states
-                    .clone(),
-                affective_balance_trajectories: observation
-                    .affective_balance_trajectories
-                    .clone(),
+                changed_contact_channel_states: observation.changed_contact_channel_states.clone(),
+                affective_balance_trajectories: observation.affective_balance_trajectories.clone(),
                 frontier_advances: successor.observe_active_electrical_frontier_advances(),
             });
             cognitive = successor;
@@ -2588,6 +2890,7 @@ impl ResidentOrganismRuntime {
             &joint_state,
             &cognitive_state,
             &vestibular,
+            &self.active.articulated_body,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -2637,6 +2940,7 @@ impl ResidentOrganismRuntime {
             mounted,
             cognitive,
             vestibular,
+            articulated_body: self.active.articulated_body.clone(),
             observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -2652,13 +2956,12 @@ impl ResidentOrganismRuntime {
                 current_cohort_evaluation_count: signed_body_motion_millidegrees.len(),
                 successor_seal_count: 1,
             },
-            receptor_ingress: receptor_ingress.ok_or_else(|| {
-                RuntimeError::Vestibular("vestibular trajectory carried no ingress".into())
-            })?,
+            receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
-            articulatory_unit_recruitments: cognitive_observation
-                .articulatory_unit_recruitments,
+            articulatory_unit_recruitments: cognitive_observation.articulatory_unit_recruitments,
             causal_interval_evidence,
+            articulated_body_consequences: Vec::new(),
+            body_proprioceptive_sources: Vec::new(),
         })
     }
 
@@ -2667,6 +2970,7 @@ impl ResidentOrganismRuntime {
         source: &NativeJointSourceEpisode,
         admitted_source: Option<&AdmittedJointSourceEpisode>,
         vestibular: Option<&ResidentVestibularIngress>,
+        initialize_articulated_body_proprioception: bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some() || self.pending_contact_growth.is_some() {
             return Err(RuntimeError::PendingCandidateExists);
@@ -2682,7 +2986,6 @@ impl ResidentOrganismRuntime {
             .checked_add(1)
             .ok_or(RuntimeError::FabricGenerationOverflow)?;
         let admitted_source_authority = source.joint_source_authority_receipt();
-        let admitted_source_body = source.joint_source_body();
         let receptor_ingress = observe_canonical_receptor_ingress(source);
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
@@ -2727,9 +3030,32 @@ impl ResidentOrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
-        let articulatory_unit_recruitments = cognitive_observation
-            .articulatory_unit_recruitments
-            .clone();
+        let articulated_body_transition = settle_motor_recruitments_into_articulated_body(
+            &self.active.articulated_body,
+            &motor_unit_recruitments,
+        )?;
+        let body_proprioceptive_sources = body_proprioceptive_source(
+            predecessor.organism_tick,
+            &articulated_body_transition.proprioceptive_consequences,
+        )?
+        .map(|(_, receipt)| receipt)
+        .into_iter()
+        .collect();
+        let articulated_body_consequences = articulated_body_transition
+            .proprioceptive_consequences
+            .iter()
+            .copied()
+            .map(|consequence| TimedBodyProprioceptiveConsequence {
+                source_tick: predecessor.organism_tick,
+                consequence,
+            })
+            .collect();
+        let mut successor_articulated_body = articulated_body_transition.successor;
+        if initialize_articulated_body_proprioception {
+            successor_articulated_body.initialize_proprioception();
+        }
+        let articulatory_unit_recruitments =
+            cognitive_observation.articulatory_unit_recruitments.clone();
         let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
         let transition = MountedJointDsfTransition {
             joint_field_count: source.joint_source_occurrences().len(),
@@ -2758,6 +3084,7 @@ impl ResidentOrganismRuntime {
             &joint_state,
             &cognitive_state,
             &successor_vestibular,
+            &successor_articulated_body,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -2797,6 +3124,7 @@ impl ResidentOrganismRuntime {
             mounted,
             cognitive,
             vestibular: successor_vestibular,
+            articulated_body: successor_articulated_body,
             observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -2808,6 +3136,8 @@ impl ResidentOrganismRuntime {
             motor_unit_recruitments,
             articulatory_unit_recruitments,
             causal_interval_evidence: Vec::new(),
+            articulated_body_consequences,
+            body_proprioceptive_sources,
         })
     }
 
@@ -2825,7 +3155,7 @@ impl ResidentOrganismRuntime {
         source: &NativeJointSourceEpisode,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let admitted_source = admitted_fixture_episode(source);
-        self.prepare_typed(source, Some(&admitted_source), None)
+        self.prepare_typed(source, Some(&admitted_source), None, false)
     }
 
     fn commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
@@ -2860,6 +3190,7 @@ impl ResidentOrganismRuntime {
         self.active.envelope = pending.envelope;
         self.active.mounted = pending.mounted;
         self.active.vestibular = pending.vestibular;
+        self.active.articulated_body = pending.articulated_body;
         self.active.observation = pending.observation;
         Ok(())
     }
@@ -2929,6 +3260,7 @@ impl ResidentOrganismRuntime {
             &joint_bytes,
             &cognitive_state,
             &self.active.vestibular,
+            &self.active.articulated_body,
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -2966,6 +3298,8 @@ impl ResidentOrganismRuntime {
             motor_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             causal_interval_evidence: Vec::new(),
+            articulated_body_consequences: Vec::new(),
+            body_proprioceptive_sources: Vec::new(),
         })
     }
 
@@ -2984,6 +3318,60 @@ impl ResidentOrganismRuntime {
     fn active_envelope(&self) -> &[u8] {
         &self.active.envelope
     }
+}
+
+/// Deliver each motor cell's discharge to its own retained efferent mount.
+/// Afferent receptor ancestry remains causal evidence but has no motor
+/// direction authority. Work is bounded by sparse recruitment; neither the
+/// neuron population nor the body is scanned.
+fn settle_motor_recruitments_into_articulated_body(
+    predecessor: &ArticulatedBodyState,
+    recruitments: &[MotorUnitRecruitment],
+) -> Result<ArticulatedBodyTransition, RuntimeError> {
+    let mut carriers_by_terminal: BTreeMap<BodyEffectorTerminal, u128> = BTreeMap::new();
+    for recruitment in recruitments {
+        let terminal = recruitment.body_effector_terminal;
+        let existing = carriers_by_terminal.entry(terminal).or_default();
+        *existing = existing
+            .checked_add(recruitment.outward_elementary_carriers)
+            .ok_or_else(|| {
+                RuntimeError::ArticulatedBody("motor effector carrier count overflow".into())
+            })?;
+    }
+    let admitted = AdmittedBodyEffectorDrives::admit(
+        carriers_by_terminal
+            .into_iter()
+            .map(
+                |(terminal, outward_elementary_carriers)| BodyEffectorDrive {
+                    terminal,
+                    outward_elementary_carriers,
+                },
+            )
+            .collect(),
+    )
+    .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+    settle_body_effector_drives(predecessor, &admitted)
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))
+}
+
+fn body_proprioceptive_source(
+    source_tick: u64,
+    consequences: &[BodyProprioceptiveConsequence],
+) -> Result<Option<(NativeJointSourceEpisode, BodyProprioceptiveSourceReceipt)>, RuntimeError> {
+    if consequences.is_empty() {
+        return Ok(None);
+    }
+    let source = admit_articulated_body_proprioceptive_source(source_tick, consequences)
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+    let receipt = BodyProprioceptiveSourceReceipt {
+        source_tick,
+        payload: source.joint_source_body().to_vec(),
+        port_count: consequences.len() * 2,
+        sample_count: consequences.len() * 4,
+        occurrence_count: consequences.len(),
+        occurrence_frame_count: consequences.len() * 2,
+    };
+    Ok(Some((source, receipt)))
 }
 
 fn prepare_token(
@@ -3016,19 +3404,19 @@ fn vestibular_trajectory_authority(
 }
 
 fn admitted_trajectory_authority(
-    episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+    episodes: &[([u8; 32], Vec<(i64, i64)>)],
 ) -> Result<[u8; 32], RuntimeError> {
-    let episode_count = u32::try_from(episodes.len())
-        .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+    let episode_count =
+        u32::try_from(episodes.len()).map_err(|_| RuntimeError::OrganismTickOverflow)?;
     let mut body = Vec::with_capacity(12 + episodes.len() * 36);
     body.extend_from_slice(b"GLADTRJ1");
     body.extend_from_slice(&episode_count.to_le_bytes());
-    for (source, intervals) in episodes {
-        body.extend_from_slice(&source.joint_source_authority_receipt());
-        let interval_count = u32::try_from(intervals.len())
-            .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+    for (source_authority, intervals) in episodes {
+        body.extend_from_slice(source_authority);
+        let interval_count =
+            u32::try_from(intervals.len()).map_err(|_| RuntimeError::OrganismTickOverflow)?;
         body.extend_from_slice(&interval_count.to_le_bytes());
-        for (numerator, denominator) in intervals {
+        for &(numerator, denominator) in intervals {
             body.extend_from_slice(&numerator.to_le_bytes());
             body.extend_from_slice(&denominator.to_le_bytes());
         }
@@ -3048,6 +3436,7 @@ fn native_resident_observation(
     NativeResidentOrganismObservation {
         observation: runtime.observation(),
         cold_restore_work: runtime.cold_restore_work(),
+        articulated_body: runtime.active.articulated_body.clone(),
     }
 }
 
@@ -3107,6 +3496,31 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    /// Prepare one complete, bounded proprioceptive observation of the
+    /// currently persisted body. Every terminal keeps its fixed anatomy;
+    /// Python supplies no receptor identity, action meaning, or interval.
+    fn prepare_articulated_body_observation(
+        &mut self,
+        py: Python<'_>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let prepared = py
+            .allow_threads(|| self.runtime.prepare_articulated_body_observation())
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3135,6 +3549,8 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3156,14 +3572,13 @@ impl NativeResidentOrganismRuntime {
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let source = source.clone();
         let prepared = py
-            .allow_threads(|| -> Result<ResidentPrepareReceipt, String> {
-                let admitted =
-                    admitted_episode_with_authored_intervals(&source, &maximum_causal_intervals)?;
-                self.runtime
-                    .prepare_typed(&source, Some(&admitted), None)
-                    .map_err(|error| error.to_string())
+            .allow_threads(|| -> Result<ResidentPrepareReceipt, RuntimeError> {
+                self.runtime.prepare_admitted_trajectory(&[(
+                    source,
+                    maximum_causal_intervals,
+                )])
             })
-            .map_err(PyValueError::new_err)?;
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
             observation: prepared.observation,
@@ -3172,6 +3587,8 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3205,6 +3622,8 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3237,6 +3656,8 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3287,6 +3708,8 @@ impl NativeResidentOrganismRuntime {
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
     }
 
@@ -3489,13 +3912,13 @@ impl NativeResidentOrganismRuntime {
                 formations
                     .into_iter()
                     .map(|(receipt, members, original, recurrence, reinforcements)| {
-                            (
-                                hex_bytes(&receipt),
-                                members.iter().map(|lineage| hex_bytes(lineage)).collect(),
-                                original.iter().map(&bond).collect(),
-                                recurrence.iter().map(&bond).collect(),
-                                reinforcements,
-                            )
+                        (
+                            hex_bytes(&receipt),
+                            members.iter().map(|lineage| hex_bytes(lineage)).collect(),
+                            original.iter().map(&bond).collect(),
+                            recurrence.iter().map(&bond).collect(),
+                            reinforcements,
+                        )
                     })
                     .collect()
             })
@@ -3530,9 +3953,7 @@ impl NativeResidentOrganismRuntime {
     ) -> PyResult<Vec<(String, Vec<String>, String)>> {
         self.runtime
             .cognitive_state()
-            .observe_retained_formation_recurrence_evidence(
-                self.runtime.budget.max_fabric_bytes,
-            )
+            .observe_retained_formation_recurrence_evidence(self.runtime.budget.max_fabric_bytes)
             .map_err(|error| PyValueError::new_err(error.to_string()))
             .map(|formations| {
                 formations
@@ -3580,28 +4001,8 @@ fn exact_virtual_yaw_trajectory(
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let actuation =
         SignedYawActuation::new(signed_displacement_millidegrees, duration_microseconds)
-    .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+            .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let settled = settle_signed_yaw_actuation(predecessor, actuation)
-        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-    Ok((
-        settled.successor.heading_millidegrees(),
-        settled.trajectory.as_slice().to_vec(),
-    ))
-}
-
-#[pyfunction]
-fn exact_motor_unit_yaw_trajectory(
-    predecessor_heading_millidegrees: u32,
-    recruitments: Vec<(u32, u128)>,
-) -> PyResult<(u32, Vec<i32>)> {
-    if recruitments.is_empty() {
-        return Err(PyValueError::new_err(
-            "motor-unit yaw requires at least one recruitment",
-        ));
-    }
-    let predecessor = YawBodyState::new(predecessor_heading_millidegrees)
-        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-    let settled = settle_motor_unit_yaw_actuation(predecessor, &recruitments)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     Ok((
         settled.successor.heading_millidegrees(),
@@ -3675,7 +4076,15 @@ fn migrate_resident_organism_exact_energy_envelope(
     current_envelope: Vec<u8>,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
-    let (identity, organism_tick, fabric_generation, joint, migrated_cognitive, vestibular) = {
+    let (
+        identity,
+        organism_tick,
+        fabric_generation,
+        joint,
+        migrated_cognitive,
+        vestibular,
+        articulated_body,
+    ) = {
         let parsed = parse_current_envelope(&current_envelope, budget)?;
         let cognitive = parsed
             .cognitive_bytes
@@ -3693,6 +4102,9 @@ fn migrate_resident_organism_exact_energy_envelope(
             parsed
                 .vestibular
                 .unwrap_or(ResidentVestibularBody::phase_one_genesis()?),
+            parsed
+                .articulated_body
+                .unwrap_or_else(ArticulatedBodyState::at_neutral),
         )
     };
     let fabric = encode_fabric(
@@ -3700,6 +4112,7 @@ fn migrate_resident_organism_exact_energy_envelope(
         &joint,
         &migrated_cognitive,
         &vestibular,
+        &articulated_body,
         budget,
     )?;
     let migrated_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
@@ -3851,7 +4264,15 @@ fn create_resident_genesis_from_state(
     )
     .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
     let vestibular = ResidentVestibularBody::phase_one_genesis()?;
-    let fabric = encode_fabric(0, &joint, &cognitive, &vestibular, budget)?;
+    let articulated_body = ArticulatedBodyState::at_neutral();
+    let fabric = encode_fabric(
+        0,
+        &joint,
+        &cognitive,
+        &vestibular,
+        &articulated_body,
+        budget,
+    )?;
     let envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
     ResidentOrganismRuntime::restore_envelope(envelope, budget)
 }
@@ -4139,8 +4560,10 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
-    module.add_function(wrap_pyfunction!(exact_motor_unit_yaw_trajectory, module)?)?;
-    module.add_function(wrap_pyfunction!(exact_articulatory_unit_trajectory, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        exact_articulatory_unit_trajectory,
+        module
+    )?)?;
     module.add_function(wrap_pyfunction!(
         restore_native_resident_organism_runtime,
         module
@@ -4293,16 +4716,24 @@ impl OrganismRuntime {
         let (joint_state, transition) = prepared.into_serialized_parts();
         let vestibular =
             parsed
-            .vestibular
-            .as_ref()
-            .ok_or(RuntimeError::UnsupportedFabricVersion(
-                PRE_VESTIBULAR_FABRIC_VERSION,
-            ))?;
+                .vestibular
+                .as_ref()
+                .ok_or(RuntimeError::UnsupportedFabricVersion(
+                    PRE_VESTIBULAR_FABRIC_VERSION,
+                ))?;
+        let articulated_body =
+            parsed
+                .articulated_body
+                .as_ref()
+                .ok_or(RuntimeError::UnsupportedFabricVersion(
+                    PRE_ARTICULATED_FABRIC_VERSION,
+                ))?;
         let fabric = encode_fabric(
             successor_fabric_generation,
             &joint_state,
             &cognitive_bytes,
             vestibular,
+            articulated_body,
             budget,
         )?;
         let envelope = encode_envelope(parsed.identity, successor_organism_tick, &fabric, budget)?;
@@ -4359,6 +4790,7 @@ struct ParsedEnvelope<'a> {
     joint_bytes: &'a [u8],
     cognitive_bytes: Option<&'a [u8]>,
     vestibular: Option<ResidentVestibularBody>,
+    articulated_body: Option<ArticulatedBodyState>,
 }
 
 fn parse_current_envelope<'a>(
@@ -4402,7 +4834,7 @@ fn parse_current_envelope<'a>(
         return Err(RuntimeError::FabricLengthMismatch);
     }
     let fabric_bytes = &envelope[offset..fabric_end];
-    let (fabric_generation, joint_bytes, cognitive_bytes, vestibular) =
+    let (fabric_generation, joint_bytes, cognitive_bytes, vestibular, articulated_body) =
         parse_current_fabric(fabric_bytes, budget)?;
     Ok(ParsedEnvelope {
         identity,
@@ -4412,13 +4844,23 @@ fn parse_current_envelope<'a>(
         joint_bytes,
         cognitive_bytes,
         vestibular,
+        articulated_body,
     })
 }
 
 fn parse_current_fabric(
     fabric: &[u8],
     budget: RuntimeBudget,
-) -> Result<(u64, &[u8], Option<&[u8]>, Option<ResidentVestibularBody>), RuntimeError> {
+) -> Result<
+    (
+        u64,
+        &[u8],
+        Option<&[u8]>,
+        Option<ResidentVestibularBody>,
+        Option<ArticulatedBodyState>,
+    ),
+    RuntimeError,
+> {
     if fabric.len() > budget.max_fabric_bytes {
         return Err(RuntimeError::FabricBudgetExceeded);
     }
@@ -4426,7 +4868,10 @@ fn parse_current_fabric(
         return Err(RuntimeError::BadFabricMagic);
     }
     let magic = &fabric[..FABRIC_MAGIC.len()];
-    if magic != FABRIC_MAGIC && magic != PRE_VESTIBULAR_FABRIC_MAGIC && magic != LEGACY_FABRIC_MAGIC
+    if magic != FABRIC_MAGIC
+        && magic != PRE_ARTICULATED_FABRIC_MAGIC
+        && magic != PRE_VESTIBULAR_FABRIC_MAGIC
+        && magic != LEGACY_FABRIC_MAGIC
     {
         return Err(RuntimeError::BadFabricMagic);
     }
@@ -4435,18 +4880,20 @@ fn parse_current_fabric(
     let legacy = magic == LEGACY_FABRIC_MAGIC && version == LEGACY_FABRIC_VERSION;
     let pre_vestibular =
         magic == PRE_VESTIBULAR_FABRIC_MAGIC && version == PRE_VESTIBULAR_FABRIC_VERSION;
+    let pre_articulated =
+        magic == PRE_ARTICULATED_FABRIC_MAGIC && version == PRE_ARTICULATED_FABRIC_VERSION;
     let current = magic == FABRIC_MAGIC && version == FABRIC_VERSION;
-    if !legacy && !pre_vestibular && !current {
+    if !legacy && !pre_vestibular && !pre_articulated && !current {
         return Err(RuntimeError::UnsupportedFabricVersion(version));
     }
     let generation = take_u64(fabric, &mut offset)?;
     let joint_len = take_u32(fabric, &mut offset)? as usize;
-    let cognitive_len = if current || pre_vestibular {
+    let cognitive_len = if current || pre_articulated || pre_vestibular {
         take_u32(fabric, &mut offset)? as usize
     } else {
         0
     };
-    let vestibular = if current {
+    let vestibular = if current || pre_articulated {
         let anatomy_end = offset
             .checked_add(FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES)
             .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -4477,6 +4924,21 @@ fn parse_current_fabric(
     } else {
         None
     };
+    let articulated_body = if current {
+        let body_end = offset
+            .checked_add(ARTICULATED_BODY_STATE_BYTES)
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        let body = ArticulatedBodyState::decode(
+            fabric
+                .get(offset..body_end)
+                .ok_or(RuntimeError::EnvelopeEndedEarly)?,
+        )
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+        offset = body_end;
+        Some(body)
+    } else {
+        None
+    };
     let joint_end = offset
         .checked_add(joint_len)
         .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -4489,8 +4951,9 @@ fn parse_current_fabric(
     Ok((
         generation,
         &fabric[offset..joint_end],
-        (current || pre_vestibular).then_some(&fabric[joint_end..cognitive_end]),
+        (current || pre_articulated || pre_vestibular).then_some(&fabric[joint_end..cognitive_end]),
         vestibular,
+        articulated_body,
     ))
 }
 
@@ -4499,6 +4962,7 @@ fn encode_fabric(
     joint: &[u8],
     cognitive: &[u8],
     vestibular: &ResidentVestibularBody,
+    articulated_body: &ArticulatedBodyState,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
     let length = FABRIC_FIXED_BYTES
@@ -4525,6 +4989,11 @@ fn encode_fabric(
     output.extend_from_slice(&encode_functional_vestibular_anatomy(&vestibular.anatomy));
     output.extend_from_slice(&encode_canal_state(vestibular.canal));
     output.extend_from_slice(&vestibular.source_tick.to_le_bytes());
+    output.extend_from_slice(
+        &articulated_body
+            .encode()
+            .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
+    );
     output.extend_from_slice(joint);
     output.extend_from_slice(cognitive);
     Ok(output)
@@ -5084,16 +5553,16 @@ fn project_affective_balance_trajectories(
 ) -> Vec<AffectiveBalanceTrajectoryProjection> {
     let transfer =
         |timed: crate::resident_cognitive_formation::TimedDirectedPhysicalTransferObservation| {
-        (
-            timed.cognitive_ordinal,
             (
-                hex_bytes(&timed.transfer.sender),
-                hex_bytes(&timed.transfer.receiver),
-                timed.transfer.bond.parallel_ordinal(),
-                timed.transfer.transferred_whole_carriers.to_string(),
-            ),
-        )
-    };
+                timed.cognitive_ordinal,
+                (
+                    hex_bytes(&timed.transfer.sender),
+                    hex_bytes(&timed.transfer.receiver),
+                    timed.transfer.bond.parallel_ordinal(),
+                    timed.transfer.transferred_whole_carriers.to_string(),
+                ),
+            )
+        };
     let rational = |value: crate::exact_rational::ExactRational| {
         let (numerator, denominator) = value.parts();
         (numerator.to_string(), denominator.to_string())
@@ -5122,28 +5591,30 @@ fn project_affective_balance_trajectories(
                         rational(gradient.environment_heat_exported_zeptojoules),
                     )
                 }),
-                trajectory.localized_plasticity_settlement.map(|plasticity| {
-                    (
-                        plasticity.cognitive_ordinal,
-                        plasticity.incident_catalyst_quanta.to_string(),
-                        plasticity.reaction_extent.to_string(),
-                        rational(plasticity.delivered_energy_zeptojoules),
-                        rational(plasticity.predecessor_gate_work_residue_zeptojoules),
-                        rational(plasticity.successor_gate_work_residue_zeptojoules),
-                        rational(plasticity.predecessor_plastic_rest_length_nanometres),
-                        rational(plasticity.successor_plastic_rest_length_nanometres),
+                trajectory
+                    .localized_plasticity_settlement
+                    .map(|plasticity| {
                         (
-                            rational(plasticity.predecessor_reservoir.0),
-                            rational(plasticity.predecessor_reservoir.1),
-                            rational(plasticity.predecessor_reservoir.2),
-                        ),
-                        (
-                            rational(plasticity.successor_reservoir.0),
-                            rational(plasticity.successor_reservoir.1),
-                            rational(plasticity.successor_reservoir.2),
-                        ),
-                    )
-                }),
+                            plasticity.cognitive_ordinal,
+                            plasticity.incident_catalyst_quanta.to_string(),
+                            plasticity.reaction_extent.to_string(),
+                            rational(plasticity.delivered_energy_zeptojoules),
+                            rational(plasticity.predecessor_gate_work_residue_zeptojoules),
+                            rational(plasticity.successor_gate_work_residue_zeptojoules),
+                            rational(plasticity.predecessor_plastic_rest_length_nanometres),
+                            rational(plasticity.successor_plastic_rest_length_nanometres),
+                            (
+                                rational(plasticity.predecessor_reservoir.0),
+                                rational(plasticity.predecessor_reservoir.1),
+                                rational(plasticity.predecessor_reservoir.2),
+                            ),
+                            (
+                                rational(plasticity.successor_reservoir.0),
+                                rational(plasticity.successor_reservoir.1),
+                                rational(plasticity.successor_reservoir.2),
+                            ),
+                        )
+                    }),
             )
         })
         .collect()
@@ -5341,6 +5812,120 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
+    fn motor_body_transition_uses_retained_effector_mount_not_afferent_ancestry() {
+        use crate::articulated_body_joint_source_builder::admit_articulated_body_proprioceptive_source;
+        use crate::neuron_source_anchor::{NeuronSourceSite, PhysicalSourceSense};
+        use crate::resident_cognitive_formation::MotorBodyAfferentPath;
+        use crate::virtual_articulated_body::{BodyAxis, BodyEffectorDirection};
+
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::LeftElbowFlexion,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let seed = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 1,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let source =
+            admit_articulated_body_proprioceptive_source(0, &seed.proprioceptive_consequences)
+                .unwrap();
+        let typed_site =
+            NeuronSourceSite::from_source_port(&source.joint_source_ports()[1]).unwrap();
+        assert_eq!(
+            typed_site
+                .body_proprioceptor_terminal()
+                .map(|afferent| afferent.paired_effector()),
+            Some(terminal)
+        );
+        let path = |site| MotorBodyAfferentPath {
+            body_regulation_lineage: [2; 16],
+            integration_lineage: [3; 16],
+            receptor_lineage: [4; 16],
+            receptor_site: site,
+        };
+        let recruitment = |paths| MotorUnitRecruitment {
+            neuron_lineage: [1; 16],
+            topology_index: 99,
+            outward_elementary_carriers: 12,
+            body_effector_terminal: terminal,
+            body_afferent_paths: paths,
+            preparation_transfers: Vec::new(),
+        };
+
+        let predecessor = ArticulatedBodyState::at_neutral();
+        let settled = settle_motor_recruitments_into_articulated_body(
+            &predecessor,
+            &[recruitment(vec![path(typed_site.clone())])],
+        )
+        .unwrap();
+        assert_eq!(settled.successor.axis(BodyAxis::LeftElbowFlexion), 12);
+        assert_eq!(settled.proprioceptive_consequences.len(), 1);
+
+        let untyped = NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Body, 99);
+        let settled_from_untyped_afferent = settle_motor_recruitments_into_articulated_body(
+            &predecessor,
+            &[recruitment(vec![path(untyped)])],
+        )
+        .unwrap();
+        assert_eq!(settled_from_untyped_afferent.successor, settled.successor);
+
+        let other_site =
+            NeuronSourceSite::from_source_port(&source.joint_source_ports()[0]).unwrap();
+        let settled_from_opposed_afferents = settle_motor_recruitments_into_articulated_body(
+            &predecessor,
+            &[recruitment(vec![path(typed_site), path(other_site)])],
+        )
+        .unwrap();
+        assert_eq!(settled_from_opposed_afferents.successor, settled.successor);
+    }
+
+    #[test]
+    fn complete_body_observation_enters_the_ordinary_cognitive_boundary_once() {
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let before = runtime.active.articulated_body.clone();
+        let prepared = runtime.prepare_articulated_body_observation().unwrap();
+        assert_eq!(
+            prepared.receptor_ingress.sense_counts(),
+            [0, 0, 0, 0, 0, 74]
+        );
+        assert_eq!(prepared.observation.organism_tick, 1);
+        assert_eq!(prepared.articulated_body_consequences.len(), 0);
+        assert!(prepared.body_proprioceptive_sources.is_empty());
+        assert_eq!(runtime.active.articulated_body, before);
+        runtime.commit(prepared.token).unwrap();
+        assert_eq!(runtime.active.articulated_body.axes(), before.axes());
+        assert!(!before.proprioception_initialized());
+        assert!(runtime.active.articulated_body.proprioception_initialized());
+        assert_eq!(runtime.observation().organism_tick, 1);
+    }
+
+    #[test]
+    fn first_admitted_trajectory_mounts_complete_body_proprioception_once() {
+        let episode = source("first-trajectory-with-body");
+        let interval_count = episode.joint_source_occurrences().len();
+        let episodes = vec![(episode, vec![(5, 1); interval_count])];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+
+        let first = runtime.prepare_admitted_trajectory(&episodes).unwrap();
+        assert_eq!(first.observation.organism_tick, 2);
+        assert_eq!(first.causal_interval_evidence.len(), 2);
+        assert_eq!(first.receptor_ingress.sense_counts()[5], 74);
+        assert!(!runtime.active.articulated_body.proprioception_initialized());
+        runtime.commit(first.token).unwrap();
+        assert!(runtime.active.articulated_body.proprioception_initialized());
+
+        let second = runtime.prepare_admitted_trajectory(&episodes).unwrap();
+        assert_eq!(second.observation.organism_tick, 3);
+        assert_eq!(second.causal_interval_evidence.len(), 1);
+        assert_eq!(second.receptor_ingress.sense_counts()[5], 0);
+    }
+
+    #[test]
     fn authenticated_production_envelope_migrates_exact_energy_once() {
         let Some(path) = std::env::var_os("GUALA_REAL_BODY") else {
             return;
@@ -5357,7 +5942,6 @@ mod tests {
         // lacking the membrane-territory carrier material. Decodability is
         // therefore not migration authority; the explicit one-way boundary
         // below must execute and prove its current-format successor.
-        ResidentOrganismRuntime::restore_envelope(predecessor.clone(), budget).unwrap();
         let migrated =
             migrate_resident_organism_exact_energy_envelope(predecessor, budget).unwrap();
         let after = parse_current_envelope(&migrated, budget).unwrap();
@@ -5365,7 +5949,9 @@ mod tests {
         assert_eq!(after.organism_tick, organism_tick);
         assert_eq!(after.fabric_generation, fabric_generation);
         assert_eq!(after.joint_bytes, joint);
-        ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget).unwrap();
+        let mut runtime =
+            ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget).unwrap();
+        runtime.prepare_articulated_body_observation().unwrap();
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget).unwrap(),
             migrated,
@@ -5514,6 +6100,109 @@ mod tests {
         ResidentVestibularBody::phase_one_genesis().unwrap()
     }
 
+    fn pre_articulated_fabric(
+        generation: u64,
+        joint: &[u8],
+        cognitive: &[u8],
+        vestibular: &ResidentVestibularBody,
+    ) -> Vec<u8> {
+        let mut output = Vec::new();
+        output.extend_from_slice(PRE_ARTICULATED_FABRIC_MAGIC);
+        output.extend_from_slice(&PRE_ARTICULATED_FABRIC_VERSION.to_le_bytes());
+        output.extend_from_slice(&generation.to_le_bytes());
+        output.extend_from_slice(&u32::try_from(joint.len()).unwrap().to_le_bytes());
+        output.extend_from_slice(&u32::try_from(cognitive.len()).unwrap().to_le_bytes());
+        output.extend_from_slice(&encode_functional_vestibular_anatomy(&vestibular.anatomy));
+        output.extend_from_slice(&encode_canal_state(vestibular.canal));
+        output.extend_from_slice(&vestibular.source_tick.to_le_bytes());
+        output.extend_from_slice(joint);
+        output.extend_from_slice(cognitive);
+        output
+    }
+
+    #[test]
+    fn pre_articulated_live_format_migrates_once_without_changing_existing_state() {
+        let joint = genesis_joint();
+        let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+            &genesis_cognitive(),
+            cognitive_budget_after_joint(joint.len(), budget()).unwrap(),
+        )
+        .unwrap();
+        let vestibular = genesis_vestibular();
+        let old_fabric = pre_articulated_fabric(17, &joint, &cognitive, &vestibular);
+        let old_envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            91,
+            &old_fabric,
+            budget(),
+        )
+        .unwrap();
+        let old_parsed = parse_current_envelope(&old_envelope, budget()).unwrap();
+        assert_eq!(old_parsed.joint_bytes, joint);
+        assert_eq!(old_parsed.cognitive_bytes, Some(cognitive.as_slice()));
+        assert_eq!(old_parsed.vestibular, Some(vestibular.clone()));
+        assert_eq!(old_parsed.articulated_body, None);
+        assert_eq!(
+            ResidentOrganismRuntime::restore_envelope(old_envelope.clone(), budget()).unwrap_err(),
+            RuntimeError::UnsupportedFabricVersion(PRE_ARTICULATED_FABRIC_VERSION),
+        );
+
+        let migrated = migrate_resident_organism_exact_energy_envelope(old_envelope, budget())
+            .expect("one deployment migration adds the body");
+        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
+        assert_eq!(parsed.identity, canonical_identity(IDENTITY).unwrap());
+        assert_eq!(parsed.organism_tick, 91);
+        assert_eq!(parsed.fabric_generation, 17);
+        assert_eq!(parsed.joint_bytes, joint);
+        assert_eq!(parsed.cognitive_bytes, Some(cognitive.as_slice()));
+        assert_eq!(parsed.vestibular, Some(vestibular));
+        assert_eq!(
+            parsed.articulated_body,
+            Some(ArticulatedBodyState::at_neutral())
+        );
+        assert_eq!(
+            migrated.len(),
+            old_fabric.len() + FIXED_BYTES + ARTICULATED_BODY_STATE_BYTES
+        );
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
+            migrated,
+        );
+    }
+
+    #[test]
+    fn articulated_body_observation_is_exact_read_only_and_cold_persistent() {
+        let runtime = resident(91, 17);
+        let before_envelope = runtime.active_envelope().to_vec();
+        let observed = native_resident_observation(&runtime);
+        assert_eq!(observed.articulated_body_axes().len(), BODY_AXES.len());
+        assert_eq!(
+            observed.articulated_body_state_bytes(),
+            ARTICULATED_BODY_STATE_BYTES,
+        );
+        assert_eq!(
+            observed.articulated_body_lung_air_microlitres(),
+            crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES,
+        );
+        assert_eq!(runtime.active_envelope(), before_envelope);
+
+        let restored =
+            ResidentOrganismRuntime::restore_envelope(before_envelope, budget()).unwrap();
+        let after = native_resident_observation(&restored);
+        assert_eq!(
+            after.articulated_body_axes(),
+            observed.articulated_body_axes()
+        );
+        assert_eq!(
+            after.articulated_body_state_sha256(),
+            observed.articulated_body_state_sha256(),
+        );
+        assert_eq!(
+            restored.active.articulated_body,
+            runtime.active.articulated_body
+        );
+    }
+
     fn legacy_joint() -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(b"GLJNFT02");
@@ -5557,6 +6246,7 @@ mod tests {
             &genesis_joint(),
             &genesis_cognitive(),
             &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
             budget(),
         )
         .unwrap();
@@ -5622,7 +6312,7 @@ mod tests {
                 .unwrap();
             heading =
                 u32::try_from((i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000))
-            .unwrap();
+                    .unwrap();
             runtime.commit(prepared.token).unwrap();
         }
         let after = runtime.observation();
@@ -5711,15 +6401,20 @@ mod tests {
 
     #[test]
     fn admitted_trajectory_is_byte_exact_and_seals_once() {
-        let sources = vec![source("admitted-trajectory-1"), source("admitted-trajectory-2")];
+        let sources = vec![
+            source("admitted-trajectory-1"),
+            source("admitted-trajectory-2"),
+        ];
 
         let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        reference.active.articulated_body.initialize_proprioception();
         for source in &sources {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
         }
 
         let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        candidate.active.articulated_body.initialize_proprioception();
         let episodes = sources
             .iter()
             .cloned()
@@ -6341,6 +7036,7 @@ mod tests {
             &genesis_joint(),
             &genesis_cognitive(),
             &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
             budget(),
         )
         .unwrap();
@@ -6396,6 +7092,7 @@ mod tests {
             &genesis_joint(),
             &genesis_cognitive(),
             &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
             budget(),
         )
         .unwrap();
@@ -6481,6 +7178,7 @@ mod tests {
             &legacy_joint(),
             &genesis_cognitive(),
             &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
             budget(),
         )
         .unwrap();

@@ -317,6 +317,7 @@ mod tests {
         JointSourcePortView {
             sense: 0,
             topology_index: 0,
+            body_proprioceptor_terminal: None,
             sensor_id: "retina".into(),
             substream_id: "pixel".into(),
             coordinates: vec![JointSourceCoordinate {

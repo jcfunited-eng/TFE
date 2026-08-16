@@ -40,6 +40,10 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "receptor_ingress_changing_count": 0,
         "receptor_ingress_quiescent_count": 0,
         "motor_unit_recruitments": (),
+        "body_effector_bindings": (),
+        "articulated_body_consequences": (),
+        "body_proprioceptive_sources": (),
+        "body_proprioceptive_source_extents": (),
         "articulatory_unit_recruitments": (),
         "physical_frontier_routes": (),
         "preceding_distinct_physical_frontier_routes": (),
@@ -55,6 +59,14 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "organic_mosaic_relations": relations,
         "state_sha256": f"{tick:064x}",
     }
+
+
+def _quiescent_body_organism() -> SimpleNamespace:
+    return SimpleNamespace(
+        readiness=lambda: SimpleNamespace(
+            articulated_body_state_sha256="44" * 32,
+        )
+    )
 
 
 def test_frontier_evidence_keeps_only_current_and_preceding_distinct_sets() -> None:
@@ -168,7 +180,7 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
         "ordered_physical_paths": (),
         "ordered_path_relations": (),
     }
-    organism = object()
+    organism = _quiescent_body_organism()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -188,7 +200,6 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
             received.append((episodes, intervals)) or trajectory_hop
         ),
     )
-    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -237,7 +248,7 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     # The production boundary deliberately exposes no direct ``organism_tick``
     # method.  The exact committed hop already carries the causal tick used to
     # name its self-hearing occurrence.
-    organism = object()
+    organism = _quiescent_body_organism()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -258,7 +269,6 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
         "_mono_pcm_hop_episodes",
         lambda **_kwargs: [(object(), [])],
     )
-    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -319,7 +329,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
             (("12" * 16, 12, "14" * 16, 13, 0, 5),),
         ),
     )
-    organism = object()
+    organism = _quiescent_body_organism()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -343,7 +353,6 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
         "exact_articulatory_unit_trajectory",
         exact_cancellation,
     )
-    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -383,7 +392,9 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
         production,
         "_runtime",
         lambda: (
-            SimpleNamespace(organism=object(), pointer=predecessor),
+            SimpleNamespace(
+                organism=_quiescent_body_organism(), pointer=predecessor
+            ),
             SimpleNamespace(),
         ),
     )
@@ -401,7 +412,6 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
         "exact_articulatory_unit_trajectory",
         arithmetic_failure,
     )
-    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -447,7 +457,7 @@ def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
     heard["physically_transitioned_neuron_count"] = 3
     heard["complete_neuron_fractal_count"] = 2
     heard["externally_perturbed_body_receptor_count"] = 4
-    organism = object()
+    organism = _quiescent_body_organism()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -472,7 +482,6 @@ def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
         "_mono_pcm_hop_episodes",
         lambda **_kwargs: [(object(), [])],
     )
-    monkeypatch.setattr(production, "_prepare_motor_yaw_action", lambda *_: None)
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -526,7 +535,12 @@ def test_admitted_hop_carries_native_structure_receipt_after_commit() -> None:
         receptor_ingress_changing_count=0,
         receptor_ingress_quiescent_count=0,
         motor_unit_recruitments=(),
+        body_effector_bindings=(),
+        articulated_body_consequences=(),
+        body_proprioceptive_sources=(),
+        body_proprioceptive_source_extents=(),
         articulatory_unit_recruitments=(),
+        causal_interval_evidence=(),
         changed_contact_channel_states=(),
         physical_frontier_routes=(),
         preceding_distinct_physical_frontier_routes=(),

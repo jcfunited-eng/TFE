@@ -327,6 +327,7 @@ mod tests {
         JointSourcePortView {
             sense: 1,
             topology_index: 0,
+            body_proprioceptor_terminal: None,
             sensor_id: "W1-cochlea".into(),
             substream_id: "cochlear-ear-0-band-0".into(),
             coordinates: vec![JointSourceCoordinate {

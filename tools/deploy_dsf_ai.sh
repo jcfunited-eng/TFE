@@ -717,63 +717,30 @@ for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
 import json, re, sys
 proof = json.load(sys.stdin)
-# C-023 and every earlier transient witness are live-closed.  Replaying them
-# would repeat completed work and could reject a truthful later release merely
-# because the same transient trajectory did not recur inside this rehearsal.
-# C-024 instead reads the exact restored body through the candidate observer.
-if proof.get("c024_cognitive_capital_rehearsed") is not True:
-    raise SystemExit("C-024 rehearsal produced no cognitive-capital evidence")
-if proof.get("c024_cognitive_capital_state_sha256") != proof.get(
-    "resident_state_sha256"
-):
-    raise SystemExit("C-024 observer read a different organism state")
-if proof.get("c024_cognitive_capital_capability_count") != 39:
-    raise SystemExit("C-024 capability axis changed")
-if proof.get("c024_cognitive_capital_dimension_count") != 10:
-    raise SystemExit("C-024 dimension axis changed")
-cells = proof.get("c024_cognitive_capital_credit_cell_count")
-references = proof.get("c024_cognitive_capital_evidence_reference_count")
+# Every earlier transient witness is live-closed and is not replayed.  This
+# release gate proves only A-013 against the exact restored living predecessor.
 if (
-    not isinstance(cells, int)
-    or isinstance(cells, bool)
-    or not 0 < cells <= 390
-    or not isinstance(references, int)
-    or isinstance(references, bool)
-    or references < cells
-):
-    raise SystemExit("C-024 sparse evidence bounds changed")
-if proof.get("c024_cognitive_capital_unproved_cells_preserved") is not True:
-    raise SystemExit("C-024 credited an unproved capability")
-if proof.get("c024_false_native_capital_exports_absent") is not True:
-    raise SystemExit("retired false native capital remains exported")
-if proof.get("python_callback_count") != 0:
-    raise SystemExit("C-024 observation invoked Python cognition")
-if (
-    proof.get("a0116_contact_local_junction_rehearsed") is not True
-    or proof.get("a0116_cold_restore_exact") is not True
-    or proof.get("a0116_contact_later_causal_use_rehearsed") is not True
-    or not isinstance(proof.get("a0116_contact_local_interval_ordinal"), int)
-    or isinstance(proof.get("a0116_contact_local_interval_ordinal"), bool)
-    or not 1 <= proof["a0116_contact_local_interval_ordinal"] <= 250
-    or not isinstance(proof.get("a0116_contact_count"), int)
-    or proof["a0116_contact_count"] <= 0
-    or not isinstance(proof.get("a0116_changed_contact_count"), int)
-    or not 0 < proof["a0116_changed_contact_count"] <= proof["a0116_contact_count"]
-    or not isinstance(proof.get("a0116_contact_later_interval_ordinal"), int)
-    or isinstance(proof.get("a0116_contact_later_interval_ordinal"), bool)
-    or not proof["a0116_contact_local_interval_ordinal"]
-    < proof["a0116_contact_later_interval_ordinal"]
-    <= 250
-    or not isinstance(proof.get("a0116_later_outward_whole_carriers"), int)
-    or isinstance(proof.get("a0116_later_outward_whole_carriers"), bool)
-    or proof["a0116_later_outward_whole_carriers"] == 0
+    proof.get("a013_articulated_body_rehearsed") is not True
+    or proof.get("a013_articulated_body_predecessor_state_sha256")
+    != proof.get("resident_state_sha256")
+    or proof.get("a013_articulated_body_predecessor_tick") != proof.get("tick")
+    or proof.get("a013_articulated_body_successor_tick") != proof.get("tick") + 1
+    or proof.get("a013_articulated_body_axis_count") != 37
+    or proof.get("a013_articulated_body_terminal_count") != 74
+    or proof.get("a013_articulated_body_state_bytes") != 195
+    or proof.get("a013_articulated_body_proprioception_initialized") is not True
+    or proof.get("a013_articulated_body_neutral_observation") is not True
+    or proof.get("a013_articulated_body_cold_restore_exact") is not True
+    or proof.get("a013_articulated_body_python_callback_count") != 0
     or not re.fullmatch(
-        r"[0-9a-f]{64}", proof.get("a0116_later_causal_contact_sha256", "")
+        r"[0-9a-f]{64}",
+        proof.get("a013_articulated_body_successor_state_sha256", ""),
+    )
+    or not re.fullmatch(
+        r"[0-9a-f]{64}", proof.get("a013_articulated_body_state_sha256", "")
     )
 ):
-    raise SystemExit(
-        "A-011.6 contact-local rehearsal did not prove retained causal use"
-    )
+    raise SystemExit("A-013 articulated-body rehearsal changed")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

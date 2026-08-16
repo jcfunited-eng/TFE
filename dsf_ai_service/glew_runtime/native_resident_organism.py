@@ -116,6 +116,28 @@ class NativeResidentObservationView(Protocol):
     def fabric_sha256(self) -> str: ...
 
     @property
+    def articulated_body_axes(
+        self,
+    ) -> list[tuple[int, str, str, int, int, int, int]]: ...
+
+    @property
+    def articulated_body_lung_air_microlitres(self) -> int: ...
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(
+        self,
+    ) -> list[int]: ...
+
+    @property
+    def articulated_body_state_bytes(self) -> int: ...
+
+    @property
+    def articulated_body_proprioception_initialized(self) -> bool: ...
+
+    @property
+    def articulated_body_state_sha256(self) -> str: ...
+
+    @property
     def joint_field_count(self) -> int: ...
 
     @property
@@ -444,6 +466,14 @@ class ResidentPrepareEvidence:
             tuple[tuple[str, str, str, int, int, str, str], ...],
         ],
         ...,
+    ] = ()
+    body_effector_bindings: tuple[tuple[str, str, str, int], ...] = ()
+    articulated_body_consequences: tuple[
+        tuple[int, str, str, int, int, int, int, int, int, int, int], ...
+    ] = ()
+    body_proprioceptive_sources: tuple[bytes, ...] = ()
+    body_proprioceptive_source_extents: tuple[
+        tuple[int, int, int, int, int], ...
     ] = ()
     articulatory_unit_recruitments: tuple[
         tuple[
@@ -1499,6 +1529,56 @@ class NativeResidentOrganism:
             raise RuntimeError("resident organism fabric does not fit its envelope")
         _canonical_sha256(candidate.state_sha256, "state receipt")
         _canonical_sha256(candidate.fabric_sha256, "fabric receipt")
+        body_axes = candidate.articulated_body_axes
+        if not isinstance(body_axes, list) or len(body_axes) != 37:
+            raise RuntimeError("resident articulated body axis count changed")
+        seen_body_axes: set[int] = set()
+        for raw_axis in body_axes:
+            if not isinstance(raw_axis, tuple) or len(raw_axis) != 7:
+                raise RuntimeError("resident articulated body axis changed format")
+            ordinal, name, unit, position, minimum, neutral, maximum = raw_axis
+            ordinal = _nonnegative_integer(ordinal, "body axis ordinal")
+            if (
+                ordinal in seen_body_axes
+                or ordinal != len(seen_body_axes)
+                or not isinstance(name, str)
+                or not name
+                or unit not in {"millidegree", "micrometre", "square_millimetre"}
+            ):
+                raise RuntimeError("resident articulated body anatomy is not canonical")
+            position = _signed_integer(position, "body axis position")
+            minimum = _signed_integer(minimum, "body axis minimum")
+            neutral = _signed_integer(neutral, "body axis neutral")
+            maximum = _signed_integer(maximum, "body axis maximum")
+            if not minimum <= position <= maximum or not minimum <= neutral <= maximum:
+                raise RuntimeError("resident articulated body axis left its anatomy")
+            seen_body_axes.add(ordinal)
+        _nonnegative_integer(
+            candidate.articulated_body_lung_air_microlitres,
+            "body lung air",
+        )
+        tract_areas = candidate.articulated_body_vocal_tract_areas_square_millimetres
+        if (
+            not isinstance(tract_areas, list)
+            or len(tract_areas) != 8
+            or any(_positive_integer(area, "vocal tract area") <= 0 for area in tract_areas)
+        ):
+            raise RuntimeError("resident vocal tract state changed format")
+        if _positive_integer(
+            candidate.articulated_body_state_bytes,
+            "articulated body state bytes",
+        ) != 195:
+            raise RuntimeError("resident articulated body state width changed")
+        if not isinstance(
+            candidate.articulated_body_proprioception_initialized, bool
+        ):
+            raise RuntimeError(
+                "resident articulated body proprioception flag changed format"
+            )
+        _canonical_sha256(
+            candidate.articulated_body_state_sha256,
+            "articulated body state receipt",
+        )
         _nonnegative_integer(
             candidate.joint_field_count, "joint field count"
         )
@@ -1841,10 +1921,26 @@ class NativeResidentOrganism:
         )
         intervals = _validated_causal_intervals(maximum_causal_intervals)
         active_before = self.readiness()
+        initializes_body_proprioception = not (
+            active_before.articulated_body_proprioception_initialized
+        )
+        if initializes_body_proprioception:
+            source_port_count += 74
         candidate = self.__runtime.prepare_admitted(source, intervals)
         return self._validated_prepare_evidence(
-            candidate, source_port_count, active_before
+            candidate,
+            source_port_count,
+            active_before,
+            causal_interval_count=1 + int(initializes_body_proprioception),
+            body_feedback_reentered=True,
         )
+
+    def prepare_articulated_body_observation(self) -> ResidentPrepareEvidence:
+        """Prepare one full fixed-capacity observation of the current body."""
+
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_articulated_body_observation()
+        return self._validated_prepare_evidence(candidate, 74, active_before)
 
     def prepare_admitted_trajectory(
         self,
@@ -1873,6 +1969,11 @@ class NativeResidentOrganism:
             for value in maximum_causal_intervals
         )
         active_before = self.readiness()
+        initializes_body_proprioception = not (
+            active_before.articulated_body_proprioception_initialized
+        )
+        if initializes_body_proprioception:
+            source_port_count += 74
         candidate = self.__runtime.prepare_admitted_trajectory(
             list(sources), [list(value) for value in intervals]
         )
@@ -1880,7 +1981,10 @@ class NativeResidentOrganism:
             candidate,
             source_port_count,
             active_before,
-            causal_interval_count=len(sources),
+            causal_interval_count=(
+                len(sources) + int(initializes_body_proprioception)
+            ),
+            body_feedback_reentered=True,
         )
 
     def prepare_vestibular_tick(
@@ -1945,7 +2049,7 @@ class NativeResidentOrganism:
         )
         return self._validated_prepare_evidence(
             candidate,
-            1,
+            len(signed_body_motion_millidegrees),
             active_before,
             causal_interval_count=len(signed_body_motion_millidegrees),
         )
@@ -1957,6 +2061,7 @@ class NativeResidentOrganism:
         active_before: NativeResidentObservationView,
         *,
         causal_interval_count: int = 1,
+        body_feedback_reentered: bool = False,
     ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
@@ -1981,6 +2086,21 @@ class NativeResidentOrganism:
         organism_tick = _nonnegative_integer(
             candidate.organism_tick, "prepared organism tick"
         )
+        requested_source_port_count = source_port_count
+        requested_causal_interval_count = causal_interval_count
+        source_port_count = _nonnegative_integer(
+            candidate.reached_source_port_count,
+            "reached source port count",
+        )
+        causal_interval_count = _positive_integer(
+            candidate.causal_interval_count,
+            "causal interval count",
+        )
+        if (
+            source_port_count < requested_source_port_count
+            or causal_interval_count < requested_causal_interval_count
+        ):
+            raise RuntimeError("native prepare omitted an admitted causal source")
         predecessor_fabric_generation = _nonnegative_integer(
             candidate.predecessor_fabric_generation,
             "predecessor fabric generation",
@@ -2388,6 +2508,7 @@ class NativeResidentOrganism:
             != len(externally_perturbed_neuron_lineages)
             or externally_perturbed_body_receptor_count
             > len(externally_perturbed_neuron_lineages)
+            * causal_interval_count
         ):
             raise RuntimeError("externally perturbed neuron lineages are inconsistent")
         raw_ingress_sense_counts = candidate.receptor_ingress_sense_counts
@@ -2418,6 +2539,142 @@ class NativeResidentOrganism:
         motor_unit_recruitments = _motor_unit_recruitment_evidence(
             candidate.motor_unit_recruitments
         )
+        raw_body_effector_bindings = candidate.body_effector_bindings
+        if not isinstance(raw_body_effector_bindings, list):
+            raise RuntimeError("body effector bindings changed format")
+        body_effector_bindings: list[tuple[str, str, str, int]] = []
+        for raw in raw_body_effector_bindings:
+            if not isinstance(raw, tuple) or len(raw) != 4:
+                raise RuntimeError("body effector binding changed format")
+            lineage = _canonical_lineage_hex(raw[0], "body effector motor lineage")
+            axis = raw[1]
+            direction = raw[2]
+            carriers = _positive_integer(raw[3], "body effector carriers")
+            if (
+                not isinstance(axis, str)
+                or not axis
+                or direction not in {"toward_minimum", "toward_maximum"}
+            ):
+                raise RuntimeError("body effector binding is not typed anatomy")
+            body_effector_bindings.append((lineage, axis, direction, carriers))
+        if len({binding[0] for binding in body_effector_bindings}) != len(
+            body_effector_bindings
+        ):
+            raise RuntimeError("one motor lineage carries multiple body effector bindings")
+
+        raw_body_consequences = candidate.articulated_body_consequences
+        if not isinstance(raw_body_consequences, list):
+            raise RuntimeError("articulated body consequences changed format")
+        articulated_body_consequences: list[
+            tuple[int, str, str, int, int, int, int, int, int, int, int]
+        ] = []
+        for raw in raw_body_consequences:
+            if not isinstance(raw, tuple) or len(raw) != 11:
+                raise RuntimeError("articulated body consequence changed format")
+            source_tick = _nonnegative_integer(raw[0], "body consequence source tick")
+            axis = raw[1]
+            unit = raw[2]
+            predecessor_position = _signed_integer(raw[3], "body predecessor position")
+            successor_position = _signed_integer(raw[4], "body successor position")
+            signed_displacement = _signed_integer(raw[5], "body signed displacement")
+            toward_minimum = _nonnegative_integer(raw[6], "body toward-minimum carriers")
+            toward_maximum = _nonnegative_integer(raw[7], "body toward-maximum carriers")
+            opposed = _nonnegative_integer(raw[8], "body opposed carriers")
+            applied = _nonnegative_integer(raw[9], "body applied displacement")
+            stalled = _nonnegative_integer(raw[10], "body stalled carriers")
+            net = abs(toward_maximum - toward_minimum)
+            if (
+                source_tick < predecessor_organism_tick
+                or source_tick >= organism_tick
+                or not isinstance(axis, str)
+                or not axis
+                or unit not in {"millidegree", "micrometre", "square_millimetre"}
+                or successor_position - predecessor_position != signed_displacement
+                or opposed != min(toward_minimum, toward_maximum)
+                or applied != abs(signed_displacement)
+                or applied + stalled != net
+            ):
+                raise RuntimeError("articulated body consequence lost exact mechanics")
+            articulated_body_consequences.append(
+                (
+                    source_tick,
+                    axis,
+                    unit,
+                    predecessor_position,
+                    successor_position,
+                    signed_displacement,
+                    toward_minimum,
+                    toward_maximum,
+                    opposed,
+                    applied,
+                    stalled,
+                )
+            )
+
+        raw_body_sources = candidate.body_proprioceptive_sources
+        raw_body_source_extents = candidate.body_proprioceptive_source_extents
+        if (
+            not isinstance(raw_body_sources, list)
+            or not isinstance(raw_body_source_extents, list)
+            or len(raw_body_sources) != len(raw_body_source_extents)
+        ):
+            raise RuntimeError("body proprioceptive sources changed format")
+        body_proprioceptive_sources: list[bytes] = []
+        body_proprioceptive_source_extents: list[
+            tuple[int, int, int, int, int]
+        ] = []
+        prior_source_tick: int | None = None
+        for raw_body, raw_extent in zip(
+            raw_body_sources, raw_body_source_extents, strict=True
+        ):
+            if (
+                not isinstance(raw_body, bytes)
+                or not raw_body.startswith(b"GLJSRC03")
+                or not isinstance(raw_extent, tuple)
+                or len(raw_extent) != 5
+            ):
+                raise RuntimeError("body proprioceptive source is not exact GLJSRC03")
+            source_tick = _nonnegative_integer(raw_extent[0], "body source tick")
+            port_count = _positive_integer(raw_extent[1], "body source port count")
+            sample_count = _positive_integer(raw_extent[2], "body source sample count")
+            occurrence_count = _positive_integer(
+                raw_extent[3], "body source occurrence count"
+            )
+            frame_count = _positive_integer(raw_extent[4], "body source frame count")
+            if (
+                source_tick < predecessor_organism_tick
+                or source_tick >= organism_tick
+                or prior_source_tick is not None
+                and source_tick <= prior_source_tick
+                or port_count != occurrence_count * 2
+                or sample_count != port_count * 2
+                or frame_count != occurrence_count * 2
+            ):
+                raise RuntimeError("body proprioceptive source extents lost causality")
+            prior_source_tick = source_tick
+            body_proprioceptive_sources.append(raw_body)
+            body_proprioceptive_source_extents.append(
+                (source_tick, port_count, sample_count, occurrence_count, frame_count)
+            )
+        if bool(body_proprioceptive_sources) != bool(articulated_body_consequences):
+            raise RuntimeError("body consequence and proprioceptive source disagree")
+        if body_feedback_reentered:
+            if (
+                causal_interval_count
+                != requested_causal_interval_count
+                + len(body_proprioceptive_sources)
+                or source_port_count
+                != requested_source_port_count
+                + sum(extent[1] for extent in body_proprioceptive_source_extents)
+            ):
+                raise RuntimeError(
+                    "native body feedback did not re-enter exactly once"
+                )
+        elif (
+            causal_interval_count != requested_causal_interval_count
+            or source_port_count != requested_source_port_count
+        ):
+            raise RuntimeError("native prepare inserted an unauthorized causal source")
         raw_causal_interval_evidence = getattr(
             candidate, "causal_interval_evidence", None
         )
@@ -2653,6 +2910,14 @@ class NativeResidentOrganism:
             receptor_ingress_changing_count=receptor_ingress_changing_count,
             receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
+            body_effector_bindings=tuple(body_effector_bindings),
+            articulated_body_consequences=tuple(
+                articulated_body_consequences
+            ),
+            body_proprioceptive_sources=tuple(body_proprioceptive_sources),
+            body_proprioceptive_source_extents=tuple(
+                body_proprioceptive_source_extents
+            ),
             articulatory_unit_recruitments=tuple(
                 articulatory_unit_recruitments
             ),
@@ -3025,23 +3290,6 @@ def exact_native_yaw_trajectory(
     return int(successor), tuple(int(step) for step in steps)
 
 
-def exact_motor_unit_yaw_trajectory(
-    *,
-    predecessor_heading_millidegrees: int,
-    recruitments: tuple[tuple[int, int], ...],
-) -> tuple[int, tuple[int, ...]]:
-    """Settle transient native motor recruitment on the body yaw lattice."""
-
-    trajectory = getattr(_native_core(), "exact_motor_unit_yaw_trajectory", None)
-    if not callable(trajectory):
-        raise RuntimeError("guala_core does not expose motor-unit yaw physics")
-    successor, steps = trajectory(
-        predecessor_heading_millidegrees,
-        list(recruitments),
-    )
-    return int(successor), tuple(int(step) for step in steps)
-
-
 def exact_articulatory_unit_trajectory(
     *,
     recruitments: tuple[tuple[int, int], ...],
@@ -3291,7 +3539,6 @@ __all__ = (
     "ResidentCausalIntervalEvidence",
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
-    "exact_motor_unit_yaw_trajectory",
     "exact_articulatory_unit_trajectory",
     "exact_native_yaw_trajectory",
     "restore_native_resident_organism",

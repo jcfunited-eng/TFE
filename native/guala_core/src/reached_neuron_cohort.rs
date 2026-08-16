@@ -52,6 +52,7 @@ use crate::sparse_electrical_contact::{
     SparseElectricalAnatomy, SparseElectricalError, SparseElectricalState,
     SparseElectricalTransferSettlement,
 };
+use crate::virtual_articulated_body::BodyEffectorTerminal;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
@@ -133,21 +134,41 @@ impl From<MetabolicError> for ReachedCohortError {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum ReachedNeuronMount {
     Receptor(NeuronSourceSite),
-    Intrinsic(DeclaredNeuronPlace),
+    Intrinsic {
+        place: DeclaredNeuronPlace,
+        body_effector_terminal: Option<BodyEffectorTerminal>,
+    },
 }
 
 impl ReachedNeuronMount {
     pub(crate) fn place(&self) -> DeclaredNeuronPlace {
         match self {
             Self::Receptor(site) => DeclaredNeuronPlace::from_source_site(site),
-            Self::Intrinsic(place) => *place,
+            Self::Intrinsic { place, .. } => *place,
         }
     }
 
     pub(crate) fn source_site(&self) -> Option<&NeuronSourceSite> {
         match self {
             Self::Receptor(site) => Some(site),
-            Self::Intrinsic(_) => None,
+            Self::Intrinsic { .. } => None,
+        }
+    }
+
+    pub(crate) fn intrinsic(place: DeclaredNeuronPlace) -> Self {
+        Self::Intrinsic {
+            place,
+            body_effector_terminal: None,
+        }
+    }
+
+    pub(crate) fn body_effector_terminal(&self) -> Option<BodyEffectorTerminal> {
+        match self {
+            Self::Intrinsic {
+                body_effector_terminal,
+                ..
+            } => *body_effector_terminal,
+            Self::Receptor(_) => None,
         }
     }
 }
@@ -238,6 +259,32 @@ impl ReachedCohortAnatomy {
 
     pub(crate) fn mounts(&self) -> &[ReachedNeuronMount] {
         &self.mounts
+    }
+
+    pub(crate) fn specialize_motor_effector(
+        &mut self,
+        neuron_lineage: [u8; 16],
+        terminal: BodyEffectorTerminal,
+    ) -> Result<(), ReachedCohortError> {
+        let index = self
+            .neuron_lineages
+            .iter()
+            .position(|lineage| *lineage == neuron_lineage)
+            .ok_or(ReachedCohortError::InvalidNeuronLineage)?;
+        match self.mounts.get_mut(index) {
+            Some(ReachedNeuronMount::Intrinsic {
+                place,
+                body_effector_terminal,
+            }) if place.layer() == 12 => match *body_effector_terminal {
+                None => {
+                    *body_effector_terminal = Some(terminal);
+                    Ok(())
+                }
+                Some(existing) if existing == terminal => Ok(()),
+                Some(_) => Err(ReachedCohortError::SourceAnatomyMismatch),
+            },
+            _ => Err(ReachedCohortError::SourceAnatomyMismatch),
+        }
     }
 
     pub(crate) fn source_site(&self, neuron_index: usize) -> Option<&NeuronSourceSite> {
@@ -814,6 +861,7 @@ const REACHED_COHORT_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCS06\0";
 const REACHED_COHORT_CELL_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCC05\0";
 const REACHED_COHORT_CELL_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCC06\0";
 const REACHED_COHORT_CELL_CODEC_V7_MAGIC: &[u8; 8] = b"GLRCC07\0";
+const REACHED_COHORT_CELL_CODEC_V8_MAGIC: &[u8; 8] = b"GLRCC08\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const REACHED_COHORT_STATE_DELTA_V2_MAGIC: &[u8; 8] = b"GLRSD02\0";
 const REACHED_COHORT_STATE_DELTA_V3_MAGIC: &[u8; 8] = b"GLRSD03\0";
@@ -873,6 +921,11 @@ pub(crate) fn encode_reached_cohort_cell(
 pub(crate) fn decode_reached_cohort_cell(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    if encoded.get(..REACHED_COHORT_CELL_CODEC_V8_MAGIC.len())
+        == Some(REACHED_COHORT_CELL_CODEC_V8_MAGIC)
+    {
+        return decode_reached_cohort_cell_v8(encoded);
+    }
     if encoded.get(..REACHED_COHORT_CELL_CODEC_V7_MAGIC.len())
         == Some(REACHED_COHORT_CELL_CODEC_V7_MAGIC)
     {
@@ -1196,10 +1249,16 @@ pub(crate) fn encode_reached_cohort_cell_v6(
                 != contact_anatomy.genesis_conducting_population()
                 || contact.transition_work_phase().parts().0 != 0
         });
+    let carries_body_effectors = anatomy
+        .mounts
+        .iter()
+        .any(|mount| mount.body_effector_terminal().is_some());
     encode_reached_cohort_cell_content_addressed(
         anatomy,
         state,
-        if carries_changed_channels {
+        if carries_body_effectors {
+            ContentAddressedCohortFormat::V8MountedEffectors
+        } else if carries_changed_channels {
             ContentAddressedCohortFormat::V7MountedChannels
         } else {
             ContentAddressedCohortFormat::V6Mounted
@@ -1213,6 +1272,7 @@ enum ContentAddressedCohortFormat {
     V5WithContactPlasticity,
     V6Mounted,
     V7MountedChannels,
+    V8MountedEffectors,
 }
 
 fn encode_reached_cohort_cell_content_addressed(
@@ -1247,6 +1307,9 @@ fn encode_reached_cohort_cell_content_addressed(
         ContentAddressedCohortFormat::V7MountedChannels => {
             REACHED_COHORT_CELL_CODEC_V7_MAGIC
         }
+        ContentAddressedCohortFormat::V8MountedEffectors => {
+            REACHED_COHORT_CELL_CODEC_V8_MAGIC
+        }
     });
     push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
     anatomy_table.encode_into(&mut encoded)?;
@@ -1271,17 +1334,35 @@ fn encode_reached_cohort_cell_content_addressed(
                 encoded.extend_from_slice(&source);
             }
             ContentAddressedCohortFormat::V6Mounted
-            | ContentAddressedCohortFormat::V7MountedChannels => match mount {
+            | ContentAddressedCohortFormat::V7MountedChannels
+            | ContentAddressedCohortFormat::V8MountedEffectors => match mount {
                 ReachedNeuronMount::Receptor(source_site) => {
                     encoded.push(0);
                     let source = encode_neuron_source_site(source_site)?;
                     push_cohort_usize(&mut encoded, source.len())?;
                     encoded.extend_from_slice(&source);
                 }
-                ReachedNeuronMount::Intrinsic(place) => {
+                ReachedNeuronMount::Intrinsic {
+                    place,
+                    body_effector_terminal,
+                } => {
                     encoded.push(1);
                     encoded.extend_from_slice(&place.layer().to_le_bytes());
                     encoded.extend_from_slice(&place.topology_index().to_le_bytes());
+                    if matches!(format, ContentAddressedCohortFormat::V8MountedEffectors) {
+                        match body_effector_terminal {
+                            Some(terminal) => {
+                                encoded.push(1);
+                                encoded.push(
+                                    u8::try_from(terminal.axis().index()).map_err(|_| {
+                                        ReachedCohortError::InvalidStateEncoding
+                                    })?,
+                                );
+                                encoded.push(terminal.direction() as u8);
+                            }
+                            None => encoded.push(0),
+                        }
+                    }
                 }
             },
         }
@@ -1311,6 +1392,9 @@ fn encode_reached_cohort_cell_content_addressed(
         ContentAddressedCohortFormat::V7MountedChannels => {
             encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)
         }
+        ContentAddressedCohortFormat::V8MountedEffectors => {
+            encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)
+        }
     }?;
     push_cohort_usize(&mut encoded, electrical.len())?;
     encoded.extend_from_slice(&electrical);
@@ -1320,7 +1404,7 @@ fn encode_reached_cohort_cell_content_addressed(
 fn decode_reached_cohort_cell_v5(
     encoded: &[u8],
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
-    decode_reached_cohort_cell_content_addressed(encoded, None)
+    decode_reached_cohort_cell_content_addressed(encoded, None, false)
 }
 
 fn decode_reached_cohort_cell_v6(
@@ -1329,6 +1413,7 @@ fn decode_reached_cohort_cell_v6(
     decode_reached_cohort_cell_content_addressed(
         encoded,
         Some(REACHED_COHORT_CELL_CODEC_V6_MAGIC),
+        false,
     )
 }
 
@@ -1338,12 +1423,24 @@ fn decode_reached_cohort_cell_v7(
     decode_reached_cohort_cell_content_addressed(
         encoded,
         Some(REACHED_COHORT_CELL_CODEC_V7_MAGIC),
+        false,
+    )
+}
+
+fn decode_reached_cohort_cell_v8(
+    encoded: &[u8],
+) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    decode_reached_cohort_cell_content_addressed(
+        encoded,
+        Some(REACHED_COHORT_CELL_CODEC_V8_MAGIC),
+        true,
     )
 }
 
 fn decode_reached_cohort_cell_content_addressed(
     encoded: &[u8],
     mounted_magic: Option<&[u8; 8]>,
+    carries_body_effectors: bool,
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
     let mut reader = CohortStateReader::new(encoded);
     let expected_magic = mounted_magic.unwrap_or(REACHED_COHORT_CELL_CODEC_V5_MAGIC);
@@ -1390,10 +1487,28 @@ fn decode_reached_cohort_cell_content_addressed(
                         reader.take(source_length)?,
                     )?)
                 }
-                1 => ReachedNeuronMount::Intrinsic(DeclaredNeuronPlace::new(
-                    reader.u32()?,
-                    reader.u32()?,
-                )),
+                1 => {
+                    let place = DeclaredNeuronPlace::new(reader.u32()?, reader.u32()?);
+                    let body_effector_terminal = if carries_body_effectors {
+                        match reader.u8()? {
+                            0 => None,
+                            1 => Some(
+                                BodyEffectorTerminal::from_ordinals(reader.u8()?, reader.u8()?)
+                                    .ok_or(ReachedCohortError::InvalidStateEncoding)?,
+                            ),
+                            _ => return Err(ReachedCohortError::InvalidStateEncoding),
+                        }
+                    } else {
+                        None
+                    };
+                    if body_effector_terminal.is_some() && place.layer() != 12 {
+                        return Err(ReachedCohortError::InvalidStateEncoding);
+                    }
+                    ReachedNeuronMount::Intrinsic {
+                        place,
+                        body_effector_terminal,
+                    }
+                }
                 _ => return Err(ReachedCohortError::InvalidStateEncoding),
             }
         } else {

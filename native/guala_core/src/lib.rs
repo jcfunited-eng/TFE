@@ -13,6 +13,7 @@ mod auditory;
 mod auditory_reachability;
 mod auditory_receptor_work;
 mod articulatory_receptor_work;
+mod articulated_body_joint_source_builder;
 mod canonical_basin;
 #[cfg(test)]
 mod canonical_causal_evidence;
@@ -76,6 +77,7 @@ mod sparse_electrical_contact;
 mod tactile_receptor_work;
 mod vestibular_joint_source_builder;
 mod vestibular_neuron_path;
+mod virtual_articulated_body;
 mod virtual_body_yaw_motion;
 mod virtual_articulatory_body;
 mod virtual_material_neuron_genesis;

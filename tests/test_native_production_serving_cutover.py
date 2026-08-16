@@ -58,6 +58,25 @@ class _Observation:
     available_energy_capacity_zeptojoules: tuple[int, int] = (0, 1)
     dissipated_energy_zeptojoules: tuple[int, int] = (0, 1)
     dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
+    articulated_body_state_bytes: int = 195
+    articulated_body_state_sha256: str = "b" * 64
+    articulated_body_proprioception_initialized: bool = True
+    articulated_body_lung_air_microlitres: int = 2_000_000
+
+    @property
+    def articulated_body_axes(
+        self,
+    ) -> list[tuple[int, str, str, int, int, int, int]]:
+        return [
+            (ordinal, f"axis_{ordinal}", "millidegree", 0, -1, 0, 1)
+            for ordinal in range(37)
+        ]
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(
+        self,
+    ) -> list[int]:
+        return [125, 145, 165, 185, 205, 225, 245, 265]
 
 
 class _Organism:
@@ -284,7 +303,7 @@ def test_native_current_cold_restore_proof_is_state_bound() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 500,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_identity": IDENTITY,
         "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
@@ -328,35 +347,21 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
     )
     monkeypatch.setattr(
         cold_restore_probe,
-        "_rehearse_contact_local_junction",
+        "_rehearse_a013_articulated_body",
         lambda *_args, **_kwargs: {
-            "a0116_contact_local_junction_rehearsed": True,
-            "a0116_contact_local_interval_ordinal": 1,
-            "a0116_contact_count": 3,
-            "a0116_changed_contact_count": 1,
-            "a0116_changed_contacts_sha256": "a" * 64,
-            "a0116_contact_state_sha256": "b" * 64,
-            "a0116_successor_state_sha256": "c" * 64,
-            "a0116_cold_restore_exact": True,
-            "a0116_contact_later_causal_use_rehearsed": True,
-            "a0116_contact_later_interval_ordinal": 2,
-            "a0116_later_causal_contact_sha256": "d" * 64,
-            "a0116_later_outward_whole_carriers": 1,
-        },
-    )
-    monkeypatch.setattr(
-        cold_restore_probe,
-        "_observe_c024_cognitive_capital",
-        lambda *_args, **_kwargs: {
-            "c024_cognitive_capital_rehearsed": True,
-            "c024_cognitive_capital_state_sha256": STATE_SHA,
-            "c024_cognitive_capital_capability_count": 39,
-            "c024_cognitive_capital_dimension_count": 10,
-            "c024_cognitive_capital_credit_cell_count": 1,
-            "c024_cognitive_capital_evidence_reference_count": 1,
-            "c024_cognitive_capital_observation_bytes": 1,
-            "c024_cognitive_capital_unproved_cells_preserved": True,
-            "c024_false_native_capital_exports_absent": True,
+            "a013_articulated_body_rehearsed": True,
+            "a013_articulated_body_predecessor_state_sha256": STATE_SHA,
+            "a013_articulated_body_successor_state_sha256": "c" * 64,
+            "a013_articulated_body_predecessor_tick": 23_723_846,
+            "a013_articulated_body_successor_tick": 23_723_847,
+            "a013_articulated_body_axis_count": 37,
+            "a013_articulated_body_terminal_count": 74,
+            "a013_articulated_body_state_bytes": 195,
+            "a013_articulated_body_state_sha256": "d" * 64,
+            "a013_articulated_body_proprioception_initialized": True,
+            "a013_articulated_body_neutral_observation": True,
+            "a013_articulated_body_cold_restore_exact": True,
+            "a013_articulated_body_python_callback_count": 0,
         },
     )
     monkeypatch.setattr(

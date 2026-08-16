@@ -53,6 +53,21 @@ class _Observation:
     available_energy_capacity_zeptojoules: tuple[int, int] = (0, 1)
     dissipated_energy_zeptojoules: tuple[int, int] = (0, 1)
     dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
+    articulated_body_state_bytes: int = 195
+    articulated_body_state_sha256: str = "b" * 64
+    articulated_body_proprioception_initialized: bool = True
+    articulated_body_lung_air_microlitres: int = 2_000_000
+
+    @property
+    def articulated_body_axes(self):
+        return [
+            (index, f"axis_{index}", "millidegree", 0, -1, 0, 1)
+            for index in range(37)
+        ]
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(self):
+        return [100] * 8
 
 
 class _Organism:

@@ -109,12 +109,14 @@ class _Observation:
     state_bytes: int = 1
     state_sha256: str = "a" * 64
     cognitive_mosaic_count: int = 0
+    mosaic_of_mosaics_count: int = 0
     cognitive_ordinal: int = 0
     cognitive_trace_count: int = 0
     complete_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
     formation_activation_count: int = 0
     partial_cue_reassembly_count: int = 0
+    endogenous_partial_cue_reassembly_count: int = 0
     physical_transition_claimed: bool = False
     python_callback_count: int = 0
     # Energy state (minimal feeding metabolism, 2026-08-05): the readiness
@@ -127,6 +129,27 @@ class _Observation:
     dissipation_capacity_quanta: int = 0
     separated_elementary_charges: int = 0
     energy_exhausted: bool = False
+    available_energy_zeptojoules: tuple[int, int] = (0, 1)
+    spent_energy_zeptojoules: tuple[int, int] = (0, 1)
+    thermal_energy_zeptojoules: tuple[int, int] = (0, 1)
+    available_energy_capacity_zeptojoules: tuple[int, int] = (0, 1)
+    dissipated_energy_zeptojoules: tuple[int, int] = (0, 1)
+    dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
+    articulated_body_state_bytes: int = 195
+    articulated_body_state_sha256: str = "b" * 64
+    articulated_body_proprioception_initialized: bool = True
+    articulated_body_lung_air_microlitres: int = 2_000_000
+
+    @property
+    def articulated_body_axes(self):
+        return [
+            (index, f"axis_{index}", "millidegree", 0, -1, 0, 1)
+            for index in range(37)
+        ]
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(self):
+        return [100] * 8
 
 
 class _Organism:
@@ -135,6 +158,18 @@ class _Organism:
 
     def readiness(self) -> _Observation:
         return self.observation
+
+    def observe_reached_neuron_count_by_layer(self):
+        return ()
+
+    def observe_reached_source_site_count(self, _sensor_id, _substream_id):
+        return 0
+
+    def observe_retained_formation_recurrence_evidence(self):
+        return ()
+
+    def observe_retained_formations(self):
+        return ()
 
 
 @dataclass
@@ -230,14 +265,14 @@ async def test_unmounted_or_malformed_browser_senses_fail_without_touching_organ
     monkeypatch.setattr(production, "_restored", _Restored(organism))
     monkeypatch.setattr(production, "_admission", _Admission())
     before = organism.readiness()
-    sight = await production.sight_frame(None)
+    sight = production.sight_frame(None)
     # PIN UPDATED 2026-08-06: standalone hearing is suspended by the
     # ratified two-real-signal doctrine (Joe, 2026-08-05) and refuses 503
     # BEFORE the body is even read; the organism stays untouched.
     sound = await production.sound_frame(None)
     after = organism.readiness()
-    assert sight.status_code == 503
-    assert b"not mounted" in sight.body
+    assert sight.status_code == 422
+    assert b"requires a JSON object body" in sight.body
     assert sound.status_code == 503
     assert b'"accepted":false' in sound.body.replace(b" ", b"")
     assert before == after

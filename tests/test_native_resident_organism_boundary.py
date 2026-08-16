@@ -123,6 +123,35 @@ class _NativeResidentOrganismObservation:
     def state_sha256(self) -> str:
         return hashlib.sha256(self.state).hexdigest()
 
+    @property
+    def articulated_body_axes(
+        self,
+    ) -> list[tuple[int, str, str, int, int, int, int]]:
+        return [
+            (ordinal, f"axis_{ordinal}", "millidegree", 0, -1, 0, 1)
+            for ordinal in range(37)
+        ]
+
+    @property
+    def articulated_body_lung_air_microlitres(self) -> int:
+        return 2_000_000
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(self) -> list[int]:
+        return [125, 145, 165, 185, 205, 225, 245, 265]
+
+    @property
+    def articulated_body_state_bytes(self) -> int:
+        return 195
+
+    @property
+    def articulated_body_proprioception_initialized(self) -> bool:
+        return False
+
+    @property
+    def articulated_body_state_sha256(self) -> str:
+        return hashlib.sha256(b"neutral articulated body").hexdigest()
+
 
 @dataclass
 class _NativeResidentOrganismPrepare:
@@ -178,6 +207,10 @@ class _NativeResidentOrganismPrepare:
             list[tuple[str, str, str, int, int, str, str]],
         ]
     ] | None = None
+    body_effector_bindings: list[tuple[str, str, str, int]] | None = None
+    articulated_body_consequences: list[tuple[object, ...]] | None = None
+    body_proprioceptive_sources: list[bytes] | None = None
+    body_proprioceptive_source_extents: list[tuple[int, int, int, int, int]] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
     changed_contact_channel_states: list[tuple[object, ...]] | None = None
     physical_frontier_routes: list[
@@ -218,6 +251,8 @@ class _NativeResidentOrganismPrepare:
             ],
         ]
     ] | None = None
+    reached_source_port_count: int = 96
+    causal_interval_count: int = 1
     python_callback_count: int = 0
 
     def __post_init__(self) -> None:
@@ -225,6 +260,14 @@ class _NativeResidentOrganismPrepare:
             self.emitted_neuron_fractals = []
         if self.motor_unit_recruitments is None:
             self.motor_unit_recruitments = []
+        if self.body_effector_bindings is None:
+            self.body_effector_bindings = []
+        if self.articulated_body_consequences is None:
+            self.articulated_body_consequences = []
+        if self.body_proprioceptive_sources is None:
+            self.body_proprioceptive_sources = []
+        if self.body_proprioceptive_source_extents is None:
+            self.body_proprioceptive_source_extents = []
         if self.active_physical_bonds is None:
             self.active_physical_bonds = []
         if self.changed_contact_channel_states is None:

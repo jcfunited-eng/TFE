@@ -2,7 +2,8 @@
 
 Date: 2026-08-16
 
-Status: Active architecture boundary. A-013 is not Live-Closed.
+Status: Active release candidate. A-013 is not Live-Closed until production
+cutover and live observation finish.
 
 ## Task identity
 
@@ -11,44 +12,53 @@ Status: Active architecture boundary. A-013 is not Live-Closed.
   body state.
 - Dependency: A-012 is Live-Closed by the already-live physical rest/wake,
   consolidation, later causal-use, unattended interaction, and changed-world
-  exploration circuit. Complete locomotion and manipulation remain A-013.
+  exploration circuit. Nuanced gait and dexterous manipulation are deferred
+  beyond this bounded Phase-1 base-VR closure boundary.
 - Predecessor update: A-011.6 and A-011.7 are Live-Closed. A-011.7 closed on
   task 1095 by body-owned laughter receipt `8d1b7bfe...de32aa`.
-- Production baseline remains task `dsf-ai-task:1095`, commit `d0a1956b`, one
+- Production baseline is task `dsf-ai-task:1096`, commit `11a33a34`, one
   healthy organism process, the same organism identity, and zero Python
   cognition callbacks.
 
 ## Architecture honesty gate
 
-1. Requested architecture: one persistent physical body with explicit
-   effector anatomy must turn native layer-12/layer-13 discharge into bounded
-   pose, gaze, eye, eyelid, face, mouth, breath, voice, locomotor, and
-   manipulation transitions; each consequence must return through the same
-   organism's physical receptors.
-2. Current code reality: the authenticated world retains a root position,
-   wrapped heading, circular collision radius, reach, held object, receptor
-   offsets, and active contact. Native motor discharge drives only yaw by
-   interpreting every layer-12 topology as one member of an even/odd yaw
-   antagonist pair. Native layer 13 already drives breath, glottis, mouth,
-   perioral movement, pressure, self-hearing, and four articulatory body
-   receptor returns. Pick/place world mechanics exist only behind externally
-   supplied typed commands. There is no persistent gaze, eyelid, facial pose,
-   posture/joint anatomy, locomotor muscle, or manipulation effector binding.
-3. Conflict with requested architecture: yes. A layer-12 cell currently
-   retains its physical layer-8 body-regulation and layer-11 ordering contacts,
-   but its mount contains only `(layer, topology_index)`. The transient
-   recruitment therefore carries no physical effector site. Applying all such
-   discharge to yaw collapses distinct future body routes onto one actuator.
+1. Requested architecture: one persistent base VR body with distinct afferent
+   and efferent anatomy must turn native layer-12/layer-13 discharge into
+   bounded pose, gaze, eye, eyelid, face, mouth, breath, voice, root locomotor,
+   and base manipulation transitions; each consequence must return through
+   the same organism's physical receptors. Hardware-specific expressive
+   biomechanics are intentionally outside this Phase-1 boundary.
+2. Current code reality: the authenticated world retains root pose, collision,
+   reach, held object, receptor offsets, and contact. The native organism now
+   persistently carries 37 local body axes, 74 fixed antagonist afferent/
+   efferent pair addresses, exact sparse motor ancestry, body consequences,
+   and a one-time cold-stable receipt that its complete proprioceptor roster
+   entered ordinary cognition. A proprioceptive ending and a motor effector
+   are now different native types. Each reached layer-12 motor cell retains
+   its own efferent terminal in the neuron-mount codec; runtime body direction
+   no longer comes from walking backward to a receptor.
+   Every later local body consequence re-enters the same native transaction as
+   a typed proprioceptive source before its one final seal. The parity
+   motor-to-yaw bridge and Python motor-meaning selector are removed. The
+   Phase-1 virtual environment remains the one truthful root-pose, collision,
+   reach, and held-object authority.
+3. Conflict with requested Phase-1 architecture: no. The base VR body is a
+   deterministic lattice body, so its constitutive law lawfully ends at
+   `typed carrier discharge -> opposed local terminals -> bounded lattice
+   displacement -> sensed consequence`. A mechanical transducer is not inside
+   a neuron and is not required for a virtual lattice. A future physical body
+   will require its own measured electromechanical boundary after its actual
+   morphology and parts are selected.
 4. Mechanisms not extended: arbitrary topology-number-to-action tables,
    Python action selection, semantic action names as authority, the retired
    Python taxis/stride controller, copied native/world body position, a second
    body-state codec, owner/lock/database state, whole-organism scans, scores,
-   reward, random selection, or scripted movement.
-5. Single exact next item: preserve and expose the already-existing sparse
-   layer-12 -> layer-8 -> layer-6 -> physical body-receptor ancestry at motor
-   recruitment, then determine whether that physical ancestry declares a real
-   effector site. If it does not, add explicit body effector anatomy before
-   any non-yaw actuation.
+   reward, random selection, scripted movement, detailed robotic
+   face/tongue/skin mechanics, vendor-specific actuator assumptions, or a
+   speculative final android body.
+5. Single exact next item: complete the exact-predecessor A-013 rehearsal and
+   production cutover. Do not add hand geometry, a rigid-body simulator, or
+   hardware-specific mechanics to this Phase-1 release.
 6. DSF scope: unchanged full joint seven-field L0-L4 remains authoritative at
    every reached occurrence. Embodiment mechanics neither evaluate a reduced
    projection nor change DSF.
@@ -58,18 +68,52 @@ Status: Active architecture boundary. A-013 is not Live-Closed.
 
 | Required body capability | Current physical mechanism | Truth status |
 |---|---|---|
-| Root position | authenticated world `PoseMM.position` | persistent, but not autonomously actuated |
-| Root heading | native exact yaw trajectory -> at-most-once world move -> vestibular return | live |
-| Gaze and eye pose | retinal offset follows root heading | no independent gaze anatomy |
-| Blinking/eyelids | none | absent |
-| Face | layer-13 perioral area displacement | partial, transient |
-| Mouth/breath/glottis | native articulatory body | live physical actuation |
+| Root position | authenticated world `PoseMM.position` | persistent Phase-1 environment authority |
+| Root heading | authenticated world `PoseMM.heading_millidegrees` | persistent Phase-1 environment authority; no parity bridge |
+| Gaze and eye pose | persistent neck plus independent left/right eye yaw and pitch axes | locally persistent and typed; not yet projected into world retina geometry |
+| Blinking/eyelids | persistent independent left/right aperture axes | locally persistent and typed |
+| Face | persistent brows, cheeks, jaw, lips, and perioral axes | locally persistent and typed |
+| Mouth/breath/glottis | persistent mouth/glottal axes, lung volume, and eight tract areas plus native articulatory body | persistent local state; vocal mechanics remain active |
 | Voice/self-hearing | radiated pressure -> cochlear return | live physical actuation |
-| Articulatory proprioception | four mounted body receptors | live |
-| Posture/limbs/joints | none | absent |
-| Locomotion | world can accept external position commands; native motor cannot address them | absent |
-| Manipulation | authenticated pick/place mechanics accept external commands | not organism-actuated |
-| Sleep posture/eye closure | none | absent |
+| Whole-body proprioception | 74 typed afferent endings; complete initial source once; sparse consequence sources thereafter | immediate same-transaction native return |
+| Motor direction | sparse layer-12 motor mounts retain their own typed efferent terminal; `GLRCC08` cold-restores it | directionally truthful locally; not deployed |
+| Posture/limbs/joints | torso, shoulders, elbows, wrists, grips, hips, knees, and ankles | locally persistent and typed |
+| Locomotion | authenticated environment owns root motion and collision | base VR authority retained; detailed native gait deferred |
+| Manipulation | authenticated environment owns reach/held-object settlement | base VR authority retained; dexterous hand mechanics deferred |
+| Sleep posture/eye closure | persistent eyelid/body axes exist | nuanced sleep expression deferred |
+
+## Phase boundary decision
+
+The Phase-1 deliverable is a truthful, bounded base VR body. It is not a
+premature simulation of whichever physical android platform may later be
+selected. Detailed finger contact, expressive face materials, tongue surface
+physics, skin, vendor-specific actuators, and final humanoid morphology are
+deferred until an actual embodiment platform and collaboration boundary are
+known. The physical-body selection specification remains a compatibility and
+procurement guide; it does not authorize speculative runtime mechanics.
+
+This deferral does not permit fake embodiment. Persistent local pose, distinct
+sensory/motor wiring, causal feedback, exact cold restore, bounded resources,
+and truthful reporting must be live-proved. Detailed gait, dexterous hands,
+expressive materials, and electromechanical conversion belong to the later
+body selected with the creator; they are not invented in Phase 1.
+
+## Retained directionality correction
+
+- `BodyProprioceptorTerminal` is afferent anatomy; it cannot be used as a motor
+  mount.
+- Each developed layer-12 motor cell retains a separate
+  `BodyEffectorTerminal` in its intrinsic neuron mount.
+- `GLRCC08` persists the optional layer-12 efferent terminal and refuses one on
+  any other layer.
+- A motor recruitment exports its own retained efferent terminal. Afferent
+  ancestry remains causal observation only and has no direction authority.
+- Legacy layer-12 mounts without an efferent are specialized only when their
+  exact retained layer-8 -> layer-6 -> body-receptor anatomy is physically
+  reached again; no topology parity, text label, Python selector, or action
+  table performs migration.
+- Runtime settlement touches only the sparse recruited motor terminals. It
+  does not clone the organism or scan the resting neuron population.
 
 ## First rejected candidate
 
@@ -97,11 +141,11 @@ pre-production:
   cognition;
 - the Python/native boundary rejects a motor with absent, malformed,
   duplicated, unordered, or non-layer-5 ancestry;
-- the at-most-once motor action receipt binds the exact ancestry, while the
-  existing yaw physics remains unchanged;
+- the local body action receipt binds the exact ancestry; the legacy parity
+  motor-to-yaw mapping is removed rather than carried forward;
 - the body receptor is truthfully classified as an afferent site. It is not
-  relabeled as an effector. Explicit effector anatomy remains the next A-013
-  implementation boundary.
+  relabeled as an effector. The later retained body increment mounts separate
+  explicit antagonist effector terminals.
 
 Verification on the fresh wheel
 `ec9b3542761dbae499043d50d6b5c85f0fcf77673eb5ce51d94ec039a081fc3d`:
@@ -118,10 +162,76 @@ Verification on the fresh wheel
 
 ## Required acceptance
 
-A-013 can become Live-Closed only after the production body persistently and
-truthfully exposes every listed body part/state, native organism discharge
-causes each implemented effector without semantic or Python selection,
-at-most-once world/body consequences re-enter the corresponding senses, cold
-restore is exact, identity and learned state remain unchanged, one process and
-zero Python cognition callbacks remain true, and measured CPU/RAM/storage do
-not grow without a reached physical cause.
+A-013 can become Live-Closed after this bounded Phase-1 body is cut over to the
+same production organism; all 37 axes and 74 typed terminals cold-restore;
+neutral observation manufactures no movement; any actual motor discharge uses
+only its retained typed terminal and returns its sparse consequence; identity,
+learned state, one-process topology, zero Python cognition callbacks, and
+resource ceilings remain true. Later physical-body nuance is explicitly not a
+closure gate for this phase.
+
+## Bounded verification on the current release candidate
+
+The release wheel SHA-256 is
+`9d4e6abfa14ea60477e98d1917ad4225089f3add4769a70a93d8a2e14c19b2b0`.
+
+- Native library: 444 passed, 11 intentionally ignored, zero failed in 50.00
+  seconds.
+- Maintained native/Python body, production-mount, public-observation,
+  rehearsal, and causal-boundary tests on the fresh wheel: 119 passed, zero
+  failed in 2.23 seconds.
+- Focused directionality proof: the motor mount survives exact `GLRCC08` cold
+  round-trip; absent, untyped, or opposed afferent ancestry cannot redirect
+  its discharge; five motor-boundary tests and thirteen articulated-body tests
+  passed.
+- Latency is reported separately from suite time: the controlled resident
+  recurrence fixture completed 10,000 native prepare+commit cycles in 1.00
+  second (about 0.10 ms per fixture cycle). This is a local bounded regression
+  measurement, not a claim about live end-to-end production latency.
+- Exact release-manifest staged-crate test: one passed in 78.74 seconds; that
+  duration includes a fresh native crate build and complete staged tests.
+- Release/deployment contract checks: 79 passed in the combined run, followed
+  by the corrected exact staged-crate packaging proof passing independently.
+- Fresh exact-energy migration of the available 58,445,817-byte production
+  snapshot retained identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick
+  `115976`, all 313 complete neurons, all 37 body axes, the fixed 195-byte body,
+  and zero Python cognition callbacks.
+- Two independent cold restores were byte-identical to migrated body
+  `abdb31da53aa070efb773021284e9dff1a23bd4e31a8f2c83621166d1044184a`.
+- The corrected exact-predecessor first body observation advances tick
+  `115976 -> 115977`, reaches exactly 74 body terminals, initializes all 37
+  axes, invokes zero Python callbacks, and cold-restores body receipt
+  `1430fd82d66c21f626029ee00f055b89d0e824dc75c7e577d5ea3d4dd2edccd3`.
+- The corrected successor envelope is 58,449,378 bytes with receipt
+  `b111fcc762789678377532ee5c1fefaa744b106c0ded92542f537467d3aa6505`.
+- On that exact predecessor, the exceptional one-time complete 74-terminal
+  body mount prepared in 650.47 ms and committed in 5.83 ms. This is organism
+  transition time; the 2.45-second rehearsal also performs save, hash, and two
+  complete cold restores and is not reported as reaction time.
+- A 30-transition production-like four-receptor stress trajectory after body
+  initialization prepared each exact successor in 485.81--574.42 ms. Process
+  residency warmed from 838,848 KiB to a bounded observed maximum of
+  1,089,676 KiB and ended at 1,081,128 KiB. Persisted organism size remained
+  in the narrow 58,451,688--58,455,234-byte band rather than growing with age.
+- The live task-1096 baseline independently stayed near 6.3--6.6 percent of
+  its fixed 16-GiB task envelope for several hours, with approximately 7.05
+  percent observed maximum. The candidate stress plateau matches that
+  existing allocator working-set shape; no database, owner, lock, recurrent
+  whole-body mount, or unbounded retained history was added.
+- The production-like two-interval path (complete body source followed by an
+  ordinary four-receptor sight occurrence) advances `115976 -> 115978`, seals
+  once, persists the identical hot/cold body receipt, and truthfully reports
+  zero motor discharge and zero fabricated consequence for that neutral run.
+- The failure was a directionality boundary, not substrate physics: an
+  already-live vestibular yaw regulator was incorrectly required to own an
+  articulated effector terminal. Motor formation now admits only the explicit
+  typed proprioceptor/effector pairing; a valid unpaired balance receptor
+  remains sensory and is not treated as corrupt anatomy.
+- A proposed sparse contact-limit primitive passed its isolated test but had no
+  truthful hand geometry able to produce its input. Its Rust, FFI, Python, and
+  test surfaces were removed instead of retaining an unmounted mechanism. The
+  removal deleted 128 candidate lines and introduced no compatibility shim.
+
+This evidence makes the bounded Phase-1 body eligible for production
+rehearsal. It does not by itself Live-Close A-013; deployment, live observation,
+resource evidence, ledger closure, and completion notification still remain.

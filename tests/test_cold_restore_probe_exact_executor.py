@@ -184,30 +184,20 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
     capsys,
 ) -> None:
     restored = _Restored()
-    contact_proof = {
-        "a0116_contact_local_junction_rehearsed": True,
-        "a0116_contact_local_interval_ordinal": 1,
-        "a0116_contact_count": 3,
-        "a0116_changed_contact_count": 1,
-        "a0116_changed_contacts_sha256": "a" * 64,
-        "a0116_contact_state_sha256": "b" * 64,
-        "a0116_successor_state_sha256": "c" * 64,
-        "a0116_cold_restore_exact": True,
-        "a0116_contact_later_causal_use_rehearsed": True,
-        "a0116_contact_later_interval_ordinal": 2,
-        "a0116_later_causal_contact_sha256": "d" * 64,
-        "a0116_later_outward_whole_carriers": 1,
-    }
-    capital_proof = {
-        "c024_cognitive_capital_rehearsed": True,
-        "c024_cognitive_capital_state_sha256": STATE_SHA,
-        "c024_cognitive_capital_capability_count": 39,
-        "c024_cognitive_capital_dimension_count": 10,
-        "c024_cognitive_capital_credit_cell_count": 1,
-        "c024_cognitive_capital_evidence_reference_count": 1,
-        "c024_cognitive_capital_observation_bytes": 1,
-        "c024_cognitive_capital_unproved_cells_preserved": True,
-        "c024_false_native_capital_exports_absent": True,
+    body_proof = {
+        "a013_articulated_body_rehearsed": True,
+        "a013_articulated_body_predecessor_state_sha256": STATE_SHA,
+        "a013_articulated_body_successor_state_sha256": "c" * 64,
+        "a013_articulated_body_predecessor_tick": 23_723_846,
+        "a013_articulated_body_successor_tick": 23_723_847,
+        "a013_articulated_body_axis_count": 37,
+        "a013_articulated_body_terminal_count": 74,
+        "a013_articulated_body_state_bytes": 195,
+        "a013_articulated_body_state_sha256": "d" * 64,
+        "a013_articulated_body_proprioception_initialized": True,
+        "a013_articulated_body_neutral_observation": True,
+        "a013_articulated_body_cold_restore_exact": True,
+        "a013_articulated_body_python_callback_count": 0,
     }
     monkeypatch.setattr(probe, "_arguments", _arguments)
     monkeypatch.setattr(
@@ -222,13 +212,8 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
     )
     monkeypatch.setattr(
         probe,
-        "_rehearse_contact_local_junction",
-        lambda *_args, **_kwargs: contact_proof,
-    )
-    monkeypatch.setattr(
-        probe,
-        "_observe_c024_cognitive_capital",
-        lambda *_args, **_kwargs: capital_proof,
+        "_rehearse_a013_articulated_body",
+        lambda *_args, **_kwargs: body_proof,
     )
 
     assert probe.main() == 0
@@ -258,8 +243,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
         "tick": 23_723_846,
-        **contact_proof,
-        **capital_proof,
+        **body_proof,
     }
     assert receipt == hashlib.sha256(probe._canonical(proof)).hexdigest()
 

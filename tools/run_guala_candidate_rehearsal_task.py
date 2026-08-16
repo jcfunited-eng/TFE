@@ -24,7 +24,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v6",
+    "cold-restore": "guala.production_native_current_cold_restore.v7",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
 
@@ -278,7 +278,7 @@ def _validate_proof(
     expected_native_physical_rest_wake_rehearsal: bool = False,
     expected_native_internal_consolidation_rehearsal: bool = False,
     expected_native_causal_cross_context_rehearsal: bool = False,
-    expected_c024_cognitive_capital_rehearsal: bool = False,
+    expected_a013_articulated_body_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -802,30 +802,29 @@ def _validate_proof(
         and proof.get("native_causal_cross_context_state_sha256_before")
         != proof.get("native_causal_cross_context_state_sha256_after")
     )
-    c024_cognitive_capital_rehearsal = (
-        proof.get("c024_cognitive_capital_rehearsed") is True
-        and proof.get("c024_cognitive_capital_state_sha256")
+    a013_articulated_body_rehearsal = (
+        proof.get("a013_articulated_body_rehearsed") is True
+        and isinstance(actual_tick, int)
+        and not isinstance(actual_tick, bool)
+        and proof.get("a013_articulated_body_predecessor_state_sha256")
         == actual_state_sha256
-        and proof.get("c024_cognitive_capital_capability_count") == 39
-        and proof.get("c024_cognitive_capital_dimension_count") == 10
-        and isinstance(proof.get("c024_cognitive_capital_credit_cell_count"), int)
-        and not isinstance(proof["c024_cognitive_capital_credit_cell_count"], bool)
-        and 0 < proof["c024_cognitive_capital_credit_cell_count"] <= 390
-        and isinstance(
-            proof.get("c024_cognitive_capital_evidence_reference_count"), int
-        )
-        and not isinstance(
-            proof["c024_cognitive_capital_evidence_reference_count"], bool
-        )
-        and proof["c024_cognitive_capital_evidence_reference_count"]
-        >= proof["c024_cognitive_capital_credit_cell_count"]
-        and isinstance(
-            proof.get("c024_cognitive_capital_observation_bytes"), int
-        )
-        and not isinstance(proof["c024_cognitive_capital_observation_bytes"], bool)
-        and proof["c024_cognitive_capital_observation_bytes"] > 0
-        and proof.get("c024_cognitive_capital_unproved_cells_preserved") is True
-        and proof.get("c024_false_native_capital_exports_absent") is True
+        and isinstance(proof.get("a013_articulated_body_successor_state_sha256"), str)
+        and _SHA.fullmatch(proof["a013_articulated_body_successor_state_sha256"])
+        is not None
+        and proof["a013_articulated_body_successor_state_sha256"]
+        != actual_state_sha256
+        and proof.get("a013_articulated_body_predecessor_tick") == actual_tick
+        and proof.get("a013_articulated_body_successor_tick") == actual_tick + 1
+        and proof.get("a013_articulated_body_axis_count") == 37
+        and proof.get("a013_articulated_body_terminal_count") == 74
+        and proof.get("a013_articulated_body_state_bytes") == 195
+        and isinstance(proof.get("a013_articulated_body_state_sha256"), str)
+        and _SHA.fullmatch(proof["a013_articulated_body_state_sha256"])
+        is not None
+        and proof.get("a013_articulated_body_proprioception_initialized") is True
+        and proof.get("a013_articulated_body_neutral_observation") is True
+        and proof.get("a013_articulated_body_cold_restore_exact") is True
+        and proof.get("a013_articulated_body_python_callback_count") == 0
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
@@ -877,8 +876,8 @@ def _validate_proof(
             and not native_causal_cross_context_rehearsal
         )
         or (
-            expected_c024_cognitive_capital_rehearsal
-            and not c024_cognitive_capital_rehearsal
+            expected_a013_articulated_body_rehearsal
+            and not a013_articulated_body_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -986,7 +985,7 @@ def main() -> int:
     expected_native_physical_rest_wake_rehearsal = False
     expected_native_internal_consolidation_rehearsal = False
     expected_native_causal_cross_context_rehearsal = False
-    expected_c024_cognitive_capital_rehearsal = values.mode == "cold-restore"
+    expected_a013_articulated_body_rehearsal = values.mode == "cold-restore"
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -1092,8 +1091,8 @@ def main() -> int:
             expected_native_causal_cross_context_rehearsal=(
                 expected_native_causal_cross_context_rehearsal
             ),
-            expected_c024_cognitive_capital_rehearsal=(
-                expected_c024_cognitive_capital_rehearsal
+            expected_a013_articulated_body_rehearsal=(
+                expected_a013_articulated_body_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))

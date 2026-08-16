@@ -18,9 +18,14 @@ use pyo3::types::PyBytes;
 
 use crate::full_field_bank::rational_to_f64_bits;
 use crate::sha256::sha256;
+use crate::virtual_articulated_body::{
+    BodyProprioceptorTerminal, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+};
 
 const MAGIC: &[u8; 8] = b"GLJSRC02";
 const VERSION: u16 = 2;
+const BODY_MAGIC: &[u8; 8] = b"GLJSRC03";
+const BODY_VERSION: u16 = 3;
 const SENSE_COUNT: usize = 6;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -33,6 +38,11 @@ pub(crate) struct JointSourceCoordinate {
 pub(crate) struct JointSourcePortView {
     pub(crate) sense: u8,
     pub(crate) topology_index: u32,
+    /// Typed afferent ending physically paired with one antagonist direction.
+    /// Present only in GLJSRC03 body-source evidence. It is not inferred from
+    /// topology, coordinates, quantity strings, or labels, and it is never an
+    /// efferent motor mount.
+    pub(crate) body_proprioceptor_terminal: Option<BodyProprioceptorTerminal>,
     pub(crate) sensor_id: String,
     pub(crate) substream_id: String,
     pub(crate) coordinates: Vec<JointSourceCoordinate>,
@@ -74,6 +84,7 @@ struct Storage {
     occurrences: Vec<JointSourceOccurrenceView>,
     sample_count: usize,
     occurrence_frame_count: usize,
+    version: u16,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -94,7 +105,10 @@ impl NativeJointSourceEpisode {
 
     #[getter]
     fn schema(&self) -> &'static str {
-        "guala.native.exact_joint_source_episode.v2"
+        match self.storage.version {
+            BODY_VERSION => "guala.native.exact_joint_source_episode.v3",
+            _ => "guala.native.exact_joint_source_episode.v2",
+        }
     }
 
     #[getter]
@@ -247,8 +261,15 @@ fn compact_lesson_episode_from_anatomy(
         return Err("compact lesson signal bytes differ from anatomy and clock".into());
     }
 
-    let mut output = MAGIC.to_vec();
-    output.extend_from_slice(&VERSION.to_le_bytes());
+    let body_version = ports
+        .iter()
+        .any(|port| port.body_proprioceptor_terminal.is_some());
+    let mut output = if body_version {
+        BODY_MAGIC.to_vec()
+    } else {
+        MAGIC.to_vec()
+    };
+    output.extend_from_slice(&(if body_version { BODY_VERSION } else { VERSION }).to_le_bytes());
     compact_text(&mut output, assembly_id, "assembly identity")?;
     output.extend_from_slice(&anatomy.storage.sense_states);
     compact_u32(&mut output, ports.len(), "port count")?;
@@ -266,6 +287,19 @@ fn compact_lesson_episode_from_anatomy(
         }
         output.push(port.sense);
         output.extend_from_slice(&port.topology_index.to_le_bytes());
+        if body_version {
+            match port.body_proprioceptor_terminal {
+                Some(terminal) => {
+                    output.push(1);
+                    output.push(
+                        u8::try_from(terminal.axis().index())
+                            .map_err(|_| "body axis exceeds u8")?,
+                    );
+                    output.push(terminal.direction() as u8);
+                }
+                None => output.push(0),
+            }
+        }
         compact_text(&mut output, &port.sensor_id, "sensor identity")?;
         compact_text(&mut output, &port.substream_id, "substream identity")?;
         compact_u16(&mut output, port.coordinates.len(), "coordinate count")?;
@@ -435,6 +469,7 @@ fn decode_native_joint_source_episode_owned(
             occurrences: parsed.occurrences,
             sample_count: parsed.sample_count,
             occurrence_frame_count: parsed.occurrence_frame_count,
+            version: parsed.version,
         }),
     })
 }
@@ -453,6 +488,7 @@ pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 struct ParsedEpisode {
+    version: u16,
     sense_states: [u8; SENSE_COUNT],
     ports: Vec<JointSourcePortView>,
     occurrences: Vec<JointSourceOccurrenceView>,
@@ -488,10 +524,11 @@ impl<'a> Parser<'a> {
     }
 
     fn parse(mut self) -> Result<ParsedEpisode, String> {
-        if self.take(MAGIC.len())? != MAGIC {
-            return Err("joint-source episode magic is not GLJSRC02".into());
-        }
-        if self.u16()? != VERSION {
+        let magic = self.take(MAGIC.len())?;
+        let version = self.u16()?;
+        if !((magic == MAGIC && version == VERSION)
+            || (magic == BODY_MAGIC && version == BODY_VERSION))
+        {
             return Err("unsupported joint-source episode version".into());
         }
         self.identifier("assembly_id")?;
@@ -513,9 +550,10 @@ impl<'a> Parser<'a> {
             .map_err(|_| "joint-source port allocation failed".to_string())?;
         let mut keys = BTreeSet::new();
         let mut topology_indices: [Vec<u32>; SENSE_COUNT] = Default::default();
+        let mut body_proprioceptor_terminals = BTreeSet::new();
         let mut sample_count = 0usize;
         for _ in 0..port_count {
-            let port = self.port()?;
+            let port = self.port(version)?;
             sample_count = sample_count
                 .checked_add(port.source_times.len())
                 .ok_or_else(|| "joint-source sample count overflow".to_string())?;
@@ -532,6 +570,22 @@ impl<'a> Parser<'a> {
             if sense_states[port.sense as usize] != 0 {
                 return Err("non-observed sense contains a fabricated receptor".into());
             }
+            if version == BODY_VERSION && port.sense == 5 {
+                let terminal = port.body_proprioceptor_terminal.ok_or_else(|| {
+                    "v3 body receptor lacks an explicit proprioceptor terminal".to_string()
+                })?;
+                if usize::try_from(port.topology_index).ok()
+                    != BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET.checked_add(terminal.ordinal())
+                {
+                    return Err(
+                        "v3 body receptor topology differs from its fixed proprioceptor terminal"
+                            .into(),
+                    );
+                }
+                if !body_proprioceptor_terminals.insert(terminal) {
+                    return Err("v3 body source repeats a proprioceptor terminal".into());
+                }
+            }
             topology_indices[port.sense as usize].push(port.topology_index);
             ports.push(port);
         }
@@ -543,10 +597,11 @@ impl<'a> Parser<'a> {
             if sense_states[sense] == 0 && topology_indices[sense].is_empty() {
                 return Err("observed sense has no physical receptor".into());
             }
-            if topology_indices[sense]
-                .iter()
-                .copied()
-                .ne(0..topology_indices[sense].len() as u32)
+            if !(version == BODY_VERSION && sense == 5)
+                && topology_indices[sense]
+                    .iter()
+                    .copied()
+                    .ne(0..topology_indices[sense].len() as u32)
             {
                 return Err("joint-source topology is incomplete or reordered".into());
             }
@@ -719,6 +774,7 @@ impl<'a> Parser<'a> {
             return Err("joint-source episode has trailing bytes".into());
         }
         Ok(ParsedEpisode {
+            version,
             sense_states,
             ports,
             occurrences,
@@ -727,12 +783,36 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn port(&mut self) -> Result<JointSourcePortView, String> {
+    fn port(&mut self, version: u16) -> Result<JointSourcePortView, String> {
         let sense = self.u8()?;
         if sense as usize >= SENSE_COUNT {
             return Err("joint-source receptor sense is outside topology".into());
         }
         let topology_index = self.u32()?;
+        let body_proprioceptor_terminal = if version == BODY_VERSION {
+            match self.u8()? {
+                0 => None,
+                1 => {
+                    let terminal = BodyProprioceptorTerminal::from_ordinals(self.u8()?, self.u8()?)
+                        .ok_or_else(|| {
+                            "joint-source body proprioceptor terminal is outside anatomy"
+                                .to_string()
+                        })?;
+                    if sense != 5 {
+                        return Err(
+                            "non-body receptor carries a body proprioceptor terminal".into()
+                        );
+                    }
+                    Some(terminal)
+                }
+                _ => return Err("joint-source body effector presence is not canonical".into()),
+            }
+        } else {
+            None
+        };
+        if version == BODY_VERSION && sense == 5 && body_proprioceptor_terminal.is_none() {
+            return Err("v3 body receptor lacks an explicit proprioceptor terminal".into());
+        }
         let sensor_id = self.identifier("sensor_id")?;
         let substream_id = self.identifier("substream_id")?;
 
@@ -858,6 +938,7 @@ impl<'a> Parser<'a> {
         Ok(JointSourcePortView {
             sense,
             topology_index,
+            body_proprioceptor_terminal,
             sensor_id,
             substream_id,
             coordinates,
@@ -1117,6 +1198,64 @@ mod tests {
             rational(&mut output, 3, 4);
         }
         output
+    }
+
+    fn typed_body_candidate() -> Vec<u8> {
+        let mut output = candidate(true);
+        output[..8].copy_from_slice(BODY_MAGIC);
+        output[8..10].copy_from_slice(&BODY_VERSION.to_le_bytes());
+        // Header: magic, version, "assembly", six sense states, port count.
+        output[20..26].copy_from_slice(&[1, 1, 1, 1, 1, 0]);
+        let port_start = 30;
+        output[port_start] = 5;
+        output.splice(port_start + 5..port_start + 5, [1, 2, 1]);
+        let topology_index = u32::try_from(
+            BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + 2_usize * 2 + 1,
+        )
+        .unwrap();
+        output[port_start + 1..port_start + 5]
+            .copy_from_slice(&topology_index.to_le_bytes());
+        output
+    }
+
+    #[test]
+    fn v3_body_source_carries_an_explicit_terminal_without_changing_v2() {
+        let legacy = candidate(true);
+        let legacy_parsed = Parser::new(&legacy, 1, 2, 1, 2).parse().unwrap();
+        assert_eq!(legacy_parsed.version, VERSION);
+        assert_eq!(legacy_parsed.ports[0].body_proprioceptor_terminal, None);
+
+        let body = typed_body_candidate();
+        let parsed = Parser::new(&body, 1, 2, 1, 2).parse().unwrap();
+        assert_eq!(parsed.version, BODY_VERSION);
+        let terminal = parsed.ports[0].body_proprioceptor_terminal.unwrap();
+        assert_eq!(
+            terminal.axis(),
+            crate::virtual_articulated_body::BodyAxis::NeckYaw
+        );
+        assert_eq!(
+            terminal.direction(),
+            crate::virtual_articulated_body::BodyEffectorDirection::TowardMaximum
+        );
+    }
+
+    #[test]
+    fn v3_terminal_refuses_non_body_bad_axis_and_bad_direction() {
+        let body = typed_body_candidate();
+        let port_start = 30;
+
+        let mut non_body = body.clone();
+        non_body[port_start] = 0;
+        non_body[20..26].copy_from_slice(&[0, 1, 1, 1, 1, 1]);
+        assert!(Parser::new(&non_body, 1, 2, 1, 2).parse().is_err());
+
+        let mut bad_axis = body.clone();
+        bad_axis[port_start + 6] = u8::MAX;
+        assert!(Parser::new(&bad_axis, 1, 2, 1, 2).parse().is_err());
+
+        let mut bad_direction = body;
+        bad_direction[port_start + 7] = 2;
+        assert!(Parser::new(&bad_direction, 1, 2, 1, 2).parse().is_err());
     }
 
     #[test]

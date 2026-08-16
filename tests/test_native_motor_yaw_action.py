@@ -1,138 +1,74 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from dsf_ai_service import native_production_app as production
-from dsf_ai_service.substrate.embodiment_world import (
-    EmbodimentWorldAuthority,
-    _default_objects,
-)
 
 
-def test_transient_motor_recruitment_prepares_one_exact_world_yaw(monkeypatch) -> None:
-    world = EmbodimentWorldAuthority(
-        authority_key="native-motor-yaw-test-key",
-        initial_objects=_default_objects()[:1],
-    )
-    monkeypatch.setattr(production, "_world", lambda: world)
-    before = world.observation_snapshot()
-    before_body = next(body for body in before.bodies if body.body_id == before.self_body_id)
-
-    prepared = production._prepare_motor_yaw_action(
-        "00" * 32,
-        (
-            (
-                "11" * 16,
-                0,
-                7,
-                (("11" * 16, 12, "33" * 16, 11, 0, 5),),
-                (
-                    (
-                        "55" * 16,
-                        "66" * 16,
-                        "77" * 16,
-                        5,
-                        0,
-                        "vestibular-organ",
-                        "yaw-canal-positive",
-                    ),
-                ),
-            ),
-            (
-                "22" * 16,
-                1,
-                2,
-                (("44" * 16, 11, "22" * 16, 12, 0, 3),),
-                (
-                    (
-                        "88" * 16,
-                        "99" * 16,
-                        "aa" * 16,
-                        5,
-                        1,
-                        "vestibular-organ",
-                        "yaw-canal-negative",
-                    ),
-                ),
-            ),
-        ),
-    )
-    assert prepared is not None
-    authority, world_action, predecessor_heading, trajectory = prepared
-    assert predecessor_heading == before_body.pose.heading_millidegrees
-    assert trajectory == (5,)
-    assert authority.observation_snapshot() == before
-    alternate_world = EmbodimentWorldAuthority(
-        authority_key="native-motor-yaw-test-key",
-        initial_objects=_default_objects()[:1],
-    )
-    monkeypatch.setattr(production, "_world", lambda: alternate_world)
-    alternate = production._prepare_motor_yaw_action(
-        "00" * 32,
-        (
-            (
-                "11" * 16,
-                0,
-                7,
-                (("11" * 16, 12, "33" * 16, 11, 0, 6),),
-                (
-                    (
-                        "55" * 16,
-                        "66" * 16,
-                        "77" * 16,
-                        5,
-                        0,
-                        "vestibular-organ",
-                        "yaw-canal-positive",
-                    ),
-                ),
-            ),
-            (
-                "22" * 16,
-                1,
-                2,
-                (("44" * 16, 11, "22" * 16, 12, 0, 3),),
-                (
-                    (
-                        "88" * 16,
-                        "99" * 16,
-                        "aa" * 16,
-                        5,
-                        1,
-                        "vestibular-organ",
-                        "yaw-canal-negative",
-                    ),
-                ),
-            ),
-        ),
-    )
-    assert alternate is not None
-    assert (
-        alternate[1].execution_receipt.causal_intent_receipt_sha256
-        != world_action.execution_receipt.causal_intent_receipt_sha256
-    )
-    assert alternate_world.observation_snapshot() == before
-    monkeypatch.setattr(production, "_world", lambda: world)
-
-    with authority.prepared_action_visibility_transaction(world_action):
-        execution = authority.commit_prepared_action(world_action)
-        committed_body = authority.encoded_committed_prepared_action(
-            world_action
-        )
-    after_body = next(
-        body
-        for body in execution.after.bodies
-        if body.body_id == execution.after.self_body_id
-    )
-    assert after_body.pose.heading_millidegrees == 5
-    assert after_body.pose.position == before_body.pose.position
-    assert committed_body == authority.encoded_snapshot()
+ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_native_motor_action_is_truthfully_projected(monkeypatch) -> None:
+def test_topology_parity_motor_yaw_bridge_is_absent() -> None:
+    production_source = (
+        ROOT / "dsf_ai_service" / "native_production_app.py"
+    ).read_text(encoding="utf-8")
+    wrapper_source = (
+        ROOT
+        / "dsf_ai_service"
+        / "glew_runtime"
+        / "native_resident_organism.py"
+    ).read_text(encoding="utf-8")
+    native_source = (
+        ROOT / "native" / "guala_core" / "src" / "virtual_body_yaw_motion.rs"
+    ).read_text(encoding="utf-8")
+
+    assert "_prepare_motor_yaw_action" not in production_source
+    assert "exact_motor_unit_yaw_trajectory" not in wrapper_source
+    assert "settle_motor_unit_yaw_actuation" not in native_source
+    assert "topology_index % 2" not in native_source
+
+
+def test_native_articulated_body_action_is_truthfully_projected(monkeypatch) -> None:
     motor_action = {
+        "schema": "guala.native.articulated_body_action.v1",
         "moved": True,
-        "signed_yaw_millidegrees": 5,
-        "motor_unit_recruitment_count": 2,
-        "world_revision": 1,
+        "root_motion": False,
+        "body_state_before_sha256": "11" * 32,
+        "body_state_after_sha256": "22" * 32,
+        "body_effector_bindings": [
+            {
+                "motor_lineage": "33" * 16,
+                "axis": "left_elbow_flexion",
+                "direction": "toward_maximum",
+                "outward_elementary_carriers": 7,
+            }
+        ],
+        "articulated_body_consequences": [
+            {
+                "source_tick": 8,
+                "axis": "left_elbow_flexion",
+                "unit": "millidegree",
+                "predecessor_position": 0,
+                "successor_position": 7,
+                "signed_displacement": 7,
+                "toward_minimum_carriers": 0,
+                "toward_maximum_carriers": 7,
+                "opposed_carriers_per_terminal": 0,
+                "applied_displacement_quanta": 7,
+                "stalled_carriers": 0,
+            }
+        ],
+        "body_proprioceptive_sources": [
+            {
+                "source_sha256": "44" * 32,
+                "source_tick": 8,
+                "port_count": 2,
+                "sample_count": 4,
+                "occurrence_count": 1,
+                "occurrence_frame_count": 2,
+            }
+        ],
+        "prepared_recruitments": [],
     }
     monkeypatch.setattr(
         production,
@@ -147,18 +83,18 @@ def test_native_motor_action_is_truthfully_projected(monkeypatch) -> None:
             "organism_tick": 9,
             "receptor_ingress": {
                 "changing_count": 0,
-                "quiescent_count": 105 * 8,
+                "quiescent_count": 74,
                 "sense_counts": {
-                    "sight": 27 * 8,
-                    "sound": 34 * 8,
-                    "touch": 27 * 8,
-                    "smell": 8 * 8,
-                    "taste": 5 * 8,
-                    "body": 4 * 8,
+                    "sight": 0,
+                    "sound": 0,
+                    "touch": 0,
+                    "smell": 0,
+                    "taste": 0,
+                    "body": 74,
                 },
-                "source_hop_count": 8,
+                "source_hop_count": 1,
             },
-            "state_sha256": "33" * 32,
+            "state_sha256": "55" * 32,
             "world_revision": 1,
         },
     )
@@ -168,6 +104,17 @@ def test_native_motor_action_is_truthfully_projected(monkeypatch) -> None:
     assert observed["available"] is True
     assert observed["status"] == "native_causal_action_observed"
     assert observed["action_observed"] is True
-    assert observed["action"]["observed_effect"] == "body yawed 5 millidegrees"
-    assert observed["consequence"]["available"] is True
-    assert observed["motor_action"] == motor_action
+    assert observed["action"]["status"] == "native_articulated_body_observed"
+    assert observed["action"]["observed_effect"] == "1 typed body-axis consequences"
+    assert observed["consequence"]["status"] == (
+        "native_proprioceptive_consequence_observed"
+    )
+    assert observed["consequence"]["observed_effect"] == (
+        "1 body-source receipts returned"
+    )
+    assert "prepared_recruitments" not in observed["motor_action"]
+    assert observed["motor_action"] == {
+        key: value
+        for key, value in motor_action.items()
+        if key != "prepared_recruitments"
+    }

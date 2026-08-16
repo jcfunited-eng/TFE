@@ -331,6 +331,7 @@ mod tests {
         JointSourcePortView {
             sense: PhysicalSourceSense::Touch.declared_layer(),
             topology_index: 0,
+            body_proprioceptor_terminal: None,
             sensor_id: "card-contact-sheet".into(),
             substream_id: "contact-row0-col0".into(),
             coordinates: vec![JointSourceCoordinate {

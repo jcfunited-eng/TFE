@@ -158,7 +158,7 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
         ),
         (
             "cold-restore",
-            "guala.production_native_current_cold_restore.v6",
+            "guala.production_native_current_cold_restore.v7",
             True,
         ),
     ],
@@ -379,7 +379,7 @@ def test_cold_restore_requires_exact_c021_physical_rest_and_wake() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -447,7 +447,7 @@ def test_cold_restore_requires_exact_c022_internal_consolidation() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -515,7 +515,7 @@ def test_cold_restore_requires_exact_c023_causal_cross_context_use() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -548,21 +548,25 @@ def test_cold_restore_requires_exact_c023_causal_cross_context_use() -> None:
         )
 
 
-def test_cold_restore_requires_exact_c024_cognitive_capital() -> None:
+def test_cold_restore_requires_exact_a013_articulated_body() -> None:
     record = {
         "baseline_observed_state_sha256": STATE_SHA,
         "baseline_observed_tick": 23_723_846,
         "candidate_git_sha": GIT_SHA,
         "candidate_image_digest": IMAGE,
-        "c024_cognitive_capital_rehearsed": True,
-        "c024_cognitive_capital_state_sha256": STATE_SHA,
-        "c024_cognitive_capital_capability_count": 39,
-        "c024_cognitive_capital_dimension_count": 10,
-        "c024_cognitive_capital_credit_cell_count": 12,
-        "c024_cognitive_capital_evidence_reference_count": 18,
-        "c024_cognitive_capital_observation_bytes": 8_192,
-        "c024_cognitive_capital_unproved_cells_preserved": True,
-        "c024_false_native_capital_exports_absent": True,
+        "a013_articulated_body_rehearsed": True,
+        "a013_articulated_body_predecessor_state_sha256": STATE_SHA,
+        "a013_articulated_body_successor_state_sha256": "e" * 64,
+        "a013_articulated_body_predecessor_tick": 23_723_846,
+        "a013_articulated_body_successor_tick": 23_723_847,
+        "a013_articulated_body_axis_count": 37,
+        "a013_articulated_body_terminal_count": 74,
+        "a013_articulated_body_state_bytes": 195,
+        "a013_articulated_body_state_sha256": "d" * 64,
+        "a013_articulated_body_proprioception_initialized": True,
+        "a013_articulated_body_neutral_observation": True,
+        "a013_articulated_body_cold_restore_exact": True,
+        "a013_articulated_body_python_callback_count": 0,
         "cold_restore_exact": True,
         "complete_neuron_count": 217,
         "current_format_migration_rehearsed": False,
@@ -575,7 +579,7 @@ def test_cold_restore_requires_exact_c024_cognitive_capital() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -590,11 +594,11 @@ def test_cold_restore_requires_exact_c024_cognitive_capital() -> None:
         expected_identity=IDENTITY,
         expected_tick=23_723_846,
         expected_state_sha256=STATE_SHA,
-        expected_c024_cognitive_capital_rehearsal=True,
+        expected_a013_articulated_body_rehearsal=True,
     ) == proof
 
     changed = dict(record)
-    changed["c024_cognitive_capital_unproved_cells_preserved"] = False
+    changed["a013_articulated_body_cold_restore_exact"] = False
     with pytest.raises(RuntimeError, match="proof changed"):
         runner._validate_proof(
             _receipted(changed),
@@ -604,7 +608,7 @@ def test_cold_restore_requires_exact_c024_cognitive_capital() -> None:
             expected_identity=IDENTITY,
             expected_tick=23_723_846,
             expected_state_sha256=STATE_SHA,
-            expected_c024_cognitive_capital_rehearsal=True,
+            expected_a013_articulated_body_rehearsal=True,
         )
 
 
@@ -655,7 +659,7 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -813,7 +817,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v6",
+        "schema": "guala.production_native_current_cold_restore.v7",
         "sparse_attention_cold_replay_exact": True,
         "sparse_attention_current_route_count": 0,
         "sparse_attention_current_routes_sha256": "c" * 64,

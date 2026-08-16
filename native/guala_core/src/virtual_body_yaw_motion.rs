@@ -163,37 +163,6 @@ pub(crate) fn settle_signed_yaw_actuation(
     })
 }
 
-/// Convert transient opposed motor-unit discharge into the body's smallest
-/// exact yaw actuation. Even topology is the positive member of an antagonist
-/// pair and odd topology is the negative member. One outward whole elementary
-/// carrier contributes one millidegree, the body's existing integer lattice;
-/// no gain, target, or retained command exists.
-pub(crate) fn settle_motor_unit_yaw_actuation(
-    predecessor: YawBodyState,
-    recruitments: &[(u32, u128)],
-) -> Result<YawBodyTransition, YawMotionError> {
-    let mut signed_displacement = 0_i128;
-    for (topology_index, outward_elementary_carriers) in recruitments.iter().copied() {
-        let magnitude = i128::try_from(outward_elementary_carriers)
-            .map_err(|_| YawMotionError::ArithmeticWidth)?;
-        signed_displacement = if topology_index % 2 == 0 {
-            signed_displacement.checked_add(magnitude)
-        } else {
-            signed_displacement.checked_sub(magnitude)
-        }
-        .ok_or(YawMotionError::ArithmeticWidth)?;
-    }
-    let signed_displacement =
-        i32::try_from(signed_displacement).map_err(|_| YawMotionError::ArithmeticWidth)?;
-    settle_signed_yaw_actuation(
-        predecessor,
-        SignedYawActuation::new(
-            signed_displacement,
-            WORLD_MECHANICAL_TICK_MICROSECONDS,
-        )?,
-    )
-}
-
 fn signed_cumulative_position(
     signed_displacement_millidegrees: i32,
     tick: usize,
@@ -307,18 +276,6 @@ mod tests {
             .as_slice()
             .iter()
             .all(|step| *step >= 0));
-    }
-
-    #[test]
-    fn opposed_motor_topologies_sum_once_on_the_existing_body_lattice() {
-        let settled = settle_motor_unit_yaw_actuation(
-            YawBodyState::new(0).unwrap(),
-            &[(0, 7), (1, 2), (2, 1)],
-        )
-        .unwrap();
-        assert_eq!(settled.recovered_signed_displacement_millidegrees, 6);
-        assert_eq!(settled.successor.heading_millidegrees(), 6);
-        assert_eq!(settled.trajectory.as_slice(), &[6]);
     }
 
     #[test]

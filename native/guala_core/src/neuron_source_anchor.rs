@@ -12,6 +12,7 @@ use crate::joint_source_episode::{
     JointSourceCoordinate, JointSourcePortView, NativeJointSourceEpisode,
 };
 use crate::joint_uf_neuron_boundary::JointNeuronPerspective;
+use crate::virtual_articulated_body::BodyProprioceptorTerminal;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum PhysicalSourceSense {
@@ -80,6 +81,7 @@ pub(crate) struct BorrowedNeuronSourceAnchor<'a> {
 pub(crate) struct NeuronSourceSite {
     sense: PhysicalSourceSense,
     topology_index: u32,
+    body_proprioceptor_terminal: Option<BodyProprioceptorTerminal>,
     sensor_id: Box<str>,
     substream_id: Box<str>,
     coordinates: Box<[JointSourceCoordinate]>,
@@ -96,6 +98,7 @@ impl NeuronSourceSite {
         let site = Self {
             sense,
             topology_index: port.topology_index,
+            body_proprioceptor_terminal: port.body_proprioceptor_terminal,
             sensor_id: port.sensor_id.clone().into_boxed_str(),
             substream_id: port.substream_id.clone().into_boxed_str(),
             coordinates: port.coordinates.clone().into_boxed_slice(),
@@ -112,6 +115,7 @@ impl NeuronSourceSite {
         Self {
             sense: anchor.sense(),
             topology_index: anchor.topology_index(),
+            body_proprioceptor_terminal: anchor.body_proprioceptor_terminal(),
             sensor_id: anchor.sensor_id().into(),
             substream_id: anchor.substream_id().into(),
             coordinates: anchor.coordinates().to_vec().into_boxed_slice(),
@@ -128,6 +132,10 @@ impl NeuronSourceSite {
         self.topology_index
     }
 
+    pub(crate) fn body_proprioceptor_terminal(&self) -> Option<BodyProprioceptorTerminal> {
+        self.body_proprioceptor_terminal
+    }
+
     /// The declared receptor this site was mounted from, as the caller's own
     /// roster names it.  This pair — and not a storage index — is the stable
     /// identity of a declared receptor for the organism's life.
@@ -140,7 +148,8 @@ impl NeuronSourceSite {
     }
 
     fn valid(&self) -> bool {
-        !self.sensor_id.is_empty()
+        (self.body_proprioceptor_terminal.is_none() || self.sense == PhysicalSourceSense::Body)
+            && !self.sensor_id.is_empty()
             && !self.substream_id.is_empty()
             && !self.coordinates.is_empty()
             && self.coordinates.iter().all(|coordinate| {
@@ -160,6 +169,7 @@ impl NeuronSourceSite {
         Self {
             sense,
             topology_index,
+            body_proprioceptor_terminal: None,
             sensor_id: "synthetic-test-receptor".into(),
             substream_id: topology_index.to_string().into_boxed_str(),
             coordinates: vec![JointSourceCoordinate {
@@ -174,6 +184,7 @@ impl NeuronSourceSite {
 }
 
 const NEURON_SOURCE_SITE_CODEC_MAGIC: &[u8; 8] = b"GLNSS01\0";
+const BODY_NEURON_SOURCE_SITE_CODEC_MAGIC: &[u8; 8] = b"GLNSS02\0";
 
 pub(crate) fn encode_neuron_source_site(
     site: &NeuronSourceSite,
@@ -182,9 +193,20 @@ pub(crate) fn encode_neuron_source_site(
         return Err(NeuronSourceAnchorError::InvalidSiteAnatomy);
     }
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(NEURON_SOURCE_SITE_CODEC_MAGIC);
+    encoded.extend_from_slice(if site.body_proprioceptor_terminal.is_some() {
+        BODY_NEURON_SOURCE_SITE_CODEC_MAGIC
+    } else {
+        NEURON_SOURCE_SITE_CODEC_MAGIC
+    });
     encoded.push(site.sense.encode());
     encoded.extend_from_slice(&site.topology_index.to_le_bytes());
+    if let Some(terminal) = site.body_proprioceptor_terminal {
+        encoded.push(
+            u8::try_from(terminal.axis().index())
+                .map_err(|_| NeuronSourceAnchorError::ArithmeticWidth)?,
+        );
+        encoded.push(terminal.direction() as u8);
+    }
     push_site_text(&mut encoded, &site.sensor_id)?;
     push_site_text(&mut encoded, &site.substream_id)?;
     push_site_usize(&mut encoded, site.coordinates.len())?;
@@ -201,12 +223,24 @@ pub(crate) fn decode_neuron_source_site(
     encoded: &[u8],
 ) -> Result<NeuronSourceSite, NeuronSourceAnchorError> {
     let mut reader = SourceSiteReader::new(encoded);
-    if reader.take(NEURON_SOURCE_SITE_CODEC_MAGIC.len())? != NEURON_SOURCE_SITE_CODEC_MAGIC {
+    let magic = reader.take(NEURON_SOURCE_SITE_CODEC_MAGIC.len())?;
+    let carries_body_terminal = if magic == BODY_NEURON_SOURCE_SITE_CODEC_MAGIC {
+        true
+    } else if magic == NEURON_SOURCE_SITE_CODEC_MAGIC {
+        false
+    } else {
         return Err(NeuronSourceAnchorError::InvalidSiteEncoding);
-    }
+    };
     let sense = PhysicalSourceSense::decode(reader.u8()?)
         .ok_or(NeuronSourceAnchorError::SourceSenseInvalid)?;
     let topology_index = reader.u32()?;
+    let body_proprioceptor_terminal = if carries_body_terminal {
+        BodyProprioceptorTerminal::from_ordinals(reader.u8()?, reader.u8()?)
+            .ok_or(NeuronSourceAnchorError::InvalidSiteAnatomy)?
+            .into()
+    } else {
+        None
+    };
     let sensor_id = reader.text()?;
     let substream_id = reader.text()?;
     let coordinate_count = reader.usize()?;
@@ -224,6 +258,7 @@ pub(crate) fn decode_neuron_source_site(
     let site = NeuronSourceSite {
         sense,
         topology_index,
+        body_proprioceptor_terminal,
         sensor_id: sensor_id.into(),
         substream_id: substream_id.into(),
         coordinates: coordinates.into_boxed_slice(),
@@ -338,6 +373,10 @@ impl<'a> BorrowedNeuronSourceAnchor<'a> {
 
     pub(crate) fn topology_index(self) -> u32 {
         self.port.topology_index
+    }
+
+    pub(crate) fn body_proprioceptor_terminal(self) -> Option<BodyProprioceptorTerminal> {
+        self.port.body_proprioceptor_terminal
     }
 
     pub(crate) fn sensor_id(self) -> &'a str {
@@ -909,5 +948,52 @@ pub(crate) mod tests {
                 Err(NeuronSourceAnchorError::InvalidSiteEncoding)
             );
         }
+    }
+
+    #[test]
+    fn typed_body_terminal_cold_restores_without_text_or_topology_inference() {
+        use crate::articulated_body_joint_source_builder::admit_articulated_body_proprioceptive_source;
+        use crate::virtual_articulated_body::{
+            settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
+            BodyAxis, BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
+            BodyProprioceptorTerminal,
+        };
+
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::RightGripAperture,
+            BodyEffectorDirection::TowardMinimum,
+        );
+        let transition = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 25,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let episode = admit_articulated_body_proprioceptive_source(
+            4,
+            &transition.proprioceptive_consequences,
+        )
+        .unwrap();
+        let site = NeuronSourceSite::from_source_port(&episode.joint_source_ports()[0]).unwrap();
+        assert_eq!(
+            site.body_proprioceptor_terminal(),
+            Some(BodyProprioceptorTerminal::new(
+                BodyAxis::RightGripAperture,
+                BodyEffectorDirection::TowardMinimum,
+            ))
+        );
+        let encoded = encode_neuron_source_site(&site).unwrap();
+        assert_eq!(&encoded[..8], BODY_NEURON_SOURCE_SITE_CODEC_MAGIC);
+        assert_eq!(decode_neuron_source_site(&encoded).unwrap(), site);
+
+        let mut invalid = encoded;
+        invalid[14] = 2;
+        assert_eq!(
+            decode_neuron_source_site(&invalid),
+            Err(NeuronSourceAnchorError::InvalidSiteAnatomy)
+        );
     }
 }

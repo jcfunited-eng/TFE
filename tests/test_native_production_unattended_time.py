@@ -88,10 +88,16 @@ def test_continuous_world_interval_reaches_native_action_and_sensed_return(
     monkeypatch,
 ) -> None:
     motor_action = {
+        "schema": "guala.native.articulated_body_action.v1",
         "moved": True,
-        "signed_yaw_millidegrees": 5,
+        "root_motion": False,
         "motor_unit_recruitment_count": 2,
-        "world_revision": 17,
+        "articulated_body_consequences": [
+            {"axis": "left_elbow_flexion", "signed_displacement": 5}
+        ],
+        "body_proprioceptive_sources": [
+            {"source_sha256": "44" * 32, "source_tick": 40}
+        ],
     }
     intakes = _mount_translation_boundary(
         monkeypatch,
@@ -113,9 +119,9 @@ def test_continuous_world_interval_reaches_native_action_and_sensed_return(
     autonomy = production._autonomy_record()
     assert autonomy["available"] is True
     assert autonomy["action_observed"] is True
-    assert autonomy["action"]["status"] == "native_motor_yaw_observed"
+    assert autonomy["action"]["status"] == "native_articulated_body_observed"
     assert autonomy["consequence"]["status"] == (
-        "native_vestibular_consequence_observed"
+        "native_proprioceptive_consequence_observed"
     )
     assert autonomy["choice"]["available"] is False
     assert autonomy["thought"]["available"] is False
