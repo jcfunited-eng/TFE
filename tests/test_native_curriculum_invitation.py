@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from dataclasses import replace
 
 from fastapi.responses import JSONResponse
 import pytest
@@ -11,27 +12,44 @@ import pytest
 from dsf_ai_service import native_production_app as production
 
 
-def test_approach_geometry_reduces_distance_without_body_overlap(
+def test_live_boundary_pose_gets_one_collision_free_visible_side_step(
     monkeypatch, tmp_path
 ) -> None:
     monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
     monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
     monkeypatch.setattr(production, "_world_authority", None)
-    snapshot = production._world().observation_snapshot()
+    authority = production._world()
+    snapshot = authority.observation_snapshot()
     her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
     other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
+    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+
+    her = replace(
+        her,
+        pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872),
+    )
+    other = replace(
+        other,
+        pose=PoseMM(PositionMM(2_300, 5_002, 0), 270_000),
+    )
+    live_snapshot = replace(snapshot, bodies=(her, other))
+
+    class LivePoseWorld:
+        actor_ports = authority.actor_ports
+
+        @staticmethod
+        def observation_snapshot():
+            return live_snapshot
+
+    monkeypatch.setattr(production, "_world", lambda: LivePoseWorld())
 
     target = production._curriculum_participant_approach_payload()
-    before = math.isqrt(
-        (other.pose.position.x - her.pose.position.x) ** 2
-        + (other.pose.position.y - her.pose.position.y) ** 2
-    )
     after = math.isqrt(
         (target["x_mm"] - her.pose.position.x) ** 2
         + (target["y_mm"] - her.pose.position.y) ** 2
     )
 
-    assert after < before
+    assert (target["x_mm"], target["y_mm"]) == (2_802, 5_002)
     assert after > her.radius_mm + other.radius_mm
 
 

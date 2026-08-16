@@ -11802,13 +11802,18 @@ def world_observation() -> JSONResponse:
 
 
 def _curriculum_participant_approach_payload() -> dict[str, int]:
-    """One exact collision-free approach toward Guala's current body pose."""
+    """One exact in-room side-step that carries the participant into view."""
 
-    from dsf_ai_service.substrate.embodiment_world import SECOND_BODY_PORT_ID
+    from dsf_ai_service.substrate.embodiment_world import (
+        SECOND_BODY_PORT_ID,
+        PositionMM,
+        _straight_path_intersects_disc,
+    )
     from dsf_ai_service.substrate.exact_lattice_rotation import (
         rotate_lattice_offset,
     )
     from dsf_ai_service.substrate.w1_physical_receptors import (
+        RETINA_HORIZONTAL_FOV_MILLIDEGREES,
         _atan2_millidegrees,
         _wrap_heading_delta,
     )
@@ -11822,28 +11827,71 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
         item for item in snapshot.bodies if item.body_id == other_port.actor_body_id
     )
     separation = her.radius_mm + other.radius_mm + 2
-    offset_x, offset_y = rotate_lattice_offset(
-        separation,
-        0,
-        her.pose.heading_millidegrees,
+    relative_x = other.pose.position.x - her.pose.position.x
+    relative_y = other.pose.position.y - her.pose.position.y
+    if relative_x == 0 and relative_y == 0:
+        raise RuntimeError("participant and Guala body centres coincide")
+    participant_bearing = _atan2_millidegrees(relative_y, relative_x)
+    current_region = next(
+        (
+            region
+            for region in snapshot.regions
+            if region.bounds.contains_floor_disc(
+                other.pose.position,
+                other.radius_mm,
+            )
+        ),
+        None,
     )
-    target_x = her.pose.position.x + offset_x
-    target_y = her.pose.position.y + offset_y
-    if (
-        target_x == other.pose.position.x
-        and target_y == other.pose.position.y
-    ):
+    if current_region is None:
+        raise RuntimeError("participant body lost its physical room")
+
+    candidates: list[tuple[int, int, int]] = []
+    for turn in (-90_000, 90_000):
+        offset_x, offset_y = rotate_lattice_offset(
+            separation,
+            0,
+            (participant_bearing + turn) % 360_000,
+        )
+        target = PositionMM(
+            other.pose.position.x + offset_x,
+            other.pose.position.y + offset_y,
+            other.pose.position.z,
+        )
+        if not current_region.bounds.contains_floor_disc(target, other.radius_mm):
+            continue
+        if _straight_path_intersects_disc(
+            other.pose.position,
+            target,
+            her.pose.position,
+            her.radius_mm + other.radius_mm,
+        ):
+            continue
+        target_dx = target.x - her.pose.position.x
+        target_dy = target.y - her.pose.position.y
+        target_distance = max(math.isqrt(target_dx * target_dx + target_dy * target_dy), 1)
+        target_bearing = _atan2_millidegrees(target_dy, target_dx)
+        retinal_delta = _wrap_heading_delta(
+            target_bearing,
+            her.pose.heading_millidegrees,
+        )
+        angular_radius = abs(
+            _atan2_millidegrees(other.radius_mm, target_distance)
+        )
+        if abs(retinal_delta) - angular_radius > (
+            RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
+        ):
+            continue
+        candidates.append((abs(retinal_delta), target.x, target.y))
+    if not candidates:
         raise _CurriculumInvitationRefusal(
             409,
-            "the participant body is already at the exact invitation point "
-            "in front of Guala; repeating it would fabricate a new event",
+            "the participant has no one-step collision-free in-room side-step "
+            "that reaches Guala's current retinal field",
         )
+    _, target_x, target_y = min(candidates)
     target_dx = her.pose.position.x - target_x
     target_dy = her.pose.position.y - target_y
-    if target_dx * target_dx + target_dy * target_dy <= (
-        her.radius_mm + other.radius_mm
-    ) ** 2:
-        raise RuntimeError("exact participant approach lost its collision gap")
     heading = _atan2_millidegrees(target_dy, target_dx) % 360_000
     signed_yaw = _wrap_heading_delta(
         heading,
