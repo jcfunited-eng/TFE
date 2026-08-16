@@ -197,6 +197,43 @@ def _accepted_external_intake(*_args, **_kwargs) -> dict[str, object]:
     }
 
 
+def _with_articulation(
+    transition: dict[str, object],
+    *,
+    pressure_sha256: str,
+) -> dict[str, object]:
+    motor_lineage = transition["causal_cross_context_use"][
+        "motor_unit_recruitment"
+    ]["motor_lineage"]
+    transition["motor_action"]["sensory_consequence"] = {
+        "visual": {"changed": 0, "transported": 27},
+    }
+    transition["articulation"] = {
+        "applied_motor_quanta": 8,
+        "articulatory_body_nonquiescent_port_count": 4,
+        "articulatory_body_perturbed_neuron_count": 12,
+        "articulatory_body_port_count": 4,
+        "glottal_open_samples_at_apex": 144,
+        "layer_13_recruitment_count": 1,
+        "mouth_area_square_millimetres_at_apex": 305,
+        "peak_breath_flow_pcm": 4000,
+        "perioral_area_displacement_square_millimetres": 40,
+        "pressure_sample_count": 16000,
+        "pressure_sha256": pressure_sha256,
+        "recruitments": (
+            (
+                "0a" * 16,
+                0,
+                8,
+                ((motor_lineage, 12, "0a" * 16, 13, 0, 4),),
+            ),
+        ),
+        "self_hearing_hop_count": 4,
+        "self_hearing_transitioned_neuron_count": 1192,
+    }
+    return transition
+
+
 def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -> None:
     first, first_choice = _transition(
         action_receipt="1" * 64,
@@ -708,6 +745,148 @@ def test_public_record_reports_behavioral_fun_without_inflating_joy_or_laughter(
     assert observed["laughter"]["available"] is False
     assert observed["python_action_authority"] is False
     assert observed["reward_authority"] is False
+
+
+def test_playful_formation_vocal_body_chain_and_recurrence_form_laughter_witness(
+    monkeypatch,
+) -> None:
+    first, first_choice = _transition(
+        action_receipt="1" * 64,
+        origin_tick=1000,
+        yaw=-31,
+        world_revision=100,
+    )
+    play_candidate, play_completed = (
+        production._advance_bounded_sensorimotor_play_evidence(
+            None,
+            None,
+            first,
+            first_choice,
+            "continuous-environment:first",
+        )
+    )
+    second, second_choice = _transition(
+        action_receipt="2" * 64,
+        origin_tick=1014,
+        yaw=-19,
+        world_revision=101,
+    )
+    _with_articulation(second, pressure_sha256="a" * 64)
+    _, play_completed = production._advance_bounded_sensorimotor_play_evidence(
+        play_candidate,
+        play_completed,
+        second,
+        second_choice,
+        "continuous-environment:second",
+    )
+    laughter_candidate, laughter_completed = (
+        production._advance_bounded_body_owned_laughter_evidence(
+            None,
+            None,
+            second,
+            play_completed,
+            "continuous-environment:second",
+        )
+    )
+
+    assert laughter_candidate is not None
+    assert laughter_completed is None
+    assert laughter_candidate["matched_articulator_count"] == 1
+    assert laughter_candidate["visual_receptor_return_count"] == 27
+
+    third, _third_choice = _transition(
+        action_receipt="3" * 64,
+        origin_tick=1028,
+        yaw=-23,
+        world_revision=102,
+    )
+    _with_articulation(third, pressure_sha256="b" * 64)
+    laughter_candidate, laughter_completed = (
+        production._advance_bounded_body_owned_laughter_evidence(
+            laughter_candidate,
+            None,
+            third,
+            play_completed,
+            "continuous-environment:third",
+        )
+    )
+
+    assert laughter_candidate is None
+    assert laughter_completed is not None
+    assert laughter_completed["context"] == (
+        "learned_playful_formation_recurrence"
+    )
+    assert laughter_completed["varied_acoustic_pressure"] is True
+    assert laughter_completed["varied_body_orientation"] is True
+    monkeypatch.setattr(
+        production, "_last_sensorimotor_play_evidence", play_completed
+    )
+    monkeypatch.setattr(
+        production, "_last_body_owned_laughter_evidence", laughter_completed
+    )
+
+    observed = production._sensorimotor_play_record()["laughter"]
+
+    assert observed["available"] is True
+    assert observed["status"] == "body_owned_laughter_recurred"
+    assert observed["canned_audio_authority"] is False
+    assert observed["tts_authority"] is False
+    assert observed["animation_authority"] is False
+    assert observed["python_cognition_authority"] is False
+
+
+def test_generic_or_unjoined_articulation_cannot_be_reported_as_laughter() -> None:
+    first, first_choice = _transition(
+        action_receipt="4" * 64,
+        origin_tick=1100,
+        yaw=-29,
+        world_revision=110,
+    )
+    play_candidate, _ = production._advance_bounded_sensorimotor_play_evidence(
+        None,
+        None,
+        first,
+        first_choice,
+        "continuous-environment:first",
+    )
+    second, second_choice = _transition(
+        action_receipt="5" * 64,
+        origin_tick=1114,
+        yaw=-17,
+        world_revision=111,
+    )
+    _with_articulation(second, pressure_sha256="c" * 64)
+    _, play_completed = production._advance_bounded_sensorimotor_play_evidence(
+        play_candidate,
+        None,
+        second,
+        second_choice,
+        "continuous-environment:second",
+    )
+    second["articulation"]["recruitments"] = (
+        (
+            "0a" * 16,
+            0,
+            8,
+            (("0b" * 16, 12, "0a" * 16, 13, 0, 4),),
+        ),
+    )
+
+    assert production._advance_bounded_body_owned_laughter_evidence(
+        None,
+        None,
+        second,
+        play_completed,
+        "continuous-environment:second",
+    ) == (None, None)
+
+    _with_articulation(second, pressure_sha256="c" * 64)
+    second["articulation"]["self_hearing_hop_count"] = 0
+    assert production._body_owned_laughter_episode_from_transition(
+        second,
+        play_completed,
+        "continuous-environment:second",
+    ) is None
 
 
 def test_affective_trajectory_from_another_ordinal_cannot_be_bound_to_play() -> None:

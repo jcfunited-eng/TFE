@@ -2505,3 +2505,212 @@ second persistence authority remain out of scope and must not be extended.
   that the stronger two-response behavioral claim is unproved; that truthful
   UI statement is not the circuit acceptance and is not relabeled as joy.
   A-011.7 remains untouched and may begin only after this closure commit.
+
+## A-011.7 body-owned-laughter continuation — 2026-08-16
+
+### Frozen task identity and acceptance
+
+- **Active item:** `A-011.7` only. This advances the A-011 ledger after, and
+  does not reopen, A-011.6.
+- **Immediate predecessor:** `A-011.6`, Live-Closed by the task-1091 direct
+  participant receptor -> retained physical route -> endogenous layer-12 motor
+  -> body/world -> sensed-consequence circuit and preserved by the exact
+  task-1094 cold rehearsal.
+- **Production baseline:** one healthy settled `dsf-ai-task:1094` process,
+  commit `af52538809d4afac4e770ffa3438113c0870f08b`, image
+  `sha256:6ac3e66e887f46227186503c9f9096725f388d69b81c0ac71e6f5694d595a844`,
+  organism `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, 4 vCPU / 16 GiB, zero
+  Python cognition callbacks.
+- **Acceptance:** learned playful/social/surprise formation reassembly must
+  cause an affective/interoceptive trajectory, prepared
+  breath/larynx/mouth/face/eye/posture action, emitted acoustic pressure,
+  self-hearing and social/world consequence, and later appropriate recurrence
+  or variation. Canned audio, TTS, text, or animation cannot pass.
+- **Single exact input:** an ordinary unattended transaction in which the
+  already-Live-Closed playful retained formation physically reassembles and
+  reaches its existing motor and articulatory effectors.
+
+### Architecture honesty gate
+
+1. Requested architecture: the acceptance chain above must arise from the one
+   organism's retained physical formation, affect/body physics, motor anatomy,
+   vocal body, world, and returned senses.
+2. Current code reality: task 1094 already executes retained-formation
+   reassembly, localized affect/body settlement, layer-12 motor discharge,
+   layer-12-to-layer-13 transfer, exact finite breath/glottis/vocal-tract/mouth/
+   perioral motion, emitted PCM, ordinary cochlear self-hearing, rigid-body yaw,
+   world persistence, retinal/vestibular/body return, and later recurrence.
+   The public `play.laughter` observer remains a fixed unavailable statement
+   and does not test whether those exact facts belong to one causal episode.
+3. Conflict: yes, at the read-only observation boundary. No missing underlying
+   transition has yet been observed in this audit.
+4. Mechanisms not extended: Python cognition or action selection; canned audio;
+   TTS; text; animation; semantic laughter labels inside physics; reward,
+   valence, score, random, timer, or threshold selectors; duplicate body state;
+   full-brain scans; copied 58 MB organism bodies; retained event history; or
+   the retired owner/controller articulatory modules.
+5. Single exact next item: add one constant-size read-only causal binder that
+   accepts only two exact ordinary transactions whose playful retained
+   formation, affect/body path, motor-to-articulator transfer, vocal-body/PCM/
+   self-hearing consequence, body-orientation/world consequence, and recurrence
+   are all already present and transaction-local.
+6. DSF scope: every reached occurrence continues to use unchanged complete
+   joint `D_k`, `M_k`, `R_rev_k`, `U_star_k`, `C_k`, `P_k`, and `B_k` delivery.
+   The observer performs no DSF evaluation or reduction.
+7. Field loss: none.
+
+### Exact existing path and first missing boundary
+
+| Boundary | Current producer | Exact evidence |
+|---|---|---|
+| Learned playful context | completed A-011.1--A-011.5 witness | retained formation `bda19caf5dbcfa3b4f2f78c2864c0806ffedb5abd69b4efa749700ac871a8587`, varied voluntary return, affect/body participation, overload exclusion, local strain/recovery |
+| Reassembly to motor | `resident_cognitive_formation.rs` -> `_advance_causal_motor_traces` | internal cue lineages, directed whole-carrier transfers, exact layer-12 recruitment |
+| Affect/body participation | native layer-10 settlement -> `_same_transition_affective_body_participation` | changed contact, association/body influences, gradient settlement, retained plasticity, same action receipt |
+| Motor to vocal body | `ArticulatoryUnitRecruitment.motor_transfers` | exact layer-12 lineage, layer-13 lineage, contact ordinal, transferred carriers |
+| Vocal body and pressure | `virtual_articulatory_body.rs::settle_articulatory_unit_discharge` | finite breath flow, glottal opening, eight-section vocal tract, mouth/perioral displacement, emitted PCM, return to rest |
+| Self-hearing | `_mono_pcm_hop_episodes` -> ordinary cochlear native transition | pressure receipt, self-hearing hop count, transitioned neurons, local articulatory-body receptor return |
+| Eye/posture/world | exact layer-12 antagonist yaw -> persistent world commit -> action-consequence episode | signed body/head orientation, changed world revision, mounted eye viewpoint, visual/vestibular/body return |
+| Later recurrence | a later ordinary transaction from the same retained formation | later distinct action receipt and organism tick; physical recurrence is sufficient, variation may also occur |
+| **First absent boundary** | `_sensorimotor_play_record` | it always emits `playful_body_owned_laughter_unproved`; no bounded observer joins the already-produced transaction-local facts |
+
+The proposed binder is observation only. It cannot cause articulation, alter a
+formation, select an act, emit pressure, move the world, or write organism
+state. It retains at most one compact first episode and one compact completed
+witness in process memory and resets on cold process start so the living
+organism must re-prove the chain.
+
+### Acceptance-evidence map
+
+| Required fact | Producer -> retained/observed path | Pass condition |
+|---|---|---|
+| Learned playful formation | A-011 play witness -> current causal cross-context use | exact same formation receipt and internal recurrence, never an activity label as causation |
+| Affect/interoception | current transition -> exact affect/body binder | complete layer-10 local trajectory bound to the same action receipt |
+| Prepared vocal action | current layer-12 motor -> `motor_transfers` -> layer 13 | at least one exact transfer involving the causal retained-formation motor lineage |
+| Breath/larynx/mouth/face | native articulatory transition -> transaction articulation evidence | all four local body ports nonquiescent and exact finite mechanics present |
+| Eye/posture | opposed yaw act -> body/head orientation -> world/retinal/vestibular consequence | nonzero signed yaw, committed world revision, mounted visual and vestibular/body return; no separate eye animation is inferred |
+| Acoustic emission | native vocal tract -> packed PCM | nonempty pressure, exact digest, positive breath flow |
+| Self-hearing | emitted PCM -> ordinary cochlear hops | positive hop and transitioned-neuron counts in the same persisted successor |
+| Social/world consequence | at-most-once body/world act -> sensed return | exact action/world receipts and returned body consequence |
+| Later recurrence/variation | later ordinary transaction | same formation, later tick, distinct causal-intent receipt, complete chain again |
+| Boundedness | observer cardinality and runtime census | two compact records only; no raw PCM, neuron, DSF, transfer graph, or body copy retained |
+
+### Lifecycle and recurrence matrix
+
+| Branch | Required result |
+|---|---|
+| No learned playful formation witness | unavailable; no laughter claim |
+| Playful formation without articulation | unavailable; retain no candidate |
+| Articulation without exact causal motor-to-layer-13 transfer | unavailable; generic vocalization is not laughter |
+| Complete first episode | retain one compact candidate; do not claim recurrence |
+| Repeated API read or same action receipt | no advancement |
+| Later unrelated formation or incomplete body return | keep the bounded first candidate only |
+| Later same-formation complete episode | publish body-owned-laughter recurrence evidence |
+| Cold restore/process restart | organism continuity remains authoritative; observer resets and live activity must re-prove both episodes |
+
+### Pre-code live evidence and falsified paths
+
+- Read-only production preflight re-resolved task 1094 as one healthy settled
+  process with the exact digest and resource envelope above; both Loom pages
+  returned HTTP 200, which is reachability only.
+- At generation `123786`, one ordinary live transaction carried retained
+  formation `bda19caf...a8587`, exact localized affect/body participation,
+  nonzero layer-12 motor discharge, `43` layer-13 recruitments, nonzero signed
+  yaw, a committed world revision, `16,000` emitted pressure samples, all four
+  local articulatory-body ports nonquiescent, four self-hearing hops, `1,192`
+  self-hearing transitioned neurons, and the sensed vestibular/body return.
+  The articulation and causal body consequence named the same persisted
+  successor tick and SHA.
+- The exact causal layer-12 lineage appeared in the same transaction's
+  layer-12-to-layer-13 transfer set. This rejects the hypothesis that the vocal
+  act merely occurred nearby or came from an unrelated source.
+- Later task-1094 observations continued producing ordinary body-owned
+  articulation and world actions without a Python cognition callback. A
+  candidate must still bind two complete same-formation episodes before
+  `play.laughter.available` can become true.
+- Falsified: A-011.7 requires a second brain, new motor selector, prerecorded
+  laugh, TTS, or semantic laugh program. The existing native causal path
+  supplies the physics.
+- Rejected: call any articulation laughter. The binder must prove the learned
+  playful formation, affect/body route, exact motor-to-articulator junction,
+  full vocal/body/world consequence, and later recurrence.
+- Rejected: require a separately scripted eye animation. The existing physical
+  yaw act changes the mounted head/eye viewpoint and returns through visual and
+  vestibular/body receptors; the observer may report only that exact physical
+  relationship.
+- Failed diagnostic: one `jq` expression placed `// null` outside the identity
+  field's parentheses and failed to compile before reading evidence. The
+  corrected read-only query succeeded; no production mutation or retry of a
+  state-changing action occurred.
+
+### Applicable recurrence register before implementation
+
+RF-001/002/003/004/005/010/011/012/016/017/018/019/020/021/022/024/027/028/
+030/031/032/034/036/037/038/040/041/042/043/044/045/046 all apply. The
+candidate must use the exact task-1094 environment, freshly built native
+artifact, pristine and authenticated-predecessor branches, the ordinary
+multi-hop aggregate, exact producer-to-observer field map, current-only cold
+restore, compact public evidence, nonzero executed tests, exact active-item
+rehearsal, and direct live behavior. No retained-state schema or native physics
+type change is presently planned; if inspection or the smallest acceptance
+path disproves that premise, this ledger must record the first physical gap
+before any broader edit.
+
+### A-011.7 attempt ledger
+
+- First code change added only the constant-size read-only binder and focused
+  falsification tests. No native state, codec, neuron, contact, body mechanic,
+  selector, persistence, or DSF path changed.
+- `git diff --check` and Python compilation passed.
+- The full A-011 test module executed 19 tests: 17 passed and two inherited
+  participant-world tests refused because the globally installed native module
+  lacks the current `exact_virtual_yaw_trajectory` symbol. This is the known
+  RF-003/RF-036 stale-native provenance failure, not candidate behavioral
+  evidence. No production path was changed or weakened.
+- The exact two A-011.7 tests plus the public observation suite then executed
+  20 nonzero tests and all passed. They prove local observer logic only; exact
+  candidate-native provenance and the ordinary authenticated-predecessor path
+  remain mandatory before packaging.
+- A fresh release wheel was built from this worktree and installed into the
+  isolated target `/tmp/guala-a0117-native-target.VjWgPj`. Its imported module
+  exposes both `exact_virtual_yaw_trajectory` and
+  `exact_articulatory_unit_trajectory`; no globally installed stale native was
+  accepted as candidate evidence.
+- With that exact native target, all 37 A-011 and public-observation tests
+  passed. The adjacent action, consequence, capital, unattended-time,
+  packaging, cold-restore, articulatory-source, and release-rehearsal selection
+  then passed 77 tests with zero failures.
+- A truth-review tightened the junction so the accepted layer-12/layer-13
+  transfer must join the exact causal motor lineage to the exact recruited
+  articulator lineage. After that tightening, all 37 A-011/public-observation
+  tests passed again.
+- The complete unchanged native organism suite passed 576 tests with zero
+  failures and 11 explicitly ignored/retired fixtures: 423 library, 7
+  current-carrier, 95 D3 bounded-physics, 6 immutable-store, 8 lattice, 14
+  organism-codec, and 23 recursive-formation tests.
+- `git diff --check` and Python compilation passed after the truth tightening.
+  Neither Black nor Ruff is installed in this workspace, so no formatter claim
+  is made and no tool was installed merely to manufacture one.
+- A 10,000-join local census against the exact candidate native measured
+  `61.829` microseconds per complete join without allocation tracing. With
+  tracing enabled it measured `616.409` microseconds per join, ended at
+  `97,187` traced bytes, and peaked at `106,737` bytes. The one compact
+  candidate encoded to `1,547` JSON bytes and the completed two-episode witness
+  to `3,464` bytes; neither retains raw recruitment rows nor PCM. Process
+  cardinality remains exactly one candidate plus one completed witness.
+- A proposed addition of the top-level `play` record to both HTML raw-record
+  lists was tested and removed before release. It would widen A-011.7 into the
+  later U-series page rebuild, and the full UI module presently has two
+  inherited baseline failures for a missing curriculum-control literal and
+  approved room-art reference. The existing public observation API already
+  carries `play.laughter`; this increment changes that truthful record only and
+  makes no broader page-completeness claim.
+- The adjacent 77-test run was repeated after the final world-receipt and exact
+  motor/articulator tightening. One first invocation supplied a two-entry
+  `PYTHONPATH` and correctly failed the cold-probe environment-isolation test
+  after the other 76 tests passed; a subsequent direct `pytest` invocation
+  with only the native target could not import the worktree. The corrected
+  `python -m pytest` invocation used the fresh native target as the sole
+  inherited `PYTHONPATH`, imported the worktree from its current directory,
+  and passed all 77 tests with zero failures and nine inherited deprecation
+  warnings. These two harness mistakes did not mutate candidate or production
+  state and are not counted as behavioral evidence.

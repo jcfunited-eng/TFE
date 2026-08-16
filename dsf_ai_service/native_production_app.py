@@ -1398,6 +1398,13 @@ _last_tested_physical_choice_evidence: dict[str, Any] | None = None
 # holds only the completed compact evidence until another restart.
 _sensorimotor_play_candidate: dict[str, Any] | None = None
 _last_sensorimotor_play_evidence: dict[str, Any] | None = None
+# One bounded, read-only body-owned-laughter witness. It observes only exact
+# transaction-local physics already produced by the organism: learned playful
+# formation recurrence, affect/body settlement, motor-to-articulator transfer,
+# vocal-body/PCM/self-hearing consequence, and body/world return. It cannot
+# cause an act and does not survive process restart.
+_body_owned_laughter_candidate: dict[str, Any] | None = None
+_last_body_owned_laughter_evidence: dict[str, Any] | None = None
 # One bounded, read-only turn-taking witness. The external body's authenticated
 # world action and Guala's own native action remain separate authorities; exact
 # predecessor/successor world receipts are the only relation between them.
@@ -3146,6 +3153,286 @@ def _advance_bounded_sensorimotor_play_evidence(
     )
 
 
+def _body_owned_laughter_episode_from_transition(
+    evidence: dict[str, Any],
+    play_evidence: dict[str, Any] | None,
+    intake: str,
+) -> dict[str, Any] | None:
+    """Bind one already-enacted playful vocal/body episode without causing it."""
+
+    if not intake.startswith("continuous-environment:") or not isinstance(
+        play_evidence, dict
+    ):
+        return None
+    first_play = play_evidence.get("first_episode")
+    return_play = play_evidence.get("return_episode")
+    if (
+        not isinstance(first_play, dict)
+        or not isinstance(return_play, dict)
+        or not _complete_positive_engagement_episode(first_play)
+        or not _complete_positive_engagement_episode(return_play)
+        or not bool(play_evidence.get("changed_world_context"))
+    ):
+        return None
+    causal = evidence.get("causal_cross_context_use")
+    action = evidence.get("motor_action")
+    articulation = evidence.get("articulation")
+    if (
+        not isinstance(causal, dict)
+        or causal.get("origin_kind") != "retained_formation"
+        or not isinstance(action, dict)
+        or not isinstance(articulation, dict)
+    ):
+        return None
+    formation_receipt = causal.get("formation_receipt_sha256")
+    if formation_receipt != play_evidence.get("formation_receipt_sha256"):
+        return None
+    affective = _same_transition_affective_body_participation(evidence, causal)
+    if affective is None:
+        return None
+    causal_motor = causal.get("motor_unit_recruitment")
+    causal_action = causal.get("action")
+    consequence = causal.get("sensed_consequence")
+    if not all(
+        isinstance(value, dict)
+        for value in (causal_motor, causal_action, consequence)
+    ):
+        return None
+    motor_lineage = causal_motor.get("motor_lineage")
+    action_receipt = action.get("causal_intent_receipt_sha256")
+    state_sha256 = evidence.get("state_sha256")
+    pressure_sha256 = articulation.get("pressure_sha256")
+    world_state_after_sha256 = action.get("world_state_after_sha256")
+    world_state_before_sha256 = action.get("world_state_before_sha256")
+    if not all(
+        isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
+        for value in (
+            formation_receipt,
+            action_receipt,
+            state_sha256,
+            pressure_sha256,
+            world_state_after_sha256,
+            world_state_before_sha256,
+        )
+    ):
+        return None
+    if not isinstance(motor_lineage, str) or not re.fullmatch(
+        r"[0-9a-f]{32}", motor_lineage
+    ):
+        return None
+    if causal_action.get("causal_intent_receipt_sha256") != action_receipt:
+        return None
+
+    matched_articulators: list[tuple[str, int, int, str]] = []
+    for recruitment in tuple(articulation.get("recruitments", ())):
+        if not isinstance(recruitment, (list, tuple)) or len(recruitment) != 4:
+            return None
+        articulator_lineage, topology, carriers, transfers = recruitment
+        if not isinstance(transfers, (list, tuple)):
+            return None
+        for transfer in transfers:
+            if not isinstance(transfer, (list, tuple)) or len(transfer) != 6:
+                return None
+            (
+                sender,
+                sender_layer,
+                receiver,
+                receiver_layer,
+                _ordinal,
+                moved,
+            ) = transfer
+            if (
+                {sender, receiver} == {motor_lineage, articulator_lineage}
+                and {int(sender_layer), int(receiver_layer)} == {12, 13}
+                and int(moved) > 0
+            ):
+                matched_articulators.append(
+                    (
+                        str(articulator_lineage),
+                        int(topology),
+                        int(carriers),
+                        _receipt(tuple(transfer)),
+                    )
+                )
+                break
+    if not matched_articulators:
+        return None
+
+    sensory_consequence = action.get("sensory_consequence")
+    visual_return = (
+        sensory_consequence.get("visual")
+        if isinstance(sensory_consequence, dict)
+        else None
+    )
+    origin_tick = int(causal.get("origin_organism_tick", 0))
+    motor_tick = int(causal.get("motor_organism_tick", 0))
+    consequence_tick = int(consequence.get("successor_organism_tick", 0))
+    organism_tick = int(evidence.get("organism_tick", 0))
+    signed_yaw = int(action.get("signed_yaw_millidegrees", 0))
+    world_revision = int(action.get("observed_world_revision", 0))
+    if (
+        origin_tick <= 0
+        or motor_tick <= origin_tick
+        or consequence_tick < motor_tick
+        or organism_tick != consequence_tick
+        or signed_yaw == 0
+        or world_revision <= 0
+        or int(consequence.get("vestibular_tick_count", 0)) <= 0
+        or int(consequence.get("externally_perturbed_body_receptor_count", 0)) <= 0
+        or not isinstance(visual_return, dict)
+        or int(visual_return.get("transported", 0)) <= 0
+        or int(articulation.get("articulatory_body_port_count", 0)) != 4
+        or int(
+            articulation.get("articulatory_body_nonquiescent_port_count", 0)
+        )
+        != 4
+        or int(articulation.get("articulatory_body_perturbed_neuron_count", 0)) <= 0
+        or int(articulation.get("pressure_sample_count", 0)) <= 0
+        or int(articulation.get("peak_breath_flow_pcm", 0)) <= 0
+        or int(articulation.get("glottal_open_samples_at_apex", 0)) <= 0
+        or int(articulation.get("mouth_area_square_millimetres_at_apex", 0)) <= 0
+        or int(
+            articulation.get(
+                "perioral_area_displacement_square_millimetres", 0
+            )
+        )
+        == 0
+        or int(articulation.get("self_hearing_hop_count", 0)) <= 0
+        or int(articulation.get("self_hearing_transitioned_neuron_count", 0)) <= 0
+    ):
+        return None
+    episode = {
+        "action_causal_intent_receipt_sha256": action_receipt,
+        "affective_body_trajectory_receipt_sha256": affective[
+            "trajectory_receipt_sha256"
+        ],
+        "articulatory_body_nonquiescent_port_count": 4,
+        "causal_motor_lineage": motor_lineage,
+        "consequence_organism_tick": consequence_tick,
+        "formation_receipt_sha256": formation_receipt,
+        "glottal_open_samples_at_apex": articulation[
+            "glottal_open_samples_at_apex"
+        ],
+        "matched_articulator_count": len(matched_articulators),
+        "matched_motor_to_articulator_receipt_sha256": _receipt(
+            tuple(sorted(matched_articulators))
+        ),
+        "mouth_area_square_millimetres_at_apex": articulation[
+            "mouth_area_square_millimetres_at_apex"
+        ],
+        "origin_organism_tick": origin_tick,
+        "peak_breath_flow_pcm": articulation["peak_breath_flow_pcm"],
+        "perioral_area_displacement_square_millimetres": articulation[
+            "perioral_area_displacement_square_millimetres"
+        ],
+        "play_evidence_receipt_sha256": play_evidence[
+            "evidence_receipt_sha256"
+        ],
+        "pressure_sample_count": articulation["pressure_sample_count"],
+        "pressure_sha256": pressure_sha256,
+        "self_hearing_hop_count": articulation["self_hearing_hop_count"],
+        "self_hearing_transitioned_neuron_count": articulation[
+            "self_hearing_transitioned_neuron_count"
+        ],
+        "signed_body_head_yaw_millidegrees": signed_yaw,
+        "state_sha256": state_sha256,
+        "visual_receptor_return_count": int(visual_return["transported"]),
+        "vestibular_tick_count": int(consequence["vestibular_tick_count"]),
+        "world_revision": world_revision,
+        "world_state_after_sha256": world_state_after_sha256,
+        "world_state_before_sha256": world_state_before_sha256,
+    }
+    episode["evidence_receipt_sha256"] = _receipt(episode)
+    return episode
+
+
+def _advance_bounded_body_owned_laughter_evidence(
+    candidate: dict[str, Any] | None,
+    completed: dict[str, Any] | None,
+    evidence: dict[str, Any],
+    play_evidence: dict[str, Any] | None,
+    intake: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """Observe one complete playful vocal episode and its later recurrence."""
+
+    if completed is not None:
+        return candidate, completed
+    episode = _body_owned_laughter_episode_from_transition(
+        evidence, play_evidence, intake
+    )
+    if episode is None:
+        return candidate, completed
+    if candidate is None:
+        return episode, completed
+    if episode["action_causal_intent_receipt_sha256"] == candidate[
+        "action_causal_intent_receipt_sha256"
+    ]:
+        return candidate, completed
+    if (
+        episode["formation_receipt_sha256"]
+        != candidate["formation_receipt_sha256"]
+        or episode["origin_organism_tick"]
+        <= candidate["consequence_organism_tick"]
+        or episode["world_revision"] <= candidate["world_revision"]
+    ):
+        return candidate, completed
+    laughter = {
+        "context": "learned_playful_formation_recurrence",
+        "first_episode": candidate,
+        "formation_receipt_sha256": candidate["formation_receipt_sha256"],
+        "recurrence_gap_organism_ticks": (
+            episode["origin_organism_tick"]
+            - candidate["consequence_organism_tick"]
+        ),
+        "return_episode": episode,
+        "varied_acoustic_pressure": (
+            episode["pressure_sha256"] != candidate["pressure_sha256"]
+        ),
+        "varied_body_orientation": (
+            episode["signed_body_head_yaw_millidegrees"]
+            != candidate["signed_body_head_yaw_millidegrees"]
+        ),
+    }
+    laughter["evidence_receipt_sha256"] = _receipt(laughter)
+    return None, laughter
+
+
+def _body_owned_laughter_record() -> dict[str, object]:
+    evidence = _last_body_owned_laughter_evidence
+    authority = {
+        "animation_authority": False,
+        "canned_audio_authority": False,
+        "named_emotion_authority": False,
+        "python_cognition_authority": False,
+        "reward_authority": False,
+        "semantic_label_causation_authority": False,
+        "tts_authority": False,
+    }
+    if evidence is None:
+        return _section(
+            False,
+            "playful_body_owned_laughter_unproved",
+            "this process has not yet observed two complete ordinary episodes "
+            "in which the learned playful formation physically caused the "
+            "affect/body, motor-to-articulator, vocal-body, pressure, "
+            "self-hearing, body-orientation, and world-return chain",
+            **authority,
+        )
+    return _section(
+        True,
+        "body_owned_laughter_recurred",
+        "the learned playful retained formation twice caused exact localized "
+        "affect/body settlement, a physical layer-12-to-layer-13 discharge, "
+        "breath/glottis/mouth/perioral movement, emitted acoustic pressure, "
+        "cochlear self-hearing, body/head orientation, and sensed world return; "
+        "the later episode is recurrence evidence, not a claim about a named "
+        "feeling or another participant's state",
+        evidence_scope="latest_completed_bounded_laughter_witness_this_process",
+        **evidence,
+        **authority,
+    )
+
+
 def _complete_positive_engagement_episode(episode: dict[str, Any]) -> bool:
     """Whether one Guala action carries the required local body physics."""
 
@@ -3322,14 +3609,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
         "reward_authority": False,
         "timer_choice_authority": False,
     }
-    unavailable = {
-        "laughter": _section(
-            False,
-            "playful_body_owned_laughter_unproved",
-            "no learned playful or social formation has yet caused a complete "
-            "breath, larynx, mouth, face, body, sound, and self-hearing trajectory",
-        ),
-    }
+    laughter = {"laughter": _body_owned_laughter_record()}
     if _last_sensorimotor_play_evidence is None:
         return _section(
             False,
@@ -3370,7 +3650,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
                 "distress exclusion, preference, or cross-context return",
             ),
             social_joy=_reciprocal_social_joy_section(),
-            **unavailable,
+            **laughter,
         )
     first_affective = _last_sensorimotor_play_evidence["first_episode"].get(
         "affective_body_participation"
@@ -3566,7 +3846,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
             reward_authority=False,
         ),
         social_joy=_reciprocal_social_joy_section(),
-        **unavailable,
+        **laughter,
     )
 
 
@@ -7938,6 +8218,7 @@ def _perform_admitted_intake_locked(
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
+    global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
     global _active_external_participant_causal_motor_traces
@@ -8817,6 +9098,16 @@ def _perform_admitted_intake_locked(
         _last_sensorimotor_play_evidence,
         _last_transition_evidence,
         physical_choice_evidence,
+        intake,
+    )
+    (
+        _body_owned_laughter_candidate,
+        _last_body_owned_laughter_evidence,
+    ) = _advance_bounded_body_owned_laughter_evidence(
+        _body_owned_laughter_candidate,
+        _last_body_owned_laughter_evidence,
+        _last_transition_evidence,
+        _last_sensorimotor_play_evidence,
         intake,
     )
     (
@@ -10828,6 +11119,7 @@ def _startup() -> None:
     global _last_intrinsic_curiosity_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
+    global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
     global _active_external_participant_causal_motor_traces
@@ -10840,6 +11132,8 @@ def _startup() -> None:
     _last_tested_physical_choice_evidence = None
     _sensorimotor_play_candidate = None
     _last_sensorimotor_play_evidence = None
+    _body_owned_laughter_candidate = None
+    _last_body_owned_laughter_evidence = None
     _reciprocal_social_play_candidate = None
     _last_reciprocal_social_play_evidence = None
     _active_external_participant_causal_motor_traces = {}
