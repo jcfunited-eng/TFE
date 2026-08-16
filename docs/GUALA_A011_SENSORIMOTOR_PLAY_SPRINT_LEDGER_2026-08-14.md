@@ -1628,3 +1628,39 @@ second persistence authority remain out of scope and must not be extended.
   evidence only. A-011.6 remains open until the immutable release passes the
   production-shaped rehearsal, deploys, and satisfies the live reciprocal
   acceptance. A-011.7 remains the immediate next item.
+
+#### Task 1082 production result
+
+- Commit `57c7585f65325998c39002c0cabf27f70bf8b356` built image
+  `sha256:7cf416a45e130e7f09cebba7cd5d9ec9cffb9d7ed4fef1c1e00f45130b626574`
+  and registered task `dsf-ai-task:1082`. The controller's first rehearsal task
+  stopped before container start with an exact ECR `digest not found` pull
+  error. Production remained unchanged on task 1081. The same digest appeared
+  under its immutable ECR tag immediately afterward; no source or image rebuild
+  was performed.
+- A fresh authenticated source receipt at tick `114151`, state
+  `6ed39dc8270fbb435cf495462e401426c48826626a653e27c735ac30bc306158`,
+  then passed the same digest's discarded-state cold rehearsal. Identity and
+  state restored exactly; 107 of 1,824 reached contacts changed, the same
+  physical contact was used on the next causal interval, the body contained 313
+  complete and 196,416 developmental neurons, and Python cognition remained
+  zero.
+- One recovery cutover installed task 1082. Live read-back proves one desired,
+  one running, zero pending, one completed deployment, the exact digest pinned
+  as `production-current`, healthy authenticated readiness, preserved identity,
+  tick `114193`, state bytes `59,559,555`, current binary persistence, and zero
+  Python cognition callbacks.
+- The first ordinary task-1082 transition truthfully remains below A-011.6
+  acceptance. It contains retained-formation and new-impression motor causation,
+  exact physical choice, autonomous action, and 11 ordered layer-10
+  association/body then gradient trajectories. Those trajectories moved local
+  recovery reservoirs but did not change their contact rest coordinates, so
+  `_retained_local_plasticity` correctly refuses to call them retained local
+  plasticity; no affective motor path, reciprocal positive engagement, fun, or
+  laughter is claimed. A-011.6 remains open and A-011.7 remains next.
+- Deployment-process defect retained for the next release: the controller
+  accepts a newly described ECR digest without proving that ECS can yet pull
+  that digest. The pre-cutover rehearsal failed closed as designed, but its
+  exact registry-publication race required a manual rerun of the same immutable
+  candidate. This must be corrected before the next release rather than
+  rediscovered.
