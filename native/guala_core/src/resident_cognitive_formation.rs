@@ -3162,6 +3162,26 @@ impl ResidentCognitiveFormationState {
             .collect()
     }
 
+    /// Read every exact transfer on the current sparse electrical frontier.
+    ///
+    /// This crate-private projection lets the one-seal organism trajectory
+    /// preserve each already-reached causal boundary before the next interval
+    /// replaces it. It is transient observation only: it neither broadens the
+    /// settled frontier nor enters the retained organism codec.
+    pub(crate) fn observe_active_electrical_frontier_advances(
+        &self,
+    ) -> Vec<CausalFrontierTransferObservation> {
+        self.active_electrical_frontier
+            .iter()
+            .filter_map(|entry| {
+                Some(CausalFrontierTransferObservation {
+                    transfer: entry.directed_transfer()?,
+                    frontier_lineage: entry.frontier_lineage(),
+                })
+            })
+            .collect()
+    }
+
     /// Total mosaic-of-mosaics relation events recorded against the retained
     /// formations — the sum of the per-mosaic retained counts (R1 overlap
     /// branch; R3: a count over recorded episodes, never a score).

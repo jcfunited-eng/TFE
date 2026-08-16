@@ -355,6 +355,33 @@ class ResidentContactGrowthEvidence:
 
 
 @dataclass(frozen=True, slots=True)
+class ResidentCausalIntervalEvidence:
+    """One transient exact causal boundary inside a one-seal trajectory."""
+
+    predecessor_organism_tick: int
+    organism_tick: int
+    externally_perturbed_neuron_lineages: tuple[str, ...]
+    internally_reassembled_formation_cues: tuple[
+        tuple[str, tuple[str, ...]], ...
+    ]
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ]
+    emitted_neuron_lineages: tuple[str, ...]
+    changed_contact_channel_states: tuple[tuple[object, ...], ...]
+    affective_balance_trajectories: tuple[
+        AffectiveBalanceTrajectoryEvidence, ...
+    ]
+    causal_frontier_advances: tuple[tuple[str, str, int, int, str], ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ResidentPrepareEvidence:
     """Fixed receipt and causal evidence for one native pending candidate."""
 
@@ -488,6 +515,7 @@ class ResidentPrepareEvidence:
         ],
         ...,
     ] = ()
+    causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...] = ()
 
 
 def _native_core():
@@ -640,6 +668,194 @@ def _changed_contact_channel_state_evidence(
         seen.add(identity)
         changes.append((cognitive_ordinal, left, right, parallel_ordinal, *states))
     return tuple(changes)
+
+
+def _internally_reassembled_formation_cue_evidence(
+    value: object,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("internally reassembled formation cues changed format")
+    observed: list[tuple[str, tuple[str, ...]]] = []
+    for raw_cue in value:
+        if not isinstance(raw_cue, tuple) or len(raw_cue) != 2:
+            raise RuntimeError("internally reassembled formation cue changed format")
+        raw_receipt, raw_cues = raw_cue
+        if not isinstance(raw_cues, list) or not raw_cues:
+            raise RuntimeError("internally reassembled formation cue is empty")
+        receipt = _canonical_sha256(
+            raw_receipt, "internally reassembled formation receipt"
+        )
+        cues = tuple(
+            _canonical_lineage_hex(lineage, "internal formation cue lineage")
+            for lineage in raw_cues
+        )
+        if tuple(sorted(set(cues))) != cues:
+            raise RuntimeError("internally reassembled formation cue is not canonical")
+        observed.append((receipt, cues))
+    result = tuple(observed)
+    if len(set(result)) != len(result):
+        raise RuntimeError("internally reassembled formation cue repeated")
+    return result
+
+
+def _motor_unit_recruitment_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    if not isinstance(value, list):
+        raise RuntimeError("motor-unit recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 4:
+            raise RuntimeError("motor-unit recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
+        topology_index = _nonnegative_integer(
+            raw[1], "motor-unit topology index"
+        )
+        outward_elementary_carriers = _positive_integer(
+            raw[2], "motor-unit outward elementary carriers"
+        )
+        if not isinstance(raw[3], list) or not raw[3]:
+            raise RuntimeError("motor-unit preparation transfers changed format")
+        preparation_transfers = []
+        for transfer in raw[3]:
+            if not isinstance(transfer, tuple) or len(transfer) != 6:
+                raise RuntimeError("motor-unit preparation transfer changed format")
+            sender = _canonical_lineage_hex(
+                transfer[0], "motor preparation sender"
+            )
+            sender_layer = _nonnegative_integer(
+                transfer[1], "motor preparation sender layer"
+            )
+            receiver = _canonical_lineage_hex(
+                transfer[2], "motor preparation receiver"
+            )
+            receiver_layer = _nonnegative_integer(
+                transfer[3], "motor preparation receiver layer"
+            )
+            parallel_ordinal = _nonnegative_integer(
+                transfer[4], "motor preparation parallel ordinal"
+            )
+            transferred_whole_carriers = _positive_integer(
+                transfer[5], "motor preparation transferred whole carriers"
+            )
+            if sender == receiver or not (
+                (
+                    sender == lineage
+                    and sender_layer == 12
+                    and receiver_layer == 11
+                )
+                or (
+                    receiver == lineage
+                    and receiver_layer == 12
+                    and sender_layer == 11
+                )
+            ):
+                raise RuntimeError(
+                    "motor-unit preparation is not an exact layer 11/layer 12 contact transfer"
+                )
+            preparation_transfers.append(
+                (
+                    sender,
+                    sender_layer,
+                    receiver,
+                    receiver_layer,
+                    parallel_ordinal,
+                    transferred_whole_carriers,
+                )
+            )
+        observed.append(
+            (
+                lineage,
+                topology_index,
+                outward_elementary_carriers,
+                tuple(preparation_transfers),
+            )
+        )
+    return tuple(observed)
+
+
+def _causal_interval_evidence(
+    value: object,
+    predecessor_organism_tick: int,
+) -> tuple[ResidentCausalIntervalEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("causal interval evidence changed format")
+    intervals = []
+    for index, raw in enumerate(value):
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError("causal interval evidence changed format")
+        (
+            raw_external,
+            raw_cues,
+            raw_motors,
+            raw_emitted,
+            raw_changes,
+            raw_affect,
+            raw_frontier,
+        ) = raw
+        if not isinstance(raw_external, list):
+            raise RuntimeError("causal interval external lineages changed format")
+        external = tuple(
+            _canonical_lineage_hex(lineage, "causal interval external lineage")
+            for lineage in raw_external
+        )
+        if len(set(external)) != len(external):
+            raise RuntimeError("causal interval external lineage repeated")
+        if not isinstance(raw_emitted, list):
+            raise RuntimeError("causal interval emitted lineages changed format")
+        emitted = tuple(
+            _canonical_lineage_hex(lineage, "causal interval emitted lineage")
+            for lineage in raw_emitted
+        )
+        if len(set(emitted)) != len(emitted):
+            raise RuntimeError("causal interval emitted lineage repeated")
+        if not isinstance(raw_frontier, list):
+            raise RuntimeError("causal interval frontier changed format")
+        frontier = []
+        for transfer in raw_frontier:
+            if not isinstance(transfer, tuple) or len(transfer) != 5:
+                raise RuntimeError("causal interval frontier changed format")
+            directed = _directed_physical_transfer_evidence(
+                transfer[:4], "causal interval frontier"
+            )
+            advancing = _canonical_lineage_hex(
+                transfer[4], "causal interval advancing lineage"
+            )
+            if advancing not in directed[:2]:
+                raise RuntimeError("causal interval frontier left its contact")
+            frontier.append((*directed, advancing))
+        canonical_frontier = tuple(frontier)
+        if len(set(canonical_frontier)) != len(canonical_frontier):
+            raise RuntimeError("causal interval frontier repeated a transfer")
+        predecessor_tick = predecessor_organism_tick + index
+        intervals.append(
+            ResidentCausalIntervalEvidence(
+                predecessor_organism_tick=predecessor_tick,
+                organism_tick=predecessor_tick + 1,
+                externally_perturbed_neuron_lineages=external,
+                internally_reassembled_formation_cues=(
+                    _internally_reassembled_formation_cue_evidence(raw_cues)
+                ),
+                motor_unit_recruitments=_motor_unit_recruitment_evidence(raw_motors),
+                emitted_neuron_lineages=emitted,
+                changed_contact_channel_states=(
+                    _changed_contact_channel_state_evidence(raw_changes)
+                ),
+                affective_balance_trajectories=(
+                    _affective_balance_trajectory_evidence(raw_affect)
+                ),
+                causal_frontier_advances=canonical_frontier,
+            )
+        )
+    return tuple(intervals)
 
 
 def _directed_physical_transfer_evidence(
@@ -2068,34 +2284,13 @@ class NativeResidentOrganism:
             candidate.endogenous_partial_cue_reassembly_count,
             "endogenous partial cue reassembly count",
         )
-        raw_internal_cues = candidate.internally_reassembled_formation_cues
-        if not isinstance(raw_internal_cues, list):
-            raise RuntimeError("internally reassembled formation cues changed format")
-        internally_reassembled_formation_cues: list[
-            tuple[str, tuple[str, ...]]
-        ] = []
-        for raw_cue in raw_internal_cues:
-            if not isinstance(raw_cue, tuple) or len(raw_cue) != 2:
-                raise RuntimeError(
-                    "internally reassembled formation cue changed format"
-                )
-            raw_receipt, raw_cues = raw_cue
-            if not isinstance(raw_cues, list) or not raw_cues:
-                raise RuntimeError("internally reassembled formation cue is empty")
-            receipt = _canonical_sha256(
-                raw_receipt, "internally reassembled formation receipt"
+        internally_reassembled_formation_cues = (
+            _internally_reassembled_formation_cue_evidence(
+                candidate.internally_reassembled_formation_cues
             )
-            cues = tuple(
-                _canonical_lineage_hex(lineage, "internal formation cue lineage")
-                for lineage in raw_cues
-            )
-            if tuple(sorted(set(cues))) != cues:
-                raise RuntimeError("internally reassembled formation cue is not canonical")
-            internally_reassembled_formation_cues.append((receipt, cues))
+        )
         if (
-            len(set(internally_reassembled_formation_cues))
-            != len(internally_reassembled_formation_cues)
-            or len(internally_reassembled_formation_cues)
+            len(internally_reassembled_formation_cues)
             > endogenous_partial_cue_reassembly_count
         ):
             raise RuntimeError("internally reassembled formation cues exceed physical recurrence")
@@ -2171,91 +2366,25 @@ class NativeResidentOrganism:
             != source_port_count
         ):
             raise RuntimeError("receptor ingress observation lost source ports")
-        raw_motor_recruitments = candidate.motor_unit_recruitments
-        if not isinstance(raw_motor_recruitments, list):
-            raise RuntimeError("motor-unit recruitments changed format")
-        motor_unit_recruitments: list[
-            tuple[
-                str,
-                int,
-                int,
-                tuple[tuple[str, int, str, int, int, int], ...],
-            ]
-        ] = []
-        for raw in raw_motor_recruitments:
-            if not isinstance(raw, tuple) or len(raw) != 4:
-                raise RuntimeError("motor-unit recruitment changed format")
-            lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
-            topology_index = _nonnegative_integer(
-                raw[1], "motor-unit topology index"
+        motor_unit_recruitments = _motor_unit_recruitment_evidence(
+            candidate.motor_unit_recruitments
+        )
+        raw_causal_interval_evidence = getattr(
+            candidate, "causal_interval_evidence", None
+        )
+        causal_interval_evidence = (
+            ()
+            if raw_causal_interval_evidence is None
+            else _causal_interval_evidence(
+                raw_causal_interval_evidence,
+                predecessor_organism_tick,
             )
-            outward_elementary_carriers = _positive_integer(
-                raw[2], "motor-unit outward elementary carriers"
-            )
-            if not isinstance(raw[3], list) or not raw[3]:
-                raise RuntimeError("motor-unit preparation transfers changed format")
-            preparation_transfers: list[
-                tuple[str, int, str, int, int, int]
-            ] = []
-            for transfer in raw[3]:
-                if not isinstance(transfer, tuple) or len(transfer) != 6:
-                    raise RuntimeError(
-                        "motor-unit preparation transfer changed format"
-                    )
-                sender = _canonical_lineage_hex(
-                    transfer[0], "motor preparation sender"
-                )
-                sender_layer = _nonnegative_integer(
-                    transfer[1], "motor preparation sender layer"
-                )
-                receiver = _canonical_lineage_hex(
-                    transfer[2], "motor preparation receiver"
-                )
-                receiver_layer = _nonnegative_integer(
-                    transfer[3], "motor preparation receiver layer"
-                )
-                parallel_ordinal = _nonnegative_integer(
-                    transfer[4], "motor preparation parallel ordinal"
-                )
-                transferred_whole_carriers = _positive_integer(
-                    transfer[5], "motor preparation transferred whole carriers"
-                )
-                if (
-                    sender == receiver
-                    or not (
-                        (
-                            sender == lineage
-                            and sender_layer == 12
-                            and receiver_layer == 11
-                        )
-                        or (
-                            receiver == lineage
-                            and receiver_layer == 12
-                            and sender_layer == 11
-                        )
-                    )
-                ):
-                    raise RuntimeError(
-                        "motor-unit preparation is not an exact layer 11/layer 12 contact transfer"
-                    )
-                preparation_transfers.append(
-                    (
-                        sender,
-                        sender_layer,
-                        receiver,
-                        receiver_layer,
-                        parallel_ordinal,
-                        transferred_whole_carriers,
-                    )
-                )
-            motor_unit_recruitments.append(
-                (
-                    lineage,
-                    topology_index,
-                    outward_elementary_carriers,
-                    tuple(preparation_transfers),
-                )
-            )
+        )
+        if (
+            len(causal_interval_evidence) != causal_interval_count
+            and (causal_interval_evidence or causal_interval_count > 1)
+        ):
+            raise RuntimeError("causal interval evidence lost a physical boundary")
         # Older pure-Python boundary doubles carry no layer-13 observation;
         # absence is exactly an empty transient recruitment list. Native
         # production candidates expose the field explicitly.
@@ -2499,6 +2628,7 @@ class NativeResidentOrganism:
             ),
             localized_metabolic_strain=localized_metabolic_strain,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
+            causal_interval_evidence=causal_interval_evidence,
         )
 
     def prepare_authored_contacts(
@@ -3109,6 +3239,7 @@ __all__ = (
     "OBSERVATION_SCHEMA",
     "PREPARE_SCHEMA",
     "RUNTIME_SCHEMA",
+    "ResidentCausalIntervalEvidence",
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
     "exact_motor_unit_yaw_trajectory",

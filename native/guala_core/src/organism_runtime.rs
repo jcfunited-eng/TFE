@@ -121,6 +121,12 @@ const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sen
 type DirectedPhysicalTransferProjection = (String, String, u32, String);
 type CausalFrontierTransferProjection = (String, String, u32, String, String);
 type InternallyReassembledFormationCueProjection = (String, Vec<String>);
+type MotorUnitRecruitmentProjection = (
+    String,
+    u32,
+    u128,
+    Vec<(String, u32, String, u32, u32, u128)>,
+);
 type OrderedPhysicalPathProjection = (
     DirectedPhysicalTransferProjection,
     DirectedPhysicalTransferProjection,
@@ -190,6 +196,15 @@ type AffectiveBalanceTrajectoryProjection = (
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<LocalAffectiveGradientSettlementProjection>,
     Option<LocalAffectivePlasticitySettlementProjection>,
+);
+type CausalIntervalEvidenceProjection = (
+    Vec<String>,
+    Vec<InternallyReassembledFormationCueProjection>,
+    Vec<MotorUnitRecruitmentProjection>,
+    Vec<String>,
+    Vec<ChangedContactChannelStateProjection>,
+    Vec<AffectiveBalanceTrajectoryProjection>,
+    Vec<CausalFrontierTransferProjection>,
 );
 type LocalizedFluidChemistryProjection = (
     String,
@@ -648,6 +663,19 @@ struct ResidentPrepareReceipt {
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
+    causal_interval_evidence: Vec<CausalIntervalEvidence>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CausalIntervalEvidence {
+    externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
+    internally_reassembled_formation_cues:
+        Vec<InternallyReassembledFormationCueObservation>,
+    motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    emitted_neuron_lineages: Vec<[u8; 16]>,
+    changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
+    affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
+    frontier_advances: Vec<CausalFrontierTransferObservation>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -689,6 +717,7 @@ pub struct NativeResidentOrganismPrepare {
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
+    causal_interval_evidence: Vec<CausalIntervalEvidence>,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -1236,39 +1265,41 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn motor_unit_recruitments(
         &self,
-    ) -> Vec<(
-        String,
-        u32,
-        u128,
-        Vec<(String, u32, String, u32, u32, u128)>,
-    )> {
-        self.motor_unit_recruitments
+    ) -> Vec<MotorUnitRecruitmentProjection> {
+        project_motor_unit_recruitments(&self.motor_unit_recruitments)
+    }
+
+    /// Exact per-interval causal observation retained only for the lifetime of
+    /// one prepared trajectory. The final successor still has one seal; these
+    /// bounded records preserve the intervening sparse frontiers so a later
+    /// read-only observer does not flatten several physical intervals into one.
+    #[getter]
+    fn causal_interval_evidence(&self) -> Vec<CausalIntervalEvidenceProjection> {
+        self.causal_interval_evidence
             .iter()
-            .map(|event| {
+            .map(|interval| {
                 (
-                    hex_bytes(&event.neuron_lineage),
-                    event.topology_index,
-                    event.outward_elementary_carriers,
-                    event
-                        .preparation_transfers
+                    interval
+                        .externally_perturbed_neuron_lineages
                         .iter()
-                        .map(|transfer| {
-                            let (sender_layer, receiver_layer) =
-                                if transfer.sender == event.neuron_lineage {
-                                    (12, 11)
-                                } else {
-                                    (11, 12)
-                                };
-                            (
-                                hex_bytes(&transfer.sender),
-                                sender_layer,
-                                hex_bytes(&transfer.receiver),
-                                receiver_layer,
-                                transfer.bond.parallel_ordinal(),
-                                transfer.transferred_whole_carriers,
-                            )
-                        })
+                        .map(|lineage| hex_bytes(lineage))
                         .collect(),
+                    project_internally_reassembled_formation_cues(
+                        &interval.internally_reassembled_formation_cues,
+                    ),
+                    project_motor_unit_recruitments(&interval.motor_unit_recruitments),
+                    interval
+                        .emitted_neuron_lineages
+                        .iter()
+                        .map(|lineage| hex_bytes(lineage))
+                        .collect(),
+                    project_changed_contact_channel_states(
+                        &interval.changed_contact_channel_states,
+                    ),
+                    project_affective_balance_trajectories(
+                        &interval.affective_balance_trajectories,
+                    ),
+                    project_causal_frontier_transfers(&interval.frontier_advances),
                 )
             })
             .collect()
@@ -2328,6 +2359,7 @@ impl ResidentOrganismRuntime {
         let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
         let mut cognitive = self.active.cognitive.clone();
         let mut aggregate = None;
+        let mut causal_interval_evidence = Vec::with_capacity(episodes.len());
         let mut receptor_ingress = ResidentReceptorIngressObservation::default();
         let mut source_port_count = 0usize;
         let mut source_occurrence_count = 0usize;
@@ -2346,6 +2378,27 @@ impl ResidentOrganismRuntime {
             let (successor, observation) = cognitive
                 .advance_admitted_transition(&admitted, cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            causal_interval_evidence.push(CausalIntervalEvidence {
+                externally_perturbed_neuron_lineages: observation
+                    .externally_perturbed_neuron_lineages
+                    .clone(),
+                internally_reassembled_formation_cues: observation
+                    .internally_reassembled_formation_cues
+                    .clone(),
+                motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                emitted_neuron_lineages: observation
+                    .emitted_neuron_fractals
+                    .iter()
+                    .map(|fractal| fractal.neuron_lineage)
+                    .collect(),
+                changed_contact_channel_states: observation
+                    .changed_contact_channel_states
+                    .clone(),
+                affective_balance_trajectories: observation
+                    .affective_balance_trajectories
+                    .clone(),
+                frontier_advances: successor.observe_active_electrical_frontier_advances(),
+            });
             cognitive = successor;
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
         }
@@ -2433,6 +2486,7 @@ impl ResidentOrganismRuntime {
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
             articulatory_unit_recruitments: cognitive_observation
                 .articulatory_unit_recruitments,
+            causal_interval_evidence,
         })
     }
 
@@ -2471,6 +2525,8 @@ impl ResidentOrganismRuntime {
         let mut vestibular = self.active.vestibular.clone();
         let mut heading = predecessor_heading_millidegrees;
         let mut aggregate: Option<CognitiveFormationObservation> = None;
+        let mut causal_interval_evidence =
+            Vec::with_capacity(signed_body_motion_millidegrees.len());
         let mut receptor_ingress = None;
         for signed_step in signed_body_motion_millidegrees.iter().copied() {
             let ingress = resident_vestibular_tick_ingress(&vestibular, heading, signed_step)?;
@@ -2479,6 +2535,27 @@ impl ResidentOrganismRuntime {
             let (successor, observation) = cognitive
                 .advance_vestibular_transition(&ingress, cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            causal_interval_evidence.push(CausalIntervalEvidence {
+                externally_perturbed_neuron_lineages: observation
+                    .externally_perturbed_neuron_lineages
+                    .clone(),
+                internally_reassembled_formation_cues: observation
+                    .internally_reassembled_formation_cues
+                    .clone(),
+                motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                emitted_neuron_lineages: observation
+                    .emitted_neuron_fractals
+                    .iter()
+                    .map(|fractal| fractal.neuron_lineage)
+                    .collect(),
+                changed_contact_channel_states: observation
+                    .changed_contact_channel_states
+                    .clone(),
+                affective_balance_trajectories: observation
+                    .affective_balance_trajectories
+                    .clone(),
+                frontier_advances: successor.observe_active_electrical_frontier_advances(),
+            });
             cognitive = successor;
             vestibular = ResidentVestibularBody {
                 anatomy: vestibular.anatomy.clone(),
@@ -2580,6 +2657,7 @@ impl ResidentOrganismRuntime {
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
             articulatory_unit_recruitments: cognitive_observation
                 .articulatory_unit_recruitments,
+            causal_interval_evidence,
         })
     }
 
@@ -2728,6 +2806,7 @@ impl ResidentOrganismRuntime {
             receptor_ingress,
             motor_unit_recruitments,
             articulatory_unit_recruitments,
+            causal_interval_evidence: Vec::new(),
         })
     }
 
@@ -2885,6 +2964,7 @@ impl ResidentOrganismRuntime {
             receptor_ingress: ResidentReceptorIngressObservation::default(),
             motor_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
+            causal_interval_evidence: Vec::new(),
         })
     }
 
@@ -3025,6 +3105,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -3052,6 +3133,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -3088,6 +3170,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -3120,6 +3203,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -3151,6 +3235,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -3200,6 +3285,7 @@ impl NativeResidentOrganismRuntime {
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
         })
     }
 
@@ -4942,6 +5028,41 @@ fn project_causal_frontier_transfers(
         .collect()
 }
 
+fn project_motor_unit_recruitments(
+    events: &[MotorUnitRecruitment],
+) -> Vec<MotorUnitRecruitmentProjection> {
+    events
+        .iter()
+        .map(|event| {
+            (
+                hex_bytes(&event.neuron_lineage),
+                event.topology_index,
+                event.outward_elementary_carriers,
+                event
+                    .preparation_transfers
+                    .iter()
+                    .map(|transfer| {
+                        let (sender_layer, receiver_layer) =
+                            if transfer.sender == event.neuron_lineage {
+                                (12, 11)
+                            } else {
+                                (11, 12)
+                            };
+                        (
+                            hex_bytes(&transfer.sender),
+                            sender_layer,
+                            hex_bytes(&transfer.receiver),
+                            receiver_layer,
+                            transfer.bond.parallel_ordinal(),
+                            transfer.transferred_whole_carriers,
+                        )
+                    })
+                    .collect(),
+            )
+        })
+        .collect()
+}
+
 fn project_affective_balance_trajectories(
     trajectories: &[AffectiveBalanceTrajectoryObservation],
 ) -> Vec<AffectiveBalanceTrajectoryProjection> {
@@ -5597,6 +5718,7 @@ mod tests {
         assert_eq!(prepared.receptor_ingress.field_count(), 4);
         assert_eq!(prepared.receptor_ingress.witness_count(), 4);
         assert_eq!(prepared.observation.organism_tick, 2);
+        assert_eq!(prepared.causal_interval_evidence.len(), 2);
         candidate.commit(prepared.token).unwrap();
 
         assert_eq!(candidate.active_envelope(), reference.active_envelope());

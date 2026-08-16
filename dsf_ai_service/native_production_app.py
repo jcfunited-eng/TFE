@@ -6616,6 +6616,38 @@ def _perform_genesis(admission: NativeResidentResourceAdmission) -> None:
     )
 
 
+def _causal_interval_hops(
+    evidence: ResidentPrepareEvidence,
+) -> tuple[dict[str, Any], ...]:
+    """Project only the transient facts consumed by the causal observer."""
+
+    return tuple(
+        {
+            "predecessor_organism_tick": interval.predecessor_organism_tick,
+            "organism_tick": interval.organism_tick,
+            "externally_perturbed_neuron_lineages": (
+                interval.externally_perturbed_neuron_lineages
+            ),
+            "internally_reassembled_formation_cues": (
+                interval.internally_reassembled_formation_cues
+            ),
+            "motor_unit_recruitments": interval.motor_unit_recruitments,
+            "emitted_neuron_fractals": tuple(
+                {"neuron_lineage": lineage}
+                for lineage in interval.emitted_neuron_lineages
+            ),
+            "changed_contact_channel_states": (
+                interval.changed_contact_channel_states
+            ),
+            "affective_balance_trajectories": (
+                interval.affective_balance_trajectories
+            ),
+            "causal_frontier_advances": interval.causal_frontier_advances,
+        }
+        for interval in evidence.causal_interval_evidence
+    )
+
+
 def _commit_admitted_hop(
     organism: Any,
     episode: Any,
@@ -6709,6 +6741,7 @@ def _commit_admitted_hop(
         "external_participant_action_receipt": (
             external_participant_action_receipt
         ),
+        "causal_interval_evidence": _causal_interval_hops(evidence),
         "receptor_ingress_sense_counts": ingress_sense_counts,
         "receptor_ingress_changing_count": (
             evidence.receptor_ingress_changing_count
@@ -6933,6 +6966,7 @@ def _commit_vestibular_trajectory(
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
         ),
+        "causal_interval_evidence": _causal_interval_hops(evidence),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "changed_contact_channel_states": (
             evidence.changed_contact_channel_states
@@ -7311,18 +7345,32 @@ def _advance_causal_motor_traces(
 ]:
     """Follow exact changed endpoints from physical causes to later motor discharge.
 
-    Every prepared hop must represent exactly one physical interval; otherwise
-    the Python boundary cannot observe the intervening frontiers and makes no
-    causal claim. Neither a retained formation, a new neuronal impression, nor
-    an affective trajectory becomes settlement authority: this observer follows
-    only whole-carrier transfers already present in the native active frontier.
-    All origin kinds share one union query per hop.
+    A one-seal native trajectory may carry its exact ordered transient interval
+    observations; those are consumed in order and never persisted. An aggregate
+    without those boundaries is still refused. Neither a retained formation, a
+    new neuronal impression, nor an affective trajectory becomes settlement
+    authority: this observer follows only whole-carrier transfers already
+    present in each native active frontier.
     """
 
     if external_participant_action_receipt is None:
         external_participant_action_receipt = hop.get(
             "external_participant_action_receipt"
         )
+    causal_intervals = tuple(hop.get("causal_interval_evidence", ()))
+    if causal_intervals:
+        next_active = active
+        next_completed = completed
+        for interval in causal_intervals:
+            next_active, next_completed = _advance_causal_motor_traces(
+                organism,
+                next_active,
+                next_completed,
+                interval,
+                transaction_affective_balance_trajectories,
+                external_participant_action_receipt,
+            )
+        return next_active, next_completed
     origin_kinds = (
         "retained_formation",
         "new_neuronal_fractal",
@@ -7365,9 +7413,23 @@ def _advance_causal_motor_traces(
                 }
             )
         )
-        transfers = organism.observe_active_electrical_frontier_advances_from(
-            reached_lineages
-        )
+        observed_interval_frontier = hop.get("causal_frontier_advances")
+        if observed_interval_frontier is None:
+            transfers = organism.observe_active_electrical_frontier_advances_from(
+                reached_lineages
+            )
+        else:
+            reached = set(reached_lineages)
+            transfers = tuple(
+                transfer
+                for transfer in observed_interval_frontier
+                if (
+                    transfer[1]
+                    if transfer[4] == transfer[0]
+                    else transfer[0]
+                )
+                in reached
+            )
     else:
         transfers = ()
     advanced: dict[

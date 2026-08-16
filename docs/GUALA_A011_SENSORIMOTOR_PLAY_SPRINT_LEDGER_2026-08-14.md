@@ -2349,3 +2349,74 @@ second persistence authority remain out of scope and must not be extended.
   successor read-back before any retry, followed by inspection of the exact
   participant-sensory -> retained-contact/formation -> endogenous choice/motor
   -> sensed-consequence path. `A-011.7` has not begun.
+
+#### Task 1090 reciprocal wiring trial and one-seal observer correction
+
+- **Task identity:** A-011.6 remains the sole active item. The exact clean
+  predecessor commit was `07169baa8c0c6c34f92a5466479d2ac79e2e6dbd` and the
+  live target was re-resolved as one healthy `dsf-ai-task:1090` process with
+  desired/running/pending `1/1/0`, image
+  `sha256:30263abf50006a43b33d35f64ea5e9c22b05a3a5ed54b7e6f67ffac7bfda6603`,
+  organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and zero Python
+  cognition callbacks. A-011.7 has not begun.
+- **Bounded live trial:** a first participant displacement to `(3000,4800)`
+  committed but changed no retinal receptor and correctly seeded no causal
+  claim. One later displacement to `(2610,5670)`, heading `180000` with exact
+  signed yaw `+10000`, committed once, changed ten retinal receptors, advanced
+  the organism to tick `117568`, and carried participant intent receipt
+  `1b7d79b53800d12f4370babd7d586d4f18d6b2f08dcb028709a0a5b1745e83b4`.
+  The immediate and next ordinary observations exposed no retained
+  participant-sensory causal path, so no response, return, or reciprocal claim
+  was fabricated and no participant action was repeated.
+- **First missing boundary:** task 1088 lawfully replaced repeated hop seals
+  with one native trajectory and one final seal. The native substrate still
+  settled every exact physical interval, but `_commit_admitted_hop` exposed
+  only the aggregate predecessor and final ticks. The read-only causal tracer
+  requires consecutive `tick + 1` boundaries and therefore discarded a valid
+  six/eight-interval trajectory before it could follow the intervening sparse
+  electrical frontiers. This is a translation/observation defect, not absent
+  retinal, contact, neuron, motor, DSF, or world physics.
+- **Single correction:** the existing native one-seal prepare now retains one
+  ordered transient causal observation per physical interval: perturbed
+  lineages, recurrence cues, motor recruitments, emitted neuron lineages,
+  changed contacts, affective trajectories, and the already-active sparse
+  electrical frontier. PyO3 validates and projects those exact records; the
+  existing Python observer consumes them in order while carrying the already
+  authenticated participant intent receipt. The records die with the prepared
+  transaction and never enter the organism codec, persistence, memory,
+  selection, reward, world action, or cognitive capital.
+- **Exact task-1090-body falsification:** canonical state
+  `abc96eac01a25cffdb9e7443df548c9d853e09abb354ec2d4d63bf80115eb773`
+  at tick `117680` was reconstructed from its compact body and cold-restored
+  without production writes. A discarded participant move changed ten retinal
+  cells and physically perturbed all 27 retinal neuron lineages. Four ordinary
+  native intervals later, the corrected observer proved one exact four-transfer
+  receptor -> association -> association -> layer-12 motor path, with the same
+  participant receipt, at motor tick `117685`. No semantic label or timing
+  coincidence supplied any edge.
+- **Efficiency and cardinality:** an ordinary eight-interval trajectory carried
+  `759--821` sparse frontier transfers per interval; its transient projected
+  evidence encoded to `1,065,563` bytes and was discarded after observation.
+  It added no organism clone, whole-body encode, resting-neuron scan, database,
+  file, lock, owner, queue, worker, retry, callback, or durable record. On the
+  same task-1090 body, the unchanged baseline trajectory measured a
+  `6.261455 s` median and the candidate measured `6.215295 s`; the causal
+  observer alone measured a `0.421786 ms` median and `0.725467 ms` maximum over
+  100 runs. The known roughly six-second native settlement remains distinct
+  from this millisecond wiring correction and is not concealed or reopened.
+- **Executable evidence:** the fresh release native suite passes `422/422`
+  with `11` intentionally ignored tests. The focused resident boundary,
+  intrinsic-cause, cross-context, and sensorimotor-play suites pass `59/59`
+  against isolated candidate native SHA
+  `dd27e0ba1269b7128cd84e939357686005defd6fe829f0c150a5b09d8e39cad7`.
+  A broader adjacent run passes `87`; its three failures reproduce unchanged
+  against commit `07169baa` and are the already-recorded vestibular aggregate
+  consistency and stale sync/startup mocks, not regressions in this correction.
+  Python compilation and `git diff --check` pass; this toolchain has no
+  `rustfmt` component, so no formatting claim is made.
+- **DSF and architecture:** no DSF field is evaluated, flattened, changed, or
+  lost. L0--L4, full seven-field delivery, neuron physics, learned sensory
+  state, the one-seal trajectory, and current-only compact persistence remain
+  unchanged. A-011.6 is not Live-Closed until one immutable release and the
+  complete bounded live reciprocal exchange prove both participant-caused
+  responses and sensed consequences. A-011.7 remains untouched.

@@ -175,6 +175,61 @@ def test_external_participant_receptor_pulse_crosses_intervals_to_motor() -> Non
     assert proof["directed_physical_transfers"] == (first, second)
 
 
+def test_one_seal_trajectory_preserves_external_cause_across_exact_intervals() -> None:
+    receptor = "09" * 16
+    association = "02" * 16
+    motor = "03" * 16
+    participant_receipt = "a" * 64
+    first = (association, receptor, 0, 13)
+    second = (association, motor, 0, 5)
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        {
+            "predecessor_organism_tick": 30,
+            "organism_tick": 33,
+            "external_participant_action_receipt": participant_receipt,
+            "causal_interval_evidence": (
+                {
+                    **_hop(30),
+                    "externally_perturbed_neuron_lineages": (receptor,),
+                    "causal_frontier_advances": (),
+                },
+                {
+                    **_hop(31),
+                    "causal_frontier_advances": ((*first, association),),
+                },
+                {
+                    **_hop(
+                        32,
+                        motors=(
+                            (
+                                motor,
+                                4,
+                                5,
+                                ((association, 11, motor, 12, 0, 5),),
+                            ),
+                        ),
+                    ),
+                    "causal_frontier_advances": (),
+                },
+            ),
+        },
+    )
+
+    assert active == {}
+    assert observer.filters == []
+    proof = completed["external_participant_sensory"]
+    assert proof["participant_action_causal_intent_receipt_sha256"] == (
+        participant_receipt
+    )
+    assert proof["perturbed_receptor_lineages"] == (receptor,)
+    assert proof["directed_physical_transfers"] == (first, second)
+
+
 def test_retained_contact_change_is_bound_only_to_its_later_motor_path() -> None:
     cue = "01" * 16
     association = "02" * 16
