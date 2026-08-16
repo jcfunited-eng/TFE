@@ -2643,14 +2643,9 @@ fn decode_retained_organism_mosaic(
     if encoded.get(..RETAINED_MOSAIC_COUNTS_MAGIC.len()) != Some(RETAINED_MOSAIC_COUNTS_MAGIC) {
         let mosaic =
             decode_organism_mosaic(cohorts, electrical_fabric, encoded, max_encoded_bytes)?;
-        let recurrent_lineage = retained_mosaic_recurrent_lineage(
-            cohorts,
-            electrical_fabric,
-            &mosaic,
-        )?;
         return Ok(RetainedOrganismMosaic {
             mosaic,
-            recurrent_lineage,
+            recurrent_lineage: None,
             reinforcement_count: 0,
             mosaic_of_mosaics_relation_count: 0,
         });
@@ -2669,11 +2664,9 @@ fn decode_retained_organism_mosaic(
             .ok_or(FormationError::NoncanonicalState)?,
         max_encoded_bytes,
     )?;
-    let recurrent_lineage =
-        retained_mosaic_recurrent_lineage(cohorts, electrical_fabric, &mosaic)?;
     Ok(RetainedOrganismMosaic {
         mosaic,
-        recurrent_lineage,
+        recurrent_lineage: None,
         reinforcement_count,
         mosaic_of_mosaics_relation_count,
     })
@@ -4701,25 +4694,11 @@ impl ResidentCognitiveFormationState {
         {
             mosaics[mosaic_index].recurrent_lineage = Some(recurrent_lineage);
         }
-        // The layer-9 cell and its member contacts are the retained physical
-        // authority. Cache only their derived lineage after topology changes,
-        // never by rescanning the organism on every recurrence. A transient
-        // mosaic has no retained-neuron authority and grows no layer-9 cell.
-        for index in 0..mosaics.len() {
-            if mosaics[index].recurrent_lineage.is_some()
-                || !mosaics[index]
-                    .mosaic
-                    .carries_only_retained_neuron_structure()
-            {
-                continue;
-            }
-            let recurrent_lineage = retained_mosaic_recurrent_lineage(
-                &cohorts,
-                &electrical_fabric,
-                &mosaics[index].mosaic,
-            )?;
-            mosaics[index].recurrent_lineage = recurrent_lineage;
-        }
+        resolve_unpersisted_recurrent_retention(
+            &cohorts,
+            &electrical_fabric,
+            &mut mosaics,
+        )?;
         let externally_perturbed_body_receptor_count = cohorts
             .iter()
             .flat_map(|cohort| {
@@ -6234,7 +6213,7 @@ impl ResidentCognitiveFormationState {
         if cursor != bytes.len() {
             return Err(FormationError::NoncanonicalState);
         }
-        let state = Self {
+        let mut state = Self {
             generation,
             next_lineage_ordinal,
             unexpressed_electrical_seeds: unexpressed_electrical_seeds.into_boxed_slice(),
@@ -6254,6 +6233,16 @@ impl ResidentCognitiveFormationState {
         if require_current_canonical_encoding && canonical != bytes {
             return Err(FormationError::NoncanonicalState);
         }
+        // Legacy retained-mosaic bodies deliberately carry no cached
+        // recurrent lineage. First prove their byte-exact canonical form;
+        // only then reconstruct the runtime index from the one unique global
+        // member-contact matching. Current GLMRC02 entries are already bound
+        // and merely participate as claimed physical endpoints here.
+        resolve_unpersisted_recurrent_retention(
+            &state.cohorts,
+            &state.electrical_fabric,
+            &mut state.mosaics,
+        )?;
         Ok(state)
     }
 
@@ -9294,18 +9283,50 @@ fn mount_new_recurrent_retention(
     Ok(mounted_retention_lineages)
 }
 
-/// Resolve one formation's recurrent cell from exact mounted anatomy.
+/// Reconstruct recurrent endpoints absent from a legacy retained-mosaic body.
 ///
-/// The result is a runtime index only: the layer-9 cell and every one of its
-/// member contacts remain the physical authority and are already encoded.
-/// Resolution occurs on cold restore or when a new formation is mounted, not
-/// on every cognitive interval.
-fn recurrent_retention_lineage(
+/// Layer 9 is used only for recurrent retention, and each retained formation
+/// grows exactly one such cell with contacts to all of its members. Later
+/// nested formations can make a local subset lookup ambiguous, so resolution
+/// is global and injective: every still-unclaimed layer-9 cell that contacts a
+/// retained formation participates in one complete mapping. Singleton
+/// elimination accepts only the unique physical matching and fails closed if
+/// no endpoint or more than one mapping remains.
+fn resolve_unpersisted_recurrent_retention(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
-    members: &[[u8; 16]],
-) -> Result<Option<[u8; 16]>, FormationError> {
-    let mut resolved = None;
+    mosaics: &mut [RetainedOrganismMosaic],
+) -> Result<(), FormationError> {
+    let retained_indices = mosaics
+        .iter()
+        .enumerate()
+        .filter(|(_, retained)| retained.mosaic.carries_only_retained_neuron_structure())
+        .map(|(index, _)| index)
+        .collect::<Vec<_>>();
+    let mut claimed = Vec::new();
+    for index in &retained_indices {
+        let Some(lineage) = mosaics[*index].recurrent_lineage else {
+            continue;
+        };
+        validate_recurrent_retention_lineage(
+            cohorts,
+            electrical_fabric,
+            mosaics[*index].mosaic.member_lineages(),
+            lineage,
+        )?;
+        if claimed.contains(&lineage) {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        claimed.push(lineage);
+    }
+    let unresolved = retained_indices
+        .into_iter()
+        .filter(|index| mosaics[*index].recurrent_lineage.is_none())
+        .collect::<Vec<_>>();
+    if unresolved.is_empty() {
+        return Ok(());
+    }
+    let mut candidates = Vec::new();
     for (mount, lineage) in cohorts.iter().flat_map(|cohort| {
         cohort
             .anatomy
@@ -9313,29 +9334,75 @@ fn recurrent_retention_lineage(
             .iter()
             .zip(cohort.anatomy.neuron_lineages())
     }) {
-        if mount.place().layer() != 9
-            || !members
-                .iter()
-                .all(|member| electrical_fabric.contains_contact(*member, *lineage))
-        {
+        if mount.place().layer() != 9 || claimed.contains(lineage) {
             continue;
         }
-        if resolved.replace(*lineage).is_some() {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
+        if unresolved.iter().any(|index| {
+            mosaics[*index]
+                .mosaic
+                .member_lineages()
+                .iter()
+                .all(|member| electrical_fabric.contains_contact(*member, *lineage))
+        }) {
+            candidates.push(*lineage);
         }
     }
-    Ok(resolved)
-}
-
-fn retained_mosaic_recurrent_lineage(
-    cohorts: &[ResidentReachedCohort],
-    electrical_fabric: &ResidentElectricalFabric,
-    mosaic: &AdmittedPhysicalMosaic,
-) -> Result<Option<[u8; 16]>, FormationError> {
-    if !mosaic.carries_only_retained_neuron_structure() {
-        return Ok(None);
+    candidates.sort_unstable();
+    if candidates.windows(2).any(|pair| pair[0] == pair[1])
+        || candidates.len() != unresolved.len()
+    {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
     }
-    recurrent_retention_lineage(cohorts, electrical_fabric, mosaic.member_lineages())
+    let mut remaining = unresolved;
+    while !remaining.is_empty() {
+        let candidate_sets = remaining
+            .iter()
+            .map(|index| {
+                candidates
+                    .iter()
+                    .copied()
+                    .filter(|lineage| {
+                        mosaics[*index]
+                            .mosaic
+                            .member_lineages()
+                            .iter()
+                            .all(|member| {
+                                electrical_fabric.contains_contact(*member, *lineage)
+                            })
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        if candidate_sets.iter().any(Vec::is_empty) {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        }
+        let forced = candidate_sets
+            .iter()
+            .enumerate()
+            .find_map(|(position, set)| (set.len() == 1).then_some((position, set[0])))
+            .or_else(|| {
+                candidates.iter().find_map(|lineage| {
+                    let owners = candidate_sets
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, set)| set.contains(lineage))
+                        .map(|(position, _)| position)
+                        .collect::<Vec<_>>();
+                    (owners.len() == 1).then_some((owners[0], *lineage))
+                })
+            });
+        let Some((position, lineage)) = forced else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let mosaic_index = remaining.remove(position);
+        mosaics[mosaic_index].recurrent_lineage = Some(lineage);
+        let candidate_position = candidates
+            .iter()
+            .position(|candidate| *candidate == lineage)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        candidates.remove(candidate_position);
+    }
+    Ok(())
 }
 
 fn validate_recurrent_retention_lineage(
@@ -12816,15 +12883,14 @@ mod tests {
         );
         assert!(!invalid.carries_only_retained_neuron_structure());
         assert!(valid.carries_only_retained_neuron_structure());
-        assert_eq!(
-            retained_mosaic_recurrent_lineage(
-                &[],
-                &ResidentElectricalFabric::default(),
-                &invalid,
-            )
-            .unwrap(),
-            None
-        );
+        let mut transient_only = [RetainedOrganismMosaic::newly_admitted(invalid.clone())];
+        resolve_unpersisted_recurrent_retention(
+            &[],
+            &ResidentElectricalFabric::default(),
+            &mut transient_only,
+        )
+        .unwrap();
+        assert_eq!(transient_only[0].recurrent_lineage, None);
 
         let mut state = ResidentCognitiveFormationState::default();
         state.mosaics = vec![
@@ -14962,6 +15028,17 @@ mod tests {
             Err(FormationError::NeuronLineageAuthorityAbsent)
                 | Err(FormationError::NeuronLineageAuthorityChanged)
         ));
+        let mut legacy_state = state.clone();
+        for retained in &mut legacy_state.mosaics {
+            retained.recurrent_lineage = None;
+        }
+        let legacy_encoded = legacy_state.encode(16_000_000).unwrap();
+        assert!(!legacy_encoded
+            .windows(RETAINED_MOSAIC_RECURRENT_MAGIC.len())
+            .any(|window| window == RETAINED_MOSAIC_RECURRENT_MAGIC));
+        let legacy_cold =
+            ResidentCognitiveFormationState::decode(&legacy_encoded, 16_000_000).unwrap();
+        assert_eq!(legacy_cold, state);
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);
@@ -15053,12 +15130,55 @@ mod tests {
         )
         .unwrap();
 
+        let retained_mosaic = |member_lineages: &[[u8; 16]]| {
+            let fractal =
+                crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
+                    crate::complete_neuron::PhysicalStateDeltaEntry::new(
+                        crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                        crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                            ExactRational::new(1, 3).unwrap(),
+                        ),
+                    )
+                    .unwrap(),
+                ])
+                .unwrap();
+            let bonds = member_lineages
+                .windows(2)
+                .map(|pair| StablePhysicalBondReference::new(pair[0], pair[1], 0).unwrap())
+                .collect::<Vec<_>>();
+            AdmittedPhysicalMosaic::from_parts_for_tests(
+                member_lineages.to_vec(),
+                vec![fractal; member_lineages.len()],
+                bonds.clone(),
+                bonds,
+                vec![member_lineages[0]],
+            )
+        };
         assert_eq!(mounted.len(), 2);
         assert_ne!(mounted[0], mounted[1]);
         validate_recurrent_retention_lineage(&cohorts, &fabric, &narrow_members, mounted[0])
             .unwrap();
         validate_recurrent_retention_lineage(&cohorts, &fabric, &members, mounted[1]).unwrap();
         assert_eq!(fabric.contact_count(), narrow_members.len() + members.len());
+
+        let narrow_mosaic = retained_mosaic(&narrow_members);
+        let broad_mosaic = retained_mosaic(&members);
+        let mut legacy = [
+            RetainedOrganismMosaic::newly_admitted(narrow_mosaic.clone()),
+            RetainedOrganismMosaic::newly_admitted(broad_mosaic),
+        ];
+        resolve_unpersisted_recurrent_retention(&cohorts, &fabric, &mut legacy).unwrap();
+        assert_eq!(legacy[0].recurrent_lineage, Some(mounted[0]));
+        assert_eq!(legacy[1].recurrent_lineage, Some(mounted[1]));
+
+        let mut ambiguous = [
+            RetainedOrganismMosaic::newly_admitted(narrow_mosaic.clone()),
+            RetainedOrganismMosaic::newly_admitted(narrow_mosaic),
+        ];
+        assert!(matches!(
+            resolve_unpersisted_recurrent_retention(&cohorts, &fabric, &mut ambiguous),
+            Err(FormationError::NeuronLineageAuthorityChanged)
+        ));
     }
 
     /// THE HEADLINE LAW, at the crate boundary: admitting a real physical

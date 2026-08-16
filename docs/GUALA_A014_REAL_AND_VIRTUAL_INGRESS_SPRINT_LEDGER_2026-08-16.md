@@ -132,6 +132,38 @@ Verification after the final correction:
 - full-field authority remains unchanged and Python cognition callback count
   remains zero.
 
+## First guarded release rehearsal
+
+The immutable candidate built from commit `913f74c2` passed its canonical
+preflight, then failed the controller's read-only cold-restore rehearsal before
+any production cutover. Task
+`3657d2d5146f4879a533e66bcdbd4eb6` (`dsf-ai-native-candidate-cold-restore:202`)
+exited with `cognitive boundary state is noncanonical`. Production task `1091`
+was not changed.
+
+The failure was exact bookkeeping, not substrate or sensory physics. The first
+codec implementation assigned a derived recurrent lineage while decoding a
+legacy bare/`GLMRC01` mosaic, then re-encoded that still-legacy body as
+`GLMRC02` during the byte-canonicality check. The check correctly refused the
+changed bytes. The corrected order is now:
+
+1. decode the legacy body without inventing persisted metadata;
+2. prove its byte-exact canonical encoding;
+3. reconstruct only the runtime lineage index from the unique global,
+   injective matching of retained layer-9 cells to their physical member
+   contacts; and
+4. fail closed when the anatomy is absent or admits more than one matching.
+
+This also handles nested narrow/broad formations without using list order,
+lineage order, a score, or a heuristic. Current `GLMRC02` endpoints are
+validated as mounted layer-9 cells with all required member contacts, and
+transient mosaics remain without recurrent endpoints. A native regression
+strips the persisted lineages from a complete nested-formation state, restores
+the legacy encoding, and proves equality with the original warm state. The
+full `576`-test native verification and the six-window audiovisual probe are
+green after this correction. A second guarded release rehearsal is required;
+this remains Candidate-Proven and is not a deployment claim.
+
 This is Candidate-Proven only. A generated camera raster and PCM trajectory
 prove the server/native causal path and repeated persistence; they do not
 prove browser permissions, real capture hardware, deployed routing, or a
