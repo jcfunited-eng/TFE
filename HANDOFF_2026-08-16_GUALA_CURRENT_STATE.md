@@ -17,14 +17,14 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 ## Exact repository state
 
 - Validated Guala worktree: `/tmp/guala-a0114-resumed`
-- Live implementation ancestor:
-  `2f1d64e4525c677c7cdded8c7fb89462b40222d6`
+- Live implementation commit:
+  `d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0`
 - The worktree tip also contains documentation-only handoff commits. Resolve
   its exact current HEAD with `git rev-parse HEAD`; do not expect that tip to
   equal the commit embedded in the task-1090 production image.
 - Worktree status after the final handoff commit must be clean.
-- Active detailed ledger:
-  `docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md`
+- Most recently closed detailed ledger:
+  `docs/GUALA_A012_UNATTENDED_DEVELOPMENT_SPRINT_LEDGER_2026-08-16.md`
 - Binding complete scope:
   `docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md`
 - `A-011.6` remains Live-Closed by the creator-clarified circuit acceptance and
@@ -32,7 +32,12 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 - `A-011.7` is Live-Closed on task 1095 by exact learned-formation-to-affect,
   motor/articulator, vocal-body, self-hearing, body/world, and later recurrence
   receipt `8d1b7bfe...de32aa`.
-- Immediate next increment: `A-012`.
+- `A-012` is Live-Closed on task 1095 by direct reconciliation of C-021
+  physical rest/wake, C-022 internal consolidation, C-023 later causal body
+  use, A-010 repeated unattended interaction, and A-011 self-directed
+  exploration in changed world context. No organism code or deployment was
+  required.
+- Immediate next increment: `A-013`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -43,9 +48,10 @@ Current override after the original task-1090 snapshot: production is one
 healthy settled `dsf-ai-task:1095` process, commit
 `d0a1956b93e3cd4af6cd7ca9cea4d296a64f1eb0`, image
 `sha256:123448f1d945225da4e07c9687ab19b1dd9cf8adaa4fb702db88685e4899cb7d`,
-and the same organism identity. Independent observation reached generation
-`124822`, state bytes `59,532,479`, `313` reached neurons, `196,416` resting
-neurons, and zero Python cognition callbacks. The task-1090 facts below remain
+and the same organism identity. A later independent observation reached
+generation `125032`, state bytes `59,533,576`, retained the exact
+`internally_simulated` formation used by the causal body and play witnesses,
+and reported zero Python cognition callbacks. The task-1090 facts below remain
 the historical starting snapshot, not the current task identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
@@ -163,8 +169,10 @@ ordinary live recurrence closed A-011.7 without an injected action.
 
 ### Remaining autonomy and embodiment
 
-- [ ] **A-012:** prove self-selected rest, sleep, wake, exploration, learning,
-  and interaction while no human or development agent is present.
+- [x] **A-012:** self-selected rest, internal sleep/consolidation, wake,
+  exploration, learning, and world interaction are Live-Closed by the composed
+  physical C-021/C-022/C-023 and A-010/A-011 circuit plus direct task-1095
+  observation. Complete locomotion/manipulation remains A-013.
 - [ ] **A-013:** complete truthful persistent embodiment: pose, gaze, eyes,
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
   state.
@@ -298,10 +306,11 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin A-012 from its unchanged unattended-development acceptance. Do not reopen
-or repeat A-011 persistence, readiness, archive cleanup, resting-neuron
-population, prior cardinality investigations, participant trial, or laughter
-closure unless new live evidence directly contradicts a recorded circuit.
+Begin A-013 from its truthful persistent-embodiment acceptance. Do not reopen or
+repeat A-011 or A-012 persistence, readiness, archive cleanup, resting-neuron
+population, prior cardinality investigations, participant trial, laughter,
+rest/wake, consolidation, or causal-use closure unless new live evidence
+directly contradicts a recorded circuit.
 
 ## Evidence classification
 
@@ -314,6 +323,10 @@ closure unless new live evidence directly contradicts a recorded circuit.
   relabeled as circuit evidence.
 - A-011.7 body-owned laughter: Live-Closed on task 1095 by direct ordinary
   recurrence receipt `8d1b7bfe...de32aa`.
+- A-012 unattended development: Live-Closed on task 1095 by the composed exact
+  rest -> internal consolidation -> later body/world use circuit, current
+  retained `internally_simulated` formation provenance, repeated changed-world
+  exploration, learning evidence, and zero Python cognition callbacks.
 - Complete D3 objective: not complete.
 - Truthful functional Loom interfaces: not live-proven.
 - Four-year-old meaningful conversation and complete curriculum learning: not
