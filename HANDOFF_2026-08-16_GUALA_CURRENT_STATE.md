@@ -27,14 +27,26 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   `docs/GUALA_A011_SENSORIMOTOR_PLAY_SPRINT_LEDGER_2026-08-14.md`
 - Binding complete scope:
   `docs/GUALA_D3_COMPLETE_DELIVERY_CONTRACT_2026-08-04.md`
-- Active item: `A-011.6`
-- Immediate predecessor: `A-011.5`, which remains Live-Closed
-- `A-011.7` has not begun
+- `A-011.6` is Live-Closed by the creator-clarified circuit acceptance and the
+  direct task-1091 receptor-to-motor-to-consequence proof.
+- Immediate next increment: `A-011.7`
+- `A-011.7` has not begun.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
 
 ## Exact live-production state
+
+Current override after the original task-1090 snapshot: production is one
+healthy settled `dsf-ai-task:1094` process, commit
+`af52538809d4afac4e770ffa3438113c0870f08b`, image
+`sha256:6ac3e66e887f46227186503c9f9096725f388d69b81c0ac71e6f5694d595a844`,
+and the same organism identity. Independent observation reached generation
+`123562`, state bytes `58,452,120`, state SHA
+`21985951f160007a4ef8a2b3d74de11137fdd97e5a4b802cc57be0a533d87b5e`,
+`313` reached neurons, `196,416` resting neurons, and zero Python cognition
+callbacks. The task-1090 facts below remain the historical starting snapshot,
+not the current task identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
 
@@ -87,9 +99,16 @@ This release did not close A-011.6, prove laughter, prove reciprocal positive
 engagement, prove four-year-old cognition, or functionally verify either Loom
 page.
 
-## A-011.6 acceptance that remains open
+## Superseded A-011.6 acceptance
 
-The next live acceptance is one bounded reciprocal exchange in which:
+The six-point four-turn acceptance below was the boundary used before the
+creator's 2026-08-16 clarification. Its added second voluntary response is
+superseded. A-011.6 qualifies the straight participant-sensory -> retained
+physical route -> endogenous layer-12 motor -> body/world -> sensed-consequence
+circuit, which task 1091 directly live-proved. The detailed closure is in the
+A-011 sprint ledger.
+
+The superseded acceptance required one bounded reciprocal exchange in which:
 
 1. an actual participant action reaches Guala's physical sensory receptors;
 2. that exact causal occurrence reaches retained formation/contact state;
@@ -101,12 +120,16 @@ The next live acceptance is one bounded reciprocal exchange in which:
 6. no script, label, score, owner, scheduler-selected act, database lookup,
    Python cognition callback, or repeated stimulus causes the result.
 
-Only direct live-production evidence can close A-011.6.
+Direct live-production evidence closed A-011.6 under the clarified circuit
+boundary. The stronger two-response social-joy claim remains truthfully
+unproved and was not relabeled.
 
 ## Complete carried-forward delivery ledger
 
 The stale attachment sentence naming `S-017` as current work is superseded.
-The exact current item is `A-011.6` against production task 1090.
+The exact next A-011 item is `A-011.7`; it has not begun. Current production is
+task 1094, and the task-1094 rehearsal preserved the task-1091 A-011.6 circuit
+authority exactly.
 
 ### A-011 play, fun, social joy, and body-owned laughter
 
@@ -124,11 +147,11 @@ The exact current item is `A-011.6` against production task 1090.
 - [x] **A-011.5 — positive-engagement trajectory:** a later voluntary varied
   return occurs in a different lawful world context with retained formation,
   action, affect/body participation, and sensed consequences. Live-Closed.
-- [ ] **A-011.6 — reciprocal social play/positive engagement:** one bounded
-  participant/Guala/participant/Guala exchange must bind actual participant
-  sensory input through retained contact/formation, Guala's endogenous choice
-  and embodied action, affect/body reinforcement, and returned consequence.
-  This is the sole active item.
+- [x] **A-011.6 — participant-to-Guala circuit qualification:** actual
+  participant sensory input reached retained physical contact/formation state,
+  endogenous layer-12 motor discharge, applied body/world action, and returned
+  sensed consequence in the direct task-1091 live proof. Live-Closed under the
+  creator's clarified 2026-08-16 acceptance.
 - [ ] **A-011.7 — body-owned laughter:** learned playful/social/surprise
   formation reassembly must cause an affective/interoceptive trajectory,
   prepared breath/larynx/mouth/face/eye/posture action, emitted acoustic
@@ -273,23 +296,20 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Perform one bounded live A-011.6 reciprocal exchange against task 1090 and
-inspect the exact causal successor evidence. Resolve the predecessor and world
-revision immediately before each state-changing request. If a request times
-out, read the successor before any retry; never duplicate the experience.
-
-If the exchange fails, record only the first missing physical or translation
-boundary in the existing A-011.6 ledger. Correct that boundary as a discrete
-sprint. Do not reopen persistence, readiness, archive cleanup, resting-neuron
-population, or prior cardinality investigations unless live evidence directly
-contradicts the recorded results.
+Begin A-011.7 from its unchanged body-owned-laughter acceptance. Do not reopen
+or repeat the A-011.6 participant trial, persistence, readiness, archive
+cleanup, resting-neuron population, or prior cardinality investigations unless
+new live evidence directly contradicts the recorded circuit closure.
 
 ## Evidence classification
 
 - Task-1090 compact persistence: live-production verified.
 - Unattended native tick progression: live observed, but cadence remains too
   slow for the desired continuous experience.
-- A-011.6 reciprocal positive engagement: not live-proven.
+- A-011.6 participant-to-Guala physical circuit: Live-Closed by direct task-1091
+  production evidence and preserved by task-1094 exact cold rehearsal.
+- Stronger two-response reciprocal social-joy behavior: still unproved and not
+  relabeled as circuit evidence.
 - A-011.7 body-owned laughter: not started.
 - Complete D3 objective: not complete.
 - Truthful functional Loom interfaces: not live-proven.

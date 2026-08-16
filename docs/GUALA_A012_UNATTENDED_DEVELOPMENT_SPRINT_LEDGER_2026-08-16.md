@@ -9,9 +9,10 @@ Status: Active dependency audit. A-012 is not Live-Closed.
 - Active parent item: `A-012` — prove self-selected rest, sleep, wake,
   exploration, learning, and interaction while no human or development agent
   is present.
-- Deferred predecessor: `A-011.6` remains unresolved after its explicit
-  time-box. `A-011.7` has not begun. The creator explicitly authorized moving
-  to independent A-012 work without representing A-011 as complete.
+- Predecessor update: `A-011.6` was later Live-Closed under the creator's
+  clarified circuit qualification. `A-011.7` has not begun. The creator
+  explicitly authorized moving to independent A-012 work without representing
+  A-011 as complete.
 - Production baseline: commit
   `3eacc6cd5191b7251d68ea0fd38f114304a340c5`, task
   `dsf-ai-task:1091`, image

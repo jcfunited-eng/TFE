@@ -11,8 +11,8 @@ capture remains unproved, so A-014 is not Live-Closed.
 - Active item: `A-014` — make real-world camera, microphone, text, and media
   ingress coexist with the persistent virtual world as windows into one causal
   organism life.
-- Current production: task `dsf-ai-task:1093`, release commit `50ba31d8`, image
-  digest `sha256:6112924c7f6c217877969096445fe5e9a436c63623845d87d6d07e12f9066df1`,
+- Current production: task `dsf-ai-task:1094`, release commit `af525388`, image
+  digest `sha256:6ac3e66e887f46227186503c9f9096725f388d69b81c0ac71e6f5694d595a844`,
   one healthy process, organism identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and zero Python cognition callbacks.
 - A-011.7 remains untouched. A-012 and A-013 remain open at the truthful
@@ -51,7 +51,7 @@ capture remains unproved, so A-014 is not Live-Closed.
 
 ## Source and live capability reconciliation
 
-| Window | Production route | Live status on task 1093 |
+| Window | Production route | Live status on task 1094 |
 |---|---|---|
 | Camera | `/api/v1/visual/live-frames` | mounted; no batch committed in this process |
 | Microphone | `/api/v1/sensory/audiovisual` | combined route is Live-Mounted and standalone PCM refuses; no real browser batch committed in production |

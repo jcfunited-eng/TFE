@@ -2472,3 +2472,36 @@ second persistence authority remain out of scope and must not be extended.
   is rejected. Per the creator's explicit time-box instruction, A-011.6 is
   deferred unresolved; A-011.7 remains untouched; independent work may proceed
   at A-012 without representing A-011.6 or A-011 as complete.
+
+#### Creator clarification and A-011.6 circuit closure
+
+- **Acceptance correction, 2026-08-16:** Joseph clarified that A-011.6 is the
+  qualification of the straight physical circuit, not a demand that the same
+  participant stimulus produce a second voluntary Guala response inside a
+  four-turn observer window. The prior second-response condition
+  over-constrained the boundary after the wiring itself had passed. It is
+  superseded; it is not converted into another substrate mechanism.
+- **Direct live circuit proof:** task 1091 received one authenticated
+  participant displacement that changed ten retinal receptors and carried
+  participant receipt
+  `7a9f92b3d5b5e67a267518388e9759ccc98918265919f3cd2208bd57a6445bc7`.
+  The exact physical path then reached layer 12 at motor tick `119029`, applied
+  Guala action receipt
+  `ff88fcf3e5e8edfd3b991ef43bfd893d59f34d4387c5e60129c2cc3398b4c476`,
+  yawed her body `-63` millidegrees, and returned the sensed consequence by
+  tick `119041`. This is the required receptor -> retained physical route ->
+  endogenous motor -> body/world -> sensory-return circuit. No semantic label,
+  timer, score, repeated stimulus, or Python cognition supplied an edge.
+- **Current continuity:** the task-1094 pre-cutover cold rehearsal restored the
+  current body exactly and re-proved the retained A-011.6 contact-local
+  junction, later causal contact use, `1,824` total contacts, `313` reached
+  neurons, `196,416` resting neurons, and zero Python cognition workers or
+  callbacks. Current production is one healthy task 1094 process with the same
+  organism identity.
+- **No new code or trial:** closure relies on the already-completed direct live
+  evidence. No brain copy, neuron scan, stimulus replay, receipt cache,
+  observer extension, or substrate edit was added to manufacture a pass.
+- **Result:** **A-011.6 is Live-Closed.** `play.social_joy` may continue to say
+  that the stronger two-response behavioral claim is unproved; that truthful
+  UI statement is not the circuit acceptance and is not relabeled as joy.
+  A-011.7 remains untouched and may begin only after this closure commit.

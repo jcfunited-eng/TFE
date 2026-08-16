@@ -15,9 +15,9 @@ P-011 long soak.
 - Production observed: task `dsf-ai-task:1093`, commit `50ba31d8`, image digest
   `sha256:6112924c7f6c217877969096445fe5e9a436c63623845d87d6d07e12f9066df1`,
   identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
-- Deferred work is unchanged: A-011.6 remains unresolved after its authorized
-  time-box and A-011.7 remains untouched. A-014 is Live-Mounted but still
-  requires one real-browser camera/microphone encounter.
+- Predecessor update: A-011.6 was later Live-Closed under the creator's
+  clarified circuit qualification; A-011.7 remains untouched. A-014 is
+  Live-Mounted but still requires one real-browser camera/microphone encounter.
 
 ## Architecture honesty gate
 

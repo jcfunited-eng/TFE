@@ -13,8 +13,8 @@ Status: Active architecture boundary. A-013 is not Live-Closed.
   and sensed consequence, but complete sleep/exploration/interaction remains
   open until the body can become externally quiescent and move through or act
   on its world.
-- Deferred work is unchanged: A-011.6 remains unresolved after its authorized
-  time-box and A-011.7 has not begun.
+- Predecessor update: A-011.6 was later Live-Closed under the creator's
+  clarified circuit qualification; A-011.7 has not begun.
 - Production baseline remains task `dsf-ai-task:1091`, commit `3eacc6cd`, one
   healthy organism process, the same organism identity, and zero Python
   cognition callbacks.
