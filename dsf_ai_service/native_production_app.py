@@ -3220,8 +3220,6 @@ def _advance_bounded_reciprocal_social_play_evidence(
     if (
         int(episode["world_revision"])
         < int(other_return["world_revision_after"])
-        or episode["formation_receipt_sha256"]
-        != first["formation_receipt_sha256"]
         or episode["action_causal_intent_receipt_sha256"]
         == first["action_causal_intent_receipt_sha256"]
         or episode["origin_organism_tick"] <= first["consequence_organism_tick"]
@@ -3232,11 +3230,16 @@ def _advance_bounded_reciprocal_social_play_evidence(
         return candidate, completed
     social = {
         "activity": "reciprocal_embodied_turn_taking",
+        "first_formation_receipt_sha256": first[
+            "formation_receipt_sha256"
+        ],
         "first_guala_episode": first,
-        "formation_receipt_sha256": first["formation_receipt_sha256"],
         "invitation": candidate["invitation"],
         "other_body_id": candidate["invitation"]["actor_body_id"],
         "other_return": other_return,
+        "return_formation_receipt_sha256": episode[
+            "formation_receipt_sha256"
+        ],
         "return_guala_episode": episode,
     }
     social["evidence_receipt_sha256"] = _receipt(social)
@@ -3257,7 +3260,8 @@ def _reciprocal_social_joy_section() -> dict[str, object]:
         "reciprocal_social_positive_engagement_observed",
         "an authenticated other body acted, Guala responded through her own "
         "retained formation and localized body/fluid/plastic physics, the other "
-        "body returned, and Guala voluntarily returned again; this is reinforced "
+        "body returned, and Guala voluntarily returned again; each response may "
+        "lawfully recruit a different retained formation; this is "
         "reciprocal engagement evidence, not joy, goodness, or the other "
         "participant's state",
         **evidence,

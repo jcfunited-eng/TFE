@@ -1840,3 +1840,33 @@ second persistence authority remain out of scope and must not be extended.
   The focused A-006/A-011/public/formation suite passes `47/47`. A new immutable
   deployment and fresh four-turn production witness remain required before
   A-011.6 can be Live-Closed.
+
+#### Task 1085 exact reciprocal-candidate trace
+
+- Task `dsf-ai-task:1085`, commit `2f38230b08453637dddd1a41e71970da6b3d815f`,
+  image `sha256:26e440091ed3db9ccf1f595584a63ffcc997f9f985c33a5ca15bb737b6d71e92`
+  deployed in one verified cutover. The rehearsal cold-restored the exact body,
+  changed 98 of 1,824 reached contacts, proved later causal use, and started zero
+  Python cognition callbacks or workers.
+- Production accepted exactly two participant actions, at world revisions
+  `5645 -> 5646` and `5648 -> 5649`; access logs prove no duplicate request.
+  Both changed eight retinal receptors. Guala responded autonomously after each,
+  but the public reciprocal result remained unavailable.
+- A disposable same-image process cold-restored a private copy of the production
+  body. Its bounded candidate advanced exactly from `awaiting_other_return` to
+  `awaiting_guala_return` and remained there across three further native causal
+  actions. This proves candidate loss, process restart, and request duplication
+  were false hypotheses.
+- The captured live responses expose the exact rejection: the first complete
+  response used retained formation `7b48eb2f...`, while the later complete
+  response used `bda19caf...`. Both separately carried exact physical choice,
+  active-contact participation, affect/body convergence, localized strain,
+  payable settlement, action, and sensed consequence. The observer's equality
+  requirement rejected the second solely because the two formation receipts
+  differed.
+- **Single correction:** reciprocal continuity comes from the authenticated
+  other-body identity, invitation/return world receipts, causal order, and two
+  voluntary embodied responses. Different retained assemblies may lawfully
+  participate across turns. Preserve both exact formation receipts separately;
+  do not merge, relabel, or require equality. No organism cognition, neuron,
+  contact, DSF, persistence, world, action, or resource law changes.

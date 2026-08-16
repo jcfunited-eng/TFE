@@ -261,6 +261,11 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
         yaw=-17,
         world_revision=82,
     )
+    return_formation = "f" * 64
+    second["causal_cross_context_use"]["formation_receipt_sha256"] = (
+        return_formation
+    )
+    second_choice["formation_receipt_sha256"] = return_formation
     invitation = {
         "actor_body_id": "person-body-1",
         "authority_receipt_sha256": "1" * 64,
@@ -313,7 +318,8 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     assert candidate is None
     assert completed is not None
     assert completed["other_body_id"] == "person-body-1"
-    assert completed["formation_receipt_sha256"] == FORMATION
+    assert completed["first_formation_receipt_sha256"] == FORMATION
+    assert completed["return_formation_receipt_sha256"] == return_formation
     assert completed["first_guala_episode"]["signed_yaw_millidegrees"] == -31
     assert completed["return_guala_episode"]["signed_yaw_millidegrees"] == -17
     monkeypatch.setattr(
