@@ -1,15 +1,16 @@
-"""Exact one-object binary persistence for a native resident organism.
+"""Exact one-object persistence for a native resident organism.
 
-The cognitive body is one raw ``GLORUN01`` byte string.  The fixed-width
-``CURRENT`` record contains only operational publication facts.  Generations
-are immutable, ordinary restore admits only ``CURRENT``, and rollback is an
-explicit operation that must prove its predecessor before replacing CURRENT.
+The cognitive authority is one raw ``GLORUN01`` byte string.  Its immutable
+generation is stored in one deterministic lossless representation; cold
+restore reconstructs and verifies the exact authoritative bytes before native
+admission.  ``CURRENT`` remains a fixed-width atomic publication pointer.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import lzma
 import os
 from pathlib import Path
 import stat
@@ -25,6 +26,10 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
 
 
 STATE_MAGIC = b"GLORUN01"
+COMPACT_STATE_MAGIC = b"GLCMP001"
+COMPACT_STATE_VERSION = 1
+COMPACT_STATE_CODEC_LZMA2 = 1
+COMPACT_STATE_PRESET = 0
 CURRENT_MAGIC = b"GLCUR001"
 CURRENT_VERSION = 1
 STATE_SUFFIX = ".glorun"
@@ -36,6 +41,7 @@ SHA256_BYTES = 32
 STREAM_BYTES = 1024 * 1024
 _POINTER_BODY = struct.Struct("<8sH36sQQ32s32s")
 POINTER_BYTES = _POINTER_BODY.size + SHA256_BYTES
+_COMPACT_STATE_HEADER = struct.Struct("<8sHBBQ32sQ")
 
 
 class NativeOrganismBinaryStoreError(RuntimeError):
@@ -85,6 +91,8 @@ class StagedNativeOrganism:
     organism_tick: int
     state_bytes: int
     state_sha256: str
+    stored_bytes: int
+    stored_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,6 +258,153 @@ def _file_receipt(path: Path) -> tuple[int, str]:
     return byte_count, digest.hexdigest()
 
 
+def _compact_filters() -> list[dict[str, int]]:
+    """The one fixed, lowest-work lossless storage transform."""
+
+    return [{"id": lzma.FILTER_LZMA2, "preset": COMPACT_STATE_PRESET}]
+
+
+def _encode_stored_state(state: bytes) -> bytes:
+    """Encode canonical GLORUN bytes without changing their authority."""
+
+    if not isinstance(state, bytes) or not state.startswith(STATE_MAGIC):
+        raise NativeOrganismBinaryStoreError(
+            "native organism compact source is not exact GLORUN"
+        )
+    raw_sha256 = hashlib.sha256(state).digest()
+    payload = lzma.compress(
+        state,
+        format=lzma.FORMAT_RAW,
+        filters=_compact_filters(),
+    )
+    header = _COMPACT_STATE_HEADER.pack(
+        COMPACT_STATE_MAGIC,
+        COMPACT_STATE_VERSION,
+        COMPACT_STATE_CODEC_LZMA2,
+        COMPACT_STATE_PRESET,
+        len(state),
+        raw_sha256,
+        len(payload),
+    )
+    return header + payload
+
+
+def _decode_stored_state(
+    stored: bytes,
+    *,
+    expected_bytes: int,
+    expected_sha256: str,
+    max_envelope_bytes: int,
+) -> bytes:
+    """Recover one exact raw GLORUN from current or predecessor storage."""
+
+    expected_count = _positive_integer(expected_bytes, "state byte count")
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
+    expected_digest = _canonical_digest(expected_sha256, "state receipt")
+    if expected_count > maximum or not isinstance(stored, bytes):
+        raise NativeOrganismBinaryStoreError(
+            "native organism state exceeds admission or changed byte count"
+        )
+    # One-way rollout compatibility: task1089's current and predecessor are
+    # canonical raw GLORUN files. New publications are compact. After two
+    # ordinary successors no raw generation remains retained.
+    if stored.startswith(STATE_MAGIC):
+        state = stored
+    else:
+        if len(stored) < _COMPACT_STATE_HEADER.size:
+            raise NativeOrganismBinaryStoreError(
+                "native organism compact state ended before its header"
+            )
+        (
+            magic,
+            version,
+            codec,
+            preset,
+            raw_bytes,
+            raw_sha256,
+            payload_bytes,
+        ) = _COMPACT_STATE_HEADER.unpack_from(stored)
+        payload = stored[_COMPACT_STATE_HEADER.size :]
+        if (
+            magic != COMPACT_STATE_MAGIC
+            or version != COMPACT_STATE_VERSION
+            or codec != COMPACT_STATE_CODEC_LZMA2
+            or preset != COMPACT_STATE_PRESET
+            or raw_bytes != expected_count
+            or raw_sha256.hex() != expected_digest
+            or payload_bytes != len(payload)
+        ):
+            raise NativeOrganismBinaryStoreError(
+                "native organism compact state header changed"
+            )
+        try:
+            decoder = lzma.LZMADecompressor(
+                format=lzma.FORMAT_RAW,
+                filters=_compact_filters(),
+            )
+            # ``max_length`` makes the raw envelope admission an allocation
+            # boundary even if the compact bytes are corrupt or adversarial.
+            state = decoder.decompress(payload, max_length=expected_count + 1)
+        except lzma.LZMAError as error:
+            raise NativeOrganismBinaryStoreError(
+                "native organism compact state could not be reconstructed"
+            ) from error
+        if not decoder.eof or decoder.unused_data:
+            raise NativeOrganismBinaryStoreError(
+                "native organism compact state did not end exactly"
+            )
+    if (
+        len(state) != expected_count
+        or not state.startswith(STATE_MAGIC)
+        or hashlib.sha256(state).hexdigest() != expected_digest
+    ):
+        raise NativeOrganismBinaryStoreError(
+            "native organism state is not exact current GLORUN"
+        )
+    return state
+
+
+def _stored_state_raw_bytes(path: Path, expected_sha256: str) -> int:
+    """Read only the retained representation header's canonical raw size."""
+
+    information = _regular_file(path, "state body")
+    expected_digest = _canonical_digest(expected_sha256, "state receipt")
+    with path.open("rb") as source:
+        prefix = source.read(_COMPACT_STATE_HEADER.size)
+    if prefix.startswith(STATE_MAGIC):
+        stored_bytes, stored_sha256 = _file_receipt(path)
+        if stored_sha256 != expected_digest:
+            raise NativeOrganismBinaryStoreError(
+                "native organism raw retained state changed"
+            )
+        return _positive_integer(stored_bytes, "state byte count")
+    if len(prefix) != _COMPACT_STATE_HEADER.size:
+        raise NativeOrganismBinaryStoreError(
+            "native organism compact state ended before its header"
+        )
+    (
+        magic,
+        version,
+        codec,
+        preset,
+        raw_bytes,
+        raw_sha256,
+        payload_bytes,
+    ) = _COMPACT_STATE_HEADER.unpack(prefix)
+    if (
+        magic != COMPACT_STATE_MAGIC
+        or version != COMPACT_STATE_VERSION
+        or codec != COMPACT_STATE_CODEC_LZMA2
+        or preset != COMPACT_STATE_PRESET
+        or raw_sha256.hex() != expected_digest
+        or payload_bytes != information.st_size - _COMPACT_STATE_HEADER.size
+    ):
+        raise NativeOrganismBinaryStoreError(
+            "native organism compact state header changed"
+        )
+    return _positive_integer(raw_bytes, "state byte count")
+
+
 def _read_exact_state(
     path: Path,
     *,
@@ -257,24 +412,13 @@ def _read_exact_state(
     expected_sha256: str,
     max_envelope_bytes: int,
 ) -> bytes:
-    information = _regular_file(path, "state body")
-    expected_count = _positive_integer(expected_bytes, "state byte count")
-    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
-    expected_digest = _canonical_digest(expected_sha256, "state receipt")
-    if expected_count > maximum or information.st_size != expected_count:
-        raise NativeOrganismBinaryStoreError(
-            "native organism state exceeds admission or changed byte count"
-        )
-    body = path.read_bytes()
-    if (
-        len(body) != expected_count
-        or not body.startswith(STATE_MAGIC)
-        or hashlib.sha256(body).hexdigest() != expected_digest
-    ):
-        raise NativeOrganismBinaryStoreError(
-            "native organism state is not exact current GLORUN"
-        )
-    return body
+    _regular_file(path, "state body")
+    return _decode_stored_state(
+        path.read_bytes(),
+        expected_bytes=expected_bytes,
+        expected_sha256=expected_sha256,
+        max_envelope_bytes=max_envelope_bytes,
+    )
 
 
 def _encode_pointer(pointer: NativeOrganismPointer) -> bytes:
@@ -487,6 +631,8 @@ def stage_active_native_organism(
         raise NativeOrganismBinaryStoreError(
             "native organism active save is not exact GLORUN"
         )
+    stored = _encode_stored_state(state)
+    stored_sha256 = hashlib.sha256(stored).hexdigest()
     stage = root / f".stage-{uuid.uuid4()}{STATE_SUFFIX}"
     descriptor = os.open(
         stage,
@@ -494,7 +640,7 @@ def stage_active_native_organism(
         0o600,
     )
     try:
-        _write_all(descriptor, state)
+        _write_all(descriptor, stored)
         os.fsync(descriptor)
     except BaseException:
         os.close(descriptor)
@@ -505,7 +651,7 @@ def stage_active_native_organism(
         raise
     else:
         os.close(descriptor)
-    del state
+    del state, stored
     _sync_directory(root)
     staged = StagedNativeOrganism(
         store_root=root,
@@ -514,13 +660,25 @@ def stage_active_native_organism(
         organism_tick=before.organism_tick,
         state_bytes=before.state_bytes,
         state_sha256=before.state_sha256,
+        stored_bytes=stage.stat().st_size,
+        stored_sha256=stored_sha256,
     )
     byte_count, receipt = _file_receipt(stage)
-    if byte_count != staged.state_bytes or receipt != staged.state_sha256:
+    if byte_count != staged.stored_bytes or receipt != staged.stored_sha256:
         discard_staged_native_organism(staged)
         raise NativeOrganismBinaryStoreError(
             "native organism durable stage read-back changed"
         )
+    try:
+        _read_exact_state(
+            stage,
+            expected_bytes=staged.state_bytes,
+            expected_sha256=staged.state_sha256,
+            max_envelope_bytes=maximum,
+        )
+    except BaseException:
+        discard_staged_native_organism(staged)
+        raise
     try:
         _fault(failure_injector, "after_stage_fsync")
     except BaseException:
@@ -647,16 +805,19 @@ def _body_accounting(
     *,
     max_envelope_bytes: int,
 ) -> NativeOrganismBodyAccounting:
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
     expected_generations: set[str] = set()
     current_bytes = 0
     if current is not None:
-        _read_exact_state(
-            _generation_path(root, current.state_sha256),
-            expected_bytes=current.state_bytes,
-            expected_sha256=current.state_sha256,
-            max_envelope_bytes=max_envelope_bytes,
+        current_path = _generation_path(root, current.state_sha256)
+        current_raw_bytes = _stored_state_raw_bytes(
+            current_path, current.state_sha256
         )
-        current_bytes = current.state_bytes
+        if current_raw_bytes != current.state_bytes or current_raw_bytes > maximum:
+            raise NativeOrganismBinaryStoreError(
+                "native organism current raw byte count changed"
+            )
+        current_bytes = _regular_file(current_path, "current generation").st_size
         expected_generations.add(current.state_sha256)
     predecessor_bytes = 0
     if current is not None and current.predecessor_state_sha256 is not None:
@@ -666,12 +827,14 @@ def _body_accounting(
         predecessor_bytes = _regular_file(
             predecessor_path, "retained predecessor"
         ).st_size
-        _read_exact_state(
+        predecessor_raw_bytes = _stored_state_raw_bytes(
             predecessor_path,
-            expected_bytes=predecessor_bytes,
-            expected_sha256=current.predecessor_state_sha256,
-            max_envelope_bytes=max_envelope_bytes,
+            current.predecessor_state_sha256,
         )
+        if predecessor_raw_bytes > maximum:
+            raise NativeOrganismBinaryStoreError(
+                "native organism predecessor exceeds envelope admission"
+            )
         expected_generations.add(current.predecessor_state_sha256)
     observed_generations: set[str] = set()
     for path in (root / GENERATIONS_DIRECTORY).iterdir():
@@ -714,16 +877,22 @@ def _retire_unreferenced_predecessor(
     }:
         return
     retired_path = _generation_path(root, retired_sha256)
-    _read_exact_state(
-        retired_path,
-        expected_bytes=accounting.retained_predecessor_bytes,
-        expected_sha256=retired_sha256,
-        max_envelope_bytes=max_envelope_bytes,
-    )
+    retired_raw_bytes = _stored_state_raw_bytes(retired_path, retired_sha256)
+    if retired_raw_bytes > _positive_integer(
+        max_envelope_bytes, "envelope admission"
+    ):
+        raise NativeOrganismBinaryStoreError(
+            "native organism retired predecessor exceeds envelope admission"
+        )
+    retired_stored_bytes, retired_stored_sha256 = _file_receipt(retired_path)
+    if retired_stored_bytes != accounting.retained_predecessor_bytes:
+        raise NativeOrganismBinaryStoreError(
+            "native organism retained predecessor accounting changed"
+        )
     object_store.delete_if_exact(
         _remote_key(retired_sha256),
-        byte_count=accounting.retained_predecessor_bytes,
-        sha256=retired_sha256,
+        byte_count=retired_stored_bytes,
+        sha256=retired_stored_sha256,
     )
     retired_path.unlink()
     _sync_directory(retired_path.parent)
@@ -770,21 +939,28 @@ def publish_staged_native_organism(
     accounting = _body_accounting(
         root,
         current,
-        staged.state_bytes,
+        staged.stored_bytes,
         max_envelope_bytes=max_envelope_bytes,
     )
+    # These are cold-restore budgets, not ordinary-publication work. Validate
+    # their type now; the deployment rehearsal and actual startup exercise
+    # them against the reconstructed canonical body.
+    _positive_integer(max_fabric_bytes, "fabric admission")
+    _positive_integer(max_logical_peak_bytes, "logical peak admission")
     generation: Path | None = None
     generation_existed = False
     remote_created = False
     current_replaced = False
     key = _remote_key(staged.state_sha256)
     try:
-        body = _read_exact_state(
-            staged.path,
-            expected_bytes=staged.state_bytes,
-            expected_sha256=staged.state_sha256,
-            max_envelope_bytes=max_envelope_bytes,
-        )
+        staged_bytes, staged_sha256 = _file_receipt(staged.path)
+        if (
+            staged_bytes != staged.stored_bytes
+            or staged_sha256 != staged.stored_sha256
+        ):
+            raise NativeOrganismBinaryStoreError(
+                "native organism durable stage changed before publication"
+            )
         _fault(failure_injector, "after_stage_readback")
         pointer = NativeOrganismPointer(
             identity=staged.identity,
@@ -795,22 +971,12 @@ def publish_staged_native_organism(
                 None if current is None else current.state_sha256
             ),
         )
-        _prove_restored_body(
-            body,
-            expected_identity=pointer.identity,
-            expected_bytes=pointer.state_bytes,
-            expected_sha256=pointer.state_sha256,
-            expected_tick=pointer.organism_tick,
-            max_envelope_bytes=max_envelope_bytes,
-            max_fabric_bytes=max_fabric_bytes,
-            max_logical_peak_bytes=max_logical_peak_bytes,
-        )
-        _fault(failure_injector, "after_cold_restore")
+        _fault(failure_injector, "after_compact_roundtrip")
         created = object_store.put_if_absent(
             key,
             _stream_file(staged.path),
-            byte_count=staged.state_bytes,
-            sha256=staged.state_sha256,
+            byte_count=staged.stored_bytes,
+            sha256=staged.stored_sha256,
         )
         if not isinstance(created, bool):
             raise NativeOrganismBinaryStoreError(
@@ -821,19 +987,21 @@ def publish_staged_native_organism(
         _verify_remote(
             object_store,
             key,
-            staged.state_bytes,
-            staged.state_sha256,
+            staged.stored_bytes,
+            staged.stored_sha256,
         )
         _fault(failure_injector, "after_object_readback")
         generation = _generation_path(root, staged.state_sha256)
         generation_existed = generation.exists()
         if generation_existed:
-            _read_exact_state(
-                generation,
-                expected_bytes=staged.state_bytes,
-                expected_sha256=staged.state_sha256,
-                max_envelope_bytes=max_envelope_bytes,
-            )
+            existing_stored_bytes, existing_stored_sha256 = _file_receipt(generation)
+            if (
+                existing_stored_bytes != staged.stored_bytes
+                or existing_stored_sha256 != staged.stored_sha256
+            ):
+                raise NativeOrganismBinaryStoreError(
+                    "native organism generation representation changed"
+                )
             discard_staged_native_organism(staged)
         else:
             os.replace(staged.path, generation)
@@ -873,19 +1041,21 @@ def publish_staged_native_organism(
                 and not generation_existed
                 and generation.exists()
             ):
-                _read_exact_state(
-                    generation,
-                    expected_bytes=staged.state_bytes,
-                    expected_sha256=staged.state_sha256,
-                    max_envelope_bytes=max_envelope_bytes,
-                )
+                existing_bytes, existing_sha256 = _file_receipt(generation)
+                if (
+                    existing_bytes != staged.stored_bytes
+                    or existing_sha256 != staged.stored_sha256
+                ):
+                    raise NativeOrganismBinaryStoreError(
+                        "native organism failed candidate generation changed"
+                    )
                 generation.unlink()
                 _sync_directory(generation.parent)
             if remote_created:
                 object_store.delete_if_exact(
                     key,
-                    byte_count=staged.state_bytes,
-                    sha256=staged.state_sha256,
+                    byte_count=staged.stored_bytes,
+                    sha256=staged.stored_sha256,
                 )
         else:
             _retire_unreferenced_predecessor(
@@ -1059,7 +1229,10 @@ def migrate_current_native_organism_current_format(
             accounting=_body_accounting(
                 root,
                 current,
-                current.state_bytes,
+                _regular_file(
+                    _generation_path(root, current.state_sha256),
+                    "current generation",
+                ).st_size,
                 max_envelope_bytes=max_envelope_bytes,
             ),
             remote_key=_remote_key(current.state_sha256),
@@ -1106,20 +1279,29 @@ def rollback_to_verified_predecessor(
             "native organism CURRENT has no explicit predecessor"
         )
     predecessor_path = _generation_path(root, predecessor_sha256)
-    predecessor_bytes = _regular_file(
+    predecessor_stored_bytes = _regular_file(
         predecessor_path, "rollback predecessor"
     ).st_size
+    predecessor_bytes = _stored_state_raw_bytes(
+        predecessor_path,
+        predecessor_sha256,
+    )
     body = _read_exact_state(
         predecessor_path,
         expected_bytes=predecessor_bytes,
         expected_sha256=predecessor_sha256,
         max_envelope_bytes=max_envelope_bytes,
     )
+    observed_stored_bytes, observed_stored_sha256 = _file_receipt(predecessor_path)
+    if observed_stored_bytes != predecessor_stored_bytes:
+        raise NativeOrganismBinaryStoreError(
+            "native organism rollback predecessor accounting changed"
+        )
     _verify_remote(
         object_store,
         _remote_key(predecessor_sha256),
-        predecessor_bytes,
-        predecessor_sha256,
+        predecessor_stored_bytes,
+        observed_stored_sha256,
     )
     _organism, facts = _prove_restored_body(
         body,

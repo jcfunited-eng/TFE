@@ -1,4 +1,4 @@
-"""Exact task-853 preflight for the raw native-organism binary store.
+"""Exact task-853 preflight for the compact native-organism binary store.
 
 This test is dormant during ordinary unit runs because the authenticated
 production predecessor is not a repository fixture.  Release preflight supplies
@@ -28,6 +28,8 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
     restore_native_resident_organism,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
+    COMPACT_STATE_MAGIC,
+    _decode_stored_state,
     publish_staged_native_organism,
     restore_current_native_organism,
     stage_active_native_organism,
@@ -74,7 +76,7 @@ class _ExactMemoryObjectStore:
         del self.objects[key]
 
 
-def test_exact_task853_migrates_publishes_and_cold_restores_raw_glorun(
+def test_exact_task853_migrates_publishes_and_cold_restores_exact_glorun(
     tmp_path: Path,
 ) -> None:
     predecessor_path = os.environ.get("GUALA_TASK853_GLMFAB03")
@@ -125,6 +127,13 @@ def test_exact_task853_migrates_publishes_and_cold_restores_raw_glorun(
     assert published.pointer.state_sha256 == migration.state_sha256
     assert published.accounting.current_bytes == 0
     assert published.accounting.retained_predecessor_bytes == 0
-    assert published.accounting.staged_bytes == len(migration.envelope)
-    assert published.accounting.exact_peak_bytes == len(migration.envelope)
-    assert list(remote.objects.values()) == [migration.envelope]
+    stored = next(iter(remote.objects.values()))
+    assert stored.startswith(COMPACT_STATE_MAGIC)
+    assert published.accounting.staged_bytes == len(stored)
+    assert published.accounting.exact_peak_bytes == len(stored)
+    assert _decode_stored_state(
+        stored,
+        expected_bytes=len(migration.envelope),
+        expected_sha256=migration.state_sha256,
+        max_envelope_bytes=REHEARSAL_MAX_ENVELOPE_BYTES,
+    ) == migration.envelope

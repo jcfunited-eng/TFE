@@ -157,6 +157,19 @@ def _restore(root: Path):
     )
 
 
+def _decode(body: bytes, raw: bytes) -> bytes:
+    return store._decode_stored_state(
+        body,
+        expected_bytes=len(raw),
+        expected_sha256=hashlib.sha256(raw).hexdigest(),
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
+
+
+def _stored(raw: bytes) -> bytes:
+    return store._encode_stored_state(raw)
+
+
 def _publish_pair(root: Path, register, remote: _ObjectStore):
     first, first_stage = _stage(root, register, "first", 10)
     first_publication = _publish(first_stage, remote)
@@ -180,7 +193,7 @@ def _rollback(root: Path, remote: _ObjectStore, current_sha256: str):
     )
 
 
-def test_raw_glorun_publication_and_current_only_restore(
+def test_compact_publication_and_exact_current_only_restore(
     tmp_path: Path,
     _concrete_native_boundary,
 ) -> None:
@@ -197,14 +210,15 @@ def test_raw_glorun_publication_and_current_only_restore(
     assert published.pointer.identity == IDENTITY
     assert published.pointer.organism_tick == 23_723_846
     assert published.pointer.predecessor_state_sha256 is None
-    assert published.accounting.exact_peak_bytes == len(resident.save())
+    assert published.accounting.exact_peak_bytes == len(_stored(resident.save()))
     generation = (
         tmp_path
         / store.GENERATIONS_DIRECTORY
         / f"{published.pointer.state_sha256}.glorun"
     )
-    assert generation.read_bytes() == resident.save()
-    assert remote.objects[published.remote_key] == resident.save()
+    assert generation.read_bytes().startswith(store.COMPACT_STATE_MAGIC)
+    assert _decode(generation.read_bytes(), resident.save()) == resident.save()
+    assert _decode(remote.objects[published.remote_key], resident.save()) == resident.save()
     assert resident.prepare_calls == 0
     assert not staged.path.exists()
     names = {path.name for path in tmp_path.rglob("*")}
@@ -235,6 +249,76 @@ def test_stage_fsync_failure_cleans_only_its_private_stage(
     assert sentinel.read_text(encoding="utf-8") == "retained"
 
 
+def test_ordinary_publication_does_not_construct_a_second_organism(
+    tmp_path: Path,
+    _concrete_native_boundary,
+    monkeypatch,
+) -> None:
+    remote = _ObjectStore()
+    _resident, staged = _stage(
+        tmp_path, _concrete_native_boundary, "one-publication", 1
+    )
+
+    def forbidden_restore(**_values):
+        raise AssertionError("ordinary publication constructed a second organism")
+
+    monkeypatch.setattr(store, "restore_native_resident_organism", forbidden_restore)
+    published = _publish(staged, remote)
+
+    assert store._read_current(tmp_path) == published.pointer
+
+
+def test_raw_live_predecessor_is_retired_after_two_compact_successors(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    remote = _ObjectStore()
+    first = _concrete_native_boundary(_Resident(_state("raw-live"), 10))
+    root = store._store_root(tmp_path)
+    first_digest = hashlib.sha256(first.save()).hexdigest()
+    first_path = (
+        root / store.GENERATIONS_DIRECTORY / f"{first_digest}{store.STATE_SUFFIX}"
+    )
+    first_path.write_bytes(first.save())
+    first_path.chmod(0o444)
+    first_pointer = store.NativeOrganismPointer(
+        identity=IDENTITY,
+        organism_tick=10,
+        state_bytes=len(first.save()),
+        state_sha256=first_digest,
+        predecessor_state_sha256=None,
+    )
+    store._atomic_replace_current(root, first_pointer)
+    remote.objects[store._remote_key(first_digest)] = first.save()
+
+    second, second_stage = _stage(root, _concrete_native_boundary, "second", 11)
+    second_publication = _publish(second_stage, remote, first_digest)
+    third, third_stage = _stage(root, _concrete_native_boundary, "third", 12)
+    third_publication = _publish(
+        third_stage,
+        remote,
+        second_publication.pointer.state_sha256,
+    )
+
+    assert _restore(root).organism.save() == third.save()
+    generations = list(
+        (root / store.GENERATIONS_DIRECTORY).glob(f"*{store.STATE_SUFFIX}")
+    )
+    assert {path.stem for path in generations} == {
+        hashlib.sha256(second.save()).hexdigest(),
+        hashlib.sha256(third.save()).hexdigest(),
+    }
+    assert all(
+        path.read_bytes().startswith(store.COMPACT_STATE_MAGIC)
+        for path in generations
+    )
+    assert first_digest not in {key.rsplit("/", 1)[-1].split(".", 1)[0] for key in remote.objects}
+    assert all(body.startswith(store.COMPACT_STATE_MAGIC) for body in remote.objects.values())
+    assert third_publication.pointer.predecessor_state_sha256 == (
+        second_publication.pointer.state_sha256
+    )
+
+
 @pytest.mark.parametrize("magic", (b"GLMFAB03", b"GLMFAB04", b"GLJNFT03"))
 def test_stage_refuses_every_legacy_or_inner_state(
     tmp_path: Path,
@@ -261,7 +345,7 @@ def test_stage_refuses_every_legacy_or_inner_state(
     "step",
     (
         "after_stage_readback",
-        "after_cold_restore",
+        "after_compact_roundtrip",
         "after_object_upload",
         "after_object_readback",
         "after_generation_placement",
@@ -299,7 +383,9 @@ def test_failure_before_current_preserves_predecessor_and_cleans_candidate(
     generations = list(
         (tmp_path / store.GENERATIONS_DIRECTORY).glob("*.glorun")
     )
-    assert [path.read_bytes() for path in generations] == [first.save()]
+    assert [_decode(path.read_bytes(), first.save()) for path in generations] == [
+        first.save()
+    ]
     assert second.prepare_calls == 0
 
 
@@ -332,12 +418,20 @@ def test_failure_after_current_replace_reports_new_durable_current(
     assert restored.pointer.predecessor_state_sha256 == (
         second_publication.pointer.state_sha256
     )
-    generations = {
-        path.read_bytes()
-        for path in (tmp_path / store.GENERATIONS_DIRECTORY).glob("*.glorun")
+    expected = {
+        hashlib.sha256(raw).hexdigest(): raw
+        for raw in (second.save(), third.save())
     }
-    assert generations == {second.save(), third.save()}
-    assert set(remote.objects.values()) == {second.save(), third.save()}
+    generations = list(
+        (tmp_path / store.GENERATIONS_DIRECTORY).glob("*.glorun")
+    )
+    assert {
+        _decode(path.read_bytes(), expected[path.stem]) for path in generations
+    } == {second.save(), third.save()}
+    assert {
+        _decode(body, expected[key.rsplit("/", 1)[-1][:-len(store.STATE_SUFFIX)]])
+        for key, body in remote.objects.items()
+    } == {second.save(), third.save()}
     assert first_publication.pointer.state_sha256 not in remote.objects
 
 
@@ -437,7 +531,7 @@ def test_rollback_refuses_identity_discontinuity_before_current_replace(
         / store.GENERATIONS_DIRECTORY
         / f"{hashlib.sha256(first.save()).hexdigest()}.glorun"
     )
-    assert predecessor_path.read_bytes() == first.save()
+    assert _decode(predecessor_path.read_bytes(), first.save()) == first.save()
 
 
 def test_rollback_refuses_save_that_differs_from_exact_predecessor(
@@ -531,20 +625,21 @@ def test_retention_and_peak_are_current_predecessor_and_one_stage(
         stage, remote, second_published.pointer.state_sha256
     )
 
-    assert third_published.accounting.current_bytes == len(second.save())
+    assert third_published.accounting.current_bytes == len(_stored(second.save()))
     assert third_published.accounting.retained_predecessor_bytes == len(
-        first.save()
+        _stored(first.save())
     )
-    assert third_published.accounting.staged_bytes == len(third.save())
+    assert third_published.accounting.staged_bytes == len(_stored(third.save()))
     assert third_published.accounting.exact_peak_bytes == sum(
-        map(len, (first.save(), second.save(), third.save()))
+        map(len, (_stored(first.save()), _stored(second.save()), _stored(third.save())))
     )
-    generations = {
+    generation_bodies = [
         path.read_bytes()
         for path in (tmp_path / store.GENERATIONS_DIRECTORY).glob("*.glorun")
-    }
-    assert generations == {second.save(), third.save()}
-    assert set(remote.objects.values()) == {second.save(), third.save()}
+    ]
+    assert all(body.startswith(store.COMPACT_STATE_MAGIC) for body in generation_bodies)
+    assert len(generation_bodies) == 2
+    assert len(remote.objects) == 2
 
 
 def test_remote_readback_drift_refuses_before_current(
@@ -592,6 +687,8 @@ def test_discard_is_exactly_scoped_and_never_removes_neighbor(
         organism_tick=1,
         state_bytes=sentinel.stat().st_size,
         state_sha256=hashlib.sha256(sentinel.read_bytes()).hexdigest(),
+        stored_bytes=sentinel.stat().st_size,
+        stored_sha256=hashlib.sha256(sentinel.read_bytes()).hexdigest(),
     )
     with pytest.raises(
         store.NativeOrganismBinaryStoreError,

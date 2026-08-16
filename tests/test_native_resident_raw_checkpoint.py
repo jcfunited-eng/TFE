@@ -1,4 +1,4 @@
-"""Raw GLORUN/CURRENT checkpoint proof with no JSON cognitive copy."""
+"""Exact compact GLORUN/CURRENT checkpoint proof with no cognitive copy."""
 
 from __future__ import annotations
 
@@ -167,7 +167,7 @@ def _restore(root: Path):
     )
 
 
-def test_checkpoint_is_one_raw_glorun_and_one_fixed_current_pointer(
+def test_checkpoint_is_one_compact_exact_generation_and_fixed_current_pointer(
     tmp_path: Path,
 ) -> None:
     organism, published, remote = _publish(tmp_path)
@@ -178,14 +178,21 @@ def test_checkpoint_is_one_raw_glorun_and_one_fixed_current_pointer(
     restored = _restore(tmp_path)
 
     assert body.startswith(store.STATE_MAGIC)
-    assert generation.read_bytes() == body
+    stored = generation.read_bytes()
+    assert stored.startswith(store.COMPACT_STATE_MAGIC)
+    assert store._decode_stored_state(
+        stored,
+        expected_bytes=len(body),
+        expected_sha256=digest,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    ) == body
     assert current.read_bytes().startswith(store.CURRENT_MAGIC)
     assert current.stat().st_size == store.POINTER_BYTES
     assert published.pointer.state_sha256 == digest
     assert published.pointer.predecessor_state_sha256 is None
     assert restored.organism.save() == body
     assert restored.pointer == published.pointer
-    assert remote.objects[published.remote_key] == body
+    assert remote.objects[published.remote_key] == stored
     assert not list(tmp_path.rglob("*.json"))
     assert not any("owner" in path.name.lower() for path in tmp_path.rglob("*"))
     assert not any("lock" in path.name.lower() for path in tmp_path.rglob("*"))
@@ -206,6 +213,6 @@ def test_tampered_current_body_halts_without_predecessor_fallback(
 
     with pytest.raises(
         store.NativeOrganismBinaryStoreError,
-        match="not exact current GLORUN",
+        match="compact state|not exact current GLORUN",
     ):
         _restore(tmp_path)

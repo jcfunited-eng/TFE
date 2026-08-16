@@ -2210,3 +2210,104 @@ second persistence authority remain out of scope and must not be extended.
   the organism. The unattended mutation-and-publication cadence itself still
   takes tens of seconds; that separate locality defect remains open, and
   `A-011.6` is not Live-Closed by this infrastructure correction.
+
+#### Task 1089 compact-current persistence sprint
+
+- **Task identity:** `A-011.6` continues; this does not reopen closed
+  `A-011.5` or begin `A-011.7`. The live baseline is task
+  `dsf-ai-task:1089`, commit `966d90123758443e6a4ec4fb42b0913828d1dc03`,
+  image
+  `sha256:b1b4af731e4ea833bcc839c9b4aad388596d1b30570256cf576f6e8a4772fe9d`,
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, one healthy process, and
+  exact process-fixed sensory switches preserved from the preceding sprint.
+- **Frozen input:** one already-committed native GLORUN successor from an
+  ordinary unattended interval. Neuron, DSF, sensory, cognitive, world, and
+  action state are unchanged by this sprint.
+- **Current path:** active native envelope -> Python `save()` full-body copy ->
+  58 MB stage write/fsync/read/hash -> current/predecessor full reads -> second
+  native cold restore -> second full save -> full S3 upload -> full S3
+  download/hash -> generation placement -> atomic `CURRENT`. This repeats a
+  deployment-grade audit inside every lived interval.
+- **Single correction:** retain the exact canonical GLORUN and its SHA as the
+  organism authority, but persist one deterministic lossless compact physical
+  representation. Cold restore reverses that representation, verifies the
+  original byte count/SHA, and then invokes the unchanged native restore. An
+  ordinary publication verifies the compact round trip but does not construct
+  and resave a second organism; actual startup and deployment rehearsal retain
+  the full cold-restore proof.
+- **Rejected path:** the existing content-defined chunker is not mounted. On
+  two real consecutive task1089 bodies (`58445325` and `58445217` bytes), its
+  1--8 MiB boundaries produced 8 and 7 chunks with zero shared chunks and zero
+  shared bytes. Mounting it would rewrite the whole body while adding manifests
+  and chunk bookkeeping.
+- **Measured model:** the exact `58445217`-byte successor losslessly encodes
+  with standard XZ/LZMA preset 0 to `101784` bytes in `0.172716` seconds and
+  reconstructs byte-exactly in `0.051911` seconds. Higher presets save at most
+  8,240 additional bytes while increasing compression work, and preset 6 takes
+  2.77 seconds; the lowest-cost standard preset is therefore selected. This is
+  persistence representation only, never cognition or a cognitive cap.
+- **Acceptance-evidence map:** concrete native organism -> canonical raw
+  GLORUN length/SHA -> compact stage carrying those exact facts -> local and
+  remote compact-byte receipt -> atomic raw-state `CURRENT` pointer -> bounded
+  decompression -> identical raw GLORUN -> unchanged native cold restore ->
+  identical identity/tick/neurons/fields/readiness. Public readiness continues
+  to report raw organism bytes and SHA, not compact storage bytes.
+- **Cardinality/resource boundary:** one native `save`, one lossless encode,
+  one compact local write, one compact remote write/readback, and one atomic
+  pointer per committed successor. Zero per-neuron Python objects, zero content
+  manifests, zero chunk objects, zero event history, zero second native
+  organism, and zero second native save in ordinary publication. Local and
+  remote retention remain current plus predecessor only.
+- **Applicable recurrence gates:** RF-001 exact worktree import; RF-002 live
+  task environment; RF-003/RF-036 no native source change and exact loaded
+  native provenance; RF-004 recurrent current/predecessor branch; RF-006
+  envelope and logical peak; RF-007 controller shape; RF-010 persisted
+  `CURRENT` and fresh cold restore; RF-011 bounded evidence; RF-012 timed live
+  unattended successors; RF-016 one active item; RF-017 every store consumer;
+  RF-019 rehearsal assertions map to persistence only; RF-022 raw predecessor
+  plus compact successor lifecycle; RF-023/033 exact AWS target; RF-024/031/032
+  exact test paths and working directories; RF-025 no duplicated live write;
+  RF-036 exact native module; RF-044 one whole-body boundary rather than
+  multiplicative objects; RF-047 one immutable image. No candidate code exists
+  yet.
+- **DSF:** no field is evaluated, reduced, changed, copied into a proxy, or
+  lost. The reconstructed canonical GLORUN remains byte-identical authority.
+- **Focused local evidence (2026-08-16):** exact-worktree import and candidate
+  native provenance were printed before execution. The compact-store lifecycle
+  suite passed `25`; the authenticated task853 external-body case was the sole
+  skip because that fixture path was not supplied. Direct evidence includes
+  exact compact reconstruction, no second organism or second native save in
+  ordinary publication, fail-closed compact corruption handling, current-only
+  restore, explicit rollback, and automatic retirement of the task1089-style
+  raw predecessor after two compact successors.
+- **Known RF-001 occurrence:** the first pytest invocation omitted this
+  worktree from `PYTHONPATH` and failed collection before any test or source
+  execution. Repeating the identical command with
+  `PYTHONPATH=$PWD:/tmp/guala-a0114-native-site` passed. No source change was
+  made for this known environment recurrence.
+- **Broader consumer audit:** `89` existing tests passed. Four tests outside
+  this persistence diff failed against the pre-existing candidate native/app
+  surface: a stale fixed partial-presentation transition count (`209` versus
+  `564`), a body-trajectory evidence consistency failure, an async/sync route
+  test mismatch, and an incomplete startup mock lacking retained-recurrence
+  observation. None imports, asserts, or exercises the changed compact-store
+  representation. They are recorded rather than absorbed into this sprint;
+  the exact persistence consumer and release-controller tests passed.
+- **Exact production-body model:** the real task1089 successor at tick
+  `116746` reconstructed byte-identically from `58,445,217` canonical bytes
+  stored as `101,782` bytes. Encode/decode took `0.191493/0.109902` seconds.
+  An actual native cold restore -> compact stage -> publication -> fresh native
+  cold restore preserved identity, tick, and every canonical byte; stage,
+  publication, and cold restore took `0.354849`, `0.087730`, and `1.055505`
+  seconds. Code review then removed repeated reconstruction of the already
+  proven stage/current/predecessor from ordinary publication. A two-body
+  recurrent publication using the exact consecutive task1089 bodies took
+  `0.339188` seconds to stage and `0.017640` seconds to
+  publish, retained exactly two remote objects, and had a measured physical
+  current-plus-stage peak of `203,553` bytes. This is local production-body
+  evidence, not live deployment evidence.
+- **Release-path closure:** the exact candidate rehearsal, deployment
+  preflight, packaging, bootstrap, storage cutover, binary-store, and native
+  checkpoint suites passed `123/123` against this worktree and the recorded
+  candidate native module. The only output was nine pre-existing framework
+  deprecation warnings; no persistence assertion failed.
