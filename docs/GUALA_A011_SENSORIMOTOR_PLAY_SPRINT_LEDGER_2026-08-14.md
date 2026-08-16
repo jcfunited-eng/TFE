@@ -2185,3 +2185,28 @@ second persistence authority remain out of scope and must not be extended.
   and not altered or represented as a candidate regression.
 - **Delivery status:** candidate only; not deployed and no production success is
   claimed yet.
+- **Live release (2026-08-16):** commit
+  `966d90123758443e6a4ec4fb42b0913828d1dc03`, image
+  `sha256:b1b4af731e4ea833bcc839c9b4aad388596d1b30570256cf576f6e8a4772fe9d`,
+  and task `dsf-ai-task:1089` were delivered by one build, one discarded
+  cold-restore rehearsal, and one verified cutover from `06:58:48Z` to
+  `07:22:53Z`; there was no retry and no rollback. The rehearsal restored the
+  exact production identity and state at tick `116648`, preserved `196416`
+  developmental resting neurons and `313` complete neurons, and reported zero
+  Python cognition callbacks. ECS settled at desired/running/pending `1/1/0`
+  with rollout state `COMPLETED` and one healthy container.
+- **Independent live acceptance:** ten consecutive authenticated readiness
+  requests during an in-flight unattended successor completed in
+  `0.114702`–`0.253178` seconds; later independent samples remained below
+  `0.305` seconds. Every response named the exact task, commit, image, organism
+  identity, and persisted state SHA, and reported zero Python cognition
+  callbacks. The persisted organism subsequently advanced twice without human
+  input, `116690 -> 116704 -> 116718`. State size changed
+  `58444929 -> 58445001 -> 58445165` bytes, a bounded `+236` bytes across 28
+  organism ticks. Both public Loom documents returned HTTP 200, which proves
+  reachability only, not functional UI correctness.
+- **Live conclusion:** the immutable-read locality defect is corrected in
+  production. Read-only readiness no longer waits behind, copies, or borrows
+  the organism. The unattended mutation-and-publication cadence itself still
+  takes tens of seconds; that separate locality defect remains open, and
+  `A-011.6` is not Live-Closed by this infrastructure correction.
