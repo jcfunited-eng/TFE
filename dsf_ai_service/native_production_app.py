@@ -8234,6 +8234,33 @@ def _external_participant_attention_from_path_witness(
     }
 
 
+def _changed_contact_on_causal_path(
+    path: tuple[tuple[str, str, int, int], ...],
+    changed_by_bond: dict[
+        tuple[str, str, int], tuple[int, tuple[Any, ...]]
+    ],
+    before_tick: int,
+) -> dict[str, Any] | None:
+    matches = []
+    for first, second, path_ordinal, _carriers in path:
+        left, right = sorted((first, second))
+        observed = changed_by_bond.get((left, right, path_ordinal))
+        if observed is not None and observed[0] < before_tick:
+            matches.append(observed)
+    if not matches:
+        return None
+    changed_tick, changed_state = min(matches)
+    return {
+        "change_organism_tick": changed_tick,
+        "contact_cognitive_ordinal": changed_state[0],
+        "left_lineage": changed_state[1],
+        "right_lineage": changed_state[2],
+        "parallel_ordinal": changed_state[3],
+        "predecessor_state": changed_state[4],
+        "successor_state": changed_state[5],
+    }
+
+
 def _advance_causal_motor_traces(
     organism: Any,
     active: dict[
@@ -8381,6 +8408,7 @@ def _advance_causal_motor_traces(
     proofs: dict[str, list[dict[str, Any]]] = {
         kind: [] for kind in origin_kinds if kind not in completed
     }
+    retained_articulation_proofs: list[dict[str, Any]] = []
     observed_affective_trajectories = tuple(
         transaction_affective_balance_trajectories
         if transaction_affective_balance_trajectories is not None
@@ -8442,24 +8470,13 @@ def _advance_causal_motor_traces(
                         "body_afferent_paths": body_afferent_paths,
                     },
                 }
-                matched_changes = []
-                for path_transfer in proof["directed_physical_transfers"]:
-                    first, second, path_ordinal, _ = path_transfer
-                    left, right = sorted((first, second))
-                    observed = changed_by_bond.get((left, right, path_ordinal))
-                    if observed is not None and observed[0] < organism_tick:
-                        matched_changes.append(observed)
-                if matched_changes:
-                    changed_tick, changed_state = min(matched_changes)
-                    proof["changed_contact_channel_state"] = {
-                        "change_organism_tick": changed_tick,
-                        "contact_cognitive_ordinal": changed_state[0],
-                        "left_lineage": changed_state[1],
-                        "right_lineage": changed_state[2],
-                        "parallel_ordinal": changed_state[3],
-                        "predecessor_state": changed_state[4],
-                        "successor_state": changed_state[5],
-                    }
+                changed_contact = _changed_contact_on_causal_path(
+                    proof["directed_physical_transfers"],
+                    changed_by_bond,
+                    organism_tick,
+                )
+                if changed_contact is not None:
+                    proof["changed_contact_channel_state"] = changed_contact
                 if origin_kind == "retained_formation":
                     proof["motor_unit_recruitment"][
                         "preparation_transfers"
@@ -8530,6 +8547,85 @@ def _advance_causal_motor_traces(
                         impression_organism_tick=origin_tick,
                     )
                 proofs[origin_kind].append(proof)
+        if (
+            origin_kind == "retained_formation"
+            and "retained_formation_articulation" not in completed
+        ):
+            for recruitment in tuple(
+                hop.get("articulatory_unit_recruitments", ())
+            ):
+                (
+                    articulatory_lineage,
+                    topology_index,
+                    outward_carriers,
+                    preparation,
+                ) = recruitment
+                for (
+                    sender,
+                    sender_layer,
+                    receiver,
+                    receiver_layer,
+                    ordinal,
+                    carriers,
+                ) in preparation:
+                    if (
+                        sender == articulatory_lineage
+                        and sender_layer == 13
+                        and receiver_layer == 12
+                    ):
+                        predecessor = receiver
+                    elif (
+                        receiver == articulatory_lineage
+                        and receiver_layer == 13
+                        and sender_layer == 12
+                    ):
+                        predecessor = sender
+                    else:
+                        continue
+                    prior_path = paths_by_lineage.get(predecessor)
+                    if prior_path is None:
+                        continue
+                    articulatory_transfer = (
+                        sender,
+                        receiver,
+                        ordinal,
+                        carriers,
+                    )
+                    if articulatory_transfer in prior_path:
+                        continue
+                    proof = {
+                        "origin_kind": origin_kind,
+                        "origin_lineages": origin_lineages,
+                        "origin_organism_tick": origin_tick,
+                        "formation_receipt_sha256": origin_receipt,
+                        "internal_cue_lineages": origin_lineages,
+                        "recurrence_organism_tick": origin_tick,
+                        "articulation_organism_tick": organism_tick,
+                        "directed_physical_transfers": prior_path
+                        + (articulatory_transfer,),
+                        "articulatory_unit_recruitment": {
+                            "articulatory_lineage": articulatory_lineage,
+                            "articulatory_layer": 13,
+                            "articulatory_topology_index": topology_index,
+                            "outward_elementary_carriers": outward_carriers,
+                            "matched_preparation_transfer": (
+                                sender,
+                                sender_layer,
+                                receiver,
+                                receiver_layer,
+                                ordinal,
+                                carriers,
+                            ),
+                        },
+                    }
+                    changed_contact = _changed_contact_on_causal_path(
+                        proof["directed_physical_transfers"],
+                        changed_by_bond,
+                        organism_tick,
+                    )
+                    if changed_contact is not None:
+                        proof["changed_contact_channel_state"] = changed_contact
+                    retained_articulation_proofs.append(proof)
     next_completed = dict(completed)
     if changed_by_bond:
         next_completed["_changed_contact_channel_states"] = {
@@ -8549,6 +8645,17 @@ def _advance_causal_motor_traces(
                     item["origin_organism_tick"],
                 ),
             )
+    if retained_articulation_proofs:
+        next_completed["retained_formation_articulation"] = min(
+            retained_articulation_proofs,
+            key=lambda item: (
+                0 if "changed_contact_channel_state" in item else 1,
+                len(item["directed_physical_transfers"]),
+                item["directed_physical_transfers"],
+                item["origin_lineages"],
+                item["origin_organism_tick"],
+            ),
+        )
     advanced = {
         key: paths
         for key, paths in advanced.items()
@@ -9349,6 +9456,11 @@ def _perform_admitted_intake_locked(
     affective_motor_path = completed_causal_motor_traces.get(
         "affective_gradient"
     )
+    internally_reassembled_articulation_path = (
+        completed_causal_motor_traces.get(
+            "retained_formation_articulation"
+        )
+    )
     external_participant_motor_path = completed_causal_motor_traces.get(
         "external_participant_sensory"
     )
@@ -9414,6 +9526,42 @@ def _perform_admitted_intake_locked(
     participant_sensory_attention: dict[str, Any] | None = None
     if external_participant_attention_path is not None:
         participant_sensory_attention = dict(external_participant_attention_path)
+    articulatory_causal_cross_context_use: dict[str, Any] | None = None
+    if (
+        articulation is not None
+        and internally_reassembled_articulation_path is not None
+    ):
+        articulatory_causal_cross_context_use = {
+            **internally_reassembled_articulation_path,
+            "action": {
+                key: articulation[key]
+                for key in (
+                    "layer_13_recruitment_count",
+                    "applied_motor_quanta",
+                    "stalled_motor_quanta",
+                    "articulatory_body_nonquiescent_port_count",
+                    "pressure_sample_count",
+                    "pressure_sha256",
+                )
+            },
+            "sensed_consequence": {
+                **{
+                    key: articulation[key]
+                    for key in (
+                        "sample_rate_hz",
+                        "self_hearing_hop_count",
+                        "self_hearing_transitioned_neuron_count",
+                        "self_hearing_fractal_count",
+                        "articulatory_body_receptor_ingress_count",
+                    )
+                },
+                "successor_organism_tick": last_hop["organism_tick"],
+                "successor_state_sha256": last_hop["state_sha256"],
+            },
+        }
+        articulation["retained_formation_causal_path"] = (
+            articulatory_causal_cross_context_use
+        )
     _last_transition_evidence = {
         **last_hop,
         "hop_count": committed_hop_count,
@@ -9425,6 +9573,9 @@ def _perform_admitted_intake_locked(
         "affective_motor_causal_use": affective_motor_causal_use,
         "participant_sensory_causal_use": participant_sensory_causal_use,
         "participant_sensory_attention": participant_sensory_attention,
+        "articulatory_causal_cross_context_use": (
+            articulatory_causal_cross_context_use
+        ),
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),
         "physical_frontier_routes": physical_frontier_routes,

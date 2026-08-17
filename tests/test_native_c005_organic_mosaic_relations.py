@@ -307,6 +307,125 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     assert retained_observation["organism_tick"] == 12
 
 
+def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
+    monkeypatch.setattr(production, "_last_transition_evidence", None)
+    monkeypatch.setattr(
+        production, "_active_external_participant_causal_motor_traces", {}
+    )
+    motor = "12" * 16
+    articulatory = "13" * 16
+    recruitment = (
+        articulatory,
+        0,
+        13,
+        ((motor, 12, articulatory, 13, 0, 13),),
+    )
+    causal_path = {
+        "origin_kind": "retained_formation",
+        "origin_lineages": ("01" * 16,),
+        "origin_organism_tick": 10,
+        "formation_receipt_sha256": "11" * 32,
+        "internal_cue_lineages": ("01" * 16,),
+        "recurrence_organism_tick": 10,
+        "articulation_organism_tick": 11,
+        "directed_physical_transfers": (
+            ("01" * 16, motor, 0, 17),
+            (motor, articulatory, 0, 13),
+        ),
+        "articulatory_unit_recruitment": {
+            "articulatory_lineage": articulatory,
+            "articulatory_layer": 13,
+            "articulatory_topology_index": 0,
+            "outward_elementary_carriers": 13,
+            "matched_preparation_transfer": (
+                motor,
+                12,
+                articulatory,
+                13,
+                0,
+                13,
+            ),
+        },
+    }
+    first = _hop(11, ())
+    first["articulatory_unit_recruitments"] = (recruitment,)
+    heard = _hop(12, ())
+    heard["physically_transitioned_neuron_count"] = 4
+    heard["externally_perturbed_body_receptor_count"] = 4
+    organism = _quiescent_body_organism()
+    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    monkeypatch.setattr(
+        production,
+        "_runtime",
+        lambda: (
+            SimpleNamespace(organism=organism, pointer=predecessor),
+            SimpleNamespace(),
+        ),
+    )
+    hops = iter((first, heard))
+    monkeypatch.setattr(
+        production,
+        "_commit_admitted_hop",
+        lambda *_args, **_kwargs: next(hops),
+    )
+    monkeypatch.setattr(
+        production,
+        "_advance_causal_motor_traces",
+        lambda _organism, active, completed, _hop, *_args, **_kwargs: (
+            active,
+            {
+                **completed,
+                "retained_formation_articulation": causal_path,
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **_kwargs: [(object(), [])],
+    )
+    monkeypatch.setattr(
+        production,
+        "_publish_committed_organism",
+        lambda *_args: SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=12,
+                state_bytes=100,
+                state_sha256="bb" * 32,
+            )
+        ),
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+
+    result = production._perform_admitted_intake_locked(
+        [(object(), [])],
+        "retained-articulation-test",
+    )
+
+    causal = result["observation"]["articulatory_causal_cross_context_use"]
+    articulation = result["observation"]["articulation"]
+    assert causal["formation_receipt_sha256"] == "11" * 32
+    assert causal["directed_physical_transfers"] == causal_path[
+        "directed_physical_transfers"
+    ]
+    assert causal["action"]["pressure_sha256"] == articulation[
+        "pressure_sha256"
+    ]
+    assert causal["action"]["applied_motor_quanta"] > 0
+    assert causal["sensed_consequence"]["self_hearing_hop_count"] == 1
+    assert causal["sensed_consequence"][
+        "self_hearing_transitioned_neuron_count"
+    ] == 4
+    assert articulation["retained_formation_causal_path"] == causal
+
+    production._last_transition_evidence = {"articulation": None}
+    retained = production._articulation_record()
+    assert retained["retained_formation_causal_path"] == causal
+
+
 def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
     monkeypatch,
 ) -> None:

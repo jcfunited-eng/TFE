@@ -28,12 +28,16 @@ def _hop(
     motors: tuple[
         tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
     ] = (),
+    articulations: tuple[
+        tuple[str, int, int, tuple[object, ...]], ...
+    ] = (),
 ) -> dict[str, object]:
     return {
         "predecessor_organism_tick": predecessor_tick,
         "organism_tick": predecessor_tick + 1,
         "internally_reassembled_formation_cues": cues,
         "motor_unit_recruitments": motors,
+        "articulatory_unit_recruitments": articulations,
     }
 
 
@@ -116,3 +120,110 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
     assert active == {}
     assert proof is None
     assert observer.filters == []
+
+
+def test_retained_path_reaches_layer_13_without_false_body_motor_proof() -> None:
+    cue = "01" * 16
+    association = "02" * 16
+    motor = "03" * 16
+    articulation = "04" * 16
+    receipt = "11" * 32
+    first = (association, cue, 0, 29)
+    motor_transfer = (association, motor, 0, 7)
+    articulation_transfer = (motor, articulation, 0, 5)
+    observer = _FrontierObserver()
+
+    observer.transfers = ((*first, association),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(40, cues=((receipt, (cue,)),)),
+    )
+    assert completed == {}
+
+    observer.transfers = ((*motor_transfer, motor),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(41),
+    )
+    assert completed == {}
+
+    observer.transfers = ()
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            42,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    5,
+                    ((motor, 12, articulation, 13, 0, 5),),
+                ),
+            ),
+        ),
+    )
+
+    assert "retained_formation" not in completed
+    proof = completed["retained_formation_articulation"]
+    assert proof["formation_receipt_sha256"] == receipt
+    assert proof["recurrence_organism_tick"] == 41
+    assert proof["articulation_organism_tick"] == 43
+    assert proof["directed_physical_transfers"] == (
+        first,
+        motor_transfer,
+        articulation_transfer,
+    )
+    assert proof["articulatory_unit_recruitment"] == {
+        "articulatory_lineage": articulation,
+        "articulatory_layer": 13,
+        "articulatory_topology_index": 6,
+        "outward_elementary_carriers": 5,
+        "matched_preparation_transfer": (
+            motor,
+            12,
+            articulation,
+            13,
+            0,
+            5,
+        ),
+    }
+    assert active == {}
+
+
+def test_articulation_without_exact_layer_12_path_is_not_causal_proof() -> None:
+    cue = "01" * 16
+    unrelated_motor = "03" * 16
+    articulation = "04" * 16
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(50, cues=(("11" * 32, (cue,)),)),
+    )
+    observer.transfers = ()
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            51,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    5,
+                    ((unrelated_motor, 12, articulation, 13, 0, 5),),
+                ),
+            ),
+        ),
+    )
+
+    assert "retained_formation_articulation" not in completed
