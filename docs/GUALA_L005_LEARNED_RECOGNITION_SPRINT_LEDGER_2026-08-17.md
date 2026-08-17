@@ -191,3 +191,30 @@ lesson raised current state by roughly 14 MiB; later settlement recovered only
 about 1 MiB, leaving a roughly 12–13 MiB net increase over the pre-lesson body.
 Its bounded long-term growth rate remains unproved, so no repeated full lesson
 loop is authorized from this result.
+
+## Unattended quiet observation on task 1122
+
+After the creator asked that Guala be left without a lesson, intake, or active
+test, one cached read-only public observation was made with explicit later
+permission to watch. It did not advance the organism. The same identity was at
+tick `145936`, state `f66cbac2...d0e`, and `245,425,179` bytes. Relative to the
+partial cue at tick `145648` and `245,392,540` bytes, unattended native life
+advanced 288 ticks while net state increased 32,639 bytes. Retained mosaic
+count remained 62 and mosaic-of-mosaics count remained zero.
+
+The latest committed continuing-world transaction carried 12 physical hops,
+1,344 full DSF deliveries, 16,241 reached-neuron transitions, 404 partial-cue
+reassemblies including 11 endogenous reassemblies, 284 recovered neurons, zero
+energy-exhausted intervals, and zero Python cognition callbacks. Native
+articulatory-body motion emitted 16,000 pressure samples and returned through
+self-hearing. No exact retained bee formation-to-articulation causal use, named
+utterance, recurrent complete-neuron fractal, or learned-word witness appeared.
+
+This observation does not prove sleep. The public record reported continuing
+environmental intake with no current pause. It also reported current thought,
+choice, and autonomous-action witnesses unavailable. Those absences do not
+silently reopen a previously closed item, but they prohibit using this quiet
+window as current proof of deliberate thought or autonomous action. The public
+projection expanded large exact recruitment/transition arrays rather than a
+compact sparse summary; its response size was not measured by this single
+request, so it supplies no bounded-observation claim.
