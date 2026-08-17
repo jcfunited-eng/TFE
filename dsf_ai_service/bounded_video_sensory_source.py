@@ -23,6 +23,10 @@ VIDEO_MAX_HOPS = 24
 VIDEO_FRAME_WIDTH = 768
 VIDEO_FRAME_HEIGHT = 432
 VIDEO_MAX_DECODED_FRAME_BYTES = 32 * 1024 * 1024
+VIDEO_MAX_DECODER_ALLOCATION_BYTES = 64 * 1024 * 1024
+VIDEO_MAX_PROBE_BYTES = 5 * 1024 * 1024
+VIDEO_MAX_ANALYZE_MICROSECONDS = 5_000_000
+VIDEO_PROTOCOL_WHITELIST = "file,pipe"
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,7 +109,17 @@ def decode_bounded_video(
                 "-nostdin",
                 "-v",
                 "error",
+                "-max_alloc",
+                str(VIDEO_MAX_DECODER_ALLOCATION_BYTES),
+                "-protocol_whitelist",
+                VIDEO_PROTOCOL_WHITELIST,
+                "-probesize",
+                str(VIDEO_MAX_PROBE_BYTES),
+                "-analyzeduration",
+                str(VIDEO_MAX_ANALYZE_MICROSECONDS),
                 "-threads",
+                "1",
+                "-filter_threads",
                 "1",
                 "-i",
                 str(source_path),
@@ -130,6 +144,14 @@ def decode_bounded_video(
                 ffprobe_binary,
                 "-v",
                 "error",
+                "-max_alloc",
+                str(VIDEO_MAX_DECODER_ALLOCATION_BYTES),
+                "-protocol_whitelist",
+                VIDEO_PROTOCOL_WHITELIST,
+                "-probesize",
+                str(VIDEO_MAX_PROBE_BYTES),
+                "-analyzeduration",
+                str(VIDEO_MAX_ANALYZE_MICROSECONDS),
                 "-select_streams",
                 "a:0",
                 "-show_entries",
@@ -154,7 +176,17 @@ def decode_bounded_video(
                     "-nostdin",
                     "-v",
                     "error",
+                    "-max_alloc",
+                    str(VIDEO_MAX_DECODER_ALLOCATION_BYTES),
+                    "-protocol_whitelist",
+                    VIDEO_PROTOCOL_WHITELIST,
+                    "-probesize",
+                    str(VIDEO_MAX_PROBE_BYTES),
+                    "-analyzeduration",
+                    str(VIDEO_MAX_ANALYZE_MICROSECONDS),
                     "-threads",
+                    "1",
+                    "-filter_threads",
                     "1",
                     "-i",
                     str(source_path),
