@@ -24,7 +24,7 @@ _SHA = re.compile(r"[0-9a-f]{64}")
 PROOF_SCHEMAS = {
     "rehearse": "guala.production_candidate_native_restore_rehearsal.v5",
     "publish": "guala.production_native_current_publication.v1",
-    "cold-restore": "guala.production_native_current_cold_restore.v7",
+    "cold-restore": "guala.production_native_current_cold_restore.v8",
     "genesis-rehearse": "guala.genesis_rehearsal_proof.v1",
 }
 
@@ -826,6 +826,29 @@ def _validate_proof(
         and proof.get("a013_articulated_body_cold_restore_exact") is True
         and proof.get("a013_articulated_body_python_callback_count") == 0
     )
+    a013_thermal_body_rehearsal = (
+        proof.get("a013_thermal_body_rehearsed") is True
+        and proof.get("a013_thermal_body_world_revision_before") == 0
+        and proof.get("a013_thermal_body_world_revision_after") == 1
+        and proof.get("a013_thermal_body_receptor_count") == 2
+        and proof.get("a013_thermal_body_reached_site_counts") == [1, 1]
+        and proof.get("a013_thermal_body_episode_port_count") == 111
+        and proof.get("a013_thermal_body_episode_sample_count") == 222
+        and isinstance(proof.get("a013_thermal_body_dsf_delivery_count"), int)
+        and not isinstance(proof["a013_thermal_body_dsf_delivery_count"], bool)
+        and proof["a013_thermal_body_dsf_delivery_count"] > 0
+        and all(
+            isinstance(proof.get(name), str)
+            and _SHA.fullmatch(proof[name]) is not None
+            for name in (
+                "a013_thermal_body_transition_receipt_sha256",
+                "a013_thermal_body_anatomy_receipt_sha256",
+                "a013_thermal_body_world_state_sha256",
+            )
+        )
+        and proof.get("a013_thermal_body_cold_restore_exact") is True
+        and proof.get("a013_thermal_body_python_callback_count") == 0
+    )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
         or proof.get("mode") != mode
@@ -877,7 +900,10 @@ def _validate_proof(
         )
         or (
             expected_a013_articulated_body_rehearsal
-            and not a013_articulated_body_rehearsal
+            and not (
+                a013_articulated_body_rehearsal
+                and a013_thermal_body_rehearsal
+            )
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)

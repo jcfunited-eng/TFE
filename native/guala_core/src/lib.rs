@@ -75,6 +75,7 @@ mod scratch_auditory_probe;
 mod sha256;
 mod sparse_electrical_contact;
 mod tactile_receptor_work;
+mod thermal_receptor_work;
 mod vestibular_joint_source_builder;
 mod vestibular_neuron_path;
 mod virtual_articulated_body;

@@ -67,7 +67,11 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   missing or duplicate accepted lesson. Complete recurrent fractals remained
   zero, so the pass does not prove number recognition, counting, learned
   number words, or speech.
-- Immediate next increment: `L-004`.
+- Immediate next increment after the creator's 2026-08-17 correction:
+  `A-013-THERMAL`. The original non-thermal A-013 evidence remains valid, but
+  L-004 is paused until persistent core/cutaneous thermal experience is
+  live-verified. See
+  `docs/GUALA_A013_THERMAL_BODY_AMENDMENT_SPRINT_LEDGER_2026-08-17.md`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.

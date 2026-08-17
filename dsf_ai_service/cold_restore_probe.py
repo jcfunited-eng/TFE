@@ -29,7 +29,7 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-PROOF_SCHEMA = "guala.production_native_current_cold_restore.v7"
+PROOF_SCHEMA = "guala.production_native_current_cold_restore.v8"
 _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -1212,6 +1212,133 @@ def _rehearse_a013_articulated_body(
     }
 
 
+def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
+    """Exercise the production heat circuit and native receptors once.
+
+    The living predecessor remains read-only. A fresh bounded organism is
+    used for the candidate-only receptor transition so the rehearsal neither
+    clones nor scans the resident materialized brain. Live continuity stays
+    under the ordinary CURRENT cold-restore gate above.
+    """
+
+    from dsf_ai_service import native_production_app as production
+    from dsf_ai_service.glew_runtime.native_resident_organism import (
+        create_native_resident_organism,
+    )
+    from dsf_ai_service.substrate.embodiment_world import (
+        MoveCommand,
+        PORT_ID,
+        PoseMM,
+        encode_command,
+    )
+
+    if production.THERMAL_PORT_COUNT != 2:
+        raise RuntimeError("A-013 thermal rehearsal has no two-site anatomy")
+    if os.environ.get("GUALA_NATIVE_ORGANISM_IDENTITY") != expected_identity:
+        raise RuntimeError("A-013 thermal rehearsal identity is not pinned")
+    prior_root = production.STATE_ROOT
+    prior_world = production._world_authority
+    try:
+        with tempfile.TemporaryDirectory(prefix="guala-a013-thermal-") as name:
+            production.STATE_ROOT = Path(name)
+            production._world_authority = None
+            world = production._world()
+            before_world = world.observation_snapshot()
+            before_thermal = world.thermal_observation()
+            body = next(
+                item
+                for item in before_world.bodies
+                if item.body_id == before_world.self_body_id
+            )
+            execution = world.execute_port_command(
+                port_id=PORT_ID,
+                command_payload=encode_command(
+                    MoveCommand(
+                        target_pose=PoseMM(body.pose.position, 90_000),
+                        duration_microseconds=1_000,
+                    )
+                ),
+                causal_intent_receipt_sha256=hashlib.sha256(
+                    b"guala-a013-thermal-candidate-rehearsal"
+                ).hexdigest(),
+                expected_revision=before_world.revision,
+            )
+            episode, admissions, lanes = production._action_consequence_episode(
+                execution
+            )
+            organism = create_native_resident_organism(
+                organism_identity=expected_identity,
+                organism_tick=0,
+                growth_dna=production._authored_growth_dna(),
+                max_envelope_bytes=67_108_864,
+                max_fabric_bytes=67_108_000,
+                max_logical_peak_bytes=536_870_912,
+            )
+            hop = production._commit_admitted_hop(
+                organism, episode, admissions
+            )
+            reached = tuple(
+                organism.observe_reached_source_site_count(
+                    production.THERMAL_SENSOR_ID,
+                    f"temperature-{channel}",
+                )
+                for channel in production.THERMAL_CHANNELS
+            )
+            after_thermal = world.thermal_observation()
+            production._persist_world(world)
+            hot_world = world.encoded_snapshot()
+            production._world_authority = None
+            cold_world = production._world()
+            cold_thermal = cold_world.thermal_observation()
+            cold_world_exact = cold_world.encoded_snapshot() == hot_world
+    finally:
+        production.STATE_ROOT = prior_root
+        production._world_authority = prior_world
+
+    if (
+        execution.reason != "applied"
+        or episode.python_callback_count != 0
+        or episode.port_count != 111
+        or episode.source_sample_count != 222
+        or lanes.get("thermal")
+        != {
+            "changed": 1,
+            "sensor_id": production.THERMAL_SENSOR_ID,
+            "transported": 2,
+        }
+        or hop["dsf_delivery_count"] <= 0
+        or hop["receptor_ingress_sense_counts"].get("body") != 84
+        or reached != (1, 1)
+        or before_thermal.latest_transition_receipt_sha256 is not None
+        or after_thermal.latest_transition_receipt_sha256 is None
+        or after_thermal.world_revision != before_thermal.world_revision + 1
+        or cold_thermal != after_thermal
+        or not cold_world_exact
+    ):
+        raise RuntimeError("A-013 thermal body rehearsal changed")
+    return {
+        "a013_thermal_body_rehearsed": True,
+        "a013_thermal_body_world_revision_before": before_thermal.world_revision,
+        "a013_thermal_body_world_revision_after": after_thermal.world_revision,
+        "a013_thermal_body_receptor_count": sum(reached),
+        "a013_thermal_body_reached_site_counts": reached,
+        "a013_thermal_body_episode_port_count": episode.port_count,
+        "a013_thermal_body_episode_sample_count": episode.source_sample_count,
+        "a013_thermal_body_dsf_delivery_count": hop["dsf_delivery_count"],
+        "a013_thermal_body_transition_receipt_sha256": (
+            after_thermal.latest_transition_receipt_sha256
+        ),
+        "a013_thermal_body_anatomy_receipt_sha256": (
+            after_thermal.anatomy_receipt_sha256
+        ),
+        "a013_thermal_body_world_state_sha256": hashlib.sha256(
+            hot_world
+        ).hexdigest(),
+        "a013_thermal_body_cold_restore_exact": True,
+        "a013_thermal_body_python_callback_count": 0,
+    }
+
+
 def _exact_articulatory_trajectory_or_none(
     recruitments: tuple[tuple[object, int, int, object], ...],
 ) -> object | None:
@@ -1731,6 +1858,7 @@ def main() -> int:
         max_fabric_bytes=admission.max_fabric_bytes,
         max_logical_peak_bytes=admission.max_logical_peak_bytes,
     )
+    thermal_body_proof = _rehearse_a013_thermal_body(before.identity)
     record = {
         "baseline_observed_state_sha256": values.expected_state_sha256,
         "baseline_observed_tick": values.expected_tick,
@@ -1758,6 +1886,7 @@ def main() -> int:
         "tick": before.organism_tick,
         **motor_proof,
         **articulated_body_proof,
+        **thermal_body_proof,
     }
     proof = {
         **record,

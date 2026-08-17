@@ -61,12 +61,12 @@ print(json.dumps({
     evidence = json.loads(completed.stdout)
 
     assert evidence["schema"] == "guala.native.exact_joint_source_episode.v2"
-    assert evidence["group_sizes"] == [27, 2, 16, 16, 27, 5, 8, 4, 4]
-    assert evidence["port_count"] == 109
+    assert evidence["group_sizes"] == [27, 2, 16, 16, 27, 5, 8, 4, 4, 2]
+    assert evidence["port_count"] == 111
     assert evidence["lesson_occurrence_count"] == 1
     assert evidence["occurrence_count"] == 1
     assert evidence["occurrence_frame_count"] == 26
-    assert evidence["source_sample_count"] == 109 * 26
+    assert evidence["source_sample_count"] == 111 * 26
     assert evidence["python_callback_count"] == 0
     assert evidence["times"][0] == [0, 1]
     assert evidence["times"][-1] == [1, 4]

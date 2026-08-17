@@ -2,7 +2,12 @@
 
 Date: 2026-08-16
 
-Status: **Live-Closed** on `dsf-ai-task:1098` at 2026-08-16 18:45:30 UTC.
+Status: **Reopened only for the thermal-body amendment on 2026-08-17.** The
+original non-thermal Phase-1 body evidence remains valid, but complete body
+state cannot remain Live-Closed while core/cutaneous temperature is explicitly
+unmounted. The active correction is recorded in
+`GUALA_A013_THERMAL_BODY_AMENDMENT_SPRINT_LEDGER_2026-08-17.md`; L-004 is paused
+until that amendment is live-verified.
 
 ## Task identity
 

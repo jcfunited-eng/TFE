@@ -83,6 +83,23 @@ def test_corrupt_persisted_home_refuses_instead_of_rebuilding(
     assert path.read_bytes() == bytes(corrupt)
 
 
+def test_bare_world_migration_persists_thermal_body_before_exposure(
+    production_world,
+) -> None:
+    authority = production._world()
+    bare_world = super(type(authority), authority).encoded_snapshot()
+    path = production_world / production.WORLD_STATE_FILE
+    path.write_bytes(bare_world)
+    production._world_authority = None
+
+    restored = production._world()
+    coupled = restored.encoded_snapshot()
+
+    assert coupled != bare_world
+    assert path.read_bytes() == coupled
+    assert restored.thermal_observation().world_revision == 0
+
+
 def test_world_observation_is_read_only_and_bounded(production_world) -> None:
     authority = production._world()
     before = authority.encoded_snapshot()

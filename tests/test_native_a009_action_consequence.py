@@ -11,7 +11,9 @@ import sys
 from dsf_ai_service import native_production_app as production
 
 
-def test_one_millisecond_action_builds_one_truthful_joint_consequence() -> None:
+def test_one_millisecond_action_builds_one_truthful_joint_consequence(
+    tmp_path: Path,
+) -> None:
     repository = Path(__file__).resolve().parents[1]
     environment = dict(os.environ)
     environment.update(
@@ -21,6 +23,7 @@ def test_one_millisecond_action_builds_one_truthful_joint_consequence() -> None:
             "GUALA_TOUCH_RECEPTORS": "1",
             "GUALA_VESTIBULAR": "1",
             "GUALA_WORLD": "1",
+            "GUALA_NATIVE_ORGANISM_ROOT": str(tmp_path),
             "PYTHONPATH": os.pathsep.join(
                 (str(repository), environment.get("PYTHONPATH", ""))
             ),
@@ -33,19 +36,13 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
     create_native_resident_organism,
 )
 from dsf_ai_service.substrate.embodiment_world import (
-    EmbodimentWorldAuthority,
     MoveCommand,
     PORT_ID,
     PoseMM,
     encode_command,
-    _default_objects,
 )
 
-world = EmbodimentWorldAuthority(
-    authority_key="a009-action-consequence-test-key",
-    initial_objects=_default_objects()[:1],
-)
-production._world_authority = world
+world = production._world()
 before = world.observation_snapshot()
 body = next(item for item in before.bodies if item.body_id == before.self_body_id)
 execution = world.execute_port_command(
@@ -72,6 +69,8 @@ hop = production._commit_admitted_hop(organism, episode, admissions)
 print(json.dumps({
     "admissions": admissions,
     "body": lanes["proprioceptive"],
+    "body_feedback_extents": hop["body_proprioceptive_source_extents"],
+    "causal_interval_count": len(hop["causal_interval_evidence"]),
     "chemical": lanes["chemical"],
     "duration": lanes["action_duration_microseconds"],
     "episode_occurrences": episode.occurrence_count,
@@ -87,6 +86,7 @@ print(json.dumps({
     "schema": episode.schema,
     "sound": lanes["auditory"],
     "touch": lanes["tactile"],
+    "thermal": lanes["thermal"],
     "visual": lanes["visual"],
 }))
 '''
@@ -105,27 +105,33 @@ print(json.dumps({
     assert evidence["duration"] == 1_000
     assert evidence["admissions"] == [[1, 1_000]]
     assert evidence["episode_occurrences"] == 1
-    assert evidence["episode_ports"] == 109
-    assert evidence["episode_samples"] == 218
-    assert evidence["organism_tick"] == 1
+    assert evidence["episode_ports"] == 111
+    assert evidence["episode_samples"] == 222
+    assert evidence["organism_tick"] == 2
+    assert evidence["causal_interval_count"] == 2
+    # A newborn native test body first admits its complete 74-axis
+    # proprioceptive state, then this one external joint occurrence.  No
+    # motor feedback occurrence was authored by Python or required here.
+    assert evidence["body_feedback_extents"] == []
+    initial_body_port_count = 74
     assert evidence["ingress"] == {
-        "body": 8,
+        "body": 10 + initial_body_port_count,
         "sight": 27,
         "smell": 8,
         "sound": 34,
         "taste": 5,
         "touch": 27,
     }
-    assert evidence["external_body"] == 0
-    assert 0 < len(evidence["external_lineages"]) <= 27
+    assert evidence["external_body"] == 2
+    assert 0 < len(evidence["external_lineages"]) <= 29
     assert len(set(evidence["external_lineages"])) == len(
         evidence["external_lineages"]
     )
-    assert evidence["internal_body"] == 4
+    assert evidence["internal_body"] == 6
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
     assert evidence["chemical"] == {
-        "smell_changed": 8,
+        "smell_changed": 1,
         "smell_transported": 8,
         "taste_changed": 0,
         "taste_transported": 5,
@@ -137,6 +143,11 @@ print(json.dumps({
     }
     assert evidence["sound"] == {"changed": 0, "transported": 34}
     assert evidence["touch"] == {"changed": 0, "transported": 27}
+    assert evidence["thermal"] == {
+        "changed": 1,
+        "sensor_id": "organism-core-and-cutaneous-thermoreceptors",
+        "transported": 2,
+    }
     assert evidence["visual"]["transported"] == 27
     assert evidence["visual"]["changed"] > 0
 

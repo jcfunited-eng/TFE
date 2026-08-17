@@ -303,7 +303,7 @@ def test_native_current_cold_restore_proof_is_state_bound() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 500,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_identity": IDENTITY,
         "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
@@ -362,6 +362,13 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
             "a013_articulated_body_neutral_observation": True,
             "a013_articulated_body_cold_restore_exact": True,
             "a013_articulated_body_python_callback_count": 0,
+        },
+    )
+    monkeypatch.setattr(
+        cold_restore_probe,
+        "_rehearse_a013_thermal_body",
+        lambda *_args, **_kwargs: {
+            "a013_thermal_body_rehearsed": True,
         },
     )
     monkeypatch.setattr(

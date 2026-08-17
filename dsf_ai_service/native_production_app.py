@@ -703,6 +703,105 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     return regions, portals, objects
 
 
+def _home_thermal_anatomy(
+    regions: Iterable[Any], portals: Iterable[Any]
+) -> Any:
+    """Derive one bounded core/skin/home heat circuit from signed geometry.
+
+    This is Phase-1 virtual anatomy, not a claim about a later manufactured
+    body. The child mass is the CDC female 48.5-month median rounded to one
+    gram; the two-node capacity uses the published 2.98 kJ/(kg K) whole-body
+    specific heat and a declared 90/10 core/skin partition. Air capacity and
+    portal conductance derive from each room volume and doorway flow. The only
+    authored building value is a finite HVAC boundary conductance at 23 C.
+    """
+
+    from dsf_ai_service.substrate.bounded_home_thermal_physics import (
+        ConductiveThermalEdge,
+        ThermalBathEdge,
+        ThermalPowerSource,
+    )
+    from dsf_ai_service.substrate.thermally_coupled_embodiment_world import (
+        CoupledThermalAnatomy,
+    )
+
+    ordered_regions = tuple(sorted(regions, key=lambda item: item.region_id))
+    ordered_portals = tuple(sorted(portals, key=lambda item: item.portal_id))
+    if not ordered_regions or any(item.air is None for item in ordered_regions):
+        raise ValueError("the thermal home requires finite signed air volumes")
+    room_index = {
+        region.region_id: index for index, region in enumerate(ordered_regions)
+    }
+    # 1210.120 J/(m3 K), represented as uJ/(m3 mK).
+    air_capacity_per_cubic_meter = 1_210_120
+    room_capacities = tuple(
+        region.air.volume_cubic_mm * air_capacity_per_cubic_meter
+        // 1_000_000_000
+        for region in ordered_regions
+    )
+    # 15.878 kg * 2.98 kJ/(kg K) = 47,316.44 J/K. On the module's
+    # uJ/mK lattice that is 47,316,440, split without losing one quantum.
+    whole_body_capacity = 15_878 * 2_980
+    skin_capacity = whole_body_capacity // 10
+    core_capacity = whole_body_capacity - skin_capacity
+    skin_index = len(ordered_regions)
+    core_index = skin_index + 1
+    portal_edges = []
+    for portal in ordered_portals:
+        flow = portal.air_flow_cubic_mm_per_second
+        if flow is None:
+            raise ValueError("the thermal home requires signed portal air flow")
+        left, right = portal.region_ids
+        portal_edges.append(
+            ConductiveThermalEdge(
+                room_index[left],
+                room_index[right],
+                flow * air_capacity_per_cubic_meter // 1_000_000,
+            )
+        )
+    metabolic_power = 41_500_000
+    return CoupledThermalAnatomy(
+        node_ids=(
+            *(f"air:{region.region_id}" for region in ordered_regions),
+            "body:cutaneous-shell",
+            "body:core",
+        ),
+        initial_temperatures_millikelvin=(
+            *((296_150,) * len(ordered_regions)),
+            303_150,
+            309_950,
+        ),
+        capacities_microjoules_per_millikelvin=(
+            *room_capacities,
+            skin_capacity,
+            core_capacity,
+        ),
+        fixed_conductive_edges=(
+            *portal_edges,
+            ConductiveThermalEdge(core_index, skin_index, 6_102_941),
+        ),
+        room_air_node_by_region_id=tuple(
+            (region.region_id, room_index[region.region_id])
+            for region in ordered_regions
+        ),
+        skin_node_index=skin_index,
+        core_node_index=core_index,
+        skin_air_conductance_microwatts_per_kelvin=5_928_571,
+        bath_edges=tuple(
+            ThermalBathEdge(index, 296_150, 250_000_000)
+            for index in range(len(ordered_regions))
+        ),
+        power_sources=(ThermalPowerSource(core_index, metabolic_power),),
+        parameter_provenance=(
+            "CDC female 48.5-month median body mass rounded to 15.878 kilograms",
+            "measured whole-body specific heat 2.98 kilojoules per kilogram-kelvin",
+            "FAO-WHO-UNU girls age 3-to-10 basal metabolic equation at declared mass",
+            "published passive two-node core-skin heat-balance structure",
+            "authored Phase-1 virtual-home 296150-millikelvin HVAC boundary",
+        ),
+    )
+
+
 def _world_authorized() -> bool:
     """Has a human explicitly authorized giving her a place to be?"""
 
@@ -740,8 +839,6 @@ def _world() -> Any:
         raise RuntimeError("no world is mounted")
     if _world_authority is not None:
         return _world_authority
-    from dsf_ai_service.substrate.embodiment_world import EmbodimentWorldAuthority
-
     from dsf_ai_service.substrate.embodiment_world import (
         BodyReceptorGeometry,
         EmbodiedBody,
@@ -750,6 +847,9 @@ def _world() -> Any:
         SECOND_BODY_PORT_ID,
         PoseMM,
         PositionMM,
+    )
+    from dsf_ai_service.substrate.thermally_coupled_embodiment_world import (
+        ThermallyCoupledEmbodimentWorldAuthority,
     )
 
     # WHERE HER SENSES ARE ON HER BODY. Without this her world-body is a
@@ -789,8 +889,9 @@ def _world() -> Any:
     )
 
     regions, portals, objects = _home_rooms_and_things()
-    authority = EmbodimentWorldAuthority(
+    authority = ThermallyCoupledEmbodimentWorldAuthority(
         authority_key=_world_key(),
+        thermal_anatomy=_home_thermal_anatomy(regions, portals),
         self_body_id="guala-body-1",
         bodies=(
             EmbodiedBody(
@@ -821,9 +922,13 @@ def _world() -> Any:
         max_regions=4,
     )
     path = STATE_ROOT / WORLD_STATE_FILE
+    stored_body = None
     if path.is_file():
         try:
-            authority.restore_encoded(path.read_bytes())
+            stored_body = path.read_bytes()
+            authority.restore_encoded(
+                stored_body, allow_legacy_thermal_genesis=True
+            )
         except (ValueError, TypeError, RuntimeError) as error:
             # Her pose now changes through native motor discharge. A stored
             # world therefore contains causal organism history and may never
@@ -833,6 +938,12 @@ def _world() -> Any:
                 "to replace Guala's causal pose history "
                 f"({type(error).__name__}: {error})"
             ) from error
+    current_body = authority.encoded_snapshot()
+    if stored_body != current_body:
+        # A new home and the one authorized bare-world-to-thermal migration
+        # become durable before the authority is made reachable.  A restart
+        # therefore cannot reset body heat to authored genesis.
+        _persist_world_body(current_body)
     _world_authority = authority
     return authority
 
@@ -1052,6 +1163,18 @@ ARTICULATORY_BODY_PORT_COUNT = len(ARTICULATORY_BODY_CHANNELS)
 ARTICULATORY_BODY_SENSOR_ID = "articulatory-body-mechanoreceptors"
 ARTICULATORY_BODY_UNIT = "fraction-of-declared-articulatory-mechanical-span"
 
+# Two local temperature receptor sites, appended after every existing body
+# site so no living source place is rebound. They receive exact core and
+# cutaneous-node temperatures from the coupled world/body heat circuit. The
+# 273..323 K interval is a receptor sensitivity span, not a comfort scale.
+THERMAL_CHANNELS = ("cutaneous-shell", "core")
+THERMAL_PORT_COUNT = len(THERMAL_CHANNELS) if WORLD_AUTHORIZED else 0
+THERMAL_SENSOR_ID = "organism-core-and-cutaneous-thermoreceptors"
+THERMAL_QUANTITY = "thermoreceptor-temperature"
+THERMAL_UNIT = "fraction-of-declared-273000-to-323000-millikelvin-span"
+THERMAL_MIN_MILLIKELVIN = 273_000
+THERMAL_MAX_MILLIKELVIN = 323_000
+
 
 CHEMORECEPTION_ENV = "GUALA_CHEMORECEPTION"
 
@@ -1101,6 +1224,7 @@ LESSON_PORT_COUNT = (
     + SMELL_PORT_COUNT
     + DISPLACEMENT_PORT_COUNT
     + ARTICULATORY_BODY_PORT_COUNT
+    + THERMAL_PORT_COUNT
 )
 # One physical instant has one complete joint sensorium and therefore one
 # unchanged L0-L4 evaluation.  Its declared groups preserve the distinct
@@ -1980,9 +2104,60 @@ def _chemoreceptive_record(
 
 def _temperature_record(native: dict[str, Any] | None = None) -> dict[str, object]:
     del native
-    return _unmounted(
-        "core and cutaneous thermoreceptors are not mounted; exact thermal "
-        "energy is observable body state, not a fabricated sensation"
+    if not THERMAL_PORT_COUNT:
+        return _unmounted(
+            "the persistent world is not mounted, so no truthful core or "
+            "cutaneous thermoreceptor can be connected"
+        )
+    observation = _world().thermal_observation()
+    by_id = dict(zip(
+        observation.node_ids,
+        observation.temperatures_millikelvin,
+        strict=True,
+    ))
+    reached_by_channel = {
+        channel: _runtime()[0].organism.observe_reached_source_site_count(
+            THERMAL_SENSOR_ID,
+            f"temperature-{channel}",
+        )
+        for channel in THERMAL_CHANNELS
+    }
+    reached = sum(reached_by_channel.values())
+    return _section(
+        True,
+        (
+            "native_core_and_cutaneous_thermoreceptors_persisted"
+            if reached == THERMAL_PORT_COUNT
+            else "native_thermal_receptor_law_mounted_awaiting_occurrence"
+        ),
+        "the authenticated home/body heat circuit conserves exact energy in "
+        "four room-air stocks plus cutaneous and core stocks; two local body "
+        "sites carry their physical temperatures through the exact native "
+        "thermal receptor-work law. No comfort label, thermostat score, or "
+        "authored thermal meaning reaches the organism.",
+        anatomy_receipt_sha256=observation.anatomy_receipt_sha256,
+        core_temperature_millikelvin={
+            "numerator": by_id["body:core"].numerator,
+            "denominator": by_id["body:core"].denominator,
+        },
+        cutaneous_temperature_millikelvin={
+            "numerator": by_id["body:cutaneous-shell"].numerator,
+            "denominator": by_id["body:cutaneous-shell"].denominator,
+        },
+        declared_receptor_interval_millikelvin=[
+            THERMAL_MIN_MILLIKELVIN,
+            THERMAL_MAX_MILLIKELVIN,
+        ],
+        latest_thermal_transition_receipt_sha256=(
+            observation.latest_transition_receipt_sha256
+        ),
+        native_neuronal_participation=reached == THERMAL_PORT_COUNT,
+        reached_site_count_by_channel=reached_by_channel,
+        transported_site_count=THERMAL_PORT_COUNT,
+        world_observation_receipt_sha256=(
+            observation.world_observation_receipt_sha256
+        ),
+        world_revision=observation.world_revision,
     )
 
 
@@ -6439,6 +6614,119 @@ def _articulatory_body_ports(
     )
 
 
+def _thermal_body_temperatures() -> tuple[Fraction, Fraction]:
+    """Current cutaneous and core temperature from the one world authority."""
+
+    if not THERMAL_PORT_COUNT:
+        raise RuntimeError("thermal body anatomy is not mounted")
+    observation = _world().thermal_observation()
+    by_id = dict(zip(
+        observation.node_ids,
+        observation.temperatures_millikelvin,
+        strict=True,
+    ))
+    try:
+        return by_id["body:cutaneous-shell"], by_id["body:core"]
+    except KeyError as error:
+        raise RuntimeError("thermal body lost its core or cutaneous node") from error
+
+
+def _thermal_body_endpoints(execution: Any) -> tuple[
+    tuple[Fraction, Fraction], tuple[Fraction, Fraction]
+]:
+    """Exact before/after body temperatures for one coupled world action."""
+
+    endpoints = _world().thermal_endpoints_for_execution(execution)
+    before = dict(zip(
+        endpoints.node_ids,
+        endpoints.before_temperatures_millikelvin,
+        strict=True,
+    ))
+    after = dict(zip(
+        endpoints.node_ids,
+        endpoints.after_temperatures_millikelvin,
+        strict=True,
+    ))
+    node_ids = ("body:cutaneous-shell", "body:core")
+    try:
+        return (
+            tuple(before[node_id] for node_id in node_ids),
+            tuple(after[node_id] for node_id in node_ids),
+        )
+    except KeyError as error:
+        raise RuntimeError("thermal action lost its body endpoints") from error
+
+
+def _thermal_ports(
+    source_times: tuple[Fraction, ...],
+    temperature_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
+    *,
+    anatomy_quiescent: bool = False,
+) -> tuple[NativeSensorySubstreamInput, ...]:
+    """Two tonic thermoreceptors fed only by physical temperature nodes."""
+
+    if not THERMAL_PORT_COUNT:
+        return ()
+    frame_count = len(source_times)
+    if anatomy_quiescent:
+        trajectories = tuple(
+            (Fraction(0),) * frame_count for _ in THERMAL_CHANNELS
+        )
+    elif temperature_trajectories is None:
+        current = _thermal_body_temperatures()
+        trajectories = tuple(
+            (temperature,) * frame_count for temperature in current
+        )
+    else:
+        trajectories = temperature_trajectories
+    if len(trajectories) != THERMAL_PORT_COUNT or any(
+        len(signal) != frame_count for signal in trajectories
+    ):
+        raise ValueError("thermal receptor trajectories changed anatomy or clock")
+    span = THERMAL_MAX_MILLIKELVIN - THERMAL_MIN_MILLIKELVIN
+    normalized = []
+    for channel, signal in zip(THERMAL_CHANNELS, trajectories, strict=True):
+        values = tuple(
+            value
+            if anatomy_quiescent
+            else (value - THERMAL_MIN_MILLIKELVIN) / span
+            for value in signal
+        )
+        if any(not Fraction(0) <= value <= Fraction(1) for value in values):
+            raise ValueError(
+                f"thermal channel {channel!r} left its declared receptor interval"
+            )
+        normalized.append(values)
+    topology_start = (
+        INTEROCEPTION_PORT_COUNT
+        + DISPLACEMENT_PORT_COUNT
+        + ARTICULATORY_BODY_PORT_COUNT
+    )
+    return tuple(
+        NativeSensorySubstreamInput(
+            sense=PhysicalSense.BODY,
+            sensor_id=THERMAL_SENSOR_ID,
+            substream_id=f"temperature-{channel}",
+            topology_index=topology_start + index,
+            coordinates=(
+                NativeAxisCoordinate("body-compartment", channel),
+                NativeAxisCoordinate(
+                    "thermal-reference-interval",
+                    "273000-to-323000-millikelvin",
+                ),
+            ),
+            physical_quantity=THERMAL_QUANTITY,
+            physical_unit=THERMAL_UNIT,
+            source_times=source_times,
+            normalized_signal=tuple(float(value) for value in signal),
+            phase_turns=(Fraction(0),) * frame_count,
+        )
+        for index, (channel, signal) in enumerate(
+            zip(THERMAL_CHANNELS, normalized, strict=True)
+        )
+    )
+
+
 def _declared_composition(
     value: object,
     channels: tuple[str, ...],
@@ -6846,6 +7134,7 @@ def _lesson_port_groups() -> tuple[tuple[int, ...], ...]:
     append_group(SMELL_PORT_COUNT)
     append_group(DISPLACEMENT_PORT_COUNT)
     append_group(ARTICULATORY_BODY_PORT_COUNT)
+    append_group(THERMAL_PORT_COUNT)
     if cursor != LESSON_PORT_COUNT:
         raise ValueError("mounted lesson groups do not partition the sensorium")
     return tuple(groups)
@@ -6891,6 +7180,7 @@ def _declared_anatomy_episode() -> Any:
     observed[PhysicalSense.BODY] = (
         observed.get(PhysicalSense.BODY, ())
         + _articulatory_body_ports(times, None)
+        + _thermal_ports(times, anatomy_quiescent=True)
     )
     return settle_native_joint_source_episode(
         assembly_id="guala-production-declared-anatomy",
@@ -9509,6 +9799,19 @@ def _action_consequence_episode(
         if before_smell is not None and after_smell is not None
         else None
     )
+    thermal_trajectories = None
+    thermal_changed = 0
+    if THERMAL_PORT_COUNT:
+        before_thermal, after_thermal = _thermal_body_endpoints(execution)
+        thermal_trajectories = tuple(
+            zip(before_thermal, after_thermal, strict=True)
+        )
+        thermal_changed = sum(
+            left != right
+            for left, right in zip(
+                before_thermal, after_thermal, strict=True
+            )
+        )
     episode = _whole_roster_hop_episode(
         (
             "native-action-consequence-"
@@ -9522,6 +9825,7 @@ def _action_consequence_episode(
         surface_trajectories=surface_trajectories,
         taste_trajectories=taste_trajectories,
         smell_trajectories=smell_trajectories,
+        thermal_trajectories=thermal_trajectories,
     )
 
     def changed_count(
@@ -9551,6 +9855,11 @@ def _action_consequence_episode(
             "changed": 0,
             "sensor_id": ARTICULATORY_BODY_SENSOR_ID,
             "transported": ARTICULATORY_BODY_PORT_COUNT,
+        },
+        "thermal": {
+            "changed": thermal_changed,
+            "sensor_id": THERMAL_SENSOR_ID,
+            "transported": THERMAL_PORT_COUNT,
         },
         "tactile": {"changed": 0, "transported": TOUCH_PORT_COUNT},
         "visual": {
@@ -10220,6 +10529,7 @@ def _whole_roster_hop_episode(
     taste_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     smell_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     articulated: tuple[tuple[float, ...], ...] | None = None,
+    thermal_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
 ) -> Any:
     """One hop over the whole declared roster on one shared clock.
 
@@ -10281,6 +10591,7 @@ def _whole_roster_hop_episode(
     observed[PhysicalSense.BODY] = (
         observed.get(PhysicalSense.BODY, ())
         + _articulatory_body_ports(times, articulated)
+        + _thermal_ports(times, thermal_trajectories)
     )
     if cochlear is not None and cochlear[0] != times:
         raise ValueError("coexisting sensor structures do not share one source clock")
@@ -10379,6 +10690,17 @@ def _compact_whole_roster_signal_body(
         ARTICULATORY_BODY_PORT_COUNT,
         "quiescent articulatory body",
     )
+    if THERMAL_PORT_COUNT:
+        current_temperatures = _thermal_body_temperatures()
+        span = THERMAL_MAX_MILLIKELVIN - THERMAL_MIN_MILLIKELVIN
+        constant_ports(
+            tuple(
+                (temperature - THERMAL_MIN_MILLIKELVIN) / span
+                for temperature in current_temperatures
+            ),
+            THERMAL_PORT_COUNT,
+            "tonic thermal body",
+        )
     if len(signals) != LESSON_PORT_COUNT * frame_count:
         raise ValueError("compact lesson signals do not cover the authored anatomy")
     if sys.byteorder != "little":
@@ -13154,6 +13476,12 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         # dropping it, and her eight olfactory and five gustatory channels are
         # exactly the world's eight odorant and five tastant channels.
         tasted, smelled = _world_chemistry(execution.before, execution.after)
+        thermal_trajectories = None
+        if THERMAL_PORT_COUNT:
+            before_thermal, after_thermal = _thermal_body_endpoints(execution)
+            thermal_trajectories = tuple(
+                zip(before_thermal, after_thermal, strict=True)
+            )
         times = _quiescent_hop_times()
         silence = (0.0,) * len(times)
         episodes = [
@@ -13166,6 +13494,9 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     moved=moved if hop == 0 else None,
                     tasted=tasted,
                     smelled=smelled,
+                    thermal_trajectories=(
+                        thermal_trajectories if hop == 0 else None
+                    ),
                 ),
                 [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
             )

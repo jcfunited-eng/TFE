@@ -199,6 +199,10 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "a013_articulated_body_cold_restore_exact": True,
         "a013_articulated_body_python_callback_count": 0,
     }
+    thermal_proof = {
+        "a013_thermal_body_rehearsed": True,
+        "a013_thermal_body_receptor_count": 2,
+    }
     monkeypatch.setattr(probe, "_arguments", _arguments)
     monkeypatch.setattr(
         probe,
@@ -214,6 +218,11 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         probe,
         "_rehearse_a013_articulated_body",
         lambda *_args, **_kwargs: body_proof,
+    )
+    monkeypatch.setattr(
+        probe,
+        "_rehearse_a013_thermal_body",
+        lambda *_args, **_kwargs: thermal_proof,
     )
 
     assert probe.main() == 0
@@ -244,6 +253,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "source_mount_read_only": True,
         "tick": 23_723_846,
         **body_proof,
+        **thermal_proof,
     }
     assert receipt == hashlib.sha256(probe._canonical(proof)).hexdigest()
 

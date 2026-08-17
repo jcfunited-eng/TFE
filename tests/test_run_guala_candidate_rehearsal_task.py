@@ -14,6 +14,21 @@ IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 GIT_SHA = "a" * 40
 IMAGE = "sha256:" + "b" * 64
 STATE_SHA = "c" * 64
+THERMAL_PROOF = {
+    "a013_thermal_body_rehearsed": True,
+    "a013_thermal_body_world_revision_before": 0,
+    "a013_thermal_body_world_revision_after": 1,
+    "a013_thermal_body_receptor_count": 2,
+    "a013_thermal_body_reached_site_counts": [1, 1],
+    "a013_thermal_body_episode_port_count": 111,
+    "a013_thermal_body_episode_sample_count": 222,
+    "a013_thermal_body_dsf_delivery_count": 186,
+    "a013_thermal_body_transition_receipt_sha256": "1" * 64,
+    "a013_thermal_body_anatomy_receipt_sha256": "2" * 64,
+    "a013_thermal_body_world_state_sha256": "3" * 64,
+    "a013_thermal_body_cold_restore_exact": True,
+    "a013_thermal_body_python_callback_count": 0,
+}
 
 
 def _task_definition() -> dict[str, object]:
@@ -158,7 +173,7 @@ def test_fresh_native_current_restore_has_no_legacy_generation_arguments() -> No
         ),
         (
             "cold-restore",
-            "guala.production_native_current_cold_restore.v7",
+            "guala.production_native_current_cold_restore.v8",
             True,
         ),
     ],
@@ -379,7 +394,7 @@ def test_cold_restore_requires_exact_c021_physical_rest_and_wake() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -447,7 +462,7 @@ def test_cold_restore_requires_exact_c022_internal_consolidation() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -515,7 +530,7 @@ def test_cold_restore_requires_exact_c023_causal_cross_context_use() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -567,6 +582,7 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
         "a013_articulated_body_neutral_observation": True,
         "a013_articulated_body_cold_restore_exact": True,
         "a013_articulated_body_python_callback_count": 0,
+        **THERMAL_PROOF,
         "cold_restore_exact": True,
         "complete_neuron_count": 217,
         "current_format_migration_rehearsed": False,
@@ -579,7 +595,7 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 442_430,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -659,7 +675,7 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "source_advanced_after_baseline": False,
         "source_identity": IDENTITY,
         "source_mount_read_only": True,
@@ -817,7 +833,7 @@ def test_cold_restore_requires_exact_distributed_recall_evidence() -> None:
         "raw_glorun_current_only": True,
         "resident_state_bytes": 43_384_308,
         "resident_state_sha256": STATE_SHA,
-        "schema": "guala.production_native_current_cold_restore.v7",
+        "schema": "guala.production_native_current_cold_restore.v8",
         "sparse_attention_cold_replay_exact": True,
         "sparse_attention_current_route_count": 0,
         "sparse_attention_current_routes_sha256": "c" * 64,

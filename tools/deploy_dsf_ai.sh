@@ -732,6 +732,18 @@ if (
     or proof.get("a013_articulated_body_neutral_observation") is not True
     or proof.get("a013_articulated_body_cold_restore_exact") is not True
     or proof.get("a013_articulated_body_python_callback_count") != 0
+    or proof.get("a013_thermal_body_rehearsed") is not True
+    or proof.get("a013_thermal_body_world_revision_before") != 0
+    or proof.get("a013_thermal_body_world_revision_after") != 1
+    or proof.get("a013_thermal_body_receptor_count") != 2
+    or proof.get("a013_thermal_body_reached_site_counts") != [1, 1]
+    or proof.get("a013_thermal_body_episode_port_count") != 111
+    or proof.get("a013_thermal_body_episode_sample_count") != 222
+    or not isinstance(proof.get("a013_thermal_body_dsf_delivery_count"), int)
+    or isinstance(proof["a013_thermal_body_dsf_delivery_count"], bool)
+    or proof["a013_thermal_body_dsf_delivery_count"] <= 0
+    or proof.get("a013_thermal_body_cold_restore_exact") is not True
+    or proof.get("a013_thermal_body_python_callback_count") != 0
     or not re.fullmatch(
         r"[0-9a-f]{64}",
         proof.get("a013_articulated_body_successor_state_sha256", ""),
@@ -739,8 +751,16 @@ if (
     or not re.fullmatch(
         r"[0-9a-f]{64}", proof.get("a013_articulated_body_state_sha256", "")
     )
+    or any(
+        not re.fullmatch(r"[0-9a-f]{64}", proof.get(name, ""))
+        for name in (
+            "a013_thermal_body_transition_receipt_sha256",
+            "a013_thermal_body_anatomy_receipt_sha256",
+            "a013_thermal_body_world_state_sha256",
+        )
+    )
 ):
-    raise SystemExit("A-013 articulated-body rehearsal changed")
+    raise SystemExit("A-013 articulated and thermal body rehearsal changed")
 '
     if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \

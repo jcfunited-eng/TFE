@@ -90,6 +90,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/sha256.rs",
     "native/guala_core/src/sparse_electrical_contact.rs",
     "native/guala_core/src/tactile_receptor_work.rs",
+    "native/guala_core/src/thermal_receptor_work.rs",
     "native/guala_core/src/vestibular_joint_source_builder.rs",
     "native/guala_core/src/vestibular_neuron_path.rs",
     "native/guala_core/src/virtual_articulated_body.rs",

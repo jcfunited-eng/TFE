@@ -122,6 +122,11 @@ use crate::tactile_receptor_work::{
     quantize_tactile_delivery, TactileReceptorAnatomy, TactileReceptorWorkError,
     CONTACT_REFERENCE_OCCUPANCY_UNIT, CONTACT_SITE_OCCUPANCY_QUANTITY,
 };
+use crate::thermal_receptor_work::{
+    derive_thermal_receptor_sample_range_work, quantize_thermal_delivery,
+    ThermalReceptorAnatomy, ThermalReceptorWorkError,
+    THERMORECEPTOR_REFERENCE_INTERVAL_UNIT, THERMORECEPTOR_TEMPERATURE_QUANTITY,
+};
 use crate::vestibular_neuron_path::{
     create_single_vertex_vestibular_reached_cohort,
     specialize_single_vertex_vestibular_reached_cohort, FunctionalVestibularError,
@@ -4124,6 +4129,24 @@ impl ResidentCognitiveFormationState {
                                                 )?;
                                             settlement.transduced_energy_zeptojoules
                                         }
+                                        ReceptorLaw::ThermalBody => {
+                                            let thermal_anatomy =
+                                                exact_thermal_receptor_anatomy(
+                                                    neuron_anatomy.gate_population(),
+                                                )?;
+                                            let settlement =
+                                                derive_thermal_receptor_sample_range_work(
+                                                    source,
+                                                    perspective,
+                                                    &thermal_anatomy,
+                                                    field_gate_interval.first_sev,
+                                                    field_gate_interval.last_sev,
+                                                )
+                                                .map_err(
+                                                    FormationError::ThermalWorkUnavailable,
+                                                )?;
+                                            settlement.transduced_energy_zeptojoules
+                                        }
                                     };
                                     if !transduced_energy_zeptojoules.is_zero() {
                                         exogenous_receptor_energy = Some(true);
@@ -4213,6 +4236,12 @@ impl ResidentCognitiveFormationState {
                                                         error.into(),
                                                     )
                                                 })?,
+                                            ReceptorLaw::ThermalBody => population
+                                                .map_err(|error| {
+                                                    FormationError::ThermalWorkUnavailable(
+                                                        error.into(),
+                                                    )
+                                                })?,
                                         }
                                     } else {
                                         match law {
@@ -4263,6 +4292,19 @@ impl ResidentCognitiveFormationState {
                                             )
                                             .map_err(
                                                 FormationError::ArticulatoryWorkUnavailable,
+                                            )?
+                                        }
+                                        ReceptorLaw::ThermalBody => {
+                                            quantize_thermal_delivery(
+                                                &transduced_energy_zeptojoules,
+                                                predecessor_neuron.receptor_quantum_residue,
+                                                neuron_anatomy
+                                                    .gate_dissipation_quantum_zeptojoules(),
+                                                window.opening_threshold_quanta,
+                                                window.window_cap_quanta,
+                                            )
+                                            .map_err(
+                                                FormationError::ThermalWorkUnavailable,
                                             )?
                                         }
                                         }
@@ -11709,6 +11751,25 @@ fn exact_articulatory_receptor_anatomy(
     .map_err(FormationError::ArticulatoryWorkUnavailable)
 }
 
+/// Core and cutaneous thermoreceptors retain their own physical quantity but
+/// use the organism's one existing full-scale receptor-energy declaration.
+/// This supplies material sensitivity only; it adds no thermal set point,
+/// comfort score, or semantic polarity.
+fn exact_thermal_receptor_anatomy(
+    aperture_population: u128,
+) -> Result<ThermalReceptorAnatomy, FormationError> {
+    if aperture_population == 0 {
+        return Err(FormationError::NoncanonicalState);
+    }
+    ThermalReceptorAnatomy::new(
+        BigRational::from_integer(BigInt::from(4)),
+        BigRational::from_integer(BigInt::from(aperture_population)),
+        BigRational::new(BigInt::from(1), BigInt::from(2)),
+        BigRational::from_integer(BigInt::from(1)),
+    )
+    .map_err(FormationError::ThermalWorkUnavailable)
+}
+
 /// Which mounted receptor law governs one occurrence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ReceptorLaw {
@@ -11717,6 +11778,7 @@ pub(crate) enum ReceptorLaw {
     Touch,
     Chemical,
     ArticulatoryBody,
+    ThermalBody,
 }
 
 fn receptor_law_for_reached_coordinates(
@@ -11805,6 +11867,13 @@ fn receptor_law_for_ports(
     }) {
         return Some(ReceptorLaw::ArticulatoryBody);
     }
+    if all_ports(|port| {
+        port.sense == PhysicalSourceSense::Body.declared_layer()
+            && port.physical_quantity == THERMORECEPTOR_TEMPERATURE_QUANTITY
+            && port.physical_unit == THERMORECEPTOR_REFERENCE_INTERVAL_UNIT
+    }) {
+        return Some(ReceptorLaw::ThermalBody);
+    }
     None
 }
 
@@ -11827,6 +11896,7 @@ pub(crate) enum FormationError {
     TactileWorkUnavailable(TactileReceptorWorkError),
     ChemicalWorkUnavailable(ChemicalReceptorWorkError),
     ArticulatoryWorkUnavailable(ArticulatoryReceptorWorkError),
+    ThermalWorkUnavailable(ThermalReceptorWorkError),
     LocalGateWorkUnavailable(ReceptorDeliveryError),
     PhysicalSettlementUnavailable(ReachedCohortError),
     ResidentElectricalUnavailable(SparseElectricalError),
@@ -11899,6 +11969,10 @@ impl fmt::Display for FormationError {
             Self::ArticulatoryWorkUnavailable(error) => write!(
                 output,
                 "exact articulatory body receptor work is unavailable: {error:?}"
+            ),
+            Self::ThermalWorkUnavailable(error) => write!(
+                output,
+                "exact thermal body receptor work is unavailable: {error:?}"
             ),
             Self::LocalGateWorkUnavailable(error) => {
                 write!(output, "exact local gate work is unavailable: {error:?}")
