@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import subprocess
+import struct
 
 import pytest
 
+from dsf_ai_service import native_production_app as production
+from dsf_ai_service.bounded_source_media_store import BoundedSourceMediaStore
 from dsf_ai_service.bounded_video_sensory_source import decode_bounded_video
 
 
@@ -57,6 +60,37 @@ def test_silent_video_carries_true_silence_not_invented_sound(tmp_path) -> None:
 
     assert decoded.hop_count == 4
     assert decoded.pcm_s16le == b"\x00" * (4 * 4_000 * 2)
+
+
+def test_preserved_video_fits_existing_joint_sensorium_without_new_path(
+    tmp_path,
+) -> None:
+    source = _fixture(tmp_path, sound=True)
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+    record = store.admit(
+        material_kind="video",
+        origin_kind="local_offer",
+        origin_locator="one-second-blue-and-tone.mp4",
+        source_bytes=source,
+    )
+    decoded = decode_bounded_video(store.source_bytes(record.receipt_sha256))
+    rosters = [
+        production._live_frame_luminance(frame)
+        for frame in decoded.frame_png_bytes
+    ]
+    samples = struct.unpack(
+        f"<{len(decoded.pcm_s16le) // 2}h",
+        decoded.pcm_s16le,
+    )
+    episodes = production._live_audiovisual_hop_episodes(
+        record.receipt_sha256,
+        rosters,
+        samples,
+        decoded.sample_rate_hz,
+    )
+
+    assert len(episodes) == decoded.hop_count
+    assert all(len(roster) == production.CARD_SURFACE_PORT_COUNT for roster in rosters)
 
 
 def test_audio_only_source_is_not_mislabeled_as_video(tmp_path) -> None:
