@@ -19,7 +19,10 @@ percentile of the live mean.
       the difference is found and named.
   otherwise -> the live record is inside the object's own dispersion.
 
-MATCHING (each engine judged against the exit law it actually ran):
+MATCHING (each engine judged against the exit law it actually ran;
+since 2026-08-17 the r2 object carries the same -20% close-stop the
+live law runs, and ANOMALY-CUT closures count in the live samples —
+excluding the losses from the self-check would be survivorship):
   v1.1 / v2 closures  -> CLOCK object (5th-session close returns)
   v3 closures         -> R2 object (first close <= 0.95 x entry,
                          else 5th-session close)
@@ -46,12 +49,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 HERD = os.path.join(ROOT, "artifacts", "ch4_uf", "herd_state_daily.parquet")
 CACHE = os.path.join(ROOT, "artifacts", "ch4_uf",
-                     "ch3_fade_event_returns2.parquet")
+                     "ch3_fade_event_returns3.parquet")
 LOG = os.path.join(ROOT, "artifacts", "vtvr_observer", "ch3_shadow_log.json")
 OUT = os.path.join(ROOT, "artifacts", "ch4_uf", "ch3_kill_test.json")
 
 EVENT_GAIN, VOL_MULT, PRICE_FLOOR, HOLD, HERD_END = 8.0, 3.0, 5.0, 5, 20260324
 HARVEST_X = 0.95
+ANOMALY_STOP_PCT = 20.0  # live law since 2026-08-17; object mirrors it
 KILL_PCTL = 5.0
 DRAWS = 100_000
 
@@ -84,7 +88,8 @@ def build_event_returns():
             entry = c[t]
             k = HOLD
             for j in range(1, HOLD + 1):
-                if c[t + j] <= HARVEST_X * entry:
+                if (c[t + j] <= HARVEST_X * entry
+                        or c[t + j] >= (1 + ANOMALY_STOP_PCT / 100) * entry):
                     k = j
                     break
             rows.append((sym, int(d[t]),
@@ -104,7 +109,7 @@ def main():
     log = json.load(open(LOG))
     closures = [f for f in log["finds"]
                 if str(f.get("engine", "")).startswith("ch3_reveal_fade")
-                and f["status"] in ("TIME", "HARVEST")]
+                and f["status"] in ("TIME", "HARVEST", "ANOMALY-CUT")]
     samples = {
         "clock_engines_v1.1_v2": {
             "object_col": "clock",

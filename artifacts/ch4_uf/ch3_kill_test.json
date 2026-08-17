@@ -1,18 +1,21 @@
 {
- "ran_at_utc": "2026-08-13T06:56:24.069177+00:00",
- "object_events": 18622,
+ "ran_at_utc": "2026-08-17T16:49:26.571745+00:00",
+ "object_events": 18603,
  "kill_threshold_pctl": 5.0,
  "samples": {
   "clock_engines_v1.1_v2": {
-   "n_closures": 10,
-   "live_mean_pct": 0.346,
-   "object_mean_pct": 2.507,
-   "live_mean_percentile": 31.83,
+   "n_closures": 18,
+   "live_mean_pct": -1.08,
+   "object_mean_pct": 2.496,
+   "live_mean_percentile": 21.86,
    "broken": false
   },
   "harvest_engine_v3": {
-   "n_closures": 0,
-   "note": "no closures yet"
+   "n_closures": 6,
+   "live_mean_pct": -12.525,
+   "object_mean_pct": 1.264,
+   "live_mean_percentile": 5.2,
+   "broken": false
   }
  },
  "verdict": "INSIDE THE OBJECT \u2014 every populated live sample is within its own object's dispersion; the channel keeps running"

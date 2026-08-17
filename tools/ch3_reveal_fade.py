@@ -118,6 +118,7 @@ CASH0 = 100_000.0
 GROSS_MULT = 2.0          # declared margin envelope: gross <= 2x capital
 HARVEST_X = 0.95          # R2: exit at first close <= 0.95 x entry
 MAX_EVENT_FRAC = 0.10     # ruin cap per event (survival, not alpha)
+ANOMALY_STOP_PCT = 20.0   # Joe's rule 2026-08-17: cut shorts 20%+ underwater
 
 
 def load_log():
@@ -172,12 +173,17 @@ def main():
         if px is None:
             continue
         harvest = float(px) <= HARVEST_X * f["entry_px"]
-        if not harvest and li - ei < HOLD_SESSIONS:
+        # ANOMALY STOP (Joe's rule 2026-08-17, after WETO): a short 20%+
+        # underwater at a close is cut there — visible blow-ups get
+        # cancelled, not ridden to the backstop. Survival constant.
+        anomaly = float(px) >= (1 + ANOMALY_STOP_PCT / 100) * f["entry_px"]
+        if not harvest and not anomaly and li - ei < HOLD_SESSIONS:
             continue
         ret = 100 * (1 - float(px) / f["entry_px"])          # short
         pnl = round(f["notional"] * ret / 100, 2)
         log["book"]["cash"] = round(log["book"]["cash"] + f["notional"] + pnl, 2)
-        f.update(status="HARVEST" if harvest else "TIME", resolved=now,
+        f.update(status=("HARVEST" if harvest else
+                         ("ANOMALY-CUT" if anomaly else "TIME")), resolved=now,
                  ret_pct=round(ret, 2), pnl=pnl, exit_px=float(px))
         settled += 1
 

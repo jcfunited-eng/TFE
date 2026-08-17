@@ -62,6 +62,7 @@ BOOK_PATH = os.path.join(ROOT, "artifacts", "vtvr_observer", "ch6_book.json")
 CASH0 = 100_000.0
 HARVEST_PCT = 5.0      # a winner is armed at or above this gain
 GIVEBACK_PP = 1.0      # points off its peak that harvests an armed winner
+ANOMALY_STOP_PCT = 20.0  # Joe 2026-08-17: cut any short 20%+ underwater
 HOLD_SESSIONS = 5      # backstop, same as CH3
 
 
@@ -271,6 +272,14 @@ def poll():
         if not px:
             continue
         gain = 100 * (px / p["entry_px"] - 1.0) * p["side"]
+        # ANOMALY STOP (Joe's order 2026-08-17, after WETO doubled to
+        # -103% while the book watched): a position at ANOMALY_STOP_PCT
+        # or worse against entry is cut at the next check — the visible
+        # blow-ups get cancelled, not ridden to the backstop. A survival
+        # constant, like the ruin cap; declared, not derived.
+        if gain <= -ANOMALY_STOP_PCT:
+            _close(book, sym, p, px, "ANOMALY-CUT", now)
+            continue
         if gain > p.get("peak_gain_pct", 0.0):
             p["peak_gain_pct"] = round(gain, 3)
         if not p.get("armed") and gain >= HARVEST_PCT:
