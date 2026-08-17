@@ -1,0 +1,78 @@
+{
+ "declared": "exploration on <=2021, single best separator + midpoint threshold frozen, confirmed on 2022+; procedure declared in docstring before the run",
+ "events": {
+  "derive": 1277,
+  "confirm": 12068
+ },
+ "derive_feature_table": {
+  "sig_t": {
+   "grenade_med": 0.0132,
+   "winner_med": 0.0057,
+   "separation": 0.093
+  },
+  "sig_slope": {
+   "grenade_med": 0.0057,
+   "winner_med": 0.0014,
+   "separation": 0.052
+  },
+  "act_t": {
+   "grenade_med": 0.3088,
+   "winner_med": 0.299,
+   "separation": 0.022
+  },
+  "act_build": {
+   "grenade_med": 1.5408,
+   "winner_med": 1.403,
+   "separation": 0.061
+  },
+  "r_t": {
+   "grenade_med": 14.0606,
+   "winner_med": 9.2698,
+   "separation": 0.006
+  },
+  "r_slope": {
+   "grenade_med": 12.1549,
+   "winner_med": 7.8105,
+   "separation": 0.005
+  },
+  "up10": {
+   "grenade_med": 5.0,
+   "winner_med": 5.0,
+   "separation": 0.0
+  },
+  "hi10": {
+   "grenade_med": 1.0,
+   "winner_med": 0.0,
+   "separation": 0.5
+  },
+  "vtrend": {
+   "grenade_med": 5.0,
+   "winner_med": 5.0,
+   "separation": 0.0
+  },
+  "prerun": {
+   "grenade_med": 9.9637,
+   "winner_med": 0.6293,
+   "separation": 0.104
+  }
+ },
+ "derived_rule": {
+  "feature": "hi10",
+  "threshold": 0.5,
+  "grenade_side": "above"
+ },
+ "derive_half_performance": {
+  "flagged_n": 598,
+  "flagged_grenade_rate_pct": 14.5,
+  "passed_n": 679,
+  "passed_grenade_rate_pct": 9.0,
+  "base_grenade_rate_pct": 11.6
+ },
+ "CONFIRM_frozen_2022_plus": {
+  "flagged_n": 5288,
+  "flagged_grenade_rate_pct": 16.2,
+  "passed_n": 6780,
+  "passed_grenade_rate_pct": 15.7,
+  "base_grenade_rate_pct": 15.9
+ }
+}
