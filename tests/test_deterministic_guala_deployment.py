@@ -22,7 +22,7 @@ def test_controller_is_one_bounded_reviewed_path() -> None:
     assert "--mode rehearse" not in SCRIPT
     assert "--mode publish" not in SCRIPT
     assert "--mode cold-restore" in SCRIPT
-    assert SCRIPT.count("aws ecs update-service") == 1
+    assert SCRIPT.count("aws ecs update-service") == 2
     assert "--repeat-cutover" not in SCRIPT
     assert "--rehearse-only" in SCRIPT
 
@@ -68,11 +68,27 @@ def test_preflight_and_rehearsal_precede_cutover() -> None:
     rehearsal = SCRIPT.index(
         "python3 tools/run_guala_candidate_rehearsal_task.py"
     )
-    update = SCRIPT.index("aws ecs update-service")
+    drain = SCRIPT.index("drain_live_organism", rehearsal)
+    update = SCRIPT.index("aws ecs update-service", drain)
     live_proof = SCRIPT.index("CURRENT_RUNNING_TASK=$(verify_live_organism")
     pin = SCRIPT.index("image-tag production-current")
     assert pullable_manifest < register < preflight < rehearsal
-    assert rehearsal < update < live_proof < pin
+    assert rehearsal < drain < update < live_proof < pin
+
+
+def test_cutover_drains_the_only_writer_before_starting_successor() -> None:
+    drain = SCRIPT.index("drain_live_organism()")
+    drain_call = SCRIPT.index("drain_live_organism", drain + 1)
+    start = SCRIPT.index(
+        '--task-definition "${CANDIDATE_TASK_DEFINITION}"', drain_call
+    )
+    assert '--desired-count 0' in SCRIPT[drain:drain_call]
+    assert (
+        'counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}'
+        in SCRIPT[drain:drain_call]
+    )
+    assert '--desired-status RUNNING' in SCRIPT[drain:drain_call]
+    assert drain_call < start
 
 
 def test_controller_requires_the_exact_digest_pull_manifest() -> None:

@@ -641,6 +641,48 @@ if (
     printf '%s' "${task_arns}"
 }
 
+drain_live_organism() {
+    local service_json running_tasks
+
+    # A persistent body cannot have two writers, even briefly. ECS rolling
+    # replacement may start the successor while the retiring task is still
+    # completing an atomic unattended interval. Measured in production on
+    # 2026-08-17, that overlap let the retiring task advance CURRENT after the
+    # successor had begun restoring its predecessor. Stop and verify the sole
+    # writer is gone before allowing the successor to start.
+    aws ecs update-service \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service "${ECS_SERVICE}" \
+        --desired-count 0 \
+        --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
+    aws ecs wait services-stable \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"
+    service_json=$(aws ecs describe-services \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}" \
+        --query 'services[0]' --output json)
+    printf '%s' "${service_json}" | python3 -c '
+import json, sys
+service = json.load(sys.stdin)
+counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
+    raise SystemExit(f"production writer did not drain exactly: {counts}")
+'
+    running_tasks=$(aws ecs list-tasks \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service-name "${ECS_SERVICE}" \
+        --desired-status RUNNING \
+        --query 'taskArns' --output text)
+    if [ -n "${running_tasks}" ] && [ "${running_tasks}" != "None" ]; then
+        fail "production retains a running writer after the zero-task drain"
+    fi
+}
+
 inspect_live_rehearsal_source() {
     local expected_task_definition="$1"
     local expected_task_name="${expected_task_definition##*/}"
@@ -780,6 +822,10 @@ print(json.dumps({
         exit 0
     fi
     # The candidate inherits the same current body root it just restored.
+    # Drain the predecessor completely before starting it: deployment
+    # percentages alone do not prevent a retiring task from finishing one
+    # atomic persistence publication after the successor begins restore.
+    drain_live_organism
     aws ecs update-service \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \

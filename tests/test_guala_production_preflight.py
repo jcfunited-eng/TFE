@@ -330,6 +330,8 @@ def test_dry_run_never_executes_and_disables_old_image_rollback() -> None:
         predecessor=predecessor,
     )
     assert plan["executed"] is False
+    assert "update-service" in plan["drain"]
+    assert plan["drain"][plan["drain"].index("--desired-count") + 1] == "0"
     assert "update-service" in plan["cutover"]
     assert any("rollback=false" in item for item in plan["cutover"])
     assert not any("rollback=true" in item for item in plan["cutover"])

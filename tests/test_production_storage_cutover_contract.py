@@ -79,13 +79,18 @@ def test_preflight_and_current_rehearsal_complete_before_the_single_cutover() ->
         "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
     )
     rehearsal_task = DEPLOY.index("--mode cold-restore")
-    turnover = DEPLOY.index("aws ecs update-service", rehearsal_task)
+    drain = DEPLOY.index("drain_live_organism", rehearsal_task)
+    turnover = DEPLOY.index("aws ecs update-service", drain)
     live = DEPLOY.index("CURRENT_RUNNING_TASK=$(verify_live_organism", turnover)
     production_tag = DEPLOY.index(
         "[6/7] Pinning only the live-verified artifact as production-current."
     )
     assert registration < preflight < rehearsal
-    assert rehearsal < rehearsal_task < turnover < live < production_tag
+    assert rehearsal < rehearsal_task < drain < turnover < live < production_tag
+    assert '--desired-count 0' in DEPLOY[
+        DEPLOY.index("drain_live_organism()"):
+        drain
+    ]
     # The continuity cutover reads and rehearses the exact current predecessor;
     # it neither publishes a substitute nor invokes a genesis path.
     assert "PUBLICATION_PROOF=" not in DEPLOY

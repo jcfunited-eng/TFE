@@ -868,6 +868,34 @@ def build_dry_run_plan(
             "--expected-active-generation",
             str(predecessor["active_generation"]),
         ])
+    drain = [
+        "aws",
+        "ecs",
+        "update-service",
+        "--region",
+        AWS_REGION,
+        "--cluster",
+        ECS_CLUSTER,
+        "--service",
+        ECS_SERVICE,
+        "--desired-count",
+        "0",
+        "--deployment-configuration",
+        "maximumPercent=100,minimumHealthyPercent=0,"
+        "deploymentCircuitBreaker={enable=true,rollback=false}",
+    ]
+    drain_wait = [
+        "aws",
+        "ecs",
+        "wait",
+        "services-stable",
+        "--region",
+        AWS_REGION,
+        "--cluster",
+        ECS_CLUSTER,
+        "--services",
+        ECS_SERVICE,
+    ]
     cutover = [
         "aws",
         "ecs",
@@ -901,6 +929,8 @@ def build_dry_run_plan(
     ]
     record = {
         "candidate_rehearsal": rehearsal,
+        "drain": drain,
+        "post_drain_wait": drain_wait,
         "cutover": cutover,
         "post_cutover_wait": wait,
         "executed": False,
