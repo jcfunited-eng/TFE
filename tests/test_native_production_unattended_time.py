@@ -72,6 +72,7 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
                 "external_luminance_present": True,
                 "external_smell_present": False,
                 "passive_interval_receipt_sha256": "33" * 32,
+                "retinal_heading_offset_millidegrees": 0,
                 "world_revision_before": 16,
                 "world_revision": 17,
             },
@@ -88,6 +89,24 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
     production._last_unattended_evidence = None
     production._last_unattended_pause = None
     return admitted_intakes
+
+
+def test_retinal_heading_is_read_from_the_persisted_native_neck(monkeypatch) -> None:
+    readiness = SimpleNamespace(
+        articulated_body_axes=(
+            (0, "torso_pitch", "millidegree", 0, -30_000, 0, 45_000),
+            (2, "neck_yaw", "millidegree", -17_250, -75_000, 0, 75_000),
+        )
+    )
+    organism = SimpleNamespace(readiness=lambda: readiness)
+    monkeypatch.setattr(
+        production,
+        "_restored",
+        SimpleNamespace(organism=organism),
+    )
+    monkeypatch.setattr(production, "_admission", SimpleNamespace())
+
+    assert production._current_retinal_heading_offset_millidegrees() == -17_250
 
 
 def test_unattended_transport_advances_and_persists_world_owned_time(

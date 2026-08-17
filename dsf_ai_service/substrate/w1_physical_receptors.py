@@ -465,7 +465,15 @@ class _OpticalSurface:
 
 def _retinal_projection(
     observation: ObservationSnapshot,
+    *,
+    retinal_heading_offset_millidegrees: int = 0,
 ) -> tuple[tuple[Fraction, ...], ...]:
+    if (
+        isinstance(retinal_heading_offset_millidegrees, bool)
+        or not isinstance(retinal_heading_offset_millidegrees, int)
+        or not -180_000 <= retinal_heading_offset_millidegrees <= 180_000
+    ):
+        raise ValueError("retinal heading offset is outside physical geometry")
     body = _self_body(observation)
     eye = (
         _body_fixed_receptor_position(
@@ -559,7 +567,11 @@ def _retinal_projection(
             continue
         relative_horizontal = _wrap_heading_delta(
             _atan2_millidegrees(dy, dx),
-            body.pose.heading_millidegrees,
+            (
+                body.pose.heading_millidegrees
+                + retinal_heading_offset_millidegrees
+            )
+            % 360_000,
         )
         distance_squared = _position_distance_squared(eye, surface.position)
         distance = isqrt(distance_squared)
@@ -659,11 +671,23 @@ def _retinal_substreams(
     before: ObservationSnapshot,
     after: ObservationSnapshot,
     *,
+    before_retinal_heading_offset_millidegrees: int = 0,
+    after_retinal_heading_offset_millidegrees: int = 0,
     source_time_start: Fraction = Fraction(0),
     source_time_end: Fraction = Fraction(1),
 ) -> tuple[NativeSensorySubstreamInput, ...]:
-    before_pixels = _retinal_projection(before)
-    after_pixels = _retinal_projection(after)
+    before_pixels = _retinal_projection(
+        before,
+        retinal_heading_offset_millidegrees=(
+            before_retinal_heading_offset_millidegrees
+        ),
+    )
+    after_pixels = _retinal_projection(
+        after,
+        retinal_heading_offset_millidegrees=(
+            after_retinal_heading_offset_millidegrees
+        ),
+    )
     result = []
     for row in range(RETINA_ROWS):
         for column in range(RETINA_COLUMNS):
@@ -824,6 +848,8 @@ def physical_receptor_substreams(
     after: ObservationSnapshot,
     *,
     causal_transition: bool,
+    before_retinal_heading_offset_millidegrees: int = 0,
+    after_retinal_heading_offset_millidegrees: int = 0,
     source_time_start: Fraction,
     source_time_end: Fraction,
 ) -> dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]]:
@@ -839,6 +865,12 @@ def physical_receptor_substreams(
         PhysicalSense.SIGHT: _retinal_substreams(
             before,
             after,
+            before_retinal_heading_offset_millidegrees=(
+                before_retinal_heading_offset_millidegrees
+            ),
+            after_retinal_heading_offset_millidegrees=(
+                after_retinal_heading_offset_millidegrees
+            ),
             source_time_start=source_time_start,
             source_time_end=source_time_end,
         ),

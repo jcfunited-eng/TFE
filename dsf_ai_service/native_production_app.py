@@ -975,6 +975,22 @@ def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
     return _world_retinal_luminance_endpoints(substreams)[1]
 
 
+def _current_retinal_heading_offset_millidegrees() -> int:
+    """Read the persisted native neck axis that physically carries the retina."""
+
+    restored, _ = _runtime()
+    axes = restored.organism.readiness().articulated_body_axes
+    matches = tuple(axis for axis in axes if axis[1] == "neck_yaw")
+    if len(matches) != 1:
+        raise RuntimeError("the native body has no unique neck-yaw axis")
+    position = matches[0][3]
+    if isinstance(position, bool) or not isinstance(position, int):
+        raise RuntimeError("the native neck-yaw position changed representation")
+    if not -180_000 <= position <= 180_000:
+        raise RuntimeError("the native neck-yaw position is outside retinal geometry")
+    return position
+
+
 def _world_retinal_luminance_endpoints(
     substreams: tuple[Any, ...],
 ) -> tuple[tuple[float, ...], tuple[float, ...]]:
@@ -10021,10 +10037,13 @@ def _unattended_interval_episodes(
         physical_receptor_substreams,
     )
 
+    retinal_heading = _current_retinal_heading_offset_millidegrees()
     world_streams = physical_receptor_substreams(
         snapshot,
         snapshot,
         causal_transition=False,
+        before_retinal_heading_offset_millidegrees=retinal_heading,
+        after_retinal_heading_offset_millidegrees=retinal_heading,
         source_time_start=Fraction(0),
         source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
     )
@@ -10051,6 +10070,7 @@ def _unattended_interval_episodes(
     return episodes, {
         "external_luminance_present": any(level > 0.0 for level in luminance),
         "external_smell_present": bool(smelled and any(value > 0 for value in smelled)),
+        "retinal_heading_offset_millidegrees": retinal_heading,
         "passive_interval_receipt_sha256": (
             environment_interval.authority_receipt_sha256
         ),
@@ -10080,10 +10100,13 @@ def _action_consequence_episode(
     if action_duration <= 0:
         raise ValueError("action consequence duration must be positive")
     times = (Fraction(0), action_duration)
+    retinal_heading = _current_retinal_heading_offset_millidegrees()
     world_streams = physical_receptor_substreams(
         execution.before,
         execution.after,
         causal_transition=True,
+        before_retinal_heading_offset_millidegrees=retinal_heading,
+        after_retinal_heading_offset_millidegrees=retinal_heading,
         source_time_start=times[0],
         source_time_end=times[1],
     )
@@ -10471,6 +10494,9 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "motor_action": motor_action,
             "organism_tick": after["organism_tick"],
             "receptor_ingress": result["receptor_ingress"],
+            "retinal_heading_offset_millidegrees": environment[
+                "retinal_heading_offset_millidegrees"
+            ],
             "state_sha256": after["state_sha256"],
             "passive_interval_receipt_sha256": environment[
                 "passive_interval_receipt_sha256"
