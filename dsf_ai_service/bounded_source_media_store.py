@@ -390,6 +390,12 @@ class BoundedSourceMediaStore:
             )
             if prior is not None:
                 return prior
+            if any(
+                item.source_bytes_sha256 == source_digest for item in current
+            ):
+                raise BoundedSourceMediaStoreError(
+                    "source-media bytes already have different immutable provenance"
+                )
             if len(current) >= self.max_source_count:
                 raise BoundedSourceMediaStoreError(
                     "source-media count boundary reached"

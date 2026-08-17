@@ -75,6 +75,26 @@ def test_identical_admission_is_idempotent_and_does_not_grow(tmp_path) -> None:
     assert len(tuple((store.entries).iterdir())) == 1
 
 
+def test_identical_bytes_cannot_grow_under_different_provenance(tmp_path) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+    source = b"one physical source"
+    first = store.admit(**_local_source(source_bytes=source))
+
+    with pytest.raises(
+        BoundedSourceMediaStoreError,
+        match="already have different immutable provenance",
+    ):
+        store.admit(
+            **_local_source(
+                origin_locator="renamed-copy.png",
+                source_bytes=source,
+            )
+        )
+
+    assert store.inventory() == (first,)
+    assert len(tuple(store.entries.iterdir())) == 1
+
+
 def test_count_and_total_byte_bounds_refuse_before_writing(tmp_path) -> None:
     count_store = BoundedSourceMediaStore(
         tmp_path / "count",

@@ -37,6 +37,8 @@ plus transport provenance. It provides:
 - immutable SHA-256-verified source bytes;
 - idempotent receipts binding media type, attribution, rights basis, exact
   rights statement, source locator, byte extent, and byte hash;
+- one retained copy per exact source digest; a renamed or relocated duplicate
+  with conflicting immutable provenance is refused instead of stored twice;
 - required edition and language provenance for a named public-domain Project
   Gutenberg response;
 - atomic directory publication without a database;
