@@ -255,7 +255,7 @@
         "guala_curriculum/cards/word-water-v1.png"
       ],
       "name": "physical_curriculum_surfaces",
-      "reason": "The 61 reviewed alphabet, number, and first-word teaching-card rasters mounted as ordinary W1 physical surfaces; no labels or semantic metadata enter the receptor boundary."
+      "reason": "The 61 reviewed alphabet, number, and first-word teaching-card rasters are packaged for bounded physical curriculum presentation; no labels or semantic metadata enter the receptor boundary."
     },
     {
       "archive_prefix": "runtime",
