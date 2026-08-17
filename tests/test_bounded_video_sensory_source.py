@@ -68,9 +68,15 @@ def test_preserved_video_fits_existing_joint_sensorium_without_new_path(
     source = _fixture(tmp_path, sound=True)
     store = BoundedSourceMediaStore(tmp_path / "source-media")
     record = store.admit(
+        attribution="Joseph Forrester",
         material_kind="video",
+        media_type="video/mp4",
         origin_kind="local_offer",
         origin_locator="one-second-blue-and-tone.mp4",
+        rights_basis="owned_by_offeror",
+        rights_statement=(
+            "Offered by its owner for Guala's bounded private experience."
+        ),
         source_bytes=source,
     )
     decoded = decode_bounded_video(store.source_bytes(record.receipt_sha256))

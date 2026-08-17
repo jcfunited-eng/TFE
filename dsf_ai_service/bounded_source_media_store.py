@@ -18,15 +18,23 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-SOURCE_MEDIA_SCHEMA = "guala.bounded_source_media.v1"
+SOURCE_MEDIA_SCHEMA = "guala.bounded_source_media.v2"
 SOURCE_MEDIA_KINDS = frozenset(
     {"audio", "book", "gutenberg_text", "pdf", "picture", "song", "video"}
 )
 SOURCE_ORIGIN_KINDS = frozenset({"local_offer", "project_gutenberg"})
+SOURCE_RIGHTS_BASES = frozenset(
+    {"licensed", "owned_by_offeror", "permission", "public_domain"}
+)
 MAX_SOURCE_MEDIA_BYTES = 24 * 1024 * 1024
 MAX_SOURCE_MEDIA_COUNT = 32
 MAX_SOURCE_MEDIA_TOTAL_BYTES = 256 * 1024 * 1024
 MAX_ORIGIN_LOCATOR_BYTES = 2_048
+MAX_MEDIA_TYPE_BYTES = 128
+MAX_ATTRIBUTION_BYTES = 512
+MAX_RIGHTS_STATEMENT_BYTES = 2_048
+MAX_LANGUAGE_TAG_BYTES = 64
+MAX_EDITION_BYTES = 512
 
 _RECEIPT = re.compile(r"[0-9a-f]{64}")
 
@@ -49,20 +57,53 @@ def _fsync_directory(path: Path) -> None:
         os.close(descriptor)
 
 
+def _bounded_text(value: object, name: str, maximum_bytes: int) -> str:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value != value.strip()
+        or len(value.encode("utf-8")) > maximum_bytes
+    ):
+        raise ValueError(f"{name} changed")
+    return value
+
+
+def _optional_bounded_text(
+    value: object,
+    name: str,
+    maximum_bytes: int,
+) -> str | None:
+    if value is None:
+        return None
+    return _bounded_text(value, name, maximum_bytes)
+
+
 @dataclass(frozen=True, slots=True)
 class SourceMediaRecord:
+    attribution: str
+    edition: str | None
+    language_tag: str | None
     material_kind: str
+    media_type: str
     origin_kind: str
     origin_locator: str
+    rights_basis: str
+    rights_statement: str
     source_bytes_sha256: str
     source_byte_count: int
     receipt_sha256: str
 
     def receipt_payload(self) -> dict[str, object]:
         return {
+            "attribution": self.attribution,
+            "edition": self.edition,
+            "language_tag": self.language_tag,
             "material_kind": self.material_kind,
+            "media_type": self.media_type,
             "origin_kind": self.origin_kind,
             "origin_locator": self.origin_locator,
+            "rights_basis": self.rights_basis,
+            "rights_statement": self.rights_statement,
             "schema": SOURCE_MEDIA_SCHEMA,
             "source_byte_count": self.source_byte_count,
             "source_bytes_sha256": self.source_bytes_sha256,
@@ -125,10 +166,16 @@ class BoundedSourceMediaStore:
                 "source-media record cannot be decoded"
             ) from error
         expected = {
+            "attribution",
+            "edition",
+            "language_tag",
             "material_kind",
+            "media_type",
             "origin_kind",
             "origin_locator",
             "receipt_sha256",
+            "rights_basis",
+            "rights_statement",
             "schema",
             "source_byte_count",
             "source_bytes_sha256",
@@ -138,9 +185,15 @@ class BoundedSourceMediaStore:
         if value.get("schema") != SOURCE_MEDIA_SCHEMA:
             raise BoundedSourceMediaStoreError("source-media schema changed")
         record = SourceMediaRecord(
+            attribution=value.get("attribution"),
+            edition=value.get("edition"),
+            language_tag=value.get("language_tag"),
             material_kind=value.get("material_kind"),
+            media_type=value.get("media_type"),
             origin_kind=value.get("origin_kind"),
             origin_locator=value.get("origin_locator"),
+            rights_basis=value.get("rights_basis"),
+            rights_statement=value.get("rights_statement"),
             source_bytes_sha256=value.get("source_bytes_sha256"),
             source_byte_count=value.get("source_byte_count"),
             receipt_sha256=value.get("receipt_sha256"),
@@ -155,13 +208,53 @@ class BoundedSourceMediaStore:
             or record.origin_kind not in SOURCE_ORIGIN_KINDS
         ):
             raise BoundedSourceMediaStoreError("source-media origin changed")
-        if (
-            not isinstance(record.origin_locator, str)
-            or not record.origin_locator
-            or record.origin_locator != record.origin_locator.strip()
-            or len(record.origin_locator.encode("utf-8")) > MAX_ORIGIN_LOCATOR_BYTES
+        try:
+            _bounded_text(
+                record.origin_locator,
+                "source-media locator",
+                MAX_ORIGIN_LOCATOR_BYTES,
+            )
+            _bounded_text(record.media_type, "media type", MAX_MEDIA_TYPE_BYTES)
+            _bounded_text(
+                record.attribution,
+                "source attribution",
+                MAX_ATTRIBUTION_BYTES,
+            )
+            _bounded_text(
+                record.rights_statement,
+                "rights statement",
+                MAX_RIGHTS_STATEMENT_BYTES,
+            )
+            _optional_bounded_text(
+                record.language_tag,
+                "language tag",
+                MAX_LANGUAGE_TAG_BYTES,
+            )
+            _optional_bounded_text(
+                record.edition,
+                "edition",
+                MAX_EDITION_BYTES,
+            )
+        except ValueError as error:
+            raise BoundedSourceMediaStoreError(str(error)) from error
+        if record.rights_basis not in SOURCE_RIGHTS_BASES:
+            raise BoundedSourceMediaStoreError("source-media rights basis changed")
+        if record.origin_kind == "project_gutenberg" and (
+            record.material_kind != "gutenberg_text"
+            or record.rights_basis != "public_domain"
+            or record.language_tag is None
+            or record.edition is None
         ):
-            raise BoundedSourceMediaStoreError("source-media locator changed")
+            raise BoundedSourceMediaStoreError(
+                "Project Gutenberg provenance is incomplete"
+            )
+        if (
+            record.material_kind == "gutenberg_text"
+            and record.origin_kind != "project_gutenberg"
+        ):
+            raise BoundedSourceMediaStoreError(
+                "Gutenberg text lost its Project Gutenberg origin"
+            )
         digest = hashlib.sha256(source).hexdigest()
         if (
             isinstance(record.source_byte_count, bool)
@@ -204,22 +297,54 @@ class BoundedSourceMediaStore:
     def admit(
         self,
         *,
+        attribution: str,
+        edition: str | None = None,
+        language_tag: str | None = None,
         material_kind: str,
+        media_type: str,
         origin_kind: str,
         origin_locator: str,
+        rights_basis: str,
+        rights_statement: str,
         source_bytes: bytes,
     ) -> SourceMediaRecord:
         if material_kind not in SOURCE_MEDIA_KINDS:
             raise ValueError("source-media kind is not admitted")
         if origin_kind not in SOURCE_ORIGIN_KINDS:
             raise ValueError("source-media origin is not admitted")
-        if (
-            not isinstance(origin_locator, str)
-            or not origin_locator
-            or origin_locator != origin_locator.strip()
-            or len(origin_locator.encode("utf-8")) > MAX_ORIGIN_LOCATOR_BYTES
+        origin_locator = _bounded_text(
+            origin_locator,
+            "source-media locator",
+            MAX_ORIGIN_LOCATOR_BYTES,
+        )
+        media_type = _bounded_text(media_type, "media type", MAX_MEDIA_TYPE_BYTES)
+        attribution = _bounded_text(
+            attribution,
+            "source attribution",
+            MAX_ATTRIBUTION_BYTES,
+        )
+        rights_statement = _bounded_text(
+            rights_statement,
+            "rights statement",
+            MAX_RIGHTS_STATEMENT_BYTES,
+        )
+        language_tag = _optional_bounded_text(
+            language_tag,
+            "language tag",
+            MAX_LANGUAGE_TAG_BYTES,
+        )
+        edition = _optional_bounded_text(edition, "edition", MAX_EDITION_BYTES)
+        if rights_basis not in SOURCE_RIGHTS_BASES:
+            raise ValueError("source-media rights basis is not admitted")
+        if origin_kind == "project_gutenberg" and (
+            material_kind != "gutenberg_text"
+            or rights_basis != "public_domain"
+            or language_tag is None
+            or edition is None
         ):
-            raise ValueError("source-media locator changed")
+            raise ValueError("Project Gutenberg provenance is incomplete")
+        if material_kind == "gutenberg_text" and origin_kind != "project_gutenberg":
+            raise ValueError("Gutenberg text requires Project Gutenberg origin")
         if (
             not isinstance(source_bytes, bytes)
             or not source_bytes
@@ -228,18 +353,30 @@ class BoundedSourceMediaStore:
             raise ValueError("source-media bytes exceed their bound")
         source_digest = hashlib.sha256(source_bytes).hexdigest()
         payload = {
+            "attribution": attribution,
+            "edition": edition,
+            "language_tag": language_tag,
             "material_kind": material_kind,
+            "media_type": media_type,
             "origin_kind": origin_kind,
             "origin_locator": origin_locator,
+            "rights_basis": rights_basis,
+            "rights_statement": rights_statement,
             "schema": SOURCE_MEDIA_SCHEMA,
             "source_byte_count": len(source_bytes),
             "source_bytes_sha256": source_digest,
         }
         receipt = hashlib.sha256(_canonical(payload)).hexdigest()
         record = SourceMediaRecord(
+            attribution=attribution,
+            edition=edition,
+            language_tag=language_tag,
             material_kind=material_kind,
+            media_type=media_type,
             origin_kind=origin_kind,
             origin_locator=origin_locator,
+            rights_basis=rights_basis,
+            rights_statement=rights_statement,
             source_bytes_sha256=source_digest,
             source_byte_count=len(source_bytes),
             receipt_sha256=receipt,

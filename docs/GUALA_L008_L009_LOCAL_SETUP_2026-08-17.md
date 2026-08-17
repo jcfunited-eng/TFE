@@ -35,7 +35,10 @@ Live-Closed. L-005 remains active; L-006 and L-007 remain prerequisites.
 plus transport provenance. It provides:
 
 - immutable SHA-256-verified source bytes;
-- idempotent content/provenance receipts;
+- idempotent receipts binding media type, attribution, rights basis, exact
+  rights statement, source locator, byte extent, and byte hash;
+- required edition and language provenance for a named public-domain Project
+  Gutenberg response;
 - atomic directory publication without a database;
 - 24 MiB per source, 32 committed sources, and 256 MiB total hard limits;
 - fail-closed restore on tampering or interrupted admission; and
@@ -47,22 +50,27 @@ sampled 768x432 light frame and exactly 4,000 mono 16 kHz pressure samples. A
 silent source produces exact zero pressure. The decoder reads no captions,
 transcript, title, object identity, or semantic field.
 
-Focused local evidence: eight tests pass. No native organism, DSF field,
-neuron, retained formation, world, deployment, or production state was used or
-changed by these tests.
+These mechanisms are compiled but unmounted. Focused local tests exercise only
+their bounded custody and physical light/pressure conversion. No native
+organism, DSF field, neuron, retained formation, world, deployment, or
+production state is used or changed by those tests.
 
 ## Required integration after the active learning sequence permits it
 
 The one L-008 integration increment is: preserve the source before decoding,
-then carry only decoded light/pressure through the existing embodied invitation
+place books and pictures as physical objects in the study/library or play video
+and music through bounded physical screen/speaker sources in the audiovisual
+room, then carry only the resulting light/pressure through embodied invitation
 and unchanged full-DSF sensory settlement. The response may expose provenance
 receipts, but those fields remain outside cognition. A successful HTTP response
 is not a learning claim.
 
 The one guided L-009 increment is: require the guide to name one approved
-Gutenberg catalogue entry, preserve the exact fetched response before page
-rendering, and present its pages through the same invited visual path. The
-process-local next-book counter must not be retained or extended.
+Gutenberg catalogue entry with its edition, language, attribution, public-domain
+basis, source URL, and rights statement; preserve the exact fetched response
+before page rendering; create a bounded physical book in the study/library; and
+present its pages through the same invited visual path. The process-local
+next-book counter must not be retained or extended.
 
 The self-selected L-009 increment remains gated. It may open only when an exact
 native physical-choice witness selects among physically presented source

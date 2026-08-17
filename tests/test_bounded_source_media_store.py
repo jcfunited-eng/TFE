@@ -10,21 +10,55 @@ from dsf_ai_service.bounded_source_media_store import (
 )
 
 
+def _local_source(**overrides):
+    arguments = {
+        "attribution": "Joseph Forrester",
+        "material_kind": "picture",
+        "media_type": "image/png",
+        "origin_kind": "local_offer",
+        "origin_locator": "family-photo.png",
+        "rights_basis": "owned_by_offeror",
+        "rights_statement": (
+            "Offered by its owner for Guala's bounded private experience."
+        ),
+        "source_bytes": b"exact-local-source",
+    }
+    arguments.update(overrides)
+    return arguments
+
+
+def _gutenberg_source(**overrides):
+    arguments = {
+        "attribution": "Project Gutenberg",
+        "edition": "11-0.txt",
+        "language_tag": "en",
+        "material_kind": "gutenberg_text",
+        "media_type": "text/plain; charset=utf-8",
+        "origin_kind": "project_gutenberg",
+        "origin_locator": "https://www.gutenberg.org/files/11/11-0.txt",
+        "rights_basis": "public_domain",
+        "rights_statement": (
+            "Project Gutenberg public-domain edition; source terms preserved."
+        ),
+        "source_bytes": b"Project Gutenberg exact returned bytes",
+    }
+    arguments.update(overrides)
+    return arguments
+
+
 def test_exact_source_bytes_and_provenance_survive_restore(tmp_path) -> None:
     store = BoundedSourceMediaStore(tmp_path / "source-media")
     source = b"\x89PNG\r\n\x1a\nexact-local-picture"
-    admitted = store.admit(
-        material_kind="picture",
-        origin_kind="local_offer",
-        origin_locator="family-photo.png",
-        source_bytes=source,
-    )
+    admitted = store.admit(**_local_source(source_bytes=source))
 
     restored = BoundedSourceMediaStore(tmp_path / "source-media")
     assert restored.inventory() == (admitted,)
     assert restored.source_bytes(admitted.receipt_sha256) == source
     projection = admitted.public_projection()
     assert projection["retained_source_bytes"] == len(source)
+    assert projection["media_type"] == "image/png"
+    assert projection["rights_basis"] == "owned_by_offeror"
+    assert projection["attribution"] == "Joseph Forrester"
     assert projection["cognition_authority"] is False
     assert projection["semantic_authority"] is False
     assert "source.bin" not in repr(projection)
@@ -32,12 +66,7 @@ def test_exact_source_bytes_and_provenance_survive_restore(tmp_path) -> None:
 
 def test_identical_admission_is_idempotent_and_does_not_grow(tmp_path) -> None:
     store = BoundedSourceMediaStore(tmp_path / "source-media")
-    arguments = {
-        "material_kind": "gutenberg_text",
-        "origin_kind": "project_gutenberg",
-        "origin_locator": "https://www.gutenberg.org/files/11/11-0.txt",
-        "source_bytes": b"Project Gutenberg exact returned bytes",
-    }
+    arguments = _gutenberg_source()
     first = store.admit(**arguments)
     second = store.admit(**arguments)
 
@@ -54,17 +83,21 @@ def test_count_and_total_byte_bounds_refuse_before_writing(tmp_path) -> None:
         max_total_bytes=8,
     )
     count_store.admit(
-        material_kind="audio",
-        origin_kind="local_offer",
-        origin_locator="first.wav",
-        source_bytes=b"1234",
+        **_local_source(
+            material_kind="audio",
+            media_type="audio/wav",
+            origin_locator="first.wav",
+            source_bytes=b"1234",
+        )
     )
     with pytest.raises(BoundedSourceMediaStoreError, match="count boundary"):
         count_store.admit(
-            material_kind="song",
-            origin_kind="local_offer",
-            origin_locator="second.wav",
-            source_bytes=b"5678",
+            **_local_source(
+                material_kind="song",
+                media_type="audio/wav",
+                origin_locator="second.wav",
+                source_bytes=b"5678",
+            )
         )
     assert len(count_store.inventory()) == 1
     assert not count_store.stage.exists()
@@ -76,17 +109,21 @@ def test_count_and_total_byte_bounds_refuse_before_writing(tmp_path) -> None:
         max_total_bytes=8,
     )
     byte_store.admit(
-        material_kind="pdf",
-        origin_kind="local_offer",
-        origin_locator="first.pdf",
-        source_bytes=b"12345",
+        **_local_source(
+            material_kind="pdf",
+            media_type="application/pdf",
+            origin_locator="first.pdf",
+            source_bytes=b"12345",
+        )
     )
     with pytest.raises(BoundedSourceMediaStoreError, match="byte boundary"):
         byte_store.admit(
-            material_kind="book",
-            origin_kind="local_offer",
-            origin_locator="second.pdf",
-            source_bytes=b"6789",
+            **_local_source(
+                material_kind="book",
+                media_type="application/pdf",
+                origin_locator="second.pdf",
+                source_bytes=b"6789",
+            )
         )
     assert len(byte_store.inventory()) == 1
 
@@ -94,10 +131,12 @@ def test_count_and_total_byte_bounds_refuse_before_writing(tmp_path) -> None:
 def test_tampered_source_or_record_fails_closed(tmp_path) -> None:
     store = BoundedSourceMediaStore(tmp_path / "source-media")
     record = store.admit(
-        material_kind="video",
-        origin_kind="local_offer",
-        origin_locator="short-video.mp4",
-        source_bytes=b"exact-video-source",
+        **_local_source(
+            material_kind="video",
+            media_type="video/mp4",
+            origin_locator="short-video.mp4",
+            source_bytes=b"exact-video-source",
+        )
     )
     source_path = store.entries / record.receipt_sha256 / "source.bin"
     source_path.write_bytes(b"crossed-video-source")
@@ -127,3 +166,23 @@ def test_interrupted_stage_is_never_mistaken_for_committed_media(tmp_path) -> No
 
     with pytest.raises(BoundedSourceMediaStoreError, match="requires recovery"):
         store.inventory()
+
+
+def test_gutenberg_provenance_must_be_complete_and_public_domain(tmp_path) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+
+    with pytest.raises(ValueError, match="provenance is incomplete"):
+        store.admit(**_gutenberg_source(edition=None))
+    with pytest.raises(ValueError, match="provenance is incomplete"):
+        store.admit(**_gutenberg_source(language_tag=None))
+    with pytest.raises(ValueError, match="provenance is incomplete"):
+        store.admit(**_gutenberg_source(rights_basis="licensed"))
+    assert store.inventory() == ()
+
+
+def test_unadmitted_rights_basis_is_refused_before_writing(tmp_path) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+
+    with pytest.raises(ValueError, match="rights basis is not admitted"):
+        store.admit(**_local_source(rights_basis="unknown"))
+    assert store.inventory() == ()
