@@ -9112,11 +9112,12 @@ fn mount_reached_ordering_reach(
         })
         .map(|(mount, lineage)| (*lineage, mount.clone()))
         .collect::<Vec<_>>();
+    let layer_by_lineage = mounted
+        .iter()
+        .map(|(lineage, mount)| (*lineage, mount.place().layer()))
+        .collect::<std::collections::BTreeMap<_, _>>();
     let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
+        layer_by_lineage.get(&lineage).copied()
     };
     let mut active_routes = Vec::<[[u8; 16]; 2]>::new();
     for bond in active_bonds {
@@ -9135,35 +9136,62 @@ fn mount_reached_ordering_reach(
     }
     active_routes.sort_unstable();
 
-    for participants in active_routes {
-        let mut matching = Vec::new();
-        for (candidate, _) in mounted
-            .iter()
-            .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 11)
+    // Index the exact retained neighbourhood of every already-mounted
+    // ordering cell once. The former loop rescanned the complete sparse
+    // fabric for every active route and every layer-11 cell even though the
+    // fabric is unchanged while existing matches are identified. This map is
+    // transient bookkeeping only: its key is the same exact two-lineage
+    // physical participant set, and duplicate cells still fail closed.
+    let ordering_candidates = mounted
+        .iter()
+        .filter_map(|(lineage, mount)| {
+            (mount.source_site().is_none() && mount.place().layer() == 11)
+                .then_some(*lineage)
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    let mut neighbours_by_ordering = ordering_candidates
+        .iter()
+        .copied()
+        .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    for (left, right) in electrical_fabric.contact_endpoints() {
+        let left_lineage = electrical_fabric.lineages()[left];
+        let right_lineage = electrical_fabric.lineages()[right];
+        if ordering_candidates.contains(&left_lineage)
+            && matches!(layer_of(right_lineage), Some(7) | Some(9) | Some(10))
         {
-            let mut neighbours = Vec::new();
-            for (left, right) in electrical_fabric.contact_endpoints() {
-                let left_lineage = electrical_fabric.lineages()[left];
-                let right_lineage = electrical_fabric.lineages()[right];
-                let neighbour = if left_lineage == *candidate {
-                    Some(right_lineage)
-                } else if right_lineage == *candidate {
-                    Some(left_lineage)
-                } else {
-                    None
-                };
-                if let Some(neighbour) = neighbour {
-                    if matches!(layer_of(neighbour), Some(7) | Some(9) | Some(10)) {
-                        neighbours.push(neighbour);
-                    }
-                }
-            }
-            neighbours.sort_unstable();
-            neighbours.dedup();
-            if neighbours.as_slice() == participants {
-                matching.push(*candidate);
-            }
+            neighbours_by_ordering
+                .get_mut(&left_lineage)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                .push(right_lineage);
         }
+        if ordering_candidates.contains(&right_lineage)
+            && matches!(layer_of(left_lineage), Some(7) | Some(9) | Some(10))
+        {
+            neighbours_by_ordering
+                .get_mut(&right_lineage)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                .push(left_lineage);
+        }
+    }
+    let mut matching_by_participants =
+        std::collections::BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
+    for (candidate, mut neighbours) in neighbours_by_ordering {
+        neighbours.sort_unstable();
+        neighbours.dedup();
+        if let [left, right] = neighbours.as_slice() {
+            matching_by_participants
+                .entry([*left, *right])
+                .or_default()
+                .push(candidate);
+        }
+    }
+
+    for participants in active_routes {
+        let matching = matching_by_participants
+            .get(&participants)
+            .cloned()
+            .unwrap_or_default();
         let ordering_lineage = match matching.as_slice() {
             [lineage] => *lineage,
             [] => mount_next_intrinsic_in_layer(

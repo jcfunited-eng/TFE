@@ -292,7 +292,11 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
         def readiness(self) -> SimpleNamespace:
             return SimpleNamespace(organism_tick=37)
 
-        def prepare_admitted(self, _episode, _admissions) -> SimpleNamespace:
+        def prepare_admitted_trajectory(
+            self, episodes, admissions
+        ) -> SimpleNamespace:
+            assert len(episodes) == 1
+            assert len(admissions) == 1
             return SimpleNamespace(
                 token="heard",
                 physically_transitioned_neuron_count=2,

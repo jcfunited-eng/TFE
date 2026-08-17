@@ -27,11 +27,13 @@ def test_unattended_interval_preserves_native_recovered_neuron_count(
         "_unattended_interval_episodes",
         lambda _interval_id: (
             [(object(), [])],
-            {
-                "external_luminance_present": False,
-                "external_smell_present": False,
-                "world_revision": 7,
-            },
+                {
+                    "external_luminance_present": False,
+                    "external_smell_present": False,
+                    "passive_interval_receipt_sha256": "cd" * 32,
+                    "world_revision_before": 6,
+                    "world_revision": 7,
+                },
         ),
     )
     monkeypatch.setattr(

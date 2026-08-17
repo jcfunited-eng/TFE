@@ -942,23 +942,24 @@ def _rehearse_articulation_and_self_hearing(
     # source episodes; it does not start the HTTP app or another runtime.
     from dsf_ai_service.native_production_app import _mono_pcm_hop_episodes
 
-    transitioned = 0
-    fractals = 0
-    body_perturbed = 0
-    hop_count = 0
     self_hearing_start_tick = organism.readiness().organism_tick
-    for episode, admissions in _mono_pcm_hop_episodes(
+    episodes = tuple(_mono_pcm_hop_episodes(
         assembly_prefix=f"c020-cold-self-hearing-{self_hearing_start_tick}",
         samples=pressure_pcm,
         sample_rate_hz=sample_rate_hz,
         articulatory_body=articulatory_body_trajectories,
-    ):
-        heard = organism.prepare_admitted(episode, admissions)
-        transitioned += heard.physically_transitioned_neuron_count
-        fractals += heard.complete_neuron_fractal_count
-        body_perturbed += heard.externally_perturbed_body_receptor_count
-        organism.commit(heard.token)
-        hop_count += 1
+    ))
+    hop_count = len(episodes)
+    if not episodes:
+        raise RuntimeError("articulatory pressure produced no self-hearing interval")
+    heard = organism.prepare_admitted_trajectory(
+        tuple(episode for episode, _ in episodes),
+        tuple(admissions for _, admissions in episodes),
+    )
+    transitioned = heard.physically_transitioned_neuron_count
+    fractals = heard.complete_neuron_fractal_count
+    body_perturbed = heard.externally_perturbed_body_receptor_count
+    organism.commit(heard.token)
     return {
         "applied_motor_quanta": applied_motor_quanta,
         "glottal_open_samples_at_apex": glottal_open_samples_at_apex,

@@ -7456,16 +7456,19 @@ def _commit_admitted_hop(
     """
 
     if isinstance(episode, tuple):
-        evidence: ResidentPrepareEvidence = organism.prepare_admitted_trajectory(
-            episode,
-            tuple(maximum_causal_intervals),
+        evidence: ResidentPrepareEvidence = (
+            organism.commit_admitted_trajectory_direct(
+                episode,
+                tuple(maximum_causal_intervals),
+            )
         )
+        observed = organism.readiness()
     else:
         evidence = organism.prepare_admitted(
             episode,
             maximum_causal_intervals,
         )
-    observed = organism.commit(evidence.token)
+        observed = organism.commit(evidence.token)
     ingress_sense_counts = {
         sense.value: count
         for sense, count in zip(
@@ -9208,21 +9211,24 @@ def _perform_admitted_intake_locked(
                 if error.args != ("CancelledRecruitment",):
                     raise
                 raise _ExactArticulatoryAntagonistCancellation from None
-            self_hearing_hop_count = 0
-            self_hearing_transitioned_neuron_count = 0
-            self_hearing_fractal_count = 0
-            self_articulatory_body_perturbed_neuron_count = 0
-            deferred_recurrent_articulation_count = 0
-            for self_hearing_episode, admissions in _mono_pcm_hop_episodes(
+            self_hearing_episodes = tuple(_mono_pcm_hop_episodes(
                 assembly_prefix=(
                     f"native-self-articulation-{last_hop['organism_tick']}"
                 ),
                 samples=pressure_pcm,
                 sample_rate_hz=sample_rate_hz,
                 articulatory_body=articulatory_body_trajectories,
-            ):
+            ))
+            self_hearing_hop_count = len(self_hearing_episodes)
+            self_hearing_transitioned_neuron_count = 0
+            self_hearing_fractal_count = 0
+            self_articulatory_body_perturbed_neuron_count = 0
+            deferred_recurrent_articulation_count = 0
+            if self_hearing_episodes:
                 last_hop = _commit_admitted_hop(
-                    organism, self_hearing_episode, admissions
+                    organism,
+                    tuple(episode for episode, _ in self_hearing_episodes),
+                    tuple(admissions for _, admissions in self_hearing_episodes),
                 )
                 affective_balance_trajectories = (
                     _advance_bounded_affective_balance_evidence(
@@ -9240,18 +9246,17 @@ def _perform_admitted_intake_locked(
                     last_hop,
                     affective_balance_trajectories,
                 )
-                self_hearing_hop_count += 1
-                committed_hop_count += 1
-                self_hearing_transitioned_neuron_count += last_hop[
+                committed_hop_count += self_hearing_hop_count
+                self_hearing_transitioned_neuron_count = last_hop[
                     "physically_transitioned_neuron_count"
                 ]
-                self_hearing_fractal_count += last_hop[
+                self_hearing_fractal_count = last_hop[
                     "complete_neuron_fractal_count"
                 ]
-                self_articulatory_body_perturbed_neuron_count += last_hop[
+                self_articulatory_body_perturbed_neuron_count = last_hop[
                     "externally_perturbed_body_receptor_count"
                 ]
-                deferred_recurrent_articulation_count += len(
+                deferred_recurrent_articulation_count = len(
                     last_hop["articulatory_unit_recruitments"]
                 )
                 emitted_neuron_fractals.extend(

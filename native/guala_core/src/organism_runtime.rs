@@ -682,6 +682,13 @@ struct PendingResidentOrganismState {
     observation: RuntimeObservation,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+struct UnacknowledgedDirectPredecessor {
+    token: [u8; 32],
+    envelope: Vec<u8>,
+    next_prepare_ordinal: u64,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ResidentPrepareReceipt {
     token: [u8; 32],
@@ -728,6 +735,7 @@ struct CausalIntervalEvidence {
 struct ResidentOrganismRuntime {
     active: ActiveResidentOrganismState,
     pending: Option<PendingResidentOrganismState>,
+    direct_predecessor: Option<UnacknowledgedDirectPredecessor>,
     /// One prepared authored contact growth.  Like a feed it carries no
     /// sensory occurrence, so the mounted joint state and its generation
     /// travel through verbatim and only the cognitive body advances.
@@ -2538,6 +2546,7 @@ impl ResidentOrganismRuntime {
                 observation,
             },
             pending: None,
+            direct_predecessor: None,
             pending_contact_growth: None,
             budget,
             next_prepare_ordinal: 1,
@@ -2590,9 +2599,114 @@ impl ResidentOrganismRuntime {
                 "admitted trajectory must contain at least one episode".into(),
             ));
         }
-        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
             return Err(RuntimeError::PendingCandidateExists);
         }
+        let initial_cognitive = self.active.cognitive.clone();
+        let (pending, receipt, next_prepare_ordinal) =
+            self.build_admitted_trajectory(episodes, initial_cognitive)?;
+        self.pending = Some(pending);
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(receipt)
+    }
+
+    fn commit_admitted_trajectory_direct(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if episodes.is_empty() {
+            return Err(RuntimeError::CognitiveFormation(
+                "admitted trajectory must contain at least one episode".into(),
+            ));
+        }
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let predecessor_envelope = std::mem::take(&mut self.active.envelope);
+        let predecessor_next_prepare_ordinal = self.next_prepare_ordinal;
+        let initial_cognitive = std::mem::take(&mut self.active.cognitive);
+        let built = self.build_admitted_trajectory(episodes, initial_cognitive);
+        let (pending, receipt, next_prepare_ordinal) = match built {
+            Ok(value) => value,
+            Err(error) => {
+                self.active.envelope = predecessor_envelope;
+                let restored = parse_current_envelope(&self.active.envelope, self.budget)
+                    .and_then(|parsed| restore_cognitive_state(&parsed, self.budget));
+                return match restored {
+                    Ok(cognitive) => {
+                        self.active.cognitive = cognitive;
+                        Err(error)
+                    }
+                    Err(restore_error) => Err(RuntimeError::CognitiveFormation(format!(
+                        "direct transition failed ({error}) and predecessor cognition could not be restored ({restore_error})"
+                    ))),
+                };
+            }
+        };
+        let token = pending.token;
+        self.active = ActiveResidentOrganismState {
+            envelope: pending.envelope,
+            mounted: pending.mounted,
+            cognitive: pending.cognitive,
+            vestibular: pending.vestibular,
+            articulated_body: pending.articulated_body,
+            observation: pending.observation,
+        };
+        self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
+            token,
+            envelope: predecessor_envelope,
+            next_prepare_ordinal: predecessor_next_prepare_ordinal,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(receipt)
+    }
+
+    fn acknowledge_direct_commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
+        let predecessor = self
+            .direct_predecessor
+            .as_ref()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        if predecessor.token != token {
+            return Err(RuntimeError::PendingTokenMismatch);
+        }
+        self.direct_predecessor = None;
+        Ok(())
+    }
+
+    fn rollback_direct_commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
+        let predecessor = self
+            .direct_predecessor
+            .as_ref()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        if predecessor.token != token {
+            return Err(RuntimeError::PendingTokenMismatch);
+        }
+        let restored = Self::restore_envelope(predecessor.envelope.clone(), self.budget)?;
+        let next_prepare_ordinal = predecessor.next_prepare_ordinal;
+        self.active = restored.active;
+        self.direct_predecessor = None;
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(())
+    }
+
+    fn build_admitted_trajectory(
+        &self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        initial_cognitive: ResidentCognitiveFormationState,
+    ) -> Result<
+        (
+            PendingResidentOrganismState,
+            ResidentPrepareReceipt,
+            u64,
+        ),
+        RuntimeError,
+    > {
         let derived_budget = self.budget.derive()?;
         let predecessor = self.active.observation.clone();
         let initial_body_source = if self
@@ -2629,7 +2743,7 @@ impl ResidentOrganismRuntime {
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
-        let mut cognitive = Some(self.active.cognitive.clone());
+        let mut cognitive = Some(initial_cognitive);
         let mut aggregate = None;
         let mut causal_interval_evidence = Vec::with_capacity(causal_sources.len());
         let mut receptor_ingress = ResidentReceptorIngressObservation::default();
@@ -2814,7 +2928,7 @@ impl ResidentOrganismRuntime {
             trajectory_authority,
             self.next_prepare_ordinal,
         );
-        self.pending = Some(PendingResidentOrganismState {
+        let pending = PendingResidentOrganismState {
             token,
             envelope,
             mounted,
@@ -2822,9 +2936,8 @@ impl ResidentOrganismRuntime {
             vestibular: self.active.vestibular.clone(),
             articulated_body,
             observation: observation.clone(),
-        });
-        self.next_prepare_ordinal = next_prepare_ordinal;
-        Ok(ResidentPrepareReceipt {
+        };
+        let receipt = ResidentPrepareReceipt {
             token,
             observation,
             phase_counts: MountedTransitionPhaseCounts {
@@ -2842,7 +2955,8 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence,
             articulated_body_consequences,
             body_proprioceptive_sources,
-        })
+        };
+        Ok((pending, receipt, next_prepare_ordinal))
     }
 
     fn prepare_vestibular_trajectory(
@@ -2855,7 +2969,10 @@ impl ResidentOrganismRuntime {
                 "vestibular trajectory must contain at least one interval".into(),
             ));
         }
-        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
             return Err(RuntimeError::PendingCandidateExists);
         }
         let derived_budget = self.budget.derive()?;
@@ -3025,7 +3142,10 @@ impl ResidentOrganismRuntime {
         vestibular: Option<&ResidentVestibularIngress>,
         initialize_articulated_body_proprioception: bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
             return Err(RuntimeError::PendingCandidateExists);
         }
         let derived_budget = self.budget.derive()?;
@@ -3279,7 +3399,10 @@ impl ResidentOrganismRuntime {
         &mut self,
         authored: &[AuthoredDeclaredContact],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some() || self.pending_contact_growth.is_some() {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
             return Err(RuntimeError::PendingCandidateExists);
         }
         let derived_budget = self.budget.derive()?;
@@ -3678,6 +3801,56 @@ impl NativeResidentOrganismRuntime {
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
+    }
+
+    /// Advance one ordered admitted trajectory without cloning the resident
+    /// cognitive body. The predecessor envelope remains rollback authority
+    /// until the caller validates and acknowledges the returned evidence.
+    fn commit_admitted_trajectory_direct(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "admitted trajectory source and interval counts differ",
+            ));
+        }
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime
+                    .commit_admitted_trajectory_direct(&episodes)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    fn acknowledge_direct_commit(&mut self, token: Vec<u8>) -> PyResult<()> {
+        self.runtime
+            .acknowledge_direct_commit(exact_token(token)?)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    fn rollback_direct_commit(&mut self, py: Python<'_>, token: Vec<u8>) -> PyResult<()> {
+        let token = exact_token(token)?;
+        py.allow_threads(|| self.runtime.rollback_direct_commit(token))
+            .map_err(|error| PyValueError::new_err(error.to_string()))
     }
 
     /// Prepare one exact one-millisecond body-and-balance successor.
@@ -6530,6 +6703,81 @@ mod tests {
         );
         candidate.commit(prepared.token).unwrap();
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
+    }
+
+    #[test]
+    fn direct_admitted_trajectory_matches_candidate_commit_and_acknowledges() {
+        let sources = vec![source("direct-trajectory-1"), source("direct-trajectory-2")];
+        let episodes = sources
+            .iter()
+            .cloned()
+            .map(|source| {
+                let interval_count = source.joint_source_occurrences().len();
+                (source, vec![(5, 1); interval_count])
+            })
+            .collect::<Vec<_>>();
+        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let mut direct = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        candidate.active.articulated_body.initialize_proprioception();
+        direct.active.articulated_body.initialize_proprioception();
+
+        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
+        candidate.commit(prepared.token).unwrap();
+        let committed = direct
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
+
+        assert_eq!(committed.observation, prepared.observation);
+        assert_eq!(direct.active_envelope(), candidate.active_envelope());
+        assert!(direct.direct_predecessor.is_some());
+        assert_eq!(
+            direct.prepare_admitted_trajectory(&episodes).unwrap_err(),
+            RuntimeError::PendingCandidateExists
+        );
+        direct.acknowledge_direct_commit(committed.token).unwrap();
+        assert!(direct.direct_predecessor.is_none());
+        assert_eq!(direct.active.cognitive, candidate.active.cognitive);
+    }
+
+    #[test]
+    fn direct_admitted_trajectory_rolls_back_the_exact_predecessor() {
+        let source = source("direct-trajectory-rollback");
+        let interval_count = source.joint_source_occurrences().len();
+        let episodes = vec![(source, vec![(5, 1); interval_count])];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor = runtime.active_envelope().to_vec();
+        let predecessor_observation = runtime.observation();
+        let predecessor_ordinal = runtime.next_prepare_ordinal;
+
+        let committed = runtime
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
+        assert_ne!(runtime.active_envelope(), predecessor);
+        runtime.rollback_direct_commit(committed.token).unwrap();
+
+        assert_eq!(runtime.active_envelope(), predecessor);
+        assert_eq!(runtime.observation(), predecessor_observation);
+        assert_eq!(runtime.next_prepare_ordinal, predecessor_ordinal);
+        assert!(runtime.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn failed_direct_admitted_trajectory_restores_the_exact_predecessor() {
+        let source = source("direct-trajectory-failure");
+        let episodes = vec![(source, Vec::new())];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor = runtime.active_envelope().to_vec();
+        let predecessor_observation = runtime.observation();
+        let predecessor_ordinal = runtime.next_prepare_ordinal;
+
+        assert!(runtime.commit_admitted_trajectory_direct(&episodes).is_err());
+
+        assert_eq!(runtime.active_envelope(), predecessor);
+        assert_eq!(runtime.observation(), predecessor_observation);
+        assert_eq!(runtime.next_prepare_ordinal, predecessor_ordinal);
+        assert!(runtime.direct_predecessor.is_none());
     }
 
     #[test]

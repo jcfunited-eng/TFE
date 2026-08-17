@@ -211,7 +211,9 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
             )
         ),
     )
-    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production, "_refresh_public_observation_cache", lambda: None
+    )
 
     result = production._perform_admitted_intake_locked(
         [(object(), []), (object(), [])],
@@ -305,6 +307,70 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
         == "native_articulation_and_self_hearing_committed"
     )
     assert retained_observation["organism_tick"] == 12
+
+
+def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> None:
+    recruitment = (
+        "13" * 16,
+        0,
+        13,
+        (("12" * 16, 12, "13" * 16, 13, 0, 13),),
+    )
+    first = _hop(11, ())
+    first["articulatory_unit_recruitments"] = (recruitment,)
+    heard = _hop(15, ())
+    heard["physically_transitioned_neuron_count"] = 40
+    heard["complete_neuron_fractal_count"] = 3
+    heard["externally_perturbed_body_receptor_count"] = 16
+    organism = _quiescent_body_organism()
+    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    monkeypatch.setattr(
+        production,
+        "_runtime",
+        lambda: (
+            SimpleNamespace(organism=organism, pointer=predecessor),
+            SimpleNamespace(),
+        ),
+    )
+    committed = []
+
+    def commit(_organism, episodes, admissions, **_kwargs):
+        committed.append((episodes, admissions))
+        return first if len(committed) == 1 else heard
+
+    monkeypatch.setattr(production, "_commit_admitted_hop", commit)
+    self_hearing = tuple((object(), []) for _ in range(4))
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **_kwargs: self_hearing,
+    )
+    monkeypatch.setattr(
+        production,
+        "_publish_committed_organism",
+        lambda *_args: SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=15,
+                state_bytes=100,
+                state_sha256="bb" * 32,
+            )
+        ),
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+
+    result = production._perform_admitted_intake_locked(
+        [(object(), [])],
+        "self-hearing-trajectory-boundary-test",
+    )
+
+    assert len(committed) == 2
+    assert len(committed[1][0]) == 4
+    assert len(committed[1][1]) == 4
+    articulation = result["observation"]["articulation"]
+    assert articulation["self_hearing_hop_count"] == 4
+    assert articulation["self_hearing_transitioned_neuron_count"] == 40
+    assert articulation["self_hearing_fractal_count"] == 3
+    assert articulation["articulatory_body_perturbed_neuron_count"] == 16
 
 
 def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(

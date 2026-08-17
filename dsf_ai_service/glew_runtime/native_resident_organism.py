@@ -2035,6 +2035,66 @@ class NativeResidentOrganism:
             body_feedback_reentered=True,
         )
 
+    def commit_admitted_trajectory_direct(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Commit one ordered trajectory without cloning the resident body."""
+
+        if not isinstance(sources, tuple) or not sources:
+            raise TypeError("admitted trajectory sources must be a nonempty tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        active_before = self.readiness()
+        initializes_body_proprioception = not (
+            active_before.articulated_body_proprioception_initialized
+        )
+        if initializes_body_proprioception:
+            source_port_count += 74
+        candidate = self.__runtime.commit_admitted_trajectory_direct(
+            list(sources), [list(value) for value in intervals]
+        )
+        token = getattr(candidate, "token", None)
+        try:
+            evidence = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=(
+                    len(sources) + int(initializes_body_proprioception)
+                ),
+                body_feedback_reentered=True,
+                candidate_committed=True,
+            )
+            self.__runtime.acknowledge_direct_commit(token)
+            return evidence
+        except BaseException:
+            if isinstance(token, bytes) and len(token) == 32:
+                try:
+                    self.__runtime.rollback_direct_commit(token)
+                except (RuntimeError, ValueError) as rollback_error:
+                    if "has no pending candidate" not in str(rollback_error):
+                        raise RuntimeError(
+                            "resident direct commit validation and rollback both failed"
+                        ) from rollback_error
+            raise
+
     def prepare_vestibular_tick(
         self,
         predecessor_heading_millidegrees: int,
@@ -2149,6 +2209,7 @@ class NativeResidentOrganism:
         *,
         causal_interval_count: int = 1,
         body_feedback_reentered: bool = False,
+        candidate_committed: bool = False,
     ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
@@ -2952,9 +3013,18 @@ class NativeResidentOrganism:
         ):
             raise RuntimeError("resident organism prepare changed causal physics")
         active_after = self.readiness()
-        if _observation_signature(active_after) != _observation_signature(
-            active_before
-        ):
+        active_after_signature = _observation_signature(active_after)
+        if candidate_committed:
+            if (
+                active_after.state_sha256 != prepared_state_sha256
+                or active_after.organism_tick != organism_tick
+                or active_after.fabric_generation != fabric_generation
+                or active_after.mounted_generation != mounted_generation
+            ):
+                raise RuntimeError(
+                    "resident direct commit did not publish its prepared state"
+                )
+        elif active_after_signature != _observation_signature(active_before):
             raise RuntimeError("resident organism prepare published pending state")
         return ResidentPrepareEvidence(
             token=token,
