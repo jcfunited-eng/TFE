@@ -179,17 +179,21 @@ def test_prepare_failure_leaves_no_reservation_and_exact_prior_bytes(
         authority_key="prepared-world-prepare-failure-key"
     )
     before = authority.encoded_snapshot()
-    original_encode = authority._encoded_state_for
+    original_verify = authority._verify_state_capacity_for
 
-    def fail_candidate(candidate):
+    def fail_candidate(candidate) -> None:
         if candidate is not authority._state:
-            raise RuntimeError("injected prepared candidate encoding failure")
-        return original_encode(candidate)
+            raise RuntimeError("injected prepared candidate capacity failure")
+        original_verify(candidate)
 
-    monkeypatch.setattr(authority, "_encoded_state_for", fail_candidate)
-    with pytest.raises(RuntimeError, match="candidate encoding failure"):
+    monkeypatch.setattr(
+        authority, "_verify_state_capacity_for", fail_candidate
+    )
+    with pytest.raises(RuntimeError, match="candidate capacity failure"):
         _prepare(authority)
-    monkeypatch.setattr(authority, "_encoded_state_for", original_encode)
+    monkeypatch.setattr(
+        authority, "_verify_state_capacity_for", original_verify
+    )
 
     assert authority.encoded_snapshot() == before
     assert authority.status()["prepared_action_execution"] == 0

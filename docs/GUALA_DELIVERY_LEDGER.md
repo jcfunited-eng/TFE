@@ -491,12 +491,15 @@ box remains unchecked until live acceptance passes.
   rest/wake, internal consolidation, later causal body use, unattended
   interaction, and changed-world exploration circuit with zero Python
   cognition callbacks.
-- [ ] **A-013 thermal amendment reopened 2026-08-17:** the original bounded
+- [x] **A-013 thermal amendment Live-Closed 2026-08-17:** the original bounded
   Phase-1 pose/gaze/eyes/blink/face/mouth/breath/voice/locomotion/manipulation
   evidence remains live, but its core/cutaneous thermal body was explicitly
   unmounted. Restore Live-Closed status only after the persistent home/body
-  heat circuit and native thermal receptor participation pass the live
-  acceptance in the thermal amendment sprint ledger.
+  heat circuit and native thermal receptor participation passed exact
+  candidate rehearsal, two live one-tick actions separated by a zero-writer
+  cold restart, and bounded resource observation on task 1113. See the
+  thermal amendment sprint ledger for receipts and the truthful open
+  wall-clock settlement qualification.
 - [x] **A-013 original non-thermal boundary:** Complete truthful persistent embodiment: pose, gaze, eyes,
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
   state. **Live-closed 2026-08-16:** task 1098, commit `bb085947`, and image

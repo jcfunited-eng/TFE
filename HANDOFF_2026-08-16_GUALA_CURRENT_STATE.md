@@ -67,10 +67,10 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   missing or duplicate accepted lesson. Complete recurrent fractals remained
   zero, so the pass does not prove number recognition, counting, learned
   number words, or speech.
-- Immediate next increment after the creator's 2026-08-17 correction:
-  `A-013-THERMAL`. The original non-thermal A-013 evidence remains valid, but
-  L-004 is paused until persistent core/cutaneous thermal experience is
-  live-verified. See
+- `A-013-THERMAL` is Live-Closed on task 1113. The same persistent organism now
+  has an exact six-stock home/body heat circuit, two reached native thermal
+  receptor sites, exact cold continuity, and two direct live one-tick actions.
+  L-004 is unpaused and is the immediate next increment. See
   `docs/GUALA_A013_THERMAL_BODY_AMENDMENT_SPRINT_LEDGER_2026-08-17.md`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
@@ -79,10 +79,13 @@ worktree with the Guala project-truth root check before acting.
 ## Exact live-production state
 
 Current override after the original task-1090 snapshot: production is one
-healthy settled `dsf-ai-task:1106` process, commit
-`6857f6e1ceee7ffaa04adedd9a38074b77e4d999`, image
-`sha256:38bddf1aa75910f2a798e9fcccc6951b16b20b4edba3298570cf9f15255533c6`,
-and the same organism identity. The completed L-003 0-10 pass reached its final
+healthy settled `dsf-ai-task:1113` process, commit
+`fcbdd6f689ddb663e5cb6fd424beeeb9a31e99b3`, image
+`sha256:523694517c5bd506a9da2b443d360775b550e9d0fe95562ff6929422cd7f7dc0`,
+and the same organism identity. The A-013 thermal closure ended at world
+revision 6917 and heading 323874 with two reached thermal receptor sites,
+zero Python cognition callbacks, and a verified one-process topology. The
+completed L-003 0-10 pass reached its final
 lesson at tick `140499`, state `51334d7f...e16c`, and `91,111,709` bytes; a
 later recovery observation at generation `140523` was `90,026,012` bytes.
 Identity stayed unchanged, complete/resting neuron counts were `491/196,238`,
