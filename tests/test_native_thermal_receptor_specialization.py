@@ -109,7 +109,7 @@ body = next(item for item in before.bodies if item.body_id == before.self_body_i
 successor_heading, _steps = p.exact_native_yaw_trajectory(
     predecessor_heading_millidegrees=body.pose.heading_millidegrees,
     signed_displacement_millidegrees=1_000,
-    duration_microseconds=p.INTAKE_HOP_MILLISECONDS * 1_000,
+    duration_microseconds=p.WORLD_BODY_ACTION_MILLISECONDS * 1_000,
 )
 response = p.world_move({
     "x_mm": body.pose.position.x,
@@ -129,6 +129,9 @@ print(json.dumps({
     "revision_before": before.revision,
     "status_code": response.status_code,
     "temperature": temperature,
+    "world_action_duration_microseconds": payload.get(
+        "world_action_duration_microseconds"
+    ),
 }))
 '''
     environment = os.environ.copy()
@@ -162,6 +165,7 @@ print(json.dumps({
     assert evidence["accepted"] is evidence["ok"] is True
     assert evidence["chose_to_go"] is False
     assert evidence["hop_count"] == 1
+    assert evidence["world_action_duration_microseconds"] == 1_000
     assert evidence["revision_after"] == evidence["revision_before"] + 1
     assert evidence["temperature"]["latest_thermal_transition_receipt_sha256"]
     assert evidence["temperature"]["reached_site_count_by_channel"] == {

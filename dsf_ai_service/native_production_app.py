@@ -1277,6 +1277,11 @@ AMBIENT_INTAKE_MAX_SECONDS = 30
 # accumulate receptor gate work past the exact dissipation lattice and are
 # refused by neuron physics, so the hop is a transport contract, not physics.
 INTAKE_HOP_MILLISECONDS = 250
+# A body action is one exact world-mechanical tick. Longer sensory presences
+# remain 250 ms intake hops, but multiplying one authored displacement into
+# 250 whole-cognitive vestibular successors duplicates the action rather than
+# improving its physical resolution.
+WORLD_BODY_ACTION_MILLISECONDS = 1
 INTAKE_HOP_MAX_FRAMES = 256
 assert (
     LESSON_PORT_COUNT * INTAKE_HOP_MAX_FRAMES
@@ -13439,7 +13444,9 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 successor_heading, yaw_trajectory = exact_native_yaw_trajectory(
                     predecessor_heading_millidegrees=predecessor_heading,
                     signed_displacement_millidegrees=signed_yaw,
-                    duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                    duration_microseconds=(
+                        WORLD_BODY_ACTION_MILLISECONDS * 1_000
+                    ),
                 )
                 if successor_heading != heading:
                     return _refusal(
@@ -13461,7 +13468,7 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                         MoveCommand(
                             target_pose=PoseMM(PositionMM(x, y, 0), heading),
                             duration_microseconds=(
-                                INTAKE_HOP_MILLISECONDS * 1_000
+                                WORLD_BODY_ACTION_MILLISECONDS * 1_000
                             ),
                         )
                     ),
@@ -13489,7 +13496,7 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     _action_consequence_episode(
                         execution,
                         action_duration=Fraction(
-                            INTAKE_HOP_MILLISECONDS,
+                            WORLD_BODY_ACTION_MILLISECONDS,
                             1_000,
                         ),
                         body_displacement=moved,
@@ -13572,6 +13579,9 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     "revision": execution.after.revision,
                     "schema": "guala.native_world_move.v2",
                     "signed_yaw_millidegrees": signed_yaw,
+                    "world_action_duration_microseconds": (
+                        WORLD_BODY_ACTION_MILLISECONDS * 1_000
+                    ),
                     "sensory_delivery": {
                         "accepted": True,
                         "hop_count": result["hop_count"],
