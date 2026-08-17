@@ -7421,6 +7421,9 @@ def _causal_interval_hops(
             "internally_reassembled_formation_cues": (
                 interval.internally_reassembled_formation_cues
             ),
+            "externally_reassembled_formation_frontiers": (
+                interval.externally_reassembled_formation_frontiers
+            ),
             "motor_unit_recruitments": interval.motor_unit_recruitments,
             "emitted_neuron_fractals": tuple(
                 {"neuron_lineage": lineage}
@@ -7505,6 +7508,9 @@ def _commit_admitted_hop(
         ),
         "internally_reassembled_formation_cues": (
             evidence.internally_reassembled_formation_cues
+        ),
+        "externally_reassembled_formation_frontiers": (
+            evidence.externally_reassembled_formation_frontiers
         ),
         "physically_transitioned_neuron_count": (
             evidence.physically_transitioned_neuron_count
@@ -8322,6 +8328,7 @@ def _advance_causal_motor_traces(
         return next_active, next_completed
     origin_kinds = (
         "retained_formation",
+        "externally_reassembled_retained_formation",
         "new_neuronal_fractal",
         "affective_gradient",
         "external_participant_sensory",
@@ -8408,7 +8415,10 @@ def _advance_causal_motor_traces(
     proofs: dict[str, list[dict[str, Any]]] = {
         kind: [] for kind in origin_kinds if kind not in completed
     }
-    retained_articulation_proofs: list[dict[str, Any]] = []
+    retained_articulation_proofs: dict[str, list[dict[str, Any]]] = {
+        "retained_formation": [],
+        "externally_reassembled_retained_formation": [],
+    }
     observed_affective_trajectories = tuple(
         transaction_affective_balance_trajectories
         if transaction_affective_balance_trajectories is not None
@@ -8486,6 +8496,16 @@ def _advance_causal_motor_traces(
                         internal_cue_lineages=origin_lineages,
                         recurrence_organism_tick=origin_tick,
                     )
+                elif origin_kind == "externally_reassembled_retained_formation":
+                    proof["motor_unit_recruitment"][
+                        "preparation_transfers"
+                    ] = preparation
+                    proof.update(
+                        formation_receipt_sha256=origin_receipt,
+                        recurrent_lineage=origin_lineages[0],
+                        external_cue_lineages=origin_lineages[1:],
+                        reassembly_organism_tick=origin_tick,
+                    )
                 elif origin_kind == "affective_gradient":
                     affective_trajectory = affective_trajectory_by_receipt.get(
                         origin_receipt
@@ -8547,9 +8567,14 @@ def _advance_causal_motor_traces(
                         impression_organism_tick=origin_tick,
                     )
                 proofs[origin_kind].append(proof)
+        articulation_completion_kind = (
+            f"{origin_kind}_articulation"
+            if origin_kind in retained_articulation_proofs
+            else None
+        )
         if (
-            origin_kind == "retained_formation"
-            and "retained_formation_articulation" not in completed
+            articulation_completion_kind is not None
+            and articulation_completion_kind not in completed
         ):
             for recruitment in tuple(
                 hop.get("articulatory_unit_recruitments", ())
@@ -8598,8 +8623,6 @@ def _advance_causal_motor_traces(
                         "origin_lineages": origin_lineages,
                         "origin_organism_tick": origin_tick,
                         "formation_receipt_sha256": origin_receipt,
-                        "internal_cue_lineages": origin_lineages,
-                        "recurrence_organism_tick": origin_tick,
                         "articulation_organism_tick": organism_tick,
                         "directed_physical_transfers": prior_path
                         + (articulatory_transfer,),
@@ -8618,6 +8641,17 @@ def _advance_causal_motor_traces(
                             ),
                         },
                     }
+                    if origin_kind == "retained_formation":
+                        proof.update(
+                            internal_cue_lineages=origin_lineages,
+                            recurrence_organism_tick=origin_tick,
+                        )
+                    else:
+                        proof.update(
+                            recurrent_lineage=origin_lineages[0],
+                            external_cue_lineages=origin_lineages[1:],
+                            reassembly_organism_tick=origin_tick,
+                        )
                     changed_contact = _changed_contact_on_causal_path(
                         proof["directed_physical_transfers"],
                         changed_by_bond,
@@ -8625,7 +8659,7 @@ def _advance_causal_motor_traces(
                     )
                     if changed_contact is not None:
                         proof["changed_contact_channel_state"] = changed_contact
-                    retained_articulation_proofs.append(proof)
+                    retained_articulation_proofs[origin_kind].append(proof)
     next_completed = dict(completed)
     if changed_by_bond:
         next_completed["_changed_contact_channel_states"] = {
@@ -8645,22 +8679,35 @@ def _advance_causal_motor_traces(
                     item["origin_organism_tick"],
                 ),
             )
-    if retained_articulation_proofs:
-        next_completed["retained_formation_articulation"] = min(
-            retained_articulation_proofs,
-            key=lambda item: (
-                0 if "changed_contact_channel_state" in item else 1,
-                len(item["directed_physical_transfers"]),
-                item["directed_physical_transfers"],
-                item["origin_lineages"],
-                item["origin_organism_tick"],
-            ),
-        )
+    for origin_kind, candidates in retained_articulation_proofs.items():
+        if candidates:
+            next_completed[f"{origin_kind}_articulation"] = min(
+                candidates,
+                key=lambda item: (
+                    0 if "changed_contact_channel_state" in item else 1,
+                    len(item["directed_physical_transfers"]),
+                    item["directed_physical_transfers"],
+                    item["origin_lineages"],
+                    item["origin_organism_tick"],
+                ),
+            )
     advanced = {
         key: paths
         for key, paths in advanced.items()
         if key[0] not in next_completed
     }
+    if "externally_reassembled_retained_formation" not in next_completed:
+        for receipt, cue_lineages, recurrent_lineage in hop.get(
+            "externally_reassembled_formation_frontiers", ()
+        ):
+            cues = tuple(cue_lineages)
+            key = (
+                "externally_reassembled_retained_formation",
+                receipt,
+                (recurrent_lineage, *cues),
+                organism_tick,
+            )
+            advanced.setdefault(key, {recurrent_lineage: ()})
     if "new_neuronal_fractal" not in next_completed:
         emitted = tuple(
             sorted(
@@ -9424,6 +9471,11 @@ def _perform_admitted_intake_locked(
             "internally_reassembled_formation_motor_path": (
                 completed_causal_motor_traces.get("retained_formation")
             ),
+            "externally_reassembled_formation_motor_path": (
+                completed_causal_motor_traces.get(
+                    "externally_reassembled_retained_formation"
+                )
+            ),
             "new_neuronal_fractal_motor_path": (
                 completed_causal_motor_traces.get("new_neuronal_fractal")
             ),
@@ -9450,6 +9502,9 @@ def _perform_admitted_intake_locked(
     internally_reassembled_motor_path = completed_causal_motor_traces.get(
         "retained_formation"
     )
+    externally_reassembled_motor_path = completed_causal_motor_traces.get(
+        "externally_reassembled_retained_formation"
+    )
     new_neuronal_fractal_motor_path = completed_causal_motor_traces.get(
         "new_neuronal_fractal"
     )
@@ -9459,6 +9514,11 @@ def _perform_admitted_intake_locked(
     internally_reassembled_articulation_path = (
         completed_causal_motor_traces.get(
             "retained_formation_articulation"
+        )
+    )
+    externally_reassembled_articulation_path = (
+        completed_causal_motor_traces.get(
+            "externally_reassembled_retained_formation_articulation"
         )
     )
     external_participant_motor_path = completed_causal_motor_traces.get(
@@ -9502,6 +9562,13 @@ def _perform_admitted_intake_locked(
             "action": dict(motor_action_projection),
             "sensed_consequence": dict(motor_sensed_consequence),
         }
+    externally_reassembled_formation_causal_use: dict[str, Any] | None = None
+    if motor_action is not None and externally_reassembled_motor_path is not None:
+        externally_reassembled_formation_causal_use = {
+            **externally_reassembled_motor_path,
+            "action": dict(motor_action_projection),
+            "sensed_consequence": dict(motor_sensed_consequence),
+        }
     new_impression_causal_use: dict[str, Any] | None = None
     if motor_action is not None and new_neuronal_fractal_motor_path is not None:
         new_impression_causal_use = {
@@ -9526,13 +9593,13 @@ def _perform_admitted_intake_locked(
     participant_sensory_attention: dict[str, Any] | None = None
     if external_participant_attention_path is not None:
         participant_sensory_attention = dict(external_participant_attention_path)
-    articulatory_causal_cross_context_use: dict[str, Any] | None = None
-    if (
-        articulation is not None
-        and internally_reassembled_articulation_path is not None
-    ):
-        articulatory_causal_cross_context_use = {
-            **internally_reassembled_articulation_path,
+    def project_articulatory_causal_use(
+        path: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if articulation is None or path is None:
+            return None
+        return {
+            **path,
             "action": {
                 key: articulation[key]
                 for key in (
@@ -9559,8 +9626,24 @@ def _perform_admitted_intake_locked(
                 "successor_state_sha256": last_hop["state_sha256"],
             },
         }
+    articulatory_causal_cross_context_use = project_articulatory_causal_use(
+        internally_reassembled_articulation_path
+    )
+    externally_reassembled_articulation_causal_use = (
+        project_articulatory_causal_use(
+            externally_reassembled_articulation_path
+        )
+    )
+    if articulation is not None and articulatory_causal_cross_context_use is not None:
         articulation["retained_formation_causal_path"] = (
             articulatory_causal_cross_context_use
+        )
+    if (
+        articulation is not None
+        and externally_reassembled_articulation_causal_use is not None
+    ):
+        articulation["externally_reassembled_formation_causal_path"] = (
+            externally_reassembled_articulation_causal_use
         )
     _last_transition_evidence = {
         **last_hop,
@@ -9569,12 +9652,18 @@ def _perform_admitted_intake_locked(
         "intake": intake,
         "motor_action": motor_action,
         "causal_cross_context_use": causal_cross_context_use,
+        "externally_reassembled_formation_causal_use": (
+            externally_reassembled_formation_causal_use
+        ),
         "new_impression_causal_use": new_impression_causal_use,
         "affective_motor_causal_use": affective_motor_causal_use,
         "participant_sensory_causal_use": participant_sensory_causal_use,
         "participant_sensory_attention": participant_sensory_attention,
         "articulatory_causal_cross_context_use": (
             articulatory_causal_cross_context_use
+        ),
+        "externally_reassembled_articulation_causal_use": (
+            externally_reassembled_articulation_causal_use
         ),
         "articulation": articulation,
         "emitted_neuron_fractals": tuple(emitted_neuron_fractals),

@@ -324,6 +324,11 @@ class NativeResidentObservationView(Protocol):
     ) -> list[tuple[str, list[str]]]: ...
 
     @property
+    def externally_reassembled_formation_frontiers(
+        self,
+    ) -> list[tuple[str, list[str], str]]: ...
+
+    @property
     def python_callback_count(self) -> int: ...
 
     # Exact shared body-energy state. Local neuronal lanes keep their own
@@ -386,6 +391,9 @@ class ResidentCausalIntervalEvidence:
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...]], ...
     ]
+    externally_reassembled_formation_frontiers: tuple[
+        tuple[str, tuple[str, ...], str], ...
+    ]
     motor_unit_recruitments: tuple[
         tuple[
             str,
@@ -436,6 +444,9 @@ class ResidentPrepareEvidence:
     endogenous_partial_cue_reassembly_count: int
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...]], ...
+    ]
+    externally_reassembled_formation_frontiers: tuple[
+        tuple[str, tuple[str, ...], str], ...
     ]
     python_callback_count: int
     complete_neuron_count: int = 0
@@ -730,6 +741,37 @@ def _internally_reassembled_formation_cue_evidence(
     return result
 
 
+def _externally_reassembled_formation_frontier_evidence(
+    value: object,
+) -> tuple[tuple[str, tuple[str, ...], str], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("externally reassembled formation frontiers changed format")
+    observed: list[tuple[str, tuple[str, ...], str]] = []
+    for raw_frontier in value:
+        if not isinstance(raw_frontier, tuple) or len(raw_frontier) != 3:
+            raise RuntimeError("externally reassembled formation frontier changed format")
+        raw_receipt, raw_cues, raw_recurrent = raw_frontier
+        if not isinstance(raw_cues, list) or not raw_cues:
+            raise RuntimeError("externally reassembled formation frontier has no cue")
+        receipt = _canonical_sha256(
+            raw_receipt, "externally reassembled formation receipt"
+        )
+        cues = tuple(
+            _canonical_lineage_hex(lineage, "external formation cue lineage")
+            for lineage in raw_cues
+        )
+        recurrent = _canonical_lineage_hex(
+            raw_recurrent, "external formation recurrent lineage"
+        )
+        if tuple(sorted(set(cues))) != cues or recurrent in cues:
+            raise RuntimeError("externally reassembled formation frontier is not canonical")
+        observed.append((receipt, cues, recurrent))
+    result = tuple(observed)
+    if len(set(result)) != len(result):
+        raise RuntimeError("externally reassembled formation frontier repeated")
+    return result
+
+
 def _motor_unit_recruitment_evidence(
     value: object,
 ) -> tuple[
@@ -869,11 +911,12 @@ def _causal_interval_evidence(
         raise RuntimeError("causal interval evidence changed format")
     intervals = []
     for index, raw in enumerate(value):
-        if not isinstance(raw, tuple) or len(raw) != 7:
+        if not isinstance(raw, tuple) or len(raw) != 8:
             raise RuntimeError("causal interval evidence changed format")
         (
             raw_external,
             raw_cues,
+            raw_external_frontiers,
             raw_motors,
             raw_emitted,
             raw_changes,
@@ -922,6 +965,11 @@ def _causal_interval_evidence(
                 externally_perturbed_neuron_lineages=external,
                 internally_reassembled_formation_cues=(
                     _internally_reassembled_formation_cue_evidence(raw_cues)
+                ),
+                externally_reassembled_formation_frontiers=(
+                    _externally_reassembled_formation_frontier_evidence(
+                        raw_external_frontiers
+                    )
                 ),
                 motor_unit_recruitments=_motor_unit_recruitment_evidence(raw_motors),
                 emitted_neuron_lineages=emitted,
@@ -2492,11 +2540,28 @@ class NativeResidentOrganism:
             candidate.endogenous_partial_cue_reassembly_count,
             "endogenous partial cue reassembly count",
         )
+        if endogenous_partial_cue_reassembly_count > partial_cue_reassembly_count:
+            raise RuntimeError(
+                "endogenous partial cue reassembly exceeds total recurrence"
+            )
         internally_reassembled_formation_cues = (
             _internally_reassembled_formation_cue_evidence(
                 candidate.internally_reassembled_formation_cues
             )
         )
+        externally_reassembled_formation_frontiers = (
+            _externally_reassembled_formation_frontier_evidence(
+                candidate.externally_reassembled_formation_frontiers
+            )
+        )
+        if (
+            len(externally_reassembled_formation_frontiers)
+            > partial_cue_reassembly_count
+            - endogenous_partial_cue_reassembly_count
+        ):
+            raise RuntimeError(
+                "externally reassembled formation frontiers exceed physical recurrence"
+            )
         if (
             len(internally_reassembled_formation_cues)
             > endogenous_partial_cue_reassembly_count
@@ -2922,6 +2987,9 @@ class NativeResidentOrganism:
             ),
             internally_reassembled_formation_cues=tuple(
                 internally_reassembled_formation_cues
+            ),
+            externally_reassembled_formation_frontiers=tuple(
+                externally_reassembled_formation_frontiers
             ),
             physical_transition_claimed=candidate.physical_transition_claimed,
             cognitive_formation_claimed=candidate.cognitive_formation_claimed,

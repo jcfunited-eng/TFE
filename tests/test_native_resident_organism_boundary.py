@@ -179,6 +179,9 @@ class _NativeResidentOrganismPrepare:
     internally_reassembled_formation_cues: list[
         tuple[str, list[str]]
     ] | None = None
+    externally_reassembled_formation_frontiers: list[
+        tuple[str, list[str], str]
+    ] | None = None
     complete_neuron_count: int = 0
     developmental_resting_neuron_count: int = 0
     physically_transitioned_neuron_count: int = 0
@@ -298,6 +301,8 @@ class _NativeResidentOrganismPrepare:
             self.organic_mosaic_relations = []
         if self.internally_reassembled_formation_cues is None:
             self.internally_reassembled_formation_cues = []
+        if self.externally_reassembled_formation_frontiers is None:
+            self.externally_reassembled_formation_frontiers = []
         if self.externally_perturbed_neuron_lineages is None:
             self.externally_perturbed_neuron_lineages = []
 
@@ -853,6 +858,31 @@ def test_prepare_accepts_equal_consecutive_per_interval_reassembly_counts(
 
     assert prepared.cognitive_formation_claimed
     assert prepared.partial_cue_reassembly_count == 1
+
+
+def test_prepare_carries_exact_external_reassembly_recurrent_frontier(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    receipt = "ab" * 32
+    cue = "01" * 16
+    recurrent = "02" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        cognitive_formation_claimed=True,
+        partial_cue_reassembly_count=1,
+        externally_reassembled_formation_frontiers=[
+            (receipt, [cue], recurrent)
+        ],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.externally_reassembled_formation_frontiers == (
+        (receipt, (cue,), recurrent),
+    )
 
 
 def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(

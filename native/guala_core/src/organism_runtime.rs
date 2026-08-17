@@ -44,7 +44,8 @@ use crate::resident_cognitive_formation::{
     AffectiveBalanceTrajectoryObservation, ArticulatoryUnitRecruitment, AuthoredDeclaredContact,
     CausalFrontierTransferObservation, ChangedContactChannelStateObservation,
     CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
-    EmittedNeuronFractal, InternallyReassembledFormationCueObservation,
+    EmittedNeuronFractal, ExternallyReassembledFormationFrontierObservation,
+    InternallyReassembledFormationCueObservation,
     LocalizedFluidChemistryObservation, LocalizedMetabolicStrainObservation, MotorUnitRecruitment,
     OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
     PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
@@ -132,6 +133,7 @@ const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sen
 type DirectedPhysicalTransferProjection = (String, String, u32, String);
 type CausalFrontierTransferProjection = (String, String, u32, String, String);
 type InternallyReassembledFormationCueProjection = (String, Vec<String>);
+type ExternallyReassembledFormationFrontierProjection = (String, Vec<String>, String);
 type MotorUnitRecruitmentProjection = (
     String,
     u32,
@@ -225,6 +227,7 @@ type AffectiveBalanceTrajectoryProjection = (
 type CausalIntervalEvidenceProjection = (
     Vec<String>,
     Vec<InternallyReassembledFormationCueProjection>,
+    Vec<ExternallyReassembledFormationFrontierProjection>,
     Vec<MotorUnitRecruitmentProjection>,
     Vec<String>,
     Vec<ChangedContactChannelStateProjection>,
@@ -538,6 +541,8 @@ pub(crate) struct RuntimeObservation {
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
     pub(crate) internally_reassembled_formation_cues:
         Vec<InternallyReassembledFormationCueObservation>,
+    pub(crate) externally_reassembled_formation_frontiers:
+        Vec<ExternallyReassembledFormationFrontierObservation>,
     pub(crate) python_callback_count: u64,
     pub(crate) derived_budget: DerivedRuntimeBudget,
     /// The body's energy state and this transition's metabolic facts (minimal
@@ -710,6 +715,8 @@ struct BodyProprioceptiveSourceReceipt {
 struct CausalIntervalEvidence {
     externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
     internally_reassembled_formation_cues: Vec<InternallyReassembledFormationCueObservation>,
+    externally_reassembled_formation_frontiers:
+        Vec<ExternallyReassembledFormationFrontierObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     emitted_neuron_lineages: Vec<[u8; 16]>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
@@ -1157,6 +1164,15 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn externally_reassembled_formation_frontiers(
+        &self,
+    ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
+        project_externally_reassembled_formation_frontiers(
+            &self.observation.externally_reassembled_formation_frontiers,
+        )
+    }
+
+    #[getter]
     fn python_callback_count(&self) -> u64 {
         self.observation.python_callback_count
     }
@@ -1466,6 +1482,9 @@ impl NativeResidentOrganismPrepare {
                         .collect(),
                     project_internally_reassembled_formation_cues(
                         &interval.internally_reassembled_formation_cues,
+                    ),
+                    project_externally_reassembled_formation_frontiers(
+                        &interval.externally_reassembled_formation_frontiers,
                     ),
                     project_motor_unit_recruitments(&interval.motor_unit_recruitments),
                     interval
@@ -1812,6 +1831,15 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn externally_reassembled_formation_frontiers(
+        &self,
+    ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
+        project_externally_reassembled_formation_frontiers(
+            &self.observation.externally_reassembled_formation_frontiers,
+        )
+    }
+
+    #[getter]
     fn python_callback_count(&self) -> u64 {
         0
     }
@@ -2110,6 +2138,15 @@ impl NativeOrganismRuntimeTransition {
     ) -> Vec<InternallyReassembledFormationCueProjection> {
         project_internally_reassembled_formation_cues(
             &self.observation.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
+    fn externally_reassembled_formation_frontiers(
+        &self,
+    ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
+        project_externally_reassembled_formation_frontiers(
+            &self.observation.externally_reassembled_formation_frontiers,
         )
     }
 
@@ -2415,6 +2452,16 @@ fn retain_cognitive_trajectory_observation(
                 .push(cue.clone());
         }
     }
+    for frontier in &observation.externally_reassembled_formation_frontiers {
+        if !total
+            .externally_reassembled_formation_frontiers
+            .contains(frontier)
+        {
+            total
+                .externally_reassembled_formation_frontiers
+                .push(frontier.clone());
+        }
+    }
     total.rest_recovered_neuron_count = total
         .rest_recovered_neuron_count
         .checked_add(observation.rest_recovered_neuron_count)
@@ -2658,6 +2705,9 @@ impl ResidentOrganismRuntime {
                 internally_reassembled_formation_cues: observation
                     .internally_reassembled_formation_cues
                     .clone(),
+                externally_reassembled_formation_frontiers: observation
+                    .externally_reassembled_formation_frontiers
+                    .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
                 emitted_neuron_lineages: observation
                     .emitted_neuron_fractals
@@ -2848,6 +2898,9 @@ impl ResidentOrganismRuntime {
                     .clone(),
                 internally_reassembled_formation_cues: observation
                     .internally_reassembled_formation_cues
+                    .clone(),
+                externally_reassembled_formation_frontiers: observation
+                    .externally_reassembled_formation_frontiers
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
                 emitted_neuron_lineages: observation
@@ -5117,6 +5170,7 @@ fn make_restored_observation(
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
         internally_reassembled_formation_cues: Vec::new(),
+        externally_reassembled_formation_frontiers: Vec::new(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -5219,6 +5273,9 @@ fn make_step_observation(
         internally_reassembled_formation_cues: cognitive
             .internally_reassembled_formation_cues
             .clone(),
+        externally_reassembled_formation_frontiers: cognitive
+            .externally_reassembled_formation_frontiers
+            .clone(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -5297,6 +5354,7 @@ fn make_authored_contact_observation(
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
         internally_reassembled_formation_cues: Vec::new(),
+        externally_reassembled_formation_frontiers: Vec::new(),
         python_callback_count: 0,
         derived_budget,
         energy: cognitive.energy.clone(),
@@ -5348,6 +5406,25 @@ fn project_internally_reassembled_formation_cues(
                     .iter()
                     .map(|lineage| hex_bytes(lineage))
                     .collect(),
+            )
+        })
+        .collect()
+}
+
+fn project_externally_reassembled_formation_frontiers(
+    observations: &[ExternallyReassembledFormationFrontierObservation],
+) -> Vec<ExternallyReassembledFormationFrontierProjection> {
+    observations
+        .iter()
+        .map(|observation| {
+            (
+                hex_digest(&observation.formation_receipt),
+                observation
+                    .cue_lineages
+                    .iter()
+                    .map(|lineage| hex_bytes(lineage))
+                    .collect(),
+                hex_bytes(&observation.recurrent_lineage),
             )
         })
         .collect()

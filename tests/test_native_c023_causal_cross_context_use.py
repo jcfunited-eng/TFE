@@ -25,6 +25,9 @@ def _hop(
     predecessor_tick: int,
     *,
     cues: tuple[tuple[str, tuple[str, ...]], ...] = (),
+    external_reassemblies: tuple[
+        tuple[str, tuple[str, ...], str], ...
+    ] = (),
     motors: tuple[
         tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
     ] = (),
@@ -36,6 +39,7 @@ def _hop(
         "predecessor_organism_tick": predecessor_tick,
         "organism_tick": predecessor_tick + 1,
         "internally_reassembled_formation_cues": cues,
+        "externally_reassembled_formation_frontiers": external_reassemblies,
         "motor_unit_recruitments": motors,
         "articulatory_unit_recruitments": articulations,
     }
@@ -227,3 +231,105 @@ def test_articulation_without_exact_layer_12_path_is_not_causal_proof() -> None:
     )
 
     assert "retained_formation_articulation" not in completed
+
+
+def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_recurrent_frontier() -> None:
+    cue = "01" * 16
+    recurrent = "02" * 16
+    motor = "03" * 16
+    articulation = "04" * 16
+    receipt = "11" * 32
+    recurrent_to_motor = (recurrent, motor, 0, 7)
+    motor_to_articulation = (motor, articulation, 0, 5)
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(
+            60,
+            external_reassemblies=((receipt, (cue,), recurrent),),
+        ),
+    )
+    assert completed == {}
+
+    observer.transfers = ((*recurrent_to_motor, motor),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(61),
+    )
+    assert completed == {}
+
+    observer.transfers = ()
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            62,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    5,
+                    ((motor, 12, articulation, 13, 0, 5),),
+                ),
+            ),
+        ),
+    )
+
+    proof = completed[
+        "externally_reassembled_retained_formation_articulation"
+    ]
+    assert proof["formation_receipt_sha256"] == receipt
+    assert proof["external_cue_lineages"] == (cue,)
+    assert proof["recurrent_lineage"] == recurrent
+    assert proof["reassembly_organism_tick"] == 61
+    assert proof["articulation_organism_tick"] == 63
+    assert proof["directed_physical_transfers"] == (
+        recurrent_to_motor,
+        motor_to_articulation,
+    )
+    assert active == {}
+
+
+def test_external_reassembly_does_not_bind_an_unrelated_articulatory_path() -> None:
+    cue = "01" * 16
+    recurrent = "02" * 16
+    unrelated_motor = "03" * 16
+    articulation = "04" * 16
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(
+            70,
+            external_reassemblies=(("11" * 32, (cue,), recurrent),),
+        ),
+    )
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            71,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    5,
+                    ((unrelated_motor, 12, articulation, 13, 0, 5),),
+                ),
+            ),
+        ),
+    )
+
+    assert (
+        "externally_reassembled_retained_formation_articulation"
+        not in completed
+    )
