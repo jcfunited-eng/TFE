@@ -7661,6 +7661,9 @@ def _commit_vestibular_tick(
         "body_proprioceptive_source_extents": (
             evidence.body_proprioceptive_source_extents
         ),
+        "articulatory_unit_recruitments": (
+            evidence.articulatory_unit_recruitments
+        ),
         "changed_contact_channel_states": (
             evidence.changed_contact_channel_states
         ),
@@ -7776,6 +7779,9 @@ def _commit_vestibular_trajectory(
         "body_proprioceptive_sources": evidence.body_proprioceptive_sources,
         "body_proprioceptive_source_extents": (
             evidence.body_proprioceptive_source_extents
+        ),
+        "articulatory_unit_recruitments": (
+            evidence.articulatory_unit_recruitments
         ),
         "changed_contact_channel_states": (
             evidence.changed_contact_channel_states
@@ -9735,6 +9741,7 @@ def _action_consequence_episode(
     execution: Any,
     *,
     action_duration: Fraction = Fraction(1, 1_000),
+    body_displacement: tuple[Fraction, ...] | None = None,
 ) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
     """One exact joint sensorium caused by one committed 1 ms body action.
 
@@ -9822,6 +9829,7 @@ def _action_consequence_episode(
         (0.0, 0.0),
         tasted=after_taste,
         smelled=after_smell,
+        moved=body_displacement,
         surface_trajectories=surface_trajectories,
         taste_trajectories=taste_trajectories,
         smell_trajectories=smell_trajectories,
@@ -13361,6 +13369,8 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     autonomy rather than a detour around it.
     """
 
+    global _last_displacement
+
     if not WORLD_AUTHORIZED:
         return _refusal(
             503,
@@ -13382,153 +13392,197 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     except (KeyError, TypeError, ValueError):
         return _refusal(422, "a move requires integer x_mm, y_mm and heading_millidegrees")
     from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
         PORT_ID,
         MoveCommand,
         PoseMM,
         PositionMM,
+        PreparedActionExecution,
         encode_command,
     )
 
+    _begin_external_intake()
     try:
-        authority = _world()
-        before = authority.observation_snapshot()
-        before_body = next(
-            body for body in before.bodies if body.body_id == before.self_body_id
-        )
-        signed_yaw_value = payload.get("signed_yaw_millidegrees")
-        if signed_yaw_value is None:
-            if heading != before_body.pose.heading_millidegrees:
-                return _refusal(
-                    422,
-                    "a changed heading requires signed_yaw_millidegrees; "
-                    "start and end headings cannot reveal turn direction or revolutions",
+        with _transition_lock:
+            try:
+                authority = _world()
+                before = authority.observation_snapshot()
+                before_body = next(
+                    body
+                    for body in before.bodies
+                    if body.body_id == before.self_body_id
                 )
-            signed_yaw = 0
-        else:
-            if isinstance(signed_yaw_value, bool):
-                return _refusal(422, "signed_yaw_millidegrees must be an integer")
-            signed_yaw = int(signed_yaw_value)
-            if not -(1 << 31) <= signed_yaw < (1 << 31):
-                return _refusal(
-                    422,
-                    "signed_yaw_millidegrees exceeds the native signed 32-bit body range",
+                signed_yaw_value = payload.get("signed_yaw_millidegrees")
+                if signed_yaw_value is None:
+                    if heading != before_body.pose.heading_millidegrees:
+                        return _refusal(
+                            422,
+                            "a changed heading requires signed_yaw_millidegrees; "
+                            "start and end headings cannot reveal turn direction "
+                            "or revolutions",
+                        )
+                    signed_yaw = 0
+                else:
+                    if isinstance(signed_yaw_value, bool):
+                        return _refusal(
+                            422,
+                            "signed_yaw_millidegrees must be an integer",
+                        )
+                    signed_yaw = int(signed_yaw_value)
+                    if not -(1 << 31) <= signed_yaw < (1 << 31):
+                        return _refusal(
+                            422,
+                            "signed_yaw_millidegrees exceeds the native signed "
+                            "32-bit body range",
+                        )
+                predecessor_heading = before_body.pose.heading_millidegrees
+                successor_heading, yaw_trajectory = exact_native_yaw_trajectory(
+                    predecessor_heading_millidegrees=predecessor_heading,
+                    signed_displacement_millidegrees=signed_yaw,
+                    duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
                 )
-        predecessor_heading = before_body.pose.heading_millidegrees
-        successor_heading, yaw_trajectory = exact_native_yaw_trajectory(
-            predecessor_heading_millidegrees=predecessor_heading,
-            signed_displacement_millidegrees=signed_yaw,
-            duration_microseconds=INTAKE_HOP_MILLISECONDS * 1000,
-        )
-        if successor_heading != heading:
-            return _refusal(
-                422,
-                "signed_yaw_millidegrees does not settle at the requested heading",
-            )
-        execution = authority.execute_port_command(
-            port_id=PORT_ID,
-            command_payload=encode_command(
-                MoveCommand(
-                    target_pose=PoseMM(PositionMM(x, y, 0), heading),
-                    duration_microseconds=INTAKE_HOP_MILLISECONDS * 1000,
-                )
-            ),
-            causal_intent_receipt_sha256=hashlib.sha256(
-                f"{before.revision}:{x}:{y}:{heading}".encode("utf-8")
-            ).hexdigest(),
-            expected_revision=before.revision,
-        )
-    except (OSError, RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"her place refused that move: {error}")
-
-    # HER PLACE HAS ITS OWN PHYSICS AND IT SAYS NO FOR REAL REASONS: a wall,
-    # a doorway missed, another body or an object in the path.  A refused
-    # move must NOT reach her as a zero displacement dressed as a movement —
-    # that would tell her balance receptors she stood still when in truth
-    # she never went.  The world's own reason is returned verbatim.
-    if execution.reason != "applied":
-        return _refusal(
-            409,
-            f"her place refused that move: {execution.reason}. Nothing "
-            "reached her, because nothing happened to her body",
-        )
-
-    from dsf_ai_service.substrate.w1_physical_receptors import (
-        physical_receptor_substreams,
-    )
-
-    try:
-        world_streams = physical_receptor_substreams(
-            execution.before,
-            execution.after,
-            causal_transition=True,
-            source_time_start=Fraction(0),
-            source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
-        )
-        luminance = _world_retinal_luminance(
-            world_streams.get(PhysicalSense.SIGHT, ())
-        )
-        moved = _world_displacement(execution.before, execution.after)
-        # AN OBJECT IN HER PLACE REACHES EVERY SENSE SHE HAS (Joe, 2026-08-08:
-        # objects as presented in the VR environment have all six).  The world
-        # already declares each object's odorants, tastants, surface
-        # temperature, compliance, roughness and moisture — that physics was
-        # written and never connected.  The bridge carries it rather than
-        # dropping it, and her eight olfactory and five gustatory channels are
-        # exactly the world's eight odorant and five tastant channels.
-        tasted, smelled = _world_chemistry(execution.before, execution.after)
-        thermal_trajectories = None
-        if THERMAL_PORT_COUNT:
-            before_thermal, after_thermal = _thermal_body_endpoints(execution)
-            thermal_trajectories = tuple(
-                zip(before_thermal, after_thermal, strict=True)
-            )
-        times = _quiescent_hop_times()
-        silence = (0.0,) * len(times)
-        episodes = [
-            (
-                _whole_roster_hop_episode(
-                    f"world-move-{execution.after.revision}-hop-{hop}",
-                    times,
-                    luminance,
-                    silence,
-                    moved=moved if hop == 0 else None,
-                    tasted=tasted,
-                    smelled=smelled,
-                    thermal_trajectories=(
-                        thermal_trajectories if hop == 0 else None
+                if successor_heading != heading:
+                    return _refusal(
+                        422,
+                        "signed_yaw_millidegrees does not settle at the requested "
+                        "heading",
+                    )
+                intent = _receipt({
+                    "actor_body_id": before.self_body_id,
+                    "expected_world_revision": before.revision,
+                    "heading_millidegrees": heading,
+                    "signed_yaw_millidegrees": signed_yaw,
+                    "x_mm": x,
+                    "y_mm": y,
+                })
+                prepared = authority.prepare_port_command(
+                    port_id=PORT_ID,
+                    command_payload=encode_command(
+                        MoveCommand(
+                            target_pose=PoseMM(PositionMM(x, y, 0), heading),
+                            duration_microseconds=(
+                                INTAKE_HOP_MILLISECONDS * 1_000
+                            ),
+                        )
                     ),
-                ),
-                [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
+                    causal_intent_receipt_sha256=intent,
+                    expected_revision=before.revision,
+                )
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                return _refusal(422, f"her place refused that move: {error}")
+
+            # HER PLACE HAS ITS OWN PHYSICS AND IT SAYS NO FOR REAL REASONS:
+            # a wall, a doorway missed, another body or an object in the path.
+            # A refused move does not reach her as invented zero displacement.
+            if isinstance(prepared, ActionExecutionReceipt):
+                return _refusal(
+                    409,
+                    f"her place refused that move: {prepared.reason}. Nothing "
+                    "reached her, because nothing happened to her body",
+                )
+            if not isinstance(prepared, PreparedActionExecution):
+                return _refusal(503, "her place lost its prepared movement")
+            execution = prepared.execution_receipt
+            try:
+                moved = _world_displacement(execution.before, execution.after)
+                consequence, admissions, _lane_truth = (
+                    _action_consequence_episode(
+                        execution,
+                        action_duration=Fraction(
+                            INTAKE_HOP_MILLISECONDS,
+                            1_000,
+                        ),
+                        body_displacement=moved,
+                    )
+                )
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                authority.discard_prepared_action(prepared)
+                return _refusal(422, f"that move could not reach her: {error}")
+
+            predecessor_world = authority.encoded_snapshot()
+            committed = False
+            persisted = False
+            try:
+                with authority.prepared_action_visibility_transaction(prepared):
+                    execution = authority.commit_prepared_action(prepared)
+                    committed = True
+                    successor_world = authority.encoded_committed_prepared_action(
+                        prepared
+                    )
+                    _persist_world_body(successor_world)
+                    persisted = True
+            except BaseException as error:
+                if committed:
+                    with authority.committed_prepared_action_rollback_transaction(
+                        prepared
+                    ) as rollback_world:
+                        rollback_world()
+                    if persisted:
+                        _persist_world_body(predecessor_world)
+                else:
+                    authority.discard_prepared_action(prepared)
+                return _refusal(
+                    503,
+                    "her movement could not persist: "
+                    f"{type(error).__name__}: {error}",
+                )
+
+            _last_displacement = moved
+            try:
+                result = _perform_admitted_intake_locked(
+                    [(consequence, admissions)],
+                    f"world-move:{intent}",
+                    vestibular_yaw=(predecessor_heading, yaw_trajectory),
+                )
+            except HTTPException:
+                raise
+            except (RuntimeError, TypeError, ValueError) as error:
+                _refresh_public_observation_cache()
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "accepted": True,
+                        "chose_to_go": False,
+                        "ok": False,
+                        "reason": (
+                            "her body moved and persisted, but its exact sensory "
+                            "transition was refused; do not repeat the action "
+                            f"({type(error).__name__}: {error})"
+                        ),
+                        "revision": execution.after.revision,
+                        "schema": "guala.native_world_move.v2",
+                        "sensory_delivery": {"accepted": False},
+                    },
+                )
+            _refresh_public_observation_cache()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "accepted": True,
+                    "chose_to_go": False,
+                    "moved": {
+                        channel: float(value)
+                        for channel, value in zip(
+                            DISPLACEMENT_CHANNELS,
+                            moved,
+                            strict=True,
+                        )
+                    },
+                    "ok": True,
+                    "revision": execution.after.revision,
+                    "schema": "guala.native_world_move.v2",
+                    "signed_yaw_millidegrees": signed_yaw,
+                    "sensory_delivery": {
+                        "accepted": True,
+                        "hop_count": result["hop_count"],
+                        "organism_tick": result["persisted"]["organism_tick"],
+                        "state_sha256": result["persisted"]["state_sha256"],
+                    },
+                    **result,
+                },
             )
-            for hop in range(2)
-        ]
-    except (OSError, RuntimeError, ValueError) as error:
-        return _refusal(422, f"that move could not reach her: {error}")
-    try:
-        result = _perform_admitted_intake(
-            episodes,
-            "world-move",
-            vestibular_yaw=(predecessor_heading, yaw_trajectory),
-        )
-    except HTTPException:
-        raise
-    except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"admitted world transition refused: {error}")
-    global _last_displacement
-    with _transition_lock:
-        _last_displacement = moved
-        _persist_world(authority)
-        _refresh_public_observation_cache()
-    return JSONResponse(
-        status_code=200,
-        content={
-            "moved": {c: float(v) for c, v in zip(DISPLACEMENT_CHANNELS, moved)},
-            "signed_yaw_millidegrees": signed_yaw,
-            "revision": execution.after.revision,
-            "chose_to_go": False,
-            **result,
-        },
-    )
+    finally:
+        _end_external_intake()
 
 
 @app.post(GUTENBERG_ENDPOINT)
