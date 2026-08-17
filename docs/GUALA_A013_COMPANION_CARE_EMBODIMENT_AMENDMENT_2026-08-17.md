@@ -2,8 +2,9 @@
 
 Date: 2026-08-17
 
-Status: **requested scope recorded; current Phase-1 morphology falsifies a
-truthful implementation. No care action is implemented or live.**
+Status: **first pure contact primitive is source-present and locally exercised;
+it is not mounted, packaged, deployed, or live. No named care action is
+implemented or live.**
 
 ## Task identity and ledger relationship
 
@@ -145,11 +146,24 @@ reconstructing evidence:
 | complete neuron | unchanged shared full-DSF reference and distinct local receptor perspectives |
 | observation | participant origin, exact physical consequence, Guala response trajectory, explicit absence of inferred meaning |
 
-There is currently no producer for the first row; therefore every downstream
-care claim is unavailable. A test fixture may falsify the proposed geometry,
-but cannot close this increment. Acceptance requires a runtime-reachable
-producer, cold-restored current contact state, exact consequence re-entry, and
-live-production evidence from the same organism.
+There is currently no world producer for the first row; therefore every
+downstream care claim is unavailable. The pure producer candidate now exists in
+`dsf_ai_service/substrate/body_surface_contact.py`. It requires exact rational
+surface bases, rectangular lattice extents, predecessor/successor centre and
+temperature trajectories, duration, normal-stiffness density, tangential-
+damping density, and thermal-conductance density. It defaults none of them.
+
+The candidate combines each pair of declared surface coefficients as two
+physical elements in series, preserves one constant contained contact patch,
+uses normal elastic energy and tangential viscous dissipation, and returns
+equal/opposite forces and conductive heat. A changing partial patch or a
+trajectory that crosses contact onset/release must be segmented at its exact
+boundary; it is never approximated.
+
+A test fixture can falsify this geometry but cannot close the increment.
+Acceptance still requires a runtime-reachable world producer, cold-restored
+current contact state, exact consequence re-entry, and live-production evidence
+from the same organism.
 
 ## Pure-physics and resource boundary
 
@@ -161,17 +175,45 @@ live-production evidence from the same organism.
   displacement, pressure, heat, or material.
 - Retain current surface/contact/material state only. No per-touch log, queue,
   image sequence, or duplicated body snapshot may accumulate.
+- Admit only exact rationals whose numerator and denominator each fit the
+  fixed 256-bit contact boundary, and identifiers whose UTF-8 encoding fits
+  256 bytes. A construction-authority token prevents direct manufacture of
+  the post-admission settlement input.
 - Observation receipts describe the physical transition but never cause it.
+
+## Local evidence and failed paths
+
+- Focused local result: 14 tests pass for exact normal work, reciprocal force,
+  reciprocal heat, tangential slip/dissipation, boundary-to-separation motion,
+  repeated identical settlement, participant-order invariance, explicit zero
+  damping/conductance, admission custody, rational width, and fail-closed
+  missing anatomy or unsegmented paths.
+- The first bare `pytest` command failed during collection because the package
+  root was not on Python's import path. The repository-local `PYTHONPATH=.` run
+  reached and passed all focused tests. This was not counted as physics
+  evidence.
+- `ruff` and `black` are not installed in the current environment. Python byte
+  compilation and an explicit overlong-line check pass.
+- The transition contains no imports beyond Python exact arithmetic/data types,
+  no callback, recursion, serialization, digest, receipt, lock, database,
+  owner, network, UI, neuron scan, world scan, or retained history. Work and
+  output size are constant for the one admitted pair.
+- A local 10,000-settlement loop over one already-admitted pair completed in
+  0.638 seconds, approximately 63.8 microseconds per pure settlement. This is a
+  local regression measurement, not live end-to-end reaction time.
 
 ## Disposition
 
-No production code was added in this amendment. That is deliberate: the first
-required physical input—world-space body-surface morphology with derived
-material/contact coefficients—does not exist, and an unmounted arithmetic
-helper would repeat the exact A-013 mistake already removed from the tree.
+No world, runtime, native-organism, codec, persistence, or production code was
+changed. The isolated pure contact candidate is deliberately unmounted because
+the first runtime input—world-space body-surface morphology with derived
+material/contact coefficients—does not yet exist. It must not be called with a
+fixture or identifier-derived default merely to make an endpoint appear live.
 
-Recommended next action: integrate the single body-to-body cutaneous contact
-increment only after the concurrent native root-action/world work is settled,
-then use that exact contact law as the shared physical basis for affectionate
-touch before adding gravity/support, art materials, water, or named care
-episodes.
+Recommended next action: add explicit surface-site morphology to the two world
+bodies, project only reached participant/native body trajectories into those
+sites, then mount this one contact result into current world state and Guala's
+existing tactile, thermal, and proprioceptive sensory return. The native action
+lineage—not this module—must establish when Guala caused a separating motion.
+Only after that end-to-end contact is live should the project add gravity and
+support, art materials, water, or named care episodes.
