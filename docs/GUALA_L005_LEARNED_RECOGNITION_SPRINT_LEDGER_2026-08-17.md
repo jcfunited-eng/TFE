@@ -158,3 +158,36 @@ L-005 closure. It does not yet add daylight, weather, acoustic inhabitants,
 plants, animals, guardian care, or native organism-to-root locomotion. Those
 require their own truthful physical producers rather than authored sensory
 descriptions.
+
+## First live retained-pattern recall on task 1122
+
+One attended full `alphabet-b` lesson committed on task 1122. It combined the
+approved bee surface, recorded tutor pressure, card contact/material chemistry,
+and the continuing body/world occurrence. The transition advanced tick
+`145531 -> 145557` in 14 hops, executed 1,568 full DSF deliveries and 18,588
+physical neuron transitions, and produced 100 complete-neuron-fractal change
+occurrences with zero exhaustion. This proves a lesson occurred; it does not
+prove that the word “bee” was learned.
+
+After ordinary continuing activity, a fresh embodied invitation was accepted
+through nine exact directed transfers. A `partial` presentation then supplied
+only a strict subset of the bee card's retinal light and no tutor voice. It
+committed at tick `145648` and externally reassembled retained formation
+`62fa59e7be9028f28972240d1c3d1bfcfcaad1b9224026d3f9933f4035122d77`
+from three exact retinal cue lineages into recurrent lineage
+`474c4e4c494e453100000000000000b4`. The retained mosaic count stayed 62;
+the transition did not invent a new mosaic to answer the cue.
+
+That is live evidence of retained visual-pattern recognition from incomplete
+sensory evidence. Native articulation and ordinary cochlear self-hearing also
+occurred in the partial-presentation intake, but the exact
+externally-reassembled-formation-to-articulation causal observer returned no
+continuous path. Therefore this is not yet learned-word recognition, a named
+utterance, or L-005 closure.
+
+State size was 245,373,809 bytes immediately before the partial presentation
+and 245,392,540 bytes after it, a 18,731-byte increase. The preceding full
+lesson raised current state by roughly 14 MiB; later settlement recovered only
+about 1 MiB, leaving a roughly 12–13 MiB net increase over the pre-lesson body.
+Its bounded long-term growth rate remains unproved, so no repeated full lesson
+loop is authorized from this result.
