@@ -35,3 +35,27 @@ def test_one_native_body_candidate_commits_at_most_once() -> None:
     with pytest.raises(ValueError, match="pending candidate"):
         organism.commit(prepared.token)
     assert organism.readiness().state_sha256 == committed.state_sha256
+
+
+def test_every_lived_trajectory_contains_one_current_body_observation() -> None:
+    source, _ = _growth_dna_fixture()
+    organism = create_native_resident_organism(
+        organism_identity=IDENTITY,
+        organism_tick=0,
+        growth_dna=_growth_dna_fixture(),
+        max_envelope_bytes=67_108_864,
+        max_fabric_bytes=67_108_000,
+        max_logical_peak_bytes=536_870_912,
+    )
+    admissions = (((1, 1),),)
+
+    first = organism.commit_admitted_trajectory_direct((source,), admissions)
+    second = organism.commit_admitted_trajectory_direct((source,), admissions)
+
+    assert (first.predecessor_organism_tick, first.organism_tick) == (0, 2)
+    assert (second.predecessor_organism_tick, second.organism_tick) == (2, 4)
+    assert len(first.causal_interval_evidence) == 2
+    assert len(second.causal_interval_evidence) == 2
+    assert first.receptor_ingress_sense_counts[5] == 74
+    assert second.receptor_ingress_sense_counts[5] == 74
+    assert organism.readiness().articulated_body_proprioception_initialized

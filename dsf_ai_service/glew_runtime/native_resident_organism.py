@@ -2017,11 +2017,7 @@ class NativeResidentOrganism:
             for value in maximum_causal_intervals
         )
         active_before = self.readiness()
-        initializes_body_proprioception = not (
-            active_before.articulated_body_proprioception_initialized
-        )
-        if initializes_body_proprioception:
-            source_port_count += 74
+        source_port_count += 74
         candidate = self.__runtime.prepare_admitted_trajectory(
             list(sources), [list(value) for value in intervals]
         )
@@ -2029,9 +2025,7 @@ class NativeResidentOrganism:
             candidate,
             source_port_count,
             active_before,
-            causal_interval_count=(
-                len(sources) + int(initializes_body_proprioception)
-            ),
+            causal_interval_count=len(sources) + 1,
             body_feedback_reentered=True,
         )
 
@@ -2062,11 +2056,7 @@ class NativeResidentOrganism:
             for value in maximum_causal_intervals
         )
         active_before = self.readiness()
-        initializes_body_proprioception = not (
-            active_before.articulated_body_proprioception_initialized
-        )
-        if initializes_body_proprioception:
-            source_port_count += 74
+        source_port_count += 74
         candidate = self.__runtime.commit_admitted_trajectory_direct(
             list(sources), [list(value) for value in intervals]
         )
@@ -2076,9 +2066,7 @@ class NativeResidentOrganism:
                 candidate,
                 source_port_count,
                 active_before,
-                causal_interval_count=(
-                    len(sources) + int(initializes_body_proprioception)
-                ),
+                causal_interval_count=len(sources) + 1,
                 body_feedback_reentered=True,
                 candidate_committed=True,
             )

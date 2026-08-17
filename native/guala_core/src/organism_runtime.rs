@@ -2709,32 +2709,27 @@ impl ResidentOrganismRuntime {
     > {
         let derived_budget = self.budget.derive()?;
         let predecessor = self.active.observation.clone();
-        let initial_body_source = if self
-            .active
-            .articulated_body
-            .proprioception_initialized()
-        {
-            None
-        } else {
-            Some(
-                admit_complete_articulated_body_state_source(
-                    predecessor.organism_tick,
-                    &self.active.articulated_body,
-                )
-                .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
-            )
-        };
-        let initial_body_intervals =
-            vec![(1_i64, 1_000_i64); initial_body_source.as_ref().map_or(0, |_| BODY_AXES.len())];
+        // Proprioception is a continuously present organ, not a one-time
+        // genesis observation.  Every lived trajectory therefore begins
+        // with one exact observation of the current fixed-capacity body.
+        // This neither invents motion nor scans the neuron population: it
+        // reaches the same 74 declared antagonist terminals once, allowing
+        // retained body regulation and ordering to develop and recruit their
+        // explicit efferent terminals without the circular requirement that
+        // an unmounted motor move the body first.
+        let current_body_source = admit_complete_articulated_body_state_source(
+            predecessor.organism_tick,
+            &self.active.articulated_body,
+        )
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+        let current_body_intervals = vec![(1_i64, 1_000_i64); BODY_AXES.len()];
         let mut causal_sources = Vec::with_capacity(
             episodes
                 .len()
-                .checked_add(usize::from(initial_body_source.is_some()))
+                .checked_add(1)
                 .ok_or(RuntimeError::OrganismTickOverflow)?,
         );
-        if let Some(source) = initial_body_source.as_ref() {
-            causal_sources.push((source, initial_body_intervals.as_slice()));
-        }
+        causal_sources.push((&current_body_source, current_body_intervals.as_slice()));
         causal_sources.extend(
             episodes
                 .iter()
@@ -2854,9 +2849,7 @@ impl ResidentOrganismRuntime {
         }
         drop(advance_interval);
         let cognitive = cognitive.expect("trajectory cognition has a final successor");
-        if initial_body_source.is_some() {
-            articulated_body.initialize_proprioception();
-        }
+        articulated_body.initialize_proprioception();
         let interval_count = u64::try_from(processed_interval_count)
             .map_err(|_| RuntimeError::OrganismTickOverflow)?;
         let organism_tick = predecessor
@@ -6155,7 +6148,7 @@ mod tests {
     }
 
     #[test]
-    fn first_admitted_trajectory_mounts_complete_body_proprioception_once() {
+    fn every_admitted_trajectory_observes_the_current_complete_body_once() {
         let episode = source("first-trajectory-with-body");
         let interval_count = episode.joint_source_occurrences().len();
         let episodes = vec![(episode, vec![(5, 1); interval_count])];
@@ -6170,9 +6163,9 @@ mod tests {
         assert!(runtime.active.articulated_body.proprioception_initialized());
 
         let second = runtime.prepare_admitted_trajectory(&episodes).unwrap();
-        assert_eq!(second.observation.organism_tick, 3);
-        assert_eq!(second.causal_interval_evidence.len(), 1);
-        assert_eq!(second.receptor_ingress.sense_counts()[5], 0);
+        assert_eq!(second.observation.organism_tick, 4);
+        assert_eq!(second.causal_interval_evidence.len(), 2);
+        assert_eq!(second.receptor_ingress.sense_counts()[5], 74);
     }
 
     #[test]
