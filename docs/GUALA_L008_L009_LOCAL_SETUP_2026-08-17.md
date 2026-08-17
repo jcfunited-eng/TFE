@@ -55,6 +55,14 @@ sampled 768x432 light frame and exactly 4,000 mono 16 kHz pressure samples. A
 silent source produces exact zero pressure. The decoder reads no captions,
 transcript, title, object identity, or semantic field.
 
+`dsf_ai_service/bounded_gutenberg_source.py` acquires only one explicitly
+named HTTPS `www.gutenberg.org/files/.../*.txt` edition at a time. It refuses
+redirects, non-text responses, empty responses, and responses over 2 MiB, then
+places the exact returned bytes and response media type into the same immutable
+custody with fixed Project Gutenberg attribution and public-domain basis. It
+has no catalogue order, next-book counter, autonomous selector, renderer, or
+cognitive path.
+
 These mechanisms are compiled but unmounted. Focused local tests exercise only
 their bounded custody and physical light/pressure conversion. No native
 organism, DSF field, neuron, retained formation, world, deployment, or
