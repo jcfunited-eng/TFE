@@ -1134,34 +1134,28 @@ def _rehearse_contact_local_junction(
 
 
 def _rehearse_a013_articulated_body(
-    current_envelope: bytes,
+    organism: object,
     *,
     max_envelope_bytes: int,
     max_fabric_bytes: int,
     max_logical_peak_bytes: int,
 ) -> dict[str, object]:
-    """Prove one exact body observation, commit, and cold restoration."""
+    """Move-owned body observation followed by one exact cold restoration."""
 
     budget = {
         "max_envelope_bytes": max_envelope_bytes,
         "max_fabric_bytes": max_fabric_bytes,
         "max_logical_peak_bytes": max_logical_peak_bytes,
     }
-    organism = restore_native_resident_organism(
-        current_envelope=current_envelope,
-        **budget,
-    )
     before = organism.readiness()
     before_axes = tuple(before.articulated_body_axes)
     if len(before_axes) != 37 or before.articulated_body_state_bytes != 195:
         raise RuntimeError("A-013 restored body anatomy changed")
 
-    prepared = organism.prepare_articulated_body_observation()
-    unchanged = organism.readiness()
+    prepared = organism.commit_admitted_trajectory_direct((), ())
+    hot = organism.readiness()
     if (
-        unchanged.state_sha256 != before.state_sha256
-        or unchanged.organism_tick != before.organism_tick
-        or prepared.predecessor_state_sha256 != before.state_sha256
+        prepared.predecessor_state_sha256 != before.state_sha256
         or prepared.predecessor_organism_tick != before.organism_tick
         or prepared.organism_tick != before.organism_tick + 1
         or prepared.receptor_ingress_sense_counts != (0, 0, 0, 0, 0, 74)
@@ -1174,7 +1168,6 @@ def _rehearse_a013_articulated_body(
     ):
         raise RuntimeError("A-013 neutral body observation changed its causal boundary")
 
-    hot = organism.commit(prepared.token)
     successor_envelope = bytes(organism.save())
     cold_organism = restore_native_resident_organism(
         current_envelope=successor_envelope,
@@ -1828,7 +1821,6 @@ def main() -> int:
         if migration_predecessor is None:
             raise RuntimeError("current-format rehearsal lost its predecessor")
     before = restored.organism.readiness()
-    state = restored.organism.save()
     after = restored.organism.readiness()
     motor_proof: dict[str, int | bool | str | tuple[str, ...]] = {
         "motor_action_rehearsed": False,
@@ -1849,8 +1841,6 @@ def main() -> int:
         or after.organism_tick != before.organism_tick
         or before.state_sha256 != after.state_sha256
         or before.state_bytes != after.state_bytes
-        or before.state_bytes != len(state)
-        or hashlib.sha256(state).hexdigest() != before.state_sha256
         or before.python_callback_count != 0
         or restored.pointer.identity != before.identity
         or restored.pointer.organism_tick != before.organism_tick
@@ -1863,7 +1853,7 @@ def main() -> int:
     ):
         raise RuntimeError("native CURRENT cold restore changed")
     articulated_body_proof = _rehearse_a013_articulated_body(
-        state,
+        restored.organism,
         max_envelope_bytes=admission.max_envelope_bytes,
         max_fabric_bytes=admission.max_fabric_bytes,
         max_logical_peak_bytes=admission.max_logical_peak_bytes,

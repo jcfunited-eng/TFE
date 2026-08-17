@@ -227,7 +227,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
 
     assert probe.main() == 0
     assert restored.organism.readiness_calls == 2
-    assert restored.organism.save_calls == 1
+    assert restored.organism.save_calls == 0
     proof = json.loads(capsys.readouterr().out)
     receipt = proof.pop("receipt_sha256")
     assert proof == {

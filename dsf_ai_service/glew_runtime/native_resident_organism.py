@@ -2034,10 +2034,10 @@ class NativeResidentOrganism:
         sources: object,
         maximum_causal_intervals: object,
     ) -> ResidentPrepareEvidence:
-        """Commit one ordered trajectory without cloning the resident body."""
+        """Commit current body plus zero or more sources without cloning it."""
 
-        if not isinstance(sources, tuple) or not sources:
-            raise TypeError("admitted trajectory sources must be a nonempty tuple")
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
         if (
             not isinstance(maximum_causal_intervals, tuple)
             or len(maximum_causal_intervals) != len(sources)

@@ -2617,11 +2617,6 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if episodes.is_empty() {
-            return Err(RuntimeError::CognitiveFormation(
-                "admitted trajectory must contain at least one episode".into(),
-            ));
-        }
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
@@ -6760,6 +6755,29 @@ mod tests {
         assert_eq!(runtime.active_envelope(), predecessor);
         assert_eq!(runtime.observation(), predecessor_observation);
         assert_eq!(runtime.next_prepare_ordinal, predecessor_ordinal);
+        assert!(runtime.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn direct_body_only_trajectory_moves_owned_cognition_without_external_source() {
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let predecessor = runtime.observation();
+
+        let committed = runtime.commit_admitted_trajectory_direct(&[]).unwrap();
+
+        assert_eq!(
+            committed.observation.predecessor_organism_tick,
+            Some(predecessor.organism_tick)
+        );
+        assert_eq!(committed.observation.organism_tick, predecessor.organism_tick + 1);
+        assert_eq!(
+            committed.receptor_ingress.sense_counts()[5],
+            BODY_EFFECTOR_TERMINAL_COUNT
+        );
+        assert_eq!(committed.causal_interval_evidence.len(), 1);
+        assert!(committed.motor_unit_recruitments.is_empty());
+        assert!(committed.articulated_body_consequences.is_empty());
+        runtime.acknowledge_direct_commit(committed.token).unwrap();
         assert!(runtime.direct_predecessor.is_none());
     }
 
