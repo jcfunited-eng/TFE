@@ -18,6 +18,12 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   letter or number identity remains transport metadata outside the organism;
   only the physical surface, pressure, contact, chemistry, and body samples
   are delivered.
+- ``POST /api/v1/curriculum/invite-song`` uses the same physical participant
+  and native-attention gate. ``POST /api/v1/curriculum/teach-song`` then
+  presents one matching signed song as synchronized retinal light, cochlear
+  pressure, and lawful body state on one shared clock. The alphabet song
+  claims only its simultaneous 26-surface set; counting-song surface changes
+  use the manifest's exact PCM sample intervals.
 - ``POST /api/v1/visual/live-frames`` (and the legacy ``/sight_frame``
   mount point) delivers batches of real browser camera frames as admitted
   native episodes: one frame per 250 ms hop on the same 27-receptor
@@ -57,6 +63,7 @@ import binascii
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from fractions import Fraction
+from functools import lru_cache
 import hashlib
 import hmac
 import io
@@ -197,8 +204,12 @@ PERSISTENCE_SCHEMA = "guala.native_organism_binary_store.v1"
 CARD_LESSON_RECEIPT_SCHEMA = "guala.card_lesson_observation_receipt.v1"
 CARD_LESSON_RECEIPT_FILE = "LATEST_CARD_LESSON_RECEIPT.json"
 CARD_LESSON_RECEIPT_MAX_BYTES = 32_768
+SONG_LESSON_RECEIPT_SCHEMA = "guala.song_lesson_observation_receipt.v1"
+SONG_LESSON_RECEIPT_FILE = "LATEST_SONG_LESSON_RECEIPT.json"
 CURRICULUM_INVITATION_SCHEMA = "guala.embodied_curriculum_invitation.v1"
 CURRICULUM_INVITE_ENDPOINT = "/api/v1/curriculum/invite-card"
+CURRICULUM_INVITE_SONG_ENDPOINT = "/api/v1/curriculum/invite-song"
+CURRICULUM_TEACH_SONG_ENDPOINT = "/api/v1/curriculum/teach-song"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
@@ -1428,6 +1439,8 @@ _active_external_participant_causal_motor_traces: dict[
 _curriculum_invitation: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
+_last_song_lesson_receipt: dict[str, Any] | None = None
+_last_song_lesson_receipt_error: str | None = None
 _mounted_lesson_anatomy: Any | None = None
 # RE-ENTRANT ON PURPOSE. Reading her body and transitioning her body are the
 # same borrow as far as the native core is concerned: while a transition holds
@@ -2094,7 +2107,7 @@ def _curriculum_invitation_record() -> dict[str, object]:
         return _section(
             False,
             "no_embodied_invitation_this_process",
-            "no participant body has physically invited Guala to a card "
+            "no participant body has physically invited Guala to a curriculum "
             "presentation in this process",
             presentation_eligible=False,
             python_attention_authority=False,
@@ -2168,7 +2181,8 @@ def _settle_pending_curriculum_invitation(
             reason=(
                 "the participant changed her retina, but that exact physical "
                 "frontier expired without entering her changed reached-versus-"
-                "foregone sparse route event; no card was admitted"
+                "foregone sparse route event; no curriculum experience was "
+                "admitted"
             ),
             status="participant_causal_path_expired_before_native_attention",
         )
@@ -2215,7 +2229,8 @@ def _curriculum_media_record() -> dict[str, object]:
             "of whoever is present) and three songs are present; one "
             "approved card reaches the resident organism as one admitted "
             "native episode; no label, identity, or meaning enters the "
-            "organism",
+            "organism; approved songs use their separate synchronized "
+            "invitation and teaching endpoints",
             approved_card_experience_count=declared,
             spoken_only_card_experience_count=spoken_only,
             approved_song_experience_count=3,
@@ -2224,7 +2239,9 @@ def _curriculum_media_record() -> dict[str, object]:
             manifest_path="/curriculum/card_experience_manifest-v1.json",
             invitation=_curriculum_invitation_record(),
             invitation_endpoint=CURRICULUM_INVITE_ENDPOINT,
+            song_invitation_endpoint=CURRICULUM_INVITE_SONG_ENDPOINT,
             teach_card_endpoint="/api/v1/curriculum/teach-card",
+            teach_song_endpoint=CURRICULUM_TEACH_SONG_ENDPOINT,
             tutoring_transition_available=True,
         )
     except (OSError, ValueError, json.JSONDecodeError) as error:
@@ -5743,6 +5760,7 @@ def _build_public_observation_from_snapshot(
         "curriculum": _curriculum_media_record(),
         "last_transition": last,
         "last_card_lesson_receipt": _card_lesson_receipt_record(),
+        "last_song_lesson_receipt": _song_lesson_receipt_record(),
         "experience_stage_ledger": _experience_stage_ledger_record(),
         "full_dsf": _section(
             False,
@@ -10132,6 +10150,17 @@ def _read_manifest_card(card_id: str) -> dict[str, Any]:
     raise KeyError(card_id)
 
 
+def _read_manifest_song(song_id: str) -> dict[str, Any]:
+    experiences = _manifest_experiences(
+        CURRICULUM_ROOT / "songs" / "song_experience_manifest-v1.json",
+        "guala.external_tutor_song_experience_manifest.v1",
+    )
+    for experience in experiences:
+        if experience.get("experience_id") == song_id:
+            return experience
+    raise KeyError(song_id)
+
+
 def _verified_media_path(record: object, label: str) -> Path:
     if not isinstance(record, dict):
         raise ValueError(f"curriculum {label} record changed")
@@ -10280,6 +10309,8 @@ def _compact_whole_roster_signal_body(
     tasted: tuple[Fraction, ...] | None,
     smelled: tuple[Fraction, ...] | None,
     moved: tuple[Fraction, ...] | None = None,
+    *,
+    surface_trajectories: tuple[tuple[float, ...], ...] | None = None,
 ) -> bytes:
     """One port-major binary64 sensorium with no per-sample Python objects."""
 
@@ -10295,7 +10326,15 @@ def _compact_whole_roster_signal_body(
         for value in held:
             signals.extend([float(value)] * frame_count)
 
-    constant_ports(surface_levels, CARD_SURFACE_PORT_COUNT, "retina")
+    if surface_trajectories is None:
+        constant_ports(surface_levels, CARD_SURFACE_PORT_COUNT, "retina")
+    else:
+        if len(surface_trajectories) != CARD_SURFACE_PORT_COUNT:
+            raise ValueError("compact lesson retinal trajectory width changed")
+        for trajectory in surface_trajectories:
+            if len(trajectory) != frame_count:
+                raise ValueError("compact lesson retinal trajectory clock changed")
+            signals.extend(trajectory)
     for _ in range(LEGACY_EAR_PORT_COUNT):
         signals.extend(ear_signal)
     if COCHLEAR_EARS_AUTHORIZED:
@@ -10620,6 +10659,202 @@ def _card_lesson_hop_episodes(
     return list(zip(episodes, admissions, strict=True))
 
 
+@lru_cache(maxsize=36)
+def _approved_song_surface_luminance(object_id: str) -> tuple[float, ...]:
+    """One exact signed card surface addressed by the song's visual program."""
+
+    experiences = _manifest_experiences(
+        CURRICULUM_ROOT / "card_experience_manifest-v1.json",
+        "guala.external_tutor_card_experience_manifest.v1",
+    )
+    for experience in experiences:
+        surface = experience.get("surface")
+        if isinstance(surface, dict) and surface.get("object_id") == object_id:
+            return _card_surface_luminance(
+                _verified_media_path(surface, "song visual surface")
+            )
+    raise ValueError(f"song visual surface {object_id!r} is not approved")
+
+
+@lru_cache(maxsize=1)
+def _alphabet_song_surface_set_luminance() -> tuple[float, ...]:
+    """Arrange the 26 signed alphabet cards simultaneously across the retina."""
+
+    from PIL import Image
+
+    experience = _read_manifest_song("alphabet-song-cc-by-sa-3.0-v1")
+    visual = experience.get("visual_program")
+    object_ids = visual.get("object_ids") if isinstance(visual, dict) else None
+    if not isinstance(object_ids, list) or len(object_ids) != 26:
+        raise ValueError("alphabet song simultaneous surface set changed")
+    tile_width = 256
+    tile_height = 320
+    canvas = Image.new(
+        "RGB",
+        (CARD_SURFACE_COLUMNS * tile_width, CARD_SURFACE_ROWS * tile_height),
+        (0, 0, 0),
+    )
+    card_experiences = _manifest_experiences(
+        CURRICULUM_ROOT / "card_experience_manifest-v1.json",
+        "guala.external_tutor_card_experience_manifest.v1",
+    )
+    for index, object_id in enumerate(object_ids):
+        if not isinstance(object_id, str):
+            raise ValueError("alphabet song surface identity changed")
+        surface = next(
+            (
+                item.get("surface")
+                for item in card_experiences
+                if isinstance(item.get("surface"), dict)
+                and item["surface"].get("object_id") == object_id
+            ),
+            None,
+        )
+        path = _verified_media_path(surface, "alphabet song visual surface")
+        with Image.open(path) as source:
+            tile = source.convert("RGB").resize(
+                (tile_width, tile_height),
+                Image.Resampling.BOX,
+            )
+        x = (index % CARD_SURFACE_COLUMNS) * tile_width
+        y = (index // CARD_SURFACE_COLUMNS) * tile_height
+        canvas.paste(tile, (x, y))
+    return _raster_luminance(canvas)
+
+
+def _song_visual_program(
+    experience: dict[str, Any],
+    *,
+    audio_sample_count: int,
+) -> tuple[str, tuple[tuple[int, int, tuple[float, ...]], ...]]:
+    """Validate the signed visual program and return exact sample intervals."""
+
+    visual = experience.get("visual_program")
+    if not isinstance(visual, dict):
+        raise ValueError("song visual program changed")
+    claim = visual.get("alignment_claim")
+    if claim == "simultaneous_alphabet_surface_set_only":
+        if visual.get("per_letter_timing_authority") is not False:
+            raise ValueError("alphabet song invented per-letter timing authority")
+        roster = _alphabet_song_surface_set_luminance()
+        return claim, ((0, audio_sample_count, roster),)
+    if claim != "exact_sample_interval_surface_sequence":
+        raise ValueError("song visual alignment claim changed")
+    slots = visual.get("slots")
+    if not isinstance(slots, list) or not slots:
+        raise ValueError("counting song visual slots changed")
+    intervals: list[tuple[int, int, tuple[float, ...]]] = []
+    expected_first = 0
+    for slot in slots:
+        if not isinstance(slot, dict):
+            raise ValueError("counting song visual slot changed")
+        first = slot.get("first_sample_index")
+        count = slot.get("sample_count")
+        object_id = slot.get("object_id")
+        if (
+            isinstance(first, bool)
+            or not isinstance(first, int)
+            or isinstance(count, bool)
+            or not isinstance(count, int)
+            or count <= 0
+            or not isinstance(object_id, str)
+            or first != expected_first
+        ):
+            raise ValueError("counting song visual intervals are not contiguous")
+        intervals.append(
+            (first, first + count, _approved_song_surface_luminance(object_id))
+        )
+        expected_first = first + count
+    if expected_first != audio_sample_count:
+        raise ValueError("counting song visual intervals do not cover its waveform")
+    return claim, tuple(intervals)
+
+
+def _song_lesson_hop_episodes(
+    song_id: str,
+    experience: dict[str, Any],
+) -> tuple[list[tuple[Any, list[tuple[int, int]]]], str]:
+    """Build one signed song as synchronized light, pressure, and body state."""
+
+    audio = experience.get("audio")
+    audio_path = _verified_media_path(audio, "song audio")
+    expected_samples = audio.get("sample_count") if isinstance(audio, dict) else None
+    sample_rate, samples = _read_tutor_wav(audio_path, expected_samples)
+    alignment_claim, intervals = _song_visual_program(
+        experience,
+        audio_sample_count=len(samples),
+    )
+    pressure_hops = _pcm_hops(samples, sample_rate)
+    cochlear_hops = _cochlear_hops(
+        samples,
+        sample_rate,
+        LESSON_ENDED_HOP_COUNT,
+    )
+    if len(cochlear_hops) < len(pressure_hops) + LESSON_ENDED_HOP_COUNT:
+        raise ValueError("song cochlear observation hops changed")
+    hop_samples = sample_rate * INTAKE_HOP_MILLISECONDS // 1000
+    presentation_ms = (len(samples) * 1000 + sample_rate - 1) // sample_rate
+    assembly_ids: list[str] = []
+    clocks: list[tuple[Fraction, ...]] = []
+    signal_bodies: list[bytes] = []
+    admissions: list[list[tuple[int, int]]] = []
+    interval_index = 0
+    for hop_index, (times, pressure) in enumerate(pressure_hops):
+        rosters: list[tuple[float, ...]] = []
+        for source_time in times:
+            sample_index = min(
+                hop_index * hop_samples + int(source_time * sample_rate),
+                len(samples) - 1,
+            )
+            while sample_index >= intervals[interval_index][1]:
+                interval_index += 1
+            rosters.append(intervals[interval_index][2])
+        trajectories = tuple(
+            tuple(roster[site] for roster in rosters)
+            for site in range(CARD_SURFACE_PORT_COUNT)
+        )
+        assembly_ids.append(f"curriculum-song-{song_id}-hop-{hop_index}")
+        clocks.append(times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
+                times,
+                rosters[0],
+                pressure,
+                cochlear_hops[hop_index],
+                None,
+                None,
+                None,
+                surface_trajectories=trajectories,
+            )
+        )
+        admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
+    dark_times = _quiescent_hop_times()
+    dark_pressure = (0.0,) * len(dark_times)
+    dark_surface = (0.0,) * CARD_SURFACE_PORT_COUNT
+    for ended_index in range(LESSON_ENDED_HOP_COUNT):
+        assembly_ids.append(f"curriculum-song-{song_id}-ended-{ended_index}")
+        clocks.append(dark_times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
+                dark_times,
+                dark_surface,
+                dark_pressure,
+                cochlear_hops[len(pressure_hops) + ended_index],
+                None,
+                None,
+                None,
+            )
+        )
+        admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
+    episodes = settle_native_joint_source_episode_batch_from_anatomy(
+        anatomy=_lesson_anatomy(),
+        assembly_ids=tuple(assembly_ids),
+        source_times=tuple(clocks),
+        signal_bodies=tuple(signal_bodies),
+    )
+    return list(zip(episodes, admissions, strict=True)), alignment_claim
+
+
 def _mono_pcm_hop_episodes(
     *,
     assembly_prefix: str,
@@ -10939,7 +11174,7 @@ def _perform_live_sight_intake(
         return result
 
 
-def _card_lesson_receipt_bytes(record: dict[str, Any]) -> bytes:
+def _lesson_receipt_bytes(record: dict[str, Any]) -> bytes:
     return json.dumps(
         record,
         ensure_ascii=True,
@@ -10948,19 +11183,24 @@ def _card_lesson_receipt_bytes(record: dict[str, Any]) -> bytes:
     ).encode("utf-8")
 
 
-def _card_lesson_receipt_digest(record: dict[str, Any]) -> str:
+def _lesson_receipt_digest(record: dict[str, Any]) -> str:
     payload = {
         key: value for key, value in record.items() if key != "receipt_sha256"
     }
-    return hashlib.sha256(_card_lesson_receipt_bytes(payload)).hexdigest()
+    return hashlib.sha256(_lesson_receipt_bytes(payload)).hexdigest()
 
 
-def _persist_card_lesson_receipt(record: dict[str, Any]) -> None:
-    body = _card_lesson_receipt_bytes(record)
+def _persist_lesson_receipt(
+    record: dict[str, Any],
+    *,
+    filename: str,
+    lesson_kind: str,
+) -> None:
+    body = _lesson_receipt_bytes(record)
     if len(body) > CARD_LESSON_RECEIPT_MAX_BYTES:
-        raise ValueError("card lesson receipt exceeds its fixed byte bound")
-    stage = STATE_ROOT / f".{CARD_LESSON_RECEIPT_FILE}.stage"
-    destination = STATE_ROOT / CARD_LESSON_RECEIPT_FILE
+        raise ValueError(f"{lesson_kind} lesson receipt exceeds its fixed byte bound")
+    stage = STATE_ROOT / f".{filename}.stage"
+    destination = STATE_ROOT / filename
     with stage.open("wb") as stream:
         stream.write(body)
         stream.flush()
@@ -10973,45 +11213,107 @@ def _persist_card_lesson_receipt(record: dict[str, Any]) -> None:
         os.close(directory)
 
 
-def _load_card_lesson_receipt() -> dict[str, Any] | None:
-    path = STATE_ROOT / CARD_LESSON_RECEIPT_FILE
+def _load_lesson_receipt(
+    *,
+    filename: str,
+    schema: str,
+    lesson_kind: str,
+) -> dict[str, Any] | None:
+    path = STATE_ROOT / filename
     if not path.is_file():
         return None
     if path.stat().st_size > CARD_LESSON_RECEIPT_MAX_BYTES:
-        raise ValueError("card lesson receipt exceeds its fixed byte bound")
+        raise ValueError(f"{lesson_kind} lesson receipt exceeds its fixed byte bound")
     record = json.loads(path.read_bytes())
     if not isinstance(record, dict):
-        raise ValueError("card lesson receipt is not an object")
-    if record.get("schema") != CARD_LESSON_RECEIPT_SCHEMA:
-        raise ValueError("card lesson receipt schema changed")
+        raise ValueError(f"{lesson_kind} lesson receipt is not an object")
+    if record.get("schema") != schema:
+        raise ValueError(f"{lesson_kind} lesson receipt schema changed")
     digest = record.get("receipt_sha256")
     if not isinstance(digest, str) or not hmac.compare_digest(
-        digest, _card_lesson_receipt_digest(record)
+        digest, _lesson_receipt_digest(record)
     ):
-        raise ValueError("card lesson receipt digest changed")
+        raise ValueError(f"{lesson_kind} lesson receipt digest changed")
     return record
 
 
-def _card_lesson_receipt_record() -> dict[str, object]:
-    if _last_card_lesson_receipt is not None:
+def _lesson_receipt_record(
+    receipt: dict[str, Any] | None,
+    error: str | None,
+    *,
+    lesson_kind: str,
+) -> dict[str, object]:
+    if receipt is not None:
         return _section(
             True,
-            "durable_card_lesson_receipt",
-            "the latest committed card lesson transport receipt is stored as "
+            f"durable_{lesson_kind}_lesson_receipt",
+            f"the latest committed {lesson_kind} lesson transport receipt is stored as "
             "one fixed bounded observation record outside organism cognition; "
             "later sensory transitions do not overwrite it",
-            **_last_card_lesson_receipt,
+            **receipt,
         )
-    if _last_card_lesson_receipt_error is not None:
+    if error is not None:
         return _section(
             False,
-            "card_lesson_receipt_unavailable",
-            _last_card_lesson_receipt_error,
+            f"{lesson_kind}_lesson_receipt_unavailable",
+            error,
         )
     return _section(
         False,
-        "no_durable_card_lesson_receipt",
-        "no card lesson has left a durable intake-specific receipt",
+        f"no_durable_{lesson_kind}_lesson_receipt",
+        f"no {lesson_kind} lesson has left a durable intake-specific receipt",
+    )
+
+
+def _card_lesson_receipt_digest(record: dict[str, Any]) -> str:
+    return _lesson_receipt_digest(record)
+
+
+def _persist_card_lesson_receipt(record: dict[str, Any]) -> None:
+    _persist_lesson_receipt(
+        record,
+        filename=CARD_LESSON_RECEIPT_FILE,
+        lesson_kind="card",
+    )
+
+
+def _load_card_lesson_receipt() -> dict[str, Any] | None:
+    return _load_lesson_receipt(
+        filename=CARD_LESSON_RECEIPT_FILE,
+        schema=CARD_LESSON_RECEIPT_SCHEMA,
+        lesson_kind="card",
+    )
+
+
+def _card_lesson_receipt_record() -> dict[str, object]:
+    return _lesson_receipt_record(
+        _last_card_lesson_receipt,
+        _last_card_lesson_receipt_error,
+        lesson_kind="card",
+    )
+
+
+def _persist_song_lesson_receipt(record: dict[str, Any]) -> None:
+    _persist_lesson_receipt(
+        record,
+        filename=SONG_LESSON_RECEIPT_FILE,
+        lesson_kind="song",
+    )
+
+
+def _load_song_lesson_receipt() -> dict[str, Any] | None:
+    return _load_lesson_receipt(
+        filename=SONG_LESSON_RECEIPT_FILE,
+        schema=SONG_LESSON_RECEIPT_SCHEMA,
+        lesson_kind="song",
+    )
+
+
+def _song_lesson_receipt_record() -> dict[str, object]:
+    return _lesson_receipt_record(
+        _last_song_lesson_receipt,
+        _last_song_lesson_receipt_error,
+        lesson_kind="song",
     )
 
 
@@ -11021,8 +11323,9 @@ class _CurriculumInvitationRefusal(RuntimeError):
         self.status_code = status_code
 
 
-def _validated_curriculum_invitation(
-    card_id: str,
+def _validated_curriculum_experience_invitation(
+    experience_kind: str,
+    experience_id: str,
     invitation_receipt_sha256: object,
 ) -> dict[str, Any]:
     if not isinstance(invitation_receipt_sha256, str) or not re.fullmatch(
@@ -11030,23 +11333,31 @@ def _validated_curriculum_invitation(
     ):
         raise _CurriculumInvitationRefusal(
             422,
-            "a card presentation requires its exact embodied invitation receipt",
+            f"a {experience_kind} presentation requires its exact embodied "
+            "invitation receipt",
         )
     invitation = _curriculum_invitation
     if invitation is None:
         raise _CurriculumInvitationRefusal(
             409,
-            "no embodied invitation exists in this process; no card was admitted",
+            "no embodied invitation exists in this process; no curriculum "
+            "experience was admitted",
         )
     if invitation.get("invitation_receipt_sha256") != invitation_receipt_sha256:
         raise _CurriculumInvitationRefusal(
             409,
             "the invitation receipt is not the current embodied invitation",
         )
-    if invitation.get("card_id") != card_id:
+    invited_kind = invitation.get("experience_kind")
+    invited_id = invitation.get("experience_id")
+    if invited_kind is None and invitation.get("card_id") is not None:
+        invited_kind = "card"
+        invited_id = invitation.get("card_id")
+    if invited_kind != experience_kind or invited_id != experience_id:
         raise _CurriculumInvitationRefusal(
             409,
-            "the invited physical card and requested card differ",
+            "the invited physical curriculum experience and requested "
+            "experience differ",
         )
     if invitation.get("outcome") != "attended" or not invitation.get(
         "presentation_eligible"
@@ -11054,9 +11365,20 @@ def _validated_curriculum_invitation(
         raise _CurriculumInvitationRefusal(
             409,
             "Guala's exact invitation-caused frontier has not continued; "
-            "no card was admitted",
+            "no curriculum experience was admitted",
         )
     return invitation
+
+
+def _validated_curriculum_invitation(
+    card_id: str,
+    invitation_receipt_sha256: object,
+) -> dict[str, Any]:
+    return _validated_curriculum_experience_invitation(
+        "card",
+        card_id,
+        invitation_receipt_sha256,
+    )
 
 
 def _perform_card_lesson_intake(
@@ -11169,6 +11491,97 @@ def _perform_card_lesson_intake(
         return result
 
 
+def _perform_song_lesson_intake(
+    episodes: list[tuple[Any, list[tuple[int, int]]]],
+    song_id: str,
+    experience: dict[str, Any],
+    alignment_claim: str,
+    invitation_receipt_sha256: str,
+) -> dict[str, Any]:
+    """Commit one invited synchronized song and one fixed observation receipt."""
+
+    global _curriculum_invitation
+    global _last_song_lesson_receipt, _last_song_lesson_receipt_error
+
+    with _transition_lock:
+        invitation = _validated_curriculum_experience_invitation(
+            "song",
+            song_id,
+            invitation_receipt_sha256,
+        )
+        _curriculum_invitation = {
+            **invitation,
+            "outcome": "presentation_attempted",
+            "presentation_eligible": False,
+            "reason": (
+                "the one eligible invitation is being consumed by one "
+                "bounded synchronized song presentation"
+            ),
+            "status": "song_presentation_in_progress",
+        }
+        result = _perform_admitted_intake_locked(
+            episodes,
+            f"curriculum-song:{song_id}",
+        )
+        audio = experience.get("audio")
+        visual = experience.get("visual_program")
+        receipt: dict[str, Any] = {
+            "schema": SONG_LESSON_RECEIPT_SCHEMA,
+            "song_id": song_id,
+            "invitation_receipt_sha256": invitation_receipt_sha256,
+            "transport_metadata_only": True,
+            "audio_sha256": audio.get("sha256") if isinstance(audio, dict) else None,
+            "audio_sample_count": (
+                audio.get("sample_count") if isinstance(audio, dict) else None
+            ),
+            "visual_alignment_claim": alignment_claim,
+            "visual_program_receipt_sha256": (
+                _receipt(visual) if isinstance(visual, dict) else None
+            ),
+            "predecessor_state_sha256": result["persisted"][
+                "predecessor_state_sha256"
+            ],
+            "successor_state_sha256": result["persisted"]["state_sha256"],
+            "successor_state_bytes": result["persisted"]["state_bytes"],
+            "successor_organism_tick": result["persisted"]["organism_tick"],
+            "hop_count": result["hop_count"],
+            "totals": dict(result["totals"]),
+        }
+        receipt["receipt_sha256"] = _lesson_receipt_digest(receipt)
+        try:
+            _persist_song_lesson_receipt(receipt)
+        except (OSError, TypeError, ValueError) as error:
+            _last_song_lesson_receipt = None
+            _last_song_lesson_receipt_error = (
+                "the organism successor committed, but its bounded song "
+                f"lesson receipt could not be persisted ({type(error).__name__}: "
+                f"{error}); do not repeat the lesson"
+            )
+        else:
+            _last_song_lesson_receipt = receipt
+            _last_song_lesson_receipt_error = None
+        result["durable_receipt"] = _song_lesson_receipt_record()
+        _curriculum_invitation = {
+            **_curriculum_invitation,
+            "outcome": "presented",
+            "presented_successor_organism_tick": result["persisted"][
+                "organism_tick"
+            ],
+            "presented_successor_state_sha256": result["persisted"][
+                "state_sha256"
+            ],
+            "presentation_eligible": False,
+            "reason": (
+                "one synchronized song presentation committed after the "
+                "exact invitation-caused neuronal continuation; the receipt "
+                "is consumed and cannot admit a duplicate"
+            ),
+            "status": "invited_song_presentation_committed",
+        }
+        _refresh_public_observation_cache()
+        return result
+
+
 def _committed_card_occupancy(
     experience: dict[str, Any],
     presentation: str,
@@ -11250,6 +11663,7 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
             LOCAL_OBJECT_MIRROR_DIRECTORY,
             "hippocampal-cold",
             CARD_LESSON_RECEIPT_FILE,
+            SONG_LESSON_RECEIPT_FILE,
         )
         if (root / name).exists()
     )
@@ -11260,6 +11674,8 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
 def _startup() -> None:
     global _restored, _admission, _boot_error
     global _last_card_lesson_receipt, _last_card_lesson_receipt_error
+    global _last_song_lesson_receipt, _last_song_lesson_receipt_error
+    global _curriculum_invitation
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
@@ -11372,6 +11788,15 @@ def _startup() -> None:
             _last_card_lesson_receipt = None
             _last_card_lesson_receipt_error = (
                 "the bounded card lesson receipt could not be restored "
+                f"({type(error).__name__}: {error})"
+            )
+        try:
+            _last_song_lesson_receipt = _load_song_lesson_receipt()
+            _last_song_lesson_receipt_error = None
+        except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+            _last_song_lesson_receipt = None
+            _last_song_lesson_receipt_error = (
+                "the bounded song lesson receipt could not be restored "
                 f"({type(error).__name__}: {error})"
             )
         _refresh_public_observation_cache()
@@ -11530,6 +11955,69 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     return JSONResponse(
         status_code=200,
         content={"card_id": card_id, "presentation": presentation, **result},
+    )
+
+
+@app.post(
+    CURRICULUM_TEACH_SONG_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def teach_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Present one attended signed song on one shared audiovisual clock."""
+
+    song_id = payload.get("song_id") if isinstance(payload, dict) else None
+    if not isinstance(song_id, str) or not song_id:
+        return _refusal(422, "teach-song requires an approved song_id")
+    if not COCHLEAR_EARS_AUTHORIZED:
+        return _refusal(503, _SOUND_SUSPENSION_REASON)
+    try:
+        experience = _read_manifest_song(song_id)
+    except KeyError:
+        return _refusal(
+            404,
+            f"song {song_id!r} is not in the approved curriculum manifest",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"song curriculum manifest is unavailable: {error}")
+    invitation_receipt = (
+        payload.get("invitation_receipt_sha256")
+        if isinstance(payload, dict)
+        else None
+    )
+    try:
+        with _transition_lock:
+            _validated_curriculum_experience_invitation(
+                "song",
+                song_id,
+                invitation_receipt,
+            )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
+    try:
+        episodes, alignment_claim = _song_lesson_hop_episodes(song_id, experience)
+    except (OSError, TypeError, ValueError) as error:
+        return _refusal(503, f"approved song media refused: {error}")
+    try:
+        result = _perform_song_lesson_intake(
+            episodes,
+            song_id,
+            experience,
+            alignment_claim,
+            invitation_receipt,
+        )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"admitted song transition refused: {error}")
+    return JSONResponse(
+        status_code=200,
+        content={
+            "song_id": song_id,
+            "visual_alignment_claim": alignment_claim,
+            **result,
+        },
     )
 
 
@@ -12321,34 +12809,15 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         )
 
 
-@app.post(
-    CURRICULUM_INVITE_ENDPOINT,
-    dependencies=[Depends(_external_intake_admission)],
-)
-def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Approach in the persistent world; observe, never choose, her response."""
+def _embodied_curriculum_invitation(
+    *,
+    experience_kind: str,
+    experience_id: str,
+    media_receipts: dict[str, str],
+) -> JSONResponse:
+    """Approach once and observe Guala's physical response without choosing it."""
 
     global _curriculum_invitation
-    if not isinstance(payload, dict):
-        return _refusal(422, "a curriculum invitation requires a JSON body")
-    card_id = payload.get("card_id")
-    if not isinstance(card_id, str) or not card_id:
-        return _refusal(422, "a curriculum invitation requires an approved card_id")
-    try:
-        experience = _read_manifest_card(card_id)
-    except KeyError:
-        return _refusal(
-            404,
-            f"card {card_id!r} is not in the approved curriculum manifest",
-        )
-    except (OSError, ValueError, json.JSONDecodeError) as error:
-        return _refusal(503, f"curriculum manifest is unavailable: {error}")
-    surface = experience.get("surface")
-    surface_sha256 = surface.get("sha256") if isinstance(surface, dict) else None
-    if not isinstance(surface_sha256, str) or not re.fullmatch(
-        r"[0-9a-f]{64}", surface_sha256
-    ):
-        return _refusal(503, "approved curriculum surface receipt is unavailable")
     try:
         with _transition_lock:
             approach = _curriculum_participant_approach_payload()
@@ -12407,21 +12876,22 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 reason = (
                     "the participant changed her retina, but that exact "
                     "physical frontier expired without entering her changed "
-                    "reached-versus-foregone sparse route event; no card was "
-                    "admitted"
+                    "reached-versus-foregone sparse route event; no curriculum "
+                    "experience was admitted"
                 )
             else:
                 outcome = "not_reached"
                 status = "participant_did_not_reach_retina"
                 reason = (
                     "the participant moved, but the movement changed no "
-                    "retinal receptor; no invitation or card admission is "
-                    "claimed"
+                    "retinal receptor; no curriculum invitation or admission "
+                    "is claimed"
                 )
             invitation = {
                 "schema": CURRICULUM_INVITATION_SCHEMA,
-                "card_id": card_id,
-                "surface_sha256": surface_sha256,
+                "experience_kind": experience_kind,
+                "experience_id": experience_id,
+                **media_receipts,
                 "participant_action_causal_intent_receipt_sha256": (
                     action_receipt
                 ),
@@ -12462,6 +12932,74 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         return _refusal(error.status_code, str(error))
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"embodied curriculum invitation refused: {error}")
+
+
+@app.post(
+    CURRICULUM_INVITE_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Invite one approved card through the shared embodied attention gate."""
+
+    if not isinstance(payload, dict):
+        return _refusal(422, "a curriculum invitation requires a JSON body")
+    card_id = payload.get("card_id")
+    if not isinstance(card_id, str) or not card_id:
+        return _refusal(422, "a curriculum invitation requires an approved card_id")
+    try:
+        experience = _read_manifest_card(card_id)
+    except KeyError:
+        return _refusal(
+            404,
+            f"card {card_id!r} is not in the approved curriculum manifest",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"curriculum manifest is unavailable: {error}")
+    surface = experience.get("surface")
+    surface_sha256 = surface.get("sha256") if isinstance(surface, dict) else None
+    if not isinstance(surface_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", surface_sha256
+    ):
+        return _refusal(503, "approved curriculum surface receipt is unavailable")
+    return _embodied_curriculum_invitation(
+        experience_kind="card",
+        experience_id=card_id,
+        media_receipts={"card_id": card_id, "surface_sha256": surface_sha256},
+    )
+
+
+@app.post(
+    CURRICULUM_INVITE_SONG_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def invite_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Invite one signed song through the shared embodied attention gate."""
+
+    if not isinstance(payload, dict):
+        return _refusal(422, "a song invitation requires a JSON body")
+    song_id = payload.get("song_id")
+    if not isinstance(song_id, str) or not song_id:
+        return _refusal(422, "a song invitation requires an approved song_id")
+    try:
+        experience = _read_manifest_song(song_id)
+    except KeyError:
+        return _refusal(
+            404,
+            f"song {song_id!r} is not in the approved curriculum manifest",
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return _refusal(503, f"song curriculum manifest is unavailable: {error}")
+    audio = experience.get("audio")
+    audio_sha256 = audio.get("sha256") if isinstance(audio, dict) else None
+    if not isinstance(audio_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", audio_sha256
+    ):
+        return _refusal(503, "approved song audio receipt is unavailable")
+    return _embodied_curriculum_invitation(
+        experience_kind="song",
+        experience_id=song_id,
+        media_receipts={"song_id": song_id, "audio_sha256": audio_sha256},
+    )
 
 
 @app.post(WORLD_MOVE_ENDPOINT)
