@@ -1155,7 +1155,7 @@ def _affective_balance_trajectory_evidence(
                 _positive_decimal_integer(
                     raw[6][1], "affective-balance incident catalyst"
                 ),
-                _positive_decimal_integer(
+                _nonnegative_decimal_integer(
                     raw[6][2], "affective-balance reaction extent"
                 ),
                 _exact_rational_evidence(raw[6][3], "affective-balance delivered work"),
@@ -2055,6 +2055,45 @@ class NativeResidentOrganism:
         )
 
     def _validated_prepare_evidence(
+        self,
+        candidate: object,
+        source_port_count: int,
+        active_before: NativeResidentObservationView,
+        *,
+        causal_interval_count: int = 1,
+        body_feedback_reentered: bool = False,
+    ) -> ResidentPrepareEvidence:
+        """Validate one native candidate or discard its uncommitted custody."""
+
+        try:
+            return self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=causal_interval_count,
+                body_feedback_reentered=body_feedback_reentered,
+            )
+        except BaseException:
+            if isinstance(candidate, self.__prepare_type):
+                token = getattr(candidate, "token", None)
+                if isinstance(token, bytes) and len(token) == 32:
+                    try:
+                        self.discard(token)
+                    except (RuntimeError, ValueError) as discard_error:
+                        if not any(
+                            phrase in str(discard_error)
+                            for phrase in (
+                                "has no pending candidate",
+                                "pending token mismatch",
+                            )
+                        ):
+                            raise RuntimeError(
+                                "resident organism candidate validation and "
+                                "discard both failed"
+                            ) from discard_error
+            raise
+
+    def _validated_prepare_evidence_body(
         self,
         candidate: object,
         source_port_count: int,

@@ -523,6 +523,29 @@ def test_affective_balance_trajectory_preserves_exact_local_physics() -> None:
     )
 
 
+def test_affective_balance_preserves_a_lawful_zero_reaction_extent() -> None:
+    lineage = "10" * 16
+    plasticity = (
+        9,
+        "2",
+        "0",
+        ("0", "1"),
+        ("7", "8"),
+        ("7", "8"),
+        ("4", "3"),
+        ("4", "3"),
+        (("1", "1"), ("0", "1"), ("0", "1")),
+        (("1", "1"), ("0", "1"), ("0", "1")),
+    )
+
+    observed = boundary._affective_balance_trajectory_evidence(
+        [(lineage, 10, 4, None, None, None, plasticity)]
+    )
+
+    assert observed[0][6] is not None
+    assert observed[0][6][2] == 0
+
+
 def _restore(
     monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[
@@ -753,6 +776,20 @@ def test_prepare_refuses_mutable_native_token_even_when_convertible(
 
     with pytest.raises(RuntimeError, match="token changed format"):
         organism.prepare(_Source())
+
+
+def test_prepare_validation_refusal_discards_the_native_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.prepare_result_override = replace(genuine, dsf_delivery_count=-1)
+
+    with pytest.raises(RuntimeError, match="DSF delivery count"):
+        organism.prepare(_Source())
+
+    assert runtime.pending is None
+    assert organism.readiness().state_sha256 == genuine.predecessor_state_sha256
 
 
 
