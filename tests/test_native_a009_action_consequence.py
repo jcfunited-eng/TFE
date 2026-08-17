@@ -56,7 +56,6 @@ execution = world.execute_port_command(
     causal_intent_receipt_sha256=hashlib.sha256(b"a009").hexdigest(),
     expected_revision=before.revision,
 )
-episode, admissions, lanes = production._action_consequence_episode(execution)
 organism = create_native_resident_organism(
     organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
     organism_tick=0,
@@ -64,6 +63,10 @@ organism = create_native_resident_organism(
     max_envelope_bytes=67_108_864,
     max_fabric_bytes=67_108_000,
     max_logical_peak_bytes=536_870_912,
+)
+episode, admissions, lanes = production._action_consequence_episode(
+    execution,
+    retinal_body_axes=organism.readiness().articulated_body_axes,
 )
 hop = production._commit_admitted_hop(organism, episode, admissions)
 print(json.dumps({

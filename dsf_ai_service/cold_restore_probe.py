@@ -1264,9 +1264,6 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
                 ).hexdigest(),
                 expected_revision=before_world.revision,
             )
-            episode, admissions, lanes = production._action_consequence_episode(
-                execution
-            )
             organism = create_native_resident_organism(
                 organism_identity=expected_identity,
                 organism_tick=0,
@@ -1274,6 +1271,10 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
                 max_envelope_bytes=67_108_864,
                 max_fabric_bytes=67_108_000,
                 max_logical_peak_bytes=536_870_912,
+            )
+            episode, admissions, lanes = production._action_consequence_episode(
+                execution,
+                retinal_body_axes=organism.readiness().articulated_body_axes,
             )
             hop = production._commit_admitted_hop(
                 organism, episode, admissions

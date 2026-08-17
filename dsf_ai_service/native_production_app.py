@@ -975,11 +975,11 @@ def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
     return _world_retinal_luminance_endpoints(substreams)[1]
 
 
-def _current_retinal_heading_offset_millidegrees() -> int:
-    """Read the persisted native neck axis that physically carries the retina."""
+def _retinal_heading_offset_millidegrees_from_axes(
+    axes: tuple[Any, ...] | list[Any],
+) -> int:
+    """Resolve the retinal carrier from one explicit native body observation."""
 
-    restored, _ = _runtime()
-    axes = restored.organism.readiness().articulated_body_axes
     matches = tuple(axis for axis in axes if axis[1] == "neck_yaw")
     if len(matches) != 1:
         raise RuntimeError("the native body has no unique neck-yaw axis")
@@ -989,6 +989,15 @@ def _current_retinal_heading_offset_millidegrees() -> int:
     if not -180_000 <= position <= 180_000:
         raise RuntimeError("the native neck-yaw position is outside retinal geometry")
     return position
+
+
+def _current_retinal_heading_offset_millidegrees() -> int:
+    """Read the persisted native neck axis that physically carries the retina."""
+
+    restored, _ = _runtime()
+    return _retinal_heading_offset_millidegrees_from_axes(
+        restored.organism.readiness().articulated_body_axes
+    )
 
 
 def _world_retinal_luminance_endpoints(
@@ -10084,6 +10093,7 @@ def _action_consequence_episode(
     *,
     action_duration: Fraction = Fraction(1, 1_000),
     body_displacement: tuple[Fraction, ...] | None = None,
+    retinal_body_axes: tuple[Any, ...] | list[Any] | None = None,
 ) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
     """One exact joint sensorium caused by one committed 1 ms body action.
 
@@ -10100,7 +10110,11 @@ def _action_consequence_episode(
     if action_duration <= 0:
         raise ValueError("action consequence duration must be positive")
     times = (Fraction(0), action_duration)
-    retinal_heading = _current_retinal_heading_offset_millidegrees()
+    retinal_heading = (
+        _current_retinal_heading_offset_millidegrees()
+        if retinal_body_axes is None
+        else _retinal_heading_offset_millidegrees_from_axes(retinal_body_axes)
+    )
     world_streams = physical_receptor_substreams(
         execution.before,
         execution.after,
