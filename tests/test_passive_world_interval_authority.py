@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dsf_ai_service.substrate.embodiment_world import (
     ENVIRONMENT_PORT_ID,
+    PORT_ID,
     AdvancePhysicalTimeCommand,
     EmbodimentWorldAuthority,
     MoveCommand,
@@ -67,3 +68,50 @@ def test_environment_port_refuses_body_action():
     assert rejected.disposition == "rejected"
     assert rejected.reason == "environment_port_requires_physical_time"
     assert world.observation_snapshot() == before
+
+
+def test_sparse_body_action_tail_restores_across_unretained_world_time():
+    key = b"passive-world-restore-test-key"
+    world = EmbodimentWorldAuthority(authority_key=key)
+
+    for port_id, command, intent in (
+        (
+            PORT_ID,
+            MoveCommand(
+                target_pose=PoseMM(PositionMM(1000, 1200, 0), 0),
+                duration_microseconds=200_000,
+            ),
+            "6" * 64,
+        ),
+        (
+            ENVIRONMENT_PORT_ID,
+            AdvancePhysicalTimeCommand(duration_microseconds=250_000),
+            "7" * 64,
+        ),
+        (
+            PORT_ID,
+            MoveCommand(
+                target_pose=PoseMM(PositionMM(1000, 1000, 0), 0),
+                duration_microseconds=200_000,
+            ),
+            "8" * 64,
+        ),
+    ):
+        before = world.observation_snapshot()
+        receipt = world.execute_port_command(
+            port_id=port_id,
+            command_payload=encode_command(command),
+            causal_intent_receipt_sha256=intent,
+            expected_revision=before.revision,
+        )
+        assert receipt.disposition == "applied"
+
+    retained = world.recent_applied_receipts()
+    assert tuple(receipt.before.revision for receipt in retained) == (0, 2)
+    encoded = world.encoded_snapshot()
+
+    restored = EmbodimentWorldAuthority(authority_key=key)
+    restored.restore_encoded(encoded)
+
+    assert restored.encoded_snapshot() == encoded
+    assert restored.recent_applied_receipts() == retained

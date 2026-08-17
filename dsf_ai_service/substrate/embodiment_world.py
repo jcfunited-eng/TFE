@@ -4352,6 +4352,40 @@ class EmbodimentWorldAuthority:
             raise ValueError("execution receipt identity changed")
 
     @staticmethod
+    def _verify_retained_execution_order(
+        receipts: tuple[ActionExecutionReceipt, ...],
+        current_observation: ObservationSnapshot,
+        *,
+        version_name: str = "",
+    ) -> None:
+        """Verify the bounded body-action tail around unretained world time."""
+
+        prefix = f"{version_name} " if version_name else ""
+        for left, right in zip(receipts, receipts[1:]):
+            if (
+                left.after.revision > right.before.revision
+                or (
+                    left.after.revision == right.before.revision
+                    and left.after != right.before
+                )
+            ):
+                raise ValueError(
+                    f"{prefix}retained execution order changed"
+                )
+        if receipts:
+            latest = receipts[-1].after
+            if (
+                latest.revision > current_observation.revision
+                or (
+                    latest.revision == current_observation.revision
+                    and latest != current_observation
+                )
+            ):
+                raise ValueError(
+                    f"{prefix}retained execution tail changed"
+                )
+
+    @staticmethod
     def _optical_surface_content_sha(
         surface: ObjectOpticalSurface,
     ) -> str:
@@ -5941,12 +5975,12 @@ class EmbodimentWorldAuthority:
         if not isinstance(raw_receipts, list) or len(raw_receipts) > self._receipt_capacity:
             raise ValueError("v6 retained execution receipts exceed capacity")
         receipts = tuple(self._execution_from_record(item) for item in raw_receipts)
-        for left, right in zip(receipts, receipts[1:]):
-            if left.after != right.before:
-                raise ValueError("v6 retained execution chain changed")
         current_observation = self._observation_for(world)
-        if receipts and receipts[-1].after != current_observation:
-            raise ValueError("v6 execution chain does not end at current world")
+        self._verify_retained_execution_order(
+            receipts,
+            current_observation,
+            version_name="v6",
+        )
         migration_value = decoded.get("migration_receipt")
         prior_migration = (
             self._migration_from_record(
@@ -6072,12 +6106,11 @@ class EmbodimentWorldAuthority:
         if not isinstance(raw_receipts, list) or len(raw_receipts) > self._receipt_capacity:
             raise ValueError("retained execution receipts exceed capacity")
         receipts = tuple(self._execution_from_compact_record(item, catalog) for item in raw_receipts)
-        for left, right in zip(receipts, receipts[1:]):
-            if left.after != right.before:
-                raise ValueError("retained execution chain changed")
         current_observation = self._observation_for(world)
-        if receipts and receipts[-1].after != current_observation:
-            raise ValueError("retained execution chain does not end at current world")
+        self._verify_retained_execution_order(
+            receipts,
+            current_observation,
+        )
         migration_value = decoded.get("migration_receipt")
         migration = (
             self._migration_from_record(
