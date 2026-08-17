@@ -823,7 +823,7 @@ def _validate_proof(
         is not None
         and proof.get("a013_articulated_body_proprioception_initialized") is True
         and proof.get("a013_articulated_body_neutral_observation") is True
-        and proof.get("a013_articulated_body_cold_restore_exact") is True
+        and proof.get("a013_articulated_body_live_transition_discarded") is True
         and proof.get("a013_articulated_body_python_callback_count") == 0
     )
     a013_thermal_body_rehearsal = (
@@ -847,6 +847,14 @@ def _validate_proof(
             )
         )
         and proof.get("a013_thermal_body_cold_restore_exact") is True
+        and proof.get("a013_fresh_complete_roster_cold_restore_exact") is True
+        and isinstance(
+            proof.get("a013_fresh_complete_roster_state_sha256"), str
+        )
+        and _SHA.fullmatch(
+            proof["a013_fresh_complete_roster_state_sha256"]
+        )
+        is not None
         and proof.get("a013_thermal_body_python_callback_count") == 0
     )
     if (

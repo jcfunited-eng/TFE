@@ -1135,18 +1135,9 @@ def _rehearse_contact_local_junction(
 
 def _rehearse_a013_articulated_body(
     organism: object,
-    *,
-    max_envelope_bytes: int,
-    max_fabric_bytes: int,
-    max_logical_peak_bytes: int,
 ) -> dict[str, object]:
-    """Move-owned body observation followed by one exact cold restoration."""
+    """Exercise the restored live anatomy once without cloning or publishing it."""
 
-    budget = {
-        "max_envelope_bytes": max_envelope_bytes,
-        "max_fabric_bytes": max_fabric_bytes,
-        "max_logical_peak_bytes": max_logical_peak_bytes,
-    }
     before = organism.readiness()
     before_axes = tuple(before.articulated_body_axes)
     if len(before_axes) != 37 or before.articulated_body_state_bytes != 195:
@@ -1168,12 +1159,6 @@ def _rehearse_a013_articulated_body(
     ):
         raise RuntimeError("A-013 neutral body observation changed its causal boundary")
 
-    successor_envelope = bytes(organism.save())
-    cold_organism = restore_native_resident_organism(
-        current_envelope=successor_envelope,
-        **budget,
-    )
-    cold = cold_organism.readiness()
     if (
         hot.identity != before.identity
         or hot.organism_tick != before.organism_tick + 1
@@ -1182,19 +1167,8 @@ def _rehearse_a013_articulated_body(
         or len(hot.articulated_body_axes) != 37
         or hot.articulated_body_state_bytes != 195
         or hot.articulated_body_proprioception_initialized is not True
-        or cold.identity != hot.identity
-        or cold.organism_tick != hot.organism_tick
-        or cold.state_sha256 != hot.state_sha256
-        or cold.articulated_body_state_sha256
-        != hot.articulated_body_state_sha256
-        or tuple(cold.articulated_body_axes)
-        != tuple(hot.articulated_body_axes)
-        or cold.articulated_body_proprioception_initialized is not True
-        or cold.python_callback_count != 0
-        or len(successor_envelope) != hot.state_bytes
-        or hashlib.sha256(successor_envelope).hexdigest() != hot.state_sha256
     ):
-        raise RuntimeError("A-013 articulated body did not cold-restore exactly")
+        raise RuntimeError("A-013 articulated body live-copy transition changed")
     return {
         "a013_articulated_body_rehearsed": True,
         "a013_articulated_body_predecessor_state_sha256": before.state_sha256,
@@ -1209,7 +1183,7 @@ def _rehearse_a013_articulated_body(
         ),
         "a013_articulated_body_proprioception_initialized": True,
         "a013_articulated_body_neutral_observation": True,
-        "a013_articulated_body_cold_restore_exact": True,
+        "a013_articulated_body_live_transition_discarded": True,
         "a013_articulated_body_python_callback_count": 0,
     }
 
@@ -1287,6 +1261,15 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
                 )
                 for channel in production.THERMAL_CHANNELS
             )
+            hot_organism = organism.readiness()
+            successor_envelope = bytes(organism.save())
+            cold_organism = restore_native_resident_organism(
+                current_envelope=successor_envelope,
+                max_envelope_bytes=_A013_FRESH_MAX_ENVELOPE_BYTES,
+                max_fabric_bytes=_A013_FRESH_MAX_FABRIC_BYTES,
+                max_logical_peak_bytes=_A013_FRESH_MAX_LOGICAL_PEAK_BYTES,
+            )
+            cold_organism_state = cold_organism.readiness()
             after_thermal = world.thermal_observation()
             production._persist_world(world)
             hot_world = world.encoded_snapshot()
@@ -1312,6 +1295,17 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
         or hop["dsf_delivery_count"] <= 0
         or hop["receptor_ingress_sense_counts"].get("body") != 84
         or reached != (1, 1)
+        or hot_organism.identity != expected_identity
+        or cold_organism_state.identity != hot_organism.identity
+        or cold_organism_state.organism_tick != hot_organism.organism_tick
+        or cold_organism_state.state_sha256 != hot_organism.state_sha256
+        or tuple(cold_organism_state.articulated_body_axes)
+        != tuple(hot_organism.articulated_body_axes)
+        or cold_organism_state.articulated_body_proprioception_initialized is not True
+        or cold_organism_state.python_callback_count != 0
+        or len(successor_envelope) != hot_organism.state_bytes
+        or hashlib.sha256(successor_envelope).hexdigest()
+        != hot_organism.state_sha256
         or before_thermal.latest_transition_receipt_sha256 is not None
         or after_thermal.latest_transition_receipt_sha256 is None
         or after_thermal.world_revision != before_thermal.world_revision + 1
@@ -1338,6 +1332,10 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
             hot_world
         ).hexdigest(),
         "a013_thermal_body_cold_restore_exact": True,
+        "a013_fresh_complete_roster_cold_restore_exact": True,
+        "a013_fresh_complete_roster_state_sha256": (
+            cold_organism_state.state_sha256
+        ),
         "a013_thermal_body_python_callback_count": 0,
     }
 
@@ -1854,9 +1852,6 @@ def main() -> int:
         raise RuntimeError("native CURRENT cold restore changed")
     articulated_body_proof = _rehearse_a013_articulated_body(
         restored.organism,
-        max_envelope_bytes=admission.max_envelope_bytes,
-        max_fabric_bytes=admission.max_fabric_bytes,
-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
     )
     thermal_body_proof = _rehearse_a013_thermal_body(before.identity)
     record = {

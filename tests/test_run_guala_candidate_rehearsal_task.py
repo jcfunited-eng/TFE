@@ -27,6 +27,8 @@ THERMAL_PROOF = {
     "a013_thermal_body_anatomy_receipt_sha256": "2" * 64,
     "a013_thermal_body_world_state_sha256": "3" * 64,
     "a013_thermal_body_cold_restore_exact": True,
+    "a013_fresh_complete_roster_cold_restore_exact": True,
+    "a013_fresh_complete_roster_state_sha256": "4" * 64,
     "a013_thermal_body_python_callback_count": 0,
 }
 
@@ -580,7 +582,7 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
         "a013_articulated_body_state_sha256": "d" * 64,
         "a013_articulated_body_proprioception_initialized": True,
         "a013_articulated_body_neutral_observation": True,
-        "a013_articulated_body_cold_restore_exact": True,
+        "a013_articulated_body_live_transition_discarded": True,
         "a013_articulated_body_python_callback_count": 0,
         **THERMAL_PROOF,
         "cold_restore_exact": True,
@@ -614,7 +616,7 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
     ) == proof
 
     changed = dict(record)
-    changed["a013_articulated_body_cold_restore_exact"] = False
+    changed["a013_articulated_body_live_transition_discarded"] = False
     with pytest.raises(RuntimeError, match="proof changed"):
         runner._validate_proof(
             _receipted(changed),

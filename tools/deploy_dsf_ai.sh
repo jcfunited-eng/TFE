@@ -772,7 +772,7 @@ if (
     or proof.get("a013_articulated_body_state_bytes") != 195
     or proof.get("a013_articulated_body_proprioception_initialized") is not True
     or proof.get("a013_articulated_body_neutral_observation") is not True
-    or proof.get("a013_articulated_body_cold_restore_exact") is not True
+    or proof.get("a013_articulated_body_live_transition_discarded") is not True
     or proof.get("a013_articulated_body_python_callback_count") != 0
     or proof.get("a013_thermal_body_rehearsed") is not True
     or proof.get("a013_thermal_body_world_revision_before") != 0
@@ -785,6 +785,7 @@ if (
     or isinstance(proof["a013_thermal_body_dsf_delivery_count"], bool)
     or proof["a013_thermal_body_dsf_delivery_count"] <= 0
     or proof.get("a013_thermal_body_cold_restore_exact") is not True
+    or proof.get("a013_fresh_complete_roster_cold_restore_exact") is not True
     or proof.get("a013_thermal_body_python_callback_count") != 0
     or not re.fullmatch(
         r"[0-9a-f]{64}",
@@ -799,6 +800,7 @@ if (
             "a013_thermal_body_transition_receipt_sha256",
             "a013_thermal_body_anatomy_receipt_sha256",
             "a013_thermal_body_world_state_sha256",
+            "a013_fresh_complete_roster_state_sha256",
         )
     )
 ):

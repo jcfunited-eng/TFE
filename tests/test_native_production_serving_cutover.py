@@ -360,7 +360,7 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
             "a013_articulated_body_state_sha256": "d" * 64,
             "a013_articulated_body_proprioception_initialized": True,
             "a013_articulated_body_neutral_observation": True,
-            "a013_articulated_body_cold_restore_exact": True,
+            "a013_articulated_body_live_transition_discarded": True,
             "a013_articulated_body_python_callback_count": 0,
         },
     )
