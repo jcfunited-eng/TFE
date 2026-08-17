@@ -12,7 +12,7 @@ import pytest
 from dsf_ai_service import native_production_app as production
 
 
-def test_live_boundary_pose_gets_one_collision_free_visible_side_step(
+def test_live_boundary_pose_gets_one_collision_free_retinal_approach(
     monkeypatch, tmp_path
 ) -> None:
     monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
@@ -26,11 +26,11 @@ def test_live_boundary_pose_gets_one_collision_free_visible_side_step(
 
     her = replace(
         her,
-        pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872),
+        pose=PoseMM(PositionMM(2_300, 4_500, 0), 323_874),
     )
     other = replace(
         other,
-        pose=PoseMM(PositionMM(2_300, 5_002, 0), 270_000),
+        pose=PoseMM(PositionMM(3_386, 4_250, 0), 167_036),
     )
     live_snapshot = replace(snapshot, bodies=(her, other))
 
@@ -49,8 +49,18 @@ def test_live_boundary_pose_gets_one_collision_free_visible_side_step(
         + (target["y_mm"] - her.pose.position.y) ** 2
     )
 
-    assert (target["x_mm"], target["y_mm"]) == (2_802, 5_002)
     assert after > her.radius_mm + other.radius_mm
+    from dsf_ai_service.substrate.w1_physical_receptors import _retinal_projection
+
+    moved_other = replace(
+        other,
+        pose=PoseMM(
+            PositionMM(target["x_mm"], target["y_mm"], 0),
+            target["heading_millidegrees"],
+        ),
+    )
+    candidate = replace(snapshot, bodies=(her, moved_other))
+    assert _retinal_projection(candidate) != _retinal_projection(live_snapshot)
 
 
 def test_visible_side_step_refuses_a_path_blocked_by_a_placed_object(
@@ -94,12 +104,12 @@ def test_visible_side_step_refuses_a_path_blocked_by_a_placed_object(
 
     with pytest.raises(
         production._CurriculumInvitationRefusal,
-        match="no one-step collision-free in-room side-step",
+        match="no one-step collision-free in-room approach",
     ):
         production._curriculum_participant_approach_payload()
 
 
-def test_boundary_side_step_projects_to_exact_clear_room_edge(
+def test_boundary_approach_produces_an_exact_retinal_change(
     monkeypatch, tmp_path
 ) -> None:
     monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
@@ -125,8 +135,18 @@ def test_boundary_side_step_projects_to_exact_clear_room_edge(
     monkeypatch.setattr(production, "_world", lambda: BoundaryWorld())
 
     target = production._curriculum_participant_approach_payload()
+    from dsf_ai_service.substrate.w1_physical_receptors import _retinal_projection
 
-    assert (target["x_mm"], target["y_mm"]) == (3_750, 4_282)
+    moved_other = replace(
+        other,
+        pose=PoseMM(
+            PositionMM(target["x_mm"], target["y_mm"], 0),
+            target["heading_millidegrees"],
+        ),
+    )
+    candidate = replace(snapshot, bodies=(her, moved_other))
+
+    assert _retinal_projection(candidate) != _retinal_projection(live_snapshot)
 
 
 def test_direct_card_button_cannot_admit_without_embodied_invitation(

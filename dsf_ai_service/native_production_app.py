@@ -12821,9 +12821,10 @@ def world_observation() -> JSONResponse:
 
 
 def _curriculum_participant_approach_payload() -> dict[str, int]:
-    """One exact in-room side-step that carries the participant into view."""
+    """One exact in-room approach that changes Guala's retinal field."""
 
     from dsf_ai_service.substrate.embodiment_world import (
+        PoseMM,
         SECOND_BODY_PORT_ID,
         PositionMM,
         _straight_path_intersects_disc,
@@ -12834,6 +12835,7 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
     from dsf_ai_service.substrate.w1_physical_receptors import (
         RETINA_HORIZONTAL_FOV_MILLIDEGREES,
         _atan2_millidegrees,
+        _retinal_projection,
         _wrap_heading_delta,
     )
 
@@ -12865,24 +12867,35 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
     if current_region is None:
         raise RuntimeError("participant body lost its physical room")
 
-    candidates: list[tuple[int, int, int]] = []
-    for turn in (-90_000, 90_000):
-        offset_x, offset_y = rotate_lattice_offset(
+    radial_x, radial_y = rotate_lattice_offset(
+        separation,
+        0,
+        participant_bearing % 360_000,
+    )
+    target_offsets = [(radial_x, radial_y)]
+    target_offsets.extend(
+        rotate_lattice_offset(
             separation,
             0,
             (participant_bearing + turn) % 360_000,
         )
+        for turn in (-90_000, 90_000)
+    )
+    current_retina = _retinal_projection(snapshot)
+    candidates: list[tuple[int, int, int]] = []
+    for candidate_index, (offset_x, offset_y) in enumerate(target_offsets):
+        anchor = her.pose.position if candidate_index == 0 else other.pose.position
         target = PositionMM(
             min(
                 max(
-                    other.pose.position.x + offset_x,
+                    anchor.x + offset_x,
                     current_region.bounds.minimum.x + other.radius_mm,
                 ),
                 current_region.bounds.maximum.x - other.radius_mm,
             ),
             min(
                 max(
-                    other.pose.position.y + offset_y,
+                    anchor.y + offset_y,
                     current_region.bounds.minimum.y + other.radius_mm,
                 ),
                 current_region.bounds.maximum.y - other.radius_mm,
@@ -12928,12 +12941,25 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
             RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
         ):
             continue
+        hypothetical_other = replace(
+            other,
+            pose=PoseMM(target, other.pose.heading_millidegrees),
+        )
+        hypothetical = replace(
+            snapshot,
+            bodies=tuple(
+                hypothetical_other if body.body_id == other.body_id else body
+                for body in snapshot.bodies
+            ),
+        )
+        if _retinal_projection(hypothetical) == current_retina:
+            continue
         candidates.append((abs(retinal_delta), target.x, target.y))
     if not candidates:
         raise _CurriculumInvitationRefusal(
             409,
-            "the participant has no one-step collision-free in-room side-step "
-            "that reaches Guala's current retinal field",
+            "the participant has no one-step collision-free in-room approach "
+            "that changes Guala's current retinal field",
         )
     _, target_x, target_y = min(candidates)
     target_dx = her.pose.position.x - target_x
