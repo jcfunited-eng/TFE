@@ -2,12 +2,13 @@
 
 This module owns opaque physical regions, portals, bodies, and objects. One
 body is the substrate's self-body. Every body has a separate physical command
-port; those ports are control topology, never names, language meanings, or
+port, while one non-body environment port can advance only mounted material
+time. Those ports are control topology, never names, language meanings, or
 sensory identity. The authority does not choose actions or assign meaning to
-them. It executes canonical typed commands arriving as opaque bytes on
-actor-specific embodiment ports, using exact integer geometry. Each accepted
-transition is atomic and produces authenticated before/after observations and
-an authenticated execution receipt.
+them. It executes canonical typed commands arriving as opaque bytes on exact
+ports, using exact integer geometry. Each accepted transition is atomic and
+produces authenticated before/after observations and an authenticated
+execution receipt.
 
 There is deliberately no random movement, script, object-to-verb lookup,
 language lookup, chi identity, DSF projection, or dependency on the retired
@@ -33,6 +34,7 @@ from dsf_ai_service.substrate.exact_lattice_rotation import (
 
 PORT_ID = "guala.embodiment.w1"
 SECOND_BODY_PORT_ID = "guala.embodiment.w1.body-2"
+ENVIRONMENT_PORT_ID = "guala.embodiment.w1.environment"
 
 COMMAND_SCHEMA = "guala.embodiment.command.v6"
 OBSERVATION_SCHEMA = "guala.embodiment.observation.v6"
@@ -3456,9 +3458,19 @@ class EmbodimentWorldAuthority:
     def _transition(
         self,
         world: _WorldState,
-        actor_body_id: str,
+        actor_body_id: str | None,
         command: EmbodimentCommand,
     ) -> tuple[_WorldState | None, str]:
+        if (
+            actor_body_id is None
+            and isinstance(command, AdvancePhysicalTimeCommand)
+        ):
+            return self._advance_material_time(
+                world,
+                command.duration_microseconds * 1_000,
+            ), "applied"
+        if actor_body_id is None:
+            raise ValueError("a body command requires an actor body")
         bodies = list(world.bodies)
         body_index = next(
             index
@@ -3849,7 +3861,8 @@ class EmbodimentWorldAuthority:
                 item.port_id: item.actor_body_id for item in self._actor_ports
             }
             actor_body_id = actor_by_port.get(port)
-            if actor_body_id is None:
+            environment_port = port == ENVIRONMENT_PORT_ID
+            if actor_body_id is None and not environment_port:
                 return self._reject(
                     port_id=port,
                     actor_body_id=None,
@@ -3860,7 +3873,11 @@ class EmbodimentWorldAuthority:
                     lifecycle=lifecycle,
                     before=before,
                 )
-            lifecycle += ("port_validated",)
+            lifecycle += (
+                "environment_port_validated"
+                if environment_port
+                else "port_validated",
+            )
             if revision != before.revision:
                 return self._reject(
                     port_id=port,
@@ -3894,6 +3911,19 @@ class EmbodimentWorldAuthority:
                     expected_revision=revision,
                     reason="command_not_canonical",
                     lifecycle=lifecycle,
+                    before=before,
+                )
+            if environment_port and not isinstance(
+                command, AdvancePhysicalTimeCommand
+            ):
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=None,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="environment_port_requires_physical_time",
+                    lifecycle=lifecycle + ("command_decoded",),
                     before=before,
                 )
             lifecycle += ("command_decoded",)
@@ -3944,7 +3974,13 @@ class EmbodimentWorldAuthority:
                 before=before,
                 after=after,
             )
-            retained = (before_state.recent_applied_receipts + (receipt,))[-self._receipt_capacity :]
+            retained = (
+                before_state.recent_applied_receipts
+                if environment_port
+                else (
+                    before_state.recent_applied_receipts + (receipt,)
+                )[-self._receipt_capacity :]
+            )
             candidate = _AuthorityState(
                 world=transitioned,
                 observation=after,
@@ -4003,13 +4039,23 @@ class EmbodimentWorldAuthority:
                 "prepared embodiment action execution changed custody"
             )
         receipt = prepared.execution_receipt
+        environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
+        receipt_custody_valid = (
+            prepared._candidate_state.recent_applied_receipts
+            == prepared._prior_state.recent_applied_receipts
+            if environment_interval
+            else (
+                bool(prepared._candidate_state.recent_applied_receipts)
+                and prepared._candidate_state.recent_applied_receipts[-1]
+                is receipt
+            )
+        )
         if (
             receipt.disposition != "applied"
             or receipt.before is not prepared._prior_state.observation
             or receipt.after is not prepared._candidate_state.observation
-            or not prepared._candidate_state.recent_applied_receipts
-            or prepared._candidate_state.recent_applied_receipts[-1]
-            is not receipt
+            or not receipt_custody_valid
+            or (environment_interval and receipt.actor_body_id is not None)
             or prepared._candidate_state.migration_receipt
             != prepared._prior_state.migration_receipt
         ):
@@ -4276,7 +4322,16 @@ class EmbodimentWorldAuthority:
             ),
             None,
         )
-        if port_actor is None or receipt.actor_body_id != port_actor:
+        environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
+        if environment_interval:
+            if (
+                receipt.actor_body_id is not None
+                or "environment_port_validated" not in receipt.lifecycle
+                or receipt.lifecycle[-2:]
+                != ("physical_time_transport_validated", "applied")
+            ):
+                raise ValueError("environment interval authority changed")
+        elif port_actor is None or receipt.actor_body_id != port_actor:
             raise ValueError("retained execution port changed")
         _sha256_identity(receipt.causal_intent_receipt_sha256, "causal intent receipt")
         _sha256_identity(receipt.command_sha256, "command identity")
@@ -4554,8 +4609,12 @@ class EmbodimentWorldAuthority:
             raise ValueError("execution lifecycle changed")
         result = ActionExecutionReceipt(
             port_id=_identifier(value.get("port_id"), "execution port id"),
-            actor_body_id=_identifier(
-                value.get("actor_body_id"), "execution actor body id"
+            actor_body_id=(
+                None
+                if value.get("actor_body_id") is None
+                else _identifier(
+                    value.get("actor_body_id"), "execution actor body id"
+                )
             ),
             causal_intent_receipt_sha256=_sha256_identity(value.get("causal_intent_receipt_sha256"), "causal intent receipt"),
             command_sha256=_sha256_identity(value.get("command_sha256"), "command identity"),
@@ -4724,7 +4783,11 @@ class EmbodimentWorldAuthority:
         after = self._observation_from_compact_record(value.get("after"), catalog)
         result = ActionExecutionReceipt(
             port_id=_identifier(value.get("port_id"), "execution port id"),
-            actor_body_id=_identifier(value.get("actor_body_id"), "execution actor body id"),
+            actor_body_id=(
+                None
+                if value.get("actor_body_id") is None
+                else _identifier(value.get("actor_body_id"), "execution actor body id")
+            ),
             causal_intent_receipt_sha256=_sha256_identity(value.get("causal_intent_receipt_sha256"), "causal intent receipt"),
             command_sha256=_sha256_identity(value.get("command_sha256"), "command identity"),
             expected_revision=_bounded_integer(value.get("expected_revision"), "expected revision", minimum=0, maximum=MAX_REVISION),
@@ -6115,6 +6178,7 @@ __all__ = [
     "EmbodiedObject",
     "EmbodimentPort",
     "EmbodimentWorldAuthority",
+    "ENVIRONMENT_PORT_ID",
     "MoveCommand",
     "ObjectMaterialState",
     "ObjectOpticalSurface",

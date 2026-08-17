@@ -135,3 +135,26 @@ cannot close L-005.
   optical, odorant, tastant, surface-temperature, compliance, roughness, and
   moisture declarations. These mounted lanes will be used for varied lived
   teaching; no unavailable lane may be filled with a descriptor.
+
+## Passive-world correction after task 1116
+
+The first live L-005 attempt exposed a separate developmental-environment
+conflict. Unattended transport repeatedly observed one authenticated snapshot,
+but did not advance the already-mounted material clock. Object odorant release
+and portal airflow therefore existed as exact laws while the unattended home
+remained materially frozen between observations.
+
+The candidate correction gives the environment its own authenticated physical-
+time port. One unattended interval advances only existing finite-reservoir and
+mass-conserving world laws, persists the one current successor, then presents
+that actual successor through the mounted receptor roster. The receipt carries
+no body actor, does not enter the bounded body-action tail, selects no scene or
+attention target, and cannot issue a body command. The disposable full runtime
+shape advanced world revision `0 -> 1`, produced eight ordinary 250-millisecond
+episodes, persisted one current world, and retained zero action receipts.
+
+This is developmental support, not learned-recognition evidence and not an
+L-005 closure. It does not yet add daylight, weather, acoustic inhabitants,
+plants, animals, guardian care, or native organism-to-root locomotion. Those
+require their own truthful physical producers rather than authored sensory
+descriptions.

@@ -13,6 +13,10 @@ import threading
 from types import SimpleNamespace
 
 from dsf_ai_service import native_production_app as production
+from dsf_ai_service.substrate.embodiment_world import (
+    ENVIRONMENT_PORT_ID,
+    EmbodimentWorldAuthority,
+)
 
 
 def _native_record(tick: int, state: str) -> dict[str, object]:
@@ -67,6 +71,8 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
             {
                 "external_luminance_present": True,
                 "external_smell_present": False,
+                "passive_interval_receipt_sha256": "33" * 32,
+                "world_revision_before": 16,
                 "world_revision": 17,
             },
         ),
@@ -82,6 +88,26 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
     production._last_unattended_evidence = None
     production._last_unattended_pause = None
     return admitted_intakes
+
+
+def test_unattended_transport_advances_and_persists_world_owned_time(
+    monkeypatch,
+) -> None:
+    world = EmbodimentWorldAuthority(
+        authority_key=b"unattended-passive-world-test-key"
+    )
+    before = world.observation_snapshot()
+    persisted: list[bytes] = []
+    monkeypatch.setattr(production, "_world", lambda: world)
+    monkeypatch.setattr(production, "_persist_world_body", persisted.append)
+
+    execution = production._advance_passive_world_interval()
+
+    assert execution.port_id == ENVIRONMENT_PORT_ID
+    assert execution.actor_body_id is None
+    assert execution.after.revision == before.revision + 1
+    assert persisted == [world.encoded_snapshot()]
+    assert world.recent_applied_receipts() == ()
 
 
 def test_continuous_world_interval_reaches_native_action_and_sensed_return(

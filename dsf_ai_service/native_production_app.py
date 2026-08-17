@@ -9929,6 +9929,73 @@ def _unattended_time_enabled() -> bool:
     return value not in ("0", "false", "off", "no")
 
 
+def _advance_passive_world_interval() -> Any:
+    """Commit one world-owned material interval without a body actor.
+
+    This advances only already-mounted physical laws. It chooses no scene,
+    object, action, attention target, or meaning, and it does not retain an
+    action receipt in the world's bounded body-action tail.
+    """
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
+        AdvancePhysicalTimeCommand,
+        ENVIRONMENT_PORT_ID,
+        PreparedActionExecution,
+        encode_command,
+    )
+
+    authority = _world()
+    before = authority.observation_snapshot()
+    intent = _receipt(
+        {
+            "duration_microseconds": CONTINUOUS_INTERVAL_MILLISECONDS * 1_000,
+            "schema": "guala.passive_world_interval_intent.v1",
+            "world_revision": before.revision,
+            "world_state_before_sha256": before.state_sha256,
+        }
+    )
+    prepared = authority.prepare_port_command(
+        port_id=ENVIRONMENT_PORT_ID,
+        command_payload=encode_command(
+            AdvancePhysicalTimeCommand(
+                duration_microseconds=(
+                    CONTINUOUS_INTERVAL_MILLISECONDS * 1_000
+                )
+            )
+        ),
+        causal_intent_receipt_sha256=intent,
+        expected_revision=before.revision,
+    )
+    if isinstance(prepared, ActionExecutionReceipt):
+        raise RuntimeError(
+            "passive world interval was refused: " + prepared.reason
+        )
+    if not isinstance(prepared, PreparedActionExecution):
+        raise RuntimeError("passive world interval lost prepared custody")
+
+    predecessor_world = authority.encoded_snapshot()
+    committed = False
+    try:
+        with authority.prepared_action_visibility_transaction(prepared):
+            execution = authority.commit_prepared_action(prepared)
+            committed = True
+            _persist_world_body(
+                authority.encoded_committed_prepared_action(prepared)
+            )
+    except BaseException:
+        if committed:
+            with authority.committed_prepared_action_rollback_transaction(
+                prepared
+            ) as rollback_world:
+                rollback_world()
+            _persist_world_body(predecessor_world)
+        else:
+            authority.discard_prepared_action(prepared)
+        raise
+    return execution
+
+
 def _unattended_interval_episodes(
     interval_id: str,
 ) -> tuple[list[tuple[Any, list[tuple[int, int]]]], dict[str, Any]]:
@@ -9943,7 +10010,8 @@ def _unattended_interval_episodes(
 
     if not WORLD_AUTHORIZED:
         raise RuntimeError("continuous experience requires the persistent world")
-    snapshot = _world().observation_snapshot()
+    environment_interval = _advance_passive_world_interval()
+    snapshot = environment_interval.after
     from dsf_ai_service.substrate.w1_physical_receptors import (
         physical_receptor_substreams,
     )
@@ -9978,6 +10046,10 @@ def _unattended_interval_episodes(
     return episodes, {
         "external_luminance_present": any(level > 0.0 for level in luminance),
         "external_smell_present": bool(smelled and any(value > 0 for value in smelled)),
+        "passive_interval_receipt_sha256": (
+            environment_interval.authority_receipt_sha256
+        ),
+        "world_revision_before": environment_interval.before.revision,
         "world_revision": snapshot.revision,
     }
 
@@ -10395,6 +10467,12 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "organism_tick": after["organism_tick"],
             "receptor_ingress": result["receptor_ingress"],
             "state_sha256": after["state_sha256"],
+            "passive_interval_receipt_sha256": environment[
+                "passive_interval_receipt_sha256"
+            ],
+            "world_revision_before": environment[
+                "world_revision_before"
+            ],
             "world_revision": environment["world_revision"],
         }
         _last_unattended_pause = None
