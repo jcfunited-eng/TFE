@@ -1,0 +1,8 @@
+{
+ "registered": "2026-08-17",
+ "status": "FORWARD HYPOTHESIS ONLY — every historical dataset has been touched by the selection of this pattern; no historical count may be quoted as confirmation",
+ "provenance": "first shadow run measured a looser rule than declared (audit finding, critical); its survivor and the depth refinement are therefore hypothesis-generation, not findings",
+ "hypothesis": "uncovered spikes arriving after >=2 consecutive sessions of all-scale (2,4,8,16,32-day) variance rise with accelerating curvature will reach 1.20x entry within 5 sessions at a rate at least 3 percentage points above the contemporaneous base rate",
+ "counting_rule": "structure computed at entry close by the exact integer math of tools/ch3_joint_field_shadow.py on events dated AFTER 2026-08-17 only; evaluate when n(class) >= 200; no peeking before n >= 100",
+ "no_engine_effect": "nothing routes into CH3/CH6 entries, sizing, or exits; the -20 percent rule and all live laws unchanged"
+}
