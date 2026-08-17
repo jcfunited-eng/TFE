@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -93,6 +94,56 @@ def test_identical_bytes_cannot_grow_under_different_provenance(tmp_path) -> Non
 
     assert store.inventory() == (first,)
     assert len(tuple(store.entries.iterdir())) == 1
+
+
+def test_admission_does_not_reread_prior_source_bytes(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+    first = store.admit(**_local_source(source_bytes=b"first source"))
+    first_path = store.entries / first.receipt_sha256 / "source.bin"
+    read_bytes = Path.read_bytes
+
+    def refuse_prior_source(path):
+        if path == first_path:
+            raise AssertionError("prior source bytes were redundantly read")
+        return read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", refuse_prior_source)
+    second = store.admit(
+        **_local_source(
+            origin_locator="second.png",
+            source_bytes=b"second source",
+        )
+    )
+
+    assert second.source_byte_count == len(b"second source")
+
+
+def test_source_access_reads_only_the_requested_source(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+    first = store.admit(**_local_source(source_bytes=b"first source"))
+    second = store.admit(
+        **_local_source(
+            origin_locator="second.png",
+            source_bytes=b"second source",
+        )
+    )
+    second_path = store.entries / second.receipt_sha256 / "source.bin"
+    read_bytes = Path.read_bytes
+
+    def refuse_other_source(path):
+        if path == second_path:
+            raise AssertionError("unrequested source bytes were read")
+        return read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", refuse_other_source)
+
+    assert store.source_bytes(first.receipt_sha256) == b"first source"
 
 
 def test_count_and_total_byte_bounds_refuse_before_writing(tmp_path) -> None:

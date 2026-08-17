@@ -146,7 +146,12 @@ class BoundedSourceMediaStore:
         self.max_total_bytes = max_total_bytes
         self._lock = threading.Lock()
 
-    def _decode_entry(self, directory: Path) -> SourceMediaRecord:
+    def _decode_entry(
+        self,
+        directory: Path,
+        *,
+        verify_source_bytes: bool,
+    ) -> SourceMediaRecord:
         if not directory.is_dir() or not _RECEIPT.fullmatch(directory.name):
             raise BoundedSourceMediaStoreError("source-media entry identity changed")
         children = {item.name for item in directory.iterdir()}
@@ -156,9 +161,14 @@ class BoundedSourceMediaStore:
         size = source_path.stat().st_size
         if not 0 < size <= self.max_source_bytes:
             raise BoundedSourceMediaStoreError("source-media entry exceeds its bound")
-        source = source_path.read_bytes()
-        if len(source) != size:
-            raise BoundedSourceMediaStoreError("source-media byte extent changed")
+        source_digest = None
+        if verify_source_bytes:
+            source = source_path.read_bytes()
+            if len(source) != size:
+                raise BoundedSourceMediaStoreError(
+                    "source-media byte extent changed"
+                )
+            source_digest = hashlib.sha256(source).hexdigest()
         try:
             value = json.loads((directory / "record.json").read_bytes())
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -255,14 +265,17 @@ class BoundedSourceMediaStore:
             raise BoundedSourceMediaStoreError(
                 "Gutenberg text lost its Project Gutenberg origin"
             )
-        digest = hashlib.sha256(source).hexdigest()
         if (
             isinstance(record.source_byte_count, bool)
             or not isinstance(record.source_byte_count, int)
             or record.source_byte_count != size
             or not isinstance(record.source_bytes_sha256, str)
+            or not _RECEIPT.fullmatch(record.source_bytes_sha256)
             or not isinstance(record.receipt_sha256, str)
-            or record.source_bytes_sha256 != digest
+            or (
+                source_digest is not None
+                and record.source_bytes_sha256 != source_digest
+            )
             or record.receipt_sha256 != directory.name
             or hashlib.sha256(_canonical(record.receipt_payload())).hexdigest()
             != record.receipt_sha256
@@ -270,7 +283,11 @@ class BoundedSourceMediaStore:
             raise BoundedSourceMediaStoreError("source-media receipt mismatch")
         return record
 
-    def inventory(self) -> tuple[SourceMediaRecord, ...]:
+    def inventory(
+        self,
+        *,
+        verify_source_bytes: bool = True,
+    ) -> tuple[SourceMediaRecord, ...]:
         if self.stage.exists():
             raise BoundedSourceMediaStoreError(
                 "an interrupted source-media admission requires recovery"
@@ -285,7 +302,10 @@ class BoundedSourceMediaStore:
         if unexpected:
             raise BoundedSourceMediaStoreError("source-media root shape changed")
         records = tuple(
-            self._decode_entry(path)
+            self._decode_entry(
+                path,
+                verify_source_bytes=verify_source_bytes,
+            )
             for path in sorted(self.entries.iterdir(), key=lambda item: item.name)
         )
         if len(records) > self.max_source_count:
@@ -383,7 +403,7 @@ class BoundedSourceMediaStore:
         )
         encoded_record = _canonical({**payload, "receipt_sha256": receipt})
         with self._lock:
-            current = self.inventory()
+            current = self.inventory(verify_source_bytes=False)
             prior = next(
                 (item for item in current if item.receipt_sha256 == receipt),
                 None,
@@ -426,7 +446,10 @@ class BoundedSourceMediaStore:
                 if self.stage.exists():
                     shutil.rmtree(self.stage)
                 raise
-            return self._decode_entry(self.entries / receipt)
+            return self._decode_entry(
+                self.entries / receipt,
+                verify_source_bytes=True,
+            )
 
     def source_bytes(self, receipt_sha256: str) -> bytes:
         if not isinstance(receipt_sha256, str) or not _RECEIPT.fullmatch(
@@ -434,15 +457,23 @@ class BoundedSourceMediaStore:
         ):
             raise ValueError("source-media receipt changed")
         with self._lock:
-            records = self.inventory()
-            if not any(item.receipt_sha256 == receipt_sha256 for item in records):
+            if self.stage.exists():
+                raise BoundedSourceMediaStoreError(
+                    "an interrupted source-media admission requires recovery"
+                )
+            directory = self.entries / receipt_sha256
+            if not directory.is_dir():
                 raise KeyError(receipt_sha256)
-            path = self.entries / receipt_sha256 / "source.bin"
+            record = self._decode_entry(
+                directory,
+                verify_source_bytes=False,
+            )
+            path = directory / "source.bin"
             source = path.read_bytes()
-            if hashlib.sha256(source).hexdigest() != next(
-                item.source_bytes_sha256
-                for item in records
-                if item.receipt_sha256 == receipt_sha256
+            if (
+                len(source) != record.source_byte_count
+                or hashlib.sha256(source).hexdigest()
+                != record.source_bytes_sha256
             ):
                 raise BoundedSourceMediaStoreError("source-media bytes changed")
             return source
