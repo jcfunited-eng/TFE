@@ -339,7 +339,7 @@ box remains unchecked until live acceptance passes.
   formation's latest-origin witness; no permanent dream archive was created.
   ECS showed one healthy running task, zero pending tasks, one completed
   PRIMARY deployment, and the exact digest pinned as `production-current`.
-- [x] **C-023** Prove imagination, social cognition, self/body continuity,
+- [ ] **C-023 — RECONCILED PARTIAL 2026-08-17:** Prove imagination, social cognition, self/body continuity,
   procedural skill, creativity, and reflection through causal cross-context use.
   **Live-closed 2026-08-14:** production task 1048, commit `46f1c09c`, and
   image `sha256:d4d222709becc796b1c268dde9da3e5813fa5c9af5100646e83432f5d46b9c82`
@@ -351,7 +351,7 @@ box remains unchecked until live acceptance passes.
   zero Python cognition callbacks, and one healthy process. This closes the
   causal mechanism; it does not claim later curriculum, language, creativity,
   or interface tasks are complete.
-- [x] **C-024** Implement and live-prove non-flattened cognitive-capital evidence
+- [ ] **C-024 — RECONCILED PARTIAL 2026-08-17:** Implement and live-prove non-flattened cognitive-capital evidence
   for senses, recognition, recall, thought, speech, body capability, affective
   balance, motivation, learning, action, and self-expression.
   **Live-closed 2026-08-14:** production task 1050, commit `e5b366c5`, and
@@ -418,7 +418,7 @@ box remains unchecked until live acceptance passes.
   163 downstream neurons while adjacent route sets changed. Attention-score,
   scripted-focus, and Python cognition authority were all absent. System Greed
   is the resulting unequal geometry-mediated access, not a stored coefficient.
-- [x] **A-006** Prove curiosity and intrinsic motivation emerge as changing
+- [ ] **A-006 — RECONCILED PARTIAL 2026-08-17:** Prove curiosity and intrinsic motivation emerge as changing
   reachable activity from novelty, uncertainty, recurrence, body condition,
   affection/social experience, and possible consequences.
   **Live-closed 2026-08-14:** production task 1052 observed newly retained
@@ -453,7 +453,7 @@ box remains unchecked until live acceptance passes.
   reuse; the focused choice/motor/at-most-once boundary passes 8/8. No new
   runtime deployment was required because this exact mechanism was already
   live in the A-007 production task.
-- [x] **A-009** Prove the action's visual, auditory, vestibular, proprioceptive,
+- [ ] **A-009 — RECONCILED PARTIAL 2026-08-17:** Prove the action's visual, auditory, vestibular, proprioceptive,
   tactile, chemical, and internal consequences re-enter the same organism.
   **Live-closed 2026-08-14:** production task 1056, commit `f0e60e33`, and
   digest `sha256:f98648c097158ecec2e941130c1b2872983c7a419c7d4a54a8cb178b88fa5d2e`
@@ -480,18 +480,18 @@ box remains unchecked until live acceptance passes.
   Python process accumulated 63.6 CPU seconds inside the four-vCPU envelope.
   Public observations remained 155,610--179,820 bytes. A-015 retains the
   separate long-soak acceptance requirement.
-- [x] **A-011** Prove genuine self-selected play, fun, social joy, and
+- [ ] **A-011 — RECONCILED PARTIAL 2026-08-17:** Prove genuine self-selected play, fun, social joy, and
   body-owned laughter rather than a scripted animation or response.
   **Live-closed 2026-08-16:** all bounded A-011.1--A-011.7 increments are
   closed; task 1091 supplies the participant-to-Guala physical circuit and
   task 1095 supplies the body-owned laughter receipt `8d1b7bfe...de32aa`.
-- [x] **A-012** Prove self-selected rest, sleep, wake, exploration, learning,
+- [ ] **A-012 — RECONCILED PARTIAL 2026-08-17:** Prove self-selected rest, sleep, wake, exploration, learning,
   and interaction can occur while no human or development agent is present.
   **Live-closed 2026-08-16:** task 1095 preserved the composed physical
   rest/wake, internal consolidation, later causal body use, unattended
   interaction, and changed-world exploration circuit with zero Python
   cognition callbacks.
-- [x] **A-013 thermal amendment Live-Closed 2026-08-17:** the original bounded
+- [ ] **A-013 thermal amendment — RECONCILED PARTIAL 2026-08-17:** the original bounded
   Phase-1 pose/gaze/eyes/blink/face/mouth/breath/voice/locomotion/manipulation
   evidence remains live, but its core/cutaneous thermal body was explicitly
   unmounted. Restore Live-Closed status only after the persistent home/body
@@ -500,7 +500,7 @@ box remains unchecked until live acceptance passes.
   cold restart, and bounded resource observation on task 1113. See the
   thermal amendment sprint ledger for receipts and the truthful open
   wall-clock settlement qualification.
-- [x] **A-013 original non-thermal boundary:** Complete truthful persistent embodiment: pose, gaze, eyes,
+- [ ] **A-013 original non-thermal boundary — RECONCILED PARTIAL 2026-08-17:** Complete truthful persistent embodiment: pose, gaze, eyes,
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
   state. **Live-closed 2026-08-16:** task 1098, commit `bb085947`, and image
   `sha256:1f091e57...4fbe5` live-prove the bounded Phase-1 37-axis,
@@ -508,7 +508,7 @@ box remains unchecked until live acceptance passes.
   one-process topology, and zero Python cognition callbacks. Detailed physical
   morphology, gait, and dexterity remain intentionally deferred until an
   actual body platform is selected.
-- [x] **A-014** Make real-world camera/microphone/text/media ingress and the
+- [ ] **A-014 — RECONCILED PARTIAL 2026-08-17:** Make real-world camera/microphone/text/media ingress and the
   virtual world coexist as seamless windows into one causal life.
   **Live-closed 2026-08-16:** task 1098 retained one organism while a real
   Chrome camera and microphone committed four concurrent retinal/cochlear
