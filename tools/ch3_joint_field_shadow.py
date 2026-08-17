@@ -2,18 +2,56 @@
 ch3_joint_field_shadow.py — the joint-field shadow, per THE SPEC
 ================================================================
 
-DECLARED 2026-08-18 BEFORE THE RUN, under the UF v1.3 Joint-Field
-Reconstruction constitution (Joe: "that is the spec... central to the
-entire purpose of this work"). Skill: uf-joint-field-spec. Shadow
-discipline: runs BESIDE the canonical chain run (ch3_kernel_full_chain
-.py, in progress), both filed, no automatic winner, routes nothing
-into production.
+DECLARED 2026-08-18 BEFORE THE FIRST RUN; CORRECTED 2026-08-17 after
+an adversarial five-agent audit of the implementation. Correction
+record (nothing hidden):
+
+  CRITICAL (found by audit, fixed here): the first run's Q_B built
+  its five variance-motion components as sgn(sgn(dVS_t)-sgn(dVS_p))
+  — the sign of a difference of SIGNS — while the declaration said
+  sgn(dVS_t - dVS_p) on the integer values. The quotient actually
+  run was a coarsening of the declared one. THIS rerun reports BOTH:
+    Q_B_declared     the value-difference quotient as originally
+                     declared (run here for the first time);
+    Q_B_persistence  the coarser sign-persistence quotient the first
+                     run actually computed (kept, relabelled for
+                     what it is; its component 0 means "variance
+                     motion kept its sign", i.e. gate continuation).
+  The first run's "one survivor" belongs to Q_B_persistence.
+
+  DISCLOSURES added per audit (all verified by the auditors):
+  - Volumes are float64 (the store holds fractional volumes); the
+    trailing-volume sums are exact below 2^53. "Exact integer
+    arithmetic" is scoped to the FIELD FACTS (D, K, VS, dVS, N)
+    computed on integer price custody. The event filter and grenade
+    label run in float, deliberately identical to every prior CH3
+    study so event sets stay comparable (L5 domain law, not kernel).
+  - Price custody quantizes: ~13k of 15.7M closes sit off the
+    0.0001 grid and are rounded onto it (max residue half a grid
+    step).
+  - N is DEGENERATE inside this event set (the +8% gate forces
+    D_t > 0, so four equal closes are impossible): Q_A's effective
+    bound is 3^6 = 729 classes, not 1458. N is retained in the
+    string for spec fidelity, always '0'.
+  - Events in a symbol's final 5 bars are dropped (the 5-close label
+    needs 5 future bars). Spikes-then-delistings are exactly the
+    tail this censors; the count of censored qualifying spikes is
+    now measured and filed.
+  - The derive and confirm halves come from materially different
+    universes (store symbol coverage roughly triples across the
+    split): 1.3k derive vs 12.2k confirm events, base 11.6% vs
+    16.0%. Claims are judged per-class within each half against
+    that half's own base — never across halves.
+  - Confirm truncates at HERD_END=20260324 (last herd-covered date;
+    later events cannot receive the no-herd-row check honestly).
+  - Derive events dated in the last 5 sessions of 2021 carry labels
+    read from early-January-2022 closes (mechanical smear, cannot
+    steer class selection).
+  - Symbols shorter than 40 bars are skipped; the first 34 bars of
+    every series are event-ineligible (32-bar windows need history).
 
 FINANCIAL PROJECTION (declared): single-vertex field per stock.
-Custody: prices as exact integers in ten-thousandths of a dollar
-(the books' own fill precision); volumes as exact integers. ALL facts
-below are exact integer arithmetic — no floats, no logs, no fitted
-constants, no thresholds.
+Custody: prices as integers in ten-thousandths of a dollar.
 
 FIELD FACTS at bar k (x = price int, s in dyadic scales {2,4,8,16,32}):
   D_k       = x_k - x_{k-1}                      displacement (int)
@@ -22,35 +60,31 @@ FIELD FACTS at bar k (x = price int, s in dyadic scales {2,4,8,16,32}):
               where I_{k,s} = the s bars ending at k    (int; equals
               s^2 * variance — sign-exact for equal-length windows)
   dVS(s,k)  = VS(s,k) - VS(s,k-1)                variance motion (int)
-  N_k       = 1 iff the last 4 closes are identical    negative space
+  N_k       = 1 iff the last 4 closes are identical (degenerate here)
 
 SIGNATURE at bar k (thresholdless, exact):
   SIG_k = ( sgn K_k ; ( sgn dVS(s,k) for each s ) ; N_k )
-  (sgn D_k is omitted from the event structure because the event
-  filter fixes it: every event bar has D_k > 0 by construction —
-  disclosed per the constitution's quotient-loss rule.)
+  (sgn D_k omitted: the event filter fixes it positive — disclosed.)
 
-TWO QUOTIENTS, declared now, no third after labels:
-  Q_A  the event-bar signature SIG_k alone.
-       Discards: all magnitudes, gate durations, TVR components,
-       prior structure. <= 2*3^6 = 1458 classes.
-  Q_B  SIG_k together with the componentwise sign of structural
-       displacement from the previous bar: ( sgn(K_k - K_{k-1}) ;
-       ( sgn(dVS(s,k) - dVS(s,k-1)) for each s ) ) — the L4 D-field
-       restricted to the event bar. Discards: same as Q_A plus all
-       deeper history.
+QUOTIENTS (no others; frequencies over exact structures, never a score):
+  Q_A            the event-bar signature SIG_k alone.
+  Q_B_declared   SIG_k + ( sgn(K_t - K_{t-1}) ;
+                 ( sgn(dVS(s,t) - dVS(s,t-1)) for each s ) )
+                 — the L4 D-field on VALUES, as originally declared.
+  Q_B_persistence SIG_k + ( sgn(K_t - K_{t-1}) ;
+                 ( sgn(sgn dVS(s,t) - sgn dVS(s,t-1)) for each s ) )
+                 — sign persistence (0 = variance motion kept its
+                 sign); what the first run actually measured.
 
-EVENT SET (domain law, L5, outside the kernel — declared): the fade's
-uncovered spikes (day gain >= +8%, volume >= 3x trailing-20 mean,
-close >= $5, no herd row). LABEL (revealed only after structures are
-built): grenade = any of the next 5 closes >= 1.20 x entry.
+EVENT SET (L5 domain law, float, identical to all prior CH3 studies):
+uncovered spikes — day gain >= +8%, volume >= 3x trailing-20 mean
+(bars t-20..t-1), close >= $5, no herd row. LABEL: grenade = any of
+the next 5 closes >= 1.20 x entry.
 
-PROCEDURE: structures computed label-blind for all events; split
-derive (date <= 2021-12-31) / confirm (later); labels revealed;
-per-class grenade frequencies with counts in BOTH halves; a derive
-class makes a claim only with n >= 50 there, and the claim is judged
-solely by its frozen confirm-half frequency. Sparse classes are
-reported as sparse, never folded into a scalar.
+PROCEDURE: structures label-blind; derive (<= 2021-12-31) / confirm
+(2022+); per-class grenade frequencies with counts in both halves;
+claims need n >= 50 in derive and are judged solely on confirm.
+Sparse classes reported sparse, never folded into a scalar.
 
 Usage:  python tools/ch3_joint_field_shadow.py
 Output: artifacts/ch4_uf/ch3_joint_field_shadow.json
@@ -92,6 +126,7 @@ def main():
     herd_keys = set(zip(herd["sym"], herd["date"]))
 
     rows = []
+    censored = 0                      # qualifying spikes with <5 future bars
     for sym, s_df in df.groupby("Symbol", sort=False):
         s_df = s_df.sort_values("Date")
         cf = s_df["Close"].to_numpy(dtype=float)
@@ -100,12 +135,11 @@ def main():
         n = len(cf)
         if n < max(SCALES) + 8:
             continue
-        # exact integer custody: ten-thousandths of a dollar
         x = np.round(cf * 10000).astype(np.int64)
         sv = np.concatenate(([0.0], np.cumsum(vf)))
-        # integer prefix sums for exact windowed variance comparison
-        px1 = np.concatenate(([0], np.cumsum(x, dtype=object)))
-        px2 = np.concatenate(([0], np.cumsum(x.astype(object) ** 2)))
+        xo = x.astype(object)
+        px1 = np.concatenate(([0], np.cumsum(xo)))
+        px2 = np.concatenate(([0], np.cumsum(xo * xo)))
 
         def VS(s, k):
             """s * sum(x^2) - (sum x)^2 over the s bars ending at k. Exact."""
@@ -114,35 +148,46 @@ def main():
             sxx = px2[b] - px2[a]
             return s * sxx - sx * sx
 
-        for t in range(max(SCALES) + 2, n - HOLD):
-            if d[t] > HERD_END:
-                break
+        def qualifies(t):
             if cf[t] < PRICE_FLOOR or cf[t - 1] <= 0:
-                continue
+                return False
             if 100 * (cf[t] / cf[t - 1] - 1) < EVENT_GAIN:
-                continue
+                return False
             va = (sv[t] - sv[t - 20]) / 20.0
             if va <= 0 or vf[t] < VOL_MULT * va:
+                return False
+            return (sym, int(d[t])) not in herd_keys
+
+        for t in range(max(SCALES) + 2, n):
+            if d[t] > HERD_END:
+                break
+            if not qualifies(t):
                 continue
-            if (sym, int(d[t])) in herd_keys:
+            if t >= n - HOLD:
+                censored += 1         # label unobtainable — counted, dropped
                 continue
+            dvs_t, dvs_p, ddvs_val = [], [], []
+            for s in SCALES:
+                a = VS(s, t) - VS(s, t - 1)
+                b = VS(s, t - 1) - VS(s, t - 2)
+                dvs_t.append(sgn(a))
+                dvs_p.append(sgn(b))
+                ddvs_val.append(sgn(a - b))
             D_t = int(x[t] - x[t - 1])
             D_p = int(x[t - 1] - x[t - 2])
             D_pp = int(x[t - 2] - x[t - 3])
             K_t = D_t - D_p
             K_p = D_p - D_pp
             N_t = int(x[t] == x[t - 1] == x[t - 2] == x[t - 3])
-            dvs_t, dvs_p = [], []
-            for s in SCALES:
-                dvs_t.append(sgn(VS(s, t) - VS(s, t - 1)))
-                dvs_p.append(sgn(VS(s, t - 1) - VS(s, t - 2)))
             qa = (sgn(K_t),) + tuple(dvs_t) + (N_t,)
-            qb = qa + (sgn(K_t - K_p),) + tuple(
-                sgn(a - b) for a, b in zip(dvs_t, dvs_p))
+            acc = (sgn(K_t - K_p),)
+            qb_decl = qa + acc + tuple(ddvs_val)
+            qb_pers = qa + acc + tuple(sgn(a - b)
+                                       for a, b in zip(dvs_t, dvs_p))
+            enc = lambda tup: "".join("+0-"[1 - v] for v in tup)  # noqa: E731
             rows.append({
                 "sym": sym, "date": int(d[t]),
-                "QA": "".join("+0-"[1 - v] for v in qa),
-                "QB": "".join("+0-"[1 - v] for v in qb),
+                "QA": enc(qa), "QBd": enc(qb_decl), "QBp": enc(qb_pers),
                 "grenade": bool(np.any(cf[t + 1: t + HOLD + 1]
                                        >= GRENADE_X * cf[t])),
             })
@@ -151,7 +196,8 @@ def main():
     ev.to_parquet(OUT_TABLE, index=False)
     derive = ev[ev["date"] <= DERIVE_END]
     confirm = ev[ev["date"] > DERIVE_END]
-    print(f"events: {len(ev)} (derive {len(derive)}, confirm {len(confirm)})")
+    print(f"events: {len(ev)} (derive {len(derive)}, confirm {len(confirm)}), "
+          f"censored: {censored}")
 
     def freq_table(col):
         base_d = float(derive["grenade"].mean())
@@ -185,15 +231,20 @@ def main():
                 "n_distinct_structures_derive": int(d_groups.ngroups)}
 
     result = {
-        "declared": "quotients Q_A/Q_B, scales, custody, event set, labels, "
-                    "and the n>=50 claim rule all declared in the docstring "
-                    "before any label was revealed; exact integer arithmetic "
-                    "throughout; shadow beside canonical, no auto-winner",
+        "declared": "CORRECTED RERUN after adversarial audit: Q_B_declared "
+                    "(value differences, as originally declared) now actually "
+                    "run; Q_B_persistence = the coarser quotient the first "
+                    "run computed, relabelled; all audit disclosures in the "
+                    "docstring (float L5 filter/label, N degeneracy, censored "
+                    "events counted, universe imbalance, HERD_END cut, "
+                    "boundary label smear)",
+        "censored_qualifying_spikes_no_label": censored,
         "Q_A_event_signature": freq_table("QA"),
-        "Q_B_signature_plus_displacement": freq_table("QB"),
+        "Q_B_declared_value_diff": freq_table("QBd"),
+        "Q_B_persistence_first_run": freq_table("QBp"),
     }
     json.dump(result, open(OUT, "w"), indent=1)
-    print(json.dumps(result, indent=1)[:4000])
+    print(json.dumps(result, indent=1)[:6000])
     print("filed:", OUT)
 
 
