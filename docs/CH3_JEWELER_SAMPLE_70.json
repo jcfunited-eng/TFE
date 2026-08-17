@@ -1,0 +1,422 @@
+[
+{
+"sym": "NESR",
+"date": 20240102,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "LRE",
+"date": 20240620,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "UMAC",
+"date": 20241125,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "PTIR",
+"date": 20250407,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "FOXX",
+"date": 20250722,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "LAES",
+"date": 20251009,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "SVCO",
+"date": 20260313,
+"band": "5-10",
+"grenade": true
+},
+{
+"sym": "SIDU",
+"date": 20240103,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "LPA",
+"date": 20240712,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "ARKR",
+"date": 20241204,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "ALMU",
+"date": 20250428,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "GIBO",
+"date": 20250725,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "SKYT",
+"date": 20251106,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "LNZA",
+"date": 20260317,
+"band": "10-20",
+"grenade": true
+},
+{
+"sym": "VERA",
+"date": 20240125,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "DRMA",
+"date": 20240801,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "STI",
+"date": 20241115,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "INBS",
+"date": 20250207,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "GLNK",
+"date": 20250714,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "USAR",
+"date": 20251003,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "HIMZ",
+"date": 20260309,
+"band": "20-40",
+"grenade": true
+},
+{
+"sym": "RVSN",
+"date": 20240110,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "TWG",
+"date": 20240726,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "JYD",
+"date": 20241203,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "CLIK",
+"date": 20250317,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "XXRP",
+"date": 20250711,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "SLE",
+"date": 20250917,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "NCSM",
+"date": 20260309,
+"band": "40-80",
+"grenade": true
+},
+{
+"sym": "JFBR",
+"date": 20240103,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "HAO",
+"date": 20240430,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "GCTK",
+"date": 20240815,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "NXTT",
+"date": 20241112,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "MTEN",
+"date": 20250314,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "RAYA",
+"date": 20250604,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "CRCL",
+"date": 20260225,
+"band": "80+",
+"grenade": true
+},
+{
+"sym": "FLUX",
+"date": 20240102,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "IPDN",
+"date": 20240618,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "SMTK",
+"date": 20241126,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "BDMD",
+"date": 20250423,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "EWCZ",
+"date": 20250813,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "WLDS",
+"date": 20251112,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "FINV",
+"date": 20260317,
+"band": "5-10",
+"grenade": false
+},
+{
+"sym": "VIA",
+"date": 20240102,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "QTTB",
+"date": 20240628,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "NEXN",
+"date": 20241118,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "ETHA",
+"date": 20250409,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "EPSM",
+"date": 20250804,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "BLFY",
+"date": 20251124,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "UBCP",
+"date": 20260320,
+"band": "10-20",
+"grenade": false
+},
+{
+"sym": "BURU",
+"date": 20240104,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "INOD",
+"date": 20240715,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "PRTC",
+"date": 20241127,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "QOWZ",
+"date": 20250409,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "SOLZ",
+"date": 20250721,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "PRPO",
+"date": 20251119,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "AXR",
+"date": 20260316,
+"band": "20-40",
+"grenade": false
+},
+{
+"sym": "PRCT",
+"date": 20240109,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "AZTR",
+"date": 20240617,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "AETH",
+"date": 20241111,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "RBRK",
+"date": 20250314,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "TMH",
+"date": 20250723,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "PCOR",
+"date": 20251106,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "TSAT",
+"date": 20260317,
+"band": "40-80",
+"grenade": false
+},
+{
+"sym": "GCTK",
+"date": 20240102,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "GVH",
+"date": 20240405,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "WLDS",
+"date": 20240716,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "HCTI",
+"date": 20241028,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "HUBC",
+"date": 20250204,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "XTKG",
+"date": 20250625,
+"band": "80+",
+"grenade": false
+},
+{
+"sym": "SEZL",
+"date": 20260226,
+"band": "80+",
+"grenade": false
+}
+]
