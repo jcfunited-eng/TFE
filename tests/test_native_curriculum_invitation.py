@@ -53,6 +53,82 @@ def test_live_boundary_pose_gets_one_collision_free_visible_side_step(
     assert after > her.radius_mm + other.radius_mm
 
 
+def test_visible_side_step_refuses_a_path_blocked_by_a_placed_object(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", None)
+    authority = production._world()
+    snapshot = authority.observation_snapshot()
+    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+    other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
+    from dsf_ai_service.substrate.embodiment_world import (
+        EmbodiedObject,
+        PoseMM,
+        PositionMM,
+    )
+
+    her = replace(her, pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872))
+    other = replace(other, pose=PoseMM(PositionMM(2_300, 5_002, 0), 270_000))
+    blocker = EmbodiedObject(
+        object_id="path-blocker",
+        radius_mm=100,
+        mass_grams=1_000,
+        position=PositionMM(2_551, 5_002, 0),
+    )
+    blocked_snapshot = replace(
+        snapshot,
+        bodies=(her, other),
+        objects=snapshot.objects + (blocker,),
+    )
+
+    class BlockedWorld:
+        actor_ports = authority.actor_ports
+
+        @staticmethod
+        def observation_snapshot():
+            return blocked_snapshot
+
+    monkeypatch.setattr(production, "_world", lambda: BlockedWorld())
+
+    with pytest.raises(
+        production._CurriculumInvitationRefusal,
+        match="no one-step collision-free in-room side-step",
+    ):
+        production._curriculum_participant_approach_payload()
+
+
+def test_boundary_side_step_projects_to_exact_clear_room_edge(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", None)
+    authority = production._world()
+    snapshot = authority.observation_snapshot()
+    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+    other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
+    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+
+    her = replace(her, pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872))
+    other = replace(other, pose=PoseMM(PositionMM(3_710, 4_775, 0), 191_036))
+    live_snapshot = replace(snapshot, bodies=(her, other))
+
+    class BoundaryWorld:
+        actor_ports = authority.actor_ports
+
+        @staticmethod
+        def observation_snapshot():
+            return live_snapshot
+
+    monkeypatch.setattr(production, "_world", lambda: BoundaryWorld())
+
+    target = production._curriculum_participant_approach_payload()
+
+    assert (target["x_mm"], target["y_mm"]) == (3_750, 4_282)
+
+
 def test_direct_card_button_cannot_admit_without_embodied_invitation(
     monkeypatch,
 ) -> None:

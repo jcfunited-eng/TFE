@@ -12538,17 +12538,44 @@ def _curriculum_participant_approach_payload() -> dict[str, int]:
             (participant_bearing + turn) % 360_000,
         )
         target = PositionMM(
-            other.pose.position.x + offset_x,
-            other.pose.position.y + offset_y,
+            min(
+                max(
+                    other.pose.position.x + offset_x,
+                    current_region.bounds.minimum.x + other.radius_mm,
+                ),
+                current_region.bounds.maximum.x - other.radius_mm,
+            ),
+            min(
+                max(
+                    other.pose.position.y + offset_y,
+                    current_region.bounds.minimum.y + other.radius_mm,
+                ),
+                current_region.bounds.maximum.y - other.radius_mm,
+            ),
             other.pose.position.z,
         )
-        if not current_region.bounds.contains_floor_disc(target, other.radius_mm):
+        if target == other.pose.position:
             continue
         if _straight_path_intersects_disc(
             other.pose.position,
             target,
             her.pose.position,
             her.radius_mm + other.radius_mm,
+        ):
+            continue
+        if any(
+            item.position is not None
+            and current_region.bounds.contains_floor_disc(
+                item.position,
+                item.radius_mm,
+            )
+            and _straight_path_intersects_disc(
+                other.pose.position,
+                target,
+                item.position,
+                other.radius_mm + item.radius_mm,
+            )
+            for item in snapshot.objects
         ):
             continue
         target_dx = target.x - her.pose.position.x
