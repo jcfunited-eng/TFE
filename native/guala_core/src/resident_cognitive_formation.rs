@@ -9829,7 +9829,7 @@ struct PendingLayerTenPlasticitySettlement {
 }
 
 fn stable_bond_for_next_edge(
-    edges: &[ResidentContactEdge],
+    parallel_ordinals: &mut std::collections::BTreeMap<([u8; 16], [u8; 16]), u32>,
     first: [u8; 16],
     second: [u8; 16],
 ) -> Result<StablePhysicalBondReference, FormationError> {
@@ -9838,15 +9838,14 @@ fn stable_bond_for_next_edge(
     } else {
         (second, first)
     };
-    let parallel_ordinal = u32::try_from(
-        edges
-            .iter()
-            .filter(|edge| edge.stable_bond.endpoints() == canonical)
-            .count(),
-    )
-    .map_err(|_| FormationError::ArithmeticOverflow)?;
-    StablePhysicalBondReference::new(first, second, parallel_ordinal)
-        .ok_or(FormationError::NoncanonicalState)
+    let parallel_ordinal = parallel_ordinals.get(&canonical).copied().unwrap_or(0);
+    let bond = StablePhysicalBondReference::new(first, second, parallel_ordinal)
+        .ok_or(FormationError::NoncanonicalState)?;
+    let successor_ordinal = parallel_ordinal
+        .checked_add(1)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    parallel_ordinals.insert(canonical, successor_ordinal);
+    Ok(bond)
 }
 
 /// Advance an already-identified physical seed frontier across exactly one
@@ -9982,18 +9981,20 @@ fn settle_internal_contact_interval(
     }
 
     let mut flat_locations = Vec::<(usize, usize, [u8; 16])>::new();
+    let mut flat_by_lineage = std::collections::BTreeMap::<[u8; 16], usize>::new();
     for (cohort_index, cohort) in cohorts.iter().enumerate() {
         for (neuron_index, lineage) in cohort.anatomy.neuron_lineages().iter().enumerate() {
-            if flat_locations.iter().any(|(_, _, prior)| prior == lineage) {
+            let flat = flat_locations.len();
+            if flat_by_lineage.insert(*lineage, flat).is_some() {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
             flat_locations.push((cohort_index, neuron_index, *lineage));
         }
     }
     let lineage_member = |lineage: [u8; 16]| {
-        flat_locations
-            .iter()
-            .position(|(_, _, retained)| *retained == lineage)
+        flat_by_lineage
+            .get(&lineage)
+            .copied()
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
     let mut lineage_layers = cohorts
@@ -10015,6 +10016,8 @@ fn settle_internal_contact_interval(
             .map(|index| lineage_layers[index].1)
     };
     let mut edges = Vec::<ResidentContactEdge>::new();
+    let mut parallel_ordinals =
+        std::collections::BTreeMap::<([u8; 16], [u8; 16]), u32>::new();
     let mut cohort_offsets = Vec::with_capacity(cohorts.len());
     let mut offset = 0usize;
     for (cohort_index, cohort) in cohorts.iter().enumerate() {
@@ -10030,7 +10033,7 @@ fn settle_internal_contact_interval(
         {
             let (left_member, right_member) = contact.endpoints();
             let stable_bond = stable_bond_for_next_edge(
-                &edges,
+                &mut parallel_ordinals,
                 cohort.anatomy.neuron_lineages()[left_member],
                 cohort.anatomy.neuron_lineages()[right_member],
             )?;
@@ -10076,7 +10079,11 @@ fn settle_internal_contact_interval(
             .lineages()
             .get(right)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let stable_bond = stable_bond_for_next_edge(&edges, left_lineage, right_lineage)?;
+        let stable_bond = stable_bond_for_next_edge(
+            &mut parallel_ordinals,
+            left_lineage,
+            right_lineage,
+        )?;
         edges.push(ResidentContactEdge {
             left: lineage_member(left_lineage)?,
             right: lineage_member(right_lineage)?,
@@ -12210,6 +12217,28 @@ mod tests {
         lineage[..8].copy_from_slice(LINEAGE_DOMAIN);
         lineage[8..].copy_from_slice(&ordinal.to_be_bytes());
         lineage
+    }
+
+    #[test]
+    fn transient_bond_index_preserves_exact_parallel_ordinals() {
+        let left = local_lineage(1);
+        let right = local_lineage(2);
+        let other = local_lineage(3);
+        let mut ordinals = std::collections::BTreeMap::new();
+
+        let first = stable_bond_for_next_edge(&mut ordinals, left, right).unwrap();
+        let reversed = stable_bond_for_next_edge(&mut ordinals, right, left).unwrap();
+        let independent = stable_bond_for_next_edge(&mut ordinals, left, other).unwrap();
+        let third = stable_bond_for_next_edge(&mut ordinals, left, right).unwrap();
+
+        assert_eq!(first.endpoints(), (left, right));
+        assert_eq!(first.parallel_ordinal(), 0);
+        assert_eq!(reversed.endpoints(), (left, right));
+        assert_eq!(reversed.parallel_ordinal(), 1);
+        assert_eq!(independent.parallel_ordinal(), 0);
+        assert_eq!(third.parallel_ordinal(), 2);
+        assert_eq!(ordinals.get(&(left, right)), Some(&3));
+        assert_eq!(ordinals.get(&(left, other)), Some(&1));
     }
 
     fn mount_body_regulation_fixture(
