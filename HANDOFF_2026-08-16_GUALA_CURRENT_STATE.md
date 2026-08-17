@@ -62,7 +62,12 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
   full physical cognitive-chain activity and zero exhaustion, but zero
   complete recurrent fractals, so it proves neither alphabet recognition nor
   speech.
-- Immediate next increment: `L-003`.
+- `L-003` is Live-Closed on task 1106 at its teaching-and-analysis boundary:
+  every number 0-10 has exactly one durable attended presentation, with no
+  missing or duplicate accepted lesson. Complete recurrent fractals remained
+  zero, so the pass does not prove number recognition, counting, learned
+  number words, or speech.
+- Immediate next increment: `L-004`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -70,15 +75,17 @@ worktree with the Guala project-truth root check before acting.
 ## Exact live-production state
 
 Current override after the original task-1090 snapshot: production is one
-healthy settled `dsf-ai-task:1104` process, commit
-`a2ac01feacd495cbefcb4c53064c083aba0f5b67`, image
-`sha256:c8cf7e8aa09e06c29e1a0e9b8ce8d8c20dfa75f7b416875ce0d9ad27e64e689c`,
-and the same organism identity. The completed L-002 A-Z pass reached its final
-lesson at tick `138891`, state `6a248c1c...10e4`, and `78,013,517` bytes; a
-later recovery observation at generation `138915` was `76,936,951` bytes.
-Identity stayed unchanged, complete/resting neuron counts were `417/196,312`,
-and Python cognition callbacks remained zero. The task-1090 facts below remain
-the historical starting snapshot, not the current task identity.
+healthy settled `dsf-ai-task:1106` process, commit
+`6857f6e1ceee7ffaa04adedd9a38074b77e4d999`, image
+`sha256:38bddf1aa75910f2a798e9fcccc6951b16b20b4edba3298570cf9f15255533c6`,
+and the same organism identity. The completed L-003 0-10 pass reached its final
+lesson at tick `140499`, state `51334d7f...e16c`, and `91,111,709` bytes; a
+later recovery observation at generation `140523` was `90,026,012` bytes.
+Identity stayed unchanged, complete/resting neuron counts were `491/196,238`,
+and Python cognition callbacks remained zero. ECS was healthy at exactly
+desired/running/pending `1/1/0`; the retained world remained 15 objects, two
+bodies, four regions, and four portals without rebuild. The task-1090 facts
+below remain the historical starting snapshot, not the current task identity.
 
 Read-only production resolution at `2026-08-16T08:22:27Z` proved:
 
@@ -159,10 +166,11 @@ unproved and was not relabeled.
 ## Complete carried-forward delivery ledger
 
 The stale attachment sentence naming `S-017` as current work is superseded.
-All A-011 increments through A-015 and L-001 are now Live-Closed. Current
-production is task 1104; it preserves the earlier circuits and body, and adds
-the exact participant-path/native-attention invitation boundary without
-Python cognition.
+All A-011 increments through A-015 and L-001 through L-003 are now
+Live-Closed. Current production is task 1106; it preserves the earlier
+circuits and body, and adds the bounded zero lesson while retaining the exact
+participant-path/native-attention invitation boundary without Python
+cognition.
 
 ### A-011 play, fun, social joy, and body-owned laughter
 
@@ -225,8 +233,15 @@ Python cognition.
   were first exposures, A/Z were disclosed controls, and zero complete
   recurrent fractals prohibits a learned-alphabet claim. See the L-002 sprint
   ledger.
-- [ ] **L-003:** teach and analyze the complete 0-10 number/counting deck,
-  including zero, through distinct physical experiences.
+- [x] **L-003:** teach and analyze the complete 0-10 number/counting deck,
+  including zero, through distinct physical experiences. Live-Closed on task
+  1106 at the teaching-and-analysis boundary: eleven unique accepted lessons,
+  14,190 full DSF deliveries, 58,667 physical neuron transitions, 367 complete
+  fractal-change occurrences, 1,542 partial-cue reassemblies including 88
+  endogenous, 3,419 recovery occurrences, zero exhaustion, no duplicate
+  accepted card, and zero Python cognition callbacks. Zero complete recurrent
+  fractals prohibits a learned-number or counting claim. See the L-003 sprint
+  ledger.
 - [ ] **L-004:** present and analyze alphabet and counting songs with
   synchronized visual, auditory, body, and affective participation.
 - [ ] **L-005:** demonstrate genuine learned-word recognition from novel
@@ -342,8 +357,8 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin L-003 with the complete 0-10 number/counting deck, including zero, as
-distinct embodied multisensory experiences.
+Begin L-004 by presenting and analyzing the approved alphabet and counting
+songs as synchronized visual, auditory, body, and affective experiences.
 Do not reopen or repeat A-011, A-012, A-013, A-014, or A-015
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
@@ -381,6 +396,12 @@ closure unless new live evidence directly contradicts a recorded circuit.
   entering Guala's native changed reached/foregone route event, and one
   consumed receipt admitting a 13-hop A-card presentation with durable receipt
   `0aac21ca...cf633`. Learned-word and speech claims remain open.
+- L-003 zero-through-ten teaching: Live-Closed on task 1106 at the
+  teaching-and-analysis boundary by eleven unique attended durable lessons,
+  full seven-field DSF and physical cognitive-chain evidence, zero exhaustion,
+  one unchanged organism identity, and zero Python cognition callbacks.
+  Complete recurrence remained zero; number recognition, counting, learned
+  number words, and speech remain open.
 - Complete D3 objective: not complete.
 - Complete creator-accepted Loom and Loom Scan replacements: not implemented or
   live-proven; the current pages are transport/observation surfaces only.

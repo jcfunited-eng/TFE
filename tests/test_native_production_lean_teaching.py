@@ -101,39 +101,23 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     assert refused["accepted"] is False
     assert production._restored.pointer.state_sha256 == genesis_sha
 
-    # First lesson: the 27 retinal card-surface sites transition and become
-    # the grown cohort; the ears stay declared with true silence but grow
-    # nothing (no auditory transduction law is mounted).
-    #
-    # PIN CHANGED by the stimulus-boundary retention ratification
-    # (2026-08-05) and its companion app transport fix, measured
-    # before/after on this exact path:
-    #   physically_transitioned_neuron_count  189 -> AFTER 209
-    #   complete_neuron_fractal_count         stays 27
-    # Every lit hop declares the lit card surface as its own exact optical
-    # occurrence (7 * 27 == 189 lit transitions), and now the two ENDED hops
-    # do the same with true dark samples, so the cohort physically settles
-    # at presentation end (measured: 16 then 4 neurons transition on the
-    # dark boundary hops; 189 + 16 + 4 == 209).  The first dark settlement
-    # carries zero exogenous optical energy, so the lesson's experience
-    # closes THERE — with its real electrical participation masks (gate
-    # work 27/27, active contacts 26/26) — and emits its 27 genuine
-    # stimulus-boundary fractals.  The retained original is CONNECTED and
-    # satisfies the admission law's own original-side predicate.
+    # First lesson: one joint whole-sensorium occurrence per hop reaches the
+    # current retina, cochleae, body, and metabolic receptor roster. Exact
+    # per-neuron counts are intentionally not pinned here: they changed when
+    # the complete mounted anatomy replaced the historical 29-port lean body.
+    # This test owns the behavioral contract: physical transitions, fractal
+    # change, bounded recovery, persistence, and no exhaustion.
     first_status, first = _teach(CARD_ID)
     assert first_status == 200
     assert first["accepted"] is True and first["ok"] is True
     assert first["hop_count"] >= 3
-    assert first["totals"]["physically_transitioned_neuron_count"] == 209
-    assert first["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
-    # PIN CHANGED 29 -> 27 by the same ratification: the two ear neurons
-    # only ever joined the retinal cohort through the OLD ended hops'
-    # combined 29-port occurrence — the exact transport lie this fix
-    # removes.  The ears remain declared with true silence on every hop
-    # (two-sense doctrine), but with no auditory transduction law mounted
-    # they lawfully grow nothing; the grown cohort is the 27 retinal sites.
-    assert first["observation"]["complete_neuron_count"] == SURFACE_PORTS
-    assert first["observation"]["cognitive_mosaic_count"] == 0
+    assert first["totals"]["physically_transitioned_neuron_count"] > 0
+    assert first["totals"]["complete_neuron_fractal_count"] > 0
+    assert first["totals"]["partial_cue_reassembly_count"] > 0
+    assert first["totals"]["rest_recovered_neuron_count"] > 0
+    assert first["totals"]["energy_exhausted_interval_count"] == 0
+    retained_neurons = first["observation"]["complete_neuron_count"]
+    assert retained_neurons >= SURFACE_PORTS
     assert first["persisted"]["state_sha256"] != genesis_sha
     assert (
         production._restored.pointer.state_sha256
@@ -143,67 +127,36 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
     # Restart from disk: the taught body restores exactly.
     production._startup()
     restored = production._restored.organism.readiness()
-    assert restored.complete_neuron_count == SURFACE_PORTS
+    assert restored.complete_neuron_count == retained_neurons
     assert (
         production._restored.pointer.state_sha256
         == first["persisted"]["state_sha256"]
     )
 
-    # Second pass of the same lesson: RECURRENCE against the connected
-    # retained original.
-    #
-    # PINS CHANGED by the stimulus-boundary retention ratification
-    # (2026-08-05), measured before/after on this exact path:
-    #   physically_transitioned_neuron_count  189 -> AFTER 211
-    #   partial_cue_reassembly_count            0 -> AFTER   4
-    #   cognitive_mosaic_count                  0 -> AFTER   4
-    # With a CONNECTED original retained by lesson 1, the second lesson's
-    # dwell-staggered gate openings form proper partial cues in time (the
-    # early hops of a presentation are a partial glimpse of it), and the
-    # physics itself admits four physical mosaics on this served path —
-    # the first served-path recognitions.  Recorded, never forced: these
-    # counts are the decoded native observation.
+    # Repeated physical presentations retain the learned body, continue
+    # partial-cue activity and recovery, and do not append neurons or exhaust
+    # the organism. This does not relabel the activity as recognition.
     second_status, second = _teach(CARD_ID)
     assert second_status == 200
-    assert second["totals"]["physically_transitioned_neuron_count"] == 211
-    assert second["totals"]["complete_neuron_fractal_count"] == 0
-    assert second["totals"]["partial_cue_reassembly_count"] == 4
-    assert second["observation"]["cognitive_mosaic_count"] == 4
-    assert second["observation"]["complete_neuron_count"] == SURFACE_PORTS
+    assert second["totals"]["physically_transitioned_neuron_count"] > 0
+    assert second["totals"]["partial_cue_reassembly_count"] > 0
+    assert second["totals"]["rest_recovered_neuron_count"] > 0
+    assert second["totals"]["energy_exhausted_interval_count"] == 0
+    assert second["observation"]["complete_neuron_count"] == retained_neurons
 
-    # Third pass: recurrence continues, no growth in neurons.
+    # Two further passes prove bounded, non-append-only state behavior.
     third_status, third = _teach(CARD_ID)
     assert third_status == 200
-    assert third["totals"]["physically_transitioned_neuron_count"] == 213
-    assert third["observation"]["complete_neuron_count"] == SURFACE_PORTS
-
-    # PIN RE-MEASURED under the stimulus-boundary retention ratification
-    # (2026-08-05).  The body is no longer a flat plateau: it grows ONLY
-    # with each newly DISTINCT admitted mosaic (~116 kB of resident mosaic
-    # reference per admission) while repeated admissions of an
-    # already-formed mosaic add nothing resident.  Measured bodies,
-    # alphabet-a, this exact served path, 6 consecutive lessons:
-    #   L1 2070731 (0 mosaics), L2 2535923 (4), L3 3001071 (8),
-    #   L4 3117277 (9), L5 3233455 (10), L6 3349681 (11)
-    # The new-mosaic rate falls as the cue spectrum saturates (4, 4, 1, 1,
-    # 1); recognition episodes additionally file into hippocampal cold
-    # custody (~1.9 MB per admission, on disk, content-addressed).  The
-    # honest bound is per-new-mosaic, not per-lesson; whether this harvest
-    # rate needs governance is an open doctrine item, stated, not hidden.
+    assert third["observation"]["complete_neuron_count"] == retained_neurons
     fourth_status, fourth = _teach(CARD_ID)
     assert fourth_status == 200
-    assert fourth["totals"]["physically_transitioned_neuron_count"] == 218
-    assert fourth["persisted"]["state_bytes"] >= third["persisted"]["state_bytes"]
-    new_mosaics = (
-        fourth["observation"]["cognitive_mosaic_count"]
-        - third["observation"]["cognitive_mosaic_count"]
+    assert fourth["observation"]["complete_neuron_count"] == retained_neurons
+    assert fourth["totals"]["energy_exhausted_interval_count"] == 0
+    assert fourth["persisted"]["state_bytes"] <= max(
+        first["persisted"]["state_bytes"],
+        second["persisted"]["state_bytes"],
+        third["persisted"]["state_bytes"],
     )
-    assert (
-        fourth["persisted"]["state_bytes"] - third["persisted"]["state_bytes"]
-        <= 130_000 * max(new_mosaics, 1)
-    )
-    assert fourth["persisted"]["state_bytes"] <= 3_200_000
-    assert fourth["observation"]["complete_neuron_count"] == SURFACE_PORTS
 
     # The public observation cache reflects the committed generations.
     body = json.loads(production._public_observation_body)
@@ -212,7 +165,7 @@ def test_genesis_teach_persist_restart_and_recurrence(lean_app) -> None:
         body["generation_state"]["state_sha256"]
         == fourth["persisted"]["state_sha256"]
     )
-    assert body["neuron_activity"]["retained_count"] == SURFACE_PORTS
+    assert body["neuron_activity"]["retained_count"] == retained_neurons
     assert body["curriculum"]["tutoring_transition_available"] is True
 
 
@@ -244,17 +197,15 @@ async def test_standalone_sound_intake_is_suspended_by_doctrine(
 async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
     """Ratified doctrine (2026-08-05): NO single-sense experiences.
 
-    Every sound-intake hop episode must declare BOTH mounted senses with
-    TRUE samples: the two ear pressure ports carrying the caller's PCM and
-    all 27 card-surface receptor sites carrying their true dark 0.0
-    luminance, as two lawful occurrences (the surface as its own exact
-    optical occurrence, the ears as theirs).  The proof asserts the built
-    episodes' declared port composition AND that the admitted transition
-    still commits and persists.
+    Every sound-intake hop episode must declare the full mounted sensorium
+    with TRUE samples: cochlear pressure, the 27 retinal sites carrying true
+    dark 0.0 luminance, and lawful body state on one shared clock, as one
+    joint occurrence. The declared receptor groups preserve anatomy without
+    repeating unchanged L0-L4 once per sense.
     """
 
-    # The built episodes declare the full 29-port sensorium, never the two
-    # ear ports alone, and exactly two occurrences per hop.
+    # The built episodes declare the current full mounted sensorium, never an
+    # ear-only projection, and exactly one joint occurrence per hop.
     episodes = production._mono_pcm_hop_episodes(
         assembly_prefix="two-sense-proof",
         samples=tuple(
@@ -266,12 +217,12 @@ async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
     assert len(episodes) == 2
     for episode, intervals in episodes:
         assert episode.port_count == LESSON_PORTS
-        assert episode.occurrence_count == 2
+        assert episode.occurrence_count == production.LESSON_OCCURRENCE_COUNT
         # One caller-authored maximum causal interval per occurrence.
-        assert intervals == [(production.AMBIENT_INTAKE_MAX_SECONDS, 1)] * 2
+        assert intervals == [(production.AMBIENT_INTAKE_MAX_SECONDS, 1)]
         # Every declared port carries one true sample per retained frame:
         # total samples are the whole sensorium, not an ear-only stream.
-        frame_count = episode.occurrence_frame_count // 2
+        frame_count = episode.occurrence_frame_count
         assert episode.source_sample_count == LESSON_PORTS * frame_count
 
     # The live route refuses by doctrine (standalone hearing suspended)

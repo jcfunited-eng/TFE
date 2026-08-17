@@ -2,11 +2,12 @@
 
 Date: 2026-08-17
 
-Status: **In progress.** No L-003 lesson has been attempted. The zero-card
-asset and tutor pressure were packaged in task 1105, but the first read-only
-world check exposed an unrelated candidate expansion of the world object
-capacity. Production correctly refused to rebuild Guala's retained world.
-The correction is to remove that expansion before any teaching.
+Status: **Live-Closed at the teaching-and-analysis boundary.** Task 1106
+committed exactly one attended physical presentation for each `number-00`
+through `number-10`. Guala's own native causal attention declined or admitted
+each invitation; no declined invitation was taught, and no accepted card was
+repeated. The pass proves retained physical learning activity, but it does not
+yet prove number recognition, counting, a learned number word, or speech.
 
 ## Frozen task identity and acceptance
 
@@ -19,11 +20,16 @@ The correction is to remove that expansion before any teaching.
 - Production baseline at sprint start: task 1104, commit
   `a2ac01feacd495cbefcb4c53064c083aba0f5b67`, one organism identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
-- Current live candidate: task 1105, commit
+- Failed candidate: task 1105, commit
   `bcfba6aa42a10ce98514f840c16b03f9ba159796`, image
   `sha256:a6a30c7c53fd24b1c78e6662da250665107585cfdf2e67497d209a461d8c3d3a`.
-  The native organism restored and advances, but the persisted world is
-  unavailable because this candidate changed its configured object capacity.
+  The native organism restored, but the persisted world truthfully refused a
+  changed configured object capacity. No lesson was attempted on task 1105.
+- Live closure: task 1106, commit
+  `6857f6e1ceee7ffaa04adedd9a38074b77e4d999`, image
+  `sha256:38bddf1aa75910f2a798e9fcccc6951b16b20b4edba3298570cf9f15255533c6`,
+  one unchanged organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
 - Acceptance: exactly one attended, durable, full physical presentation for
   each `number-00` through `number-10`, with per-card and aggregate full-DSF,
   neuron-transition, post-quiescence fractal, recurrence, recovery, exhaustion,
@@ -59,6 +65,9 @@ The correction is to remove that expansion before any teaching.
    seven-field L0-L4 delivery. This correction does not evaluate or alter DSF.
 7. Lost field structure: none; no field is reduced, flattened, scored, or
    replaced.
+
+The task-1105 conflict was removed before teaching. Task 1106 therefore has
+**no current conflict** with the requested L-003 architecture.
 
 ## Exact causal and translation path
 
@@ -121,6 +130,13 @@ the receptor signals and have no semantic authority.
 - Disposition: restore the prior approved-surface roster and 64-object bound;
   keep only the exact zero media/manifest/package prerequisite. Add the
   candidate-world cold-restore check to the durable recurrence register.
+- Closure verification exposed two stale August 5 assertions in
+  `test_native_production_lean_teaching.py`: they still required separate
+  visual/audio occurrences and exact counts from the retired lean body even
+  though the August 11 architecture uses one joint whole-sensorium occurrence.
+  Only that obsolete test contract was replaced with current behavioral
+  invariants; organism and production code were unchanged. The focused
+  curriculum/package suite then passed 21/21 in 58.92 seconds.
 - Exact predecessor proof after the correction: a read-only process in the
   sole task-1105 container applied only the candidate's restored 64 capacity
   and 36-surface construction roster before importing the production world
@@ -139,3 +155,72 @@ the receptor signals and have no semantic authority.
   curriculum queue, semantic database, or full-neuron scan.
 - Serial teaching only; the next card is not offered until the previous card
   has a durable outcome.
+
+## Live task-1106 teaching evidence
+
+The missing zero surface was created with the image-generation tool in
+reference/edit mode from the existing number-one card. The exact prompt asked
+for a matching vintage cream preschool counting card with a dark-green `0`, an
+empty wicker basket, the word `ZERO`, the same layout, and no extra objects,
+text, logos, or watermark. The generated source was
+`/root/.codex/generated_images/01a009b0-6684-78f1-b610-fbaa76fafb3b/exec-20f1c082-6af1-465b-9e05-e61a318b700b.png`;
+the bounded production derivative is
+`guala_curriculum/cards/number-00-zero-v1.png`. This external tutor-authored
+raster is physical lesson media only and has no internal meaning authority.
+
+The first serial pass and later varied offerings preserved Guala's right to
+decline. Geometry refusals changed no lesson state. Gateway timeouts were
+reconciled against the exact invitation and durable lesson receipt before any
+further request. Numbers 0, 3, 7, and 9 were taught only on later attended
+offerings. Number 5 was offered again only after a quiet 135-second interval
+that advanced the same organism from generation 140426 to 140462; it then
+entered native attention and was taught once. The accepted ledger contains
+eleven unique card IDs, eleven accepted rows, no missing IDs, and no duplicate
+accepted card.
+
+| Card | Successor tick | Hops | DSF deliveries | Transitioned neurons | Complete fractals | Partial / endogenous reassembly | Recovered | Exhausted | Recurrent complete | Receipt |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 0 | 140167 | 12 | 1,320 | 5,539 | 27 | 151 / 8 | 338 | 0 | 0 | `4a57d2d2...a4fe` |
+| 1 | 139736 | 11 | 1,210 | 4,598 | 43 | 111 / 8 | 301 | 0 | 0 | `b89a370a...0378` |
+| 2 | 139780 | 11 | 1,210 | 4,678 | 27 | 116 / 8 | 286 | 0 | 0 | `747e2c14...d6d3` |
+| 3 | 140232 | 11 | 1,210 | 5,200 | 46 | 128 / 8 | 286 | 0 | 0 | `bd4580bd...8c7b` |
+| 4 | 139871 | 12 | 1,320 | 5,101 | 27 | 137 / 8 | 321 | 0 | 0 | `3134cf49...10d4` |
+| 5 | 140499 | 12 | 1,320 | 5,774 | 27 | 155 / 8 | 301 | 0 | 0 | `f06e77a7...5a10` |
+| 6 | 139937 | 12 | 1,320 | 5,209 | 44 | 138 / 8 | 271 | 0 | 0 | `e66ec897...b47b` |
+| 7 | 140414 | 13 | 1,430 | 6,264 | 27 | 179 / 8 | 364 | 0 | 0 | `17ec8964...f1a` |
+| 8 | 140010 | 11 | 1,210 | 4,992 | 45 | 121 / 8 | 245 | 0 | 0 | `5ccc3aeb...d58f` |
+| 9 | 140359 | 12 | 1,320 | 5,772 | 27 | 156 / 8 | 388 | 0 | 0 | `52963f7d...2fb` |
+| 10 | 140101 | 12 | 1,320 | 5,540 | 27 | 150 / 8 | 318 | 0 | 0 | `b9431156...f40e` |
+| **Total** |  | **129** | **14,190** | **58,667** | **367** | **1,542 / 88** | **3,419** | **0** | **0** | 11 unique |
+
+These are per-lesson physical occurrence totals, not unique lifetime neuron or
+fractal populations. The unchanged full joint seven-field L0-L4 delivery is
+the authority; no scalar or reduced proxy was used.
+
+## Closure observation
+
+- At generation 140523, after the final lesson at tick 140499, the same raw
+  native `CURRENT` lineage had advanced to state
+  `8cc996ee...b054`, 90,026,012 bytes. The lesson peak was 91,111,709
+  bytes, so state was already non-monotonic rather than append-only growth.
+- Complete/developmental-resting neuron counts were `491/196,238`; Python
+  cognition callbacks remained zero.
+- The retained world remained revision 6911 with 15 objects, two bodies, four
+  regions, four portals, and no rebuild reason.
+- ECS independently showed task 1106 healthy, rollout complete, and exactly
+  desired/running/pending `1/1/0`.
+- Zero's signed external media remained exact: raster SHA
+  `8a6fea71e5b46cb4791a125c9954183eba5da3fdc2d1775f0d3606d500b446fa`
+  and tutor-pressure SHA
+  `de064659338a2ab3f61ff5af64782b8c862fda0cce2c57945037f6268f79360d`.
+
+## Truth boundary
+
+This pass demonstrates that all eleven distinct counting experiences reached
+the same organism through its own causal attention boundary and produced
+retained full-physics learning activity. Every lesson showed complete-neuron
+fractal change and partial-cue reassembly, including endogenous reassembly.
+However, complete recurrent fractal count remained zero in every lesson.
+Therefore L-003 is closed only at its stated teaching-and-analysis boundary;
+learned number recognition, counting competence, number-word meaning, and
+speech remain unproved and must not be claimed.

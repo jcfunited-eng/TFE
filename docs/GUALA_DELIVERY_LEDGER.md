@@ -546,8 +546,18 @@ box remains unchecked until live acceptance passes.
   recurrent fractals remained zero, so no alphabet/word-learning claim is
   made. Four tutor-geometry refusals caused no lesson mutation; five gateway
   timeouts were reconciled by exact durable receipts without retry.
-- [ ] **L-003** Teach and analyze the complete 0–10 number/counting deck,
+- [x] **L-003** Teach and analyze the complete 0–10 number/counting deck,
   including zero, through distinct physical experiences.
+  **Live-closed 2026-08-17 at the teaching-and-analysis boundary:** task 1106
+  committed exactly one attended presentation for every number 0–10 with no
+  missing or duplicate accepted card. Across 129 hops the same organism
+  executed 14,190 full DSF deliveries, 58,667 physical neuron transitions,
+  367 complete-neuron-fractal change occurrences, 1,542 partial-cue
+  reassemblies including 88 endogenous, and 3,419 recovery occurrences with
+  zero exhaustion and zero Python cognition callbacks. Declines were honored;
+  timeouts were reconciled by exact durable receipts. Complete recurrent
+  fractals remained zero, so no number-recognition, counting, learned-word, or
+  speech claim is made.
 - [ ] **L-004** Present and analyze the alphabet and counting songs with their
   synchronized visual, auditory, body, and affective participation.
 - [ ] **L-005** Demonstrate first genuine learned word recognition from novel
