@@ -119,6 +119,11 @@ GROSS_MULT = 2.0          # declared margin envelope: gross <= 2x capital
 HARVEST_X = 0.95          # R2: exit at first close <= 0.95 x entry
 MAX_EVENT_FRAC = 0.10     # ruin cap per event (survival, not alpha)
 ANOMALY_STOP_PCT = 20.0   # Joe's rule 2026-08-17: cut shorts 20%+ underwater
+UNCOVERED_CAP = 2500.0    # 2026-08-17, after WETO: uncovered names (no herd
+                          # row — the blind-spot class where gaps jump any
+                          # stop) never carry more than this per slice.
+                          # Survival sizing: worst gap-through is bounded by
+                          # slice x gap, so the slice is the true protection.
 
 
 def load_log():
@@ -251,6 +256,8 @@ def main():
     opened = 0
     for e in take:
         alloc = min(budget * e["z"] / zsum, MAX_EVENT_FRAC * CASH0)
+        if e["herd"] == "none":
+            alloc = min(alloc, UNCOVERED_CAP)
         # whole shares only — a real short cannot be fractional; an
         # allocation under one share stays cash (pull too weak)
         shares = int(alloc // e["close"])
