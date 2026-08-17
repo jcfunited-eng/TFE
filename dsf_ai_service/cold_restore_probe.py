@@ -34,6 +34,14 @@ _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
+# The complete production receptor roster plus 74 articulated-body terminals
+# requires 72,666,394 successor bytes.  The fresh A-013 rehearsal admits the
+# smallest whole-MiB tier above that measured exact boundary.  These constants
+# do not govern the resident organism, whose bounds remain cgroup-derived.
+_A013_FRESH_MAX_ENVELOPE_BYTES = 73_400_320
+_A013_FRESH_MAX_FABRIC_BYTES = 73_399_456
+_A013_FRESH_MAX_LOGICAL_PEAK_BYTES = 587_202_560
+
 
 def _canonical(value: object) -> bytes:
     return json.dumps(
@@ -1268,9 +1276,9 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
                 organism_identity=expected_identity,
                 organism_tick=0,
                 growth_dna=production._authored_growth_dna(),
-                max_envelope_bytes=67_108_864,
-                max_fabric_bytes=67_108_000,
-                max_logical_peak_bytes=536_870_912,
+                max_envelope_bytes=_A013_FRESH_MAX_ENVELOPE_BYTES,
+                max_fabric_bytes=_A013_FRESH_MAX_FABRIC_BYTES,
+                max_logical_peak_bytes=_A013_FRESH_MAX_LOGICAL_PEAK_BYTES,
             )
             episode, admissions, lanes = production._action_consequence_episode(
                 execution,

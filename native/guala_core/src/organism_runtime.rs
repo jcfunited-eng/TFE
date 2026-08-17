@@ -6214,7 +6214,13 @@ mod tests {
     const IDENTITY: &str = "12345678-9abc-4def-8123-456789abcdef";
 
     fn budget() -> RuntimeBudget {
-        RuntimeBudget::new(1_048_576, 1_048_000, 3_145_728).unwrap()
+        // The complete articulated body occupies layer-6 topology 629..702,
+        // immediately after the unchanged served sensory geography. An empty
+        // genesis therefore uses the production envelope so its compact
+        // resting declaration reaches every standard body place without
+        // consuming the one unit reserved for genuinely later growth. The
+        // declaration itself remains compact and carries no cell history.
+        RuntimeBudget::new(67_108_864, 67_108_000, 536_870_912).unwrap()
     }
 
     fn text(output: &mut Vec<u8>, value: &str) {
@@ -6513,13 +6519,11 @@ mod tests {
             prepared.observation.complete_neuron_count,
             before.complete_neuron_count + 3
         );
-        // The reached vestibular receptor claims one declared resting cell.
-        // Its corrected unique layer-6 partner lies beyond this deliberately
-        // tiny fixture population and consumes one reserved DNA growth unit.
-        // Its topology-local layer-8 regulator is a second externally grown
-        // unit; neither is misreported as another resting-population claim.
+        // The receptor, its collision-free layer-6 partner, and its
+        // topology-local layer-8 regulator each claim one declared resting
+        // cell. No external growth unit is consumed.
         assert_eq!(
-            prepared.observation.developmental_resting_neuron_count + 1,
+            prepared.observation.developmental_resting_neuron_count + 3,
             before.developmental_resting_neuron_count
         );
         assert_eq!(prepared.observation.dsf_delivery_count, 2);
@@ -6534,7 +6538,7 @@ mod tests {
         assert_eq!(
             restored.observation().complete_neuron_count
                 + restored.observation().developmental_resting_neuron_count,
-            before.complete_neuron_count + before.developmental_resting_neuron_count + 2
+            before.complete_neuron_count + before.developmental_resting_neuron_count
         );
     }
 
@@ -6566,12 +6570,12 @@ mod tests {
             before.complete_neuron_count + 3
         );
         assert_eq!(
-            after.developmental_resting_neuron_count + 1,
+            after.developmental_resting_neuron_count + 3,
             before.developmental_resting_neuron_count
         );
         assert_eq!(
             after.complete_neuron_count + after.developmental_resting_neuron_count,
-            before_total + 2
+            before_total
         );
         assert_eq!(
             runtime

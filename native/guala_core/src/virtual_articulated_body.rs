@@ -13,12 +13,12 @@ const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
 const BODY_VERSION: u16 = 1;
 pub(crate) const BODY_AXIS_COUNT: usize = 37;
 pub(crate) const BODY_EFFECTOR_TERMINAL_COUNT: usize = BODY_AXIS_COUNT * 2;
-/// Body-layer neuronal places 0..7 are the already-live four displacement
-/// receptors followed by the four articulatory-body receptors.  The local
-/// articulated proprioceptors are a distinct organ and therefore begin at
-/// the next declared place.  This is fixed anatomy, not a runtime offset or
-/// an action selector; terminal ordinals themselves remain 0..73.
-pub(crate) const BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize = 8;
+/// Body-layer neuronal places 0..9 are the already-live four displacement,
+/// four articulatory-body, and two thermal receptors. The local articulated
+/// proprioceptors are a distinct organ and therefore begin at the next
+/// declared place. This is fixed anatomy, not a runtime offset or an action
+/// selector; terminal ordinals themselves remain 0..73.
+pub(crate) const BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize = 10;
 pub(crate) const VOCAL_TRACT_SECTION_COUNT: usize = 8;
 const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
 pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES

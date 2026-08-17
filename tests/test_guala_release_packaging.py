@@ -75,6 +75,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/organism.rs",
     "native/guala_core/src/organism_runtime.rs",
     "native/guala_core/src/physical_mosaic.rs",
+    "native/guala_core/src/proprioceptive_receptor_work.rs",
     "native/guala_core/src/positional_krimelack_boundary.rs",
     "native/guala_core/src/reached_neuron_cohort.rs",
     "native/guala_core/src/reached_vestibular_bundle_path.rs",

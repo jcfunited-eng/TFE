@@ -60,9 +60,9 @@ organism = create_native_resident_organism(
     organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
     organism_tick=0,
     growth_dna=production._authored_growth_dna(),
-    max_envelope_bytes=67_108_864,
-    max_fabric_bytes=67_108_000,
-    max_logical_peak_bytes=536_870_912,
+    max_envelope_bytes=73_400_320,
+    max_fabric_bytes=73_399_456,
+    max_logical_peak_bytes=587_202_560,
 )
 episode, admissions, lanes = production._action_consequence_episode(
     execution,
@@ -130,7 +130,9 @@ print(json.dumps({
     assert len(set(evidence["external_lineages"])) == len(
         evidence["external_lineages"]
     )
-    assert evidence["internal_body"] == 6
+    # The six pre-existing body receptors and all 74 mounted joint terminals
+    # participate in the same settled successor organism.
+    assert evidence["internal_body"] == 80
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
     assert evidence["chemical"] == {

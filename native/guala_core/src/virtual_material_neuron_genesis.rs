@@ -368,6 +368,30 @@ pub(crate) fn create_virtual_material_neuron(
     )
 }
 
+/// Construct one receptor neuron for one explicitly declared physical
+/// terminal. The terminal owns one transduction gate; its membrane
+/// capacitance and carrier material still derive from its unique declared
+/// place. This avoids multiplying one anatomical ending into one gate per
+/// geometric territory patch.
+pub(crate) fn create_single_terminal_virtual_material_neuron(
+    perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    let positions = required_mathloom_positions_for_birth_field(perspective)
+        .map_err(VirtualMaterialGenesisError::JointField)?
+        .max(declared_field_arithmetic_positions());
+    build_quiescent_virtual_material_neuron(
+        positions,
+        DeclaredNeuronPlace::from_source_site(site),
+        1,
+        false,
+        exact(
+            ORDINARY_GATE_DISSIPATION_QUANTUM_NUMERATOR,
+            ORDINARY_GATE_DISSIPATION_QUANTUM_DENOMINATOR,
+        ),
+    )
+}
+
 /// Construct the same definitive virtual-material neuron with a receptor-
 /// derived exact gate-energy lattice. The physical dissipation capacity is
 /// preserved from the ordinary genesis as `(1/16 zJ) * 36 = 9/4 zJ`; only its
@@ -441,6 +465,34 @@ pub(crate) fn reach_quiescent_virtual_material_neuron(
     let (anatomy, state) =
         expand_legacy_receptor_channel_population(&anatomy, &state, receptor_population, 0)
     .map_err(VirtualMaterialGenesisError::Neuron)?;
+    let zero_recovery_catalysts = vec![0; anatomy.psi_ring_count()].into_boxed_slice();
+    Ok(VirtualMaterialNeuronGenesis {
+        anatomy,
+        state,
+        zero_recovery_catalysts,
+    })
+}
+
+/// Reach an already-declared quiescent cell with one explicit physical
+/// terminal. The resting cell already owns its one gate, so first contact
+/// extends only the exact positional fabric required by the arrived field.
+pub(crate) fn reach_quiescent_single_terminal_virtual_material_neuron(
+    perspective: JointNeuronPerspective<'_>,
+    site: &NeuronSourceSite,
+    declared_place: DeclaredNeuronPlace,
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+) -> Result<VirtualMaterialNeuronGenesis, VirtualMaterialGenesisError> {
+    if DeclaredNeuronPlace::from_source_site(site) != declared_place
+        || anatomy.gate_population() != 1
+    {
+        return Err(VirtualMaterialGenesisError::DeclaredPlaceMismatch);
+    }
+    let positions = required_mathloom_positions_for_birth_field(perspective)
+        .map_err(VirtualMaterialGenesisError::JointField)?
+        .max(declared_field_arithmetic_positions());
+    let (anatomy, state) = extend_neuron_positional_fabric(anatomy, state, positions)
+        .map_err(VirtualMaterialGenesisError::Neuron)?;
     let zero_recovery_catalysts = vec![0; anatomy.psi_ring_count()].into_boxed_slice();
     Ok(VirtualMaterialNeuronGenesis {
         anatomy,

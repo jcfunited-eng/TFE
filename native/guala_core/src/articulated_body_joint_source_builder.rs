@@ -12,6 +12,9 @@ use num_traits::{One, ToPrimitive, Zero};
 
 use crate::joint_source_episode::{decode_native_joint_source_episode, NativeJointSourceEpisode};
 use crate::joint_uf_source_adapter::SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE;
+use crate::proprioceptive_receptor_work::{
+    ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
+};
 use crate::virtual_articulated_body::{
     ArticulatedBodyState, BodyEffectorDirection, BodyProprioceptiveConsequence,
     BodyProprioceptorTerminal, BODY_AXES, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
@@ -21,7 +24,7 @@ const VERSION: u16 = 3;
 const TICKS_PER_SECOND: u64 = 1_000;
 const PORT_RELEVANCE: &str = "guala.body.proprioceptor.present.r(t)=1.exact.v1";
 const JOINT_RELEVANCE: &[u8] = b"guala.body.antagonist_pair.present.r(t)=1.exact.v1";
-const INPUT_MAP: &str = "articulated-axis-anatomical-span-to-signed-unit-interval-v1";
+const INPUT_MAP: &str = "antagonist-length-over-articulated-axis-span-v1";
 const EVIDENCE_MAGIC: &[u8; 8] = b"GLBPEV01";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -117,12 +120,12 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
             output.extend_from_slice(&1_u16.to_le_bytes());
             text(&mut output, "body-antagonist-proprioceptor-terminal")?;
             text(&mut output, &terminal.ordinal().to_string())?;
-            text(&mut output, "articulated-axis-position")?;
-            text(&mut output, consequence.unit.physical_name())?;
+            text(&mut output, ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY)?;
+            text(&mut output, ARTICULATED_AXIS_SPAN_FRACTION_UNIT)?;
             text(&mut output, PORT_RELEVANCE)?;
             text(&mut output, "")?;
             text(&mut output, INPUT_MAP)?;
-            rational(&mut output, &-BigRational::one())?;
+            rational(&mut output, &BigRational::zero())?;
             rational(&mut output, &BigRational::one())?;
             rational(&mut output, &BigRational::zero())?;
             rational(&mut output, &BigRational::one())?;
@@ -133,18 +136,16 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
                 consequence.predecessor_position,
                 consequence.successor_position,
             ]) {
-                let exact = normalized_position(consequence, position)?;
+                let exact = normalized_antagonist_length(consequence, position, direction)?;
                 let projection = exact
                     .to_f64()
-                    .filter(|value| value.is_finite() && (-1.0..=1.0).contains(value))
-                    .ok_or(ArticulatedBodyJointSourceError::NonFiniteCoordinate)?;
-                let projected_exact = BigRational::from_float(projection)
+                    .filter(|value| value.is_finite() && (0.0..=1.0).contains(value))
                     .ok_or(ArticulatedBodyJointSourceError::NonFiniteCoordinate)?;
                 rational(&mut output, time)?;
                 output.extend_from_slice(&projection.to_bits().to_le_bytes());
                 rational(&mut output, &BigRational::zero())?;
                 rational(&mut output, &BigRational::one())?;
-                rational(&mut output, &projected_exact)?;
+                rational(&mut output, &exact)?;
             }
         }
     }
@@ -211,20 +212,22 @@ pub(crate) fn admit_complete_articulated_body_state_source(
     admit_articulated_body_proprioceptive_source(source_tick, &consequences)
 }
 
-fn normalized_position(
+fn normalized_antagonist_length(
     consequence: &BodyProprioceptiveConsequence,
     position: i32,
+    direction: BodyEffectorDirection,
 ) -> Result<BigRational, ArticulatedBodyJointSourceError> {
     let anatomy = consequence.axis.anatomy();
     let span = i64::from(anatomy.maximum) - i64::from(anatomy.minimum);
     if span <= 0 {
         return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
     }
-    let offset = i64::from(position) - i64::from(anatomy.minimum);
-    Ok(BigRational::new(
-        BigInt::from(2_i64 * offset - span),
-        BigInt::from(span),
-    ))
+    let toward_minimum_length = i64::from(position) - i64::from(anatomy.minimum);
+    let length = match direction {
+        BodyEffectorDirection::TowardMinimum => toward_minimum_length,
+        BodyEffectorDirection::TowardMaximum => span - toward_minimum_length,
+    };
+    Ok(BigRational::new(BigInt::from(length), BigInt::from(span)))
 }
 
 fn exact_evidence(
@@ -354,5 +357,12 @@ mod tests {
             );
             assert_eq!(port.body_proprioceptor_terminal.unwrap().ordinal(), ordinal);
         }
+        let torso_minimum = &episode.joint_source_ports()[0].exact_normalized_sources;
+        let torso_maximum = &episode.joint_source_ports()[1].exact_normalized_sources;
+        assert_eq!(torso_minimum[0], BigRational::new(2.into(), 5.into()));
+        assert_eq!(torso_maximum[0], BigRational::new(3.into(), 5.into()));
+        assert_eq!(torso_minimum[0], torso_minimum[1]);
+        assert_eq!(torso_maximum[0], torso_maximum[1]);
+        assert_eq!(&torso_minimum[0] + &torso_maximum[0], BigRational::one());
     }
 }
