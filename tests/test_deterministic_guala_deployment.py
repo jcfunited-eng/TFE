@@ -76,6 +76,19 @@ def test_preflight_and_rehearsal_precede_cutover() -> None:
     assert rehearsal < drain < update < live_proof < pin
 
 
+def test_rehearsal_reuses_the_single_validated_preflight_predecessor() -> None:
+    preflight = SCRIPT.index("REHEARSAL_SOURCE=$(python3 -c")
+    rehearsal = SCRIPT.index(
+        "python3 tools/run_guala_candidate_rehearsal_task.py"
+    )
+    boundary = SCRIPT[preflight:rehearsal]
+    assert '"${WORK_DIR}/preflight.json"' in boundary
+    assert 'json.load(source).get("predecessor")' in boundary
+    assert 'json.load(sys.stdin)["tick"]' in boundary
+    assert 'json.load(sys.stdin)["state_sha256"]' in boundary
+    assert '"${CONTROL_ORIGIN}/ready/guala"' not in boundary
+
+
 def test_cutover_drains_the_only_writer_before_starting_successor() -> None:
     drain = SCRIPT.index("drain_live_organism()")
     drain_call = SCRIPT.index("drain_live_organism", drain + 1)

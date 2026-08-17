@@ -683,48 +683,6 @@ if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
     fi
 }
 
-inspect_live_rehearsal_source() {
-    local expected_task_definition="$1"
-    local expected_task_name="${expected_task_definition##*/}"
-    local ready_nonce ready_body
-    ready_nonce=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
-    # Same reason as above: readiness waits behind a whole lesson by design.
-    ready_body=$(curl -fsS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time "${READY_MAX_SECONDS}" \
-        -H "X-API-Key: ${DEPLOY_API_KEY}" \
-        -H "X-Deploy-Nonce: ${ready_nonce}" \
-        "${CONTROL_ORIGIN}/ready/guala")
-    printf '%s' "${ready_body}" | EXPECTED_TASK="${expected_task_name}" python3 -c '
-import json, os, re, sys
-value = json.load(sys.stdin)
-if value.get("ready") is not True or value.get("native_state") is not True:
-    raise SystemExit("running organism is not ready for candidate rehearsal")
-if value.get("task_definition") != os.environ["EXPECTED_TASK"]:
-    raise SystemExit("rehearsal source reports a different task definition")
-identity = value.get("identity")
-if not isinstance(identity, str) or not re.fullmatch(r"[0-9a-f-]{36}", identity):
-    raise SystemExit("rehearsal source identity is absent")
-tick = value.get("organism_tick")
-if not isinstance(tick, int) or tick < 0:
-    raise SystemExit("rehearsal source tick is invalid")
-native = value.get("native_resident", {})
-if (
-    native.get("available") is not True
-    or native.get("organism_tick") != tick
-    or native.get("identity") != identity
-    or native.get("python_callback_count") != 0
-):
-    raise SystemExit("rehearsal source is not the native resident organism")
-state_sha = native.get("state_sha256")
-if not isinstance(state_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", state_sha):
-    raise SystemExit("rehearsal source state receipt is absent")
-if native.get("persistence_schema") != "guala.native_organism_binary_store.v1":
-    raise SystemExit("rehearsal source persistence changed")
-print(json.dumps(value, separators=(",", ":"), sort_keys=True))
-'
-}
-
 if [ "${REHEARSE_ONLY}" = "1" ]; then
     echo "[5/7] Rehearsing the digest-pinned candidate without cutover."
 else
@@ -732,15 +690,24 @@ else
 fi
 PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
 for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
-    # Read the exact persisted live receipt first, then prove that this exact
-    # candidate image cold-restores it through a read-only mount.  The probe
-    # derives the body directory from the inherited task environment; no
-    # generation name or replacement root is authored by this controller.
-    REHEARSAL_SOURCE=$(inspect_live_rehearsal_source "${SOURCE_TASK_DEFINITION}")
+    # Preflight already read and validated the exact persisted live receipt,
+    # then proved that ECS topology did not drift during that inspection.
+    # Re-reading /ready here duplicated the same large observation and added a
+    # second HTTP failure boundary without strengthening continuity.  The
+    # read-only probe admits a later CURRENT tick, so the validated predecessor
+    # is the exact lower bound it requires while the living source advances.
+    REHEARSAL_SOURCE=$(python3 -c '
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as source:
+    predecessor = json.load(source).get("predecessor")
+if not isinstance(predecessor, dict):
+    raise SystemExit("preflight supplied no validated predecessor")
+print(json.dumps(predecessor, separators=(",", ":"), sort_keys=True))
+' "${WORK_DIR}/preflight.json")
     REHEARSAL_TICK=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["organism_tick"])')
+        'import json,sys; print(json.load(sys.stdin)["tick"])')
     REHEARSAL_STATE_SHA=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["native_resident"]["state_sha256"])')
+        'import json,sys; print(json.load(sys.stdin)["state_sha256"])')
     REHEARSAL_IDENTITY=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
         'import json,sys; print(json.load(sys.stdin)["identity"])')
     [ "${REHEARSAL_IDENTITY}" = "${GUALA_ORGANISM_IDENTITY}" ] \

@@ -101,3 +101,24 @@ merely because a later behavioral result is missing:
 
 This audit changes reporting truth; it does not alter L0-L4, the seven DSF
 fields, neuron physics, learned state, or the live organism.
+
+## Current S-009 deployment attempt record
+
+Failed attempts remain evidence and are not rewritten as successful rehearsals:
+
+- Artifact `93411fa0` built successfully, then preflight refused because the
+  repository HEAD had advanced to the separately committed evidence audit.
+  No candidate task ran and production task 1124 remained unchanged.
+- Artifact `1c408256` built and passed preflight. Before any candidate task ran,
+  a redundant second `/ready/guala` read returned HTTP 502. A direct subsequent
+  read returned HTTP 200 with the same identity, task 1124, commit `3b208ec4`,
+  digest
+  `sha256:19321cf4630def09a7525ee5831c644a88c5510baeb47ce22958025783837b52`,
+  and 245,399,133-byte native state. The
+  controller failed closed and production remained unchanged.
+
+The second readiness read supplied no stronger fact than the already validated
+preflight predecessor. It is removed from the next reviewed artifact; candidate
+rehearsal consumes the exact preflight predecessor as its admitted lower bound,
+while still requiring the read-only CURRENT restore to preserve identity and be
+at the same or a later organism tick.
