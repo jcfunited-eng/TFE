@@ -6651,6 +6651,8 @@ mod tests {
 
         let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         reference.active.articulated_body.initialize_proprioception();
+        let body = reference.prepare_articulated_body_observation().unwrap();
+        reference.commit(body.token).unwrap();
         for source in &sources {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
@@ -6668,17 +6670,19 @@ mod tests {
             .collect::<Vec<_>>();
         let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
-        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 4);
-        assert_eq!(prepared.receptor_ingress.field_count(), 4);
-        assert_eq!(prepared.receptor_ingress.witness_count(), 4);
-        assert_eq!(prepared.observation.organism_tick, 2);
-        assert_eq!(prepared.causal_interval_evidence.len(), 2);
+        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 41);
+        assert_eq!(prepared.receptor_ingress.field_count(), 41);
+        assert_eq!(prepared.receptor_ingress.witness_count(), 78);
+        assert_eq!(prepared.observation.organism_tick, 3);
+        assert_eq!(prepared.causal_interval_evidence.len(), 3);
         candidate.commit(prepared.token).unwrap();
 
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
         assert_eq!(candidate.active.cognitive, reference.active.cognitive);
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
 
+        let body = reference.prepare_articulated_body_observation().unwrap();
+        reference.commit(body.token).unwrap();
         for source in &sources {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
