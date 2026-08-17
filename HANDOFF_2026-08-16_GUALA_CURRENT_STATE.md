@@ -70,8 +70,14 @@ chatbot fallback, and code-created semantic behavior remain prohibited.
 - `A-013-THERMAL` is Live-Closed on task 1113. The same persistent organism now
   has an exact six-stock home/body heat circuit, two reached native thermal
   receptor sites, exact cold continuity, and two direct live one-tick actions.
-  L-004 is unpaused and is the immediate next increment. See
+  See
   `docs/GUALA_A013_THERMAL_BODY_AMENDMENT_SPRINT_LEDGER_2026-08-17.md`.
+- `L-004` is Live-Closed on task 1114 at the teaching-and-analysis boundary.
+  All three approved alphabet/counting songs committed exactly once after
+  native embodied attention. Complete recurrent fractals remained zero, so
+  learned alphabet/counting/word/song-recognition and speech remain unproved.
+  See
+  `docs/GUALA_L004_SYNCHRONIZED_SONG_TEACHING_SPRINT_LEDGER_2026-08-17.md`.
 
 Do not select another `/tmp/guala-*` directory by name or age. Validate this
 worktree with the Guala project-truth root check before acting.
@@ -79,13 +85,18 @@ worktree with the Guala project-truth root check before acting.
 ## Exact live-production state
 
 Current override after the original task-1090 snapshot: production is one
-healthy settled `dsf-ai-task:1113` process, commit
-`fcbdd6f689ddb663e5cb6fd424beeeb9a31e99b3`, image
-`sha256:523694517c5bd506a9da2b443d360775b550e9d0fe95562ff6929422cd7f7dc0`,
-and the same organism identity. The A-013 thermal closure ended at world
-revision 6917 and heading 323874 with two reached thermal receptor sites,
-zero Python cognition callbacks, and a verified one-process topology. The
-completed L-003 0-10 pass reached its final
+healthy settled `dsf-ai-task:1114` process, commit
+`29659a0bba64ef51dbf05429dc3dac690202fc5a`, image
+`sha256:bdd934e9f5ef6b2e4d97e43e789fc2fc2226370a211301cd4b1a4124b6438d07`,
+task `734808a640b844999078ce59da7ce502`, and the same organism identity.
+The task-1114 cutover restored exact CURRENT before correcting only the
+participant-to-retina invitation geometry. L-004 ended at world revision 6923;
+the last count-up song committed at tick 143994. A bounded first environmental
+consolidation ended at tick 144006, then the next ordinary interval ended at
+tick 144018 with unchanged 446 retained impressions/62 mosaics and only 12,034
+additional bytes, for 220,369,885 bytes total. Python cognition callbacks
+remain zero and ECS remains desired/running/pending `1/1/0`. The completed
+L-003 0-10 pass reached its final
 lesson at tick `140499`, state `51334d7f...e16c`, and `91,111,709` bytes; a
 later recovery observation at generation `140523` was `90,026,012` bytes.
 Identity stayed unchanged, complete/resting neuron counts were `491/196,238`,
@@ -173,11 +184,11 @@ unproved and was not relabeled.
 ## Complete carried-forward delivery ledger
 
 The stale attachment sentence naming `S-017` as current work is superseded.
-All A-011 increments through A-015 and L-001 through L-003 are now
-Live-Closed. Current production is task 1106; it preserves the earlier
-circuits and body, and adds the bounded zero lesson while retaining the exact
-participant-path/native-attention invitation boundary without Python
-cognition.
+All A-011 increments through A-015 and L-001 through L-004 are now
+Live-Closed. Current production is task 1114; it preserves the earlier
+circuits and body, corrects the bounded participant approach so every selected
+move changes the exact retinal field, and retains the exact
+participant-path/native-attention boundary without Python cognition.
 
 ### A-011 play, fun, social joy, and body-owned laughter
 
@@ -249,8 +260,16 @@ cognition.
   accepted card, and zero Python cognition callbacks. Zero complete recurrent
   fractals prohibits a learned-number or counting claim. See the L-003 sprint
   ledger.
-- [ ] **L-004:** present and analyze alphabet and counting songs with
+- [x] **L-004:** present and analyze alphabet and counting songs with
   synchronized visual, auditory, body, and affective participation.
+  Live-Closed on task 1114 at the teaching-and-analysis boundary: three unique
+  attended presentations, 210 synchronized hops, 23,412 full DSF deliveries,
+  172,511 physical neuron transitions, 570 complete-neuron-fractal change
+  occurrences, 7,650 partial-cue reassemblies including 24 endogenous, 11,211
+  recovery occurrences, zero exhaustion, and zero Python cognition callbacks.
+  One decline was honored before a later fresh invitation was accepted. Zero
+  complete recurrent fractals prohibits alphabet/counting/word/song-recognition
+  and speech claims. See the L-004 synchronized-song sprint ledger.
 - [ ] **L-005:** demonstrate genuine learned-word recognition from novel
   sensory evidence, not metadata, filenames, labels, or scripted output.
 - [ ] **L-006:** demonstrate a physically caused first utterance,
@@ -364,8 +383,9 @@ out. Do not repeat them without new contradictory production evidence:
 
 ## Single exact next action
 
-Begin L-004 by presenting and analyzing the approved alphabet and counting
-songs as synchronized visual, auditory, body, and affective experiences.
+Begin L-005 with one bounded novel partial or altered sensory cue and require
+retained physical reassembly plus a causally changed later attention, choice,
+action, or utterance before making the first learned-word recognition claim.
 Do not reopen or repeat A-011, A-012, A-013, A-014, or A-015
 persistence, readiness, archive cleanup, resting-neuron
 population, prior cardinality investigations, participant trial, laughter,
@@ -409,6 +429,12 @@ closure unless new live evidence directly contradicts a recorded circuit.
   one unchanged organism identity, and zero Python cognition callbacks.
   Complete recurrence remained zero; number recognition, counting, learned
   number words, and speech remain open.
+- L-004 synchronized songs: Live-Closed on task 1114 at the
+  teaching-and-analysis boundary by three unique attended durable lessons,
+  synchronized full-sensorium ingress, full seven-field DSF and physical
+  cognitive-chain evidence, zero exhaustion, one unchanged organism identity,
+  and zero Python cognition callbacks. Complete recurrence remained zero;
+  alphabet/counting/word/song recognition and speech remain open.
 - Complete D3 objective: not complete.
 - Complete creator-accepted Loom and Loom Scan replacements: not implemented or
   live-proven; the current pages are transport/observation surfaces only.

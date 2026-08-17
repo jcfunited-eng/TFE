@@ -567,8 +567,20 @@ box remains unchecked until live acceptance passes.
   timeouts were reconciled by exact durable receipts. Complete recurrent
   fractals remained zero, so no number-recognition, counting, learned-word, or
   speech claim is made.
-- [ ] **L-004** Present and analyze the alphabet and counting songs with their
+- [x] **L-004** Present and analyze the alphabet and counting songs with their
   synchronized visual, auditory, body, and affective participation.
+  **Live-closed 2026-08-17 at the teaching-and-analysis boundary:** task 1114
+  committed exactly one attended presentation of all three approved songs.
+  Across 210 synchronized hops the same organism executed 23,412 full DSF
+  deliveries, 172,511 physical neuron transitions, 570 complete-neuron-
+  fractal change occurrences, 7,650 partial-cue reassemblies including 24
+  endogenous, and 11,211 recovery occurrences with zero exhaustion and zero
+  Python cognition callbacks. One count-up decline was honored; a fresh later
+  invitation was accepted only after two ordinary environmental settlements.
+  Complete recurrent fractals remained zero, so no alphabet, counting, word,
+  song-recognition, or speech claim is made. The next ordinary interval after
+  the post-lesson consolidation burst added only 12,034 bytes and no retained
+  impression or mosaic. See the L-004 synchronized-song sprint ledger.
 - [ ] **L-005** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
 - [ ] **L-006** Demonstrate a physically caused first utterance and self-heard
