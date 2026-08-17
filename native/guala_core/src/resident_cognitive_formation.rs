@@ -2782,60 +2782,50 @@ impl ResidentCognitiveFormationState {
     /// and any formations containing them are not preserved as learning; their
     /// claimed places return to the compact quiescent population.
     fn retire_aliased_local_integrators(&self) -> Result<Option<Self>, FormationError> {
-        let receptors = self
-            .cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .filter_map(|(mount, lineage)| mount.source_site().map(|_| (*lineage, mount.place())))
-            .collect::<Vec<_>>();
-        let intrinsic = self
-            .cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .filter_map(|(mount, lineage)| {
-                let place = mount.place();
-                (mount.source_site().is_none() && place.layer() == 6).then_some((*lineage, place))
-            })
-            .collect::<Vec<_>>();
+        let mut receptors = std::collections::BTreeMap::<[u8; 16], DeclaredNeuronPlace>::new();
+        let mut intrinsic = std::collections::BTreeMap::<[u8; 16], DeclaredNeuronPlace>::new();
+        for (mount, lineage) in self.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            let place = mount.place();
+            let prior = if mount.source_site().is_some() {
+                receptors.insert(*lineage, place)
+            } else if place.layer() == 6 {
+                intrinsic.insert(*lineage, place)
+            } else {
+                None
+            };
+            if prior.is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+        }
 
         let mut retired = Vec::<[u8; 16]>::new();
         for (left, right) in self.electrical_fabric.contact_endpoints() {
             let left_lineage = self.electrical_fabric.lineages()[left];
             let right_lineage = self.electrical_fabric.lineages()[right];
-            for (receptor_lineage, receptor_place) in &receptors {
-                let target_lineage = if left_lineage == *receptor_lineage {
-                    Some(right_lineage)
-                } else if right_lineage == *receptor_lineage {
-                    Some(left_lineage)
-                } else {
-                    None
-                };
-                let Some(target_lineage) = target_lineage else {
-                    continue;
-                };
-                let Some((_, target_place)) = intrinsic
-                    .iter()
-                    .find(|(lineage, _)| *lineage == target_lineage)
-                else {
-                    continue;
-                };
-                if *target_place != local_integration_place(*receptor_place)?
-                    && !retired.contains(&target_lineage)
-                {
-                    retired.push(target_lineage);
-                }
+            let reached = receptors
+                .get(&left_lineage)
+                .map(|place| (right_lineage, *place))
+                .or_else(|| {
+                    receptors
+                        .get(&right_lineage)
+                        .map(|place| (left_lineage, *place))
+                });
+            let Some((target_lineage, receptor_place)) = reached else {
+                continue;
+            };
+            let Some(target_place) = intrinsic.get(&target_lineage) else {
+                continue;
+            };
+            if *target_place != local_integration_place(receptor_place)?
+                && !retired.contains(&target_lineage)
+            {
+                retired.push(target_lineage);
             }
         }
         if retired.is_empty() {
