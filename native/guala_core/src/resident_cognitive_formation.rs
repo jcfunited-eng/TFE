@@ -2301,6 +2301,11 @@ fn external_reassembly_reaches_recurrent_frontier(
     })
 }
 
+fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
+    cue.sort_unstable();
+    cue.dedup();
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
@@ -2384,7 +2389,7 @@ fn settle_organism_mosaic_boundary(
         {
             current_frontier_indices.push(retained_index);
         }
-        let external_cue = externally_reached_lineages
+        let mut external_cue = externally_reached_lineages
             .iter()
             .copied()
             .filter(|lineage| externally_perturbed_lineages.contains(lineage))
@@ -2396,12 +2401,13 @@ fn settle_organism_mosaic_boundary(
                     .is_ok()
             })
             .collect::<Vec<_>>();
+        canonicalize_formation_cue(&mut external_cue);
         // Provenance is formation-local. An external perturbation elsewhere
         // in the continuously sensed organism cannot erase this formation's
         // independently measured metabolic cue. If this same formation also
         // carries an external cue, the external branch below remains the
         // conservative authority; no mixed activity is relabelled internal.
-        let internal_cue = metabolically_perturbed_lineages
+        let mut internal_cue = metabolically_perturbed_lineages
             .iter()
             .copied()
             .filter(|lineage| {
@@ -2412,6 +2418,7 @@ fn settle_organism_mosaic_boundary(
                     .is_ok()
             })
             .collect::<Vec<_>>();
+        canonicalize_formation_cue(&mut internal_cue);
         let (cue, origin) = if !external_cue.is_empty() {
             (external_cue, PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
         } else if !internal_cue.is_empty() {
@@ -14361,6 +14368,18 @@ mod tests {
     }
 
     #[test]
+    fn formation_cue_is_canonical_across_source_order_and_repetition() {
+        let first = [1_u8; 16];
+        let second = [2_u8; 16];
+        let third = [3_u8; 16];
+        let mut cue = vec![third, first, second, third];
+
+        canonicalize_formation_cue(&mut cue);
+
+        assert_eq!(cue, vec![first, second, third]);
+    }
+
+    #[test]
     fn one_multisensory_occurrence_mounts_one_reusable_physical_association() {
         fn receptor_cohort(
             sense: PhysicalSourceSense,
@@ -14747,6 +14766,8 @@ mod tests {
             })
             .collect::<Vec<_>>();
         let internal_cue = topology.lineages.clone();
+        let mut expected_internal_cue = internal_cue.clone();
+        canonicalize_formation_cue(&mut expected_internal_cue);
         let (
             internal_receipt,
             internal_total,
@@ -14779,7 +14800,7 @@ mod tests {
         assert!(external_frontiers.is_empty());
         assert!(internal_cues
             .iter()
-            .all(|observation| observation.cue_lineages == internal_cue));
+            .all(|observation| observation.cue_lineages == expected_internal_cue));
         for (index, retained) in mosaics.iter().enumerate() {
             assert_eq!(
                 retained.mosaic.recurrence_origin(),
@@ -14849,7 +14870,7 @@ mod tests {
         assert!(external_frontiers.is_empty());
         assert!(mixed_internal_cues
             .iter()
-            .all(|observation| observation.cue_lineages == internal_cue));
+            .all(|observation| observation.cue_lineages == expected_internal_cue));
     }
 
     #[test]
