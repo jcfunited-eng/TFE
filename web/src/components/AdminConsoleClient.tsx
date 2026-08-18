@@ -93,6 +93,26 @@ type RefreshPolicyHealth = {
   checks: RefreshPolicyCheck[];
 };
 
+type OperationalHealth = {
+  healthy: boolean;
+  generationId: string | null;
+  validation: {
+    exists: boolean;
+    status: string;
+    blockingReason: string | null;
+    generatedAtUtc: string | null;
+  };
+  custody: {
+    executionMode: string | null;
+    brokerStatus: string;
+    brokerPositions: number | null;
+    ledgerSymbols: number | null;
+    discrepancies: number | null;
+    byStatus: Record<string, number>;
+    reasons: string[];
+  };
+};
+
 type SystemStatusPayload = {
   generatedAtUtc: string;
   users: {
@@ -123,6 +143,7 @@ type SystemStatusPayload = {
     sourceMtimeUtc: string | null;
   } | null;
   refreshPolicy?: RefreshPolicyHealth | null;
+  operationalHealth?: OperationalHealth | null;
 };
 
 type ModelAccuracyHorizon = {
@@ -1267,7 +1288,7 @@ export default function AdminConsolePage() {
             {systemStatus?.refreshPolicy ? (
               <div className={styles.keyValueGrid}>
                 <div className={styles.kvItem}>
-                  <div className={styles.kvLabel}>Refresh Policy</div>
+                  <div className={styles.kvLabel}>Operational Health</div>
                   <div className={styles.kvValue}>
                     <span className={systemStatus.refreshPolicy.healthy ? styles.chipGood : styles.chipWarn}>{refreshPolicyHeadline}</span>
                   </div>
@@ -1287,17 +1308,20 @@ export default function AdminConsolePage() {
                   <div className={styles.kvValue}>{systemStatus.refreshPolicy.lastError || "none"}</div>
                 </div>
                 <div className={styles.kvItem}>
-                  <div className={styles.kvLabel}>Scheduled Refresh</div>
-                  <div className={styles.kvValue}>{(() => {
-                    const now = new Date();
-                    const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12, 15, 0, 0));
-                    if (now >= next) next.setUTCDate(next.getUTCDate() + 1);
-                    const diffMs = next.getTime() - now.getTime();
-                    const diffH = Math.floor(diffMs / 3600000);
-                    const diffM = Math.floor((diffMs % 3600000) / 60000);
-                    const localStr = next.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-                    return `${localStr} (in ${diffH}h ${diffM}m)`;
-                  })()}</div>
+                  <div className={styles.kvLabel}>Refresh Authority</div>
+                  <div className={styles.kvValue}>External EventBridge rules; no in-container scheduler.</div>
+                </div>
+                <div className={styles.kvItem}>
+                  <div className={styles.kvLabel}>Validation Gate</div>
+                  <div className={styles.kvValue}>{systemStatus.operationalHealth?.validation.status?.toUpperCase() ?? "UNKNOWN"}</div>
+                </div>
+                <div className={styles.kvItem}>
+                  <div className={styles.kvLabel}>Broker / Ledger</div>
+                  <div className={styles.kvValue}>
+                    {systemStatus.operationalHealth?.custody.discrepancies === null || systemStatus.operationalHealth?.custody.discrepancies === undefined
+                      ? "Unavailable"
+                      : `${systemStatus.operationalHealth.custody.discrepancies} discrepanc${systemStatus.operationalHealth.custody.discrepancies === 1 ? "y" : "ies"}`}
+                  </div>
                 </div>
               </div>
             ) : null}

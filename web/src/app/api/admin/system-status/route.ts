@@ -17,6 +17,7 @@ import {
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 import { listUsers } from "@/lib/user-store";
 import { isAdminMfaEnabled } from "@/lib/mfa";
+import { evaluateOperationalHealth } from "@/lib/operational-health";
 
 type FileStatus = {
   key: string;
@@ -543,6 +544,14 @@ export async function GET(request: Request) {
     reportSummary,
     investorServing.publicationState,
   );
+  const operationalHealth = await evaluateOperationalHealth(
+    investorServing.publicationState.servingState === "allowed",
+  );
+  refreshPolicy.checks.push(...operationalHealth.checks);
+  refreshPolicy.healthy = refreshPolicy.healthy && operationalHealth.healthy;
+  if (!refreshPolicy.healthy && !refreshPolicy.lastError) {
+    refreshPolicy.lastError = operationalHealth.checks.find((check) => !check.ok)?.detail ?? "Operational health failed.";
+  }
   const webDataProtection = await scanWebDataProtection(ROOT_DIR);
   const runtimeBuild = await loadRuntimeBuildMetadata();
 
@@ -584,6 +593,7 @@ export async function GET(request: Request) {
     reportSummary,
     snapshotSummary,
     refreshPolicy,
+    operationalHealth,
     servingBundle: {
       sourcePath: investorServing.publicationState.sourcePath,
       failureCount: investorServing.publicationState.failures.length,
