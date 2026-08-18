@@ -70,8 +70,9 @@ const CHANNEL_META: Record<ChannelCode, { title: string; rules: string[] }> = {
     title: "CH3 — Shadow Hunter",
     rules: [
       "Simulated short channel; no real orders.",
-      "Entry requires a close gain of at least 8%, volume at least 3× its trailing-20 average, price at least $5, and no supporting herd state.",
-      "Harvest at the first daily close 5% below entry; anomaly cut at the first daily close 20% above entry; fifth-session close is the backstop.",
+      "Reduced entry projection: completed-close gain of at least 8%, volume at least 3× the preceding 20-session mean, price at least $5, and an explicit same-day gband=0 herd reading. Missing herd coverage is unknown and refused.",
+      "Harvest at the first completed daily close 5% below entry; anomaly-cut at the first completed daily close 20% above entry; fifth-session close is the backstop. The 20% level is a trigger, not a guaranteed loss cap across gaps.",
+      "After an anomaly cut, the symbol remains refuted until a later completed daily close returns to or below the original entry. The cut bar cannot be re-entered.",
       "Declared gross exposure is capped at 2× starting capital; borrow costs are not modeled.",
     ],
   },
@@ -87,9 +88,10 @@ const CHANNEL_META: Record<ChannelCode, { title: string; rules: string[] }> = {
     title: "CH6 — Fast Harvest",
     rules: [
       "Simulated short channel; no real orders.",
-      "Uses its own scan and book. Winners arm at +5%, trail one percentage point from their best mark, and are swept when still at +5% or better.",
-      "Anomaly cut is checked at each five-minute poll at 20% below entry performance; fifth-session close is the backstop.",
-      "Borrow costs are not modeled.",
+      "Reduced entry projection: completed-close gain of at least 8%, volume at least 3× the preceding 20-session mean, price at least $5, and an explicit same-day gband=0 herd reading. Missing herd coverage is unknown and refused.",
+      "Winners arm at +5%, trail one percentage point from their best observed mark, and are swept when still at +5% or better; the fifth completed session is the backstop.",
+      "The anomaly-cut trigger is checked at every five-minute mark and completed-close settlement. Marks and gaps can cross 20%, so the level is a trigger rather than a guaranteed realized-loss ceiling.",
+      "After an anomaly cut, the symbol remains refuted until a later completed daily close returns to or below the original entry. The cut bar cannot be re-entered. Borrow costs are not modeled.",
     ],
   },
 };
@@ -231,7 +233,7 @@ function positionView(
     : 100 * (currentPrice / entryPrice - 1) * positionSide;
   let status = "OPEN";
   if (channel === "CH3" && returnPct !== null) {
-    if (returnPct <= -20) status = "ANOMALY CUT AT NEXT DAILY CLOSE";
+    if (returnPct <= -20) status = "ANOMALY TRIGGER EXCEEDED — DAILY CLOSE REQUIRED";
     else if (returnPct >= 5) status = "HARVEST AT NEXT DAILY CLOSE";
   }
   if (channel === "CH6" && returnPct !== null) {

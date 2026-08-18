@@ -1,328 +1,397 @@
+"""CH6 fast-harvest paper channel.
+
+CH6 owns its book and entry scan. Its reduced entry projection requires a
+completed daily up-spike of at least 8%, volume at least three times the prior
+20-session mean, price at least $5, and an explicit same-day ``gband=0`` herd
+reading. Missing herd coverage is unknown and is refused.
+
+An open short is anomaly-cut at the first observed mark 20% or more against
+entry. A winner arms at +5%, tracks its best observed gain, and harvests after
+giving back more than one percentage point. The end-of-day sweep harvests any
+position still at +5% or better. The completed-close five-session backstop is
+shared with CH3. Marks and daily gaps can cross trigger levels; 20% is a
+trigger, not a guaranteed realized-loss ceiling.
+
+After an anomaly cut, the refutation remains active until a later completed
+daily close returns to or below the original entry. A cut symbol cannot be
+shorted again on the same bar that refuted it.
 """
-ch6_fast_harvest.py — CH6: its own channel (2026-08-06, separated 2026-08-11)
-==================================================================
 
-ENGINE VERSION: ch6_fast_harvest_v1. Hypothesis (Joe's): the fade
-front-loads — harvest any short past +5% the same day instead of
-holding 5 sessions.
-
-Rules (constants declared 2026-08-06 before first trade):
-  START    clean book, NO inherited positions (Joe: "I don't want to
-           cheat") — it trades nothing dated before START_DATE.
-  ENTRIES  ITS OWN SCAN. CH6 runs the same event rule CH3 runs, against
-           the same store, into its own $100k book. It does not read,
-           mirror or adopt CH3's positions. Two independent records of
-           the same entries, differing only in the exit.
-  HARVEST  at the end-of-day sweep, ANY position standing at +5% or
-           better is sold. Nothing that is up 5% is carried overnight.
-  BACKSTOP anything not harvested exits after HOLD_SESSIONS (5) at the
-           day's mark, same as CH3's time exit.
-  No loss-stop. One variable only: the harvest rule.
-
-CORRECTED 2026-08-11 (Joe): "the only difference from CH3 is it sells off
-any stock that is 5% or better before the end of a trading day." The
-build had two rules he never asked for on top of that one — a position
-was ARMED once it touched +5% and then sold intraday if it slipped a
-point off its peak, and once armed it was swept at the close whatever it
-was worth. Both sold positions BELOW 5%, which is the opposite of the
-stated rule and made CH6 a second variable against CH3 rather than one.
-Arming, peak tracking and the give-back sale are gone.
-
-CH3 house rules carry over: shorts only, one position per symbol,
-whole shares, $2k stakes as adopted, borrow costs NOT modeled (stated
-on the page), and the freeze discipline — these constants are FROZEN
-until 20 CH6 positions have closed; no retuning on the way.
-Known divergence, declared: CH6's sweep/backstop exits price at the
-19:55 UTC mark (5-min feed), not the official close CH3 settles on.
-
-Usage:
-  python tools/ch6_fast_harvest.py hunt     # its own entry scan
-  python tools/ch6_fast_harvest.py poll     # 5-min check: arm/harvest
-  python tools/ch6_fast_harvest.py sweep    # end-of-day: sell >=+5%, time exits
-Loop: tools/ch6_loop.sh (poll every 5 min in market hours; sweep 19:55 UTC).
-"""
 from __future__ import annotations
 
 import json
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Callable
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import numpy as np
+import pandas as pd
 
-ENGINE = "ch6_fast_harvest_v2"   # v2: own entry scan, not CH3 adoption
-EVENT_GAIN = 8.0       # same event as CH3
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.ch_short_refutation import has_unreset_refutation  # noqa: E402
+
+
+ENGINE = "ch6_fast_harvest_v3"
+EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
-SLICE_USD = 2000.0
+SLICE_USD = 2_000.0
 MAX_NEW_PER_DAY = 10
-START_DATE = "2026-08-07"      # no positions born before this — no cheating
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BOOK_PATH = os.path.join(ROOT, "artifacts", "vtvr_observer", "ch6_book.json")
+START_DATE = "2026-08-07"
 CASH0 = 100_000.0
-HARVEST_PCT = 5.0      # a winner is armed at or above this gain
-GIVEBACK_PP = 1.0      # points off its peak that harvests an armed winner
-ANOMALY_STOP_PCT = 20.0  # Joe 2026-08-17: cut any short 20%+ underwater
-HOLD_SESSIONS = 5      # backstop, same as CH3
+HARVEST_PCT = 5.0
+GIVEBACK_PP = 1.0
+ANOMALY_STOP_PCT = 20.0
+HOLD_SESSIONS = 5
+
+STORE = ROOT / "ch4_live_store.parquet"
+TAIL = ROOT / "ch3_supply_tail.parquet"
+HERD = ROOT / "artifacts" / "ch4_uf" / "herd_state_live.parquet"
+BOOK_PATH = ROOT / "artifacts" / "vtvr_observer" / "ch6_book.json"
 
 
-def load_book():
-    if os.path.exists(BOOK_PATH):
-        return json.load(open(BOOK_PATH))
-    return {"engine": ENGINE, "cash": CASH0, "start": CASH0,
-            "positions": {}, "closed": []}
+def load_book() -> dict[str, object]:
+    if BOOK_PATH.exists():
+        with BOOK_PATH.open("r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+        if not isinstance(raw, dict):
+            raise ValueError("CH6 book must be one JSON object")
+        book = raw
+    else:
+        book = {"engine": ENGINE, "cash": CASH0, "start": CASH0, "positions": {}, "closed": []}
+    book.setdefault("positions", {})
+    book.setdefault("closed", [])
+    book.setdefault("cash", CASH0)
+    book.setdefault("start", CASH0)
+    book["engine"] = ENGINE
+    return book
 
 
-def save_book(book):
+def save_book(book: dict[str, object]) -> None:
     book["engine"] = ENGINE
     book["last_run_utc"] = datetime.now(timezone.utc).isoformat()
-    os.makedirs(os.path.dirname(BOOK_PATH), exist_ok=True)
-    with open(BOOK_PATH, "w") as f:
-        json.dump(book, f, indent=1)
+    BOOK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary = BOOK_PATH.with_suffix(BOOK_PATH.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8") as handle:
+        handle.write(json.dumps(book, indent=1) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, BOOK_PATH)
 
 
-def sync():
-    """REMOVED 2026-08-11. CH6 does not adopt CH3's positions.
+def load_market() -> tuple[pd.DataFrame, list[pd.Timestamp], pd.Timestamp]:
+    roster = pd.read_parquet(STORE, columns=["Date", "Symbol", "Close", "Volume"])
+    roster["Date"] = pd.to_datetime(roster["Date"])
+    days = [pd.Timestamp(day) for day in sorted(roster["Date"].unique())]
+    if not days:
+        raise RuntimeError("CH6 roster store has no completed daily bars")
+    latest = days[-1]
 
-    Joe: "CH6 is its own channel." It finds its own entries in hunt().
-    Kept only so an old runner calling `sync` fails loudly instead of
-    silently doing nothing.
-    """
-    raise SystemExit(
-        "ch6 sync is removed — CH6 runs its own entry scan (use: hunt)"
+    market = roster
+    if TAIL.exists():
+        tail = pd.read_parquet(TAIL, columns=["Date", "Symbol", "Close", "Volume"])
+        tail["Date"] = pd.to_datetime(tail["Date"])
+        refreshed = set(roster.loc[roster["Date"] == latest, "Symbol"])
+        tail = tail[~tail["Symbol"].isin(refreshed) & (tail["Date"] <= latest)]
+        market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
+    return market, days, latest
+
+
+def explicit_herd(latest: pd.Timestamp) -> dict[str, int]:
+    herd = pd.read_parquet(HERD, columns=["sym", "date", "gband"])
+    hday = int(latest.strftime("%Y%m%d"))
+    state = {
+        str(symbol): int(gband)
+        for symbol, day, gband in zip(herd["sym"], herd["date"].astype(int), herd["gband"])
+        if int(day) == hday
+    }
+    if not state:
+        raise RuntimeError(f"CH6 herd state is not published for {latest.date()}")
+    return state
+
+
+def positions(book: dict[str, object]) -> dict[str, dict[str, object]]:
+    raw = book.get("positions")
+    if not isinstance(raw, dict):
+        raise ValueError("CH6 positions must be one object")
+    return raw  # type: ignore[return-value]
+
+
+def closed(book: dict[str, object]) -> list[dict[str, object]]:
+    raw = book.get("closed")
+    if not isinstance(raw, list):
+        raise ValueError("CH6 closed record must be one list")
+    return raw  # type: ignore[return-value]
+
+
+def close_position(
+    book: dict[str, object],
+    symbol: str,
+    position: dict[str, object],
+    price: float,
+    reason: str,
+    now: str,
+) -> None:
+    entry = float(position["entry_px"])
+    side = int(position["side"])
+    shares = int(position["shares"])
+    result_pct = 100 * (price / entry - 1) * side
+    pnl = round(shares * (price - entry) * side, 2)
+    book["cash"] = round(float(book["cash"]) + float(position["notional"]) + pnl, 2)
+    closed(book).append(
+        {
+            "symbol": symbol,
+            "side": side,
+            "shares": shares,
+            "entry_px": entry,
+            "exit_px": round(price, 4),
+            "entry_date": position["entry_date"],
+            "exit_at": now,
+            "ret_pct": round(result_pct, 2),
+            "pnl": pnl,
+            "reason": reason,
+            "peak_gain_pct": position.get("peak_gain_pct", 0.0),
+        }
+    )
+    del positions(book)[symbol]
+    print(f"  {reason} {symbol} @{price:.2f} ret {result_pct:+.2f}% pnl ${pnl:+,.2f}")
+
+
+def settle_completed_closes(
+    *,
+    book: dict[str, object],
+    market: pd.DataFrame,
+    days: list[pd.Timestamp],
+    latest: pd.Timestamp,
+    now: str,
+) -> int:
+    day_index = {day.strftime("%Y-%m-%d"): index for index, day in enumerate(days)}
+    latest_prices = dict(market.loc[market["Date"] == latest, ["Symbol", "Close"]].values)
+    settled = 0
+    for symbol in sorted(list(positions(book))):
+        position = positions(book)[symbol]
+        entry_index = day_index.get(str(position.get("entry_date", "")))
+        price = latest_prices.get(symbol)
+        if entry_index is None or price is None:
+            continue
+        age = len(days) - 1 - entry_index
+        if age < 1:
+            continue
+        mark = float(price)
+        gain = 100 * (mark / float(position["entry_px"]) - 1) * int(position["side"])
+        if gain <= -ANOMALY_STOP_PCT:
+            close_position(book, symbol, position, mark, "ANOMALY-CUT", now)
+            settled += 1
+        elif age >= HOLD_SESSIONS:
+            close_position(book, symbol, position, mark, "TIME", now)
+            settled += 1
+    return settled
+
+
+def qualifying_events(
+    *,
+    market: pd.DataFrame,
+    days: list[pd.Timestamp],
+    latest: pd.Timestamp,
+    herd_state: dict[str, int],
+    anomaly_cuts: list[dict[str, object]],
+) -> tuple[list[dict[str, object]], int, int]:
+    recent = market[market["Date"].isin(days[-25:])]
+    events: list[dict[str, object]] = []
+    unknown_herd = 0
+    active_refutations = 0
+    latest_s = latest.strftime("%Y-%m-%d")
+
+    for symbol, rows in recent.groupby("Symbol"):
+        rows = rows.sort_values("Date")
+        closes = rows["Close"].to_numpy(dtype=float)
+        volumes = rows["Volume"].to_numpy(dtype=float)
+        if len(closes) < 21 or pd.Timestamp(rows["Date"].iloc[-1]) != latest:
+            continue
+        if closes[-1] < PRICE_FLOOR or closes[-2] <= 0:
+            continue
+        gain = 100 * (closes[-1] / closes[-2] - 1)
+        volume_mean = float(np.mean(volumes[-21:-1]))
+        if gain < EVENT_GAIN or volume_mean <= 0 or volumes[-1] < VOL_MULT * volume_mean:
+            continue
+
+        gband = herd_state.get(str(symbol))
+        if gband is None:
+            unknown_herd += 1
+            continue
+        if gband != 0:
+            continue
+        if has_unreset_refutation(
+            symbol=str(symbol),
+            candidate_day=latest_s,
+            anomaly_cuts=anomaly_cuts,
+            history_days=rows["Date"].tolist(),
+            history_closes=rows["Close"].tolist(),
+        ):
+            active_refutations += 1
+            continue
+        events.append(
+            {
+                "symbol": str(symbol),
+                "gain": round(gain, 1),
+                "close": float(closes[-1]),
+                "dollar_vol": float(volumes[-1] * closes[-1]),
+            }
+        )
+    events.sort(key=lambda event: -float(event["dollar_vol"]))
+    return events, unknown_herd, active_refutations
+
+
+def sync() -> None:
+    raise SystemExit("ch6 sync is removed; CH6 owns its entry scan (use: hunt)")
+
+
+def hunt(dry: bool = False) -> None:
+    book = load_book()
+    market, days, latest = load_market()
+    latest_s = latest.strftime("%Y-%m-%d")
+    if latest_s < START_DATE:
+        print(f"[ch6 hunt] latest completed close {latest_s} precedes {START_DATE}")
+        return
+
+    now = datetime.now(timezone.utc).isoformat()
+    settled = settle_completed_closes(book=book, market=market, days=days, latest=latest, now=now)
+    if book.get("last_hunted") == latest_s:
+        if settled and not dry:
+            save_book(book)
+        print(f"[ch6 hunt] {latest_s} already processed; settled {settled}; no duplicate entry")
+        return
+
+    try:
+        herd_state = explicit_herd(latest)
+    except RuntimeError as error:
+        print(f"[ch6 hunt] {error}; settled {settled}; entries refused")
+        if settled and not dry:
+            save_book(book)
+        return
+
+    cuts = [trade for trade in closed(book) if str(trade.get("reason", "")).upper() == "ANOMALY-CUT"]
+    events, unknown_herd, active_refutations = qualifying_events(
+        market=market,
+        days=days,
+        latest=latest,
+        herd_state=herd_state,
+        anomaly_cuts=cuts,
+    )
+
+    opened = 0
+    for event in events:
+        if opened >= MAX_NEW_PER_DAY:
+            break
+        symbol = str(event["symbol"])
+        if symbol in positions(book) or float(book["cash"]) < SLICE_USD:
+            continue
+        shares = int(SLICE_USD // float(event["close"]))
+        if shares < 1:
+            continue
+        notional = round(shares * round(float(event["close"]), 4), 2)
+        if dry:
+            print(f"  WOULD SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
+            opened += 1
+            continue
+        book["cash"] = round(float(book["cash"]) - notional, 2)
+        positions(book)[symbol] = {
+            "engine": ENGINE,
+            "entry_date": latest_s,
+            "opened_at": now,
+            "side": -1,
+            "entry_px": round(float(event["close"]), 4),
+            "shares": shares,
+            "notional": notional,
+            "armed": False,
+            "peak_gain_pct": 0.0,
+        }
+        opened += 1
+        print(f"  SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
+
+    if not dry:
+        book["last_hunted"] = latest_s
+        book["last_hunt_custody"] = {
+            "completed_close": latest_s,
+            "eligible": len(events),
+            "opened": opened,
+            "settled": settled,
+            "refused_unknown_herd": unknown_herd,
+            "refused_unreset_refutation": active_refutations,
+        }
+        save_book(book)
+    print(
+        f"[ch6 hunt] {latest_s}: eligible {len(events)}, opened {opened}, settled {settled}, "
+        f"refused unknown-herd {unknown_herd}, refused refutation {active_refutations}, "
+        f"open {len(positions(book))}, cash ${float(book['cash']):,.2f}" + (" (DRY)" if dry else "")
     )
 
 
-def hunt(dry: bool = False):
-    """CH6's OWN entry pass. It does not read CH3's book.
-
-    Joe, 2026-08-11: "CH6 should be separate." It was built as a mirror
-    that adopted CH3's positions, which made it a dependent of CH3's book
-    rather than a channel — if CH3's book was empty, CH6 was empty, and
-    the two could never be compared as independent records.
-
-    This runs the SAME event rule CH3 runs, against the same store, into
-    CH6's own $100k book: a close-of-day gain of +8% or more, volume at
-    three times the trailing twenty-day average, a close of $5 or better,
-    and the herd NOT backing the spike. Same $2,000 slices, same limit of
-    ten new per day, same whole-share arithmetic.
-
-    The one and only difference from CH3 lives in sweep(): anything at
-    +5% or better is sold before the day ends.
-    """
-    import numpy as np
-    import pandas as pd
-
-    book = load_book()
-    now = datetime.now(timezone.utc).isoformat()
-    df = pd.read_parquet(os.path.join(ROOT, "ch4_live_store.parquet"),
-                         columns=["Date", "Symbol", "Close", "Volume"])
-    days = sorted(df["Date"].unique())
-    latest = days[-1]
-    latest_s = pd.Timestamp(latest).strftime("%Y-%m-%d")
-    # 2026-08-13 plumbing repair (same blindness CH3 had): the roster
-    # store misses the small/young names where qualifying spikes mostly
-    # live — 75% of the decade's tradeable supply. The whole-market tail
-    # (tools/ch3_supply_tail.py, refreshed nightly by the same runner)
-    # is added to the SCAN only; every CH6 rule — entries, 5% harvest,
-    # sweep, slices, caps — is unchanged. Names the roster still
-    # refreshes stay roster-only (single source per name, no seams).
-    tail_path = os.path.join(ROOT, "ch3_supply_tail.parquet")
-    if os.path.exists(tail_path):
-        tail = pd.read_parquet(tail_path)
-        tail["Date"] = pd.to_datetime(tail["Date"])
-        refreshed = set(df[df["Date"] == latest]["Symbol"])
-        tail = tail[~tail["Symbol"].isin(refreshed)
-                    & (tail["Date"] <= latest)]
-        df = pd.concat([df[df["Symbol"].isin(refreshed)], tail],
-                       ignore_index=True)
-    if latest_s < START_DATE:
-        print(f"[ch6 hunt] latest close {latest_s} precedes CH6's start "
-              f"{START_DATE} — nothing to do")
-        return
-    if book.get("last_hunted") == latest_s:
-        print(f"[ch6 hunt] {latest_s} already processed — no double entry")
-        return
-
-    # TIME BACKSTOP, SETTLED EXACTLY AS CH3 SETTLES IT (parity fix
-    # 2026-08-11): a never-harvested position exits at its 5th session's
-    # CLOSE, from the store, the moment that close exists — the same
-    # instant and same price CH3's own settle uses. This used to live in
-    # the 19:55 sweep, where the store's newest bar is still yesterday's,
-    # so the backstop fired one session late at a delayed intraday mark —
-    # a second hidden variable in what must be a one-variable experiment.
-    px_latest = dict(df[df["Date"] == latest][["Symbol", "Close"]].values)
-    day_ix = {d: i for i, d in enumerate(
-        pd.Timestamp(x).strftime("%Y-%m-%d") for x in days)}
-    for sym in sorted(list(book["positions"].keys())):
-        pos = book["positions"][sym]
-        ei = day_ix.get(pos.get("entry_date"))
-        px = px_latest.get(sym)
-        if ei is None or px is None:
-            continue
-        if (len(days) - 1) - ei >= HOLD_SESSIONS:
-            _close(book, sym, pos, float(px), "TIME",
-                   datetime.now(timezone.utc).isoformat())
-
-    herd = pd.read_parquet(os.path.join(
-        ROOT, "artifacts", "ch4_uf", "herd_state_live.parquet"))
-    hday = int(pd.Timestamp(latest).strftime("%Y%m%d"))
-    gband = {sym: int(g) for sym, d, g in zip(
-        herd["sym"], herd["date"].astype(int), herd["gband"]) if int(d) == hday}
-
-    # RACE GUARD. The price store and the herd export are both written by
-    # the nightly pass, and this scan runs every five minutes. Landing in
-    # the gap — new bar present, herd state not yet written — would leave
-    # every spike unfiltered and open up to ten positions CH3 correctly
-    # refuses, making CH6 differ from CH3 by far more than the exit. With
-    # no herd reading for the day there is no scan: it waits and retries
-    # on the next cycle, and does NOT stamp the day as processed.
-    if not gband:
-        print(f"[ch6 hunt] {latest_s}: herd state not published yet — "
-              f"waiting rather than trading an unfiltered field")
-        return
-
-    sub = df[df["Date"].isin(days[-25:])]
-    events = []
-    for sym, srows in sub.groupby("Symbol"):
-        srows = srows.sort_values("Date")
-        c = srows["Close"].to_numpy()
-        v = srows["Volume"].to_numpy()
-        if len(c) < 21 or srows["Date"].iloc[-1] != latest:
-            continue
-        if c[-1] < PRICE_FLOOR or c[-2] <= 0:
-            continue
-        gain = 100 * (c[-1] / c[-2] - 1)
-        vavg = float(np.mean(v[-21:-1]))
-        if gain >= EVENT_GAIN and vavg > 0 and v[-1] >= VOL_MULT * vavg:
-            g = gband.get(sym)
-            if g is not None and g >= 1:
-                continue
-            events.append({"symbol": sym, "gain": round(gain, 1),
-                           "close": float(c[-1]),
-                           "dollar_vol": float(v[-1] * c[-1])})
-    events.sort(key=lambda e: -e["dollar_vol"])
-
-    opened = 0
-    for e in events:
-        if opened >= MAX_NEW_PER_DAY:
-            break
-        if e["symbol"] in book["positions"] or book["cash"] < SLICE_USD:
-            continue
-        shares = int(SLICE_USD // e["close"])
-        if shares < 1:
-            continue
-        notional = round(shares * round(e["close"], 4), 2)
-        if dry:
-            print(f"  WOULD SHORT {shares} {e['symbol']} @ {e['close']} "
-                  f"(+{e['gain']}% day)")
-            opened += 1
-            continue
-        book["cash"] = round(book["cash"] - notional, 2)
-        book["positions"][e["symbol"]] = {
-            "engine": ENGINE, "entry_date": latest_s, "opened_at": now,
-            "side": -1, "entry_px": round(e["close"], 4), "shares": shares,
-            "notional": notional,
-            "armed": False, "peak_gain_pct": 0.0}
-        opened += 1
-        print(f"  SHORT {shares} {e['symbol']} @ {e['close']} (+{e['gain']}% day)")
-    if not dry:
-        book["last_hunted"] = latest_s
-        save_book(book)
-    print(f"[ch6 hunt] {latest_s}: {len(events)} qualifying spikes, "
-          f"{opened} opened, open {len(book['positions'])}, "
-          f"cash ${book['cash']:,.2f}")
-
-
-def _close(book, sym, p, px, reason, now):
-    ret = 100 * (px / p["entry_px"] - 1.0) * p["side"]
-    pnl = round(p["shares"] * (px - p["entry_px"]) * p["side"], 2)
-    book["cash"] = round(book["cash"] + p["notional"] + pnl, 2)
-    book["closed"].append({
-        "symbol": sym, "side": p["side"], "shares": p["shares"],
-        "entry_px": p["entry_px"], "exit_px": round(px, 4),
-        "entry_date": p["entry_date"], "exit_at": now,
-        "ret_pct": round(ret, 2), "pnl": pnl, "reason": reason,
-        "peak_gain_pct": p.get("peak_gain_pct", 0.0)})
-    del book["positions"][sym]
-    print(f"  {reason} {sym} @{px:.2f} ret {ret:+.2f}% pnl ${pnl:+,.2f}")
-
-
-def poll():
-    """Intraday: arm winners at +5%, trail their peak, never round-trip one.
-
-    Joe's intent, stated 2026-08-11: "give stock room to go as high as they
-    can and not lose say a 30% win." So a position that reaches +5% is
-    ARMED — from that point its best level is tracked, and it is sold the
-    moment it gives back GIVEBACK_PP points from that peak. A 30% run gets
-    harvested near 30, not watched back down to 6. Anything still armed at
-    the end-of-day sweep sells there. Below +5% nothing is touched.
-    GIVEBACK_PP = 1.0 is the constant declared when this book opened
-    (2026-08-06); marks are the ~15-min-delayed feed, checked every 5 min.
-    """
+def evaluate_live_marks(action: str) -> None:
     from tools.ch3_shadow_hunter import last_price
+
     book = load_book()
     now = datetime.now(timezone.utc).isoformat()
-    for sym in sorted(list(book["positions"].keys())):
-        p = book["positions"][sym]
+    quote_failures: list[str] = []
+    for symbol in sorted(list(positions(book))):
+        position = positions(book)[symbol]
         try:
-            px = last_price(sym)
-        except Exception:
+            price = float(last_price(symbol))
+        except Exception as error:  # noqa: BLE001 - each missing mark is reported below
+            quote_failures.append(f"{symbol}:{type(error).__name__}")
             continue
-        if not px:
+        if not np.isfinite(price) or price <= 0:
+            quote_failures.append(f"{symbol}:invalid-mark")
             continue
-        gain = 100 * (px / p["entry_px"] - 1.0) * p["side"]
-        # ANOMALY STOP (Joe's order 2026-08-17, after WETO doubled to
-        # -103% while the book watched): a position at ANOMALY_STOP_PCT
-        # or worse against entry is cut at the next check — the visible
-        # blow-ups get cancelled, not ridden to the backstop. A survival
-        # constant, like the ruin cap; declared, not derived.
+        gain = 100 * (price / float(position["entry_px"]) - 1) * int(position["side"])
         if gain <= -ANOMALY_STOP_PCT:
-            _close(book, sym, p, px, "ANOMALY-CUT", now)
+            close_position(book, symbol, position, price, "ANOMALY-CUT", now)
             continue
-        if gain > p.get("peak_gain_pct", 0.0):
-            p["peak_gain_pct"] = round(gain, 3)
-        if not p.get("armed") and gain >= HARVEST_PCT:
-            p["armed"] = True
-            print(f"  ARMED {sym} at {gain:+.2f}% — trailing its peak now")
-        if p.get("armed") and p["peak_gain_pct"] - gain > GIVEBACK_PP:
-            _close(book, sym, p, px, "HARVEST", now)
+        if action == "sweep":
+            if gain >= HARVEST_PCT:
+                close_position(book, symbol, position, price, "HARVEST", now)
+            continue
+
+        if gain > float(position.get("peak_gain_pct", 0.0)):
+            position["peak_gain_pct"] = round(gain, 3)
+        if not position.get("armed") and gain >= HARVEST_PCT:
+            position["armed"] = True
+            print(f"  ARMED {symbol} at {gain:+.2f}%")
+        if position.get("armed") and float(position["peak_gain_pct"]) - gain > GIVEBACK_PP:
+            close_position(book, symbol, position, price, "HARVEST", now)
+
     save_book(book)
-    armed = sum(1 for q in book["positions"].values() if q.get("armed"))
-    print(f"[ch6 poll] open {len(book['positions'])} "
-          f"armed {armed} cash ${book['cash']:,.2f}")
+    if quote_failures:
+        print(f"[ch6 {action}] quote failures {len(quote_failures)}: {', '.join(quote_failures)}")
+    armed = sum(1 for position in positions(book).values() if position.get("armed"))
+    print(
+        f"[ch6 {action}] open {len(positions(book))} armed {armed} "
+        f"closed {len(closed(book))} cash ${float(book['cash']):,.2f}"
+    )
 
 
-def sweep():
-    """End of day: sell anything at +5% or better; time-exit the rest."""
-    from tools.ch3_shadow_hunter import last_price
-    book = load_book()
-    now = datetime.now(timezone.utc).isoformat()
-    for sym in sorted(list(book["positions"].keys())):
-        p = book["positions"][sym]
-        try:
-            px = last_price(sym)
-        except Exception:
-            continue
-        if not px:
-            continue
-        gain = 100 * (px / p["entry_px"] - 1.0) * p["side"]
-        # Day's end (Joe, 2026-08-11): sell ONLY what STANDS at +5% or
-        # better right now. Not "sell at any cost" — a position at +4.5%
-        # or -1.5% is left completely alone here, even one that was armed
-        # earlier today. Its armed flag and peak survive to the next
-        # session, so the trail keeps protecting it; otherwise only the
-        # other declared exits (intraday give-back, 5-session backstop)
-        # can touch it.
-        if gain >= HARVEST_PCT:
-            _close(book, sym, p, px, "HARVEST", now)
-        # TIME backstop moved to hunt() 2026-08-11: it settles at the 5th
-        # session close from the store, exactly where CH3's settle lands.
-    save_book(book)
-    print(f"[ch6 sweep] open {len(book['positions'])} "
-          f"closed {len(book['closed'])} cash ${book['cash']:,.2f}")
+def poll() -> None:
+    evaluate_live_marks("poll")
+
+
+def sweep() -> None:
+    evaluate_live_marks("sweep")
+
+
+COMMANDS: dict[str, Callable[[], None]] = {
+    "hunt": hunt,
+    "poll": poll,
+    "sweep": sweep,
+    "sync": sync,
+}
 
 
 if __name__ == "__main__":
-    cmd = (sys.argv[1] if len(sys.argv) > 1 else "poll").lower()
-    {"hunt": hunt, "poll": poll, "sweep": sweep, "sync": sync}[cmd]()
+    command = sys.argv[1].lower() if len(sys.argv) > 1 else "poll"
+    if command not in COMMANDS:
+        raise SystemExit(f"unknown CH6 command: {command}")
+    COMMANDS[command]()

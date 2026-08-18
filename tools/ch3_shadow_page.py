@@ -1,256 +1,82 @@
-"""
-ch3_shadow_page.py — CH3 shadow book rendered in the TFE platform style.
-Columns and conventions mirror taofinancialengine.com/portfolio-advisor.
-Usage: python tools/ch3_shadow_page.py /path/out.html
-"""
+"""Render the authoritative CH3 paper book as a read-only static page."""
+
 from __future__ import annotations
 
 import json
-import os
 import sys
-from datetime import datetime, timezone
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-LOG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                   "artifacts", "vtvr_observer", "ch3_shadow_log.json")
-CASH0 = 100_000.0
+from pathlib import Path
 
 
-def main():
-    out_path = sys.argv[1]
-    log = {"finds": [], "days": {}, "book": {"cash": CASH0, "start": CASH0}}
-    if os.path.exists(LOG):
-        log = json.load(open(LOG))
-    book = log.get("book", {"cash": CASH0, "start": CASH0})
-    finds = sorted(log.get("finds", []), key=lambda f: f.get("found_at", ""),
-                   reverse=True)
-    opens = [f for f in finds if f["status"] == "OPEN"]
-    closed = [f for f in finds if f["status"] != "OPEN"]
-    # live marks for open positions (best effort)
-    marks = {}
-    try:
-        from tools.ch3_shadow_hunter import last_price
-        for f in opens:
-            try:
-                px = last_price(f["symbol"])
-                if px and px > 0:
-                    marks[f["symbol"]] = px
-            except Exception:
-                pass
-    except Exception:
-        pass
-    held = sum(f.get("notional", 0.0) for f in opens)
-    # Display math contract: every row must multiply out by hand.
-    # Shares are fractional (stake / entry), marks are rounded to cents
-    # BEFORE computing P&L, and the tiles are sums of the row values.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-    # A MISSING QUOTE IS NOT A FLAT STOCK (CH4's cure, applied here
-    # 2026-08-14 after the quote feed died and drew every row flat at
-    # entry). Fallback: official latest close from the stores (dated),
-    # then honest "no quote". Never the entry price.
-    close_fallback = {}
-    close_day = ""
-    try:
-        import os as _os, pandas as _pd
-        _root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-        _frames = []
-        for _p in ("ch4_live_store.parquet", "ch3_supply_tail.parquet"):
-            _fp = _os.path.join(_root, _p)
-            if _os.path.exists(_fp):
-                _frames.append(_pd.read_parquet(_fp, columns=["Date", "Symbol", "Close"]))
-        if _frames:
-            _st = _pd.concat(_frames, ignore_index=True)
-            _latest = _st["Date"].max()
-            close_day = str(_latest)[:10]
-            close_fallback = dict(_st[_st["Date"] == _latest][["Symbol", "Close"]].values)
-    except Exception:
-        pass
+from tools.channel_static_page import ChannelPage, ClosedRow, OpenRow, ROOT, run_cli  # noqa: E402
 
-    def fmt_px(x):
-        # entry fills carry sub-cent precision; show it, or the
-        # row cannot be multiplied out by hand (Joe's AIRO catch)
-        s = f"{x:,.4f}".rstrip("0")
-        return "$" + (s + "0" if s.endswith(".") or len(s.split(".")[-1]) < 2 else s)
 
-    def row_upl(f):
-        entry = f["entry_px"]
-        px = marks.get(f["symbol"])
-        if px is None:
-            px = close_fallback.get(f["symbol"])
-        if px is None or float(px) <= 0:
-            px = entry  # last resort marker; counted below as unmarked
-        cur = round(float(px), 2)
-        shares = f.get("shares") or (int(f.get("notional", 0) // entry)
-                                     if entry else 0)
-        return shares, cur, round(shares * (cur - entry) * f["side"], 2)
-    unreal = sum(row_upl(f)[2] for f in opens)
-    equity = book["cash"] + held + unreal
-    realized = book["cash"] + held - book.get("start", CASH0)
-    wins = sum(1 for f in closed if (f.get("pnl") or 0) > 0)
-    losses = sum(1 for f in closed if (f.get("pnl") or 0) <= 0)
-    wr = f"{100 * wins / len(closed):.1f}%" if closed else "0.0%"
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+BOOK_PATH = ROOT / "artifacts" / "vtvr_observer" / "ch3_shadow_log.json"
 
-    def money(x, signed=False):
-        s = f"${abs(x):,.2f}"
-        if signed:
-            s = ("+" if x >= 0 else "-") + s
-        return s
 
-    open_rows = ""
-    for f in opens:
-        shares, cur, upl = row_upl(f)
-        pct = (round(100 * upl / f["notional"], 2) or 0.0) if f.get("notional") else 0.0
-        cls = "pos" if upl >= 0 else "neg"
-        open_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
-                      f'<td><span class="chip">CH3</span>'
-                      f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                      f'<td class="num">{shares:,}</td>'
-                      f'<td class="num">{fmt_px(f["entry_px"])}</td>'
-                      f'<td class="num">${cur:,.2f}</td>'
-                      f'<td class="num {cls}">{money(upl, True)}</td>'
-                      f'<td class="num {cls}">{pct:+.2f}%</td>'
-                      f'<td><span class="status">SIMULATED</span></td>'
-                      f'<td>{f["date"]}</td></tr>')
-    if not open_rows:
-        open_rows = '<tr><td colspan="9" class="empty">No open positions.</td></tr>'
+def recorded_shares(trade: dict[str, object]) -> int:
+    shares = trade.get("shares")
+    if shares is not None and int(shares) > 0:
+        return int(shares)
+    entry_price = float(trade["entry_px"])
+    notional = float(trade.get("notional") or 0)
+    return int(round(notional / entry_price)) if entry_price > 0 else 0
 
-    closed_rows = ""
-    for f in closed[:60]:
-        pnl = f.get("pnl") or 0.0
-        pct = round(f.get("ret_pct") or 0.0, 2) or 0.0
-        shares = f.get("shares") or (int(round(f.get("notional", 0)
-                                     / f["entry_px"])) if f["entry_px"] else 0)
-        cls = "pos" if pnl >= 0 else "neg"
-        closed_rows += (f'<tr><td class="tk">{f["symbol"]}</td>'
-                        f'<td><span class="chip">CH3</span>'
-                        f'{"<span class=chip2>SHORT</span>" if f["side"] == -1 else ""}</td>'
-                        f'<td class="num">{shares:,}</td>'
-                        f'<td class="num">{fmt_px(f["entry_px"])}</td>'
-                        f'<td class="num {cls}">{money(pnl, True)}</td>'
-                        f'<td class="num {cls}">{pct:+.2f}%</td>'
-                        f'<td><span class="status">{f["status"]}</span></td>'
-                        f'<td>{f.get("catalyst", "")}</td>'
-                        f'<td>{f["date"]}</td></tr>')
-    if not closed_rows:
-        closed_rows = '<tr><td colspan="9" class="empty">No closed trades yet.</td></tr>'
 
-    html = f"""<title>CH3 Shadow Hunter</title>
-<style>
-:root {{ --bg:#f2f4f1; --card:#ffffff; --head:#e8efe7; --ink:#232a24;
-  --muted:#6d7a6f; --line:#e0e6df; --pos:#12833f; --neg:#c93a2e;
-  --chip:#2b3330; --chiptx:#ffffff; --accent:#2e7d4f; }}
-:root[data-theme="dark"], html[data-theme="dark"] {{ --bg:#171b18;
-  --card:#1f2521; --head:#28302a; --ink:#e6eae5; --muted:#9aa79c;
-  --line:#2e362f; --pos:#4cc47e; --neg:#e57368; --chip:#3a423d;
-  --chiptx:#fff; --accent:#63b98c; }}
-@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"])
-  {{ --bg:#171b18; --card:#1f2521; --head:#28302a; --ink:#e6eae5;
-     --muted:#9aa79c; --line:#2e362f; --pos:#4cc47e; --neg:#e57368;
-     --chip:#3a423d; --chiptx:#fff; --accent:#63b98c; }} }}
-body {{ background:var(--bg); color:var(--ink); margin:0;
-  font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
-  padding:24px 16px 60px; }}
-main {{ max-width:1160px; margin:0 auto; display:flex;
-  flex-direction:column; gap:16px; }}
-h1 {{ font-size:1.2rem; margin:0; }}
-.sub {{ color:var(--muted); font-size:.8rem; }}
-.acct {{ color:var(--muted); font-size:.78rem; text-align:right; }}
-.tiles {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }}
-.tile {{ background:var(--card); border:1px solid var(--line);
-  border-radius:10px; padding:12px 14px; }}
-.tile .k {{ font-size:.62rem; text-transform:uppercase;
-  letter-spacing:.08em; color:var(--muted); }}
-.tile .v {{ font-size:1.15rem; font-weight:650;
-  font-variant-numeric:tabular-nums; margin-top:2px; }}
-.v.pos {{ color:var(--pos); }} .v.neg {{ color:var(--neg); }}
-.card {{ background:var(--card); border:1px solid var(--line);
-  border-radius:12px; overflow:hidden; }}
-.card h2 {{ font-size:.9rem; margin:0; padding:14px 16px; }}
-.card h2 .count {{ background:var(--head); border-radius:9px;
-  font-size:.7rem; padding:2px 8px; color:var(--muted); margin-left:6px; }}
-.twrap {{ overflow-x:auto; }}
-table {{ border-collapse:collapse; width:100%; font-size:.82rem; }}
-thead tr {{ background:var(--head); }}
-th {{ text-align:left; padding:9px 14px; font-size:.64rem;
-  text-transform:uppercase; letter-spacing:.07em; color:var(--muted);
-  white-space:nowrap; }}
-td {{ padding:9px 14px; border-top:1px solid var(--line); white-space:nowrap; }}
-td.num {{ text-align:right; font-variant-numeric:tabular-nums; }}
-td.tk {{ font-weight:700; }}
-td.pos {{ color:var(--pos); font-weight:600; }}
-td.neg {{ color:var(--neg); font-weight:600; }}
-td.empty {{ color:var(--muted); text-align:center; padding:24px; }}
-.chip {{ background:var(--chip); color:var(--chiptx); font-size:.62rem;
-  font-weight:700; padding:2px 8px; border-radius:5px; }}
-.chip2 {{ background:var(--neg); color:#fff; font-size:.6rem;
-  font-weight:700; padding:2px 6px; border-radius:5px; margin-left:4px; }}
-.status {{ background:var(--head); color:var(--muted); font-size:.62rem;
-  font-weight:700; padding:2px 8px; border-radius:5px; }}
-.foot {{ color:var(--muted); font-size:.72rem; max-width:80ch; }}
-.warn {{ background:var(--head); border:1px solid var(--line);
-  border-radius:10px; padding:10px 14px; font-size:.78rem;
-  color:var(--muted); }}
-</style>
-<main>
-<header>
-  <h1>CH3 — Shadow Hunter</h1>
-  <div class="sub">The reveal-fade channel, v3: shorts every crowd-less
-   violent up-spike at the close · capital split by displacement force ·
-   HARVEST exit at the first close at/past +5%, five-session backstop ·
-   declared margin: gross to 2x capital · supply restated 2026-08-13:
-   the uncovered-name stratum is restored to the scan and the dollar
-   rate is a live hypothesis under a self-halting tripwire — droughts
-   pay zero, melt-up regimes lose ·
-   SIMULATED — no real orders, borrow costs not modeled ·
-   engine {log.get("engine", "ch3_reveal_fade_v1")} · updated {stamp}</div>
-</header>
-<div class="acct">Shadow account: equity {money(equity)} · cash {money(book["cash"], True)}{" (margin borrowed)" if book["cash"] < 0 else ""}</div>
-<section class="tiles">
-  <div class="tile"><div class="k">Equity</div><div class="v">{money(equity)}</div></div>
-  <div class="tile"><div class="k">Realized</div>
-    <div class="v {"pos" if realized >= 0 else "neg"}">{money(realized, True)}</div></div>
-  <div class="tile"><div class="k">Unrealized</div>
-    <div class="v {"pos" if unreal >= 0 else "neg"}">{money(unreal, True)}</div></div>
-  <div class="tile"><div class="k">Win rate</div><div class="v">{wr}</div></div>
-  <div class="tile"><div class="k">Open</div><div class="v">{len(opens)}</div></div>
-  <div class="tile"><div class="k">Closed</div><div class="v">{len(closed)}</div></div>
-</section>
-<section class="card">
-  <h2>Open Positions<span class="count">{len(opens)}</span></h2>
-  <div class="twrap"><table>
-    <thead><tr><th>Ticker</th><th>Signal</th><th>Shares</th><th>Entry</th>
-      <th>Current</th><th>Unreal. P&amp;L</th><th>P&amp;L %</th>
-      <th>Status</th><th>Entered</th></tr></thead>
-    <tbody>{open_rows}</tbody></table></div>
-</section>
-<section class="card">
-  <h2>Closed Trades<span class="count">{len(closed)}</span></h2>
-  <div class="twrap"><table>
-    <thead><tr><th>Ticker</th><th>Signal</th><th>Shares</th><th>Entry</th>
-      <th>P&amp;L $</th><th>P&amp;L %</th><th>Exit</th><th>Catalyst</th>
-      <th>Entered</th></tr></thead>
-    <tbody>{closed_rows}</tbody></table></div>
-</section>
-<p class="foot"><b>Reading SHORT rows:</b> a short sale SELLS at the
-Entry price and buys back at Current — so Current BELOW Entry is a
-profit (green, positive) and Current above Entry is a loss. Longs
-read the normal way. Shadow record — every row is a simulated fill
-at real market prices. HARVEST = closed at the first close at or
-past +5% profit; TIME = five-session backstop. A self-check runs
-after every settlement: if the live record falls below what ten
-years of the same trades allows for a cold streak, the channel
-halts itself. Stated plainly: this construction is scaffolding, not
-the destination — the measured-parts answer to a dollar target,
-holding the channel while a construction native to this project's
-physics is conceived.</p>
-</main>
-"""
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
-    print("page written:", out_path)
+def build_page() -> ChannelPage:
+    with BOOK_PATH.open("r", encoding="utf-8") as handle:
+        book = json.load(handle)
+    account = book["book"]
+    opens: list[OpenRow] = []
+    closed: list[ClosedRow] = []
+    for trade in book["finds"]:
+        shares = recorded_shares(trade)
+        if trade["status"] == "OPEN":
+            opens.append(
+                OpenRow(
+                    symbol=str(trade["symbol"]),
+                    side=int(trade["side"]),
+                    shares=shares,
+                    entry_price=float(trade["entry_px"]),
+                    notional=float(trade["notional"]),
+                    entered_at=str(trade["date"]),
+                )
+            )
+            continue
+        closed.append(
+            ClosedRow(
+                symbol=str(trade["symbol"]),
+                side=int(trade["side"]),
+                shares=shares,
+                entry_price=float(trade["entry_px"]),
+                exit_price=float(trade["exit_px"]) if trade.get("exit_px") is not None else None,
+                pnl=float(trade.get("pnl") or 0),
+                return_pct=float(trade.get("ret_pct") or 0),
+                entered_at=str(trade["date"]),
+                exited_at=str(trade.get("resolved") or ""),
+                reason=str(trade["status"]),
+            )
+        )
+    return ChannelPage(
+        code="CH3",
+        title="CH3 — Shadow Hunter",
+        engine=str(book.get("engine") or "unknown"),
+        starting_capital=float(account.get("start") or 100_000),
+        cash=float(account["cash"]),
+        opens=tuple(opens),
+        closed=tuple(closed),
+        rules=(
+            "This is a reduced paper L5 projection, not full joint-field evaluation, and it creates no real orders.",
+            "Entry requires a completed-close gain of at least 8%, volume at least three times the preceding 20-session mean, price at least $5, and explicit same-day gband=0 herd evidence. Missing herd evidence is refused.",
+            "Harvest occurs at the first completed close at least 5% below entry; the fifth completed session is the time backstop.",
+            "The anomaly cut is triggered by the first completed close at least 20% above entry. Gaps can cross the trigger.",
+            "After an anomaly cut, the symbol remains refuted until a later completed close returns to or below the original entry. The cut bar cannot be re-entered.",
+            "Declared gross exposure is capped at twice starting capital. Borrow costs are not modeled.",
+        ),
+    )
 
 
 if __name__ == "__main__":
-    main()
+    run_cli(build_page)
