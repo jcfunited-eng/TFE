@@ -122,6 +122,34 @@ def classify(f):
     return "OTHER"
 
 
+# v1.1 — DECLARED 2026-08-18 BEFORE ANY SWEEP RESULT EXISTED, after the
+# NESR worked example exposed a translation defect in v1: the readers'
+# "resonance alive/holding" was translated as a raw 3-bar sign, which
+# calls a -0.005 wobble on a held 0.40 plateau "falling". The kernel's
+# own notion of "unchanged resonance" is drift within one hysteresis
+# width (H_MAX = 0.20, pinned in ch4_uf_kernel_v2). v1.1: charge is
+# ALIVE iff R_res(t) - R_res(t-3) >= -0.20 (held within one width);
+# DEAD iff it fell by more than the width or attention is starved.
+# Both classifications are computed and filed; neither replaces the other.
+def classify_v11(f):
+    blocked = f["bars_since_cl"] >= 10 or f["urf0_run"] >= 3
+    held = f["rres_d3"] >= -0.20
+    if blocked:
+        if held and f["price_leak"] > 0 and f["attn_alive"] >= 0:
+            return "BLOCK_LIVE"
+        if (not held) or f["attn_alive"] < 0:
+            return "BLOCK_DEAD"
+        return "BLOCK_OTHER"
+    if (f["closures20"] >= 3 and f["urf0_frac20"] == 0
+            and f["rres_slope3"] > 0 and f["fn_dir"] <= 0):
+        return "ADMIT_CHEAP"
+    if f["rres_below_max"] and f["fn_dir"] > 0:
+        return "SPENT_BACK"
+    if f["closures20"] >= 6 and f["urf0_frac20"] == 0:
+        return "CONDUCT"
+    return "OTHER"
+
+
 def main():
     t0 = time.time()
     read70 = set()
@@ -206,6 +234,7 @@ def main():
                 "closures20": closures20,
                 "urf0_frac20": int(sum(1 for u in urf_series if u == 0.0)),
                 "rres_slope3": sgn(st.R_res - states[t - 3].R_res),
+                "rres_d3": float(st.R_res - states[t - 3].R_res),
                 "rres_below_max": bool(st.R_res < max(x.R_res
                                                       for x in w[-6:-1])),
                 "fn_dir": sgn(st.F_n - states[t - 1].F_n),
@@ -214,6 +243,7 @@ def main():
                                   - float(np.median(v[max(0, t - 21): t - 1]))),
             }
             cls = classify(f)
+            cls11 = classify_v11(f)
             entry = c[t]
             exit_px = c[t + HOLD]
             for k in range(t + 1, t + HOLD + 1):
@@ -221,7 +251,7 @@ def main():
                     exit_px = c[k]
                     break
             rows.append({
-                "sym": sym, "date": int(d[t]), "cls": cls,
+                "sym": sym, "date": int(d[t]), "cls": cls, "cls11": cls11,
                 "scars": ("2+" if scar_day[t] >= 2
                           else str(int(scar_day[t]))),
                 "in70": (sym, int(d[t])) in read70,
@@ -242,9 +272,9 @@ def main():
     print(f"events: {len(ev)} ({int(ev['in70'].sum())} were among the 70 "
           f"read — excluded from counts), replay-skipped: {skipped}")
 
-    def table(sub):
+    def table(sub, col="cls"):
         out = {}
-        for cls, g in sub.groupby("cls"):
+        for cls, g in sub.groupby(col):
             if len(g) < MIN_CLASS_N:
                 out[cls] = {"n": int(len(g)), "sparse": True}
                 continue
@@ -271,6 +301,8 @@ def main():
         "replay_skipped_events": skipped,
         "derive_le_2021_blind_to_taxonomy": table(derive),
         "confirm_2022_plus": table(confirm),
+        "v1_1_hysteresis_aliveness_derive": table(derive, "cls11"),
+        "v1_1_hysteresis_aliveness_confirm": table(confirm, "cls11"),
         "the_70_reference_only": table(ev[ev["in70"]]),
         "scar_distribution": {str(k): int(n) for k, n in
                               body["scars"].value_counts().items()},
