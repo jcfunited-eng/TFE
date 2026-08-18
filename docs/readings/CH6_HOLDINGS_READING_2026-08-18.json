@@ -1,0 +1,172 @@
+{
+ "ARX": {
+  "symbol": "ARX",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 1.0,
+   "price": 19.56,
+   "life_peak": 30.73,
+   "crush": 1.6,
+   "deaths_per_year": 30,
+   "deaths_2wk": 3,
+   "push_up_week": 0.17,
+   "up_sessions_of_5": 4,
+   "B_health": 0.95,
+   "L_lock": 0.5
+  }
+ },
+ "AVAH": {
+  "symbol": "AVAH",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 4.8,
+   "price": 12.66,
+   "life_peak": 12.89,
+   "crush": 1.0,
+   "deaths_per_year": 85,
+   "deaths_2wk": 5,
+   "push_up_week": 0.54,
+   "up_sessions_of_5": 4,
+   "B_health": 0.96,
+   "L_lock": 0.09
+  }
+ },
+ "CAPR": {
+  "symbol": "CAPR",
+  "verdict": "REFUSE",
+  "rule": "Rules 4+5 \u2014 drained vehicle, rehearsal floor clean, loading: the killer launch shape",
+  "facts": {
+   "life_years": 5.2,
+   "price": 7.09,
+   "life_peak": 36.02,
+   "crush": 5.1,
+   "deaths_per_year": 74,
+   "deaths_2wk": 2,
+   "push_up_week": 0.2,
+   "up_sessions_of_5": 4,
+   "B_health": 0.86,
+   "L_lock": 0.41
+  }
+ },
+ "DUOT": {
+  "symbol": "DUOT",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 4.1,
+   "price": 11.59,
+   "life_peak": 15.07,
+   "crush": 1.3,
+   "deaths_per_year": 103,
+   "deaths_2wk": 1,
+   "push_up_week": 0.43,
+   "up_sessions_of_5": 4,
+   "B_health": 0.99,
+   "L_lock": 0.06
+  }
+ },
+ "ETON": {
+  "symbol": "ETON",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 5.1,
+   "price": 63.38,
+   "life_peak": 61.94,
+   "crush": 1.0,
+   "deaths_per_year": 69,
+   "deaths_2wk": 0,
+   "push_up_week": 0.3,
+   "up_sessions_of_5": 3,
+   "B_health": 0.95,
+   "L_lock": 0.31
+  }
+ },
+ "FDMT": {
+  "symbol": "FDMT",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 5.2,
+   "price": 14.74,
+   "life_peak": 54.88,
+   "crush": 3.7,
+   "deaths_per_year": 50,
+   "deaths_2wk": 4,
+   "push_up_week": 0.3,
+   "up_sessions_of_5": 4,
+   "B_health": 0.94,
+   "L_lock": 0.27
+  }
+ },
+ "OMER": {
+  "symbol": "OMER",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 5.2,
+   "price": 17.21,
+   "life_peak": 23.68,
+   "crush": 1.4,
+   "deaths_per_year": 59,
+   "deaths_2wk": 0,
+   "push_up_week": 0.24,
+   "up_sessions_of_5": 3,
+   "B_health": 0.98,
+   "L_lock": 0.53
+  }
+ },
+ "SWMR": {
+  "symbol": "SWMR",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 0.4,
+   "price": 46.86,
+   "life_peak": 78.52,
+   "crush": 1.7,
+   "deaths_per_year": 94,
+   "deaths_2wk": 0,
+   "push_up_week": 0.33,
+   "up_sessions_of_5": 3,
+   "B_health": 0.98,
+   "L_lock": 0.27
+  }
+ },
+ "TBBB": {
+  "symbol": "TBBB",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 2.3,
+   "price": 48.07,
+   "life_peak": 49.35,
+   "crush": 1.0,
+   "deaths_per_year": 45,
+   "deaths_2wk": 2,
+   "push_up_week": 0.8,
+   "up_sessions_of_5": 3,
+   "B_health": 0.95,
+   "L_lock": 0.47
+  }
+ },
+ "VCX": {
+  "symbol": "VCX",
+  "verdict": "REFUSE",
+  "rule": "Rules 4+5 \u2014 drained vehicle, rehearsal floor clean, loading: the killer launch shape",
+  "facts": {
+   "life_years": 0.4,
+   "price": 41.23,
+   "life_peak": 495.0,
+   "crush": 12.0,
+   "deaths_per_year": 48,
+   "deaths_2wk": 0,
+   "push_up_week": 0.76,
+   "up_sessions_of_5": 4,
+   "B_health": 0.98,
+   "L_lock": 0.25
+  }
+ }
+}
