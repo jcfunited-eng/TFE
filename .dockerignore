@@ -80,6 +80,7 @@ yolov8n.onnx
 !rebuild_uf_snapshot.py
 !rebuild_uf_snapshot_legacy.py
 !snapshot_generation.py
+!snapshot_transport.py
 !tfe_snapshot_restore.py
 !tfe_startup.sh
 !uf_mdg_snapshot.py
