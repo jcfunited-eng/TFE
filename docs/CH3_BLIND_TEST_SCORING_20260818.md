@@ -35,3 +35,24 @@ ways it can lie, and the control for each, fixed now:
 The sealed manifest (event → outcome) exists at declaration time
 and is not readable by any reader. Scoring script runs once, after
 all readings return, with no edits between unsealing and filing.
+
+## Amendment A — kernel-scored outcomes (Joe, 2026-08-18: "the hidden
+values could use the kernel" — lie #5 was the likeliest)
+
+DECLARED before computing (this amendment is committed before the
+kernel-scored numbers exist). The clock label (1.20x/5d) is itself a
+flattened, noisy answer key; the hidden outcome is re-derived from
+the field over the 10 sessions after the spike (2x the clock window,
+dyadic), using exact facts only:
+
+  CONTINUED  := close(t+10) > close(t)          (the new level held
+                or extended at twice the horizon)
+  GAVE_BACK  := close(t+10) <= close(t-1)       (full discharge)
+  MIDDLE     := otherwise
+  each tagged with channel state URF(t+10) > 0 (admitted) or = 0.
+
+Scores: separation of CONTINUED rate between predicted RUN_ON and
+predicted SNAP; separation of GAVE_BACK rate likewise. Where t+10
+does not exist in the store, the event is excluded and counted.
+The clock-scored result stands as filed; this rides beside it,
+neither replaces the other.
