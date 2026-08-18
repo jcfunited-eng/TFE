@@ -256,8 +256,8 @@ type SignalFilterFieldStats = {
 type SignalLaneResult = {
   label: string;
   thresholds: Record<string, number>;
-  backtestWinRate: number;
-  backtestN: number;
+  backtestWinRate: number | null;
+  backtestN: number | null;
   survivors: number;
   survivorSymbols: string[];
   sectorConcentration: SignalFilterSector[];
@@ -277,9 +277,10 @@ type SignalFilterPayload = {
   totalAccumulate: number;
   laneA: SignalLaneAResult;
   laneB: SignalLaneResult;
-  baselineWinRate: number;
+  baselineWinRate: number | null;
   marketWave?: MarketWaveState;
-  threeWaveBacktest?: { fullWinRate: number; w1w3WinRate: number; w1WinRate: number };
+  fieldCoverage?: "reduced_projection";
+  evidenceStatus?: "performance_claims_withheld_no_receipted_artifact";
   error?: string;
 };
 
@@ -615,7 +616,6 @@ export default function AdminConsolePage() {
 
   async function loadSignalFilter(): Promise<void> {
     const response = await fetch("/api/admin/signal-filter", { cache: "no-store" });
-    if (!response.ok) return;
     const data = (await response.json()) as SignalFilterPayload;
     setSignalFilter(data);
   }
@@ -1479,7 +1479,7 @@ export default function AdminConsolePage() {
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Signal Lanes</h2>
               <p className={styles.panelSub}>
-                Two validated signal lanes from quarantine forensics (Mar 2021–Mar 2026). Baseline DSF Accumulate 20d win rate: {signalFilter ? `${signalFilter.baselineWinRate}%` : "54.4%"}.
+                Reduced diagnostic projections only. They do not jointly evaluate the seven-field DSF structure and are not CH1 proof.
               </p>
               {signalFilter?.generatedAtUtc ? (
                 <p className={styles.panelSub}>Updated: {formatIso(signalFilter.generatedAtUtc)} · Total Accumulate: {signalFilter.totalAccumulate.toLocaleString()}</p>
@@ -1496,8 +1496,8 @@ export default function AdminConsolePage() {
                 </p>
                 <div className={styles.kvGrid}>
                   <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>Backtest win rate</div>
-                    <div className={styles.kvValue}>{signalFilter.laneA.backtestWinRate}% (n={signalFilter.laneA.backtestN.toLocaleString()})</div>
+                    <div className={styles.kvLabel}>Performance evidence</div>
+                    <div className={styles.kvValue}>Withheld — no receipted source artifact is bound to this page</div>
                   </div>
                   <div className={styles.kvRow}>
                     <div className={styles.kvLabel}>Live survivors</div>
@@ -1533,8 +1533,8 @@ export default function AdminConsolePage() {
                 </p>
                 <div className={styles.kvGrid}>
                   <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>Backtest win rate</div>
-                    <div className={styles.kvValue}>{signalFilter.laneB.backtestWinRate}% (n={signalFilter.laneB.backtestN.toLocaleString()})</div>
+                    <div className={styles.kvLabel}>Performance evidence</div>
+                    <div className={styles.kvValue}>Withheld — no receipted source artifact is bound to this page</div>
                   </div>
                   <div className={styles.kvRow}>
                     <div className={styles.kvLabel}>Live survivors</div>
@@ -1573,23 +1573,9 @@ export default function AdminConsolePage() {
                   {signalFilter.marketWave?.note ?? "SPY wave state unavailable."}
                 </p>
 
-                {/* Three-Wave Alignment reference */}
-                {signalFilter.threeWaveBacktest ? (
-                  <>
-                    <div className={styles.kvRow}>
-                      <div className={styles.kvLabel}>3WA backtest (Waves 1+2+3)</div>
-                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.fullWinRate}% win</div>
-                    </div>
-                    <div className={styles.kvRow}>
-                      <div className={styles.kvLabel}>3WA backtest (Waves 1+3, no species)</div>
-                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.w1w3WinRate}% win</div>
-                    </div>
-                    <div className={styles.kvRow}>
-                      <div className={styles.kvLabel}>Wave 1 only (Structure A)</div>
-                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.w1WinRate}% win</div>
-                    </div>
-                  </>
-                ) : null}
+                <p className={styles.inlineMsg}>
+                  <strong>Field coverage:</strong> reduced projection. M_k, R_rev,k, U*_k, C_k, P_k, and B_k relationships are not jointly evaluated here.
+                </p>
               </>
             ) : (
               <p className={styles.inlineMsg}>Loading signal lanes...</p>

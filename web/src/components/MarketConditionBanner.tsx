@@ -7,26 +7,40 @@ type BannerState = {
   backgroundImagePath: string;
   instructionalText: string;
   textColorHex: string;
-  spyDk: number | null;
-  isMarketLocked: boolean;
+  spyDk: -1 | 0 | 1;
+  fieldCoverage: "single_observed_D_k";
 };
 
 export default function MarketConditionBanner() {
   const [banner, setBanner] = useState<BannerState | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/market-banner")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: BannerState | null) => {
-        if (data) setBanner(data);
+    fetch("/api/market-banner", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json() as BannerState & { error?: string; detail?: string };
+        if (!response.ok) throw new Error(data.detail ?? data.error ?? `HTTP ${response.status}`);
+        return data;
       })
-      .catch(() => { /* silent — banner optional */ })
+      .then((data: BannerState) => {
+        setBanner(data);
+        setError(null);
+      })
+      .catch((reason: unknown) => {
+        setError(reason instanceof Error ? reason.message : "Market condition feed failed");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return null;
-  if (!banner) return null;
+  if (error || !banner) {
+    return (
+      <section className="tfe-panel" role="status" style={{ marginBottom: 28, padding: "12px 16px", color: "#a16207" }}>
+        Market condition unavailable. No replacement D_k state was inferred. {error ?? "No verified banner payload was received."}
+      </section>
+    );
+  }
 
   const hasImage = Boolean(banner.backgroundImagePath);
 

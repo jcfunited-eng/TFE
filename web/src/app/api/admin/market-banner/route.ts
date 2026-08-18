@@ -13,7 +13,7 @@ export type MarketBannerRow = {
 
 const ALLOWED_KEYS = new Set(["D_k_minus_1", "D_k_0", "D_k_plus_1"]);
 
-async function requireAdmin(request: Request): Promise<NextResponse | null> {
+async function requireAdmin(): Promise<NextResponse | null> {
   const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
@@ -23,7 +23,7 @@ async function requireAdmin(request: Request): Promise<NextResponse | null> {
 function sanitizeHex(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return /^#[0-9A-Fa-f]{3,6}$/.test(trimmed) ? trimmed : null;
+  return /^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(trimmed) ? trimmed : null;
 }
 
 function sanitizeImagePath(value: unknown): string | null {
@@ -33,8 +33,8 @@ function sanitizeImagePath(value: unknown): string | null {
   return /^\/[a-zA-Z0-9_\-./]+\.(jpg|jpeg|png|webp)$/i.test(trimmed) ? trimmed : null;
 }
 
-export async function GET(request: Request) {
-  const denied = await requireAdmin(request);
+export async function GET() {
+  const denied = await requireAdmin();
   if (denied) return denied;
 
   const pool = resolveRuntimePostgresPool();
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const denied = await requireAdmin(request);
+  const denied = await requireAdmin();
   if (denied) return denied;
 
   let body: unknown;
@@ -118,10 +118,13 @@ export async function PATCH(request: Request) {
   updates.push(`updated_at = NOW()`);
 
   const pool = resolveRuntimePostgresPool();
-  await pool.query(
+  const result = await pool.query(
     `UPDATE ui_asset_controls SET ${updates.join(", ")} WHERE condition_key = $1`,
     values
   );
+  if (result.rowCount !== 1) {
+    return NextResponse.json({ error: "Banner configuration row not found." }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -29,7 +29,6 @@
 
 import pg from "pg";
 import { createHash } from "crypto";
-import { computeSizing, checkEpochGovernance } from "../l5_unified_shadow.mjs";
 
 // ── Environment validation ─────────────────────────────────────────────────
 const REQUIRED_ENV = [
@@ -57,6 +56,10 @@ const STOP_LOSS_MULT       = 1.0;
 const MIN_SHARE_PRICE      = 5.0;   // reject penny stocks
 const MIN_SHARES           = 1;     // minimum viable position
 const MAX_SINGLE_TRADE_PCT = 5.0;   // hard cap: never risk > 5% in one trade
+// Preserves the already-active CH1 experimental allocation while removing the
+// accidental authority of l5_unified_shadow.mjs. This is a reduced-channel
+// custody value, not a full-field or canonical inference.
+export const CH1_REDUCED_ALLOCATION_PCT = 3.5;
 
 // CH3 entry slippage cap. A market entry into a fast mover fills above the
 // submit-time quote while the brackets stay anchored to it — 2026-07-16 AMAL
@@ -506,12 +509,8 @@ export async function rejectSignal(signal, reason) {
  *
  * @returns {Promise<{ok: boolean, orderId?: string, ledgerId?: number, ...}>}
  */
-export async function executeBracketOrder(signal, opts = {}) {
+export async function executeBracketOrder(signal) {
   const ticker     = String(signal?.ticker ?? "").trim().toUpperCase();
-  const riskPct    = Math.min(
-    Math.max(parseFloat(opts.riskPct ?? process.env.RISK_PER_TRADE_PCT ?? "1.5"), 0.1),
-    MAX_SINGLE_TRADE_PCT,
-  );
 
   // ── Step 0: resolve execution mode (paper vs live) ────────────────────
   const executionMode = await readExecutionMode();
@@ -552,14 +551,8 @@ export async function executeBracketOrder(signal, opts = {}) {
   }
 
   // ── Step 4: position sizing (L5 computeSizing) ────────────────────────
-  const entryLayer = signal.signal_class === "3WA" ? "3WA"
-                   : signal.signal_class === "1+3" ? "1+3" : "TP";
-  const confidence = signal.signal_class === "3WA" ? "HIGH" : "MEDIUM";
-  const signalWR = signal.neighbor_wr ?? null;
-  const epochState = checkEpochGovernance(signal.sector ?? "Unknown");
-  const l5Sizing = computeSizing(entryLayer, confidence, signalWR, epochState.phase);
-  const effectiveRiskPct = l5Sizing.sizePct * 100;  // computeSizing returns fraction, bridge uses percentage
-  console.log(`[BRIDGE] L5 sizing: ${l5Sizing.reason} → ${effectiveRiskPct.toFixed(2)}% | neighbor_wr=${signalWR?.toFixed(3) ?? "null"} (was fixed ${riskPct}%)`);
+  const effectiveRiskPct = Math.min(CH1_REDUCED_ALLOCATION_PCT, MAX_SINGLE_TRADE_PCT);
+  console.log(`[BRIDGE] CH1 reduced experimental allocation: ${effectiveRiskPct.toFixed(2)}%`);
 
   const dollarAllocation = vaultEquity * (effectiveRiskPct / 100);
   const shares           = Math.floor(dollarAllocation / currentPrice);

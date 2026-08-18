@@ -23,8 +23,6 @@
  */
 
 import pg from "pg";
-import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
-
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
   port:     parseInt(process.env.PGPORT ?? "5432", 10),
@@ -269,42 +267,18 @@ export async function get3WASignals() {
 
   console.log(`[STRATEGIST] SPY D_k=1 — Wave 3 ACTIVE`);
 
-  // ── Regime exposure gate (position capacity check) ──────────────────
-  {
-    const openRes = await pool.query(
-      `SELECT COUNT(*) AS cnt FROM personal_trade_ledger WHERE status IN ('submitted', 'filled')`
-    );
-    const openCount = parseInt(openRes.rows[0]?.cnt ?? "0", 10);
-
-    const regime = computeRegimeExposure(spyDk, openCount, 30, 0);
-    console.log(`[STRATEGIST] Regime: ${regime.reason} | openPositions=${openCount}`);
-
-    if (!regime.newEntriesAllowed) {
-      console.log(`[STRATEGIST] REGIME BLOCK — ${regime.reason}`);
-      return [];
-    }
-  }
-
   // Fetch species profiles and candidates
-  let speciesMap = new Map();
-  let rows;
-  try {
-    [speciesMap, rows] = await Promise.all([
-      fetchSpeciesProfiles(),
-      fetchCandidateRows(runId),
-    ]);
-    console.log(`[STRATEGIST] species_profiles loaded: ${speciesMap.size} tickers`);
-  } catch (speciesErr) {
-    // species_profiles table missing or query failed — degrade gracefully.
-    // Signals tag as '1+3' or 'standard' instead of '3WA'. No sizing change
-    // upward, no additional trades. The only effect is down-tagging: signals
-    // that would be '3WA' (3.5% sizing) become '1+3' (2.5% sizing).
-    console.warn(`[STRATEGIST] species_profiles unavailable: ${speciesErr.message} — degrading to empty species map`);
-    speciesMap = new Map();
-    rows = rows ?? await fetchCandidateRows(runId);
-  }
+  const [speciesMap, rows] = await Promise.all([
+    fetchSpeciesProfiles(),
+    fetchCandidateRows(runId),
+  ]);
+  console.log(`[STRATEGIST] species_profiles loaded: ${speciesMap.size} tickers`);
 
-  const signals = rows.map(r => parseSignal(r, spyDk, speciesMap)).filter(Boolean);
+  const classifiedSignals = rows.map(r => parseSignal(r, spyDk, speciesMap)).filter(Boolean);
+  // The bridge contract accepts only a complete reduced 3WA classification.
+  // W1+SPY and ordinary Accumulate rows are diagnostic classifications, not
+  // failed orders, and must never be emitted into execution custody.
+  const signals = classifiedSignals.filter(signal => signal.signal_class === "3WA");
 
   // Exclude tickers that already have open positions
   const openTickers = await fetchOpenPositionTickers();
@@ -321,7 +295,7 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} reduced-3WA executable → ${deduped.length} after dedup`);
   console.log(`[STRATEGIST] signal_class distribution: 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);

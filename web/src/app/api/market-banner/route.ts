@@ -1,59 +1,44 @@
-/**
- * Public (authenticated-user) endpoint that returns the active market banner
- * for the current SPY D_k state. Used by MarketConditionBanner on the
- * Recommendations page.
- *
- * Returns:
- *   { conditionKey, backgroundImagePath, instructionalText, textColorHex, spyDk, isMarketLocked }
- */
 import { NextResponse } from "next/server";
 import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool, RUNTIME_DECISIONS_TABLE } from "@/lib/runtime-db";
 
-function safeFloat(val: unknown): number | null {
-  if (val === null || val === undefined) return null;
-  const f = typeof val === "number" ? val : parseFloat(String(val));
-  return isFinite(f) ? f : null;
+function exactDk(value: unknown): -1 | 0 | 1 {
+  const parsed = Number(value);
+  if (parsed === -1 || parsed === 0 || parsed === 1) return parsed;
+  throw new Error("SPY_D_k_missing_or_invalid");
 }
 
-function dkToKey(dk: number | null): string {
-  if (dk === null) return "D_k_minus_1"; // default to caution when unknown
-  if (dk >= 1) return "D_k_plus_1";
-  if (dk <= -1) return "D_k_minus_1";
+function dkToKey(dk: -1 | 0 | 1): "D_k_minus_1" | "D_k_0" | "D_k_plus_1" {
+  if (dk === -1) return "D_k_minus_1";
+  if (dk === 1) return "D_k_plus_1";
   return "D_k_0";
 }
 
-export async function GET(request: Request) {
+function validColor(value: string): boolean {
+  return /^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value);
+}
+
+export async function GET() {
   const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
   const pool = resolveRuntimePostgresPool();
-
-  // Resolve SPY D_k
-  let spyDk: number | null = null;
   try {
-    const spyRes = await pool.query<{ snapshot_row_json: unknown; decision_label: string | null }>(
-      `SELECT snapshot_row_json, decision_label FROM ${RUNTIME_DECISIONS_TABLE} WHERE ticker = 'SPY' LIMIT 1`
+    const spyResult = await pool.query<{ snapshot_row_json: unknown }>(
+      `SELECT snapshot_row_json
+       FROM ${RUNTIME_DECISIONS_TABLE}
+       WHERE ticker = 'SPY'
+       LIMIT 1`,
     );
-    if (spyRes.rows.length > 0) {
-      const snap =
-        spyRes.rows[0].snapshot_row_json &&
-        typeof spyRes.rows[0].snapshot_row_json === "object" &&
-        !Array.isArray(spyRes.rows[0].snapshot_row_json)
-          ? (spyRes.rows[0].snapshot_row_json as Record<string, unknown>)
-          : {};
-      spyDk = safeFloat(snap["D_k"]);
+    if (spyResult.rows.length !== 1) throw new Error("SPY_field_row_unavailable");
+    const snapshot = spyResult.rows[0].snapshot_row_json;
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+      throw new Error("SPY_field_payload_invalid");
     }
-  } catch {
-    // Leave spyDk null — will map to D_k_minus_1 (cautious default)
-  }
 
-  const conditionKey = dkToKey(spyDk);
-  const isMarketLocked = conditionKey === "D_k_minus_1";
-
-  // Fetch banner row
-  try {
-    const bannerRes = await pool.query<{
+    const spyDk = exactDk((snapshot as Record<string, unknown>).D_k);
+    const conditionKey = dkToKey(spyDk);
+    const bannerResult = await pool.query<{
       background_image_path: string;
       instructional_text: string;
       text_color_hex: string;
@@ -62,28 +47,27 @@ export async function GET(request: Request) {
        FROM ui_asset_controls
        WHERE condition_key = $1
        LIMIT 1`,
-      [conditionKey]
+      [conditionKey],
     );
-
-    const row = bannerRes.rows[0];
+    if (bannerResult.rows.length !== 1) throw new Error(`banner_configuration_missing:${conditionKey}`);
+    const row = bannerResult.rows[0];
+    if (!validColor(row.text_color_hex)) throw new Error(`banner_text_color_invalid:${conditionKey}`);
 
     return NextResponse.json({
       conditionKey,
-      backgroundImagePath: row?.background_image_path ?? "",
-      instructionalText: row?.instructional_text ?? "",
-      textColorHex: row?.text_color_hex ?? "#FFFFFF",
+      backgroundImagePath: row.background_image_path,
+      instructionalText: row.instructional_text,
+      textColorHex: row.text_color_hex,
       spyDk,
-      isMarketLocked,
+      fieldCoverage: "single_observed_D_k",
     });
-  } catch {
-    // If table doesn't exist yet (before migration), return safe defaults
-    return NextResponse.json({
-      conditionKey,
-      backgroundImagePath: "",
-      instructionalText: "",
-      textColorHex: "#FFFFFF",
-      spyDk,
-      isMarketLocked,
-    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "market_condition_unavailable",
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 503 },
+    );
   }
 }

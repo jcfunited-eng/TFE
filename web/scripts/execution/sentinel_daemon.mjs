@@ -22,7 +22,7 @@ import { getCh3Signals, closeCh3StrategistPool } from "./ch3_scalp_strategist.mj
 import { get3WASignals, closeStrategistPool } from "./3wa_strategist.mjs";
 import { getCh2Signals, closeCh2StrategistPool } from "./ch2_strategist.mjs";
 import { executeBracketOrder, executeCh2BracketOrder,
-         executeCh3MarketOrder } from "./alpaca_bridge.mjs";
+         executeCh3MarketOrder, CH1_REDUCED_ALLOCATION_PCT } from "./alpaca_bridge.mjs";
 import { isTradingDay, getHolidayName } from "./market_calendar.mjs";
 import {
   isCh3RearmWindowEastern,
@@ -262,7 +262,7 @@ async function runDailyEntryPass() {
   }
 
   // ── Build daily budget (snapshot, does not change during this pass) ──
-  const riskPct = 2.5;  // matches CH2_RISK_PCT in alpaca_bridge
+  const riskPct = Math.max(2.5, CH1_REDUCED_ALLOCATION_PCT);
   const budget = {
     cashRemaining: acct.cash,
     invested: acct.invested,

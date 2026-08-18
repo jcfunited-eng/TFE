@@ -11,21 +11,6 @@ const CLOSE_MIN       = 5.0;
 const FN_MAX          = 1.65;
 const NEW_LISTING_BARS = 20;   // bar_count <= this = new listing
 
-// ── Backtest reference stats (quarantine_12k, Mar 2021–Mar 2026) ─────────────
-const BASELINE_WIN_RATE   = 54.4;
-const LANE_A_WIN_RATE     = 57.5;
-const LANE_A_BACKTEST_N   = 5187;
-const LANE_B_WIN_RATE     = 65.3;
-const LANE_B_BACKTEST_N   = 2906;
-
-// ── Three-Wave Alignment backtest reference (quarantine_12k) ─────────────────
-// Wave 1+2+3 combined (Structure A + calm species + SPY D_k=1): 86.7%, n=75
-// Wave 1+3 only (Structure A + SPY D_k=1): 84.5%, n=375
-// Wave 1 only (Structure A): 72.1%, n=1064
-const THREE_WAVE_WIN_RATE_FULL  = 86.7;  // all three waves
-const THREE_WAVE_WIN_RATE_W1W3  = 84.5;  // waves 1+3 (no species filter)
-const THREE_WAVE_WIN_RATE_W1    = 72.1;  // wave 1 only
-
 type SectorCount = { sector: string; count: number; pct: number };
 
 type FieldStats = {
@@ -41,8 +26,8 @@ type FieldStats = {
 type LaneResult = {
   label: string;
   thresholds: Record<string, number>;
-  backtestWinRate: number;
-  backtestN: number;
+  backtestWinRate: null;
+  backtestN: null;
   survivors: number;
   survivorSymbols: string[];
   sectorConcentration: SectorCount[];
@@ -52,7 +37,6 @@ type LaneAResult = LaneResult & { fnStats: FieldStats };
 
 // ── Market wave state (Component 1: SPY D_k) ─────────────────────────────────
 // SPY D_k=1 signals structural market expansion (Wave 3 in 3WA model).
-// When active, Lane B new-listing win rate escalates toward 84.5% (Waves 1+3).
 type MarketWaveState = {
   active: boolean;          // true when SPY D_k = 1
   spyDecision: string | null;  // raw decision_label from DB for SPY
@@ -65,17 +49,14 @@ export type SignalFilterPayload = {
   totalAccumulate: number;
   laneA: LaneAResult;
   laneB: LaneResult;
-  baselineWinRate: number;
+  baselineWinRate: null;
   marketWave: MarketWaveState;
-  threeWaveBacktest: {
-    fullWinRate: number;   // 86.7% (Waves 1+2+3)
-    w1w3WinRate: number;   // 84.5% (Waves 1+3, no species)
-    w1WinRate: number;     // 72.1% (Wave 1 only)
-  };
+  fieldCoverage: "reduced_projection";
+  evidenceStatus: "performance_claims_withheld_no_receipted_artifact";
   error?: string;
 };
 
-async function requireAdmin(request: Request): Promise<NextResponse | null> {
+async function requireAdmin(): Promise<NextResponse | null> {
   const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
@@ -129,46 +110,41 @@ function sectorConcentration(items: { sector: string }[]): SectorCount[] {
 }
 
 async function queryMarketWave(pool: ReturnType<typeof resolveRuntimePostgresPool>): Promise<MarketWaveState> {
-  try {
-    const res = await pool.query<{ decision_label: string | null; snapshot_row_json: unknown }>(
-      `SELECT decision_label, snapshot_row_json
-       FROM ${RUNTIME_DECISIONS_TABLE}
-       WHERE ticker = 'SPY'
-       LIMIT 1`
-    );
-    if (res.rows.length === 0) {
-      return { active: false, spyDecision: null, spyDk: null, note: "SPY not found in runtime_decisions_latest" };
-    }
-    const row = res.rows[0];
-    const snap = row.snapshot_row_json && typeof row.snapshot_row_json === "object" && !Array.isArray(row.snapshot_row_json)
-      ? (row.snapshot_row_json as Record<string, unknown>)
-      : {};
-    const dk = safeFloat(snap["D_k"]);
-    const active = row.decision_label === "Accumulate" || dk === 1;
-    return {
-      active,
-      spyDecision: row.decision_label ?? null,
-      spyDk: dk,
-      note: active
-        ? "SPY in structural expansion (D_k=1) — Wave 3 active. Lane B escalates toward 84.5%."
-        : "SPY not in structural expansion — Wave 3 inactive. Standard win rates apply.",
-    };
-  } catch {
-    return { active: false, spyDecision: null, spyDk: null, note: "Market wave query failed — SPY state unknown" };
+  const res = await pool.query<{ decision_label: string | null; snapshot_row_json: unknown }>(
+    `SELECT decision_label, snapshot_row_json
+     FROM ${RUNTIME_DECISIONS_TABLE}
+     WHERE ticker = 'SPY'
+     LIMIT 1`
+  );
+  if (res.rows.length === 0) throw new Error("SPY field row is unavailable");
+  const row = res.rows[0];
+  if (!row.snapshot_row_json || typeof row.snapshot_row_json !== "object" || Array.isArray(row.snapshot_row_json)) {
+    throw new Error("SPY field payload is invalid");
   }
+  const dk = safeFloat((row.snapshot_row_json as Record<string, unknown>)["D_k"]);
+  if (dk === null) throw new Error("SPY D_k is unavailable");
+  const active = dk === 1;
+  return {
+    active,
+    spyDecision: row.decision_label ?? null,
+    spyDk: dk,
+    note: active
+      ? "Observed SPY D_k=1. This is one reduced field observation, not a full-field performance claim."
+      : `Observed SPY D_k=${dk}. This is one reduced field observation, not a full-field performance claim.`,
+  };
 }
 
-export async function GET(request: Request) {
-  const denied = await requireAdmin(request);
+export async function GET() {
+  const denied = await requireAdmin();
   if (denied) return denied;
 
   const pool = resolveRuntimePostgresPool();
 
   const emptyLaneA: LaneAResult = {
-    label: `F_n Established (bar_count > ${NEW_LISTING_BARS})`,
+    label: `Reduced F_n projection (bar_count > ${NEW_LISTING_BARS})`,
     thresholds: { closeMin: CLOSE_MIN, fnMax: FN_MAX, barCountMin: NEW_LISTING_BARS },
-    backtestWinRate: LANE_A_WIN_RATE,
-    backtestN: LANE_A_BACKTEST_N,
+    backtestWinRate: null,
+    backtestN: null,
     survivors: 0,
     survivorSymbols: [],
     sectorConcentration: [],
@@ -176,19 +152,13 @@ export async function GET(request: Request) {
   };
 
   const emptyLaneB: LaneResult = {
-    label: `New Listing (bar_count ≤ ${NEW_LISTING_BARS})`,
+    label: `Reduced coverage projection (bar_count ≤ ${NEW_LISTING_BARS})`,
     thresholds: { closeMin: CLOSE_MIN, barCountMax: NEW_LISTING_BARS },
-    backtestWinRate: LANE_B_WIN_RATE,
-    backtestN: LANE_B_BACKTEST_N,
+    backtestWinRate: null,
+    backtestN: null,
     survivors: 0,
     survivorSymbols: [],
     sectorConcentration: [],
-  };
-
-  const threeWaveBacktest = {
-    fullWinRate: THREE_WAVE_WIN_RATE_FULL,
-    w1w3WinRate: THREE_WAVE_WIN_RATE_W1W3,
-    w1WinRate: THREE_WAVE_WIN_RATE_W1,
   };
 
   try {
@@ -214,9 +184,10 @@ export async function GET(request: Request) {
         totalAccumulate: 0,
         laneA: emptyLaneA,
         laneB: emptyLaneB,
-        baselineWinRate: BASELINE_WIN_RATE,
+        baselineWinRate: null,
         marketWave,
-        threeWaveBacktest,
+        fieldCoverage: "reduced_projection",
+        evidenceStatus: "performance_claims_withheld_no_receipted_artifact",
       } satisfies SignalFilterPayload);
     }
 
@@ -253,10 +224,10 @@ export async function GET(request: Request) {
     const fnVals = laneARows.flatMap(p => p.fn !== null ? [p.fn] : []);
 
     const laneA: LaneAResult = {
-      label: `F_n Established (bar_count > ${NEW_LISTING_BARS})`,
+      label: `Reduced F_n projection (bar_count > ${NEW_LISTING_BARS})`,
       thresholds: { closeMin: CLOSE_MIN, fnMax: FN_MAX, barCountMin: NEW_LISTING_BARS },
-      backtestWinRate: LANE_A_WIN_RATE,
-      backtestN: LANE_A_BACKTEST_N,
+      backtestWinRate: null,
+      backtestN: null,
       survivors: laneARows.length,
       survivorSymbols: laneARows.map(p => p.ticker).sort(),
       sectorConcentration: laneARows.length > 0 ? sectorConcentration(laneARows.map(p => ({ sector: p.sector }))) : [],
@@ -270,10 +241,10 @@ export async function GET(request: Request) {
     );
 
     const laneB: LaneResult = {
-      label: `New Listing (bar_count ≤ ${NEW_LISTING_BARS})`,
+      label: `Reduced coverage projection (bar_count ≤ ${NEW_LISTING_BARS})`,
       thresholds: { closeMin: CLOSE_MIN, barCountMax: NEW_LISTING_BARS },
-      backtestWinRate: LANE_B_WIN_RATE,
-      backtestN: LANE_B_BACKTEST_N,
+      backtestWinRate: null,
+      backtestN: null,
       survivors: laneBRows.length,
       survivorSymbols: laneBRows.map(p => p.ticker).sort(),
       sectorConcentration: laneBRows.length > 0 ? sectorConcentration(laneBRows.map(p => ({ sector: p.sector }))) : [],
@@ -284,23 +255,25 @@ export async function GET(request: Request) {
       totalAccumulate: total,
       laneA,
       laneB,
-      baselineWinRate: BASELINE_WIN_RATE,
+      baselineWinRate: null,
       marketWave,
-      threeWaveBacktest,
+      fieldCoverage: "reduced_projection",
+      evidenceStatus: "performance_claims_withheld_no_receipted_artifact",
     } satisfies SignalFilterPayload);
 
   } catch (error) {
     const message = error instanceof Error ? error.message : "Signal filter query failed.";
-    const fallbackWave: MarketWaveState = { active: false, spyDecision: null, spyDk: null, note: "Market wave unavailable due to query error" };
+    const unavailableWave: MarketWaveState = { active: false, spyDecision: null, spyDk: null, note: "Market wave unavailable due to query error" };
     return NextResponse.json({
       generatedAtUtc: new Date().toISOString(),
       totalAccumulate: 0,
       laneA: emptyLaneA,
       laneB: emptyLaneB,
-      baselineWinRate: BASELINE_WIN_RATE,
-      marketWave: fallbackWave,
-      threeWaveBacktest,
+      baselineWinRate: null,
+      marketWave: unavailableWave,
+      fieldCoverage: "reduced_projection",
+      evidenceStatus: "performance_claims_withheld_no_receipted_artifact",
       error: message,
-    } satisfies SignalFilterPayload);
+    } satisfies SignalFilterPayload, { status: 503 });
   }
 }
