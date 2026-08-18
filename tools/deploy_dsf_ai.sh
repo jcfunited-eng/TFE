@@ -1271,32 +1271,12 @@ if [ "${AUDITORY_UNAUTH_HTTP}" != "401" ]; then
 fi
 echo "[routes] Auditory status and tutor authentication verified through API Gateway."
 
-# ── Step 8: Sync static files to S3 + CloudFront invalidation ──
+# ── Step 8: Publish static files with byte receipts ──
 echo ""
-echo "[deploy] Syncing static files to S3 and invalidating CloudFront..."
-
-CF_DIST_ID="E17JT9XGBFU493"
-S3_SITE_BUCKET="dsf-ai-site"
-
-aws s3 sync "${STAGING}/dsf_ai_service/static/" "s3://${S3_SITE_BUCKET}/" \
-    --exclude "*.csv" --exclude "*.xml" --exclude "robots.txt" \
-    --cache-control "no-cache, must-revalidate"
-
-INV_ID=$(aws cloudfront create-invalidation \
-    --distribution-id "${CF_DIST_ID}" \
-    --paths "/*.html" "/app.js" "/style.css" \
-    --query 'Invalidation.Id' \
-    --output text)
-echo "  CloudFront invalidation: ${INV_ID}"
-
-if aws cloudfront wait invalidation-completed \
-    --distribution-id "${CF_DIST_ID}" \
-    --id "${INV_ID}"; then
-    echo "[deploy] Static sync + CloudFront invalidation complete."
-else
-    echo "ERROR: CloudFront invalidation did not complete within the waiter timeout"
-    exit 1
-fi
+echo "[deploy] Publishing static manifest, verifying every S3 byte, and invalidating CloudFront..."
+bash "${STAGING}/tools/publish_dsf_ai_static_site.sh" \
+    "${STAGING}/dsf_ai_service/static" \
+    "${GIT_SHA}"
 
 # ── Summary ──
 echo ""
@@ -1305,7 +1285,7 @@ echo "  Deploy complete"
 echo "  Image:    ${IMAGE_URI}"
 echo "  Task def: ${TASK_FAMILY}:${NEW_REV}"
 echo "  Git SHA:  ${GIT_SHA}"
-echo "  Static:   s3://${S3_SITE_BUCKET}/ from ${GIT_SHA} archive"
+echo "  Static:   s3://dsf-ai-site/static/ plus root web controls from ${GIT_SHA} archive"
 echo ""
 echo "  dsf-ai.com should reflect changes within 1-2 minutes."
 echo "═══════════════════════════════════════════"
