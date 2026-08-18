@@ -3,6 +3,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Pool } from "pg";
+import {
+  binaryValidationCheck,
+  buildValidationCheck,
+  taSemanticsValidationCheck,
+  validationReportPassed,
+} from "./validation_status.mjs";
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MAX_AGE_HOURS = 30;
@@ -106,14 +112,6 @@ function readOptionalEnv(...names) {
   return "";
 }
 
-function readBooleanEnv(name, fallback) {
-  const raw = String(process.env[name] ?? "").trim().toLowerCase();
-  if (!raw) return fallback;
-  if (["1", "true", "yes", "on"].includes(raw)) return true;
-  if (["0", "false", "no", "off"].includes(raw)) return false;
-  return fallback;
-}
-
 function readBoundedIntEnv(name, fallback, minimum, maximum) {
   const raw = String(process.env[name] ?? "").trim();
   if (!raw) return fallback;
@@ -126,7 +124,6 @@ function readBoundedIntEnv(name, fallback, minimum, maximum) {
 }
 
 async function runApiFilterValidation(root) {
-  const strictRequired = readBooleanEnv("TFE_VALIDATION_REQUIRE_API_FILTER_CHECK", false);
   const baseUrl = readOptionalEnv("TFE_VALIDATION_BASE_URL", "TFE_BASE_URL", "TFE_WEB_BASE_URL");
   const username = readOptionalEnv("TFE_VALIDATION_USERNAME", "TFE_VALIDATION_USER", "TFE_LOGIN_USERNAME", "TFE_USERNAME");
   const password = readOptionalEnv("TFE_VALIDATION_PASSWORD", "TFE_LOGIN_PASSWORD", "TFE_PASSWORD");
@@ -134,8 +131,8 @@ async function runApiFilterValidation(root) {
   if (!baseUrl || !username || !password) {
     return {
       configured: false,
-      strict_required: strictRequired,
-      passed: !strictRequired,
+      status: "not_run",
+      passed: false,
       details: {
         base_url_present: Boolean(baseUrl),
         username_present: Boolean(username),
@@ -200,7 +197,7 @@ async function runApiFilterValidation(root) {
     writeFileSync(outPath, `${JSON.stringify(summary, null, 2)}\n`, "utf-8");
     return {
       configured: true,
-      strict_required: strictRequired,
+      status: "fail",
       passed: false,
       details: {
         out_path: outPath,
@@ -297,7 +294,7 @@ async function runApiFilterValidation(root) {
   const passed = payload.status === "pass";
   return {
     configured: true,
-    strict_required: strictRequired,
+    status: passed ? "pass" : "fail",
     passed,
     details: {
       out_path: outPath,
@@ -324,7 +321,7 @@ async function tableExists(client, tableName) {
 }
 
 function buildCheck(name, pass, details) {
-  return { name, status: pass ? "pass" : "fail", details };
+  return binaryValidationCheck(name, pass, details);
 }
 
 function buildTaAnchorValidExpression(columnName, anchorName) {
@@ -657,15 +654,13 @@ async function main() {
       const sma200WithValidAnchor = Number(tRow.sma200_with_valid_anchor ?? 0);
       const rsi14WithinRange = Number(tRow.rsi14_within_range ?? 0);
       const flaggedTaRows = Number(tRow.flagged_rows ?? 0);
-      const taSemanticsObservedPass =
-        taTotal > 0 &&
-        sma20WithValidAnchor === taTotal &&
-        sma50WithValidAnchor === taTotal &&
-        sma200WithValidAnchor === taTotal &&
-        rsi14WithinRange === taTotal;
-      const taSemanticsPass = taTotal > 0;
-      checks.push(
-        buildCheck("ta_semantics_integrity", taSemanticsPass, {
+      const taSemanticsCheck = taSemanticsValidationCheck({
+        totalRows: taTotal,
+        sma20WithValidAnchor,
+        sma50WithValidAnchor,
+        sma200WithValidAnchor,
+        rsi14WithinRange,
+        details: {
           total_rows: taTotal,
           sma20_with_valid_anchor: sma20WithValidAnchor,
           sma50_with_valid_anchor: sma50WithValidAnchor,
@@ -673,11 +668,13 @@ async function main() {
           rsi14_within_range: rsi14WithinRange,
           flagged_rows: flaggedTaRows,
           flagged_rows_sample: taFlaggedSamples.rows,
-          observed_status: taSemanticsObservedPass ? "pass" : "flagged",
-          enforcement: "flag_only_non_blocking",
           ta_semantics_basis: "runtime_metrics_latest stores SMA drift percentages backed by positive raw SMA anchors in metrics_json",
-        }),
-      );
+        },
+      });
+      checks.push(taSemanticsCheck);
+      if (taSemanticsCheck.status !== "pass") {
+        blockingReason = blockingReason ?? "ta_semantics_integrity_failed";
+      }
 
       const latestRun = await client.query(`
         SELECT
@@ -847,30 +844,35 @@ async function main() {
         if (mode === "universe_snapshot") universeRuns += 1;
       }
 
-      const scheduleStrictRequired = readBooleanEnv("TFE_VALIDATION_REQUIRE_SCHEDULE_EVIDENCE", false);
       const scheduleObservedPass = snapshotRuns > 0 && universeRuns > 0;
-      const schedulePass = scheduleStrictRequired ? scheduleObservedPass : true;
       checks.push(
-        buildCheck("schedule_evidence", schedulePass, {
-          strict_required: scheduleStrictRequired,
+        buildCheck("schedule_evidence", scheduleObservedPass, {
           observed_pass: scheduleObservedPass,
           lookback_days: lookbackDays,
           snapshot_runs: snapshotRuns,
           universe_snapshot_runs: universeRuns,
         }),
       );
-      if (!schedulePass) {
+      if (!scheduleObservedPass) {
         blockingReason = blockingReason ?? "schedule_evidence_missing";
       }
 
       const apiFilterValidation = await runApiFilterValidation(root);
-      checks.push(buildCheck("ui_filter_behavior_integrity", apiFilterValidation.passed, apiFilterValidation.details));
+      checks.push(buildValidationCheck(
+        "ui_filter_behavior_integrity",
+        apiFilterValidation.status,
+        apiFilterValidation.details,
+      ));
       if (!apiFilterValidation.passed) {
-        blockingReason = blockingReason ?? "ui_filter_behavior_integrity_failed";
+        blockingReason = blockingReason ?? (
+          apiFilterValidation.status === "not_run"
+            ? "ui_filter_behavior_integrity_not_run"
+            : "ui_filter_behavior_integrity_failed"
+        );
       }
     }
 
-    let passed = checks.every((check) => check.status === "pass");
+    let passed = validationReportPassed(checks);
     if (!passed && !blockingReason) {
       blockingReason = "at_least_one_check_failed";
     }
@@ -916,7 +918,7 @@ async function main() {
       blockingReason = blockingReason ?? "validation_report_history_persist_failed";
     }
 
-    passed = checks.every((check) => check.status === "pass");
+    passed = validationReportPassed(checks);
     if (!passed && !blockingReason) {
       blockingReason = "at_least_one_check_failed";
     }

@@ -1,74 +1,63 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 
 import { getCurrentServerUser } from "@/lib/server-auth";
-import { resolveWorkspaceRoot } from "@/lib/workspace-root";
+import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
+import { reconcileValidationReport } from "@/lib/validation-report-truth";
 
-const ROOT_DIR = resolveWorkspaceRoot();
-const VALIDATION_REPORT_PATH = path.join(ROOT_DIR, "validation-report-v1.json");
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-type ValidationCheck = {
-  name?: string;
-  status?: string;
-  details?: unknown;
-};
-
-type ValidationReport = {
-  status?: string;
-  generated_at_utc?: string;
-  run_id?: string | null;
-  checks?: ValidationCheck[];
-  blocking_reason?: string | null;
-};
-
-async function requireAdmin(request: Request): Promise<NextResponse | null> {
+async function requireAdmin(): Promise<NextResponse | null> {
   const user = await getCurrentServerUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  if (user.role !== "admin") {
-    return NextResponse.json({ error: "Admin role required." }, { status: 403 });
-  }
-
+  if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
   return null;
 }
 
-function normalizeReport(value: unknown): ValidationReport | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as ValidationReport;
-}
-
-export async function GET(request: Request) {
-  const denied = await requireAdmin(request);
+export async function GET() {
+  const denied = await requireAdmin();
   if (denied) return denied;
 
   try {
-    const raw = await readFile(VALIDATION_REPORT_PATH, "utf-8");
-    const parsed = JSON.parse(raw) as unknown;
-    const report = normalizeReport(parsed);
+    const pool = resolveRuntimePostgresPool();
+    const table = await pool.query<{ table_name: string | null }>(
+      "SELECT to_regclass('public.runtime_validation_reports')::text AS table_name",
+    );
+    if (!table.rows[0]?.table_name) {
+      return NextResponse.json({ exists: false, source: "postgres", report: null });
+    }
+
+    const latest = await pool.query<{ report_json: unknown }>(
+      `SELECT report_json
+       FROM runtime_validation_reports
+       ORDER BY generated_at_utc DESC, created_at DESC
+       LIMIT 1`,
+    );
+    if (latest.rows.length === 0) {
+      return NextResponse.json({ exists: false, source: "postgres", report: null });
+    }
+
+    const report = reconcileValidationReport(latest.rows[0].report_json);
     if (!report) {
       return NextResponse.json(
-        {
-          exists: false,
-          path: VALIDATION_REPORT_PATH,
-          error: "validation-report-v1.json exists but has invalid JSON shape.",
-        },
+        { exists: false, source: "postgres", report: null, error: "Latest validation report has an invalid shape." },
         { status: 500 },
       );
     }
 
-    return NextResponse.json({
-      exists: true,
-      path: VALIDATION_REPORT_PATH,
-      report,
-    });
-  } catch {
-    return NextResponse.json({
-      exists: false,
-      path: VALIDATION_REPORT_PATH,
-      report: null,
-    });
+    return NextResponse.json(
+      { exists: true, source: "postgres", report },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        exists: false,
+        source: "postgres",
+        report: null,
+        error: error instanceof Error ? error.message : "Validation history query failed.",
+      },
+      { status: 503 },
+    );
   }
 }

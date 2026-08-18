@@ -1,5 +1,6 @@
 import { requireServerAdminUser } from "@/lib/server-auth";
 import ValidationDashboard from "@/components/ValidationDashboard";
+import ValidationGatePanel from "@/components/ValidationGatePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function ValidationPage() {
             Validation period started April 6, 2026.
           </p>
         </div>
+        <ValidationGatePanel />
         <ValidationDashboard />
       </div>
     </main>
