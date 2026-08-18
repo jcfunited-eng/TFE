@@ -31,6 +31,7 @@ from ch_short_refutation import has_unreset_refutation
 
 
 ROOT = Path(__file__).resolve().parents[1]
+_HERD_COVERAGE: set = set()
 ENTRIES_HALT_FILE = ROOT / 'HALT_CH3_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 STORE = ROOT / "ch4_live_store.parquet"
 TAIL = ROOT / "ch3_supply_tail.parquet"
@@ -95,6 +96,16 @@ def load_market() -> tuple[pd.DataFrame, np.ndarray, pd.Timestamp]:
         market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
     market.attrs["covered_universe"] = covered_universe
     return market, days, latest
+
+
+def herd_coverage_universe(sessions: int = 10) -> set:
+    """Names the herd system has published in the recent window. A name
+    outside this set is uncovered BY CONSTRUCTION (the herd system does
+    not track it); a name inside it with a missing row today is a data
+    gap and fails closed."""
+    herd = pd.read_parquet(HERD, columns=["sym", "date"])
+    recent = sorted(herd["date"].astype(int).unique())[-sessions:]
+    return set(herd.loc[herd["date"].astype(int).isin(recent), "sym"].astype(str))
 
 
 def explicit_low_herd(latest: pd.Timestamp) -> dict[str, int]:
@@ -169,6 +180,8 @@ def candidate_events(
     herd_state: dict[str, int],
     anomaly_cuts: list[dict[str, object]],
 ) -> tuple[list[dict[str, object]], int, int]:
+    global _HERD_COVERAGE
+    _HERD_COVERAGE = herd_coverage_universe()
     events: list[dict[str, object]] = []
     refused_unknown_herd = 0
     refused_refutation = 0
@@ -189,7 +202,7 @@ def candidate_events(
             continue
 
         gband = herd_state.get(str(symbol))
-        covered = str(symbol) in market.attrs.get("covered_universe", set())
+        covered = str(symbol) in _HERD_COVERAGE
         if covered:
             # a covered name with no herd row is a DATA GAP: fail closed
             if gband is None:

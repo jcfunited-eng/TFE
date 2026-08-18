@@ -66,5 +66,141 @@
    "B_health": 0.96,
    "L_lock": 0.28
   }
+ },
+ "PFSA": {
+  "symbol": "PFSA",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 1.0,
+   "price": 26.81,
+   "life_peak": 16425.0,
+   "crush": 612.6,
+   "deaths_per_year": 70,
+   "deaths_2wk": 7,
+   "push_up_week": 0.43,
+   "up_sessions_of_5": 2,
+   "B_health": 0.66,
+   "L_lock": 0.05
+  }
+ },
+ "AMLX": {
+  "symbol": "AMLX",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "life_years": 4.2,
+   "price": 35.14,
+   "life_peak": 41.28,
+   "crush": 1.2,
+   "deaths_per_year": 54,
+   "deaths_2wk": 1,
+   "push_up_week": 0.5,
+   "up_sessions_of_5": 1,
+   "B_health": 0.99,
+   "L_lock": 0.03
+  }
+ },
+ "WEAV": {
+  "symbol": "WEAV",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 4.4,
+   "price": 7.29,
+   "life_peak": 21.33,
+   "crush": 2.9,
+   "deaths_per_year": 49,
+   "deaths_2wk": 4,
+   "push_up_week": 0.37,
+   "up_sessions_of_5": 4,
+   "B_health": 0.97,
+   "L_lock": 0.28
+  }
+ },
+ "SLE": {
+  "symbol": "SLE",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 2.5,
+   "price": 5.25,
+   "life_peak": 3244.8,
+   "crush": 618.1,
+   "deaths_per_year": 122,
+   "deaths_2wk": 7,
+   "push_up_week": 0.63,
+   "up_sessions_of_5": 3,
+   "B_health": 0.61,
+   "L_lock": 0.19
+  }
+ },
+ "TNON": {
+  "symbol": "TNON",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 3.7,
+   "price": 5.43,
+   "life_peak": 139384.0,
+   "crush": 25669.2,
+   "deaths_per_year": 113,
+   "deaths_2wk": 28,
+   "push_up_week": 0.17,
+   "up_sessions_of_5": 2,
+   "B_health": 0.73,
+   "L_lock": 0.68
+  }
+ },
+ "OBIO": {
+  "symbol": "OBIO",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 3.1,
+   "price": 5.665,
+   "life_peak": 23.0,
+   "crush": 4.1,
+   "deaths_per_year": 45,
+   "deaths_2wk": 4,
+   "push_up_week": 0.37,
+   "up_sessions_of_5": 4,
+   "B_health": 0.93,
+   "L_lock": 0.03
+  }
+ },
+ "TRIB": {
+  "symbol": "TRIB",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 4.7,
+   "price": 12.43,
+   "life_peak": 1002.0,
+   "crush": 80.6,
+   "deaths_per_year": 121,
+   "deaths_2wk": 4,
+   "push_up_week": 0.65,
+   "up_sessions_of_5": 2,
+   "B_health": 0.92,
+   "L_lock": 0.44
+  }
+ },
+ "AIOS": {
+  "symbol": "AIOS",
+  "verdict": "ALLOW",
+  "rule": "no rule refuses; caps, cut line and clock govern",
+  "facts": {
+   "life_years": 0.4,
+   "price": 14.95,
+   "life_peak": 31.06,
+   "crush": 2.1,
+   "deaths_per_year": 76,
+   "deaths_2wk": 13,
+   "push_up_week": 0.46,
+   "up_sessions_of_5": 2,
+   "B_health": 0.85,
+   "L_lock": 0.31
+  }
  }
 }

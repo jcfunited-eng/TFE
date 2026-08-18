@@ -30,6 +30,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+_HERD_COVERAGE: set = set()
 ENTRIES_HALT_FILE = ROOT / 'HALT_CH6_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 sys.path.insert(0, str(ROOT))
 
@@ -102,6 +103,12 @@ def load_market() -> tuple[pd.DataFrame, list[pd.Timestamp], pd.Timestamp]:
         market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
     market.attrs["covered_universe"] = covered_universe
     return market, days, latest
+
+
+def herd_coverage_universe(sessions: int = 10) -> set:
+    herd = pd.read_parquet(HERD, columns=["sym", "date"])
+    recent = sorted(herd["date"].astype(int).unique())[-sessions:]
+    return set(herd.loc[herd["date"].astype(int).isin(recent), "sym"].astype(str))
 
 
 def explicit_herd(latest: pd.Timestamp) -> dict[str, int]:
@@ -205,6 +212,8 @@ def qualifying_events(
 ) -> tuple[list[dict[str, object]], int, int]:
     recent = market[market["Date"].isin(days[-25:])]
     events: list[dict[str, object]] = []
+    global _HERD_COVERAGE
+    _HERD_COVERAGE = herd_coverage_universe()
     unknown_herd = 0
     active_refutations = 0
     latest_s = latest.strftime("%Y-%m-%d")
@@ -223,7 +232,7 @@ def qualifying_events(
             continue
 
         gband = herd_state.get(str(symbol))
-        covered = str(symbol) in market.attrs.get("covered_universe", set())
+        covered = str(symbol) in _HERD_COVERAGE
         if covered:
             if gband is None:
                 unknown_herd += 1
