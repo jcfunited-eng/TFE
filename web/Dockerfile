@@ -8,8 +8,6 @@ RUN npm ci
 
 FROM public.ecr.aws/docker/library/node:22-bookworm-slim AS builder
 
-# Clerk publishable key must be inlined by Next.js at build time.
-# It is a public key by design and safe to pass as a build arg.
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=""
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
@@ -115,6 +113,8 @@ COPY sector_sphere_coupling_registry_v1.json ./sector_sphere_coupling_registry_v
 
 COPY bar_cache.py ./bar_cache.py
 COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
+COPY rebuild_uf_snapshot_legacy.py ./rebuild_uf_snapshot_legacy.py
+COPY snapshot_generation.py ./snapshot_generation.py
 COPY uf_mdg_snapshot.py ./uf_mdg_snapshot.py
 COPY structural_recency_snapshot.py ./structural_recency_snapshot.py
 COPY run_refresh_with_l5_learning.py ./run_refresh_with_l5_learning.py

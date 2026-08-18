@@ -24,10 +24,9 @@ web/tsconfig.tsbuildinfo
 !web/data/
 !web/data/ui-config.json
 
-# DSF-AI service (GualaLoom) build inputs.
+# DSF-AI service build inputs.
 !dsf_ai_service/
 !dsf_ai_service/**
-# Pretrained recognition artifacts are not part of the production boundary.
 dsf_ai_service/models/
 dsf_ai_service/models/**
 !tools/derive_sppu_weights.py
@@ -79,6 +78,8 @@ yolov8n.onnx
 !sector_sphere_coupling_registry_v1.json
 !bar_cache.py
 !rebuild_uf_snapshot.py
+!rebuild_uf_snapshot_legacy.py
+!snapshot_generation.py
 !tfe_snapshot_restore.py
 !tfe_startup.sh
 !uf_mdg_snapshot.py
@@ -129,10 +130,7 @@ yolov8n.onnx
 !data/**
 !market_data/
 !market_data/**
-!tools/cp2_quality_audit.py
-!tools/evaluate_recommendation_policy_snapshot.py
-!tools/backfill_accumulate_fundamentals.py
 
-# Native organism kernels (GL native-core track, 2026-07-16)
+# Native organism kernels.
 !native/guala_core/
 native/guala_core/target/
