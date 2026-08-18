@@ -145,12 +145,14 @@
 }
 
 .positive {
-  color: #14733d;
+  color: #15803d;
+  font-weight: 700;
 }
 
 .negative,
 .failure {
-  color: #b52c25;
+  color: #dc2626;
+  font-weight: 700;
 }
 
 @media (prefers-color-scheme: dark) {
