@@ -1,9 +1,18 @@
+import Link from "next/link";
 import PortfolioAdvisorManager from "@/components/PortfolioAdvisorManager";
 import PortfolioTFEManager from "@/components/PortfolioTFEManager";
 import SiteFrame from "@/components/SiteFrame";
 import { requireServerUser } from "@/lib/server-auth";
 import { getUiConfig } from "@/lib/ui-config";
 import styles from "./page.module.css";
+
+
+const CHANNEL_LINKS = [
+  { href: "/portfolio/ch3", code: "CH3", title: "Shadow Hunter", note: "Paper short book" },
+  { href: "/portfolio/ch4", code: "CH4", title: "Structural Channel", note: "Frozen paper experiment" },
+  { href: "/portfolio/ch6", code: "CH6", title: "Fast Harvest", note: "Paper daily-cash test" },
+] as const;
+
 
 export default async function PortfolioPage() {
   const user = await requireServerUser("/portfolio-advisor");
@@ -15,14 +24,31 @@ export default async function PortfolioPage() {
       <section className="surface-card">
         <h1>Portfolio</h1>
 
-        {/* ── TFE Automated Portfolio Manager — admin only ─────────────── */}
+        {isAdmin && (
+          <div className={styles.channelSection}>
+            <div className={styles.channelHeading}>
+              <h2>Channel books</h2>
+              <p>Read-only received records. These pages cannot place or alter an order.</p>
+            </div>
+            <div className={styles.channelLinks}>
+              {CHANNEL_LINKS.map((channel) => (
+                <Link key={channel.code} href={channel.href} className={styles.channelLink}>
+                  <span className={styles.channelCode}>{channel.code}</span>
+                  <strong>{channel.title}</strong>
+                  <small>{channel.note}</small>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {isAdmin && (
           <div style={{ marginBottom: 40 }}>
             <PortfolioTFEManager />
           </div>
         )}
 
-        {/* ── Manual / Scenario Tracker ─────────────────────────────────── */}
         <details style={{ marginTop: 8 }}>
           <summary style={{
             cursor: "pointer",
