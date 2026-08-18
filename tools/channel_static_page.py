@@ -121,6 +121,11 @@ def render_page(page: ChannelPage, destination: Path) -> None:
             observed_price, observed_at = completed[symbol]
             marked[symbol] = (observed_price, observed_at, "completed close")
 
+    def tone(v):
+        if v is None or v == 0:
+            return "number"
+        return "number pos" if v > 0 else "number neg"
+
     open_rows: list[str] = []
     unrealized_values: list[float] = []
     for row in sorted(page.opens, key=lambda item: item.symbol):
@@ -136,8 +141,8 @@ def render_page(page: ChannelPage, destination: Path) -> None:
             "<tr>"
             f"<td class='symbol'>{escape(row.symbol)}</td><td>{'SHORT' if row.side == -1 else 'LONG'}</td>"
             f"<td class='number'>{row.shares:,}</td><td class='number'>{price(row.entry_price)}</td>"
-            f"<td class='number'>{price(current_price)}</td><td class='number'>{'—' if pnl is None else money(pnl, signed=True)}</td>"
-            f"<td class='number'>{'—' if return_pct is None else f'{return_pct:+.2f}%'}</td>"
+            f"<td class='number'>{price(current_price)}</td><td class='{tone(pnl)}'>{'—' if pnl is None else money(pnl, signed=True)}</td>"
+            f"<td class='{tone(return_pct)}'>{'—' if return_pct is None else f'{return_pct:+.2f}%'}</td>"
             f"<td>{escape(status)}</td><td>{escape(row.entered_at)}</td><td>{escape(mark_label)}</td></tr>"
         )
     if not open_rows:
@@ -149,8 +154,8 @@ def render_page(page: ChannelPage, destination: Path) -> None:
             "<tr>"
             f"<td class='symbol'>{escape(row.symbol)}</td><td>{'SHORT' if row.side == -1 else 'LONG'}</td>"
             f"<td class='number'>{row.shares:,}</td><td class='number'>{price(row.entry_price)}</td>"
-            f"<td class='number'>{price(row.exit_price)}</td><td class='number'>{money(row.pnl, signed=True)}</td>"
-            f"<td class='number'>{row.return_pct:+.2f}%</td><td>{escape(row.reason)}</td>"
+            f"<td class='number'>{price(row.exit_price)}</td><td class='{tone(row.pnl)}'>{money(row.pnl, signed=True)}</td>"
+            f"<td class='{tone(row.return_pct)}'>{row.return_pct:+.2f}%</td><td>{escape(row.reason)}</td>"
             f"<td>{escape(row.entered_at)}</td><td>{escape(row.exited_at)}</td></tr>"
         )
     if not closed_rows:
@@ -174,20 +179,20 @@ def render_page(page: ChannelPage, destination: Path) -> None:
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(page.title)}</title>
 <style>
-:root{{--bg:#f2f4f1;--card:#fff;--head:#e8efe7;--ink:#232a24;--muted:#68736a;--line:#dce4dc}}
-@media(prefers-color-scheme:dark){{:root{{--bg:#171b18;--card:#1f2521;--head:#28302a;--ink:#e6eae5;--muted:#9aa79c;--line:#344038}}}}
+:root{{--bg:#f2f4f1;--card:#fff;--head:#e8efe7;--ink:#232a24;--muted:#68736a;--line:#dce4dc;--pos:#157a3f;--neg:#c03530}}
+@media(prefers-color-scheme:dark){{:root{{--bg:#171b18;--card:#1f2521;--head:#28302a;--ink:#e6eae5;--muted:#9aa79c;--line:#344038;--pos:#4fc07e;--neg:#f07f76}}}}
 *{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,sans-serif;padding:24px}}
 main{{max-width:1200px;margin:auto}}h1{{font-size:1.35rem;margin-bottom:4px}}.sub,.note{{color:var(--muted)}}
 .tiles{{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:18px 0}}
 .tile,.card{{background:var(--card);border:1px solid var(--line);border-radius:10px}}.tile{{padding:12px}}.label{{font-size:.7rem;color:var(--muted);text-transform:uppercase}}.value{{font-size:1.08rem;font-weight:700;margin-top:3px}}
-.card{{overflow:hidden;margin:14px 0}}.card h2{{font-size:.95rem;margin:0;padding:14px}}.scroll{{overflow:auto}}table{{width:100%;border-collapse:collapse}}th{{background:var(--head);color:var(--muted);font-size:.67rem;text-transform:uppercase;text-align:left}}th,td{{padding:9px 12px;border-top:1px solid var(--line);white-space:nowrap}}.number{{text-align:right;font-variant-numeric:tabular-nums}}.symbol{{font-weight:700}}.empty{{text-align:center;color:var(--muted)}}li{{margin:.35rem 0}}
+.card{{overflow:hidden;margin:14px 0}}.card h2{{font-size:.95rem;margin:0;padding:14px}}.scroll{{overflow:auto}}table{{width:100%;border-collapse:collapse}}th{{background:var(--head);color:var(--muted);font-size:.67rem;text-transform:uppercase;text-align:left}}th,td{{padding:9px 12px;border-top:1px solid var(--line);white-space:nowrap}}.number{{text-align:right;font-variant-numeric:tabular-nums}}.pos{{color:var(--pos)}}.neg{{color:var(--neg)}}.symbol{{font-weight:700}}.empty{{text-align:center;color:var(--muted)}}li{{margin:.35rem 0}}
 </style></head><body><main>
 <h1>{escape(page.title)}</h1><div class="sub">Read-only paper record · no real orders · engine {escape(page.engine)} · generated {generated}</div>
 <section class="tiles">
 <div class="tile"><div class="label">Equity</div><div class="value">{equity_text}</div></div>
-<div class="tile"><div class="label">Cash</div><div class="value">{money(page.cash, signed=True)}</div></div>
-<div class="tile"><div class="label">Realized</div><div class="value">{money(realized, signed=True)}</div></div>
-<div class="tile"><div class="label">Unrealized</div><div class="value">{unrealized_text}</div></div>
+<div class="tile"><div class="label">Cash{' (margin borrowed)' if page.cash < 0 else ''}</div><div class="value">{money(page.cash, signed=True)}</div></div>
+<div class="tile"><div class="label">Realized</div><div class="value {'pos' if realized > 0 else ('neg' if realized < 0 else '')}">{money(realized, signed=True)}</div></div>
+<div class="tile"><div class="label">Unrealized</div><div class="value {'' if unrealized is None else ('pos' if unrealized > 0 else ('neg' if unrealized < 0 else ''))}">{unrealized_text}</div></div>
 <div class="tile"><div class="label">Win rate</div><div class="value">{win_rate_text}</div></div>
 <div class="tile"><div class="label">Open / resolved</div><div class="value">{len(page.opens)} / {len(resolved)}</div></div>
 </section>

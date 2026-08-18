@@ -56,7 +56,7 @@ export default function ChannelBookPage({ book }: { book: ChannelBookView }) {
 
       <div className={styles.tiles}>
         <div className={styles.tile}><span>Equity</span><strong>{dollars(book.equity)}</strong></div>
-        <div className={styles.tile}><span>Cash</span><strong>{dollars(book.cash)}</strong></div>
+        <div className={styles.tile}><span>{book.cash !== null && book.cash < 0 ? "Cash (margin borrowed)" : "Cash"}</span><strong>{dollars(book.cash)}</strong></div>
         <div className={styles.tile}><span>Realized</span><strong className={tone(book.realizedPnl)}>{dollars(book.realizedPnl, true)}</strong></div>
         <div className={styles.tile}><span>Unrealized</span><strong className={tone(book.unrealizedPnl)}>{dollars(book.unrealizedPnl, true)}</strong></div>
         <div className={styles.tile}><span>Open</span><strong>{book.positions.length}</strong></div>

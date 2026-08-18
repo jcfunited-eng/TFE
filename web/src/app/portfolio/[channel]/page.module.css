@@ -153,6 +153,21 @@
   color: #b52c25;
 }
 
+@media (prefers-color-scheme: dark) {
+  .positive {
+    color: #4fc07e;
+  }
+
+  .negative,
+  .failure {
+    color: #f07f76;
+  }
+
+  .neutral {
+    color: #9aa79c;
+  }
+}
+
 .neutral {
   color: #66746c;
 }

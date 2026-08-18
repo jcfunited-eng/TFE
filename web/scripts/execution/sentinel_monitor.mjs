@@ -283,6 +283,78 @@ async function marketSell(ticker, qty, base) {
   }, base);
 }
 
+// ── Overnight protection re-arm (Joseph authorized 2026-08-18) ────────────
+// Bracket legs carry TIF=day and expire at every close, leaving CH2
+// positions with NO standing stop overnight — a gap then jumps every
+// software check before it can act (the WETO failure class), and the
+// expired legs surface as "expired" sells in the broker log. Each cycle:
+// any filled CH2 position with no open sell order gets standing GTC
+// protection rebuilt from its own custody — an OCO when both prices
+// exist (target = take_profit_price, stop = max(stop_loss_price,
+// profit-protect floor)), else a plain GTC stop. Live kills already
+// cancel open orders first, so this never blocks the monitor's exits.
+async function rearmOvernightProtection(positions, base) {
+  let openOrders;
+  try {
+    openOrders = await alpacaGet("/v2/orders?status=open&limit=500", base);
+    if (!Array.isArray(openOrders)) throw new Error("open_orders_invalid");
+  } catch (err) {
+    console.warn(`[REARM] Open-orders fetch failed — skipping pass (${err.message})`);
+    return;
+  }
+  const hasOpenSell = new Set(
+    openOrders
+      .filter(o => String(o?.side ?? "").toLowerCase() === "sell")
+      .map(o => String(o?.symbol ?? "").trim().toUpperCase())
+  );
+  const round2 = v => Math.round(v * 100) / 100;
+  for (const pos of positions) {
+    if (String(pos.signal_class ?? "").toUpperCase() !== "CH2") continue;
+    if (pos.status !== "filled") continue;
+    const ticker = String(pos.ticker).trim().toUpperCase();
+    if (hasOpenSell.has(ticker)) continue;
+    let ap;
+    try {
+      ap = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base);
+    } catch { continue; }            // no live position — nothing to protect
+    const qty = Math.min(
+      parseInt(pos.shares ?? "0", 10) || 0,
+      parseInt(ap?.qty_available ?? ap?.qty ?? "0", 10) || 0,
+    );
+    if (qty <= 0) continue;
+    const entry = parseFloat(ap?.avg_entry_price ?? "0");
+    const tp = parseFloat(pos.take_profit_price ?? "0");
+    const sl = parseFloat(pos.stop_loss_price ?? "0");
+    const peak = Math.max(
+      parseFloat(pos.rationale_json?.peak_price ?? "") || 0,
+      parseFloat(ap?.current_price ?? "0") || 0,
+    );
+    const floor = entry > 0 ? profitProtectFloor(entry, peak) : null;
+    const stopPrice = Math.max(sl, floor ?? 0);
+    try {
+      if (stopPrice > 0 && tp > stopPrice) {
+        await alpacaPost("/v2/orders", {
+          symbol: ticker, qty: String(qty), side: "sell", type: "limit",
+          limit_price: round2(tp), time_in_force: "gtc",
+          order_class: "oco",
+          stop_loss: { stop_price: round2(stopPrice) },
+        }, base);
+        console.log(`[REARM] ${ticker} OCO armed | qty=${qty} TP=$${round2(tp)} SL=$${round2(stopPrice)} gtc`);
+      } else if (stopPrice > 0) {
+        await alpacaPost("/v2/orders", {
+          symbol: ticker, qty: String(qty), side: "sell", type: "stop",
+          stop_price: round2(stopPrice), time_in_force: "gtc",
+        }, base);
+        console.log(`[REARM] ${ticker} stop armed | qty=${qty} SL=$${round2(stopPrice)} gtc`);
+      } else {
+        console.log(`[REARM] ${ticker} skipped — no stop price in custody`);
+      }
+    } catch (err) {
+      console.warn(`[REARM] ${ticker} failed: ${err.message}`);
+    }
+  }
+}
+
 // ── Current SPY D_k ──────────────────────────────────────────────────────
 async function fetchSpyDk() {
   try {
@@ -1444,6 +1516,10 @@ export async function runSentinel() {
 
     console.log(`[SENTINEL] ${pos.ticker} CLEAR | R_rev_k=${fields.r_rev_k ?? "n/a"} | bar_count=${barCount ?? "n/a"}`);
   }
+
+  // Standing overnight protection for CH2 (Joseph authorized 2026-08-18)
+  await rearmOvernightProtection(positions, ALPACA_BASE)
+    .catch(e => console.warn(`[REARM] pass failed: ${e.message}`));
 
   console.log("[SENTINEL] Audit complete.");
 }
