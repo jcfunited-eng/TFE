@@ -1,11 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)"]);
+const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/api/health"]);
 const isAuthRoute = createRouteMatcher(["/account(.*)"]);
 
 // Internal daemon routes authenticate via x-tfe-internal-refresh-token header,
-// not Clerk sessions.  Must bypass Clerk middleware to avoid 307 redirect.
+// not Clerk sessions. Must bypass Clerk middleware to avoid a redirect.
 const INTERNAL_TOKEN_HEADER = "x-tfe-internal-refresh-token";
 function hasInternalToken(request: Request): boolean {
   const token = request.headers.get(INTERNAL_TOKEN_HEADER);
@@ -15,13 +15,10 @@ function hasInternalToken(request: Request): boolean {
 }
 
 export default clerkMiddleware(async (auth, request) => {
-  // Internal daemon requests with valid token bypass Clerk entirely
   if (hasInternalToken(request)) {
     return NextResponse.next();
   }
 
-  // /account sub-routes are used internally by Clerk's UserProfile component.
-  // They require an active session but must not be blocked by the middleware redirect.
   if (isAuthRoute(request)) {
     const { userId } = await auth();
     if (!userId) {
