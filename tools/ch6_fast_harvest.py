@@ -93,12 +93,14 @@ def load_market() -> tuple[pd.DataFrame, list[pd.Timestamp], pd.Timestamp]:
     latest = days[-1]
 
     market = roster
+    covered_universe = set(roster["Symbol"].unique())
     if TAIL.exists():
         tail = pd.read_parquet(TAIL, columns=["Date", "Symbol", "Close", "Volume"])
         tail["Date"] = pd.to_datetime(tail["Date"])
         refreshed = set(roster.loc[roster["Date"] == latest, "Symbol"])
         tail = tail[~tail["Symbol"].isin(refreshed) & (tail["Date"] <= latest)]
         market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
+    market.attrs["covered_universe"] = covered_universe
     return market, days, latest
 
 
@@ -221,11 +223,16 @@ def qualifying_events(
             continue
 
         gband = herd_state.get(str(symbol))
-        if gband is None:
-            unknown_herd += 1
+        covered = str(symbol) in market.attrs.get("covered_universe", set())
+        if covered:
+            if gband is None:
+                unknown_herd += 1
+                continue
+            if gband != 0:
+                continue
+        elif gband is not None and gband != 0:
             continue
-        if gband != 0:
-            continue
+        # outside the covered universe: uncovered by construction — eligible
         if has_unreset_refutation(
             symbol=str(symbol),
             candidate_day=latest_s,
