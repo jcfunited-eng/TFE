@@ -41,7 +41,7 @@ EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
 SLICE_USD = 2_000.0
-MAX_NEW_PER_DAY = 10
+MAX_NEW_PER_DAY = 10_000  # Joseph 2026-08-18: same buys as CH3 — the rules gate (ch_entry_reading) now guards entries, so the arbitrary cap that took WETO and missed SPAI on 08-14 is retired
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
 HARVEST_PCT = 5.0
@@ -290,6 +290,12 @@ def hunt(dry: bool = False) -> None:
 
         events = []
 
+
+    if events and not ENTRIES_HALT_FILE.exists():
+        from ch_entry_reading import gate as _entry_gate
+        _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
+        events = [e for e in events
+                  if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
 
     opened = 0
     for event in events:

@@ -257,6 +257,11 @@ def main() -> None:
     if ENTRIES_HALT_FILE.exists():
         print("[reveal-fade] ENTRIES HALTED (protective) — settlements only")
         take = []
+    if take:
+        from ch_entry_reading import gate as _entry_gate
+        _verdicts = _entry_gate([str(e["symbol"]) for e in take], "CH3")
+        take = [e for e in take
+                if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
     floor_cash = -(GROSS_MULT - 1.0) * CASH0
     budget = max(0.0, float(book["cash"]) - floor_cash)
     zsum = sum(float(event["z"]) for event in take) or 1.0
