@@ -1,52 +1,23 @@
 import { NextResponse } from "next/server";
 import { getCurrentServerUser } from "@/lib/server-auth";
-import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+/**
+ * Runtime execution and fill auditing are owned by the supervised sentinel.
+ * Starting detached duplicate runners from an HTTP request is not a valid
+ * process-custody boundary.
+ */
+export async function POST() {
   const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
 
-  let body: { action?: unknown } = {};
-  try { body = await request.json() as { action?: unknown }; } catch { /* empty body ok */ }
-
-  const action = String(body.action ?? "run").trim();
-  if (action !== "run") {
-    return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
-  }
-
-  // Dynamic imports bypass Turbopack static analysis of node built-ins
-  const [{ spawn }, { default: path }] = await Promise.all([
-    import("child_process"),
-    import("path"),
-  ]);
-
-  const root = resolveWorkspaceRoot();
-  const scriptPath = path.resolve(root, "web/scripts/execution/pee1_runner.mjs");
-  const nodeBin = process.env.TFE_NODE_BIN ?? "node";
-
-  // Build env without spread syntax (Turbopack restriction)
-  const childEnv = Object.assign({} as Record<string, string>, process.env, { PGSSLMODE: "require" });
-
-  const child = spawn(nodeBin, [scriptPath], {
-    env: childEnv,
-    detached: true,
-    stdio: "ignore",
-  });
-
-  const pid = child.pid ?? null;
-  child.unref();
-
-  console.log(`[PEE1-API] Runner launched | pid=${pid} | by=${user.username}`);
-
-  return NextResponse.json({
-    ok: true,
-    pid,
-    launched_at: new Date().toISOString(),
-    launched_by: user.username,
-    message: "PEE-1 runner launched. Check the trade auditor for results in ~30 seconds.",
-  });
+  return NextResponse.json(
+    {
+      error: "detached_pee1_runner_disabled",
+      message: "PEE-1 is continuously supervised by the runtime. Detached launches are disabled.",
+    },
+    { status: 409 },
+  );
 }

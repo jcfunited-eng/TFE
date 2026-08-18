@@ -30,8 +30,8 @@ const ADMIN_EXIT_REASONS = new Set([
 
 
 function executionMode(value: string | undefined): ExecutionMode {
-  if (value === "paper" || value === "live") return value;
-  throw new Error("execution_mode_missing_or_invalid");
+  if (value === "paper") return value;
+  throw new Error(`execution_mode_not_authorized:${value ?? "missing"}`);
 }
 
 
@@ -76,7 +76,8 @@ export async function GET() {
     ]);
     const config = Object.fromEntries(configResult.rows.map((row) => [row.key, row.value]));
     const mode = executionMode(config.execution_mode);
-    const fundedAmount = numberOrNull(config.vault_funded_amount) ?? 0;
+    const fundedAmount = numberOrNull(config.vault_funded_amount);
+    if (fundedAmount === null || fundedAmount <= 0) throw new Error("vault_funded_amount_missing_or_invalid");
     const baseline = numberOrNull(config.pl_reset_baseline) ?? fundedAmount;
     const openLedgerRows = ledgerResult.rows.filter((row) => row.status === "submitted" || row.status === "filled");
     const closedTrades = ledgerResult.rows.filter((row) => row.status === "closed");
@@ -155,7 +156,10 @@ export async function GET() {
       recent_closed_trades: recentClosedTrades,
       execution_mode: mode,
       auto_tfe_enabled: config.auto_tfe_enabled === "true",
-      entries_halted: process.env.TFE_ENTRIES_HALTED === "1" || config.entries_halted === "true",
+      entries_halted:
+        process.env.TFE_ENTRIES_HALTED === "1"
+        || config.entries_halted === "true"
+        || config.auto_tfe_enabled !== "true",
       risk_per_trade_pct: numberOrNull(config.risk_per_trade_pct) ?? 1.5,
       alpaca_equity: rounded(accountEquity),
       alpaca_cash: rounded(brokerCash),

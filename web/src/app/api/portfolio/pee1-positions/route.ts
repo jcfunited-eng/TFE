@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 
 
 function executionMode(value: string | undefined): ExecutionMode {
-  if (value === "paper" || value === "live") return value;
-  throw new Error("execution_mode_missing_or_invalid");
+  if (value === "paper") return value;
+  throw new Error(`execution_mode_not_authorized:${value ?? "missing"}`);
 }
 
 

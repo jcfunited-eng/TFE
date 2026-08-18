@@ -174,16 +174,12 @@ function alpacaHeaders() {
 }
 
 async function resolveAlpacaBase() {
-  try {
-    const res = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-    );
-    return (res.rows[0]?.value ?? "paper") === "live"
-      ? "https://api.alpaca.markets"
-      : "https://paper-api.alpaca.markets";
-  } catch {
-    return "https://paper-api.alpaca.markets";
-  }
+  const res = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+  );
+  const mode = res.rows[0]?.value;
+  if (mode !== "paper") throw new Error(`[SENTINEL] execution_mode_not_authorized:${mode ?? "missing"}`);
+  return "https://paper-api.alpaca.markets";
 }
 
 const ALPACA_DATA = "https://data.alpaca.markets";

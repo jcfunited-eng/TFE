@@ -172,15 +172,6 @@ export default function PortfolioTFEManager() {
   const [notInitialized, setNotInitialized] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [fundedInput, setFundedInput] = useState("");
-  const [riskInput, setRiskInput] = useState("");
-  const [orderSide, setOrderSide] = useState<"buy" | "sell">("buy");
-  const [orderTicker, setOrderTicker] = useState("");
-  const [orderShares, setOrderShares] = useState("");
-  const [orderType, setOrderType] = useState<"market" | "limit">("market");
-  const [orderLimitPrice, setOrderLimitPrice] = useState("");
-  const [orderNotes, setOrderNotes] = useState("");
-  const [placingOrder, setPlacingOrder] = useState(false);
-  const [orderMessage, setOrderMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const refreshInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
@@ -203,7 +194,6 @@ export default function PortfolioTFEManager() {
       setPositions(positionsValue.positions);
       setConfig(configValue);
       setFundedInput((current) => current || String(configValue.vault_funded_amount ?? 0));
-      setRiskInput((current) => current || String(configValue.risk_per_trade_pct ?? 1.5));
       setNotInitialized(false);
       setError(null);
     } catch (loadError) {
@@ -238,63 +228,19 @@ export default function PortfolioTFEManager() {
     }
   }
 
-  async function toggleMode() {
-    if (!config) return;
-    const next = config.execution_mode === "paper" ? "live" : "paper";
-    if (next === "live" && !window.confirm("Switch to LIVE trading? This directs future orders to the real-money Alpaca endpoint.")) return;
-    await saveConfig({ execution_mode: next });
-  }
-
   async function saveFundedAmount() {
     const value = Number(fundedInput);
-    if (!Number.isFinite(value) || value < 0) return;
+    if (!Number.isFinite(value) || value <= 0) {
+      setError("Recorded baseline must be greater than zero.");
+      return;
+    }
     await saveConfig({ vault_funded_amount: value });
-  }
-
-  async function saveRisk() {
-    const value = Number(riskInput);
-    if (!Number.isFinite(value) || value < 0.1 || value > 5) return;
-    await saveConfig({ risk_per_trade_pct: value });
-  }
-
-  async function placeManualOrder() {
-    setOrderMessage(null);
-    const ticker = orderTicker.trim().toUpperCase();
-    const shares = Number(orderShares);
-    const limitPrice = orderType === "limit" ? Number(orderLimitPrice) : undefined;
-    if (!ticker) return setOrderMessage({ text: "Ticker is required.", ok: false });
-    if (!Number.isFinite(shares) || shares <= 0) return setOrderMessage({ text: "Shares must be positive.", ok: false });
-    if (orderType === "limit" && (!limitPrice || !Number.isFinite(limitPrice) || limitPrice <= 0)) {
-      return setOrderMessage({ text: "A positive limit price is required.", ok: false });
-    }
-    setPlacingOrder(true);
-    try {
-      const response = await fetch("/api/portfolio/pee1-place-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticker, side: orderSide, shares, order_type: orderType, limit_price: limitPrice, notes: orderNotes }),
-      });
-      const result = await readJson<{ ok?: boolean; error?: string; warning?: string; alpaca_status?: string; execution_mode?: string }>(response);
-      if (!result.ok) throw new Error(result.error ?? "Order was not accepted");
-      const warning = result.warning ? ` Warning: ${result.warning}` : "";
-      setOrderMessage({ text: `Alpaca ${result.execution_mode ?? "unknown"} order status: ${result.alpaca_status ?? "submitted"}.${warning}`, ok: true });
-      setOrderTicker("");
-      setOrderShares("");
-      setOrderLimitPrice("");
-      setOrderNotes("");
-      await load();
-    } catch (orderError) {
-      setOrderMessage({ text: orderError instanceof Error ? orderError.message : "Order failed", ok: false });
-    } finally {
-      setPlacingOrder(false);
-    }
   }
 
   if (loading) return <div style={{ padding: 24, color: "#64748b" }}>Loading broker custody…</div>;
   if (notInitialized) return <div className="tfe-panel" style={{ padding: 20, color: "#a16207" }}>The portfolio ledger is not initialized.</div>;
   if (error) return <div className="tfe-panel" style={{ padding: 20, color: "#dc2626" }}>Portfolio unavailable: {error}</div>;
 
-  const isLive = config?.execution_mode === "live";
   const custody = summary?.custody;
   const discrepancy = (custody?.discrepancies ?? 0) > 0;
   const cardStyle = { padding: "14px 16px", textAlign: "center" as const };
@@ -317,9 +263,9 @@ export default function PortfolioTFEManager() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center" }}>
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "0.82rem" }}>
             Mode
-            <button onClick={toggleMode} disabled={savingConfig} style={{ border: 0, borderRadius: 16, padding: "5px 14px", color: "#fff", background: isLive ? "#dc2626" : "#2563eb", fontWeight: 700, cursor: "pointer" }}>
-              {isLive ? "LIVE" : "PAPER"}
-            </button>
+            <span style={{ borderRadius: 16, padding: "5px 14px", color: "#fff", background: "#2563eb", fontWeight: 700 }}>
+              PAPER ONLY
+            </span>
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "0.82rem" }}>
             Auto-TFE
@@ -329,12 +275,9 @@ export default function PortfolioTFEManager() {
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: "0.82rem" }}>
             Recorded baseline $
-            <input type="number" value={fundedInput} onChange={(event) => setFundedInput(event.target.value)} onBlur={saveFundedAmount} min={0} step={100} style={{ ...inputStyle, width: 110 }} />
+            <input type="number" value={fundedInput} onChange={(event) => setFundedInput(event.target.value)} onBlur={saveFundedAmount} min={1} step={100} style={{ ...inputStyle, width: 110 }} />
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: "0.82rem" }}>
-            Risk/trade
-            <input type="number" value={riskInput} onChange={(event) => setRiskInput(event.target.value)} onBlur={saveRisk} min={0.1} max={5} step={0.1} style={{ ...inputStyle, width: 65 }} />%
-          </label>
+          <span style={{ color: "#64748b", fontSize: "0.78rem" }}>Risk is owned by each channel law; no generic website override is active.</span>
         </div>
       </div>
 
@@ -407,18 +350,12 @@ export default function PortfolioTFEManager() {
       ) : null}
 
       <div className="tfe-panel" style={{ padding: "16px 18px" }}>
-        {summary?.entries_halted && <div style={{ color: "#a16207", marginBottom: 10, fontWeight: 700 }}>Automatic entries are halted. The manual-order path remains independent.</div>}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><h3 style={{ margin: 0, fontSize: ".95rem" }}>Place manual Alpaca order</h3><span style={{ color: "#64748b", fontSize: ".72rem" }}>Not managed by TFE</span></div>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 9 }}>
-          <label style={{ fontSize: ".72rem" }}>Side<br/><select value={orderSide} onChange={(event) => setOrderSide(event.target.value as "buy" | "sell")} style={inputStyle}><option value="buy">BUY</option><option value="sell">SELL</option></select></label>
-          <label style={{ fontSize: ".72rem" }}>Ticker<br/><input value={orderTicker} onChange={(event) => setOrderTicker(event.target.value.toUpperCase())} style={{ ...inputStyle, width: 90 }} /></label>
-          <label style={{ fontSize: ".72rem" }}>Shares<br/><input type="number" value={orderShares} onChange={(event) => setOrderShares(event.target.value)} min={0.0001} step={1} style={{ ...inputStyle, width: 90 }} /></label>
-          <label style={{ fontSize: ".72rem" }}>Type<br/><select value={orderType} onChange={(event) => setOrderType(event.target.value as "market" | "limit")} style={inputStyle}><option value="market">Market</option><option value="limit">Limit</option></select></label>
-          {orderType === "limit" && <label style={{ fontSize: ".72rem" }}>Limit price<br/><input type="number" value={orderLimitPrice} onChange={(event) => setOrderLimitPrice(event.target.value)} min={0.01} step={0.01} style={{ ...inputStyle, width: 105 }} /></label>}
-          <label style={{ fontSize: ".72rem", flex: 1, minWidth: 140 }}>Notes<br/><input value={orderNotes} onChange={(event) => setOrderNotes(event.target.value)} style={{ ...inputStyle, width: "100%" }} /></label>
-          <button onClick={placeManualOrder} disabled={placingOrder} style={{ border: 0, borderRadius: 6, padding: "8px 16px", color: "#fff", background: orderSide === "sell" ? "#dc2626" : "#16a34a", fontWeight: 700, cursor: "pointer" }}>{placingOrder ? "Placing…" : `Place ${orderSide.toUpperCase()}`}</button>
+        <h3 style={{ margin: 0, fontSize: ".95rem" }}>Order custody</h3>
+        <div style={{ color: summary?.entries_halted ? "#a16207" : "#64748b", marginTop: 7, fontSize: ".8rem" }}>
+          {summary?.entries_halted
+            ? "Automatic entries are halted. Existing-position exits remain supervised."
+            : "Only the supervised automatic paper pipeline may originate orders. Manual and ledger-only order creation are disabled."}
         </div>
-        {orderMessage && <div style={{ marginTop: 10, color: orderMessage.ok ? "#15803d" : "#dc2626", fontSize: ".8rem" }}>{orderMessage.text}</div>}
       </div>
     </div>
   );

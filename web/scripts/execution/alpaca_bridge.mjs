@@ -46,9 +46,8 @@ for (const key of REQUIRED_ENV) {
   }
 }
 
-// Paper/live mode: read from DB config (pee1_execution_config.execution_mode).
-// Resolved at order-execution time by readExecutionMode().
-// Fail-safe: if DB read fails, always default to paper.
+// Execution is restricted to Alpaca paper custody. The database value is
+// checked at order time and any missing or different value fails closed.
 const ALPACA_DATA_URL = "https://data.alpaca.markets";
 
 // ── Constants ─────────────────────────────────────────────────────────────
@@ -109,20 +108,17 @@ const pool = new pg.Pool({
 
 // ── Execution mode (paper vs live) from DB ────────────────────────────────
 async function readExecutionMode() {
-  try {
-    const res = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-    );
-    return res.rows[0]?.value ?? "paper";
-  } catch {
-    return "paper";  // fail-safe
-  }
+  const res = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+  );
+  const mode = res.rows[0]?.value;
+  if (mode !== "paper") throw new Error(`[BRIDGE] execution_mode_not_authorized:${mode ?? "missing"}`);
+  return mode;
 }
 
 function alpacaBaseUrl(mode) {
-  return mode === "live"
-    ? "https://api.alpaca.markets"
-    : "https://paper-api.alpaca.markets";
+  if (mode !== "paper") throw new Error(`[BRIDGE] execution_mode_not_authorized:${mode ?? "missing"}`);
+  return "https://paper-api.alpaca.markets";
 }
 
 // ── Alpaca REST helpers ───────────────────────────────────────────────────
@@ -135,8 +131,17 @@ function alpacaHeaders() {
 }
 
 async function alpacaGet(path, base) {
-  const res = await fetch(`${base}${path}`, { headers: alpacaHeaders() });
-  const body = await res.json();
+  const res = await fetch(`${base}${path}`, {
+    headers: alpacaHeaders(),
+    signal: AbortSignal.timeout(8_000),
+  });
+  const text = await res.text();
+  let body;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(`[BRIDGE] Alpaca GET ${path} returned invalid JSON`);
+  }
   if (!res.ok) {
     throw new Error(`[BRIDGE] Alpaca GET ${path} → ${res.status}: ${JSON.stringify(body)}`);
   }
@@ -148,8 +153,15 @@ async function alpacaPost(path, payload, base) {
     method: "POST",
     headers: alpacaHeaders(),
     body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(8_000),
   });
-  const body = await res.json();
+  const text = await res.text();
+  let body;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(`[BRIDGE] Alpaca POST ${path} returned invalid JSON`);
+  }
   if (!res.ok) {
     throw new Error(`[BRIDGE] Alpaca POST ${path} → ${res.status}: ${JSON.stringify(body)}`);
   }
@@ -294,10 +306,17 @@ async function fetchAccountState(base) {
   const account = await alpacaGet("/v2/account", base);
   const equity = parseFloat(account?.equity ?? account?.portfolio_value ?? 0);
   const cash = parseFloat(account?.cash ?? 0);
+  const buyingPower = parseFloat(account?.buying_power ?? 0);
   if (!isFinite(equity) || equity <= 0) {
     throw new Error("[BRIDGE] fetchAccountState: account equity is zero or unavailable");
   }
-  return { equity, cash };
+  if (!isFinite(cash) || !isFinite(buyingPower)) {
+    throw new Error("[BRIDGE] fetchAccountState: cash or buying power is unavailable");
+  }
+  if (account?.account_blocked === true || account?.trading_blocked === true || account?.trade_suspended_by_user === true) {
+    throw new Error("[BRIDGE] fetchAccountState: account entry is blocked");
+  }
+  return { equity, cash: Math.max(0, Math.min(cash, buyingPower)) };
 }
 
 // Backward-compatible wrapper (used by callers that only need equity)

@@ -30,6 +30,7 @@ import {
   isDailyEntryWindow,
   marketDateEastern,
 } from "./market_clock.mjs";
+import { fetchPaperEntryCustody } from "./broker_entry_custody.mjs";
 import pg from "pg";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
@@ -75,30 +76,16 @@ async function persistEntryPassDate(date) {
  * Returns { cash, invested, funded } for the submitEntry pipeline.
  */
 async function fetchAccountState() {
-  const modeRes = await pool.query(
-    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+  const configRes = await pool.query(
+    `SELECT key, value
+     FROM pee1_execution_config
+     WHERE key IN ('execution_mode', 'vault_funded_amount')`
   );
-  const mode = modeRes.rows[0]?.value ?? "paper";
-  const base = mode === "live"
-    ? "https://api.alpaca.markets"
-    : "https://paper-api.alpaca.markets";
-
-  const fundedRes = await pool.query(
-    `SELECT value FROM pee1_execution_config WHERE key = 'vault_funded_amount' LIMIT 1`
-  );
-  const funded = parseFloat(fundedRes.rows[0]?.value ?? "100000");
-
-  const res = await fetch(`${base}/v2/account`, {
-    headers: {
-      "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
-      "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
-    },
+  const config = new Map(configRes.rows.map(row => [row.key, row.value]));
+  return fetchPaperEntryCustody({
+    executionMode: config.get("execution_mode"),
+    fundedCapital: config.get("vault_funded_amount"),
   });
-  const acct = await res.json();
-  const cash = parseFloat(acct?.cash ?? 0);
-  const invested = parseFloat(acct?.long_market_value ?? 0);
-
-  return { cash, invested, funded };
 }
 
 let running = true;
@@ -138,6 +125,10 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
 
   // Invested cap: projected invested after this order must not exceed funded capital
   const dollarAllocation = signal.ch3_trade_amount ?? budget.perTrade;
+  if (!Number.isFinite(dollarAllocation) || dollarAllocation <= 0) {
+    console.error(`[${channelTag}] ${signal.ticker} — invalid allocation ${dollarAllocation}; skipped`);
+    return { ok: false, reason: "invalid_allocation" };
+  }
   const projectedInvested = budget.invested + dollarAllocation;
   if (projectedInvested > budget.funded) {
     console.log(
@@ -148,8 +139,11 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
   }
 
   // Cash gate
-  if (budget.cashRemaining <= 0) {
-    console.log(`[${channelTag}] CASH EXHAUSTED — $${budget.cashRemaining.toFixed(2)} — skipping`);
+  if (budget.cashRemaining < dollarAllocation) {
+    console.log(
+      `[${channelTag}] CASH GATE — allocation $${dollarAllocation.toFixed(2)} exceeds ` +
+      `available $${budget.cashRemaining.toFixed(2)} — skipping`
+    );
     return { ok: false, reason: "cash_exhausted" };
   }
 
@@ -188,16 +182,20 @@ async function checkCh3EntriesHalted() {
  * Kill switch — env var or config row halts all entries.
  */
 async function checkEntriesHalted() {
-  let entriesHalted = process.env.TFE_ENTRIES_HALTED === "1";
-  if (!entriesHalted) {
-    try {
-      const haltRes = await pool.query(
-        `SELECT value FROM pee1_execution_config WHERE key = 'entries_halted' LIMIT 1`
-      );
-      entriesHalted = haltRes.rows[0]?.value === "true";
-    } catch { /* non-fatal */ }
+  if (process.env.TFE_ENTRIES_HALTED === "1") return true;
+  try {
+    const configRes = await pool.query(
+      `SELECT key, value
+       FROM pee1_execution_config
+       WHERE key IN ('entries_halted', 'auto_tfe_enabled')`
+    );
+    const config = new Map(configRes.rows.map(row => [row.key, row.value]));
+    if (config.get("auto_tfe_enabled") !== "true") return true;
+    return config.get("entries_halted") === "true";
+  } catch (error) {
+    console.error(`[ENTRY-GATE] Configuration unavailable — entries fail closed (${error.message})`);
+    return true;
   }
-  return entriesHalted;
 }
 
 /**
@@ -206,7 +204,7 @@ async function checkEntriesHalted() {
  * buy+sell collision (May 27 BELFB/LPLA/NVT incident). Throws on failure —
  * callers FAIL CLOSED and skip their pass.
  */
-async function buildSameDayExitTickers() {
+async function buildSameDayExitTickers(openOrders) {
   // 1. Tickers closed in the ledger today
   const exitRes = await pool.query(
     `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
@@ -216,23 +214,14 @@ async function buildSameDayExitTickers() {
   );
   const sameDayExitTickers = new Set(exitRes.rows.map(r => r.ticker));
 
-  // 2. Tickers with open/unfilled sell orders on Alpaca right now
-  const modeRes = await pool.query(
-    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-  );
-  const mode = modeRes.rows[0]?.value ?? "paper";
-  const base = mode === "live" ? "https://api.alpaca.markets" : "https://paper-api.alpaca.markets";
-  const sellRes = await fetch(`${base}/v2/orders?status=open&side=sell&limit=200`, {
-    headers: {
-      "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
-      "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
-    },
-  });
-  const openSells = await sellRes.json();
-  if (Array.isArray(openSells)) {
-    for (const o of openSells) {
-      sameDayExitTickers.add(String(o.symbol).trim().toUpperCase());
-    }
+  // 2. Tickers with open/unfilled sell orders in the same verified custody
+  // snapshot used for exposure accounting.
+  if (!Array.isArray(openOrders)) throw new Error("alpaca_open_orders_invalid");
+  for (const order of openOrders) {
+    if (String(order?.side ?? "").toLowerCase() !== "sell") continue;
+    const ticker = String(order?.symbol ?? "").trim().toUpperCase();
+    if (!ticker) throw new Error("alpaca_open_sell_symbol_missing");
+    sameDayExitTickers.add(ticker);
   }
   return sameDayExitTickers;
 }
@@ -285,7 +274,7 @@ async function runDailyEntryPass() {
   // FAIL CLOSED: if either query fails, abort the entire pass for today.
   let sameDayExitTickers;
   try {
-    sameDayExitTickers = await buildSameDayExitTickers();
+    sameDayExitTickers = await buildSameDayExitTickers(acct.openOrders);
     if (sameDayExitTickers.size > 0) {
       console.log(`[DAILY-ENTRY] Same-day exit exclusions: ${[...sameDayExitTickers].sort().join(', ')}`);
     }
@@ -383,7 +372,7 @@ async function runCh3RearmPass() {
   // FAIL CLOSED on exclusion data, same as the daily pass.
   let sameDayExitTickers;
   try {
-    sameDayExitTickers = await buildSameDayExitTickers();
+    sameDayExitTickers = await buildSameDayExitTickers(acct.openOrders);
   } catch (err) {
     console.error(`[CH3-REARM] Exclusion data unavailable — skipping (${err.message})`);
     return;

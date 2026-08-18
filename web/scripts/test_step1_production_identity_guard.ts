@@ -30,7 +30,7 @@ assert.throws(
     requestedBy: "test",
     executionMode: "enabled",
     requestedMode: "snapshot",
-    env: {},
+    env: { NODE_ENV: "production" },
   }),
   (error: unknown) => error instanceof Step1AdminRefreshContractError
     && error.code === "production_placeholder_identity_forbidden",
@@ -41,7 +41,7 @@ const accepted = resolveStep1OrchestratorInputFromAdminRefreshRequest({
   requestedBy: "test",
   executionMode: "enabled",
   requestedMode: "snapshot",
-  env: {},
+  env: { NODE_ENV: "production" },
 });
 assert.equal(accepted.input.normalizedPackageId, "normalized-package-proof");
 

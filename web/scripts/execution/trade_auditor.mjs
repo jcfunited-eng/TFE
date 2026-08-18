@@ -34,26 +34,21 @@ function alpacaHeaders() {
 }
 
 async function resolveAlpacaBase() {
-  try {
-    const res = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-    );
-    return (res.rows[0]?.value ?? "paper") === "live"
-      ? "https://api.alpaca.markets"
-      : "https://paper-api.alpaca.markets";
-  } catch {
-    return "https://paper-api.alpaca.markets";
-  }
+  const res = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+  );
+  const mode = res.rows[0]?.value;
+  if (mode !== "paper") throw new Error(`[AUDITOR] execution_mode_not_authorized:${mode ?? "missing"}`);
+  return "https://paper-api.alpaca.markets";
 }
 
 async function fetchAlpacaOrder(orderId, base) {
-  try {
-    const res = await fetch(`${base}/v2/orders/${orderId}`, { headers: alpacaHeaders() });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${base}/v2/orders/${orderId}`, {
+    headers: alpacaHeaders(),
+    signal: AbortSignal.timeout(8_000),
+  });
+  if (!res.ok) throw new Error(`[AUDITOR] Alpaca order ${orderId} HTTP ${res.status}`);
+  return res.json();
 }
 
 // ── Sync fills from Alpaca back into ledger ───────────────────────────────
@@ -85,7 +80,7 @@ async function syncFills() {
       await pool.query(
         `UPDATE personal_trade_ledger SET alpaca_order_id=$1 WHERE id=$2`,
         [effectiveOrderId, row.id]
-      ).catch(() => {});
+      );
     }
 
     const fields = {};
@@ -122,7 +117,7 @@ async function syncFills() {
     await pool.query(
       `UPDATE personal_trade_ledger SET ${setClauses} WHERE id = $1`,
       [row.id, ...Object.values(fields)]
-    ).catch(e => console.error(`[AUDITOR] Fill sync failed for ${row.ticker}:`, e.message));
+    );
   }
 }
 

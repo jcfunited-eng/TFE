@@ -423,7 +423,6 @@ export default function AdminConsolePage() {
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [refreshBusy, setRefreshBusy] = useState<RefreshMode | null>(null);
   const [killBusy, setKillBusy] = useState(false);
-  const [pee1Busy, setPee1Busy] = useState(false);
   const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [modelAccuracy, setModelAccuracy] = useState<ModelAccuracyPayload | null>(null);
   const [recommendationQuality, setRecommendationQuality] = useState<RecommendationQualityPayload | null>(null);
@@ -730,27 +729,6 @@ export default function AdminConsolePage() {
     }
 
     setRefreshBusy(null);
-  }
-
-  async function onRunPee1(): Promise<void> {
-    setPee1Busy(true);
-    pushNotice("warn", "Launching PEE-1 engine — check Trade Audit Console in ~30 seconds for results.");
-    try {
-      const response = await fetch("/api/admin/pee1", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "run" }),
-      });
-      const data = (await response.json()) as { ok?: boolean; pid?: number; message?: string; error?: string };
-      if (!data.ok) {
-        pushNotice("error", data.error ?? "PEE-1 launch failed.");
-      } else {
-        pushNotice("good", data.message ?? `PEE-1 runner launched (pid=${data.pid}).`);
-      }
-    } catch {
-      pushNotice("error", "PEE-1 launch failed — network error.");
-    }
-    setPee1Busy(false);
   }
 
   async function onConfirmKillActiveRun(): Promise<void> {
@@ -1241,15 +1219,9 @@ export default function AdminConsolePage() {
                 Validation Dashboard
               </button>
 
-              <button
-                className={styles.opButton}
-                type="button"
-                onClick={() => void onRunPee1()}
-                disabled={pee1Busy}
-                title="Run PEE-1 signal detection and place orders for 3WA + Ch2 signals"
-              >
-                {pee1Busy ? "Launching PEE-1..." : "▶ Run PEE-1 Engine"}
-              </button>
+              <div className={styles.opButton} title="PEE-1 is owned by the supervised runtime process">
+                PEE-1 supervised continuously
+              </div>
             </div>
 
             {refreshRunning ? (

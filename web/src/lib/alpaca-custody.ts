@@ -129,7 +129,8 @@ function credentials(): { key: string; secret: string } | null {
 
 
 function baseUrl(mode: ExecutionMode): string {
-  return mode === "live" ? "https://api.alpaca.markets" : "https://paper-api.alpaca.markets";
+  if (mode !== "paper") throw new Error(`execution_mode_not_authorized:${mode}`);
+  return "https://paper-api.alpaca.markets";
 }
 
 
@@ -150,8 +151,9 @@ async function alpacaJson(url: string, auth: { key: string; secret: string }): P
 
 
 function accountFrom(raw: unknown): AlpacaAccount {
-  const value = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as RawRecord : {};
-  return {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("INVALID_ACCOUNT_PAYLOAD");
+  const value = raw as RawRecord;
+  const account = {
     equity: finiteOrNull(value.equity),
     cash: finiteOrNull(value.cash),
     portfolioValue: finiteOrNull(value.portfolio_value),
@@ -159,6 +161,10 @@ function accountFrom(raw: unknown): AlpacaAccount {
     shortMarketValue: finiteOrNull(value.short_market_value),
     lastEquity: finiteOrNull(value.last_equity),
   };
+  if ((account.equity === null && account.portfolioValue === null) || account.cash === null) {
+    throw new Error("INVALID_ACCOUNT_FIELDS");
+  }
+  return account;
 }
 
 
@@ -186,8 +192,9 @@ function positionsFrom(raw: unknown): AlpacaPosition[] {
 function ordersFrom(raw: unknown): AlpacaOpenOrder[] {
   if (!Array.isArray(raw)) throw new Error("INVALID_ORDERS_PAYLOAD");
   return raw.map((item) => {
-    const value = item && typeof item === "object" && !Array.isArray(item) ? item as RawRecord : {};
-    return {
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error("INVALID_ORDER_ROW");
+    const value = item as RawRecord;
+    const order = {
       id: String(value.id ?? ""),
       symbol: normalizedSymbol(value.symbol),
       side: String(value.side ?? "unknown"),
@@ -195,7 +202,11 @@ function ordersFrom(raw: unknown): AlpacaOpenOrder[] {
       filledQuantity: finiteOrNull(value.filled_qty),
       status: String(value.status ?? "unknown"),
     };
-  }).filter((order) => order.id && order.symbol);
+    if (!order.id || !order.symbol || order.quantity === null || order.filledQuantity === null) {
+      throw new Error("INVALID_ORDER_FIELDS");
+    }
+    return order;
+  });
 }
 
 
