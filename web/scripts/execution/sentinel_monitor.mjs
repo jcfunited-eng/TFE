@@ -16,6 +16,11 @@
  */
 
 import pg from "pg";
+import {
+  isCh3EodCloseWindow,
+  isRegularMarketSession,
+  regularSessionMinutesElapsed,
+} from "./market_clock.mjs";
 // EXIT-BASIN-BREAK (2026-08-11, Joe's dispatch): the V3 coupled math that
 // justified the entry, re-measured while holding. Same module, same frozen
 // constants as the entry gate — no separate exit formula to drift.
@@ -92,12 +97,7 @@ export async function isRecentlyKilled(ticker) {
 // $170 overnight (actual $252), triggering a false -33.6% catastrophic exit.
 // EXIT-F must only fire during real market hours.
 export function isMarketHoursForExitF(now = new Date()) {
-  const h = now.getUTCHours();
-  const m = now.getUTCMinutes();
-  const minuteOfDay = h * 60 + m;
-  const open  = 13 * 60 + 30;  // 13:30 UTC = 9:30 AM ET
-  const close = 20 * 60;       // 20:00 UTC = 4:00 PM ET
-  return minuteOfDay >= open && minuteOfDay <= close;
+  return isRegularMarketSession(now);
 }
 
 // ── CH3 same-day stall exit ────────────────────────────────────────────
@@ -748,14 +748,12 @@ export async function runSentinel() {
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"}`);
 
   // ── CH3 EOD forced close: no overnight holds for the scalp channel ────────
-  // CH3 is intraday-only. Any open CH3 position at 15:30 ET (19:30 UTC) gets
+  // CH3 is intraday-only. Any open CH3 position at 15:30 ET gets
   // force-closed via market sell before the 16:00 close. The bracket TP/SL
   // handles normal exits; this is the backstop that prevents the "crash and
   // burn" pattern of holding overnight when the bracket doesn't fire.
   {
-    const nowUtcMins = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
-    const CH3_EOD_CLOSE_UTC = 19 * 60 + 30;  // 3:30 PM ET = 19:30 UTC
-    if (nowUtcMins >= CH3_EOD_CLOSE_UTC) {
+    if (isCh3EodCloseWindow()) {
       const ch3Open = positions.filter(p =>
         String(p.signal_class ?? "").trim().toUpperCase() === "CH3" &&
         (p.status === "filled" || p.status === "submitted" || p.status === "pending")
@@ -1354,9 +1352,7 @@ export async function runSentinel() {
                 const prevDayVol = snap.prevDay?.v ?? 0;
 
                 // Normalize by time of day (early = low volume is normal)
-                const now = new Date();
-                const marketMins = (now.getUTCHours() - 13) * 60 + (now.getUTCMinutes() - 30);
-                const tradingMinutes = Math.max(1, Math.min(390, marketMins));
+                const tradingMinutes = regularSessionMinutesElapsed();
                 const expectedRatio = tradingMinutes / 390;
 
                 volumeRatio = prevDayVol > 0

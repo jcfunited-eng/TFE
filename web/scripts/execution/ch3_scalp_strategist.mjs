@@ -24,6 +24,11 @@
  */
 
 import pg from "pg";
+import {
+  easternClock,
+  isRegularMarketSession,
+  regularSessionMinutesElapsed,
+} from "./market_clock.mjs";
 import { readFileSync } from "fs";
 
 const pool = new pg.Pool({
@@ -267,11 +272,8 @@ function parseCandidate(row) {
 async function fetchIntradayMomentum(tickers) {
   if (!tickers.length) return new Map();
 
-  // Minutes elapsed since 9:30 AM ET open
-  const now        = new Date();
-  const utcMins    = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const openMins   = 13 * 60 + 30;  // 13:30 UTC = 9:30 AM ET
-  const elapsed    = Math.max(1, utcMins - openMins);
+  // Minutes elapsed since the 09:30 ET open, independent of EST/EDT.
+  const elapsed = regularSessionMinutesElapsed();
 
   // Batched snapshots — a failed batch drops only its own tickers
   const snapshots = {};
@@ -339,12 +341,10 @@ export async function getCh3Signals() {
   console.log("[CH3-HUNTER] Scalp hunter scanning (live momentum mode)...");
 
   // Gate 0: market hours
-  const now      = new Date();
-  const utcHour  = now.getUTCHours();
-  const utcMin   = now.getUTCMinutes();
-  const utcTime  = utcHour * 60 + utcMin;
-  if (utcTime < 13 * 60 + 30 || utcTime >= 20 * 60) {
-    console.log(`[CH3-HUNTER] SKIP — market closed (${utcHour}:${String(utcMin).padStart(2,"0")} UTC)`);
+  const now = new Date();
+  const eastern = easternClock(now);
+  if (!isRegularMarketSession(now)) {
+    console.log(`[CH3-HUNTER] SKIP — market closed (${eastern.hour}:${String(eastern.minute).padStart(2,"0")} ET)`);
     return [];
   }
   try {

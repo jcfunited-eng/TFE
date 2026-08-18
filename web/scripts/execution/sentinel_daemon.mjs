@@ -3,13 +3,13 @@
  * Continuous sentinel — polls Alpaca every 5 minutes during market hours,
  * syncs fill status to the DB, and runs exit checks on open positions.
  *
- * ENTRY CADENCE: Once per trading day, after market open (~13:45 UTC).
+ * ENTRY CADENCE: Once per trading day, after market open (09:45 ET).
  * The daemon loop runs sentinel exits every 5 min. Entry logic runs once
  * daily from settled account state. Cash freed by intraday exits
  * accumulates untouched until the next day's pass.
  *
  * CH3 EXCEPTION: the scalp channel re-arms every 15 min after the entry
- * window until 18:00 UTC (2 PM ET) — an intraday channel whose entries
+ * window until 14:00 ET — an intraday channel whose entries
  * cancel unfilled deserves more than one shot per day. 3WA/CH2 remain
  * strictly once-daily.
  *
@@ -24,6 +24,12 @@ import { getCh2Signals, closeCh2StrategistPool } from "./ch2_strategist.mjs";
 import { executeBracketOrder, executeCh2BracketOrder,
          executeCh3MarketOrder } from "./alpaca_bridge.mjs";
 import { isTradingDay, getHolidayName } from "./market_calendar.mjs";
+import {
+  isCh3RearmWindowEastern,
+  isDaemonMarketWindow,
+  isDailyEntryWindow,
+  marketDateEastern,
+} from "./market_clock.mjs";
 import pg from "pg";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
@@ -47,25 +53,21 @@ const pool = new pg.Pool({
 let lastEntryPassDate = null;
 
 async function loadEntryPassDate() {
-  try {
-    const r = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'lastEntryPassDate' LIMIT 1`
-    );
-    lastEntryPassDate = r.rows[0]?.value ?? null;
-    if (lastEntryPassDate) {
-      console.log(`[SENTINEL-DAEMON] Entry pass already ran: ${lastEntryPassDate}`);
-    }
-  } catch { /* non-fatal — defaults to null */ }
+  const r = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = 'lastEntryPassDate' LIMIT 1`
+  );
+  lastEntryPassDate = r.rows[0]?.value ?? null;
+  if (lastEntryPassDate) {
+    console.log(`[SENTINEL-DAEMON] Entry pass already ran: ${lastEntryPassDate}`);
+  }
 }
 
 async function persistEntryPassDate(date) {
-  try {
-    await pool.query(
-      `INSERT INTO pee1_execution_config (key, value) VALUES ('lastEntryPassDate', $1)
-       ON CONFLICT (key) DO UPDATE SET value = $1`,
-      [date]
-    );
-  } catch { /* non-fatal */ }
+  await pool.query(
+    `INSERT INTO pee1_execution_config (key, value) VALUES ('lastEntryPassDate', $1)
+     ON CONFLICT (key) DO UPDATE SET value = $1`,
+    [date]
+  );
 }
 
 /**
@@ -99,39 +101,22 @@ async function fetchAccountState() {
   return { cash, invested, funded };
 }
 
-const MARKET_OPEN_UTC_H  = 13;  // 9:30 ET = 13:30 UTC
-const MARKET_OPEN_UTC_M  = 30;
-const MARKET_CLOSE_UTC_H = 20;  // 4:00 PM ET = 20:00 UTC
-
 let running = true;
 
 process.on("SIGTERM", () => { running = false; });
 process.on("SIGINT",  () => { running = false; });
 
 function isMarketHours() {
-  const now = new Date();
-  const h = now.getUTCHours();
-  const m = now.getUTCMinutes();
-  const minuteOfDay = h * 60 + m;
-  const open  = MARKET_OPEN_UTC_H  * 60 + MARKET_OPEN_UTC_M;
-  const close = MARKET_CLOSE_UTC_H * 60;
-  // Run from 30 min before open through 30 min after close to catch fills
-  return minuteOfDay >= (open - 30) && minuteOfDay <= (close + 30);
+  return isDaemonMarketWindow();
 }
 
 /**
  * Check if it's past the daily entry window (15 min after open).
- * Entries run at ~13:45 UTC (9:45 AM ET) — 15 min after open to let
+ * Entries run at 09:45 ET — 15 min after open to let
  * the market settle and ensure account state reflects overnight fills.
  */
 function isEntryWindow() {
-  const now = new Date();
-  const h = now.getUTCHours();
-  const m = now.getUTCMinutes();
-  const minuteOfDay = h * 60 + m;
-  const entryTime = (MARKET_OPEN_UTC_H * 60 + MARKET_OPEN_UTC_M) + 15; // 13:45 UTC
-  // Entry window: 13:45 - 14:15 UTC (30 min window)
-  return minuteOfDay >= entryTime && minuteOfDay <= entryTime + 30;
+  return isDailyEntryWindow();
 }
 
 async function sleep(ms) {
@@ -264,7 +249,7 @@ async function runDailyEntryPass() {
   if (await checkEntriesHalted()) {
     console.log(`[DAILY-ENTRY] KILL SWITCH ACTIVE — no entries today`);
     console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
-    return;
+    return true;
   }
 
   // ── Fetch settled account state (once, used for entire pass) ─────────
@@ -273,7 +258,7 @@ async function runDailyEntryPass() {
     acct = await fetchAccountState();
   } catch (err) {
     console.error(`[DAILY-ENTRY] Account fetch failed: ${err.message} — aborting`);
-    return;
+    return false;
   }
 
   console.log(
@@ -284,7 +269,7 @@ async function runDailyEntryPass() {
   if (acct.cash <= 0) {
     console.log(`[DAILY-ENTRY] No cash on hand — skipping all entries`);
     console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
-    return;
+    return true;
   }
 
   // ── Build daily budget (snapshot, does not change during this pass) ──
@@ -307,7 +292,7 @@ async function runDailyEntryPass() {
   } catch (err) {
     console.error(`[DAILY-ENTRY] Exclusion data unavailable — pass aborted, no entries today (${err.message})`);
     console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
-    return;
+    return false;
   }
 
   let totalEntries = 0;
@@ -357,10 +342,11 @@ async function runDailyEntryPass() {
     `cash remaining=$${budget.cashRemaining.toFixed(0)} | invested=$${budget.invested.toFixed(0)}`
   );
   console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
+  return true;
 }
 
 // ── CH3 intraday re-arm ──────────────────────────────────────────────────
-// The daily pass gives CH3 one shot at ~13:45 UTC. When that entry never
+// The daily pass gives CH3 one shot at 09:45 ET. When that entry never
 // fills (stale-entry cancel, 4-for-4 on 7/24–7/27) or nothing is HOT yet,
 // the slots sit idle all day while the strategist's own gates (pool
 // dollars, already-traded-today, recent losers, daily loss limit) would
@@ -369,13 +355,10 @@ async function runDailyEntryPass() {
 // 3WA/CH2 stay strictly once-daily. Every strategist and bridge gate
 // still applies on each pass.
 const CH3_REARM_INTERVAL_MS   = 15 * 60 * 1000;
-const CH3_REARM_CUTOFF_UTC_MIN = 18 * 60;  // 2:00 PM ET — runway before the 3:30 EOD flatten
 let lastCh3RearmAt = 0;
 
 export function isCh3RearmWindow(now = new Date()) {
-  const minuteOfDay = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const entryWindowEnd = (MARKET_OPEN_UTC_H * 60 + MARKET_OPEN_UTC_M) + 45; // 14:15 UTC
-  return minuteOfDay > entryWindowEnd && minuteOfDay < CH3_REARM_CUTOFF_UTC_MIN;
+  return isCh3RearmWindowEastern(now);
 }
 
 async function runCh3RearmPass() {
@@ -446,14 +429,18 @@ async function main() {
       }
 
       // ── Daily entry pass: runs ONCE per trading day ─────────────────
-      // Fires in the entry window (13:45-14:15 UTC) if not already run today.
+      // Fires in the entry window (09:45-10:15 ET) if not already run today.
       // Cash freed by intraday exits accumulates until tomorrow's pass.
-      const today = new Date().toISOString().slice(0, 10);
+      const today = marketDateEastern();
       if (isEntryWindow() && lastEntryPassDate !== today) {
-        lastEntryPassDate = today;
-        await persistEntryPassDate(today);
         try {
-          await runDailyEntryPass();
+          const completed = await runDailyEntryPass();
+          if (completed) {
+            await persistEntryPassDate(today);
+            lastEntryPassDate = today;
+          } else {
+            console.error(`[DAILY-ENTRY] Pass did not complete; date remains unmarked so the entry window may retry.`);
+          }
         } catch (err) {
           console.error(`[DAILY-ENTRY] Fatal: ${err.message}`);
         }

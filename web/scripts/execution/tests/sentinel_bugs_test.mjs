@@ -68,8 +68,8 @@ assert(await isRecentlyKilled("BCPC") === true, "Case-insensitive: bcpc marked, 
 // ═══════════════════════════════════════════════════════════════════════════
 console.log("\n=== BUG 2: EXIT-F Outside Market Hours ===");
 
-// 14:00 UTC (9:00 AM ET) = market hours
-assert(isMarketHoursForExitF(new Date("2026-05-20T14:00:00Z")) === true, "14:00 UTC (market open) → EXIT-F allowed");
+// 14:00 UTC (10:00 AM EDT) = market hours
+assert(isMarketHoursForExitF(new Date("2026-05-20T14:00:00Z")) === true, "10:00 EDT (market open) → EXIT-F allowed");
 
 // 19:30 UTC (3:30 PM ET) = market hours
 assert(isMarketHoursForExitF(new Date("2026-05-20T19:30:00Z")) === true, "19:30 UTC (market hours) → EXIT-F allowed");
@@ -83,11 +83,15 @@ assert(isMarketHoursForExitF(new Date("2026-05-20T12:00:00Z")) === false, "12:00
 // 21:00 UTC (after hours) = too late
 assert(isMarketHoursForExitF(new Date("2026-05-20T21:00:00Z")) === false, "21:00 UTC (after hours) → EXIT-F BLOCKED");
 
-// 13:30 UTC (exactly market open)
+// 13:30 UTC (exactly market open during EDT)
 assert(isMarketHoursForExitF(new Date("2026-05-20T13:30:00Z")) === true, "13:30 UTC (exactly open) → EXIT-F allowed");
 
-// 20:00 UTC (exactly market close)
-assert(isMarketHoursForExitF(new Date("2026-05-20T20:00:00Z")) === true, "20:00 UTC (exactly close) → EXIT-F allowed");
+// 20:00 UTC is exactly the 16:00 EDT close
+assert(isMarketHoursForExitF(new Date("2026-05-20T20:00:00Z")) === true, "16:00 EDT (exactly close) → EXIT-F allowed");
+
+// Winter session shifts to UTC-5 while the civil market clock stays 09:30-16:00 ET.
+assert(isMarketHoursForExitF(new Date("2026-12-18T14:30:00Z")) === true, "09:30 EST (exactly open) → EXIT-F allowed");
+assert(isMarketHoursForExitF(new Date("2026-12-18T21:00:00Z")) === true, "16:00 EST (exactly close) → EXIT-F allowed");
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BUG 3: Premature phantom cleanup
