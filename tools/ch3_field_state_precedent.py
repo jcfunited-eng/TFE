@@ -100,6 +100,7 @@ MIN_CLASS_N = 50
 
 
 def sgn(z: float) -> int:
+    z = float(z)
     return (z > 0) - (z < 0)
 
 
