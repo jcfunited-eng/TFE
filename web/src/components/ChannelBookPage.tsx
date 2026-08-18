@@ -1,3 +1,4 @@
+import type React from "react";
 import Link from "next/link";
 import type { ChannelBookView } from "@/lib/channel-books";
 import styles from "@/app/portfolio/[channel]/page.module.css";
@@ -24,6 +25,11 @@ function percent(value: number | null): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
+
+function cellColor(value: number | null): React.CSSProperties {
+  if (value === null || value === 0) return { color: "#64748b" };
+  return { color: value > 0 ? "#15803d" : "#dc2626", fontWeight: 700 };
+}
 
 function tone(value: number | null): string {
   if (value === null || value === 0) return styles.neutral;
@@ -87,8 +93,8 @@ export default function ChannelBookPage({ book }: { book: ChannelBookView }) {
                   <td>{position.shares.toLocaleString("en-US")}</td>
                   <td>{price(position.entryPrice)}</td>
                   <td>{price(position.currentPrice)}</td>
-                  <td className={tone(position.unrealizedPnl)}>{dollars(position.unrealizedPnl, true)}</td>
-                  <td className={tone(position.returnPct)}>{percent(position.returnPct)}</td>
+                  <td style={cellColor(position.unrealizedPnl)}>{dollars(position.unrealizedPnl, true)}</td>
+                  <td style={cellColor(position.returnPct)}>{percent(position.returnPct)}</td>
                   <td>{position.enteredAt || "—"}</td>
                   <td>{position.status}</td>
                 </tr>
@@ -118,8 +124,8 @@ export default function ChannelBookPage({ book }: { book: ChannelBookView }) {
                   <td>{trade.shares ? trade.shares.toLocaleString("en-US") : "—"}</td>
                   <td>{price(trade.entryPrice)}</td>
                   <td>{price(trade.exitPrice)}</td>
-                  <td className={tone(trade.pnl)}>{dollars(trade.pnl, true)}</td>
-                  <td className={tone(trade.returnPct)}>{percent(trade.returnPct)}</td>
+                  <td style={cellColor(trade.pnl)}>{dollars(trade.pnl, true)}</td>
+                  <td style={cellColor(trade.returnPct)}>{percent(trade.returnPct)}</td>
                   <td>{trade.reason || "—"}</td>
                   <td>{trade.exitedAt || "—"}</td>
                 </tr>
