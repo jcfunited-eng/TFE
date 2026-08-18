@@ -1,122 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCurrentServerUser } from "@/lib/server-auth";
+import {
+  fetchAlpacaCustody,
+  reconcileCustody,
+  type ExecutionMode,
+  type LedgerOpenPosition,
+} from "@/lib/alpaca-custody";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
+
 
 export const dynamic = "force-dynamic";
 
-function alpacaHeaders() {
-  return {
-    "APCA-API-KEY-ID": process.env.APCA_API_KEY_ID ?? process.env.ALPACA_API_KEY ?? "",
-    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY ?? process.env.ALPACA_SECRET_KEY ?? "",
-  };
+
+function executionMode(value: string | undefined): ExecutionMode {
+  if (value === "paper" || value === "live") return value;
+  throw new Error("execution_mode_missing_or_invalid");
 }
 
-async function fetchCurrentPrices(tickers: string[], executionMode: string): Promise<Record<string, number>> {
-  if (!tickers.length) return {};
-  const base = executionMode === "live"
-    ? "https://api.alpaca.markets"
-    : "https://paper-api.alpaca.markets";
-  try {
-    const symbolList = tickers.map(t => encodeURIComponent(t)).join(",");
-    const res = await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?symbols=${symbolList}&feed=iex`, {
-      headers: alpacaHeaders(),
-    });
-    if (!res.ok) return {};
-    const data = await res.json() as Record<string, { latestTrade?: { p: number }; latestQuote?: { ap: number } }>;
-    const prices: Record<string, number> = {};
-    for (const [ticker, snap] of Object.entries(data)) {
-      const price = snap?.latestTrade?.p ?? snap?.latestQuote?.ap ?? null;
-      if (price && price > 0) prices[ticker] = price;
-    }
-    // Suppress unused variable warning
-    void base;
-    return prices;
-  } catch {
-    return {};
-  }
-}
 
-async function getExecutionMode(pool: ReturnType<typeof resolveRuntimePostgresPool>): Promise<string> {
-  try {
-    const res = await pool.query<{ value: string }>(
-      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
-    );
-    return res.rows[0]?.value ?? "paper";
-  } catch {
-    return "paper";
-  }
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const pool = resolveRuntimePostgresPool();
   try {
-    const [posRes, executionMode] = await Promise.all([
-      pool.query<{
-        id: number;
-        ticker: string;
-        signal_class: string;
-        shares: number;
-        entry_filled_price: string | null;
-        dollar_allocation: string | null;
-        atr_14: string | null;
-        spy_dk: number | null;
-        s_uf: string | null;
-        bar_count: number | null;
-        status: string;
-        signal_detected_at: string;
-        entry_filled_at: string | null;
-        alpaca_order_id: string | null;
-      }>(
+    const [positionResult, modeResult] = await Promise.all([
+      pool.query<LedgerOpenPosition>(
         `SELECT id, ticker, signal_class, shares,
                 entry_filled_price, dollar_allocation, atr_14,
                 spy_dk, s_uf, bar_count, status,
                 signal_detected_at, entry_filled_at, alpaca_order_id
          FROM personal_trade_ledger
          WHERE status IN ('submitted', 'filled')
-         ORDER BY signal_detected_at DESC`
+         ORDER BY signal_detected_at DESC`,
       ),
-      getExecutionMode(pool),
+      pool.query<{ value: string }>(
+        `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`,
+      ),
     ]);
+    const mode = executionMode(modeResult.rows[0]?.value);
+    const broker = await fetchAlpacaCustody(mode);
+    const custody = reconcileCustody(positionResult.rows, broker.positions, broker.openOrders);
 
-    const tickers = [...new Set(posRes.rows.map(r => r.ticker))];
-    const prices = await fetchCurrentPrices(tickers, executionMode);
-
-    const positions = posRes.rows.map(row => {
-      const entryPrice = parseFloat(row.entry_filled_price ?? "0") || null;
-      const currentPrice = prices[row.ticker] ?? null;
-      const shares = Number(row.shares) || 0;
-      const unrealizedPl = entryPrice && currentPrice ? (currentPrice - entryPrice) * shares : null;
-      const unrealizedPlPct = entryPrice && unrealizedPl !== null ? (unrealizedPl / (entryPrice * shares)) * 100 : null;
-      return {
-        id: row.id,
-        ticker: row.ticker,
-        signal_class: row.signal_class ?? "manual",
-        shares,
-        entry_price: entryPrice,
-        current_price: currentPrice,
-        dollar_allocation: parseFloat(row.dollar_allocation ?? "0") || null,
-        unrealized_pl: unrealizedPl !== null ? Math.round(unrealizedPl * 100) / 100 : null,
-        unrealized_pl_pct: unrealizedPlPct !== null ? Math.round(unrealizedPlPct * 100) / 100 : null,
-        status: row.status,
-        spy_dk: row.spy_dk,
-        s_uf: parseFloat(row.s_uf ?? "0") || null,
-        bar_count: row.bar_count,
-        signal_detected_at: row.signal_detected_at,
-        entry_filled_at: row.entry_filled_at,
-        alpaca_order_id: row.alpaca_order_id,
-      };
+    return NextResponse.json({
+      positions: custody.positions,
+      execution_mode: mode,
+      custody: custody.summary,
+      broker_status: broker.status,
+      broker_position_status: broker.positionsStatus,
+      broker_order_status: broker.ordersStatus,
+      broker_reasons: broker.reasons,
+      as_of: broker.fetchedAt,
     });
-
-    return NextResponse.json({ positions, execution_mode: executionMode });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("does not exist")) {
-      return NextResponse.json({ positions: [], execution_mode: "paper", error: "tables_not_initialized" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("does not exist")) {
+      return NextResponse.json({ error: "tables_not_initialized" }, { status: 503 });
     }
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

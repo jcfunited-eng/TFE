@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 type PEE1Config = {
   execution_mode: "paper" | "live";
@@ -11,17 +10,42 @@ type PEE1Config = {
   risk_per_trade_pct: number;
 };
 
+type CustodyStatus =
+  | "matched"
+  | "broker_only"
+  | "ledger_only"
+  | "quantity_mismatch"
+  | "duplicate_ledger"
+  | "pending_order"
+  | "submitted_without_broker_order"
+  | "broker_unavailable";
+
+type CustodySummary = {
+  brokerPositions: number | null;
+  ledgerSymbols: number;
+  matched: number;
+  discrepancies: number;
+  unknownBecauseBrokerUnavailable: number;
+  byStatus: Record<CustodyStatus, number>;
+};
+
 type PEE1Position = {
-  id: number;
+  id: string;
+  ledger_ids: number[];
   ticker: string;
   signal_class: string;
   shares: number;
+  ledger_shares: number;
+  broker_shares: number | null;
   entry_price: number | null;
   current_price: number | null;
+  market_value: number | null;
   dollar_allocation: number | null;
   unrealized_pl: number | null;
   unrealized_pl_pct: number | null;
-  status: string;
+  status: CustodyStatus;
+  custody_status: CustodyStatus;
+  custody_note: string;
   spy_dk: number | null;
   s_uf: number | null;
   bar_count: number | null;
@@ -34,29 +58,36 @@ type ClosedTrade = {
   ticker: string;
   signal_class: string;
   shares: number;
-  entry: number;
-  exit: number;
-  pnl: number;
+  entry: number | null;
+  exit: number | null;
+  pnl: number | null;
   pnl_pct: number | null;
   exit_reason: string;
-  closed_at: string;
+  closed_at: string | null;
 };
 
 type PEE1Summary = {
   funded_amount: number;
-  cash_on_hand: number;
-  total_invested: number;
-  portfolio_value: number;
-  total_pl: number;
+  cash_on_hand: number | null;
+  total_invested: number | null;
+  portfolio_value: number | null;
+  total_pl: number | null;
   total_pl_pct: number | null;
-  total_realized: number;
-  total_unrealized: number;
-  open_positions: number;
+  pl_baseline: number;
+  pl_method: string;
+  total_realized: null;
+  total_realized_status: string;
+  ledger_realized: number | null;
+  total_unrealized: number | null;
+  open_positions: number | null;
+  ledger_open_positions: number;
+  open_orders: number | null;
   total_trades: number;
   closed_trades: number;
   wins: number;
   losses: number;
   win_rate: string;
+  win_rate_note: string;
   exit_reasons: Record<string, number>;
   recent_closed_trades: ClosedTrade[];
   execution_mode: string;
@@ -65,127 +96,143 @@ type PEE1Summary = {
   risk_per_trade_pct: number;
   alpaca_equity: number | null;
   alpaca_cash: number | null;
+  broker_status: "available" | "partial" | "unavailable";
+  broker_reasons: string[];
+  broker_as_of: string;
+  custody: CustodySummary;
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmt(n: number | null, digits = 2): string {
-  if (n === null || n === undefined || isNaN(n)) return "—";
-  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+function fmt(value: number | null, digits = 2): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  return value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
-function fmtDollar(n: number | null): string {
-  if (n === null || n === undefined || isNaN(n)) return "—";
-  const abs = Math.abs(n);
-  const prefix = n < 0 ? "-$" : "$";
-  return prefix + abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function money(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  return `${value < 0 ? "−" : ""}$${Math.abs(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
-function plColor(n: number | null): string {
-  if (n === null) return "#888";
-  if (n > 0) return "#22c55e";
-  if (n < 0) return "#ef4444";
-  return "#888";
+
+function pnlColor(value: number | null): string {
+  if (value === null || value === 0) return "#64748b";
+  return value > 0 ? "#15803d" : "#dc2626";
 }
 
-function signalBadge(cls: string): React.ReactNode {
-  if (cls === "3WA") return <span style={{ background: "#7c3aed", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.04em" }}>3WA</span>;
-  if (cls === "W1")  return <span style={{ background: "#16a34a", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700 }}>W1</span>;
-  if (cls === "CH3") return <span style={{ background: "#d97706", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.04em" }}>CH3 ⚡</span>;
-  if (cls === "manual") return <span style={{ background: "#64748b", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700 }}>MANUAL</span>;
-  return <span style={{ background: "#374151", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem" }}>{cls}</span>;
+
+function displayDate(value: string | null): string {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleDateString();
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+
+function signalBadge(signalClass: string) {
+  const palette: Record<string, string> = {
+    "3WA": "#7c3aed",
+    W1: "#16a34a",
+    CH3: "#d97706",
+    manual: "#64748b",
+    BROKER: "#0f766e",
+  };
+  return (
+    <span style={{ background: palette[signalClass] ?? "#374151", color: "#fff", borderRadius: 4, padding: "2px 7px", fontSize: "0.7rem", fontWeight: 700 }}>
+      {signalClass}
+    </span>
+  );
+}
+
+
+function custodyColor(status: CustodyStatus): string {
+  if (status === "matched" || status === "pending_order") return "#15803d";
+  if (status === "broker_unavailable") return "#a16207";
+  return "#dc2626";
+}
+
+
+async function readJson<T>(response: Response): Promise<T> {
+  const body = await response.text();
+  if (!body) throw new Error(`Empty response from ${response.url} (HTTP ${response.status})`);
+  const parsed = JSON.parse(body) as T & { error?: string };
+  if (!response.ok) throw new Error(parsed.error ?? `HTTP ${response.status}`);
+  return parsed;
+}
+
 
 export default function PortfolioTFEManager() {
-  const [summary, setSummary]     = useState<PEE1Summary | null>(null);
+  const [summary, setSummary] = useState<PEE1Summary | null>(null);
   const [positions, setPositions] = useState<PEE1Position[]>([]);
-  const [config, setConfig]       = useState<PEE1Config | null>(null);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState<string | null>(null);
-  const [notInit, setNotInit]     = useState(false);
-
-  // Config save state
+  const [config, setConfig] = useState<PEE1Config | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notInitialized, setNotInitialized] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
-  const [fundedInput, setFundedInput]   = useState("");
-  const [riskInput, setRiskInput]       = useState("");
-
-  // Manual order state
-  const [orderSide, setOrderSide]         = useState<"buy" | "sell">("buy");
-  const [orderTicker, setOrderTicker]     = useState("");
-  const [orderShares, setOrderShares]     = useState("");
-  const [orderType, setOrderType]         = useState<"market" | "limit">("market");
+  const [fundedInput, setFundedInput] = useState("");
+  const [riskInput, setRiskInput] = useState("");
+  const [orderSide, setOrderSide] = useState<"buy" | "sell">("buy");
+  const [orderTicker, setOrderTicker] = useState("");
+  const [orderShares, setOrderShares] = useState("");
+  const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [orderLimitPrice, setOrderLimitPrice] = useState("");
-  const [orderNotes, setOrderNotes]       = useState("");
-  const [placingOrder, setPlacingOrder]   = useState(false);
-  const [orderMsg, setOrderMsg]           = useState<{ text: string; ok: boolean } | null>(null);
-
+  const [orderNotes, setOrderNotes] = useState("");
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderMessage, setOrderMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const refreshInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const [sumRes, posRes, cfgRes] = await Promise.all([
-        fetch("/api/portfolio/pee1-summary"),
-        fetch("/api/portfolio/pee1-positions"),
-        fetch("/api/portfolio/pee1-config"),
+      const [summaryResponse, positionsResponse, configResponse] = await Promise.all([
+        fetch("/api/portfolio/pee1-summary", { cache: "no-store" }),
+        fetch("/api/portfolio/pee1-positions", { cache: "no-store" }),
+        fetch("/api/portfolio/pee1-config", { cache: "no-store" }),
       ]);
-
-      if (sumRes.status === 401 || sumRes.status === 403) {
-        setError("Access denied — admin account required.");
-        setLoading(false);
+      if (summaryResponse.status === 503 || positionsResponse.status === 503 || configResponse.status === 503) {
+        setNotInitialized(true);
         return;
       }
-
-      if (sumRes.status === 503 || posRes.status === 503) {
-        setNotInit(true);
-        setLoading(false);
-        return;
-      }
-
-      // Guard: only call .json() if response has a body
-      const readJson = async (res: Response) => {
-        const text = await res.text();
-        if (!text) throw new Error(`Empty response (status ${res.status})`);
-        return JSON.parse(text) as unknown;
-      };
-
-      const [sumData, posData, cfgData] = await Promise.all([
-        readJson(sumRes) as Promise<PEE1Summary & { error?: string }>,
-        readJson(posRes) as Promise<{ positions: PEE1Position[]; error?: string }>,
-        readJson(cfgRes) as Promise<PEE1Config & { error?: string }>,
+      const [summaryValue, positionsValue, configValue] = await Promise.all([
+        readJson<PEE1Summary>(summaryResponse),
+        readJson<{ positions: PEE1Position[] }>(positionsResponse),
+        readJson<PEE1Config>(configResponse),
       ]);
-
-      if (cfgData.error === "tables_not_initialized") { setNotInit(true); setLoading(false); return; }
-
-      setSummary(sumData);
-      setPositions(posData.positions ?? []);
-      setConfig(cfgData);
-      if (!fundedInput) setFundedInput(String(cfgData.vault_funded_amount ?? 0));
-      if (!riskInput)   setRiskInput(String(cfgData.risk_per_trade_pct ?? 2.5));
+      setSummary(summaryValue);
+      setPositions(positionsValue.positions);
+      setConfig(configValue);
+      setFundedInput((current) => current || String(configValue.vault_funded_amount ?? 0));
+      setRiskInput((current) => current || String(configValue.risk_per_trade_pct ?? 1.5));
+      setNotInitialized(false);
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Load failed");
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Portfolio load failed");
     } finally {
       setLoading(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    load();
-    refreshInterval.current = setInterval(load, 30_000);
-    return () => { if (refreshInterval.current) clearInterval(refreshInterval.current); };
+    void load();
+    refreshInterval.current = setInterval(() => void load(), 30_000);
+    return () => {
+      if (refreshInterval.current) clearInterval(refreshInterval.current);
+    };
   }, [load]);
 
   async function saveConfig(patch: Partial<PEE1Config>) {
     setSavingConfig(true);
     try {
-      await fetch("/api/portfolio/pee1-config", {
+      const response = await fetch("/api/portfolio/pee1-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       });
+      await readJson(response);
       await load();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Configuration save failed");
     } finally {
       setSavingConfig(false);
     }
@@ -194,508 +241,185 @@ export default function PortfolioTFEManager() {
   async function toggleMode() {
     if (!config) return;
     const next = config.execution_mode === "paper" ? "live" : "paper";
-    if (next === "live") {
-      const ok = window.confirm(
-        "Switch to LIVE trading?\n\nThis will use REAL MONEY. All orders placed by PEE-1 will be live trades on your Alpaca account.\n\nType OK to confirm."
-      );
-      if (!ok) return;
-    }
+    if (next === "live" && !window.confirm("Switch to LIVE trading? This directs future orders to the real-money Alpaca endpoint.")) return;
     await saveConfig({ execution_mode: next });
   }
 
-  async function toggleAutoTFE() {
-    if (!config) return;
-    const next = !config.auto_tfe_enabled;
-    await saveConfig({ auto_tfe_enabled: next });
-  }
-
   async function saveFundedAmount() {
-    const n = parseFloat(fundedInput);
-    if (isNaN(n) || n < 0) return;
-    await saveConfig({ vault_funded_amount: n });
+    const value = Number(fundedInput);
+    if (!Number.isFinite(value) || value < 0) return;
+    await saveConfig({ vault_funded_amount: value });
   }
 
   async function saveRisk() {
-    const n = parseFloat(riskInput);
-    if (isNaN(n) || n < 0.1 || n > 5) return;
-    await saveConfig({ risk_per_trade_pct: n });
+    const value = Number(riskInput);
+    if (!Number.isFinite(value) || value < 0.1 || value > 5) return;
+    await saveConfig({ risk_per_trade_pct: value });
   }
 
   async function placeManualOrder() {
-    setOrderMsg(null);
+    setOrderMessage(null);
     const ticker = orderTicker.trim().toUpperCase();
-    const shares = parseFloat(orderShares);
-    const limitPrice = orderType === "limit" ? parseFloat(orderLimitPrice) : undefined;
-
-    if (!ticker) { setOrderMsg({ text: "Ticker is required.", ok: false }); return; }
-    if (isNaN(shares) || shares <= 0) { setOrderMsg({ text: "Shares must be a positive number.", ok: false }); return; }
-    if (orderType === "limit" && (!limitPrice || isNaN(limitPrice) || limitPrice <= 0)) {
-      setOrderMsg({ text: "Limit price required for limit orders.", ok: false }); return;
+    const shares = Number(orderShares);
+    const limitPrice = orderType === "limit" ? Number(orderLimitPrice) : undefined;
+    if (!ticker) return setOrderMessage({ text: "Ticker is required.", ok: false });
+    if (!Number.isFinite(shares) || shares <= 0) return setOrderMessage({ text: "Shares must be positive.", ok: false });
+    if (orderType === "limit" && (!limitPrice || !Number.isFinite(limitPrice) || limitPrice <= 0)) {
+      return setOrderMessage({ text: "A positive limit price is required.", ok: false });
     }
-
     setPlacingOrder(true);
     try {
-      const res = await fetch("/api/portfolio/pee1-place-order", {
+      const response = await fetch("/api/portfolio/pee1-place-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ticker,
-          side: orderSide,
-          shares,
-          order_type: orderType,
-          limit_price: limitPrice,
-          notes: orderNotes,
-        }),
+        body: JSON.stringify({ ticker, side: orderSide, shares, order_type: orderType, limit_price: limitPrice, notes: orderNotes }),
       });
-      const data = await res.json() as { ok?: boolean; error?: string; warning?: string; alpaca_status?: string; execution_mode?: string };
-      if (data.ok) {
-        const mode = data.execution_mode === "live" ? "LIVE" : "paper";
-        const status = data.alpaca_status ?? "submitted";
-        const warn = data.warning ? ` ⚠ ${data.warning}` : "";
-        setOrderMsg({ text: `Order ${status} on Alpaca (${mode}).${warn}`, ok: true });
-        setOrderTicker(""); setOrderShares(""); setOrderLimitPrice(""); setOrderNotes("");
-        await load();
-      } else {
-        setOrderMsg({ text: data.error ?? "Order failed.", ok: false });
-      }
+      const result = await readJson<{ ok?: boolean; error?: string; warning?: string; alpaca_status?: string; execution_mode?: string }>(response);
+      if (!result.ok) throw new Error(result.error ?? "Order was not accepted");
+      const warning = result.warning ? ` Warning: ${result.warning}` : "";
+      setOrderMessage({ text: `Alpaca ${result.execution_mode ?? "unknown"} order status: ${result.alpaca_status ?? "submitted"}.${warning}`, ok: true });
+      setOrderTicker("");
+      setOrderShares("");
+      setOrderLimitPrice("");
+      setOrderNotes("");
+      await load();
+    } catch (orderError) {
+      setOrderMessage({ text: orderError instanceof Error ? orderError.message : "Order failed", ok: false });
     } finally {
       setPlacingOrder(false);
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  if (loading) return <div style={{ padding: 24, color: "#888" }}>Loading portfolio...</div>;
-
-  if (notInit) return (
-    <div className="tfe-panel" style={{ padding: 24, borderColor: "rgba(234,179,8,0.4)" }}>
-      <h3 style={{ margin: "0 0 8px", color: "#b45309" }}>DB Setup Required</h3>
-      <p style={{ margin: 0, fontSize: "0.9rem", color: "#78716c" }}>
-        The PEE-1 portfolio tables have not been initialized yet. Run the DB migrations to activate automated trading.
-      </p>
-      <code style={{ display: "block", marginTop: 12, fontSize: "0.78rem", color: "#57534e", background: "rgba(0,0,0,0.04)", padding: "8px 12px", borderRadius: 6 }}>
-        psql $DATABASE_URL -f 001_personal_trade_ledger.sql{"\n"}
-        psql $DATABASE_URL -f 002_pee1_config_and_circuit_breaker.sql{"\n"}
-        psql $DATABASE_URL -f 003_pee1_portfolio_config.sql
-      </code>
-    </div>
-  );
-
-  if (error) return <div style={{ padding: 24, color: "#ef4444" }}>{error}</div>;
+  if (loading) return <div style={{ padding: 24, color: "#64748b" }}>Loading broker custody…</div>;
+  if (notInitialized) return <div className="tfe-panel" style={{ padding: 20, color: "#a16207" }}>The portfolio ledger is not initialized.</div>;
+  if (error) return <div className="tfe-panel" style={{ padding: 20, color: "#dc2626" }}>Portfolio unavailable: {error}</div>;
 
   const isLive = config?.execution_mode === "live";
-  const autoOn = config?.auto_tfe_enabled ?? false;
-  const pl = summary?.total_pl ?? 0;
-  const plPct = summary?.total_pl_pct ?? null;
+  const custody = summary?.custody;
+  const discrepancy = (custody?.discrepancies ?? 0) > 0;
+  const cardStyle = { padding: "14px 16px", textAlign: "center" as const };
+  const inputStyle = { padding: "6px 9px", borderRadius: 6, border: "1px solid rgba(0,0,0,.18)", fontSize: "0.86rem" };
+
+  const metrics = [
+    { label: "Broker Equity", value: money(summary?.portfolio_value ?? null) },
+    { label: "Broker Cash", value: money(summary?.cash_on_hand ?? null) },
+    { label: "Broker Gross Market Value", value: money(summary?.total_invested ?? null) },
+    { label: "Broker P&L vs Baseline", value: money(summary?.total_pl ?? null), color: pnlColor(summary?.total_pl ?? null), sub: summary?.total_pl_pct === null || summary?.total_pl_pct === undefined ? null : `${summary.total_pl_pct >= 0 ? "+" : ""}${fmt(summary.total_pl_pct)}%` },
+    { label: "Broker Unrealized", value: money(summary?.total_unrealized ?? null), color: pnlColor(summary?.total_unrealized ?? null) },
+    { label: "Ledger Realized", value: money(summary?.ledger_realized ?? null), color: pnlColor(summary?.ledger_realized ?? null), sub: "Not broker account realized P&L" },
+    { label: "Ledger Strategy Win Rate", value: summary?.win_rate ?? "—", sub: summary ? `${summary.wins}W / ${summary.losses}L` : null },
+    { label: "Broker Positions", value: summary?.open_positions === null || summary?.open_positions === undefined ? "—" : String(summary.open_positions), sub: summary ? `${summary.ledger_open_positions} ledger symbols` : null },
+  ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-      {/* ── Control Bar ─────────────────────────────────────────────────── */}
-      <div className="tfe-panel" style={{ padding: "16px 20px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
-
-          {/* Paper / Live toggle */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>Mode</span>
-            <button
-              onClick={toggleMode}
-              disabled={savingConfig}
-              style={{
-                padding: "5px 14px",
-                borderRadius: 20,
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: "0.78rem",
-                letterSpacing: "0.06em",
-                background: isLive ? "#ef4444" : "#2563eb",
-                color: "#fff",
-                opacity: savingConfig ? 0.6 : 1,
-              }}
-            >
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div className="tfe-panel" style={{ padding: "14px 18px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "0.82rem" }}>
+            Mode
+            <button onClick={toggleMode} disabled={savingConfig} style={{ border: 0, borderRadius: 16, padding: "5px 14px", color: "#fff", background: isLive ? "#dc2626" : "#2563eb", fontWeight: 700, cursor: "pointer" }}>
               {isLive ? "LIVE" : "PAPER"}
             </button>
-            {isLive && <span style={{ fontSize: "0.72rem", color: "#ef4444", fontWeight: 600 }}>REAL MONEY</span>}
-          </div>
-
-          <div style={{ width: 1, height: 32, background: "rgba(0,0,0,0.1)" }} />
-
-          {/* Auto-TFE toggle */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>Auto-TFE</span>
-            <button
-              onClick={toggleAutoTFE}
-              disabled={savingConfig}
-              style={{
-                padding: "5px 14px",
-                borderRadius: 20,
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: "0.78rem",
-                letterSpacing: "0.06em",
-                background: autoOn ? "#16a34a" : "#6b7280",
-                color: "#fff",
-                opacity: savingConfig ? 0.6 : 1,
-              }}
-            >
-              {autoOn ? "ON" : "OFF"}
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "0.82rem" }}>
+            Auto-TFE
+            <button onClick={() => config && saveConfig({ auto_tfe_enabled: !config.auto_tfe_enabled })} disabled={savingConfig} style={{ border: 0, borderRadius: 16, padding: "5px 14px", color: "#fff", background: config?.auto_tfe_enabled ? "#16a34a" : "#64748b", fontWeight: 700, cursor: "pointer" }}>
+              {config?.auto_tfe_enabled ? "ON" : "OFF"}
             </button>
-            <span style={{ fontSize: "0.72rem", color: autoOn ? "#16a34a" : "#6b7280" }}>
-              {autoOn ? "TFE will trade automatically" : "Signals computed, no orders placed"}
-            </span>
-          </div>
-
-          <div style={{ width: 1, height: 32, background: "rgba(0,0,0,0.1)" }} />
-
-          {/* Funded amount */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>Funded</span>
-            <span style={{ fontSize: "0.78rem", color: "#64748b" }}>$</span>
-            <input
-              type="number"
-              value={fundedInput}
-              onChange={e => setFundedInput(e.target.value)}
-              onBlur={saveFundedAmount}
-              min={0}
-              step={100}
-              style={{ width: 110, padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.88rem" }}
-            />
-          </div>
-
-          <div style={{ width: 1, height: 32, background: "rgba(0,0,0,0.1)" }} />
-
-          {/* Risk per trade */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>Risk/Trade</span>
-            <input
-              type="number"
-              value={riskInput}
-              onChange={e => setRiskInput(e.target.value)}
-              onBlur={saveRisk}
-              min={0.1}
-              max={5}
-              step={0.1}
-              style={{ width: 60, padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.88rem" }}
-            />
-            <span style={{ fontSize: "0.78rem", color: "#64748b" }}>%</span>
-          </div>
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: "0.82rem" }}>
+            Recorded baseline $
+            <input type="number" value={fundedInput} onChange={(event) => setFundedInput(event.target.value)} onBlur={saveFundedAmount} min={0} step={100} style={{ ...inputStyle, width: 110 }} />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: "0.82rem" }}>
+            Risk/trade
+            <input type="number" value={riskInput} onChange={(event) => setRiskInput(event.target.value)} onBlur={saveRisk} min={0.1} max={5} step={0.1} style={{ ...inputStyle, width: 65 }} />%
+          </label>
         </div>
       </div>
 
-      {/* ── Metrics Bar ─────────────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
-        {[
-          { label: "Portfolio Value", value: fmtDollar(summary?.portfolio_value ?? null) },
-          { label: "Cash on Hand",    value: fmtDollar(summary?.cash_on_hand ?? null) },
-          { label: "Invested",        value: fmtDollar(summary?.total_invested ?? null) },
-          { label: "Total P&L",       value: fmtDollar(pl), color: plColor(pl), sub: plPct !== null ? `${plPct >= 0 ? "+" : ""}${fmt(plPct)}%` : null },
-          { label: "Realized",        value: fmtDollar(summary?.total_realized ?? null), color: plColor(summary?.total_realized ?? null) },
-          { label: "Unrealized",      value: fmtDollar(summary?.total_unrealized ?? null), color: plColor(summary?.total_unrealized ?? null) },
-          { label: "Win Rate",        value: summary?.win_rate ?? "—", sub: summary ? `${summary.wins}W / ${summary.losses}L` : null },
-          { label: "Open Positions",  value: String(summary?.open_positions ?? "—") },
-        ].map(m => (
-          <div key={m.label} className="tfe-panel" style={{ padding: "14px 16px", textAlign: "center" }}>
-            <div style={{ fontSize: "0.72rem", color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>{m.label}</div>
-            <div style={{ fontSize: "1.25rem", fontWeight: 700, color: m.color ?? "#111" }}>{m.value}</div>
-            {m.sub && <div style={{ fontSize: "0.72rem", color: m.color ?? "#6b7280", marginTop: 2 }}>{m.sub}</div>}
+      <div className="tfe-panel" style={{ padding: "12px 16px", borderColor: discrepancy ? "rgba(220,38,38,.45)" : "rgba(21,128,61,.35)" }}>
+        <strong style={{ color: discrepancy ? "#dc2626" : "#15803d" }}>
+          Custody {summary?.broker_status === "available" ? "observed" : "incomplete"}: {custody?.brokerPositions ?? "—"} broker positions · {custody?.ledgerSymbols ?? "—"} ledger symbols · {custody?.discrepancies ?? "—"} discrepancies
+        </strong>
+        <div style={{ marginTop: 4, color: "#64748b", fontSize: "0.78rem" }}>
+          Snapshot {displayDate(summary?.broker_as_of ?? null)}. BROKER_ONLY holdings are visible but remain unclassified. Broker feed failures do not become zero balances or flat marks.
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 10 }}>
+        {metrics.map((metric) => (
+          <div key={metric.label} className="tfe-panel" style={cardStyle}>
+            <div style={{ fontSize: "0.67rem", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{metric.label}</div>
+            <div style={{ fontSize: "1.16rem", fontWeight: 700, marginTop: 4, color: metric.color ?? "inherit" }}>{metric.value}</div>
+            {metric.sub && <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: 3 }}>{metric.sub}</div>}
           </div>
         ))}
       </div>
 
-      {/* Alpaca account equity row (if available) */}
-      {(summary?.alpaca_equity ?? null) !== null && (
-        <div style={{ fontSize: "0.78rem", color: "#6b7280", textAlign: "right", marginTop: -8 }}>
-          Alpaca account: equity {fmtDollar(summary?.alpaca_equity ?? null)} · cash {fmtDollar(summary?.alpaca_cash ?? null)}
-        </div>
-      )}
-
-      {/* ── Positions Table ──────────────────────────────────────────────────── */}
       <div className="tfe-panel" style={{ padding: 0, overflow: "hidden" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
-          <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Open Positions</h3>
-          <span style={{ background: "#e5e7eb", borderRadius: 10, padding: "2px 8px", fontSize: "0.72rem", fontWeight: 600 }}>{positions.length}</span>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", gap: 8, alignItems: "center" }}>
+          <h3 style={{ margin: 0, fontSize: ".95rem" }}>Broker / ledger position custody</h3>
+          <span style={{ background: "#e2e8f0", borderRadius: 12, padding: "2px 8px", fontSize: ".72rem" }}>{positions.length}</span>
         </div>
-        {positions.length === 0 ? (
-          <div style={{ padding: "24px 20px", color: "#9ca3af", fontSize: "0.88rem" }}>
-            No open positions. {autoOn ? "TFE will open positions on the next daily run when 3WA signals appear." : "Auto-TFE is off — enable it to start trading."}
-          </div>
-        ) : (
+        {positions.length === 0 ? <div style={{ padding: 22, color: "#64748b" }}>No broker holdings or open ledger rows.</div> : (
           <div style={{ overflowX: "auto" }}>
             <table className="tfe-table">
-              <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>PEE-1 Open Positions</caption>
-              <thead>
-                <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
-                  {(["Ticker", "Signal", "Shares", "Entry", "Current", "Unreal. P&L", "P&L %", "Status", "Detected"]).map(h => {
-                    const isNumeric = h === "Shares" || h === "Entry" || h === "Current" || h === "Unreal. P&L" || h === "P&L %";
-                    return (
-                      <th
-                        key={h}
-                        scope="col"
-                        style={{
-                          whiteSpace: "nowrap",
-                          textAlign: isNumeric ? "right" : "left",
-                        }}
-                      >{h}</th>
-                    );
-                  })}
+              <caption style={{ position: "absolute", width: 1, height: 1, overflow: "hidden" }}>Broker and ledger custody reconciliation</caption>
+              <thead><tr>{["Ticker", "Ledger class", "Broker qty", "Ledger qty", "Entry", "Broker mark", "Market value", "Unrealized", "Return", "Custody", "Ledger detected"].map((heading) => <th key={heading} scope="col" style={{ whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
+              <tbody>{positions.map((position) => (
+                <tr key={position.id}>
+                  <td style={{ fontWeight: 700 }}>{position.ticker}</td>
+                  <td>{signalBadge(position.signal_class)}</td>
+                  <td style={{ textAlign: "right" }}>{position.broker_shares === null ? "—" : fmt(position.broker_shares, 4)}</td>
+                  <td style={{ textAlign: "right" }}>{fmt(position.ledger_shares, 4)}</td>
+                  <td style={{ textAlign: "right" }}>{money(position.entry_price)}</td>
+                  <td style={{ textAlign: "right" }}>{money(position.current_price)}</td>
+                  <td style={{ textAlign: "right" }}>{money(position.market_value)}</td>
+                  <td style={{ textAlign: "right", color: pnlColor(position.unrealized_pl), fontWeight: 600 }}>{money(position.unrealized_pl)}</td>
+                  <td style={{ textAlign: "right", color: pnlColor(position.unrealized_pl_pct) }}>{position.unrealized_pl_pct === null ? "—" : `${position.unrealized_pl_pct >= 0 ? "+" : ""}${fmt(position.unrealized_pl_pct)}%`}</td>
+                  <td title={position.custody_note}><span style={{ color: custodyColor(position.custody_status), fontWeight: 700, fontSize: ".7rem" }}>{position.custody_status.toUpperCase()}</span></td>
+                  <td>{displayDate(position.signal_detected_at)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {positions.map((pos, i) => (
-                  <tr key={pos.id} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.015)" }}>
-                    <td style={{ fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", textAlign: "left" }}>{pos.ticker}</td>
-                    <td style={{ textAlign: "left" }}>{signalBadge(pos.signal_class)}</td>
-                    <td style={{ textAlign: "right" }}>{pos.shares.toLocaleString()}</td>
-                    <td style={{ textAlign: "right" }}>{fmtDollar(pos.entry_price)}</td>
-                    <td style={{ textAlign: "right" }}>{fmtDollar(pos.current_price)}</td>
-                    <td style={{ fontWeight: 600, color: plColor(pos.unrealized_pl), textAlign: "right" }}>{fmtDollar(pos.unrealized_pl)}</td>
-                    <td style={{ color: plColor(pos.unrealized_pl_pct), textAlign: "right" }}>
-                      {pos.unrealized_pl_pct !== null ? `${pos.unrealized_pl_pct >= 0 ? "+" : ""}${fmt(pos.unrealized_pl_pct)}%` : "—"}
-                    </td>
-                    <td>
-                      <span style={{ fontSize: "0.72rem", background: pos.status === "filled" ? "rgba(22,163,74,0.12)" : "rgba(37,99,235,0.1)", color: pos.status === "filled" ? "#15803d" : "#1d4ed8", borderRadius: 4, padding: "2px 6px", fontWeight: 600 }}>
-                        {pos.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ color: "#6b7280" }}>
-                      {new Date(pos.signal_detected_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              ))}</tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* ── Closed Trade History ─────────────────────────────────────────────── */}
-      {summary && summary.recent_closed_trades && summary.recent_closed_trades.length > 0 && (
+      {summary?.recent_closed_trades.length ? (
         <div className="tfe-panel" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
-            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Closed Trades</h3>
-            <span style={{ background: "#e5e7eb", borderRadius: 10, padding: "2px 8px", fontSize: "0.72rem", fontWeight: 600 }}>{summary.closed_trades}</span>
-            <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: "#6b7280" }}>
-              {summary.wins}W / {summary.losses}L &nbsp;·&nbsp; WR {summary.win_rate}
-              &nbsp;·&nbsp; Realized <span style={{ fontWeight: 700, color: plColor(summary.total_realized) }}>{fmtDollar(summary.total_realized)}</span>
-            </span>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(0,0,0,.08)" }}>
+            <h3 style={{ margin: 0, fontSize: ".95rem" }}>Ledger closed-trade history</h3>
+            <div style={{ color: "#64748b", fontSize: ".74rem", marginTop: 3 }}>Provenance record only; not a complete broker realized-P&amp;L statement.</div>
           </div>
-          <div style={{ overflowX: "auto" }}>
-            <table className="tfe-table">
-              <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Closed Trades</caption>
-              <thead>
-                <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
-                  {["Date","Ticker","Ch","Shares","Entry","Exit","P&L $","P&L %","Exit Reason"].map(h => (
-                    <th key={h} scope="col" style={{ whiteSpace: "nowrap", textAlign: ["Shares","Entry","Exit","P&L $","P&L %"].includes(h) ? "right" : "left" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {summary.recent_closed_trades.map((t, i) => (
-                  <tr key={i} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.015)" }}>
-                    <td style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{new Date(t.closed_at).toLocaleDateString()}</td>
-                    <td style={{ fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)" }}>{t.ticker}</td>
-                    <td>{signalBadge(t.signal_class)}</td>
-                    <td style={{ textAlign: "right" }}>{t.shares.toLocaleString()}</td>
-                    <td style={{ textAlign: "right" }}>{fmtDollar(t.entry)}</td>
-                    <td style={{ textAlign: "right" }}>{fmtDollar(t.exit)}</td>
-                    <td style={{ textAlign: "right", fontWeight: 700, color: plColor(t.pnl) }}>
-                      {t.pnl >= 0 ? "+" : ""}{fmtDollar(t.pnl)}
-                    </td>
-                    <td style={{ textAlign: "right", color: plColor(t.pnl_pct) }}>
-                      {t.pnl_pct !== null ? `${t.pnl_pct >= 0 ? "+" : ""}${fmt(t.pnl_pct)}%` : "—"}
-                    </td>
-                    <td style={{ color: "#6b7280", fontSize: "0.78rem", whiteSpace: "nowrap" }}>{t.exit_reason.replace(/_/g, " ")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <div style={{ overflowX: "auto" }}><table className="tfe-table">
+            <thead><tr>{["Closed", "Ticker", "Class", "Shares", "Entry", "Exit", "Ledger P&L", "Return", "Reason"].map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead>
+            <tbody>{summary.recent_closed_trades.map((trade, index) => <tr key={`${trade.ticker}:${trade.closed_at}:${index}`}>
+              <td>{displayDate(trade.closed_at)}</td><td style={{ fontWeight: 700 }}>{trade.ticker}</td><td>{signalBadge(trade.signal_class)}</td>
+              <td style={{ textAlign: "right" }}>{fmt(trade.shares, 4)}</td><td style={{ textAlign: "right" }}>{money(trade.entry)}</td><td style={{ textAlign: "right" }}>{money(trade.exit)}</td>
+              <td style={{ textAlign: "right", color: pnlColor(trade.pnl), fontWeight: 700 }}>{money(trade.pnl)}</td>
+              <td style={{ textAlign: "right", color: pnlColor(trade.pnl_pct) }}>{trade.pnl_pct === null ? "—" : `${trade.pnl_pct >= 0 ? "+" : ""}${fmt(trade.pnl_pct)}%`}</td>
+              <td>{trade.exit_reason.replaceAll("_", " ")}</td>
+            </tr>)}</tbody>
+          </table></div>
         </div>
-      )}
+      ) : null}
 
-      {/* ── Exit Reasons (if any closed trades) ─────────────────────────────── */}
-      {summary && Object.keys(summary.exit_reasons).length > 0 && (
-        <div className="tfe-panel" style={{ padding: "14px 20px" }}>
-          <h3 style={{ margin: "0 0 12px", fontSize: "0.95rem", fontWeight: 700 }}>Exit Breakdown ({summary.closed_trades} closed trades)</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {Object.entries(summary.exit_reasons).map(([reason, count]) => (
-              <div key={reason} style={{ background: "rgba(0,0,0,0.04)", borderRadius: 6, padding: "4px 12px", fontSize: "0.8rem" }}>
-                <span style={{ fontWeight: 600 }}>{reason.replace(/_/g, " ")}</span>
-                <span style={{ color: "#6b7280", marginLeft: 6 }}>{count}</span>
-              </div>
-            ))}
-          </div>
+      <div className="tfe-panel" style={{ padding: "16px 18px" }}>
+        {summary?.entries_halted && <div style={{ color: "#a16207", marginBottom: 10, fontWeight: 700 }}>Automatic entries are halted. The manual-order path remains independent.</div>}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><h3 style={{ margin: 0, fontSize: ".95rem" }}>Place manual Alpaca order</h3><span style={{ color: "#64748b", fontSize: ".72rem" }}>Not managed by TFE</span></div>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 9 }}>
+          <label style={{ fontSize: ".72rem" }}>Side<br/><select value={orderSide} onChange={(event) => setOrderSide(event.target.value as "buy" | "sell")} style={inputStyle}><option value="buy">BUY</option><option value="sell">SELL</option></select></label>
+          <label style={{ fontSize: ".72rem" }}>Ticker<br/><input value={orderTicker} onChange={(event) => setOrderTicker(event.target.value.toUpperCase())} style={{ ...inputStyle, width: 90 }} /></label>
+          <label style={{ fontSize: ".72rem" }}>Shares<br/><input type="number" value={orderShares} onChange={(event) => setOrderShares(event.target.value)} min={0.0001} step={1} style={{ ...inputStyle, width: 90 }} /></label>
+          <label style={{ fontSize: ".72rem" }}>Type<br/><select value={orderType} onChange={(event) => setOrderType(event.target.value as "market" | "limit")} style={inputStyle}><option value="market">Market</option><option value="limit">Limit</option></select></label>
+          {orderType === "limit" && <label style={{ fontSize: ".72rem" }}>Limit price<br/><input type="number" value={orderLimitPrice} onChange={(event) => setOrderLimitPrice(event.target.value)} min={0.01} step={0.01} style={{ ...inputStyle, width: 105 }} /></label>}
+          <label style={{ fontSize: ".72rem", flex: 1, minWidth: 140 }}>Notes<br/><input value={orderNotes} onChange={(event) => setOrderNotes(event.target.value)} style={{ ...inputStyle, width: "100%" }} /></label>
+          <button onClick={placeManualOrder} disabled={placingOrder} style={{ border: 0, borderRadius: 6, padding: "8px 16px", color: "#fff", background: orderSide === "sell" ? "#dc2626" : "#16a34a", fontWeight: 700, cursor: "pointer" }}>{placingOrder ? "Placing…" : `Place ${orderSide.toUpperCase()}`}</button>
         </div>
-      )}
-
-      {/* ── Manual Order ────────────────────────────────────────────────────── */}
-      <div className="tfe-panel" style={{ padding: "16px 20px" }}>
-        {summary?.entries_halted && (
-          <div style={{
-            background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.4)",
-            borderRadius: 6, padding: "8px 14px", marginBottom: 12,
-            fontSize: "0.82rem", color: "#b45309", fontWeight: 600,
-          }}>
-            Engine entries halted — manual orders still execute
-          </div>
-        )}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Place Manual Order</h3>
-          <span style={{ background: "#64748b", color: "#fff", borderRadius: 4, padding: "1px 7px", fontSize: "0.72rem", fontWeight: 700 }}>MANUAL</span>
-          <span style={{ fontSize: "0.75rem", color: "#9ca3af", marginLeft: 4 }}>Sent directly to Alpaca · not managed by TFE engine</span>
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
-
-          {/* Buy / Sell toggle */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Side</label>
-            <div style={{ display: "flex", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.15)" }}>
-              <button
-                onClick={() => setOrderSide("buy")}
-                style={{
-                  padding: "6px 16px",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  fontSize: "0.85rem",
-                  background: orderSide === "buy" ? "#16a34a" : "#f3f4f6",
-                  color: orderSide === "buy" ? "#fff" : "#6b7280",
-                  transition: "background 0.15s",
-                }}
-              >BUY</button>
-              <button
-                onClick={() => setOrderSide("sell")}
-                style={{
-                  padding: "6px 16px",
-                  border: "none",
-                  borderLeft: "1px solid rgba(0,0,0,0.1)",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  fontSize: "0.85rem",
-                  background: orderSide === "sell" ? "#ef4444" : "#f3f4f6",
-                  color: orderSide === "sell" ? "#fff" : "#6b7280",
-                  transition: "background 0.15s",
-                }}
-              >SELL</button>
-            </div>
-          </div>
-
-          {/* Ticker */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Ticker</label>
-            <input
-              value={orderTicker}
-              onChange={e => setOrderTicker(e.target.value.toUpperCase())}
-              placeholder="AAPL"
-              style={{ width: 90, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem", fontFamily: "var(--font-geist-mono, monospace)", fontWeight: 700 }}
-            />
-          </div>
-
-          {/* Shares */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Shares</label>
-            <input
-              type="number"
-              value={orderShares}
-              onChange={e => setOrderShares(e.target.value)}
-              placeholder="10"
-              min={0.0001}
-              step={1}
-              style={{ width: 90, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem" }}
-            />
-          </div>
-
-          {/* Order type toggle */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Type</label>
-            <div style={{ display: "flex", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.15)" }}>
-              <button
-                onClick={() => setOrderType("market")}
-                style={{
-                  padding: "6px 12px",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: "0.82rem",
-                  background: orderType === "market" ? "#2563eb" : "#f3f4f6",
-                  color: orderType === "market" ? "#fff" : "#6b7280",
-                  transition: "background 0.15s",
-                }}
-              >Market</button>
-              <button
-                onClick={() => setOrderType("limit")}
-                style={{
-                  padding: "6px 12px",
-                  border: "none",
-                  borderLeft: "1px solid rgba(0,0,0,0.1)",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: "0.82rem",
-                  background: orderType === "limit" ? "#2563eb" : "#f3f4f6",
-                  color: orderType === "limit" ? "#fff" : "#6b7280",
-                  transition: "background 0.15s",
-                }}
-              >Limit</button>
-            </div>
-          </div>
-
-          {/* Limit price (shown only for limit orders) */}
-          {orderType === "limit" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Limit Price ($)</label>
-              <input
-                type="number"
-                value={orderLimitPrice}
-                onChange={e => setOrderLimitPrice(e.target.value)}
-                placeholder="150.00"
-                min={0.01}
-                step={0.01}
-                style={{ width: 110, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem" }}
-              />
-            </div>
-          )}
-
-          {/* Notes */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 140 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Notes (optional)</label>
-            <input
-              value={orderNotes}
-              onChange={e => setOrderNotes(e.target.value)}
-              placeholder="Optional notes"
-              style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.88rem" }}
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            onClick={placeManualOrder}
-            disabled={placingOrder}
-            style={{
-              padding: "7px 20px",
-              borderRadius: 6,
-              border: "none",
-              cursor: placingOrder ? "not-allowed" : "pointer",
-              background: orderSide === "sell" ? "#ef4444" : "#16a34a",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "0.85rem",
-              opacity: placingOrder ? 0.6 : 1,
-              height: 36,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {placingOrder ? "Placing..." : `Place ${orderSide === "sell" ? "Sell" : "Buy"} Order`}
-          </button>
-        </div>
-
-        {orderMsg && (
-          <p style={{ margin: "10px 0 0", fontSize: "0.82rem", color: orderMsg.ok ? "#16a34a" : "#ef4444" }}>{orderMsg.text}</p>
-        )}
+        {orderMessage && <div style={{ marginTop: 10, color: orderMessage.ok ? "#15803d" : "#dc2626", fontSize: ".8rem" }}>{orderMessage.text}</div>}
       </div>
-
     </div>
   );
 }

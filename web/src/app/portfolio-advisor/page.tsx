@@ -45,6 +45,13 @@ export default async function PortfolioPage() {
 
         {isAdmin && (
           <div style={{ marginBottom: 40 }}>
+            <div className="tfe-panel" style={{ padding: "12px 16px", marginBottom: 16, fontSize: "0.8rem", color: "#475569" }}>
+              <strong>Broker custody is authoritative.</strong> Portfolio value, cash, invested value, open-position count,
+              and unrealized P&amp;L below come from Alpaca. Missing broker values remain unavailable. A position marked
+              <code style={{ margin: "0 4px" }}>BROKER_ONLY</code> is held at Alpaca without an open ledger owner; it is
+              shown without assigning it to CH1, CH2, or CH3. Realized account P&amp;L is unavailable from the account
+              endpoint; closed ledger records remain visible as ledger history, not broker custody truth.
+            </div>
             <PortfolioTFEManager />
           </div>
         )}
