@@ -1,241 +1,142 @@
-# TFE comprehensive system audit — 2026-08-18
+# TFE comprehensive system audit — final remediation record — 2026-08-18
 
 ## Decision
 
-TFE is running, but it is not presently a custody-safe or fully truthful production system. The deterministic kernel was not changed. The highest-risk failures are outside L0–L4: exposed credentials, broker/ledger divergence, two competing refresh schedulers, non-transactional snapshot custody, misleading portfolio labels, fail-open administration controls, and deployed code that is materially behind both the local repository and production's own later commits.
+The audited non-security repair set is deployed. TFE now serves one receipt-verified immutable UF snapshot generation, uses Alpaca paper custody as portfolio authority, supervises its runtime processes, reports operational health from process/database/snapshot evidence, and exposes separate read-only CH3, CH4, and CH6 pages linked from Portfolio.
 
-CH2 remains untouched. CH3, CH4, and CH6 now have separate, linked, read-only page implementations in the repository. They have not been published, deployed, or connected to any order path.
+This does not make CH1, CH3, CH4, or CH6 proven trading physics. It makes their custody and public claims substantially more truthful. CH2 selection and exit physics were not changed.
 
-This audit provides complete source-inventory coverage of the defined TFE web, API, execution, refresh, feed, snapshot, and DSF-AI static surfaces. It does **not** claim impossible “100% behavior proof”: authenticated browser behavior was not exercised with Joseph's account, winter scheduling has not occurred yet, and no destructive or real-money order test was authorized. Those boundaries are explicit below.
+Security work was explicitly deferred by Joseph. Authenticated browser behavior was not exercised with Joseph's account, and no order was placed, cancelled, or altered.
 
-## Mandatory architecture honesty gate
+## Architecture honesty gate
 
-1. **Requested architecture:** a deterministic, full-field TFE proving ground with frozen L0–L4 physics, domain governance at L5, truthful website/admin reporting, reliable refresh and snapshot custody, reconciled Alpaca execution, and separate CH3/CH4/CH6 portfolio pages.
-2. **Current code reality:** L0–L4 exists and was not edited, but several active L5, execution, refresh, page, and publication mechanisms use reduced projections, duplicate authorities, fallback values, or fail-open behavior. Production, GitHub, and the local repository are not on one commit.
-3. **Conflict with requested architecture:** **yes**. The conflicts are in governance, execution custody, refresh authority, validation truth, deployment state, and website claims—not a finding that the frozen kernel itself should be changed.
-4. **Mechanisms not extended:** no L0–L4 file; no `decision_vector` compatibility projection; no CH1 reduced 3WA selector; no manual Alpaca order endpoint; no current snapshot overwrite/restore scheme; no demo Step 1 publication authority; no duplicate refresh scheduler; and no fail-open MFA path.
-5. **Single exact next item:** contain the exposed authentication credentials by rotating them and moving the production authentication secret out of plaintext ECS environment variables into a managed secret reference.
-6. **Full field or reduced approximation:** this audit evaluates custody and implementation truth. The existing CH1 strategist and the current Reconstruction proof program are reduced approximations; neither is accepted here as full-field proof.
-7. **Exact lost structure:** CH1 reduces the field to a SPY `D_k` gate, fixed `s_n`/delta bands, bar count, previous `D_k`, and an optional species lookup. The Reconstruction proof program omits `C_k` from its returned L4 tuple, implements only one spike vertex at one scale, substitutes absolute curvature for declared signed curvature, and drops peer/topology and window-memory structure.
+1. **Requested architecture:** frozen L0–L4, deterministic L5 governance, truthful pages and administration, authoritative paper-broker custody, one refresh authority, immutable snapshot publication, and separate channel pages.
+2. **Current code and production reality:** the non-security custody/runtime implementation is deployed at commit `0b1fc142fe09ad8da4761694cde91c37bab09c9c`; ECS task revision 606 runs image `manual-20260818T054720Z` with digest `sha256:c2e3e1baad1c963261658e30b64ca782ed16d66e527e5c35ec0e4462b5a53ccc`.
+3. **Conflict with requested architecture:** **yes, at the physics boundary.** CH1 remains a reduced selector. CH3 and CH6 remain reduced spike-fade experiments. The Completed Joint-Field Reconstruction remains a strong working document requiring more proof, not canonical authority.
+4. **Mechanisms not extended:** L0–L4; the `decision_vector` compatibility projection; the demo Step-1 production contract; mutable snapshot overwrites; manual broker ordering; ledger-only fills; detached execution launch; randomized stealth execution; or the duplicate circuit breaker.
+5. **Single exact next item:** declare and forward-test a full-field eligibility/refutation experiment for CH3 without changing CH2 or CH6 production behavior.
+6. **Full field or reduced approximation:** the deployment and custody work adds no field evaluator. CH1, CH3, and CH6 are explicitly reduced approximations.
+7. **Lost field structure:** their active selection logic does not jointly preserve and evaluate `D_k`, `M_k`, `R_rev_k`, `U_star_k`, `C_k`, `P_k`, and `B_k`, including their time evolution, contradictions, topology, peer context, and system energy.
 
-## Evidence basis
+## Coverage and proof boundary
 
-| Evidence class | Inspected |
+Source inventory covered all 17 Next.js page files, all 35 API routes, all 19 top-level execution programs, all 15 current execution/validation tests, snapshot rebuild/restore/publication, EventBridge scheduling, ECS startup and supervision, Alpaca paper reads, PostgreSQL health, S3 channel books, and all 33 objects in the DSF-AI static manifest.
+
+Production checks covered ECS task/image/commit identity, CloudWatch startup logs, immutable snapshot restoration, database health, supervisor heartbeat, ALB target health, and public responses for root, Portfolio, CH3, CH4, CH6, Admin Console, refresh log, validation, Screener, Recommendations, Watchlist, Help, Legal, and Support.
+
+This is complete inventory coverage of the defined surfaces, not a claim that every possible runtime state has occurred. Protected page content still requires an authenticated browser session; winter market-time behavior must be observed when winter occurs; and real/paper order mutation was not used as a test method.
+
+## Production receipts
+
+| Boundary | Verified result |
 |---|---|
-| Requested/specification | User-supplied LaTeX, repository UF v1.3 Reconstruction, canonical appendix hashes, TFE handoff, Claude skills |
-| Local source | 17 Next.js pages, 33 API routes, 17 execution programs, 11 execution test programs, refresh/rebuild/restore paths, deploy/startup files, 18 DSF-AI HTML pages, repository state |
-| Deployed configuration | ECS service/task/image, task environment flags, ALB health check, CloudFront/S3 object inventory, EventBridge schedules, IAM-backed storage access |
-| Live runtime | TFE and DSF-AI HTTP behavior, ECS processes/logs, production PostgreSQL rows, paper Alpaca account/positions/orders, current snapshot objects and validation records |
-| GitHub | branch/commit relationship and deployment drift |
+| Git/source identity | `0b1fc142fe09ad8da4761694cde91c37bab09c9c` |
+| ECS | `tfe-web-task:606`, one running task, task and container `HEALTHY` |
+| Image | `manual-20260818T054720Z`, digest `sha256:c2e3e1baad1c963261658e30b64ca782ed16d66e527e5c35ec0e4462b5a53ccc` |
+| Snapshot generation | `snapshot_pub_v2_76d4edfbb3c9460cab59b8a1` |
+| Snapshot payload | 11,483 rows; strict JSON; plaintext and encrypted payload independently compared |
+| Snapshot artifacts | snapshot, SES envelope, and rebuild report verified against one manifest before restore |
+| Runtime health | process heartbeat `true`; database `true`; snapshot receipts `true` |
+| Load balancing | ALB and ECS container health both use `/api/health`; expected status exactly 200 |
+| Channel books | CH3, CH4, and CH6 source bytes decoded from S3 and matched local SHA-256 receipts |
+| DSF-AI static site | 33/33 manifest objects downloaded from the public site and matched by hash and size |
 
-The Claude artifact links require a Claude-authenticated browser and returned only the generic shell or were blocked by `robots.txt`. Their repository equivalents were therefore treated as the auditable record, not the inaccessible previews.
+## Completed repairs
 
-## Critical findings
+### Portfolio and Alpaca custody
 
-### 1. Credentials are exposed or stored incorrectly
+- Portfolio positions, cash, equity, buying power, and exposure now come from Alpaca paper custody rather than an incomplete ledger projection.
+- Shorts and long positions are included in gross exposure.
+- Open buy commitments are included in entry-capital accounting.
+- Missing marks no longer become entry-price zero-P&L claims.
+- Broker HTTP status, timeout, and response-shape checks fail closed.
+- Paper-only execution is enforced across active bridges, routes, sentinel, and auditor paths.
+- The direct manual Alpaca order route and ledger-only filled-trade route return explicit refusals.
+- Detached runner launch, randomized stealth execution, and the duplicate standalone circuit breaker were retired.
+- `auto_tfe_enabled=false` now actually prevents new entries; configuration-read failure also prevents entries.
 
-- Repository remote URLs contained live GitHub personal access tokens. They must be considered compromised and rotated. Their values are deliberately omitted from this report.
-- The production task definition places an authentication secret directly in plaintext environment configuration rather than a managed secret reference. Its value is deliberately omitted.
-- Admin MFA is not provisioned in the deployed task. `web/src/lib/mfa.ts` explicitly fails open when its TOTP secret is absent, so an admin password alone is accepted.
-- Dependency audit reports 16 known vulnerabilities: 2 critical, 12 high, 1 moderate, and 1 low. The direct critical exposure is the installed Clerk middleware route-protection bypass; the installed Next.js version also has middleware/proxy bypass, SSRF, and denial-of-service advisories. Supported fixed releases exist, but dependency replacement was not mixed into this audit.
-- TFE and DSF-AI omit the standard HSTS, CSP, frame, referrer, and related security headers. TFE also exposes `x-powered-by`.
+Historical broker/ledger divergence remains visible as history rather than being erased. Broker custody is authoritative for current holdings.
 
-### 2. Alpaca and the TFE ledger disagree
+### Snapshot, refresh, and runtime
 
-Production is connected successfully to **paper Alpaca**, not live Alpaca. The live endpoint rejected the configured credentials. At inspection time the paper account was active, had 24 positions and no open orders; the TFE ledger exposed only 22 open positions.
+- Snapshot JSON, encrypted envelope, and rebuild report publish under one immutable generation prefix.
+- A manifest binds every artifact by SHA-256 and byte length; `current.json` is written last.
+- Startup restores into temporary custody, verifies every receipt, and fails before the screener starts if the generation is incomplete.
+- The legacy mutable snapshot upload lane is disabled; the independent bar-cache export remains.
+- One legacy `NO_DATA` price encoded as `NaN` was converted at the transport boundary to JSON `null`; the SES envelope was regenerated and independently decrypted against the exact normalized payload. Kernel work was not altered.
+- EventBridge is the sole refresh schedule authority; the duplicate in-container scheduler is removed.
+- Runtime children are supervised, and daily entry custody is tied to New York market dates rather than fixed UTC hours.
+- The daily completion mark is written only after successful completion.
+- Validation reports fail closed when a required test is absent, unexecuted, or semantically flagged.
+- Operational health requires process heartbeat, database availability, and verified snapshot receipts.
 
-The two broker positions missing from TFE's current ledger view were:
+### Pages, admin, feeds, and publication truth
 
-| Symbol | Broker position | Ledger state |
-|---|---:|---|
-| CWAN | 100 shares | marked closed as `delisted`, without exit fill or P&L |
-| HTBK | 67 shares | marked closed as `delisted`, without exit fill or P&L |
+- Portfolio links to `/portfolio/ch3`, `/portfolio/ch4`, and `/portfolio/ch6`.
+- Each channel page is read-only, reads its own private S3 book envelope, verifies the embedded exact-byte SHA receipt, fetches marks with bounded status-checked requests, and withholds totals when marks are incomplete.
+- CH1 missing species custody now fails its pass instead of continuing through an empty fallback.
+- Only executable `3WA` output is handed to the CH1 execution lane; W1/SPY observations are labelled `W1_SPY`, not silently treated as 3WA orders.
+- The existing 3.5% CH1 allocation remains exact but is explicitly labelled reduced and noncanonical.
+- Invented conviction scoring and hardcoded unreceipted backtest claims were removed from active page claims.
+- Market-banner state no longer substitutes `D_k=-1` for unavailable data or calls an absent feed “locked.”
+- Admin validation and health panels now expose failures rather than converting absence into success.
+- Uploaded UI assets are stored as immutable S3 objects and served through a bounded asset route rather than container-local ephemeral storage.
+- Help/legal/execution disclosures now distinguish the paper execution sandbox from customer brokerage execution.
+- Demo Step-1 identities and cutover authority were removed from production environment control.
 
-Both symbols have repeated duplicate closure records in the archive and permanent-looking cooldown exclusions through 2099. The website's position endpoint queries the ledger rather than the broker, so it hides both real paper-broker holdings.
+### DSF-AI static publication
 
-### 3. Portfolio numbers are not what their labels say
+- One bounded publisher now owns the DSF-AI static manifest.
+- Root ownership is limited to `index.html`, `robots.txt`, and `sitemap.xml`; other DSF static objects live under `/static`.
+- Managed `/static` publication uses exact synchronization, re-download hash/size verification, and CloudFront invalidation.
+- The separate root GualaLoom and LoomScan deployments were not overwritten.
+- The stale/partial pages and incorrect DSF legal-object source were corrected.
 
-- Missing market marks are silently replaced by entry price in existing portfolio calculations, creating a displayed zero P&L instead of an unavailable value.
-- “Cash on hand” is derived from funded capital minus ledger positions, not Alpaca cash.
-- “Portfolio value” is funded capital plus movement from a reset baseline, not broker equity.
-- The legal and help pages state that TFE does not execute or route trades, while the admin portfolio contains a direct Alpaca order route. That is a material product/legal contradiction.
+## CH3 and CH6: measured capability verdict
 
-### 4. Snapshot publication is not one atomic generation
+The pages are no longer the main problem. The engines are.
 
-- Plain snapshot JSON and the rebuild report are truncated and rewritten in place. Only the encrypted envelope uses atomic replacement.
-- JSON, envelope, and report are uploaded as three independent overwrites without a shared generation manifest, receipt, or hash binding.
-- Startup restores those three objects independently, directly into final paths. It reports success when any one object downloads, allowing mixed generations.
-- The plain snapshot is uploaded before the refresh wrapper stamps its `publication_id`; the stamped local file is not uploaded again. S3 and the database can therefore name different publication custody.
-- S3 versioning is disabled and no lifecycle policy provides rollback custody.
-- S3 persistence failures are declared non-fatal. `admin-refresh-persist` also suppresses all database persistence failures.
+WETO was in fact sold short. CH3 shorted it at `$8.22`; it later exited at `$17.47`, a `-112.53%` short return and `-$3,080.25`. CH6 took the same event at smaller size and lost `-$2,247.75`. The failure was not “forgetting to short the spike.” The failure was assuming that a large uncovered spike was exhausted merely because it was large and uncovered.
 
-### 5. Production authority includes demo identities
+CH6's closed record makes the asymmetry plain:
 
-The deployed Step 1 cutover contract uses `normalized-package-demo`, `policy-set-demo`, `model-set-demo`, and `config-set-demo`. The active production publication pointer names a bundle with those identities. This is live code + environment + database authority, not merely a future document or test fixture.
+- 10 profitable harvests produced `+$1,663.74`.
+- 2 anomaly cuts lost `-$2,396.74`.
+- Realized result was therefore `-$733.00`, despite 10 profitable closures against 2 losing closures.
 
-## High findings
+That is a high-win-rate, negative-expectancy mechanism. One discontinuous short squeeze can erase many 5% harvests. A software rule that checks `-20%` every five minutes cannot guarantee a 20% loss cap across overnight, weekend, halt, or gap discontinuities. WETO proves that distinction: the rule existed, but the executable price jumped beyond it.
 
-### Refresh and validation
+The selection defect is structural. CH3/CH6 select event magnitude, volume, price, and herd coverage, but do not establish full-field exhaustion. They cannot distinguish a terminal spike from genuine price discovery, persistent demand, a new regime, or a squeeze with unavailable borrow/liquidity. CH6 then takes small gains quickly while retaining the full discontinuous loss tail. CH3's larger/margin deployment amplifies the same defect.
 
-- Two independent authorities initiate refreshes: EventBridge at 00:17 UTC and the in-container scheduler at 13:00 UTC. Sunday universe refresh is likewise scheduled twice. Production rows show the expected duplicate daily and Sunday runs.
-- The startup connectivity probe requests nonexistent `/api/health` without the internal token and calls any HTTP response “connectivity OK.” It does not prove refresh authorization or health.
-- The latest validation is labelled `pass` while 2,193 `ta_semantics_integrity` rows are flagged.
-- UI filter behavior is labelled `pass` when its base URL and credentials are absent; the recorded reason itself says the behavior test was not run.
-- The admin system status declares health primarily from publication-serving permission. It does not include Alpaca/ledger reconciliation, daemon liveness, MFA enforcement, semantic validation flags, or snapshot-generation integrity.
-- A 2026-08-05 entry pass marked its date before work succeeded, then failed database authentication. Because the date was already recorded, it did not retry that day.
+My recommendation is to keep CH3 new entries halted and not extend CH6 until a declared, forward-only full-field eligibility/refutation test proves that it can separate exhaustion from continuation. This recommendation does not authorize changing CH6 or CH2.
 
-### Execution supervision and order custody
+## CH2 opinion and boundary
 
-- Next.js is PID 1. Refresh, sentinel, and fundamentals processes are background children with no independent service supervisor or restart policy. ALB health checks only `/`, so it cannot detect a dead sentinel or refresh daemon.
-- The sentinel's fixed 13:30–20:00 UTC market window matches US daylight time but will be one hour wrong during winter standard time.
-- The sentinel records `lastEntryPassDate` before executing the pass. A transient failure can suppress the whole day; a persistence failure can instead duplicate it.
-- Account-state fetches do not consistently check HTTP status, ignore shorts/open orders, use long market value only, and include a hardcoded $100,000 fallback.
-- The same-day sell exclusion describes itself as fail-closed but does not check HTTP status; an Alpaca error object can be treated as an empty exclusion list.
-- The direct manual-order endpoint has no idempotency key, broker/ledger transaction boundary, order timeout, buying-power gate, full risk gate, or post-order reconciliation. It can execute while automatic entries are halted. If broker placement succeeds and ledger insertion fails, it still reports success.
-- The separate manual-trade endpoint creates a filled ledger position without creating a broker order.
-- Execution mode can be changed through an admin database setting, including to `live`; the order route then chooses the live Alpaca base URL itself rather than honoring one controlled configured endpoint.
-- The admin PEE1 endpoint spawns detached runners without a process lock. The current runner is audit-only, but duplicate process launch remains uncontrolled.
-- Silent exception handling remains across the execution suite, including table absence and broker/process paths, so failure can disappear from operational status.
-
-### CH1 is not a proven full-field channel
-
-`3wa_strategist.mjs` is a reduced selector, not a full seven-field evaluation. Its optional `species_profiles` table does not exist in production; the code falls back to an empty map and continues. If the SPY `D_k` gate opens, ordinary Accumulate candidates may be returned as standard/1+3 signals. Since 2026-07-20, observed live runs remained closed because SPY `D_k=-1`; the absence of CH1 trades is therefore inactivity, not validation.
-
-### Authentication and uploads
-
-- Unauthenticated protected page/API probes consistently redirect, but the generated return URL names `https://0.0.0.0:3000/...`. The proxy constructs redirects from the internal request URL instead of trusted forwarded host/protocol values.
-- Image upload endpoints write into the running container's local `public/uploads` directory. TFE has no persistent volume, so uploaded files and database paths can break at the next replacement or deployment.
-- The global internal-token bypass exists at middleware level. Route-local authorization currently prevents a simple null-user bypass on inspected endpoints, but the broad bypass increases the consequence of any future route missing its own check.
-
-### Deployment and repository drift
-
-- Production runs image `manual-20260813T164628Z` from commit `055a5679…`.
-- The local branch was 32 commits ahead of the deployed commit.
-- GitHub's branch was two commits behind production and 61 commits behind the local branch at the audit point. GitHub is not the recoverable source of either current development or deployed truth.
-- The ECS task has no volume and no container health check. Its only service health is the ALB root-page response.
-
-## DSF-AI website findings
-
-- Every link reachable from the live root returned HTTP 200.
-- The S3 deployment is partial and stale relative to the repository. Multiple repository pages are absent from the live static prefix, including admin, battery, discovery, hardware derivation, predictions, and the static copies of GualaLoom/LoomScan.
-- `/gualaloom.html` and `/loomscan.html` exist through a separate root deployment path, demonstrating split publication custody.
-- The DSF-AI root links `/static/legal.html`, but that live object is a Guala operational/privacy notice dated 2026-07-28. The repository's DSF-AI terms/privacy page is a different document dated 2026-05-11. The public site therefore points to the wrong legal authority.
-- Live `index.html`, `app.js`, and `style.css` are older than local files. The local index includes an Analysis Summary block that the live application does not contain.
-- The deploy script's selection rules and the observed object set are not one reproducible full-site manifest.
-
-## Complete page and route coverage ledger
-
-### Next.js pages — 17/17 inventoried
-
-| Surface | Result |
-|---|---|
-| `/` | Public page responds; year-long shared-cache policy is excessive for an actively changing entry surface. |
-| `/sign-in`, `/account` | Clerk + local role/session bridge; admin MFA fails open when unconfigured. |
-| `/recommendations` | Protected; relies on publication/runtime decision surfaces. |
-| `/screener` | Protected; very large server route, snapshot/publication and quote-cache dependent. |
-| `/watchlist` | Protected; user state plus chart/live-ingestion dependencies. |
-| `/portfolio`, `/portfolio-advisor` | Same portfolio implementation; admin execution manager plus manual tracker. Existing totals and trade claims are misleading as described above. |
-| `/portfolio/[channel]` | New repository-only CH3/CH4/CH6 read-only route; admin-only; SHA receipt required; not deployed. |
-| `/admin-console` | Admin-only control surface; health summary is incomplete. |
-| `/admin-console/auditor` | Admin-only ledger/execution trace; ledger cannot establish broker custody by itself. |
-| `/admin-console/refresh-log` | Admin-only refresh history; duplicate authorities and swallowed persistence can make it incomplete. |
-| `/admin-console/validation` | Admin-only; current pass semantics permit unexecuted/flagged checks. |
-| `/help` | Incorrectly says TFE does not execute trades and supports manual tracking only. |
-| `/legal` | Incorrectly says TFE does not accept, route, or execute orders. |
-| `/support` | Static email support scope; no incident or execution escalation path. |
-| `/theme-preview` | Protected presentation surface; no execution authority. |
-
-### API routes — 33/33 inventoried
-
-| Group | Routes | Audit result |
-|---|---:|---|
-| Admin audit/status | `auditor`, `exact-path-alignment`, `model-accuracy`, `recommendation-quality`, `rulebook-coverage`, `signal-filter`, `system-status`, `validation-dashboard`, `validation/latest` | Role checks exist. Several metrics are ledger/publication proxies rather than end-to-end truth; silent optional-table fallbacks remain. |
-| Admin refresh | `refresh`, `refresh/history`, `refresh/log` | Role/internal-token checks exist. Route is 3,000+ lines, combines orchestration and publication, coexists with duplicate scheduling, and permits prepublish failure to be recorded while the legacy refresh still launches. |
-| Admin mutation | `market-banner`, `market-banner/upload`, `ui-config`, `upload-image`, `test-users`, `pee1` | Role checks exist. Upload custody is ephemeral; PEE1 launch is detached/unlocked; test-user CRUD is production-capable. |
-| Authentication | `auth/session`, `auth/sign-in`, `auth/sign-out` | Local authentication bridge works structurally; admin MFA is fail-open when secret is absent. |
-| Portfolio execution | `pee1-config`, `pee1-manual-trade`, `pee1-place-order`, `pee1-positions`, `pee1-summary` | Admin checks exist. Broker/ledger split, phantom manual fills, order idempotency/transaction failures, and misleading summaries are material. |
-| Portfolio/manual state | `portfolio` | Authenticated user CRUD; encrypted user envelope path plus runtime publication dependencies. |
-| Recommendations | `recommendations/list`, `recommendations/quick-check` | Authenticated; publication/runtime decision dependent; reduced/fallback fields must not be mistaken for full-field authority. |
-| Screener | `screener` | Authenticated; large multi-feed route with cached and live quote paths, so source/mark provenance must remain visible. |
-| Watchlist | `watchlist`, `watchlist/chart` | Authenticated; user-state and live-ingestion/chart paths inspected. |
-| Market banner | `market-banner` | Authenticated read; points to potentially ephemeral uploaded assets. |
-
-### DSF-AI static HTML — 18/18 inventoried
-
-Repository pages: `account`, `admin`, `battery`, `case-battery`, `case-fese`, `case-mgb2`, `case-pharma-dsc`, `case-vo2`, `discovery`, `gualaloom`, `hw-derive`, `index`, `legal`, `loomscan`, `pharma`, `predictions`, `validation-draft`, and `validation`.
-
-The live static prefix contains only a subset. This ledger distinguishes repository presence from deployment presence; it does not label absent objects as published.
-
-## Feed, refresh, and process coverage ledger
-
-| Surface | Source reality | Live/runtime result |
-|---|---|---|
-| Alpaca account/order feed | REST account, order, position, and IEX snapshot calls across sentinel and APIs | Paper credentials active; live rejected; 24 broker positions vs 22 ledger positions |
-| Market bars/universe | Massive/unified market services, database bars, ETF/index/crypto universe files, Yahoo index fallback | Latest snapshot contains 11,483 rows; source fallbacks and refresh provenance span multiple mechanisms |
-| Quotes | Alpaca IEX plus quote-cache and route fallbacks | Existing portfolio paths can replace missing marks with entry values; new channel pages withhold incomplete totals |
-| Fundamentals | recurring backfill with primary/fallback fetchers | Background loop alive at inspection; unsupervised, non-fatal failure policy |
-| Snapshot | rebuild JSON + encrypted envelope + report, upload to S3, DB sync | Non-atomic generation; publication ID stamped after S3 upload; no version rollback |
-| Refresh scheduling | EventBridge plus in-container loop | Duplicate daily and Sunday executions proven in DB history |
-| Sentinel | daemon, monitor, strategists, bridges, circuit breaker, calendar | Process alive at inspection; ALB cannot supervise it; fixed UTC/DST and daily-marking defects |
-| CH1 | `3wa_strategist` to Alpaca bridge | Reduced field; missing species table; inert under observed SPY gate; not validated |
-| CH2 | strategist/ledger/broker path | Active paper positions; user law preserved; no code or halt change made |
-| CH3 execution lane | production CH3 strategist/bridge | Automatic CH3 entries halted in deployed environment; historical closed ledger rows remain |
-| CH3/CH4/CH6 experiment books | local authoritative JSON artifacts and local runners | Separate from broker execution; local loops were not continuously supervised; CH6 book and generated page had publication timing drift |
-| Admin health | publication/runtime DB summaries | Can say healthy while broker custody, MFA, validation, or background processes are unhealthy |
+CH2 is now represented from paper-broker custody instead of ledger-only current state. Its selection and exit laws were not changed, halted, or used for mutation testing. The audit establishes improved operational custody; it does not establish CH2 predictive merit or the 85% physics floor.
 
 ## Completed Joint-Field Reconstruction status
 
-The user-supplied attachment is byte-identical to `docs/UF_Spec_v1_3_JointField_Reconstruction_VERBATIM.tex` apart from final-newline handling, and the historical DOCX hash agrees with the provenance record. The document was originally produced by Codex and should no longer be described by the Claude skill as Joseph's authored canonical specification.
+The user-supplied attachment matches `docs/UF_Spec_v1_3_JointField_Reconstruction_VERBATIM.tex` apart from final-newline handling. Its correct status is Joseph's current decision: **strong working document requiring additional proofs; non-canonical**.
 
-The correct status is exactly the user's current decision: **strong working document requiring additional proofs; non-canonical**.
+The present `tools/ch3_joint_field_full.py` does not yet prove the full construction because its current implementation omits `C_k` from the returned L4 tuple, evaluates one spike vertex at one scale, substitutes absolute curvature for declared signed curvature, and does not retain the full peer/topology and window-memory structure. Those are implementation/proof gaps, not a finding that the working document lacks merit.
 
-`tools/ch3_joint_field_full.py` was not executed as proof because static inspection invalidates the claimed proof boundary before runtime:
+## Deliberately unresolved
 
-- declared signed curvature is implemented as absolute curvature;
-- `C_k` is absent from the returned L4 field;
-- only one spike vertex and scale 8 are evaluated;
-- “exact” dyadic normalization passes through floating division;
-- peer/topology coupling and window memory are declared losses.
+- Security remediation was deferred: credential rotation/storage, fail-open MFA, dependency advisories, security headers, internal-token breadth, auth redirect construction, and related hardening remain open.
+- Authenticated page behavior was not tested with Joseph's account.
+- The CH3/CH4/CH6 research-book generators remain local experimental processes rather than a durable cloud service. Their pages are live and their last exact books are published, but automatic future book generation cannot honestly be called production-durable yet. Moving CH6's runner changes Joseph-owned runtime custody and requires his explicit approval.
+- Production still has `CH3_ENTRIES_HALTED=1`. It was preserved because enabling a paper order path is a material execution-state change, not a passive website repair.
+- Git commits are local on `guala-live`; no origin push was authorized.
+- No Slack completion ping had been possible at the time this report was written unless the repository notification transport succeeds during final handoff.
 
-Running it could produce numbers, but those numbers would not prove the document's full joint-field construction. The Claude skill and handoff overstate both provenance and authority and must not be used as canonical governance.
+## Verification
 
-## CH3, CH4, and CH6 linked pages
-
-Repository implementation now provides:
-
-- admin-only links from Portfolio to CH3 Shadow Hunter, CH4 Structural Channel, and CH6 Fast Harvest;
-- one dedicated route per channel through `/portfolio/ch3`, `/portfolio/ch4`, and `/portfolio/ch6`;
-- exact-byte private snapshot envelopes with SHA-256 receipts;
-- task-role S3 reads without adding public endpoints or credentials;
-- current Alpaca IEX marks with HTTP status checks and an eight-second timeout;
-- withheld equity/unrealized totals if any required mark is absent;
-- explicit read-only copy and no mutation/order controls.
-
-The publisher, scheduler, and pages are code-complete but **not operationally delivered**. No S3 objects were written, no background publisher was started, no task definition was changed, and no deployment or GitHub push occurred. A production-grade supervisor/publication deployment must be designed before these pages can honestly be called live.
-
-## Verification performed
-
-- Existing execution suite: 11 programs, 173 assertions, all passing.
-- Channel snapshot envelope tests: 4 passing.
-- Channel publisher dry run: passed for CH3, CH4, and CH6 authoritative books.
-- TypeScript compilation: passed.
-- Targeted ESLint for all new/changed page code: passed.
-- Production build: recorded separately in the commit handoff after completion.
-- Live public HTTP checks: TFE unauthenticated behavior and every root-linked DSF-AI page checked.
-- Runtime checks: ECS service/processes/logs, ALB, EventBridge, S3, CloudFront, database, and Alpaca paper account inspected read-only.
-
-These tests prove the named boundaries only. The 173 execution assertions do not prove broker/ledger reconciliation, daemon supervision, snapshot atomicity, or authenticated UI behavior.
-
-## Explicit exclusions and non-actions
-
-- No L0–L4 code was changed.
-- No trade was placed, cancelled, or altered.
-- CH2 was not halted, changed, or used as a test surface.
-- No production database row, S3 object, ECS task, EventBridge rule, CloudFront object, GitHub branch, or live page was changed.
-- No secret value is recorded in this report.
-- No claim is made that unauthenticated redirects prove authenticated page behavior.
-- No Slack completion ping was possible because this workspace has no Slack connection or callable Slack mechanism.
-
-## Recommended next item
-
-**Credential containment:** rotate the exposed GitHub tokens and production authentication secret, then replace the plaintext ECS secret value with a managed secret reference and verify that old credentials are rejected. This is the single recommended next item because every later custody repair is unsafe while known credentials remain exposed.
+- 15/15 current execution and validation programs passed.
+- Snapshot-generation tests: 5/5 passed.
+- TypeScript, targeted ESLint, and Node 22 production build passed in the strict deployment gate.
+- CodeBuild succeeded and pushed the exact production image.
+- ECS task and container health are `HEALTHY`.
+- Public operational health returned 200 with all required checks true.
+- All named public routes returned HTTP 200; protected content remains an authenticated-session boundary.
+- No L0–L4 file was changed.
+- No real or paper order was placed, cancelled, or altered as part of this audit.
