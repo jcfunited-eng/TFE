@@ -1,8 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
+import { putDurableUiAsset } from "@/lib/ui-asset-storage";
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -20,39 +19,25 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("file");
   const conditionKey = String(form.get("conditionKey") || "").trim();
-
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No file provided." }, { status: 400 });
-  }
-  if (!ALLOWED_KEYS.has(conditionKey)) {
-    return NextResponse.json({ error: "Invalid conditionKey." }, { status: 400 });
-  }
-  if (!ALLOWED_TYPES[file.type]) {
-    return NextResponse.json({ error: "Only JPG, PNG, and WEBP are allowed." }, { status: 400 });
-  }
-  if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "File exceeds 8 MB limit." }, { status: 400 });
+  if (!(file instanceof File)) return NextResponse.json({ error: "No file provided." }, { status: 400 });
+  if (!ALLOWED_KEYS.has(conditionKey)) return NextResponse.json({ error: "Invalid conditionKey." }, { status: 400 });
+  const extension = ALLOWED_TYPES[file.type];
+  if (!extension) return NextResponse.json({ error: "Only JPG, PNG, and WEBP are allowed." }, { status: 400 });
+  if (file.size <= 0 || file.size > MAX_BYTES) {
+    return NextResponse.json({ error: "File size must be between 1 byte and 8 MB." }, { status: 400 });
   }
 
-  const ext = ALLOWED_TYPES[file.type];
-  const ts = Date.now();
-  const fileName = `${ts}-banner-${conditionKey}.${ext}`;
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-  const filePath = path.join(uploadsDir, fileName);
-  const bytes = await file.arrayBuffer();
-  await writeFile(filePath, Buffer.from(bytes));
-
-  const publicPath = `/uploads/${fileName}`;
-
-  // Persist path into the DB row
+  const assetPath = await putDurableUiAsset(new Uint8Array(await file.arrayBuffer()), file.type, extension);
   const pool = resolveRuntimePostgresPool();
-  await pool.query(
+  const updated = await pool.query(
     `UPDATE ui_asset_controls
      SET background_image_path = $1, updated_at = NOW()
-     WHERE condition_key = $2`,
-    [publicPath, conditionKey]
+     WHERE condition_key = $2
+     RETURNING condition_key`,
+    [assetPath, conditionKey],
   );
-
-  return NextResponse.json({ ok: true, path: publicPath });
+  if (updated.rowCount !== 1) {
+    return NextResponse.json({ error: "Market banner control row is missing." }, { status: 503 });
+  }
+  return NextResponse.json({ ok: true, path: assetPath, storage: "s3_immutable" });
 }

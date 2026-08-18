@@ -1,5 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { connection } from "next/server";
+import {
+  readDurableUiConfig,
+  usesDurableUiStorage,
+  writeDurableUiConfig,
+} from "@/lib/ui-asset-storage";
 
 export const UI_PAGE_KEYS = [
   "home",
@@ -16,16 +22,11 @@ export const UI_PAGE_KEYS = [
 ] as const;
 
 export type UiPageKey = (typeof UI_PAGE_KEYS)[number];
-
 export type UiBackgroundImages = Record<UiPageKey, string>;
-
-export type UiConfig = {
-  backgroundImages: UiBackgroundImages;
-};
+export type UiConfig = { backgroundImages: UiBackgroundImages };
 
 const DEFAULT_IMAGE = "/landing-zen.jpg";
 const DEFAULT_HOME_IMAGE = "/uploads/mountainscene.jpg";
-
 const DEFAULT_CONFIG: UiConfig = {
   backgroundImages: {
     home: DEFAULT_HOME_IMAGE,
@@ -41,26 +42,16 @@ const DEFAULT_CONFIG: UiConfig = {
     adminConsole: DEFAULT_IMAGE,
   },
 };
-
 const CONFIG_PATH = path.join(process.cwd(), "data", "ui-config.json");
 
 function sanitizeImagePath(value: unknown): string {
-  if (typeof value !== "string") {
-    return DEFAULT_IMAGE;
-  }
-
+  if (typeof value !== "string") return DEFAULT_IMAGE;
   const trimmed = value.trim();
-  const valid = /^\/[a-zA-Z0-9_\-./]+\.(jpg|jpeg|png|webp)$/i.test(trimmed);
-  if (!valid) {
-    return DEFAULT_IMAGE;
-  }
-
-  return trimmed;
+  return /^\/[a-zA-Z0-9_\-./]+\.(jpg|jpeg|png|webp)$/i.test(trimmed) ? trimmed : DEFAULT_IMAGE;
 }
 
 function sanitizeBackgroundImages(raw: unknown): UiBackgroundImages {
-  const source = typeof raw === "object" && raw !== null ? (raw as Partial<Record<UiPageKey, unknown>>) : {};
-
+  const source = typeof raw === "object" && raw !== null ? raw as Partial<Record<UiPageKey, unknown>> : {};
   return {
     home: sanitizeImagePath(source.home),
     help: sanitizeImagePath(source.help),
@@ -74,6 +65,28 @@ function sanitizeBackgroundImages(raw: unknown): UiBackgroundImages {
     legal: sanitizeImagePath(source.legal),
     adminConsole: sanitizeImagePath(source.adminConsole),
   };
+}
+
+function parseConfig(raw: string): UiConfig {
+  const parsed = JSON.parse(raw) as { backgroundImages?: unknown; homeBackgroundImage?: unknown };
+  if (parsed.backgroundImages) return { backgroundImages: sanitizeBackgroundImages(parsed.backgroundImages) };
+  if (parsed.homeBackgroundImage) {
+    return {
+      backgroundImages: {
+        ...DEFAULT_CONFIG.backgroundImages,
+        home: sanitizeImagePath(parsed.homeBackgroundImage),
+      },
+    };
+  }
+  return DEFAULT_CONFIG;
+}
+
+async function readPackagedConfig(): Promise<UiConfig> {
+  try {
+    return parseConfig(await readFile(CONFIG_PATH, "utf8"));
+  } catch {
+    return DEFAULT_CONFIG;
+  }
 }
 
 export function pageKeyFromRoute(route: string): UiPageKey {
@@ -92,37 +105,15 @@ export function pageKeyFromRoute(route: string): UiPageKey {
 }
 
 export async function getUiConfig(): Promise<UiConfig> {
-  try {
-    const raw = await readFile(CONFIG_PATH, "utf8");
-    const parsed = JSON.parse(raw) as {
-      backgroundImages?: unknown;
-      homeBackgroundImage?: unknown;
-    };
-
-    if (parsed.backgroundImages) {
-      return { backgroundImages: sanitizeBackgroundImages(parsed.backgroundImages) };
-    }
-
-    // Backward compatibility for previous single-value shape.
-    if (parsed.homeBackgroundImage) {
-      const homeValue = sanitizeImagePath(parsed.homeBackgroundImage);
-      return {
-        backgroundImages: {
-          ...DEFAULT_CONFIG.backgroundImages,
-          home: homeValue,
-        },
-      };
-    }
-
-    return DEFAULT_CONFIG;
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+  await connection();
+  if (!usesDurableUiStorage()) return readPackagedConfig();
+  const durable = await readDurableUiConfig();
+  if (!durable) return readPackagedConfig();
+  return parseConfig(Buffer.from(durable).toString("utf8"));
 }
 
 export async function setUiConfig(next: Partial<UiBackgroundImages>): Promise<UiConfig> {
   const current = await getUiConfig();
-
   const merged: UiConfig = {
     backgroundImages: {
       home: sanitizeImagePath(next.home ?? current.backgroundImages.home),
@@ -138,9 +129,12 @@ export async function setUiConfig(next: Partial<UiBackgroundImages>): Promise<Ui
       adminConsole: sanitizeImagePath(next.adminConsole ?? current.backgroundImages.adminConsole),
     },
   };
-
-  await mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-  await writeFile(CONFIG_PATH, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
-
+  const bytes = Buffer.from(`${JSON.stringify(merged, null, 2)}\n`, "utf8");
+  if (usesDurableUiStorage()) {
+    await writeDurableUiConfig(bytes);
+  } else {
+    await mkdir(path.dirname(CONFIG_PATH), { recursive: true });
+    await writeFile(CONFIG_PATH, bytes);
+  }
   return merged;
 }

@@ -1,24 +1,18 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/api/health"]);
+const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/api/health", "/api/assets(.*)"]);
 const isAuthRoute = createRouteMatcher(["/account(.*)"]);
-
-// Internal daemon routes authenticate via x-tfe-internal-refresh-token header,
-// not Clerk sessions. Must bypass Clerk middleware to avoid a redirect.
 const INTERNAL_TOKEN_HEADER = "x-tfe-internal-refresh-token";
+
 function hasInternalToken(request: Request): boolean {
   const token = request.headers.get(INTERNAL_TOKEN_HEADER);
   const expected = process.env.TFE_INTERNAL_REFRESH_TOKEN;
-  if (!token || !expected) return false;
-  return token === expected;
+  return Boolean(token && expected && token === expected);
 }
 
 export default clerkMiddleware(async (auth, request) => {
-  if (hasInternalToken(request)) {
-    return NextResponse.next();
-  }
-
+  if (hasInternalToken(request)) return NextResponse.next();
   if (isAuthRoute(request)) {
     const { userId } = await auth();
     if (!userId) {
@@ -28,7 +22,6 @@ export default clerkMiddleware(async (auth, request) => {
     }
     return NextResponse.next();
   }
-
   if (!isPublicRoute(request)) {
     const { userId } = await auth();
     if (!userId) {
