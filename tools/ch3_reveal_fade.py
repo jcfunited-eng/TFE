@@ -254,6 +254,9 @@ def main() -> None:
 
     held = {str(finding.get("symbol")) for finding in finds if isinstance(finding, dict) and finding.get("status") == "OPEN"}
     take = [event for event in events if str(event["symbol"]) not in held]
+    if ENTRIES_HALT_FILE.exists():
+        print("[reveal-fade] ENTRIES HALTED (protective) — settlements only")
+        take = []
     floor_cash = -(GROSS_MULT - 1.0) * CASH0
     budget = max(0.0, float(book["cash"]) - floor_cash)
     zsum = sum(float(event["z"]) for event in take) or 1.0
