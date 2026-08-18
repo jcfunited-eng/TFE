@@ -72,10 +72,13 @@ export type Step1OrchestratorResult = {
 };
 
 export class Step1OrchestratorError extends Error {
-  code: "cutover_mode_invalid" | "proof_store_required";
+  code: "cutover_mode_invalid" | "proof_store_required" | "production_placeholder_identity_forbidden";
   detail: string;
 
-  constructor(params: { code: "cutover_mode_invalid" | "proof_store_required"; detail: string }) {
+  constructor(params: {
+    code: "cutover_mode_invalid" | "proof_store_required" | "production_placeholder_identity_forbidden";
+    detail: string;
+  }) {
     super(`Step 1 orchestrator rejected dispatch. code=${params.code}; detail=${params.detail}`);
     this.name = "Step1OrchestratorError";
     this.code = params.code;
@@ -84,10 +87,13 @@ export class Step1OrchestratorError extends Error {
 }
 
 export class Step1AdminRefreshContractError extends Error {
-  code: "request_contract_missing" | "request_contract_invalid";
+  code: "request_contract_missing" | "request_contract_invalid" | "production_placeholder_identity_forbidden";
   detail: string;
 
-  constructor(params: { code: "request_contract_missing" | "request_contract_invalid"; detail: string }) {
+  constructor(params: {
+    code: "request_contract_missing" | "request_contract_invalid" | "production_placeholder_identity_forbidden";
+    detail: string;
+  }) {
     super(`Step 1 admin refresh cutover rejected dispatch. code=${params.code}; detail=${params.detail}`);
     this.name = "Step1AdminRefreshContractError";
     this.code = params.code;
@@ -117,6 +123,16 @@ function requireAdminRefreshText(
     });
   }
   return text;
+}
+
+function rejectProductionPlaceholderIdentity(value: string, fieldName: string, targetEnvironment: string): string {
+  if (targetEnvironment.trim().toLowerCase() === "production" && /(^|[-_])demo($|[-_])/i.test(value)) {
+    throw new Step1AdminRefreshContractError({
+      code: "production_placeholder_identity_forbidden",
+      detail: `${fieldName} cannot contain a demo identity when targetEnvironment is production.`,
+    });
+  }
+  return value;
 }
 
 function requireAdminRefreshIsoTimestamp(value: unknown, fieldName: string): string {
@@ -268,20 +284,42 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
     }
   }
 
+  const targetEnvironment = requireAdminRefreshText(mergedRecord.targetEnvironment, "targetEnvironment");
+  const normalizedPackageId = rejectProductionPlaceholderIdentity(
+    requireAdminRefreshText(mergedRecord.normalizedPackageId, "normalizedPackageId"),
+    "normalizedPackageId",
+    targetEnvironment,
+  );
+  const policySetId = rejectProductionPlaceholderIdentity(
+    requireAdminRefreshText(mergedRecord.policySetId, "policySetId"),
+    "policySetId",
+    targetEnvironment,
+  );
+  const modelSetId = rejectProductionPlaceholderIdentity(
+    requireAdminRefreshText(mergedRecord.modelSetId, "modelSetId"),
+    "modelSetId",
+    targetEnvironment,
+  );
+  const configSetId = rejectProductionPlaceholderIdentity(
+    requireAdminRefreshText(mergedRecord.configSetId, "configSetId"),
+    "configSetId",
+    targetEnvironment,
+  );
+
   return {
     contractSource,
     input: {
       runId: readTrimmedText(mergedRecord.runId) ?? undefined,
-      normalizedPackageId: requireAdminRefreshText(mergedRecord.normalizedPackageId, "normalizedPackageId"),
-      policySetId: requireAdminRefreshText(mergedRecord.policySetId, "policySetId"),
-      modelSetId: requireAdminRefreshText(mergedRecord.modelSetId, "modelSetId"),
-      configSetId: requireAdminRefreshText(mergedRecord.configSetId, "configSetId"),
+      normalizedPackageId,
+      policySetId,
+      modelSetId,
+      configSetId,
       bundleClass: requireAdminRefreshText(mergedRecord.bundleClass, "bundleClass"),
       dependencyClassificationRegister: requireAdminRefreshDependencyClassificationRegister(
         mergedRecord.dependencyClassificationRegister,
       ),
       sourcePackageIdentities,
-      targetEnvironment: requireAdminRefreshText(mergedRecord.targetEnvironment, "targetEnvironment"),
+      targetEnvironment,
       requestedBy: params.requestedBy,
       requestedAtUtc: readTrimmedText(mergedRecord.requestedAtUtc) ?? undefined,
       assessmentRuleSetId: requireAdminRefreshText(mergedRecord.assessmentRuleSetId, "assessmentRuleSetId"),
@@ -326,6 +364,19 @@ export async function dispatchStep1Orchestrator(
   input: Step1OrchestratorInput,
   options: Step1OrchestratorOptions,
 ): Promise<Step1OrchestratorResult> {
+  for (const [fieldName, value] of [
+    ["normalizedPackageId", input.normalizedPackageId],
+    ["policySetId", input.policySetId],
+    ["modelSetId", input.modelSetId],
+    ["configSetId", input.configSetId],
+  ] as const) {
+    if (input.targetEnvironment.trim().toLowerCase() === "production" && /(^|[-_])demo($|[-_])/i.test(value)) {
+      throw new Step1OrchestratorError({
+        code: "production_placeholder_identity_forbidden",
+        detail: `${fieldName} cannot contain a demo identity when targetEnvironment is production.`,
+      });
+    }
+  }
   const workspaceRoot = options.workspaceRoot ?? resolveWorkspaceRoot();
   const persistence = resolveStep1Persistence(options);
   const request = await createStep1RunRequest(

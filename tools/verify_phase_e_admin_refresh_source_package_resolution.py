@@ -80,10 +80,10 @@ def main() -> int:
               const env = {{
                 ...process.env,
                 TFE_STEP1_CUTOVER_REQUEST_CONTRACT_JSON: JSON.stringify({{
-                  normalizedPackageId: "normalized-package-demo",
-                  policySetId: "policy-set-demo",
-                  modelSetId: "model-set-demo",
-                  configSetId: "config-set-demo",
+                  normalizedPackageId: "normalized-package-proof-fixture",
+                  policySetId: "policy-set-proof-fixture",
+                  modelSetId: "model-set-proof-fixture",
+                  configSetId: "config-set-proof-fixture",
                   bundleClass: "publication_candidate",
                   dependencyClassificationRegister: {{
                     normalized_package: "classified",

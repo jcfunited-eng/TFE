@@ -415,10 +415,10 @@ module.exports = require(path.join({json.dumps(str(paths.step1_emit_root))}, "li
 def write_route_harness(paths: Paths) -> None:
     contract_json = {
         "runId": "step1-route-cutover-enabled-proof",
-        "normalizedPackageId": "normalized-package-demo",
-        "policySetId": "policy-set-demo",
-        "modelSetId": "model-set-demo",
-        "configSetId": "config-set-demo",
+        "normalizedPackageId": "normalized-package-proof-fixture",
+        "policySetId": "policy-set-proof-fixture",
+        "modelSetId": "model-set-proof-fixture",
+        "configSetId": "config-set-proof-fixture",
         "bundleClass": "publication_candidate",
         "dependencyClassificationRegister": {
             "normalized_package": "classified",
@@ -513,10 +513,10 @@ async function main() {{
   const result = await orchestrator.dispatchStep1Orchestrator(
     {{
       runId: {json.dumps(run_id)},
-      normalizedPackageId: "normalized-package-demo",
-      policySetId: "policy-set-demo",
-      modelSetId: "model-set-demo",
-      configSetId: "config-set-demo",
+      normalizedPackageId: "normalized-package-proof-fixture",
+      policySetId: "policy-set-proof-fixture",
+      modelSetId: "model-set-proof-fixture",
+      configSetId: "config-set-proof-fixture",
       bundleClass: "publication_candidate",
       dependencyClassificationRegister: {{
         normalized_package: "classified",
@@ -664,7 +664,7 @@ def build_route_runtime_proof(harness_result: dict[str, object]) -> dict[str, ob
         raise AssertionError("Enabled snapshot route harness did not capture resolved/dispatched input payloads.")
     if resolved_input.get("mode") != "snapshot" or dispatched_input.get("mode") != "snapshot":
         raise AssertionError("Enabled snapshot route harness did not dispatch the existing snapshot Step 1 mode.")
-    if dispatched_input.get("normalizedPackageId") != "normalized-package-demo":
+    if dispatched_input.get("normalizedPackageId") != "normalized-package-proof-fixture":
         raise AssertionError("Enabled snapshot route harness did not dispatch the accepted Step 1 contract values.")
     return {
         "request_path": "POST /api/admin/refresh body={mode:snapshot}",
