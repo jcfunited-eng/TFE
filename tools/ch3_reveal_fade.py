@@ -31,6 +31,7 @@ from ch_short_refutation import has_unreset_refutation
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ENTRIES_HALT_FILE = ROOT / 'HALT_CH3_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 STORE = ROOT / "ch4_live_store.parquet"
 TAIL = ROOT / "ch3_supply_tail.parquet"
 HERD = ROOT / "artifacts" / "ch4_uf" / "herd_state_live.parquet"

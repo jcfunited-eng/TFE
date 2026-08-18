@@ -30,6 +30,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+ENTRIES_HALT_FILE = ROOT / 'HALT_CH6_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 sys.path.insert(0, str(ROOT))
 
 from tools.ch_short_refutation import has_unreset_refutation  # noqa: E402
@@ -282,6 +283,13 @@ def hunt(dry: bool = False) -> None:
         herd_state=herd_state,
         anomaly_cuts=cuts,
     )
+
+    if ENTRIES_HALT_FILE.exists():
+
+        print('[ch6 hunt] ENTRIES HALTED (protective) — settlements only')
+
+        events = []
+
 
     opened = 0
     for event in events:
