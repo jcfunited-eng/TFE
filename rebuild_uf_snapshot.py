@@ -12,6 +12,7 @@ from snapshot_generation import (
     prepare_and_publish_generation,
     retain_bar_cache_export_without_mutable_snapshot_upload,
 )
+from snapshot_transport import normalize_snapshot_transport_artifacts
 
 
 REFRESH_MODE_FULL = _legacy.REFRESH_MODE_FULL
@@ -39,6 +40,10 @@ def _write_report_atomic(report: dict[str, Any]) -> None:
             temporary.unlink()
 
 
+def _write_normalized_envelope(rows: list[dict[str, Any]], generated_at_utc: str) -> None:
+    _legacy._save_snapshot_envelope(rows, generated_at_utc=generated_at_utc)
+
+
 def _record_publication_failure(error: Exception) -> None:
     try:
         report = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
@@ -60,11 +65,15 @@ def rebuild_snapshot(
     years_history: int = 5,
 ) -> dict[str, Any]:
     publication: dict[str, Any] = {}
+    transport_normalization: dict[str, Any] = {}
 
     def publish_generation() -> None:
-        nonlocal publication
+        nonlocal publication, transport_normalization
         retain_bar_cache_export_without_mutable_snapshot_upload(_legacy_upload)
         try:
+            transport_normalization = normalize_snapshot_transport_artifacts(
+                envelope_writer=_write_normalized_envelope
+            )
             publication = prepare_and_publish_generation()
         except Exception as error:
             _record_publication_failure(error)
@@ -91,6 +100,7 @@ def rebuild_snapshot(
             snapshot_generation_id=publication["generation_id"],
             snapshot_payload_digest_sha256=publication["snapshot_payload_digest_sha256"],
             publication_schema="tfe.snapshot-generation.v1",
+            transport_normalization=transport_normalization,
         )
     _write_report_atomic(report)
     return report

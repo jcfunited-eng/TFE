@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import snapshot_generation
+import snapshot_transport
 
 
 class FakeS3:
@@ -108,3 +109,36 @@ def test_startup_has_one_external_schedule_authority() -> None:
     assert "tfe_refresh_daemon" not in startup
     assert "/api/admin/refresh" not in startup
     assert "/api/health" not in startup
+
+
+def test_snapshot_transport_normalizes_nonfinite_values_and_rebinds_envelope(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    snapshot = {
+        "rows": [{"ticker": "NO_DATA", "price": float("nan"), "D_k": 0.0}],
+        "generated_at_utc": "2026-08-18T00:00:00Z",
+    }
+    report = {"status": "ok", "rows_written": 1, "generated_at_utc": "2026-08-18T00:00:00Z"}
+    (tmp_path / "uf_snapshot.json").write_text(json.dumps(snapshot), encoding="utf-8")
+    (tmp_path / "uf_snapshot_rebuild_report.json").write_text(json.dumps(report), encoding="utf-8")
+    captured: dict[str, object] = {}
+
+    def save_envelope(rows: list[dict[str, object]], generated_at_utc: str) -> None:
+        captured["rows"] = rows
+        captured["generated_at_utc"] = generated_at_utc
+
+    receipt = snapshot_transport.normalize_snapshot_transport_artifacts(
+        envelope_writer=save_envelope
+    )
+
+    normalized = json.loads((tmp_path / "uf_snapshot.json").read_text(encoding="utf-8"))
+    normalized_report = json.loads(
+        (tmp_path / "uf_snapshot_rebuild_report.json").read_text(encoding="utf-8")
+    )
+    assert normalized["rows"][0]["price"] is None
+    assert captured["rows"] == normalized["rows"]
+    assert captured["generated_at_utc"] == normalized["generated_at_utc"]
+    assert receipt["nonfinite_values_normalized_to_null"] == 1
+    assert receipt["locations"] == ["root.rows[0].price"]
+    assert normalized_report["transport_normalization"] == receipt
