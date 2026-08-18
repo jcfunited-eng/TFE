@@ -115,6 +115,7 @@ COPY bar_cache.py ./bar_cache.py
 COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
 COPY rebuild_uf_snapshot_legacy.py ./rebuild_uf_snapshot_legacy.py
 COPY snapshot_generation.py ./snapshot_generation.py
+COPY snapshot_transport.py ./snapshot_transport.py
 COPY uf_mdg_snapshot.py ./uf_mdg_snapshot.py
 COPY structural_recency_snapshot.py ./structural_recency_snapshot.py
 COPY run_refresh_with_l5_learning.py ./run_refresh_with_l5_learning.py
