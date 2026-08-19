@@ -106,6 +106,35 @@ tfe_epoch_library.py + epoch_structural_analysis.txt (1,339 lines).
 NOTE: 32 here is the epoch registry's dimension — unrelated to the
 forbidden G32 horse-race docs; do not conflate.
 
+## 2026-08-19 evening — the perception layer + the day's corrections
+- Joe's full frame, earned through ~10 corrections: cheap investing
+  basics cut the trash FIRST (all three live killers die in those
+  screens for free); the kernel reads every REAL life; population
+  gives context; the world presses (epochs — later); L5 governance
+  decides. My restatement was graded 72% until the cheap-filters
+  piece landed.
+- Population reading layer BUILT: 4,303 validated lives (roster is
+  all 5y+ histories; CH6's current holdings mostly live OUTSIDE it,
+  in the tail), whole stored lives through the v2 chain at one
+  reading per close, 813MB in artifacts/ch4_uf/population_lanes/,
+  zero failures, nightly append costs seconds. Universe CSV filed
+  with filters (population_universe_20260819.csv).
+- The last session's 3D lane instrument (AMD page, its scratchpad)
+  is the seeing tool: DATA cols pinned and validated 14/15 exactly
+  (M = 2nd diff of URF; P = |ΔD|; C = gate_count; L64 = |Σ nonzero
+  D|/count over 64). B256 recipe LOST — reconstruction = channel-
+  alive share w256 (within 8%), labeled honestly. FDMT page built
+  from the layer; any life now drawable in seconds.
+- Falsified today, receipts filed: charging-vehicle conjunction
+  (retired from live gate), LAW E extinction-presence, species-down
+  finder vs mirror control (both curves dead ~-$5k/decade). Measured:
+  Joseph's 2% bank (-4%/trade, +18% speed — pays when supply binds),
+  5%/2x widening (marginal supply 5x poorer — rejected).
+- Joe's standing communication laws added to boot covenant: verdict
+  channel is HIS alone; no self-grading, no ceremonies, no reciting
+  his frames back; plain registers; quant graphs are the condemned
+  frame — draw the FIELD, not the scoreboard.
+
 ## Open reads (my own list, no fake debts)
 2. TFE_Specification_Merged/ch06_l5_governance.tex + the L5 specs.
 3. epoch_structural_analysis.txt + tfe_epoch_library.py as code.
