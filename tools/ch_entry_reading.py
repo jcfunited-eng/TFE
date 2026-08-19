@@ -149,6 +149,48 @@ def read_symbol(symbol: str) -> dict:
         # like that" — a slice must hide inside a NORMAL day. If 1% of
         # the normal day's traded money cannot absorb a $2,000 slice,
         # the name is untradable at our smallest size. Refused.
+        day_list = sorted(day_last.keys())
+        spike_gain = 0.0
+        day_low_vs_prior = 1.0
+        halt_jumps = 0
+        if len(day_list) >= 2:
+            prior_day, spike_day = day_list[-2], day_list[-1]
+            prior_close = None
+            spike_prices = []
+            for i, r in enumerate(rows):
+                if r[3] == prior_day:
+                    prior_close = c[i]
+                elif r[3] == spike_day:
+                    spike_prices.append(c[i])
+            if prior_close and spike_prices:
+                spike_gain = 100 * (spike_prices[-1] / prior_close - 1)
+                day_low_vs_prior = min(spike_prices) / prior_close
+                for a2, b2 in zip(spike_prices, spike_prices[1:]):
+                    if a2 > 0 and abs(b2 / a2 - 1) >= 0.15:
+                        halt_jumps += 1
+        facts["spike_gain_pct"] = round(spike_gain, 1)
+        facts["halt_jumps"] = halt_jumps
+        # Desk floor #3 (borrow): a violent pump in a thin name has no
+        # shares to locate — the classic no-borrow class. Refused.
+        if med20_dollar < 500_000 and spike_gain >= 50:
+            return {"symbol": symbol, "verdict": "REFUSE",
+                    "rule": "desk floor — no-borrow class (thin name, "
+                            f"+{spike_gain:.0f}% pump): nothing to locate",
+                    "facts": facts}
+        # Desk floor #5 (uptick rule): traded below -10% intraday, so
+        # short sales fill only on upticks today. Refused.
+        if day_low_vs_prior <= 0.90:
+            return {"symbol": symbol, "verdict": "REFUSE",
+                    "rule": "desk floor — uptick restriction active "
+                            "(fell 10%+ intraday): fills degrade",
+                    "facts": facts}
+        # Desk floor #6 (halts): repeated 15%+ jumps between readings on
+        # the spike day mean halt-and-reopen trading. Refused.
+        if halt_jumps >= 2:
+            return {"symbol": symbol, "verdict": "REFUSE",
+                    "rule": f"desk floor — halt-prone ({halt_jumps} violent "
+                            "reopens today): stops cannot protect",
+                    "facts": facts}
         if med20_dollar < 200_000:
             return {"symbol": symbol, "verdict": "REFUSE",
                     "rule": "Joseph's fillability law — normal day trades "

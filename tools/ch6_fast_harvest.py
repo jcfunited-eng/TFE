@@ -56,6 +56,19 @@ HERD = ROOT / "artifacts" / "ch4_uf" / "herd_state_live.parquet"
 BOOK_PATH = ROOT / "artifacts" / "vtvr_observer" / "ch6_book.json"
 
 
+
+def carry_costs(notional: float, normal_day: float, days_held: int) -> float:
+    """Desk floor #3 and #9: borrow fee by liquidity class (annualized)
+    plus round-trip slippage for thin names. Returned as a positive
+    dollar cost to subtract from P&L."""
+    if normal_day >= 5_000_000:
+        rate, slip = 0.01, 0.0005
+    elif normal_day >= 1_000_000:
+        rate, slip = 0.10, 0.002
+    else:
+        rate, slip = 0.50, 0.005
+    return round(notional * (rate * max(1, days_held) / 365 + slip), 2)
+
 def load_book() -> dict[str, object]:
     if BOOK_PATH.exists():
         with BOOK_PATH.open("r", encoding="utf-8") as handle:
@@ -151,6 +164,15 @@ def close_position(
     shares = int(position["shares"])
     result_pct = 100 * (price / entry - 1) * side
     pnl = round(shares * (price - entry) * side, 2)
+    try:
+        _entered = str(position.get("entry_date", ""))[:10]
+        _days = max(1, (datetime.fromisoformat(now[:10])
+                        - datetime.fromisoformat(_entered)).days) if _entered else 1
+    except Exception:  # noqa: BLE001
+        _days = 1
+    pnl = round(pnl - carry_costs(float(position.get("notional", 0.0)),
+                                  float(position.get("normal_day_dollars", 0.0)),
+                                  _days), 2)
     book["cash"] = round(float(book["cash"]) + float(position["notional"]) + pnl, 2)
     closed(book).append(
         {
@@ -346,7 +368,8 @@ def hunt(dry: bool = False) -> None:
             "notional": notional,
             "armed": False,
             "peak_gain_pct": 0.0,
-        }
+        
+            "normal_day_dollars": float(event.get("normal_day_dollars", 0.0)),}
         opened += 1
         print(f"  SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
 

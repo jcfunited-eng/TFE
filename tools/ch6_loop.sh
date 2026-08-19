@@ -8,8 +8,13 @@
 cd "$(dirname "$0")/.." || exit 1
 set -a; source .env 2>/dev/null; set +a
 echo "[ch6-loop] started $(date -u +%FT%TZ) pid $$"
-last_sync=""; last_sweep=""
+last_sync=""; last_sweep=""; last_pmc=""
 while true; do
+  hm=$((10#$(date -u +%H%M)))
+  if [ $hm -ge 1300 ] && [ $hm -le 1330 ] && [ "$last_pmc" != "$(date -u +%F)" ]; then
+    last_pmc="$(date -u +%F)"
+    python tools/ch_premarket_cut.py >> artifacts/vtvr_observer/ch6_runner.log 2>&1
+  fi
   h=$(date -u +%H); m=$(date -u +%M); dow=$(date -u +%u); d=$(date -u +%F)
   # CH6's OWN entry scan. Guarded inside by the processed-day stamp, so
   # running it every cycle can never open a position twice.

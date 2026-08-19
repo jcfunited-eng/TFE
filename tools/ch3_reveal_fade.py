@@ -45,11 +45,25 @@ VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
 HOLD_SESSIONS = 5
 CASH0 = 100_000.0
-GROSS_MULT = 2.0
+GROSS_MULT = 1.0  # desk floor #4: gross short exposure <= equity; margin fantasy retired 2026-08-19
 HARVEST_X = 0.95
 MAX_EVENT_FRAC = 0.10
+DAY_BUDGET = 30_000.0  # desk floor #4: new overnight spike exposure per day <= 30% of the $100k book
 ANOMALY_STOP_PCT = 20.0
 
+
+
+def carry_costs(notional: float, normal_day: float, days_held: int) -> float:
+    """Desk floor #3 and #9: borrow fee by liquidity class (annualized)
+    plus round-trip slippage for thin names. Returned as a positive
+    dollar cost to subtract from P&L."""
+    if normal_day >= 5_000_000:
+        rate, slip = 0.01, 0.0005
+    elif normal_day >= 1_000_000:
+        rate, slip = 0.10, 0.002
+    else:
+        rate, slip = 0.50, 0.005
+    return round(notional * (rate * max(1, days_held) / 365 + slip), 2)
 
 def load_log() -> dict[str, object]:
     if LOG_PATH.exists():
@@ -159,6 +173,9 @@ def settle_open_positions(
         short_return = 100 * (1 - exit_price / entry_price)
         notional = float(finding["notional"])
         pnl = round(notional * short_return / 100, 2)
+        cost = carry_costs(notional, float(finding.get("normal_day_dollars", 0.0)),
+                           int(latest_index - entry_index))
+        pnl = round(pnl - cost, 2)
         book["cash"] = round(float(book["cash"]) + notional + pnl, 2)
         reason = "HARVEST" if harvest else ("ANOMALY-CUT" if anomaly else "TIME")
         finding.update(
@@ -290,8 +307,10 @@ def main() -> None:
     budget = max(0.0, float(book["cash"]) - floor_cash)
     zsum = sum(float(event["z"]) for event in take) or 1.0
     opened = 0
+    day_spent = 0.0
     for event in take:
         allocation = min(budget * float(event["z"]) / zsum, MAX_EVENT_FRAC * CASH0)
+        allocation = min(allocation, max(0.0, DAY_BUDGET - day_spent))
         # fillability (Joseph 2026-08-19): never exceed 1% of the name's
         # normal-day traded money — an order that cannot hide is fiction
         normal_day = float(event.get("normal_day_dollars", 0.0))
@@ -308,6 +327,7 @@ def main() -> None:
                 f"  WOULD SHORT {shares} {event['symbol']} @ {event['close']} "
                 f"(+{event['gain']}% day, z {event['z']}, explicit herd-low)"
             )
+            day_spent += notional
             opened += 1
             continue
         book["cash"] = round(float(book["cash"]) - notional, 2)
