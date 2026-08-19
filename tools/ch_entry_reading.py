@@ -351,10 +351,70 @@ def _file_sheet(sheet_path: Path, out: dict) -> None:
     os.replace(tmp, sheet_path)
 
 
+_STRUCT_CACHE: dict = {}
+
+
+def _structural_authority(symbol: str) -> tuple[str | None, str, str]:
+    """The assessment INSIDE the decision (Joseph 2026-08-19: no entry
+    the kernel hasn't read and judged). Returns (refusal_rule_or_None,
+    structure_config, structure_verdict).
+
+    - Outside the validated universe, or lane not current through the
+      store's latest close: REFUSE — the engines do not trade what the
+      perception cannot read. This is the pond every catastrophe came
+      from (WETO, IPST, TNON, BULL, MRNA).
+    - Joint structure in the census AVOID list (negative or tail-heavy
+      in BOTH decade halves): REFUSE.
+    - PAY / UNDECIDED pass, under every other law and Rule 10.
+    """
+    import pandas as pd
+
+    if not _STRUCT_CACHE:
+        universe = pd.read_csv(
+            ROOT / "artifacts" / "ch4_uf" / "population_universe_20260819.csv")
+        census = json.load(open(
+            ROOT / "artifacts" / "ch4_uf" / "ch4_joint_structure_census.json"))
+        store_dates = pd.read_parquet(
+            ROOT / "ch4_live_store.parquet", columns=["Date"])
+        _STRUCT_CACHE.update(
+            universe=set(universe["Symbol"].astype(str)),
+            pay={e["config"] for e in census["PAY_both_halves"]},
+            avoid={e["config"] for e in census["AVOID_both_halves"]},
+            store_latest=str(store_dates["Date"].max())[:10])
+    if symbol not in _STRUCT_CACHE["universe"]:
+        return ("outside the readable universe: the perception has no "
+                "lane here and the engines do not trade blind", "", "UNREAD")
+    lane_path = ROOT / "artifacts" / "ch4_uf" / "population_lanes" / f"{symbol}.parquet"
+    if not lane_path.exists():
+        return ("no perception lane on disk", "", "UNREAD")
+    from tools.ch4_joint_structure_census import build_lane, facts_at
+    lf = pd.read_parquet(lane_path)
+    if str(lf["date"].iloc[-1]) != _STRUCT_CACHE["store_latest"]:
+        return ("perception lane lags the store: no verdict on stale "
+                "readings", "", "STALE")
+    fx = facts_at(build_lane(lf), len(lf) - 1)
+    if fx is None:
+        return ("life too short for the joint structure", "", "UNREAD")
+    cfg = " ".join(fx[k] for k in ("deaths", "slope", "channel", "push",
+                                   "buzz", "strain", "lock", "depth"))
+    if cfg in _STRUCT_CACHE["avoid"]:
+        return (f"avoid structure [{cfg}] — negative or tail-heavy in "
+                "both decade halves", cfg, "AVOID")
+    if cfg not in _STRUCT_CACHE["pay"]:
+        # Joseph 2026-08-19: avoidance governs this channel — the
+        # harvest enters ONLY structures with the proven paying record;
+        # the undecided middle is avoided, not gambled
+        return (f"structure [{cfg}] has no proven paying record — "
+                "avoided per the channel's governing law", cfg, "UNDECIDED")
+    return (None, cfg, "PAY")
+
+
 def gate(symbols: list, channel: str) -> dict:
     """Read every candidate, file the sheet, return {sym: verdict-dict}.
     Verdicts already filed today are reused; only fail-closed errors
-    (transient by nature) are read again."""
+    (transient by nature) are read again. Laws v3: the structural
+    authority runs INSIDE the gate — desk laws first, then the
+    perception's judgment; both must pass."""
     READINGS_DIR.mkdir(parents=True, exist_ok=True)
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     done = _todays_sheets(day)
@@ -365,8 +425,23 @@ def gate(symbols: list, channel: str) -> dict:
         if prior and prior.get("laws_version") == LAWS_VERSION \
                 and prior.get("law") != "fail-closed":
             out[s] = prior
-        else:
-            out[s] = read_symbol(s)
+            continue
+        verdict = read_symbol(s)
+        if verdict.get("verdict") == "ALLOW":
+            try:
+                refusal, cfg, struct = _structural_authority(s)
+            except Exception as err:  # noqa: BLE001 — fail closed
+                refusal, cfg, struct = (
+                    f"structural authority unavailable "
+                    f"({type(err).__name__}: {err})", "", "ERROR")
+            verdict["structure"] = cfg
+            verdict["structure_verdict"] = struct
+            if refusal is not None:
+                verdict["verdict"] = "REFUSE"
+                verdict["law"] = "structural-authority"
+                verdict["provenance"] = "Joseph + decade census"
+                verdict["rule"] = refusal
+        out[s] = verdict
     _file_sheet(READINGS_DIR / f"{channel}_ENTRY_READINGS_{day}.json", out)
     for s, v in out.items():
         print(f"  [reading] {s}: {v['verdict']} — {v['rule']}")
