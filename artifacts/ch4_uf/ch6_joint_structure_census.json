@@ -1,0 +1,833 @@
+{
+ "declared": "frame, eight joint facts, self-relative boundaries, split and both lists' criteria in the docstring before results",
+ "events": {
+  "total": 14358,
+  "derive": 9295,
+  "confirm": 5063
+ },
+ "configs_with_n>=30_derive": 90,
+ "PAY_both_halves": [
+  {
+   "config": "D1 R BROKEN DN B+ U+ L- HIGH",
+   "derive": {
+    "n": 73,
+    "money_per_100ev": 42.0,
+    "wins_losses": "36W/37L",
+    "worst_pct": -28.6,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 25,
+    "money_per_100ev": 407.8,
+    "wins_losses": "18W/7L",
+    "worst_pct": -6.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 S BROKEN DN B- U- L- HIGH",
+   "derive": {
+    "n": 58,
+    "money_per_100ev": 176.6,
+    "wins_losses": "34W/24L",
+    "worst_pct": -24.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 12,
+    "money_per_100ev": 299.0,
+    "wins_losses": "8W/4L",
+    "worst_pct": -5.6,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B+ U+ L- DEEP",
+   "derive": {
+    "n": 37,
+    "money_per_100ev": 6.0,
+    "wins_losses": "24W/13L",
+    "worst_pct": -41.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 23,
+    "money_per_100ev": 237.1,
+    "wins_losses": "17W/6L",
+    "worst_pct": -32.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN UP B- U- L+ HIGH",
+   "derive": {
+    "n": 81,
+    "money_per_100ev": 36.9,
+    "wins_losses": "47W/34L",
+    "worst_pct": -35.1,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 22,
+    "money_per_100ev": 155.1,
+    "wins_losses": "13W/9L",
+    "worst_pct": -4.5,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN UP B- U+ L- HIGH",
+   "derive": {
+    "n": 32,
+    "money_per_100ev": 140.8,
+    "wins_losses": "19W/13L",
+    "worst_pct": -11.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 15,
+    "money_per_100ev": 147.5,
+    "wins_losses": "9W/6L",
+    "worst_pct": -14.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN DN B- U- L- HIGH",
+   "derive": {
+    "n": 199,
+    "money_per_100ev": 86.6,
+    "wins_losses": "115W/84L",
+    "worst_pct": -23.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 47,
+    "money_per_100ev": 120.4,
+    "wins_losses": "26W/21L",
+    "worst_pct": -23.8,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U+ L- DEEP",
+   "derive": {
+    "n": 39,
+    "money_per_100ev": 124.5,
+    "wins_losses": "29W/10L",
+    "worst_pct": -49.4,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 43,
+    "money_per_100ev": 110.7,
+    "wins_losses": "30W/13L",
+    "worst_pct": -38.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B- U- L+ HIGH",
+   "derive": {
+    "n": 127,
+    "money_per_100ev": 142.7,
+    "wins_losses": "78W/49L",
+    "worst_pct": -23.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 47,
+    "money_per_100ev": 109.1,
+    "wins_losses": "29W/18L",
+    "worst_pct": -24.3,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN DN B- U- L+ HIGH",
+   "derive": {
+    "n": 104,
+    "money_per_100ev": 2.4,
+    "wins_losses": "58W/46L",
+    "worst_pct": -38.6,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 42,
+    "money_per_100ev": 89.7,
+    "wins_losses": "28W/14L",
+    "worst_pct": -13.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B- U- L+ HIGH",
+   "derive": {
+    "n": 160,
+    "money_per_100ev": 4.1,
+    "wins_losses": "79W/78L",
+    "worst_pct": -31.2,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 49,
+    "money_per_100ev": 65.1,
+    "wins_losses": "31W/18L",
+    "worst_pct": -23.2,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN DN B- U- L+ HIGH",
+   "derive": {
+    "n": 141,
+    "money_per_100ev": 33.3,
+    "wins_losses": "71W/70L",
+    "worst_pct": -25.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 62,
+    "money_per_100ev": 49.1,
+    "wins_losses": "37W/24L",
+    "worst_pct": -27.5,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B- U- L+ HIGH",
+   "derive": {
+    "n": 264,
+    "money_per_100ev": 12.6,
+    "wins_losses": "135W/129L",
+    "worst_pct": -27.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 89,
+    "money_per_100ev": 40.5,
+    "wins_losses": "54W/35L",
+    "worst_pct": -29.4,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN UP B- U- L+ DEEP",
+   "derive": {
+    "n": 51,
+    "money_per_100ev": 92.3,
+    "wins_losses": "34W/17L",
+    "worst_pct": -23.9,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 54,
+    "money_per_100ev": 20.4,
+    "wins_losses": "35W/19L",
+    "worst_pct": -29.6,
+    "below_-50": 0
+   }
+  }
+ ],
+ "AVOID_both_halves": [
+  {
+   "config": "D1 R BROKEN UP B+ U+ L+ DEEP",
+   "derive": {
+    "n": 31,
+    "money_per_100ev": 278.5,
+    "wins_losses": "24W/7L",
+    "worst_pct": -82.7,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 18,
+    "money_per_100ev": -1011.3,
+    "wins_losses": "8W/10L",
+    "worst_pct": -156.3,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN DN B+ U- L- DEEP",
+   "derive": {
+    "n": 35,
+    "money_per_100ev": -105.6,
+    "wins_losses": "21W/14L",
+    "worst_pct": -45.5,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 33,
+    "money_per_100ev": -444.9,
+    "wins_losses": "18W/14L",
+    "worst_pct": -66.0,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B+ U- L- DEEP",
+   "derive": {
+    "n": 96,
+    "money_per_100ev": -88.6,
+    "wins_losses": "50W/45L",
+    "worst_pct": -29.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 83,
+    "money_per_100ev": -360.3,
+    "wins_losses": "45W/37L",
+    "worst_pct": -249.4,
+    "below_-50": 2
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U+ L+ DEEP",
+   "derive": {
+    "n": 114,
+    "money_per_100ev": -189.3,
+    "wins_losses": "71W/43L",
+    "worst_pct": -127.3,
+    "below_-50": 3
+   },
+   "confirm": {
+    "n": 93,
+    "money_per_100ev": -201.3,
+    "wins_losses": "55W/38L",
+    "worst_pct": -113.1,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN DN B- U- L+ DEEP",
+   "derive": {
+    "n": 46,
+    "money_per_100ev": -394.7,
+    "wins_losses": "26W/20L",
+    "worst_pct": -37.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 35,
+    "money_per_100ev": -176.0,
+    "wins_losses": "18W/17L",
+    "worst_pct": -30.4,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN UP B- U- L- HIGH",
+   "derive": {
+    "n": 129,
+    "money_per_100ev": -55.3,
+    "wins_losses": "71W/58L",
+    "worst_pct": -29.1,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 67,
+    "money_per_100ev": -174.2,
+    "wins_losses": "27W/39L",
+    "worst_pct": -31.9,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN UP B+ U- L+ DEEP",
+   "derive": {
+    "n": 33,
+    "money_per_100ev": -131.9,
+    "wins_losses": "19W/14L",
+    "worst_pct": -30.0,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 24,
+    "money_per_100ev": -173.9,
+    "wins_losses": "12W/12L",
+    "worst_pct": -31.2,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN UP B- U- L- HIGH",
+   "derive": {
+    "n": 128,
+    "money_per_100ev": -11.7,
+    "wins_losses": "66W/62L",
+    "worst_pct": -28.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 46,
+    "money_per_100ev": -159.4,
+    "wins_losses": "19W/27L",
+    "worst_pct": -24.6,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN DN B- U- L- HIGH",
+   "derive": {
+    "n": 102,
+    "money_per_100ev": -210.5,
+    "wins_losses": "48W/54L",
+    "worst_pct": -86.2,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 42,
+    "money_per_100ev": -156.6,
+    "wins_losses": "14W/27L",
+    "worst_pct": -21.6,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN UP B+ U- L- HIGH",
+   "derive": {
+    "n": 121,
+    "money_per_100ev": -70.4,
+    "wins_losses": "63W/58L",
+    "worst_pct": -43.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 40,
+    "money_per_100ev": -155.0,
+    "wins_losses": "17W/23L",
+    "worst_pct": -15.5,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN UP B- U- L- HIGH",
+   "derive": {
+    "n": 234,
+    "money_per_100ev": -107.0,
+    "wins_losses": "126W/108L",
+    "worst_pct": -36.4,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 123,
+    "money_per_100ev": -153.7,
+    "wins_losses": "56W/67L",
+    "worst_pct": -32.9,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B- U+ L+ DEEP",
+   "derive": {
+    "n": 43,
+    "money_per_100ev": -391.8,
+    "wins_losses": "24W/19L",
+    "worst_pct": -172.9,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 54,
+    "money_per_100ev": -151.8,
+    "wins_losses": "29W/25L",
+    "worst_pct": -40.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B- U- L- HIGH",
+   "derive": {
+    "n": 118,
+    "money_per_100ev": -64.8,
+    "wins_losses": "66W/52L",
+    "worst_pct": -40.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 46,
+    "money_per_100ev": -132.6,
+    "wins_losses": "23W/23L",
+    "worst_pct": -29.8,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B- U- L+ DEEP",
+   "derive": {
+    "n": 51,
+    "money_per_100ev": -91.7,
+    "wins_losses": "27W/23L",
+    "worst_pct": -36.1,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 52,
+    "money_per_100ev": -127.7,
+    "wins_losses": "26W/26L",
+    "worst_pct": -24.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B- U- L+ DEEP",
+   "derive": {
+    "n": 62,
+    "money_per_100ev": -83.8,
+    "wins_losses": "35W/27L",
+    "worst_pct": -57.4,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 53,
+    "money_per_100ev": -109.1,
+    "wins_losses": "29W/24L",
+    "worst_pct": -60.5,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B+ U- L+ DEEP",
+   "derive": {
+    "n": 52,
+    "money_per_100ev": 62.5,
+    "wins_losses": "33W/19L",
+    "worst_pct": -62.5,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 47,
+    "money_per_100ev": -104.3,
+    "wins_losses": "29W/18L",
+    "worst_pct": -43.5,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B+ U- L+ HIGH",
+   "derive": {
+    "n": 157,
+    "money_per_100ev": -18.9,
+    "wins_losses": "78W/79L",
+    "worst_pct": -35.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 64,
+    "money_per_100ev": -96.8,
+    "wins_losses": "33W/31L",
+    "worst_pct": -31.3,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U- L- HIGH",
+   "derive": {
+    "n": 219,
+    "money_per_100ev": -5.2,
+    "wins_losses": "119W/99L",
+    "worst_pct": -32.3,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 82,
+    "money_per_100ev": -95.2,
+    "wins_losses": "43W/39L",
+    "worst_pct": -39.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN DN B- U- L+ DEEP",
+   "derive": {
+    "n": 58,
+    "money_per_100ev": -32.3,
+    "wins_losses": "32W/26L",
+    "worst_pct": -27.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 50,
+    "money_per_100ev": -92.1,
+    "wins_losses": "24W/26L",
+    "worst_pct": -30.5,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B- U- L- DEEP",
+   "derive": {
+    "n": 62,
+    "money_per_100ev": -313.2,
+    "wins_losses": "31W/31L",
+    "worst_pct": -31.6,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 58,
+    "money_per_100ev": -85.9,
+    "wins_losses": "38W/20L",
+    "worst_pct": -42.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN DN B+ U- L+ HIGH",
+   "derive": {
+    "n": 79,
+    "money_per_100ev": -262.7,
+    "wins_losses": "39W/40L",
+    "worst_pct": -65.2,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 29,
+    "money_per_100ev": -82.7,
+    "wins_losses": "14W/15L",
+    "worst_pct": -16.2,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN UP B+ U- L+ HIGH",
+   "derive": {
+    "n": 81,
+    "money_per_100ev": -53.3,
+    "wins_losses": "42W/39L",
+    "worst_pct": -55.9,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 27,
+    "money_per_100ev": -78.2,
+    "wins_losses": "13W/14L",
+    "worst_pct": -11.7,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 S UNBROKEN UP B- U- L+ DEEP",
+   "derive": {
+    "n": 34,
+    "money_per_100ev": -61.4,
+    "wins_losses": "18W/15L",
+    "worst_pct": -31.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 33,
+    "money_per_100ev": -75.3,
+    "wins_losses": "17W/16L",
+    "worst_pct": -26.8,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN DN B+ U- L+ DEEP",
+   "derive": {
+    "n": 33,
+    "money_per_100ev": -151.6,
+    "wins_losses": "18W/15L",
+    "worst_pct": -28.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 37,
+    "money_per_100ev": -65.9,
+    "wins_losses": "21W/16L",
+    "worst_pct": -29.9,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B- U- L- DEEP",
+   "derive": {
+    "n": 106,
+    "money_per_100ev": -65.1,
+    "wins_losses": "62W/44L",
+    "worst_pct": -71.1,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 87,
+    "money_per_100ev": -60.7,
+    "wins_losses": "51W/36L",
+    "worst_pct": -47.2,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B+ U- L- HIGH",
+   "derive": {
+    "n": 224,
+    "money_per_100ev": -57.3,
+    "wins_losses": "111W/111L",
+    "worst_pct": -62.9,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 89,
+    "money_per_100ev": -55.8,
+    "wins_losses": "47W/42L",
+    "worst_pct": -24.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN UP B- U+ L- DEEP",
+   "derive": {
+    "n": 51,
+    "money_per_100ev": 140.5,
+    "wins_losses": "36W/14L",
+    "worst_pct": -62.1,
+    "below_-50": 2
+   },
+   "confirm": {
+    "n": 34,
+    "money_per_100ev": -51.4,
+    "wins_losses": "19W/15L",
+    "worst_pct": -85.6,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U+ L+ HIGH",
+   "derive": {
+    "n": 127,
+    "money_per_100ev": -17.2,
+    "wins_losses": "73W/53L",
+    "worst_pct": -34.4,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 47,
+    "money_per_100ev": -37.3,
+    "wins_losses": "24W/23L",
+    "worst_pct": -69.2,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D1 S BROKEN UP B+ U- L+ HIGH",
+   "derive": {
+    "n": 43,
+    "money_per_100ev": -181.4,
+    "wins_losses": "22W/21L",
+    "worst_pct": -34.8,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 17,
+    "money_per_100ev": -24.0,
+    "wins_losses": "9W/8L",
+    "worst_pct": -21.0,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U- L+ HIGH",
+   "derive": {
+    "n": 312,
+    "money_per_100ev": -38.6,
+    "wins_losses": "161W/150L",
+    "worst_pct": -30.7,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 124,
+    "money_per_100ev": -23.3,
+    "wins_losses": "59W/65L",
+    "worst_pct": -25.6,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B+ U- L- DEEP",
+   "derive": {
+    "n": 97,
+    "money_per_100ev": -210.1,
+    "wins_losses": "48W/49L",
+    "worst_pct": -34.4,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 78,
+    "money_per_100ev": -12.2,
+    "wins_losses": "43W/35L",
+    "worst_pct": -27.3,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 Q BROKEN DN B+ U- L- HIGH",
+   "derive": {
+    "n": 79,
+    "money_per_100ev": -52.4,
+    "wins_losses": "42W/37L",
+    "worst_pct": -48.5,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 28,
+    "money_per_100ev": -12.1,
+    "wins_losses": "17W/11L",
+    "worst_pct": -27.4,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN UP B+ U- L+ HIGH",
+   "derive": {
+    "n": 121,
+    "money_per_100ev": -87.4,
+    "wins_losses": "53W/68L",
+    "worst_pct": -27.1,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 44,
+    "money_per_100ev": -8.5,
+    "wins_losses": "24W/20L",
+    "worst_pct": -45.4,
+    "below_-50": 0
+   }
+  },
+  {
+   "config": "D1 R BROKEN DN B- U+ L- DEEP",
+   "derive": {
+    "n": 45,
+    "money_per_100ev": 161.3,
+    "wins_losses": "27W/18L",
+    "worst_pct": -50.9,
+    "below_-50": 1
+   },
+   "confirm": {
+    "n": 42,
+    "money_per_100ev": -5.0,
+    "wins_losses": "28W/14L",
+    "worst_pct": -60.1,
+    "below_-50": 1
+   }
+  },
+  {
+   "config": "D0 Q UNBROKEN DN B+ U- L- DEEP",
+   "derive": {
+    "n": 57,
+    "money_per_100ev": -127.9,
+    "wins_losses": "27W/29L",
+    "worst_pct": -28.9,
+    "below_-50": 0
+   },
+   "confirm": {
+    "n": 52,
+    "money_per_100ev": -0.6,
+    "wins_losses": "28W/24L",
+    "worst_pct": -24.0,
+    "below_-50": 0
+   }
+  }
+ ],
+ "coverage": {
+  "pay_share_of_confirm_supply": 0.105,
+  "avoid_share_of_confirm_supply": 0.371
+ }
+}
