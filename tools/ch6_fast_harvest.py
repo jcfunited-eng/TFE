@@ -227,6 +227,7 @@ def qualifying_events(
         if closes[-1] < PRICE_FLOOR or closes[-2] <= 0:
             continue
         gain = 100 * (closes[-1] / closes[-2] - 1)
+        normal_day_dollars = float(np.median(closes[-21:-1] * volumes[-21:-1]))
         volume_mean = float(np.mean(volumes[-21:-1]))
         if gain < EVENT_GAIN or volume_mean <= 0 or volumes[-1] < VOL_MULT * volume_mean:
             continue
@@ -255,6 +256,7 @@ def qualifying_events(
             {
                 "symbol": str(symbol),
                 "gain": round(gain, 1),
+                "normal_day_dollars": normal_day_dollars,
                 "close": float(closes[-1]),
                 "dollar_vol": float(volumes[-1] * closes[-1]),
             }
@@ -322,6 +324,11 @@ def hunt(dry: bool = False) -> None:
             continue
         shares = int(SLICE_USD // float(event["close"]))
         if shares < 1:
+            continue
+        normal_day = float(event.get("normal_day_dollars", 0.0))
+        if normal_day and SLICE_USD > 0.01 * normal_day:
+            print(f"  REFUSE {symbol}: $2k slice exceeds 1% of its normal "
+                  f"day (${normal_day:,.0f}) — unfillable")
             continue
         notional = round(shares * round(float(event["close"]), 4), 2)
         if dry:

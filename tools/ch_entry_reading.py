@@ -123,7 +123,15 @@ def read_symbol(symbol: str) -> dict:
         dw = D[T - 63:T + 1]
         lock = abs(int((dw == 1).sum()) - int((dw == -1).sum())) / max(
             1, int((dw == 1).sum()) + int((dw == -1).sum()))
+        vv = np.array([r[2] for r in rows], dtype=float)
+        dollar = c * vv
+        day_last = {}
+        for i, r in enumerate(rows):
+            day_last[r[3]] = dollar[i]
+        dvals = list(day_last.values())
+        med20_dollar = float(np.median(dvals[-21:-1])) if len(dvals) >= 21 else 0.0
         facts = {
+            "normal_day_dollars": round(med20_dollar),
             "life_years": round(yrs, 1), "price": round(float(c[T]), 3),
             "life_peak": round(peak, 2), "crush": round(crush, 1),
             "deaths_per_year": round(deaths_yr), "deaths_2wk": deaths_2wk,
@@ -137,6 +145,15 @@ def read_symbol(symbol: str) -> dict:
         # always, before any other consideration. Cost disclosed: this
         # also refuses occasional winners of the same class (one in the
         # record); Joseph priced that and ordered the ban.
+        # Joseph 2026-08-19: "can you even fill an order on a sucker bet
+        # like that" — a slice must hide inside a NORMAL day. If 1% of
+        # the normal day's traded money cannot absorb a $2,000 slice,
+        # the name is untradable at our smallest size. Refused.
+        if med20_dollar < 200_000:
+            return {"symbol": symbol, "verdict": "REFUSE",
+                    "rule": "Joseph's fillability law — normal day trades "
+                            f"${med20_dollar:,.0f}; a $2k slice cannot hide",
+                    "facts": facts}
         if crush >= 1000:
             return {"symbol": symbol, "verdict": "REFUSE",
                     "rule": "Joseph's ban — destroyed shell (lifetime peak "
