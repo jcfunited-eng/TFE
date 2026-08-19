@@ -71,6 +71,27 @@ boundaries. Key content:
   "the rejected B_pos/B_neg split." Do not re-walk without reading
   why they were rejected.
 
+## PROMISES OUTSTANDING (debts before digs — pay oldest first)
+Joe's count 2026-08-19: five turns of promises, zero delivered. He is
+right. The honest books, oldest first:
+1. Epoch walls on the AMD page (imported annotation, honestly
+   labeled) — promised, not built.
+2. TNON read through the kernel with negative-space eyes — whole
+   life IS fetched (15,094 bars, cache present, verified); the
+   reading itself not done.
+3. Species-recurrence blind clock test (gate-time, not session-time)
+   — designed in words only.
+4. Founding stratum run AS FOUND: uf_core raw-vs-governed + MDG v02
+   regime backtest, unmodified, on today's data; then diff vs
+   today's kernel. Not started.
+5. Precise cross-lane readout of Joe's three circled windows — the
+   oval NULL measurement was delivered; the promised full readout
+   was not (may retire: the ovals were arbitrary — retire only with
+   Joe's nod or silent shrug).
+6. Geometric analysis (quest truth #3) — untouched.
+Rule: no new promise exists until written here. Deliver or retire
+explicitly — nothing evaporates.
+
 ## Read order (next)
 1. DSF_PRIMITIVE_INTERPRETATION_RECOVERY.md + STATUS (the alphabet?)
 2. L5_CANONICAL_BASELINE.md then L5_CURRENT_SYSTEM_FULL_SPEC.md
