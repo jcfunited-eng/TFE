@@ -68,7 +68,25 @@ SELF_W = 504          # the life's own trailing two years
 MIN_N = 30
 
 
-def facts_at(lane: pd.DataFrame, t: int) -> dict | None:
+def build_lane(lf: pd.DataFrame) -> dict:
+    """Arrays the joint-structure facts read from — one recipe, shared
+    by the decade census and the nightly perception pass."""
+    D = lf["D_k"].to_numpy(dtype=float)
+    rev = lf["Rev_k"].to_numpy(dtype=float)
+    rev45 = pd.Series(rev).rolling(45, min_periods=1).sum().to_numpy()
+    l64 = np.zeros(len(D))
+    for i in range(len(D)):
+        w = D[max(0, i - 63):i + 1]
+        nzw = w[w != 0]
+        l64[i] = abs(nzw.sum()) / max(1, len(nzw))
+    return {"ext": lf["extinction"].to_numpy(dtype=float),
+            "urf": lf["URF"].to_numpy(),
+            "D": D, "rev": rev, "rev45": rev45,
+            "U": lf["U_star_k"].to_numpy(),
+            "L64": l64, "close": lf["close"].to_numpy()}
+
+
+def facts_at(lane: dict, t: int) -> dict | None:
     """Joint structure at lane index t (the event close's reading)."""
     if t < 180:
         return None
@@ -133,20 +151,7 @@ def main() -> None:
             continue
         lf = pd.read_parquet(lp)
         date_ix = {dt: i for i, dt in enumerate(lf["date"])}
-        D = lf["D_k"].to_numpy(dtype=float)
-        rev = lf["Rev_k"].to_numpy(dtype=float)
-        rev45 = pd.Series(rev).rolling(45, min_periods=1).sum().to_numpy()
-        nzmask = D != 0
-        l64 = np.zeros(len(D))
-        for i in range(len(D)):
-            w = D[max(0, i - 63):i + 1]
-            nzw = w[w != 0]
-            l64[i] = abs(nzw.sum()) / max(1, len(nzw))
-        lane = {"ext": lf["extinction"].to_numpy(dtype=float),
-                "urf": lf["URF"].to_numpy(),
-                "D": D, "rev": rev, "rev45": rev45,
-                "U": lf["U_star_k"].to_numpy(),
-                "L64": l64, "close": lf["close"].to_numpy()}
+        lane = build_lane(lf)
         for t in ev_idx:
             day_s = f"{d[t] // 10000:04d}-{(d[t] // 100) % 100:02d}-{d[t] % 100:02d}"
             li = date_ix.get(day_s)

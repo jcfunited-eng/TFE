@@ -26,6 +26,7 @@ DEFAULT_S3_URI = (
 class ChannelSource:
     channel: str
     path: Path
+    object_name: str | None = None  # defaults to <channel>.json
 
 
 SOURCES = {
@@ -36,6 +37,11 @@ SOURCES = {
     "ch4": ChannelSource(
         channel="CH4",
         path=ROOT / "artifacts" / "vtvr_observer" / "ch4_spring_book.json",
+    ),
+    "ch4-perception": ChannelSource(
+        channel="CH4",
+        path=ROOT / "artifacts" / "ch4_uf" / "ch4_perception.json",
+        object_name="ch4-perception.json",
     ),
     "ch6": ChannelSource(
         channel="CH6",
@@ -77,8 +83,8 @@ def build_envelope(source: ChannelSource) -> tuple[bytes, str]:
     return body, digest
 
 
-def object_key(prefix: str, channel: str) -> str:
-    filename = f"{channel.lower()}.json"
+def object_key(prefix: str, source: ChannelSource) -> str:
+    filename = source.object_name or f"{source.channel.lower()}.json"
     return f"{prefix}/{filename}" if prefix else filename
 
 
@@ -94,11 +100,22 @@ def publish(channels: Iterable[str], dry_run: bool) -> int:
     published = 0
     for channel_key in channels:
         source = SOURCES[channel_key]
+        optional = source.object_name is not None
         if not source.path.is_file():
+            if optional:  # optional companion snapshot
+                print(f"SKIP {channel_key}: {source.path.name} not present yet")
+                continue
             raise FileNotFoundError(f"authoritative {source.channel} book is missing: {source.path}")
 
-        body, digest = build_envelope(source)
-        key = object_key(prefix, source.channel)
+        try:
+            body, digest = build_envelope(source)
+        except Exception as exc:  # noqa: BLE001 — an optional companion
+            # must NEVER block a required book behind it in the loop
+            if optional:
+                print(f"SKIP {channel_key}: unreadable ({type(exc).__name__}: {exc})")
+                continue
+            raise
+        key = object_key(prefix, source)
         if dry_run:
             print(f"DRY {source.channel} sha256={digest} bytes={len(body)} s3://{bucket}/{key}")
             continue

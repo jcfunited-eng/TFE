@@ -27,6 +27,7 @@ while true; do
       python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html
       python tools/population_reading_backfill.py \
         artifacts/ch4_uf/population_universe_20260819.csv 8
+      python tools/ch4_perception_nightly.py
     } >> artifacts/vtvr_observer/spring_passes.log 2>&1
     echo "[spring-runner] close pass done $(date -u +%FT%TZ)"
     sleep 3600

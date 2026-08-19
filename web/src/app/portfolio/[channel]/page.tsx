@@ -3,6 +3,7 @@ import ChannelBookPage from "@/components/ChannelBookPage";
 import SiteFrame from "@/components/SiteFrame";
 import {
   getChannelBookView,
+  getChannelPerceptionView,
   type ChannelBookView,
   type ChannelCode,
 } from "@/lib/channel-books";
@@ -37,12 +38,16 @@ export default async function ChannelPage({ params }: { params: Promise<{ channe
   if (!channel) notFound();
 
   await requireServerAdminUser(`/portfolio/${slug}`);
-  const [config, received] = await Promise.all([getUiConfig(), receiveBook(channel)]);
+  const [config, received, perception] = await Promise.all([
+    getUiConfig(),
+    receiveBook(channel),
+    channel === "CH4" ? getChannelPerceptionView() : Promise.resolve(null),
+  ]);
 
   if (received.book) {
     return (
       <SiteFrame pageBackgroundImage={config.backgroundImages.portfolioAdvisor}>
-        <ChannelBookPage book={received.book} />
+        <ChannelBookPage book={received.book} perception={perception} />
       </SiteFrame>
     );
   }

@@ -158,11 +158,17 @@ function validateEnvelope(value: unknown, expectedChannel: ChannelCode): Snapsho
   return envelope as SnapshotEnvelope;
 }
 
-async function readSnapshot(channel: ChannelCode): Promise<{ envelope: SnapshotEnvelope; book: GenericRecord }> {
+async function readSnapshot(
+  channel: ChannelCode,
+  objectFilename?: string,
+): Promise<{ envelope: SnapshotEnvelope; book: GenericRecord }> {
   const uri = String(process.env.TFE_CHANNEL_BOOK_S3_URI ?? DEFAULT_S3_URI).trim();
   const { bucket, prefix } = parseS3Uri(uri);
+  const key = objectFilename
+    ? (prefix ? `${prefix}/${objectFilename}` : objectFilename)
+    : channelObjectKey(prefix, channel);
   const response = await client().send(
-    new GetObjectCommand({ Bucket: bucket, Key: channelObjectKey(prefix, channel) }),
+    new GetObjectCommand({ Bucket: bucket, Key: key }),
   );
   if (!response.Body) throw new Error(`${channel} snapshot object has no body`);
 
@@ -299,6 +305,88 @@ function normalizeRawBook(channel: ChannelCode, book: GenericRecord): {
     positions: Object.entries(rawPositions).map(([symbol, value]) => ({ symbol, value: record(value) })),
     closed: Array.isArray(book.closed) ? book.closed.map(record) : [],
   };
+}
+
+export type PerceptionVerdictView = {
+  symbol: string;
+  structure: string;
+  verdict: string;
+  outcome: string;
+};
+
+export type PerceptionScoreRow = {
+  verdict: string;
+  filed: number;
+  faded: number;
+  ran: number;
+  flat: number;
+  pending: number;
+};
+
+export type ChannelPerceptionView = {
+  sourceSha256: string;
+  sourceUpdatedAt: string;
+  publishedAt: string;
+  asOfClose: string;
+  layerLives: number;
+  layerThrough: string;
+  eventsDecade: number;
+  payStructures: number;
+  avoidStructures: number;
+  payShare: number;
+  avoidShare: number;
+  tonight: PerceptionVerdictView[];
+  scoreboard: PerceptionScoreRow[];
+  law: string;
+};
+
+export async function getChannelPerceptionView(): Promise<ChannelPerceptionView | null> {
+  try {
+    const { envelope, book } = await readSnapshot("CH4", "ch4-perception.json");
+    if (envelope.source_name !== "ch4_perception.json") {
+      return null; // a book envelope at the perception key is refused
+    }
+    const layer = record(book.layer);
+    const standing = record(book.standing_census);
+    const tonightRaw = Array.isArray(book.tonight) ? book.tonight.map(record) : [];
+    const scoreboardRaw = record(book.scoreboard);
+    const scoreboard: PerceptionScoreRow[] = ["PAY", "AVOID", "UNDECIDED"]
+      .filter((verdict) => verdict in scoreboardRaw)
+      .map((verdict) => {
+        const row = record(scoreboardRaw[verdict]);
+        return {
+          verdict,
+          filed: finite(row.n),
+          faded: finite(row.FADED),
+          ran: finite(row.RAN),
+          flat: finite(row.FLAT),
+          pending: finite(row.PENDING),
+        };
+      });
+    return {
+      sourceSha256: envelope.source_sha256,
+      sourceUpdatedAt: envelope.source_updated_at,
+      publishedAt: envelope.published_at,
+      asOfClose: text(book.as_of_close),
+      layerLives: finite(layer.lives),
+      layerThrough: text(layer.through),
+      eventsDecade: finite(standing.events_decade),
+      payStructures: finite(standing.pay_structures),
+      avoidStructures: finite(standing.avoid_structures),
+      payShare: finite(standing.pay_share_of_supply),
+      avoidShare: finite(standing.avoid_share_of_supply),
+      tonight: tonightRaw.map((item) => ({
+        symbol: text(item.symbol),
+        structure: text(item.structure),
+        verdict: text(item.verdict),
+        outcome: text(item.outcome),
+      })),
+      scoreboard,
+      law: text(book.law),
+    };
+  } catch {
+    return null; // the book page never fails because perception is absent
+  }
 }
 
 export async function getChannelBookView(channel: ChannelCode): Promise<ChannelBookView> {
