@@ -452,21 +452,50 @@ def govern(book: dict[str, object]) -> tuple[int, bool]:
     return marked, True
 
 
-def evaluate_live_marks(action: str) -> None:
+def _live_marks(symbols: list) -> tuple[dict, list]:
+    """Price every symbol or say so loudly: per-symbol snapshot first,
+    then ONE batched latest-trade call for whatever the snapshot could
+    not price (thin names often have no minute/day bar early in the
+    session — the batched trade feed priced 32/32 premarket while the
+    snapshot returned empty for two of them)."""
     from tools.ch3_shadow_hunter import last_price
 
-    book = load_book()
-    now = datetime.now(timezone.utc).isoformat()
-    quote_failures: list[str] = []
-    for symbol in sorted(list(positions(book))):
-        position = positions(book)[symbol]
+    marks: dict[str, float] = {}
+    retry: list[str] = []
+    for symbol in symbols:
         try:
             price = float(last_price(symbol))
-        except Exception as error:  # noqa: BLE001 - each missing mark is reported below
-            quote_failures.append(f"{symbol}:{type(error).__name__}")
+        except Exception:  # noqa: BLE001 — fall through to the batch
+            retry.append(symbol)
             continue
-        if not np.isfinite(price) or price <= 0:
-            quote_failures.append(f"{symbol}:invalid-mark")
+        if np.isfinite(price) and price > 0:
+            marks[symbol] = price
+        else:
+            retry.append(symbol)
+    failures: list[str] = []
+    if retry:
+        try:
+            from tools.ch_premarket_cut import latest_marks
+            fallback = latest_marks(retry)
+        except Exception as error:  # noqa: BLE001 — whole batch failed
+            return marks, [f"{s}:{type(error).__name__}" for s in retry]
+        for symbol in retry:
+            price = fallback.get(symbol)
+            if price and np.isfinite(price) and price > 0:
+                marks[symbol] = float(price)
+            else:
+                failures.append(f"{symbol}:no-mark")
+    return marks, failures
+
+
+def evaluate_live_marks(action: str) -> None:
+    book = load_book()
+    now = datetime.now(timezone.utc).isoformat()
+    marks, quote_failures = _live_marks(sorted(positions(book)))
+    for symbol in sorted(list(positions(book))):
+        position = positions(book)[symbol]
+        price = marks.get(symbol)
+        if price is None:
             continue
         pending = position.get("rules_cut_pending")
         if pending:
