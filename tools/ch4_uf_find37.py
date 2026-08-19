@@ -123,16 +123,16 @@ def find_symbol(dates, closes):
                 R["conf"] = {"side": side, "px": closes[t]}
                 # THE FIND: eligible stock+rung, new leg confirming
                 store = R["rem"][side]
-                if len(store) >= MIN_LEGS and closes[t] >= PRICE_FLOOR:
+                if len(store) >= MIN_LEGS and closes[t] >= PRICE_FLOOR \
+                        and open_finds.get(m) is None:
                     recent = np.array(store[-MIN_LEGS:])
                     prop = float((recent >= YIELD_PCT).mean())
-                    if prop >= FIDELITY:
-                        tgt_px = closes[t] * (1 + YIELD_PCT / 100.0) if side == 1 \
-                            else closes[t] * (1 - YIELD_PCT / 100.0)
-                        open_finds[m] = {"side": side, "px": closes[t],
-                                         "in": str(dates[t]), "rung": m,
-                                         "tgt_px": tgt_px,
-                                         "propensity": round(prop, 3)}
+                    tgt_px = closes[t] * (1 + YIELD_PCT / 100.0) if side == 1 \
+                        else closes[t] * (1 - YIELD_PCT / 100.0)
+                    open_finds[m] = {"side": side, "px": closes[t],
+                                     "in": str(dates[t]), "rung": m,
+                                     "tgt_px": tgt_px,
+                                     "propensity": round(prop, 3)}
                 R["dir"] = flipped
                 R["ext"] = t
             else:
@@ -172,6 +172,23 @@ def main():
             print(f"  [{i+1}/{len(uni)}] finds={len(all_finds)} "
                   f"{time.time()-t0:.0f}s", flush=True)
 
+    tiers = [0.0, 0.25, 0.5, 0.75, 0.91]
+    tier_table = {}
+    for lo in tiers:
+        sel = [f for f in all_finds if f["propensity"] >= lo]
+        if not sel:
+            tier_table[str(lo)] = {"finds": 0}
+            continue
+        c = sum(1 for f in sel if f["outcome"] == "COMPLETE")
+        byy = defaultdict(lambda: [0, 0])
+        for f in sel:
+            y = f["in"][:4]
+            byy[y][0] += 1 if f["outcome"] == "COMPLETE" else 0
+            byy[y][1] += 1
+        tier_table[str(lo)] = {
+            "finds": len(sel),
+            "fidelity_pct": round(100 * c / len(sel), 2),
+            "by_year": {y: f"{v[0]}/{v[1]}={100*v[0]/v[1]:.0f}%" for y, v in sorted(byy.items())}}
     comp = [f for f in all_finds if f["outcome"] == "COMPLETE"]
     fail = [f for f in all_finds if f["outcome"] == "FAIL"]
     by = defaultdict(lambda: {"c": 0, "f": 0, "fail_rets": []})
@@ -183,6 +200,7 @@ def main():
             by[y]["f"] += 1
             by[y]["fail_rets"].append(f["ret_pct"])
     result = {
+        "fidelity_vs_propensity": tier_table,
         "definition": f"find = new leg on a stock whose own record shows >= {FIDELITY:.0%} "
                       f"of its last {MIN_LEGS} legs ran >= {YIELD_PCT}%",
         "finds": len(all_finds),

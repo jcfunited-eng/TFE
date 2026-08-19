@@ -1,7 +1,8 @@
 #!/bin/bash
 # CH6 fast-harvest loop — 5-minute polling during market hours.
-# sync new CH3 entries at 13:32 UTC, poll every 5 min 13:35-19:50,
-# end-of-day sweep at 19:55 UTC (armed sales + time exits), page after each.
+# CH6 is its own channel: it runs its OWN entry scan after the close,
+# polls for display 13:35-19:50, and sweeps at 19:55 UTC selling anything
+# at +5% or better. It never reads CH3's book.
 # Restart after container restart:
 #   nohup bash tools/ch6_loop.sh > artifacts/vtvr_observer/ch6_runner.log 2>&1 &
 cd "$(dirname "$0")/.." || exit 1
@@ -10,9 +11,9 @@ echo "[ch6-loop] started $(date -u +%FT%TZ) pid $$"
 last_sync=""; last_sweep=""
 while true; do
   h=$(date -u +%H); m=$(date -u +%M); dow=$(date -u +%u); d=$(date -u +%F)
-  # sync is idempotent and cheap — run it every cycle so entries made
-  # at any hour (the nightly hunt) are adopted promptly
-  python tools/ch6_fast_harvest.py sync > /dev/null 2>&1
+  # CH6's OWN entry scan. Guarded inside by the processed-day stamp, so
+  # running it every cycle can never open a position twice.
+  python tools/ch6_fast_harvest.py hunt > /dev/null 2>&1
   if [ "$dow" -le 5 ]; then
     if { [ "$h" -ge 14 ] || { [ "$h" = "13" ] && [ "$m" -ge 35 ]; }; } \
         && { [ "$h" -lt 19 ] || { [ "$h" = "19" ] && [ "$m" -lt 50 ]; }; }; then
