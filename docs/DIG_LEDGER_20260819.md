@@ -74,8 +74,9 @@ boundaries. Key content:
 ## PROMISES OUTSTANDING (debts before digs — pay oldest first)
 Joe's count 2026-08-19: five turns of promises, zero delivered. He is
 right. The honest books, oldest first:
-1. Epoch walls on the AMD page (imported annotation, honestly
-   labeled) — promised, not built.
+1. ~~Epoch walls on the AMD page~~ **PAID 2026-08-19**: nine walls
+   (Ryzen, EPYC, 7nm, COVID, Xilinx bid/close, AI era, capex shock,
+   MI300X) live on artifact 4b7a98d4, labeled as imported annotation.
 2. TNON read through the kernel with negative-space eyes — whole
    life IS fetched (15,094 bars, cache present, verified); the
    reading itself not done.
