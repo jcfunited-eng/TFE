@@ -1,0 +1,140 @@
+{
+ "declared": "finder, door, exits, split and reporting in the docstring before results; issue prices reveal-slipped by the stream's own construction",
+ "derive_le_2023": {
+  "n": 787,
+  "bank2_Joseph": {
+   "avg_usd_per_2k_trade": -4.38,
+   "outcomes": {
+    "TIME": 414,
+    "BANK": 343,
+    "STOP": 30
+   },
+   "wins_losses": "444W/339L",
+   "worst_event_pct": -54.6,
+   "events_below_-50pct": 1,
+   "mean_sessions_held": 3.7,
+   "resolved_day1": "152/787"
+  },
+  "bank5_current": {
+   "avg_usd_per_2k_trade": -8.17,
+   "outcomes": {
+    "TIME": 580,
+    "BANK": 177,
+    "STOP": 30
+   },
+   "wins_losses": "391W/391L",
+   "worst_event_pct": -54.6,
+   "events_below_-50pct": 1,
+   "mean_sessions_held": 4.39,
+   "resolved_day1": "59/787"
+  }
+ },
+ "CONFIRM_2024_plus": {
+  "n": 199,
+  "bank2_Joseph": {
+   "avg_usd_per_2k_trade": -5.12,
+   "outcomes": {
+    "BANK": 110,
+    "TIME": 82,
+    "STOP": 7
+   },
+   "wins_losses": "123W/76L",
+   "worst_event_pct": -31.0,
+   "events_below_-50pct": 0,
+   "mean_sessions_held": 3.37,
+   "resolved_day1": "51/199"
+  },
+  "bank5_current": {
+   "avg_usd_per_2k_trade": -3.64,
+   "outcomes": {
+    "TIME": 130,
+    "BANK": 62,
+    "STOP": 7
+   },
+   "wins_losses": "109W/90L",
+   "worst_event_pct": -31.0,
+   "events_below_-50pct": 0,
+   "mean_sessions_held": 4.11,
+   "resolved_day1": "18/199"
+  }
+ },
+ "by_year": {
+  "2016": {
+   "trades": 102,
+   "candidates_that_year": 107,
+   "bank2_avg_usd": -47.66,
+   "bank2_wr_pct": 34.3,
+   "bank5_avg_usd": -47.07
+  },
+  "2017": {
+   "trades": 266,
+   "candidates_that_year": 291,
+   "bank2_avg_usd": 3.26,
+   "bank2_wr_pct": 54.1,
+   "bank5_avg_usd": 0.39
+  },
+  "2018": {
+   "trades": 33,
+   "candidates_that_year": 337,
+   "bank2_avg_usd": 37.21,
+   "bank2_wr_pct": 75.8,
+   "bank5_avg_usd": 32.87
+  },
+  "2019": {
+   "trades": 44,
+   "candidates_that_year": 252,
+   "bank2_avg_usd": -3.88,
+   "bank2_wr_pct": 52.3,
+   "bank5_avg_usd": 2.62
+  },
+  "2020": {
+   "trades": 130,
+   "candidates_that_year": 461,
+   "bank2_avg_usd": -26.86,
+   "bank2_wr_pct": 57.7,
+   "bank5_avg_usd": -39.01
+  },
+  "2021": {
+   "trades": 58,
+   "candidates_that_year": 269,
+   "bank2_avg_usd": 12.32,
+   "bank2_wr_pct": 60.3,
+   "bank5_avg_usd": 8.47
+  },
+  "2022": {
+   "trades": 73,
+   "candidates_that_year": 296,
+   "bank2_avg_usd": 5.77,
+   "bank2_wr_pct": 65.8,
+   "bank5_avg_usd": -2.67
+  },
+  "2023": {
+   "trades": 81,
+   "candidates_that_year": 350,
+   "bank2_avg_usd": 22.83,
+   "bank2_wr_pct": 72.8,
+   "bank5_avg_usd": 22.77
+  },
+  "2024": {
+   "trades": 91,
+   "candidates_that_year": 358,
+   "bank2_avg_usd": -2.49,
+   "bank2_wr_pct": 63.7,
+   "bank5_avg_usd": 1.7
+  },
+  "2025": {
+   "trades": 80,
+   "candidates_that_year": 361,
+   "bank2_avg_usd": -0.85,
+   "bank2_wr_pct": 62.5,
+   "bank5_avg_usd": -5.37
+  },
+  "2026": {
+   "trades": 28,
+   "candidates_that_year": 92,
+   "bank2_avg_usd": -25.85,
+   "bank2_wr_pct": 53.6,
+   "bank5_avg_usd": -16.0
+  }
+ }
+}

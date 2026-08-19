@@ -107,7 +107,8 @@ def main() -> None:
             rows.append(row)
 
     ev = pd.DataFrame(rows)
-    print(f"events (widened frame): {len(ev)}")
+    ev.to_parquet(OUT.replace(".json", "_events.parquet"))
+    print(f"events (widened frame): {len(ev)} (per-event rows filed)")
 
     def ledger(sub: pd.DataFrame) -> dict:
         out = {"n": int(len(sub))}
