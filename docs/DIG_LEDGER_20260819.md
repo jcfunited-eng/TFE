@@ -74,12 +74,21 @@ boundaries. Key content:
 ## PROMISES OUTSTANDING (debts before digs — pay oldest first)
 Joe's count 2026-08-19: five turns of promises, zero delivered. He is
 right. The honest books, oldest first:
-1. ~~Epoch walls on the AMD page~~ **PAID 2026-08-19**: nine walls
-   (Ryzen, EPYC, 7nm, COVID, Xilinx bid/close, AI era, capex shock,
-   MI300X) live on artifact 4b7a98d4, labeled as imported annotation.
-2. TNON read through the kernel with negative-space eyes — whole
-   life IS fetched (15,094 bars, cache present, verified); the
-   reading itself not done.
+1. Epoch walls — **RETRACTED 2026-08-19, hours after "paying" it.**
+   Joe's verdict, correct: cracked unbaked idea, no research, no
+   collaboration, implemented while the repo's real epochs work
+   (channel registry in the spec, severity, resonance shield, 1,339
+   lines of structural analysis) sat UNREAD in this very ledger. The
+   debt was also self-dealt — invented by me, paid to myself. Walls
+   removed from the page. HARD BLOCK: no epoch implementation of any
+   kind until the epoch bodies are deep-read AND the design is
+   collaborated with Joe.
+2. TNON — **frame condemned by Joe 2026-08-19**: "trying to
+   understand an ocean by looking at the cast-off residue of urine
+   from a flushing toilet." My plan (deep-read one reject's life)
+   was single-vertex thinking again. Honest state: I do not yet know
+   what the TNON lesson is — it stays quest truth #2, unfound. Do
+   NOT pursue as a specimen biography. (Bars cache exists; harmless.)
 3. Species-recurrence blind clock test (gate-time, not session-time)
    — designed in words only.
 4. Founding stratum run AS FOUND: uf_core raw-vs-governed + MDG v02
