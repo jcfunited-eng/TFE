@@ -130,6 +130,18 @@ def read_symbol(symbol: str) -> dict:
             "push_up_week": round(push_up, 2), "up_sessions_of_5": up_sessions,
             "B_health": round(b_health, 2), "L_lock": round(lock, 2),
         }
+        # Joseph 2026-08-19, verbatim order: "don't buy suicide pills."
+        # A stock destroyed a thousand-fold or worse (split-adjusted
+        # lifetime peak >= 1000x today's price) is a dead shell that can
+        # gap 60% overnight in the window no rule can act. Refused
+        # always, before any other consideration. Cost disclosed: this
+        # also refuses occasional winners of the same class (one in the
+        # record); Joseph priced that and ordered the ban.
+        if crush >= 1000:
+            return {"symbol": symbol, "verdict": "REFUSE",
+                    "rule": "Joseph's ban — destroyed shell (lifetime peak "
+                            f"{crush:,.0f}x today's price): never traded",
+                    "facts": facts}
         sound = (yrs >= 2 and c[T] >= 0.5 * peak and crush < 4)
         charging = (crush >= 4 and deaths_2wk <= 2 and deaths_yr >= 30
                     and (push_up >= 0.5 or up_sessions >= 3))
