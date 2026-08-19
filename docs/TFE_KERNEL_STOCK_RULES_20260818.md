@@ -46,3 +46,9 @@ RULE 10: Until the full reading runs inside the engine, the
 position caps, the cut line, and the session clock are the only
 protection — and the killer class remains the cost of entering
 price events unread.
+
+RULE 11 (2026-08-19): Every change that carries physics or law into
+code is adversarially reviewed before it runs with money — reviewed
+as if by an enemy hunting for the place where a physics detail was
+replaced by shorthand. My code lies to me; the review is how I stop
+believing it. Findings and fixes are filed with the change.
