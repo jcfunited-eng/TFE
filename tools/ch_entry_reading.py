@@ -298,6 +298,13 @@ def read_symbol(symbol: str, as_of: str | None = None) -> dict:
             return _refuse(symbol, "fillability", "Joseph",
                            f"normal day trades ${med20_dollar:,.0f}; "
                            "a $2k slice cannot hide", facts)
+        if med20_dollar >= 100_000_000:
+            return _refuse(symbol, "poison-pill", "Joseph",
+                           f"too big to pump (${med20_dollar/1e6:,.0f}M "
+                           "normal day): a spike in a giant is repricing "
+                           "on news, not a crowd pump — never a harvest "
+                           "short (decade receipt: fade dead-to-negative "
+                           "above $100M in both halves)", facts)
         if crush >= 1000:
             return _refuse(symbol, "suicide-pill-ban", "Joseph",
                            f"destroyed shell (lifetime peak {crush:,.0f}x "
