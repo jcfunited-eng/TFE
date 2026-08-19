@@ -135,6 +135,31 @@ forbidden G32 horse-race docs; do not conflate.
   his frames back; plain registers; quant graphs are the condemned
   frame — draw the FIELD, not the scoreboard.
 
+## 2026-08-19 night — the perception is IN PRODUCTION
+- Joe: "put your work in that page... if it ain't in prod it ain't
+  real." Shipped: ch4-perception.json publishes beside the books on
+  the same custody path; the live CH4 page renders nightly verdicts
+  + the graded scoreboard (taskdef 610, commit c9a3e757, env diff =
+  deploy bookkeeping only, halts preserved; Rule 11 review fixed two
+  real defects before ship). First real night filed 22:29Z: 13
+  verdicts at the 08-19 close — 3 pay (BBH GOEX MSTR), 6 avoid
+  (ARCT BNTX EL MRK NVAX WPM), 4 undecided. Verdicts immutable,
+  outcomes grade from later closes.
+- LIVE LESSONS of the first night: (1) tonight's spike list is one
+  biotech CROWD — the missing peer layer is visible in the raw list;
+  (2) the roster refresh DROPPED MRNA (1 of 4,303) while the tail
+  path still let CH6 short it — roster churn question for tomorrow;
+  (3) BULL: young names live outside the clean universe entirely —
+  the channels hunt a pond the perception doesn't cover; (4) no
+  earnings-calendar law at the door (BULL/MRNA both hit after the
+  bell on report night) — a cheap basic to propose; (5) FDMT at -15%
+  is the perception-vs-authority gap walking: the reading said avoid
+  at breakfast, no law in force could act.
+- Ops scar: edited the running runner AFTER restarting it — the
+  perception step silently didn't run in the pass; restarted, ran
+  manually, verdicts published. Never edit a live bash loop without
+  restarting it, same lesson twice in one day.
+
 ## Open reads (my own list, no fake debts)
 2. TFE_Specification_Merged/ch06_l5_governance.tex + the L5 specs.
 3. epoch_structural_analysis.txt + tfe_epoch_library.py as code.
