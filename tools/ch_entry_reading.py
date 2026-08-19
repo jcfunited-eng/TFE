@@ -49,7 +49,10 @@ from tools.ch4_uf_kernel_v2 import replay_symbol_v2  # noqa: E402
 
 READINGS_DIR = ROOT / "docs" / "readings"
 CACHE_DIR = ROOT / "artifacts" / "ch4_uf" / "entry_reading_cache"
-MIN_READINGS = 320          # ~6 weeks of 9/day plus warmup — else fail closed
+MIN_READINGS = 1100         # ~6 months of 9/day — else fail closed (per the
+                            # docstring's law; review found 320 contradicted it)
+FETCH_START = "2000-01-01"  # whole life: a peak before 2021 is still the peak
+                            # (review: the 2021 start hid TNON-class shells)
 
 
 def _key() -> str:
@@ -59,15 +62,9 @@ def _key() -> str:
     raise RuntimeError("MASSIVE_API_KEY missing")
 
 
-def _bars(symbol: str) -> list:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    cache = CACHE_DIR / f"{symbol}_{today}.json"
-    if cache.exists():
-        return json.load(open(cache))
-    key = _key()
+def _fetch(symbol: str, start: str, end: str, key: str) -> list:
     url = (f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/45/minute/"
-           f"2021-01-01/{today}?adjusted=true&sort=asc&limit=50000&apiKey={key}")
+           f"{start}/{end}?adjusted=true&sort=asc&limit=50000&apiKey={key}")
     bars = []
     while url:
         d = json.load(urllib.request.urlopen(url, timeout=60))
@@ -75,7 +72,33 @@ def _bars(symbol: str) -> list:
         nxt = d.get("next_url")
         url = f"{nxt}&apiKey={key}" if nxt else None
         time.sleep(0.2)
-    json.dump(bars, open(cache, "w"))
+    return bars
+
+
+def _bars(symbol: str) -> list:
+    """Whole-life bars, cached per symbol and topped up incrementally.
+    Review findings fixed here: the old cache was keyed per DAY, so every
+    morning re-downloaded every symbol's entire history and left the old
+    file behind forever; and it started at 2021, amputating the life the
+    shell ban needs."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cache = CACHE_DIR / f"{symbol}.json"
+    key = _key()
+    bars = json.load(open(cache)) if cache.exists() else []
+    if bars:
+        last_day = datetime.fromtimestamp(
+            bars[-1]["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+        if last_day < today:
+            fresh = _fetch(symbol, last_day, today, key)
+            last_t = bars[-1]["t"]
+            bars.extend(b for b in fresh if b["t"] > last_t)
+            json.dump(bars, open(cache, "w"))
+    else:
+        bars = _fetch(symbol, FETCH_START, today, key)
+        json.dump(bars, open(cache, "w"))
+    for stale in CACHE_DIR.glob(f"{symbol}_2*.json"):  # old per-day cache files
+        stale.unlink(missing_ok=True)
     return bars
 
 
@@ -125,10 +148,13 @@ def read_symbol(symbol: str) -> dict:
             1, int((dw == 1).sum()) + int((dw == -1).sum()))
         vv = np.array([r[2] for r in rows], dtype=float)
         dollar = c * vv
-        day_last = {}
+        # Review finding: the old code kept only the LAST bar of each day,
+        # calling ~1/9 of the day's traded money the whole day and making
+        # the fillability law ~9x too strict. A day is the SUM of its bars.
+        day_dollar = {}
         for i, r in enumerate(rows):
-            day_last[r[3]] = dollar[i]
-        dvals = list(day_last.values())
+            day_dollar[r[3]] = day_dollar.get(r[3], 0.0) + dollar[i]
+        dvals = list(day_dollar.values())
         med20_dollar = float(np.median(dvals[-21:-1])) if len(dvals) >= 21 else 0.0
         facts = {
             "normal_day_dollars": round(med20_dollar),
@@ -149,7 +175,7 @@ def read_symbol(symbol: str) -> dict:
         # like that" — a slice must hide inside a NORMAL day. If 1% of
         # the normal day's traded money cannot absorb a $2,000 slice,
         # the name is untradable at our smallest size. Refused.
-        day_list = sorted(day_last.keys())
+        day_list = sorted(day_dollar.keys())
         spike_gain = 0.0
         day_low_vs_prior = 1.0
         halt_jumps = 0
@@ -221,17 +247,40 @@ def read_symbol(symbol: str) -> dict:
                 "rule": f"fail-closed: {type(err).__name__}: {err}"}
 
 
+def _todays_sheets(day: str) -> dict:
+    """Verdicts already filed today by EITHER channel. A reading is
+    channel-independent physics, so one stock is read once per day
+    (review finding: gate() re-read every symbol on every call)."""
+    merged = {}
+    for sheet in sorted(READINGS_DIR.glob(f"*_ENTRY_READINGS_{day}.json")):
+        try:
+            merged.update(json.load(open(sheet)))
+        except Exception:  # noqa: BLE001 — a bad sheet never blocks reading
+            continue
+    return merged
+
+
 def gate(symbols: list, channel: str) -> dict:
-    """Read every candidate, file the sheet, return {sym: verdict-dict}."""
-    out = {}
-    for s in symbols:
-        out[str(s)] = read_symbol(str(s))
+    """Read every candidate, file the sheet, return {sym: verdict-dict}.
+    Verdicts already filed today are reused; only fail-closed errors
+    (transient by nature) are read again."""
     READINGS_DIR.mkdir(parents=True, exist_ok=True)
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    done = _todays_sheets(day)
+    out = {}
+    for s in symbols:
+        s = str(s)
+        prior = done.get(s)
+        if prior and not str(prior.get("rule", "")).startswith("fail-closed"):
+            out[s] = prior
+        else:
+            out[s] = read_symbol(s)
     sheet = READINGS_DIR / f"{channel}_ENTRY_READINGS_{day}.json"
     existing = json.load(open(sheet)) if sheet.exists() else {}
-    existing.update({k: v for k, v in out.items()})
-    json.dump(existing, open(sheet, "w"), indent=1)
+    existing.update(out)
+    tmp = sheet.with_suffix(".json.tmp")
+    json.dump(existing, open(tmp, "w"), indent=1)
+    os.replace(tmp, sheet)
     for s, v in out.items():
         print(f"  [reading] {s}: {v['verdict']} — {v['rule']}")
     return out

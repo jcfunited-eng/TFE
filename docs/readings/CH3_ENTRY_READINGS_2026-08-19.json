@@ -1,0 +1,162 @@
+{
+ "PFSA": {
+  "symbol": "PFSA",
+  "verdict": "REFUSE",
+  "rule": "desk floor \u2014 no-borrow class (thin name, +518% pump): nothing to locate",
+  "facts": {
+   "normal_day_dollars": 66423,
+   "life_years": 1.0,
+   "price": 26.81,
+   "life_peak": 16425.0,
+   "crush": 612.6,
+   "deaths_per_year": 70,
+   "deaths_2wk": 7,
+   "push_up_week": 0.43,
+   "up_sessions_of_5": 2,
+   "B_health": 0.66,
+   "L_lock": 0.05,
+   "spike_gain_pct": 517.7,
+   "halt_jumps": 4
+  }
+ },
+ "AMLX": {
+  "symbol": "AMLX",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "normal_day_dollars": 29143801,
+   "life_years": 4.4,
+   "price": 35.14,
+   "life_peak": 41.28,
+   "crush": 1.2,
+   "deaths_per_year": 59,
+   "deaths_2wk": 1,
+   "push_up_week": 0.5,
+   "up_sessions_of_5": 1,
+   "B_health": 0.99,
+   "L_lock": 0.03,
+   "spike_gain_pct": 63.7,
+   "halt_jumps": 0
+  }
+ },
+ "UGI": {
+  "symbol": "UGI",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "normal_day_dollars": 33629362,
+   "life_years": 21.2,
+   "price": 38.4,
+   "life_peak": 59.07,
+   "crush": 1.5,
+   "deaths_per_year": 39,
+   "deaths_2wk": 3,
+   "push_up_week": 0.48,
+   "up_sessions_of_5": 3,
+   "B_health": 0.97,
+   "L_lock": 0.14,
+   "spike_gain_pct": 9.5,
+   "halt_jumps": 0
+  }
+ },
+ "SLE": {
+  "symbol": "SLE",
+  "verdict": "REFUSE",
+  "rule": "desk floor \u2014 no-borrow class (thin name, +74% pump): nothing to locate",
+  "facts": {
+   "normal_day_dollars": 19659,
+   "life_years": 10.7,
+   "price": 5.25,
+   "life_peak": 1199040.0,
+   "crush": 228388.6,
+   "deaths_per_year": 67,
+   "deaths_2wk": 7,
+   "push_up_week": 0.63,
+   "up_sessions_of_5": 3,
+   "B_health": 0.61,
+   "L_lock": 0.19,
+   "spike_gain_pct": 73.8,
+   "halt_jumps": 0
+  }
+ },
+ "HAE": {
+  "symbol": "HAE",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "normal_day_dollars": 44760119,
+   "life_years": 21.2,
+   "price": 104.69,
+   "life_peak": 140.88,
+   "crush": 1.3,
+   "deaths_per_year": 41,
+   "deaths_2wk": 2,
+   "push_up_week": 0.22,
+   "up_sessions_of_5": 3,
+   "B_health": 0.98,
+   "L_lock": 0.41,
+   "spike_gain_pct": 16.0,
+   "halt_jumps": 0
+  }
+ },
+ "TNON": {
+  "symbol": "TNON",
+  "verdict": "REFUSE",
+  "rule": "Joseph's fillability law \u2014 normal day trades $84,708; a $2k slice cannot hide",
+  "facts": {
+   "normal_day_dollars": 84708,
+   "life_years": 3.7,
+   "price": 5.43,
+   "life_peak": 139384.0,
+   "crush": 25669.2,
+   "deaths_per_year": 113,
+   "deaths_2wk": 28,
+   "push_up_week": 0.17,
+   "up_sessions_of_5": 2,
+   "B_health": 0.73,
+   "L_lock": 0.68,
+   "spike_gain_pct": 9.3,
+   "halt_jumps": 0
+  }
+ },
+ "FLXS": {
+  "symbol": "FLXS",
+  "verdict": "REFUSE",
+  "rule": "Rule 3 \u2014 sound structure, never a short",
+  "facts": {
+   "normal_day_dollars": 1931235,
+   "life_years": 15.8,
+   "price": 76.26,
+   "life_peak": 87.0,
+   "crush": 1.1,
+   "deaths_per_year": 57,
+   "deaths_2wk": 6,
+   "push_up_week": 0.33,
+   "up_sessions_of_5": 2,
+   "B_health": 0.86,
+   "L_lock": 0.22,
+   "spike_gain_pct": 8.4,
+   "halt_jumps": 0
+  }
+ },
+ "CNSP": {
+  "symbol": "CNSP",
+  "verdict": "REFUSE",
+  "rule": "Joseph's fillability law \u2014 normal day trades $16,758; a $2k slice cannot hide",
+  "facts": {
+   "normal_day_dollars": 16758,
+   "life_years": 5.9,
+   "price": 5.862,
+   "life_peak": 4500090.0,
+   "crush": 767736.9,
+   "deaths_per_year": 129,
+   "deaths_2wk": 1,
+   "push_up_week": 0.59,
+   "up_sessions_of_5": 4,
+   "B_health": 0.96,
+   "L_lock": 0.28,
+   "spike_gain_pct": 5.6,
+   "halt_jumps": 0
+  }
+ }
+}

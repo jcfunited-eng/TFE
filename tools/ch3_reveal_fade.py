@@ -27,11 +27,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ch_short_refutation import has_unreset_refutation
-
+import sys as _sys
 
 ROOT = Path(__file__).resolve().parents[1]
-_HERD_COVERAGE: set = set()
+_sys.path.insert(0, str(ROOT))
+from tools.ch_desk import calendar_days, carry_costs  # noqa: E402
+from tools.ch_short_refutation import has_unreset_refutation  # noqa: E402
 ENTRIES_HALT_FILE = ROOT / 'HALT_CH3_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 STORE = ROOT / "ch4_live_store.parquet"
 TAIL = ROOT / "ch3_supply_tail.parquet"
@@ -53,17 +54,6 @@ ANOMALY_STOP_PCT = 20.0
 
 
 
-def carry_costs(notional: float, normal_day: float, days_held: int) -> float:
-    """Desk floor #3 and #9: borrow fee by liquidity class (annualized)
-    plus round-trip slippage for thin names. Returned as a positive
-    dollar cost to subtract from P&L."""
-    if normal_day >= 5_000_000:
-        rate, slip = 0.01, 0.0005
-    elif normal_day >= 1_000_000:
-        rate, slip = 0.10, 0.002
-    else:
-        rate, slip = 0.50, 0.005
-    return round(notional * (rate * max(1, days_held) / 365 + slip), 2)
 
 def load_log() -> dict[str, object]:
     if LOG_PATH.exists():
@@ -101,14 +91,12 @@ def load_market() -> tuple[pd.DataFrame, np.ndarray, pd.Timestamp]:
     latest = pd.Timestamp(days[-1])
 
     market = roster
-    covered_universe = set(roster["Symbol"].unique())
     if TAIL.exists():
         tail = pd.read_parquet(TAIL, columns=["Date", "Symbol", "Close", "Volume"])
         tail["Date"] = pd.to_datetime(tail["Date"])
         refreshed = set(roster.loc[roster["Date"] == latest, "Symbol"])
         tail = tail[~tail["Symbol"].isin(refreshed) & (tail["Date"] <= latest)]
         market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
-    market.attrs["covered_universe"] = covered_universe
     return market, days, latest
 
 
@@ -174,7 +162,7 @@ def settle_open_positions(
         notional = float(finding["notional"])
         pnl = round(notional * short_return / 100, 2)
         cost = carry_costs(notional, float(finding.get("normal_day_dollars", 0.0)),
-                           int(latest_index - entry_index))
+                           calendar_days(str(finding.get("date", latest_s)), latest_s))
         pnl = round(pnl - cost, 2)
         book["cash"] = round(float(book["cash"]) + notional + pnl, 2)
         reason = "HARVEST" if harvest else ("ANOMALY-CUT" if anomaly else "TIME")
@@ -197,8 +185,7 @@ def candidate_events(
     herd_state: dict[str, int],
     anomaly_cuts: list[dict[str, object]],
 ) -> tuple[list[dict[str, object]], int, int]:
-    global _HERD_COVERAGE
-    _HERD_COVERAGE = herd_coverage_universe()
+    herd_covered = herd_coverage_universe()
     events: list[dict[str, object]] = []
     refused_unknown_herd = 0
     refused_refutation = 0
@@ -220,7 +207,7 @@ def candidate_events(
             continue
 
         gband = herd_state.get(str(symbol))
-        covered = str(symbol) in _HERD_COVERAGE
+        covered = str(symbol) in herd_covered
         if covered:
             # a covered name with no herd row is a DATA GAP: fail closed
             if gband is None:
@@ -232,12 +219,15 @@ def candidate_events(
             continue
         # outside the covered universe: uncovered by construction — the
         # measured core supply (2026-08-13 restatement). Eligible.
+        _hist = rows
+        if any(str(c.get("symbol", c.get("sym", ""))) == str(symbol) for c in anomaly_cuts):
+            _hist = market[market["Symbol"] == symbol].sort_values("Date")
         if has_unreset_refutation(
             symbol=str(symbol),
             candidate_day=latest_s,
             anomaly_cuts=anomaly_cuts,
-            history_days=rows["Date"].tolist(),
-            history_closes=rows["Close"].tolist(),
+            history_days=_hist["Date"].tolist(),
+            history_closes=_hist["Close"].tolist(),
         ):
             refused_refutation += 1
             continue
@@ -299,7 +289,7 @@ def main() -> None:
         print("[reveal-fade] ENTRIES HALTED (protective) — settlements only")
         take = []
     if take:
-        from ch_entry_reading import gate as _entry_gate
+        from tools.ch_entry_reading import gate as _entry_gate
         _verdicts = _entry_gate([str(e["symbol"]) for e in take], "CH3")
         take = [e for e in take
                 if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
@@ -338,6 +328,7 @@ def main() -> None:
                 "found_at": now,
                 "symbol": event["symbol"],
                 "side": -1,
+                "normal_day_dollars": float(event.get("normal_day_dollars", 0.0)),
                 "entry_px": round(float(event["close"]), 4),
                 "shares": shares,
                 "target_pct": None,
@@ -351,6 +342,7 @@ def main() -> None:
             }
         )
         held.add(str(event["symbol"]))
+        day_spent += notional
         opened += 1
 
     if not dry:

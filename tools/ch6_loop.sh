@@ -8,7 +8,7 @@
 cd "$(dirname "$0")/.." || exit 1
 set -a; source .env 2>/dev/null; set +a
 echo "[ch6-loop] started $(date -u +%FT%TZ) pid $$"
-last_sync=""; last_sweep=""; last_pmc=""
+last_sweep=""; last_pmc=""
 while true; do
   hm=$((10#$(date -u +%H%M)))
   if [ $hm -ge 1300 ] && [ $hm -le 1330 ] && [ "$last_pmc" != "$(date -u +%F)" ]; then

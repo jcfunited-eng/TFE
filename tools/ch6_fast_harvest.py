@@ -30,10 +30,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-_HERD_COVERAGE: set = set()
 ENTRIES_HALT_FILE = ROOT / 'HALT_CH6_ENTRIES'  # Joseph protective halt 2026-08-18: file present = no new positions; exits unaffected
 sys.path.insert(0, str(ROOT))
 
+from tools.ch_desk import calendar_days, carry_costs  # noqa: E402
 from tools.ch_short_refutation import has_unreset_refutation  # noqa: E402
 
 
@@ -42,7 +42,6 @@ EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
 SLICE_USD = 2_000.0
-MAX_NEW_PER_DAY = 10_000  # Joseph 2026-08-18: same buys as CH3 — the rules gate (ch_entry_reading) now guards entries, so the arbitrary cap that took WETO and missed SPAI on 08-14 is retired
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
 HARVEST_PCT = 5.0
@@ -57,17 +56,6 @@ BOOK_PATH = ROOT / "artifacts" / "vtvr_observer" / "ch6_book.json"
 
 
 
-def carry_costs(notional: float, normal_day: float, days_held: int) -> float:
-    """Desk floor #3 and #9: borrow fee by liquidity class (annualized)
-    plus round-trip slippage for thin names. Returned as a positive
-    dollar cost to subtract from P&L."""
-    if normal_day >= 5_000_000:
-        rate, slip = 0.01, 0.0005
-    elif normal_day >= 1_000_000:
-        rate, slip = 0.10, 0.002
-    else:
-        rate, slip = 0.50, 0.005
-    return round(notional * (rate * max(1, days_held) / 365 + slip), 2)
 
 def load_book() -> dict[str, object]:
     if BOOK_PATH.exists():
@@ -107,14 +95,12 @@ def load_market() -> tuple[pd.DataFrame, list[pd.Timestamp], pd.Timestamp]:
     latest = days[-1]
 
     market = roster
-    covered_universe = set(roster["Symbol"].unique())
     if TAIL.exists():
         tail = pd.read_parquet(TAIL, columns=["Date", "Symbol", "Close", "Volume"])
         tail["Date"] = pd.to_datetime(tail["Date"])
         refreshed = set(roster.loc[roster["Date"] == latest, "Symbol"])
         tail = tail[~tail["Symbol"].isin(refreshed) & (tail["Date"] <= latest)]
         market = pd.concat([roster[roster["Symbol"].isin(refreshed)], tail], ignore_index=True)
-    market.attrs["covered_universe"] = covered_universe
     return market, days, latest
 
 
@@ -164,12 +150,7 @@ def close_position(
     shares = int(position["shares"])
     result_pct = 100 * (price / entry - 1) * side
     pnl = round(shares * (price - entry) * side, 2)
-    try:
-        _entered = str(position.get("entry_date", ""))[:10]
-        _days = max(1, (datetime.fromisoformat(now[:10])
-                        - datetime.fromisoformat(_entered)).days) if _entered else 1
-    except Exception:  # noqa: BLE001
-        _days = 1
+    _days = calendar_days(str(position.get("entry_date", now)), now)
     pnl = round(pnl - carry_costs(float(position.get("notional", 0.0)),
                                   float(position.get("normal_day_dollars", 0.0)),
                                   _days), 2)
@@ -234,8 +215,7 @@ def qualifying_events(
 ) -> tuple[list[dict[str, object]], int, int]:
     recent = market[market["Date"].isin(days[-25:])]
     events: list[dict[str, object]] = []
-    global _HERD_COVERAGE
-    _HERD_COVERAGE = herd_coverage_universe()
+    herd_covered = herd_coverage_universe()
     unknown_herd = 0
     active_refutations = 0
     latest_s = latest.strftime("%Y-%m-%d")
@@ -255,7 +235,7 @@ def qualifying_events(
             continue
 
         gband = herd_state.get(str(symbol))
-        covered = str(symbol) in _HERD_COVERAGE
+        covered = str(symbol) in herd_covered
         if covered:
             if gband is None:
                 unknown_herd += 1
@@ -265,12 +245,15 @@ def qualifying_events(
         elif gband is not None and gband != 0:
             continue
         # outside the covered universe: uncovered by construction — eligible
+        _hist = rows
+        if any(str(c.get("symbol", c.get("sym", ""))) == str(symbol) for c in anomaly_cuts):
+            _hist = market[market["Symbol"] == symbol].sort_values("Date")
         if has_unreset_refutation(
             symbol=str(symbol),
             candidate_day=latest_s,
             anomaly_cuts=anomaly_cuts,
-            history_days=rows["Date"].tolist(),
-            history_closes=rows["Close"].tolist(),
+            history_days=_hist["Date"].tolist(),
+            history_closes=_hist["Close"].tolist(),
         ):
             active_refutations += 1
             continue
@@ -285,10 +268,6 @@ def qualifying_events(
         )
     events.sort(key=lambda event: -float(event["dollar_vol"]))
     return events, unknown_herd, active_refutations
-
-
-def sync() -> None:
-    raise SystemExit("ch6 sync is removed; CH6 owns its entry scan (use: hunt)")
 
 
 def hunt(dry: bool = False) -> None:
@@ -315,7 +294,7 @@ def hunt(dry: bool = False) -> None:
             save_book(book)
         return
 
-    cuts = [trade for trade in closed(book) if str(trade.get("reason", "")).upper() == "ANOMALY-CUT"]
+    cuts = [trade for trade in closed(book) if str(trade.get("reason", "")).upper().startswith("ANOMALY-CUT")]
     events, unknown_herd, active_refutations = qualifying_events(
         market=market,
         days=days,
@@ -325,22 +304,16 @@ def hunt(dry: bool = False) -> None:
     )
 
     if ENTRIES_HALT_FILE.exists():
-
         print('[ch6 hunt] ENTRIES HALTED (protective) — settlements only')
-
         events = []
-
-
-    if events and not ENTRIES_HALT_FILE.exists():
-        from ch_entry_reading import gate as _entry_gate
+    if events:
+        from tools.ch_entry_reading import gate as _entry_gate
         _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
         events = [e for e in events
                   if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
 
     opened = 0
     for event in events:
-        if opened >= MAX_NEW_PER_DAY:
-            break
         symbol = str(event["symbol"])
         if symbol in positions(book) or float(book["cash"]) < SLICE_USD:
             continue
@@ -446,7 +419,6 @@ COMMANDS: dict[str, Callable[[], None]] = {
     "hunt": hunt,
     "poll": poll,
     "sweep": sweep,
-    "sync": sync,
 }
 
 
