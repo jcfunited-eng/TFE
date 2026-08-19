@@ -1,0 +1,193 @@
+{
+ "declared": "frame, both event sets, both laws, split and reporting in the docstring before results; daily-close limitation stated",
+ "derive_le_2023": {
+  "CURRENT_8pct_3x": {
+   "n": 6007,
+   "LAW_A_bank5": {
+    "money_per_100ev": 134.7,
+    "outcomes": {
+     "HARVEST": 3705,
+     "TIME": 1550,
+     "ANOMALY": 752
+    },
+    "wins_losses": "4127W/1855L",
+    "worst_event_pct": -480.0,
+    "events_below_-50pct": 107,
+    "mean_sessions_held": 2.75,
+    "resolved_day1": "2320/6007",
+    "position_nights_per_event": 2.75
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 122.1,
+    "outcomes": {
+     "HARVEST": 4347,
+     "TIME": 956,
+     "ANOMALY": 704
+    },
+    "wins_losses": "4441W/1553L",
+    "worst_event_pct": -480.0,
+    "events_below_-50pct": 101,
+    "mean_sessions_held": 2.24,
+    "resolved_day1": "3184/6007",
+    "position_nights_per_event": 2.24
+   }
+  },
+  "MARGINAL_widened_only": {
+   "n": 7872,
+   "LAW_A_bank5": {
+    "money_per_100ev": 76.9,
+    "outcomes": {
+     "HARVEST": 3925,
+     "TIME": 3337,
+     "ANOMALY": 610
+    },
+    "wins_losses": "5013W/2800L",
+    "worst_event_pct": -768.5,
+    "events_below_-50pct": 53,
+    "mean_sessions_held": 3.49,
+    "resolved_day1": "1615/7872",
+    "position_nights_per_event": 3.49
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 69.6,
+    "outcomes": {
+     "HARVEST": 5332,
+     "TIME": 1988,
+     "ANOMALY": 552
+    },
+    "wins_losses": "5596W/2247L",
+    "worst_event_pct": -768.5,
+    "events_below_-50pct": 46,
+    "mean_sessions_held": 2.74,
+    "resolved_day1": "3032/7872",
+    "position_nights_per_event": 2.74
+   }
+  },
+  "WIDENED_all": {
+   "n": 13879,
+   "LAW_A_bank5": {
+    "money_per_100ev": 101.9,
+    "outcomes": {
+     "HARVEST": 7630,
+     "TIME": 4887,
+     "ANOMALY": 1362
+    },
+    "wins_losses": "9140W/4655L",
+    "worst_event_pct": -768.5,
+    "events_below_-50pct": 160,
+    "mean_sessions_held": 3.17,
+    "resolved_day1": "3935/13879",
+    "position_nights_per_event": 3.17
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 92.3,
+    "outcomes": {
+     "HARVEST": 9679,
+     "TIME": 2944,
+     "ANOMALY": 1256
+    },
+    "wins_losses": "10037W/3800L",
+    "worst_event_pct": -768.5,
+    "events_below_-50pct": 147,
+    "mean_sessions_held": 2.52,
+    "resolved_day1": "6216/13879",
+    "position_nights_per_event": 2.52
+   }
+  }
+ },
+ "CONFIRM_2024_plus": {
+  "CURRENT_8pct_3x": {
+   "n": 7991,
+   "LAW_A_bank5": {
+    "money_per_100ev": 163.0,
+    "outcomes": {
+     "HARVEST": 4947,
+     "TIME": 1933,
+     "ANOMALY": 1111
+    },
+    "wins_losses": "5494W/2478L",
+    "worst_event_pct": -824.5,
+    "events_below_-50pct": 179,
+    "mean_sessions_held": 2.63,
+    "resolved_day1": "3322/7991",
+    "position_nights_per_event": 2.63
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 156.4,
+    "outcomes": {
+     "HARVEST": 5774,
+     "TIME": 1184,
+     "ANOMALY": 1033
+    },
+    "wins_losses": "5898W/2079L",
+    "worst_event_pct": -824.5,
+    "events_below_-50pct": 167,
+    "mean_sessions_held": 2.15,
+    "resolved_day1": "4411/7991",
+    "position_nights_per_event": 2.15
+   }
+  },
+  "MARGINAL_widened_only": {
+   "n": 10186,
+   "LAW_A_bank5": {
+    "money_per_100ev": 32.6,
+    "outcomes": {
+     "HARVEST": 4978,
+     "TIME": 4240,
+     "ANOMALY": 968
+    },
+    "wins_losses": "6260W/3900L",
+    "worst_event_pct": -684.2,
+    "events_below_-50pct": 66,
+    "mean_sessions_held": 3.42,
+    "resolved_day1": "2309/10186",
+    "position_nights_per_event": 3.42
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 33.7,
+    "outcomes": {
+     "HARVEST": 6746,
+     "TIME": 2563,
+     "ANOMALY": 877
+    },
+    "wins_losses": "7058W/3115L",
+    "worst_event_pct": -684.2,
+    "events_below_-50pct": 58,
+    "mean_sessions_held": 2.67,
+    "resolved_day1": "4219/10186",
+    "position_nights_per_event": 2.67
+   }
+  },
+  "WIDENED_all": {
+   "n": 18177,
+   "LAW_A_bank5": {
+    "money_per_100ev": 89.9,
+    "outcomes": {
+     "HARVEST": 9925,
+     "TIME": 6173,
+     "ANOMALY": 2079
+    },
+    "wins_losses": "11754W/6378L",
+    "worst_event_pct": -824.5,
+    "events_below_-50pct": 245,
+    "mean_sessions_held": 3.07,
+    "resolved_day1": "5631/18177",
+    "position_nights_per_event": 3.07
+   },
+   "LAW_B_bank2": {
+    "money_per_100ev": 87.7,
+    "outcomes": {
+     "HARVEST": 12520,
+     "TIME": 3747,
+     "ANOMALY": 1910
+    },
+    "wins_losses": "12956W/5194L",
+    "worst_event_pct": -824.5,
+    "events_below_-50pct": 225,
+    "mean_sessions_held": 2.44,
+    "resolved_day1": "8630/18177",
+    "position_nights_per_event": 2.44
+   }
+  }
+ }
+}
