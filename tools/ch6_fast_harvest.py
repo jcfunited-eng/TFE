@@ -1,16 +1,32 @@
 """CH6 fast-harvest paper channel.
 
-CH6 owns its book and entry scan. Its reduced entry projection requires a
-completed daily up-spike of at least 8%, volume at least three times the prior
-20-session mean, price at least $5, and an explicit same-day ``gband=0`` herd
-reading. Missing herd coverage is unknown and is refused.
+CH6 owns its book and entry scan. Its entry has two layers, and the page
+must never claim more:
+  1. a reduced event projection — completed daily up-spike of at least 8%,
+     volume at least three times the prior 20-session mean, price at least
+     $5, and an explicit same-day ``gband=0`` herd reading (missing herd
+     coverage is unknown and is refused);
+  2. the reading (tools/ch_entry_reading, laws_version v2-20260819) —
+     every surviving candidate's whole life through the canonical v2
+     chain, verdict by the laws in force (desk floor, fillability,
+     suicide-pill ban, sound structure — Joseph's), full reading filed in
+     docs/readings/. No structural entry law is in force: two candidates
+     (the charging-vehicle conjunction, the extinction-presence law) were
+     falsified on the filed decade record and retired. Rule 10 governs.
+
+HOLDINGS GOVERNANCE: once per day at the first poll after the open, every
+open position is re-read whole-life; a position refused by a structure law
+in force (suicide-pill ban, sound structure) or that has become unreadable
+is cut at the first available mark. A book does not hold what it cannot
+read. Transient read errors never cut.
 
 An open short is anomaly-cut at the first observed mark 20% or more against
 entry. A winner arms at +5%, tracks its best observed gain, and harvests after
 giving back more than one percentage point. The end-of-day sweep harvests any
 position still at +5% or better. The completed-close five-session backstop is
 shared with CH3. Marks and daily gaps can cross trigger levels; 20% is a
-trigger, not a guaranteed realized-loss ceiling.
+trigger, not a guaranteed realized-loss ceiling — the realized bound per
+position is the slice times the worst overnight gap, not 20%.
 
 After an anomaly cut, the refutation remains active until a later completed
 daily close returns to or below the original entry. A cut symbol cannot be
@@ -195,6 +211,16 @@ def settle_completed_closes(
         if age < 1:
             continue
         mark = float(price)
+        pending = position.get("rules_cut_pending")
+        # a pending cut may only settle at a completed close that
+        # POSTDATES the decision — never at the prior session's price
+        # (review defect 1: stale-price exits). The poll path executes
+        # at live marks without this guard.
+        if pending and latest_s >= str(position.get("rules_cut_marked",
+                                                    "9999-12-31")):
+            close_position(book, symbol, position, mark, str(pending), now)
+            settled += 1
+            continue
         gain = 100 * (mark / float(position["entry_px"]) - 1) * int(position["side"])
         if gain <= -ANOMALY_STOP_PCT:
             close_position(book, symbol, position, mark, "ANOMALY-CUT", now)
@@ -306,11 +332,14 @@ def hunt(dry: bool = False) -> None:
     if ENTRIES_HALT_FILE.exists():
         print('[ch6 hunt] ENTRIES HALTED (protective) — settlements only')
         events = []
+    refused_reading = 0
     if events:
         from tools.ch_entry_reading import gate as _entry_gate
         _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
+        pre_reading = len(events)
         events = [e for e in events
                   if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
+        refused_reading = pre_reading - len(events)
 
     opened = 0
     for event in events:
@@ -355,6 +384,7 @@ def hunt(dry: bool = False) -> None:
             "settled": settled,
             "refused_unknown_herd": unknown_herd,
             "refused_unreset_refutation": active_refutations,
+            "refused_by_reading": refused_reading,
         }
         save_book(book)
     print(
@@ -362,6 +392,64 @@ def hunt(dry: bool = False) -> None:
         f"refused unknown-herd {unknown_herd}, refused refutation {active_refutations}, "
         f"open {len(positions(book))}, cash ${float(book['cash']):,.2f}" + (" (DRY)" if dry else "")
     )
+
+
+def govern(book: dict[str, object]) -> tuple[int, bool]:
+    """Daily holdings governance from the nightly store — no downloads,
+    no chain replay. The two laws that can cut a HELD position
+    (suicide-pill ban, sound structure — Joseph's) need only completed
+    daily closes, which are already on disk. The whole-life fine
+    reading runs once, at entry, where the money decision is made.
+    Marks refusals for cut at the next available mark (poll executes
+    at live quotes; settle only at a close that postdates the mark);
+    files the facts sheet. Returns (marked, clean)."""
+    from tools.ch_entry_reading import READINGS_DIR, _file_sheet
+
+    symbols = sorted(positions(book))
+    if not symbols:
+        return 0, True
+    market, days, latest = load_market()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    sheet: dict[str, dict] = {}
+    marked = 0
+    for symbol in symbols:
+        position = positions(book)[symbol]
+        rows = market[market["Symbol"] == symbol].sort_values("Date")
+        closes = rows["Close"].to_numpy(dtype=float)
+        if len(closes) < 2 or closes[-1] <= 0:
+            print(f"  GOVERN {symbol}: no usable store history — kept, "
+                  "reported")
+            sheet[symbol] = {"symbol": symbol, "verdict": "UNPRICED",
+                             "rule": "no usable store history"}
+            continue
+        life_years = (rows["Date"].iloc[-1] - rows["Date"].iloc[0]).days / 365.25
+        peak = float(closes[:-1].max())
+        price = float(closes[-1])
+        crush = peak / price
+        facts = {"life_years": round(life_years, 1), "price": round(price, 3),
+                 "store_peak": round(peak, 2), "crush": round(crush, 1),
+                 "as_of_close": str(rows["Date"].iloc[-1].date())}
+        reason = None
+        if crush >= 1000:
+            reason = "RULES-CUT suicide-pill-ban"
+        elif life_years >= 2 and price >= 0.5 * peak and crush < 4:
+            reason = "RULES-CUT sound-structure"
+        sheet[symbol] = {"symbol": symbol,
+                         "verdict": "CUT" if reason else "HOLD",
+                         "rule": reason or "no law in force refuses",
+                         "facts": facts}
+        if reason:
+            if position.get("rules_cut_pending") != reason:
+                position["rules_cut_pending"] = reason
+                position["rules_cut_marked"] = today
+                print(f"  GOVERN {symbol}: {reason} — cut at next available mark")
+            marked += 1
+        elif "rules_cut_pending" in position:
+            del position["rules_cut_pending"]  # today's re-read cleared it
+            position.pop("rules_cut_marked", None)
+    READINGS_DIR.mkdir(parents=True, exist_ok=True)
+    _file_sheet(READINGS_DIR / f"CH6_HOLDINGS_READING_{today}.json", sheet)
+    return marked, True
 
 
 def evaluate_live_marks(action: str) -> None:
@@ -380,6 +468,10 @@ def evaluate_live_marks(action: str) -> None:
         if not np.isfinite(price) or price <= 0:
             quote_failures.append(f"{symbol}:invalid-mark")
             continue
+        pending = position.get("rules_cut_pending")
+        if pending:
+            close_position(book, symbol, position, price, str(pending), now)
+            continue
         gain = 100 * (price / float(position["entry_px"]) - 1) * int(position["side"])
         if gain <= -ANOMALY_STOP_PCT:
             close_position(book, symbol, position, price, "ANOMALY-CUT", now)
@@ -396,6 +488,18 @@ def evaluate_live_marks(action: str) -> None:
             print(f"  ARMED {symbol} at {gain:+.2f}%")
         if position.get("armed") and float(position["peak_gain_pct"]) - gain > GIVEBACK_PP:
             close_position(book, symbol, position, price, "HARVEST", now)
+
+    # governance AFTER the mark checks: the first poll of the day must
+    # never leave positions unwatched while whole-life reads grind;
+    # cuts marked here execute at the next poll or completed close
+    if action == "poll" and book.get("last_governed") != now[:10]:
+        try:
+            _marked, _clean = govern(book)
+            if _clean:
+                book["last_governed"] = now[:10]
+        except Exception as error:  # noqa: BLE001 — loud; retried next poll
+            print(f"[ch6 govern] READ PASS FAILED ({type(error).__name__}: "
+                  f"{error}) — holdings ungoverned, retrying next poll")
 
     save_book(book)
     if quote_failures:

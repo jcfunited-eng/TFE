@@ -166,7 +166,7 @@ def render_page(page: ChannelPage, destination: Path) -> None:
     unrealized = sum(unrealized_values) if complete_marks else None
     equity = None if unrealized is None else page.cash + held_notional + unrealized
     realized = sum(row.pnl for row in page.closed)
-    resolved = [row for row in page.closed if not row.reason.startswith("VOID-")]
+    resolved = [row for row in page.closed if "VOID" not in row.reason]
     wins = sum(1 for row in resolved if row.pnl > 0)
     win_rate = None if not resolved else 100 * wins / len(resolved)
     rules = "".join(f"<li>{escape(rule)}</li>" for rule in page.rules)

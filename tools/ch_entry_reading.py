@@ -1,34 +1,52 @@
 """
-ch_entry_reading.py — the Rules, run inside the engines at entry time
-=====================================================================
+ch_entry_reading.py — the reading and the laws, layered honestly
+=================================================================
 
-Joseph's order 2026-08-18: apply the Rules to entries. For every
-candidate the engines want to short, this module runs the full-life
-kernel reading at fine resolution (45-minute bars, the stock's whole
-existence) and issues the verdict BEFORE any position opens. Every
-verdict is filed with its complete reading in docs/readings/ so any
-misfire is auditable the next morning.
+Rebuilt 2026-08-19 (laws_version v2-20260819) after the review that
+found the v1 gate was a fitted checklist wearing the kernel's name:
+the chain ran, but the verdict came from threshold conjunctions tuned
+to eight specimens — the exact flattening Rule 2 forbids.
 
-This is the executable projection of the filed Rules
-(docs/TFE_KERNEL_STOCK_RULES_20260818.md). The criteria below are
-declared translations of the week's proven readings — UGI/HAE/FLXS
-(sound), CNSP/WETO/IPST (charging vehicles), HTHT/HTFL (the cut
-mistakes) — and every constant is stated here, versioned v1, never
-silently changed:
+WHAT RUNS (Rule 1): every candidate's whole life at 45-minute
+resolution through the canonical v2 chain (tools/ch4_uf_kernel_v2).
+The COMPLETE reading — desk facts plus the Rule-4 phase objects
+(push, deaths, buzz, channel, crest) — is FILED with every verdict in
+docs/readings/. The reading is the assessment; no law below claims to
+summarize it (Rule 2).
 
-REFUSE — SOUND STRUCTURE (Rule 3: never short a sound company):
-  life >= 2 years AND price >= half its lifetime peak AND lifetime
-  peak/price < 4.
-REFUSE — CHARGING VEHICLE (Rules 4+5: the killer launch shape):
-  lifetime peak/price >= 4 (a drained vehicle) AND the rehearsal
-  floor is clean right now (channel deaths in the last 2 weeks <= 2
-  while its lifetime rate is >= 30/yr) AND the week is loading
-  (majority of pushes up OR at least 3 of the last 5 sessions
-  closing higher).
-ALLOW — everything else: the exhausted-phase supply the fade exists
-  to harvest, still under every cap, cut line, and clock.
-FAIL CLOSED: no data, short life (< ~6 months of readings), or any
-error refuses the candidate.
+LAWS IN FORCE (first refusal wins; provenance on every one):
+  1. fail-closed          [custody]   no data, short life (< ~6 months
+     of readings), or any error: the unreadable is never traded.
+  2. desk floor           [Joseph's]  no-borrow class (thin name,
+     violent pump), uptick restriction (fell 10%+ intraday),
+     halt-prone tape (2+ violent reopens today).
+  3. fillability          [Joseph's]  a $2k slice must hide inside 1%
+     of the normal day's traded money.
+  4. suicide-pill ban     [Joseph's, verbatim 2026-08-19] destroyed
+     shell, lifetime peak >= 1000x today's price: never traded. Cost
+     priced and accepted by Joseph (refuses occasional winners).
+  5. sound structure      [Joseph's principle; constants on record]
+     never short a sound company (life >= 2y, price >= half lifetime
+     peak, crush < 4). Its decade cost/save replay is OWED and will
+     be filed; the principle stands on Joseph's word meanwhile.
+  ALLOW otherwise: Rule 10 governs — caps, cut line, session clock
+     and the premarket pass are the protection; the reading rides
+     along, filed, earning or losing authority on the record.
+
+RETIRED LAWS (falsified on the filed record — never re-arm silently):
+  - "charging vehicle" conjunction (v1: crush>=4 & floor clean &
+    loading). FALSIFIED by artifacts/ch4_uf/ch3_vehicle_refusal.json:
+    in the confirm half the refused class carried 291.3 fade/100ev vs
+    138.7 kept — it refused the richest supply — while the kept class
+    still held the worst event (-594%). False protection.
+  - LAW E extinction-presence (declared+falsified 2026-08-19,
+    artifacts/ch4_uf/ch6_extinction_presence_law.json): sign FLIPPED
+    across the 2021/2022 boundary (derive: never-died +133.7 vs died
+    -27.6; confirm: reversed). Does not enter force. The flip itself
+    is an epoch observation, filed for Joseph.
+
+Verdicts are filed once per symbol per day and shared by both
+channels; only fail-closed (transient) readings are retried.
 """
 
 from __future__ import annotations
@@ -49,10 +67,9 @@ from tools.ch4_uf_kernel_v2 import replay_symbol_v2  # noqa: E402
 
 READINGS_DIR = ROOT / "docs" / "readings"
 CACHE_DIR = ROOT / "artifacts" / "ch4_uf" / "entry_reading_cache"
-MIN_READINGS = 1100         # ~6 months of 9/day — else fail closed (per the
-                            # docstring's law; review found 320 contradicted it)
+LAWS_VERSION = "v2-20260819"
+MIN_READINGS = 1100         # ~6 months of 9/day — else fail closed
 FETCH_START = "2000-01-01"  # whole life: a peak before 2021 is still the peak
-                            # (review: the 2021 start hid TNON-class shells)
 
 
 def _key() -> str:
@@ -77,33 +94,81 @@ def _fetch(symbol: str, start: str, end: str, key: str) -> list:
 
 def _bars(symbol: str) -> list:
     """Whole-life bars, cached per symbol and topped up incrementally.
-    Review findings fixed here: the old cache was keyed per DAY, so every
-    morning re-downloaded every symbol's entire history and left the old
-    file behind forever; and it started at 2021, amputating the life the
-    shell ban needs."""
+    Cache writes are atomic (tmp + replace) and an unreadable cache
+    self-heals by refetching — a torn write must never fail-close a
+    symbol forever."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cache = CACHE_DIR / f"{symbol}.json"
     key = _key()
-    bars = json.load(open(cache)) if cache.exists() else []
+    bars = []
+    if cache.exists():
+        try:
+            bars = json.load(open(cache))
+        except Exception:  # noqa: BLE001 — torn cache: refetch, never wedge
+            bars = []
+
+    def _day(b: dict) -> str:
+        return datetime.fromtimestamp(
+            b["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+
+    dirty = False
     if bars:
-        last_day = datetime.fromtimestamp(
-            bars[-1]["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
-        if last_day < today:
-            fresh = _fetch(symbol, last_day, today, key)
-            last_t = bars[-1]["t"]
-            bars.extend(b for b in fresh if b["t"] > last_t)
-            json.dump(bars, open(cache, "w"))
+        # Always rebuild the tail from the final cached DAY (a same-day
+        # cache must not freeze the spike-day facts — review defect 4),
+        # keeping only completed prior days; then verify the adjusted
+        # price BASIS on an overlap bar before extending. A corporate
+        # action (reverse split) re-bases the whole history at fetch
+        # time; a cache stitched across bases silently erodes the
+        # suicide-pill ban in exactly the class it exists for (review
+        # defect 3). Basis mismatch -> discard cache, refetch the life.
+        tail_day = _day(bars[-1])
+        keep = [b for b in bars if _day(b) < tail_day]
+        if keep:
+            fetch_from = _day(keep[-1])
+            fresh = _fetch(symbol, fetch_from, today, key)
+            last_t = keep[-1]["t"]
+            overlap = [b for b in fresh if b["t"] == last_t]
+            same_basis = bool(overlap) and float(keep[-1]["c"]) > 0 and abs(
+                float(overlap[0]["c"]) / float(keep[-1]["c"]) - 1) < 1e-6
+            if same_basis:
+                keep.extend(b for b in fresh if b["t"] > last_t)
+                bars = keep
+            else:
+                bars = _fetch(symbol, FETCH_START, today, key)
+        else:
+            bars = _fetch(symbol, FETCH_START, today, key)
+        dirty = True
     else:
         bars = _fetch(symbol, FETCH_START, today, key)
-        json.dump(bars, open(cache, "w"))
-    for stale in CACHE_DIR.glob(f"{symbol}_2*.json"):  # old per-day cache files
+        dirty = True
+    if dirty:
+        tmp = cache.with_suffix(f".json.tmp{os.getpid()}")
+        json.dump(bars, open(tmp, "w"))
+        os.replace(tmp, cache)
+    for stale in CACHE_DIR.glob(f"{symbol}_2*.json"):  # old per-day caches
         stale.unlink(missing_ok=True)
     return bars
 
 
-def read_symbol(symbol: str) -> dict:
-    """Full-life reading + verdict. Fail closed on anything."""
+def _refuse(symbol: str, law: str, provenance: str, rule: str,
+            facts: dict | None = None) -> dict:
+    out = {"symbol": symbol, "verdict": "REFUSE", "law": law,
+           "provenance": provenance, "rule": rule,
+           "laws_version": LAWS_VERSION}
+    if facts is not None:
+        out["facts"] = facts
+    return out
+
+
+def read_symbol(symbol: str, as_of: str | None = None) -> dict:
+    """Whole-life reading + layered verdict. Fails closed on anything.
+
+    The returned dict always carries the full facts (the reading) when
+    the chain ran; `law` names which law in force decided a REFUSE.
+    `as_of` (YYYY-MM-DD) truncates the life to that completed day — for
+    receipts at a past decision instant, never for live verdicts.
+    """
     try:
         bars = _bars(symbol)
         rows = []
@@ -113,12 +178,16 @@ def read_symbol(symbol: str) -> dict:
             et = dt - timedelta(hours=off)
             hm = et.hour * 60 + et.minute
             if 9 * 60 + 30 <= hm < 16 * 60 and et.weekday() < 5:
-                rows.append((dt, float(b["c"]), float(b["v"]),
-                             et.strftime("%Y-%m-%d")))
+                day = et.strftime("%Y-%m-%d")
+                if as_of is not None and day > as_of:
+                    continue
+                rows.append((dt, float(b["c"]), float(b["v"]), day))
         if len(rows) < MIN_READINGS:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "fail-closed: insufficient life "
-                            f"({len(rows)} readings)"}
+            out = _refuse(symbol, "fail-closed", "custody",
+                          f"insufficient life ({len(rows)} readings): "
+                          "the unreadable is never traded")
+            out["readings"] = len(rows)
+            return out
         states = replay_symbol_v2(
             np.array([r[0] for r in rows]),
             np.array([r[1] for r in rows]),
@@ -126,59 +195,51 @@ def read_symbol(symbol: str) -> dict:
         c = np.array([r[1] for r in rows])
         R = np.array([s.URF if s is not None else np.nan for s in states])
         D = np.array([s.D_k if s is not None else 0 for s in states])
+        REV = np.array([s.Rev_k if s is not None else 0 for s in states])
         ext = np.array([1 if (s is not None and s.extinction) else 0
                         for s in states])
         T = len(rows) - 1
         yrs = T / 2260
         peak = float(c[:T].max())
-        crush = peak / c[T] if c[T] > 0 else 999.0
-        deaths_yr = float(ext.sum()) / max(0.1, yrs)
+        crush = peak / c[T] if c[T] > 0 else 999999.0
+        deaths_life = int(ext.sum())
+        deaths_yr = float(deaths_life) / max(0.1, yrs)
         deaths_2wk = int(ext[T - 90:T].sum())
+        deaths_prior_2wk = int(ext[T - 180:T - 90].sum())
         push_up = float((D[T - 45:T + 1] == 1).mean())
-        day_closes = {}
+        # standing push: run length of the current D_k sign at T
+        d_now = int(D[T])
+        push_run = 0
+        for i in range(T, -1, -1):
+            if int(D[i]) == d_now:
+                push_run += 1
+            else:
+                break
+        rev_recent = int(REV[T - 45:T + 1].sum())
+        W_alive = min(256, T - 60)
+        alive = (R[T - W_alive + 1:T + 1] > 0).astype(float)
+        b_health = float(alive.mean() * 2 - 1)
+        day_closes: dict[str, float] = {}
         for i, r in enumerate(rows):
             day_closes[r[3]] = c[i]
         last6 = list(day_closes.values())[-6:]
         up_sessions = sum(1 for a, b2 in zip(last6, last6[1:]) if b2 > a)
-        W = min(256, T - 60)
-        alive = (R[T - W + 1:T + 1] > 0).astype(float)
-        b_health = float(alive.mean() * 2 - 1)
         dw = D[T - 63:T + 1]
         lock = abs(int((dw == 1).sum()) - int((dw == -1).sum())) / max(
             1, int((dw == 1).sum()) + int((dw == -1).sum()))
         vv = np.array([r[2] for r in rows], dtype=float)
         dollar = c * vv
-        # Review finding: the old code kept only the LAST bar of each day,
-        # calling ~1/9 of the day's traded money the whole day and making
-        # the fillability law ~9x too strict. A day is the SUM of its bars.
-        day_dollar = {}
+        day_dollar: dict[str, float] = {}
         for i, r in enumerate(rows):
             day_dollar[r[3]] = day_dollar.get(r[3], 0.0) + dollar[i]
         dvals = list(day_dollar.values())
         med20_dollar = float(np.median(dvals[-21:-1])) if len(dvals) >= 21 else 0.0
-        facts = {
-            "normal_day_dollars": round(med20_dollar),
-            "life_years": round(yrs, 1), "price": round(float(c[T]), 3),
-            "life_peak": round(peak, 2), "crush": round(crush, 1),
-            "deaths_per_year": round(deaths_yr), "deaths_2wk": deaths_2wk,
-            "push_up_week": round(push_up, 2), "up_sessions_of_5": up_sessions,
-            "B_health": round(b_health, 2), "L_lock": round(lock, 2),
-        }
-        # Joseph 2026-08-19, verbatim order: "don't buy suicide pills."
-        # A stock destroyed a thousand-fold or worse (split-adjusted
-        # lifetime peak >= 1000x today's price) is a dead shell that can
-        # gap 60% overnight in the window no rule can act. Refused
-        # always, before any other consideration. Cost disclosed: this
-        # also refuses occasional winners of the same class (one in the
-        # record); Joseph priced that and ordered the ban.
-        # Joseph 2026-08-19: "can you even fill an order on a sucker bet
-        # like that" — a slice must hide inside a NORMAL day. If 1% of
-        # the normal day's traded money cannot absorb a $2,000 slice,
-        # the name is untradable at our smallest size. Refused.
+
         day_list = sorted(day_dollar.keys())
         spike_gain = 0.0
         day_low_vs_prior = 1.0
         halt_jumps = 0
+        crest_off_high = 0.0
         if len(day_list) >= 2:
             prior_day, spike_day = day_list[-2], day_list[-1]
             prior_close = None
@@ -191,66 +252,81 @@ def read_symbol(symbol: str) -> dict:
             if prior_close and spike_prices:
                 spike_gain = 100 * (spike_prices[-1] / prior_close - 1)
                 day_low_vs_prior = min(spike_prices) / prior_close
+                day_high = max(spike_prices)
+                crest_off_high = 100 * (1 - spike_prices[-1] / day_high) \
+                    if day_high > 0 else 0.0
                 for a2, b2 in zip(spike_prices, spike_prices[1:]):
                     if a2 > 0 and abs(b2 / a2 - 1) >= 0.15:
                         halt_jumps += 1
-        facts["spike_gain_pct"] = round(spike_gain, 1)
-        facts["halt_jumps"] = halt_jumps
-        # Desk floor #3 (borrow): a violent pump in a thin name has no
-        # shares to locate — the classic no-borrow class. Refused.
+
+        facts = {
+            # desk facts
+            "normal_day_dollars": round(med20_dollar),
+            "life_years": round(yrs, 1), "price": round(float(c[T]), 3),
+            "life_peak": round(peak, 2), "crush": round(crush, 1),
+            "spike_gain_pct": round(spike_gain, 1),
+            "halt_jumps": halt_jumps,
+            # Rule-4 phase objects (the reading; no law below uses a
+            # fitted boundary on these — they file, they do not veto)
+            "push_now": d_now, "push_run": push_run,
+            "push_up_week": round(push_up, 2),
+            "up_sessions_of_5": up_sessions,
+            "deaths_life": deaths_life,
+            "deaths_per_year": round(deaths_yr),
+            "deaths_2wk": deaths_2wk,
+            "deaths_prior_2wk": deaths_prior_2wk,
+            "buzz_rev_recent": rev_recent,
+            "B_health": round(b_health, 2), "L_lock": round(lock, 2),
+            "crest_off_high_pct": round(crest_off_high, 1),
+        }
+
+        # ---- laws in force, first refusal wins ----
         if med20_dollar < 500_000 and spike_gain >= 50:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "desk floor — no-borrow class (thin name, "
-                            f"+{spike_gain:.0f}% pump): nothing to locate",
-                    "facts": facts}
-        # Desk floor #5 (uptick rule): traded below -10% intraday, so
-        # short sales fill only on upticks today. Refused.
+            return _refuse(symbol, "desk-floor", "Joseph",
+                           "no-borrow class (thin name, "
+                           f"+{spike_gain:.0f}% pump): nothing to locate",
+                           facts)
         if day_low_vs_prior <= 0.90:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "desk floor — uptick restriction active "
-                            "(fell 10%+ intraday): fills degrade",
-                    "facts": facts}
-        # Desk floor #6 (halts): repeated 15%+ jumps between readings on
-        # the spike day mean halt-and-reopen trading. Refused.
+            return _refuse(symbol, "desk-floor", "Joseph",
+                           "uptick restriction active (fell 10%+ "
+                           "intraday): fills degrade", facts)
         if halt_jumps >= 2:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": f"desk floor — halt-prone ({halt_jumps} violent "
-                            "reopens today): stops cannot protect",
-                    "facts": facts}
+            return _refuse(symbol, "desk-floor", "Joseph",
+                           f"halt-prone ({halt_jumps} violent reopens "
+                           "today): stops cannot protect", facts)
         if med20_dollar < 200_000:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "Joseph's fillability law — normal day trades "
-                            f"${med20_dollar:,.0f}; a $2k slice cannot hide",
-                    "facts": facts}
+            return _refuse(symbol, "fillability", "Joseph",
+                           f"normal day trades ${med20_dollar:,.0f}; "
+                           "a $2k slice cannot hide", facts)
         if crush >= 1000:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "Joseph's ban — destroyed shell (lifetime peak "
-                            f"{crush:,.0f}x today's price): never traded",
-                    "facts": facts}
-        sound = (yrs >= 2 and c[T] >= 0.5 * peak and crush < 4)
-        charging = (crush >= 4 and deaths_2wk <= 2 and deaths_yr >= 30
-                    and (push_up >= 0.5 or up_sessions >= 3))
-        if sound:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "Rule 3 — sound structure, never a short",
-                    "facts": facts}
-        if charging:
-            return {"symbol": symbol, "verdict": "REFUSE",
-                    "rule": "Rules 4+5 — drained vehicle, rehearsal floor "
-                            "clean, loading: the killer launch shape",
-                    "facts": facts}
+            return _refuse(symbol, "suicide-pill-ban", "Joseph",
+                           f"destroyed shell (lifetime peak {crush:,.0f}x "
+                           "today's price): never traded", facts)
+        if yrs >= 2 and c[T] >= 0.5 * peak and crush < 4:
+            return _refuse(symbol, "sound-structure", "Joseph",
+                           "sound structure, never a short "
+                           "(cost replay owed, principle stands)", facts)
         return {"symbol": symbol, "verdict": "ALLOW",
-                "rule": "no rule refuses; caps, cut line and clock govern",
-                "facts": facts}
+                "law": "none-in-force",
+                "provenance": "Rule 10",
+                "rule": "no law in force refuses; caps, cut line, clock "
+                        "and premarket pass govern; reading filed",
+                "laws_version": LAWS_VERSION, "facts": facts}
     except Exception as err:  # noqa: BLE001 — fail closed, always
-        return {"symbol": symbol, "verdict": "REFUSE",
-                "rule": f"fail-closed: {type(err).__name__}: {err}"}
+        return _refuse(symbol, "fail-closed", "custody",
+                       f"{type(err).__name__}: {err}")
+
+
+# laws whose refusal of a HELD position also cuts it (deterministic
+# structure laws only — desk-floor/fillability describe the entry day's
+# tape and do not govern an already-open position; transient fail-closed
+# errors never cut anything)
+HOLDING_CUT_LAWS = {"suicide-pill-ban", "sound-structure"}
+UNREADABLE_RULE_PREFIX = "insufficient life"
 
 
 def _todays_sheets(day: str) -> dict:
-    """Verdicts already filed today by EITHER channel. A reading is
-    channel-independent physics, so one stock is read once per day
-    (review finding: gate() re-read every symbol on every call)."""
+    """Verdicts already filed today by EITHER channel."""
     merged = {}
     for sheet in sorted(READINGS_DIR.glob(f"*_ENTRY_READINGS_{day}.json")):
         try:
@@ -258,6 +334,14 @@ def _todays_sheets(day: str) -> dict:
         except Exception:  # noqa: BLE001 — a bad sheet never blocks reading
             continue
     return merged
+
+
+def _file_sheet(sheet_path: Path, out: dict) -> None:
+    existing = json.load(open(sheet_path)) if sheet_path.exists() else {}
+    existing.update(out)
+    tmp = sheet_path.with_suffix(f".json.tmp{os.getpid()}")
+    json.dump(existing, open(tmp, "w"), indent=1)
+    os.replace(tmp, sheet_path)
 
 
 def gate(symbols: list, channel: str) -> dict:
@@ -271,16 +355,40 @@ def gate(symbols: list, channel: str) -> dict:
     for s in symbols:
         s = str(s)
         prior = done.get(s)
-        if prior and not str(prior.get("rule", "")).startswith("fail-closed"):
+        if prior and prior.get("laws_version") == LAWS_VERSION \
+                and prior.get("law") != "fail-closed":
             out[s] = prior
         else:
             out[s] = read_symbol(s)
-    sheet = READINGS_DIR / f"{channel}_ENTRY_READINGS_{day}.json"
-    existing = json.load(open(sheet)) if sheet.exists() else {}
-    existing.update(out)
-    tmp = sheet.with_suffix(".json.tmp")
-    json.dump(existing, open(tmp, "w"), indent=1)
-    os.replace(tmp, sheet)
+    _file_sheet(READINGS_DIR / f"{channel}_ENTRY_READINGS_{day}.json", out)
     for s, v in out.items():
         print(f"  [reading] {s}: {v['verdict']} — {v['rule']}")
     return out
+
+
+def read_holdings(symbols: list, channel: str) -> dict:
+    """Daily holdings governance reading: file the sheet, return
+    {sym: verdict-dict}. A held position is cut by its engine when a
+    law in HOLDING_CUT_LAWS refuses it, or when it is unreadable
+    (deterministic insufficient-life — a book does not hold what it
+    cannot read). Transient errors cut nothing and are reported."""
+    READINGS_DIR.mkdir(parents=True, exist_ok=True)
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    out = {str(s): read_symbol(str(s)) for s in symbols}
+    _file_sheet(READINGS_DIR / f"{channel}_HOLDINGS_READING_{day}.json", out)
+    for s, v in out.items():
+        print(f"  [holding] {s}: {v['verdict']} — {v['rule']}")
+    return out
+
+
+def holding_cut_reason(verdict: dict) -> str | None:
+    """Return the cut reason for a held position, or None to keep.
+    Structure laws only — the unreadable (insufficient-life) case is
+    governed by the engine's own two-day rule, because for a holding
+    that once proved readable it can also be a data regression."""
+    if verdict.get("verdict") != "REFUSE":
+        return None
+    law = str(verdict.get("law", ""))
+    if law in HOLDING_CUT_LAWS:
+        return f"RULES-CUT {law}"
+    return None

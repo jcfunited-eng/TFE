@@ -1,5 +1,5 @@
 {
- "ran_at_utc": "2026-08-17T16:49:26.571745+00:00",
+ "ran_at_utc": "2026-08-18T21:38:38.153810+00:00",
  "object_events": 18603,
  "kill_threshold_pctl": 5.0,
  "samples": {
@@ -11,10 +11,10 @@
    "broken": false
   },
   "harvest_engine_v3": {
-   "n_closures": 6,
-   "live_mean_pct": -12.525,
+   "n_closures": 16,
+   "live_mean_pct": -7.98,
    "object_mean_pct": 1.264,
-   "live_mean_percentile": 5.2,
+   "live_mean_percentile": 5.07,
    "broken": false
   }
  },
