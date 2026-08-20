@@ -161,6 +161,35 @@ def _refuse(symbol: str, law: str, provenance: str, rule: str,
     return out
 
 
+TYPES_CACHE = ROOT / "artifacts" / "ch6_harvest" / "ticker_types.json"
+OPERATING_TYPES = {"CS", "ADRC"}  # common stock and ADR common — living
+                                  # companies; everything else is the
+                                  # zombie category (Joseph 2026-08-20)
+
+
+def _ticker_type(symbol: str) -> str:
+    """Identity from the reference registry, cached forever per symbol."""
+    cache = {}
+    if TYPES_CACHE.exists():
+        try:
+            cache = json.load(open(TYPES_CACHE))
+        except Exception:  # noqa: BLE001 — torn cache refetches
+            cache = {}
+    if symbol in cache:
+        return str(cache[symbol])
+    url = (f"https://api.polygon.io/v3/reference/tickers?ticker={symbol}"
+           f"&apiKey={_key()}")
+    data = json.load(urllib.request.urlopen(url, timeout=30))
+    results = data.get("results") or []
+    ttype = str(results[0].get("type", "UNKNOWN")) if results else "UNKNOWN"
+    cache[symbol] = ttype
+    TYPES_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = TYPES_CACHE.with_suffix(f".json.tmp{os.getpid()}")
+    json.dump(cache, open(tmp, "w"))
+    os.replace(tmp, TYPES_CACHE)
+    return ttype
+
+
 def read_symbol(symbol: str, as_of: str | None = None) -> dict:
     """Whole-life reading + layered verdict. Fails closed on anything.
 
@@ -170,6 +199,13 @@ def read_symbol(symbol: str, as_of: str | None = None) -> dict:
     receipts at a past decision instant, never for live verdicts.
     """
     try:
+        ttype = _ticker_type(symbol)
+        if ttype not in OPERATING_TYPES:
+            return _refuse(symbol, "zombie-fund", "Joseph",
+                           f"not an operating company (type {ttype}): "
+                           "funds and baskets are the zombie category — "
+                           "moving tape with no life underneath, never "
+                           "a harvest short")
         bars = _bars(symbol)
         rows = []
         for b in bars:

@@ -57,11 +57,12 @@ ENGINE = "ch6_fast_harvest_v3"
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
-# Joseph 2026-08-19: $100k book, $1,000/day target. Position sizes to
-# the target slice, capped by his fillability law (1% of the entity's
-# normal-day money) and by cash. Entities whose normal day cannot
-# absorb the FLOOR are refused (unchanged law).
-SLICE_TARGET_USD = 60_000.0
+# Joseph 2026-08-20: concentration is stupid unnecessary risk once
+# the pool is visible — spread across the best-ranked names. $20k per
+# entity, up to five entities a night, capped by the fillability law
+# (1% of normal-day money) and by cash. $100k book, $1,000/day target.
+SLICE_TARGET_USD = 20_000.0
+MAX_ENTRIES_PER_NIGHT = 5
 SLICE_FLOOR_USD = 2_000.0
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
@@ -389,8 +390,8 @@ def hunt(dry: bool = False) -> None:
                 return (_money.get(cfg, -1e9), _interior(cfg))
 
             events.sort(key=_rank, reverse=True)
-            dropped = events[2:]
-            events = events[:2]
+            dropped = events[MAX_ENTRIES_PER_NIGHT:]
+            events = events[:MAX_ENTRIES_PER_NIGHT]
             for ev0 in dropped:
                 print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
                       "than the night's best two — cherry-pick law")
