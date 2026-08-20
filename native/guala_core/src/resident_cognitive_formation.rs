@@ -1298,7 +1298,7 @@ fn declared_site_member(
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ResidentReachedCohort {
     anatomy: ReachedCohortAnatomy,
-    state: ReachedCohortState,
+    state: Arc<ReachedCohortState>,
     pending_experience: Option<ResidentExperienceEvidence>,
     retained_experience: Option<ResidentExperienceEvidence>,
     pending_recurrence: Option<ResidentRecurrenceEvidence>,
@@ -1319,8 +1319,8 @@ struct ResidentExperienceEvidence {
     /// Persistence representation only. Untouched restored evidence retains
     /// its exact bytes; any subsequent physical mutation advances it to V4.
     codec: ExperienceEvidenceCodec,
-    pre_experience_rest: ReachedCohortState,
-    post_experience_rest: Option<ReachedCohortState>,
+    pre_experience_rest: Arc<ReachedCohortState>,
+    post_experience_rest: Option<Arc<ReachedCohortState>>,
     gate_work_perturbed_neurons: Box<[bool]>,
     receptor_excitation_zeptojoules: Box<[Option<ExactRational>]>,
     /// Neurons whose own retained coordinates changed during this occurrence.
@@ -2967,7 +2967,7 @@ impl ResidentCognitiveFormationState {
             }
             cohorts.push(ResidentReachedCohort {
                 anatomy,
-                state,
+                state: state.into(),
                 pending_experience: None,
                 retained_experience: None,
                 pending_recurrence: None,
@@ -3057,17 +3057,18 @@ impl ResidentCognitiveFormationState {
             };
             let correct_evidence = |evidence: &ResidentExperienceEvidence| {
                 let mut corrected = evidence.clone();
-                corrected.pre_experience_rest = correct_state(&evidence.pre_experience_rest)?;
+                corrected.pre_experience_rest =
+                    correct_state(&evidence.pre_experience_rest)?.into();
                 corrected.post_experience_rest = evidence
                     .post_experience_rest
                     .as_ref()
-                    .map(&correct_state)
+                    .map(|state| correct_state(state).map(Arc::new))
                     .transpose()?;
                 Ok::<_, FormationError>(corrected)
             };
             cohorts.push(ResidentReachedCohort {
                 anatomy: cohort.anatomy.clone(),
-                state: correct_state(&cohort.state)?,
+                state: correct_state(&cohort.state)?.into(),
                 // Adding the same omitted virgin material to both endpoints
                 // preserves every lived physical delta and every causal flag.
                 pending_experience: cohort
@@ -3979,7 +3980,7 @@ impl ResidentCognitiveFormationState {
                         index,
                         Some(ResidentReachedCohort {
                             anatomy: reached_anatomy,
-                            state: reached_state,
+                            state: reached_state.into(),
                             pending_experience: None,
                             retained_experience: None,
                             pending_recurrence: None,
@@ -5401,12 +5402,15 @@ impl ResidentCognitiveFormationState {
             .into_iter()
             .flatten()
             {
-                evidence.pre_experience_rest =
+                evidence.pre_experience_rest = Arc::new(
                     widen_reached_cohort_state_contacts(&anatomy, &evidence.pre_experience_rest)
-                        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                        .map_err(FormationError::PhysicalSettlementUnavailable)?,
+                );
                 if let Some(post) = evidence.post_experience_rest.as_mut() {
-                    *post = widen_reached_cohort_state_contacts(&anatomy, post)
-                        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                    *post = Arc::new(
+                        widen_reached_cohort_state_contacts(&anatomy, post)
+                            .map_err(FormationError::PhysicalSettlementUnavailable)?,
+                    );
                 }
                 evidence.active_electrical_contacts =
                     extend_contact_mask(&evidence.active_electrical_contacts, added)?;
@@ -5416,7 +5420,7 @@ impl ResidentCognitiveFormationState {
                     extend_contact_mask(&recurrence.active_recurrence_contacts, added)?;
             }
             cohort.anatomy = anatomy;
-            cohort.state = state;
+            cohort.state = state.into();
         }
         let successor = Self {
             generation: source_generation,
@@ -6356,7 +6360,7 @@ impl ResidentCognitiveFormationState {
                 decode_optional_recurrence_evidence(bytes, &mut cursor, &anatomy)?;
             cohorts.push(ResidentReachedCohort {
                 anatomy,
-                state,
+                state: state.into(),
                 pending_experience,
                 retained_experience,
                 pending_recurrence,
@@ -6578,13 +6582,15 @@ fn extend_resident_cohort_evidence(
         .get(predecessor_neuron_count..)
         .ok_or(FormationError::NoncanonicalState)?;
     let extend_experience = |evidence: &mut ResidentExperienceEvidence| {
-        evidence.pre_experience_rest = extend_reached_cohort_state_with_genesis(
-            predecessor_anatomy,
-            &evidence.pre_experience_rest,
-            &successor_anatomy,
-            genesis_states,
-        )
-        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        evidence.pre_experience_rest = Arc::new(
+            extend_reached_cohort_state_with_genesis(
+                predecessor_anatomy,
+                &evidence.pre_experience_rest,
+                &successor_anatomy,
+                genesis_states,
+            )
+            .map_err(FormationError::PhysicalSettlementUnavailable)?,
+        );
         evidence.post_experience_rest = evidence
             .post_experience_rest
             .as_ref()
@@ -6595,6 +6601,7 @@ fn extend_resident_cohort_evidence(
                     &successor_anatomy,
                     genesis_states,
                 )
+                .map(Arc::new)
                 .map_err(FormationError::PhysicalSettlementUnavailable)
             })
             .transpose()?;
@@ -6631,7 +6638,7 @@ fn extend_resident_cohort_evidence(
         recurrence.physically_changed_neurons = changed.into_boxed_slice();
     }
     cohort.anatomy = successor_anatomy;
-    cohort.state = successor_state;
+    cohort.state = successor_state.into();
     Ok(())
 }
 
@@ -6662,11 +6669,11 @@ fn extend_resident_cohort_positional_fabrics(
         Ok::<ReachedCohortState, FormationError>(derived_state)
     };
     let extend_experience = |evidence: &mut ResidentExperienceEvidence| {
-        evidence.pre_experience_rest = extend_state(&evidence.pre_experience_rest)?;
+        evidence.pre_experience_rest = extend_state(&evidence.pre_experience_rest)?.into();
         evidence.post_experience_rest = evidence
             .post_experience_rest
             .as_ref()
-            .map(extend_state)
+            .map(|state| extend_state(state).map(Arc::new))
             .transpose()?;
         Ok::<(), FormationError>(())
     };
@@ -6677,7 +6684,7 @@ fn extend_resident_cohort_positional_fabrics(
         extend_experience(evidence)?;
     }
     cohort.anatomy = successor_anatomy;
-    cohort.state = successor_state;
+    cohort.state = successor_state.into();
     Ok(())
 }
 
@@ -6705,7 +6712,7 @@ fn settle_resident_physical_interval(
             input.interval_microseconds(),
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        cohort.state = successor;
+        cohort.state = successor.into();
         let perturbed = pre_metabolic_state
             .neurons()
             .iter()
@@ -6790,10 +6797,11 @@ fn settle_resident_original_interval(
     let predecessor_state = cohort.state.clone();
     let settlement = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let successor_state = Arc::new(settlement.successor);
     let retained_change_this_interval = predecessor_state
         .neurons()
         .iter()
-        .zip(settlement.successor.neurons())
+        .zip(successor_state.neurons())
         .enumerate()
         .map(|(neuron_index, (predecessor, successor))| {
             sparse_retained_physical_state_delta(predecessor, successor)
@@ -6814,7 +6822,7 @@ fn settle_resident_original_interval(
     let mut physically_changed_neurons = predecessor_state
         .neurons()
         .iter()
-        .zip(settlement.successor.neurons())
+        .zip(successor_state.neurons())
         .map(|(predecessor, successor)| predecessor != successor)
         .collect::<Vec<_>>();
     or_bits(
@@ -6867,7 +6875,7 @@ fn settle_resident_original_interval(
             emitted.extend(emit_newly_quiescent_neuron_fractals(
                 &cohort.anatomy,
                 &mut experience,
-                &settlement.successor,
+                &successor_state,
                 &retained_change_this_interval,
             )?);
         }
@@ -6883,7 +6891,7 @@ fn settle_resident_original_interval(
                 if *settled
                     && sparse_retained_physical_state_delta(
                         &experience.pre_experience_rest.neurons()[neuron_index],
-                        &settlement.successor.neurons()[neuron_index],
+                        &successor_state.neurons()[neuron_index],
                     )
                     .map_err(|error| {
                         FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
@@ -6923,10 +6931,10 @@ fn settle_resident_original_interval(
                 completed_current_fractals = Some(retained_physical_deltas(
                     &cohort.anatomy,
                     &experience.pre_experience_rest,
-                    &settlement.successor,
+                    &successor_state,
                     &experience.retentively_settled_neurons,
                 )?);
-                experience.post_experience_rest = Some(settlement.successor.clone());
+                experience.post_experience_rest = Some(successor_state.clone());
                 cohort.retained_experience = Some(experience);
                 cohort.pending_experience = None;
             } else {
@@ -6943,7 +6951,7 @@ fn settle_resident_original_interval(
     } else {
         cohort.pending_experience = None;
     }
-    cohort.state = settlement.successor;
+    cohort.state = successor_state;
     let mut mosaic_resolutions = Vec::new();
     let mut partial_cue_reassembly_count = 0usize;
     let mut recognized_endogenously = false;
@@ -7042,7 +7050,7 @@ fn emit_newly_quiescent_neuron_fractals(
 fn advance_recurrent_neuronal_experience(
     anatomy: &ReachedCohortAnatomy,
     pending: &mut Option<ResidentExperienceEvidence>,
-    predecessor: &ReachedCohortState,
+    predecessor: &Arc<ReachedCohortState>,
     successor: &ReachedCohortState,
     retained_change_this_interval: &[bool],
     gate_work_perturbed_neurons: &[bool],
@@ -7157,11 +7165,12 @@ fn settle_resident_recurrence_interval(
     let recurrence_predecessor = cohort.state.clone();
     let actual = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let successor_state = Arc::new(actual.successor);
     let partial_cue_reassembly_count = 0;
     let retained_change_this_interval = recurrence_predecessor
         .neurons()
         .iter()
-        .zip(actual.successor.neurons())
+        .zip(successor_state.neurons())
         .enumerate()
         .map(|(neuron_index, (predecessor, successor))| {
             sparse_retained_physical_state_delta(predecessor, successor)
@@ -7178,20 +7187,20 @@ fn settle_resident_recurrence_interval(
     let physically_changed_neurons = recurrence_predecessor
         .neurons()
         .iter()
-        .zip(actual.successor.neurons())
+        .zip(successor_state.neurons())
         .map(|(predecessor, successor)| predecessor != successor)
         .collect::<Vec<_>>();
     let emitted_neuron_fractals = advance_recurrent_neuronal_experience(
         &cohort.anatomy,
         &mut cohort.pending_experience,
         &recurrence_predecessor,
-        &actual.successor,
+        &successor_state,
         &retained_change_this_interval,
         &gate_work_perturbed_neurons,
         &receptor_excitation_zeptojoules,
         &active_contacts,
     )?;
-    cohort.state = actual.successor.clone();
+    cohort.state = successor_state;
     let formation_locally_settled = {
         let retained = cohort
             .retained_experience
@@ -7316,7 +7325,7 @@ fn settle_resident_recurrence_interval(
     let actual_recurrence = recurrence_settlement(
         &cohort.anatomy,
         learned,
-        cohort.state.clone(),
+        cohort.state.as_ref().clone(),
         recurrence.receptor_excitation_zeptojoules.clone(),
         recurrence.gate_work_perturbed_neurons.clone(),
         recurrence.active_recurrence_contacts.clone(),
@@ -7995,8 +8004,8 @@ fn decode_experience_evidence_v2(
     }
     Ok(ResidentExperienceEvidence {
         codec,
-        pre_experience_rest,
-        post_experience_rest,
+        pre_experience_rest: pre_experience_rest.into(),
+        post_experience_rest: post_experience_rest.map(Arc::new),
         gate_work_perturbed_neurons,
         receptor_excitation_zeptojoules,
         retained_change_neurons,
@@ -8275,8 +8284,8 @@ fn decode_experience_evidence(
     };
     Ok(ResidentExperienceEvidence {
         codec: ExperienceEvidenceCodec::V1,
-        pre_experience_rest,
-        post_experience_rest,
+        pre_experience_rest: pre_experience_rest.into(),
+        post_experience_rest: post_experience_rest.map(Arc::new),
         gate_work_perturbed_neurons,
         receptor_excitation_zeptojoules: vec![None; anatomy.neuron_count()].into_boxed_slice(),
         retained_change_neurons: retained_change_neurons.into_boxed_slice(),
@@ -8753,7 +8762,7 @@ fn mount_intrinsic_neuron_at_place(
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
     cohorts.push(ResidentReachedCohort {
         anatomy: cohort_anatomy,
-        state: cohort_state,
+        state: cohort_state.into(),
         pending_experience: None,
         retained_experience: None,
         pending_recurrence: None,
@@ -8919,7 +8928,7 @@ fn mount_next_intrinsic_in_layer(
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
     cohorts.push(ResidentReachedCohort {
         anatomy: cohort_anatomy,
-        state: cohort_state,
+        state: cohort_state.into(),
         pending_experience: None,
         retained_experience: None,
         pending_recurrence: None,
@@ -10419,7 +10428,7 @@ fn settle_internal_contact_interval(
                 }
             }
         }
-        cohorts[cohort_index].state = successor;
+        cohorts[cohort_index].state = successor.into();
     }
 
     // Settlement receives only the sorted reached indices and writes only
@@ -10886,6 +10895,7 @@ fn settle_internal_contact_interval(
                 &required_positions,
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let interval_predecessor_state = Arc::new(interval_predecessor_state);
         extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
         if extended_predecessor_anatomy != cohort.anatomy {
             return Err(FormationError::NoncanonicalState);
@@ -11005,7 +11015,7 @@ fn settle_internal_contact_interval(
                     predecessor_reservoir: energetic.predecessor_reservoir,
                     successor_reservoir: energetic.successor_reservoir,
                 });
-                settlement_predecessor = energetic.successor;
+                settlement_predecessor = energetic.successor.into();
                 (delivery.gate_work, Some(delivery.successor_residue))
             } else {
                 (GateWorkOccurrence::new(BigRational::zero()), None)
@@ -11125,10 +11135,11 @@ fn settle_internal_contact_interval(
                         input,
                     )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let settlement_successor = Arc::new(settlement.successor);
         let retained_change_this_interval = interval_predecessor_state
             .neurons()
             .iter()
-            .zip(settlement.successor.neurons())
+            .zip(settlement_successor.neurons())
             .enumerate()
             .map(|(neuron_index, (predecessor, successor))| {
                 sparse_retained_physical_state_delta(predecessor, successor)
@@ -11195,7 +11206,7 @@ fn settle_internal_contact_interval(
                     cohort_fractals.extend(emit_newly_quiescent_neuron_fractals(
                         &cohort.anatomy,
                         evidence,
-                        &settlement.successor,
+                        &settlement_successor,
                         &retained_change_this_interval,
                     )?);
                 }
@@ -11208,14 +11219,14 @@ fn settle_internal_contact_interval(
                 &cohort.anatomy,
                 &mut cohort.pending_experience,
                 &interval_predecessor_state,
-                &settlement.successor,
+                &settlement_successor,
                 &retained_change_this_interval,
                 &no_gate_work,
                 &no_receptor_excitation,
                 &active_electrical_contacts,
             )?);
         }
-        cohort.state = settlement.successor;
+        cohort.state = settlement_successor;
                 let mut changed_predecessors = Vec::new();
                 for (neuron_index, predecessor_anatomy, predecessor) in predecessor_neurons {
             let successor = &cohort.state.neurons()[*neuron_index];
@@ -12435,7 +12446,8 @@ mod tests {
                 vec![receptor_neuron.state],
                 SparseElectricalState::genesis(&local_anatomy),
             )
-            .unwrap(),
+            .unwrap()
+            .into(),
             anatomy: receptor_anatomy,
             pending_experience: None,
             retained_experience: None,
@@ -14758,7 +14770,8 @@ mod tests {
                     vec![neuron.state],
                     SparseElectricalState::genesis(&sparse),
                 )
-                .unwrap(),
+                .unwrap()
+                .into(),
                 anatomy,
                 pending_experience: None,
                 retained_experience: None,
@@ -15603,7 +15616,7 @@ mod tests {
         let (restored_anatomy, restored_state) =
             decode_reached_cohort_cell(&encoded_motor).unwrap();
         assert_eq!(restored_anatomy, motor_cohort.anatomy);
-        assert_eq!(restored_state, motor_cohort.state);
+        assert_eq!(restored_state, *motor_cohort.state);
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
 
