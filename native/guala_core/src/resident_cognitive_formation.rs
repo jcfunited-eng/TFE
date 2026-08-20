@@ -4036,15 +4036,22 @@ impl ResidentCognitiveFormationState {
                 }
                 if receptor_law.is_some() || vestibular.is_some() {
                     for field_gate_index in 0..field_gate_count {
-                        let catalysts = cohort
-                            .anatomy
-                            .neuron_anatomies()
+                        let catalysts = coordinate_indices
                             .iter()
-                            .map(|anatomy| {
-                                vec![0; anatomy.recovery_anatomy().psi_lane_count()]
-                                    .into_boxed_slice()
+                            .map(|coordinate_index| {
+                                let resident_index = cohort
+                                    .anatomy
+                                    .source_site_member(&reached_source_sites[*coordinate_index])
+                                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                                Ok(vec![
+                                    0;
+                                    cohort.anatomy.neuron_anatomies()[resident_index]
+                                        .recovery_anatomy()
+                                        .psi_lane_count()
+                                ]
+                                .into_boxed_slice())
                             })
-                            .collect::<Vec<Box<[u128]>>>();
+                            .collect::<Result<Vec<Box<[u128]>>, FormationError>>()?;
                         let field_gate_interval = shared
                             .result()
                             .gates
@@ -4086,7 +4093,9 @@ impl ResidentCognitiveFormationState {
                         };
                         let mut receptor_excitation_zeptojoules =
                             vec![None; cohort.anatomy.neuron_count()];
-                        for coordinate_index in coordinate_indices.iter().copied() {
+                        for (reached_input_index, coordinate_index) in
+                            coordinate_indices.iter().copied().enumerate()
+                        {
                             let perspective = bind_neuron_perspective(
                                 &shared,
                                 coordinate_index,
@@ -4461,7 +4470,11 @@ impl ResidentCognitiveFormationState {
                                 perspective,
                                 gate_work,
                                 interval_microseconds,
-                                recovery: RecoveryContact::new(&catalysts[resident_index], 0, 0),
+                                recovery: RecoveryContact::new(
+                                    &catalysts[reached_input_index],
+                                    0,
+                                    0,
+                                ),
                                 dna_expression: DnaExpressionContact::new(0),
                                 receptor_successor_residue,
                                 prepared_psi,
