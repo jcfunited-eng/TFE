@@ -1,0 +1,112 @@
+{
+ "SWMR": {
+  "pnl": 175.61,
+  "harvest_pct": 10.9,
+  "topology": {
+   "spike_session": "2026-08-17",
+   "spike_gain_pct": 13.4,
+   "sessions_spike_to_entry": 0,
+   "entry_below_spike_top_pct": -1.7
+  },
+  "geometry": {
+   "spike_top_over_20d_base_pct": 24.2,
+   "F_n_at_entry": 2.24,
+   "URF_at_entry": 0.452,
+   "S_UF_at_entry": 0.881
+  },
+  "structure": {
+   "deaths_spike_to_entry": 0,
+   "dead_channel_readings": 0,
+   "ignitions_spike_to_entry": 0,
+   "D_sign_at_entry": -1
+  }
+ },
+ "TRIB": {
+  "pnl": 104.13,
+  "harvest_pct": 6.2,
+  "topology": {
+   "spike_session": "2026-08-10",
+   "spike_gain_pct": 8.7,
+   "sessions_spike_to_entry": 6,
+   "entry_below_spike_top_pct": -7.9
+  },
+  "geometry": {
+   "spike_top_over_20d_base_pct": 25.3,
+   "F_n_at_entry": 1.83,
+   "URF_at_entry": 0.604,
+   "S_UF_at_entry": 0.852
+  },
+  "structure": {
+   "deaths_spike_to_entry": 0,
+   "dead_channel_readings": 0,
+   "ignitions_spike_to_entry": 0,
+   "D_sign_at_entry": 1
+  }
+ },
+ "AGEN": {
+  "pnl": 93.08,
+  "harvest_pct": 3.9,
+  "topology": {
+   "spike_session": "2026-08-19",
+   "spike_gain_pct": 9.7,
+   "sessions_spike_to_entry": 1,
+   "entry_below_spike_top_pct": -10.1
+  },
+  "geometry": {
+   "spike_top_over_20d_base_pct": 23.8,
+   "F_n_at_entry": 2.53,
+   "URF_at_entry": 0.477,
+   "S_UF_at_entry": 0.777
+  },
+  "structure": {
+   "deaths_spike_to_entry": 1,
+   "dead_channel_readings": 1,
+   "ignitions_spike_to_entry": 0,
+   "D_sign_at_entry": -1
+  }
+ },
+ "ALGS": {
+  "pnl": 92.93,
+  "harvest_pct": 4.6,
+  "topology": {
+   "spike_session": "2026-08-10",
+   "spike_gain_pct": 33.3,
+   "sessions_spike_to_entry": 8,
+   "entry_below_spike_top_pct": -10.0
+  },
+  "geometry": {
+   "spike_top_over_20d_base_pct": 51.7,
+   "F_n_at_entry": 1.85,
+   "URF_at_entry": 0.607,
+   "S_UF_at_entry": 0.824
+  },
+  "structure": {
+   "deaths_spike_to_entry": 7,
+   "dead_channel_readings": 7,
+   "ignitions_spike_to_entry": 0,
+   "D_sign_at_entry": 1
+  }
+ },
+ "AIOS": {
+  "pnl": 91.67,
+  "harvest_pct": 5.7,
+  "topology": {
+   "spike_session": "2026-08-17",
+   "spike_gain_pct": 18.3,
+   "sessions_spike_to_entry": 1,
+   "entry_below_spike_top_pct": 8.1
+  },
+  "geometry": {
+   "spike_top_over_20d_base_pct": 16.6,
+   "F_n_at_entry": 2.38,
+   "URF_at_entry": 0.472,
+   "S_UF_at_entry": 0.887
+  },
+  "structure": {
+   "deaths_spike_to_entry": 0,
+   "dead_channel_readings": 0,
+   "ignitions_spike_to_entry": 0,
+   "D_sign_at_entry": -1
+  }
+ }
+}

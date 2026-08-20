@@ -1,0 +1,14 @@
+{
+ "schema": "tfe.ch6-trainers.v1",
+ "filed": "2026-08-20",
+ "source": "Joseph's order 2026-08-20: analyze the day's top banked wins topologically, structurally, geometrically; store them as trainers for future decisions.",
+ "exemplars": "ch6_trainers_20260820_raw.json (full kernel facts per winner)",
+ "winners": ["SWMR +$175.61 (+10.9%)", "TRIB +$104.13 (+6.2%)", "AGEN +$93.08 (+3.9%)", "ALGS +$92.93 (+4.6%)", "AIOS +$91.67 (+5.7%)"],
+ "the_shared_shape": {
+  "topology": "A single-session upward displacement of +8.7% to +33.3% within the last 8 sessions, standing 17% to 52% above the 20-session base. Entry at or just below the spike's top (0 to 10% below), 0-8 sessions after the spike. The harvest is the relaxation of that displacement back toward the base.",
+  "structure": "ZERO ignitions between the spike and entry — in all five. The chain never confirmed the upward displacement: the move carried no structural support, so the field had nothing to hold it up. Channel deaths optional (0 in three, 1 in AGEN, 7 in ALGS); the invariant is the absent ignition, not the deaths.",
+  "geometry": "At entry the body was intact and conducting: S_UF 0.78-0.89 (stable, not shattered), URF 0.45-0.61 (channel alive — a working channel for price to fall through), F_n 1.8-2.5 (force loaded). A dead channel is not the winning geometry; a LIVE channel under an unconfirmed displacement is."
+ },
+ "the_contrast": "Same day, the losing class: entries at the opening print into bodies already falling (BALY -7.8%, LEE, STLA). No displacement above base to relax; the morning reflex after a damage day ran against the entry. Different object entirely.",
+ "status": "TRAINER RECORD, not a law. Five receipts. The readers cite this shape; a binding entry law needs a Method Gate declaration and receipts at scale. Grading of the open five-session positions continues."
+}
