@@ -233,3 +233,46 @@ def test_public_action_consequence_does_not_export_preparation_graphs(
     assert observed["physical_frontier_route_count"] == 1
     assert observed["preceding_distinct_physical_frontier_route_count"] == 2
     assert observed["reached_and_foregone_physical_frontier_route_count"] == 4
+
+
+def test_native_action_consequence_resumes_before_the_later_source(
+    monkeypatch,
+) -> None:
+    decoded: list[bytes] = []
+
+    def restore(raw: bytes, *_extent: int) -> str:
+        decoded.append(raw)
+        return raw.decode("ascii")
+
+    monkeypatch.setattr(
+        production,
+        "restore_native_joint_source_episode",
+        restore,
+    )
+    trajectory: list[tuple[object, object, int]] = [
+        ("causal-source", ((1, 1_000),), 0),
+        ("later-source", ((1, 1_000),), 0),
+    ]
+    hop = {
+        "body_proprioceptive_sources": (b"first-consequence", b"second-consequence"),
+        "body_proprioceptive_source_extents": (
+            (7, 2, 4, 1, 2),
+            (8, 2, 4, 1, 2),
+        ),
+    }
+
+    production._insert_native_action_consequences(
+        trajectory,
+        1,
+        hop,
+        0,
+    )
+
+    assert decoded == [b"second-consequence", b"first-consequence"]
+    assert [entry[0] for entry in trajectory] == [
+        "causal-source",
+        "first-consequence",
+        "second-consequence",
+        "later-source",
+    ]
+    assert [entry[2] for entry in trajectory] == [0, 1, 1, 0]

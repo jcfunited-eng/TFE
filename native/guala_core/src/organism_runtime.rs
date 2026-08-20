@@ -2613,6 +2613,19 @@ impl ResidentOrganismRuntime {
         Ok(receipt)
     }
 
+    fn prepare_admitted_interval(
+        &mut self,
+        source: &NativeJointSourceEpisode,
+        maximum_causal_intervals: &[(i64, i64)],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        let admitted = admitted_episode_with_authored_intervals(
+            source,
+            maximum_causal_intervals,
+        )
+        .map_err(RuntimeError::CognitiveFormation)?;
+        self.prepare_typed(source, Some(&admitted), None, false)
+    }
+
     fn commit_admitted_trajectory_direct(
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
@@ -3736,11 +3749,9 @@ impl NativeResidentOrganismRuntime {
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let source = source.clone();
         let prepared = py
-            .allow_threads(|| -> Result<ResidentPrepareReceipt, RuntimeError> {
-                self.runtime.prepare_admitted_trajectory(&[(
-                    source,
-                    maximum_causal_intervals,
-                )])
+            .allow_threads(|| {
+                self.runtime
+                    .prepare_admitted_interval(&source, &maximum_causal_intervals)
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
@@ -6161,6 +6172,25 @@ mod tests {
         assert_eq!(second.observation.organism_tick, 4);
         assert_eq!(second.causal_interval_evidence.len(), 2);
         assert_eq!(second.receptor_ingress.sense_counts()[5], 74);
+    }
+
+    #[test]
+    fn admitted_interval_pauses_before_native_body_feedback() {
+        let episode = source("admitted-interval-pause");
+        let interval_count = episode.joint_source_occurrences().len();
+        let intervals = vec![(5, 1); interval_count];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+
+        let prepared = runtime
+            .prepare_admitted_interval(&episode, &intervals)
+            .unwrap();
+
+        assert_eq!(prepared.observation.organism_tick, 1);
+        assert!(prepared.causal_interval_evidence.is_empty());
+        assert_eq!(runtime.observation().organism_tick, 0);
+        runtime.commit(prepared.token).unwrap();
+        assert_eq!(runtime.observation().organism_tick, 1);
     }
 
     #[test]

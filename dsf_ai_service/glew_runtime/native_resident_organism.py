@@ -1969,18 +1969,13 @@ class NativeResidentOrganism:
         )
         intervals = _validated_causal_intervals(maximum_causal_intervals)
         active_before = self.readiness()
-        initializes_body_proprioception = not (
-            active_before.articulated_body_proprioception_initialized
-        )
-        if initializes_body_proprioception:
-            source_port_count += 74
         candidate = self.__runtime.prepare_admitted(source, intervals)
         return self._validated_prepare_evidence(
             candidate,
             source_port_count,
             active_before,
-            causal_interval_count=1 + int(initializes_body_proprioception),
-            body_feedback_reentered=True,
+            causal_interval_count=1,
+            body_feedback_reentered=False,
         )
 
     def prepare_articulated_body_observation(self) -> ResidentPrepareEvidence:

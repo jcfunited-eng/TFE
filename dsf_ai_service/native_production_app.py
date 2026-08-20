@@ -82,7 +82,10 @@ from typing import Any, Iterable, NamedTuple
 import uuid
 import wave
 
-from guala_core import auditory_gammatone_field
+from guala_core import (
+    auditory_gammatone_field,
+    settle_native_joint_source_episode as restore_native_joint_source_episode,
+)
 
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -7629,6 +7632,42 @@ def _commit_admitted_hop(
     }
 
 
+def _insert_native_action_consequences(
+    trajectory: list[tuple[Any, Any, int]],
+    resume_index: int,
+    hop: dict[str, Any],
+    parent_consequence_depth: int,
+) -> None:
+    """Insert exact native body feedback before the suspended later source."""
+
+    sources = tuple(hop["body_proprioceptive_sources"])
+    extents = tuple(hop["body_proprioceptive_source_extents"])
+    if len(sources) != len(extents):
+        raise RuntimeError("native action consequence lost cardinality")
+    consequence_depth = parent_consequence_depth + 1
+    if sources and consequence_depth > 74:
+        raise RuntimeError(
+            "native action consequence did not quiesce inside one body frontier"
+        )
+    for raw_source, extent in reversed(tuple(zip(sources, extents, strict=True))):
+        _source_tick, port_count, sample_count, occurrence_count, frame_count = extent
+        consequence = restore_native_joint_source_episode(
+            raw_source,
+            port_count,
+            sample_count,
+            occurrence_count,
+            frame_count,
+        )
+        trajectory.insert(
+            resume_index,
+            (
+                consequence,
+                [(1, 1_000)] * occurrence_count,
+                consequence_depth,
+            ),
+        )
+
+
 def _commit_vestibular_tick(
     organism: Any,
     predecessor_heading_millidegrees: int,
@@ -9116,13 +9155,15 @@ def _perform_admitted_intake_locked(
             )
             for key in totals:
                 totals[key] += last_hop[key]
-        admitted_trajectory = (
-            (
-                tuple(episode for episode, _ in episodes),
-                tuple(tuple(admissions) for _, admissions in episodes),
-            ),
-        ) if episodes else ()
-        for episode, admissions in admitted_trajectory:
+        admitted_trajectory = [
+            (episode, admissions, 0) for episode, admissions in episodes
+        ]
+        trajectory_index = 0
+        while trajectory_index < len(admitted_trajectory):
+            episode, admissions, consequence_depth = admitted_trajectory[
+                trajectory_index
+            ]
+            trajectory_index += 1
             last_hop = _commit_admitted_hop(
                 organism,
                 episode,
@@ -9191,7 +9232,7 @@ def _perform_admitted_intake_locked(
                 localized_metabolic_strain,
                 last_hop,
             )
-            committed_hop_count += len(episode)
+            committed_hop_count += int(episode.occurrence_count)
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
@@ -9213,6 +9254,12 @@ def _perform_admitted_intake_locked(
             receptor_ingress_quiescent_count += last_hop[
                 "receptor_ingress_quiescent_count"
             ]
+            _insert_native_action_consequences(
+                admitted_trajectory,
+                trajectory_index,
+                last_hop,
+                consequence_depth,
+            )
         if articulatory_unit_recruitments:
             try:
                 (
