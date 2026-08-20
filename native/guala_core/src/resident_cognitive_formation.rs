@@ -3607,9 +3607,11 @@ impl ResidentCognitiveFormationState {
             {
                 return Err(FormationError::NoncanonicalState);
             }
+            // Existing targets are addresses into the owned successor. Cloning
+            // one here duplicates the cohort's retained physical evidence.
             let mut cohort_targets: Vec<(
                 usize,
-                ResidentReachedCohort,
+                Option<ResidentReachedCohort>,
                 Vec<usize>,
                 Option<ReceptorLaw>,
             )> = Vec::new();
@@ -3756,7 +3758,7 @@ impl ResidentCognitiveFormationState {
                         } else {
                             cohort_targets.push((
                                 resident_matches[0],
-                                cohorts[resident_matches[0]].clone(),
+                                None,
                                 vec![*coordinate_index],
                                 group_receptor_law,
                             ));
@@ -3794,7 +3796,7 @@ impl ResidentCognitiveFormationState {
                     .iter()
                     .map(|admission| admission.lineage)
                     .collect::<Vec<_>>();
-                let cohort = if let Some(index) = existing_index {
+                let (target_index, new_cohort) = if let Some(index) = existing_index {
                     let additions = declared_group
                         .iter()
                         .zip(group_sites.iter())
@@ -3815,7 +3817,7 @@ impl ResidentCognitiveFormationState {
                             )
                         })
                         .collect::<Result<Vec<_>, _>>()?;
-                    let mut resident = cohorts[index].clone();
+                    let resident = &mut cohorts[index];
                     if let Some(ingress) = vestibular {
                         if !additions.is_empty() || reached_lineages.len() != 1 {
                             return Err(FormationError::VestibularUnavailable(
@@ -3833,7 +3835,7 @@ impl ResidentCognitiveFormationState {
                             .mathloom_positions()
                             .max(expected.anatomy.neuron_anatomies()[0].mathloom_positions())];
                         extend_resident_cohort_positional_fabrics(
-                            &mut resident,
+                            resident,
                             &common_positions,
                         )?;
                         let (expected_anatomy, _) = extend_reached_cohort_positional_fabrics(
@@ -3858,7 +3860,7 @@ impl ResidentCognitiveFormationState {
                         )
                         .map_err(FormationError::PhysicalSettlementUnavailable)?;
                         extend_resident_cohort_evidence(
-                            &mut resident,
+                            resident,
                             &old_anatomy,
                             extended_anatomy,
                             extended_state,
@@ -3884,7 +3886,7 @@ impl ResidentCognitiveFormationState {
                     {
                         return Err(FormationError::NeuronLineageAuthorityChanged);
                     }
-                    resident
+                    (index, None)
                 } else {
                     let seed_index = unexpressed_electrical_seeds
                         .iter()
@@ -3969,27 +3971,35 @@ impl ResidentCognitiveFormationState {
                             seed.matches_port(reached_sources[*coordinate_index].1)
                         })
                     });
-                    ResidentReachedCohort {
-                        anatomy: reached_anatomy,
-                        state: reached_state,
-                        pending_experience: None,
-                        retained_experience: None,
-                        pending_recurrence: None,
-                    }
-                };
-                let target_index = existing_index.unwrap_or_else(|| {
                     let index = next_new_cohort_index;
-                    next_new_cohort_index += 1;
-                    index
-                });
+                    next_new_cohort_index = next_new_cohort_index
+                        .checked_add(1)
+                        .ok_or(FormationError::ArithmeticOverflow)?;
+                    (
+                        index,
+                        Some(ResidentReachedCohort {
+                            anatomy: reached_anatomy,
+                            state: reached_state,
+                            pending_experience: None,
+                            retained_experience: None,
+                            pending_recurrence: None,
+                        }),
+                    )
+                };
                 cohort_targets.push((
                     target_index,
-                    cohort,
+                    new_cohort,
                     declared_group.clone(),
                     group_receptor_law,
                 ));
             }
-            for (cohort_index, mut cohort, coordinate_indices, receptor_law) in cohort_targets {
+            for (cohort_index, mut new_cohort, coordinate_indices, receptor_law) in cohort_targets {
+                let cohort = match new_cohort.as_mut() {
+                    Some(cohort) => cohort,
+                    None => cohorts
+                        .get_mut(cohort_index)
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+                };
                 let field_gate_count = if vestibular.is_some() {
                     1
                 } else {
@@ -4021,7 +4031,7 @@ impl ResidentCognitiveFormationState {
                                 );
                         }
                     }
-                    extend_resident_cohort_positional_fabrics(&mut cohort, &required_positions)?;
+                    extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
                 }
                 if receptor_law.is_some() || vestibular.is_some() {
                     for field_gate_index in 0..field_gate_count {
@@ -4498,7 +4508,7 @@ impl ResidentCognitiveFormationState {
                         }
                         let interval_predecessor_neurons = cohort.state.neurons().to_vec();
                         let outcome = settle_resident_physical_interval(
-                            &mut cohort,
+                            cohort,
                             input,
                             gate_work_perturbed_neurons,
                             receptor_excitation_zeptojoules,
@@ -4633,9 +4643,10 @@ impl ResidentCognitiveFormationState {
                             .push((lineage, cohort.anatomy.mounts()[resident_index].place()));
                     }
                 }
-                if cohort_index < cohorts.len() {
-                    cohorts[cohort_index] = cohort;
-                } else {
+                if let Some(cohort) = new_cohort {
+                    if cohort_index != cohorts.len() {
+                        return Err(FormationError::NoncanonicalState);
+                    }
                     cohorts.push(cohort);
                 }
             }
