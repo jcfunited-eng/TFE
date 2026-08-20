@@ -57,21 +57,21 @@ ENGINE = "ch6_fast_harvest_v3"
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
-# Joseph 2026-08-20: concentration is stupid unnecessary risk once
-# the pool is visible — spread across the best-ranked names. $20k per
-# entity, up to five entities a night, capped by the fillability law
-# (1% of normal-day money) and by cash. $100k book, $1,000/day target.
-SLICE_TARGET_USD = 20_000.0
-MAX_ENTRIES_PER_NIGHT = 5
+# Joseph 2026-08-20 (final): $2,500 is the highest you need to go —
+# tiny per-name risk, wide spread, selection quality over size. Up to
+# thirty entities a night as supply allows, capped by the fillability
+# law (1% of normal-day money) and by cash.
+SLICE_TARGET_USD = 2_500.0
+MAX_ENTRIES_PER_NIGHT = 30
 SLICE_FLOOR_USD = 2_000.0
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
 HARVEST_PCT = 5.0   # intraday arm level (trail unchanged)
 SWEEP_PCT = 2.0     # Joseph's fast-cash law: end-of-day bank at 2%+
-                    # — switched ON per the filed coupled decision:
-                    # it pays when cash binds, and at $60k slices on
-                    # a $100k book, cash binds (study on file:
-                    # ch6_fast_cash_laws.json)
+                    # — switched ON per the filed coupled decision
+                    # (ch6_fast_cash_laws.json): it pays when cash binds,
+                    # and with dozens of positions working, cash binds.
+                    
 GIVEBACK_PP = 1.0
 ANOMALY_STOP_PCT = 20.0
 HOLD_SESSIONS = 5

@@ -89,7 +89,7 @@ const CHANNEL_META: Record<ChannelCode, { title: string; rules: string[] }> = {
     rules: [
       "Simulated short channel; no real orders.",
       "Reduced entry projection: completed-close gain of at least 8%, volume at least 3× the preceding 20-session mean, price at least $5, and an explicit same-day gband=0 herd reading. Missing herd coverage is unknown and refused.",
-      "Positions size to $20,000 per entity, up to five entities a night best-ranked first, capped at 1% of each entity's normal-day traded money and by cash. Operating companies only — funds and baskets are the zombie category and are refused. Winners arm at +5% and trail one percentage point from their best observed mark; the end-of-day sweep banks anything at +2% or better (the fast-cash law); the fifth completed session is the backstop.",
+      "Positions size to $2,500 per entity maximum, best-ranked first across as many entities as supply and cash allow, capped at 1% of each entity's normal-day traded money. Operating companies only — funds and baskets are the zombie category and are refused. Winners arm at +5% and trail one percentage point from their best observed mark; the end-of-day sweep banks anything at +2% or better (the fast-cash law); the fifth completed session is the backstop.",
       "The anomaly-cut trigger is checked at every five-minute mark and completed-close settlement. Marks and gaps can cross 20%, so the level is a trigger rather than a guaranteed realized-loss ceiling.",
       "After an anomaly cut, the symbol remains refuted until a later completed daily close returns to or below the original entry. The cut bar cannot be re-entered. Borrow costs are not modeled.",
     ],
