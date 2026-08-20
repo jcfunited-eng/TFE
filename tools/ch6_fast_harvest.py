@@ -396,48 +396,43 @@ def hunt(dry: bool = False) -> None:
                 print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
                       "than the night's best two — cherry-pick law")
 
+    # Joseph 2026-08-20: decide on tonight's close, PURCHASE at the next
+    # session's prints. Decisions stage here; fills happen at the first
+    # live mark after the next open (poll path), at prices that actually
+    # existed to be sold short. No cash moves at staging.
     opened = 0
+    staged: list[dict] = []
     for event in events:
         symbol = str(event["symbol"])
-        if symbol in positions(book) or float(book["cash"]) < SLICE_FLOOR_USD:
+        if symbol in positions(book):
             continue
         normal_day = float(event.get("normal_day_dollars", 0.0))
         # fail CLOSED on unknown liquidity: without a finite positive
         # normal-day figure the 1% law cannot be applied, so no entry
-        # (Rule 11 finding: zero/NaN silently skipped the cap at $60k)
         if not (np.isfinite(normal_day) and normal_day > 0):
             print(f"  REFUSE {symbol}: normal-day money unknown "
                   f"({normal_day!r}) — the fillability law cannot size it")
             continue
-        slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
-                        0.01 * normal_day)
-        if slice_usd < SLICE_FLOOR_USD:
+        if 0.01 * normal_day < SLICE_FLOOR_USD:
             print(f"  REFUSE {symbol}: 1% of its normal day "
                   f"(${normal_day:,.0f}) cannot absorb even the "
                   f"${SLICE_FLOOR_USD:,.0f} floor — unfillable")
             continue
-        px = round(float(event["close"]), 4)
-        shares = int(slice_usd // px)
-        if shares < 1:
-            continue
-        notional = round(shares * px, 2)
+        entry = {"symbol": symbol, "decided_date": latest_s,
+                 "decided_close": round(float(event["close"]), 4),
+                 "decided_at": now,
+                 "normal_day_dollars": normal_day}
         if dry:
-            print(f"  WOULD SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
+            print(f"  WOULD STAGE {symbol} @ close {event['close']} "
+                  f"(+{event['gain']}% day) for the next session's open")
             opened += 1
             continue
-        book["cash"] = round(float(book["cash"]) - notional, 2)
-        positions(book)[symbol] = {
-            "engine": ENGINE,
-            "entry_date": latest_s,
-            "opened_at": now,
-            "side": -1,
-            "entry_px": round(float(event["close"]), 4),
-            "shares": shares,
-            "notional": notional,
-            "armed": False,
-            "peak_gain_pct": 0.0,
-        
-            "normal_day_dollars": float(event.get("normal_day_dollars", 0.0)),}
+        staged.append(entry)
+        print(f"  STAGED {symbol} @ close {event['close']} "
+              f"(+{event['gain']}% day) — fills at the next open")
+        opened += 1
+    if not dry:
+        book["staged_entries"] = staged  # each night restates its own
         opened += 1
         print(f"  SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
 
@@ -557,7 +552,53 @@ def _live_marks(symbols: list) -> tuple[dict, list]:
 def evaluate_live_marks(action: str) -> None:
     book = load_book()
     now = datetime.now(timezone.utc).isoformat()
-    marks, quote_failures = _live_marks(sorted(positions(book)))
+    staged = list(book.get("staged_entries") or [])
+    quote_symbols = sorted(set(list(positions(book))
+                               + [str(s["symbol"]) for s in staged]))
+    marks, quote_failures = _live_marks(quote_symbols)
+
+    # fills: decisions staged at a PRIOR session's close purchase here,
+    # at the first live mark of the next session — prices that actually
+    # existed (Joseph 2026-08-20: decide tonight, purchase tomorrow)
+    if action == "poll" and staged:
+        remaining = []
+        for entry in staged:
+            symbol = str(entry["symbol"])
+            if str(entry.get("decided_date", "")) >= now[:10]:
+                remaining.append(entry)  # never fill the decision session
+                continue
+            if symbol in positions(book):
+                continue
+            price = marks.get(symbol)
+            if price is None:
+                remaining.append(entry)  # no mark yet — retry next poll
+                continue
+            slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
+                            0.01 * float(entry["normal_day_dollars"]))
+            if slice_usd < SLICE_FLOOR_USD:
+                print(f"  STAGE DROP {symbol}: cash or fillability below "
+                      "the floor at fill time")
+                continue
+            shares = int(slice_usd // price)
+            if shares < 1:
+                print(f"  STAGE DROP {symbol}: price ${price:.2f} exceeds "
+                      "the slice")
+                continue
+            notional = round(shares * round(price, 4), 2)
+            book["cash"] = round(float(book["cash"]) - notional, 2)
+            positions(book)[symbol] = {
+                "engine": ENGINE, "entry_date": now[:10], "opened_at": now,
+                "side": -1, "entry_px": round(price, 4), "shares": shares,
+                "notional": notional, "armed": False, "peak_gain_pct": 0.0,
+                "decided_date": str(entry["decided_date"]),
+                "decided_close": float(entry["decided_close"]),
+                "normal_day_dollars": float(entry["normal_day_dollars"]),
+            }
+            print(f"  FILLED SHORT {shares} {symbol} @ {price:.4f} "
+                  f"(decided {entry['decided_date']} @ "
+                  f"{entry['decided_close']})")
+        book["staged_entries"] = remaining
+
     for symbol in sorted(list(positions(book))):
         position = positions(book)[symbol]
         price = marks.get(symbol)
