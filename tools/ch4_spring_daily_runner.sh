@@ -9,6 +9,9 @@
 # Restart after container restart:
 #   nohup bash tools/ch4_spring_daily_runner.sh > artifacts/vtvr_observer/ch4_spring_runner.log 2>&1 &
 cd "$(dirname "$0")/.." || exit 1
+# single-instance lock (Rule 11 finding 2026-08-19)
+exec 9>artifacts/vtvr_observer/.spring_runner.lock
+flock -n 9 || { echo "[spring-runner] another instance holds the lock; exiting"; exit 1; }
 set -a; source .env 2>/dev/null; set +a
 echo "[spring-runner] started $(date -u +%FT%TZ) pid $$"
 while true; do

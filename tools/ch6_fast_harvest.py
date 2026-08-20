@@ -22,9 +22,9 @@ read. Transient read errors never cut.
 
 An open short is anomaly-cut at the first observed mark 20% or more against
 entry. A winner arms at +5%, tracks its best observed gain, and harvests after
-giving back more than one percentage point. The end-of-day sweep harvests any
-position still at +5% or better. The completed-close five-session backstop is
-shared with CH3. Marks and daily gaps can cross trigger levels; 20% is a
+giving back more than one percentage point. The end-of-day sweep banks any
+position at +2% or better (Joseph's fast-cash law, 2026-08-19). The
+completed-close five-session backstop is shared with CH3. Marks and daily gaps can cross trigger levels; 20% is a
 trigger, not a guaranteed realized-loss ceiling — the realized bound per
 position is the slice times the worst overnight gap, not 20%.
 
@@ -362,6 +362,38 @@ def hunt(dry: bool = False) -> None:
         events = [e for e in events
                   if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
         refused_reading = pre_reading - len(events)
+        if len(events) > 1:
+            # Joseph's cherry-pick law 2026-08-19: harvests are not
+            # equal — rank the night's candidates by their structure's
+            # decade record, conservative half, dollars per 100 events;
+            # tiebreak favors interior structures (no avoid cell within
+            # one fact-step). At most the best two enter.
+            _census = json.load(open(
+                ROOT / "artifacts" / "ch4_uf" /
+                "ch4_joint_structure_census.json"))
+            _money = {e2["config"]: min(e2["derive"]["money_per_100ev"],
+                                        e2["confirm"]["money_per_100ev"])
+                      for e2 in _census["PAY_both_halves"]}
+            _avoid = [a["config"].split()
+                      for a in _census["AVOID_both_halves"]]
+
+            def _interior(cfg: str) -> int:
+                toks = cfg.split()
+                return 0 if any(
+                    sum(1 for x, y in zip(toks, a) if x != y) == 1
+                    for a in _avoid) else 1
+
+            def _rank(ev0: dict) -> tuple:
+                cfg = str(_verdicts.get(str(ev0["symbol"]), {})
+                          .get("structure", ""))
+                return (_money.get(cfg, -1e9), _interior(cfg))
+
+            events.sort(key=_rank, reverse=True)
+            dropped = events[2:]
+            events = events[:2]
+            for ev0 in dropped:
+                print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
+                      "than the night's best two — cherry-pick law")
 
     opened = 0
     for event in events:
@@ -369,18 +401,25 @@ def hunt(dry: bool = False) -> None:
         if symbol in positions(book) or float(book["cash"]) < SLICE_FLOOR_USD:
             continue
         normal_day = float(event.get("normal_day_dollars", 0.0))
-        slice_usd = min(SLICE_TARGET_USD, float(book["cash"]))
-        if normal_day:
-            slice_usd = min(slice_usd, 0.01 * normal_day)
+        # fail CLOSED on unknown liquidity: without a finite positive
+        # normal-day figure the 1% law cannot be applied, so no entry
+        # (Rule 11 finding: zero/NaN silently skipped the cap at $60k)
+        if not (np.isfinite(normal_day) and normal_day > 0):
+            print(f"  REFUSE {symbol}: normal-day money unknown "
+                  f"({normal_day!r}) — the fillability law cannot size it")
+            continue
+        slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
+                        0.01 * normal_day)
         if slice_usd < SLICE_FLOOR_USD:
             print(f"  REFUSE {symbol}: 1% of its normal day "
                   f"(${normal_day:,.0f}) cannot absorb even the "
                   f"${SLICE_FLOOR_USD:,.0f} floor — unfillable")
             continue
-        shares = int(slice_usd // float(event["close"]))
+        px = round(float(event["close"]), 4)
+        shares = int(slice_usd // px)
         if shares < 1:
             continue
-        notional = round(shares * round(float(event["close"]), 4), 2)
+        notional = round(shares * px, 2)
         if dry:
             print(f"  WOULD SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
             opened += 1

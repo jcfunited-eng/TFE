@@ -1,11 +1,15 @@
 #!/bin/bash
 # CH6 fast-harvest loop — 5-minute polling during market hours.
 # CH6 is its own channel: it runs its OWN entry scan after the close,
-# polls for display 13:35-19:50, and sweeps at 19:55 UTC selling anything
-# at +5% or better. It never reads CH3's book.
+# polls for display 13:35-19:50, and sweeps at 19:55 UTC banking anything
+# at +2% or better (Joseph's fast-cash law 2026-08-19). It never reads CH3's book.
 # Restart after container restart:
 #   nohup bash tools/ch6_loop.sh > artifacts/vtvr_observer/ch6_runner.log 2>&1 &
 cd "$(dirname "$0")/.." || exit 1
+# single-instance lock: a duplicate loop silently corrupts the book
+# via last-writer-wins (Rule 11 finding 2026-08-19)
+exec 9>artifacts/vtvr_observer/.ch6_loop.lock
+flock -n 9 || { echo "[ch6-loop] another instance holds the lock; exiting"; exit 1; }
 set -a; source .env 2>/dev/null; set +a
 echo "[ch6-loop] started $(date -u +%FT%TZ) pid $$"
 last_sweep=""; last_pmc=""
