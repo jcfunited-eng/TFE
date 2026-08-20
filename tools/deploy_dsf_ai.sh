@@ -2,10 +2,12 @@
 # Deterministic Guala production deployment.
 #
 # One reviewed clean commit produces one immutable image digest and one exact
-# ECS task definition.  The canonical preflight must pass before discarded-
-# current-state rehearsal or cutover.  ECS replaces one process without an automatic
-# old-image rollback.  This controller never creates an owner, lock, database,
-# deployment seal, compatibility brain, or generation-store fallback.
+# ECS task definition.  The canonical preflight must pass before cutover.  The
+# sole predecessor writer is drained, the candidate is started once, and that
+# same restored process becomes production after exact live verification.  A
+# failed start restores the predecessor task definition.  This controller never
+# creates an owner, lock, database, deployment seal, compatibility brain, or
+# generation-store fallback.
 #
 # Usage: ./tools/deploy_dsf_ai.sh [--rehearse-only]
 
@@ -683,13 +685,44 @@ if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
     fi
 }
 
+restore_previous_live_organism() {
+    # A failed candidate start must not strand production at desired-count
+    # zero.  Drain any partial candidate first, then restart the exact task
+    # definition that preflight proved was the sole healthy writer.
+    aws ecs update-service \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service "${ECS_SERVICE}" \
+        --desired-count 0 \
+        --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
+    aws ecs wait services-stable \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"
+    aws ecs update-service \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service "${ECS_SERVICE}" \
+        --task-definition "${SOURCE_TASK_DEFINITION}" \
+        --desired-count 1 \
+        --deployment-configuration "${DEPLOY_CONFIGURATION}" \
+        --force-new-deployment >/dev/null
+    aws ecs wait services-stable \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"
+    curl -fsS \
+        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+        --connect-timeout 10 --max-time 30 \
+        "${CONTROL_ORIGIN}/health" \
+        | python3 -c \
+            'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"'
+}
+
 if [ "${REHEARSE_ONLY}" = "1" ]; then
     echo "[5/7] Rehearsing the digest-pinned candidate without cutover."
-else
-    echo "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
-fi
-PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
-for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
+    PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
+    for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     # Preflight already read and validated the exact persisted live receipt,
     # then proved that ECS topology did not drift during that inspection.
     # Re-reading /ready here duplicated the same large observation and added a
@@ -773,10 +806,9 @@ if (
 ):
     raise SystemExit("A-013 articulated and thermal body rehearsal changed")
 '
-    if [ "${REHEARSE_ONLY}" = "1" ]; then
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
-        CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \
-        REHEARSAL_PROOF="${REHEARSAL_PROOF}" python3 -c '
+            CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \
+            REHEARSAL_PROOF="${REHEARSAL_PROOF}" python3 -c '
 import json, os
 proof = json.loads(os.environ["REHEARSAL_PROOF"])
 print(json.dumps({
@@ -789,32 +821,51 @@ print(json.dumps({
 }, separators=(",", ":"), sort_keys=True))
 '
         exit 0
-    fi
-    # The candidate inherits the same current body root it just restored.
-    # Drain the predecessor completely before starting it: deployment
-    # percentages alone do not prevent a retiring task from finishing one
-    # atomic persistence publication after the successor begins restore.
-    drain_live_organism
-    aws ecs update-service \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --task-definition "${CANDIDATE_TASK_DEFINITION}" \
-        --desired-count 1 \
-        --deployment-configuration "${DEPLOY_CONFIGURATION}" \
-        --force-new-deployment >/dev/null
-    aws ecs wait services-stable \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"
-    CURRENT_RUNNING_TASK=$(verify_live_organism \
-        "${CANDIDATE_TASK_DEFINITION}")
-    if [ "${CURRENT_RUNNING_TASK}" = "${PREVIOUS_RUNNING_TASK}" ]; then
-        fail "cutover ${cutover_number} did not replace the running process"
-    fi
-    PREVIOUS_RUNNING_TASK="${CURRENT_RUNNING_TASK}"
-    echo "      cutover ${cutover_number}/${REPEAT_CUTOVER}: verified"
-done
+    done
+else
+    echo "[5/7] Starting and verifying the candidate once."
+    PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
+    for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
+        # There can be only one persistent writer.  Stop the predecessor,
+        # start the candidate once, and use that same restored process as
+        # production.  The former mandatory disposable rehearsal duplicated
+        # this complete restore without strengthening single-writer custody.
+        drain_live_organism
+        if ! aws ecs update-service \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${CANDIDATE_TASK_DEFINITION}" \
+            --desired-count 1 \
+            --deployment-configuration "${DEPLOY_CONFIGURATION}" \
+            --force-new-deployment >/dev/null; then
+            restore_previous_live_organism \
+                || fail "candidate admission and predecessor restoration both failed"
+            fail "candidate admission failed; predecessor restored"
+        fi
+        if ! aws ecs wait services-stable \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}"; then
+            restore_previous_live_organism \
+                || fail "candidate startup and predecessor restoration both failed"
+            fail "candidate startup failed; predecessor restored"
+        fi
+        if ! CURRENT_RUNNING_TASK=$(verify_live_organism \
+            "${CANDIDATE_TASK_DEFINITION}"); then
+            restore_previous_live_organism \
+                || fail "candidate verification and predecessor restoration both failed"
+            fail "candidate verification failed; predecessor restored"
+        fi
+        if [ "${CURRENT_RUNNING_TASK}" = "${PREVIOUS_RUNNING_TASK}" ]; then
+            restore_previous_live_organism \
+                || fail "unchanged process and predecessor restoration both failed"
+            fail "cutover ${cutover_number} did not replace the running process"
+        fi
+        PREVIOUS_RUNNING_TASK="${CURRENT_RUNNING_TASK}"
+        echo "      cutover ${cutover_number}/${REPEAT_CUTOVER}: verified"
+    done
+fi
 
 echo "[6/7] Pinning only the live-verified artifact as production-current."
 IMAGE_MANIFEST=$(aws ecr batch-get-image \
