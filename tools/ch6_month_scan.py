@@ -65,7 +65,7 @@ def one_life(symbol: str) -> str:
     try:
         from tools.ch4_uf_kernel_v2 import replay_symbol_v2
         today = datetime.now(timezone.utc)
-        start = (today - timedelta(days=130)).strftime("%Y-%m-%d")
+        start = (today - timedelta(days=int(os.environ.get("SCAN_DAYS","130")))).strftime("%Y-%m-%d")
         bars = fetch_78m(symbol, start, today.strftime("%Y-%m-%d"))
         rows = []
         for b in bars:
@@ -89,7 +89,7 @@ def one_life(symbol: str) -> str:
             for f in FIELDS:
                 rec[f] = getattr(s, f)
             recs.append(rec)
-        sessions = sorted({r["date"] for r in recs})[-22:]
+        sessions = sorted({r["date"] for r in recs})[-int(os.environ.get("SCAN_KEEP","22")):]
         recs = [r for r in recs if r["date"] in sessions]
         if len(recs) < 60:
             return f"{symbol}: short window ({len(recs)})"
