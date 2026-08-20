@@ -69,6 +69,10 @@ def _quiescent_body_organism() -> SimpleNamespace:
     )
 
 
+def _episode() -> SimpleNamespace:
+    return SimpleNamespace(occurrence_count=1)
+
+
 def test_frontier_evidence_keeps_only_current_and_preceding_distinct_sets() -> None:
     first = (("01" * 16, 5, 0, "02" * 16, 8, 0, 0, 1),)
     second = (("01" * 16, 5, 0, "03" * 16, 8, 1, 0, 2),)
@@ -216,7 +220,7 @@ def test_admitted_experience_preserves_relation_from_nonfinal_hop(
     )
 
     result = production._perform_admitted_intake_locked(
-        [(object(), []), (object(), [])],
+        [(_episode(), []), (_episode(), [])],
         "c005-test",
     )
 
@@ -285,7 +289,7 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
 
     result = production._perform_admitted_intake_locked(
-        [(object(), [])],
+        [(_episode(), [])],
         "c020-test",
     )
 
@@ -359,7 +363,7 @@ def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> 
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
 
     result = production._perform_admitted_intake_locked(
-        [(object(), [])],
+        [(_episode(), [])],
         "self-hearing-trajectory-boundary-test",
     )
 
@@ -467,7 +471,7 @@ def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
 
     result = production._perform_admitted_intake_locked(
-        [(object(), [])],
+        [(_episode(), [])],
         "retained-articulation-test",
     )
 
@@ -556,7 +560,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
     )
 
     result = production._perform_admitted_intake_locked(
-        [(object(), [])],
+        [(_episode(), [])],
         "exact-antagonist-cancellation-test",
     )
 
@@ -616,7 +620,7 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
 
     try:
         production._perform_admitted_intake_locked(
-            [(object(), [])],
+            [(_episode(), [])],
             "non-cancellation-articulation-error-test",
         )
     except ValueError as error:

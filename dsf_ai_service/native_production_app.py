@@ -9155,19 +9155,11 @@ def _perform_admitted_intake_locked(
             )
             for key in totals:
                 totals[key] += last_hop[key]
-        admitted_trajectory = [
-            (episode, admissions, 0) for episode, admissions in episodes
-        ]
-        trajectory_index = 0
-        while trajectory_index < len(admitted_trajectory):
-            episode, admissions, consequence_depth = admitted_trajectory[
-                trajectory_index
-            ]
-            trajectory_index += 1
+        if episodes:
             last_hop = _commit_admitted_hop(
                 organism,
-                episode,
-                admissions,
+                tuple(episode for episode, _ in episodes),
+                tuple(admissions for _, admissions in episodes),
                 external_participant_action_receipt=(
                     external_participant_action_receipt
                 ),
@@ -9232,7 +9224,13 @@ def _perform_admitted_intake_locked(
                 localized_metabolic_strain,
                 last_hop,
             )
-            committed_hop_count += int(episode.occurrence_count)
+            committed_hop_count += sum(
+                int(episode.occurrence_count) for episode, _ in episodes
+            )
+            committed_hop_count += sum(
+                int(extent[3])
+                for extent in last_hop["body_proprioceptive_source_extents"]
+            )
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
@@ -9254,12 +9252,6 @@ def _perform_admitted_intake_locked(
             receptor_ingress_quiescent_count += last_hop[
                 "receptor_ingress_quiescent_count"
             ]
-            _insert_native_action_consequences(
-                admitted_trajectory,
-                trajectory_index,
-                last_hop,
-                consequence_depth,
-            )
         if articulatory_unit_recruitments:
             try:
                 (
