@@ -394,7 +394,7 @@ def hunt(dry: bool = False) -> None:
             events = events[:MAX_ENTRIES_PER_NIGHT]
             for ev0 in dropped:
                 print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
-                      "than the night's best two — cherry-pick law")
+                      "than the night's best-ranked — cherry-pick law")
 
     # Joseph 2026-08-20: decide on tonight's close, PURCHASE at the next
     # session's prints. Decisions stage here; fills happen at the first
@@ -433,8 +433,6 @@ def hunt(dry: bool = False) -> None:
         opened += 1
     if not dry:
         book["staged_entries"] = staged  # each night restates its own
-        opened += 1
-        print(f"  SHORT {shares} {symbol} @ {event['close']} (+{event['gain']}% day, explicit herd-low)")
 
     if not dry:
         book["last_hunted"] = latest_s
@@ -505,8 +503,12 @@ def govern(book: dict[str, object]) -> tuple[int, bool]:
                 position["rules_cut_marked"] = today
                 print(f"  GOVERN {symbol}: {reason} — cut at next available mark")
             marked += 1
-        elif "rules_cut_pending" in position:
-            del position["rules_cut_pending"]  # today's re-read cleared it
+        elif str(position.get("rules_cut_pending", "")).startswith(
+                ("RULES-CUT suicide-pill-ban", "RULES-CUT sound-structure")):
+            # govern may clear ONLY its own verdicts — a pending cut
+            # ordered by Joseph or another law is never erased here
+            # (Rule 11 finding D5)
+            del position["rules_cut_pending"]
             position.pop("rules_cut_marked", None)
     READINGS_DIR.mkdir(parents=True, exist_ok=True)
     _file_sheet(READINGS_DIR / f"CH6_HOLDINGS_READING_{today}.json", sheet)
@@ -549,6 +551,45 @@ def _live_marks(symbols: list) -> tuple[dict, list]:
     return marks, failures
 
 
+def _timestamped_marks(symbols: list) -> dict:
+    """Fill marks must be prints from TODAY'S session — a fill law that
+    says 'the next session's prints' cannot fill on premarket or
+    prior-session prices (Rule 11 finding D3). Batched latest trades
+    with timestamps; only trades at/after today's 13:30 UTC count."""
+    if not symbols:
+        return {}
+    import urllib.request
+    keys = {}
+    for line in open(ROOT / ".env"):
+        for name in ("ALPACA_API_KEY", "ALPACA_API_SECRET_KEY"):
+            if line.startswith(f"{name}="):
+                keys[name] = line.split("=", 1)[1].strip().strip('"')
+    if len(keys) != 2:
+        return {}
+    session_open = datetime.now(timezone.utc).strftime("%Y-%m-%dT13:30:00Z")
+    marks: dict[str, float] = {}
+    wanted = sorted(set(str(s).upper() for s in symbols))
+    for start in range(0, len(wanted), 100):
+        chunk = wanted[start:start + 100]
+        req = urllib.request.Request(
+            "https://data.alpaca.markets/v2/stocks/trades/latest"
+            f"?feed=iex&symbols={','.join(chunk)}",
+            headers={"APCA-API-KEY-ID": keys["ALPACA_API_KEY"],
+                     "APCA-API-SECRET-KEY": keys["ALPACA_API_SECRET_KEY"]})
+        try:
+            payload = json.load(urllib.request.urlopen(req, timeout=30))
+        except Exception as error:  # noqa: BLE001 — loud, fills retry
+            print(f"[ch6 fill] quote feed failed ({type(error).__name__}) "
+                  "— staged fills retry next poll")
+            return {}
+        for sym, trade in (payload.get("trades") or {}).items():
+            price = float(trade.get("p", 0.0))
+            stamp = str(trade.get("t", ""))
+            if price > 0 and stamp >= session_open:
+                marks[sym] = price
+    return marks
+
+
 def evaluate_live_marks(action: str) -> None:
     book = load_book()
     now = datetime.now(timezone.utc).isoformat()
@@ -562,16 +603,35 @@ def evaluate_live_marks(action: str) -> None:
     # existed (Joseph 2026-08-20: decide tonight, purchase tomorrow)
     if action == "poll" and staged:
         remaining = []
+        halted = ENTRIES_HALT_FILE.exists()
+        if halted:
+            print("[ch6 fill] ENTRIES HALTED (protective) — staged fills "
+                  "held, nothing opens")
+        # a stage is valid ONLY for the first session after its decision:
+        # once the store carries a newer close, the reading is old news
+        # and the stage expires (Rule 11 finding D4)
+        store_latest = str(pd.read_parquet(
+            STORE, columns=["Date"])["Date"].max())[:10]
+        fill_marks = _timestamped_marks(
+            [str(s["symbol"]) for s in staged]) if not halted else {}
         for entry in staged:
             symbol = str(entry["symbol"])
+            if halted:
+                remaining.append(entry)
+                continue
             if str(entry.get("decided_date", "")) >= now[:10]:
                 remaining.append(entry)  # never fill the decision session
                 continue
+            if str(entry.get("decided_date", "")) != store_latest:
+                print(f"  STAGE EXPIRE {symbol}: decided "
+                      f"{entry.get('decided_date')} is no longer the "
+                      "latest close — the reading is stale")
+                continue
             if symbol in positions(book):
                 continue
-            price = marks.get(symbol)
+            price = fill_marks.get(symbol)
             if price is None:
-                remaining.append(entry)  # no mark yet — retry next poll
+                remaining.append(entry)  # no in-session mark yet — retry
                 continue
             slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
                             0.01 * float(entry["normal_day_dollars"]))

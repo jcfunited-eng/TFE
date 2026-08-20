@@ -181,7 +181,13 @@ def _ticker_type(symbol: str) -> str:
            f"&apiKey={_key()}")
     data = json.load(urllib.request.urlopen(url, timeout=30))
     results = data.get("results") or []
-    ttype = str(results[0].get("type", "UNKNOWN")) if results else "UNKNOWN"
+    if not results:
+        # a missing registry row can be a transient hiccup or a fresh
+        # listing: refuse today (fail closed) but NEVER cache it —
+        # an UNKNOWN written forever would be an irreversible verdict
+        # from a moment of missing data (Rule 11 suspicion)
+        return "UNKNOWN"
+    ttype = str(results[0].get("type", "UNKNOWN"))
     cache[symbol] = ttype
     TYPES_CACHE.parent.mkdir(parents=True, exist_ok=True)
     tmp = TYPES_CACHE.with_suffix(f".json.tmp{os.getpid()}")
