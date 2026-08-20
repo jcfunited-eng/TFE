@@ -41,7 +41,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ channe
   const [config, received, perception] = await Promise.all([
     getUiConfig(),
     receiveBook(channel),
-    channel === "CH4" ? getChannelPerceptionView() : Promise.resolve(null),
+    channel === "CH6" ? getChannelPerceptionView() : Promise.resolve(null),
   ]);
 
   if (received.book) {

@@ -37,5 +37,5 @@ while true; do
       last_sweep="$d"
     fi
   fi
-  sleep 300
+  sleep 300 9>&-
 done

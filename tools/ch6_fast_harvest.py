@@ -369,8 +369,8 @@ def hunt(dry: bool = False) -> None:
             # tiebreak favors interior structures (no avoid cell within
             # one fact-step). At most the best two enter.
             _census = json.load(open(
-                ROOT / "artifacts" / "ch4_uf" /
-                "ch4_joint_structure_census.json"))
+                ROOT / "artifacts" / "ch6_harvest" /
+                "ch6_structure_census.json"))
             _money = {e2["config"]: min(e2["derive"]["money_per_100ev"],
                                         e2["confirm"]["money_per_100ev"])
                       for e2 in _census["PAY_both_halves"]}

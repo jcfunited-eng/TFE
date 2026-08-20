@@ -380,7 +380,7 @@ def _structural_authority(symbol: str) -> tuple[str | None, str, str]:
         universe = pd.read_csv(
             ROOT / "artifacts" / "ch4_uf" / "population_universe_20260819.csv")
         census = json.load(open(
-            ROOT / "artifacts" / "ch4_uf" / "ch4_joint_structure_census.json"))
+            ROOT / "artifacts" / "ch6_harvest" / "ch6_structure_census.json"))
         store = pd.read_parquet(
             ROOT / "ch4_live_store.parquet", columns=["Date", "Symbol"])
         latest = store["Date"].max()
@@ -402,7 +402,7 @@ def _structural_authority(symbol: str) -> tuple[str | None, str, str]:
     lane_path = ROOT / "artifacts" / "ch4_uf" / "population_lanes" / f"{symbol}.parquet"
     if not lane_path.exists():
         return ("no perception lane on disk", "", "UNREAD")
-    from tools.ch4_joint_structure_census import build_lane, facts_at
+    from tools.ch6_structure_census import build_lane, facts_at
     lf = pd.read_parquet(lane_path)
     if str(lf["date"].iloc[-1]) != _STRUCT_CACHE["store_latest"]:
         return ("perception lane lags the store: no verdict on stale "

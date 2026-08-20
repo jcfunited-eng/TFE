@@ -1,5 +1,5 @@
 """
-ch4_perception_nightly.py — the perception layer's nightly claims
+ch6_perception_nightly.py — the perception layer's nightly claims
 =================================================================
 
 2026-08-19, Joseph: "put your work in that page — make it a thing on
@@ -18,8 +18,8 @@ FLAT = neither by the fifth; PENDING otherwise. Gaps count as what
 they are: the close that crossed is the close recorded.
 
 Outputs:
-  artifacts/ch4_uf/ch4_perception_record.json  (full rolling record)
-  artifacts/ch4_uf/ch4_perception.json         (published summary)
+  artifacts/ch6_harvest/ch6_perception_record.json  (full rolling record)
+  artifacts/ch6_harvest/ch6_perception.json         (published summary)
 
 Runs in the CH4 nightly pass after the population reading append.
 """
@@ -36,17 +36,17 @@ import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
-from tools.ch4_joint_structure_census import build_lane, facts_at  # noqa: E402
+from tools.ch6_structure_census import build_lane, facts_at  # noqa: E402
 
 LANES = os.path.join(ROOT, "artifacts", "ch4_uf", "population_lanes")
 STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 UNIVERSE = os.path.join(ROOT, "artifacts", "ch4_uf",
                         "population_universe_20260819.csv")
-CENSUS = os.path.join(ROOT, "artifacts", "ch4_uf",
-                      "ch4_joint_structure_census.json")
-RECORD = os.path.join(ROOT, "artifacts", "ch4_uf",
-                      "ch4_perception_record.json")
-OUT = os.path.join(ROOT, "artifacts", "ch4_uf", "ch4_perception.json")
+CENSUS = os.path.join(ROOT, "artifacts", "ch6_harvest",
+                      "ch6_structure_census.json")
+RECORD = os.path.join(ROOT, "artifacts", "ch6_harvest",
+                      "ch6_perception_record.json")
+OUT = os.path.join(ROOT, "artifacts", "ch6_harvest", "ch6_perception.json")
 
 EVENT_GAIN, VOL_MULT, PRICE_FLOOR, HOLD = 8.0, 3.0, 5.0, 5
 FADE_X, RUN_X = 0.95, 1.20
@@ -182,7 +182,7 @@ def main() -> None:
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(tmp, OUT)
-    print(f"[ch4-perception] {latest}: {len(tonight)} verdicts tonight "
+    print(f"[ch6-perception] {latest}: {len(tonight)} verdicts tonight "
           f"({sum(1 for t in tonight if t['verdict']=='PAY')} pay, "
           f"{sum(1 for t in tonight if t['verdict']=='AVOID')} avoid); "
           f"record {len(record)} events; filed {OUT}")

@@ -343,8 +343,8 @@ export type ChannelPerceptionView = {
 
 export async function getChannelPerceptionView(): Promise<ChannelPerceptionView | null> {
   try {
-    const { envelope, book } = await readSnapshot("CH4", "ch4-perception.json");
-    if (envelope.source_name !== "ch4_perception.json") {
+    const { envelope, book } = await readSnapshot("CH6", "ch6-perception.json");
+    if (envelope.source_name !== "ch6_perception.json") {
       return null; // a book envelope at the perception key is refused
     }
     const layer = record(book.layer);

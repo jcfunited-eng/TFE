@@ -1,5 +1,5 @@
 """
-ch4_joint_structure_census.py — the structures that pay, read jointly
+ch6_structure_census.py — the structures that pay, read jointly
 =====================================================================
 
 DECLARED 2026-08-19 BEFORE RESULTS (Rule 9). Joseph's instruction,
@@ -40,8 +40,8 @@ ranked by confirm money) and the AVOID list (negative or
 tail-heavy in BOTH halves). Aggregate coverage: what share of
 supply the two lists claim. Per-event rows filed for drawing.
 
-Usage:  python tools/ch4_joint_structure_census.py
-Output: artifacts/ch4_uf/ch4_joint_structure_census.json (+ events
+Usage:  python tools/ch6_structure_census.py
+Output: artifacts/ch4_uf/../ch6_harvest/ch6_structure_census.json (+ events
         parquet beside it)
 """
 
@@ -59,7 +59,7 @@ STORE = os.path.join(ROOT, "ch4_live_store.parquet")
 UNIVERSE = os.path.join(ROOT, "artifacts", "ch4_uf",
                         "population_universe_20260819.csv")
 OUT = os.path.join(ROOT, "artifacts", "ch4_uf",
-                   "ch4_joint_structure_census.json")
+                   "../ch6_harvest/ch6_structure_census.json")
 
 EVENT_GAIN, VOL_MULT, PRICE_FLOOR, HOLD = 8.0, 3.0, 5.0, 5
 HARVEST_X, STOP_X = 0.95, 1.20

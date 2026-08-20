@@ -38,10 +38,10 @@ SOURCES = {
         channel="CH4",
         path=ROOT / "artifacts" / "vtvr_observer" / "ch4_spring_book.json",
     ),
-    "ch4-perception": ChannelSource(
-        channel="CH4",
-        path=ROOT / "artifacts" / "ch4_uf" / "ch4_perception.json",
-        object_name="ch4-perception.json",
+    "ch6-perception": ChannelSource(
+        channel="CH6",
+        path=ROOT / "artifacts" / "ch6_harvest" / "ch6_perception.json",
+        object_name="ch6-perception.json",
     ),
     "ch6": ChannelSource(
         channel="CH6",

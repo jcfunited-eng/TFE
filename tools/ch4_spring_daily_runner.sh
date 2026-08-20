@@ -34,10 +34,10 @@ while true; do
       python tools/ch3_reveal_fade.py
       python tools/ch4_spring_page.py artifacts/vtvr_observer/ch4_page.html
       python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html
-      python tools/ch4_perception_nightly.py
+      python tools/ch6_perception_nightly.py
     } >> artifacts/vtvr_observer/spring_passes.log 2>&1
     echo "[spring-runner] close pass done $(date -u +%FT%TZ)"
-    sleep 3600
+    sleep 3600 9>&-
   fi
-  sleep 300
+  sleep 300 9>&-
 done
