@@ -1247,6 +1247,8 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
                 max_fabric_bytes=_A013_FRESH_MAX_FABRIC_BYTES,
                 max_logical_peak_bytes=_A013_FRESH_MAX_LOGICAL_PEAK_BYTES,
             )
+            initial_body = organism.prepare_articulated_body_observation()
+            organism.commit(initial_body.token)
             episode, admissions, lanes = production._action_consequence_episode(
                 execution,
                 retinal_body_axes=organism.readiness().articulated_body_axes,
@@ -1293,7 +1295,7 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
             "transported": 2,
         }
         or hop["dsf_delivery_count"] <= 0
-        or hop["receptor_ingress_sense_counts"].get("body") != 84
+        or hop["receptor_ingress_sense_counts"].get("body") != 10
         or reached != (1, 1)
         or hot_organism.identity != expected_identity
         or cold_organism_state.identity != hot_organism.identity
