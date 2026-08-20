@@ -486,9 +486,11 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         .as_ref()
         .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
         .unwrap_or(0);
+    let topology_index = successor.topology_index.clone();
     let observation = super::settle_internal_contact_interval(
         &mut successor.cohorts,
         &mut successor.electrical_fabric,
+        &topology_index,
         &externally_reached,
         &externally_reached,
         &mut changed,

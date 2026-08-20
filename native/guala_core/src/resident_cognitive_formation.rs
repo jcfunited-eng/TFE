@@ -1884,6 +1884,11 @@ pub(crate) struct ResidentCognitiveFormationState {
     older_active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
     hippocampal: ResidentHippocampalIndex,
+    /// Runtime-only exact navigation over resident anatomy. Canonical bytes
+    /// remain owned by cohorts and the electrical fabric; ordinary physical
+    /// intervals borrow this index instead of rediscovering every lineage,
+    /// contact, stable bond, layer, and neighbour.
+    topology_index: Arc<ResidentTopologyIndex>,
 }
 
 impl Default for ResidentCognitiveFormationState {
@@ -1901,6 +1906,7 @@ impl Default for ResidentCognitiveFormationState {
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
+            topology_index: Arc::new(ResidentTopologyIndex::empty()),
         }
     }
 }
@@ -1994,34 +2000,20 @@ fn retain_first_transition_predecessor(
 
 fn exact_transition_physical_deltas(
     cohorts: &[ResidentReachedCohort],
+    topology_index: &ResidentTopologyIndex,
     predecessors: &[TransitionNeuronPredecessor],
 ) -> Result<Vec<([u8; 16], SparsePhysicalStateDelta)>, FormationError> {
-    let mut successors = cohorts
-        .iter()
-        .enumerate()
-        .flat_map(|(cohort_index, cohort)| {
-            cohort
-                .anatomy
-                .neuron_lineages()
-                .iter()
-                .copied()
-                .enumerate()
-                .map(move |(neuron_index, lineage)| (lineage, cohort_index, neuron_index))
-        })
-        .collect::<Vec<_>>();
-    successors.sort_unstable_by_key(|(lineage, _, _)| *lineage);
-    if successors.windows(2).any(|pair| pair[0].0 == pair[1].0) {
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    }
     let mut deltas = Vec::new();
     deltas
         .try_reserve(predecessors.len())
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     for predecessor in predecessors {
-        let successor_index = successors
-            .binary_search_by_key(&predecessor.lineage, |(lineage, _, _)| *lineage)
-            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
-        let (_, cohort_index, neuron_index) = successors[successor_index];
+        let flat = topology_index.flat_for_lineage(predecessor.lineage)?;
+        let (cohort_index, neuron_index, _) = topology_index
+            .flat_locations
+            .get(flat)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
         let successor_anatomy = &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index];
         let successor_state = &cohorts[cohort_index].state.neurons()[neuron_index];
         let (extended_anatomy, extended_predecessor) = extend_neuron_positional_fabric(
@@ -2082,6 +2074,42 @@ fn organism_mosaic_topology(
         lineages,
         fractal_anatomies,
         bonds: organism_physical_bonds(cohorts, electrical_fabric)?,
+    })
+}
+
+/// Borrow the resident topology authority for ordinary mosaic settlement.
+/// Only the mutable fractal coordinate widths are read from reached anatomy;
+/// lineage discovery, contact traversal, parallel-bond assignment, and bond
+/// sorting were already performed at genesis, cold restore, or topology
+/// growth.
+fn indexed_organism_mosaic_topology(
+    cohorts: &[ResidentReachedCohort],
+    topology_index: &ResidentTopologyIndex,
+) -> Result<OrganismMosaicTopology, FormationError> {
+    if topology_index.cohort_shapes.len() != cohorts.len() {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    let mut fractal_anatomies = Vec::new();
+    fractal_anatomies
+        .try_reserve_exact(topology_index.canonical_lineages.len())
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    for cohort in cohorts {
+        for anatomy in cohort.anatomy.neuron_anatomies() {
+            fractal_anatomies.push((
+                anatomy.psi_ring_count(),
+                anatomy
+                    .sparse_delta_coordinate_count()
+                    .ok_or(FormationError::ArithmeticOverflow)?,
+            ));
+        }
+    }
+    if fractal_anatomies.len() != topology_index.canonical_lineages.len() {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    Ok(OrganismMosaicTopology {
+        lineages: topology_index.canonical_lineages.to_vec(),
+        fractal_anatomies,
+        bonds: topology_index.canonical_bonds.to_vec(),
     })
 }
 
@@ -2704,7 +2732,7 @@ fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
 
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
-    electrical_fabric: &ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
     emitted_neuron_fractals: &[EmittedNeuronFractal],
     current_physical_deltas: &[([u8; 16], SparsePhysicalStateDelta)],
     externally_reached_lineages: &[[u8; 16]],
@@ -2731,7 +2759,7 @@ fn settle_organism_mosaic_boundary(
     if active_bonds.is_empty() {
         return Ok((None, 0, 0, Vec::new(), Vec::new(), Vec::new()));
     }
-    let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    let topology = indexed_organism_mosaic_topology(cohorts, topology_index)?;
     let current_fractals = topology
         .lineages
         .iter()
@@ -3277,7 +3305,7 @@ impl ResidentCognitiveFormationState {
             })
             .cloned()
             .collect::<Vec<_>>();
-        let successor = Self {
+        let mut successor = Self {
             generation: self.generation,
             next_lineage_ordinal: self.next_lineage_ordinal,
             unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
@@ -3311,7 +3339,12 @@ impl ResidentCognitiveFormationState {
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
+            topology_index: self.topology_index.clone(),
         };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
         validate_lineage_state(&successor)?;
         Ok(Some(successor))
     }
@@ -3381,6 +3414,7 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
+            topology_index: self.topology_index.clone(),
         };
         validate_lineage_state(&successor)?;
         Ok(successor)
@@ -3618,6 +3652,7 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
+            topology_index: Arc::new(ResidentTopologyIndex::empty()),
         };
         validate_lineage_state(&state)?;
         Ok(state)
@@ -3973,6 +4008,7 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: predecessor_older_active_electrical_frontier,
             mosaics: predecessor_mosaics,
             hippocampal: predecessor_hippocampal,
+            topology_index: predecessor_topology_index,
         } = expanded;
         let source = admitted_source.episode();
         if source.joint_source_occurrences().is_empty() {
@@ -3986,6 +4022,7 @@ impl ResidentCognitiveFormationState {
         let mut resting_population = predecessor_resting_population;
         let mut next_lineage_ordinal = predecessor_next_lineage_ordinal;
         let mut cohorts = predecessor_cohorts.into_vec();
+        let mut topology_index = predecessor_topology_index;
         // Bodies written before the retained-fractal boundary may still carry
         // transient charge, phase, gate, residue, or metabolic coordinates in
         // a mosaic body.  They remain readable only so the living neuron and
@@ -5231,9 +5268,16 @@ impl ResidentCognitiveFormationState {
                 }
             }
         }
+        if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
+            topology_index = Arc::new(ResidentTopologyIndex::build(
+                &cohorts,
+                &electrical_fabric,
+            )?);
+        }
         let internal_contact = settle_internal_contact_interval(
             &mut cohorts,
             &mut electrical_fabric,
+            &topology_index,
             &locally_settled_lineages,
             &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
@@ -5253,27 +5297,16 @@ impl ResidentCognitiveFormationState {
                 &active_electrical_frontier,
                 &current_noncontinuation_seed_lineages,
             );
-        let mut lineage_layers = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .neuron_lineages()
-                    .iter()
-                    .zip(cohort.anatomy.mounts())
-                    .map(|(lineage, mount)| (*lineage, mount.place().layer()))
-            })
-            .collect::<Vec<_>>();
-        lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        let lineage_layers = topology_index.lineage_layers.as_ref();
         let physical_prediction_alternatives = physical_prediction_alternatives_observation(
             &predecessor_active_electrical_frontier,
             &active_electrical_frontier,
             &current_noncontinuation_seed_lineages,
-            &lineage_layers,
+            lineage_layers,
         );
         let body_consequence_transfers = body_consequence_transfer_observation(
             &active_electrical_frontier,
-            &lineage_layers,
+            lineage_layers,
             &reached_body_regulation_lineages,
             vestibular.is_some(),
         );
@@ -5311,8 +5344,17 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &physically_transitioned_neuron_lineages,
         )?;
-        let current_physical_deltas =
-            exact_transition_physical_deltas(&cohorts, &transition_neuron_predecessors)?;
+        if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
+            topology_index = Arc::new(ResidentTopologyIndex::build(
+                &cohorts,
+                &electrical_fabric,
+            )?);
+        }
+        let current_physical_deltas = exact_transition_physical_deltas(
+            &cohorts,
+            &topology_index,
+            &transition_neuron_predecessors,
+        )?;
         let (
             organism_mosaic_receipt,
             organism_reassemblies,
@@ -5323,7 +5365,7 @@ impl ResidentCognitiveFormationState {
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
-                &electrical_fabric,
+                &topology_index,
                 &emitted_neuron_fractals,
                 &current_physical_deltas,
                 &externally_reached_neuron_lineages,
@@ -5399,6 +5441,12 @@ impl ResidentCognitiveFormationState {
                     && externally_perturbed_neuron_lineages.contains(lineage)
             })
             .count();
+        if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
+            topology_index = Arc::new(ResidentTopologyIndex::build(
+                &cohorts,
+                &electrical_fabric,
+            )?);
+        }
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -5413,6 +5461,7 @@ impl ResidentCognitiveFormationState {
             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
+            topology_index,
         };
         let successor_encoded = if seal_successor {
             successor.encode(max_encoded_bytes)?
@@ -5920,6 +5969,10 @@ impl ResidentCognitiveFormationState {
             cohort.anatomy = anatomy;
             cohort.state = state.into();
         }
+        let topology_index = Arc::new(ResidentTopologyIndex::build(
+            &cohorts,
+            &self.electrical_fabric,
+        )?);
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal: self.next_lineage_ordinal,
@@ -5933,6 +5986,7 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: self.older_active_electrical_frontier.clone(),
             mosaics: self.mosaics.clone(),
             hippocampal: self.hippocampal,
+            topology_index,
         };
         // Every retained mosaic must still be expressible against the grown
         // anatomy, or the growth is refused and the body is left as it is.
@@ -6925,12 +6979,17 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: older_active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
+            topology_index: Arc::new(ResidentTopologyIndex::empty()),
         };
         validate_lineage_state(&state)?;
         let canonical = state.encode_with_format(format, max_encoded_bytes)?;
         if require_current_canonical_encoding && canonical != bytes {
             return Err(FormationError::NoncanonicalState);
         }
+        state.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &state.cohorts,
+            &state.electrical_fabric,
+        )?);
         // Old evidence is admitted only long enough to prove its historical
         // canonical bytes. The live resident keeps reached members only.
         for cohort in state.cohorts.iter_mut() {
@@ -10785,7 +10844,7 @@ fn retain_internally_reassembled_recurrent_frontier(
     Ok(())
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ResidentContactOrigin {
     Local {
         cohort_index: usize,
@@ -10798,6 +10857,300 @@ enum ResidentContactOrigin {
     },
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct ResidentContactTopologyEntry {
+    left: usize,
+    right: usize,
+    stable_bond: StablePhysicalBondReference,
+    origin: ResidentContactOrigin,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ResidentTopologyIndex {
+    flat_locations: Box<[(usize, usize, [u8; 16])]>,
+    flat_by_lineage: Box<[([u8; 16], usize)]>,
+    lineage_layers: Box<[([u8; 16], u32)]>,
+    canonical_lineages: Box<[[u8; 16]]>,
+    canonical_bonds: Box<[StablePhysicalBondReference]>,
+    contacts: Box<[ResidentContactTopologyEntry]>,
+    incident_contacts_by_flat: Box<[Box<[usize]>]>,
+    neighbours_by_flat: Box<[Box<[usize]>]>,
+    cohort_shapes: Box<[(usize, usize)]>,
+    fabric_contact_count: usize,
+}
+
+impl ResidentTopologyIndex {
+    fn empty() -> Self {
+        Self {
+            flat_locations: Box::new([]),
+            flat_by_lineage: Box::new([]),
+            lineage_layers: Box::new([]),
+            canonical_lineages: Box::new([]),
+            canonical_bonds: Box::new([]),
+            contacts: Box::new([]),
+            incident_contacts_by_flat: Box::new([]),
+            neighbours_by_flat: Box::new([]),
+            cohort_shapes: Box::new([]),
+            fabric_contact_count: 0,
+        }
+    }
+
+    fn build(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+    ) -> Result<Self, FormationError> {
+        let cohort_shapes = cohorts
+            .iter()
+            .map(|cohort| {
+                (
+                    cohort.anatomy.neuron_count(),
+                    cohort.anatomy.contact_count(),
+                )
+            })
+            .collect::<Vec<_>>();
+        let neuron_count = cohort_shapes.iter().try_fold(
+            0usize,
+            |total, (neurons, _)| total.checked_add(*neurons),
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+        let contact_count = cohort_shapes
+            .iter()
+            .try_fold(0usize, |total, (_, contacts)| total.checked_add(*contacts))
+            .and_then(|total| total.checked_add(electrical_fabric.contact_count()))
+            .ok_or(FormationError::ArithmeticOverflow)?;
+
+        let mut flat_locations = Vec::new();
+        flat_locations
+            .try_reserve_exact(neuron_count)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut flat_by_lineage = Vec::new();
+        flat_by_lineage
+            .try_reserve_exact(neuron_count)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut lineage_layers = Vec::new();
+        lineage_layers
+            .try_reserve_exact(neuron_count)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut cohort_offsets = Vec::new();
+        cohort_offsets
+            .try_reserve_exact(cohorts.len())
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        for (cohort_index, cohort) in cohorts.iter().enumerate() {
+            cohort_offsets.push(flat_locations.len());
+            for (neuron_index, (lineage, mount)) in cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .copied()
+                .zip(cohort.anatomy.mounts())
+                .enumerate()
+            {
+                let flat = flat_locations.len();
+                flat_locations.push((cohort_index, neuron_index, lineage));
+                flat_by_lineage.push((lineage, flat));
+                lineage_layers.push((lineage, mount.place().layer()));
+            }
+        }
+        flat_by_lineage.sort_unstable_by_key(|(lineage, _)| *lineage);
+        lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        if flat_by_lineage
+            .windows(2)
+            .any(|pair| pair[0].0 == pair[1].0)
+        {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+
+        let flat_for_lineage = |lineage: [u8; 16]| {
+            flat_by_lineage
+                .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+                .ok()
+                .map(|index| flat_by_lineage[index].1)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+        };
+        let mut contacts = Vec::new();
+        contacts
+            .try_reserve_exact(contact_count)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut parallel_ordinals =
+            std::collections::BTreeMap::<([u8; 16], [u8; 16]), u32>::new();
+        for (cohort_index, cohort) in cohorts.iter().enumerate() {
+            let offset = cohort_offsets[cohort_index];
+            for (contact_index, (left_member, right_member)) in
+                cohort.anatomy.contact_endpoints().enumerate()
+            {
+                let left = offset
+                    .checked_add(left_member)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let right = offset
+                    .checked_add(right_member)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                contacts.push(ResidentContactTopologyEntry {
+                    left,
+                    right,
+                    stable_bond: stable_bond_for_next_edge(
+                        &mut parallel_ordinals,
+                        flat_locations[left].2,
+                        flat_locations[right].2,
+                    )?,
+                    origin: ResidentContactOrigin::Local {
+                        cohort_index,
+                        contact_index,
+                        left_member,
+                        right_member,
+                    },
+                });
+            }
+        }
+        for (contact_index, (left_vertex, right_vertex)) in
+            electrical_fabric.contact_endpoints().enumerate()
+        {
+            let left_lineage = *electrical_fabric
+                .lineages()
+                .get(left_vertex)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let right_lineage = *electrical_fabric
+                .lineages()
+                .get(right_vertex)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let left = flat_for_lineage(left_lineage)?;
+            let right = flat_for_lineage(right_lineage)?;
+            contacts.push(ResidentContactTopologyEntry {
+                left,
+                right,
+                stable_bond: stable_bond_for_next_edge(
+                    &mut parallel_ordinals,
+                    left_lineage,
+                    right_lineage,
+                )?,
+                origin: ResidentContactOrigin::Fabric { contact_index },
+            });
+        }
+
+        let mut incident_contacts_by_flat = vec![Vec::<usize>::new(); neuron_count];
+        let mut neighbours_by_flat = vec![Vec::<usize>::new(); neuron_count];
+        for (contact_index, contact) in contacts.iter().enumerate() {
+            incident_contacts_by_flat[contact.left].push(contact_index);
+            incident_contacts_by_flat[contact.right].push(contact_index);
+            neighbours_by_flat[contact.left].push(contact.right);
+            neighbours_by_flat[contact.right].push(contact.left);
+        }
+        for neighbours in &mut neighbours_by_flat {
+            neighbours.sort_unstable();
+            neighbours.dedup();
+        }
+        let canonical_lineages = flat_locations
+            .iter()
+            .map(|(_, _, lineage)| *lineage)
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
+        let mut canonical_bonds = contacts
+            .iter()
+            .map(|contact| contact.stable_bond)
+            .collect::<Vec<_>>();
+        canonical_bonds.sort_unstable();
+        Ok(Self {
+            flat_locations: flat_locations.into_boxed_slice(),
+            flat_by_lineage: flat_by_lineage.into_boxed_slice(),
+            lineage_layers: lineage_layers.into_boxed_slice(),
+            canonical_lineages,
+            canonical_bonds: canonical_bonds.into_boxed_slice(),
+            contacts: contacts.into_boxed_slice(),
+            incident_contacts_by_flat: incident_contacts_by_flat
+                .into_iter()
+                .map(Vec::into_boxed_slice)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            neighbours_by_flat: neighbours_by_flat
+                .into_iter()
+                .map(Vec::into_boxed_slice)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            cohort_shapes: cohort_shapes.into_boxed_slice(),
+            fabric_contact_count: electrical_fabric.contact_count(),
+        })
+    }
+
+    fn matches_shape(
+        &self,
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+    ) -> bool {
+        self.cohort_shapes.len() == cohorts.len()
+            && self
+                .cohort_shapes
+                .iter()
+                .zip(cohorts)
+                .all(|((neurons, contacts), cohort)| {
+                    *neurons == cohort.anatomy.neuron_count()
+                        && *contacts == cohort.anatomy.contact_count()
+                })
+            && self.fabric_contact_count == electrical_fabric.contact_count()
+    }
+
+    fn flat_for_lineage(&self, lineage: [u8; 16]) -> Result<usize, FormationError> {
+        self.flat_by_lineage
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| self.flat_by_lineage[index].1)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+    }
+
+    fn layer_of(&self, lineage: [u8; 16]) -> Option<u32> {
+        self.lineage_layers
+            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            .ok()
+            .map(|index| self.lineage_layers[index].1)
+    }
+
+    fn one_interval_frontier(
+        &self,
+        seed_lineages: &[[u8; 16]],
+    ) -> Result<(Vec<usize>, Vec<usize>), FormationError> {
+        let mut selected = seed_lineages
+            .iter()
+            .copied()
+            .map(|lineage| self.flat_for_lineage(lineage))
+            .collect::<Result<Vec<_>, _>>()?;
+        selected.sort_unstable();
+        selected.dedup();
+        let seeds = selected.clone();
+        for flat in seeds {
+            for contact_index in self
+                .incident_contacts_by_flat
+                .get(flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                .iter()
+                .copied()
+            {
+                let contact = *self
+                    .contacts
+                    .get(contact_index)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                for endpoint in [contact.left, contact.right] {
+                    if let Err(position) = selected.binary_search(&endpoint) {
+                        selected.insert(position, endpoint);
+                    }
+                }
+            }
+        }
+        let mut selected_contacts = Vec::new();
+        for flat in selected.iter().copied() {
+            for contact_index in self.incident_contacts_by_flat[flat].iter().copied() {
+                let contact = self.contacts[contact_index];
+                if selected.binary_search(&contact.left).is_err()
+                    || selected.binary_search(&contact.right).is_err()
+                {
+                    continue;
+                }
+                if let Err(position) = selected_contacts.binary_search(&contact_index) {
+                    selected_contacts.insert(position, contact_index);
+                }
+            }
+        }
+        Ok((selected, selected_contacts))
+    }
+}
+
 struct ResidentContactEdge {
     left: usize,
     right: usize,
@@ -10805,6 +11158,60 @@ struct ResidentContactEdge {
     state: ElectricalContactState,
     stable_bond: StablePhysicalBondReference,
     origin: ResidentContactOrigin,
+}
+
+fn materialize_resident_contact_edge(
+    topology: ResidentContactTopologyEntry,
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+) -> Result<ResidentContactEdge, FormationError> {
+    let (anatomy, state) = match topology.origin {
+        ResidentContactOrigin::Local {
+            cohort_index,
+            contact_index,
+            ..
+        } => {
+            let cohort = cohorts
+                .get(cohort_index)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            (
+                *cohort
+                    .anatomy
+                    .electrical_anatomy()
+                    .contact_anatomies()
+                    .get(contact_index)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+                cohort
+                    .state
+                    .electrical()
+                    .contact_states()
+                    .get(contact_index)
+                    .cloned()
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+            )
+        }
+        ResidentContactOrigin::Fabric { contact_index } => (
+            *electrical_fabric
+                .anatomy()
+                .contact_anatomies()
+                .get(contact_index)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+            electrical_fabric
+                .state()
+                .contact_states()
+                .get(contact_index)
+                .cloned()
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+        ),
+    };
+    Ok(ResidentContactEdge {
+        left: topology.left,
+        right: topology.right,
+        anatomy,
+        state,
+        stable_bond: topology.stable_bond,
+        origin: topology.origin,
+    })
 }
 
 struct InternalContactSettlementObservation {
@@ -10892,6 +11299,7 @@ fn stable_bond_for_next_edge(
 /// contact boundary.  This is deliberately not a graph traversal: material
 /// that reaches the far side of one contact must persist there before it can
 /// become authority for another interval.
+#[cfg(test)]
 fn one_interval_electrical_frontier(
     seeds: &[bool],
     contact_endpoints: &[(usize, usize)],
@@ -10916,7 +11324,7 @@ fn exact_motor_body_afferent_paths(
     motor_flat: usize,
     flat_locations: &[(usize, usize, [u8; 16])],
     cohorts: &[ResidentReachedCohort],
-    neighbours_by_flat: &[Vec<usize>],
+    neighbours_by_flat: &[Box<[usize]>],
 ) -> Result<Vec<MotorBodyAfferentPath>, FormationError> {
     let mount_at = |flat: usize| {
         let (cohort_index, neuron_index, _) = flat_locations
@@ -10996,6 +11404,7 @@ fn exact_motor_body_afferent_paths(
 fn settle_internal_contact_interval(
     cohorts: &mut [ResidentReachedCohort],
     electrical_fabric: &mut ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut Vec<[u8; 16]>,
@@ -11020,119 +11429,12 @@ fn settle_internal_contact_interval(
         });
     }
 
-    let mut flat_locations = Vec::<(usize, usize, [u8; 16])>::new();
-    let mut flat_by_lineage = std::collections::BTreeMap::<[u8; 16], usize>::new();
-    for (cohort_index, cohort) in cohorts.iter().enumerate() {
-        for (neuron_index, lineage) in cohort.anatomy.neuron_lineages().iter().enumerate() {
-            let flat = flat_locations.len();
-            if flat_by_lineage.insert(*lineage, flat).is_some() {
-                return Err(FormationError::NeuronLineageAuthorityChanged);
-            }
-            flat_locations.push((cohort_index, neuron_index, *lineage));
-        }
+    if !topology_index.matches_shape(cohorts, electrical_fabric) {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
     }
-    let lineage_member = |lineage: [u8; 16]| {
-        flat_by_lineage
-            .get(&lineage)
-            .copied()
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
-    };
-    let mut lineage_layers = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .neuron_lineages()
-                .iter()
-                .zip(cohort.anatomy.mounts())
-                .map(|(lineage, mount)| (*lineage, mount.place().layer()))
-        })
-        .collect::<Vec<_>>();
-    lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
-    let layer_of = |lineage: [u8; 16]| {
-        lineage_layers
-            .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
-            .ok()
-            .map(|index| lineage_layers[index].1)
-    };
-    let mut edges = Vec::<ResidentContactEdge>::new();
-    let mut parallel_ordinals =
-        std::collections::BTreeMap::<([u8; 16], [u8; 16]), u32>::new();
-    let mut cohort_offsets = Vec::with_capacity(cohorts.len());
-    let mut offset = 0usize;
-    for (cohort_index, cohort) in cohorts.iter().enumerate() {
-        cohort_offsets.push(offset);
-        for (contact_index, (contact, state)) in cohort
-            .anatomy
-            .electrical_anatomy()
-            .contact_anatomies()
-            .iter()
-            .copied()
-            .zip(cohort.state.electrical().contact_states().iter().cloned())
-            .enumerate()
-        {
-            let (left_member, right_member) = contact.endpoints();
-            let stable_bond = stable_bond_for_next_edge(
-                &mut parallel_ordinals,
-                cohort.anatomy.neuron_lineages()[left_member],
-                cohort.anatomy.neuron_lineages()[right_member],
-            )?;
-            edges.push(ResidentContactEdge {
-                left: offset
-                    .checked_add(left_member)
-                    .ok_or(FormationError::ArithmeticOverflow)?,
-                right: offset
-                    .checked_add(right_member)
-                    .ok_or(FormationError::ArithmeticOverflow)?,
-                anatomy: contact,
-                state,
-                stable_bond,
-                origin: ResidentContactOrigin::Local {
-                    cohort_index,
-                    contact_index,
-                    left_member,
-                    right_member,
-                },
-            });
-        }
-        offset = offset
-            .checked_add(cohort.anatomy.neuron_count())
-            .ok_or(FormationError::ArithmeticOverflow)?;
-    }
-    for (contact_index, ((left, right), (contact, state))) in electrical_fabric
-        .contact_endpoints()
-        .zip(
-            electrical_fabric
-                .anatomy()
-                .contact_anatomies()
-                .iter()
-                .copied()
-                .zip(electrical_fabric.state().contact_states().iter().cloned()),
-        )
-        .enumerate()
-    {
-        let left_lineage = *electrical_fabric
-            .lineages()
-            .get(left)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let right_lineage = *electrical_fabric
-            .lineages()
-            .get(right)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let stable_bond = stable_bond_for_next_edge(
-            &mut parallel_ordinals,
-            left_lineage,
-            right_lineage,
-        )?;
-        edges.push(ResidentContactEdge {
-            left: lineage_member(left_lineage)?,
-            right: lineage_member(right_lineage)?,
-            anatomy: contact,
-            state,
-            stable_bond,
-            origin: ResidentContactOrigin::Fabric { contact_index },
-        });
-    }
+    let flat_locations = topology_index.flat_locations.as_ref();
+    let lineage_member = |lineage| topology_index.flat_for_lineage(lineage);
+    let layer_of = |lineage| topology_index.layer_of(lineage);
     // One physical interval reaches only its explicitly carried causal
     // frontier and immediate electrical neighbours. Absolute nonzero
     // membrane charge is not activity: the phase-one pump gives a living
@@ -11143,24 +11445,17 @@ fn settle_internal_contact_interval(
     // caller combines those with this interval's external or metabolic cause.
     // This replaces the false rule that eventually made every reached neuron
     // and contact a permanent seed.
-    let settlement_seeds = flat_locations
+    let (selected, compact_contact_indices) =
+        topology_index.one_interval_frontier(locally_settled_lineages)?;
+    let mut causal_seed_flats = causal_seed_lineages
         .iter()
-        .map(|(_, _, lineage)| locally_settled_lineages.contains(lineage))
-        .collect::<Vec<_>>();
-    let causal_seeds = flat_locations
-        .iter()
-        .map(|(_, _, lineage)| causal_seed_lineages.contains(lineage))
-        .collect::<Vec<_>>();
-    let contact_endpoints = edges
-        .iter()
-        .map(|edge| (edge.left, edge.right))
-        .collect::<Vec<_>>();
-    let reached = one_interval_electrical_frontier(&settlement_seeds, &contact_endpoints)?;
-    let selected = reached
-        .iter()
-        .enumerate()
-        .filter_map(|(index, reached)| reached.then_some(index))
-        .collect::<Vec<_>>();
+        .copied()
+        .map(lineage_member)
+        .collect::<Result<Vec<_>, _>>()?;
+    causal_seed_flats.sort_unstable();
+    causal_seed_flats.dedup();
+    let is_causal_seed = |flat: usize| causal_seed_flats.binary_search(&flat).is_ok();
+
     if selected.is_empty() {
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
@@ -11178,27 +11473,29 @@ fn settle_internal_contact_interval(
             transition_predecessors: Vec::new(),
         });
     }
-    let mut compact_index = vec![None; flat_locations.len()];
-    for (index, flat) in selected.iter().copied().enumerate() {
-        compact_index[flat] = Some(index);
-    }
-
     let mut compact_contacts = Vec::new();
     let mut compact_states = Vec::new();
     let mut compact_origins = Vec::new();
     let mut compact_bonds = Vec::new();
     let mut compact_edge_flat_endpoints = Vec::new();
-    for edge in &edges {
-        let (Some(left), Some(right)) = (compact_index[edge.left], compact_index[edge.right])
-        else {
-            continue;
-        };
+    for contact_index in compact_contact_indices {
+        let edge = materialize_resident_contact_edge(
+            topology_index.contacts[contact_index],
+            cohorts,
+            electrical_fabric,
+        )?;
+        let left = selected
+            .binary_search(&edge.left)
+            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
+        let right = selected
+            .binary_search(&edge.right)
+            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
         compact_contacts.push(
             edge.anatomy
                 .rebind_endpoints(left, right, selected.len())
                 .map_err(FormationError::ResidentElectricalUnavailable)?,
         );
-        compact_states.push(edge.state.clone());
+        compact_states.push(edge.state);
         compact_origins.push(edge.origin);
         compact_bonds.push(edge.stable_bond);
         compact_edge_flat_endpoints.push((edge.left, edge.right));
@@ -11342,7 +11639,7 @@ fn settle_internal_contact_interval(
     // Settlement receives only the sorted reached indices and writes only
     // those indices.  Derive the untouched active count from that sparse
     // write boundary; do not rescan the organism after every interval.
-    let reached_organism_neuron_count = reached.iter().filter(|reached| **reached).count();
+    let reached_organism_neuron_count = selected.len();
     let unchanged_unreached_organism_neuron_count = flat_locations
         .len()
         .checked_sub(reached_organism_neuron_count)
@@ -11703,10 +12000,9 @@ fn settle_internal_contact_interval(
     // away from a causal seed and reached it across one contact.  This keeps
     // passive balancing in a dark/silent neighbourhood from becoming motion
     // or articulation without adding a threshold, mode, or command.
-    let mut causally_active_lineages = flat_locations
+    let mut causally_active_lineages = causal_seed_flats
         .iter()
-        .enumerate()
-        .filter_map(|(flat, (_, _, lineage))| causal_seeds[flat].then_some(*lineage))
+        .map(|flat| flat_locations[*flat].2)
         .collect::<Vec<_>>();
     for (transition, (left_flat, right_flat)) in settled
         .transitions
@@ -11714,9 +12010,9 @@ fn settle_internal_contact_interval(
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
         let signed_transfer = transition.outward_elementary_charges_from_left;
-        let reached_flat = if signed_transfer > 0 && causal_seeds[left_flat] {
+        let reached_flat = if signed_transfer > 0 && is_causal_seed(left_flat) {
             Some(right_flat)
-        } else if signed_transfer < 0 && causal_seeds[right_flat] {
+        } else if signed_transfer < 0 && is_causal_seed(right_flat) {
             Some(left_flat)
         } else {
             None
@@ -12186,22 +12482,13 @@ fn settle_internal_contact_interval(
         }
     }
     if !motor_unit_recruitments.is_empty() {
-        let mut neighbours_by_flat = vec![Vec::<usize>::new(); flat_locations.len()];
-        for edge in &edges {
-            neighbours_by_flat[edge.left].push(edge.right);
-            neighbours_by_flat[edge.right].push(edge.left);
-        }
-        for neighbours in &mut neighbours_by_flat {
-            neighbours.sort_unstable();
-            neighbours.dedup();
-        }
         for recruitment in &mut motor_unit_recruitments {
             let motor_flat = lineage_member(recruitment.neuron_lineage)?;
             let paths = exact_motor_body_afferent_paths(
                 motor_flat,
-                &flat_locations,
+                flat_locations,
                 cohorts,
-                &neighbours_by_flat,
+                &topology_index.neighbours_by_flat,
             )?;
             if paths.is_empty() {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
@@ -12362,8 +12649,8 @@ fn settle_internal_contact_interval(
         .zip(compact_bonds.iter().copied())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
-        let left_seed = causal_seeds[left_flat];
-        let right_seed = causal_seeds[right_flat];
+        let left_seed = is_causal_seed(left_flat);
+        let right_seed = is_causal_seed(right_flat);
         if left_seed == right_seed {
             continue;
         }
@@ -12424,8 +12711,12 @@ fn settle_internal_contact_interval(
         } else {
             (right, left)
         };
-        if causal_seeds[left_flat] != causal_seeds[right_flat] {
-            let frontier_lineage = if causal_seeds[left_flat] { right } else { left };
+        if is_causal_seed(left_flat) != is_causal_seed(right_flat) {
+            let frontier_lineage = if is_causal_seed(left_flat) {
+                right
+            } else {
+                left
+            };
             next_active_frontier.push(ActiveElectricalFrontierEntry::caused_with_frontier(
                 sending_lineage,
                 receiving_lineage,
@@ -15601,6 +15892,95 @@ mod tests {
     }
 
     #[test]
+    fn indexed_frontier_is_invariant_under_unrelated_topology() {
+        let lineage = |ordinal: u32| {
+            let mut lineage = [0_u8; 16];
+            lineage[12..].copy_from_slice(&ordinal.to_be_bytes());
+            lineage
+        };
+        let index = |unrelated_pairs: usize| {
+            let neuron_count = 2 + unrelated_pairs * 2;
+            let mut flat_locations = Vec::with_capacity(neuron_count);
+            let mut flat_by_lineage = Vec::with_capacity(neuron_count);
+            let mut lineage_layers = Vec::with_capacity(neuron_count);
+            for flat in 0..neuron_count {
+                let id = lineage(u32::try_from(flat).unwrap());
+                flat_locations.push((0, flat, id));
+                flat_by_lineage.push((id, flat));
+                lineage_layers.push((id, 6));
+            }
+            let mut contacts = Vec::with_capacity(1 + unrelated_pairs);
+            for contact_index in 0..=unrelated_pairs {
+                let (left, right) = if contact_index == 0 {
+                    (0, 1)
+                } else {
+                    (contact_index * 2, contact_index * 2 + 1)
+                };
+                contacts.push(ResidentContactTopologyEntry {
+                    left,
+                    right,
+                    stable_bond: StablePhysicalBondReference::new(
+                        flat_locations[left].2,
+                        flat_locations[right].2,
+                        0,
+                    )
+                    .unwrap(),
+                    origin: ResidentContactOrigin::Local {
+                        cohort_index: 0,
+                        contact_index,
+                        left_member: left,
+                        right_member: right,
+                    },
+                });
+            }
+            let mut incident = vec![Vec::new(); neuron_count];
+            let mut neighbours = vec![Vec::new(); neuron_count];
+            for (contact_index, contact) in contacts.iter().enumerate() {
+                incident[contact.left].push(contact_index);
+                incident[contact.right].push(contact_index);
+                neighbours[contact.left].push(contact.right);
+                neighbours[contact.right].push(contact.left);
+            }
+            let canonical_lineages = flat_locations
+                .iter()
+                .map(|(_, _, lineage)| *lineage)
+                .collect::<Vec<_>>()
+                .into_boxed_slice();
+            let mut canonical_bonds = contacts
+                .iter()
+                .map(|contact| contact.stable_bond)
+                .collect::<Vec<_>>();
+            canonical_bonds.sort_unstable();
+            ResidentTopologyIndex {
+                flat_locations: flat_locations.into_boxed_slice(),
+                flat_by_lineage: flat_by_lineage.into_boxed_slice(),
+                lineage_layers: lineage_layers.into_boxed_slice(),
+                canonical_lineages,
+                canonical_bonds: canonical_bonds.into_boxed_slice(),
+                contacts: contacts.into_boxed_slice(),
+                incident_contacts_by_flat: incident
+                    .into_iter()
+                    .map(Vec::into_boxed_slice)
+                    .collect::<Vec<_>>()
+                    .into_boxed_slice(),
+                neighbours_by_flat: neighbours
+                    .into_iter()
+                    .map(Vec::into_boxed_slice)
+                    .collect::<Vec<_>>()
+                    .into_boxed_slice(),
+                cohort_shapes: Box::new([]),
+                fabric_contact_count: 0,
+            }
+        };
+        let baseline = index(0).one_interval_frontier(&[lineage(0)]).unwrap();
+        let wide = index(1_024)
+            .one_interval_frontier(&[lineage(0)])
+            .unwrap();
+        assert_eq!(baseline, (vec![0, 1], vec![0]));
+        assert_eq!(wide, baseline);
+    }
+
+    #[test]
     fn only_current_internal_reassembly_retains_its_recurrent_frontier() {
         let cue = [1_u8; 16];
         let recurrent = [9_u8; 16];
@@ -15848,6 +16228,7 @@ mod tests {
         assert_eq!(fabric.contact_count(), contact_count);
 
         let topology = organism_mosaic_topology(&cohorts, &fabric).unwrap();
+        let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
         let fractal =
             crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
                 crate::complete_neuron::PhysicalStateDeltaEntry::new(
@@ -15900,7 +16281,7 @@ mod tests {
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
-            &fabric,
+            &topology_index,
             &[],
             &current_deltas,
             &changed_cue,
@@ -16020,7 +16401,7 @@ mod tests {
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
-            &fabric,
+            &topology_index,
             &[],
             &current_deltas,
             &changed_cue,
@@ -16057,7 +16438,7 @@ mod tests {
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
-                &fabric,
+                &topology_index,
                 &[],
                 &current_deltas,
                 &changed_cue,
@@ -16107,7 +16488,7 @@ mod tests {
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
-                &fabric,
+                &topology_index,
                 &[],
                 &current_deltas,
                 &[],
@@ -16178,7 +16559,7 @@ mod tests {
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
-                &fabric,
+                &topology_index,
                 &[],
                 &current_deltas,
                 &unrelated_external,
@@ -16341,12 +16722,14 @@ mod tests {
         };
         let association_predecessor = participant_plastic(association, &cohorts);
         let regulation_predecessor = participant_plastic(regulation, &cohorts);
+        let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
         let mut transitioned = Vec::new();
         let mut retained_settlement = None;
         for ordinal in 1..=128 {
             let observation = settle_internal_contact_interval(
                 &mut cohorts,
                 &mut fabric,
+                &topology_index,
                 &[association, regulation],
                 &[association, regulation],
                 &mut transitioned,
@@ -16716,6 +17099,10 @@ mod tests {
             neighbours[left_flat].push(right_flat);
             neighbours[right_flat].push(left_flat);
         }
+        let neighbours = neighbours
+            .into_iter()
+            .map(Vec::into_boxed_slice)
+            .collect::<Vec<_>>();
         let motor_flat = flat_locations
             .iter()
             .enumerate()
