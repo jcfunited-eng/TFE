@@ -160,6 +160,39 @@ forbidden G32 horse-race docs; do not conflate.
   manually, verdicts published. Never edit a live bash loop without
   restarting it, same lesson twice in one day.
 
+## 2026-08-20 pre-dawn — CH6 final form; the seeing night
+- Channel law from Joe: CH4 = GAIN strategy page, CH6 = SHORT page;
+  channels are strategies; all short work rehomed ch6_* /
+  artifacts/ch6_harvest (an aborted rename chain left the census
+  behind — caught by dry rehearsal, gate correctly DEFERRED, fixed).
+- Sizing arc: $60k → $20k → $2,500 FINAL ("size was a crutch for
+  blindness"). Fill law: decide at close, STAGE, purchase at next
+  session's in-session prints only (timestamp-guarded), stages
+  expire with their session, halt file holds fills, held stages
+  retry within session. Zombie law: ETFs/funds = zombie category,
+  operating companies only (registry types, ~31% of roster zombie).
+  2% EOD bank ON. Cherry-pick best-ranked up to 30.
+- Rule 11 caught a FATAL: dangling old-law lines crashed every
+  non-dry hunt (dry runs masked it) + 4 more (halt bypass, premarket
+  fills, stage immortality, govern erasing Joseph's cuts). All fixed;
+  REAL path exercised on a book copy: 16/16 refusals filed, custody
+  refused_by_reading=16, day stamped. Lesson: rehearse the non-dry
+  path on a copy, never trust dry alone.
+- THE SEEING: month scan (5 reads/session × 22 sessions × 4,303
+  lives) + contact sheets + MY EYES: ~1 in 7 lives in clear decline,
+  ~1 in 3 in gain — thousands in motion, Joe's claim confirmed by
+  looking. Decline archetype: price stair-down + push red-dominant +
+  channel dips deepening + deaths mid-fall (AAON). Fund texture
+  unmistakable (dense chatter, no phases). Strain lane needs
+  rescale + move to back (Joe's tip).
+- Rehearsal receipt on the freshest close: old engine took 9/16
+  (bleeding), new stack takes 0/16, every refusal printed with law.
+  TEM caught by poison ceiling ($146M/day) — would have been entered.
+- Pending: wire the eye-confirmed decline pool into entries WITH
+  validation; strain lane fix; open-fill re-grade of decade studies;
+  ticker-reuse seam detection; MRNA roster-drop question; earnings
+  calendar source.
+
 ## Open reads (my own list, no fake debts)
 2. TFE_Specification_Merged/ch06_l5_governance.tex + the L5 specs.
 3. epoch_structural_analysis.txt + tfe_epoch_library.py as code.
