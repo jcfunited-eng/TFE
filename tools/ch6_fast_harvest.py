@@ -211,6 +211,7 @@ def settle_completed_closes(
         if age < 1:
             continue
         mark = float(price)
+        latest_s = latest.strftime("%Y-%m-%d")
         pending = position.get("rules_cut_pending")
         # a pending cut may only settle at a completed close that
         # POSTDATES the decision — never at the prior session's price
@@ -336,6 +337,17 @@ def hunt(dry: bool = False) -> None:
     if events:
         from tools.ch_entry_reading import gate as _entry_gate
         _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
+        # the kernel readings lag the store for ~40 min after the
+        # nightly close refresh; a transient STALE/ERROR judgment must
+        # DEFER the day's entry decision, never conclude it — same
+        # semantics as the herd-not-published path above
+        if any(v.get("structure_verdict") in ("STALE", "ERROR")
+               for v in _verdicts.values()):
+            print("[ch6 hunt] kernel readings not current yet — entry "
+                  "decision deferred, no day stamp")
+            if settled and not dry:
+                save_book(book)
+            return
         pre_reading = len(events)
         events = [e for e in events
                   if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]

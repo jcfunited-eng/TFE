@@ -291,6 +291,14 @@ def main() -> None:
     if take:
         from tools.ch_entry_reading import gate as _entry_gate
         _verdicts = _entry_gate([str(e["symbol"]) for e in take], "CH3")
+        # kernel readings lagging the store (STALE/ERROR) mean the
+        # night's judgment does not exist yet: take no entries rather
+        # than concluding on missing readings; settlements proceed
+        if any(v.get("structure_verdict") in ("STALE", "ERROR")
+               for v in _verdicts.values()):
+            print("[reveal-fade] kernel readings not current — no "
+                  "entries tonight on lagging readings")
+            take = []
         take = [e for e in take
                 if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
     floor_cash = -(GROSS_MULT - 1.0) * CASH0

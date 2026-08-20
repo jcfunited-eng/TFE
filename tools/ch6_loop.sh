@@ -18,7 +18,9 @@ while true; do
   h=$(date -u +%H); m=$(date -u +%M); dow=$(date -u +%u); d=$(date -u +%F)
   # CH6's OWN entry scan. Guarded inside by the processed-day stamp, so
   # running it every cycle can never open a position twice.
-  python tools/ch6_fast_harvest.py hunt > /dev/null 2>&1
+  # hunt output goes to the log — a refused or crashing entry scan
+  # must be visible, never discarded (Rule 11 finding 2026-08-19)
+  python tools/ch6_fast_harvest.py hunt >> artifacts/vtvr_observer/ch6_runner.log 2>&1
   if [ "$dow" -le 5 ]; then
     if { [ "$h" -ge 14 ] || { [ "$h" = "13" ] && [ "$m" -ge 35 ]; }; } \
         && { [ "$h" -lt 19 ] || { [ "$h" = "19" ] && [ "$m" -lt 50 ]; }; }; then

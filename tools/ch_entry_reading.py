@@ -67,7 +67,7 @@ from tools.ch4_uf_kernel_v2 import replay_symbol_v2  # noqa: E402
 
 READINGS_DIR = ROOT / "docs" / "readings"
 CACHE_DIR = ROOT / "artifacts" / "ch4_uf" / "entry_reading_cache"
-LAWS_VERSION = "v2-20260819"
+LAWS_VERSION = "v3-20260819"
 MIN_READINGS = 1100         # ~6 months of 9/day — else fail closed
 FETCH_START = "2000-01-01"  # whole life: a peak before 2021 is still the peak
 
@@ -344,7 +344,12 @@ def _todays_sheets(day: str) -> dict:
 
 
 def _file_sheet(sheet_path: Path, out: dict) -> None:
-    existing = json.load(open(sheet_path)) if sheet_path.exists() else {}
+    existing = {}
+    if sheet_path.exists():
+        try:
+            existing = json.load(open(sheet_path))
+        except Exception:  # noqa: BLE001 — a corrupt sheet never blocks entries
+            existing = {}
     existing.update(out)
     tmp = sheet_path.with_suffix(f".json.tmp{os.getpid()}")
     json.dump(existing, open(tmp, "w"), indent=1)
@@ -365,7 +370,9 @@ def _structural_authority(symbol: str) -> tuple[str | None, str, str]:
       from (WETO, IPST, TNON, BULL, MRNA).
     - Joint structure in the census AVOID list (negative or tail-heavy
       in BOTH decade halves): REFUSE.
-    - PAY / UNDECIDED pass, under every other law and Rule 10.
+    - ONLY structures on the census PAYING list pass (Joseph: avoidance
+      governs this channel; the undecided middle is avoided, not
+      gambled). Everything else refuses.
     """
     import pandas as pd
 
@@ -374,16 +381,24 @@ def _structural_authority(symbol: str) -> tuple[str | None, str, str]:
             ROOT / "artifacts" / "ch4_uf" / "population_universe_20260819.csv")
         census = json.load(open(
             ROOT / "artifacts" / "ch4_uf" / "ch4_joint_structure_census.json"))
-        store_dates = pd.read_parquet(
-            ROOT / "ch4_live_store.parquet", columns=["Date"])
+        store = pd.read_parquet(
+            ROOT / "ch4_live_store.parquet", columns=["Date", "Symbol"])
+        latest = store["Date"].max()
         _STRUCT_CACHE.update(
             universe=set(universe["Symbol"].astype(str)),
             pay={e["config"] for e in census["PAY_both_halves"]},
             avoid={e["config"] for e in census["AVOID_both_halves"]},
-            store_latest=str(store_dates["Date"].max())[:10])
+            store_latest=str(latest)[:10],
+            store_latest_symbols=set(
+                store.loc[store["Date"] == latest, "Symbol"].astype(str)))
     if symbol not in _STRUCT_CACHE["universe"]:
         return ("outside the readable universe: the perception has no "
                 "lane here and the engines do not trade blind", "", "UNREAD")
+    if symbol not in _STRUCT_CACHE["store_latest_symbols"]:
+        # a lane can be written out-of-band; currency is only trusted
+        # when the canonical store itself carries the entity today
+        return ("no store row at the latest close: the canonical store "
+                "does not carry this entity today", "", "STALE")
     lane_path = ROOT / "artifacts" / "ch4_uf" / "population_lanes" / f"{symbol}.parquet"
     if not lane_path.exists():
         return ("no perception lane on disk", "", "UNREAD")
@@ -438,8 +453,17 @@ def gate(symbols: list, channel: str) -> dict:
             verdict["structure_verdict"] = struct
             if refusal is not None:
                 verdict["verdict"] = "REFUSE"
-                verdict["law"] = "structural-authority"
-                verdict["provenance"] = "Joseph + decade census"
+                # STALE and ERROR are TRANSIENT (readings lag the
+                # store during the nightly pass; a mid-replace read
+                # can fail) — filed as fail-closed so the same-day
+                # reuse rule retries them. AVOID/UNDECIDED/UNREAD are
+                # the day's real judgment and stay locked.
+                verdict["law"] = ("fail-closed"
+                                  if struct in ("STALE", "ERROR")
+                                  else "structural-authority")
+                verdict["provenance"] = ("custody"
+                                         if struct in ("STALE", "ERROR")
+                                         else "Joseph + decade census")
                 verdict["rule"] = refusal
         out[s] = verdict
     _file_sheet(READINGS_DIR / f"{channel}_ENTRY_READINGS_{day}.json", out)

@@ -16,8 +16,14 @@ while true; do
   if [ "$dow" -le 5 ] && [ "$now_h" = "21" ] && [ "$now_m" -ge 10 ] && [ "$now_m" -lt 25 ]; then
     echo "[spring-runner] close pass $(date -u +%FT%TZ)"
     {
+      # ORDER MATTERS (Rule 11 finding 2026-08-19): the kernel readings
+      # must be current BEFORE any engine decides entries, or the
+      # structural authority refuses everything as stale and the day's
+      # decision concludes on missing readings.
       python tools/ch4_store_refresh.py
       python tools/ch3_supply_tail.py
+      python tools/population_reading_backfill.py \
+        artifacts/ch4_uf/population_universe_20260819.csv 8
       CH4_STORE=ch4_live_store.parquet \
         CH4_HERD_EXPORT=artifacts/ch4_uf/herd_state_live.parquet \
         python tools/ch4_uf_spectrum_herd.py
@@ -25,8 +31,6 @@ while true; do
       python tools/ch3_reveal_fade.py
       python tools/ch4_spring_page.py artifacts/vtvr_observer/ch4_page.html
       python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html
-      python tools/population_reading_backfill.py \
-        artifacts/ch4_uf/population_universe_20260819.csv 8
       python tools/ch4_perception_nightly.py
     } >> artifacts/vtvr_observer/spring_passes.log 2>&1
     echo "[spring-runner] close pass done $(date -u +%FT%TZ)"
