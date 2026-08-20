@@ -57,10 +57,20 @@ ENGINE = "ch6_fast_harvest_v3"
 EVENT_GAIN = 8.0
 VOL_MULT = 3.0
 PRICE_FLOOR = 5.0
-SLICE_USD = 2_000.0
+# Joseph 2026-08-19: $100k book, $1,000/day target. Position sizes to
+# the target slice, capped by his fillability law (1% of the entity's
+# normal-day money) and by cash. Entities whose normal day cannot
+# absorb the FLOOR are refused (unchanged law).
+SLICE_TARGET_USD = 60_000.0
+SLICE_FLOOR_USD = 2_000.0
 START_DATE = "2026-08-07"
 CASH0 = 100_000.0
-HARVEST_PCT = 5.0
+HARVEST_PCT = 5.0   # intraday arm level (trail unchanged)
+SWEEP_PCT = 2.0     # Joseph's fast-cash law: end-of-day bank at 2%+
+                    # — switched ON per the filed coupled decision:
+                    # it pays when cash binds, and at $60k slices on
+                    # a $100k book, cash binds (study on file:
+                    # ch6_fast_cash_laws.json)
 GIVEBACK_PP = 1.0
 ANOMALY_STOP_PCT = 20.0
 HOLD_SESSIONS = 5
@@ -356,15 +366,19 @@ def hunt(dry: bool = False) -> None:
     opened = 0
     for event in events:
         symbol = str(event["symbol"])
-        if symbol in positions(book) or float(book["cash"]) < SLICE_USD:
-            continue
-        shares = int(SLICE_USD // float(event["close"]))
-        if shares < 1:
+        if symbol in positions(book) or float(book["cash"]) < SLICE_FLOOR_USD:
             continue
         normal_day = float(event.get("normal_day_dollars", 0.0))
-        if normal_day and SLICE_USD > 0.01 * normal_day:
-            print(f"  REFUSE {symbol}: $2k slice exceeds 1% of its normal "
-                  f"day (${normal_day:,.0f}) — unfillable")
+        slice_usd = min(SLICE_TARGET_USD, float(book["cash"]))
+        if normal_day:
+            slice_usd = min(slice_usd, 0.01 * normal_day)
+        if slice_usd < SLICE_FLOOR_USD:
+            print(f"  REFUSE {symbol}: 1% of its normal day "
+                  f"(${normal_day:,.0f}) cannot absorb even the "
+                  f"${SLICE_FLOOR_USD:,.0f} floor — unfillable")
+            continue
+        shares = int(slice_usd // float(event["close"]))
+        if shares < 1:
             continue
         notional = round(shares * round(float(event["close"]), 4), 2)
         if dry:
@@ -518,7 +532,7 @@ def evaluate_live_marks(action: str) -> None:
             close_position(book, symbol, position, price, "ANOMALY-CUT", now)
             continue
         if action == "sweep":
-            if gain >= HARVEST_PCT:
+            if gain >= SWEEP_PCT:
                 close_position(book, symbol, position, price, "HARVEST", now)
             continue
 
