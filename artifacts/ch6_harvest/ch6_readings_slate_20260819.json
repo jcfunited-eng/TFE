@@ -1,0 +1,115 @@
+{
+ "decided_close": "2026-08-19",
+ "filed_at": "2026-08-20T03:58:59.113704+00:00",
+ "laws_version": "v3-20260819",
+ "verdicts": [
+  {
+   "symbol": "ST",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "UNH",
+   "verdict": "REFUSE",
+   "law": "poison-pill",
+   "rule": "too big to pump ($1,098M normal day): a spike in a giant is repricing on news, not a crowd pump \u2014 never a harvest short (decade receipt: fade dead-to-negative above $100M in both halves)"
+  },
+  {
+   "symbol": "VMD",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "SCSC",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "VALE",
+   "verdict": "REFUSE",
+   "law": "poison-pill",
+   "rule": "too big to pump ($267M normal day): a spike in a giant is repricing on news, not a crowd pump \u2014 never a harvest short (decade receipt: fade dead-to-negative above $100M in both halves)"
+  },
+  {
+   "symbol": "SMFG",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "VLRS",
+   "verdict": "ALLOW",
+   "law": "none-in-force",
+   "rule": "no law in force refuses; caps, cut line, clock and premarket pass govern; reading filed"
+  },
+  {
+   "symbol": "STLA",
+   "verdict": "ALLOW",
+   "law": "none-in-force",
+   "rule": "no law in force refuses; caps, cut line, clock and premarket pass govern; reading filed"
+  },
+  {
+   "symbol": "TGLS",
+   "verdict": "ALLOW",
+   "law": "none-in-force",
+   "rule": "no law in force refuses; caps, cut line, clock and premarket pass govern; reading filed"
+  },
+  {
+   "symbol": "TCBK",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "XPER",
+   "verdict": "ALLOW",
+   "law": "none-in-force",
+   "rule": "no law in force refuses; caps, cut line, clock and premarket pass govern; reading filed"
+  },
+  {
+   "symbol": "SNN",
+   "verdict": "REFUSE",
+   "law": "sound-structure",
+   "rule": "sound structure, never a short (cost replay owed, principle stands)"
+  },
+  {
+   "symbol": "TIGO",
+   "verdict": "REFUSE",
+   "law": "poison-pill",
+   "rule": "too big to pump ($101M normal day): a spike in a giant is repricing on news, not a crowd pump \u2014 never a harvest short (decade receipt: fade dead-to-negative above $100M in both halves)"
+  }
+ ],
+ "staged": [
+  {
+   "symbol": "VLRS",
+   "decided_date": "2026-08-19",
+   "decided_close": 7.14,
+   "decided_at": "2026-08-20T03:58:59.113704+00:00",
+   "normal_day_dollars": 2937099.0
+  },
+  {
+   "symbol": "STLA",
+   "decided_date": "2026-08-19",
+   "decided_close": 5.43,
+   "decided_at": "2026-08-20T03:58:59.113704+00:00",
+   "normal_day_dollars": 87717277.0
+  },
+  {
+   "symbol": "TGLS",
+   "decided_date": "2026-08-19",
+   "decided_close": 40.88,
+   "decided_at": "2026-08-20T03:58:59.113704+00:00",
+   "normal_day_dollars": 7109364.0
+  },
+  {
+   "symbol": "XPER",
+   "decided_date": "2026-08-19",
+   "decided_close": 6.27,
+   "decided_at": "2026-08-20T03:58:59.113704+00:00",
+   "normal_day_dollars": 2317044.0
+  }
+ ]
+}
