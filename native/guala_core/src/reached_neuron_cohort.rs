@@ -2453,7 +2453,7 @@ impl<'a> ReachedCohortIntervalInput<'a> {
         self.neurons[0].interval_microseconds
     }
 
-    fn resident_indices(
+    pub(crate) fn resident_indices(
         &self,
         anatomy: &ReachedCohortAnatomy,
     ) -> Result<Vec<usize>, ReachedCohortError> {

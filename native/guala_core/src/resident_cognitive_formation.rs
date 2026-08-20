@@ -4484,6 +4484,24 @@ impl ResidentCognitiveFormationState {
                             .collect::<Vec<_>>();
                         let local_dark_recovery_settled =
                             exogenous_receptor_energy == Some(false);
+                        let interval_predecessor_neurons = if local_dark_recovery_settled {
+                            cohort
+                                .state
+                                .neurons()
+                                .iter()
+                                .cloned()
+                                .enumerate()
+                                .collect::<Vec<_>>()
+                        } else {
+                            input
+                                .resident_indices(&cohort.anatomy)
+                                .map_err(FormationError::PhysicalSettlementUnavailable)?
+                                .into_iter()
+                                .map(|neuron_index| {
+                                    (neuron_index, cohort.state.neurons()[neuron_index].clone())
+                                })
+                                .collect::<Vec<_>>()
+                        };
                         for (perturbed, lineage) in gate_work_perturbed_neurons
                             .iter()
                             .zip(cohort.anatomy.neuron_lineages())
@@ -4506,7 +4524,6 @@ impl ResidentCognitiveFormationState {
                                 externally_energized_by_occurrence[occurrence_index].push(*lineage);
                             }
                         }
-                        let interval_predecessor_neurons = cohort.state.neurons().to_vec();
                         let outcome = settle_resident_physical_interval(
                             cohort,
                             input,
@@ -4543,19 +4560,17 @@ impl ResidentCognitiveFormationState {
                             }
                         }
                         if outcome.metabolic.changed() {
-                            for (neuron_index, ((predecessor, successor), lineage)) in
-                                interval_predecessor_neurons
-                                    .iter()
-                                    .zip(cohort.state.neurons())
-                                    .zip(cohort.anatomy.neuron_lineages())
-                                    .enumerate()
+                            for (neuron_index, predecessor) in
+                                interval_predecessor_neurons.iter()
                             {
+                                let successor = &cohort.state.neurons()[*neuron_index];
+                                let lineage = &cohort.anatomy.neuron_lineages()[*neuron_index];
                                 if predecessor.separated_elementary_charges()
                                     == successor.separated_elementary_charges()
                                 {
                                     continue;
                                 }
-                                let mount = &cohort.anatomy.mounts()[neuron_index];
+                                let mount = &cohort.anatomy.mounts()[*neuron_index];
                                 if mount.source_site().is_some()
                                     && mount.place().layer() == 5
                                     && !metabolically_perturbed_body_receptor_lineages
@@ -4565,13 +4580,9 @@ impl ResidentCognitiveFormationState {
                                 }
                             }
                         }
-                        for (neuron_index, ((predecessor, successor), lineage)) in
-                            interval_predecessor_neurons
-                            .iter()
-                            .zip(cohort.state.neurons())
-                            .zip(cohort.anatomy.neuron_lineages())
-                                .enumerate()
-                        {
+                        for (neuron_index, predecessor) in &interval_predecessor_neurons {
+                            let successor = &cohort.state.neurons()[*neuron_index];
+                            let lineage = &cohort.anatomy.neuron_lineages()[*neuron_index];
                             if predecessor != successor
                                 && !physically_transitioned_neuron_lineages.contains(lineage)
                             {
@@ -4582,7 +4593,7 @@ impl ResidentCognitiveFormationState {
                                     &mut transition_neuron_predecessors,
                                     TransitionNeuronPredecessor {
                                         lineage: *lineage,
-                                        anatomy: cohort.anatomy.neuron_anatomies()[neuron_index]
+                                        anatomy: cohort.anatomy.neuron_anatomies()[*neuron_index]
                                             .clone(),
                                         state: predecessor.clone(),
                                     },
