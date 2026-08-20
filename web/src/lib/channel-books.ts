@@ -31,6 +31,12 @@ export type ChannelClosedView = {
   reason: string;
 };
 
+export type StagedEntryView = {
+  symbol: string;
+  decidedClose: number;
+  decidedDate: string;
+};
+
 export type ChannelBookView = {
   channel: ChannelCode;
   title: string;
@@ -45,6 +51,7 @@ export type ChannelBookView = {
   unrealizedPnl: number | null;
   positions: ChannelPositionView[];
   closed: ChannelClosedView[];
+  staged: StagedEntryView[];
   rules: string[];
   markAsOf: string | null;
   markSource: string;
@@ -405,6 +412,14 @@ export async function getChannelBookView(channel: ChannelCode): Promise<ChannelB
   const positions = normalized.positions
     .map(({ symbol, value }) => positionView(symbol, value, marks.prices[symbol] ?? null, channel))
     .sort((a, b) => a.symbol.localeCompare(b.symbol));
+  const stagedRaw = Array.isArray(book.staged_entries) ? book.staged_entries.map(record) : [];
+  const staged = stagedRaw
+    .map((item) => ({
+      symbol: text(item.symbol),
+      decidedClose: finite(item.decided_close),
+      decidedDate: text(item.decided_date),
+    }))
+    .filter((item) => item.symbol);
   const closed = normalized.closed
     .map(closedView)
     .filter((trade) => trade.symbol)
@@ -432,6 +447,7 @@ export async function getChannelBookView(channel: ChannelCode): Promise<ChannelB
     unrealizedPnl,
     positions,
     closed,
+    staged,
     rules: CHANNEL_META[channel].rules,
     markAsOf: marks.asOf,
     markSource,

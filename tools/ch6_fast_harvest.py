@@ -636,13 +636,18 @@ def evaluate_live_marks(action: str) -> None:
             slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
                             0.01 * float(entry["normal_day_dollars"]))
             if slice_usd < SLICE_FLOOR_USD:
-                print(f"  STAGE DROP {symbol}: cash or fillability below "
-                      "the floor at fill time")
+                # cash can free up later in the session (a harvest, a
+                # cut) — held stages retry each poll and expire with
+                # their session, exactly as the law text says
+                print(f"  STAGE HELD {symbol}: cash or fillability below "
+                      "the floor right now — retries this session")
+                remaining.append(entry)
                 continue
             shares = int(slice_usd // price)
             if shares < 1:
-                print(f"  STAGE DROP {symbol}: price ${price:.2f} exceeds "
-                      "the slice")
+                print(f"  STAGE HELD {symbol}: price ${price:.2f} exceeds "
+                      "the slice right now — retries this session")
+                remaining.append(entry)
                 continue
             notional = round(shares * round(price, 4), 2)
             book["cash"] = round(float(book["cash"]) - notional, 2)

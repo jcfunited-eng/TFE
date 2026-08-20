@@ -81,6 +81,32 @@ export default function ChannelBookPage({
         {book.unrealizedPnl === null ? " · totals requiring missing marks are withheld" : ""}
       </div>
 
+      {book.staged && book.staged.length ? (
+        <section className={styles.tableCard}>
+          <h2>Staged for the next open <span>{book.staged.length}</span></h2>
+          <div className={styles.markNote}>
+            Decisions made at the last completed close. They purchase at the first
+            in-session prints after the next open, up to $2,500 each, re-checked
+            against cash and fillability at fill time; unfilled stages expire with
+            their session. No cash is committed until a fill happens.
+          </div>
+          <div className={styles.tableWrap}>
+            <table>
+              <thead><tr><th>Ticker</th><th>Decided at close</th><th>Decision date</th></tr></thead>
+              <tbody>
+                {book.staged.map((s) => (
+                  <tr key={s.symbol}>
+                    <td className={styles.ticker}>{s.symbol}</td>
+                    <td>{"$" + s.decidedClose.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                    <td>{s.decidedDate}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
       <section className={styles.tableCard}>
         <h2>Open positions <span>{book.positions.length}</span></h2>
         <div className={styles.tableWrap}>
