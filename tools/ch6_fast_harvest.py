@@ -35,6 +35,7 @@ shorted again on the same bar that refuted it.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import sys
@@ -97,20 +98,51 @@ def load_book() -> dict[str, object]:
     book.setdefault("closed", [])
     book.setdefault("cash", CASH0)
     book.setdefault("start", CASH0)
+    book.setdefault("save_seq", 0)
     book["engine"] = ENGINE
     return book
 
 
 def save_book(book: dict[str, object]) -> None:
+    """Persist the book — REFUSING stale lineages.
+
+    2026-08-20 receipt: a writer holding a pre-open copy of the book
+    saved it at 14:27 UTC, silently discarding the morning's fills,
+    cuts and harvests; the next poll re-executed all of them at new
+    prices (duplicate BULL/MRNA cuts, double fills of four stages).
+    Guard: every save carries a monotonic save_seq. A writer whose
+    loaded save_seq is older than the book now on disk lost the race
+    long ago — its save is REFUSED and logged, never applied. The
+    check and replace sit under an exclusive flock so two live
+    writers serialize instead of interleaving one shared tmp file
+    (the tmp is also pid-suffixed for the same reason)."""
     book["engine"] = ENGINE
     book["last_run_utc"] = datetime.now(timezone.utc).isoformat()
     BOOK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    temporary = BOOK_PATH.with_suffix(BOOK_PATH.suffix + ".tmp")
-    with temporary.open("w", encoding="utf-8") as handle:
-        handle.write(json.dumps(book, indent=1) + "\n")
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(temporary, BOOK_PATH)
+    lock_path = BOOK_PATH.with_suffix(".lock")
+    with lock_path.open("w") as lock_handle:
+        fcntl.flock(lock_handle, fcntl.LOCK_EX)
+        disk_seq = 0
+        if BOOK_PATH.exists():
+            try:
+                with BOOK_PATH.open("r", encoding="utf-8") as handle:
+                    disk_seq = int(json.load(handle).get("save_seq", 0))
+            except Exception:  # noqa: BLE001 — torn book: allow the write
+                disk_seq = 0
+        loaded_seq = int(book.get("save_seq", 0))
+        if disk_seq > loaded_seq:
+            print(f"[ch6 book] STALE WRITE REFUSED (pid {os.getpid()}): "
+                  f"disk save_seq {disk_seq} > loaded {loaded_seq} — this "
+                  "process holds an outdated lineage; its changes are NOT "
+                  "saved. Reload the book and redo the work on fresh state.")
+            return
+        book["save_seq"] = disk_seq + 1
+        temporary = BOOK_PATH.with_suffix(f"{BOOK_PATH.suffix}.tmp{os.getpid()}")
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(book, indent=1) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, BOOK_PATH)
 
 
 def load_market() -> tuple[pd.DataFrame, list[pd.Timestamp], pd.Timestamp]:
