@@ -151,6 +151,7 @@ use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
 use rayon::prelude::*;
 use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Arc;
 
@@ -4007,12 +4008,7 @@ impl ResidentCognitiveFormationState {
                     shared.result().gates.len()
                 };
                 if receptor_law.is_some() || vestibular.is_some() {
-                    let mut required_positions = cohort
-                        .anatomy
-                        .neuron_anatomies()
-                        .iter()
-                        .map(|anatomy| anatomy.mathloom_positions())
-                        .collect::<Vec<_>>();
+                    let mut required_positions = BTreeMap::new();
                     for field_gate_index in 0..field_gate_count {
                         for coordinate_index in coordinate_indices.iter().copied() {
                             let perspective = bind_neuron_perspective(
@@ -4025,14 +4021,20 @@ impl ResidentCognitiveFormationState {
                                 .anatomy
                                 .source_site_member(&reached_source_sites[coordinate_index])
                                 .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                            required_positions[resident_index] = required_positions[resident_index]
-                                .max(
-                                    required_mathloom_positions(perspective)
-                                        .map_err(FormationError::JointFieldUnavailable)?,
-                                );
+                            let required = required_mathloom_positions(perspective)
+                                .map_err(FormationError::JointFieldUnavailable)?;
+                            required_positions
+                                .entry(resident_index)
+                                .and_modify(|current: &mut usize| {
+                                    *current = (*current).max(required);
+                                })
+                                .or_insert(required);
                         }
                     }
-                    extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
+                    extend_resident_cohort_selected_positional_fabrics(
+                        cohort,
+                        &required_positions.into_iter().collect::<Vec<_>>(),
+                    )?;
                 }
                 if receptor_law.is_some() || vestibular.is_some() {
                     for field_gate_index in 0..field_gate_count {
@@ -6699,6 +6701,47 @@ fn extend_resident_cohort_positional_fabrics(
     cohort.anatomy = successor_anatomy;
     cohort.state = successor_state.into();
     Ok(())
+}
+
+/// Extend only the causally selected members.  Ordinary already-provisioned
+/// intervals return before constructing a cohort-width requirements vector or
+/// cloning any cohort anatomy/state.  The complete vector is materialized only
+/// for a real topology-growth event because the recovery-fluid anatomy changes
+/// with that growth and must still be rebuilt atomically by its existing law.
+fn extend_resident_cohort_selected_positional_fabrics(
+    cohort: &mut ResidentReachedCohort,
+    selected_required_positions: &[(usize, usize)],
+) -> Result<(), FormationError> {
+    let mut prior_index = None;
+    let mut growth_required = false;
+    for (resident_index, required_positions) in selected_required_positions.iter().copied() {
+        if prior_index.is_some_and(|prior| prior >= resident_index) {
+            return Err(FormationError::NoncanonicalState);
+        }
+        let mounted_positions = cohort
+            .anatomy
+            .neuron_anatomies()
+            .get(resident_index)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .mathloom_positions();
+        growth_required |= required_positions > mounted_positions;
+        prior_index = Some(resident_index);
+    }
+    if !growth_required {
+        return Ok(());
+    }
+
+    let mut required_positions = cohort
+        .anatomy
+        .neuron_anatomies()
+        .iter()
+        .map(NeuronPhysicalAnatomy::mathloom_positions)
+        .collect::<Vec<_>>();
+    for (resident_index, selected_required) in selected_required_positions.iter().copied() {
+        required_positions[resident_index] = required_positions[resident_index]
+            .max(selected_required);
+    }
+    extend_resident_cohort_positional_fabrics(cohort, &required_positions)
 }
 
 fn settle_resident_physical_interval(
@@ -10918,13 +10961,17 @@ fn settle_internal_contact_interval(
                 return Err(FormationError::NoncanonicalState);
             }
         }
-        let catalysts = cohort
-            .anatomy
-            .neuron_anatomies()
+        let catalysts = selected_members
             .iter()
-                    .map(|anatomy| {
-                        vec![0; anatomy.recovery_anatomy().psi_lane_count()].into_boxed_slice()
-                    })
+            .map(|(_, neuron_index)| {
+                vec![
+                    0;
+                    cohort.anatomy.neuron_anatomies()[*neuron_index]
+                        .recovery_anatomy()
+                        .psi_lane_count()
+                ]
+                .into_boxed_slice()
+            })
             .collect::<Vec<Box<[u128]>>>();
         let resident_indices = selected_members
             .iter()
@@ -10939,7 +10986,9 @@ fn settle_internal_contact_interval(
         let mut settlement_predecessor = cohort.state.clone();
         let mut inputs = Vec::with_capacity(selected_members.len());
         let mut pending_layer_ten_plasticity = Vec::new();
-        for (coordinate, neuron_index) in selected_members.iter().copied() {
+        for (reached_input_index, (coordinate, neuron_index)) in
+            selected_members.iter().copied().enumerate()
+        {
             let perspective = bind_neuron_perspective(&shared, coordinate, 0)
                 .map_err(FormationError::JointFieldUnavailable)?;
             let prepared_psi = cohort.anatomy.neuron_anatomies()[neuron_index]
@@ -11037,7 +11086,7 @@ fn settle_internal_contact_interval(
                 perspective,
                 gate_work,
                 interval_microseconds,
-                recovery: RecoveryContact::new(&catalysts[neuron_index], 0, 0),
+                recovery: RecoveryContact::new(&catalysts[reached_input_index], 0, 0),
                 dna_expression: DnaExpressionContact::new(0),
                 receptor_successor_residue,
                 prepared_psi: Some(prepared_psi),
