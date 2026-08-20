@@ -283,19 +283,15 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         })
         .collect::<Vec<String>>();
 
-    // Experience-evidence detail (measurement only): the OR-masks the
-    // retention law actually persisted, so an external driver can see per
+    // Experience-evidence detail (measurement only): the sparse resident
+    // indices the retention law actually persisted, so an external driver can see per
     // hop when the retained original appeared and whether it carries any
     // electrical participation.
     fn experience_json(evidence: Option<&super::ResidentExperienceEvidence>) -> Value {
         match evidence {
             None => json!(null),
             Some(evidence) => {
-                let gate_work_count = evidence
-                    .gate_work_perturbed_neurons
-                    .iter()
-                    .filter(|bit| **bit)
-                    .count();
+                let gate_work_count = evidence.gate_work_perturbed_neurons.count();
                 let active_contact_count = evidence
                     .active_electrical_contacts
                     .iter()
@@ -326,8 +322,6 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         Some(evidence) => json!({
             "gate_work_perturbed_count": evidence
                 .gate_work_perturbed_neurons
-                .iter()
-                .filter(|bit| **bit)
                 .count(),
             "active_recurrence_contact_count": evidence
                 .active_recurrence_contacts
@@ -368,7 +362,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 ),
                 recurrence.map_or_else(
                     || vec![false; cohort.anatomy.neuron_count()].into_boxed_slice(),
-                    |evidence| evidence.gate_work_perturbed_neurons.clone(),
+                    |evidence| {
+                        evidence
+                            .gate_work_perturbed_neurons
+                            .to_dense(cohort.anatomy.neuron_count())
+                            .expect("canonical recurrence gate-work indices")
+                    },
                 ),
                 recurrence.map_or_else(
                     || vec![false; cohort.anatomy.contact_count()].into_boxed_slice(),
