@@ -409,17 +409,22 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
         .retained_experience
         .as_ref()
         .expect("predecessor retained original");
-    let learned = retained
-        .post_experience_rest
-        .as_ref()
-        .expect("predecessor learned original state");
+    let learned_state = |index: usize| {
+        retained
+            .retained_members()
+            .expect("sparse retained original")
+            .iter()
+            .find(|member| member.neuron_index == index)
+            .map(|member| &member.learned)
+            .expect("contact endpoint retained in original")
+    };
     let support_coordinate = |cohort: &ResidentReachedCohort,
-                              state: &crate::reached_neuron_cohort::ReachedCohortState,
+                              state: &crate::complete_neuron::NeuronPhysicalState,
                               index: usize| {
         ExactRational::integer(1)
             .checked_add(
                 ExactRational::integer(
-                    i128::try_from(state.neurons()[index].probe_gate_open_population()).unwrap(),
+                    i128::try_from(state.probe_gate_open_population()).unwrap(),
                 )
                 .checked_div_unsigned(cohort.anatomy.neuron_anatomies()[index].gate_population())
                 .unwrap(),
@@ -446,8 +451,12 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
              state: &crate::reached_neuron_cohort::ReachedCohortState| {
                 ExactRational::integer(1)
                     .checked_add(
-                        support_coordinate(cohort, state, left)
-                            .checked_sub(support_coordinate(cohort, state, right))
+                        support_coordinate(cohort, &state.neurons()[left], left)
+                            .checked_sub(support_coordinate(
+                                cohort,
+                                &state.neurons()[right],
+                                right,
+                            ))
                             .unwrap()
                             .checked_abs()
                             .unwrap(),
@@ -457,7 +466,19 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
         let original = settle_plastic_support_at_coordinate(
             &material,
             &PlasticSupportState::definitive_virtual_genesis(),
-            contact_coordinate(original_cohort, learned),
+            ExactRational::integer(1)
+                .checked_add(
+                    support_coordinate(original_cohort, learned_state(left), left)
+                        .checked_sub(support_coordinate(
+                            original_cohort,
+                            learned_state(right),
+                            right,
+                        ))
+                        .unwrap()
+                        .checked_abs()
+                        .unwrap(),
+                )
+                .unwrap(),
         )
         .unwrap();
         original_yielded += usize::from(original.changed);

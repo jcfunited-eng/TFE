@@ -376,13 +376,13 @@ fn four_source_candidate_cohort_forms_distinct_member_fractals_and_quiesces() {
     // nothing, conducts nothing, and stays quiescent.
     let at_rest = settle_reached_cohort_interval(
         &anatomy,
-        settled.rest.state(),
+        settled.rest.as_ref().unwrap().state(),
         cohort_interval(&episode, &shared, catalysts, [0, 0, 0, 0]),
     )
     .unwrap();
     assert!(!at_rest.electrically_active);
     assert!(at_rest.quiescent);
-    assert_eq!(&at_rest.successor, settled.rest.state());
+    assert_eq!(&at_rest.successor, settled.rest.as_ref().unwrap().state());
     assert!(settled
         .gate_work_perturbed_neurons
         .iter()

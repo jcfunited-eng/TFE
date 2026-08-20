@@ -297,19 +297,11 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                     .iter()
                     .filter(|bit| **bit)
                     .count();
-                let member_delta_count = evidence.post_experience_rest.as_ref().map(|post| {
-                    evidence
-                        .pre_experience_rest
-                        .neurons()
-                        .iter()
-                        .zip(post.neurons())
-                        .filter(|(pre, post)| pre != post)
-                        .count()
-                });
+                let member_delta_count = evidence.retained_members().map(<[_]>::len);
                 json!({
                     "gate_work_perturbed_count": gate_work_count,
                     "active_electrical_contact_count": active_contact_count,
-                    "post_experience_rest": evidence.post_experience_rest.is_some(),
+                    "post_experience_rest": evidence.is_retained(),
                     "member_delta_count": member_delta_count,
                 })
             }
@@ -341,20 +333,14 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
     // experience, same learned state, same current cohort state, same
     // recurrence bits — and report the physics' own refusal variant instead
     // of inferring one.
-    let recognition = match (
-        cohort.retained_experience.as_ref(),
-        cohort
-            .retained_experience
-            .as_ref()
-            .and_then(|retained| retained.post_experience_rest.as_ref()),
-    ) {
-        (Some(retained), Some(learned)) => {
+    let recognition = match cohort.retained_experience.as_ref() {
+        Some(retained) => {
             let recurrence = cohort.pending_recurrence.as_ref();
-            let original = super::original_settlement(&cohort.anatomy, retained, learned)
+            let original = super::original_settlement(&cohort.anatomy, retained)
                 .expect("original settlement");
             let actual = super::recurrence_settlement(
                 &cohort.anatomy,
-                learned,
+                retained,
                 cohort.state.as_ref().clone(),
                 recurrence.map_or_else(
                     || vec![None; cohort.anatomy.neuron_count()].into_boxed_slice(),
@@ -390,7 +376,7 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 "verdict": verdict,
             })
         }
-        _ => json!({
+        None => json!({
             "retained_experience": cohort.retained_experience.is_some(),
             "pending_recurrence": cohort.pending_recurrence.is_some(),
             "pending_experience": cohort.pending_experience.is_some(),

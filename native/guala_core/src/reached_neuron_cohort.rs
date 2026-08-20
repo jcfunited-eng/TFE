@@ -368,6 +368,28 @@ impl ReachedCohortState {
         &self.neurons
     }
 
+    #[cfg(test)]
+    pub(crate) fn with_replaced_neurons(
+        &self,
+        replacements: &[(usize, NeuronPhysicalState)],
+    ) -> Option<Self> {
+        if replacements
+            .windows(2)
+            .any(|pair| pair[0].0 >= pair[1].0)
+            || replacements
+                .last()
+                .is_some_and(|(index, _)| *index >= self.neurons.len())
+        {
+            return None;
+        }
+        let mut state = self.clone();
+        let neurons = state.neurons.as_mut();
+        for (index, replacement) in replacements {
+            neurons[*index] = replacement.clone();
+        }
+        Some(state)
+    }
+
     pub(crate) fn electrical(&self) -> &SparseElectricalState {
         &self.electrical
     }
@@ -2537,7 +2559,9 @@ impl RestReachedCohortState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ReachedCohortPostExperienceSettlement {
-    pub(crate) rest: RestReachedCohortState,
+    /// Present only for the standalone settle-to-rest diagnostic. Resident
+    /// cognition retains sparse member facts and does not own a cohort copy.
+    pub(crate) rest: Option<RestReachedCohortState>,
     pub(crate) neuron_fractals: Box<[Option<SparsePhysicalStateDelta>]>,
     pub(crate) receptor_excitation_zeptojoules: Box<[Option<ExactRational>]>,
     pub(crate) electrical_contact_was_active: bool,
@@ -3340,7 +3364,7 @@ pub(crate) fn settle_reached_cohort_experience_to_quiescence(
         );
     }
     Ok(ReachedCohortPostExperienceSettlement {
-        rest,
+        rest: Some(rest),
         neuron_fractals: fractals.into_boxed_slice(),
         receptor_excitation_zeptojoules: vec![None; anatomy.neurons.len()].into_boxed_slice(),
         electrical_contact_was_active,
