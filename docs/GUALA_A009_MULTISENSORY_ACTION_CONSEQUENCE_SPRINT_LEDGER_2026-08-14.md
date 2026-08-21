@@ -389,3 +389,31 @@ continuations had the identical motor omission. The authorized correction is
 only to carry those already-native facts into the existing continuous world
 action/consequence path. No cognition pause, Python action choice, dense state
 work, topology change, or DSF reduction is authorized.
+
+## Exact live trajectory refusal after handoff cutover — 2026-08-21
+
+Task `dsf-ai-task:1152` restored the same resident identity at tick 148192 but
+did not publish a later ordinary interval. The exact current 131,197,473-byte
+GLORUN body and exact 518,667-byte live world were copied into an isolated
+local root. One real eight-hop unattended trajectory deterministically reached
+native settlement and was then refused by the Python/native evidence boundary
+after 29.46 seconds with `one motor lineage carries multiple body effector
+bindings`.
+
+Direct inspection of that unacknowledged native candidate proved the two
+records are not conflicting anatomy. The same motor lineage
+`474c4e4c494e4531000000000000015f` lawfully discharged twice toward the same
+`torso_pitch` / `toward_minimum` effector, first with 6 carriers and later with
+3. Carrier count is event strength, not static effector identity. The wrapper
+must therefore require one stable `(axis, direction)` binding per lineage
+while retaining every ordered discharge and its exact carrier count. A change
+of axis or direction remains a fail-closed anatomy conflict.
+
+The corrected boundary passes both focused falsifiers and the unchanged exact
+production-predecessor replay. The same resident advanced from tick 148192 to
+148201 in 27.22 seconds. It retained two ordered discharges from the same motor
+lineage and their exact body consequences: `torso_pitch` -6 millidegrees at
+source tick 148194 and -3 millidegrees at source tick 148197. No native physics,
+DSF field, topology, cognition scheduling, or persisted schema changed. The
+remaining evidence gate is the production cutover followed by the real world
+action, same-resident multisensory consequence, and one later ordinary advance.

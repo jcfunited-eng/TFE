@@ -977,6 +977,48 @@ def test_prepare_carries_exact_layer_eleven_motor_contact_transfer(
     )
 
 
+def test_prepare_retains_repeated_discharge_into_one_body_effector(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    motor = "12" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        body_effector_bindings=[
+            (motor, "torso_pitch", "toward_minimum", 6),
+            (motor, "torso_pitch", "toward_minimum", 3),
+        ],
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.body_effector_bindings == (
+        (motor, "torso_pitch", "toward_minimum", 6),
+        (motor, "torso_pitch", "toward_minimum", 3),
+    )
+
+
+def test_prepare_refuses_conflicting_effector_anatomy_for_one_motor_lineage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    motor = "12" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        body_effector_bindings=[
+            (motor, "torso_pitch", "toward_minimum", 6),
+            (motor, "neck_yaw", "toward_minimum", 3),
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="conflicting body effector anatomy"):
+        organism.prepare(_Source())
+
+
 def test_prepare_refuses_motor_transfer_not_incident_to_motor(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

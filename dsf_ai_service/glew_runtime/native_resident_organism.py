@@ -2608,6 +2608,7 @@ class NativeResidentOrganism:
         if not isinstance(raw_body_effector_bindings, list):
             raise RuntimeError("body effector bindings changed format")
         body_effector_bindings: list[tuple[str, str, str, int]] = []
+        effector_anatomy_by_motor_lineage: dict[str, tuple[str, str]] = {}
         for raw in raw_body_effector_bindings:
             if not isinstance(raw, tuple) or len(raw) != 4:
                 raise RuntimeError("body effector binding changed format")
@@ -2621,11 +2622,17 @@ class NativeResidentOrganism:
                 or direction not in {"toward_minimum", "toward_maximum"}
             ):
                 raise RuntimeError("body effector binding is not typed anatomy")
+            effector_anatomy = (axis, direction)
+            established_effector_anatomy = (
+                effector_anatomy_by_motor_lineage.setdefault(
+                    lineage, effector_anatomy
+                )
+            )
+            if established_effector_anatomy != effector_anatomy:
+                raise RuntimeError(
+                    "one motor lineage carries conflicting body effector anatomy"
+                )
             body_effector_bindings.append((lineage, axis, direction, carriers))
-        if len({binding[0] for binding in body_effector_bindings}) != len(
-            body_effector_bindings
-        ):
-            raise RuntimeError("one motor lineage carries multiple body effector bindings")
 
         raw_body_consequences = candidate.articulated_body_consequences
         if not isinstance(raw_body_consequences, list):
