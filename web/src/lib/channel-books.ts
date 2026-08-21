@@ -94,11 +94,13 @@ const CHANNEL_META: Record<ChannelCode, { title: string; rules: string[] }> = {
   CH6: {
     title: "CH6 — Fast Harvest",
     rules: [
-      "Simulated short channel; no real orders.",
-      "Reduced entry projection: completed-close gain of at least 8%, volume at least 3× the preceding 20-session mean, price at least $5, and an explicit same-day gband=0 herd reading. Missing herd coverage is unknown and refused.",
-      "Positions size to $2,500 per entity maximum, best-ranked first across as many entities as supply and cash allow, capped at 1% of each entity's normal-day traded money. Operating companies only — funds and baskets are the zombie category and are refused. Winners arm at +5% and trail one percentage point from their best observed mark; the end-of-day sweep banks anything at +2% or better (the fast-cash law); the fifth completed session is the backstop.",
-      "The anomaly-cut trigger is checked at every five-minute mark and completed-close settlement. Marks and gaps can cross 20%, so the level is a trigger rather than a guaranteed realized-loss ceiling.",
-      "After an anomaly cut, the symbol remains refuted until a later completed daily close returns to or below the original entry. The cut bar cannot be re-entered. Borrow costs are not modeled.",
+      "Simulated short channel; no real orders. Fresh $100,000 book opened 2026-08-21 under the complete rulebook (docs/CH6_RULEBOOK_20260821.md); the prior book is archived whole.",
+      "Selection: decisions at the close, purchases the next morning at real opening prints. The pool is every operating company whose last two weeks show structural damage in the kernel lanes; each candidate gets a whole-life kernel reading naming its mechanism, and only a reading that says the fall continues can pick. Funds and baskets are the zombie category and never enter.",
+      "A rising stock is never entered: no pick that closed up on its decision day, and no purchase above the picked price — above it the entry holds and fills only if price returns within its valid day. A pick dies if the next close runs more than 2% against it.",
+      "Refusal laws, all failing closed: over $100M normal-day money is never shorted (poison-pill ceiling); under $200k is unfillable; every position caps at 1% of normal-day money; thin no-borrow pumps, uptick-restricted and halt-prone tapes are refused (desk floor); destroyed shells (lifetime peak 1,000× today's price) and sound structures (2+ years old, still worth half their peak) are never shorted; anything unreadable is never traded.",
+      "Sizing: $2,500 maximum per position, $2,000 floor; cash is verified before every purchase and the engine stops when the next slice is not fully covered — no overdraft.",
+      "Exits, all automatic: +5% arms and a one-point giveback from best banks; the 3:55 PM sweep banks anything at +2% or better (the fast-cash law); a 20% adverse move buys back at the next price with a 9:00 AM pre-market check; the fifth completed session ends any position; held names are re-read daily against the shell and sound-structure bans.",
+      "Records: every reading filed before its outcome is knowable; every refusal names its law; stale-copy writes to the book are refused and logged; borrow-style carry costs are deducted from every closed trade.",
     ],
   },
 };
