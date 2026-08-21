@@ -7483,20 +7483,17 @@ def _commit_admitted_hop(
     reports it.  Returns only what the native observation actually says.
     """
 
-    if isinstance(episode, tuple):
-        evidence: ResidentPrepareEvidence = (
-            organism.commit_admitted_trajectory_direct(
-                episode,
-                tuple(maximum_causal_intervals),
-            )
-        )
-        observed = organism.readiness()
-    else:
-        evidence = organism.prepare_admitted(
-            episode,
-            maximum_causal_intervals,
-        )
-        observed = organism.commit(evidence.token)
+    sources = episode if isinstance(episode, tuple) else (episode,)
+    intervals = (
+        tuple(maximum_causal_intervals)
+        if isinstance(episode, tuple)
+        else (maximum_causal_intervals,)
+    )
+    evidence: ResidentPrepareEvidence = organism.commit_admitted_trajectory_direct(
+        sources,
+        intervals,
+    )
+    observed = organism.readiness()
     ingress_sense_counts = {
         sense.value: count
         for sense, count in zip(
@@ -8963,6 +8960,122 @@ def _perform_admitted_intake(
         _end_external_intake()
 
 
+def _prepare_continuous_native_action_consequence(
+    *,
+    organism_identity: str,
+    predecessor_state_sha256: str,
+    successor_state_sha256: str,
+    predecessor_body_axes: tuple[Any, ...],
+    successor_body_axes: tuple[Any, ...],
+    motor_unit_recruitments: tuple[Any, ...],
+    body_effector_bindings: tuple[Any, ...],
+    articulated_body_consequences: tuple[Any, ...],
+) -> tuple[Any, Any, Any, list[tuple[int, int]], dict[str, Any], Any] | None:
+    """Prepare one immediate world/sensor interval for a native body action.
+
+    Cognition is not suspended and no organism-state transaction is created.
+    The already-lived native interval supplies the efferent/body facts; this
+    function advances the physical world once and builds the next ordinary
+    complete-roster sensory occurrence for the same resident organism.
+    """
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
+        AdvancePhysicalTimeCommand,
+        ENVIRONMENT_PORT_ID,
+        PreparedActionExecution,
+        encode_command,
+    )
+
+    if not articulated_body_consequences:
+        return None
+    if not motor_unit_recruitments:
+        raise RuntimeError("native body consequence has no causal motor discharge")
+
+    authority = _world()
+    before = authority.observation_snapshot()
+    intent = _receipt(
+        {
+            "articulated_body_consequences": articulated_body_consequences,
+            "body_effector_bindings": body_effector_bindings,
+            "duration_microseconds": WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+            "motor_unit_recruitments": motor_unit_recruitments,
+            "organism_identity": organism_identity,
+            "predecessor_state_sha256": predecessor_state_sha256,
+            "schema": "guala.native_action_world_interval_intent.v2",
+            "successor_state_sha256": successor_state_sha256,
+            "world_revision": before.revision,
+            "world_state_before_sha256": before.state_sha256,
+        }
+    )
+    prepared = authority.prepare_port_command(
+        port_id=ENVIRONMENT_PORT_ID,
+        command_payload=encode_command(
+            AdvancePhysicalTimeCommand(
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000
+            )
+        ),
+        causal_intent_receipt_sha256=intent,
+        expected_revision=before.revision,
+    )
+    if isinstance(prepared, ActionExecutionReceipt):
+        raise RuntimeError(
+            "native action world interval was refused: " + prepared.reason
+        )
+    if not isinstance(prepared, PreparedActionExecution):
+        raise RuntimeError("native action world interval lost prepared custody")
+
+    try:
+        execution = prepared.execution_receipt
+        episode, admissions, lane_truth = _action_consequence_episode(
+            execution,
+            action_duration=Fraction(WORLD_BODY_ACTION_MILLISECONDS, 1_000),
+            body_displacement=(Fraction(0),) * DISPLACEMENT_SITE_COUNT,
+            predecessor_retinal_body_axes=predecessor_body_axes,
+            retinal_body_axes=successor_body_axes,
+        )
+        predecessor_axes = {axis[1]: axis[3] for axis in predecessor_body_axes}
+        successor_axes = {axis[1]: axis[3] for axis in successor_body_axes}
+        if predecessor_axes.keys() != successor_axes.keys():
+            raise RuntimeError("native action changed articulated body anatomy")
+        signed_neck_yaw = (
+            successor_axes["neck_yaw"] - predecessor_axes["neck_yaw"]
+        )
+        vestibular_yaw = None
+        if signed_neck_yaw:
+            before_body = next(
+                body
+                for body in execution.before.bodies
+                if body.body_id == execution.before.self_body_id
+            )
+            after_body = next(
+                body
+                for body in execution.after.bodies
+                if body.body_id == execution.after.self_body_id
+            )
+            predecessor_heading = (
+                before_body.pose.heading_millidegrees
+                + predecessor_axes["neck_yaw"]
+            ) % 360_000
+            expected_successor_heading = (
+                after_body.pose.heading_millidegrees
+                + successor_axes["neck_yaw"]
+            ) % 360_000
+            successor_heading, trajectory = exact_native_yaw_trajectory(
+                predecessor_heading_millidegrees=predecessor_heading,
+                signed_displacement_millidegrees=signed_neck_yaw,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+            )
+            if successor_heading != expected_successor_heading:
+                raise RuntimeError("native neck motion lost exact vestibular geometry")
+            vestibular_yaw = (predecessor_heading, trajectory)
+    except BaseException:
+        authority.discard_prepared_action(prepared)
+        raise
+
+    return authority, prepared, episode, admissions, lane_truth, vestibular_yaw
+
+
 def _perform_admitted_intake_locked(
     episodes: list[tuple[Any, list[tuple[int, int]]]],
     intake: str,
@@ -9009,6 +9122,7 @@ def _perform_admitted_intake_locked(
     predecessor_body_state_sha256 = (
         organism.readiness().articulated_body_state_sha256
     )
+    predecessor_body_axes = tuple(organism.readiness().articulated_body_axes)
     last_hop: dict[str, Any] | None = None
     committed_hop_count = 0
     committed_vestibular_tick_count = 0
@@ -9396,12 +9510,178 @@ def _perform_admitted_intake_locked(
         if intake_error is not None:
             raise intake_error
         raise RuntimeError("admitted intake carried no hop episodes")
+    action_body_observation = organism.readiness()
+    action_body_state_sha256 = (
+        action_body_observation.articulated_body_state_sha256
+    )
+    prepared_action = _prepare_continuous_native_action_consequence(
+        organism_identity=predecessor.identity,
+        predecessor_state_sha256=predecessor.state_sha256,
+        successor_state_sha256=last_hop["state_sha256"],
+        predecessor_body_axes=predecessor_body_axes,
+        successor_body_axes=tuple(action_body_observation.articulated_body_axes),
+        motor_unit_recruitments=tuple(motor_unit_recruitments),
+        body_effector_bindings=tuple(sorted(set(body_effector_bindings))),
+        articulated_body_consequences=tuple(articulated_body_consequences),
+    )
+    action_execution: Any | None = None
+    action_consequence: dict[str, Any] | None = None
+    action_vestibular_tick_count = 0
+    if prepared_action is None:
+        published = _publish_committed_organism(
+            organism, admission, predecessor.state_sha256
+        )
+    else:
+        (
+            action_authority,
+            prepared_world,
+            consequence_episode,
+            consequence_admissions,
+            consequence_lane_truth,
+            consequence_vestibular_yaw,
+        ) = prepared_action
+        world_committed = False
+        world_persisted = False
+        predecessor_world_body = action_authority.encoded_snapshot()
+        try:
+            with action_authority.prepared_action_visibility_transaction(
+                prepared_world
+            ):
+                action_execution = action_authority.commit_prepared_action(
+                    prepared_world
+                )
+                world_committed = True
+                consequence_hop = _commit_admitted_hop(
+                    organism,
+                    consequence_episode,
+                    consequence_admissions,
+                    external_participant_action_receipt=(
+                        action_execution.causal_intent_receipt_sha256
+                    ),
+                )
+                (
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                ) = _advance_causal_motor_traces(
+                    organism,
+                    active_causal_motor_traces,
+                    completed_causal_motor_traces,
+                    consequence_hop,
+                    affective_balance_trajectories,
+                )
+                committed_hop_count += 1
+                emitted_neuron_fractals.extend(
+                    consequence_hop["emitted_neuron_fractals"]
+                )
+                organic_mosaic_relations.extend(
+                    consequence_hop["organic_mosaic_relations"]
+                )
+                for key in totals:
+                    totals[key] += consequence_hop[key]
+                for sense, count in consequence_hop[
+                    "receptor_ingress_sense_counts"
+                ].items():
+                    receptor_ingress_sense_counts[sense] += count
+                receptor_ingress_changing_count += consequence_hop[
+                    "receptor_ingress_changing_count"
+                ]
+                receptor_ingress_quiescent_count += consequence_hop[
+                    "receptor_ingress_quiescent_count"
+                ]
+                action_consequence = {
+                    **consequence_lane_truth,
+                    "articulated_body_proprioceptive": {
+                        "changed": len(
+                            {
+                                consequence[1]
+                                for consequence in articulated_body_consequences
+                                if consequence[5] != 0
+                            }
+                        ),
+                        "transported": len(predecessor_body_axes) * 2,
+                        "typed_source_count": len(
+                            body_proprioceptive_source_receipts
+                        ),
+                    },
+                    "causal_receipt_sha256": (
+                        action_execution.causal_intent_receipt_sha256
+                    ),
+                    "externally_perturbed_body_receptor_count": (
+                        consequence_hop[
+                            "externally_perturbed_body_receptor_count"
+                        ]
+                    ),
+                    "internal_metabolic_receptor_count": (
+                        consequence_hop[
+                            "metabolically_perturbed_body_receptor_count"
+                        ]
+                    ),
+                    "organism_identity": predecessor.identity,
+                    "organism_tick": consequence_hop["organism_tick"],
+                    "receptor_ingress_changing_count": consequence_hop[
+                        "receptor_ingress_changing_count"
+                    ],
+                    "receptor_ingress_quiescent_count": consequence_hop[
+                        "receptor_ingress_quiescent_count"
+                    ],
+                    "receptor_ingress_sense_counts": dict(
+                        consequence_hop["receptor_ingress_sense_counts"]
+                    ),
+                    "state_sha256": consequence_hop["state_sha256"],
+                    "vestibular": {
+                        "changed": int(
+                            consequence_vestibular_yaw is not None
+                        ),
+                        "transported_tick_count": (
+                            0
+                            if consequence_vestibular_yaw is None
+                            else len(consequence_vestibular_yaw[1])
+                        ),
+                    },
+                }
+                last_hop = consequence_hop
+                if consequence_vestibular_yaw is not None:
+                    heading, trajectory = consequence_vestibular_yaw
+                    vestibular_hop = _commit_vestibular_trajectory(
+                        organism,
+                        heading,
+                        trajectory,
+                    )
+                    action_vestibular_tick_count = len(trajectory)
+                    committed_vestibular_tick_count += len(trajectory)
+                    emitted_neuron_fractals.extend(
+                        vestibular_hop["emitted_neuron_fractals"]
+                    )
+                    organic_mosaic_relations.extend(
+                        vestibular_hop["organic_mosaic_relations"]
+                    )
+                    for key in totals:
+                        totals[key] += vestibular_hop[key]
+                    last_hop = vestibular_hop
+                successor_world_body = (
+                    action_authority.encoded_committed_prepared_action(
+                        prepared_world
+                    )
+                )
+                _persist_world_body(successor_world_body)
+                world_persisted = True
+                published = _publish_committed_organism(
+                    organism, admission, predecessor.state_sha256
+                )
+        except BaseException:
+            if world_committed:
+                with action_authority.committed_prepared_action_rollback_transaction(
+                    prepared_world
+                ) as rollback_world:
+                    rollback_world()
+                if world_persisted:
+                    _persist_world_body(predecessor_world_body)
+            else:
+                action_authority.discard_prepared_action(prepared_world)
+            raise
     successor_body_observation = organism.readiness()
     successor_body_state_sha256 = (
         successor_body_observation.articulated_body_state_sha256
-    )
-    published = _publish_committed_organism(
-        organism, admission, predecessor.state_sha256
     )
     motor_action: dict[str, Any] | None = None
     if articulated_body_consequences:
@@ -9418,13 +9698,19 @@ def _perform_admitted_intake_locked(
         body_transition_receipt = hashlib.sha256(receipt_material).hexdigest()
         motor_action = {
             "schema": "guala.native.articulated_body_action.v1",
-            "causal_intent_receipt_sha256": body_transition_receipt,
+            "causal_intent_receipt_sha256": (
+                body_transition_receipt
+                if action_execution is None
+                else action_execution.causal_intent_receipt_sha256
+            ),
+            "body_transition_receipt_sha256": body_transition_receipt,
             "disposition": "applied",
             "moved": any(
                 consequence[5] != 0
                 for consequence in articulated_body_consequences
             ),
             "root_motion": False,
+            "continuous_cognition": True,
             "body_state_before_sha256": predecessor_body_state_sha256,
             "body_state_after_sha256": successor_body_state_sha256,
             "motor_unit_recruitment_count": len(motor_unit_recruitments),
@@ -9551,9 +9837,31 @@ def _perform_admitted_intake_locked(
             "affective_gradient_motor_path": (
                 completed_causal_motor_traces.get("affective_gradient")
             ),
+            "sensory_consequence": action_consequence,
+            "vestibular_tick_count": action_vestibular_tick_count,
+            "world_revision": (
+                None if action_execution is None else action_execution.after.revision
+            ),
+            "world_state_before_sha256": (
+                None
+                if action_execution is None
+                else action_execution.before.state_sha256
+            ),
+            "world_state_after_sha256": (
+                None
+                if action_execution is None
+                else action_execution.after.state_sha256
+            ),
         }
         _last_self_moved = dict(motor_action)
-        _last_displacement = None
+        _last_displacement = (
+            None
+            if action_execution is None
+            else _world_displacement(
+                action_execution.before,
+                action_execution.after,
+            )
+        )
     _restored = RestoredNativeOrganism(
         organism=organism, pointer=published.pointer
     )
@@ -10132,6 +10440,7 @@ def _action_consequence_episode(
     *,
     action_duration: Fraction = Fraction(1, 1_000),
     body_displacement: tuple[Fraction, ...] | None = None,
+    predecessor_retinal_body_axes: tuple[Any, ...] | list[Any] | None = None,
     retinal_body_axes: tuple[Any, ...] | list[Any] | None = None,
 ) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
     """One exact joint sensorium caused by one committed 1 ms body action.
@@ -10149,17 +10458,24 @@ def _action_consequence_episode(
     if action_duration <= 0:
         raise ValueError("action consequence duration must be positive")
     times = (Fraction(0), action_duration)
-    retinal_heading = (
+    after_retinal_heading = (
         _current_retinal_heading_offset_millidegrees()
         if retinal_body_axes is None
         else _retinal_heading_offset_millidegrees_from_axes(retinal_body_axes)
+    )
+    before_retinal_heading = (
+        after_retinal_heading
+        if predecessor_retinal_body_axes is None
+        else _retinal_heading_offset_millidegrees_from_axes(
+            predecessor_retinal_body_axes
+        )
     )
     world_streams = physical_receptor_substreams(
         execution.before,
         execution.after,
         causal_transition=True,
-        before_retinal_heading_offset_millidegrees=retinal_heading,
-        after_retinal_heading_offset_millidegrees=retinal_heading,
+        before_retinal_heading_offset_millidegrees=before_retinal_heading,
+        after_retinal_heading_offset_millidegrees=after_retinal_heading,
         source_time_start=times[0],
         source_time_end=times[1],
     )
@@ -10250,6 +10566,8 @@ def _action_consequence_episode(
     lane_truth = {
         "action_duration_microseconds": int(action_duration * 1_000_000),
         "action_receipt_sha256": execution.causal_intent_receipt_sha256,
+        "before_retinal_heading_offset_millidegrees": before_retinal_heading,
+        "after_retinal_heading_offset_millidegrees": after_retinal_heading,
         "auditory": {"changed": 0, "transported": EAR_PORT_COUNT},
         "chemical": {
             "smell_changed": smell_changed,

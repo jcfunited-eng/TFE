@@ -60,9 +60,9 @@ organism = create_native_resident_organism(
     organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
     organism_tick=0,
     growth_dna=production._authored_growth_dna(),
-    max_envelope_bytes=73_400_320,
-    max_fabric_bytes=73_399_456,
-    max_logical_peak_bytes=587_202_560,
+    max_envelope_bytes=100_663_296,
+    max_fabric_bytes=100_662_432,
+    max_logical_peak_bytes=805_306_368,
 )
 episode, admissions, lanes = production._action_consequence_episode(
     execution,
