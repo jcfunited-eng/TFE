@@ -1,0 +1,4219 @@
+{
+ "session_words": 592003,
+ "split_date": "2026-03-12",
+ "atlas": {
+  "D+ MBACK R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 92,
+    "UP5": 0.207,
+    "DN5": 0.261,
+    "IGN5": 0.022,
+    "EXT5": 0.185
+   },
+   "confirm": {
+    "n": 71,
+    "UP5": 0.239,
+    "DN5": 0.183,
+    "IGN5": 0.0,
+    "EXT5": 0.183
+   }
+  },
+  "D+ MBACK R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 2355,
+    "UP5": 0.209,
+    "DN5": 0.206,
+    "IGN5": 0.007,
+    "EXT5": 0.202
+   },
+   "confirm": {
+    "n": 1812,
+    "UP5": 0.278,
+    "DN5": 0.204,
+    "IGN5": 0.004,
+    "EXT5": 0.193
+   }
+  },
+  "D+ MBACK R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 152,
+    "UP5": 0.27,
+    "DN5": 0.211,
+    "IGN5": 0.053,
+    "EXT5": 0.289
+   },
+   "confirm": {
+    "n": 117,
+    "UP5": 0.248,
+    "DN5": 0.197,
+    "IGN5": 0.085,
+    "EXT5": 0.239
+   }
+  },
+  "D+ MBACK R0 U^ Bdrain Sweak Qiso Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 3255,
+    "UP5": 0.204,
+    "DN5": 0.192,
+    "IGN5": 0.004,
+    "EXT5": 0.198
+   },
+   "confirm": {
+    "n": 2545,
+    "UP5": 0.255,
+    "DN5": 0.213,
+    "IGN5": 0.006,
+    "EXT5": 0.204
+   }
+  },
+  "D+ MBACK R0 U^ Bdrain Sweak Qrein Fexit": {
+   "confirm": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   }
+  },
+  "D+ MBACK R0 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.5,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.333,
+    "IGN5": 0.833,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R0 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 52,
+    "UP5": 0.231,
+    "DN5": 0.231,
+    "IGN5": 0.731,
+    "EXT5": 0.096
+   },
+   "confirm": {
+    "n": 44,
+    "UP5": 0.364,
+    "DN5": 0.25,
+    "IGN5": 0.705,
+    "EXT5": 0.159
+   }
+  },
+  "D+ MBACK R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 94,
+    "UP5": 0.245,
+    "DN5": 0.202,
+    "IGN5": 0.021,
+    "EXT5": 0.298
+   },
+   "confirm": {
+    "n": 76,
+    "UP5": 0.224,
+    "DN5": 0.184,
+    "IGN5": 0.013,
+    "EXT5": 0.237
+   }
+  },
+  "D+ MBACK R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 3111,
+    "UP5": 0.206,
+    "DN5": 0.194,
+    "IGN5": 0.005,
+    "EXT5": 0.19
+   },
+   "confirm": {
+    "n": 2538,
+    "UP5": 0.262,
+    "DN5": 0.181,
+    "IGN5": 0.005,
+    "EXT5": 0.18
+   }
+  },
+  "D+ MBACK R0 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 101,
+    "UP5": 0.257,
+    "DN5": 0.257,
+    "IGN5": 0.317,
+    "EXT5": 0.158
+   },
+   "confirm": {
+    "n": 84,
+    "UP5": 0.298,
+    "DN5": 0.274,
+    "IGN5": 0.286,
+    "EXT5": 0.179
+   }
+  },
+  "D+ MBACK R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 2382,
+    "UP5": 0.215,
+    "DN5": 0.197,
+    "IGN5": 0.005,
+    "EXT5": 0.202
+   },
+   "confirm": {
+    "n": 1900,
+    "UP5": 0.266,
+    "DN5": 0.198,
+    "IGN5": 0.004,
+    "EXT5": 0.189
+   }
+  },
+  "D+ MBACK R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R0 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 11,
+    "UP5": 0.273,
+    "DN5": 0.182,
+    "IGN5": 0.636,
+    "EXT5": 0.273
+   },
+   "confirm": {
+    "n": 9,
+    "UP5": 0.222,
+    "DN5": 0.222,
+    "IGN5": 0.889,
+    "EXT5": 0.222
+   }
+  },
+  "D+ MBACK R0 Uv Bfill Sweak Qiso Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R0 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 96,
+    "UP5": 0.177,
+    "DN5": 0.219,
+    "IGN5": 0.677,
+    "EXT5": 0.104
+   },
+   "confirm": {
+    "n": 81,
+    "UP5": 0.309,
+    "DN5": 0.259,
+    "IGN5": 0.753,
+    "EXT5": 0.148
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 2516,
+    "UP5": 0.202,
+    "DN5": 0.188,
+    "IGN5": 0.009,
+    "EXT5": 0.258
+   },
+   "confirm": {
+    "n": 2094,
+    "UP5": 0.259,
+    "DN5": 0.199,
+    "IGN5": 0.012,
+    "EXT5": 0.272
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 491,
+    "UP5": 0.21,
+    "DN5": 0.147,
+    "IGN5": 0.014,
+    "EXT5": 0.251
+   },
+   "confirm": {
+    "n": 396,
+    "UP5": 0.301,
+    "DN5": 0.159,
+    "IGN5": 0.008,
+    "EXT5": 0.295
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 7033,
+    "UP5": 0.209,
+    "DN5": 0.203,
+    "IGN5": 0.006,
+    "EXT5": 0.219
+   },
+   "confirm": {
+    "n": 5385,
+    "UP5": 0.267,
+    "DN5": 0.199,
+    "IGN5": 0.008,
+    "EXT5": 0.229
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 301,
+    "UP5": 0.186,
+    "DN5": 0.166,
+    "IGN5": 0.007,
+    "EXT5": 0.256
+   },
+   "confirm": {
+    "n": 256,
+    "UP5": 0.277,
+    "DN5": 0.227,
+    "IGN5": 0.008,
+    "EXT5": 0.258
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 4283,
+    "UP5": 0.225,
+    "DN5": 0.2,
+    "IGN5": 0.027,
+    "EXT5": 0.279
+   },
+   "confirm": {
+    "n": 3286,
+    "UP5": 0.275,
+    "DN5": 0.193,
+    "IGN5": 0.028,
+    "EXT5": 0.289
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 988,
+    "UP5": 0.198,
+    "DN5": 0.17,
+    "IGN5": 0.011,
+    "EXT5": 0.254
+   },
+   "confirm": {
+    "n": 699,
+    "UP5": 0.263,
+    "DN5": 0.157,
+    "IGN5": 0.021,
+    "EXT5": 0.26
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 9447,
+    "UP5": 0.219,
+    "DN5": 0.185,
+    "IGN5": 0.006,
+    "EXT5": 0.232
+   },
+   "confirm": {
+    "n": 7394,
+    "UP5": 0.282,
+    "DN5": 0.196,
+    "IGN5": 0.009,
+    "EXT5": 0.235
+   }
+  },
+  "D+ MBACK R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 822,
+    "UP5": 0.209,
+    "DN5": 0.163,
+    "IGN5": 0.009,
+    "EXT5": 0.204
+   },
+   "confirm": {
+    "n": 634,
+    "UP5": 0.303,
+    "DN5": 0.177,
+    "IGN5": 0.005,
+    "EXT5": 0.23
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Svia Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Svia Qrein Fcalm": {
+   "derive": {
+    "n": 14,
+    "UP5": 0.214,
+    "DN5": 0.143,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 9,
+    "UP5": 0.111,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.111
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 98,
+    "UP5": 0.204,
+    "DN5": 0.112,
+    "IGN5": 0.041,
+    "EXT5": 0.153
+   },
+   "confirm": {
+    "n": 86,
+    "UP5": 0.209,
+    "DN5": 0.256,
+    "IGN5": 0.035,
+    "EXT5": 0.209
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 812,
+    "UP5": 0.219,
+    "DN5": 0.186,
+    "IGN5": 0.021,
+    "EXT5": 0.118
+   },
+   "confirm": {
+    "n": 652,
+    "UP5": 0.293,
+    "DN5": 0.167,
+    "IGN5": 0.021,
+    "EXT5": 0.109
+   }
+  },
+  "D+ MBACK R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 12,
+    "UP5": 0.167,
+    "DN5": 0.417,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 9,
+    "UP5": 0.333,
+    "DN5": 0.222,
+    "IGN5": 0.111,
+    "EXT5": 0.222
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 5865,
+    "UP5": 0.211,
+    "DN5": 0.188,
+    "IGN5": 0.012,
+    "EXT5": 0.267
+   },
+   "confirm": {
+    "n": 4997,
+    "UP5": 0.259,
+    "DN5": 0.194,
+    "IGN5": 0.012,
+    "EXT5": 0.276
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1304,
+    "UP5": 0.186,
+    "DN5": 0.172,
+    "IGN5": 0.009,
+    "EXT5": 0.241
+   },
+   "confirm": {
+    "n": 1073,
+    "UP5": 0.237,
+    "DN5": 0.184,
+    "IGN5": 0.012,
+    "EXT5": 0.234
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 12295,
+    "UP5": 0.206,
+    "DN5": 0.19,
+    "IGN5": 0.005,
+    "EXT5": 0.214
+   },
+   "confirm": {
+    "n": 9777,
+    "UP5": 0.262,
+    "DN5": 0.2,
+    "IGN5": 0.007,
+    "EXT5": 0.225
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 787,
+    "UP5": 0.197,
+    "DN5": 0.152,
+    "IGN5": 0.013,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 678,
+    "UP5": 0.277,
+    "DN5": 0.174,
+    "IGN5": 0.01,
+    "EXT5": 0.243
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 2209,
+    "UP5": 0.207,
+    "DN5": 0.21,
+    "IGN5": 0.023,
+    "EXT5": 0.233
+   },
+   "confirm": {
+    "n": 1849,
+    "UP5": 0.286,
+    "DN5": 0.203,
+    "IGN5": 0.028,
+    "EXT5": 0.228
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 452,
+    "UP5": 0.199,
+    "DN5": 0.146,
+    "IGN5": 0.018,
+    "EXT5": 0.241
+   },
+   "confirm": {
+    "n": 344,
+    "UP5": 0.285,
+    "DN5": 0.145,
+    "IGN5": 0.017,
+    "EXT5": 0.209
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 6217,
+    "UP5": 0.224,
+    "DN5": 0.191,
+    "IGN5": 0.005,
+    "EXT5": 0.233
+   },
+   "confirm": {
+    "n": 5112,
+    "UP5": 0.272,
+    "DN5": 0.202,
+    "IGN5": 0.008,
+    "EXT5": 0.223
+   }
+  },
+  "D+ MBACK R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 379,
+    "UP5": 0.164,
+    "DN5": 0.198,
+    "IGN5": 0.008,
+    "EXT5": 0.208
+   },
+   "confirm": {
+    "n": 378,
+    "UP5": 0.246,
+    "DN5": 0.206,
+    "IGN5": 0.008,
+    "EXT5": 0.262
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Svia Qiso Fcalm": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.5,
+    "IGN5": 0.167,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.0,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Svia Qrein Fcalm": {
+   "derive": {
+    "n": 54,
+    "UP5": 0.296,
+    "DN5": 0.148,
+    "IGN5": 0.019,
+    "EXT5": 0.056
+   },
+   "confirm": {
+    "n": 34,
+    "UP5": 0.412,
+    "DN5": 0.353,
+    "IGN5": 0.059,
+    "EXT5": 0.118
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Svia Qrein Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 1.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 164,
+    "UP5": 0.207,
+    "DN5": 0.152,
+    "IGN5": 0.043,
+    "EXT5": 0.116
+   },
+   "confirm": {
+    "n": 117,
+    "UP5": 0.256,
+    "DN5": 0.205,
+    "IGN5": 0.06,
+    "EXT5": 0.103
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.333,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 904,
+    "UP5": 0.236,
+    "DN5": 0.19,
+    "IGN5": 0.028,
+    "EXT5": 0.119
+   },
+   "confirm": {
+    "n": 743,
+    "UP5": 0.272,
+    "DN5": 0.221,
+    "IGN5": 0.036,
+    "EXT5": 0.139
+   }
+  },
+  "D+ MBACK R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 14,
+    "UP5": 0.214,
+    "DN5": 0.357,
+    "IGN5": 0.071,
+    "EXT5": 0.286
+   },
+   "confirm": {
+    "n": 10,
+    "UP5": 0.2,
+    "DN5": 0.2,
+    "IGN5": 0.1,
+    "EXT5": 0.5
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 84,
+    "UP5": 0.274,
+    "DN5": 0.143,
+    "IGN5": 0.0,
+    "EXT5": 0.262
+   },
+   "confirm": {
+    "n": 64,
+    "UP5": 0.172,
+    "DN5": 0.266,
+    "IGN5": 0.016,
+    "EXT5": 0.219
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 2294,
+    "UP5": 0.185,
+    "DN5": 0.215,
+    "IGN5": 0.003,
+    "EXT5": 0.182
+   },
+   "confirm": {
+    "n": 1924,
+    "UP5": 0.252,
+    "DN5": 0.195,
+    "IGN5": 0.007,
+    "EXT5": 0.21
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 164,
+    "UP5": 0.244,
+    "DN5": 0.189,
+    "IGN5": 0.085,
+    "EXT5": 0.268
+   },
+   "confirm": {
+    "n": 130,
+    "UP5": 0.269,
+    "DN5": 0.262,
+    "IGN5": 0.085,
+    "EXT5": 0.215
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 1.0
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 3021,
+    "UP5": 0.196,
+    "DN5": 0.204,
+    "IGN5": 0.004,
+    "EXT5": 0.207
+   },
+   "confirm": {
+    "n": 2548,
+    "UP5": 0.25,
+    "DN5": 0.183,
+    "IGN5": 0.004,
+    "EXT5": 0.207
+   }
+  },
+  "D+ MCONT R0 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R0 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.25,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.75,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R0 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 50,
+    "UP5": 0.2,
+    "DN5": 0.34,
+    "IGN5": 0.7,
+    "EXT5": 0.06
+   },
+   "confirm": {
+    "n": 58,
+    "UP5": 0.31,
+    "DN5": 0.328,
+    "IGN5": 0.759,
+    "EXT5": 0.172
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 98,
+    "UP5": 0.204,
+    "DN5": 0.224,
+    "IGN5": 0.02,
+    "EXT5": 0.286
+   },
+   "confirm": {
+    "n": 75,
+    "UP5": 0.307,
+    "DN5": 0.12,
+    "IGN5": 0.04,
+    "EXT5": 0.253
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 1.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 3203,
+    "UP5": 0.206,
+    "DN5": 0.2,
+    "IGN5": 0.005,
+    "EXT5": 0.192
+   },
+   "confirm": {
+    "n": 2535,
+    "UP5": 0.246,
+    "DN5": 0.2,
+    "IGN5": 0.003,
+    "EXT5": 0.197
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Svia Qrein Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 87,
+    "UP5": 0.299,
+    "DN5": 0.149,
+    "IGN5": 0.23,
+    "EXT5": 0.149
+   },
+   "confirm": {
+    "n": 105,
+    "UP5": 0.333,
+    "DN5": 0.2,
+    "IGN5": 0.238,
+    "EXT5": 0.133
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 2393,
+    "UP5": 0.201,
+    "DN5": 0.197,
+    "IGN5": 0.005,
+    "EXT5": 0.19
+   },
+   "confirm": {
+    "n": 1932,
+    "UP5": 0.265,
+    "DN5": 0.198,
+    "IGN5": 0.004,
+    "EXT5": 0.188
+   }
+  },
+  "D+ MCONT R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   }
+  },
+  "D+ MCONT R0 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 18,
+    "UP5": 0.056,
+    "DN5": 0.222,
+    "IGN5": 0.611,
+    "EXT5": 0.222
+   },
+   "confirm": {
+    "n": 11,
+    "UP5": 0.364,
+    "DN5": 0.273,
+    "IGN5": 0.545,
+    "EXT5": 0.182
+   }
+  },
+  "D+ MCONT R0 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 94,
+    "UP5": 0.277,
+    "DN5": 0.223,
+    "IGN5": 0.702,
+    "EXT5": 0.138
+   },
+   "confirm": {
+    "n": 64,
+    "UP5": 0.344,
+    "DN5": 0.141,
+    "IGN5": 0.734,
+    "EXT5": 0.172
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 2421,
+    "UP5": 0.21,
+    "DN5": 0.213,
+    "IGN5": 0.014,
+    "EXT5": 0.274
+   },
+   "confirm": {
+    "n": 2017,
+    "UP5": 0.269,
+    "DN5": 0.2,
+    "IGN5": 0.015,
+    "EXT5": 0.258
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 505,
+    "UP5": 0.192,
+    "DN5": 0.218,
+    "IGN5": 0.01,
+    "EXT5": 0.273
+   },
+   "confirm": {
+    "n": 384,
+    "UP5": 0.247,
+    "DN5": 0.208,
+    "IGN5": 0.013,
+    "EXT5": 0.266
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 6535,
+    "UP5": 0.198,
+    "DN5": 0.195,
+    "IGN5": 0.005,
+    "EXT5": 0.211
+   },
+   "confirm": {
+    "n": 5532,
+    "UP5": 0.257,
+    "DN5": 0.206,
+    "IGN5": 0.006,
+    "EXT5": 0.231
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 295,
+    "UP5": 0.241,
+    "DN5": 0.186,
+    "IGN5": 0.014,
+    "EXT5": 0.224
+   },
+   "confirm": {
+    "n": 234,
+    "UP5": 0.282,
+    "DN5": 0.184,
+    "IGN5": 0.009,
+    "EXT5": 0.265
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 4291,
+    "UP5": 0.221,
+    "DN5": 0.21,
+    "IGN5": 0.031,
+    "EXT5": 0.281
+   },
+   "confirm": {
+    "n": 3442,
+    "UP5": 0.279,
+    "DN5": 0.21,
+    "IGN5": 0.033,
+    "EXT5": 0.304
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 981,
+    "UP5": 0.216,
+    "DN5": 0.161,
+    "IGN5": 0.011,
+    "EXT5": 0.259
+   },
+   "confirm": {
+    "n": 855,
+    "UP5": 0.247,
+    "DN5": 0.184,
+    "IGN5": 0.013,
+    "EXT5": 0.261
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 9271,
+    "UP5": 0.21,
+    "DN5": 0.191,
+    "IGN5": 0.006,
+    "EXT5": 0.231
+   },
+   "confirm": {
+    "n": 7482,
+    "UP5": 0.256,
+    "DN5": 0.208,
+    "IGN5": 0.009,
+    "EXT5": 0.241
+   }
+  },
+  "D+ MCONT R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 868,
+    "UP5": 0.198,
+    "DN5": 0.22,
+    "IGN5": 0.009,
+    "EXT5": 0.207
+   },
+   "confirm": {
+    "n": 694,
+    "UP5": 0.252,
+    "DN5": 0.177,
+    "IGN5": 0.012,
+    "EXT5": 0.249
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Svia Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Svia Qrein Fcalm": {
+   "derive": {
+    "n": 14,
+    "UP5": 0.286,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.071
+   },
+   "confirm": {
+    "n": 12,
+    "UP5": 0.083,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Svia Qrein Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 115,
+    "UP5": 0.165,
+    "DN5": 0.113,
+    "IGN5": 0.035,
+    "EXT5": 0.157
+   },
+   "confirm": {
+    "n": 77,
+    "UP5": 0.221,
+    "DN5": 0.156,
+    "IGN5": 0.039,
+    "EXT5": 0.13
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.429,
+    "DN5": 0.0,
+    "IGN5": 0.143,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 794,
+    "UP5": 0.213,
+    "DN5": 0.199,
+    "IGN5": 0.023,
+    "EXT5": 0.135
+   },
+   "confirm": {
+    "n": 669,
+    "UP5": 0.245,
+    "DN5": 0.182,
+    "IGN5": 0.025,
+    "EXT5": 0.132
+   }
+  },
+  "D+ MCONT R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 16,
+    "UP5": 0.312,
+    "DN5": 0.062,
+    "IGN5": 0.125,
+    "EXT5": 0.25
+   },
+   "confirm": {
+    "n": 18,
+    "UP5": 0.278,
+    "DN5": 0.222,
+    "IGN5": 0.111,
+    "EXT5": 0.111
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 6033,
+    "UP5": 0.198,
+    "DN5": 0.208,
+    "IGN5": 0.01,
+    "EXT5": 0.263
+   },
+   "confirm": {
+    "n": 4547,
+    "UP5": 0.282,
+    "DN5": 0.188,
+    "IGN5": 0.013,
+    "EXT5": 0.267
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1402,
+    "UP5": 0.18,
+    "DN5": 0.18,
+    "IGN5": 0.009,
+    "EXT5": 0.219
+   },
+   "confirm": {
+    "n": 944,
+    "UP5": 0.283,
+    "DN5": 0.169,
+    "IGN5": 0.008,
+    "EXT5": 0.252
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 12203,
+    "UP5": 0.2,
+    "DN5": 0.209,
+    "IGN5": 0.007,
+    "EXT5": 0.219
+   },
+   "confirm": {
+    "n": 9386,
+    "UP5": 0.267,
+    "DN5": 0.201,
+    "IGN5": 0.007,
+    "EXT5": 0.229
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 859,
+    "UP5": 0.189,
+    "DN5": 0.204,
+    "IGN5": 0.008,
+    "EXT5": 0.213
+   },
+   "confirm": {
+    "n": 653,
+    "UP5": 0.271,
+    "DN5": 0.17,
+    "IGN5": 0.005,
+    "EXT5": 0.207
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 2206,
+    "UP5": 0.216,
+    "DN5": 0.21,
+    "IGN5": 0.021,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 1751,
+    "UP5": 0.283,
+    "DN5": 0.2,
+    "IGN5": 0.02,
+    "EXT5": 0.23
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 410,
+    "UP5": 0.222,
+    "DN5": 0.222,
+    "IGN5": 0.012,
+    "EXT5": 0.232
+   },
+   "confirm": {
+    "n": 323,
+    "UP5": 0.263,
+    "DN5": 0.232,
+    "IGN5": 0.009,
+    "EXT5": 0.285
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 6298,
+    "UP5": 0.204,
+    "DN5": 0.188,
+    "IGN5": 0.008,
+    "EXT5": 0.227
+   },
+   "confirm": {
+    "n": 4905,
+    "UP5": 0.268,
+    "DN5": 0.208,
+    "IGN5": 0.007,
+    "EXT5": 0.22
+   }
+  },
+  "D+ MCONT R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 411,
+    "UP5": 0.185,
+    "DN5": 0.212,
+    "IGN5": 0.01,
+    "EXT5": 0.251
+   },
+   "confirm": {
+    "n": 307,
+    "UP5": 0.244,
+    "DN5": 0.215,
+    "IGN5": 0.007,
+    "EXT5": 0.28
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Svia Qiso Fcalm": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.333,
+    "IGN5": 0.333,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Svia Qrein Fcalm": {
+   "derive": {
+    "n": 27,
+    "UP5": 0.222,
+    "DN5": 0.222,
+    "IGN5": 0.0,
+    "EXT5": 0.111
+   },
+   "confirm": {
+    "n": 21,
+    "UP5": 0.238,
+    "DN5": 0.095,
+    "IGN5": 0.0,
+    "EXT5": 0.238
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 145,
+    "UP5": 0.179,
+    "DN5": 0.179,
+    "IGN5": 0.062,
+    "EXT5": 0.103
+   },
+   "confirm": {
+    "n": 88,
+    "UP5": 0.205,
+    "DN5": 0.159,
+    "IGN5": 0.045,
+    "EXT5": 0.148
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.5,
+    "DN5": 0.125,
+    "IGN5": 0.125,
+    "EXT5": 0.125
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 888,
+    "UP5": 0.212,
+    "DN5": 0.206,
+    "IGN5": 0.023,
+    "EXT5": 0.119
+   },
+   "confirm": {
+    "n": 765,
+    "UP5": 0.247,
+    "DN5": 0.207,
+    "IGN5": 0.017,
+    "EXT5": 0.116
+   }
+  },
+  "D+ MCONT R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.2,
+    "DN5": 0.3,
+    "IGN5": 0.2,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.625,
+    "DN5": 0.375,
+    "IGN5": 0.0,
+    "EXT5": 0.125
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.25,
+    "IGN5": 0.0,
+    "EXT5": 0.25
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1048,
+    "UP5": 0.194,
+    "DN5": 0.203,
+    "IGN5": 0.01,
+    "EXT5": 0.201
+   },
+   "confirm": {
+    "n": 925,
+    "UP5": 0.25,
+    "DN5": 0.202,
+    "IGN5": 0.012,
+    "EXT5": 0.227
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.0,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.0,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 398,
+    "UP5": 0.171,
+    "DN5": 0.216,
+    "IGN5": 0.003,
+    "EXT5": 0.178
+   },
+   "confirm": {
+    "n": 334,
+    "UP5": 0.24,
+    "DN5": 0.234,
+    "IGN5": 0.009,
+    "EXT5": 0.207
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 1.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1263,
+    "UP5": 0.197,
+    "DN5": 0.221,
+    "IGN5": 0.021,
+    "EXT5": 0.267
+   },
+   "confirm": {
+    "n": 1053,
+    "UP5": 0.255,
+    "DN5": 0.175,
+    "IGN5": 0.018,
+    "EXT5": 0.274
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.286,
+    "DN5": 0.429,
+    "IGN5": 0.0,
+    "EXT5": 0.286
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.25,
+    "IGN5": 0.0,
+    "EXT5": 0.25
+   }
+  },
+  "D- MBACK R0 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 478,
+    "UP5": 0.161,
+    "DN5": 0.203,
+    "IGN5": 0.0,
+    "EXT5": 0.159
+   },
+   "confirm": {
+    "n": 405,
+    "UP5": 0.264,
+    "DN5": 0.173,
+    "IGN5": 0.0,
+    "EXT5": 0.148
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.667,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1614,
+    "UP5": 0.185,
+    "DN5": 0.214,
+    "IGN5": 0.009,
+    "EXT5": 0.214
+   },
+   "confirm": {
+    "n": 1407,
+    "UP5": 0.244,
+    "DN5": 0.205,
+    "IGN5": 0.008,
+    "EXT5": 0.205
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.25,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.4,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 631,
+    "UP5": 0.2,
+    "DN5": 0.184,
+    "IGN5": 0.002,
+    "EXT5": 0.187
+   },
+   "confirm": {
+    "n": 534,
+    "UP5": 0.24,
+    "DN5": 0.212,
+    "IGN5": 0.004,
+    "EXT5": 0.169
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 849,
+    "UP5": 0.217,
+    "DN5": 0.21,
+    "IGN5": 0.025,
+    "EXT5": 0.272
+   },
+   "confirm": {
+    "n": 700,
+    "UP5": 0.26,
+    "DN5": 0.21,
+    "IGN5": 0.017,
+    "EXT5": 0.241
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 522,
+    "UP5": 0.17,
+    "DN5": 0.203,
+    "IGN5": 0.008,
+    "EXT5": 0.169
+   },
+   "confirm": {
+    "n": 455,
+    "UP5": 0.222,
+    "DN5": 0.215,
+    "IGN5": 0.011,
+    "EXT5": 0.218
+   }
+  },
+  "D- MBACK R0 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.5,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R0 Uv Bfill Sweak Qrein Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 1.0
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 423,
+    "UP5": 0.196,
+    "DN5": 0.251,
+    "IGN5": 0.002,
+    "EXT5": 0.22
+   },
+   "confirm": {
+    "n": 327,
+    "UP5": 0.242,
+    "DN5": 0.232,
+    "IGN5": 0.021,
+    "EXT5": 0.272
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 7056,
+    "UP5": 0.2,
+    "DN5": 0.204,
+    "IGN5": 0.011,
+    "EXT5": 0.245
+   },
+   "confirm": {
+    "n": 5716,
+    "UP5": 0.26,
+    "DN5": 0.199,
+    "IGN5": 0.012,
+    "EXT5": 0.249
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 567,
+    "UP5": 0.173,
+    "DN5": 0.182,
+    "IGN5": 0.016,
+    "EXT5": 0.222
+   },
+   "confirm": {
+    "n": 425,
+    "UP5": 0.275,
+    "DN5": 0.216,
+    "IGN5": 0.009,
+    "EXT5": 0.256
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 3651,
+    "UP5": 0.196,
+    "DN5": 0.194,
+    "IGN5": 0.008,
+    "EXT5": 0.21
+   },
+   "confirm": {
+    "n": 2911,
+    "UP5": 0.263,
+    "DN5": 0.19,
+    "IGN5": 0.005,
+    "EXT5": 0.2
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 1217,
+    "UP5": 0.248,
+    "DN5": 0.235,
+    "IGN5": 0.014,
+    "EXT5": 0.317
+   },
+   "confirm": {
+    "n": 996,
+    "UP5": 0.288,
+    "DN5": 0.268,
+    "IGN5": 0.013,
+    "EXT5": 0.279
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 19687,
+    "UP5": 0.2,
+    "DN5": 0.19,
+    "IGN5": 0.013,
+    "EXT5": 0.255
+   },
+   "confirm": {
+    "n": 16347,
+    "UP5": 0.253,
+    "DN5": 0.199,
+    "IGN5": 0.015,
+    "EXT5": 0.258
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 1051,
+    "UP5": 0.225,
+    "DN5": 0.19,
+    "IGN5": 0.012,
+    "EXT5": 0.277
+   },
+   "confirm": {
+    "n": 835,
+    "UP5": 0.248,
+    "DN5": 0.192,
+    "IGN5": 0.007,
+    "EXT5": 0.244
+   }
+  },
+  "D- MBACK R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 8536,
+    "UP5": 0.21,
+    "DN5": 0.199,
+    "IGN5": 0.006,
+    "EXT5": 0.214
+   },
+   "confirm": {
+    "n": 7009,
+    "UP5": 0.25,
+    "DN5": 0.202,
+    "IGN5": 0.005,
+    "EXT5": 0.215
+   }
+  },
+  "D- MBACK R1 U^ Bfill Svia Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R1 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 14,
+    "UP5": 0.143,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.286
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.375,
+    "DN5": 0.125,
+    "IGN5": 0.0,
+    "EXT5": 0.125
+   }
+  },
+  "D- MBACK R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.0,
+    "DN5": 0.4,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.333,
+    "IGN5": 0.167,
+    "EXT5": 0.333
+   }
+  },
+  "D- MBACK R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 31,
+    "UP5": 0.323,
+    "DN5": 0.355,
+    "IGN5": 0.097,
+    "EXT5": 0.129
+   },
+   "confirm": {
+    "n": 27,
+    "UP5": 0.259,
+    "DN5": 0.222,
+    "IGN5": 0.148,
+    "EXT5": 0.111
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 923,
+    "UP5": 0.213,
+    "DN5": 0.222,
+    "IGN5": 0.009,
+    "EXT5": 0.254
+   },
+   "confirm": {
+    "n": 692,
+    "UP5": 0.277,
+    "DN5": 0.218,
+    "IGN5": 0.009,
+    "EXT5": 0.275
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 18237,
+    "UP5": 0.195,
+    "DN5": 0.198,
+    "IGN5": 0.009,
+    "EXT5": 0.234
+   },
+   "confirm": {
+    "n": 14540,
+    "UP5": 0.256,
+    "DN5": 0.197,
+    "IGN5": 0.01,
+    "EXT5": 0.239
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 1060,
+    "UP5": 0.176,
+    "DN5": 0.175,
+    "IGN5": 0.017,
+    "EXT5": 0.222
+   },
+   "confirm": {
+    "n": 887,
+    "UP5": 0.284,
+    "DN5": 0.195,
+    "IGN5": 0.01,
+    "EXT5": 0.245
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 7941,
+    "UP5": 0.199,
+    "DN5": 0.207,
+    "IGN5": 0.009,
+    "EXT5": 0.224
+   },
+   "confirm": {
+    "n": 6419,
+    "UP5": 0.269,
+    "DN5": 0.209,
+    "IGN5": 0.007,
+    "EXT5": 0.221
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 265,
+    "UP5": 0.238,
+    "DN5": 0.272,
+    "IGN5": 0.015,
+    "EXT5": 0.215
+   },
+   "confirm": {
+    "n": 206,
+    "UP5": 0.252,
+    "DN5": 0.218,
+    "IGN5": 0.005,
+    "EXT5": 0.257
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 6068,
+    "UP5": 0.201,
+    "DN5": 0.198,
+    "IGN5": 0.009,
+    "EXT5": 0.235
+   },
+   "confirm": {
+    "n": 4867,
+    "UP5": 0.259,
+    "DN5": 0.201,
+    "IGN5": 0.009,
+    "EXT5": 0.232
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 684,
+    "UP5": 0.206,
+    "DN5": 0.196,
+    "IGN5": 0.007,
+    "EXT5": 0.192
+   },
+   "confirm": {
+    "n": 476,
+    "UP5": 0.263,
+    "DN5": 0.206,
+    "IGN5": 0.011,
+    "EXT5": 0.231
+   }
+  },
+  "D- MBACK R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 5405,
+    "UP5": 0.206,
+    "DN5": 0.213,
+    "IGN5": 0.007,
+    "EXT5": 0.201
+   },
+   "confirm": {
+    "n": 4519,
+    "UP5": 0.26,
+    "DN5": 0.216,
+    "IGN5": 0.007,
+    "EXT5": 0.197
+   }
+  },
+  "D- MBACK R1 Uv Bfill Svia Qiso Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R1 Uv Bfill Svia Qiso Fexit": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.4,
+    "IGN5": 0.2,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   }
+  },
+  "D- MBACK R1 Uv Bfill Svia Qrein Fexit": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MBACK R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.286,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.429
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   }
+  },
+  "D- MBACK R1 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 59,
+    "UP5": 0.169,
+    "DN5": 0.169,
+    "IGN5": 0.0,
+    "EXT5": 0.203
+   },
+   "confirm": {
+    "n": 44,
+    "UP5": 0.295,
+    "DN5": 0.182,
+    "IGN5": 0.023,
+    "EXT5": 0.341
+   }
+  },
+  "D- MBACK R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 11,
+    "UP5": 0.273,
+    "DN5": 0.273,
+    "IGN5": 0.091,
+    "EXT5": 0.364
+   },
+   "confirm": {
+    "n": 13,
+    "UP5": 0.154,
+    "DN5": 0.231,
+    "IGN5": 0.0,
+    "EXT5": 0.231
+   }
+  },
+  "D- MBACK R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 100,
+    "UP5": 0.17,
+    "DN5": 0.18,
+    "IGN5": 0.03,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 91,
+    "UP5": 0.33,
+    "DN5": 0.22,
+    "IGN5": 0.055,
+    "EXT5": 0.242
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.667,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1048,
+    "UP5": 0.214,
+    "DN5": 0.2,
+    "IGN5": 0.012,
+    "EXT5": 0.218
+   },
+   "confirm": {
+    "n": 928,
+    "UP5": 0.237,
+    "DN5": 0.194,
+    "IGN5": 0.005,
+    "EXT5": 0.214
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 416,
+    "UP5": 0.221,
+    "DN5": 0.219,
+    "IGN5": 0.002,
+    "EXT5": 0.168
+   },
+   "confirm": {
+    "n": 338,
+    "UP5": 0.296,
+    "DN5": 0.195,
+    "IGN5": 0.003,
+    "EXT5": 0.175
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.571,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.429
+   },
+   "confirm": {
+    "n": 7,
+    "UP5": 0.286,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.143
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1343,
+    "UP5": 0.186,
+    "DN5": 0.205,
+    "IGN5": 0.023,
+    "EXT5": 0.263
+   },
+   "confirm": {
+    "n": 1045,
+    "UP5": 0.305,
+    "DN5": 0.178,
+    "IGN5": 0.018,
+    "EXT5": 0.276
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.25,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.125
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.375,
+    "DN5": 0.125,
+    "IGN5": 0.0,
+    "EXT5": 0.25
+   }
+  },
+  "D- MCONT R0 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 493,
+    "UP5": 0.189,
+    "DN5": 0.199,
+    "IGN5": 0.002,
+    "EXT5": 0.166
+   },
+   "confirm": {
+    "n": 488,
+    "UP5": 0.273,
+    "DN5": 0.186,
+    "IGN5": 0.004,
+    "EXT5": 0.174
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 1678,
+    "UP5": 0.205,
+    "DN5": 0.193,
+    "IGN5": 0.008,
+    "EXT5": 0.218
+   },
+   "confirm": {
+    "n": 1400,
+    "UP5": 0.253,
+    "DN5": 0.188,
+    "IGN5": 0.011,
+    "EXT5": 0.216
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.333,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 619,
+    "UP5": 0.197,
+    "DN5": 0.208,
+    "IGN5": 0.006,
+    "EXT5": 0.192
+   },
+   "confirm": {
+    "n": 572,
+    "UP5": 0.255,
+    "DN5": 0.215,
+    "IGN5": 0.01,
+    "EXT5": 0.178
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 796,
+    "UP5": 0.204,
+    "DN5": 0.2,
+    "IGN5": 0.018,
+    "EXT5": 0.242
+   },
+   "confirm": {
+    "n": 731,
+    "UP5": 0.286,
+    "DN5": 0.231,
+    "IGN5": 0.025,
+    "EXT5": 0.276
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 7,
+    "UP5": 0.429,
+    "DN5": 0.0,
+    "IGN5": 0.143,
+    "EXT5": 0.286
+   }
+  },
+  "D- MCONT R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 459,
+    "UP5": 0.224,
+    "DN5": 0.194,
+    "IGN5": 0.007,
+    "EXT5": 0.19
+   },
+   "confirm": {
+    "n": 434,
+    "UP5": 0.251,
+    "DN5": 0.21,
+    "IGN5": 0.009,
+    "EXT5": 0.184
+   }
+  },
+  "D- MCONT R0 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 405,
+    "UP5": 0.222,
+    "DN5": 0.185,
+    "IGN5": 0.01,
+    "EXT5": 0.254
+   },
+   "confirm": {
+    "n": 337,
+    "UP5": 0.243,
+    "DN5": 0.199,
+    "IGN5": 0.006,
+    "EXT5": 0.264
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 7242,
+    "UP5": 0.2,
+    "DN5": 0.196,
+    "IGN5": 0.011,
+    "EXT5": 0.247
+   },
+   "confirm": {
+    "n": 5842,
+    "UP5": 0.268,
+    "DN5": 0.185,
+    "IGN5": 0.011,
+    "EXT5": 0.239
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 604,
+    "UP5": 0.174,
+    "DN5": 0.199,
+    "IGN5": 0.008,
+    "EXT5": 0.227
+   },
+   "confirm": {
+    "n": 466,
+    "UP5": 0.26,
+    "DN5": 0.172,
+    "IGN5": 0.002,
+    "EXT5": 0.234
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 3581,
+    "UP5": 0.214,
+    "DN5": 0.185,
+    "IGN5": 0.007,
+    "EXT5": 0.207
+   },
+   "confirm": {
+    "n": 2956,
+    "UP5": 0.259,
+    "DN5": 0.194,
+    "IGN5": 0.009,
+    "EXT5": 0.211
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 1152,
+    "UP5": 0.257,
+    "DN5": 0.234,
+    "IGN5": 0.019,
+    "EXT5": 0.343
+   },
+   "confirm": {
+    "n": 880,
+    "UP5": 0.289,
+    "DN5": 0.234,
+    "IGN5": 0.019,
+    "EXT5": 0.324
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 20016,
+    "UP5": 0.205,
+    "DN5": 0.192,
+    "IGN5": 0.014,
+    "EXT5": 0.257
+   },
+   "confirm": {
+    "n": 15414,
+    "UP5": 0.278,
+    "DN5": 0.196,
+    "IGN5": 0.013,
+    "EXT5": 0.269
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 1133,
+    "UP5": 0.218,
+    "DN5": 0.218,
+    "IGN5": 0.009,
+    "EXT5": 0.255
+   },
+   "confirm": {
+    "n": 811,
+    "UP5": 0.319,
+    "DN5": 0.197,
+    "IGN5": 0.005,
+    "EXT5": 0.217
+   }
+  },
+  "D- MCONT R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 8311,
+    "UP5": 0.205,
+    "DN5": 0.2,
+    "IGN5": 0.008,
+    "EXT5": 0.217
+   },
+   "confirm": {
+    "n": 6773,
+    "UP5": 0.291,
+    "DN5": 0.206,
+    "IGN5": 0.006,
+    "EXT5": 0.211
+   }
+  },
+  "D- MCONT R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 1.0
+   }
+  },
+  "D- MCONT R1 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 13,
+    "UP5": 0.308,
+    "DN5": 0.077,
+    "IGN5": 0.077,
+    "EXT5": 0.077
+   },
+   "confirm": {
+    "n": 17,
+    "UP5": 0.294,
+    "DN5": 0.353,
+    "IGN5": 0.059,
+    "EXT5": 0.235
+   }
+  },
+  "D- MCONT R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.1,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.25,
+    "IGN5": 0.25,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 28,
+    "UP5": 0.107,
+    "DN5": 0.393,
+    "IGN5": 0.0,
+    "EXT5": 0.179
+   },
+   "confirm": {
+    "n": 21,
+    "UP5": 0.333,
+    "DN5": 0.143,
+    "IGN5": 0.048,
+    "EXT5": 0.19
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 902,
+    "UP5": 0.2,
+    "DN5": 0.198,
+    "IGN5": 0.012,
+    "EXT5": 0.268
+   },
+   "confirm": {
+    "n": 731,
+    "UP5": 0.254,
+    "DN5": 0.198,
+    "IGN5": 0.014,
+    "EXT5": 0.26
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 18414,
+    "UP5": 0.191,
+    "DN5": 0.184,
+    "IGN5": 0.011,
+    "EXT5": 0.234
+   },
+   "confirm": {
+    "n": 15820,
+    "UP5": 0.257,
+    "DN5": 0.182,
+    "IGN5": 0.009,
+    "EXT5": 0.243
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 1132,
+    "UP5": 0.211,
+    "DN5": 0.172,
+    "IGN5": 0.009,
+    "EXT5": 0.219
+   },
+   "confirm": {
+    "n": 812,
+    "UP5": 0.255,
+    "DN5": 0.164,
+    "IGN5": 0.01,
+    "EXT5": 0.239
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 8003,
+    "UP5": 0.21,
+    "DN5": 0.193,
+    "IGN5": 0.007,
+    "EXT5": 0.215
+   },
+   "confirm": {
+    "n": 6356,
+    "UP5": 0.256,
+    "DN5": 0.191,
+    "IGN5": 0.01,
+    "EXT5": 0.222
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 267,
+    "UP5": 0.236,
+    "DN5": 0.24,
+    "IGN5": 0.011,
+    "EXT5": 0.228
+   },
+   "confirm": {
+    "n": 221,
+    "UP5": 0.299,
+    "DN5": 0.199,
+    "IGN5": 0.009,
+    "EXT5": 0.222
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 6173,
+    "UP5": 0.204,
+    "DN5": 0.178,
+    "IGN5": 0.01,
+    "EXT5": 0.243
+   },
+   "confirm": {
+    "n": 5027,
+    "UP5": 0.248,
+    "DN5": 0.191,
+    "IGN5": 0.01,
+    "EXT5": 0.244
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 652,
+    "UP5": 0.212,
+    "DN5": 0.163,
+    "IGN5": 0.003,
+    "EXT5": 0.224
+   },
+   "confirm": {
+    "n": 585,
+    "UP5": 0.251,
+    "DN5": 0.166,
+    "IGN5": 0.01,
+    "EXT5": 0.236
+   }
+  },
+  "D- MCONT R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 5439,
+    "UP5": 0.224,
+    "DN5": 0.198,
+    "IGN5": 0.009,
+    "EXT5": 0.206
+   },
+   "confirm": {
+    "n": 4570,
+    "UP5": 0.26,
+    "DN5": 0.189,
+    "IGN5": 0.006,
+    "EXT5": 0.205
+   }
+  },
+  "D- MCONT R1 Uv Bfill Svia Qiso Fexit": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.4,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.4
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.333,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R1 Uv Bfill Svia Qrein Fexit": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.333,
+    "IGN5": 0.333,
+    "EXT5": 0.667
+   }
+  },
+  "D- MCONT R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.143,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.286
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.333,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D- MCONT R1 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 66,
+    "UP5": 0.212,
+    "DN5": 0.258,
+    "IGN5": 0.03,
+    "EXT5": 0.182
+   },
+   "confirm": {
+    "n": 46,
+    "UP5": 0.239,
+    "DN5": 0.13,
+    "IGN5": 0.022,
+    "EXT5": 0.152
+   }
+  },
+  "D- MCONT R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 21,
+    "UP5": 0.381,
+    "DN5": 0.143,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   },
+   "confirm": {
+    "n": 18,
+    "UP5": 0.167,
+    "DN5": 0.111,
+    "IGN5": 0.0,
+    "EXT5": 0.111
+   }
+  },
+  "D- MCONT R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 96,
+    "UP5": 0.219,
+    "DN5": 0.177,
+    "IGN5": 0.073,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 75,
+    "UP5": 0.307,
+    "DN5": 0.187,
+    "IGN5": 0.053,
+    "EXT5": 0.227
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.4,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 19,
+    "UP5": 0.211,
+    "DN5": 0.105,
+    "IGN5": 0.053,
+    "EXT5": 0.211
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.125
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 27,
+    "UP5": 0.185,
+    "DN5": 0.148,
+    "IGN5": 0.0,
+    "EXT5": 0.148
+   },
+   "confirm": {
+    "n": 13,
+    "UP5": 0.231,
+    "DN5": 0.154,
+    "IGN5": 0.0,
+    "EXT5": 0.077
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 76,
+    "UP5": 0.263,
+    "DN5": 0.171,
+    "IGN5": 0.579,
+    "EXT5": 0.066
+   },
+   "confirm": {
+    "n": 71,
+    "UP5": 0.183,
+    "DN5": 0.197,
+    "IGN5": 0.451,
+    "EXT5": 0.07
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 33,
+    "UP5": 0.0,
+    "DN5": 0.182,
+    "IGN5": 0.0,
+    "EXT5": 0.152
+   },
+   "confirm": {
+    "n": 16,
+    "UP5": 0.312,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.125
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 19,
+    "UP5": 0.053,
+    "DN5": 0.105,
+    "IGN5": 0.0,
+    "EXT5": 0.368
+   },
+   "confirm": {
+    "n": 18,
+    "UP5": 0.056,
+    "DN5": 0.222,
+    "IGN5": 0.0,
+    "EXT5": 0.222
+   }
+  },
+  "D0 Mdn R0 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.4,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.5,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 15,
+    "UP5": 0.2,
+    "DN5": 0.267,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.125,
+    "DN5": 0.125,
+    "IGN5": 0.0,
+    "EXT5": 0.625
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 42,
+    "UP5": 0.119,
+    "DN5": 0.19,
+    "IGN5": 0.0,
+    "EXT5": 0.095
+   },
+   "confirm": {
+    "n": 21,
+    "UP5": 0.333,
+    "DN5": 0.238,
+    "IGN5": 0.0,
+    "EXT5": 0.238
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 32,
+    "UP5": 0.25,
+    "DN5": 0.062,
+    "IGN5": 0.0,
+    "EXT5": 0.156
+   },
+   "confirm": {
+    "n": 20,
+    "UP5": 0.1,
+    "DN5": 0.15,
+    "IGN5": 0.0,
+    "EXT5": 0.35
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.0,
+    "DN5": 0.333,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 44,
+    "UP5": 0.227,
+    "DN5": 0.182,
+    "IGN5": 0.636,
+    "EXT5": 0.114
+   },
+   "confirm": {
+    "n": 58,
+    "UP5": 0.328,
+    "DN5": 0.276,
+    "IGN5": 0.638,
+    "EXT5": 0.086
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 13,
+    "UP5": 0.385,
+    "DN5": 0.077,
+    "IGN5": 0.077,
+    "EXT5": 0.077
+   },
+   "confirm": {
+    "n": 7,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.143,
+    "EXT5": 0.286
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 19,
+    "UP5": 0.368,
+    "DN5": 0.053,
+    "IGN5": 0.0,
+    "EXT5": 0.263
+   },
+   "confirm": {
+    "n": 11,
+    "UP5": 0.091,
+    "DN5": 0.091,
+    "IGN5": 0.0,
+    "EXT5": 0.273
+   }
+  },
+  "D0 Mdn R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 7,
+    "UP5": 0.0,
+    "DN5": 0.286,
+    "IGN5": 0.0,
+    "EXT5": 0.143
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.0,
+    "DN5": 0.4,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 4,
+    "UP5": 0.0,
+    "DN5": 0.25,
+    "IGN5": 0.5,
+    "EXT5": 0.25
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.333,
+    "EXT5": 0.333
+   }
+  },
+  "D0 Mdn R0 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 1.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R0 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.125,
+    "DN5": 0.25,
+    "IGN5": 0.25,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.667,
+    "EXT5": 0.333
+   }
+  },
+  "D0 Mdn R0 Uv Bfill Sweak Qrein Fexit": {
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 1.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 144,
+    "UP5": 0.174,
+    "DN5": 0.181,
+    "IGN5": 0.007,
+    "EXT5": 0.306
+   },
+   "confirm": {
+    "n": 116,
+    "UP5": 0.293,
+    "DN5": 0.129,
+    "IGN5": 0.0,
+    "EXT5": 0.276
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 177,
+    "UP5": 0.169,
+    "DN5": 0.186,
+    "IGN5": 0.006,
+    "EXT5": 0.311
+   },
+   "confirm": {
+    "n": 200,
+    "UP5": 0.25,
+    "DN5": 0.155,
+    "IGN5": 0.03,
+    "EXT5": 0.24
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 153,
+    "UP5": 0.196,
+    "DN5": 0.163,
+    "IGN5": 0.0,
+    "EXT5": 0.196
+   },
+   "confirm": {
+    "n": 181,
+    "UP5": 0.21,
+    "DN5": 0.16,
+    "IGN5": 0.006,
+    "EXT5": 0.215
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 110,
+    "UP5": 0.091,
+    "DN5": 0.236,
+    "IGN5": 0.018,
+    "EXT5": 0.264
+   },
+   "confirm": {
+    "n": 88,
+    "UP5": 0.273,
+    "DN5": 0.102,
+    "IGN5": 0.023,
+    "EXT5": 0.261
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 413,
+    "UP5": 0.24,
+    "DN5": 0.211,
+    "IGN5": 0.247,
+    "EXT5": 0.201
+   },
+   "confirm": {
+    "n": 335,
+    "UP5": 0.275,
+    "DN5": 0.191,
+    "IGN5": 0.2,
+    "EXT5": 0.218
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 376,
+    "UP5": 0.146,
+    "DN5": 0.207,
+    "IGN5": 0.059,
+    "EXT5": 0.231
+   },
+   "confirm": {
+    "n": 369,
+    "UP5": 0.222,
+    "DN5": 0.19,
+    "IGN5": 0.057,
+    "EXT5": 0.203
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 266,
+    "UP5": 0.188,
+    "DN5": 0.143,
+    "IGN5": 0.0,
+    "EXT5": 0.222
+   },
+   "confirm": {
+    "n": 234,
+    "UP5": 0.222,
+    "DN5": 0.205,
+    "IGN5": 0.0,
+    "EXT5": 0.222
+   }
+  },
+  "D0 Mdn R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 218,
+    "UP5": 0.174,
+    "DN5": 0.161,
+    "IGN5": 0.005,
+    "EXT5": 0.225
+   },
+   "confirm": {
+    "n": 170,
+    "UP5": 0.171,
+    "DN5": 0.165,
+    "IGN5": 0.012,
+    "EXT5": 0.288
+   }
+  },
+  "D0 Mdn R1 U^ Bfill Svia Qrein Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.125,
+    "DN5": 0.25,
+    "IGN5": 0.0,
+    "EXT5": 0.25
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.25,
+    "IGN5": 0.0,
+    "EXT5": 0.25
+   }
+  },
+  "D0 Mdn R1 U^ Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 28,
+    "UP5": 0.143,
+    "DN5": 0.393,
+    "IGN5": 0.107,
+    "EXT5": 0.071
+   },
+   "confirm": {
+    "n": 22,
+    "UP5": 0.136,
+    "DN5": 0.227,
+    "IGN5": 0.045,
+    "EXT5": 0.182
+   }
+  },
+  "D0 Mdn R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.4,
+    "DN5": 0.4,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 371,
+    "UP5": 0.197,
+    "DN5": 0.164,
+    "IGN5": 0.008,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 300,
+    "UP5": 0.267,
+    "DN5": 0.213,
+    "IGN5": 0.01,
+    "EXT5": 0.217
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 517,
+    "UP5": 0.164,
+    "DN5": 0.141,
+    "IGN5": 0.008,
+    "EXT5": 0.217
+   },
+   "confirm": {
+    "n": 489,
+    "UP5": 0.155,
+    "DN5": 0.172,
+    "IGN5": 0.008,
+    "EXT5": 0.213
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 337,
+    "UP5": 0.16,
+    "DN5": 0.16,
+    "IGN5": 0.009,
+    "EXT5": 0.208
+   },
+   "confirm": {
+    "n": 304,
+    "UP5": 0.24,
+    "DN5": 0.184,
+    "IGN5": 0.013,
+    "EXT5": 0.224
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 257,
+    "UP5": 0.128,
+    "DN5": 0.195,
+    "IGN5": 0.008,
+    "EXT5": 0.233
+   },
+   "confirm": {
+    "n": 182,
+    "UP5": 0.198,
+    "DN5": 0.275,
+    "IGN5": 0.0,
+    "EXT5": 0.209
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 160,
+    "UP5": 0.169,
+    "DN5": 0.237,
+    "IGN5": 0.062,
+    "EXT5": 0.194
+   },
+   "confirm": {
+    "n": 125,
+    "UP5": 0.288,
+    "DN5": 0.264,
+    "IGN5": 0.128,
+    "EXT5": 0.232
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 151,
+    "UP5": 0.172,
+    "DN5": 0.159,
+    "IGN5": 0.013,
+    "EXT5": 0.252
+   },
+   "confirm": {
+    "n": 160,
+    "UP5": 0.225,
+    "DN5": 0.212,
+    "IGN5": 0.019,
+    "EXT5": 0.175
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 198,
+    "UP5": 0.192,
+    "DN5": 0.177,
+    "IGN5": 0.01,
+    "EXT5": 0.207
+   },
+   "confirm": {
+    "n": 213,
+    "UP5": 0.235,
+    "DN5": 0.197,
+    "IGN5": 0.005,
+    "EXT5": 0.207
+   }
+  },
+  "D0 Mdn R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 133,
+    "UP5": 0.143,
+    "DN5": 0.188,
+    "IGN5": 0.015,
+    "EXT5": 0.165
+   },
+   "confirm": {
+    "n": 117,
+    "UP5": 0.291,
+    "DN5": 0.222,
+    "IGN5": 0.017,
+    "EXT5": 0.179
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Svia Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 1.0
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Svia Qrein Fcalm": {
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Svia Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 11,
+    "UP5": 0.273,
+    "DN5": 0.091,
+    "IGN5": 0.091,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 11,
+    "UP5": 0.364,
+    "DN5": 0.273,
+    "IGN5": 0.0,
+    "EXT5": 0.182
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 45,
+    "UP5": 0.156,
+    "DN5": 0.156,
+    "IGN5": 0.089,
+    "EXT5": 0.111
+   },
+   "confirm": {
+    "n": 33,
+    "UP5": 0.333,
+    "DN5": 0.212,
+    "IGN5": 0.03,
+    "EXT5": 0.091
+   }
+  },
+  "D0 Mdn R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.1,
+    "DN5": 0.1,
+    "IGN5": 0.2,
+    "EXT5": 0.1
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 9,
+    "UP5": 0.222,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.111
+   },
+   "confirm": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 30,
+    "UP5": 0.267,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 16,
+    "UP5": 0.25,
+    "DN5": 0.188,
+    "IGN5": 0.0,
+    "EXT5": 0.062
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 26,
+    "UP5": 0.077,
+    "DN5": 0.269,
+    "IGN5": 0.0,
+    "EXT5": 0.269
+   },
+   "confirm": {
+    "n": 19,
+    "UP5": 0.053,
+    "DN5": 0.105,
+    "IGN5": 0.0,
+    "EXT5": 0.263
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 3,
+    "UP5": 0.333,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.333
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 66,
+    "UP5": 0.121,
+    "DN5": 0.212,
+    "IGN5": 0.591,
+    "EXT5": 0.106
+   },
+   "confirm": {
+    "n": 66,
+    "UP5": 0.227,
+    "DN5": 0.348,
+    "IGN5": 0.576,
+    "EXT5": 0.152
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 25,
+    "UP5": 0.2,
+    "DN5": 0.16,
+    "IGN5": 0.2,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 23,
+    "UP5": 0.087,
+    "DN5": 0.261,
+    "IGN5": 0.0,
+    "EXT5": 0.261
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 29,
+    "UP5": 0.138,
+    "DN5": 0.172,
+    "IGN5": 0.0,
+    "EXT5": 0.172
+   },
+   "confirm": {
+    "n": 18,
+    "UP5": 0.222,
+    "DN5": 0.222,
+    "IGN5": 0.056,
+    "EXT5": 0.111
+   }
+  },
+  "D0 Mup R0 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.5,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R0 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R0 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.4,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R0 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 11,
+    "UP5": 0.182,
+    "DN5": 0.364,
+    "IGN5": 0.0,
+    "EXT5": 0.455
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 36,
+    "UP5": 0.222,
+    "DN5": 0.139,
+    "IGN5": 0.0,
+    "EXT5": 0.167
+   },
+   "confirm": {
+    "n": 10,
+    "UP5": 0.4,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.4
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 33,
+    "UP5": 0.242,
+    "DN5": 0.242,
+    "IGN5": 0.0,
+    "EXT5": 0.152
+   },
+   "confirm": {
+    "n": 10,
+    "UP5": 0.3,
+    "DN5": 0.1,
+    "IGN5": 0.0,
+    "EXT5": 0.1
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 6,
+    "UP5": 0.167,
+    "DN5": 0.167,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 2,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 48,
+    "UP5": 0.375,
+    "DN5": 0.125,
+    "IGN5": 0.604,
+    "EXT5": 0.083
+   },
+   "confirm": {
+    "n": 52,
+    "UP5": 0.173,
+    "DN5": 0.173,
+    "IGN5": 0.5,
+    "EXT5": 0.077
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 14,
+    "UP5": 0.214,
+    "DN5": 0.143,
+    "IGN5": 0.0,
+    "EXT5": 0.429
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.5,
+    "IGN5": 0.5,
+    "EXT5": 0.25
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 24,
+    "UP5": 0.167,
+    "DN5": 0.333,
+    "IGN5": 0.042,
+    "EXT5": 0.083
+   },
+   "confirm": {
+    "n": 19,
+    "UP5": 0.158,
+    "DN5": 0.368,
+    "IGN5": 0.0,
+    "EXT5": 0.316
+   }
+  },
+  "D0 Mup R0 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 5,
+    "UP5": 0.6,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.2
+   }
+  },
+  "D0 Mup R0 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 3,
+    "UP5": 0.0,
+    "DN5": 0.333,
+    "IGN5": 1.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 1.0
+   }
+  },
+  "D0 Mup R0 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 9,
+    "UP5": 0.111,
+    "DN5": 0.222,
+    "IGN5": 0.667,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 8,
+    "UP5": 0.5,
+    "DN5": 0.0,
+    "IGN5": 0.875,
+    "EXT5": 0.25
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 153,
+    "UP5": 0.176,
+    "DN5": 0.209,
+    "IGN5": 0.013,
+    "EXT5": 0.209
+   },
+   "confirm": {
+    "n": 110,
+    "UP5": 0.236,
+    "DN5": 0.173,
+    "IGN5": 0.027,
+    "EXT5": 0.209
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 200,
+    "UP5": 0.095,
+    "DN5": 0.19,
+    "IGN5": 0.005,
+    "EXT5": 0.295
+   },
+   "confirm": {
+    "n": 175,
+    "UP5": 0.217,
+    "DN5": 0.177,
+    "IGN5": 0.006,
+    "EXT5": 0.16
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 203,
+    "UP5": 0.202,
+    "DN5": 0.172,
+    "IGN5": 0.005,
+    "EXT5": 0.241
+   },
+   "confirm": {
+    "n": 180,
+    "UP5": 0.239,
+    "DN5": 0.15,
+    "IGN5": 0.0,
+    "EXT5": 0.178
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 105,
+    "UP5": 0.19,
+    "DN5": 0.143,
+    "IGN5": 0.01,
+    "EXT5": 0.305
+   },
+   "confirm": {
+    "n": 79,
+    "UP5": 0.203,
+    "DN5": 0.152,
+    "IGN5": 0.0,
+    "EXT5": 0.253
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 413,
+    "UP5": 0.191,
+    "DN5": 0.174,
+    "IGN5": 0.215,
+    "EXT5": 0.196
+   },
+   "confirm": {
+    "n": 332,
+    "UP5": 0.199,
+    "DN5": 0.262,
+    "IGN5": 0.238,
+    "EXT5": 0.226
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 428,
+    "UP5": 0.15,
+    "DN5": 0.236,
+    "IGN5": 0.042,
+    "EXT5": 0.236
+   },
+   "confirm": {
+    "n": 464,
+    "UP5": 0.179,
+    "DN5": 0.211,
+    "IGN5": 0.041,
+    "EXT5": 0.2
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 314,
+    "UP5": 0.156,
+    "DN5": 0.162,
+    "IGN5": 0.006,
+    "EXT5": 0.217
+   },
+   "confirm": {
+    "n": 295,
+    "UP5": 0.268,
+    "DN5": 0.18,
+    "IGN5": 0.01,
+    "EXT5": 0.2
+   }
+  },
+  "D0 Mup R1 U^ Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 238,
+    "UP5": 0.181,
+    "DN5": 0.206,
+    "IGN5": 0.008,
+    "EXT5": 0.21
+   },
+   "confirm": {
+    "n": 266,
+    "UP5": 0.184,
+    "DN5": 0.195,
+    "IGN5": 0.0,
+    "EXT5": 0.184
+   }
+  },
+  "D0 Mup R1 U^ Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.3,
+    "DN5": 0.1,
+    "IGN5": 0.0,
+    "EXT5": 0.5
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.0,
+    "DN5": 0.2,
+    "IGN5": 0.0,
+    "EXT5": 0.4
+   }
+  },
+  "D0 Mup R1 U^ Bfill Sweak Qiso Fexit": {
+   "confirm": {
+    "n": 2,
+    "UP5": 0.0,
+    "DN5": 0.5,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R1 U^ Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 25,
+    "UP5": 0.32,
+    "DN5": 0.24,
+    "IGN5": 0.08,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 29,
+    "UP5": 0.241,
+    "DN5": 0.207,
+    "IGN5": 0.103,
+    "EXT5": 0.138
+   }
+  },
+  "D0 Mup R1 U^ Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.5,
+    "DN5": 0.625,
+    "IGN5": 0.125,
+    "EXT5": 0.125
+   },
+   "confirm": {
+    "n": 5,
+    "UP5": 0.2,
+    "DN5": 0.4,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Svia Qiso Fcalm": {
+   "derive": {
+    "n": 290,
+    "UP5": 0.19,
+    "DN5": 0.245,
+    "IGN5": 0.007,
+    "EXT5": 0.238
+   },
+   "confirm": {
+    "n": 270,
+    "UP5": 0.241,
+    "DN5": 0.156,
+    "IGN5": 0.011,
+    "EXT5": 0.23
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Svia Qiso Fexit": {
+   "derive": {
+    "n": 469,
+    "UP5": 0.102,
+    "DN5": 0.203,
+    "IGN5": 0.011,
+    "EXT5": 0.22
+   },
+   "confirm": {
+    "n": 418,
+    "UP5": 0.189,
+    "DN5": 0.175,
+    "IGN5": 0.014,
+    "EXT5": 0.234
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Svia Qrein Fcalm": {
+   "derive": {
+    "n": 335,
+    "UP5": 0.167,
+    "DN5": 0.185,
+    "IGN5": 0.015,
+    "EXT5": 0.197
+   },
+   "confirm": {
+    "n": 291,
+    "UP5": 0.241,
+    "DN5": 0.186,
+    "IGN5": 0.01,
+    "EXT5": 0.22
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Svia Qrein Fexit": {
+   "derive": {
+    "n": 240,
+    "UP5": 0.158,
+    "DN5": 0.225,
+    "IGN5": 0.013,
+    "EXT5": 0.225
+   },
+   "confirm": {
+    "n": 198,
+    "UP5": 0.222,
+    "DN5": 0.187,
+    "IGN5": 0.0,
+    "EXT5": 0.177
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 148,
+    "UP5": 0.142,
+    "DN5": 0.223,
+    "IGN5": 0.135,
+    "EXT5": 0.291
+   },
+   "confirm": {
+    "n": 130,
+    "UP5": 0.223,
+    "DN5": 0.262,
+    "IGN5": 0.131,
+    "EXT5": 0.223
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Sweak Qiso Fexit": {
+   "derive": {
+    "n": 190,
+    "UP5": 0.158,
+    "DN5": 0.247,
+    "IGN5": 0.021,
+    "EXT5": 0.268
+   },
+   "confirm": {
+    "n": 156,
+    "UP5": 0.192,
+    "DN5": 0.154,
+    "IGN5": 0.013,
+    "EXT5": 0.141
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 242,
+    "UP5": 0.153,
+    "DN5": 0.198,
+    "IGN5": 0.012,
+    "EXT5": 0.24
+   },
+   "confirm": {
+    "n": 172,
+    "UP5": 0.215,
+    "DN5": 0.186,
+    "IGN5": 0.012,
+    "EXT5": 0.203
+   }
+  },
+  "D0 Mup R1 Uv Bdrain Sweak Qrein Fexit": {
+   "derive": {
+    "n": 156,
+    "UP5": 0.128,
+    "DN5": 0.179,
+    "IGN5": 0.013,
+    "EXT5": 0.231
+   },
+   "confirm": {
+    "n": 95,
+    "UP5": 0.295,
+    "DN5": 0.2,
+    "IGN5": 0.011,
+    "EXT5": 0.2
+   }
+  },
+  "D0 Mup R1 Uv Bfill Svia Qrein Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 1.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R1 Uv Bfill Sweak Qiso Fcalm": {
+   "derive": {
+    "n": 10,
+    "UP5": 0.1,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.1
+   },
+   "confirm": {
+    "n": 7,
+    "UP5": 0.143,
+    "DN5": 0.429,
+    "IGN5": 0.143,
+    "EXT5": 0.143
+   }
+  },
+  "D0 Mup R1 Uv Bfill Sweak Qiso Fexit": {
+   "derive": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   },
+   "confirm": {
+    "n": 1,
+    "UP5": 0.0,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  },
+  "D0 Mup R1 Uv Bfill Sweak Qrein Fcalm": {
+   "derive": {
+    "n": 26,
+    "UP5": 0.192,
+    "DN5": 0.192,
+    "IGN5": 0.154,
+    "EXT5": 0.231
+   },
+   "confirm": {
+    "n": 37,
+    "UP5": 0.297,
+    "DN5": 0.297,
+    "IGN5": 0.189,
+    "EXT5": 0.108
+   }
+  },
+  "D0 Mup R1 Uv Bfill Sweak Qrein Fexit": {
+   "derive": {
+    "n": 8,
+    "UP5": 0.125,
+    "DN5": 0.375,
+    "IGN5": 0.375,
+    "EXT5": 0.125
+   },
+   "confirm": {
+    "n": 4,
+    "UP5": 0.25,
+    "DN5": 0.0,
+    "IGN5": 0.0,
+    "EXT5": 0.0
+   }
+  }
+ }
+}
