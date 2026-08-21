@@ -1,0 +1,13 @@
+{
+ "pulses_fit": 648,
+ "bodies_with_3plus": 38,
+ "tau_overall": {
+  "p25": 6.4,
+  "p50": 12.9,
+  "p75": 23.8
+ },
+ "within_body_spread_median": 0.293,
+ "shuffled_spread_median": 0.325,
+ "shuffles_below_actual": 52,
+ "null_shuffles": 200
+}
