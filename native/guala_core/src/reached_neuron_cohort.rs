@@ -884,6 +884,7 @@ const REACHED_COHORT_CELL_CODEC_V5_MAGIC: &[u8; 8] = b"GLRCC05\0";
 const REACHED_COHORT_CELL_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCC06\0";
 const REACHED_COHORT_CELL_CODEC_V7_MAGIC: &[u8; 8] = b"GLRCC07\0";
 const REACHED_COHORT_CELL_CODEC_V8_MAGIC: &[u8; 8] = b"GLRCC08\0";
+const REACHED_COHORT_CELL_CODEC_V9_MAGIC: &[u8; 8] = b"GLRCC09\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const REACHED_COHORT_STATE_DELTA_V2_MAGIC: &[u8; 8] = b"GLRSD02\0";
 const REACHED_COHORT_STATE_DELTA_V3_MAGIC: &[u8; 8] = b"GLRSD03\0";
@@ -1106,6 +1107,125 @@ pub(crate) fn decode_reached_cohort_state(
 #[derive(Default)]
 struct ContentDigestTable {
     entries: Vec<([u8; CONTENT_DIGEST_BYTES], Vec<u8>)>,
+}
+
+/// Snapshot-wide immutable neuron-anatomy table used by the current cognitive
+/// codec. Runtime Arc identity prevents re-encoding an already shared heavy
+/// anatomy; exact digest interning also canonicalizes equal legacy bodies that
+/// arrived with distinct allocations during the one-way migration.
+#[derive(Default)]
+pub(crate) struct GlobalNeuronAnatomyTable {
+    identities: Vec<(
+        usize,
+        [u8; CONTENT_DIGEST_BYTES],
+        NeuronPhysicalAnatomy,
+    )>,
+    bodies: ContentDigestTable,
+}
+
+impl GlobalNeuronAnatomyTable {
+    pub(crate) fn intern(
+        &mut self,
+        anatomy: &NeuronPhysicalAnatomy,
+    ) -> Result<(), ReachedCohortError> {
+        let identity = anatomy.heavy_anatomy_identity();
+        if self
+            .identities
+            .iter()
+            .any(|(existing, _, _)| *existing == identity)
+        {
+            return Ok(());
+        }
+        if let Some((_, digest, canonical)) = self
+            .identities
+            .iter()
+            .find(|(_, _, canonical)| anatomy.has_same_heavy_anatomy(canonical))
+        {
+            self.identities
+                .push((identity, *digest, canonical.clone()));
+            return Ok(());
+        }
+        let digest = self.bodies.intern(encode_neuron_physical_anatomy(
+            &anatomy.with_capacitance(shared_anatomy_capacitance_placeholder()),
+        )?);
+        self.identities.push((identity, digest, anatomy.clone()));
+        Ok(())
+    }
+
+    fn reference(
+        &self,
+        anatomy: &NeuronPhysicalAnatomy,
+    ) -> Result<[u8; CONTENT_DIGEST_BYTES], ReachedCohortError> {
+        self.identities
+            .iter()
+            .find_map(|(identity, digest, _)| {
+                (*identity == anatomy.heavy_anatomy_identity()).then_some(*digest)
+            })
+            .ok_or(ReachedCohortError::InvalidStateEncoding)
+    }
+
+    pub(crate) fn encode(&self) -> Result<Vec<u8>, ReachedCohortError> {
+        let mut encoded = Vec::new();
+        self.bodies.encode_into(&mut encoded)?;
+        Ok(encoded)
+    }
+}
+
+pub(crate) struct DecodedGlobalNeuronAnatomyTable {
+    entries: Vec<(
+        [u8; CONTENT_DIGEST_BYTES],
+        NeuronPhysicalAnatomy,
+        bool,
+    )>,
+}
+
+impl DecodedGlobalNeuronAnatomyTable {
+    pub(crate) fn decode(encoded: &[u8]) -> Result<Self, ReachedCohortError> {
+        let mut reader = CohortStateReader::new(encoded);
+        let count = reader.usize()?;
+        reader.require_records(count, 8)?;
+        let mut entries = Vec::new();
+        entries
+            .try_reserve_exact(count)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        for _ in 0..count {
+            let length = reader.usize()?;
+            let body = reader.take(length)?;
+            let digest = sha256(body);
+            if entries
+                .last()
+                .is_some_and(|(previous, _, _)| *previous >= digest)
+            {
+                return Err(ReachedCohortError::InvalidStateEncoding);
+            }
+            entries.push((digest, decode_neuron_physical_anatomy(body)?, false));
+        }
+        if !reader.finished() {
+            return Err(ReachedCohortError::InvalidStateEncoding);
+        }
+        Ok(Self { entries })
+    }
+
+    fn resolve(
+        &mut self,
+        digest: [u8; CONTENT_DIGEST_BYTES],
+        capacitance: MembraneCapacitance,
+    ) -> Result<NeuronPhysicalAnatomy, ReachedCohortError> {
+        let index = self
+            .entries
+            .binary_search_by(|(existing, _, _)| existing.cmp(&digest))
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        self.entries[index].2 = true;
+        Ok(self.entries[index].1.with_capacitance(capacitance))
+    }
+
+    pub(crate) fn fully_referenced(&self) -> Result<(), ReachedCohortError> {
+        if self.entries.iter().all(|(_, _, used)| *used) {
+            Ok(())
+        } else {
+            Err(ReachedCohortError::InvalidStateEncoding)
+        }
+    }
 }
 
 impl ContentDigestTable {
@@ -1421,6 +1541,193 @@ fn encode_reached_cohort_cell_content_addressed(
     push_cohort_usize(&mut encoded, electrical.len())?;
     encoded.extend_from_slice(&electrical);
     Ok(encoded)
+}
+
+/// Encode one cohort against the cognitive snapshot's single global immutable
+/// anatomy table. Mutable neuron states remain cohort-local and exact.
+pub(crate) fn encode_reached_cohort_cell_v9_global(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+    global_anatomies: &GlobalNeuronAnatomyTable,
+) -> Result<Vec<u8>, ReachedCohortError> {
+    if anatomy.neurons.len() != anatomy.mounts.len()
+        || anatomy.neurons.len() != state.neurons.len()
+        || anatomy.electrical.contact_count() != state.electrical.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = ContentDigestTable::default();
+    let mut state_references = Vec::with_capacity(anatomy.neurons.len());
+    for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
+        state_references
+            .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
+    }
+
+    let mut encoded = Vec::new();
+    encoded.extend_from_slice(REACHED_COHORT_CELL_CODEC_V9_MAGIC);
+    push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
+    state_table.encode_into(&mut encoded)?;
+    for (((lineage, mount), neuron_anatomy), state_reference) in anatomy
+        .neuron_lineages
+        .iter()
+        .zip(anatomy.mounts.iter())
+        .zip(anatomy.neurons.iter())
+        .zip(state_references.iter())
+    {
+        encoded.extend_from_slice(lineage);
+        match mount {
+            ReachedNeuronMount::Receptor(source_site) => {
+                encoded.push(0);
+                let source = encode_neuron_source_site(source_site)?;
+                push_cohort_usize(&mut encoded, source.len())?;
+                encoded.extend_from_slice(&source);
+            }
+            ReachedNeuronMount::Intrinsic {
+                place,
+                body_effector_terminal,
+            } => {
+                encoded.push(1);
+                encoded.extend_from_slice(&place.layer().to_le_bytes());
+                encoded.extend_from_slice(&place.topology_index().to_le_bytes());
+                match body_effector_terminal {
+                    Some(terminal) => {
+                        encoded.push(1);
+                        encoded.push(
+                            u8::try_from(terminal.axis().index())
+                                .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+                        );
+                        encoded.push(terminal.direction() as u8);
+                    }
+                    None => encoded.push(0),
+                }
+            }
+        }
+        encoded.extend_from_slice(&global_anatomies.reference(neuron_anatomy)?);
+        encoded.extend_from_slice(state_reference);
+        let (numerator, denominator) = neuron_anatomy.capacitance().picofarads().parts();
+        encoded.extend_from_slice(&numerator.to_le_bytes());
+        encoded.extend_from_slice(&denominator.to_le_bytes());
+    }
+    encoded.extend_from_slice(&derived_recovery_fluid_anatomy_digest(anatomy)?);
+    let recovery_state =
+        encode_reached_recovery_fluid_state(&anatomy.recovery_fluid, state.recovery_fluid)?;
+    push_cohort_usize(&mut encoded, recovery_state.len())?;
+    encoded.extend_from_slice(&recovery_state);
+    let electrical = encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)?;
+    push_cohort_usize(&mut encoded, electrical.len())?;
+    encoded.extend_from_slice(&electrical);
+    Ok(encoded)
+}
+
+pub(crate) fn decode_reached_cohort_cell_v9_global(
+    encoded: &[u8],
+    global_anatomies: &mut DecodedGlobalNeuronAnatomyTable,
+) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
+    let mut reader = CohortStateReader::new(encoded);
+    if reader.take(REACHED_COHORT_CELL_CODEC_V9_MAGIC.len())?
+        != REACHED_COHORT_CELL_CODEC_V9_MAGIC
+    {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let neuron_count = reader.usize()?;
+    if neuron_count == 0 {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let mut state_table = DecodedDigestTable::decode(&mut reader)?;
+    reader.require_records(neuron_count, 16 + 1 + 2 * CONTENT_DIGEST_BYTES + 32)?;
+    let mut mounts = Vec::new();
+    let mut neuron_lineages = Vec::new();
+    let mut neuron_anatomies = Vec::new();
+    let mut neuron_states = Vec::new();
+    mounts
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_lineages
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_anatomies
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+    neuron_states
+        .try_reserve_exact(neuron_count)
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+
+    for _ in 0..neuron_count {
+        neuron_lineages.push(
+            reader
+                .take(16)?
+                .try_into()
+                .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+        );
+        let mount = match reader.u8()? {
+            0 => {
+                let source_length = reader.usize()?;
+                ReachedNeuronMount::Receptor(decode_neuron_source_site(
+                    reader.take(source_length)?,
+                )?)
+            }
+            1 => {
+                let place = DeclaredNeuronPlace::new(reader.u32()?, reader.u32()?);
+                let body_effector_terminal = match reader.u8()? {
+                    0 => None,
+                    1 => Some(
+                        BodyEffectorTerminal::from_ordinals(reader.u8()?, reader.u8()?)
+                            .ok_or(ReachedCohortError::InvalidStateEncoding)?,
+                    ),
+                    _ => return Err(ReachedCohortError::InvalidStateEncoding),
+                };
+                if body_effector_terminal.is_some() && place.layer() != 12 {
+                    return Err(ReachedCohortError::InvalidStateEncoding);
+                }
+                ReachedNeuronMount::Intrinsic {
+                    place,
+                    body_effector_terminal,
+                }
+            }
+            _ => return Err(ReachedCohortError::InvalidStateEncoding),
+        };
+        mounts.push(mount);
+        let anatomy_reference = take_content_digest(&mut reader)?;
+        let state_reference = take_content_digest(&mut reader)?;
+        let capacitance = MembraneCapacitance::new(
+            ExactRational::new(reader.i128()?, reader.u128()?)
+                .map_err(|_| ReachedCohortError::InvalidStateEncoding)?,
+        )
+        .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        let neuron_anatomy = global_anatomies.resolve(anatomy_reference, capacitance)?;
+        let neuron_state =
+            decode_neuron_physical_state(&neuron_anatomy, state_table.resolve(state_reference)?)?;
+        neuron_anatomies.push(neuron_anatomy);
+        neuron_states.push(neuron_state);
+    }
+    state_table.fully_referenced()?;
+    let recovery_anatomy_digest = take_content_digest(&mut reader)?;
+    let recovery_state_length = reader.usize()?;
+    let encoded_recovery_state = reader.take(recovery_state_length)?;
+    let electrical_length = reader.usize()?;
+    let (electrical_anatomy, electrical_state) =
+        decode_sparse_electrical_cell(reader.take(electrical_length)?)?;
+    if !reader.finished() {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let anatomy = ReachedCohortAnatomy::new_mounted(
+        neuron_anatomies,
+        neuron_lineages,
+        mounts,
+        electrical_anatomy,
+    )?;
+    if derived_recovery_fluid_anatomy_digest(&anatomy)? != recovery_anatomy_digest {
+        return Err(ReachedCohortError::InvalidStateEncoding);
+    }
+    let recovery_fluid =
+        decode_reached_recovery_fluid_state(encoded_recovery_state, &anatomy.recovery_fluid)?;
+    let state = ReachedCohortState::from_mounted_parts(
+        &anatomy,
+        neuron_states,
+        electrical_state,
+        recovery_fluid,
+    )?;
+    Ok((anatomy, state))
 }
 
 fn decode_reached_cohort_cell_v5(
@@ -2534,6 +2841,18 @@ pub(crate) struct ReachedCohortIntervalSettlement {
     pub(crate) quiescent: bool,
 }
 
+/// Reached-only successor facts for the resident-owned in-place path.  The
+/// full cohort state remains in its one resident allocation; this value owns
+/// no successor population and no population-width neuron mask.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct SparseReachedCohortIntervalSettlement {
+    pub(crate) contact_transitions: Box<[ElectricalContactTransition]>,
+    pub(crate) newly_opened_gate_channels: Box<[(usize, u128)]>,
+    pub(crate) locally_quiescent: Box<[(usize, bool)]>,
+    pub(crate) electrically_active: bool,
+    pub(crate) quiescent: bool,
+}
+
 /// The settled reference state the physics measures experience deltas
 /// against.  Historically this wrapper claimed GLOBAL quiescence; measured
 /// F2 (2026-08-05) proved that after real electricity a driven cohort never
@@ -2650,13 +2969,13 @@ impl ReachedCohortMetabolicObservation {
 /// pumps remain physical while a cell participates in an active interval.
 /// Unreached neurons and their state remain byte-identical, and no cohort or
 /// organism population is polled to decide participation.
-pub(crate) fn settle_reached_cohort_membrane_pumps(
+pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
     anatomy: &ReachedCohortAnatomy,
-    predecessor: &ReachedCohortState,
+    state: &mut ReachedCohortState,
     reached_neuron_indices: &[usize],
     interval_microseconds: u32,
-) -> Result<(ReachedCohortState, ReachedCohortMetabolicObservation), ReachedCohortError> {
-    if predecessor.neurons.len() != anatomy.neurons.len()
+) -> Result<ReachedCohortMetabolicObservation, ReachedCohortError> {
+    if state.neurons.len() != anatomy.neurons.len()
         || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
         || reached_neuron_indices
             .iter()
@@ -2668,13 +2987,26 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
     if reached_neuron_indices.is_empty() {
-        return Ok((
-            predecessor.clone(),
-            ReachedCohortMetabolicObservation::default(),
-        ));
+        return Ok(ReachedCohortMetabolicObservation::default());
     }
 
-    let predecessor_material = total_carrier_material(&predecessor.neurons)?;
+    let predecessor_material = reached_neuron_indices.iter().try_fold(
+        0_u128,
+        |total, neuron_index| {
+            total
+                .checked_add(
+                    state.neurons[*neuron_index]
+                        .carrier_reservoirs()
+                        .total()
+                        .ok_or(ReachedCohortError::MaterialArithmetic(
+                            "one reached neuron's carrier compartments overflow",
+                        ))?,
+                )
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached carrier-material sum overflow",
+                ))
+        },
+    )?;
     let mut maximum_power = ExactRational::integer(0);
     for neuron_index in reached_neuron_indices.iter().copied() {
         maximum_power = maximum_power
@@ -2697,12 +3029,17 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         })?;
     let environment = settle_powered_environment_exchange(
         anatomy.recovery_fluid.reservoir_anatomy(),
-        predecessor.recovery_fluid,
+        state.recovery_fluid,
         maximum_interval_energy,
     )?;
 
-    let mut neurons = predecessor.neurons.to_vec();
     let mut reservoir = environment.successor;
+    let mut settled_neurons = Vec::new();
+    settled_neurons
+        .try_reserve_exact(reached_neuron_indices.len())
+        .map_err(|_| ReachedCohortError::MaterialArithmetic(
+            "reached pump successor allocation failed",
+        ))?;
     let mut observation = ReachedCohortMetabolicObservation {
         environment_energy_delivered_zeptojoules: environment.delivered_energy_zeptojoules,
         environment_heat_exported_zeptojoules: environment.exported_heat_zeptojoules,
@@ -2715,7 +3052,7 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
         ..ReachedCohortMetabolicObservation::default()
     };
     for neuron_index in reached_neuron_indices.iter().copied() {
-        let predecessor_neuron = neurons[neuron_index].clone();
+        let predecessor_neuron = state.neurons[neuron_index].clone();
         let predecessor_reservoir = reservoir;
         let pump_contact_power_zeptojoules_per_microsecond = anatomy.neurons[neuron_index]
             .pump_contact_power_zeptojoules_per_microsecond()
@@ -2834,10 +3171,26 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
                     membrane_gradient_work_zeptojoules: pump_work,
                 });
         }
-        neurons[neuron_index] = successor;
+        settled_neurons.push((neuron_index, successor));
         reservoir = successor_reservoir;
     }
-    let actual_successor_material = total_carrier_material(&neurons)?;
+    let actual_successor_material = settled_neurons.iter().try_fold(
+        0_u128,
+        |total, (_, neuron)| {
+            total
+                .checked_add(
+                    neuron
+                        .carrier_reservoirs()
+                        .total()
+                        .ok_or(ReachedCohortError::MaterialArithmetic(
+                            "one reached successor's carrier compartments overflow",
+                        ))?,
+                )
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached successor carrier-material sum overflow",
+                ))
+        },
+    )?;
     if actual_successor_material != predecessor_material {
         return Err(ReachedCohortError::MaterialMismatch {
             predecessor: predecessor_material,
@@ -2846,14 +3199,32 @@ pub(crate) fn settle_reached_cohort_membrane_pumps(
             actual_successor: actual_successor_material,
         });
     }
-    Ok((
-        ReachedCohortState {
-            neurons: neurons.into_boxed_slice(),
-            electrical: predecessor.electrical.clone(),
-            recovery_fluid: reservoir,
-        },
-        observation,
-    ))
+    // Every fallible preparation and conservation check is complete before
+    // the first resident write.  Commit touches only the reached slots and
+    // the one ordered cohort reservoir; unrelated neurons and contacts stay
+    // in their original allocation.
+    for (neuron_index, successor) in settled_neurons {
+        state.neurons[neuron_index] = successor;
+    }
+    state.recovery_fluid = reservoir;
+    Ok(observation)
+}
+
+#[cfg(test)]
+pub(crate) fn settle_reached_cohort_membrane_pumps(
+    anatomy: &ReachedCohortAnatomy,
+    predecessor: &ReachedCohortState,
+    reached_neuron_indices: &[usize],
+    interval_microseconds: u32,
+) -> Result<(ReachedCohortState, ReachedCohortMetabolicObservation), ReachedCohortError> {
+    let mut successor = predecessor.clone();
+    let observation = settle_reached_cohort_membrane_pumps_in_place(
+        anatomy,
+        &mut successor,
+        reached_neuron_indices,
+        interval_microseconds,
+    )?;
+    Ok((successor, observation))
 }
 
 /// Settle one genuinely dark interval's metabolism for a whole cohort: every
@@ -3087,10 +3458,6 @@ pub(crate) fn settle_reached_cohort_interval(
     }
     let resident_indices = input.resident_indices(anatomy)?;
     let external_contact_outward = input.external_contact_outward_elementary_charges.clone();
-    let mut reached_neurons = vec![false; anatomy.neurons.len()];
-    for resident in resident_indices.iter().copied() {
-        reached_neurons[resident] = true;
-    }
     if anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len() {
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
@@ -3157,23 +3524,6 @@ pub(crate) fn settle_reached_cohort_interval(
         recovered_neurons[resident_index] = recovered.successor_neuron;
     }
 
-    let capacitances = anatomy
-        .neurons
-        .iter()
-        .map(NeuronPhysicalAnatomy::capacitance)
-        .collect::<Vec<_>>();
-    let predecessor_membranes = recovered_neurons
-        .iter()
-        .map(NeuronPhysicalState::membrane_state)
-        .collect::<Vec<_>>();
-    // What each neuron actually HAS to give this interval.  The contact law
-    // was already right about the field but had no reserve term, so it moved
-    // carriers out of neurons that had none — which is how neuron 8 emptied
-    // and froze her whole body (2026-08-08).
-    let available_carriers = recovered_neurons
-        .iter()
-        .map(|neuron| neuron.carrier_reservoirs().intracellular())
-        .collect::<Vec<_>>();
     let precomputed_contact_input = input.precomputed_local_electrical.is_some();
     let electrical = match input.precomputed_local_electrical.take() {
         Some(precomputed)
@@ -3185,19 +3535,41 @@ pub(crate) fn settle_reached_cohort_interval(
             precomputed
         }
         Some(_) => return Err(ReachedCohortError::AnatomyStateWidth),
-        None => settle_sparse_electrical_transfers_reached(
-            &anatomy.electrical,
-            &predecessor.electrical,
-            &capacitances,
-            &predecessor_membranes,
-            &reached_neurons,
-            &available_carriers,
-            input.interval_microseconds(),
-        )?,
+        None => {
+            let mut reached_neurons = vec![false; anatomy.neurons.len()];
+            for resident in resident_indices.iter().copied() {
+                reached_neurons[resident] = true;
+            }
+            let capacitances = anatomy
+                .neurons
+                .iter()
+                .map(NeuronPhysicalAnatomy::capacitance)
+                .collect::<Vec<_>>();
+            let predecessor_membranes = recovered_neurons
+                .iter()
+                .map(NeuronPhysicalState::membrane_state)
+                .collect::<Vec<_>>();
+            // What each neuron actually HAS to give this interval.  The contact law
+            // was already right about the field but had no reserve term, so it moved
+            // carriers out of neurons that had none — which is how neuron 8 emptied
+            // and froze her whole body (2026-08-08).
+            let available_carriers = recovered_neurons
+                .iter()
+                .map(|neuron| neuron.carrier_reservoirs().intracellular())
+                .collect::<Vec<_>>();
+            settle_sparse_electrical_transfers_reached(
+                &anatomy.electrical,
+                &predecessor.electrical,
+                &capacitances,
+                &predecessor_membranes,
+                &reached_neurons,
+                &available_carriers,
+                input.interval_microseconds(),
+            )?
+        }
     };
 
     let predecessor_material = total_carrier_material(&predecessor.neurons)?;
-    let mut successor_neurons = recovered_neurons.clone();
     let mut newly_opened_gate_channels = Vec::new();
     let mut locally_quiescent = vec![true; anatomy.neurons.len()];
     // With contact transfer and ordered recovery already settled, each local
@@ -3240,7 +3612,7 @@ pub(crate) fn settle_reached_cohort_interval(
         if settled.newly_opened_gate_channels != 0 {
             newly_opened_gate_channels.push((resident_index, settled.newly_opened_gate_channels));
         }
-        successor_neurons[resident_index] = settled.successor;
+        recovered_neurons[resident_index] = settled.successor;
         locally_quiescent[resident_index] = settled.quiescent;
     }
     let external_net_outward =
@@ -3266,7 +3638,7 @@ pub(crate) fn settle_reached_cohort_interval(
                 "external inward carriers overflow successor material",
             ))?
     };
-    let actual_successor_material = total_carrier_material(&successor_neurons)?;
+    let actual_successor_material = total_carrier_material(&recovered_neurons)?;
     if actual_successor_material != expected_successor_material {
         return Err(ReachedCohortError::MaterialMismatch {
             predecessor: predecessor_material,
@@ -3285,7 +3657,7 @@ pub(crate) fn settle_reached_cohort_interval(
         !recovery_active && !electrically_active && locally_quiescent.iter().all(|value| *value);
     Ok(ReachedCohortIntervalSettlement {
         successor: ReachedCohortState {
-            neurons: successor_neurons.into_boxed_slice(),
+            neurons: recovered_neurons.into_boxed_slice(),
             electrical: electrical.successor_contacts,
             recovery_fluid: recovered_reservoir,
         },
@@ -3297,6 +3669,245 @@ pub(crate) fn settle_reached_cohort_interval(
         electrically_active,
         quiescent,
     })
+}
+
+/// Settle the already-computed coupled contact consequence directly into the
+/// one resident cohort owner.  All fallible neuron/recovery work and exact
+/// reached-material conservation finish before the first write.  Unreached
+/// neuron slots are neither read for settlement nor copied into a successor.
+pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
+    anatomy: &ReachedCohortAnatomy,
+    state: &mut ReachedCohortState,
+    mut input: ReachedCohortIntervalInput<'_>,
+) -> Result<SparseReachedCohortIntervalSettlement, ReachedCohortError> {
+    if state.neurons.len() != anatomy.neurons.len()
+        || state.electrical.contact_count() != anatomy.electrical.contact_count()
+        || input.neurons.is_empty()
+        || input.neurons.len() > anatomy.neurons.len()
+        || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let resident_indices = input.resident_indices(anatomy)?;
+    if resident_indices.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(ReachedCohortError::SourceAnatomyMismatch);
+    }
+    let shared = input.neurons[0].perspective.shared();
+    if input.neurons.iter().enumerate().any(|(index, local)| {
+        !std::ptr::eq(local.perspective.shared(), shared)
+            || local.perspective.coordinate_index() >= shared.vertex_count()
+            || input.neurons[..index].iter().any(|prior| {
+                prior.perspective.coordinate_index() == local.perspective.coordinate_index()
+            })
+    }) {
+        return Err(ReachedCohortError::PerspectiveMismatch);
+    }
+    let electrical = input
+        .precomputed_local_electrical
+        .take()
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    if electrical.successor_contacts.contact_count() != anatomy.contact_count()
+        || electrical.transitions.len() != anatomy.contact_count()
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let predecessor_material = resident_indices.iter().try_fold(
+        0_u128,
+        |total, resident_index| {
+            total
+                .checked_add(
+                    state.neurons[*resident_index]
+                        .carrier_reservoirs()
+                        .total()
+                        .ok_or(ReachedCohortError::MaterialArithmetic(
+                            "one reached predecessor's carrier compartments overflow",
+                        ))?,
+                )
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached predecessor carrier-material sum overflow",
+                ))
+        },
+    )?;
+    let external_net_outward = input
+        .external_contact_outward_elementary_charges
+        .iter()
+        .try_fold(0_i128, |total, value| {
+            total
+                .checked_add(*value)
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "external contact carrier sum overflow",
+                ))
+        })?;
+    let expected_successor_material = if external_net_outward >= 0 {
+        predecessor_material
+            .checked_sub(external_net_outward.unsigned_abs())
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "external outward carriers exceed reached predecessor material",
+            ))?
+    } else {
+        predecessor_material
+            .checked_add(external_net_outward.unsigned_abs())
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "external inward carriers overflow reached successor material",
+            ))?
+    };
+
+    let mut reservoir = state.recovery_fluid;
+    let mut recovery_active = false;
+    let mut successors = Vec::new();
+    successors
+        .try_reserve_exact(input.neurons.len())
+        .map_err(|_| ReachedCohortError::MaterialArithmetic(
+            "reached interval successor allocation failed",
+        ))?;
+    let mut newly_opened_gate_channels = Vec::new();
+    let mut locally_quiescent = Vec::new();
+    for (input_index, mut neuron_input) in input.neurons.into_vec().into_iter().enumerate() {
+        let resident_index = resident_indices[input_index];
+        let neuron_anatomy = &anatomy.neurons[resident_index];
+        let predecessor_neuron = &state.neurons[resident_index];
+        let prepared_psi = match neuron_input.prepared_psi.take() {
+            Some(prepared) => prepared,
+            None => neuron_anatomy
+                .prepare_psi_settlement(predecessor_neuron, neuron_input.perspective)
+                .map_err(|error| ReachedCohortError::Neuron {
+                    neuron_index: resident_index,
+                    error,
+                })?,
+        };
+        let recovered = settle_resident_gate_recovery_before_interval(
+            &anatomy.recovery_fluid,
+            resident_index,
+            neuron_anatomy,
+            predecessor_neuron,
+            &neuron_input.gate_work,
+            &prepared_psi,
+            reservoir,
+        )?;
+        recovery_active |= recovered.settled_extent != 0;
+        reservoir = recovered.successor_reservoir;
+        neuron_input.prepared_psi = Some(prepared_psi);
+        let settled = settle_extended_interval_with_contact(
+            neuron_anatomy,
+            &recovered.successor_neuron,
+            neuron_input,
+            input.external_contact_outward_elementary_charges[input_index],
+        )
+        .map_err(|error| ReachedCohortError::Neuron {
+            neuron_index: resident_index,
+            error,
+        })?;
+        if settled.newly_opened_gate_channels != 0 {
+            newly_opened_gate_channels
+                .push((resident_index, settled.newly_opened_gate_channels));
+        }
+        locally_quiescent.push((resident_index, settled.quiescent));
+        successors.push((resident_index, settled.successor));
+    }
+    let actual_successor_material = successors.iter().try_fold(
+        0_u128,
+        |total, (_, successor)| {
+            total
+                .checked_add(
+                    successor
+                        .carrier_reservoirs()
+                        .total()
+                        .ok_or(ReachedCohortError::MaterialArithmetic(
+                            "one reached successor's carrier compartments overflow",
+                        ))?,
+                )
+                .ok_or(ReachedCohortError::MaterialArithmetic(
+                    "reached successor carrier-material sum overflow",
+                ))
+        },
+    )?;
+    if actual_successor_material != expected_successor_material {
+        return Err(ReachedCohortError::MaterialMismatch {
+            predecessor: predecessor_material,
+            external_net_outward,
+            expected_successor: expected_successor_material,
+            actual_successor: actual_successor_material,
+        });
+    }
+    let electrically_active = electrical.successor_contacts != state.electrical
+        || electrical.transitions.iter().any(|transition| {
+            transition.outward_current_from_left_picoamperes.parts().0 != 0
+                || transition.outward_elementary_charges_from_left != 0
+        });
+    let quiescent = !recovery_active
+        && !electrically_active
+        && locally_quiescent.iter().all(|(_, value)| *value);
+
+    for (resident_index, successor) in successors {
+        state.neurons[resident_index] = successor;
+    }
+    state.electrical = electrical.successor_contacts;
+    state.recovery_fluid = reservoir;
+    Ok(SparseReachedCohortIntervalSettlement {
+        contact_transitions: electrical.transitions,
+        newly_opened_gate_channels: newly_opened_gate_channels.into_boxed_slice(),
+        locally_quiescent: locally_quiescent.into_boxed_slice(),
+        electrically_active,
+        quiescent,
+    })
+}
+
+/// Resident-owned reached settlement when the cohort's local contacts have
+/// not already participated in the coupled fabric solve.  Local contact
+/// physics is prepared first, its reached outward transfers are folded into
+/// the same sparse inputs, and the allocation-free resident write is then
+/// performed by the precomputed in-place boundary above.
+pub(crate) fn settle_reached_cohort_interval_in_place(
+    anatomy: &ReachedCohortAnatomy,
+    state: &mut ReachedCohortState,
+    mut input: ReachedCohortIntervalInput<'_>,
+) -> Result<SparseReachedCohortIntervalSettlement, ReachedCohortError> {
+    if input.precomputed_local_electrical.is_some() {
+        return settle_reached_cohort_interval_precomputed_in_place(anatomy, state, input);
+    }
+    let resident_indices = input.resident_indices(anatomy)?;
+    let mut reached_neurons = vec![false; anatomy.neuron_count()];
+    for resident_index in &resident_indices {
+        reached_neurons[*resident_index] = true;
+    }
+    let capacitances = anatomy
+        .neurons
+        .iter()
+        .map(NeuronPhysicalAnatomy::capacitance)
+        .collect::<Vec<_>>();
+    let predecessor_membranes = state
+        .neurons
+        .iter()
+        .map(NeuronPhysicalState::membrane_state)
+        .collect::<Vec<_>>();
+    let available_carriers = state
+        .neurons
+        .iter()
+        .map(|neuron| neuron.carrier_reservoirs().intracellular())
+        .collect::<Vec<_>>();
+    let local = settle_sparse_electrical_transfers_reached(
+        &anatomy.electrical,
+        &state.electrical,
+        &capacitances,
+        &predecessor_membranes,
+        &reached_neurons,
+        &available_carriers,
+        input.interval_microseconds(),
+    )?;
+    for (input_index, resident_index) in resident_indices.iter().copied().enumerate() {
+        input.external_contact_outward_elementary_charges[input_index] = input
+            .external_contact_outward_elementary_charges[input_index]
+            .checked_add(local.outward_elementary_charges_by_neuron[resident_index])
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "local plus external contact carrier sum overflow",
+            ))?;
+    }
+    input.precomputed_local_electrical = Some(SparseElectricalTransferSettlement {
+        successor_contacts: local.successor_contacts,
+        transitions: local.transitions,
+        outward_elementary_charges_by_neuron: Box::new([]),
+    });
+    settle_reached_cohort_interval_precomputed_in_place(anatomy, state, input)
 }
 
 /// Settle only along the supplied exact reached-cohort interval sequence. The

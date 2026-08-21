@@ -1934,7 +1934,8 @@ class NativeResidentOrganism:
 
         The bare source path remains severed by the mandatory-admission law:
         the native runtime refuses it because no occurrence admission is
-        supplied.  Use :meth:`prepare_admitted`.
+        supplied. Use :meth:`commit_admitted_trajectory_direct`, which keeps
+        body feedback in the same continuous resident trajectory.
         """
 
         source_port_count = _nonnegative_integer(
@@ -1946,38 +1947,6 @@ class NativeResidentOrganism:
             candidate, source_port_count, active_before
         )
 
-    def prepare_admitted(
-        self,
-        source: NativeJointSourceView,
-        maximum_causal_intervals: object,
-    ) -> ResidentPrepareEvidence:
-        """Prepare one admitted native candidate and return receipts.
-
-        ``maximum_causal_intervals`` carries one caller-authored maximum
-        causal interval ``(numerator, denominator)`` in source-time units per
-        source occurrence, in exact occurrence order.  It is independent
-        environment/anatomy authority; this boundary never derives it from the
-        occurrence.
-
-        An admitted transition requires NO durable cold-custody directory and
-        writes no file of its own: what a lesson changes is her body, and the
-        caller persists that body once per lesson.
-        """
-
-        source_port_count = _nonnegative_integer(
-            getattr(source, "port_count", None), "source port count"
-        )
-        intervals = _validated_causal_intervals(maximum_causal_intervals)
-        active_before = self.readiness()
-        candidate = self.__runtime.prepare_admitted(source, intervals)
-        return self._validated_prepare_evidence(
-            candidate,
-            source_port_count,
-            active_before,
-            causal_interval_count=1,
-            body_feedback_reentered=False,
-        )
-
     def prepare_articulated_body_observation(self) -> ResidentPrepareEvidence:
         """Prepare one full fixed-capacity observation of the current body."""
 
@@ -1985,51 +1954,12 @@ class NativeResidentOrganism:
         candidate = self.__runtime.prepare_articulated_body_observation()
         return self._validated_prepare_evidence(candidate, 74, active_before)
 
-    def prepare_admitted_trajectory(
-        self,
-        sources: object,
-        maximum_causal_intervals: object,
-    ) -> ResidentPrepareEvidence:
-        """Prepare ordered admitted sensory intervals and seal only once."""
-
-        if not isinstance(sources, tuple) or not sources:
-            raise TypeError("admitted trajectory sources must be a nonempty tuple")
-        if (
-            not isinstance(maximum_causal_intervals, tuple)
-            or len(maximum_causal_intervals) != len(sources)
-        ):
-            raise TypeError(
-                "admitted trajectory intervals must match the source tuple"
-            )
-        source_port_count = sum(
-            _nonnegative_integer(
-                getattr(source, "port_count", None), "trajectory source port count"
-            )
-            for source in sources
-        )
-        intervals = tuple(
-            _validated_causal_intervals(value)
-            for value in maximum_causal_intervals
-        )
-        active_before = self.readiness()
-        source_port_count += 74
-        candidate = self.__runtime.prepare_admitted_trajectory(
-            list(sources), [list(value) for value in intervals]
-        )
-        return self._validated_prepare_evidence(
-            candidate,
-            source_port_count,
-            active_before,
-            causal_interval_count=len(sources) + 1,
-            body_feedback_reentered=True,
-        )
-
     def commit_admitted_trajectory_direct(
         self,
         sources: object,
         maximum_causal_intervals: object,
     ) -> ResidentPrepareEvidence:
-        """Commit current body plus zero or more sources without cloning it."""
+        """Commit current body plus sources, returning before world consequence."""
 
         if not isinstance(sources, tuple):
             raise TypeError("admitted trajectory sources must be a tuple")
@@ -2062,7 +1992,7 @@ class NativeResidentOrganism:
                 source_port_count,
                 active_before,
                 causal_interval_count=len(sources) + 1,
-                body_feedback_reentered=True,
+                body_feedback_reentered=False,
                 candidate_committed=True,
             )
             self.__runtime.acknowledge_direct_commit(token)
@@ -2078,40 +2008,12 @@ class NativeResidentOrganism:
                         ) from rollback_error
             raise
 
-    def prepare_vestibular_tick(
-        self,
-        predecessor_heading_millidegrees: int,
-        signed_body_motion_millidegrees: int,
-    ) -> ResidentPrepareEvidence:
-        """Prepare one native one-millisecond body-and-balance successor."""
-
-        predecessor_heading = _nonnegative_integer(
-            predecessor_heading_millidegrees,
-            "vestibular predecessor heading",
-        )
-        if predecessor_heading >= 360_000:
-            raise ValueError("vestibular predecessor heading must be below 360000")
-        if (
-            not isinstance(signed_body_motion_millidegrees, int)
-            or isinstance(signed_body_motion_millidegrees, bool)
-            or not -(1 << 31)
-            <= signed_body_motion_millidegrees
-            < (1 << 31)
-        ):
-            raise TypeError("vestibular signed yaw step must be a signed 32-bit integer")
-        active_before = self.readiness()
-        candidate = self.__runtime.prepare_vestibular_tick(
-            predecessor_heading,
-            signed_body_motion_millidegrees,
-        )
-        return self._validated_prepare_evidence(candidate, 1, active_before)
-
-    def prepare_vestibular_trajectory(
+    def commit_vestibular_trajectory_direct(
         self,
         predecessor_heading_millidegrees: int,
         signed_body_motion_millidegrees: tuple[int, ...],
     ) -> ResidentPrepareEvidence:
-        """Prepare ordered one-millisecond balance intervals and seal once."""
+        """Commit ordered balance intervals without cloning resident cognition."""
 
         predecessor_heading = _nonnegative_integer(
             predecessor_heading_millidegrees,
@@ -2134,16 +2036,31 @@ class NativeResidentOrganism:
                 "vestibular trajectory steps must be signed 32-bit integers"
             )
         active_before = self.readiness()
-        candidate = self.__runtime.prepare_vestibular_trajectory(
+        candidate = self.__runtime.commit_vestibular_trajectory_direct(
             predecessor_heading,
             list(signed_body_motion_millidegrees),
         )
-        return self._validated_prepare_evidence(
-            candidate,
-            len(signed_body_motion_millidegrees),
-            active_before,
-            causal_interval_count=len(signed_body_motion_millidegrees),
-        )
+        token = getattr(candidate, "token", None)
+        try:
+            evidence = self._validated_prepare_evidence_body(
+                candidate,
+                len(signed_body_motion_millidegrees),
+                active_before,
+                causal_interval_count=len(signed_body_motion_millidegrees),
+                candidate_committed=True,
+            )
+            self.__runtime.acknowledge_direct_commit(token)
+            return evidence
+        except BaseException:
+            if isinstance(token, bytes) and len(token) == 32:
+                try:
+                    self.__runtime.rollback_direct_commit(token)
+                except (RuntimeError, ValueError) as rollback_error:
+                    if "has no pending candidate" not in str(rollback_error):
+                        raise RuntimeError(
+                            "resident vestibular validation and rollback both failed"
+                        ) from rollback_error
+            raise
 
     def _validated_prepare_evidence(
         self,
@@ -2804,8 +2721,6 @@ class NativeResidentOrganism:
             body_proprioceptive_source_extents.append(
                 (source_tick, port_count, sample_count, occurrence_count, frame_count)
             )
-        if bool(body_proprioceptive_sources) != bool(articulated_body_consequences):
-            raise RuntimeError("body consequence and proprioceptive source disagree")
         if body_feedback_reentered:
             if (
                 causal_interval_count

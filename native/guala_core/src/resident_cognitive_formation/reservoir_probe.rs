@@ -292,11 +292,7 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
             None => json!(null),
             Some(evidence) => {
                 let gate_work_count = evidence.gate_work_perturbed_neurons.count();
-                let active_contact_count = evidence
-                    .active_electrical_contacts
-                    .iter()
-                    .filter(|bit| **bit)
-                    .count();
+                let active_contact_count = evidence.active_electrical_contacts.count();
                 let member_delta_count = evidence.retained_members().map(<[_]>::len);
                 json!({
                     "gate_work_perturbed_count": gate_work_count,
@@ -317,8 +313,6 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 .count(),
             "active_recurrence_contact_count": evidence
                 .active_recurrence_contacts
-                .iter()
-                .filter(|bit| **bit)
                 .count(),
         }),
     };
@@ -344,7 +338,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 cohort.state.as_ref().clone(),
                 recurrence.map_or_else(
                     || vec![None; cohort.anatomy.neuron_count()].into_boxed_slice(),
-                    |evidence| evidence.receptor_excitation_zeptojoules.clone(),
+                    |evidence| {
+                        evidence
+                            .receptor_excitation_zeptojoules
+                            .to_dense(cohort.anatomy.neuron_count())
+                            .expect("canonical recurrence excitation indices")
+                    },
                 ),
                 recurrence.map_or_else(
                     || vec![false; cohort.anatomy.neuron_count()].into_boxed_slice(),
@@ -357,7 +356,12 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 ),
                 recurrence.map_or_else(
                     || vec![false; cohort.anatomy.contact_count()].into_boxed_slice(),
-                    |evidence| evidence.active_recurrence_contacts.clone(),
+                    |evidence| {
+                        evidence
+                            .active_recurrence_contacts
+                            .to_dense(cohort.anatomy.contact_count())
+                            .expect("canonical recurrence contact indices")
+                    },
                 ),
             )
             .expect("recurrence settlement");
@@ -502,9 +506,8 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         .cohorts
         .iter()
         .filter_map(|cohort| cohort.pending_experience.as_ref())
-        .flat_map(|experience| experience.retained_change_neurons.iter())
-        .filter(|changed| **changed)
-        .count();
+        .map(|experience| experience.pending_members().map_or(0, <[_]>::len))
+        .sum::<usize>();
     let motor_after = successor
         .cohorts
         .iter()

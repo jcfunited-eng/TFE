@@ -92,8 +92,10 @@ use crate::proprioceptive_receptor_work::{
 };
 use crate::reached_neuron_cohort::{
     add_omitted_geometry_carrier_material, decode_reached_cohort_cell, decode_reached_cohort_state,
-    decode_reached_cohort_state_delta, encode_reached_cohort_cell, encode_reached_cohort_cell_v5,
+    decode_reached_cohort_cell_v9_global, decode_reached_cohort_state_delta,
+    encode_reached_cohort_cell, encode_reached_cohort_cell_v5,
     encode_reached_cohort_cell_v5_with_contact_plasticity, encode_reached_cohort_cell_v6,
+    encode_reached_cohort_cell_v9_global,
     encode_reached_cohort_state, encode_reached_cohort_state_delta,
     encode_reached_cohort_state_delta_v1, encode_reached_cohort_state_delta_v2,
     encode_reached_cohort_state_v4, encode_reached_cohort_state_v5,
@@ -104,13 +106,16 @@ use crate::reached_neuron_cohort::{
     legacy_receptor_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     reached_cohort_state_v5_content_digest,
-    settle_reached_cohort_dark_rest, settle_reached_cohort_interval,
-    settle_reached_cohort_membrane_pumps, settle_contact_modulated_gate_energy,
+    settle_reached_cohort_dark_rest,
+    settle_reached_cohort_interval_in_place,
+    settle_reached_cohort_interval_precomputed_in_place,
+    settle_reached_cohort_membrane_pumps_in_place, settle_contact_modulated_gate_energy,
     widen_reached_cohort_state_contacts, LocalizedFluidChemistrySettlement,
     ReachedCohortAnatomy, ReachedCohortEnergyState, ReachedCohortError,
     ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
     ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement,
-    ReachedCohortState, ReachedNeuronGenesisCell, ReachedNeuronMount,
+    DecodedGlobalNeuronAnatomyTable, GlobalNeuronAnatomyTable, ReachedCohortState,
+    ReachedNeuronGenesisCell, ReachedNeuronMount,
 };
 use crate::receptor_quantum_delivery::{
     big_to_exact_rational, exact_rational_to_big, quantize_population_receptor_delivery,
@@ -152,9 +157,8 @@ use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
-use rayon::prelude::*;
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::sync::Arc;
 
@@ -182,6 +186,8 @@ const MAGIC_V22: &[u8; 8] = b"GLCOG022";
 const VERSION_V22: u16 = 22;
 const MAGIC_V23: &[u8; 8] = b"GLCOG023";
 const VERSION_V23: u16 = 23;
+const MAGIC_V24: &[u8; 8] = b"GLCOG024";
+const VERSION_V24: u16 = 24;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
@@ -271,6 +277,7 @@ enum CognitiveCodecFormat {
     V21,
     V22,
     V23,
+    V24,
 }
 
 #[cfg(test)]
@@ -1260,23 +1267,6 @@ pub(crate) struct AuthoredDeclaredContact {
     pub(crate) conductance_picosiemens: ExactRational,
 }
 
-/// Widen one per-contact activity mask for `added` newly authored contacts.
-/// A contact that did not exist cannot have been active, so every appended
-/// entry is `false`; every existing entry travels through verbatim.
-fn extend_contact_mask(mask: &[bool], added: usize) -> Result<Box<[bool]>, FormationError> {
-    let width = mask
-        .len()
-        .checked_add(added)
-        .ok_or(FormationError::ArithmeticOverflow)?;
-    let mut widened = Vec::new();
-    widened
-        .try_reserve_exact(width)
-        .map_err(|_| FormationError::ArithmeticOverflow)?;
-    widened.extend_from_slice(mask);
-    widened.resize(width, false);
-    Ok(widened.into_boxed_slice())
-}
-
 /// Position of one declared receptor within a cohort, or `None` when this
 /// cohort does not carry it.  Two members declaring the same receptor would
 /// make the name ambiguous and is refused rather than resolved.
@@ -1327,16 +1317,8 @@ struct ResidentExperienceEvidence {
     codec: ExperienceEvidenceCodec,
     physical: ResidentExperiencePhysicalEvidence,
     gate_work_perturbed_neurons: SparseResidentNeuronMask,
-    receptor_excitation_zeptojoules: Box<[Option<ExactRational>]>,
-    /// Neurons whose own retained coordinates changed during this occurrence.
-    /// This is distinct from gate work: a physically active neuron may retain
-    /// nothing, and an electrically reached neighbour may retain change.
-    retained_change_neurons: Box<[bool]>,
-    /// Neurons whose retained coordinates subsequently completed one exact
-    /// unchanged interval. Settlement is neuron-local; another living neuron
-    /// may remain active without blocking this one.
-    retentively_settled_neurons: Box<[bool]>,
-    active_electrical_contacts: Box<[bool]>,
+    receptor_excitation_zeptojoules: SparseResidentExcitations,
+    active_electrical_contacts: SparseResidentNeuronMask,
     /// True only after the retained formation has completed one later
     /// settlement carrying no exogenous gate work.  The later settlement is
     /// the exact causal separation: ongoing internal current is life, not a
@@ -1353,6 +1335,8 @@ enum ResidentExperiencePhysicalEvidence {
     Legacy {
         predecessor: Arc<ReachedCohortState>,
         successor: Option<Arc<ReachedCohortState>>,
+        retained_change_neurons: Box<[bool]>,
+        retentively_settled_neurons: Box<[bool]>,
     },
     Pending(Box<[SparsePendingExperienceMember]>),
     Retained(Box<[SparseRetainedExperienceMember]>),
@@ -1403,7 +1387,20 @@ impl ResidentExperienceEvidence {
             ResidentExperiencePhysicalEvidence::Legacy {
                 predecessor,
                 successor,
+                ..
             } => Some((predecessor, successor.as_deref())),
+            ResidentExperiencePhysicalEvidence::Pending(_)
+            | ResidentExperiencePhysicalEvidence::Retained(_) => None,
+        }
+    }
+
+    fn legacy_retention_masks(&self) -> Option<(&[bool], &[bool])> {
+        match &self.physical {
+            ResidentExperiencePhysicalEvidence::Legacy {
+                retained_change_neurons,
+                retentively_settled_neurons,
+                ..
+            } => Some((retained_change_neurons, retentively_settled_neurons)),
             ResidentExperiencePhysicalEvidence::Pending(_)
             | ResidentExperiencePhysicalEvidence::Retained(_) => None,
         }
@@ -1441,6 +1438,8 @@ impl ResidentExperienceEvidence {
         let ResidentExperiencePhysicalEvidence::Legacy {
             predecessor,
             successor,
+            retained_change_neurons,
+            retentively_settled_neurons,
         } = &self.physical
         else {
             return Ok(());
@@ -1459,14 +1458,14 @@ impl ResidentExperienceEvidence {
             let mut members = Vec::new();
             members
                 .try_reserve(
-                    self.retentively_settled_neurons
+                    retentively_settled_neurons
                         .iter()
                         .filter(|settled| **settled)
                         .count(),
                 )
                 .map_err(|_| FormationError::ArithmeticOverflow)?;
             for (neuron_index, settled) in
-                self.retentively_settled_neurons.iter().copied().enumerate()
+                retentively_settled_neurons.iter().copied().enumerate()
             {
                 if !settled {
                     continue;
@@ -1489,16 +1488,8 @@ impl ResidentExperienceEvidence {
                     });
                 }
             }
-            let mut retained_change_neurons = vec![false; anatomy.neuron_count()];
-            let mut retentively_settled_neurons = vec![false; anatomy.neuron_count()];
-            for member in &members {
-                retained_change_neurons[member.neuron_index] = true;
-                retentively_settled_neurons[member.neuron_index] = true;
-            }
             self.physical =
                 ResidentExperiencePhysicalEvidence::Retained(members.into_boxed_slice());
-            self.retained_change_neurons = retained_change_neurons.into_boxed_slice();
-            self.retentively_settled_neurons = retentively_settled_neurons.into_boxed_slice();
         } else {
             if successor.is_some() {
                 return Err(FormationError::NoncanonicalState);
@@ -1506,33 +1497,25 @@ impl ResidentExperienceEvidence {
             let mut members = Vec::new();
             members
                 .try_reserve(
-                    self.retained_change_neurons
+                    retained_change_neurons
                         .iter()
                         .filter(|changed| **changed)
                         .count(),
                 )
                 .map_err(|_| FormationError::ArithmeticOverflow)?;
             for (neuron_index, changed) in
-                self.retained_change_neurons.iter().copied().enumerate()
+                retained_change_neurons.iter().copied().enumerate()
             {
                 if changed {
                     members.push(SparsePendingExperienceMember {
                         neuron_index,
                         predecessor: predecessor.neurons()[neuron_index].clone(),
-                        settled: self.retentively_settled_neurons[neuron_index],
+                        settled: retentively_settled_neurons[neuron_index],
                     });
                 }
             }
-            let mut retained_change_neurons = vec![false; anatomy.neuron_count()];
-            let mut retentively_settled_neurons = vec![false; anatomy.neuron_count()];
-            for member in &members {
-                retained_change_neurons[member.neuron_index] = true;
-                retentively_settled_neurons[member.neuron_index] = member.settled;
-            }
             self.physical =
                 ResidentExperiencePhysicalEvidence::Pending(members.into_boxed_slice());
-            self.retained_change_neurons = retained_change_neurons.into_boxed_slice();
-            self.retentively_settled_neurons = retentively_settled_neurons.into_boxed_slice();
         }
         self.codec = ExperienceEvidenceCodec::V7;
         Ok(())
@@ -1543,9 +1526,9 @@ impl ResidentExperienceEvidence {
 struct ResidentRecurrenceEvidence {
     carries_physical_change_codec: bool,
     gate_work_perturbed_neurons: SparseResidentNeuronMask,
-    receptor_excitation_zeptojoules: Box<[Option<ExactRational>]>,
-    physically_changed_neurons: Box<[bool]>,
-    active_recurrence_contacts: Box<[bool]>,
+    receptor_excitation_zeptojoules: SparseResidentExcitations,
+    physically_changed_neurons: SparseResidentNeuronMask,
+    active_recurrence_contacts: SparseResidentNeuronMask,
     endogenous: bool,
 }
 
@@ -1572,6 +1555,15 @@ impl SparseResidentNeuronMask {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
         }
+    }
+
+    fn from_indices(indices: Vec<usize>, width: usize) -> Result<Self, FormationError> {
+        let mask = Self {
+            indices: indices.into_boxed_slice(),
+        };
+        mask.validates_width(width)
+            .then_some(mask)
+            .ok_or(FormationError::NoncanonicalState)
     }
 
     fn from_dense_bytes(values: &[u8]) -> Result<Self, FormationError> {
@@ -1604,6 +1596,10 @@ impl SparseResidentNeuronMask {
         self.indices.len()
     }
 
+    fn contains(&self, index: usize) -> bool {
+        self.indices.binary_search(&index).is_ok()
+    }
+
     fn union_dense(&mut self, values: &[bool]) -> Result<(), FormationError> {
         if !self.validates_width(values.len()) {
             return Err(FormationError::NoncanonicalState);
@@ -1620,6 +1616,49 @@ impl SparseResidentNeuronMask {
         let (mut left, mut right) = (0usize, 0usize);
         while left < self.indices.len() || right < additions.len() {
             match (self.indices.get(left), additions.get(right)) {
+                (Some(existing), Some(addition)) if existing < addition => {
+                    merged.push(*existing);
+                    left += 1;
+                }
+                (Some(existing), Some(addition)) if addition < existing => {
+                    merged.push(*addition);
+                    right += 1;
+                }
+                (Some(existing), Some(_)) => {
+                    merged.push(*existing);
+                    left += 1;
+                    right += 1;
+                }
+                (Some(existing), None) => {
+                    merged.push(*existing);
+                    left += 1;
+                }
+                (None, Some(addition)) => {
+                    merged.push(*addition);
+                    right += 1;
+                }
+                (None, None) => break,
+            }
+        }
+        self.indices = merged.into_boxed_slice();
+        Ok(())
+    }
+
+    fn union_sparse(
+        &mut self,
+        additions: &Self,
+        width: usize,
+    ) -> Result<(), FormationError> {
+        if !self.validates_width(width) || !additions.validates_width(width) {
+            return Err(FormationError::NoncanonicalState);
+        }
+        let mut merged = Vec::new();
+        merged
+            .try_reserve(self.indices.len().saturating_add(additions.indices.len()))
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let (mut left, mut right) = (0usize, 0usize);
+        while left < self.indices.len() || right < additions.indices.len() {
+            match (self.indices.get(left), additions.indices.get(right)) {
                 (Some(existing), Some(addition)) if existing < addition => {
                     merged.push(*existing);
                     left += 1;
@@ -1734,6 +1773,96 @@ impl SparseResidentNeuronMask {
         )?;
         *cursor = end;
         Ok(mask)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SparseResidentExcitation {
+    neuron_index: usize,
+    zeptojoules: ExactRational,
+}
+
+/// Exact receptor excitation for only the neurons that received it.
+/// The historical cohort-width layout is streamed only at codec boundaries.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct SparseResidentExcitations {
+    entries: Box<[SparseResidentExcitation]>,
+}
+
+impl SparseResidentExcitations {
+    fn empty() -> Self {
+        Self::default()
+    }
+
+    fn from_dense(values: &[Option<ExactRational>]) -> Self {
+        Self {
+            entries: values
+                .iter()
+                .enumerate()
+                .filter_map(|(neuron_index, value)| {
+                    value.clone().map(|zeptojoules| SparseResidentExcitation {
+                        neuron_index,
+                        zeptojoules,
+                    })
+                })
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+        }
+    }
+
+    fn validates_width(&self, neuron_count: usize) -> bool {
+        self.entries
+            .last()
+            .is_none_or(|entry| entry.neuron_index < neuron_count)
+            && self
+                .entries
+                .windows(2)
+                .all(|pair| pair[0].neuron_index < pair[1].neuron_index)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    fn to_dense(
+        &self,
+        neuron_count: usize,
+    ) -> Result<Box<[Option<ExactRational>]>, FormationError> {
+        if !self.validates_width(neuron_count) {
+            return Err(FormationError::NoncanonicalState);
+        }
+        let mut dense = vec![None; neuron_count];
+        for entry in self.entries.iter() {
+            dense[entry.neuron_index] = Some(entry.zeptojoules.clone());
+        }
+        Ok(dense.into_boxed_slice())
+    }
+
+    fn encode_dense(
+        &self,
+        encoded: &mut Vec<u8>,
+        neuron_count: usize,
+    ) -> Result<(), FormationError> {
+        if !self.validates_width(neuron_count) {
+            return Err(FormationError::NoncanonicalState);
+        }
+        push_length(encoded, neuron_count)?;
+        let mut next = self.entries.iter().peekable();
+        for neuron_index in 0..neuron_count {
+            if next
+                .peek()
+                .is_some_and(|entry| entry.neuron_index == neuron_index)
+            {
+                let entry = next.next().ok_or(FormationError::NoncanonicalState)?;
+                encoded.push(1);
+                let (numerator, denominator) = entry.zeptojoules.parts();
+                encoded.extend_from_slice(&numerator.to_le_bytes());
+                encoded.extend_from_slice(&denominator.to_le_bytes());
+            } else {
+                encoded.push(0);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -1949,6 +2078,14 @@ fn encode_organism_mosaic(
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, FormationError> {
     let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    encode_organism_mosaic_for_topology(&topology, mosaic, max_encoded_bytes)
+}
+
+fn encode_organism_mosaic_for_topology(
+    topology: &OrganismMosaicTopology,
+    mosaic: &AdmittedPhysicalMosaic,
+    max_encoded_bytes: usize,
+) -> Result<Vec<u8>, FormationError> {
     encode_admitted_physical_mosaic_for_topology(
         &topology.lineages,
         &topology.bonds,
@@ -3068,12 +3205,25 @@ fn encode_retained_organism_mosaic(
     retained: &RetainedOrganismMosaic,
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, FormationError> {
-    let body = encode_organism_mosaic(
+    let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    encode_retained_organism_mosaic_for_topology(
         cohorts,
         electrical_fabric,
-        &retained.mosaic,
+        &topology,
+        retained,
         max_encoded_bytes,
-    )?;
+    )
+}
+
+fn encode_retained_organism_mosaic_for_topology(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    topology: &OrganismMosaicTopology,
+    retained: &RetainedOrganismMosaic,
+    max_encoded_bytes: usize,
+) -> Result<Vec<u8>, FormationError> {
+    let body =
+        encode_organism_mosaic_for_topology(topology, &retained.mosaic, max_encoded_bytes)?;
     if let Some(recurrent_lineage) = retained.recurrent_lineage {
         validate_recurrent_retention_lineage(
             cohorts,
@@ -3194,6 +3344,10 @@ fn decode_retained_organism_mosaic(
 }
 
 impl ResidentCognitiveFormationState {
+    pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
+        bytes.get(..MAGIC_V24.len()) == Some(MAGIC_V24)
+    }
+
     /// Retire the task-955 local-integration projection that equated
     /// sense-local topology indices across unrelated sensory coordinate
     /// systems.  The correction is identified from the persisted anatomy
@@ -3482,12 +3636,16 @@ impl ResidentCognitiveFormationState {
                     ResidentExperiencePhysicalEvidence::Legacy {
                         predecessor,
                         successor,
+                        retained_change_neurons,
+                        retentively_settled_neurons,
                     } => ResidentExperiencePhysicalEvidence::Legacy {
                         predecessor: correct_state(predecessor)?.into(),
                         successor: successor
                             .as_ref()
                             .map(|state| correct_state(state).map(Arc::new))
                             .transpose()?,
+                        retained_change_neurons: retained_change_neurons.clone(),
+                        retentively_settled_neurons: retentively_settled_neurons.clone(),
                     },
                     ResidentExperiencePhysicalEvidence::Pending(members) => {
                         let corrected = members
@@ -4037,11 +4195,13 @@ impl ResidentCognitiveFormationState {
                     && mosaic_spans_multiple_cohorts(&cohorts, &retained.mosaic)
             })
             .collect::<Vec<_>>();
-        let predecessor_recognized_mosaics = mosaics
-            .iter()
-            .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
-            .map(|retained| retained.mosaic.clone())
-            .collect::<Vec<_>>();
+        // Retained formations are append-only during an ordinary physical
+        // interval.  Their recurrence evidence may change in place, but an
+        // existing formation cannot become a newly admitted formation.
+        // Retaining the predecessor length therefore identifies the exact
+        // appended suffix without cloning every retained mosaic or comparing
+        // every successor against every predecessor after each causal hop.
+        let predecessor_mosaic_count = mosaics.len();
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
@@ -5397,12 +5557,8 @@ impl ResidentCognitiveFormationState {
         let newly_retained_mosaic_indices = mosaics
             .iter()
             .enumerate()
+            .skip(predecessor_mosaic_count)
             .filter(|(_, retained)| retained.mosaic.carries_only_retained_neuron_structure())
-            .filter(|(_, retained)| {
-                !predecessor_recognized_mosaics
-                    .iter()
-                    .any(|prior| prior.same_retained_structure(&retained.mosaic))
-            })
             .map(|(index, _)| index)
             .collect::<Vec<_>>();
         let newly_retained_mosaic_members = newly_retained_mosaic_indices
@@ -5468,12 +5624,28 @@ impl ResidentCognitiveFormationState {
         } else {
             Vec::new()
         };
-        let summary = successor.summary();
-        let successor_energy = summary.energy;
-        let complete_neuron_count = summary.complete_neuron_count;
+        // A direct trajectory composes many exact causal intervals before its
+        // one final seal.  Population totals describe only the terminal
+        // resident state; recomputing them after every unsealed interval
+        // walked every neuron and every Psi lane once per hop.  The runtime
+        // installs the exact terminal totals after the final interval.  A
+        // separately prepared single interval still receives its complete
+        // totals here.
+        let terminal_summary = seal_successor.then(|| successor.summary());
+        let successor_energy = terminal_summary
+            .as_ref()
+            .map(|summary| summary.energy.clone())
+            .unwrap_or_default();
+        let complete_neuron_count = terminal_summary
+            .as_ref()
+            .map_or(0, |summary| summary.complete_neuron_count);
         let physically_transitioned_neuron_count = physically_transitioned_neuron_lineages.len();
         let complete_neuron_fractal_count = emitted_neuron_fractals.len();
-        let mosaic_of_mosaics_count = successor.mosaic_of_mosaics_count()?;
+        let mosaic_of_mosaics_count = if seal_successor {
+            successor.mosaic_of_mosaics_count()?
+        } else {
+            0
+        };
         Ok(PreparedCognitiveFormationTransition {
             predecessor_generation: predecessor_generation_authority,
             predecessor_hippocampal: predecessor_hippocampal_authority,
@@ -5485,10 +5657,14 @@ impl ResidentCognitiveFormationState {
                 mosaic_formed,
                 activations: Vec::new(),
                 trace_count: 0,
-                mosaic_count: summary.mosaic_count,
+                mosaic_count: terminal_summary
+                    .as_ref()
+                    .map_or(0, |summary| summary.mosaic_count),
                 dsf_delivery_count,
                 complete_neuron_count,
-                resting_neuron_count: summary.resting_neuron_count,
+                resting_neuron_count: terminal_summary
+                    .as_ref()
+                    .map_or(0, |summary| summary.resting_neuron_count),
                 physically_transitioned_neuron_count,
                 externally_perturbed_body_receptor_count,
                 externally_perturbed_neuron_lineages:
@@ -5557,15 +5733,11 @@ impl ResidentCognitiveFormationState {
         let admitted_source = AdmittedJointSourceEpisode::new(source.clone(), vec![(0, admission)])
             .map_err(|error| {
                 FormationError::JointFieldUnavailable(JointNeuronBoundaryError::Source(error))
-            })?;
+        })?;
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
-        let retired = self.retire_aliased_local_integrators()?;
-        let expanded = retired
-            .unwrap_or(self)
-            .into_expanded_legacy_receptor_channel_populations()?;
         let prepared = Self::prepare_typed_admitted_transition_from_owned(
-            expanded,
+            self,
             predecessor_generation,
             predecessor_hippocampal,
             &admitted_source,
@@ -5583,12 +5755,8 @@ impl ResidentCognitiveFormationState {
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
-        let retired = self.retire_aliased_local_integrators()?;
-        let expanded = retired
-            .unwrap_or(self)
-            .into_expanded_legacy_receptor_channel_populations()?;
         let prepared = Self::prepare_typed_admitted_transition_from_owned(
-            expanded,
+            self,
             predecessor_generation,
             predecessor_hippocampal,
             admitted_source,
@@ -5927,15 +6095,8 @@ impl ResidentCognitiveFormationState {
             let (anatomy, state) =
                 extend_reached_cohort_contacts(&cohort.anatomy, &cohort.state, additions)
                     .map_err(FormationError::PhysicalSettlementUnavailable)?;
-            let added = anatomy
-                .contact_count()
-                .checked_sub(cohort.anatomy.contact_count())
-                .ok_or(FormationError::ArithmeticOverflow)?;
-            // The rest-state snapshots and per-contact activity masks this
-            // cohort retains at its experience boundaries are widened the same
-            // way: existing entries verbatim, and each newly authored contact
-            // recorded as it truthfully was in that experience — at the
-            // authored rest state and NOT active, because it did not exist.
+            // Legacy rest-state snapshots are widened to the new topology.
+            // Sparse current contact evidence needs no appended false slots.
             for evidence in [
                 cohort.pending_experience.as_mut(),
                 cohort.retained_experience.as_mut(),
@@ -5946,6 +6107,7 @@ impl ResidentCognitiveFormationState {
                 if let ResidentExperiencePhysicalEvidence::Legacy {
                     predecessor,
                     successor,
+                    ..
                 } = &mut evidence.physical
                 {
                     *predecessor = Arc::new(
@@ -5959,12 +6121,20 @@ impl ResidentCognitiveFormationState {
                         );
                     }
                 }
-                evidence.active_electrical_contacts =
-                    extend_contact_mask(&evidence.active_electrical_contacts, added)?;
+                if !evidence
+                    .active_electrical_contacts
+                    .validates_width(anatomy.contact_count())
+                {
+                    return Err(FormationError::NoncanonicalState);
+                }
             }
             if let Some(recurrence) = cohort.pending_recurrence.as_mut() {
-                recurrence.active_recurrence_contacts =
-                    extend_contact_mask(&recurrence.active_recurrence_contacts, added)?;
+                if !recurrence
+                    .active_recurrence_contacts
+                    .validates_width(anatomy.contact_count())
+                {
+                    return Err(FormationError::NoncanonicalState);
+                }
             }
             cohort.anatomy = anatomy;
             cohort.state = state.into();
@@ -6061,7 +6231,141 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn encode(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
-        self.encode_with_format(CognitiveCodecFormat::V23, max_encoded_bytes)
+        self.encode_with_format(CognitiveCodecFormat::V24, max_encoded_bytes)
+    }
+
+    fn encode_v24(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
+        validate_lineage_state(self)?;
+        let mut global_anatomies = GlobalNeuronAnatomyTable::default();
+        for cohort in &self.cohorts {
+            for anatomy in cohort.anatomy.neuron_anatomies() {
+                global_anatomies
+                    .intern(anatomy)
+                    .map_err(|_| FormationError::NoncanonicalState)?;
+            }
+        }
+        let encoded_global_anatomies = global_anatomies
+            .encode()
+            .map_err(|_| FormationError::NoncanonicalState)?;
+        let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
+
+        let mut output = Vec::new();
+        output.extend_from_slice(MAGIC_V24);
+        output.extend_from_slice(&VERSION_V24.to_le_bytes());
+        output.extend_from_slice(&self.generation.to_le_bytes());
+        output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
+        push_length(&mut output, self.unexpressed_electrical_seeds.len())?;
+        for seed in &self.unexpressed_electrical_seeds {
+            let encoded = seed
+                .encode()
+                .map_err(FormationError::DevelopmentalElectricalUnavailable)?;
+            push_length(&mut output, encoded.len())?;
+            output.extend_from_slice(&encoded);
+            ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        }
+        push_length(&mut output, self.dormant_lineage_seeds.len())?;
+        for seed in &self.dormant_lineage_seeds {
+            let encoded = encode_dormant_lineage_seed(seed)?;
+            push_length(&mut output, encoded.len())?;
+            output.extend_from_slice(&encoded);
+            ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        }
+        let resting_population = self
+            .resting_population
+            .as_ref()
+            .map(DevelopmentalRestingPopulation::encode)
+            .transpose()
+            .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
+        push_length(
+            &mut output,
+            resting_population.as_ref().map_or(0, Vec::len),
+        )?;
+        if let Some(encoded) = resting_population {
+            output.extend_from_slice(&encoded);
+        }
+        let electrical_fabric = self
+            .electrical_fabric
+            .encode()
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+        push_length(&mut output, electrical_fabric.len())?;
+        output.extend_from_slice(&electrical_fabric);
+        encode_directed_frontier(&self.older_active_electrical_frontier, &mut output)?;
+        encode_directed_frontier(&self.preceding_active_electrical_frontier, &mut output)?;
+        encode_directed_frontier(&self.active_electrical_frontier, &mut output)?;
+        push_length(&mut output, encoded_global_anatomies.len())?;
+        output.extend_from_slice(&encoded_global_anatomies);
+        ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+
+        push_length(&mut output, self.cohorts.len())?;
+        for cohort in &self.cohorts {
+            if cohort
+                .pending_experience
+                .as_ref()
+                .is_some_and(|evidence| !evidence.is_pending())
+                || cohort
+                    .retained_experience
+                    .as_ref()
+                    .is_some_and(|evidence| !evidence.is_retained())
+            {
+                return Err(FormationError::NoncanonicalState);
+            }
+            let cell = encode_reached_cohort_cell_v9_global(
+                &cohort.anatomy,
+                &cohort.state,
+                &global_anatomies,
+            )
+            .map_err(|_| FormationError::NoncanonicalState)?;
+            push_length(&mut output, cell.len())?;
+            output.extend_from_slice(&cell);
+            for evidence in [
+                cohort.pending_experience.as_ref(),
+                cohort.retained_experience.as_ref(),
+            ] {
+                output.push(u8::from(evidence.is_some()));
+                if let Some(evidence) = evidence {
+                    let encoded = encode_experience_evidence_v2(
+                        &cohort.anatomy,
+                        Some(&cohort.state),
+                        evidence,
+                        true,
+                    )?;
+                    push_length(&mut output, encoded.len())?;
+                    output.extend_from_slice(&encoded);
+                }
+            }
+            output.push(u8::from(cohort.pending_recurrence.is_some()));
+            if let Some(recurrence) = cohort.pending_recurrence.as_ref() {
+                let encoded = encode_recurrence_evidence(&cohort.anatomy, recurrence)?;
+                push_length(&mut output, encoded.len())?;
+                output.extend_from_slice(&encoded);
+            }
+            ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        }
+
+        push_length(&mut output, self.mosaics.len())?;
+        for retained in &self.mosaics {
+            let encoded = encode_retained_organism_mosaic_for_topology(
+                &self.cohorts,
+                &self.electrical_fabric,
+                &topology,
+                retained,
+                max_encoded_bytes,
+            )?;
+            push_length(&mut output, encoded.len())?;
+            output.extend_from_slice(&encoded);
+            ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        }
+        let hippocampal = self
+            .hippocampal
+            .encode()
+            .map_err(FormationError::HippocampalCheckpointUnavailable)?;
+        if hippocampal.len() != HIPPOCAMPAL_CHECKPOINT_BYTES {
+            return Err(FormationError::NoncanonicalState);
+        }
+        push_length(&mut output, hippocampal.len())?;
+        output.extend_from_slice(&hippocampal);
+        ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        Ok(output)
     }
 
     fn encode_with_format(
@@ -6069,6 +6373,9 @@ impl ResidentCognitiveFormationState {
         format: CognitiveCodecFormat,
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
+        if format == CognitiveCodecFormat::V24 {
+            return self.encode_v24(max_encoded_bytes);
+        }
         validate_lineage_state(self)?;
         if matches!(
             format,
@@ -6124,7 +6431,8 @@ impl ResidentCognitiveFormationState {
             | CognitiveCodecFormat::V20
             | CognitiveCodecFormat::V21
             | CognitiveCodecFormat::V22
-            | CognitiveCodecFormat::V23 => self
+            | CognitiveCodecFormat::V23
+            | CognitiveCodecFormat::V24 => self
                 .resting_population
                 .as_ref()
                 .map(DevelopmentalRestingPopulation::encode)
@@ -6148,6 +6456,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             length = length
                 .checked_add(8)
@@ -6160,6 +6469,26 @@ impl ResidentCognitiveFormationState {
                 })
                 .ok_or(FormationError::ArithmeticOverflow)?;
         }
+        let mut global_anatomies = GlobalNeuronAnatomyTable::default();
+        let encoded_global_anatomies = if format == CognitiveCodecFormat::V24 {
+            for cohort in &self.cohorts {
+                for anatomy in cohort.anatomy.neuron_anatomies() {
+                    global_anatomies
+                        .intern(anatomy)
+                        .map_err(|_| FormationError::NoncanonicalState)?;
+                }
+            }
+            let encoded = global_anatomies
+                .encode()
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            length = length
+                .checked_add(8)
+                .and_then(|value| value.checked_add(encoded.len()))
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            Some(encoded)
+        } else {
+            None
+        };
         for cohort in &self.cohorts {
             if cohort
                 .pending_experience
@@ -6197,6 +6526,11 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V23 => {
                     encode_reached_cohort_cell_v6(&cohort.anatomy, &cohort.state)
                 }
+                CognitiveCodecFormat::V24 => encode_reached_cohort_cell_v9_global(
+                    &cohort.anatomy,
+                    &cohort.state,
+                    &global_anatomies,
+                ),
             }
             .map_err(|_| FormationError::NoncanonicalState)?;
             let encode_evidence = |evidence: &ResidentExperienceEvidence| {
@@ -6220,6 +6554,7 @@ impl ResidentCognitiveFormationState {
                             | CognitiveCodecFormat::V21
                             | CognitiveCodecFormat::V22
                             | CognitiveCodecFormat::V23
+                            | CognitiveCodecFormat::V24
                     ),
                 )
             };
@@ -6269,16 +6604,28 @@ impl ResidentCognitiveFormationState {
         }) {
             return Err(FormationError::NoncanonicalState);
         }
+        let current_mosaic_topology = (format == CognitiveCodecFormat::V24)
+            .then(|| indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index))
+            .transpose()?;
         let mosaics = self
             .mosaics
             .iter()
             .map(|retained| {
-                encode_retained_organism_mosaic(
-                    &self.cohorts,
-                    &self.electrical_fabric,
-                    retained,
-                    max_encoded_bytes,
-                )
+                match current_mosaic_topology.as_ref() {
+                    Some(topology) => encode_retained_organism_mosaic_for_topology(
+                        &self.cohorts,
+                        &self.electrical_fabric,
+                        topology,
+                        retained,
+                        max_encoded_bytes,
+                    ),
+                    None => encode_retained_organism_mosaic(
+                        &self.cohorts,
+                        &self.electrical_fabric,
+                        retained,
+                        max_encoded_bytes,
+                    ),
+                }
             })
             .collect::<Result<Vec<_>, _>>()?;
         length = mosaics
@@ -6297,6 +6644,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             let encoded = self
                 .electrical_fabric
@@ -6356,7 +6704,10 @@ impl ResidentCognitiveFormationState {
                     )?)
                 })
                 .ok_or(FormationError::ArithmeticOverflow)?;
-        } else if matches!(format, CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23) {
+        } else if matches!(
+            format,
+            CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23 | CognitiveCodecFormat::V24
+        ) {
             length = length
                 .checked_add(
                     encoded_directed_frontier_len(&self.older_active_electrical_frontier)
@@ -6435,6 +6786,10 @@ impl ResidentCognitiveFormationState {
                 output.extend_from_slice(MAGIC_V23);
                 output.extend_from_slice(&VERSION_V23.to_le_bytes());
             }
+            CognitiveCodecFormat::V24 => {
+                output.extend_from_slice(MAGIC_V24);
+                output.extend_from_slice(&VERSION_V24.to_le_bytes());
+            }
         }
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -6471,6 +6826,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             push_length(&mut output, resting_population.as_ref().map_or(0, Vec::len))?;
             if let Some(population) = resting_population {
@@ -6487,6 +6843,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             let electrical_fabric = electrical_fabric.ok_or(FormationError::NoncanonicalState)?;
             push_length(&mut output, electrical_fabric.len())?;
@@ -6502,10 +6859,17 @@ impl ResidentCognitiveFormationState {
         } else if format == CognitiveCodecFormat::V21 {
             encode_directed_frontier(&self.preceding_active_electrical_frontier, &mut output)?;
             encode_directed_frontier(&self.active_electrical_frontier, &mut output)?;
-        } else if matches!(format, CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23) {
+        } else if matches!(
+            format,
+            CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23 | CognitiveCodecFormat::V24
+        ) {
             encode_directed_frontier(&self.older_active_electrical_frontier, &mut output)?;
             encode_directed_frontier(&self.preceding_active_electrical_frontier, &mut output)?;
             encode_directed_frontier(&self.active_electrical_frontier, &mut output)?;
+        }
+        if let Some(global_anatomies) = encoded_global_anatomies {
+            push_length(&mut output, global_anatomies.len())?;
+            output.extend_from_slice(&global_anatomies);
         }
         output.extend_from_slice(
             &u64::try_from(cells.len())
@@ -6604,6 +6968,9 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
+        if bytes.get(..MAGIC_V24.len()) != Some(MAGIC_V24) {
+            return Err(FormationError::RetiredCognitiveState);
+        }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
     }
 
@@ -6611,6 +6978,9 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Self, FormationError> {
+        if bytes.get(..MAGIC_V23.len()) != Some(MAGIC_V23) {
+            return Err(FormationError::RetiredCognitiveState);
+        }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, false)
     }
 
@@ -6625,7 +6995,9 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let format = if bytes.len() >= MAGIC_V23.len() && &bytes[..MAGIC_V23.len()] == MAGIC_V23 {
+        let format = if bytes.len() >= MAGIC_V24.len() && &bytes[..MAGIC_V24.len()] == MAGIC_V24 {
+            CognitiveCodecFormat::V24
+        } else if bytes.len() >= MAGIC_V23.len() && &bytes[..MAGIC_V23.len()] == MAGIC_V23 {
             CognitiveCodecFormat::V23
         } else if bytes.len() >= MAGIC_V22.len() && &bytes[..MAGIC_V22.len()] == MAGIC_V22 {
             CognitiveCodecFormat::V22
@@ -6677,6 +7049,7 @@ impl ResidentCognitiveFormationState {
             CognitiveCodecFormat::V21 => VERSION_V21,
             CognitiveCodecFormat::V22 => VERSION_V22,
             CognitiveCodecFormat::V23 => VERSION_V23,
+            CognitiveCodecFormat::V24 => VERSION_V24,
         };
         if version != expected_version {
             return Err(FormationError::BadVersion);
@@ -6768,6 +7141,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             let population_length = read_length(bytes, &mut cursor)?;
             if population_length == 0 {
@@ -6798,6 +7172,7 @@ impl ResidentCognitiveFormationState {
                 | CognitiveCodecFormat::V21
                 | CognitiveCodecFormat::V22
                 | CognitiveCodecFormat::V23
+                | CognitiveCodecFormat::V24
         ) {
             let fabric_length = read_length(bytes, &mut cursor)?;
             let fabric_end = cursor
@@ -6853,14 +7228,36 @@ impl ResidentCognitiveFormationState {
             let preceding = decode_directed_frontier(bytes, &mut cursor, false)?;
             let active = decode_directed_frontier(bytes, &mut cursor, false)?;
             (Vec::new(), preceding, active)
-        } else if matches!(format, CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23) {
-            let allow_sender_frontier = format == CognitiveCodecFormat::V23;
+        } else if matches!(
+            format,
+            CognitiveCodecFormat::V22 | CognitiveCodecFormat::V23 | CognitiveCodecFormat::V24
+        ) {
+            let allow_sender_frontier = matches!(
+                format,
+                CognitiveCodecFormat::V23 | CognitiveCodecFormat::V24
+            );
             let older = decode_directed_frontier(bytes, &mut cursor, allow_sender_frontier)?;
             let preceding = decode_directed_frontier(bytes, &mut cursor, allow_sender_frontier)?;
             let active = decode_directed_frontier(bytes, &mut cursor, allow_sender_frontier)?;
             (older, preceding, active)
         } else {
             (Vec::new(), Vec::new(), Vec::new())
+        };
+        let mut global_anatomies = if format == CognitiveCodecFormat::V24 {
+            let table_length = read_length(bytes, &mut cursor)?;
+            let table_end = cursor
+                .checked_add(table_length)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            let table = DecodedGlobalNeuronAnatomyTable::decode(
+                bytes
+                    .get(cursor..table_end)
+                    .ok_or(FormationError::NoncanonicalState)?,
+            )
+            .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            cursor = table_end;
+            Some(table)
+        } else {
+            None
         };
         let cohort_count_end = cursor
             .checked_add(8)
@@ -6897,11 +7294,13 @@ impl ResidentCognitiveFormationState {
             let cell_end = cursor
                 .checked_add(cell_length)
                 .ok_or(FormationError::ArithmeticOverflow)?;
-            let (anatomy, state) = decode_reached_cohort_cell(
-                bytes
-                    .get(cursor..cell_end)
-                    .ok_or(FormationError::NoncanonicalState)?,
-            )
+            let encoded_cell = bytes
+                .get(cursor..cell_end)
+                .ok_or(FormationError::NoncanonicalState)?;
+            let (anatomy, state) = match global_anatomies.as_mut() {
+                Some(table) => decode_reached_cohort_cell_v9_global(encoded_cell, table),
+                None => decode_reached_cohort_cell(encoded_cell),
+            }
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
             cursor = cell_end;
             let pending_experience =
@@ -6917,6 +7316,11 @@ impl ResidentCognitiveFormationState {
                 retained_experience,
                 pending_recurrence,
             });
+        }
+        if let Some(global_anatomies) = global_anatomies.as_ref() {
+            global_anatomies
+                .fully_referenced()
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
         }
         let mosaic_count = read_length(bytes, &mut cursor)?;
         if mosaic_count > bytes.len().saturating_sub(cursor) / 8 {
@@ -6982,9 +7386,11 @@ impl ResidentCognitiveFormationState {
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
         };
         validate_lineage_state(&state)?;
-        let canonical = state.encode_with_format(format, max_encoded_bytes)?;
-        if require_current_canonical_encoding && canonical != bytes {
-            return Err(FormationError::NoncanonicalState);
+        if format != CognitiveCodecFormat::V24 {
+            let canonical = state.encode_with_format(format, max_encoded_bytes)?;
+            if canonical != bytes {
+                return Err(FormationError::NoncanonicalState);
+            }
         }
         state.topology_index = Arc::new(ResidentTopologyIndex::build(
             &state.cohorts,
@@ -6992,24 +7398,23 @@ impl ResidentCognitiveFormationState {
         )?);
         // Old evidence is admitted only long enough to prove its historical
         // canonical bytes. The live resident keeps reached members only.
-        for cohort in state.cohorts.iter_mut() {
-            if let Some(evidence) = cohort.pending_experience.as_mut() {
-                evidence.convert_legacy_physical(&cohort.anatomy, false)?;
+        if !require_current_canonical_encoding {
+            for cohort in state.cohorts.iter_mut() {
+                if let Some(evidence) = cohort.pending_experience.as_mut() {
+                    evidence.convert_legacy_physical(&cohort.anatomy, false)?;
+                }
+                if let Some(evidence) = cohort.retained_experience.as_mut() {
+                    evidence.convert_legacy_physical(&cohort.anatomy, true)?;
+                }
             }
-            if let Some(evidence) = cohort.retained_experience.as_mut() {
-                evidence.convert_legacy_physical(&cohort.anatomy, true)?;
-            }
+            // Legacy retained-mosaic bodies deliberately carry no cached
+            // recurrent lineage. Current bodies never enter this correction.
+            resolve_unpersisted_recurrent_retention(
+                &state.cohorts,
+                &state.electrical_fabric,
+                &mut state.mosaics,
+            )?;
         }
-        // Legacy retained-mosaic bodies deliberately carry no cached
-        // recurrent lineage. First prove their byte-exact canonical form;
-        // only then reconstruct the runtime index from the one unique global
-        // member-contact matching. Current GLMRC02 entries are already bound
-        // and merely participate as claimed physical endpoints here.
-        resolve_unpersisted_recurrent_retention(
-            &state.cohorts,
-            &state.electrical_fabric,
-            &mut state.mosaics,
-        )?;
         Ok(state)
     }
 
@@ -7030,8 +7435,18 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V20.len()] == MAGIC_V20
                 || &bytes[..MAGIC_V21.len()] == MAGIC_V21
                 || &bytes[..MAGIC_V22.len()] == MAGIC_V22
-                || &bytes[..MAGIC_V23.len()] == MAGIC_V23);
+                || &bytes[..MAGIC_V23.len()] == MAGIC_V23
+                || &bytes[..MAGIC_V24.len()] == MAGIC_V24);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
+        // Historical topology/channel corrections belong to this explicit
+        // authenticated migration and nowhere in ordinary cognition.  The
+        // former live path rescanned every cohort before every causal hop even
+        // after a current body had already crossed the correction once.
+        let state = match state.retire_aliased_local_integrators()? {
+            Some(corrected) => corrected,
+            None => state,
+        };
+        let state = state.into_expanded_legacy_receptor_channel_populations()?;
         let state = if already_geometry_provisioned {
             state
         } else {
@@ -7152,6 +7567,7 @@ fn extend_resident_cohort_evidence(
         if let ResidentExperiencePhysicalEvidence::Legacy {
             predecessor,
             successor,
+            ..
         } = &mut evidence.physical
         {
             *predecessor = Arc::new(
@@ -7183,15 +7599,25 @@ fn extend_resident_cohort_evidence(
         {
             return Err(FormationError::NoncanonicalState);
         }
-        let mut excitation = evidence.receptor_excitation_zeptojoules.to_vec();
-        excitation.resize(successor_anatomy.neuron_count(), None);
-        evidence.receptor_excitation_zeptojoules = excitation.into_boxed_slice();
-        let mut retained_change = evidence.retained_change_neurons.to_vec();
-        retained_change.resize(successor_anatomy.neuron_count(), false);
-        evidence.retained_change_neurons = retained_change.into_boxed_slice();
-        let mut settled = evidence.retentively_settled_neurons.to_vec();
-        settled.resize(successor_anatomy.neuron_count(), false);
-        evidence.retentively_settled_neurons = settled.into_boxed_slice();
+        if !evidence
+            .receptor_excitation_zeptojoules
+            .validates_width(successor_anatomy.neuron_count())
+        {
+            return Err(FormationError::NoncanonicalState);
+        }
+        if let ResidentExperiencePhysicalEvidence::Legacy {
+            retained_change_neurons,
+            retentively_settled_neurons,
+            ..
+        } = &mut evidence.physical
+        {
+            let mut retained_change = retained_change_neurons.to_vec();
+            retained_change.resize(successor_anatomy.neuron_count(), false);
+            *retained_change_neurons = retained_change.into_boxed_slice();
+            let mut settled = retentively_settled_neurons.to_vec();
+            settled.resize(successor_anatomy.neuron_count(), false);
+            *retentively_settled_neurons = settled.into_boxed_slice();
+        }
         Ok::<(), FormationError>(())
     };
     if let Some(evidence) = cohort.pending_experience.as_mut() {
@@ -7208,12 +7634,18 @@ fn extend_resident_cohort_evidence(
         {
             return Err(FormationError::NoncanonicalState);
         }
-        let mut excitation = recurrence.receptor_excitation_zeptojoules.to_vec();
-        excitation.resize(successor_anatomy.neuron_count(), None);
-        recurrence.receptor_excitation_zeptojoules = excitation.into_boxed_slice();
-        let mut changed = recurrence.physically_changed_neurons.to_vec();
-        changed.resize(successor_anatomy.neuron_count(), false);
-        recurrence.physically_changed_neurons = changed.into_boxed_slice();
+        if !recurrence
+            .receptor_excitation_zeptojoules
+            .validates_width(successor_anatomy.neuron_count())
+        {
+            return Err(FormationError::NoncanonicalState);
+        }
+        if !recurrence
+            .physically_changed_neurons
+            .validates_width(successor_anatomy.neuron_count())
+        {
+            return Err(FormationError::NoncanonicalState);
+        }
     }
     cohort.anatomy = successor_anatomy;
     cohort.state = successor_state.into();
@@ -7224,6 +7656,18 @@ fn extend_resident_cohort_positional_fabrics(
     cohort: &mut ResidentReachedCohort,
     required_positions: &[usize],
 ) -> Result<(), FormationError> {
+    if required_positions.len() != cohort.anatomy.neuron_count() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    if cohort
+        .anatomy
+        .neuron_anatomies()
+        .iter()
+        .zip(required_positions)
+        .all(|(anatomy, required)| *required <= anatomy.mathloom_positions())
+    {
+        return Ok(());
+    }
     let predecessor_anatomy = cohort.anatomy.clone();
     let (successor_anatomy, successor_state) = extend_reached_cohort_positional_fabrics(
         &predecessor_anatomy,
@@ -7251,6 +7695,7 @@ fn extend_resident_cohort_positional_fabrics(
             ResidentExperiencePhysicalEvidence::Legacy {
                 predecessor,
                 successor,
+                ..
             } => {
                 *predecessor = extend_state(predecessor)?.into();
                 *successor = successor
@@ -7466,93 +7911,101 @@ fn settle_resident_original_interval(
                 carries_physical_change_codec: true,
                 gate_work_perturbed_neurons: SparseResidentNeuronMask::from_dense(recognition_cue),
                 receptor_excitation_zeptojoules: if endogenous_cue {
-                    vec![None; cohort.anatomy.neuron_count()].into_boxed_slice()
+                    SparseResidentExcitations::empty()
                 } else {
-                    receptor_excitation_zeptojoules.clone().into_boxed_slice()
+                    SparseResidentExcitations::from_dense(&receptor_excitation_zeptojoules)
                 },
-                physically_changed_neurons: vec![false; cohort.anatomy.neuron_count()]
-                    .into_boxed_slice(),
-                active_recurrence_contacts: vec![false; cohort.anatomy.contact_count()]
-                    .into_boxed_slice(),
+                physically_changed_neurons: SparseResidentNeuronMask::empty(),
+                active_recurrence_contacts: SparseResidentNeuronMask::empty(),
                 endogenous: endogenous_cue,
             });
     }
     let experience_preceded_interval = cohort.pending_experience.is_some();
-    let predecessor_state = cohort.state.clone();
-    let settlement = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
+    let resident_indices = input
+        .resident_indices(&cohort.anatomy)
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-    let successor_state = Arc::new(settlement.successor);
-    let retained_change_this_interval = predecessor_state
-        .neurons()
+    let predecessor_members = resident_indices
         .iter()
-        .zip(successor_state.neurons())
-        .enumerate()
-        .map(|(neuron_index, (predecessor, successor))| {
-            sparse_retained_physical_state_delta(predecessor, successor)
-                .map(|delta| delta.is_some())
-                .map_err(|error| {
-                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                        neuron_index,
-                        error,
-                    })
-                })
+        .map(|neuron_index| {
+            (*neuron_index, cohort.state.neurons()[*neuron_index].clone())
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Vec<_>>();
+    let settlement = settle_reached_cohort_interval_in_place(
+        &cohort.anatomy,
+        Arc::make_mut(&mut cohort.state),
+        input,
+    )
+    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let successor_state = cohort.state.clone();
+    let mut retained_change_indices = Vec::new();
+    for (neuron_index, predecessor) in &predecessor_members {
+        if sparse_retained_physical_state_delta(
+            predecessor,
+            &successor_state.neurons()[*neuron_index],
+        )
+        .map_err(|error| {
+            FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                neuron_index: *neuron_index,
+                error,
+            })
+        })?
+        .is_some()
+        {
+            retained_change_indices.push(*neuron_index);
+        }
+    }
+    let retained_change_this_interval = SparseResidentNeuronMask::from_indices(
+        retained_change_indices,
+        cohort.anatomy.neuron_count(),
+    )?;
+    let retained_predecessor_members = predecessor_members
+        .iter()
+        .filter_map(|(neuron_index, predecessor)| {
+            retained_change_this_interval
+                .contains(*neuron_index)
+                .then_some((*neuron_index, predecessor))
+        })
+        .collect::<Vec<_>>();
     // A neuronal fractal exists only after this neuron's retained physical
     // change reaches its own exact quiescent successor. It is not an
     // occurrence-boundary receipt and another living neuron may remain active.
     let mut emitted = Vec::new();
     let active_electrical_contacts = active_contact_bits(&settlement.contact_transitions);
-    let mut physically_changed_neurons = predecessor_state
-        .neurons()
-        .iter()
-        .zip(successor_state.neurons())
-        .map(|(predecessor, successor)| predecessor != successor)
-        .collect::<Vec<_>>();
-    or_bits(
-        &mut physically_changed_neurons,
-        &metabolically_perturbed_neurons,
+    let mut physically_changed_indices = Vec::new();
+    for (neuron_index, predecessor) in &predecessor_members {
+        if predecessor != &successor_state.neurons()[*neuron_index] {
+            physically_changed_indices.push(*neuron_index);
+        }
+    }
+    let mut physically_changed_neurons = SparseResidentNeuronMask::from_indices(
+        physically_changed_indices,
+        cohort.anatomy.neuron_count(),
     )?;
+    physically_changed_neurons.union_dense(&metabolically_perturbed_neurons)?;
     let mut experience = cohort.pending_experience.take();
     if experience.is_none()
-        && retained_change_this_interval
-            .iter()
-            .any(|changed| *changed)
+        && !retained_change_this_interval.is_empty()
     {
         experience = Some(ResidentExperienceEvidence {
             codec: ExperienceEvidenceCodec::V7,
             physical: ResidentExperiencePhysicalEvidence::Pending(Box::new([])),
             gate_work_perturbed_neurons: SparseResidentNeuronMask::empty(),
-            receptor_excitation_zeptojoules: receptor_excitation_zeptojoules
-                .clone()
-                .into_boxed_slice(),
-            retained_change_neurons: vec![false; cohort.anatomy.neuron_count()]
-                .into_boxed_slice(),
-            retentively_settled_neurons: vec![false; cohort.anatomy.neuron_count()]
-                .into_boxed_slice(),
-            active_electrical_contacts: vec![false; cohort.anatomy.contact_count()]
-                .into_boxed_slice(),
+            receptor_excitation_zeptojoules: SparseResidentExcitations::from_dense(
+                &receptor_excitation_zeptojoules,
+            ),
+            active_electrical_contacts: SparseResidentNeuronMask::empty(),
             local_relaxation_observed: false,
         });
     }
     if let Some(experience) = experience.as_mut() {
         experience.codec = ExperienceEvidenceCodec::V7;
-        merge_pending_experience_members(
-            experience,
-            &predecessor_state,
-            &retained_change_this_interval,
-        )?;
+        merge_pending_experience_members(experience, &retained_predecessor_members)?;
         experience
             .gate_work_perturbed_neurons
             .union_dense(&gate_work_perturbed_neurons)?;
-        or_bits(
-            &mut experience.retained_change_neurons,
-            &retained_change_this_interval,
-        )?;
-        or_bits(
-            &mut experience.active_electrical_contacts,
-            &active_electrical_contacts,
-        )?;
+        experience
+            .active_electrical_contacts
+            .union_sparse(&active_electrical_contacts, cohort.anatomy.contact_count())?;
     }
     // Collective formation closure remains a separate later retentive-rest
     // law. It determines which cumulative neuron deltas may participate in a
@@ -7592,13 +8045,16 @@ fn settle_resident_original_interval(
                 member_mask[*member] = true;
             }
             let endpoints = cohort.anatomy.contact_endpoints().collect::<Vec<_>>();
+            let dense_active_contacts = experience
+                .active_electrical_contacts
+                .to_dense(cohort.anatomy.contact_count())?;
             let connected_retention = member_indices.len() >= 3
                 && connected_members(
                     cohort.anatomy.neuron_count(),
                     &member_indices,
                     &member_mask,
                     &endpoints,
-                    &experience.active_electrical_contacts,
+                    &dense_active_contacts,
                     &member_indices[..1],
                 );
             if connected_retention {
@@ -7637,18 +8093,19 @@ fn settle_resident_original_interval(
                 .gate_work_perturbed_neurons
                 .union_dense(&gate_work_perturbed_neurons)?;
         }
-        or_bits(
-            &mut recurrence.physically_changed_neurons,
-            &physically_changed_neurons,
-        )?;
-        or_bits(
-            &mut recurrence.active_recurrence_contacts,
-            &active_electrical_contacts,
-        )?;
+        recurrence
+            .physically_changed_neurons
+            .union_sparse(&physically_changed_neurons, cohort.anatomy.neuron_count())?;
+        recurrence
+            .active_recurrence_contacts
+            .union_sparse(&active_electrical_contacts, cohort.anatomy.contact_count())?;
         if let Some(current_fractals) = completed_current_fractals.as_deref() {
             let dense_gate_work = recurrence
                 .gate_work_perturbed_neurons
                 .to_dense(cohort.anatomy.neuron_count())?;
+            let dense_recurrence_contacts = recurrence
+                .active_recurrence_contacts
+                .to_dense(cohort.anatomy.contact_count())?;
             for (mosaic_index, retained) in existing_mosaics.iter().enumerate() {
                 let reassembled = retained
                     .mosaic
@@ -7656,7 +8113,7 @@ fn settle_resident_original_interval(
                         &cohort.anatomy,
                         &dense_gate_work,
                         current_fractals,
-                        &recurrence.active_recurrence_contacts,
+                        &dense_recurrence_contacts,
                         recurrence.endogenous,
                     )
                     .map_err(FormationError::PhysicalMosaicUnavailable)?;
@@ -7684,20 +8141,13 @@ fn settle_resident_original_interval(
 
 fn merge_pending_experience_members(
     evidence: &mut ResidentExperienceEvidence,
-    predecessor: &ReachedCohortState,
-    retained_change_this_interval: &[bool],
+    predecessor_members: &[(usize, &NeuronPhysicalState)],
 ) -> Result<(), FormationError> {
-    if predecessor.neurons().len() != retained_change_this_interval.len() {
-        return Err(FormationError::NoncanonicalState);
-    }
     let members = evidence
         .pending_members_mut()
         .ok_or(FormationError::NoncanonicalState)?;
     let mut merged = members.to_vec();
-    for (neuron_index, changed) in retained_change_this_interval.iter().copied().enumerate() {
-        if !changed {
-            continue;
-        }
+    for (neuron_index, predecessor) in predecessor_members.iter().copied() {
         match merged.binary_search_by_key(&neuron_index, |member| member.neuron_index) {
             Ok(_) => {}
             Err(position) => {
@@ -7708,7 +8158,7 @@ fn merge_pending_experience_members(
                     position,
                     SparsePendingExperienceMember {
                         neuron_index,
-                        predecessor: predecessor.neurons()[neuron_index].clone(),
+                        predecessor: predecessor.clone(),
                         settled: false,
                     },
                 );
@@ -7761,24 +8211,21 @@ fn emit_newly_quiescent_neuron_fractals(
     anatomy: &ReachedCohortAnatomy,
     evidence: &mut ResidentExperienceEvidence,
     successor: &ReachedCohortState,
-    retained_change_this_interval: &[bool],
+    retained_change_this_interval: &SparseResidentNeuronMask,
 ) -> Result<Vec<EmittedNeuronFractal>, FormationError> {
-    if evidence.retained_change_neurons.len() != anatomy.neuron_count()
-        || evidence.retentively_settled_neurons.len() != anatomy.neuron_count()
-        || retained_change_this_interval.len() != anatomy.neuron_count()
+    if !retained_change_this_interval.validates_width(anatomy.neuron_count())
         || successor.neurons().len() != anatomy.neuron_count()
     {
         return Err(FormationError::NoncanonicalState);
     }
     let mut emitted = Vec::new();
-    let mut newly_settled = Vec::new();
     {
         let members = evidence
             .pending_members_mut()
             .ok_or(FormationError::NoncanonicalState)?;
         for member in members.iter_mut() {
             let neuron_index = member.neuron_index;
-            if member.settled || retained_change_this_interval[neuron_index] {
+            if member.settled || retained_change_this_interval.contains(neuron_index) {
                 continue;
             }
             if let Some(delta) = sparse_retained_physical_state_delta(
@@ -7797,11 +8244,7 @@ fn emit_newly_quiescent_neuron_fractals(
                 });
             }
             member.settled = true;
-            newly_settled.push(neuron_index);
         }
-    }
-    for neuron_index in newly_settled {
-        evidence.retentively_settled_neurons[neuron_index] = true;
     }
     Ok(emitted)
 }
@@ -7809,30 +8252,24 @@ fn emit_newly_quiescent_neuron_fractals(
 fn advance_recurrent_neuronal_experience(
     anatomy: &ReachedCohortAnatomy,
     pending: &mut Option<ResidentExperienceEvidence>,
-    predecessor: &Arc<ReachedCohortState>,
+    predecessor_members: &[(usize, &NeuronPhysicalState)],
     successor: &ReachedCohortState,
-    retained_change_this_interval: &[bool],
-    gate_work_perturbed_neurons: &[bool],
-    receptor_excitation_zeptojoules: &[Option<ExactRational>],
-    active_electrical_contacts: &[bool],
+    retained_change_this_interval: &SparseResidentNeuronMask,
+    gate_work_perturbed_neurons: &SparseResidentNeuronMask,
+    receptor_excitation_zeptojoules: &SparseResidentExcitations,
+    active_electrical_contacts: &SparseResidentNeuronMask,
 ) -> Result<Vec<EmittedNeuronFractal>, FormationError> {
     let experience_preceded_interval = pending.is_some();
     let mut experience = pending.take();
     if experience.is_none()
-        && retained_change_this_interval
-            .iter()
-            .any(|changed| *changed)
+        && !retained_change_this_interval.is_empty()
     {
         experience = Some(ResidentExperienceEvidence {
             codec: ExperienceEvidenceCodec::V7,
             physical: ResidentExperiencePhysicalEvidence::Pending(Box::new([])),
             gate_work_perturbed_neurons: SparseResidentNeuronMask::empty(),
-            receptor_excitation_zeptojoules: receptor_excitation_zeptojoules
-                .to_vec()
-                .into_boxed_slice(),
-            retained_change_neurons: vec![false; anatomy.neuron_count()].into_boxed_slice(),
-            retentively_settled_neurons: vec![false; anatomy.neuron_count()].into_boxed_slice(),
-            active_electrical_contacts: vec![false; anatomy.contact_count()].into_boxed_slice(),
+            receptor_excitation_zeptojoules: receptor_excitation_zeptojoules.clone(),
+            active_electrical_contacts: SparseResidentNeuronMask::empty(),
             local_relaxation_observed: false,
         });
     }
@@ -7842,20 +8279,14 @@ fn advance_recurrent_neuronal_experience(
     experience.codec = ExperienceEvidenceCodec::V7;
     merge_pending_experience_members(
         &mut experience,
-        predecessor,
-        retained_change_this_interval,
+        predecessor_members,
     )?;
     experience
         .gate_work_perturbed_neurons
-        .union_dense(gate_work_perturbed_neurons)?;
-    or_bits(
-        &mut experience.retained_change_neurons,
-        retained_change_this_interval,
-    )?;
-    or_bits(
-        &mut experience.active_electrical_contacts,
-        active_electrical_contacts,
-    )?;
+        .union_sparse(gate_work_perturbed_neurons, anatomy.neuron_count())?;
+    experience
+        .active_electrical_contacts
+        .union_sparse(active_electrical_contacts, anatomy.contact_count())?;
     let emitted = if experience_preceded_interval {
         emit_newly_quiescent_neuron_fractals(
             anatomy,
@@ -7907,13 +8338,11 @@ fn settle_resident_recurrence_interval(
             cohort.pending_recurrence = Some(ResidentRecurrenceEvidence {
                 carries_physical_change_codec: true,
                 gate_work_perturbed_neurons: SparseResidentNeuronMask::empty(),
-                receptor_excitation_zeptojoules: receptor_excitation_zeptojoules
-                    .clone()
-                    .into_boxed_slice(),
-                physically_changed_neurons: vec![false; cohort.anatomy.neuron_count()]
-                    .into_boxed_slice(),
-                active_recurrence_contacts: vec![false; cohort.anatomy.contact_count()]
-                    .into_boxed_slice(),
+                receptor_excitation_zeptojoules: SparseResidentExcitations::from_dense(
+                    &receptor_excitation_zeptojoules,
+                ),
+                physically_changed_neurons: SparseResidentNeuronMask::empty(),
+                active_recurrence_contacts: SparseResidentNeuronMask::empty(),
                 endogenous: false,
             });
         }
@@ -7921,42 +8350,74 @@ fn settle_resident_recurrence_interval(
 
     #[cfg(test)]
     RESIDENT_ACTUAL_RECURRENCE_SETTLEMENTS.with(|count| count.set(count.get() + 1));
-    let recurrence_predecessor = cohort.state.clone();
-    let actual = settle_reached_cohort_interval(&cohort.anatomy, &cohort.state, input)
+    let resident_indices = input
+        .resident_indices(&cohort.anatomy)
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-    let successor_state = Arc::new(actual.successor);
-    let partial_cue_reassembly_count = 0;
-    let retained_change_this_interval = recurrence_predecessor
-        .neurons()
+    let predecessor_members = resident_indices
         .iter()
-        .zip(successor_state.neurons())
-        .enumerate()
-        .map(|(neuron_index, (predecessor, successor))| {
-            sparse_retained_physical_state_delta(predecessor, successor)
-                .map(|delta| delta.is_some())
-                .map_err(|error| {
-                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                        neuron_index,
-                        error,
-                    })
-                })
+        .map(|neuron_index| {
+            (*neuron_index, cohort.state.neurons()[*neuron_index].clone())
         })
-        .collect::<Result<Vec<_>, _>>()?;
-    let active_contacts = active_contact_bits(&actual.contact_transitions);
-    let physically_changed_neurons = recurrence_predecessor
-        .neurons()
-        .iter()
-        .zip(successor_state.neurons())
-        .map(|(predecessor, successor)| predecessor != successor)
         .collect::<Vec<_>>();
+    let actual = settle_reached_cohort_interval_in_place(
+        &cohort.anatomy,
+        Arc::make_mut(&mut cohort.state),
+        input,
+    )
+    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    let successor_state = cohort.state.clone();
+    let partial_cue_reassembly_count = 0;
+    let mut retained_change_indices = Vec::new();
+    for (neuron_index, predecessor) in &predecessor_members {
+        if sparse_retained_physical_state_delta(
+            predecessor,
+            &successor_state.neurons()[*neuron_index],
+        )
+        .map_err(|error| {
+            FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                neuron_index: *neuron_index,
+                error,
+            })
+        })?
+        .is_some()
+        {
+            retained_change_indices.push(*neuron_index);
+        }
+    }
+    let retained_change_this_interval = SparseResidentNeuronMask::from_indices(
+        retained_change_indices,
+        cohort.anatomy.neuron_count(),
+    )?;
+    let retained_predecessor_members = predecessor_members
+        .iter()
+        .filter_map(|(neuron_index, predecessor)| {
+            retained_change_this_interval
+                .contains(*neuron_index)
+                .then_some((*neuron_index, predecessor))
+        })
+        .collect::<Vec<_>>();
+    let active_contacts = active_contact_bits(&actual.contact_transitions);
+    let mut physically_changed_indices = Vec::new();
+    for (neuron_index, predecessor) in &predecessor_members {
+        if predecessor != &successor_state.neurons()[*neuron_index] {
+            physically_changed_indices.push(*neuron_index);
+        }
+    }
+    let physically_changed_neurons = SparseResidentNeuronMask::from_indices(
+        physically_changed_indices,
+        cohort.anatomy.neuron_count(),
+    )?;
+    let sparse_gate_work = SparseResidentNeuronMask::from_dense(&gate_work_perturbed_neurons);
+    let sparse_receptor_excitation =
+        SparseResidentExcitations::from_dense(&receptor_excitation_zeptojoules);
     let emitted_neuron_fractals = advance_recurrent_neuronal_experience(
         &cohort.anatomy,
         &mut cohort.pending_experience,
-        &recurrence_predecessor,
+        &retained_predecessor_members,
         &successor_state,
         &retained_change_this_interval,
-        &gate_work_perturbed_neurons,
-        &receptor_excitation_zeptojoules,
+        &sparse_gate_work,
+        &sparse_receptor_excitation,
         &active_contacts,
     )?;
     cohort.state = successor_state;
@@ -7969,8 +8430,12 @@ fn settle_resident_recurrence_interval(
             .retained_members()
             .ok_or(FormationError::NoncanonicalState)?
             .iter()
-            .all(|member| !physically_changed_neurons[member.neuron_index])
-            && !retained_contact_set_flowing(retained, &active_contacts)?
+            .all(|member| !physically_changed_neurons.contains(member.neuron_index))
+            && !retained_contact_set_flowing(
+                retained,
+                &active_contacts,
+                cohort.anatomy.contact_count(),
+            )?
     };
 
     // A retained formation relaxes through one later settlement with no
@@ -8013,6 +8478,7 @@ fn settle_resident_recurrence_interval(
                 .as_ref()
                 .ok_or(FormationError::NoncanonicalState)?,
             &active_contacts,
+            cohort.anatomy.contact_count(),
         )?
     {
         let retained = cohort
@@ -8025,12 +8491,9 @@ fn settle_resident_recurrence_interval(
                 gate_work_perturbed_neurons: SparseResidentNeuronMask::from_dense(
                     &metabolically_perturbed_neurons,
                 ),
-                receptor_excitation_zeptojoules: vec![None; cohort.anatomy.neuron_count()]
-                    .into_boxed_slice(),
-                physically_changed_neurons: vec![false; cohort.anatomy.neuron_count()]
-                    .into_boxed_slice(),
-                active_recurrence_contacts: vec![false; cohort.anatomy.contact_count()]
-                    .into_boxed_slice(),
+                receptor_excitation_zeptojoules: SparseResidentExcitations::empty(),
+                physically_changed_neurons: SparseResidentNeuronMask::empty(),
+                active_recurrence_contacts: SparseResidentNeuronMask::empty(),
                 endogenous: true,
             });
         }
@@ -8049,11 +8512,12 @@ fn settle_resident_recurrence_interval(
     recurrence
         .gate_work_perturbed_neurons
         .union_dense(&gate_work_perturbed_neurons)?;
-    or_bits(
-        &mut recurrence.physically_changed_neurons,
-        &physically_changed_neurons,
-    )?;
-    or_bits(&mut recurrence.active_recurrence_contacts, &active_contacts)?;
+    recurrence
+        .physically_changed_neurons
+        .union_sparse(&physically_changed_neurons, cohort.anatomy.neuron_count())?;
+    recurrence
+        .active_recurrence_contacts
+        .union_sparse(&active_contacts, cohort.anatomy.contact_count())?;
     if exogenous_receptor_energy != Some(false) {
         cohort.pending_recurrence = Some(recurrence);
         return Ok(ResidentOpticalIntervalOutcome {
@@ -8074,11 +8538,15 @@ fn settle_resident_recurrence_interval(
         &cohort.anatomy,
         retained,
         cohort.state.as_ref().clone(),
-        recurrence.receptor_excitation_zeptojoules.clone(),
+        recurrence
+            .receptor_excitation_zeptojoules
+            .to_dense(cohort.anatomy.neuron_count())?,
         recurrence
             .gate_work_perturbed_neurons
             .to_dense(cohort.anatomy.neuron_count())?,
-        recurrence.active_recurrence_contacts.clone(),
+        recurrence
+            .active_recurrence_contacts
+            .to_dense(cohort.anatomy.contact_count())?,
     )?;
     let mosaic = match admit_physical_mosaic(&cohort.anatomy, &original, &actual_recurrence) {
         Ok(mosaic) => mosaic,
@@ -8141,15 +8609,16 @@ fn original_settlement(
     Ok(ReachedCohortPostExperienceSettlement {
         rest: None,
         neuron_fractals: neuron_fractals.into_boxed_slice(),
-        receptor_excitation_zeptojoules: retained.receptor_excitation_zeptojoules.clone(),
-        electrical_contact_was_active: retained
-            .active_electrical_contacts
-            .iter()
-            .any(|active| *active),
+        receptor_excitation_zeptojoules: retained
+            .receptor_excitation_zeptojoules
+            .to_dense(anatomy.neuron_count())?,
+        electrical_contact_was_active: !retained.active_electrical_contacts.is_empty(),
         gate_work_perturbed_neurons: retained
             .gate_work_perturbed_neurons
             .to_dense(anatomy.neuron_count())?,
-        active_electrical_contacts: retained.active_electrical_contacts.clone(),
+        active_electrical_contacts: retained
+            .active_electrical_contacts
+            .to_dense(anatomy.contact_count())?,
     })
 }
 
@@ -8244,39 +8713,37 @@ fn is_formation_local_proper_partial_cue(
 
 fn retained_contact_set_flowing(
     retained: &ResidentExperienceEvidence,
-    active_contacts: &[bool],
+    active_contacts: &SparseResidentNeuronMask,
+    contact_count: usize,
 ) -> Result<bool, FormationError> {
-    if retained.active_electrical_contacts.len() != active_contacts.len() {
+    if !retained
+        .active_electrical_contacts
+        .validates_width(contact_count)
+        || !active_contacts.validates_width(contact_count)
+    {
         return Err(FormationError::NoncanonicalState);
     }
-    Ok(retained
-        .active_electrical_contacts
-        .iter()
-        .zip(active_contacts)
-        .any(|(carried_experience, flowing_now)| *carried_experience && *flowing_now))
+    Ok(retained.active_electrical_contacts.indices.iter().any(|contact_index| {
+        active_contacts.indices.binary_search(contact_index).is_ok()
+    }))
 }
 
 fn active_contact_bits(
     transitions: &[crate::sparse_electrical_contact::ElectricalContactTransition],
-) -> Vec<bool> {
-    transitions
+) -> SparseResidentNeuronMask {
+    SparseResidentNeuronMask {
+        indices: transitions
         .iter()
-        .map(|transition| {
-            transition.outward_current_from_left_picoamperes.parts().0 != 0
+        .enumerate()
+        .filter_map(|(contact_index, transition)| {
+            (transition.outward_current_from_left_picoamperes.parts().0 != 0
                 || transition.outward_elementary_charges_from_left != 0
-                || transition.conductance_changed
+                || transition.conductance_changed)
+                .then_some(contact_index)
         })
-        .collect()
-}
-
-fn or_bits(target: &mut [bool], values: &[bool]) -> Result<(), FormationError> {
-    if target.len() != values.len() {
-        return Err(FormationError::NoncanonicalState);
+        .collect::<Vec<_>>()
+        .into_boxed_slice(),
     }
-    for (target, value) in target.iter_mut().zip(values) {
-        *target |= *value;
-    }
-    Ok(())
 }
 
 fn physical_mosaic_non_admission(error: PhysicalMosaicError) -> bool {
@@ -8309,13 +8776,15 @@ fn encode_sparse_experience_evidence(
         || !evidence
             .gate_work_perturbed_neurons
             .validates_width(anatomy.neuron_count())
-        || evidence.receptor_excitation_zeptojoules.len() != anatomy.neuron_count()
-        || evidence.active_electrical_contacts.len() != anatomy.contact_count()
+        || !evidence
+            .receptor_excitation_zeptojoules
+            .validates_width(anatomy.neuron_count())
+        || !evidence
+            .active_electrical_contacts
+            .validates_width(anatomy.contact_count())
     {
         return Err(FormationError::NoncanonicalState);
     }
-    let mut expected_changed = vec![false; anatomy.neuron_count()];
-    let mut expected_settled = vec![false; anatomy.neuron_count()];
     let (mode, member_count) = match &evidence.physical {
         ResidentExperiencePhysicalEvidence::Pending(members) => {
             if evidence.local_relaxation_observed
@@ -8327,8 +8796,6 @@ fn encode_sparse_experience_evidence(
                 if member.neuron_index >= anatomy.neuron_count() {
                     return Err(FormationError::NoncanonicalState);
                 }
-                expected_changed[member.neuron_index] = true;
-                expected_settled[member.neuron_index] = member.settled;
             }
             (0u8, members.len())
         }
@@ -8355,8 +8822,6 @@ fn encode_sparse_experience_evidence(
                 {
                     return Err(FormationError::NoncanonicalState);
                 }
-                expected_changed[member.neuron_index] = true;
-                expected_settled[member.neuron_index] = true;
             }
             (1u8, members.len())
         }
@@ -8364,12 +8829,6 @@ fn encode_sparse_experience_evidence(
             return Err(FormationError::NoncanonicalState)
         }
     };
-    if evidence.retained_change_neurons.as_ref() != expected_changed.as_slice()
-        || evidence.retentively_settled_neurons.as_ref() != expected_settled.as_slice()
-    {
-        return Err(FormationError::NoncanonicalState);
-    }
-
     let mut encoded = Vec::new();
     encoded.extend_from_slice(EXPERIENCE_V7_MAGIC);
     encoded.push(mode);
@@ -8412,8 +8871,12 @@ fn encode_sparse_experience_evidence(
     evidence
         .gate_work_perturbed_neurons
         .encode_sparse(&mut encoded, anatomy.neuron_count())?;
-    encode_optional_exact_slice(&mut encoded, &evidence.receptor_excitation_zeptojoules)?;
-    encode_bool_slice(&mut encoded, &evidence.active_electrical_contacts)?;
+    evidence
+        .receptor_excitation_zeptojoules
+        .encode_dense(&mut encoded, anatomy.neuron_count())?;
+    evidence
+        .active_electrical_contacts
+        .encode_dense(&mut encoded, anatomy.contact_count())?;
     Ok(encoded)
 }
 
@@ -8530,10 +8993,12 @@ fn decode_sparse_experience_evidence(
         &mut cursor,
         anatomy.neuron_count(),
     )?;
-    let receptor_excitation_zeptojoules =
-        decode_optional_exact_slice(encoded, &mut cursor, anatomy.neuron_count())?;
-    let active_electrical_contacts =
-        decode_bool_slice(encoded, &mut cursor, anatomy.contact_count())?;
+    let receptor_excitation_zeptojoules = SparseResidentExcitations::from_dense(
+        &decode_optional_exact_slice(encoded, &mut cursor, anatomy.neuron_count())?,
+    );
+    let active_electrical_contacts = SparseResidentNeuronMask::from_dense(
+        &decode_bool_slice(encoded, &mut cursor, anatomy.contact_count())?,
+    );
     if cursor != encoded.len() {
         return Err(FormationError::NoncanonicalState);
     }
@@ -8542,30 +9007,11 @@ fn decode_sparse_experience_evidence(
     } else {
         ResidentExperiencePhysicalEvidence::Retained(retained.into_boxed_slice())
     };
-    let mut retained_change_neurons = vec![false; anatomy.neuron_count()];
-    let mut retentively_settled_neurons = vec![false; anatomy.neuron_count()];
-    match &physical {
-        ResidentExperiencePhysicalEvidence::Pending(members) => {
-            for member in members.iter() {
-                retained_change_neurons[member.neuron_index] = true;
-                retentively_settled_neurons[member.neuron_index] = member.settled;
-            }
-        }
-        ResidentExperiencePhysicalEvidence::Retained(members) => {
-            for member in members.iter() {
-                retained_change_neurons[member.neuron_index] = true;
-                retentively_settled_neurons[member.neuron_index] = true;
-            }
-        }
-        ResidentExperiencePhysicalEvidence::Legacy { .. } => unreachable!(),
-    }
     Ok(ResidentExperienceEvidence {
         codec: ExperienceEvidenceCodec::V7,
         physical,
         gate_work_perturbed_neurons,
         receptor_excitation_zeptojoules,
-        retained_change_neurons: retained_change_neurons.into_boxed_slice(),
-        retentively_settled_neurons: retentively_settled_neurons.into_boxed_slice(),
         active_electrical_contacts,
         local_relaxation_observed,
     })
@@ -8583,17 +9029,23 @@ fn encode_experience_evidence_v2(
     let (pre_experience_rest, post_experience_rest) = evidence
         .legacy_states()
         .ok_or(FormationError::NoncanonicalState)?;
+    let (retained_change_neurons, retentively_settled_neurons) = evidence
+        .legacy_retention_masks()
+        .ok_or(FormationError::NoncanonicalState)?;
     if !evidence
         .gate_work_perturbed_neurons
         .validates_width(anatomy.neuron_count())
-        || evidence.receptor_excitation_zeptojoules.len() != anatomy.neuron_count()
-        || evidence.retained_change_neurons.len() != anatomy.neuron_count()
-        || evidence.retentively_settled_neurons.len() != anatomy.neuron_count()
-        || evidence.active_electrical_contacts.len() != anatomy.contact_count()
-        || evidence
-            .retentively_settled_neurons
+        || !evidence
+            .receptor_excitation_zeptojoules
+            .validates_width(anatomy.neuron_count())
+        || retained_change_neurons.len() != anatomy.neuron_count()
+        || retentively_settled_neurons.len() != anatomy.neuron_count()
+        || !evidence
+            .active_electrical_contacts
+            .validates_width(anatomy.contact_count())
+        || retentively_settled_neurons
             .iter()
-            .zip(evidence.retained_change_neurons.iter())
+            .zip(retained_change_neurons.iter())
             .any(|(settled, changed)| *settled && !*changed)
     {
         return Err(FormationError::NoncanonicalState);
@@ -8696,31 +9148,27 @@ fn encode_experience_evidence_v2(
         .gate_work_perturbed_neurons
         .encode_dense(&mut encoded, anatomy.neuron_count())?;
     if excitation_layout {
-        encode_optional_exact_slice(&mut encoded, &evidence.receptor_excitation_zeptojoules)?;
+        evidence
+            .receptor_excitation_zeptojoules
+            .encode_dense(&mut encoded, anatomy.neuron_count())?;
     }
     if selective_layout {
-        push_length(&mut encoded, evidence.retained_change_neurons.len())?;
+        push_length(&mut encoded, retained_change_neurons.len())?;
         encoded.extend(
-            evidence
-                .retained_change_neurons
+            retained_change_neurons
                 .iter()
                 .map(|value| u8::from(*value)),
         );
-        push_length(&mut encoded, evidence.retentively_settled_neurons.len())?;
+        push_length(&mut encoded, retentively_settled_neurons.len())?;
         encoded.extend(
-            evidence
-                .retentively_settled_neurons
+            retentively_settled_neurons
                 .iter()
                 .map(|value| u8::from(*value)),
         );
     }
-    push_length(&mut encoded, evidence.active_electrical_contacts.len())?;
-    encoded.extend(
-        evidence
-            .active_electrical_contacts
-            .iter()
-            .map(|value| u8::from(*value)),
-    );
+    evidence
+        .active_electrical_contacts
+        .encode_dense(&mut encoded, anatomy.contact_count())?;
     Ok(encoded)
 }
 
@@ -8878,9 +9326,13 @@ fn decode_experience_evidence_v2(
         anatomy.neuron_count(),
     )?;
     let receptor_excitation_zeptojoules = if excitation_layout {
-        decode_optional_exact_slice(encoded, &mut cursor, anatomy.neuron_count())?
+        SparseResidentExcitations::from_dense(&decode_optional_exact_slice(
+            encoded,
+            &mut cursor,
+            anatomy.neuron_count(),
+        )?)
     } else {
-        vec![None; anatomy.neuron_count()].into_boxed_slice()
+        SparseResidentExcitations::empty()
     };
     let (retained_change_neurons, retentively_settled_neurons) = if selective_layout {
         let changed_count = read_length(encoded, &mut cursor)?;
@@ -8957,11 +9409,11 @@ fn decode_experience_evidence_v2(
     let contact_end = cursor
         .checked_add(contact_count)
         .ok_or(FormationError::ArithmeticOverflow)?;
-    let active_electrical_contacts = decode_bools(
+    let active_electrical_contacts = SparseResidentNeuronMask::from_dense(&decode_bools(
         encoded
             .get(cursor..contact_end)
             .ok_or(FormationError::NoncanonicalState)?,
-    )?;
+    )?);
     if contact_end != encoded.len() {
         return Err(FormationError::NoncanonicalState);
     }
@@ -8970,11 +9422,11 @@ fn decode_experience_evidence_v2(
         physical: ResidentExperiencePhysicalEvidence::Legacy {
             predecessor: pre_experience_rest.into(),
             successor: post_experience_rest.map(Arc::new),
+            retained_change_neurons,
+            retentively_settled_neurons,
         },
         gate_work_perturbed_neurons,
         receptor_excitation_zeptojoules,
-        retained_change_neurons,
-        retentively_settled_neurons,
         active_electrical_contacts,
         local_relaxation_observed,
     })
@@ -9008,17 +9460,21 @@ fn encode_experience_evidence(
     let (pre_experience_rest, post_experience_rest) = evidence
         .legacy_states()
         .ok_or(FormationError::NoncanonicalState)?;
+    let (retained_change_neurons, retentively_settled_neurons) = evidence
+        .legacy_retention_masks()
+        .ok_or(FormationError::NoncanonicalState)?;
     if !evidence
         .gate_work_perturbed_neurons
         .validates_width(anatomy.neuron_count())
-        || evidence.receptor_excitation_zeptojoules.len() != anatomy.neuron_count()
-        || evidence
+        || !evidence
             .receptor_excitation_zeptojoules
-            .iter()
-            .any(Option::is_some)
-        || evidence.retained_change_neurons.len() != anatomy.neuron_count()
-        || evidence.retentively_settled_neurons.len() != anatomy.neuron_count()
-        || evidence.active_electrical_contacts.len() != anatomy.contact_count()
+            .validates_width(anatomy.neuron_count())
+        || !evidence.receptor_excitation_zeptojoules.is_empty()
+        || retained_change_neurons.len() != anatomy.neuron_count()
+        || retentively_settled_neurons.len() != anatomy.neuron_count()
+        || !evidence
+            .active_electrical_contacts
+            .validates_width(anatomy.contact_count())
         || evidence.local_relaxation_observed
     {
         return Err(FormationError::NoncanonicalState);
@@ -9042,7 +9498,7 @@ fn encode_experience_evidence(
         .and_then(|value| value.checked_add(8))
         .and_then(|value| value.checked_add(anatomy.neuron_count()))
         .and_then(|value| value.checked_add(8))
-        .and_then(|value| value.checked_add(evidence.active_electrical_contacts.len()))
+        .and_then(|value| value.checked_add(anatomy.contact_count()))
         .ok_or(FormationError::ArithmeticOverflow)?;
     let mut encoded = Vec::with_capacity(length);
     encoded.extend_from_slice(EXPERIENCE_MAGIC);
@@ -9056,13 +9512,9 @@ fn encode_experience_evidence(
     evidence
         .gate_work_perturbed_neurons
         .encode_dense(&mut encoded, anatomy.neuron_count())?;
-    push_length(&mut encoded, evidence.active_electrical_contacts.len())?;
-    encoded.extend(
-        evidence
-            .active_electrical_contacts
-            .iter()
-            .map(|value| u8::from(*value)),
-    );
+    evidence
+        .active_electrical_contacts
+        .encode_dense(&mut encoded, anatomy.contact_count())?;
     Ok(encoded)
 }
 
@@ -9113,6 +9565,9 @@ fn decode_optional_experience_evidence(
                     let (predecessor, post) = evidence
                         .legacy_states()
                         .ok_or(FormationError::NoncanonicalState)?;
+                    let (_, retentively_settled_neurons) = evidence
+                        .legacy_retention_masks()
+                        .ok_or(FormationError::NoncanonicalState)?;
                     let post = post.ok_or(FormationError::NoncanonicalState)?;
                     predecessor
                         .neurons()
@@ -9120,7 +9575,7 @@ fn decode_optional_experience_evidence(
                         .zip(post.neurons())
                         .enumerate()
                         .try_fold(0usize, |count, (neuron_index, (prior, successor))| {
-                            let changed = evidence.retentively_settled_neurons[neuron_index]
+                            let changed = retentively_settled_neurons[neuron_index]
                                 && sparse_retained_physical_state_delta(prior, successor)
                                     .map_err(|error| {
                                         FormationError::PhysicalSettlementUnavailable(
@@ -9209,11 +9664,11 @@ fn decode_experience_evidence(
     let contact_end = cursor
         .checked_add(contact_count)
         .ok_or(FormationError::ArithmeticOverflow)?;
-    let active_electrical_contacts = decode_bools(
+    let active_electrical_contacts = SparseResidentNeuronMask::from_dense(&decode_bools(
         encoded
             .get(cursor..contact_end)
             .ok_or(FormationError::NoncanonicalState)?,
-    )?;
+    )?);
     if contact_end != encoded.len() {
         return Err(FormationError::NoncanonicalState);
     }
@@ -9248,11 +9703,11 @@ fn decode_experience_evidence(
         physical: ResidentExperiencePhysicalEvidence::Legacy {
             predecessor: pre_experience_rest.into(),
             successor: post_experience_rest.map(Arc::new),
+            retained_change_neurons: retained_change_neurons.into_boxed_slice(),
+            retentively_settled_neurons: retentively_settled_neurons.into_boxed_slice(),
         },
         gate_work_perturbed_neurons,
-        receptor_excitation_zeptojoules: vec![None; anatomy.neuron_count()].into_boxed_slice(),
-        retained_change_neurons: retained_change_neurons.into_boxed_slice(),
-        retentively_settled_neurons: retentively_settled_neurons.into_boxed_slice(),
+        receptor_excitation_zeptojoules: SparseResidentExcitations::empty(),
         active_electrical_contacts,
         local_relaxation_observed: false,
     })
@@ -9267,17 +9722,16 @@ fn encode_recurrence_evidence(
     if !evidence
         .gate_work_perturbed_neurons
         .validates_width(neuron_count)
-        || evidence.receptor_excitation_zeptojoules.len() != neuron_count
-        || evidence.physically_changed_neurons.len() != neuron_count
-        || evidence.active_recurrence_contacts.len() != contact_count
+        || !evidence
+            .receptor_excitation_zeptojoules
+            .validates_width(neuron_count)
+        || !evidence.physically_changed_neurons.validates_width(neuron_count)
+        || !evidence.active_recurrence_contacts.validates_width(contact_count)
         || evidence.gate_work_perturbed_neurons.is_empty()
     {
         return Err(FormationError::NoncanonicalState);
     }
-    let excitation_layout = evidence
-        .receptor_excitation_zeptojoules
-        .iter()
-        .any(Option::is_some);
+    let excitation_layout = !evidence.receptor_excitation_zeptojoules.is_empty();
     let mut encoded = Vec::new();
     encoded.extend_from_slice(if evidence.endogenous && excitation_layout {
         ENDOGENOUS_EXCITATION_RECURRENCE_MAGIC
@@ -9296,12 +9750,18 @@ fn encode_recurrence_evidence(
         .gate_work_perturbed_neurons
         .encode_dense(&mut encoded, neuron_count)?;
     if excitation_layout {
-        encode_optional_exact_slice(&mut encoded, &evidence.receptor_excitation_zeptojoules)?;
+        evidence
+            .receptor_excitation_zeptojoules
+            .encode_dense(&mut encoded, neuron_count)?;
     }
     if evidence.carries_physical_change_codec {
-        encode_bool_slice(&mut encoded, &evidence.physically_changed_neurons)?;
+        evidence
+            .physically_changed_neurons
+            .encode_dense(&mut encoded, neuron_count)?;
     }
-    encode_bool_slice(&mut encoded, &evidence.active_recurrence_contacts)?;
+    evidence
+        .active_recurrence_contacts
+        .encode_dense(&mut encoded, contact_count)?;
     Ok(encoded)
 }
 
@@ -9339,17 +9799,26 @@ fn decode_recurrence_evidence(
         anatomy.neuron_count(),
     )?;
     let receptor_excitation_zeptojoules = if excitation_layout {
-        decode_optional_exact_slice(encoded, &mut cursor, anatomy.neuron_count())?
+        SparseResidentExcitations::from_dense(&decode_optional_exact_slice(
+            encoded,
+            &mut cursor,
+            anatomy.neuron_count(),
+        )?)
     } else {
-        vec![None; anatomy.neuron_count()].into_boxed_slice()
+        SparseResidentExcitations::empty()
     };
     let physically_changed_neurons = if carries_physical_change {
-        decode_bool_slice(encoded, &mut cursor, anatomy.neuron_count())?
+        SparseResidentNeuronMask::from_dense(&decode_bool_slice(
+            encoded,
+            &mut cursor,
+            anatomy.neuron_count(),
+        )?)
     } else {
-        vec![false; anatomy.neuron_count()].into_boxed_slice()
+        SparseResidentNeuronMask::empty()
     };
-    let active_recurrence_contacts =
-        decode_bool_slice(encoded, &mut cursor, anatomy.contact_count())?;
+    let active_recurrence_contacts = SparseResidentNeuronMask::from_dense(
+        &decode_bool_slice(encoded, &mut cursor, anatomy.contact_count())?,
+    );
     if cursor != encoded.len() || gate_work_perturbed_neurons.is_empty() {
         return Err(FormationError::NoncanonicalState);
     }
@@ -9394,12 +9863,6 @@ fn decode_optional_recurrence_evidence(
     }
 }
 
-fn encode_bool_slice(encoded: &mut Vec<u8>, values: &[bool]) -> Result<(), FormationError> {
-    push_length(encoded, values.len())?;
-    encoded.extend(values.iter().map(|value| u8::from(*value)));
-    Ok(())
-}
-
 fn decode_bool_slice(
     encoded: &[u8],
     cursor: &mut usize,
@@ -9419,25 +9882,6 @@ fn decode_bool_slice(
     )?;
     *cursor = end;
     Ok(values)
-}
-
-fn encode_optional_exact_slice(
-    encoded: &mut Vec<u8>,
-    values: &[Option<ExactRational>],
-) -> Result<(), FormationError> {
-    push_length(encoded, values.len())?;
-    for value in values {
-        match value {
-            None => encoded.push(0),
-            Some(value) => {
-                encoded.push(1);
-                let (numerator, denominator) = value.parts();
-                encoded.extend_from_slice(&numerator.to_le_bytes());
-                encoded.extend_from_slice(&denominator.to_le_bytes());
-            }
-        }
-    }
-    Ok(())
 }
 
 fn decode_optional_exact_slice(
@@ -9502,6 +9946,20 @@ fn push_length(encoded: &mut Vec<u8>, value: usize) -> Result<(), FormationError
             .to_le_bytes(),
     );
     Ok(())
+}
+
+fn ensure_cognitive_output_budget(
+    encoded: &[u8],
+    max_encoded_bytes: usize,
+) -> Result<(), FormationError> {
+    if encoded.len() > max_encoded_bytes {
+        Err(FormationError::BudgetExceeded {
+            required: encoded.len(),
+            available: max_encoded_bytes,
+        })
+    } else {
+        Ok(())
+    }
 }
 
 fn read_length(bytes: &[u8], cursor: &mut usize) -> Result<usize, FormationError> {
@@ -9643,16 +10101,23 @@ fn claim_resting_or_allocate_lineage(
     let place = DeclaredNeuronPlace::from_source_site(source_site);
     if let Some(population) = resting_population.as_ref() {
         if let Some(offset) = population.population_offset(place) {
-            let (successor, materialized) = population
-                .claim(offset)
-                .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
-            let lineage = local_lineage_from_ordinal(materialized.lineage_ordinal)?;
-            *resting_population = Some(successor);
-            return Ok(ReachedLineageAdmission {
-                lineage,
-                claimed_resting_neuron: Some(materialized),
-            });
+            if population.materialized_lineage_ordinal(place).is_none() {
+                let (successor, materialized) = population
+                    .claim(offset)
+                    .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?;
+                let lineage = local_lineage_from_ordinal(materialized.lineage_ordinal)?;
+                *resting_population = Some(successor);
+                return Ok(ReachedLineageAdmission {
+                    lineage,
+                    claimed_resting_neuron: Some(materialized),
+                });
+            }
         }
+        *resting_population = Some(
+            population
+                .admit_one_external_growth_unit()
+                .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?,
+        );
     }
     Ok(ReachedLineageAdmission {
         lineage: allocate_local_lineage(next_lineage_ordinal)?,
@@ -10189,6 +10654,17 @@ fn mount_reached_affective_reach(
     Ok(())
 }
 
+fn canonical_lineage_pair(
+    left: [u8; 16],
+    right: [u8; 16],
+) -> ([u8; 16], [u8; 16]) {
+    if left < right {
+        (left, right)
+    } else {
+        (right, left)
+    }
+}
+
 /// Retain one physically delayed ordering route for each active sparse bond
 /// that carried a transition directly between association material and
 /// retained or affective material.  A contact transition, rather than two
@@ -10292,6 +10768,15 @@ fn mount_reached_ordering_reach(
                 .push(candidate);
         }
     }
+    let mut existing_contacts = electrical_fabric
+        .contact_endpoints()
+        .map(|(left, right)| {
+            canonical_lineage_pair(
+                electrical_fabric.lineages()[left],
+                electrical_fabric.lineages()[right],
+            )
+        })
+        .collect::<BTreeSet<_>>();
 
     for participants in active_routes {
         let matching = matching_by_participants
@@ -10309,7 +10794,8 @@ fn mount_reached_ordering_reach(
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         for participant in participants {
-            if !electrical_fabric.contains_contact(participant, ordering_lineage) {
+            let pair = canonical_lineage_pair(participant, ordering_lineage);
+            if !existing_contacts.contains(&pair) {
                 *electrical_fabric = electrical_fabric
                     .append_contact(
                         participant,
@@ -10317,6 +10803,7 @@ fn mount_reached_ordering_reach(
                         ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                     )
                     .map_err(FormationError::ResidentElectricalUnavailable)?;
+                existing_contacts.insert(pair);
             }
         }
     }
@@ -10324,74 +10811,16 @@ fn mount_reached_ordering_reach(
 }
 
 /// Materialize one motor/effector route per reached body-regulation lineage
-/// when that lineage and already-existing delayed-ordering material both
-/// physically change in the same organism interval.  The new layer-12 cell is
+/// when that lineage and delayed-ordering material on its own mounted
+/// layer-8 -> layer-10 -> layer-11 path both physically change in the same
+/// organism interval. Global coincidence is not a physical connection and
+/// cannot author an all-to-all motor pool. The new layer-12 cell is
 /// mounted after settlement, so it cannot move the body during the interval
 /// that creates it.  Keeping each local body-regulation lineage in its own
 /// motor pool preserves the receptor's explicit antagonist pairing; merging
 /// several body sites would create anatomically ambiguous action.  No action
 /// name, target pose, score, readiness projection, or scripted command enters
 /// the neuron.  Reaching the same physical participants reuses the same route.
-fn effector_terminal_paired_with_body_regulation(
-    regulation: [u8; 16],
-    mounted: &[([u8; 16], ReachedNeuronMount)],
-    electrical_fabric: &ResidentElectricalFabric,
-) -> Result<Option<BodyEffectorTerminal>, FormationError> {
-    let mount_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
-    };
-    if mount_of(regulation)?.place().layer() != 8 {
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    }
-    let neighbours_of = |lineage: [u8; 16]| {
-        electrical_fabric
-            .contact_endpoints()
-            .filter_map(|(left, right)| {
-                let left_lineage = electrical_fabric.lineages()[left];
-                let right_lineage = electrical_fabric.lineages()[right];
-                if left_lineage == lineage {
-                    Some(right_lineage)
-                } else if right_lineage == lineage {
-                    Some(left_lineage)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>()
-    };
-    let mut integrations = neighbours_of(regulation)
-        .into_iter()
-        .filter(|lineage| {
-            mount_of(*lineage)
-                .map(|mount| mount.place().layer() == 6)
-                .unwrap_or(false)
-        })
-        .collect::<Vec<_>>();
-    integrations.sort_unstable();
-    integrations.dedup();
-    let [integration] = integrations.as_slice() else {
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    };
-    let mut terminals = neighbours_of(*integration)
-        .into_iter()
-        .filter_map(|lineage| mount_of(lineage).ok()?.source_site())
-        .filter_map(NeuronSourceSite::body_proprioceptor_terminal)
-        .map(|terminal| terminal.paired_effector())
-        .collect::<Vec<_>>();
-    terminals.sort_unstable();
-    terminals.dedup();
-    let terminal = match terminals.as_slice() {
-        [] => None,
-        [terminal] => Some(*terminal),
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-    };
-    Ok(terminal)
-}
-
 fn mount_reached_motor_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -10410,13 +10839,44 @@ fn mount_reached_motor_effector(
         })
         .map(|(mount, lineage)| (*lineage, mount.clone()))
         .collect::<Vec<_>>();
+    let mounts_by_lineage = mounted
+        .iter()
+        .map(|(lineage, mount)| (*lineage, mount))
+        .collect::<BTreeMap<_, _>>();
+    let layer_by_lineage = mounted
+        .iter()
+        .map(|(lineage, mount)| (*lineage, mount.place().layer()))
+        .collect::<BTreeMap<_, _>>();
+    let mut neighbours_by_lineage = mounted
+        .iter()
+        .map(|(lineage, _)| (*lineage, Vec::<[u8; 16]>::new()))
+        .collect::<BTreeMap<_, _>>();
+    let mut existing_contacts = BTreeSet::new();
+    for (left, right) in electrical_fabric.contact_endpoints() {
+        let left_lineage = electrical_fabric.lineages()[left];
+        let right_lineage = electrical_fabric.lineages()[right];
+        neighbours_by_lineage
+            .get_mut(&left_lineage)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .push(right_lineage);
+        neighbours_by_lineage
+            .get_mut(&right_lineage)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .push(left_lineage);
+        existing_contacts.insert(canonical_lineage_pair(left_lineage, right_lineage));
+    }
+    for neighbours in neighbours_by_lineage.values_mut() {
+        neighbours.sort_unstable();
+        neighbours.dedup();
+    }
     let mut body_regulation = Vec::new();
     let mut ordering = Vec::new();
     for lineage in physically_transitioned_lineages {
-        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
-        };
-        match mount.place().layer() {
+        let layer = layer_by_lineage
+            .get(lineage)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        match layer {
             8 if !body_regulation.contains(lineage) => body_regulation.push(*lineage),
             11 if !ordering.contains(lineage) => ordering.push(*lineage),
             _ => {}
@@ -10430,53 +10890,86 @@ fn mount_reached_motor_effector(
     ordering.sort_unstable();
     ordering.dedup();
 
-    let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
-    };
-    for regulation in body_regulation {
-        let Some(effector_terminal) = effector_terminal_paired_with_body_regulation(
-            regulation,
-            &mounted,
-            electrical_fabric,
-        )? else {
+    let mut matching_by_participants = BTreeMap::<Vec<[u8; 16]>, Vec<[u8; 16]>>::new();
+    for (candidate, mount) in &mounted {
+        if mount.source_site().is_some() || mount.place().layer() != 12 {
             continue;
+        }
+        let participants = neighbours_by_lineage
+            .get(candidate)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .iter()
+            .copied()
+            .filter(|lineage| {
+                matches!(layer_by_lineage.get(lineage).copied(), Some(8 | 11))
+            })
+            .collect::<Vec<_>>();
+        matching_by_participants
+            .entry(participants)
+            .or_default()
+            .push(*candidate);
+    }
+    for regulation in body_regulation {
+        let regulation_neighbours = neighbours_by_lineage
+            .get(&regulation)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let integrations = regulation_neighbours
+            .iter()
+            .copied()
+            .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(6))
+            .collect::<Vec<_>>();
+        let [integration] = integrations.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
         };
-        let mut participants = vec![regulation];
-        participants.extend(ordering.iter().copied());
+        let mut terminals = neighbours_by_lineage
+            .get(integration)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .iter()
+            .filter_map(|lineage| mounts_by_lineage.get(lineage)?.source_site())
+            .filter_map(NeuronSourceSite::body_proprioceptor_terminal)
+            .map(|terminal| terminal.paired_effector())
+            .collect::<Vec<_>>();
+        terminals.sort_unstable();
+        terminals.dedup();
+        let effector_terminal = match terminals.as_slice() {
+            [] => continue,
+            [terminal] => *terminal,
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+        };
+        if layer_by_lineage.get(&regulation).copied() != Some(8) {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        let local_affective = regulation_neighbours
+            .iter()
+            .copied()
+            .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(10))
+            .collect::<BTreeSet<_>>();
+        let local_ordering = ordering
+            .iter()
+            .copied()
+            .filter(|lineage| {
+                neighbours_by_lineage
+                    .get(lineage)
+                    .is_some_and(|neighbours| {
+                        neighbours
+                            .iter()
+                            .any(|neighbour| local_affective.contains(neighbour))
+                    })
+            })
+            .collect::<Vec<_>>();
+        if local_ordering.is_empty() {
+            continue;
+        }
+        let mut participants = Vec::with_capacity(local_ordering.len() + 1);
+        participants.push(regulation);
+        participants.extend(local_ordering);
         participants.sort_unstable();
         participants.dedup();
 
-        let mut matching = Vec::new();
-        for (candidate, _) in mounted
-            .iter()
-            .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 12)
-        {
-            let mut neighbours = Vec::new();
-            for (left, right) in electrical_fabric.contact_endpoints() {
-                let left_lineage = electrical_fabric.lineages()[left];
-                let right_lineage = electrical_fabric.lineages()[right];
-                let neighbour = if left_lineage == *candidate {
-                    Some(right_lineage)
-                } else if right_lineage == *candidate {
-                    Some(left_lineage)
-                } else {
-                    None
-                };
-                if let Some(neighbour) = neighbour {
-                    if matches!(layer_of(neighbour), Some(8) | Some(11)) {
-                        neighbours.push(neighbour);
-                    }
-                }
-            }
-            neighbours.sort_unstable();
-            neighbours.dedup();
-            if neighbours == participants {
-                matching.push(*candidate);
-            }
-        }
+        let matching = matching_by_participants
+            .get(&participants)
+            .cloned()
+            .unwrap_or_default();
         let motor_lineage = match matching.as_slice() {
             [lineage] => *lineage,
             [] => mount_next_intrinsic_in_layer(
@@ -10489,27 +10982,25 @@ fn mount_reached_motor_effector(
         };
         let motor_cohort = cohorts
             .iter_mut()
-            .find(|cohort| {
-                cohort
-                    .anatomy
-                    .neuron_lineages()
-                    .contains(&motor_lineage)
-            })
+            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&motor_lineage))
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
         motor_cohort
             .anatomy
             .specialize_motor_effector(motor_lineage, effector_terminal)
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
         for participant in participants {
-            if !electrical_fabric.contains_contact(participant, motor_lineage) {
-                *electrical_fabric = electrical_fabric
-                    .append_contact(
-                        participant,
-                        motor_lineage,
-                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                    )
-                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+            let pair = canonical_lineage_pair(participant, motor_lineage);
+            if existing_contacts.contains(&pair) {
+                continue;
             }
+            *electrical_fabric = electrical_fabric
+                .append_contact(
+                    participant,
+                    motor_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+            existing_contacts.insert(pair);
         }
     }
     mount_reached_articulatory_effector(
@@ -11110,10 +11601,8 @@ impl ResidentTopologyIndex {
             .iter()
             .copied()
             .map(|lineage| self.flat_for_lineage(lineage))
-            .collect::<Result<Vec<_>, _>>()?;
-        selected.sort_unstable();
-        selected.dedup();
-        let seeds = selected.clone();
+            .collect::<Result<BTreeSet<_>, _>>()?;
+        let seeds = selected.iter().copied().collect::<Vec<_>>();
         for flat in seeds {
             for contact_index in self
                 .incident_contacts_by_flat
@@ -11127,27 +11616,25 @@ impl ResidentTopologyIndex {
                     .get(contact_index)
                     .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
                 for endpoint in [contact.left, contact.right] {
-                    if let Err(position) = selected.binary_search(&endpoint) {
-                        selected.insert(position, endpoint);
-                    }
+                    selected.insert(endpoint);
                 }
             }
         }
-        let mut selected_contacts = Vec::new();
+        let mut selected_contacts = BTreeSet::new();
         for flat in selected.iter().copied() {
             for contact_index in self.incident_contacts_by_flat[flat].iter().copied() {
                 let contact = self.contacts[contact_index];
-                if selected.binary_search(&contact.left).is_err()
-                    || selected.binary_search(&contact.right).is_err()
+                if !selected.contains(&contact.left) || !selected.contains(&contact.right)
                 {
                     continue;
                 }
-                if let Err(position) = selected_contacts.binary_search(&contact_index) {
-                    selected_contacts.insert(position, contact_index);
-                }
+                selected_contacts.insert(contact_index);
             }
         }
-        Ok((selected, selected_contacts))
+        Ok((
+            selected.into_iter().collect(),
+            selected_contacts.into_iter().collect(),
+        ))
     }
 }
 
@@ -11473,6 +11960,12 @@ fn settle_internal_contact_interval(
             transition_predecessors: Vec::new(),
         });
     }
+    let mut selected_cohort_indices = selected
+        .iter()
+        .map(|flat| flat_locations[*flat].0)
+        .collect::<Vec<_>>();
+    selected_cohort_indices.sort_unstable();
+    selected_cohort_indices.dedup();
     let mut compact_contacts = Vec::new();
     let mut compact_states = Vec::new();
     let mut compact_origins = Vec::new();
@@ -11528,43 +12021,42 @@ fn settle_internal_contact_interval(
     // frontier before contact current is evaluated. This lets an intrinsic
     // neuron replenish its finite carrier gradient without polling or
     // recovering any unrelated neuron or dissipation lane.
-    let selected_predecessor_neurons = cohorts
-        .iter()
-        .enumerate()
-        .map(|(cohort_index, cohort)| {
-            selected
-                .iter()
-                .filter_map(|flat| {
-                    let (resident_cohort, neuron_index, _) = flat_locations[*flat];
-                    (resident_cohort == cohort_index)
-                        .then(|| (neuron_index, cohort.state.neurons()[neuron_index].clone()))
-                })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-    let cohort_interval_predecessors = cohorts
-        .iter()
-        .map(|cohort| cohort.state.clone())
-        .collect::<Vec<_>>();
+    // The causal frontier is sparse.  Keep predecessor custody only for the
+    // cohorts that this interval actually reaches.  The former population-
+    // width maps cloned every cohort state (including retained evidence) for
+    // one local contact interval and were the direct mature-body memory blowup.
+    let mut selected_predecessor_neurons = std::iter::repeat_with(|| None)
+        .take(cohorts.len())
+        .collect::<Vec<Option<Vec<(usize, NeuronPhysicalState)>>>>();
+    for flat in &selected {
+        let (cohort_index, neuron_index, _) = flat_locations[*flat];
+        selected_predecessor_neurons[cohort_index]
+            .get_or_insert_with(Vec::new)
+            .push((
+                neuron_index,
+                cohorts[cohort_index].state.neurons()[neuron_index].clone(),
+            ));
+    }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     let mut metabolically_perturbed_body_receptor_lineages = Vec::new();
     let mut reached_layer_ten_gradient_settlements = Vec::new();
     let mut localized_fluid_chemistry = Vec::new();
-    for cohort_index in 0..cohorts.len() {
-        let reached_indices = selected_predecessor_neurons[cohort_index]
+    for cohort_index in selected_cohort_indices.iter().copied() {
+        let reached_predecessors = selected_predecessor_neurons[cohort_index]
+            .as_ref()
+            .ok_or(FormationError::NoncanonicalState)?;
+        let reached_indices = reached_predecessors
             .iter()
             .map(|(neuron_index, _)| *neuron_index)
             .collect::<Vec<_>>();
-        if reached_indices.is_empty() {
-            continue;
-        }
-        let (successor, metabolic) = settle_reached_cohort_membrane_pumps(
+        let metabolic = settle_reached_cohort_membrane_pumps_in_place(
             &cohorts[cohort_index].anatomy,
-            &cohorts[cohort_index].state,
+            Arc::make_mut(&mut cohorts[cohort_index].state),
             &reached_indices,
             interval_microseconds,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let successor = cohorts[cohort_index].state.clone();
         if cohorts[cohort_index].anatomy.neuron_count() == 1
             && reached_indices.as_slice() == [0]
             && cohorts[cohort_index].anatomy.mounts()[0].place().layer() == 10
@@ -11620,7 +12112,7 @@ fn settle_internal_contact_interval(
                 membrane_gradient_work_zeptojoules,
             });
         }
-        for (neuron_index, predecessor) in &selected_predecessor_neurons[cohort_index] {
+        for (neuron_index, predecessor) in reached_predecessors {
             let mount = &cohorts[cohort_index].anatomy.mounts()[*neuron_index];
             if mount.source_site().is_some()
                 && mount.place().layer() == 5
@@ -11905,13 +12397,20 @@ fn settle_internal_contact_interval(
         return Err(FormationError::NoncanonicalState);
     }
 
-    let mut local_successors = cohorts
-        .iter()
-        .map(|cohort| cohort.state.electrical().contact_states().to_vec())
-        .collect::<Vec<_>>();
-    let mut local_transitions = cohorts
-        .iter()
-        .map(|cohort| {
+    // Local contact successors are prepared only for reached cohorts.  The
+    // former population-width construction copied every local contact state
+    // and allocated one neuron-width outward array for every unrelated cohort.
+    let mut local_successors = std::iter::repeat_with(|| None)
+        .take(cohorts.len())
+        .collect::<Vec<Option<Vec<ElectricalContactState>>>>();
+    let mut local_transitions = std::iter::repeat_with(|| None)
+        .take(cohorts.len())
+        .collect::<Vec<Option<Vec<ElectricalContactTransition>>>>();
+    for cohort_index in selected_cohort_indices.iter().copied() {
+        let cohort = &cohorts[cohort_index];
+        local_successors[cohort_index] =
+            Some(cohort.state.electrical().contact_states().to_vec());
+        local_transitions[cohort_index] = Some(
             cohort
                 .state
                 .electrical()
@@ -11926,13 +12425,9 @@ fn settle_internal_contact_interval(
                     exported_heat_zeptojoules: BigRational::zero(),
                     conductance_changed: false,
                 })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-    let mut local_outward = cohorts
-        .iter()
-        .map(|cohort| vec![0_i128; cohort.anatomy.neuron_count()])
-        .collect::<Vec<_>>();
+                .collect::<Vec<_>>(),
+        );
+    }
     let mut fabric_states = electrical_fabric.state().contact_states().to_vec();
     for (origin, transition) in compact_origins
         .iter()
@@ -11946,15 +12441,15 @@ fn settle_internal_contact_interval(
                 left_member,
                 right_member,
             } => {
-                local_successors[cohort_index][contact_index] = transition.successor.clone();
-                local_transitions[cohort_index][contact_index] = transition.clone();
-                local_outward[cohort_index][left_member] = local_outward[cohort_index][left_member]
-                    .checked_add(transition.outward_elementary_charges_from_left)
-                    .ok_or(FormationError::ArithmeticOverflow)?;
-                local_outward[cohort_index][right_member] = local_outward[cohort_index]
-                    [right_member]
-                    .checked_sub(transition.outward_elementary_charges_from_left)
-                    .ok_or(FormationError::ArithmeticOverflow)?;
+                let successors = local_successors[cohort_index]
+                    .as_mut()
+                    .ok_or(FormationError::NoncanonicalState)?;
+                let transitions = local_transitions[cohort_index]
+                    .as_mut()
+                    .ok_or(FormationError::NoncanonicalState)?;
+                successors[contact_index] = transition.successor.clone();
+                transitions[contact_index] = transition.clone();
+                let _ = (left_member, right_member);
             }
             ResidentContactOrigin::Fabric { contact_index } => {
                 fabric_states[contact_index] = transition.successor;
@@ -12033,7 +12528,7 @@ fn settle_internal_contact_interval(
     // causal order or allowing one cohort to observe another's mutation.
     // Indexed collection preserves cohort order for the evidence merge below.
     let cohort_results = cohorts
-        .par_iter_mut()
+        .iter_mut()
         .enumerate()
         .map(
             |(cohort_index, cohort)| -> Result<
@@ -12072,6 +12567,8 @@ fn settle_internal_contact_interval(
             );
         }
         let comparison_predecessors = selected_predecessor_neurons[cohort_index]
+            .as_ref()
+            .ok_or(FormationError::NoncanonicalState)?
             .iter()
             .map(|(neuron_index, predecessor)| {
                         let (extended_anatomy, extended_predecessor) =
@@ -12091,18 +12588,14 @@ fn settle_internal_contact_interval(
                 Ok((*neuron_index, extended_anatomy, extended_predecessor))
             })
             .collect::<Result<Vec<_>, FormationError>>()?;
-        let predecessor_anatomy = cohort.anatomy.clone();
-        let (extended_predecessor_anatomy, interval_predecessor_state) =
-            extend_reached_cohort_positional_fabrics(
-                &predecessor_anatomy,
-                &cohort_interval_predecessors[cohort_index],
-                &required_positions,
-            )
-            .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let interval_predecessor_state = Arc::new(interval_predecessor_state);
-        extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
-        if extended_predecessor_anatomy != cohort.anatomy {
-            return Err(FormationError::NoncanonicalState);
+        let positional_growth = cohort
+            .anatomy
+            .neuron_anatomies()
+            .iter()
+            .zip(&required_positions)
+            .any(|(anatomy, required)| *required > anatomy.mathloom_positions());
+        if positional_growth {
+            extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
         }
         for (neuron_index, extended_anatomy, _) in &comparison_predecessors {
             if extended_anatomy != &cohort.anatomy.neuron_anatomies()[*neuron_index] {
@@ -12131,7 +12624,6 @@ fn settle_internal_contact_interval(
                         settled.outward_elementary_charges_by_neuron[*coordinate]
                     })
             .collect::<Vec<_>>();
-        let mut settlement_predecessor = cohort.state.clone();
         let mut inputs = Vec::with_capacity(selected_members.len());
         let mut pending_layer_ten_plasticity = Vec::new();
         for (reached_input_index, (coordinate, neuron_index)) in
@@ -12141,7 +12633,7 @@ fn settle_internal_contact_interval(
                 .map_err(FormationError::JointFieldUnavailable)?;
             let prepared_psi = cohort.anatomy.neuron_anatomies()[neuron_index]
                 .prepare_psi_settlement(
-                    &settlement_predecessor.neurons()[neuron_index],
+                    &cohort.state.neurons()[neuron_index],
                     perspective,
                 )
                 .map_err(|error| {
@@ -12180,12 +12672,12 @@ fn settle_internal_contact_interval(
                 && gradient_changed
                 && convergent_activity.is_some()
             {
-                let predecessor_neuron = &settlement_predecessor.neurons()[neuron_index];
+                let predecessor_neuron = &cohort.state.neurons()[neuron_index];
                 let incident_catalyst_quanta = convergent_activity
                     .ok_or(FormationError::ArithmeticOverflow)?;
                 let energetic = settle_contact_modulated_gate_energy(
                     &cohort.anatomy,
-                    &settlement_predecessor,
+                    &cohort.state,
                     neuron_index,
                     incident_catalyst_quanta,
                 )
@@ -12225,7 +12717,7 @@ fn settle_internal_contact_interval(
                     predecessor_reservoir: energetic.predecessor_reservoir,
                     successor_reservoir: energetic.successor_reservoir,
                 });
-                settlement_predecessor = energetic.successor.into();
+                cohort.state = energetic.successor.into();
                 (delivery.gate_work, Some(delivery.successor_residue))
             } else {
                 (GateWorkOccurrence::new(BigRational::zero()), None)
@@ -12314,15 +12806,21 @@ fn settle_internal_contact_interval(
             .collect::<Vec<_>>();
         let local_successor = SparseElectricalState::from_contact_states(
             cohort.anatomy.electrical_anatomy(),
-            local_successors[cohort_index].clone(),
+            local_successors[cohort_index]
+                .take()
+                .ok_or(FormationError::NoncanonicalState)?
         )
         .map_err(FormationError::ResidentElectricalUnavailable)?;
         let precomputed_local = SparseElectricalTransferSettlement {
             successor_contacts: local_successor,
-            transitions: local_transitions[cohort_index].clone().into_boxed_slice(),
-            outward_elementary_charges_by_neuron: local_outward[cohort_index]
-                .clone()
+            transitions: local_transitions[cohort_index]
+                .take()
+                .ok_or(FormationError::NoncanonicalState)?
                 .into_boxed_slice(),
+            // The one coupled fabric solve already supplied the reached-only
+            // `combined_outward` values below.  A second cohort-width outward
+            // vector was redundant and is deliberately absent.
+            outward_elementary_charges_by_neuron: Box::new([]),
         };
                 let input =
                     ReachedCohortIntervalInput::from_resident_indices_with_precomputed_contacts(
@@ -12338,76 +12836,69 @@ fn settle_internal_contact_interval(
         // the same pending local physical experience and may emit only after
         // a later exact neuron-local quiescent interval. Cross-cohort current
         // therefore cannot bypass the post-quiescence fractal law.
-                let settlement =
-                    settle_reached_cohort_interval(
-                        &cohort.anatomy,
-                        &settlement_predecessor,
-                        input,
+                let settlement = settle_reached_cohort_interval_precomputed_in_place(
+                    &cohort.anatomy,
+                    Arc::make_mut(&mut cohort.state),
+                    input,
+                )
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let settlement_successor = cohort.state.clone();
+        let mut retained_change_indices = Vec::new();
+        for (neuron_index, _, predecessor) in &comparison_predecessors {
+            if sparse_retained_physical_state_delta(
+                    predecessor,
+                    &settlement_successor.neurons()[*neuron_index],
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(
+                        ReachedCohortError::Neuron {
+                            neuron_index: *neuron_index,
+                            error,
+                        },
                     )
-        .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let settlement_successor = Arc::new(settlement.successor);
-        let retained_change_this_interval = interval_predecessor_state
-            .neurons()
+                })?
+                .is_some()
+            {
+                retained_change_indices.push(*neuron_index);
+            }
+        }
+        let retained_change_this_interval = SparseResidentNeuronMask::from_indices(
+            retained_change_indices,
+            cohort.anatomy.neuron_count(),
+        )?;
+        let retained_predecessor_members = comparison_predecessors
             .iter()
-            .zip(settlement_successor.neurons())
-            .enumerate()
-            .map(|(neuron_index, (predecessor, successor))| {
-                sparse_retained_physical_state_delta(predecessor, successor)
-                    .map(|delta| delta.is_some())
-                    .map_err(|error| {
-                        FormationError::PhysicalSettlementUnavailable(
-                            ReachedCohortError::Neuron {
-                                neuron_index,
-                                error,
-                            },
-                        )
-                    })
+            .filter_map(|(neuron_index, _, predecessor)| {
+                retained_change_this_interval
+                    .contains(*neuron_index)
+                    .then_some((*neuron_index, predecessor))
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Vec<_>>();
                 let active_electrical_contacts =
                     active_contact_bits(&settlement.contact_transitions);
         let mut cohort_fractals = Vec::new();
         if cohort.retained_experience.is_none() {
             let experience_preceded_interval = cohort.pending_experience.is_some();
             let mut experience = cohort.pending_experience.take();
-            if experience.is_none()
-                && retained_change_this_interval
-                    .iter()
-                    .any(|changed| *changed)
-            {
+            if experience.is_none() && !retained_change_this_interval.is_empty() {
                 experience = Some(ResidentExperienceEvidence {
                     codec: ExperienceEvidenceCodec::V7,
                     physical: ResidentExperiencePhysicalEvidence::Pending(Box::new([])),
                     gate_work_perturbed_neurons: SparseResidentNeuronMask::empty(),
-                    receptor_excitation_zeptojoules: vec![
-                        None;
-                        cohort.anatomy.neuron_count()
-                    ]
-                    .into_boxed_slice(),
-                    retained_change_neurons: vec![false; cohort.anatomy.neuron_count()]
-                        .into_boxed_slice(),
-                    retentively_settled_neurons: vec![false; cohort.anatomy.neuron_count()]
-                        .into_boxed_slice(),
-                    active_electrical_contacts: vec![false; cohort.anatomy.contact_count()]
-                        .into_boxed_slice(),
+                    receptor_excitation_zeptojoules: SparseResidentExcitations::empty(),
+                    active_electrical_contacts: SparseResidentNeuronMask::empty(),
                     local_relaxation_observed: false,
                 });
             }
             if let Some(evidence) = experience.as_mut() {
                 evidence.codec = ExperienceEvidenceCodec::V7;
-                merge_pending_experience_members(
-                    evidence,
-                    &interval_predecessor_state,
-                    &retained_change_this_interval,
-                )?;
-                or_bits(
-                    &mut evidence.retained_change_neurons,
-                    &retained_change_this_interval,
-                )?;
-                or_bits(
-                    &mut evidence.active_electrical_contacts,
-                    &active_electrical_contacts,
-                )?;
+                merge_pending_experience_members(evidence, &retained_predecessor_members)?;
+                evidence
+                    .active_electrical_contacts
+                    .union_sparse(
+                        &active_electrical_contacts,
+                        cohort.anatomy.contact_count(),
+                    )?;
                 if experience_preceded_interval {
                     cohort_fractals.extend(emit_newly_quiescent_neuron_fractals(
                         &cohort.anatomy,
@@ -12419,12 +12910,12 @@ fn settle_internal_contact_interval(
             }
             cohort.pending_experience = experience;
         } else {
-            let no_gate_work = vec![false; cohort.anatomy.neuron_count()];
-            let no_receptor_excitation = vec![None; cohort.anatomy.neuron_count()];
+            let no_gate_work = SparseResidentNeuronMask::empty();
+            let no_receptor_excitation = SparseResidentExcitations::empty();
             cohort_fractals.extend(advance_recurrent_neuronal_experience(
                 &cohort.anatomy,
                 &mut cohort.pending_experience,
-                &interval_predecessor_state,
+                &retained_predecessor_members,
                 &settlement_successor,
                 &retained_change_this_interval,
                 &no_gate_work,
@@ -15220,12 +15711,6 @@ mod tests {
                     })
             })
             .collect::<Vec<_>>();
-        retained.retained_change_neurons.fill(false);
-        retained.retentively_settled_neurons.fill(false);
-        for member in &retained_members {
-            retained.retained_change_neurons[member.neuron_index] = true;
-            retained.retentively_settled_neurons[member.neuron_index] = true;
-        }
         retained.physical =
             ResidentExperiencePhysicalEvidence::Retained(retained_members.into_boxed_slice());
         retained.local_relaxation_observed = true;
@@ -15491,20 +15976,28 @@ mod tests {
         assert_eq!(restored.encode(16_000_000).unwrap(), encoded_at_rest);
 
         let retained = state.cohorts[0].retained_experience.as_ref().unwrap();
-        let mut unrelated_flow = vec![false; retained.active_electrical_contacts.len()];
-        let original_contact = retained
+        let contact_count = state.cohorts[0].anatomy.contact_count();
+        let mut unrelated_flow = vec![false; contact_count];
+        let original_contact = *retained
             .active_electrical_contacts
-            .iter()
-            .position(|active| *active)
+            .indices
+            .first()
             .unwrap();
         let unrelated_contact = (0..unrelated_flow.len())
             .find(|index| *index != original_contact)
             .unwrap();
         let mut one_contact_formation = retained.clone();
-        one_contact_formation.active_electrical_contacts.fill(false);
-        one_contact_formation.active_electrical_contacts[original_contact] = true;
+        let mut original_only = vec![false; contact_count];
+        original_only[original_contact] = true;
+        one_contact_formation.active_electrical_contacts =
+            SparseResidentNeuronMask::from_dense(&original_only);
         unrelated_flow[unrelated_contact] = true;
-        assert!(!retained_contact_set_flowing(&one_contact_formation, &unrelated_flow).unwrap());
+        assert!(!retained_contact_set_flowing(
+            &one_contact_formation,
+            &SparseResidentNeuronMask::from_dense(&unrelated_flow),
+            contact_count,
+        )
+        .unwrap());
 
         let partial = exact_four_partial_optical_episode();
         let mut endogenous = 0usize;
@@ -15533,8 +16026,7 @@ mod tests {
             .retained_experience
             .as_mut()
             .unwrap()
-            .active_electrical_contacts
-            .fill(false);
+            .active_electrical_contacts = SparseResidentNeuronMask::empty();
         let mut severed_reassemblies = 0usize;
         for source in
             std::iter::once(&partial).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
@@ -15578,12 +16070,6 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert!(!retained_members.is_empty());
-        retained.retained_change_neurons.fill(false);
-        retained.retentively_settled_neurons.fill(false);
-        for member in &retained_members {
-            retained.retained_change_neurons[member.neuron_index] = true;
-            retained.retentively_settled_neurons[member.neuron_index] = true;
-        }
         retained.physical =
             ResidentExperiencePhysicalEvidence::Retained(retained_members.into_boxed_slice());
         retained.local_relaxation_observed = true;
@@ -15617,18 +16103,22 @@ mod tests {
             .state
             .with_replaced_neurons(&predecessor_replacements)
             .unwrap();
+        let mut legacy_changed = vec![false; cohort.anatomy.neuron_count()];
+        for member in retained.retained_members().unwrap() {
+            legacy_changed[member.neuron_index] = true;
+        }
         let legacy = ResidentExperienceEvidence {
             codec: ExperienceEvidenceCodec::V6,
             physical: ResidentExperiencePhysicalEvidence::Legacy {
                 predecessor: legacy_predecessor.into(),
                 successor: Some(cohort.state.clone()),
+                retained_change_neurons: legacy_changed.clone().into_boxed_slice(),
+                retentively_settled_neurons: legacy_changed.into_boxed_slice(),
             },
             gate_work_perturbed_neurons: retained.gate_work_perturbed_neurons.clone(),
             receptor_excitation_zeptojoules: retained
                 .receptor_excitation_zeptojoules
                 .clone(),
-            retained_change_neurons: retained.retained_change_neurons.clone(),
-            retentively_settled_neurons: retained.retentively_settled_neurons.clone(),
             active_electrical_contacts: retained.active_electrical_contacts.clone(),
             local_relaxation_observed: retained.local_relaxation_observed,
         };

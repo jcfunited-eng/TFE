@@ -220,8 +220,10 @@ def _rehearse_native_physical_rest_and_wake(
         qualifying: tuple[int, object, object, object] | None = None
         for interval_ordinal in range(1, 17):
             before = organism.readiness()
-            candidate = organism.prepare_admitted(quiet_episode, quiet_admissions)
-            after = organism.commit(candidate.token)
+            candidate = organism.commit_admitted_trajectory_direct(
+                (quiet_episode,), (quiet_admissions,)
+            )
+            after = organism.readiness()
             capacity_before = _exact_energy(
                 before.dissipation_capacity_energy_zeptojoules,
                 "pre-rest dissipation capacity",
@@ -252,8 +254,8 @@ def _rehearse_native_physical_rest_and_wake(
         if qualifying is None:
             raise RuntimeError("native physical rest did not emerge within 16 intervals")
         interval_ordinal, before, rest, after_rest = qualifying
-        wake = organism.prepare_vestibular_tick(0, 1)
-        after_wake = organism.commit(wake.token)
+        wake = organism.commit_vestibular_trajectory_direct(0, (1,))
+        after_wake = organism.readiness()
         return (
             interval_ordinal,
             before,
@@ -401,8 +403,10 @@ def _rehearse_native_internal_consolidation(
         initial = organism.readiness()
         for interval_ordinal in range(1, 33):
             before = organism.readiness()
-            candidate = organism.prepare_admitted(quiet_episode, quiet_admissions)
-            after = organism.commit(candidate.token)
+            candidate = organism.commit_admitted_trajectory_direct(
+                (quiet_episode,), (quiet_admissions,)
+            )
+            after = organism.readiness()
             current = snapshot(organism)
             prior_by_identity = {
                 (formation[1], formation[2]): formation for formation in prior
@@ -561,7 +565,9 @@ def _rehearse_native_distributed_recall(
     dsf_delivery_count = 0
     for ordinal, signed_step in enumerate((-64, -64, -64, -64), 1):
         interval_predecessor = organism.save()
-        prepared = organism.prepare_vestibular_tick(heading, signed_step)
+        prepared = organism.commit_vestibular_trajectory_direct(
+            heading, (signed_step,)
+        )
         transition_count += prepared.physically_transitioned_neuron_count
         dsf_delivery_count += prepared.dsf_delivery_count
         observed = _observe_distributed_recognition(
@@ -573,6 +579,7 @@ def _rehearse_native_distributed_recall(
             organism,
             prepared,
             formation_members,
+            already_committed=True,
         )
         if observed is not None and formation_receipt in observed[
             "distributed_recognition_formation_receipts"
@@ -590,11 +597,14 @@ def _rehearse_native_distributed_recall(
                     current_envelope=interval_predecessor,
                     **budget,
                 )
-                replay_prepared = replay.prepare_vestibular_tick(heading, signed_step)
+                replay_prepared = replay.commit_vestibular_trajectory_direct(
+                    heading, (signed_step,)
+                )
                 replay_relation = _commit_and_observe_episodic_relation(
                     replay,
                     replay_prepared,
                     formation_members,
+                    already_committed=True,
                 )
                 if (
                     replay_prepared.partial_cue_reassembly_count <= 0
@@ -711,8 +721,8 @@ def _rehearse_sparse_attention_frontier(
             **budget,
         )
         before = organism.readiness()
-        prepared = organism.prepare_vestibular_trajectory(0, steps)
-        after = organism.commit(prepared.token)
+        prepared = organism.commit_vestibular_trajectory_direct(0, steps)
+        after = organism.readiness()
         articulation = _rehearse_articulation_and_self_hearing(
             organism, prepared
         )
@@ -960,14 +970,13 @@ def _rehearse_articulation_and_self_hearing(
     hop_count = len(episodes)
     if not episodes:
         raise RuntimeError("articulatory pressure produced no self-hearing interval")
-    heard = organism.prepare_admitted_trajectory(
+    heard = organism.commit_admitted_trajectory_direct(
         tuple(episode for episode, _ in episodes),
         tuple(admissions for _, admissions in episodes),
     )
     transitioned = heard.physically_transitioned_neuron_count
     fractals = heard.complete_neuron_fractal_count
     body_perturbed = heard.externally_perturbed_body_receptor_count
-    organism.commit(heard.token)
     return {
         "applied_motor_quanta": applied_motor_quanta,
         "glottal_open_samples_at_apex": glottal_open_samples_at_apex,
@@ -1056,8 +1065,9 @@ def _rehearse_contact_local_junction(
     interval_ordinal = 0
     heading = 0
     for interval_ordinal, signed_step in enumerate(steps, 1):
-        candidate = organism.prepare_vestibular_tick(heading, signed_step)
-        organism.commit(candidate.token)
+        candidate = organism.commit_vestibular_trajectory_direct(
+            heading, (signed_step,)
+        )
         heading = (heading + signed_step) % 360_000
         successor = tuple(organism.observe_reached_contact_channel_states())
         if tuple(row[:3] for row in successor) != tuple(
@@ -1085,12 +1095,13 @@ def _rehearse_contact_local_junction(
     for later_interval_ordinal, signed_step in enumerate(
         steps[interval_ordinal:], interval_ordinal + 1
     ):
-        candidate = organism.prepare_vestibular_tick(heading, signed_step)
+        candidate = organism.commit_vestibular_trajectory_direct(
+            heading, (signed_step,)
+        )
         later_route = _first_nonzero_route_on_contacts(
             tuple(candidate.physical_frontier_routes),
             changed_contact_keys,
         )
-        organism.commit(candidate.token)
         heading = (heading + signed_step) % 360_000
         if later_route is not None:
             break
@@ -1410,8 +1421,10 @@ def _rehearse_native_articulation_source(
             articulation_trajectory = None
             source_interval_count = 0
             for source_interval_count, signed_step in enumerate(steps, 1):
-                candidate = organism.prepare_vestibular_tick(heading, signed_step)
-                after_candidate = organism.commit(candidate.token)
+                candidate = organism.commit_vestibular_trajectory_direct(
+                    heading, (signed_step,)
+                )
+                after_candidate = organism.readiness()
                 source_dsf_deliveries += candidate.dsf_delivery_count
                 source_physical_transitions += (
                     candidate.physically_transitioned_neuron_count
@@ -1432,11 +1445,11 @@ def _rehearse_native_articulation_source(
         else:
             if not replay_source_steps or len(replay_source_steps) > len(steps):
                 raise RuntimeError("native articulation replay prefix is invalid")
-            prepared = organism.prepare_vestibular_trajectory(
+            prepared = organism.commit_vestibular_trajectory_direct(
                 0,
                 replay_source_steps,
             )
-            after_source = organism.commit(prepared.token)
+            after_source = organism.readiness()
             if not prepared.articulatory_unit_recruitments:
                 raise RuntimeError("native articulation replay lost its discharge")
             articulation_trajectory = _exact_articulatory_trajectory_or_none(
@@ -1559,11 +1572,14 @@ def _rehearse_ordered_trajectory_projection(
             current_envelope=current_envelope,
             **budget,
         )
-        prepared = candidate.prepare_vestibular_trajectory(0, (-64, -64, -64, -64))
+        prepared = candidate.commit_vestibular_trajectory_direct(
+            0, (-64, -64, -64, -64)
+        )
         relation = _commit_and_observe_episodic_relation(
             candidate,
             prepared,
             formation_members,
+            already_committed=True,
         )
         return candidate, prepared, relation
 
@@ -1598,11 +1614,14 @@ def _commit_and_observe_episodic_relation(
     organism: object,
     prepared: object,
     recalled_members: tuple[str, ...],
+    *,
+    already_committed: bool = False,
 ) -> dict[str, int | str | tuple[str, ...]] | None:
     """Resolve one current relation against its exact retained successor."""
 
     relations = prepared.organic_mosaic_relations
-    organism.commit(prepared.token)
+    if not already_committed:
+        organism.commit(prepared.token)
     if not relations:
         return None
     formations = organism.observe_retained_formation_structures()

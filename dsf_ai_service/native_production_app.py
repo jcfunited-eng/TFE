@@ -82,10 +82,7 @@ from typing import Any, Iterable, NamedTuple
 import uuid
 import wave
 
-from guala_core import (
-    auditory_gammatone_field,
-    settle_native_joint_source_episode as restore_native_joint_source_episode,
-)
+from guala_core import auditory_gammatone_field
 
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -7629,160 +7626,6 @@ def _commit_admitted_hop(
     }
 
 
-def _insert_native_action_consequences(
-    trajectory: list[tuple[Any, Any, int]],
-    resume_index: int,
-    hop: dict[str, Any],
-    parent_consequence_depth: int,
-) -> None:
-    """Insert exact native body feedback before the suspended later source."""
-
-    sources = tuple(hop["body_proprioceptive_sources"])
-    extents = tuple(hop["body_proprioceptive_source_extents"])
-    if len(sources) != len(extents):
-        raise RuntimeError("native action consequence lost cardinality")
-    consequence_depth = parent_consequence_depth + 1
-    if sources and consequence_depth > 74:
-        raise RuntimeError(
-            "native action consequence did not quiesce inside one body frontier"
-        )
-    for raw_source, extent in reversed(tuple(zip(sources, extents, strict=True))):
-        _source_tick, port_count, sample_count, occurrence_count, frame_count = extent
-        consequence = restore_native_joint_source_episode(
-            raw_source,
-            port_count,
-            sample_count,
-            occurrence_count,
-            frame_count,
-        )
-        trajectory.insert(
-            resume_index,
-            (
-                consequence,
-                [(1, 1_000)] * occurrence_count,
-                consequence_depth,
-            ),
-        )
-
-
-def _commit_vestibular_tick(
-    organism: Any,
-    predecessor_heading_millidegrees: int,
-    signed_body_motion_millidegrees: int,
-) -> dict[str, Any]:
-    """Commit one exact native 1 ms body-and-balance interval in memory."""
-
-    evidence: ResidentPrepareEvidence = organism.prepare_vestibular_tick(
-        predecessor_heading_millidegrees,
-        signed_body_motion_millidegrees,
-    )
-    observed = organism.commit(evidence.token)
-    return {
-        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
-        "cognitive_trace_count": observed.cognitive_trace_count,
-        "complete_neuron_count": observed.complete_neuron_count,
-        "developmental_resting_neuron_count": (
-            observed.developmental_resting_neuron_count
-        ),
-        "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
-        "emitted_neuron_fractals": tuple(
-            {
-                "predecessor_organism_tick": evidence.predecessor_organism_tick,
-                "organism_tick": evidence.organism_tick,
-                "neuron_lineage": lineage,
-                "sparse_retained_delta": entries,
-            }
-            for lineage, entries in evidence.emitted_neuron_fractals
-        ),
-        "current_cohort_evaluation_count": (
-            evidence.current_cohort_evaluation_count
-        ),
-        "dsf_delivery_count": evidence.dsf_delivery_count,
-        "formation_activation_count": observed.formation_activation_count,
-        "predecessor_organism_tick": evidence.predecessor_organism_tick,
-        "organism_tick": observed.organism_tick,
-        "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
-        "endogenous_partial_cue_reassembly_count": (
-            observed.endogenous_partial_cue_reassembly_count
-        ),
-        "internally_reassembled_formation_cues": (
-            evidence.internally_reassembled_formation_cues
-        ),
-        "physically_transitioned_neuron_count": (
-            evidence.physically_transitioned_neuron_count
-        ),
-        "metabolically_perturbed_body_receptor_count": (
-            evidence.metabolically_perturbed_body_receptor_count
-        ),
-        "rest_recovered_neuron_count": evidence.rest_recovered_neuron_count,
-        "rest_drained_dissipation_quanta": (
-            evidence.rest_drained_dissipation_quanta
-        ),
-        "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
-        "energy_exhausted": observed.energy_exhausted,
-        "energy_exhausted_interval_count": int(observed.energy_exhausted),
-        "dissipation_capacity_energy_zeptojoules": (
-            observed.dissipation_capacity_energy_zeptojoules
-        ),
-        "externally_perturbed_body_receptor_count": (
-            evidence.externally_perturbed_body_receptor_count
-        ),
-        "motor_unit_recruitments": evidence.motor_unit_recruitments,
-        "body_effector_bindings": evidence.body_effector_bindings,
-        "articulated_body_consequences": (
-            evidence.articulated_body_consequences
-        ),
-        "body_proprioceptive_sources": evidence.body_proprioceptive_sources,
-        "body_proprioceptive_source_extents": (
-            evidence.body_proprioceptive_source_extents
-        ),
-        "articulatory_unit_recruitments": (
-            evidence.articulatory_unit_recruitments
-        ),
-        "changed_contact_channel_states": (
-            evidence.changed_contact_channel_states
-        ),
-        "physical_frontier_routes": evidence.physical_frontier_routes,
-        "preceding_distinct_physical_frontier_routes": (
-            evidence.preceding_distinct_physical_frontier_routes
-        ),
-        "reached_and_foregone_physical_frontier_routes": (
-            evidence.reached_and_foregone_physical_frontier_routes
-        ),
-        "working_causal_continuations": evidence.working_causal_continuations,
-        "settled_working_frontier": evidence.settled_working_frontier,
-        "physical_prediction_alternatives": (
-            evidence.physical_prediction_alternatives
-        ),
-        "body_consequence_transfers": evidence.body_consequence_transfers,
-        "affective_balance_trajectories": evidence.affective_balance_trajectories,
-        "localized_fluid_chemistry": evidence.localized_fluid_chemistry,
-        "localized_metabolic_strain_evaluated_body_receptor_lineages": (
-            evidence.localized_metabolic_strain_evaluated_body_receptor_lineages
-        ),
-        "localized_metabolic_strain": evidence.localized_metabolic_strain,
-        "organic_mosaic_relations": tuple(
-            {
-                "predecessor_organism_tick": evidence.predecessor_organism_tick,
-                "organism_tick": evidence.organism_tick,
-                "formation_receipts": receipts,
-                "shared_neuron_lineages": lineages,
-                "active_physical_bonds": bonds,
-                "structural_relation_sha256": structure_receipt,
-                "ordered_physical_paths": ordered_paths,
-                "ordered_path_relations": ordered_path_relations,
-            }
-            for receipts, lineages, bonds, structure_receipt, ordered_paths, ordered_path_relations in (
-                evidence.organic_mosaic_relations
-            )
-        ),
-        "recurrent_complete_neuron_fractal_count": (
-            evidence.recurrent_complete_neuron_fractal_count
-        ),
-        "state_sha256": observed.state_sha256,
-    }
-
-
 def _commit_vestibular_trajectory(
     organism: Any,
     predecessor_heading_millidegrees: int,
@@ -7790,11 +7633,11 @@ def _commit_vestibular_trajectory(
 ) -> dict[str, Any]:
     """Commit every ordered 1 ms vestibular interval and seal only the end."""
 
-    evidence: ResidentPrepareEvidence = organism.prepare_vestibular_trajectory(
+    evidence: ResidentPrepareEvidence = organism.commit_vestibular_trajectory_direct(
         predecessor_heading_millidegrees,
         signed_body_motion_millidegrees,
     )
-    observed = organism.commit(evidence.token)
+    observed = organism.readiness()
     return {
         "cognitive_mosaic_count": observed.cognitive_mosaic_count,
         "cognitive_trace_count": observed.cognitive_trace_count,

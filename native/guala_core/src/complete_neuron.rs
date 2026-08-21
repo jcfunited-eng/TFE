@@ -1336,14 +1336,32 @@ impl fmt::Debug for NeuronPhysicalState {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct NeuronPhysicalAnatomy {
+pub(crate) struct SharedNeuronPhysicalAnatomy {
     mathloom: MathLoomAnatomy,
     psi: PsiKrimelackAnatomy,
     gate: TwoStateGateAnatomy,
-    capacitance: MembraneCapacitance,
     recovery: RecoveryAnatomy,
     dna_expression: DnaExpressionAnatomy,
     plastic: PlasticSupportAnatomy,
+}
+
+/// One neuron's immutable physical anatomy.
+///
+/// The heavy anatomy is physically shared. Membrane capacitance remains an
+/// exact per-neuron value because declared geometry can differentiate it from
+/// otherwise identical cohort siblings.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct NeuronPhysicalAnatomy {
+    shared: Arc<SharedNeuronPhysicalAnatomy>,
+    capacitance: MembraneCapacitance,
+}
+
+impl Deref for NeuronPhysicalAnatomy {
+    type Target = SharedNeuronPhysicalAnatomy;
+
+    fn deref(&self) -> &Self::Target {
+        self.shared.as_ref()
+    }
 }
 
 impl NeuronPhysicalAnatomy {
@@ -1363,13 +1381,15 @@ impl NeuronPhysicalAnatomy {
             return Err(NeuronPhysicalError::AnatomyMismatch);
         }
         Ok(Self {
-            mathloom,
-            psi,
-            gate,
+            shared: Arc::new(SharedNeuronPhysicalAnatomy {
+                mathloom,
+                psi,
+                gate,
+                recovery,
+                dna_expression,
+                plastic,
+            }),
             capacitance,
-            recovery,
-            dna_expression,
-            plastic,
         })
     }
 
@@ -1417,9 +1437,37 @@ impl NeuronPhysicalAnatomy {
     /// anatomy blob.
     pub(crate) fn with_capacitance(&self, capacitance: MembraneCapacitance) -> Self {
         Self {
+            shared: Arc::clone(&self.shared),
             capacitance,
-            ..self.clone()
         }
+    }
+
+    pub(crate) fn shares_heavy_anatomy_with(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.shared, &other.shared)
+    }
+
+    pub(crate) fn heavy_anatomy_identity(&self) -> usize {
+        Arc::as_ptr(&self.shared) as usize
+    }
+
+    pub(crate) fn has_same_heavy_anatomy(&self, other: &Self) -> bool {
+        self.shared == other.shared
+    }
+
+    pub(crate) fn share_heavy_anatomy_from(
+        &mut self,
+        canonical: &Self,
+    ) -> Result<(), NeuronPhysicalError> {
+        if !self.has_same_heavy_anatomy(canonical) {
+            return Err(NeuronPhysicalError::AnatomyMismatch);
+        }
+        self.shared = Arc::clone(&canonical.shared);
+        Ok(())
+    }
+
+    #[cfg(test)]
+    fn mutable_shared_for_fixture(&mut self) -> &mut SharedNeuronPhysicalAnatomy {
+        Arc::make_mut(&mut self.shared)
     }
 
     pub(crate) fn recovery_anatomy(&self) -> &RecoveryAnatomy {
@@ -1941,7 +1989,9 @@ fn retire_unbounded_receptor_population_state(
         return Err(NeuronPhysicalError::AnatomyMismatch);
     }
     let mut successor_anatomy = anatomy.clone();
-    successor_anatomy.gate.occurrence_bounded_population_work = true;
+    let mut successor_shared = successor_anatomy.shared.as_ref().clone();
+    successor_shared.gate.occurrence_bounded_population_work = true;
+    successor_anatomy.shared = Arc::new(successor_shared);
     let carriers_per_compartment = virgin_carriers_per_compartment
         .checked_mul(anatomy.gate.population)
         .ok_or(NeuronPhysicalError::Gate(
@@ -6800,7 +6850,7 @@ mod tests {
         );
 
         let mut incompatible_anatomy = fixture.anatomy.clone();
-        incompatible_anatomy.gate.population = 1;
+        incompatible_anatomy.mutable_shared_for_fixture().gate.population = 1;
         let mut incompatible_state = fixture.state.clone();
         incompatible_state.gate.open_population = 2;
         let state_bytes =
@@ -7457,7 +7507,11 @@ mod tests {
         let shared = shared_three_neuron_field();
         let mut fixtures = physical_fixtures::<3>();
         for fixture in &mut fixtures {
-            fixture.anatomy.gate.single_channel_conductance_picosiemens = r(2, 1);
+            fixture
+                .anatomy
+                .mutable_shared_for_fixture()
+                .gate
+                .single_channel_conductance_picosiemens = r(2, 1);
         }
         let electrical_anatomy = SparseElectricalAnatomy::new(
             3,
@@ -7660,7 +7714,11 @@ mod tests {
         let shared = shared_four_neuron_field();
         let mut fixtures = physical_fixtures::<4>();
         for fixture in &mut fixtures {
-            fixture.anatomy.gate.single_channel_conductance_picosiemens = r(2, 1);
+            fixture
+                .anatomy
+                .mutable_shared_for_fixture()
+                .gate
+                .single_channel_conductance_picosiemens = r(2, 1);
         }
         let electrical_anatomy = SparseElectricalAnatomy::new(
             4,

@@ -232,3 +232,123 @@ action/sensorium checks pass 6/6.
 
 Status: **Live-Closed 2026-08-14 on production task 1056. A-010 is next and is
 not claimed by A-009 evidence.**
+
+## Reopened production-bound resource correction — 2026-08-21
+
+The earlier Live-Closed statement is superseded for the current production
+body by contradictory executable evidence. Task 1150 restores a 227,509,619
+byte GLORUN body and has not completed its first ordinary unattended interval
+inside the required cadence. A-008 remains closed; this reopens only A-009's
+bounded same-organism consequence path.
+
+Exact parsing of `/tmp/guala-current-35f3eb87.raw` under the current GLORUN01 /
+GLMFAB09 / GLCOG023 codecs found:
+
+- cognitive bytes: 227,509,014;
+- cohort records: 223,267,499 bytes (98.136%);
+- cohort-local anatomy tables: 175,412,645 bytes;
+- exact duplicate anatomy bodies: 156,786,093 bytes;
+- one exact 135,981-byte anatomy body repeated 1,154 times;
+- unique neuronal state bodies: 41,604,320 bytes;
+- retained mosaics: 2,014,919 bytes; and
+- resident electrical fabric plus three frontiers: 2,217,000 bytes.
+
+This duplication is not cognition or required physics. It violates the
+single-resident-neuron and bounded reached-frontier laws. The current ordinary
+restore also accepts GLCOG012 through GLCOG023 and re-encodes the complete
+decoded body before admitting it. The abandoned single-interval pause helper
+and Python consequence-insertion helper remain compiled/source-callable.
+
+The reopened release is accepted only if all production-reachable unnecessary
+cognitive work on this path is removed:
+
+1. every distinct immutable heavy neuron anatomy is stored and decoded once
+   across the organism; unique capacitance and physical state remain per
+   neuron;
+2. ordinary restore accepts only the new current format; the authenticated
+   production V23 predecessor crosses one explicit one-way migration and no
+   historical format can enter ordinary startup;
+3. restore performs one canonical decode and one index derivation, not a
+   complete decode-then-re-encode comparison;
+4. ordinary physical settlement visits only reached neurons, incident
+   contacts, and reached reaction paths; untouched material cancels exactly
+   and no cohort-width masks, state vectors, totals, or predecessor bodies are
+   constructed;
+5. one accepted transaction performs one final canonical seal only; no hop or
+   observer re-encodes the organism or retained mosaics;
+6. the rejected pause/reinsert helpers, tests, wrappers, and restore/startup
+   routes are deleted rather than left dormant; and
+7. one authenticated predecessor migration, cold restore, ordinary action,
+   exact multisensory consequence, further ordinary interval, and bounded
+   CPU/RAM/state measurement pass in the immutable candidate and live task.
+
+Permitted exhaustive work is limited to one authenticated cold decode, the one
+explicit V23-to-current migration, one final accepted-state seal, and an
+explicit physical event whose law genuinely reaches every member. No database,
+event log, overlay cognition, reduced DSF, semantic controller, or second
+organism owner is authorized.
+
+## Continuous resident correction boundary — 2026-08-21
+
+Source and executable status, not a production claim:
+
+- the Python pause/reinsert helpers and the older prepare-only sensory and
+  vestibular routes are absent from production code; the native direct
+  trajectory owns action, exact body feedback, and later causal intervals in
+  the same resident cognition without stopping it;
+- GLCOG024 stores each distinct immutable heavy neuron anatomy once. The exact
+  227,509,619-byte production predecessor migrates to 103,858,436 bytes, a
+  reduction of 123,651,183 duplicate anatomy bytes, while per-neuron physical
+  state and capacitance remain exact;
+- current live experience and recurrence custody stores only sorted reached
+  neuron/contact/excitation evidence. Cohort-width state snapshots and masks
+  remain decode-only for the explicit V1-V6 migration boundary;
+- an unsealed causal hop no longer recomputes whole-organism energy/Psi totals
+  or clones and pairwise-compares every retained formation. Exact population
+  totals are evaluated once from the terminal resident state before its one
+  final seal; and
+- the release library restores the exact migrated mature body in 2.940 seconds
+  and advances one ordinary vestibular interval in 2.102 seconds, from tick
+  144478 to 144479, with 2 unchanged full joint-field DSF deliveries and 1,224
+  physical neuron transitions. The predecessor run had not completed the same
+  interval inside 24 seconds.
+
+The candidate passes `cargo check --lib` and `git diff --check`. It is not yet
+deployed or Live-Closed. The remaining gate is the bounded focused source/test
+review, exact action-to-multisensory-consequence continuation on this immutable
+candidate, then the single production cutover and live continuation proof.
+
+## Exact mature-roster obstruction and correction — 2026-08-21
+
+- The direct native trajectory no longer recursively re-enters proprioception
+  until quiescence. Each admitted source advances once; an action changes the
+  resident body, and the next ordinary application occurrence carries that
+  exact body together with the world sensorium without pausing cognition.
+- Motor recruitment no longer forms the global Cartesian product of every
+  changed layer-8 regulation cell and every changed layer-11 ordering cell.
+  Participants must share the exact mounted layer-8 -> layer-10 -> layer-11
+  physical path. The mature body-only interval now reaches its sealed successor
+  in about two seconds instead of growing 62,551 spurious motor contacts.
+- The next mature full-roster occurrence then failed before settlement with
+  `DevelopmentalRestingPopulationUnavailable(InvalidPlace)`. Exact source
+  tracing found that a new source identity may lawfully share a declared
+  sensory topology place with an already-materialized receptor. The old path
+  attempted to claim the same compact resting cell twice. The correction
+  claims a resting cell only when that place is still resting; otherwise it
+  admits one already-budgeted external growth unit and assigns one new stable
+  lineage. No existing neuron, place, source identity, or physical state is
+  overwritten or duplicated.
+
+Status remains local and unsealed for release. The single next proof is the
+same authenticated mature full-roster transaction; no broad suite or unrelated
+mechanism is authorized before that exact path completes.
+
+That focused proof now passes with the candidate native module loaded from the
+fresh release artifact. From the authenticated migrated mature predecessor at
+tick 144478, one ordinary direct transaction carried the exact 74-channel
+current body followed by one 111-port full sensory roster. It advanced the same
+resident organism to tick 144480, retained two ordered causal interval records,
+performed zero Python cognition callbacks, and made exactly one successor
+seal. The native call and the production Python wrapper both passed. Temporary
+timing instrumentation was then removed completely. Production remains
+unchanged pending the immutable release/cutover sequence.

@@ -65,7 +65,6 @@ use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
     ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
-    BODY_EFFECTOR_TERMINAL_COUNT,
 };
 use crate::virtual_articulatory_body::{
     settle_articulatory_unit_discharge, ARTICULATORY_SAMPLE_RATE_HZ,
@@ -2495,6 +2494,28 @@ fn retain_cognitive_trajectory_observation(
     Ok(())
 }
 
+/// Install the one exact whole-organism observation at the end of a composed
+/// causal trajectory.  Interval preparation already evaluated and retained
+/// every reached physical consequence; these population totals are read once
+/// from the terminal resident state instead of being rescanned after every
+/// intermediate hop.
+fn retain_terminal_cognitive_state(
+    observation: &mut CognitiveFormationObservation,
+    cognitive: &ResidentCognitiveFormationState,
+) -> Result<(), RuntimeError> {
+    let summary = cognitive.summary();
+    observation.cognitive_ordinal = summary.cognitive_ordinal;
+    observation.trace_count = summary.trace_count;
+    observation.mosaic_count = summary.mosaic_count;
+    observation.complete_neuron_count = summary.complete_neuron_count;
+    observation.resting_neuron_count = summary.resting_neuron_count;
+    observation.energy = summary.energy;
+    observation.mosaic_of_mosaics_count = cognitive
+        .mosaic_of_mosaics_count()
+        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    Ok(())
+}
+
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
@@ -2576,56 +2597,6 @@ impl ResidentOrganismRuntime {
         self.prepare_typed(&source, Some(&admitted), None, true)
     }
 
-    fn prepare_vestibular_tick(
-        &mut self,
-        predecessor_heading_millidegrees: u32,
-        signed_body_motion_millidegrees: i32,
-    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        let ingress = resident_vestibular_tick_ingress(
-            &self.active.vestibular,
-            predecessor_heading_millidegrees,
-            signed_body_motion_millidegrees,
-        )?;
-        let (source, _) = ingress.source().joint_source_with_contacts();
-        self.prepare_typed(source, None, Some(&ingress), false)
-    }
-
-    fn prepare_admitted_trajectory(
-        &mut self,
-        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
-    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if episodes.is_empty() {
-            return Err(RuntimeError::CognitiveFormation(
-                "admitted trajectory must contain at least one episode".into(),
-            ));
-        }
-        if self.pending.is_some()
-            || self.direct_predecessor.is_some()
-            || self.pending_contact_growth.is_some()
-        {
-            return Err(RuntimeError::PendingCandidateExists);
-        }
-        let initial_cognitive = self.active.cognitive.clone();
-        let (pending, receipt, next_prepare_ordinal) =
-            self.build_admitted_trajectory(episodes, initial_cognitive)?;
-        self.pending = Some(pending);
-        self.next_prepare_ordinal = next_prepare_ordinal;
-        Ok(receipt)
-    }
-
-    fn prepare_admitted_interval(
-        &mut self,
-        source: &NativeJointSourceEpisode,
-        maximum_causal_intervals: &[(i64, i64)],
-    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        let admitted = admitted_episode_with_authored_intervals(
-            source,
-            maximum_causal_intervals,
-        )
-        .map_err(RuntimeError::CognitiveFormation)?;
-        self.prepare_typed(source, Some(&admitted), None, false)
-    }
-
     fn commit_admitted_trajectory_direct(
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
@@ -2690,15 +2661,15 @@ impl ResidentOrganismRuntime {
     fn rollback_direct_commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
         let predecessor = self
             .direct_predecessor
-            .as_ref()
+            .take()
             .ok_or(RuntimeError::PendingCandidateMissing)?;
         if predecessor.token != token {
+            self.direct_predecessor = Some(predecessor);
             return Err(RuntimeError::PendingTokenMismatch);
         }
-        let restored = Self::restore_envelope(predecessor.envelope.clone(), self.budget)?;
+        let restored = Self::restore_envelope(predecessor.envelope, self.budget)?;
         let next_prepare_ordinal = predecessor.next_prepare_ordinal;
         self.active = restored.active;
-        self.direct_predecessor = None;
         self.next_prepare_ordinal = next_prepare_ordinal;
         Ok(())
     }
@@ -2754,13 +2725,20 @@ impl ResidentOrganismRuntime {
         let mut source_occurrence_count = 0usize;
         let mut articulated_body = self.active.articulated_body.clone();
         let mut articulated_body_consequences = Vec::new();
-        let mut body_proprioceptive_sources = Vec::new();
+        // A motor discharge ends this native causal turn.  Its exact body
+        // successor is retained below and the caller immediately advances
+        // the world, then enters the same resident again through the ordinary
+        // complete-body + world-sensorium boundary.  Do not recursively feed
+        // proprioception here: that used to run cognition ahead of the
+        // visual/tactile/world consequence and could spin through an entire
+        // motor frontier before returning.
+        let body_proprioceptive_sources = Vec::new();
         let mut trajectory_authority_entries = Vec::new();
         let mut processed_interval_count = 0usize;
         let mut advance_interval = |
             source: &NativeJointSourceEpisode,
             intervals: &[(i64, i64)],
-        | -> Result<Option<NativeJointSourceEpisode>, RuntimeError> {
+        | -> Result<(), RuntimeError> {
             let admitted = admitted_episode_with_authored_intervals(source, intervals)
                 .map_err(RuntimeError::CognitiveFormation)?;
             trajectory_authority_entries.push((
@@ -2795,15 +2773,6 @@ impl ResidentOrganismRuntime {
                 &articulated_body,
                 &observation.motor_unit_recruitments,
             )?;
-            let feedback_source = if let Some((source, source_receipt)) = body_proprioceptive_source(
-                source_tick,
-                &body_transition.proprioceptive_consequences,
-            )? {
-                body_proprioceptive_sources.push(source_receipt);
-                Some(source)
-            } else {
-                None
-            };
             articulated_body_consequences.extend(
                 body_transition
                     .proprioceptive_consequences
@@ -2837,23 +2806,10 @@ impl ResidentOrganismRuntime {
             });
             cognitive = Some(successor);
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
-            Ok(feedback_source)
+            Ok(())
         };
         for (source, intervals) in &causal_sources {
-            let mut feedback_source = advance_interval(source, intervals)?;
-            let mut feedback_interval_count = 0usize;
-            while let Some(source) = feedback_source {
-                if feedback_interval_count >= BODY_EFFECTOR_TERMINAL_COUNT {
-                    return Err(RuntimeError::ArticulatedBody(
-                        "body feedback did not quiesce inside one complete fixed terminal frontier"
-                            .into(),
-                    ));
-                }
-                feedback_interval_count += 1;
-                let feedback_intervals =
-                    vec![(1_i64, 1_000_i64); source.joint_source_occurrences().len()];
-                feedback_source = advance_interval(&source, &feedback_intervals)?;
-            }
+            advance_interval(source, intervals)?;
         }
         drop(advance_interval);
         let cognitive = cognitive.expect("trajectory cognition has a final successor");
@@ -2868,11 +2824,12 @@ impl ResidentOrganismRuntime {
             .fabric_generation
             .checked_add(interval_count)
             .ok_or(RuntimeError::FabricGenerationOverflow)?;
-        let cognitive_observation = aggregate.ok_or_else(|| {
+        let mut cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::CognitiveFormation(
                 "admitted trajectory carried no cognitive interval".into(),
             )
         })?;
+        retain_terminal_cognitive_state(&mut cognitive_observation, &cognitive)?;
         let (mounted, _) = restore_resident_mounted_state(
             &joint_state,
             derived_budget.max_joint_state_bytes,
@@ -2960,21 +2917,77 @@ impl ResidentOrganismRuntime {
         Ok((pending, receipt, next_prepare_ordinal))
     }
 
-    fn prepare_vestibular_trajectory(
+    fn commit_vestibular_trajectory_direct(
         &mut self,
         predecessor_heading_millidegrees: u32,
         signed_body_motion_millidegrees: &[i32],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if signed_body_motion_millidegrees.is_empty() {
-            return Err(RuntimeError::Vestibular(
-                "vestibular trajectory must contain at least one interval".into(),
-            ));
-        }
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
             return Err(RuntimeError::PendingCandidateExists);
+        }
+        let predecessor_envelope = std::mem::take(&mut self.active.envelope);
+        let predecessor_next_prepare_ordinal = self.next_prepare_ordinal;
+        let initial_cognitive = std::mem::take(&mut self.active.cognitive);
+        let built = self.build_vestibular_trajectory(
+            predecessor_heading_millidegrees,
+            signed_body_motion_millidegrees,
+            initial_cognitive,
+        );
+        let (pending, receipt, next_prepare_ordinal) = match built {
+            Ok(value) => value,
+            Err(error) => {
+                self.active.envelope = predecessor_envelope;
+                let restored = parse_current_envelope(&self.active.envelope, self.budget)
+                    .and_then(|parsed| restore_cognitive_state(&parsed, self.budget));
+                return match restored {
+                    Ok(cognitive) => {
+                        self.active.cognitive = cognitive;
+                        Err(error)
+                    }
+                    Err(restore_error) => Err(RuntimeError::CognitiveFormation(format!(
+                        "direct vestibular transition failed ({error}) and predecessor cognition could not be restored ({restore_error})"
+                    ))),
+                };
+            }
+        };
+        let token = pending.token;
+        self.active = ActiveResidentOrganismState {
+            envelope: pending.envelope,
+            mounted: pending.mounted,
+            cognitive: pending.cognitive,
+            vestibular: pending.vestibular,
+            articulated_body: pending.articulated_body,
+            observation: pending.observation,
+        };
+        self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
+            token,
+            envelope: predecessor_envelope,
+            next_prepare_ordinal: predecessor_next_prepare_ordinal,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(receipt)
+    }
+
+    fn build_vestibular_trajectory(
+        &self,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: &[i32],
+        initial_cognitive: ResidentCognitiveFormationState,
+    ) -> Result<
+        (
+            PendingResidentOrganismState,
+            ResidentPrepareReceipt,
+            u64,
+        ),
+        RuntimeError,
+    > {
+        if signed_body_motion_millidegrees.is_empty() {
+            return Err(RuntimeError::Vestibular(
+                "vestibular trajectory must contain at least one interval".into(),
+            ));
         }
         let derived_budget = self.budget.derive()?;
         let predecessor = self.active.observation.clone();
@@ -2994,7 +3007,7 @@ impl ResidentOrganismRuntime {
                 .len(),
             self.budget,
         )?;
-        let mut cognitive = self.active.cognitive.clone();
+        let mut cognitive = initial_cognitive;
         let mut vestibular = self.active.vestibular.clone();
         let mut heading = predecessor_heading_millidegrees;
         let mut aggregate: Option<CognitiveFormationObservation> = None;
@@ -3042,9 +3055,10 @@ impl ResidentOrganismRuntime {
             heading = (i64::from(heading) + i64::from(signed_step)).rem_euclid(360_000) as u32;
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
         }
-        let cognitive_observation = aggregate.ok_or_else(|| {
+        let mut cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
         })?;
+        retain_terminal_cognitive_state(&mut cognitive_observation, &cognitive)?;
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let (mounted, _) = restore_resident_mounted_state(
@@ -3105,7 +3119,7 @@ impl ResidentOrganismRuntime {
             trajectory_authority,
             self.next_prepare_ordinal,
         );
-        self.pending = Some(PendingResidentOrganismState {
+        let pending = PendingResidentOrganismState {
             token,
             envelope,
             mounted,
@@ -3113,9 +3127,8 @@ impl ResidentOrganismRuntime {
             vestibular,
             articulated_body: self.active.articulated_body.clone(),
             observation: observation.clone(),
-        });
-        self.next_prepare_ordinal = next_prepare_ordinal;
-        Ok(ResidentPrepareReceipt {
+        };
+        let receipt = ResidentPrepareReceipt {
             token,
             observation,
             phase_counts: MountedTransitionPhaseCounts {
@@ -3133,7 +3146,8 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence,
             articulated_body_consequences: Vec::new(),
             body_proprioceptive_sources: Vec::new(),
-        })
+        };
+        Ok((pending, receipt, next_prepare_ordinal))
     }
 
     fn prepare_typed(
@@ -3704,7 +3718,7 @@ impl NativeResidentOrganismRuntime {
     /// Prepare an ordered native body-and-balance trajectory as one external
     /// transaction. Every one-millisecond interval settles in causal order;
     /// only the final organism successor is sealed.
-    fn prepare_vestibular_trajectory(
+    fn commit_vestibular_trajectory_direct(
         &mut self,
         py: Python<'_>,
         predecessor_heading_millidegrees: u32,
@@ -3712,82 +3726,11 @@ impl NativeResidentOrganismRuntime {
     ) -> PyResult<NativeResidentOrganismPrepare> {
         let prepared = py
             .allow_threads(|| {
-                self.runtime.prepare_vestibular_trajectory(
+                self.runtime.commit_vestibular_trajectory_direct(
                     predecessor_heading_millidegrees,
                     &signed_body_motion_millidegrees,
                 )
             })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok(NativeResidentOrganismPrepare {
-            token: prepared.token,
-            observation: prepared.observation,
-            phase_counts: prepared.phase_counts,
-            receptor_ingress: prepared.receptor_ingress,
-            motor_unit_recruitments: prepared.motor_unit_recruitments,
-            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
-            causal_interval_evidence: prepared.causal_interval_evidence,
-            articulated_body_consequences: prepared.articulated_body_consequences,
-            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
-        })
-    }
-
-    /// Prepare one native candidate under the mandatory-admission law.
-    ///
-    /// `maximum_causal_intervals` carries one caller-authored maximum causal
-    /// interval `(numerator, denominator)` in source-time units per source
-    /// occurrence, in exact occurrence order; it is independent
-    /// environment/anatomy authority, never derived from the occurrence.
-    ///
-    /// An admitted transition requires NO durable cold-custody directory and
-    /// creates no file of its own: what a lesson changes is her body, and the
-    /// caller persists that body once per lesson.
-    fn prepare_admitted(
-        &mut self,
-        py: Python<'_>,
-        source: PyRef<'_, NativeJointSourceEpisode>,
-        maximum_causal_intervals: Vec<(i64, i64)>,
-    ) -> PyResult<NativeResidentOrganismPrepare> {
-        let source = source.clone();
-        let prepared = py
-            .allow_threads(|| {
-                self.runtime
-                    .prepare_admitted_interval(&source, &maximum_causal_intervals)
-            })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok(NativeResidentOrganismPrepare {
-            token: prepared.token,
-            observation: prepared.observation,
-            phase_counts: prepared.phase_counts,
-            receptor_ingress: prepared.receptor_ingress,
-            motor_unit_recruitments: prepared.motor_unit_recruitments,
-            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
-            causal_interval_evidence: prepared.causal_interval_evidence,
-            articulated_body_consequences: prepared.articulated_body_consequences,
-            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
-        })
-    }
-
-    /// Prepare ordered admitted sensory intervals as one causal occurrence.
-    /// Every source settles in native causal order; only the final organism
-    /// successor is encoded and sealed.
-    fn prepare_admitted_trajectory(
-        &mut self,
-        py: Python<'_>,
-        sources: Vec<Py<NativeJointSourceEpisode>>,
-        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
-    ) -> PyResult<NativeResidentOrganismPrepare> {
-        if sources.len() != maximum_causal_intervals.len() {
-            return Err(PyValueError::new_err(
-                "admitted trajectory source and interval counts differ",
-            ));
-        }
-        let episodes = sources
-            .iter()
-            .zip(maximum_causal_intervals)
-            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
-            .collect::<Vec<_>>();
-        let prepared = py
-            .allow_threads(|| self.runtime.prepare_admitted_trajectory(&episodes))
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
@@ -3850,40 +3793,6 @@ impl NativeResidentOrganismRuntime {
         let token = exact_token(token)?;
         py.allow_threads(|| self.runtime.rollback_direct_commit(token))
             .map_err(|error| PyValueError::new_err(error.to_string()))
-    }
-
-    /// Prepare one exact one-millisecond body-and-balance successor.
-    ///
-    /// The caller supplies the body's already-applied predecessor heading and
-    /// this tick's signed yaw displacement.  Native canal, cupula, bundle,
-    /// tip-link, spring, complete-neuron, and full-field state advance as one
-    /// pending organism successor; commit or discard retains the ordinary
-    /// organism transaction semantics.
-    fn prepare_vestibular_tick(
-        &mut self,
-        py: Python<'_>,
-        predecessor_heading_millidegrees: u32,
-        signed_body_motion_millidegrees: i32,
-    ) -> PyResult<NativeResidentOrganismPrepare> {
-        let prepared = py
-            .allow_threads(|| {
-                self.runtime.prepare_vestibular_tick(
-                    predecessor_heading_millidegrees,
-                    signed_body_motion_millidegrees,
-                )
-            })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok(NativeResidentOrganismPrepare {
-            token: prepared.token,
-            observation: prepared.observation,
-            phase_counts: prepared.phase_counts,
-            receptor_ingress: prepared.receptor_ingress,
-            motor_unit_recruitments: prepared.motor_unit_recruitments,
-            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
-            causal_interval_evidence: prepared.causal_interval_evidence,
-            articulated_body_consequences: prepared.articulated_body_consequences,
-            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
-        })
     }
 
     /// Append AUTHORED contacts to the living cohort.
@@ -4301,6 +4210,16 @@ fn migrate_resident_organism_exact_energy_envelope(
     current_envelope: Vec<u8>,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
+    let already_current = {
+        let parsed = parse_current_envelope(&current_envelope, budget)?;
+        let cognitive = parsed
+            .cognitive_bytes
+            .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
+        ResidentCognitiveFormationState::encoded_is_current(cognitive)
+    };
+    if already_current {
+        return Ok(current_envelope);
+    }
     let (
         identity,
         organism_tick,
@@ -4480,14 +4399,14 @@ fn create_resident_genesis_from_state(
     let identity = canonical_identity(organism_identity)?;
     let joint = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
     let cognitive_budget = cognitive_budget_after_joint(joint.len(), budget)?;
-    let prepopulation = cognitive
+    // Genesis is born directly in the current cognitive format.  Sending
+    // those freshly encoded bytes back through the historical one-way
+    // migration made an empty but lawful genesis look like a retired legacy
+    // body and prevented the runtime from starting.  Migration is reserved
+    // for an authenticated predecessor at the explicit migration boundary.
+    let cognitive = cognitive
         .encode(cognitive_budget)
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-    let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
-        &prepopulation,
-        cognitive_budget,
-    )
-    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
     let vestibular = ResidentVestibularBody::phase_one_genesis()?;
     let articulated_body = ArticulatedBodyState::at_neutral();
     let fabric = encode_fabric(
@@ -6057,6 +5976,7 @@ fn take_u64(bytes: &[u8], offset: &mut usize) -> Result<u64, RuntimeError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::virtual_articulated_body::BODY_EFFECTOR_TERMINAL_COUNT;
     use std::fs;
     use std::path::PathBuf;
 
@@ -6160,37 +6080,22 @@ mod tests {
         let episodes = vec![(episode, vec![(5, 1); interval_count])];
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
 
-        let first = runtime.prepare_admitted_trajectory(&episodes).unwrap();
+        let first = runtime
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
         assert_eq!(first.observation.organism_tick, 2);
         assert_eq!(first.causal_interval_evidence.len(), 2);
         assert_eq!(first.receptor_ingress.sense_counts()[5], 74);
-        assert!(!runtime.active.articulated_body.proprioception_initialized());
-        runtime.commit(first.token).unwrap();
         assert!(runtime.active.articulated_body.proprioception_initialized());
+        runtime.acknowledge_direct_commit(first.token).unwrap();
 
-        let second = runtime.prepare_admitted_trajectory(&episodes).unwrap();
+        let second = runtime
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
         assert_eq!(second.observation.organism_tick, 4);
         assert_eq!(second.causal_interval_evidence.len(), 2);
         assert_eq!(second.receptor_ingress.sense_counts()[5], 74);
-    }
-
-    #[test]
-    fn admitted_interval_pauses_before_native_body_feedback() {
-        let episode = source("admitted-interval-pause");
-        let interval_count = episode.joint_source_occurrences().len();
-        let intervals = vec![(5, 1); interval_count];
-        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
-        runtime.active.articulated_body.initialize_proprioception();
-
-        let prepared = runtime
-            .prepare_admitted_interval(&episode, &intervals)
-            .unwrap();
-
-        assert_eq!(prepared.observation.organism_tick, 1);
-        assert!(prepared.causal_interval_evidence.is_empty());
-        assert_eq!(runtime.observation().organism_tick, 0);
-        runtime.commit(prepared.token).unwrap();
-        assert_eq!(runtime.observation().organism_tick, 1);
+        runtime.acknowledge_direct_commit(second.token).unwrap();
     }
 
     #[test]
@@ -6539,7 +6444,9 @@ mod tests {
     fn body_balance_tick_claims_receptor_and_integration_cells_and_cold_restores() {
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let before = runtime.observation();
-        let prepared = runtime.prepare_vestibular_tick(0, 64).unwrap();
+        let prepared = runtime
+            .commit_vestibular_trajectory_direct(0, &[64])
+            .unwrap();
         assert_eq!(
             prepared.observation.complete_neuron_count,
             before.complete_neuron_count + 3
@@ -6553,7 +6460,7 @@ mod tests {
         );
         assert_eq!(prepared.observation.dsf_delivery_count, 2);
         assert_eq!(prepared.observation.python_callback_count, 0);
-        runtime.commit(prepared.token).unwrap();
+        runtime.acknowledge_direct_commit(prepared.token).unwrap();
         assert_eq!(runtime.active.vestibular.source_tick, 1);
         assert_ne!(runtime.active.vestibular.canal, CanalState::at_rest());
         let body = runtime.active_envelope().to_vec();
@@ -6580,12 +6487,12 @@ mod tests {
         let mut heading = 0_u32;
         for signed_step in turn.trajectory.as_slice() {
             let prepared = runtime
-                .prepare_vestibular_tick(heading, *signed_step)
+                .commit_vestibular_trajectory_direct(heading, &[*signed_step])
                 .unwrap();
             heading =
                 u32::try_from((i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000))
                     .unwrap();
-            runtime.commit(prepared.token).unwrap();
+            runtime.acknowledge_direct_commit(prepared.token).unwrap();
         }
         let after = runtime.observation();
         assert_eq!(heading, 90_000);
@@ -6633,14 +6540,16 @@ mod tests {
         let mut heading = 0_u32;
         for signed_step in steps {
             let prepared = reference
-                .prepare_vestibular_tick(heading, *signed_step)
+                .commit_vestibular_trajectory_direct(heading, &[*signed_step])
                 .unwrap();
-            reference.commit(prepared.token).unwrap();
+            reference.acknowledge_direct_commit(prepared.token).unwrap();
             heading = (i64::from(heading) + i64::from(*signed_step)).rem_euclid(360_000) as u32;
         }
 
         let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
-        let prepared = candidate.prepare_vestibular_trajectory(0, steps).unwrap();
+        let prepared = candidate
+            .commit_vestibular_trajectory_direct(0, steps)
+            .unwrap();
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
         assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 250);
         assert_eq!(prepared.observation.dsf_delivery_count, 500);
@@ -6655,15 +6564,15 @@ mod tests {
                     .unchanged_developmental_resting_neuron_count
                 > 0
         );
-        let replay = create_resident_genesis(IDENTITY, 0, budget())
-            .unwrap()
-            .prepare_vestibular_trajectory(0, steps)
+        let mut replay_runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let replay = replay_runtime
+            .commit_vestibular_trajectory_direct(0, steps)
             .unwrap();
         assert_eq!(
             replay.observation.localized_fluid_chemistry,
             prepared.observation.localized_fluid_chemistry
         );
-        candidate.commit(prepared.token).unwrap();
+        candidate.acknowledge_direct_commit(prepared.token).unwrap();
 
         assert_eq!(heading, 90_000);
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
@@ -6697,14 +6606,16 @@ mod tests {
                 (source, vec![(5, 1); interval_count])
             })
             .collect::<Vec<_>>();
-        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
+        let prepared = candidate
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
         assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 41);
         assert_eq!(prepared.receptor_ingress.field_count(), 41);
         assert_eq!(prepared.receptor_ingress.witness_count(), 78);
         assert_eq!(prepared.observation.organism_tick, 3);
         assert_eq!(prepared.causal_interval_evidence.len(), 3);
-        candidate.commit(prepared.token).unwrap();
+        candidate.acknowledge_direct_commit(prepared.token).unwrap();
 
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
         assert_eq!(candidate.active.cognitive, reference.active.cognitive);
@@ -6716,7 +6627,9 @@ mod tests {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
         }
-        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
+        let prepared = candidate
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
         let emitted_lineages = prepared
             .observation
             .emitted_neuron_fractals
@@ -6727,42 +6640,8 @@ mod tests {
             emitted_lineages.len(),
             prepared.observation.emitted_neuron_fractals.len()
         );
-        candidate.commit(prepared.token).unwrap();
+        candidate.acknowledge_direct_commit(prepared.token).unwrap();
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
-    }
-
-    #[test]
-    fn direct_admitted_trajectory_matches_candidate_commit_and_acknowledges() {
-        let sources = vec![source("direct-trajectory-1"), source("direct-trajectory-2")];
-        let episodes = sources
-            .iter()
-            .cloned()
-            .map(|source| {
-                let interval_count = source.joint_source_occurrences().len();
-                (source, vec![(5, 1); interval_count])
-            })
-            .collect::<Vec<_>>();
-        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
-        let mut direct = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
-        candidate.active.articulated_body.initialize_proprioception();
-        direct.active.articulated_body.initialize_proprioception();
-
-        let prepared = candidate.prepare_admitted_trajectory(&episodes).unwrap();
-        candidate.commit(prepared.token).unwrap();
-        let committed = direct
-            .commit_admitted_trajectory_direct(&episodes)
-            .unwrap();
-
-        assert_eq!(committed.observation, prepared.observation);
-        assert_eq!(direct.active_envelope(), candidate.active_envelope());
-        assert!(direct.direct_predecessor.is_some());
-        assert_eq!(
-            direct.prepare_admitted_trajectory(&episodes).unwrap_err(),
-            RuntimeError::PendingCandidateExists
-        );
-        direct.acknowledge_direct_commit(committed.token).unwrap();
-        assert!(direct.direct_predecessor.is_none());
-        assert_eq!(direct.active.cognitive, candidate.active.cognitive);
     }
 
     #[test]
