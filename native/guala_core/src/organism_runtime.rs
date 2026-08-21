@@ -4215,7 +4215,12 @@ fn migrate_resident_organism_exact_energy_envelope(
         let cognitive = parsed
             .cognitive_bytes
             .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
+        // A current cognitive segment does not make an older fabric current.
+        // Pre-articulated envelopes can already carry V24 cognition but still
+        // require the one-way body/vestibular migration below.
         ResidentCognitiveFormationState::encoded_is_current(cognitive)
+            && parsed.vestibular.is_some()
+            && parsed.articulated_body.is_some()
     };
     if already_current {
         return Ok(current_envelope);
@@ -4399,14 +4404,17 @@ fn create_resident_genesis_from_state(
     let identity = canonical_identity(organism_identity)?;
     let joint = encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
     let cognitive_budget = cognitive_budget_after_joint(joint.len(), budget)?;
-    // Genesis is born directly in the current cognitive format.  Sending
-    // those freshly encoded bytes back through the historical one-way
-    // migration made an empty but lawful genesis look like a retired legacy
-    // body and prevented the runtime from starting.  Migration is reserved
-    // for an authenticated predecessor at the explicit migration boundary.
-    let cognitive = cognitive
+    let prepopulation = cognitive
         .encode(cognitive_budget)
         .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+    // Genesis uses the same explicit admission law as a migrated predecessor:
+    // declare its compact resting population once, before the resident starts.
+    // Ordinary restore remains current-format-only.
+    let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+        &prepopulation,
+        cognitive_budget,
+    )
+    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
     let vestibular = ResidentVestibularBody::phase_one_genesis()?;
     let articulated_body = ArticulatedBodyState::at_neutral();
     let fabric = encode_fabric(
@@ -6617,8 +6625,19 @@ mod tests {
         assert_eq!(prepared.causal_interval_evidence.len(), 3);
         candidate.acknowledge_direct_commit(prepared.token).unwrap();
 
+        assert!(
+            candidate.active.mounted == reference.active.mounted,
+            "mounted successor differs"
+        );
+        assert!(
+            candidate.active.cognitive == reference.active.cognitive,
+            "cognitive successor differs"
+        );
+        assert!(
+            candidate.active.articulated_body == reference.active.articulated_body,
+            "body successor differs"
+        );
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
-        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
 
         let body = reference.prepare_articulated_body_observation().unwrap();

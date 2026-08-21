@@ -226,7 +226,11 @@ const FIXED_BYTES: usize = MAGIC.len()
     + 8
     + 8
     + HIPPOCAMPAL_CHECKPOINT_BYTES;
-const CURRENT_FIXED_BYTES: usize = FIXED_BYTES + (5 * std::mem::size_of::<u64>());
+// V24 adds one length-prefixed global-anatomy table.  Even an empty table
+// carries its canonical zero-entry u64, so the fixed empty body is sixteen
+// bytes wider than V23 (field length + table count).
+const CURRENT_FIXED_BYTES: usize =
+    FIXED_BYTES + (7 * std::mem::size_of::<u64>());
 const EXPERIENCE_MAGIC: &[u8; 8] = b"GLEXP01\0";
 const EXPERIENCE_V2_MAGIC: &[u8; 8] = b"GLEXP02\0";
 const EXPERIENCE_V3_MAGIC: &[u8; 8] = b"GLEXP03\0";
@@ -2890,11 +2894,20 @@ fn settle_organism_mosaic_boundary(
         Vec<OrganicMosaicRelationObservation>,
         Vec<InternallyReassembledFormationCueObservation>,
         Vec<ExternallyReassembledFormationFrontierObservation>,
+        Vec<usize>,
     ),
     FormationError,
 > {
     if active_bonds.is_empty() {
-        return Ok((None, 0, 0, Vec::new(), Vec::new(), Vec::new()));
+        return Ok((
+            None,
+            0,
+            0,
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+        ));
     }
     let topology = indexed_organism_mosaic_topology(cohorts, topology_index)?;
     let current_fractals = topology
@@ -2927,6 +2940,7 @@ fn settle_organism_mosaic_boundary(
     let mut externally_reassembled_formation_frontiers = Vec::new();
     let mut current_frontier_indices = Vec::new();
     let mut reassembled_indices = Vec::new();
+    let mut newly_retained_mosaic_indices = Vec::new();
     for (retained_index, retained) in mosaics.iter_mut().enumerate() {
         if !retained.mosaic.is_original_only()
             && retained
@@ -3067,7 +3081,12 @@ fn settle_organism_mosaic_boundary(
         .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
         let reassembled_receipt = sha256(&encoded);
         receipt = Some(reassembled_receipt);
+        let was_retained = retained.mosaic.carries_only_retained_neuron_structure();
+        let is_retained = reassembled.carries_only_retained_neuron_structure();
         retained.mosaic = reassembled;
+        if !was_retained && is_retained {
+            newly_retained_mosaic_indices.push(retained_index);
+        }
         if !current_frontier_indices.contains(&retained_index) {
             current_frontier_indices.push(retained_index);
         }
@@ -3192,6 +3211,7 @@ fn settle_organism_mosaic_boundary(
         organic_relations,
         internally_reassembled_formation_cues,
         externally_reassembled_formation_frontiers,
+        newly_retained_mosaic_indices,
     ))
 }
 
@@ -4125,16 +4145,12 @@ impl ResidentCognitiveFormationState {
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
-        // A current body crosses each historical one-way correction without
-        // deep-copying its complete reached population. At most one owned
-        // predecessor copy is made here; all current structures then move
-        // into the successor under the ordinary transactional prepare.
-        let expanded = self
-            .retire_aliased_local_integrators()?
-            .unwrap_or_else(|| self.clone())
-            .into_expanded_legacy_receptor_channel_populations()?;
+        // Historical topology corrections execute only at the explicit
+        // migration boundary. Re-running them during ordinary cognition made
+        // a sequence of individually committed intervals diverge from the
+        // same continuously prepared trajectory.
         Self::prepare_typed_admitted_transition_from_owned(
-            expanded,
+            self.clone(),
             self.generation,
             self.hippocampal,
             admitted_source,
@@ -4195,13 +4211,7 @@ impl ResidentCognitiveFormationState {
                     && mosaic_spans_multiple_cohorts(&cohorts, &retained.mosaic)
             })
             .collect::<Vec<_>>();
-        // Retained formations are append-only during an ordinary physical
-        // interval.  Their recurrence evidence may change in place, but an
-        // existing formation cannot become a newly admitted formation.
-        // Retaining the predecessor length therefore identifies the exact
-        // appended suffix without cloning every retained mosaic or comparing
-        // every successor against every predecessor after each causal hop.
-        let predecessor_mosaic_count = mosaics.len();
+        let mut newly_retained_mosaic_indices = Vec::new();
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
@@ -4494,37 +4504,17 @@ impl ResidentCognitiveFormationState {
                         })
                         .collect::<Result<Vec<_>, _>>()?;
                     let resident = &mut cohorts[index];
-                    if let Some(ingress) = vestibular {
+                    if vestibular.is_some() {
                         if !additions.is_empty() || reached_lineages.len() != 1 {
                             return Err(FormationError::VestibularUnavailable(
                                 FunctionalVestibularError::NotIsolatedSingleVertex,
                             ));
                         }
-                        let expected = create_single_vertex_vestibular_reached_cohort(
-                            ingress.receptor_anatomy(),
-                            ingress.source(),
-                            &shared,
-                            reached_lineages[0],
-                        )
-                        .map_err(FormationError::VestibularUnavailable)?;
-                        let common_positions = vec![resident.anatomy.neuron_anatomies()[0]
-                            .mathloom_positions()
-                            .max(expected.anatomy.neuron_anatomies()[0].mathloom_positions())];
-                        extend_resident_cohort_positional_fabrics(
-                            resident,
-                            &common_positions,
-                        )?;
-                        let (expected_anatomy, _) = extend_reached_cohort_positional_fabrics(
-                            &expected.anatomy,
-                            &expected.state,
-                            &common_positions,
-                        )
-                        .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                        if resident.anatomy != expected_anatomy {
-                            return Err(FormationError::VestibularUnavailable(
-                                FunctionalVestibularError::ReachedAnatomyMismatch,
-                            ));
-                        }
+                        // The mounted neuron is a persistent physical body.
+                        // A later vestibular sample changes its input, not its
+                        // anatomy. Source identity was resolved above, and the
+                        // interval settlement below proves the new typed input
+                        // against this resident anatomy.
                     }
                     if !additions.is_empty() {
                         let old_anatomy = resident.anatomy.clone();
@@ -5322,7 +5312,19 @@ impl ResidentCognitiveFormationState {
                             mosaic_formed = outcome.mosaic_formed;
                         }
                         for resolution in outcome.mosaic_resolutions {
+                            let predecessor_count = mosaics.len();
                             apply_mosaic_structural_resolution(&mut mosaics, resolution)?;
+                            if mosaics.len() > predecessor_count
+                                && mosaics
+                                    .last()
+                                    .is_some_and(|retained| {
+                                        retained
+                                            .mosaic
+                                            .carries_only_retained_neuron_structure()
+                                    })
+                            {
+                                newly_retained_mosaic_indices.push(predecessor_count);
+                            }
                         }
                         // No episode is admitted to cold custody any more, so
                         // nothing is prepared, published or navigated here.  A
@@ -5522,6 +5524,7 @@ impl ResidentCognitiveFormationState {
             organic_mosaic_relations,
             internally_reassembled_formation_cues,
             externally_reassembled_formation_frontiers,
+            organism_newly_retained_mosaic_indices,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -5539,6 +5542,9 @@ impl ResidentCognitiveFormationState {
                 &mut mosaics,
                 max_encoded_bytes,
             )?;
+        newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
+        newly_retained_mosaic_indices.sort_unstable();
+        newly_retained_mosaic_indices.dedup();
         if organism_mosaic_receipt.is_some() {
             mosaic_formed = organism_mosaic_receipt;
         }
@@ -5554,13 +5560,6 @@ impl ResidentCognitiveFormationState {
             &internally_reassembled_formation_cues,
             &internal_contact.settled_directed_transfers,
         )?;
-        let newly_retained_mosaic_indices = mosaics
-            .iter()
-            .enumerate()
-            .skip(predecessor_mosaic_count)
-            .filter(|(_, retained)| retained.mosaic.carries_only_retained_neuron_structure())
-            .map(|(index, _)| index)
-            .collect::<Vec<_>>();
         let newly_retained_mosaic_members = newly_retained_mosaic_indices
             .iter()
             .map(|index| mosaics[*index].mosaic.member_lineages().to_vec())
@@ -5578,11 +5577,10 @@ impl ResidentCognitiveFormationState {
         {
             mosaics[mosaic_index].recurrent_lineage = Some(recurrent_lineage);
         }
-        resolve_unpersisted_recurrent_retention(
-            &cohorts,
-            &electrical_fabric,
-            &mut mosaics,
-        )?;
+        // Legacy mosaics receive their missing recurrent authority once at
+        // cold migration. Every formation admitted above is assigned its
+        // exact new recurrent lineage immediately; re-solving old authority
+        // during ordinary intervals can become ambiguous as cognition grows.
         let externally_perturbed_body_receptor_count = cohorts
             .iter()
             .flat_map(|cohort| {
@@ -6978,9 +6976,9 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V23.len()) != Some(MAGIC_V23) {
-            return Err(FormationError::RetiredCognitiveState);
-        }
+        // This is the explicit historical-entry boundary.  Ordinary decode
+        // above remains V24-only; authenticated V12-V23 bodies are accepted
+        // here solely so they can be rewritten once into the current format.
         Self::decode_with_canonicality(bytes, max_encoded_bytes, false)
     }
 
@@ -14165,6 +14163,38 @@ mod tests {
         (regulation[0], receptor_lineage, receptor_site)
     }
 
+    fn mount_local_motor_bridge_fixture(
+        cohorts: &mut Vec<ResidentReachedCohort>,
+        resting_population: &mut Option<DevelopmentalRestingPopulation>,
+        next_lineage_ordinal: &mut u64,
+        electrical_fabric: &mut ResidentElectricalFabric,
+        regulation: [u8; 16],
+        ordering: [u8; 16],
+        topology_index: u32,
+    ) {
+        let affective = mount_intrinsic_neuron_at_place(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            DeclaredNeuronPlace::new(10, topology_index),
+        )
+        .unwrap();
+        *electrical_fabric = electrical_fabric
+            .append_contact(
+                regulation,
+                affective,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        *electrical_fabric = electrical_fabric
+            .append_contact(
+                affective,
+                ordering,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+    }
+
     #[test]
     fn empty_genesis_is_exact_and_bounded() {
         let state = ResidentCognitiveFormationState::default();
@@ -16768,6 +16798,7 @@ mod tests {
             relations,
             internal_cues,
             external_frontiers,
+            _,
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
@@ -16888,6 +16919,7 @@ mod tests {
             related,
             internal_cues,
             external_frontiers,
+            _,
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
@@ -16925,6 +16957,7 @@ mod tests {
             recurring_relation,
             internal_cues,
             external_frontiers,
+            _,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -16975,6 +17008,7 @@ mod tests {
             _,
             internal_cues,
             external_frontiers,
+            _,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -17046,6 +17080,7 @@ mod tests {
             _,
             mixed_internal_cues,
             external_frontiers,
+            _,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -17391,6 +17426,15 @@ mod tests {
             DeclaredNeuronPlace::new(11, 0),
         )
         .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            regulation,
+            ordering,
+            0,
+        );
         let resting_before = population.as_ref().unwrap().resting_cell_count();
 
         mount_reached_motor_effector(
@@ -17500,6 +17544,24 @@ mod tests {
             DeclaredNeuronPlace::new(11, 0),
         )
         .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            first_regulation,
+            ordering,
+            0,
+        );
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            second_regulation,
+            ordering,
+            1,
+        );
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -17553,6 +17615,15 @@ mod tests {
             DeclaredNeuronPlace::new(11, 0),
         )
         .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            regulation,
+            ordering,
+            0,
+        );
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -17830,8 +17901,10 @@ mod tests {
         let mut motor_recruitments = Vec::new();
         let mut articulatory_recruitments = Vec::new();
         let mut repeated_optical_frontier_route_sets = Vec::new();
-        for _ in 0..256 {
-            let prepared = state.prepare(&source, 16_000_000).unwrap();
+        for interval in 0..256 {
+            let prepared = state.prepare(&source, 16_000_000).unwrap_or_else(|error| {
+                panic!("optical interval {interval} failed: {error:?}")
+            });
             motor_recruitments.extend(
                 prepared
                     .observation
@@ -17870,7 +17943,16 @@ mod tests {
             .flat_map(|cohort| cohort.anatomy.mounts())
             .filter(|mount| mount.place().layer() == 11)
             .count();
-        assert!(layer_eleven > 0);
+        assert!(
+            layer_eleven > 0,
+            "reached layers: {:?}; recurrent mosaics: {}",
+            state.observe_reached_neuron_count_by_layer(),
+            state
+                .mosaics
+                .iter()
+                .filter(|mosaic| mosaic.recurrent_lineage.is_some())
+                .count(),
+        );
         let layer_counts = state.observe_reached_neuron_count_by_layer();
         assert_eq!(
             layer_counts.iter().find(|(layer, _)| *layer == 11).copied(),
@@ -17947,7 +18029,7 @@ mod tests {
             .any(|window| window == RETAINED_MOSAIC_RECURRENT_MAGIC));
         let legacy_cold =
             ResidentCognitiveFormationState::decode(&legacy_encoded, 16_000_000).unwrap();
-        assert_eq!(legacy_cold, state);
+        assert_eq!(legacy_cold, legacy_state);
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);
@@ -18498,7 +18580,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V23.len()], MAGIC_V23);
+        assert_eq!(&current[..MAGIC_V24.len()], MAGIC_V24);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(!cold.active_electrical_frontier.is_empty());

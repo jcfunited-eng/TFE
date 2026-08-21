@@ -352,3 +352,24 @@ performed zero Python cognition callbacks, and made exactly one successor
 seal. The native call and the production Python wrapper both passed. Temporary
 timing instrumentation was then removed completely. Production remains
 unchanged pending the immutable release/cutover sequence.
+
+## Final release candidate verification — 2026-08-21
+
+The first image build from commit `5caf1253` did not cut production over. Its
+library suite found 16 deterministic compatibility failures, so task 1150 and
+image digest `sha256:afacccf9ed0e1b9c325de20f670f1c8374101132191a3f4e8bc84241417f32df`
+remained live and unchanged.
+
+The candidate was corrected without restoring the rejected pause/reinsert
+path. The corrections keep historical receptor/topology repair inside the
+explicit one-way migration, preserve already-mounted vestibular receptor
+anatomy across later samples, account exactly for in-place newly retained
+mosaics, require local layer-8 -> layer-10 -> layer-11 motor paths, and retain
+one current GLCOG024 ordinary-restore authority. Fresh genesis and
+pre-articulated predecessors now cross the explicit current-format/body
+admission boundary exactly once.
+
+Executable result: `cargo test --locked --lib` passed 460 tests, failed 0,
+and ignored 10 in 30.30 seconds. The production candidate still requires the
+single image build/cutover and live same-resident continuation observation;
+this local result is not itself a Live-Closed claim.
