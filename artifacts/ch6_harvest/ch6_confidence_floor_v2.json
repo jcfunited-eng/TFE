@@ -1,0 +1,90 @@
+{
+ "pulses_entered": 1292,
+ "split_date": "2026-03-11",
+ "derive": {
+  "n": 645,
+  "outcomes": {
+   "REFUTED": 415,
+   "COMPLETED": 162,
+   "EXPIRED": 68
+  },
+  "completed_rate": 0.251,
+  "refuted_rate": 0.643,
+  "mean_harvest_pct_all": -1.5,
+  "sessions_to_completion": {
+   "p25": 3,
+   "p50": 7,
+   "p75": 13,
+   "p90": 18
+  },
+  "states": {
+   "d0|dr0|D-": {
+    "n": 541,
+    "completed": 0.248,
+    "refuted": 0.654,
+    "mean_harvest_pct": -1.52
+   },
+   "d1|dr1|D+": {
+    "n": 17,
+    "completed": 0.471,
+    "refuted": 0.412,
+    "mean_harvest_pct": 0.59
+   },
+   "d1|dr1|D-": {
+    "n": 26,
+    "completed": 0.192,
+    "refuted": 0.615,
+    "mean_harvest_pct": -2.57
+   },
+   "d2+|dr1|D-": {
+    "n": 46,
+    "completed": 0.239,
+    "refuted": 0.609,
+    "mean_harvest_pct": -1.01
+   }
+  }
+ },
+ "confirm": {
+  "n": 647,
+  "outcomes": {
+   "REFUTED": 396,
+   "COMPLETED": 147,
+   "EXPIRED": 104
+  },
+  "completed_rate": 0.227,
+  "refuted_rate": 0.612,
+  "mean_harvest_pct_all": -1.27,
+  "sessions_to_completion": {
+   "p25": 2,
+   "p50": 5,
+   "p75": 11,
+   "p90": 15
+  },
+  "states": {
+   "d0|dr0|D-": {
+    "n": 543,
+    "completed": 0.227,
+    "refuted": 0.624,
+    "mean_harvest_pct": -1.5
+   },
+   "d1|dr1|D+": {
+    "n": 20,
+    "completed": 0.2,
+    "refuted": 0.55,
+    "mean_harvest_pct": 1.25
+   },
+   "d1|dr1|D-": {
+    "n": 25,
+    "completed": 0.32,
+    "refuted": 0.52,
+    "mean_harvest_pct": -1.2
+   },
+   "d2+|dr1|D-": {
+    "n": 51,
+    "completed": 0.235,
+    "refuted": 0.529,
+    "mean_harvest_pct": 0.7
+   }
+  }
+ }
+}
