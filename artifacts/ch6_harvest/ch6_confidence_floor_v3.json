@@ -1,0 +1,174 @@
+{
+ "pulses": 1290,
+ "split_date": "2026-03-12",
+ "base_rates": {
+  "derive": {
+   "n": 645,
+   "completed": 0.25,
+   "refuted": 0.643
+  },
+  "confirm": {
+   "n": 645,
+   "completed": 0.226,
+   "refuted": 0.614
+  }
+ },
+ "signatures": {
+  "D- R0 U^ S^ Qv Bv": {
+   "derive": {
+    "n": 12,
+    "completed": 0.0,
+    "refuted": 0.667,
+    "mean_harvest_pct": -2.2
+   },
+   "confirm": {
+    "n": 5
+   }
+  },
+  "D- R0 Uv S^ Qv Bv": {
+   "derive": {
+    "n": 9
+   },
+   "confirm": {
+    "n": 13,
+    "completed": 0.154,
+    "refuted": 0.615,
+    "mean_harvest_pct": -6.68
+   }
+  },
+  "D- R0 Uv Sv Q^ Bv": {
+   "derive": {
+    "n": 8
+   },
+   "confirm": {
+    "n": 10,
+    "completed": 0.0,
+    "refuted": 0.9,
+    "mean_harvest_pct": -6.6
+   }
+  },
+  "D- R0 Uv Sv Qv Bv": {
+   "derive": {
+    "n": 8
+   },
+   "confirm": {
+    "n": 11,
+    "completed": 0.0,
+    "refuted": 0.818,
+    "mean_harvest_pct": -3.75
+   }
+  },
+  "D- R1 U^ S^ Q^ Bv": {
+   "derive": {
+    "n": 24,
+    "completed": 0.125,
+    "refuted": 0.833,
+    "mean_harvest_pct": -3.76
+   },
+   "confirm": {
+    "n": 23,
+    "completed": 0.304,
+    "refuted": 0.522,
+    "mean_harvest_pct": 1.87
+   }
+  },
+  "D- R1 U^ S^ Qv Bv": {
+   "derive": {
+    "n": 57,
+    "completed": 0.228,
+    "refuted": 0.684,
+    "mean_harvest_pct": -2.19
+   },
+   "confirm": {
+    "n": 50,
+    "completed": 0.18,
+    "refuted": 0.66,
+    "mean_harvest_pct": -2.29
+   }
+  },
+  "D- R1 U^ Sv Q^ Bv": {
+   "derive": {
+    "n": 47,
+    "completed": 0.191,
+    "refuted": 0.745,
+    "mean_harvest_pct": -4.5
+   },
+   "confirm": {
+    "n": 53,
+    "completed": 0.17,
+    "refuted": 0.698,
+    "mean_harvest_pct": -4.67
+   }
+  },
+  "D- R1 U^ Sv Qv Bv": {
+   "derive": {
+    "n": 126,
+    "completed": 0.27,
+    "refuted": 0.587,
+    "mean_harvest_pct": -1.25
+   },
+   "confirm": {
+    "n": 162,
+    "completed": 0.241,
+    "refuted": 0.58,
+    "mean_harvest_pct": -1.55
+   }
+  },
+  "D- R1 Uv S^ Q^ Bv": {
+   "derive": {
+    "n": 62,
+    "completed": 0.194,
+    "refuted": 0.742,
+    "mean_harvest_pct": -1.88
+   },
+   "confirm": {
+    "n": 58,
+    "completed": 0.224,
+    "refuted": 0.69,
+    "mean_harvest_pct": -0.29
+   }
+  },
+  "D- R1 Uv S^ Qv Bv": {
+   "derive": {
+    "n": 120,
+    "completed": 0.283,
+    "refuted": 0.617,
+    "mean_harvest_pct": -2.22
+   },
+   "confirm": {
+    "n": 118,
+    "completed": 0.297,
+    "refuted": 0.534,
+    "mean_harvest_pct": 0.55
+   }
+  },
+  "D- R1 Uv Sv Q^ Bv": {
+   "derive": {
+    "n": 70,
+    "completed": 0.257,
+    "refuted": 0.6,
+    "mean_harvest_pct": 0.07
+   },
+   "confirm": {
+    "n": 52,
+    "completed": 0.269,
+    "refuted": 0.577,
+    "mean_harvest_pct": 0.24
+   }
+  },
+  "D- R1 Uv Sv Qv Bv": {
+   "derive": {
+    "n": 48,
+    "completed": 0.333,
+    "refuted": 0.542,
+    "mean_harvest_pct": 2.28
+   },
+   "confirm": {
+    "n": 43,
+    "completed": 0.209,
+    "refuted": 0.628,
+    "mean_harvest_pct": -2.76
+   }
+  }
+ }
+}
