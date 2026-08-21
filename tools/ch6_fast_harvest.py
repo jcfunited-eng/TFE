@@ -665,6 +665,17 @@ def evaluate_live_marks(action: str) -> None:
             if price is None:
                 remaining.append(entry)  # no in-session mark yet — retry
                 continue
+            # Joseph's rule 2026-08-21 ("the don't-be-an-idiot rule"):
+            # a stock on the rise is never entered. A short is bought
+            # only at or below the price it was picked at; above it,
+            # the stage holds and retries — it fills only if the price
+            # comes back down within its valid session, else expires.
+            if price > float(entry["decided_close"]):
+                print(f"  HOLD {symbol}: {price} above the picked price "
+                      f"{entry['decided_close']} — rising stocks are "
+                      "never entered (Joseph 2026-08-21)")
+                remaining.append(entry)
+                continue
             slice_usd = min(SLICE_TARGET_USD, float(book["cash"]),
                             0.01 * float(entry["normal_day_dollars"]))
             if slice_usd < SLICE_FLOOR_USD:
