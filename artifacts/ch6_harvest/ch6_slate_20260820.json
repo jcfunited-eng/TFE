@@ -1,0 +1,94 @@
+{
+ "filed_at": "2026-08-21T03:18:37.020321+00:00",
+ "staged_added": [
+  {
+   "symbol": "AEYE",
+   "decided_date": "2026-08-20",
+   "decided_close": 7.14,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 311805.0
+  },
+  {
+   "symbol": "MEI",
+   "decided_date": "2026-08-20",
+   "decided_close": 14.47,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 5861896.0
+  },
+  {
+   "symbol": "RRGB",
+   "decided_date": "2026-08-20",
+   "decided_close": 9.42,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 1430038.0
+  },
+  {
+   "symbol": "VLRS",
+   "decided_date": "2026-08-20",
+   "decided_close": 6.84,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 2937099.0
+  },
+  {
+   "symbol": "BBGI",
+   "decided_date": "2026-08-20",
+   "decided_close": 20.24,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 341007.0
+  },
+  {
+   "symbol": "INTT",
+   "decided_date": "2026-08-20",
+   "decided_close": 12.17,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 1450575.0
+  },
+  {
+   "symbol": "ALGS",
+   "decided_date": "2026-08-20",
+   "decided_close": 6.44,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 456939.0
+  },
+  {
+   "symbol": "ASTC",
+   "decided_date": "2026-08-20",
+   "decided_close": 7.56,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 482387.0
+  },
+  {
+   "symbol": "BNTX",
+   "decided_date": "2026-08-20",
+   "decided_close": 110.89,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 61544768.0
+  },
+  {
+   "symbol": "BRBR",
+   "decided_date": "2026-08-20",
+   "decided_close": 10.45,
+   "decided_at": "2026-08-21T03:18:37.020321+00:00",
+   "normal_day_dollars": 29330205.0
+  }
+ ],
+ "custody": {
+  "completed_close": "2026-08-20",
+  "eligible": 0,
+  "opened": 0,
+  "settled": 0,
+  "refused_unknown_herd": 0,
+  "refused_unreset_refutation": 0,
+  "refused_by_reading": 10,
+  "readings_door_20260820": {
+   "decided_close": "2026-08-20",
+   "carried_readings": true,
+   "readings_of": "2026-08-19",
+   "staleness_rule": "carry only if 08-20 close <= 08-19 close x1.02",
+   "stale_dropped": 7,
+   "staged": 10,
+   "no_new_reads_reason": "Joseph token order 2026-08-20",
+   "laws_version": "v3-20260819"
+  }
+ }
+}
