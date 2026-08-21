@@ -9105,6 +9105,7 @@ def _perform_admitted_intake_locked(
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
             )
+            motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             retain_articulated_body_evidence(last_hop)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
@@ -9280,6 +9281,10 @@ def _perform_admitted_intake_locked(
                 deferred_recurrent_articulation_count = len(
                     last_hop["articulatory_unit_recruitments"]
                 )
+                motor_unit_recruitments.extend(
+                    last_hop["motor_unit_recruitments"]
+                )
+                retain_articulated_body_evidence(last_hop)
                 emitted_neuron_fractals.extend(
                     last_hop["emitted_neuron_fractals"]
                 )

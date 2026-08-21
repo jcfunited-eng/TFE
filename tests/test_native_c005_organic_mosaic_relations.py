@@ -65,6 +65,7 @@ def _quiescent_body_organism() -> SimpleNamespace:
     return SimpleNamespace(
         readiness=lambda: SimpleNamespace(
             articulated_body_state_sha256="44" * 32,
+            articulated_body_axes=(),
         )
     )
 
@@ -326,8 +327,30 @@ def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> 
     heard["physically_transitioned_neuron_count"] = 40
     heard["complete_neuron_fractal_count"] = 3
     heard["externally_perturbed_body_receptor_count"] = 16
+    heard_motor = ("12" * 16, 0, 32, (), ())
+    heard_consequence = (
+        15,
+        "torso_pitch",
+        "millidegree",
+        0,
+        -32,
+        -32,
+        32,
+        0,
+        0,
+        32,
+        0,
+    )
+    heard["motor_unit_recruitments"] = (heard_motor,)
+    heard["body_effector_bindings"] = (
+        ("12" * 16, "torso_pitch", "toward_minimum", 32),
+    )
+    heard["articulated_body_consequences"] = (heard_consequence,)
     organism = _quiescent_body_organism()
-    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    predecessor = SimpleNamespace(
+        identity="self-hearing-resident",
+        state_sha256="aa" * 32,
+    )
     monkeypatch.setattr(
         production,
         "_runtime",
@@ -361,6 +384,12 @@ def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> 
         ),
     )
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    prepared_actions = []
+    monkeypatch.setattr(
+        production,
+        "_prepare_continuous_native_action_consequence",
+        lambda **kwargs: prepared_actions.append(kwargs) or None,
+    )
 
     result = production._perform_admitted_intake_locked(
         [(_episode(), [])],
@@ -375,6 +404,10 @@ def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> 
     assert articulation["self_hearing_transitioned_neuron_count"] == 40
     assert articulation["self_hearing_fractal_count"] == 3
     assert articulation["articulatory_body_perturbed_neuron_count"] == 16
+    assert prepared_actions[0]["motor_unit_recruitments"] == (heard_motor,)
+    assert prepared_actions[0]["articulated_body_consequences"] == (
+        heard_consequence,
+    )
 
 
 def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(

@@ -373,3 +373,19 @@ Executable result: `cargo test --locked --lib` passed 460 tests, failed 0,
 and ignored 10 in 30.30 seconds. The production candidate still requires the
 single image build/cutover and live same-resident continuation observation;
 this local result is not itself a Live-Closed claim.
+
+## Live continuous-action handoff correction — 2026-08-21
+
+Production task `dsf-ai-task:1151` advanced the same resident organism through
+ordinary native intervals and then emitted one real layer-12 motor recruitment
+at tick 148192. The same committed native evidence contains its exact
+`torso_pitch` effector binding and -32 millidegree articulated-body consequence,
+but the public action and sensory-consequence records are null.
+
+The remaining defect is localized outside neuron/DSF physics: motor and body
+evidence emitted by the self-hearing continuation was left only in `last_hop`
+and was not added to the action bridge's cumulative evidence. Vestibular
+continuations had the identical motor omission. The authorized correction is
+only to carry those already-native facts into the existing continuous world
+action/consequence path. No cognition pause, Python action choice, dense state
+work, topology change, or DSF reduction is authorized.
