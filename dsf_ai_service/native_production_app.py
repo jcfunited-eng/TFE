@@ -5539,7 +5539,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
             articulation,
         )
 
-    causal = record["body"].get("causal_cross_context_use")
+    causal = record["body"].get("prior_causal_cross_context_use")
     if isinstance(causal, dict) and causal.get("available") is True:
         causal_capabilities = (
             "Recognition and familiarity",
@@ -5562,7 +5562,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                     "integration_depth",
                 ),
                 causal["status"],
-                "body.causal_cross_context_use",
+                "body.prior_causal_cross_context_use",
                 causal,
             )
         for capability in ("Recognition and familiarity",):
@@ -5570,7 +5570,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                 capability,
                 ("recognition",),
                 causal["status"],
-                "body.causal_cross_context_use",
+                "body.prior_causal_cross_context_use",
                 causal,
             )
         for capability in (
@@ -5582,7 +5582,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                 capability,
                 ("recall",),
                 causal["status"],
-                "body.causal_cross_context_use",
+                "body.prior_causal_cross_context_use",
                 causal,
             )
         if str(causal.get("intake", "")).startswith("continuous-environment:"):
@@ -5596,7 +5596,7 @@ def _cognitive_capital_record(record: dict[str, Any]) -> dict[str, object]:
                     capability,
                     ("autonomous_use",),
                     causal["status"],
-                    "body.causal_cross_context_use",
+                    "body.prior_causal_cross_context_use",
                     causal,
                 )
     curiosity = record["intrinsic_curiosity"]

@@ -128,7 +128,7 @@ def test_causal_reassembly_credits_use_but_not_unproved_meaning(monkeypatch) -> 
     record["formations"]["mosaic_count"] = 1
     record["body"] = {
         **_section(True, "native_body_action_and_sensed_return_observed"),
-        "causal_cross_context_use": causal,
+        "prior_causal_cross_context_use": causal,
     }
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
 

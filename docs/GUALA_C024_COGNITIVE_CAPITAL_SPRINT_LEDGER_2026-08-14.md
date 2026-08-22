@@ -185,3 +185,44 @@ observation fragment; it never supplies meaning or cognition.
   failed the subsequent live C-024 acceptance check. Task 1050 corrected the
   one exact intake-name translation and passed rehearsal, cutover, and live
   recurrence verification. C-024 is therefore Live-Closed; A-001 is next.
+
+## 2026-08-22 reconciliation increment
+
+The canonical 100-item reconciliation reopened the complete top-level C-024
+sentence as `RECONCILED PARTIAL`: task 1050 truthfully left language,
+motivation, social cognition, and creativity blank. The immediate predecessor
+increment is the current task-1172 common C-023 causal witness at tick 150252;
+this does not reopen A-009 or alter the organism.
+
+Production baseline is task `dsf-ai-task:1172`, commit `3f926236`, image
+`sha256:1d8da6de7a6b700ffbbf5b838e842cb3f76bf274545a8ae0f6f9363d105e3b6d`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and state
+`cd701481c9d280c24bdbf6010bd85a464854a23d57bbe6638829ae9673f70d59`.
+The live capital record has the exact 39 capabilities, ten dimensions, and 48
+sparse cells. It does not flatten the evidence or exercise cognition authority.
+
+The exact current omission is one stale public-field name. `_body_record`
+publishes the bounded retained-formation witness as
+`body.prior_causal_cross_context_use`, while `_cognitive_capital_record` still
+reads `body.causal_cross_context_use`. Consequently the exact task-1172 C-023
+witness is present in the same public body but cannot credit its already-proved
+recognition, episodic/procedural memory, recall, transfer, autonomous use,
+self/body continuity, motor control, autonomy, and learning dimensions.
+
+Authorized change: update only that read-only translation and its C-024 focused
+fixture. Prohibited mechanisms remain unchanged: no native capital inference,
+persistent capital archive, score, count proxy, semantic mapping, organism
+mutation, L0-L4/DSF change, neuron change, or persistence change. The focused
+exit proof must project the actual `prior_causal_cross_context_use` field and
+retain all unproved capabilities as blank.
+
+The localized source review found no additional owner, loop, allocation,
+storage, state mutation, or production-reachable legacy field. The focused
+C-024 file passed 5/5 in 1.03 seconds; Python compilation and `git diff --check`
+passed. Projecting the exact saved task-1172 tick-150252 public body through the
+corrected function produced 83 unique sparse cells instead of 48. The 35 newly
+visible cells are all dimensions of the already-live retained-formation causal
+witness, including procedural-memory transfer, recall causal use, self/body and
+motor autonomous use, autonomous-cognition causal use, and learning transfer.
+Language comprehension and creativity/self-expression remained blank. This is
+local candidate evidence pending immutable deployment and direct live proof.
