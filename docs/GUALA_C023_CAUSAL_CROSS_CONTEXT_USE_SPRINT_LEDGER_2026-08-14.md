@@ -1163,3 +1163,49 @@ interval falsifier proves the resulting autonomy record serializes without
 `before`/`after` coordinate copies. The focused unattended/rest/public/C-023
 boundary passes 41/41, Python compilation passes, and `git diff --check` passes.
 Live post-transition verification remains required.
+
+### Task-1172 live observer closure and causal imagination witness
+
+Commit `3f926236c68093cc2e7a3e5edfb3fc577e75a324` deployed as the sole
+production task `dsf-ai-task:1172` with image
+`sha256:1d8da6de7a6b700ffbbf5b838e842cb3f76bf274545a8ae0f6f9363d105e3b6d`.
+The deployment controller completed at 16:04:54 UTC with native state verified.
+ECS then reported desired one, running one, pending zero, and exactly one
+completed PRIMARY deployment. The running task and the ECR
+`production-current` tag identify the same image digest. The resident identity
+remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The public observation returned HTTP 200 at restored tick 150187 and continued
+to return HTTP 200 after autonomous successors at ticks 150203, 150219, 150236,
+and 150252. No `native public observation refresh failed` or other ERROR event
+was present in the task log. This live sequence closes the bounded-observer
+defect: exact native energy coordinates remain resident, while their exact
+changed/unchanged facts remain publicly observable across ordinary autonomous
+transitions.
+
+At tick 150252 the same process produced the exact common C-023 causal witness.
+An internally reassembled retained formation with receipt
+`e83a78547dee82b9dcf908ec196f345ea32dad82337072b7405c6afab10d9f76`
+crossed a changed physical contact between lineages
+`474c4e4c494e453100000000000000df` and
+`474c4e4c494e45310000000000000131`, parallel ordinal zero. The contact changed
+at tick 150237 and remained bound to the exact motor path. Native action receipt
+`2eabaede4a373c543bd0536bc3a73c87167b4d34e7ea0f8100750e05dabb833f`
+changed the body from
+`5e033f381236de912011dff6c61456849bac524ab5ceb57d1cc99ce73d292c42`
+to `8f93541d64c49ce836a4c0d006aea11dac0769b44be9565641602559df2fe0bd`.
+The action moved, cognition remained continuous, and the same action receipt
+returned sight 27, sound 34, touch 27, smell 8, taste 5, body 84, two external
+body receptors, 80 internal metabolic receptors, and all 74 articulated-body
+proprioceptive axes with six changed. The one successor persisted at tick
+150252 with state
+`cd701481c9d280c24bdbf6010bd85a464854a23d57bbe6638829ae9673f70d59`.
+No scripted action authority or Python cognition authority participated.
+
+This directly re-establishes the common internally retained formation -> exact
+physical path -> native body action -> sensed-consequence mechanism in current
+production. It does not close the complete top-level C-023 sentence by itself:
+social cognition, self/body continuity, procedural skill, creativity, and
+reflection still require their own reconciled causal outcomes. C-023 therefore
+remains `RECONCILED PARTIAL` while its imagination/common cross-context-use
+increment is live-proved.
