@@ -2329,68 +2329,6 @@ def _curriculum_invitation_record() -> dict[str, object]:
     )
 
 
-def _settle_pending_curriculum_invitation(
-    participant_attention: dict[str, Any] | None,
-    *,
-    organism_tick: int,
-    state_sha256: str,
-) -> None:
-    """Observe one pending retinal frontier complete or physically expire."""
-
-    global _curriculum_invitation
-    invitation = _curriculum_invitation
-    if invitation is None or invitation.get("outcome") != "observing":
-        return
-    action_receipt = invitation["participant_action_causal_intent_receipt_sha256"]
-    pending = any(
-        key[0] == "external_participant_sensory" and key[1] == action_receipt
-        for key in _active_external_participant_causal_motor_traces
-    )
-    matched = isinstance(participant_attention, dict) and (
-        participant_attention.get(
-            "participant_action_causal_intent_receipt_sha256"
-        ) == action_receipt
-    )
-    if not matched and pending:
-        return
-    successor = {
-        key: value
-        for key, value in invitation.items()
-        if key != "invitation_receipt_sha256"
-    }
-    if matched:
-        transfers = tuple(participant_attention["directed_physical_transfers"])
-        successor.update(
-            causal_directed_transfer_count=len(transfers),
-            outcome="attended",
-            presentation_eligible=True,
-            reason=(
-                "the approach-caused retinal frontier entered Guala's own "
-                "changed reached-versus-foregone sparse route event through "
-                "exact directed transfers"
-            ),
-            status="participant_causal_path_entered_native_attention",
-        )
-    else:
-        successor.update(
-            outcome="declined",
-            presentation_eligible=False,
-            reason=(
-                "the participant changed her retina, but that exact physical "
-                "frontier expired without entering her changed reached-versus-"
-                "foregone sparse route event; no curriculum experience was "
-                "admitted"
-            ),
-            status="participant_causal_path_expired_before_native_attention",
-        )
-    successor.update(
-        observed_at_organism_tick=organism_tick,
-        observed_state_sha256=state_sha256,
-    )
-    successor["invitation_receipt_sha256"] = _receipt(successor)
-    _curriculum_invitation = successor
-
-
 def _curriculum_media_record() -> dict[str, object]:
     try:
         cards = _manifest_experiences(
@@ -9978,11 +9916,6 @@ def _perform_admitted_intake_locked(
         "receptor_ingress": receptor_ingress,
         "totals": dict(totals),
     }
-    _settle_pending_curriculum_invitation(
-        participant_sensory_attention,
-        organism_tick=int(last_hop["organism_tick"]),
-        state_sha256=str(last_hop["state_sha256"]),
-    )
     # A route-set change is knowable only after a later hop supplies the
     # distinct comparison frontier.  Re-evaluate once at the completed
     # transaction boundary so an exact motor-preparation transfer observed in
@@ -12325,13 +12258,13 @@ def _validated_curriculum_experience_invitation(
             "the invited physical curriculum experience and requested "
             "experience differ",
         )
-    if invitation.get("outcome") != "attended" or not invitation.get(
+    if invitation.get("outcome") != "presentable" or not invitation.get(
         "presentation_eligible"
     ):
         raise _CurriculumInvitationRefusal(
             409,
-            "Guala's exact invitation-caused frontier has not continued; "
-            "no curriculum experience was admitted",
+            "the embodied invitation did not reach Guala's retina; no "
+            "curriculum experience may be presented",
         )
     return invitation
 
@@ -12447,9 +12380,9 @@ def _perform_card_lesson_intake(
             ],
             "presentation_eligible": False,
             "reason": (
-                "one physical card presentation committed after the exact "
-                "invitation-caused neuronal continuation; the receipt is "
-                "consumed and cannot admit a duplicate"
+                "one physical card presentation committed after its embodied "
+                "invitation reached Guala's retina; the receipt is consumed "
+                "and cannot admit a duplicate"
             ),
             "status": "invited_card_presentation_committed",
         }
@@ -12538,9 +12471,9 @@ def _perform_song_lesson_intake(
             ],
             "presentation_eligible": False,
             "reason": (
-                "one synchronized song presentation committed after the "
-                "exact invitation-caused neuronal continuation; the receipt "
-                "is consumed and cannot admit a duplicate"
+                "one synchronized song presentation committed after its "
+                "embodied invitation reached Guala's retina; the receipt is "
+                "consumed and cannot admit a duplicate"
             ),
             "status": "invited_song_presentation_committed",
         }
@@ -13853,50 +13786,13 @@ def _embodied_curriculum_invitation(
             ):
                 return _refusal(503, "participant approach receipt is invalid")
             reached_retina = int(action["visual_changed_receptor_count"]) > 0
-            causal = (_last_transition_evidence or {}).get(
-                "participant_sensory_attention"
-            )
-            transfers = (
-                tuple(causal.get("directed_physical_transfers", ()))
-                if isinstance(causal, dict)
-                and causal.get(
-                    "participant_action_causal_intent_receipt_sha256"
-                )
-                == action_receipt
-                else ()
-            )
-            pending = any(
-                key[0] == "external_participant_sensory"
-                and key[1] == action_receipt
-                for key in _active_external_participant_causal_motor_traces
-            )
-            attended = reached_retina and bool(transfers)
-            if attended:
-                outcome = "attended"
-                status = "participant_causal_path_entered_native_attention"
+            if reached_retina:
+                outcome = "presentable"
+                status = "participant_invitation_reached_retina"
                 reason = (
-                    "the approach-caused retinal frontier entered Guala's own "
-                    "changed reached-versus-foregone sparse route event "
-                    "through exact directed transfers"
-                )
-            elif reached_retina and pending:
-                outcome = "observing"
-                status = "participant_causal_path_still_active"
-                reason = (
-                    "the participant changed her retina and that exact "
-                    "physical frontier remains active; her following native "
-                    "activity will settle attendance or decline"
-                )
-            elif reached_retina:
-                outcome = "declined"
-                status = (
-                    "participant_causal_path_expired_before_native_attention"
-                )
-                reason = (
-                    "the participant changed her retina, but that exact "
-                    "physical frontier expired without entering her changed "
-                    "reached-versus-foregone sparse route event; no curriculum "
-                    "experience was admitted"
+                    "the participant's physical approach changed Guala's "
+                    "retinal receptors; the invited experience may now be "
+                    "presented without claiming or inferring her attention"
                 )
             else:
                 outcome = "not_reached"
@@ -13921,7 +13817,6 @@ def _embodied_curriculum_invitation(
                 "world_revision_after": action["world_revision_after"],
                 "approach_x_mm": action["x_mm"],
                 "approach_y_mm": action["y_mm"],
-                "causal_directed_transfer_count": len(transfers),
                 "observed_at_organism_tick": movement_body[
                     "sensory_delivery"
                 ]["organism_tick"],
@@ -13929,7 +13824,7 @@ def _embodied_curriculum_invitation(
                     "sensory_delivery"
                 ]["state_sha256"],
                 "outcome": outcome,
-                "presentation_eligible": attended,
+                "presentation_eligible": reached_retina,
                 "reason": reason,
                 "status": status,
             }

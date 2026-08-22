@@ -43,11 +43,11 @@ def _teach(card_id: str) -> tuple[int, dict]:
     invitation = {
         "schema": production.CURRICULUM_INVITATION_SCHEMA,
         "card_id": card_id,
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
         "participant_action_causal_intent_receipt_sha256": "11" * 32,
-        "reason": "test fixture exact causal continuation",
-        "status": "participant_causal_continuation_observed",
+        "reason": "test fixture physical invitation reached retina",
+        "status": "participant_invitation_reached_retina",
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)
     production._curriculum_invitation = invitation

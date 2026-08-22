@@ -176,7 +176,7 @@ def test_song_routes_and_invitation_identity_are_explicit() -> None:
         "experience_kind": "song",
         "experience_id": "count-up-one-to-ten-v1",
         "song_id": "count-up-one-to-ten-v1",
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)
@@ -211,7 +211,7 @@ def test_song_receipt_follows_one_committed_native_transaction(
         "experience_kind": "song",
         "experience_id": song_id,
         "song_id": song_id,
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)

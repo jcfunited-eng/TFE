@@ -22,11 +22,11 @@ def test_disposable_experience_exposes_exact_post_settlement_evidence(
     invitation = {
         "schema": production.CURRICULUM_INVITATION_SCHEMA,
         "card_id": "alphabet-a",
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
         "participant_action_causal_intent_receipt_sha256": "33" * 32,
-        "reason": "test fixture exact causal continuation",
-        "status": "participant_causal_continuation_observed",
+        "reason": "test fixture physical invitation reached retina",
+        "status": "participant_invitation_reached_retina",
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)
     production._curriculum_invitation = invitation
@@ -59,4 +59,5 @@ def test_disposable_experience_exposes_exact_post_settlement_evidence(
         assert item["sparse_retained_delta"]
 
     public = json.loads(production._public_observation_body)
-    assert public["fractals"]["formed_evidence_in_last_experience"] == evidence
+    assert public["fractals"]["formed_in_last_experience"] == len(evidence)
+    assert "formed_evidence_in_last_experience" not in public["fractals"]

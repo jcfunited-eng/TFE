@@ -58,11 +58,11 @@ def test_latest_card_receipt_is_exact_bounded_and_survives_later_transition(
     invitation = {
         "schema": production.CURRICULUM_INVITATION_SCHEMA,
         "card_id": "number-07",
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
         "participant_action_causal_intent_receipt_sha256": "44" * 32,
-        "reason": "test fixture exact causal continuation",
-        "status": "participant_causal_continuation_observed",
+        "reason": "test fixture physical invitation reached retina",
+        "status": "participant_invitation_reached_retina",
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)
     production._curriculum_invitation = invitation

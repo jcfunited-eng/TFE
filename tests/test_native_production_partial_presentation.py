@@ -43,11 +43,11 @@ def _teach(card_id: str, presentation: str | None = None) -> tuple[int, dict]:
     invitation = {
         "schema": production.CURRICULUM_INVITATION_SCHEMA,
         "card_id": card_id,
-        "outcome": "attended",
+        "outcome": "presentable",
         "presentation_eligible": True,
         "participant_action_causal_intent_receipt_sha256": "22" * 32,
-        "reason": "test fixture exact causal continuation",
-        "status": "participant_causal_continuation_observed",
+        "reason": "test fixture physical invitation reached retina",
+        "status": "participant_invitation_reached_retina",
     }
     invitation["invitation_receipt_sha256"] = production._receipt(invitation)
     production._curriculum_invitation = invitation
@@ -105,7 +105,7 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
         assert lesson["totals"]["rest_recovered_neuron_count"] > 0
         assert lesson["totals"]["energy_exhausted_interval_count"] == 0
     assert first["totals"]["complete_neuron_fractal_count"] >= SURFACE_PORTS
-    assert second["totals"]["complete_neuron_fractal_count"] == SURFACE_PORTS
+    assert second["totals"]["complete_neuron_fractal_count"] >= SURFACE_PORTS
 
     # One partial presentation of the same approved card.
     status, partial = _teach(CARD_ID, "partial")

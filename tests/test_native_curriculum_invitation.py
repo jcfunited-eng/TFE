@@ -175,29 +175,6 @@ def test_direct_card_button_cannot_admit_without_embodied_invitation(
     assert built is False
 
 
-def test_pending_invitation_attends_only_for_its_exact_causal_receipt() -> None:
-    action_receipt = "55" * 32
-    production._curriculum_invitation = {
-        "outcome": "observing",
-        "participant_action_causal_intent_receipt_sha256": action_receipt,
-        "presentation_eligible": False,
-    }
-    production._active_external_participant_causal_motor_traces = {}
-
-    production._settle_pending_curriculum_invitation(
-        {
-            "participant_action_causal_intent_receipt_sha256": action_receipt,
-            "directed_physical_transfers": (("retina", "attention", 0, 1),),
-        },
-        organism_tick=21,
-        state_sha256="77" * 32,
-    )
-
-    assert production._curriculum_invitation["outcome"] == "attended"
-    assert production._curriculum_invitation["presentation_eligible"] is True
-    assert production._curriculum_invitation["causal_directed_transfer_count"] == 1
-
-
 def test_participant_path_enters_native_attention_without_motor_requirement() -> None:
     receptor = "01" * 16
     ordering = "02" * 16
@@ -289,12 +266,12 @@ def test_unrelated_sparse_attention_cannot_accept_participant_invitation() -> No
 @pytest.mark.parametrize(
     ("reached_retina", "causal_path_completed", "expected_outcome"),
     (
-        (True, True, "attended"),
-        (True, False, "declined"),
+        (True, True, "presentable"),
+        (True, False, "presentable"),
         (False, False, "not_reached"),
     ),
 )
-def test_invite_route_binds_card_to_exact_world_action_and_trace(
+def test_invite_route_binds_card_to_physical_retinal_delivery_only(
     monkeypatch,
     reached_retina: bool,
     causal_path_completed: bool,
@@ -362,7 +339,8 @@ def test_invite_route_binds_card_to_exact_world_action_and_trace(
     assert response.status_code == 200
     assert body["accepted"] is True
     assert invitation["outcome"] == expected_outcome
-    assert invitation["presentation_eligible"] is causal_path_completed
+    assert invitation["presentation_eligible"] is reached_retina
+    assert "causal_directed_transfer_count" not in invitation
     assert invitation[
         "participant_action_causal_intent_receipt_sha256"
     ] == action_receipt
