@@ -1583,12 +1583,15 @@ _last_reciprocal_social_play_evidence: dict[str, Any] | None = None
 # Transient, bounded physical frontiers whose exact external or internally
 # simulated retained-formation cause may continue in the immediately following
 # physical intake. The values are observation only, do not survive restart,
-# and cannot choose or retain anything for the organism. New-fractal and
-# affective-gradient origins remain transaction-local.
+# and cannot choose or retain anything for the organism. A new-fractal origin
+# may cross an intake boundary only while an exact next-hop physical transfer
+# advances it; the first interval without advancement drops it. An intake is a
+# transport grouping, not a boundary in the organism's causal life.
 _CROSS_INTAKE_CAUSAL_TRACE_KINDS = frozenset(
     {
         "external_participant_sensory",
         "externally_reassembled_retained_formation",
+        "new_neuronal_fractal",
         "retained_formation",
     }
 )

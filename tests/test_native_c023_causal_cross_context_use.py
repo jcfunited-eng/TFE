@@ -386,6 +386,7 @@ def test_only_exact_cross_context_causes_cross_an_intake_boundary() -> None:
     assert tuple(key[0] for key in retained) == (
         "external_participant_sensory",
         "externally_reassembled_retained_formation",
+        "new_neuronal_fractal",
         "retained_formation",
         "retained_formation",
     )

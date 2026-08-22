@@ -249,3 +249,27 @@ Prerequisite status: **Live-Closed 2026-08-22**. This closes only the bounded
 motor-growth/current-format obstruction. It restores continuous physical
 advancement but does not substitute for the next serial item, the current live
 A-006 intrinsic-curiosity proof.
+
+## Current A-006 live re-proof candidate — 2026-08-22
+
+- Task 1176 resumed continuous physical advancement and formed hundreds of new
+  neuronal impressions, but the live A-006 witness remained unavailable.
+- The exact remaining defect was in the read-only causal observer, not in the
+  neuron or DSF physics: it discarded a still-advancing
+  `new_neuronal_fractal` path whenever transport began the next intake. An
+  intake is a packaging boundary, not a boundary in the resident organism's
+  causal life.
+- The bounded cross-intake observer now retains that exact typed origin while
+  a next-hop whole-carrier transfer advances it. The first interval without an
+  advancing transfer drops it. It remains process-local, cannot choose an
+  action, does not enter persistence, and adds no score, reward, need, label,
+  owner, or history.
+- Focused A-006/C-023 causal tests pass `16/16` in `0.82` seconds. The direct
+  falsifier forms a new impression in one intake, advances it through an exact
+  physical contact in the next, and reaches a later layer-12 motor discharge
+  after a second intake boundary. The existing mixed-origin test confirms only
+  the explicitly admitted exact causal origin classes cross the boundary.
+
+Candidate status: **source-complete; live acceptance pending**. A-006 closes
+only when production itself exposes the complete new-impression to later motor
+action and physically sensed consequence witness.

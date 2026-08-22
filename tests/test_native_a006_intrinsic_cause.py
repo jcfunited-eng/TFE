@@ -57,7 +57,7 @@ def _hop(
     }
 
 
-def test_new_impression_advances_only_after_formation_then_reaches_motor() -> None:
+def test_new_impression_crosses_intake_boundaries_only_while_advancing_to_motor() -> None:
     impression = "01" * 16
     association = "02" * 16
     motor = "03" * 16
@@ -73,6 +73,8 @@ def test_new_impression_advances_only_after_formation_then_reaches_motor() -> No
     )
     assert completed == {}
     assert observer.filters == []
+    active = production._retain_cross_intake_causal_motor_traces(active)
+    assert tuple(key[0] for key in active) == ("new_neuronal_fractal",)
 
     first = (association, impression, 0, 29)
     observer.transfers = ((*first, association),)
@@ -83,6 +85,8 @@ def test_new_impression_advances_only_after_formation_then_reaches_motor() -> No
         _hop(11),
     )
     assert completed == {}
+    active = production._retain_cross_intake_causal_motor_traces(active)
+    assert tuple(key[0] for key in active) == ("new_neuronal_fractal",)
 
     second = (association, motor, 0, 7)
     observer.transfers = ()
