@@ -8263,10 +8263,14 @@ def _advance_causal_motor_traces(
         if key[0] not in completed
     }
     if "retained_formation" not in completed:
-        for receipt, cue_lineages in hop["internally_reassembled_formation_cues"]:
+        for receipt, cue_lineages, recurrent_lineage in hop[
+            "internally_reassembled_formation_cues"
+        ]:
+            if recurrent_lineage is None:
+                continue
             cues = tuple(cue_lineages)
             key = ("retained_formation", receipt, cues, organism_tick)
-            next_active.setdefault(key, {lineage: () for lineage in cues})
+            next_active.setdefault(key, {recurrent_lineage: ()})
     if next_active:
         reached_lineages = tuple(
             sorted(

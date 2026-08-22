@@ -24,7 +24,7 @@ class _FrontierObserver:
 def _hop(
     predecessor_tick: int,
     *,
-    cues: tuple[tuple[str, tuple[str, ...]], ...] = (),
+    cues: tuple[tuple[str, tuple[str, ...], str | None], ...] = (),
     external_reassemblies: tuple[
         tuple[str, tuple[str, ...], str], ...
     ] = (),
@@ -47,11 +47,12 @@ def _hop(
 
 def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() -> None:
     cue = "01" * 16
+    recurrent = "05" * 16
     integration = "02" * 16
     association = "03" * 16
     motor = "04" * 16
     receipt = "11" * 32
-    first = (integration, cue, 0, 745)
+    first = (integration, recurrent, 0, 745)
     second = (association, integration, 0, 660)
     third = (association, motor, 0, 67)
     observer = _FrontierObserver()
@@ -63,9 +64,10 @@ def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() 
         observer,
         active,
         proof,
-        _hop(10, cues=((receipt, (cue,)),)),
+        _hop(10, cues=((receipt, (cue,), recurrent),)),
     )
     assert proof is None
+    assert observer.filters[0] == (recurrent,)
 
     observer.transfers = ((*second, association),)
     active, proof = production._advance_internal_formation_motor_trace(
@@ -115,7 +117,7 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
             "predecessor_organism_tick": 20,
             "organism_tick": 22,
             "internally_reassembled_formation_cues": (
-                ("11" * 32, ("01" * 16,)),
+                ("11" * 32, ("01" * 16,), "01" * 16),
             ),
             "motor_unit_recruitments": (("02" * 16, 1, 1, (), ()),),
         },
@@ -142,7 +144,7 @@ def test_retained_path_reaches_layer_13_without_false_body_motor_proof() -> None
         observer,
         {},
         {},
-        _hop(40, cues=((receipt, (cue,)),)),
+        _hop(40, cues=((receipt, (cue,), cue),)),
     )
     assert completed == {}
 
@@ -210,7 +212,7 @@ def test_articulation_without_exact_layer_12_path_is_not_causal_proof() -> None:
         observer,
         {},
         {},
-        _hop(50, cues=(("11" * 32, (cue,)),)),
+        _hop(50, cues=(("11" * 32, (cue,), cue),)),
     )
     observer.transfers = ()
     _active, completed = production._advance_causal_motor_traces(

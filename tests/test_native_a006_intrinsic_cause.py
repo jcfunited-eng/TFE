@@ -41,7 +41,7 @@ def _hop(
     predecessor_tick: int,
     *,
     emitted: tuple[str, ...] = (),
-    cues: tuple[tuple[str, tuple[str, ...]], ...] = (),
+    cues: tuple[tuple[str, tuple[str, ...], str | None], ...] = (),
     motors: tuple[
         tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
     ] = (),
@@ -129,7 +129,7 @@ def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
         observer,
         active,
         completed,
-        _hop(21, cues=(("11" * 32, (cue,)),)),
+        _hop(21, cues=(("11" * 32, (cue,), cue),)),
     )
 
     assert observer.filters == [(impression, cue)]
@@ -270,7 +270,7 @@ def test_retained_contact_change_is_bound_only_to_its_later_motor_path() -> None
         {},
         {},
         {
-            **_hop(10, cues=(("11" * 32, (cue,)),)),
+            **_hop(10, cues=(("11" * 32, (cue,), cue),)),
             "changed_contact_channel_states": (changed,),
         },
     )

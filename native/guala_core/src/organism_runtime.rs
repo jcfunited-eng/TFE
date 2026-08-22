@@ -131,7 +131,11 @@ const MOUNTED_STEP_SCOPE: &str = "canonical_uf_v1_4_neuronal_settlement";
 const AUTHORED_CONTACT_GROWTH_SCOPE: &str = "authored_contact_growth_without_sensory_occurrence";
 type DirectedPhysicalTransferProjection = (String, String, u32, String);
 type CausalFrontierTransferProjection = (String, String, u32, String, String);
-type InternallyReassembledFormationCueProjection = (String, Vec<String>);
+type InternallyReassembledFormationCueProjection = (
+    String,
+    Vec<String>,
+    Option<String>,
+);
 type ExternallyReassembledFormationFrontierProjection = (String, Vec<String>, String);
 type MotorUnitRecruitmentProjection = (
     String,
@@ -5505,6 +5509,10 @@ fn project_internally_reassembled_formation_cues(
                     .iter()
                     .map(|lineage| hex_bytes(lineage))
                     .collect(),
+                observation
+                    .recurrent_lineage
+                    .as_ref()
+                    .map(|lineage| hex_bytes(lineage)),
             )
         })
         .collect()

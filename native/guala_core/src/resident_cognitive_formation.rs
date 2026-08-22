@@ -617,7 +617,7 @@ pub(crate) struct InternallyReassembledFormationCueObservation {
     /// The already-mounted layer-9 cell physically connected to every member
     /// of this formation. This is reconstructed from contact topology on cold
     /// restore and is never a separately encoded authority.
-    recurrent_lineage: Option<[u8; 16]>,
+    pub(crate) recurrent_lineage: Option<[u8; 16]>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
