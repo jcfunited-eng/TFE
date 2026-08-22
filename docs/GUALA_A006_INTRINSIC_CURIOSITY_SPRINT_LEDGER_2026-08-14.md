@@ -269,6 +269,12 @@ A-006 intrinsic-curiosity proof.
   physical contact in the next, and reaches a later layer-12 motor discharge
   after a second intake boundary. The existing mixed-origin test confirms only
   the explicitly admitted exact causal origin classes cross the boundary.
+- The first task-1177 live action also exposed a stale proof-only condition:
+  it moved 20 exact body axes and returned 70 changed body receptors without
+  rotating the body, but the A-006 projector still required a positive
+  vestibular tick. The projector now requires the actual changed body-receptor
+  return and treats vestibular change as physically conditional on rotation.
+  It cannot credit an action with zero returned body-receptor consequence.
 
 Candidate status: **source-complete; live acceptance pending**. A-006 closes
 only when production itself exposes the complete new-impression to later motor

@@ -515,7 +515,7 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
             "motor_organism_tick": 13,
             "sensed_consequence": {
                 "externally_perturbed_body_receptor_count": 1,
-                "vestibular_tick_count": 1,
+                "vestibular_tick_count": 0,
             },
         },
         "organism_tick": 14,

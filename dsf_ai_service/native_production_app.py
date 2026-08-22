@@ -5218,11 +5218,11 @@ def _intrinsic_curiosity_evidence_from_transition(
     consequence = causal.get("sensed_consequence")
     if not isinstance(action, dict) or not isinstance(consequence, dict):
         return None
-    if (
-        int(consequence.get("vestibular_tick_count", 0)) <= 0
-        or int(consequence.get("externally_perturbed_body_receptor_count", 0))
-        <= 0
-    ):
+    # A body action must return an exact changed body-receptor consequence.
+    # Vestibular return is additionally present only when that action rotates
+    # the body; requiring rotation would reject lawful limb, face, or speech
+    # actions whose proprioceptive/tactile/internal consequences did return.
+    if int(consequence.get("externally_perturbed_body_receptor_count", 0)) <= 0:
         return None
     attention = _sparse_attention_route_facts(evidence)
     if attention is None:
