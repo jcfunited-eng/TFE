@@ -1815,29 +1815,31 @@ def _rehearse_l005_word_apple(
         "word-apple", experience, "partial"
     )
     before = organism.readiness()
-    full_dsf = 0
-    for episode, intervals in full_episodes:
-        hop = production._commit_admitted_hop(organism, episode, intervals)
-        full_dsf += int(hop["dsf_delivery_count"])
+    full_hop = production._commit_admitted_hop(
+        organism,
+        tuple(episode for episode, _ in full_episodes),
+        tuple(intervals for _, intervals in full_episodes),
+    )
+    full_dsf = int(full_hop["dsf_delivery_count"])
 
     active: dict[tuple[str, str, tuple[str, ...], int], dict[str, tuple]] = {}
     completed: dict[str, dict[str, object]] = {}
-    partial_dsf = 0
-    external_reassemblies = 0
-    body_return_count = 0
-    for episode, intervals in partial_episodes:
-        hop = production._commit_admitted_hop(organism, episode, intervals)
-        partial_dsf += int(hop["dsf_delivery_count"])
-        external_reassemblies += len(
-            hop["externally_reassembled_formation_frontiers"]
-        )
-        body_return_count += len(hop["body_proprioceptive_sources"])
-        active, completed = production._advance_causal_motor_traces(
-            organism,
-            active,
-            completed,
-            hop,
-        )
+    partial_hop = production._commit_admitted_hop(
+        organism,
+        tuple(episode for episode, _ in partial_episodes),
+        tuple(intervals for _, intervals in partial_episodes),
+    )
+    partial_dsf = int(partial_hop["dsf_delivery_count"])
+    external_reassemblies = len(
+        partial_hop["externally_reassembled_formation_frontiers"]
+    )
+    body_return_count = len(partial_hop["body_proprioceptive_sources"])
+    active, completed = production._advance_causal_motor_traces(
+        organism,
+        active,
+        completed,
+        partial_hop,
+    )
 
     causal_kind = None
     causal = completed.get("externally_reassembled_retained_formation")

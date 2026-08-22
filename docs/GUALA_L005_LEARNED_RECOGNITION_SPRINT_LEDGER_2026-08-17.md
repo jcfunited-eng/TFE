@@ -86,6 +86,18 @@ Status: In progress. No learned-word recognition is live-proved.
   partial cue, exact external retained-formation reassembly, later native body
   action or articulation, exact body-consequence return, and successor cold
   restore. A reassembly counter without causal use fails.
+- Attempt 3 used commit `132a9e253700cf3be3e4a4fbcb2d4273926e12cf`
+  and candidate image
+  `sha256:0c524fc9c7c73c7354bdf036cf8a5b945a753f630cefeef8f047f5c8e35288a1`.
+  The discarded mature task exceeded the controller's ten-minute wait before
+  emitting a result and was stopped; production remained task 1157. Source
+  review found the exact mechanical cause: the rehearsal committed each of the
+  18 lesson fragments separately, forcing 18 complete mature-state seals even
+  though ordinary production already admits each lesson as one ordered native
+  trajectory. The rehearsal now performs exactly two commits and two seals:
+  one for the nine-part full experience and one for the nine-part partial cue.
+  A focused executable guard requires this cardinality so the per-fragment
+  whole-state sealing route cannot return.
 - Focused active proof and validator surface passes 58/58. Four other tests in
   the broad historical cold-probe file remain inherited mock drift: their
   hand-written organisms expose retired `prepare_*` methods rather than the

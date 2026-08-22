@@ -268,6 +268,98 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
     assert receipt == hashlib.sha256(probe._canonical(proof)).hexdigest()
 
 
+def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service import native_production_app as production
+
+    successor = b"GLORUN01-l005-successor"
+    successor_sha = hashlib.sha256(successor).hexdigest()
+    before = SimpleNamespace(
+        identity=IDENTITY,
+        organism_tick=100,
+        state_sha256=STATE_SHA,
+    )
+    after = SimpleNamespace(
+        identity=IDENTITY,
+        organism_tick=120,
+        state_sha256=successor_sha,
+        state_bytes=len(successor),
+        python_callback_count=0,
+    )
+
+    class _L005Organism:
+        def __init__(self) -> None:
+            self.observations = iter((before, after))
+
+        def readiness(self) -> object:
+            return next(self.observations)
+
+        def save(self) -> bytes:
+            return successor
+
+    lessons = {
+        mode: tuple((f"{mode}-{index}", (index + 1,)) for index in range(9))
+        for mode in ("full", "partial")
+    }
+    commits: list[tuple[tuple[object, ...], tuple[object, ...]]] = []
+
+    monkeypatch.setattr(production, "_read_manifest_card", lambda _slug: object())
+    monkeypatch.setattr(
+        production,
+        "_card_lesson_hop_episodes",
+        lambda _slug, _experience, mode: lessons[mode],
+    )
+
+    def _commit(
+        _organism: object,
+        episodes: tuple[object, ...],
+        intervals: tuple[object, ...],
+    ) -> dict[str, object]:
+        commits.append((episodes, intervals))
+        is_partial = episodes[0] == "partial-0"
+        return {
+            "dsf_delivery_count": 9,
+            "externally_reassembled_formation_frontiers": (
+                (("formation",),) if is_partial else ()
+            ),
+            "body_proprioceptive_sources": (("body",),) if is_partial else (),
+        }
+
+    monkeypatch.setattr(production, "_commit_admitted_hop", _commit)
+    monkeypatch.setattr(
+        production,
+        "_advance_causal_motor_traces",
+        lambda *_args, **_kwargs: (
+            {},
+            {
+                "externally_reassembled_retained_formation_articulation": {
+                    "formation_receipt_sha256": "f" * 64,
+                    "directed_physical_transfers": (("transfer",),),
+                }
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        probe,
+        "restore_native_resident_organism",
+        lambda **_kwargs: SimpleNamespace(readiness=lambda: after),
+    )
+
+    proof = probe._rehearse_l005_word_apple(_L005Organism(), _Admission())
+
+    assert len(commits) == 2
+    assert commits[0] == (
+        tuple(episode for episode, _ in lessons["full"]),
+        tuple(intervals for _, intervals in lessons["full"]),
+    )
+    assert commits[1] == (
+        tuple(episode for episode, _ in lessons["partial"]),
+        tuple(intervals for _, intervals in lessons["partial"]),
+    )
+    assert proof["l005_word_apple_rehearsed"] is True
+
+
 def test_probe_rejects_state_or_callback_change(monkeypatch) -> None:
     class _ChangedOrganism(_Organism):
         def readiness(self) -> _Observation:
