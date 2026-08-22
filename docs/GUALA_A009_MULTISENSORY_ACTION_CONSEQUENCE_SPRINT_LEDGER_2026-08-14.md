@@ -495,3 +495,20 @@ task reached RUNNING/HEALTHY at 1/1/0 with one completed PRIMARY deployment.
 The public observer returned HTTP 200 twice while the same identity advanced
 148762 -> 148776 and changed its state receipt. The second complete response
 was 280,306 bytes; its bounded latest-transition witness was 1,729 bytes.
+
+## Observer/readiness isolation amendment — 2026-08-22
+
+The task-1154 correction bounded the display projection, but source review
+found that `_refresh_public_observation_cache` still constructed the optional
+display body before the native readiness body and cleared both on any display
+exception. A read-only presentation failure could therefore again make an
+advancing committed organism report unavailable and could surface an already
+committed transition as failed.
+
+Commit `d4fb689d` constructs and publishes native readiness first. A later
+display-projection failure now clears only the display body and returns without
+altering readiness or organism state. The focused public-observation file
+passes 19 tests, including a forced display exception that leaves
+`/ready/guala` at HTTP 200 while only `/api/v1/guala/native-observation`
+truthfully reports unavailable. This amendment does not reopen A-009 behavior
+and changes no cognition, physics, persistence, identity, or DSF field.
