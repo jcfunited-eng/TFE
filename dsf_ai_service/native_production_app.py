@@ -2168,18 +2168,22 @@ def _temperature_record(native: dict[str, Any] | None = None) -> dict[str, objec
         "thermal receptor-work law. No comfort label, thermostat score, or "
         "authored thermal meaning reaches the organism.",
         anatomy_receipt_sha256=observation.anatomy_receipt_sha256,
-        core_temperature_millikelvin={
-            "numerator": by_id["body:core"].numerator,
-            "denominator": by_id["body:core"].denominator,
-        },
-        cutaneous_temperature_millikelvin={
-            "numerator": by_id["body:cutaneous-shell"].numerator,
-            "denominator": by_id["body:cutaneous-shell"].denominator,
-        },
+        core_temperature_within_declared_interval=(
+            THERMAL_MIN_MILLIKELVIN
+            <= by_id["body:core"]
+            <= THERMAL_MAX_MILLIKELVIN
+        ),
+        cutaneous_temperature_within_declared_interval=(
+            THERMAL_MIN_MILLIKELVIN
+            <= by_id["body:cutaneous-shell"]
+            <= THERMAL_MAX_MILLIKELVIN
+        ),
         declared_receptor_interval_millikelvin=[
             THERMAL_MIN_MILLIKELVIN,
             THERMAL_MAX_MILLIKELVIN,
         ],
+        exact_temperature_coordinates_resident=True,
+        exact_temperature_coordinates_transported=False,
         latest_thermal_transition_receipt_sha256=(
             observation.latest_transition_receipt_sha256
         ),
@@ -3762,6 +3766,103 @@ def _complete_positive_engagement_episode(episode: dict[str, Any]) -> bool:
     )
 
 
+def _public_sensorimotor_episode_record(
+    episode: dict[str, Any],
+) -> dict[str, object]:
+    """Project one bounded episode without copying native coordinate bodies."""
+
+    public = {
+        key: episode[key]
+        for key in (
+            "action_causal_intent_receipt_sha256",
+            "body_receptor_return_count",
+            "causal_path_receipt_sha256",
+            "consequence_organism_tick",
+            "formation_receipt_sha256",
+            "motor_organism_tick",
+            "origin_organism_tick",
+            "physical_choice_receipt_sha256",
+            "signed_yaw_millidegrees",
+            "state_sha256",
+            "vestibular_tick_count",
+            "world_revision",
+            "world_state_after_sha256",
+            "world_state_before_sha256",
+        )
+        if key in episode
+    }
+    affective = episode.get("affective_body_participation")
+    if isinstance(affective, dict):
+        public["affective_body_participation"] = {
+            key: affective[key]
+            for key in (
+                "active_contact_left_lineage",
+                "active_contact_organism_tick",
+                "active_contact_parallel_ordinal",
+                "active_contact_receipt_sha256",
+                "active_contact_right_lineage",
+                "affective_motor_organism_tick",
+                "affective_motor_path_receipt_sha256",
+                "affective_neuron_layer",
+                "affective_neuron_lineage",
+                "affective_neuron_topology_index",
+                "localized_gradient_settlement_ordinal",
+                "retained_formation_motor_organism_tick",
+                "retained_formation_motor_path_receipt_sha256",
+                "trajectory_receipt_sha256",
+                "whole_episode_binding_receipt_sha256",
+            )
+            if key in affective
+        }
+        public["affective_body_participation"].update(
+            {
+                "exact_contact_coordinates_resident": True,
+                "exact_contact_coordinates_transported": False,
+            }
+        )
+    overload = episode.get("metabolic_overload_exclusion")
+    if isinstance(overload, dict):
+        public["metabolic_overload_exclusion"] = {
+            key: overload[key]
+            for key in (
+                "energy_exhausted_interval_count",
+                "hop_count",
+                "organism_sensing_authority",
+                "rest_drained_dissipation_quanta",
+                "unmet_dissipation_quanta",
+                "witness_receipt_sha256",
+            )
+            if key in overload
+        }
+        public["metabolic_overload_exclusion"].update(
+            {
+                "exact_capacity_coordinates_resident": True,
+                "exact_capacity_coordinates_transported": False,
+            }
+        )
+    strain = episode.get("localized_metabolic_strain")
+    if isinstance(strain, dict):
+        public["localized_metabolic_strain"] = {
+            key: strain[key]
+            for key in (
+                "affective_trajectory_receipt_sha256",
+                "evaluated_body_receptor_count",
+                "localized_nonzero_strain_count",
+                "organism_sensing_authority",
+                "pain_authority",
+                "witness_receipt_sha256",
+            )
+            if key in strain
+        }
+        public["localized_metabolic_strain"].update(
+            {
+                "exact_strain_coordinates_resident": True,
+                "exact_strain_coordinates_transported": False,
+            }
+        )
+    return public
+
+
 def _advance_social_play_on_other_body_action(
     candidate: dict[str, Any] | None,
     action: dict[str, Any],
@@ -3892,6 +3993,24 @@ def _reciprocal_social_joy_section() -> dict[str, object]:
             "no authenticated other-body action and return have yet been "
             "joined by exact world receipts to two voluntary Guala responses",
         )
+    public_evidence = {
+        key: evidence[key]
+        for key in (
+            "activity",
+            "evidence_receipt_sha256",
+            "first_formation_receipt_sha256",
+            "other_body_id",
+            "return_formation_receipt_sha256",
+        )
+        if key in evidence
+    }
+    for source, target in (
+        ("first_guala_episode", "first_guala_episode"),
+        ("return_guala_episode", "return_guala_episode"),
+    ):
+        episode = evidence.get(source)
+        if isinstance(episode, dict):
+            public_evidence[target] = _public_sensorimotor_episode_record(episode)
     return _section(
         True,
         "reciprocal_social_positive_engagement_observed",
@@ -3901,7 +4020,7 @@ def _reciprocal_social_joy_section() -> dict[str, object]:
         "lawfully recruit a different retained formation; this is "
         "reciprocal engagement evidence, not joy, goodness, or the other "
         "participant's state",
-        **evidence,
+        **public_evidence,
         behavioral_evidence_only=False,
         localized_physical_participation_evidence=True,
         goodness_authority=False,
@@ -4002,6 +4121,23 @@ def _sensorimotor_play_record() -> dict[str, object]:
         and localized_strain_path_available
         and bool(_last_sensorimotor_play_evidence.get("changed_world_context"))
     )
+    public_play = {
+        key: _last_sensorimotor_play_evidence[key]
+        for key in (
+            "activity",
+            "changed_world_context",
+            "evidence_receipt_sha256",
+            "formation_receipt_sha256",
+            "movement_ceased_before_return",
+            "return_gap_organism_ticks",
+            "varied_displacement",
+        )
+        if key in _last_sensorimotor_play_evidence
+    }
+    for key in ("first_episode", "return_episode"):
+        episode = _last_sensorimotor_play_evidence.get(key)
+        if isinstance(episode, dict):
+            public_play[key] = _public_sensorimotor_episode_record(episode)
     return _section(
         True,
         "sensorimotor_play_observed",
@@ -4012,7 +4148,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
         endogenous_initiation=True,
         evidence_scope="latest_completed_bounded_play_witness_this_process",
         voluntary_return=True,
-        **_last_sensorimotor_play_evidence,
+        **public_play,
         **authority,
         affective_engagement=_section(
             affective_available,
@@ -4338,38 +4474,17 @@ def _affective_balance_record() -> dict[str, object]:
             "sender_lineage": transfer[0],
             "receiver_lineage": transfer[1],
             "parallel_contact_ordinal": transfer[2],
-            "transferred_whole_carriers": transfer[3],
+            "exact_transfer_coordinates_resident": True,
+            "exact_transfer_coordinates_transported": False,
         }
-
-    def rational_record(value: tuple[int, int]) -> dict[str, int]:
-        return {"numerator": value[0], "denominator": value[1]}
 
     localized_recovery: dict[str, object] | None = None
     if isinstance(plasticity, (list, tuple)) and len(plasticity) == 10:
         localized_recovery = {
             "cognitive_ordinal": plasticity[0],
-            "incident_catalyst_quanta": plasticity[1],
-            "reaction_extent": plasticity[2],
-            "delivered_energy_zeptojoules": rational_record(plasticity[3]),
-            "predecessor_gate_work_residue_zeptojoules": rational_record(
-                plasticity[4]
-            ),
-            "successor_gate_work_residue_zeptojoules": rational_record(
-                plasticity[5]
-            ),
-            "predecessor_plastic_rest_length_nanometres": rational_record(
-                plasticity[6]
-            ),
-            "successor_plastic_rest_length_nanometres": rational_record(
-                plasticity[7]
-            ),
-            "predecessor_reservoir": tuple(
-                rational_record(value) for value in plasticity[8]
-            ),
-            "successor_reservoir": tuple(
-                rational_record(value) for value in plasticity[9]
-            ),
             "retained_support_changed": plasticity[6] != plasticity[7],
+            "exact_coordinates_resident": True,
+            "exact_coordinates_transported": False,
         }
 
     return _section(
@@ -4398,19 +4513,12 @@ def _affective_balance_record() -> dict[str, object]:
             "body_influence": transfer_record(body, 8),
             "localized_gradient_settlement": {
                 "cognitive_ordinal": gradient[0],
-                "predecessor_separated_elementary_charges": gradient[1],
-                "post_gradient_separated_elementary_charges": gradient[2],
-                "interval_successor_separated_elementary_charges": gradient[3],
-                "returned_elementary_charges": gradient[4],
-                "pumped_elementary_charges": gradient[5],
-                "unreturned_elementary_charges": gradient[6],
-                "membrane_gradient_work_zeptojoules": rational_record(gradient[7]),
-                "environment_energy_delivered_zeptojoules": rational_record(
-                    gradient[8]
-                ),
-                "environment_heat_exported_zeptojoules": rational_record(
-                    gradient[9]
-                ),
+                "membrane_gradient_changed": gradient[1] != gradient[3],
+                "returned_carriers_observed": gradient[4] != 0,
+                "pumped_carriers_observed": gradient[5] != 0,
+                "unreturned_carriers_observed": gradient[6] != 0,
+                "exact_coordinates_resident": True,
+                "exact_coordinates_transported": False,
             },
             "localized_recovery_settlement": localized_recovery,
         },
@@ -4517,9 +4625,6 @@ def _localized_fluid_chemistry_record() -> dict[str, object]:
     )
     exact_conservation = material_conserved and energy_conserved and locality_conserved
 
-    def rational_record(value: tuple[int, int]) -> dict[str, int]:
-        return {"numerator": value[0], "denominator": value[1]}
-
     return _section(
         exact_conservation,
         (
@@ -4548,9 +4653,6 @@ def _localized_fluid_chemistry_record() -> dict[str, object]:
         },
         contact={
             "interval_microseconds": interval_microseconds,
-            "pump_contact_power_zeptojoules_per_microsecond": rational_record(
-                contact_power
-            ),
             "reached_neuron_count": reached_count,
             "changed_reached_neuron_count": changed_reached_count,
             "unchanged_unreached_active_neuron_count": unchanged_unreached_count,
@@ -4558,32 +4660,22 @@ def _localized_fluid_chemistry_record() -> dict[str, object]:
                 unchanged_developmental_resting_count
             ),
             "changed_unreached_neuron_count": changed_unreached_count,
+            "exact_coordinates_resident": True,
+            "exact_coordinates_transported": False,
         },
         carrier_material={
-            "predecessor_separated_elementary_charges": predecessor_charge,
-            "successor_separated_elementary_charges": successor_charge,
-            "predecessor_intracellular_carriers": predecessor_intracellular,
-            "predecessor_extracellular_carriers": predecessor_extracellular,
-            "successor_intracellular_carriers": successor_intracellular,
-            "successor_extracellular_carriers": successor_extracellular,
-            "returned_elementary_charges": returned_carriers,
-            "pumped_elementary_charges": pumped_carriers,
+            "membrane_gradient_changed": predecessor_charge != successor_charge,
+            "returned_carriers_observed": returned_carriers != 0,
+            "pumped_carriers_observed": pumped_carriers != 0,
             "material_conserved": material_conserved,
+            "exact_coordinates_resident": True,
+            "exact_coordinates_transported": False,
         },
         reservoir_energy={
             "settlement_mode": settlement_mode,
-            "predecessor": {
-                "available_zeptojoules": rational_record(predecessor_reservoir[0]),
-                "spent_zeptojoules": rational_record(predecessor_reservoir[1]),
-                "thermal_zeptojoules": rational_record(predecessor_reservoir[2]),
-            },
-            "successor": {
-                "available_zeptojoules": rational_record(successor_reservoir[0]),
-                "spent_zeptojoules": rational_record(successor_reservoir[1]),
-                "thermal_zeptojoules": rational_record(successor_reservoir[2]),
-            },
-            "membrane_gradient_work_zeptojoules": rational_record(gradient_work),
             "energy_conserved": energy_conserved,
+            "exact_coordinates_resident": True,
+            "exact_coordinates_transported": False,
         },
         locality_conserved=locality_conserved,
         exact_conservation=exact_conservation,
@@ -6100,7 +6192,13 @@ def _refresh_public_observation_cache() -> None:
                 build_identity,
             )
         )
-    except BaseException:
+    except BaseException as error:
+        print(
+            "ERROR: native public observation refresh failed: "
+            f"{type(error).__name__}: {error}",
+            file=sys.stderr,
+            flush=True,
+        )
         _public_observation_body = None
         _public_observation_etag = None
         return

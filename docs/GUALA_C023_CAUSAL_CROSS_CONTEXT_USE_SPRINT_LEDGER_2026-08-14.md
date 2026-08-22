@@ -1113,3 +1113,29 @@ falsifier passes, the full public-observation plus C-023 focused boundary passes
 30/30, the deployment-controller boundary passes 13/13, Python compilation and
 shell syntax pass, and `git diff --check` passes. Live C-023 witness evidence is
 still required after this observer correction is deployed.
+
+Task definition 1170 deployed commit
+`b3fba57656cbcbf2ae1dc23baddb9b119c9511f3` as image
+`sha256:95669ff5370de7bd7ebe654f2d621d5311b46cbff6ef5f054382c14bf94dca59`.
+The same resident identity restored in 11m16s, ECS reached one completed PRIMARY
+deployment, readiness returned 200, and the public observer returned 200 at
+tick 150010. The next autonomous successor advanced CURRENT to tick 150027 and
+state `60ba099c62056dc04485ddb2a2320ef66cb1bbdf27a86ecde6cf143bbdb08697`
+with energy non-exhausted, but the optional observer again returned 503.
+Therefore native cognition remained live and the first bounded-contact repair
+was necessary but not sufficient; no C-023 claim was made.
+
+The complete public source trace found the remaining raw arbitrary-precision
+coordinate copies: localized affect/recovery energy, localized fluid reservoir
+energy, exact world thermal fractions, and completed play/social episode copies
+that could retain contact or capacity coordinate bodies. These are now absent
+from the public cache. The observer reports exact participation, change,
+conservation, interval membership, and resident/world receipts, while marking
+the exact coordinates resident and not transported. Internal evidence remains
+unchanged for its existing causal comparisons and has no route into cognition.
+Public projection failures now emit their exact exception type and message to
+the task log rather than disappearing silently. Public/C-023/local-chemistry
+focused tests pass 35/35, the exact play and social evidence boundaries pass
+2/2, Python compilation passes, and `git diff --check` passes. This is local
+candidate evidence pending the next production cutover and post-transition
+public observation.

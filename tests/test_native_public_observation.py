@@ -127,6 +127,9 @@ def _mount(monkeypatch) -> _Restored:
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_affective_balance_evidence", None)
+    monkeypatch.setattr(
+        serving, "_last_tested_localized_fluid_chemistry_evidence", None
+    )
     monkeypatch.setattr(serving, "_last_causal_cross_context_use_evidence", None)
     monkeypatch.setattr(serving, "_last_intrinsic_curiosity_evidence", None)
     monkeypatch.setattr(serving, "_sensorimotor_play_candidate", None)
@@ -399,6 +402,89 @@ def test_causal_observer_keeps_unbounded_contact_coordinates_native(
     assert contact["resident_state_sha256"] == state_sha
     assert "predecessor_state" not in contact
     assert "successor_state" not in contact
+
+
+def test_public_observer_keeps_exact_local_energy_coordinates_native(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    huge = 10**5000
+    lineage = "10" * 16
+    association = (7, ("07" * 16, lineage, 0, huge))
+    body = (8, ("08" * 16, lineage, 0, huge))
+    gradient = (
+        9,
+        -huge,
+        -(huge - 2),
+        -(huge - 1),
+        2,
+        2,
+        0,
+        (huge, 1),
+        (huge, 1),
+        (huge, 1),
+    )
+    plasticity = (
+        9,
+        huge,
+        huge,
+        (huge, 1),
+        (huge, 1),
+        (huge - 1, 1),
+        (huge, 1),
+        (huge, 1),
+        ((huge, 1), (0, 1), (0, 1)),
+        ((huge - 1, 1), (1, 1), (0, 1)),
+    )
+    monkeypatch.setattr(
+        serving,
+        "_last_tested_affective_balance_evidence",
+        {
+            "affective_balance_trajectories": (
+                (lineage, 10, 4, association, body, gradient, plasticity),
+            ),
+            "intake": "continuous-environment:bounded-observer",
+            "organism_tick": 42,
+            "state_sha256": "d" * 64,
+        },
+    )
+    localized = (
+        lineage,
+        10,
+        4,
+        9,
+        (250_000, (huge, 1), 1, 1, 1, 0, 0),
+        (-huge, -(huge - 2), 0, huge, 2, huge - 2, 0, -2),
+        (
+            ((huge, 1), (0, 1), (0, 1)),
+            ((huge - 1, 1), (1, 1), (0, 1)),
+            (1, 1),
+        ),
+    )
+    monkeypatch.setattr(
+        serving,
+        "_last_tested_localized_fluid_chemistry_evidence",
+        {
+            "intake": "continuous-environment:bounded-observer",
+            "localized_fluid_chemistry": (localized,),
+            "organism_tick": 42,
+            "state_sha256": "d" * 64,
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+
+    body = serving.native_observation().body
+    observed = json.loads(body)
+    assert b'"numerator"' not in body
+    assert observed["affective_balance"]["available"] is True
+    assert observed["affective_balance"]["trajectory"][
+        "localized_gradient_settlement"
+    ]["exact_coordinates_transported"] is False
+    assert observed["localized_fluid_chemistry"]["exact_conservation"] is True
+    assert observed["localized_fluid_chemistry"]["reservoir_energy"][
+        "exact_coordinates_transported"
+    ] is False
 
 
 def test_public_observation_counts_every_fractal_emitted_by_the_experience(
@@ -784,6 +870,7 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     monkeypatch,
 ) -> None:
     _mount(monkeypatch)
+    huge = 10**5000
     evidence = {
         "activity": "sensorimotor_body_yaw",
         "changed_world_context": True,
@@ -791,13 +878,17 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
         "first_episode": {
             "action_causal_intent_receipt_sha256": "1" * 64,
             "affective_body_participation": {
+                "active_contact_predecessor_state": (huge, (huge, 1)),
+                "active_contact_successor_state": (huge + 1, (huge, 1)),
                 "trajectory_receipt_sha256": "3" * 64,
             },
             "metabolic_overload_exclusion": {
+                "dissipation_capacity_energy_zeptojoules": (huge, 1),
                 "witness_receipt_sha256": "5" * 64,
             },
             "localized_metabolic_strain": {
                 "localized_nonzero_strain_count": 0,
+                "localized_nonzero_strain": ((huge, huge),),
                 "witness_receipt_sha256": "7" * 64,
             },
             "signed_yaw_millidegrees": -58,
@@ -808,13 +899,17 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
         "return_episode": {
             "action_causal_intent_receipt_sha256": "2" * 64,
             "affective_body_participation": {
+                "active_contact_predecessor_state": (huge, (huge, 1)),
+                "active_contact_successor_state": (huge + 1, (huge, 1)),
                 "trajectory_receipt_sha256": "4" * 64,
             },
             "metabolic_overload_exclusion": {
+                "dissipation_capacity_energy_zeptojoules": (huge, 1),
                 "witness_receipt_sha256": "6" * 64,
             },
             "localized_metabolic_strain": {
                 "localized_nonzero_strain_count": 0,
+                "localized_nonzero_strain": ((huge, huge),),
                 "witness_receipt_sha256": "8" * 64,
             },
             "signed_yaw_millidegrees": -40,
@@ -833,6 +928,16 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     assert play["formation_receipt_sha256"] == "f" * 64
     assert play["first_episode"]["signed_yaw_millidegrees"] == -58
     assert play["return_episode"]["signed_yaw_millidegrees"] == -40
+    assert "active_contact_predecessor_state" not in play["first_episode"][
+        "affective_body_participation"
+    ]
+    assert (
+        "dissipation_capacity_energy_zeptojoules"
+        not in play["first_episode"]["metabolic_overload_exclusion"]
+    )
+    assert "localized_nonzero_strain" not in play["first_episode"][
+        "localized_metabolic_strain"
+    ]
     assert play["affective_engagement"]["available"] is True
     assert play["overload_exclusion"]["available"] is True
     assert play["distress_exclusion"]["available"] is True
@@ -967,11 +1072,18 @@ def test_affective_balance_requires_ordered_local_recovery(monkeypatch) -> None:
         "cognitive_ordinal"
     ] == 9
     assert value["trajectory"]["localized_recovery_settlement"][
-        "successor_plastic_rest_length_nanometres"
-    ] == {"numerator": 4, "denominator": 3}
-    assert value["trajectory"]["localized_recovery_settlement"][
         "retained_support_changed"
     ] is False
+    assert value["trajectory"]["localized_recovery_settlement"][
+        "exact_coordinates_resident"
+    ] is True
+    assert value["trajectory"]["localized_recovery_settlement"][
+        "exact_coordinates_transported"
+    ] is False
+    assert (
+        "successor_plastic_rest_length_nanometres"
+        not in value["trajectory"]["localized_recovery_settlement"]
+    )
     assert value["named_emotion_authority"] is False
     assert value["python_decision_authority"] is False
 
