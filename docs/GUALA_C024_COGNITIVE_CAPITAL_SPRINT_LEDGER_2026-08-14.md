@@ -270,3 +270,27 @@ This correction closes the omitted-field defect only. The complete top-level
 C-024 sentence remains `RECONCILED PARTIAL` because motivation, language,
 social cognition, creativity, and other capability families still lack their
 own complete live evidence.
+
+## 2026-08-22 final record and error check
+
+The direct C-024 live witness remains the task-1173 generation-150334 record
+above: 83 unique sparse cells derived from the exact retained-formation causal
+witness, with unproved capability families left blank. That historical live
+proof is not replaced by an inferred count or by a later process-local cache.
+
+The subsequent V25 evidence-custody cutover completed once on task definition
+`dsf-ai-task:1175`, commit
+`eface784c40a37cc65c9dad5070349e6335069b3`, and immutable image
+`sha256:b0b3bc1e0af20b5b3010256a762edcb0eea9d7052d54b495bfd14bd538821411`.
+It preserved resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored a `131,697,766`-byte current
+body, and advanced to generation `150596`. The task log contained zero
+`ERROR`, `Traceback`, `panic`, or `failed` events at the final check.
+
+After that process restart, the bounded public observer truthfully reported
+that it had not yet observed a new retained-formation-to-sensed-consequence
+witness and therefore exposed only eight current availability credits. The
+ledger does not relabel those eight credits as the earlier 83-cell witness.
+C-024 remains `RECONCILED PARTIAL`; its corrected translation and direct live
+record are complete, while durable cross-restart observer evidence belongs to
+the later continuity/observer work and is not silently claimed here.
