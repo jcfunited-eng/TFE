@@ -306,6 +306,50 @@ def test_refresh_reuses_startup_build_identity_without_runtime_metadata(
     assert restored.organism.readiness_calls == 2
 
 
+def test_observer_keeps_unbounded_exact_energy_coordinates_native(
+    monkeypatch,
+) -> None:
+    huge = 10**5000
+
+    class HugeEnergyOrganism(_Organism):
+        def readiness(self) -> _Observation:
+            self.readiness_calls += 1
+            return _Observation(
+                available_energy_zeptojoules=(huge, 1),
+                spent_energy_zeptojoules=(huge, 1),
+                thermal_energy_zeptojoules=(huge, 1),
+                available_energy_capacity_zeptojoules=(huge, 1),
+                dissipated_energy_zeptojoules=(huge, 1),
+                dissipation_capacity_energy_zeptojoules=(huge, 1),
+                separated_elementary_charges=huge,
+            )
+
+    restored = _Restored(organism=HugeEnergyOrganism())
+    monkeypatch.setattr(serving, "_restored", restored)
+    monkeypatch.setattr(serving, "_admission", _Admission())
+    monkeypatch.setattr(serving, "_runtime_build_identity", None)
+    monkeypatch.setattr(
+        serving,
+        "_build_identity",
+        lambda: {
+            "git_sha": "b" * 40,
+            "image_digest": "sha256:" + "c" * 64,
+            "task_definition": "dsf-ai-task:900",
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+
+    ready = json.loads(serving.ready_guala().body)
+    assert ready["ready"] is True
+    assert "available_energy_zeptojoules" not in ready["native_resident"]
+    observed = json.loads(serving.native_observation().body)
+    assert observed["energy"]["available"] is True
+    assert observed["energy"]["exact_coordinates_resident"] is True
+    assert observed["energy"]["exact_coordinates_transported"] is False
+    assert "available_energy_zeptojoules" not in observed["energy"]
+
+
 def test_public_observation_counts_every_fractal_emitted_by_the_experience(
     monkeypatch,
 ) -> None:

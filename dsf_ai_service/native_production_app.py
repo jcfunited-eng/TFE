@@ -5939,23 +5939,13 @@ def _build_public_observation_from_snapshot(
                 if native["energy_exhausted"]
                 else "exact_body_energy_available"
             ),
-            "the recovery-fluid reservoir and dissipation state are decoded "
-            "as exact rational zeptojoules; no nutrition/power source is "
-            "mounted by this unit-only correction",
-            available_energy_zeptojoules=native["available_energy_zeptojoules"],
-            spent_energy_zeptojoules=native["spent_energy_zeptojoules"],
-            thermal_energy_zeptojoules=native["thermal_energy_zeptojoules"],
-            available_energy_capacity_zeptojoules=native[
-                "available_energy_capacity_zeptojoules"
-            ],
-            dissipated_energy_zeptojoules=native[
-                "dissipated_energy_zeptojoules"
-            ],
-            dissipation_capacity_energy_zeptojoules=native[
-                "dissipation_capacity_energy_zeptojoules"
-            ],
+            "exact rational energy coordinates remain in the resident native "
+            "state identified by state_sha256; this bounded observer reports "
+            "only mounted availability and exhaustion",
+            exact_coordinates_transported=False,
+            exact_coordinates_resident=True,
             exhausted=native["energy_exhausted"],
-            separated_elementary_charges=native["separated_elementary_charges"],
+            state_sha256=native["state_sha256"],
         ),
         "cognitive_capital": None,
         "attention": _attention_record(),
@@ -6105,13 +6095,40 @@ def _readiness_from_snapshot(
         or native["cognitive_trace_count"]
         or native["cognitive_mosaic_count"]
     )
+    readiness_native = {
+        key: native[key]
+        for key in (
+            "cognitive_mosaic_count",
+            "cognitive_ordinal",
+            "cognitive_trace_count",
+            "complete_neuron_count",
+            "developmental_resting_neuron_count",
+            "energy_exhausted",
+            "fabric_bytes",
+            "fabric_generation",
+            "fabric_sha256",
+            "formation_activation_count",
+            "identity",
+            "joint_field_count",
+            "mounted_generation",
+            "organism_tick",
+            "partial_cue_reassembly_count",
+            "endogenous_partial_cue_reassembly_count",
+            "physical_transition_claimed",
+            "python_callback_count",
+            "reached_dsf_perspective_count",
+            "resource_admission",
+            "state_bytes",
+            "state_sha256",
+        )
+    }
     return {
         "app_schema": APP_SCHEMA,
         "organism_tick": native["organism_tick"],
         "identity": native["identity"],
         "native_resident": {
             "available": True,
-            **native,
+            **readiness_native,
             "complete_neuron_available": native["complete_neuron_count"] > 0,
             # 2026-08-07 truth repair: this was a last-transition step
             # fact (false for a body full of memories after any quiet

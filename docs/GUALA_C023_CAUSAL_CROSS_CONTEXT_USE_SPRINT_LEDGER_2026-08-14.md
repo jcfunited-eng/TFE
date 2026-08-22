@@ -1050,12 +1050,18 @@ history remain excluded. The retained set is bounded by the current reached
 frontier, not by organism age or retained-formation population.
 
 The first deployment of that correction stopped before cutover because task
-1167's `/ready/guala` returned 503. Health remained 200, ECS remained exactly
-one healthy task, and the candidate was only built and registered. Source
-inspection found that observation refresh still resolved immutable ECS build
-identity through the metadata network after every committed transition; one
-metadata failure cleared both the optional public cache and the compact runtime
-proof. The correction resolves build identity once during process startup and
-reuses that immutable value. Public projection remains read-only, and neither
-its rendering nor ECS metadata availability can participate in cognition,
-action, settlement, persistence, or later readiness refreshes.
+1167's `/ready/guala` returned 503. Health initially remained 200, ECS remained
+exactly one task, and the candidate was only built and registered. A controlled
+restart then exposed the exact hidden error: observation refresh attempted to
+JSON-encode an exact native energy numerator exceeding Python's 4,300-decimal-
+digit conversion limit, so application startup failed after successfully
+restoring the organism. The service was drained to zero before further work.
+
+Readiness and the bounded public observer now transport only energy-system
+availability, exhaustion, and the exact resident `state_sha256`; the potentially
+very wide rational coordinates remain solely in the native state identified by
+that receipt. No decimal conversion limit is raised and no energy value is
+rounded, scored, or replaced inside the organism. Immutable ECS build identity
+is also resolved once during process startup rather than through metadata after
+every committed transition. Neither observer rendering nor ECS metadata can
+participate in cognition, action, settlement, or persistence.
