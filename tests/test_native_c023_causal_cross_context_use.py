@@ -387,5 +387,9 @@ def test_only_exact_cross_context_causes_cross_an_intake_boundary() -> None:
         "external_participant_sensory",
         "externally_reassembled_retained_formation",
         "retained_formation",
+        "retained_formation",
     )
-    assert tuple(retained)[-1][1] == "33" * 32
+    assert tuple(key[1] for key in retained if key[0] == "retained_formation") == (
+        "33" * 32,
+        "34" * 32,
+    )

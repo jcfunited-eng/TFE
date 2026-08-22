@@ -959,8 +959,10 @@ separate increments and cannot be inferred from that proof.
   cannot fabricate continuity.
 - Work bound: only traces that advanced in the final native interval are
   eligible; `_advance_causal_motor_traces` already drops every nonadvancing
-  path. The boundary retains at most one canonical oldest trace for each of the
-  three permitted cause kinds, so trace count cannot grow with experience.
+  path. The boundary retains every eligible advancing trace of the three
+  permitted cause kinds; it may not select one formation by age, receipt, or
+  another non-physical ranking. Trace count is therefore bounded by the exact
+  active reached frontier at that intake edge and cannot grow with experience.
   A trace cannot revisit a lineage, so its path length is bounded by the exact
   reached topology rather than causal age. Work remains bounded by those
   reached sparse frontiers and never scans retained formations, neurons,
@@ -1035,3 +1037,14 @@ falsifies the proposition that the currently retained canonical internal trace
 is already sufficient to prove internally simulated cross-context action.
 C-023 remains `RECONCILED PARTIAL`; no semantic imagination claim, fabricated
 transfer, replay, or broader completion claim is authorized from this run.
+
+The first source-proven failure after that falsification was in the observer,
+not neuron physics. Each production intake emitted 15--16 endogenous retained-
+formation reassemblies, but `_retain_cross_intake_causal_motor_traces` kept only
+one arbitrarily oldest trace for the next context and discarded every other
+still-advancing exact route. Age and receipt order have no physical authority,
+so that sampling rule could discard the route that later reached motor. The
+correction retains every permitted trace that actually advanced at the intake
+boundary. Nonadvancing traces, unrelated origin kinds, semantic labels, and
+history remain excluded. The retained set is bounded by the current reached
+frontier, not by organism age or retained-formation population.

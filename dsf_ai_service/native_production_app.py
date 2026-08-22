@@ -8712,29 +8712,12 @@ def _retain_cross_intake_causal_motor_traces(
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ]:
-    """Retain one exact advancing cause of each cross-intake kind."""
+    """Retain every exact cause still advancing at the intake boundary."""
 
-    selected: dict[
-        str,
-        tuple[
-            tuple[str, str, tuple[str, ...], int],
-            dict[str, tuple[tuple[str, str, int, int], ...]],
-        ],
-    ] = {}
-    for key, paths in active.items():
-        origin_kind = key[0]
-        if origin_kind not in _CROSS_INTAKE_CAUSAL_TRACE_KINDS:
-            continue
-        prior = selected.get(origin_kind)
-        if prior is None or (key[3], key[1], key[2]) < (
-            prior[0][3],
-            prior[0][1],
-            prior[0][2],
-        ):
-            selected[origin_kind] = (key, paths)
     return {
-        selected[origin_kind][0]: selected[origin_kind][1]
-        for origin_kind in sorted(selected)
+        key: active[key]
+        for key in sorted(active)
+        if key[0] in _CROSS_INTAKE_CAUSAL_TRACE_KINDS
     }
 
 
