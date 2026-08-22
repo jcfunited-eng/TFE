@@ -480,3 +480,18 @@ Applicable recurrence checks:
 | RF-012 | Execute one real mature action/consequence interval, not an HTTP-only check | Passed, 148524 -> 148540 |
 | RF-016 | Candidate changes only the post-A-009 observer and its focused tests | Passed |
 | RF-048 | Restore the exact production world before the embodied rehearsal | Passed |
+
+Production cutover completed on task `dsf-ai-task:1154`, commit
+`68415a1fb1509bc8a5aa98db33f66f69a6f024b2`, image
+`sha256:16e646e9f4775357feb2fd419de2c84edc03ba7480dd11eaad846e794054a23a`.
+The first controller attempt stopped before cutover because its predecessor
+preflight required the broken `/ready/guala` cache to approve the cache repair.
+The isolated candidate then cold-restored CURRENT but exited in an unrelated
+historical A-013 thermal rehearsal. Neither attempt changed production.
+
+The reviewed candidate was cut over with the controller's exact single-writer
+mechanics: task 1153 drained to verified 0/0/0 before task 1154 started. The new
+task reached RUNNING/HEALTHY at 1/1/0 with one completed PRIMARY deployment.
+The public observer returned HTTP 200 twice while the same identity advanced
+148762 -> 148776 and changed its state receipt. The second complete response
+was 280,306 bytes; its bounded latest-transition witness was 1,729 bytes.
