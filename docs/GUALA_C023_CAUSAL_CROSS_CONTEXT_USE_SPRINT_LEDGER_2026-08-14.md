@@ -888,3 +888,8 @@ retained only as falsification evidence and is not the releasable C-023 law.
   compilation passes and the focused C-023/A-006 evidence boundary passes
   14/14. The remaining semantic observer records were also traced and have no
   cognition, action, curriculum, persistence, or readiness authority.
+- Production task `dsf-ai-task:1157`, exact release commit
+  `4947977117685c02021135d745e36849068fc46f`, and image
+  `sha256:adc8a18ab400219a74cca51846e14090bd8d1e6ba2a4382da48fcfb81fa49b80`
+  now serve the recurrent-lineage projection. The controller verified native
+  state and exactly one cutover; automatic legacy rollback remained disabled.
