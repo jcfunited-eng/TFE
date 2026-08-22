@@ -128,6 +128,32 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
     assert observer.filters == []
 
 
+def test_causal_trace_does_not_revisit_a_lineage() -> None:
+    origin = "01" * 16
+    frontier = "02" * 16
+    observer = _FrontierObserver()
+
+    observer.transfers = ((origin, frontier, 0, 7, frontier),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(30, cues=(("11" * 32, (origin,), origin),)),
+    )
+    assert completed == {}
+
+    observer.transfers = ((frontier, origin, 0, 9, origin),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(31),
+    )
+
+    assert active == {}
+    assert completed == {}
+
+
 def test_retained_path_reaches_layer_13_without_false_body_motor_proof() -> None:
     cue = "01" * 16
     association = "02" * 16
@@ -339,7 +365,7 @@ def test_external_reassembly_does_not_bind_an_unrelated_articulatory_path() -> N
     )
 
 
-def test_only_exact_external_causes_cross_an_intake_boundary() -> None:
+def test_only_exact_cross_context_causes_cross_an_intake_boundary() -> None:
     paths = {"02" * 16: (("01" * 16, "02" * 16, 0, 7),)}
     active = {
         ("external_participant_sensory", "11" * 32, ("01" * 16,), 10): paths,
@@ -350,6 +376,7 @@ def test_only_exact_external_causes_cross_an_intake_boundary() -> None:
             11,
         ): paths,
         ("retained_formation", "33" * 32, ("04" * 16,), 12): paths,
+        ("retained_formation", "34" * 32, ("07" * 16,), 15): paths,
         ("new_neuronal_fractal", "", ("05" * 16,), 13): paths,
         ("affective_gradient", "44" * 32, ("06" * 16,), 14): paths,
     }
@@ -359,4 +386,6 @@ def test_only_exact_external_causes_cross_an_intake_boundary() -> None:
     assert tuple(key[0] for key in retained) == (
         "external_participant_sensory",
         "externally_reassembled_retained_formation",
+        "retained_formation",
     )
+    assert tuple(retained)[-1][1] == "33" * 32

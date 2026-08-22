@@ -1579,15 +1579,16 @@ _last_body_owned_laughter_evidence: dict[str, Any] | None = None
 # predecessor/successor world receipts are the only relation between them.
 _reciprocal_social_play_candidate: dict[str, Any] | None = None
 _last_reciprocal_social_play_evidence: dict[str, Any] | None = None
-# Transient, bounded physical frontiers whose exact cause began in one external
-# intake and may continue in the immediately following physical interval.  The
-# values are observation only, do not survive restart, and cannot choose or
-# retain anything for the organism.  Every other causal origin remains
-# transaction-local.
+# Transient, bounded physical frontiers whose exact external or internally
+# simulated retained-formation cause may continue in the immediately following
+# physical intake. The values are observation only, do not survive restart,
+# and cannot choose or retain anything for the organism. New-fractal and
+# affective-gradient origins remain transaction-local.
 _CROSS_INTAKE_CAUSAL_TRACE_KINDS = frozenset(
     {
         "external_participant_sensory",
         "externally_reassembled_retained_formation",
+        "retained_formation",
     }
 )
 _active_cross_intake_causal_motor_traces: dict[
@@ -8323,6 +8324,11 @@ def _advance_causal_motor_traces(
             prior_path = paths_by_lineage[predecessor]
             if transfer in prior_path:
                 continue
+            if any(
+                frontier == prior_sender or frontier == prior_receiver
+                for prior_sender, prior_receiver, _ordinal, _carriers in prior_path
+            ):
+                continue
             candidate = prior_path + (transfer,)
             existing = next_paths.get(frontier)
             if existing is None or (len(candidate), candidate) < (
@@ -8706,12 +8712,29 @@ def _retain_cross_intake_causal_motor_traces(
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ]:
-    """Retain only exact unresolved causes allowed to cross an intake boundary."""
+    """Retain one exact advancing cause of each cross-intake kind."""
 
+    selected: dict[
+        str,
+        tuple[
+            tuple[str, str, tuple[str, ...], int],
+            dict[str, tuple[tuple[str, str, int, int], ...]],
+        ],
+    ] = {}
+    for key, paths in active.items():
+        origin_kind = key[0]
+        if origin_kind not in _CROSS_INTAKE_CAUSAL_TRACE_KINDS:
+            continue
+        prior = selected.get(origin_kind)
+        if prior is None or (key[3], key[1], key[2]) < (
+            prior[0][3],
+            prior[0][1],
+            prior[0][2],
+        ):
+            selected[origin_kind] = (key, paths)
     return {
-        key: paths
-        for key, paths in active.items()
-        if key[0] in _CROSS_INTAKE_CAUSAL_TRACE_KINDS
+        selected[origin_kind][0]: selected[origin_kind][1]
+        for origin_kind in sorted(selected)
     }
 
 

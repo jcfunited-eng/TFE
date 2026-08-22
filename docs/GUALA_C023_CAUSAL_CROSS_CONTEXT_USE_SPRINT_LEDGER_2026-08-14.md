@@ -935,3 +935,53 @@ may observe the existing native physics but may not add Python cognitive
 authority, a semantic label, a replay archive, a stored answer, or a cognition
 pause. Social perspective, creativity, and native reflection remain later
 separate increments and cannot be inferred from that proof.
+
+### Frozen imagination-boundary implementation contract
+
+- Exact input: one unresolved `retained_formation` causal trace that was born
+  from native `InternallyReassembledFormationCueObservation`, used the mounted
+  layer-9 recurrent lineage, and advanced through an exact directed carrier
+  transfer in the final interval of the committed intake.
+- Exact output: that same receipt, internal cue lineages, origin tick, current
+  frontier lineage, and exact transfer path remain available to the observer
+  during the immediately following intake. The observer may complete a witness
+  only if later native transfers reach layer-12/13 discharge and the ordinary
+  body/world path returns a sensed consequence.
+- Settlement authority: unchanged native neuron, contact, formation, motor,
+  body, and world physics. The Python trace remains read-only and cannot select,
+  retain, stimulate, admit, refuse, settle, or persist organism state.
+- Conservation: no energy, material, carrier, identity, state, formation, or
+  experience byte is created or changed. The trace carries only evidence that
+  the native transition already emitted.
+- Mutation/rollback/crash: assignment occurs only after the organism successor
+  and world/body consequence commit. A refused or rolled-back transaction does
+  not publish a new trace. Startup clears the trace; process restart therefore
+  cannot fabricate continuity.
+- Work bound: only traces that advanced in the final native interval are
+  eligible; `_advance_causal_motor_traces` already drops every nonadvancing
+  path. The boundary retains at most one canonical oldest trace for each of the
+  three permitted cause kinds, so trace count cannot grow with experience.
+  A trace cannot revisit a lineage, so its path length is bounded by the exact
+  reached topology rather than causal age. Work remains bounded by those
+  reached sparse frontiers and never scans retained formations, neurons,
+  contacts, or history.
+- Retired alternatives: no replay archive, receipt lookup, semantic
+  imagination flag, persisted observer history, timer, owner, database,
+  cognition pause, or Python action authority.
+- Authorized files: `dsf_ai_service/native_production_app.py`,
+  `tests/test_native_c023_causal_cross_context_use.py`, and this existing
+  C-023 ledger only.
+- Focused exit proof: the filter carries internal and external retained-
+  formation causes plus external-participant sensory causes across one intake,
+  while new-fractal and affective causes remain local; the existing exact
+  multi-interval path still reaches action without fabricated transfers.
+- Live exit proof: an internally simulated formation origin tick precedes the
+  later intake's motor tick, its exact directed path reaches native action, and
+  the same persisted organism receives the applicable sensed consequence.
+
+Source-only review passed for the bounded observer boundary. Frozen candidate
+fingerprint `b941a1add0e48a8ca38bf8ebe4b5d5fe403c2716eead7366626a7b72d0a17d0b`
+was unchanged before and after the focused run. The exact C-023 file passed
+8/8 tests in 1.07 seconds, Python compilation passed, and `git diff --check`
+passed. This is local candidate evidence only; live imagination evidence is
+still required.
