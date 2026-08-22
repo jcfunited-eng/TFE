@@ -13,17 +13,21 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1175`, commit
-`eface784c40a37cc65c9dad5070349e6335069b3`, immutable image
-`sha256:b0b3bc1e0af20b5b3010256a762edcb0eea9d7052d54b495bfd14bd538821411`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The V25 evidence
-cutover reduced the current body to `131,697,766` bytes at generation `150596`.
+Current production baseline: task definition `dsf-ai-task:1176`, commit
+`96bc624e7155ce49e06af17c9b2e8edf06abf99a`, immutable image
+`sha256:5ed0d38abb083476ac9083d9729fc9fbd21d5e1ad4d20c981ecf053430b5cb53`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The one-way V26
+motor-identity repair reduced the frozen `131,697,766`-byte body to
+`95,060,017` bytes, and ordinary unattended life subsequently advanced through
+generation `150644`. An exact tick-150612 successor cold-restored with no
+duplicate or unspecialized motor terminal binding.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
 | 0 | A-009 foundation | Live-closed | Preserve continuous cognition and same-organism action consequence re-entry; no pause machinery or full-neuron evidence duplication may return. |
 | 0 | C-023 bounded mechanism | Direct causal-use witness live; complete top-level capability sentence remains partial | Use as a prerequisite witness only; do not reopen its retired broad mechanism. |
 | 0 | C-024 live record | Corrected translation and 83-cell direct live witness recorded; complete top-level capability sentence remains partial | Closed for the present increment; missing capability families are supplied only by their own later items. |
+| 0 | A-006 motor-growth prerequisite | Live-closed on task 1176 | The terminal-bound motor invariant is current-format enforced and continuous physical advancement is restored; do not reopen the participant-set motor identity. |
 | 1 | A-006 | `RECONCILED PARTIAL` — next active item | Prove intrinsic curiosity/motivation from the organism's own changing physical reach, without observer labels, scores, or scripted choice. |
 | 2 | A-011 | `RECONCILED PARTIAL` | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
 | 3 | A-012 | `RECONCILED PARTIAL` | Prove self-selected rest/sleep/wake/exploration/learning/interaction as one unattended native life. |
