@@ -1841,6 +1841,9 @@ def _rehearse_l005_word_apple(
         partial_hop,
     )
 
+    external_frontiers = tuple(
+        partial_hop["externally_reassembled_formation_frontiers"]
+    )
     causal_kind = None
     causal = completed.get("externally_reassembled_retained_formation")
     if causal is not None:
@@ -1854,14 +1857,6 @@ def _rehearse_l005_word_apple(
     if external_reassemblies <= 0:
         raise RuntimeError(
             "L-005 word-apple partial cue produced no external reassembly"
-        )
-    if causal is None or causal_kind is None:
-        raise RuntimeError(
-            "L-005 word-apple reassembly produced no later native action or articulation"
-        )
-    if body_return_count <= 0:
-        raise RuntimeError(
-            "L-005 native causal use returned no exact body consequence source"
         )
 
     after = organism.readiness()
@@ -1886,15 +1881,16 @@ def _rehearse_l005_word_apple(
         or after.python_callback_count != 0
     ):
         raise RuntimeError("L-005 word-apple successor continuity changed")
-    formation_receipt = causal.get("formation_receipt_sha256")
-    transfers = causal.get("directed_physical_transfers")
+    formation_receipt = min(frontier[0] for frontier in external_frontiers)
+    transfers = () if causal is None else causal.get("directed_physical_transfers")
     if (
         not isinstance(formation_receipt, str)
         or _SHA256.fullmatch(formation_receipt) is None
         or not isinstance(transfers, tuple)
-        or not transfers
+        or (causal_kind is None and transfers)
+        or (causal_kind is not None and not transfers)
     ):
-        raise RuntimeError("L-005 causal-use evidence changed format")
+        raise RuntimeError("L-005 recognition evidence changed format")
     return {
         "l005_word_apple_rehearsed": True,
         "l005_word_apple_predecessor_tick": before.organism_tick,

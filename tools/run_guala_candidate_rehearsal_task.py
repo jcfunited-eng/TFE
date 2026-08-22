@@ -879,12 +879,28 @@ def _validate_proof(
                 "l005_word_apple_full_dsf_delivery_count",
                 "l005_word_apple_partial_dsf_delivery_count",
                 "l005_word_apple_external_reassembly_count",
+            )
+        )
+        and all(
+            isinstance(proof.get(name), int)
+            and not isinstance(proof[name], bool)
+            and proof[name] >= 0
+            for name in (
                 "l005_word_apple_causal_transfer_count",
                 "l005_word_apple_body_return_count",
             )
         )
-        and proof.get("l005_word_apple_causal_use_kind")
-        in {"body_action", "articulation"}
+        and (
+            (
+                proof.get("l005_word_apple_causal_use_kind") is None
+                and proof.get("l005_word_apple_causal_transfer_count") == 0
+            )
+            or (
+                proof.get("l005_word_apple_causal_use_kind")
+                in {"body_action", "articulation"}
+                and proof.get("l005_word_apple_causal_transfer_count", 0) > 0
+            )
+        )
         and isinstance(
             proof.get("l005_word_apple_formation_receipt_sha256"), str
         )

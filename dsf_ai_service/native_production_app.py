@@ -10558,22 +10558,6 @@ def _room_containing(snapshot: Any, position: Any) -> str | None:
     return None
 
 
-def _her_own_step(
-    interval_id: str,
-) -> tuple[list[tuple[Any, list[tuple[int, int]]]] | None, dict[str, Any]]:
-    """Report that no native causal action mechanism is mounted."""
-
-    del interval_id
-    return None, {
-        "moved": False,
-        "why": (
-            "autonomous movement is unavailable: the retired Python fuel "
-            "deficit and stride controller was not organism cognition, and "
-            "no native causal action mechanism is mounted"
-        ),
-    }
-
-
 _UNATTENDED_EXACT_ENERGY_KEYS = (
     "available_energy_zeptojoules",
     "spent_energy_zeptojoules",

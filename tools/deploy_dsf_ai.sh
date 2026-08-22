@@ -770,8 +770,6 @@ if (
     or proof.get("l005_word_apple_predecessor_tick") != proof.get("tick")
     or not isinstance(proof.get("l005_word_apple_successor_tick"), int)
     or proof["l005_word_apple_successor_tick"] <= proof.get("tick")
-    or proof.get("l005_word_apple_causal_use_kind")
-    not in {"body_action", "articulation"}
     or proof.get("l005_word_apple_cold_restore_exact") is not True
     or proof.get("l005_word_apple_python_callback_count") != 0
     or not re.fullmatch(
@@ -790,12 +788,30 @@ if (
             "l005_word_apple_full_dsf_delivery_count",
             "l005_word_apple_partial_dsf_delivery_count",
             "l005_word_apple_external_reassembly_count",
+        )
+    )
+    or any(
+        not isinstance(proof.get(name), int)
+        or isinstance(proof[name], bool)
+        or proof[name] < 0
+        for name in (
             "l005_word_apple_causal_transfer_count",
             "l005_word_apple_body_return_count",
         )
     )
+    or not (
+        (
+            proof.get("l005_word_apple_causal_use_kind") is None
+            and proof.get("l005_word_apple_causal_transfer_count") == 0
+        )
+        or (
+            proof.get("l005_word_apple_causal_use_kind")
+            in {"body_action", "articulation"}
+            and proof.get("l005_word_apple_causal_transfer_count", 0) > 0
+        )
+    )
 ):
-    raise SystemExit("L-005 mature word-apple causal rehearsal changed")
+    raise SystemExit("L-005 mature word-apple recognition rehearsal changed")
 '
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
             CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \

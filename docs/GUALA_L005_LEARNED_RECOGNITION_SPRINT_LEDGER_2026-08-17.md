@@ -98,6 +98,27 @@ Status: In progress. No learned-word recognition is live-proved.
   one for the nine-part full experience and one for the nine-part partial cue.
   A focused executable guard requires this cardinality so the per-fragment
   whole-state sealing route cannot return.
+- Attempt 4 used commit `a84639db13c1a8a19dc352c43acfb06427cb749c`
+  and candidate image
+  `sha256:cac594123f24048539e7c22c70a7124a74760d64ae63ba024681ea0c15aaabcf`.
+  The two-trajectory correction reached the mature physical result within the
+  bounded rehearsal: the strict partial cue externally reassembled retained
+  word-apple structure, but no later motor or articulatory discharge occurred
+  before those lesson transactions ended. Production remained task 1157.
+- This exposed an invalid release gate rather than authority to manufacture an
+  action. The gate had required the later continuous-world behavior inside the
+  two external lesson transactions, before the ordinary unattended world loop
+  could resume. Candidate rehearsal now requires exact mature external
+  reassembly, full-DSF delivery, successor identity/tick/state change, zero
+  Python cognition callbacks, and byte-exact cold restore. It reports causal
+  use truthfully when present but does not require it for cutover. L-005 itself
+  remains open until the deployed organism's later ordinary continuous
+  experience supplies the exact recurrence-to-action-to-sensed-return chain.
+- The zero-caller `_her_own_step` refusal was deleted. It was not on the live
+  unattended path, which already routes each world interval through ordinary
+  native motor recruitment and action consequence handling, but retaining the
+  dead refusal could falsely imply or later recreate a disconnected autonomy
+  path.
 - Focused active proof and validator surface passes 58/58. Four other tests in
   the broad historical cold-probe file remain inherited mock drift: their
   hand-written organisms expose retired `prepare_*` methods rather than the

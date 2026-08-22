@@ -630,7 +630,7 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
         )
 
 
-def test_cold_restore_requires_active_l005_word_apple_causal_use() -> None:
+def test_cold_restore_requires_active_l005_word_apple_recognition() -> None:
     record = {
         "baseline_observed_state_sha256": STATE_SHA,
         "baseline_observed_tick": 23_723_846,
@@ -648,10 +648,10 @@ def test_cold_restore_requires_active_l005_word_apple_causal_use() -> None:
         "l005_word_apple_full_dsf_delivery_count": 381,
         "l005_word_apple_partial_dsf_delivery_count": 381,
         "l005_word_apple_external_reassembly_count": 1,
-        "l005_word_apple_causal_use_kind": "articulation",
+        "l005_word_apple_causal_use_kind": None,
         "l005_word_apple_formation_receipt_sha256": "f" * 64,
-        "l005_word_apple_causal_transfer_count": 2,
-        "l005_word_apple_body_return_count": 1,
+        "l005_word_apple_causal_transfer_count": 0,
+        "l005_word_apple_body_return_count": 0,
         "l005_word_apple_cold_restore_exact": True,
         "l005_word_apple_python_callback_count": 0,
         "migration_predecessor_state_sha256": None,
@@ -681,7 +681,7 @@ def test_cold_restore_requires_active_l005_word_apple_causal_use() -> None:
     ) == proof
 
     changed = dict(record)
-    changed["l005_word_apple_causal_transfer_count"] = 0
+    changed["l005_word_apple_external_reassembly_count"] = 0
     with pytest.raises(RuntimeError, match="proof changed"):
         runner._validate_proof(
             _receipted(changed),

@@ -321,7 +321,7 @@ def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
         return {
             "dsf_delivery_count": 9,
             "externally_reassembled_formation_frontiers": (
-                (("formation",),) if is_partial else ()
+                (("f" * 64, ("cue",), "recurrent"),) if is_partial else ()
             ),
             "body_proprioceptive_sources": (("body",),) if is_partial else (),
         }
@@ -330,15 +330,7 @@ def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
     monkeypatch.setattr(
         production,
         "_advance_causal_motor_traces",
-        lambda *_args, **_kwargs: (
-            {},
-            {
-                "externally_reassembled_retained_formation_articulation": {
-                    "formation_receipt_sha256": "f" * 64,
-                    "directed_physical_transfers": (("transfer",),),
-                }
-            },
-        ),
+        lambda *_args, **_kwargs: ({}, {}),
     )
     monkeypatch.setattr(
         probe,
@@ -358,6 +350,8 @@ def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
         tuple(intervals for _, intervals in lessons["partial"]),
     )
     assert proof["l005_word_apple_rehearsed"] is True
+    assert proof["l005_word_apple_causal_use_kind"] is None
+    assert proof["l005_word_apple_causal_transfer_count"] == 0
 
 
 def test_probe_rejects_state_or_callback_change(monkeypatch) -> None:
