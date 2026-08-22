@@ -119,7 +119,11 @@ def test_native_readiness_names_only_truthful_available_state(monkeypatch) -> No
     monkeypatch.setattr(serving, "_restored", _Restored())
     monkeypatch.setattr(serving, "_admission", _Admission())
 
-    value = serving._readiness()
+    value = serving._readiness_from_snapshot(
+        serving._native_record(),
+        None,
+        serving._build_identity(),
+    )
 
     assert (
         value["ready_scope"]

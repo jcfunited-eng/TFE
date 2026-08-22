@@ -5081,35 +5081,6 @@ def _articulation_record() -> dict[str, object]:
     )
 
 
-def _retained_impression_neuron_count() -> int | None:
-    """How many of her neurons hold a retained impression RIGHT NOW.
-
-    A retained formation's members ARE the neurons that hold a retained
-    fractal, so the union of every formation's members is the honest answer to
-    "how much of her is holding an impression".  This is her STATE.  The
-    per-transition fractal count is a STEP FACT about the last thing that
-    happened to her, and reporting only that under a label like "genuine
-    fractals" makes a fully-formed organism read as empty whenever her most
-    recent moment was a quiet one.
-    """
-
-    restored = _restored
-    if restored is None:
-        return None
-    try:
-        formations = restored.organism.observe_retained_formations()
-    except (AttributeError, RuntimeError, TypeError, ValueError):
-        # 2026-08-07 truth repair: a swallowed error used to read as 0 —
-        # "she reads as empty while holding 27" reborn in the degraded
-        # path.  None means THE OBSERVATION FAILED, and callers must say
-        # that instead of printing an empty body.
-        return None
-    members: set[str] = set()
-    for lineages, _bonds in formations:
-        members.update(lineages)
-    return len(members)
-
-
 def _causal_cross_context_use_record() -> dict[str, object]:
     evidence = _last_causal_cross_context_use_evidence
     if evidence is None:
@@ -6207,14 +6178,6 @@ def _readiness_from_snapshot(
         "ready_scope": "http_native_current_and_admitted_sensory_transitions",
         **build_identity,
     }
-
-
-def _readiness() -> dict[str, Any]:
-    return _readiness_from_snapshot(
-        _native_record(),
-        _retained_impression_neuron_count(),
-        _build_identity(),
-    )
 
 
 def _unavailable(name: str) -> JSONResponse:
