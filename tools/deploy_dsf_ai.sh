@@ -786,10 +786,15 @@ restore_previous_live_organism() {
 
 fail_candidate_cutover() {
     local reason="$1"
-    if [ "${RECOVER_DRAINED}" = "1" ]; then
+    # A current-format migration may have atomically published bytes the
+    # predecessor image cannot decode.  After candidate admission begins,
+    # failure must leave zero writers; restarting the old image would either
+    # fail against CURRENT or resurrect a retired body from stale custody.
+    if [ "${RECOVER_DRAINED}" = "1" ] \
+        || [ "${GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION}" = "1" ]; then
         drain_live_organism \
             || fail "${reason}; candidate could not be drained"
-        fail "${reason}; service left safely at zero writers"
+        fail "${reason}; service left safely at zero writers; incompatible predecessor not restarted"
     fi
     restore_previous_live_organism \
         || fail "${reason}; predecessor restoration also failed"

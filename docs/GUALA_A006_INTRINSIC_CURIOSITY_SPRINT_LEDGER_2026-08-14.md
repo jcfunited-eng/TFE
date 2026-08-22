@@ -176,7 +176,8 @@ Authorized files for this prerequisite are
 `native/guala_core/src/resident_cognitive_formation.rs`,
 `native/guala_core/src/resident_electrical_fabric.rs`, the existing production-
 body migration proof in `native/guala_core/src/organism_runtime.rs`, the
-focused native tests inside those owners, and this existing sprint ledger. No observer, Python
+schema-cutover failure branch in `tools/deploy_dsf_ai.sh`, the focused native
+tests inside those owners, and this existing sprint ledger. No observer, Python
 curiosity label, transaction framework, database, score, or DSF mechanism is
 authorized.
 
@@ -192,6 +193,11 @@ authorized.
 | RF-032 | Run Rust checks from the crate containing `Cargo.toml` | All native commands ran from `native/guala_core` |
 | RF-033 | Re-resolve the exact AWS target before release | Pending release preflight; no remembered target will be used as authority |
 | RF-044 | Count the production-scale multiplier before packaging | Exact CURRENT contains 623 layer-12 cells/70 terminals and 108,915 fabric contacts; corrected steady growth reuses one terminal motor and batches new contacts into one fabric extension |
+
+The controller's candidate-failure path is also current-format aware: once a
+V26 candidate may have published CURRENT, it drains to zero writers and refuses
+to restart the incompatible V25 image. This prevents the retired topology from
+returning through automatic rollback custody.
 
 ### Local executable evidence — 2026-08-22
 
