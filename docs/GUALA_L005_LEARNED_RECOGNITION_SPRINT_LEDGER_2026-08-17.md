@@ -119,6 +119,19 @@ Status: In progress. No learned-word recognition is live-proved.
   native motor recruitment and action consequence handling, but retaining the
   dead refusal could falsely imply or later recreate a disconnected autonomy
   path.
+- Attempt 5 used commit `65c247f2ffe954d4f30154b33695410abb4ed6d6`
+  and candidate image
+  `sha256:e3f3384b6d5363666f8e213f2772ee1c86be0084a389a70504d3eeb53c01eb16`.
+  It showed the remaining controller defect without a physics failure:
+  two mature seals followed by successor save/cold restore exceeded the fixed
+  15-minute discarded-task waiter, which then stopped the task. Production
+  remained task 1157. The proof now admits the full and partial lessons as one
+  ordered 18-source native trajectory and performs one final seal. Recognition
+  evidence is taken only from the nine partial-cue interval observations after
+  the body predecessor and nine full-experience intervals. This preserves two
+  distinct physical phases without an intermediate whole-organism seal. The
+  controller wall is unchanged and an executable guard now requires one native
+  commit, not 18 or 2.
 - Focused active proof and validator surface passes 58/58. Four other tests in
   the broad historical cold-probe file remain inherited mock drift: their
   hand-written organisms expose retired `prepare_*` methods rather than the

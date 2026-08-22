@@ -1815,25 +1815,31 @@ def _rehearse_l005_word_apple(
         "word-apple", experience, "partial"
     )
     before = organism.readiness()
-    full_hop = production._commit_admitted_hop(
+    lesson_episodes = (*full_episodes, *partial_episodes)
+    lesson_hop = production._commit_admitted_hop(
         organism,
-        tuple(episode for episode, _ in full_episodes),
-        tuple(intervals for _, intervals in full_episodes),
+        tuple(episode for episode, _ in lesson_episodes),
+        tuple(intervals for _, intervals in lesson_episodes),
     )
-    full_dsf = int(full_hop["dsf_delivery_count"])
+    dsf_delivery_count = int(lesson_hop["dsf_delivery_count"])
+    causal_intervals = tuple(lesson_hop["causal_interval_evidence"])
+    if len(causal_intervals) != len(lesson_episodes) + 1:
+        raise RuntimeError("L-005 native lesson interval cardinality changed")
+    partial_intervals = causal_intervals[len(full_episodes) + 1 :]
 
     active: dict[tuple[str, str, tuple[str, ...], int], dict[str, tuple]] = {}
     completed: dict[str, dict[str, object]] = {}
-    partial_hop = production._commit_admitted_hop(
-        organism,
-        tuple(episode for episode, _ in partial_episodes),
-        tuple(intervals for _, intervals in partial_episodes),
+    partial_hop = {
+        **lesson_hop,
+        "causal_interval_evidence": partial_intervals,
+    }
+    external_frontiers = tuple(
+        frontier
+        for interval in partial_intervals
+        for frontier in interval["externally_reassembled_formation_frontiers"]
     )
-    partial_dsf = int(partial_hop["dsf_delivery_count"])
-    external_reassemblies = len(
-        partial_hop["externally_reassembled_formation_frontiers"]
-    )
-    body_return_count = len(partial_hop["body_proprioceptive_sources"])
+    external_reassemblies = len(external_frontiers)
+    body_return_count = len(lesson_hop["body_proprioceptive_sources"])
     active, completed = production._advance_causal_motor_traces(
         organism,
         active,
@@ -1841,9 +1847,6 @@ def _rehearse_l005_word_apple(
         partial_hop,
     )
 
-    external_frontiers = tuple(
-        partial_hop["externally_reassembled_formation_frontiers"]
-    )
     causal_kind = None
     causal = completed.get("externally_reassembled_retained_formation")
     if causal is not None:
@@ -1868,8 +1871,7 @@ def _rehearse_l005_word_apple(
         max_logical_peak_bytes=admission.max_logical_peak_bytes,
     ).readiness()
     if (
-        full_dsf <= 0
-        or partial_dsf <= 0
+        dsf_delivery_count <= 0
         or after.identity != before.identity
         or after.organism_tick <= before.organism_tick
         or after.state_sha256 == before.state_sha256
@@ -1897,8 +1899,7 @@ def _rehearse_l005_word_apple(
         "l005_word_apple_successor_tick": after.organism_tick,
         "l005_word_apple_predecessor_state_sha256": before.state_sha256,
         "l005_word_apple_successor_state_sha256": after.state_sha256,
-        "l005_word_apple_full_dsf_delivery_count": full_dsf,
-        "l005_word_apple_partial_dsf_delivery_count": partial_dsf,
+        "l005_word_apple_dsf_delivery_count": dsf_delivery_count,
         "l005_word_apple_external_reassembly_count": external_reassemblies,
         "l005_word_apple_causal_use_kind": causal_kind,
         "l005_word_apple_formation_receipt_sha256": formation_receipt,

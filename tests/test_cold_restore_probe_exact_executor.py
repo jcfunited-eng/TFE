@@ -220,8 +220,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "l005_word_apple_successor_tick": 23_723_864,
         "l005_word_apple_predecessor_state_sha256": STATE_SHA,
         "l005_word_apple_successor_state_sha256": "e" * 64,
-        "l005_word_apple_full_dsf_delivery_count": 381,
-        "l005_word_apple_partial_dsf_delivery_count": 381,
+        "l005_word_apple_dsf_delivery_count": 762,
         "l005_word_apple_external_reassembly_count": 1,
         "l005_word_apple_causal_use_kind": "articulation",
         "l005_word_apple_formation_receipt_sha256": "f" * 64,
@@ -268,7 +267,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
     assert receipt == hashlib.sha256(probe._canonical(proof)).hexdigest()
 
 
-def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
+def test_l005_rehearsal_batches_both_lessons_into_one_native_trajectory(
     monkeypatch,
 ) -> None:
     from dsf_ai_service import native_production_app as production
@@ -317,13 +316,20 @@ def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
         intervals: tuple[object, ...],
     ) -> dict[str, object]:
         commits.append((episodes, intervals))
-        is_partial = episodes[0] == "partial-0"
+        causal_intervals = tuple(
+            {
+                "externally_reassembled_formation_frontiers": (
+                    (("f" * 64, ("cue",), "recurrent"),)
+                    if index == 10
+                    else ()
+                ),
+            }
+            for index in range(19)
+        )
         return {
-            "dsf_delivery_count": 9,
-            "externally_reassembled_formation_frontiers": (
-                (("f" * 64, ("cue",), "recurrent"),) if is_partial else ()
-            ),
-            "body_proprioceptive_sources": (("body",),) if is_partial else (),
+            "dsf_delivery_count": 18,
+            "causal_interval_evidence": causal_intervals,
+            "body_proprioceptive_sources": (("body",),),
         }
 
     monkeypatch.setattr(production, "_commit_admitted_hop", _commit)
@@ -340,14 +346,18 @@ def test_l005_rehearsal_batches_each_lesson_into_one_native_trajectory(
 
     proof = probe._rehearse_l005_word_apple(_L005Organism(), _Admission())
 
-    assert len(commits) == 2
+    assert len(commits) == 1
     assert commits[0] == (
-        tuple(episode for episode, _ in lessons["full"]),
-        tuple(intervals for _, intervals in lessons["full"]),
-    )
-    assert commits[1] == (
-        tuple(episode for episode, _ in lessons["partial"]),
-        tuple(intervals for _, intervals in lessons["partial"]),
+        tuple(
+            episode
+            for mode in ("full", "partial")
+            for episode, _ in lessons[mode]
+        ),
+        tuple(
+            intervals
+            for mode in ("full", "partial")
+            for _, intervals in lessons[mode]
+        ),
     )
     assert proof["l005_word_apple_rehearsed"] is True
     assert proof["l005_word_apple_causal_use_kind"] is None

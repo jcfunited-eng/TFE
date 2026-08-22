@@ -876,8 +876,7 @@ def _validate_proof(
             and not isinstance(proof[name], bool)
             and proof[name] > 0
             for name in (
-                "l005_word_apple_full_dsf_delivery_count",
-                "l005_word_apple_partial_dsf_delivery_count",
+                "l005_word_apple_dsf_delivery_count",
                 "l005_word_apple_external_reassembly_count",
             )
         )
