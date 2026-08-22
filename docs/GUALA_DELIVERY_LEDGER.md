@@ -24,8 +24,11 @@ box remains unchecked until live acceptance passes.
 - [x] **S-008** Layer-5 localized cellular metabolic afference retains exact
   local recovery/membrane consequences; live rotation produced 230 events on
   task 972 with zero Python cognition callbacks.
-- [ ] **S-009** Mount and live-prove body-position/proprioceptive receptors for
+- [x] **S-009** Mount and live-prove body-position/proprioceptive receptors for
   pose, joint/body displacement, and motor consequence beyond vestibular yaw.
+  **Live-closed 2026-08-22:** task 1153 returned all 74 articulated-body
+  proprioceptive axes under one native motor action receipt; one axis changed
+  and the same resident organism committed the consequence at tick 148208.
 - [ ] **S-010** Mount and live-prove any required organ-specific visceral
   afferents using local compartments rather than an aggregate body sensor.
 - [x] **S-011** Layer-6 topology-local sensory integration neurons and receptor
@@ -453,19 +456,17 @@ box remains unchecked until live acceptance passes.
   reuse; the focused choice/motor/at-most-once boundary passes 8/8. No new
   runtime deployment was required because this exact mechanism was already
   live in the A-007 production task.
-- [ ] **A-009 — RECONCILED PARTIAL 2026-08-17:** Prove the action's visual, auditory, vestibular, proprioceptive,
+- [x] **A-009:** Prove the action's visual, auditory, vestibular, proprioceptive,
   tactile, chemical, and internal consequences re-enter the same organism.
-  **Live-closed 2026-08-14:** production task 1056, commit `f0e60e33`, and
-  digest `sha256:f98648c097158ecec2e941130c1b2872983c7a419c7d4a54a8cb178b88fa5d2e`
-  restored the same organism and produced a new unattended action after
-  restart. Its causal-intent receipt exactly matched one 109-port consequence
-  occurrence: sight 27, sound 34, touch 27, smell 8, taste 5, and body 8;
-  four local proprioceptive receptors re-entered truthfully quiescent, the
-  separate vestibular path followed, and five internal metabolic receptors
-  participated. The world and organism observers exposed the same receipt,
-  ordinary processing continued, and Python cognition callbacks remained
-  zero. The bounded public projection was 169,240 bytes rather than the
-  predecessor's 3,824,041-byte duplicate graph export.
+  **Live-closed 2026-08-22:** production task 1153, commit `da0af0de`, and
+  digest `sha256:75d8be1bafcd9b1858b9e6c16eb2dae154fef5e2e5f29300f251603a689d0625`
+  restored the same identity at tick 148192. One native action returned sight
+  27, sound 34, touch 27, smell 8, taste 5, body 84, and thermal 2 under one
+  matching causal receipt at tick 148208. One of 74 articulated-body
+  proprioceptive axes changed, two external and 80 internal body receptors
+  participated, and unchanged lanes remained quiescent. The authoritative
+  CURRENT then advanced the same identity to tick 148238; cognition neither
+  paused nor terminated after the consequence.
 - [x] **A-010** Prove the closed attention → choice → action → sensed-consequence
   loop repeats without external prompting, duplicated work, or runaway growth.
   **Live-closed 2026-08-14:** production task 1056 produced five distinct

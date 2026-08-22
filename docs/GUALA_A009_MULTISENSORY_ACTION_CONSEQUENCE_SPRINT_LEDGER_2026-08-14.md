@@ -417,3 +417,35 @@ source tick 148194 and -3 millidegrees at source tick 148197. No native physics,
 DSF field, topology, cognition scheduling, or persisted schema changed. The
 remaining evidence gate is the production cutover followed by the real world
 action, same-resident multisensory consequence, and one later ordinary advance.
+
+## Live-Closed — 2026-08-22
+
+Production task `dsf-ai-task:1153`, commit
+`da0af0dec2897a5ef6f9cf8662a72ecf0faa0d55`, and image
+`sha256:75d8be1bafcd9b1858b9e6c16eb2dae154fef5e2e5f29300f251603a689d0625`
+restored identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at tick 148192.
+One unattended native trajectory produced real layer-12 motor discharge and
+three typed body-axis consequences. Its world action returned an exact 1 ms
+joint occurrence to that same identity at tick 148208 under matching action
+and causal receipt
+`c127063381b95177d10011469cc71d04b640e06ef98112d1255fe456fdd33d9e`.
+
+The return carried every physically applicable mounted lane: sight 27, sound
+34, touch 27, smell 8, taste 5, body 84, and thermal 2. One of the 74
+articulated-body proprioceptive axes changed; two external and 80 internal
+body receptors participated. Unchanged sight, sound, touch, smell, taste, and
+vestibular values re-entered truthfully as quiescent rather than being labelled
+changed. Python cognition authority remained absent.
+
+The authoritative CURRENT pointer subsequently advanced the same identity to
+tick 148238 and state receipt
+`4c83c4a1452754278f95564ac3e7d1b7e40ae1ecee775f93b3766172efa14954`,
+proving that cognition did not pause or terminate after the consequence. ECS
+held exactly one healthy task. Process RSS was 1,375,016 KiB, high-water RSS
+1,652,664 KiB, and six threads inside the admitted 4-vCPU/16-GiB task.
+
+Status: **A-009 Live-Closed**. A separate read-only observation-cache build
+later cleared its public cache and returned HTTP 503 while CURRENT continued
+advancing. That operational projection defect does not alter the action,
+same-organism sensory return, or continued-cognition proof and is not folded
+back into A-009.

@@ -71,17 +71,17 @@ do not require interpretation:
 | C-023 | Partial | The closure text says it does not prove creativity or language although the deliverable explicitly requires creativity and broader cross-context cognition. |
 | C-024 | Partial | The evidence grid explicitly leaves motivation, language, social cognition, and creativity blank although the deliverable requires those capability families. |
 | A-006 | Partial | The proof covers a novelty-to-action physical route but explicitly does not establish named need, affection/social experience, or the full intrinsic-motivation sentence. |
-| A-009 | Partial pending S-009 | The old proof called four quiescent local ports proprioception while S-009's body-position/joint-displacement receptor circuit remained open. |
+| A-009 | Live-Closed 2026-08-22 | Task 1153 returned all applicable sensory lanes, including 74 articulated-body proprioceptive axes with one changed axis, to the same resident identity under the action receipt; CURRENT then advanced from tick 148208 to 148238. |
 | A-011 | Partial pending full audit | A participant circuit and laughter receipt do not alone prove the entire self-selected play, fun, social joy, and body-owned laughter sentence. |
 | A-012 | Partial pending direct audit | The closure is described as a composed circuit; the complete self-selected unattended behavior must be directly observed as one continuing organism life. |
 | A-013 | Partial | The old closure explicitly defers detailed morphology, gait, and dexterity. The current companion-care audit also finds no truthful body-to-body hold/lift, bed support, bathing, or painting physics. |
 | A-014 | Partial | Camera/microphone ingress reached the organism, but the user directly observed unreliable microphone controls and the rejected Loom surface; “seamless windows” is therefore not closed. |
 
-S-009 remains `Implemented, not Live-Closed` until the currently reviewed
-artifact is deployed and directly observed on the live organism. S-010 remains
-open. L-005 through L-016, U-001 through U-012, and P-001 through P-013 remain
-open unless and until their own complete evidence rows pass; evidence from a
-broader or adjacent item cannot close them.
+S-009 is `Live-Closed 2026-08-22` by the same direct task-1153 action return:
+all 74 articulated-body axes re-entered and one changed beyond vestibular yaw.
+S-010 remains open. L-005 through L-016, U-001 through U-012, and P-001 through
+P-013 remain open unless and until their own complete evidence rows pass;
+evidence from a broader or adjacent item cannot close them.
 
 ## Audit order
 
