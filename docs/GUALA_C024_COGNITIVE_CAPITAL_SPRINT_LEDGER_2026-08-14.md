@@ -226,3 +226,47 @@ witness, including procedural-memory transfer, recall causal use, self/body and
 motor autonomous use, autonomous-cognition causal use, and learning transfer.
 Language comprehension and creativity/self-expression remained blank. This is
 local candidate evidence pending immutable deployment and direct live proof.
+
+## 2026-08-22 corrected live cutover
+
+The bounded translation correction was deployed once as task definition
+`dsf-ai-task:1173`, commit
+`35e6845ba3ce42c4adc7a93b1fe4599aa6f7a240`, and immutable image
+`sha256:909c37ff662695b60cc96f93c9aca3745cc7c9e58429d11621c09ba0b1cd9eda`.
+The deterministic controller finished at `2026-08-22T17:10:47Z`, verified the
+native state, and pinned that exact digest as `production-current`. The same
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` restored with a
+`204,133,596`-byte current state.
+
+Public access returned at generation `150301`. Without an external intake, the
+same process then committed generations `150318` and `150334`, with distinct
+state receipts. At generation `150334`, one internally reassembled retained
+formation `c986b4c6e1e286eaeea5689a7614863ea00f26ce41383c2ada3610047721e36a`
+crossed an exact changed contact at tick `150319`, caused action receipt
+`9a424981673d51d412ed162ef81f1701f04970df86955fe25aa9d43c950fb4a6`,
+changed the articulated body from
+`404261b4e6f475a7f57a23e9297db2b77ed5998fbcf40ea787ac130233f21e03`
+to `0e4f9498ea2302985935d85994f494a4b41c15d4cd6b4c1f0c531a07ec2e893f`,
+and returned the sensed consequence in successor state
+`8a45b2b2af7951cc5ef5e8e82cb6d311f712ae24daa2034d3db40e6284869916`.
+
+The corrected live capital projection contained exactly 83 unique sparse
+cells. Required cells now reference only
+`body.prior_causal_cross_context_use`, including procedural-memory transfer,
+recall causal use, self/body autonomous use, motor autonomous use,
+autonomous-cognition causal use, and learning transfer. Language comprehension
+and creativity/self-expression remained blank. `scalar_score_authority` and
+`cognition_authority` both remained false.
+
+ECS held exactly one running task, zero pending tasks, one completed PRIMARY
+deployment, and zero `ERROR` log entries. The public observer remained HTTP
+200 after autonomous successors. The cutover nevertheless exposed a separate
+production defect: task 1173 required about 20 minutes from process start to
+healthy service while the predecessor had already been drained, leaving the
+organism inaccessible and not advancing during that restore window. This is
+not hidden as C-024 success and remains deployment-handoff work.
+
+This correction closes the omitted-field defect only. The complete top-level
+C-024 sentence remains `RECONCILED PARTIAL` because motivation, language,
+social cognition, creativity, and other capability families still lack their
+own complete live evidence.
