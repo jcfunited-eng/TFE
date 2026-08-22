@@ -216,3 +216,36 @@ returning through automatic rollback custody.
   proof preserved organism identity, tick, fabric generation, and complete
   joint field; cold-restored the V26 successor; completed one body observation;
   and proved a second migration returned identical bytes.
+
+### Live prerequisite acceptance — 2026-08-22
+
+- Production task `dsf-ai-task:1176` runs release commit `96bc624e7155ce49e06af17c9b2e8edf06abf99a`
+  and image `sha256:5ed0d38abb083476ac9083d9729fc9fbd21d5e1ad4d20c981ecf053430b5cb53`.
+  ECS is settled at one desired/running task, zero pending tasks, and one
+  deployment. The original organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` is unchanged.
+- The authenticated V25 task-1175 CURRENT at tick `150596` migrated once to
+  V26. Its raw body fell from `131,697,766` to `95,060,017` bytes and its
+  complete-neuron count fell from `2,487` to `1,934`, exactly retiring the
+  `553` duplicate or unspecialized generated motor artifacts.
+- Ordinary unattended life then advanced to tick `150612`. The exact
+  `103,844,534`-byte persisted successor, receipt
+  `04713dad7417f08cb64c9d2bb1cd07545076c398c8349b1b91696ee495eeda38`,
+  was independently downloaded, checksum-verified, and cold-restored through
+  the current V26 runtime. It contains `2,027` neurons, `1,893` cohorts,
+  `34,830` contacts, and `72` layer-12 cells. V26 restore accepts this body only
+  after proving every layer-12 cell has an exact body-effector terminal and no
+  two layer-12 cells claim the same terminal, so the retired defect did not
+  regrow; the two additional motor cells are distinct newly reached terminals.
+- Production continued to tick `150644`, state receipt
+  `5dff33bd7c405e9ad71450fc750fd4e78971a3a662ffe74e83957d672f92b7a3`.
+  Its latest physical action exposed `31` motor-to-terminal bindings and all
+  `31` terminal directions were unique. The same event moved `20` typed body
+  axes and returned the physically applicable sight, sound, touch, smell,
+  taste, proprioceptive, thermal, and internal receptor ingress to the same
+  resident identity. Python cognition authority remains false.
+
+Prerequisite status: **Live-Closed 2026-08-22**. This closes only the bounded
+motor-growth/current-format obstruction. It restores continuous physical
+advancement but does not substitute for the next serial item, the current live
+A-006 intrinsic-curiosity proof.
