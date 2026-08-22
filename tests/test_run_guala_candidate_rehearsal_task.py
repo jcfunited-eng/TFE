@@ -630,6 +630,71 @@ def test_cold_restore_requires_exact_a013_articulated_body() -> None:
         )
 
 
+def test_cold_restore_requires_active_l005_word_apple_causal_use() -> None:
+    record = {
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "l005_word_apple_rehearsed": True,
+        "l005_word_apple_predecessor_tick": 23_723_846,
+        "l005_word_apple_successor_tick": 23_723_864,
+        "l005_word_apple_predecessor_state_sha256": STATE_SHA,
+        "l005_word_apple_successor_state_sha256": "e" * 64,
+        "l005_word_apple_full_dsf_delivery_count": 381,
+        "l005_word_apple_partial_dsf_delivery_count": 381,
+        "l005_word_apple_external_reassembly_count": 1,
+        "l005_word_apple_causal_use_kind": "articulation",
+        "l005_word_apple_formation_receipt_sha256": "f" * 64,
+        "l005_word_apple_causal_transfer_count": 2,
+        "l005_word_apple_body_return_count": 1,
+        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_python_callback_count": 0,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": False,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v8",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_l005_word_apple_rehearsal=True,
+    ) == proof
+
+    changed = dict(record)
+    changed["l005_word_apple_causal_transfer_count"] = 0
+    with pytest.raises(RuntimeError, match="proof changed"):
+        runner._validate_proof(
+            _receipted(changed),
+            mode="cold-restore",
+            candidate_git_sha=GIT_SHA,
+            candidate_image_digest=IMAGE,
+            expected_identity=IDENTITY,
+            expected_tick=23_723_846,
+            expected_state_sha256=STATE_SHA,
+            expected_l005_word_apple_rehearsal=True,
+        )
+
+
 def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
     articulation = {
         "applied_motor_quanta": 8,

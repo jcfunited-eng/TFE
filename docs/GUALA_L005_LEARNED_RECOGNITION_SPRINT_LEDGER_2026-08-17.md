@@ -75,6 +75,22 @@ Status: In progress. No learned-word recognition is live-proved.
   two-field tuple. The first failure was corrected at that translation boundary;
   the app already consumed the three-field form. No physics, persistence, or
   organism-state representation changed.
+- Attempt 2 used corrected commit `26302a835f286bd2c69a194709c813ed024d405e`.
+  The first translation failure did not recur. The task then stopped in the
+  generic fresh-body A-013 thermal rehearsal, a closed historical witness with
+  no L-005 source or acceptance relevance. Production again remained task 1157.
+- The deploy rehearsal is now active-item specific. Cold CURRENT continuity is
+  still mandatory, but the closed A-013 articulated/thermal calls are no longer
+  executed or required. The discarded mature body must instead perform the
+  ordinary approved `word-apple` full sight+voice lesson, its strict visual
+  partial cue, exact external retained-formation reassembly, later native body
+  action or articulation, exact body-consequence return, and successor cold
+  restore. A reassembly counter without causal use fails.
+- Focused active proof and validator surface passes 58/58. Four other tests in
+  the broad historical cold-probe file remain inherited mock drift: their
+  hand-written organisms expose retired `prepare_*` methods rather than the
+  production direct-trajectory interface. They are recorded under RF-014 and
+  were not rewritten or used as L-005 evidence.
 
 ## Task identity and frozen scope
 

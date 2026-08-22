@@ -760,51 +760,42 @@ print(json.dumps(predecessor, separators=(",", ":"), sort_keys=True))
 import json, re, sys
 proof = json.load(sys.stdin)
 # Every earlier transient witness is live-closed and is not replayed.  This
-# release gate proves only A-013 against the exact restored living predecessor.
+# release gate proves only active L-005 against the exact restored living
+# predecessor; HTTP success, a mounted population, or a reassembly count alone
+# cannot pass it.
 if (
-    proof.get("a013_articulated_body_rehearsed") is not True
-    or proof.get("a013_articulated_body_predecessor_state_sha256")
+    proof.get("l005_word_apple_rehearsed") is not True
+    or proof.get("l005_word_apple_predecessor_state_sha256")
     != proof.get("resident_state_sha256")
-    or proof.get("a013_articulated_body_predecessor_tick") != proof.get("tick")
-    or proof.get("a013_articulated_body_successor_tick") != proof.get("tick") + 1
-    or proof.get("a013_articulated_body_axis_count") != 37
-    or proof.get("a013_articulated_body_terminal_count") != 74
-    or proof.get("a013_articulated_body_state_bytes") != 195
-    or proof.get("a013_articulated_body_proprioception_initialized") is not True
-    or proof.get("a013_articulated_body_neutral_observation") is not True
-    or proof.get("a013_articulated_body_live_transition_discarded") is not True
-    or proof.get("a013_articulated_body_python_callback_count") != 0
-    or proof.get("a013_thermal_body_rehearsed") is not True
-    or proof.get("a013_thermal_body_world_revision_before") != 0
-    or proof.get("a013_thermal_body_world_revision_after") != 1
-    or proof.get("a013_thermal_body_receptor_count") != 2
-    or proof.get("a013_thermal_body_reached_site_counts") != [1, 1]
-    or proof.get("a013_thermal_body_episode_port_count") != 111
-    or proof.get("a013_thermal_body_episode_sample_count") != 222
-    or not isinstance(proof.get("a013_thermal_body_dsf_delivery_count"), int)
-    or isinstance(proof["a013_thermal_body_dsf_delivery_count"], bool)
-    or proof["a013_thermal_body_dsf_delivery_count"] <= 0
-    or proof.get("a013_thermal_body_cold_restore_exact") is not True
-    or proof.get("a013_fresh_complete_roster_cold_restore_exact") is not True
-    or proof.get("a013_thermal_body_python_callback_count") != 0
+    or proof.get("l005_word_apple_predecessor_tick") != proof.get("tick")
+    or not isinstance(proof.get("l005_word_apple_successor_tick"), int)
+    or proof["l005_word_apple_successor_tick"] <= proof.get("tick")
+    or proof.get("l005_word_apple_causal_use_kind")
+    not in {"body_action", "articulation"}
+    or proof.get("l005_word_apple_cold_restore_exact") is not True
+    or proof.get("l005_word_apple_python_callback_count") != 0
     or not re.fullmatch(
         r"[0-9a-f]{64}",
-        proof.get("a013_articulated_body_successor_state_sha256", ""),
+        proof.get("l005_word_apple_successor_state_sha256", ""),
     )
     or not re.fullmatch(
-        r"[0-9a-f]{64}", proof.get("a013_articulated_body_state_sha256", "")
+        r"[0-9a-f]{64}",
+        proof.get("l005_word_apple_formation_receipt_sha256", ""),
     )
     or any(
-        not re.fullmatch(r"[0-9a-f]{64}", proof.get(name, ""))
+        not isinstance(proof.get(name), int)
+        or isinstance(proof[name], bool)
+        or proof[name] <= 0
         for name in (
-            "a013_thermal_body_transition_receipt_sha256",
-            "a013_thermal_body_anatomy_receipt_sha256",
-            "a013_thermal_body_world_state_sha256",
-            "a013_fresh_complete_roster_state_sha256",
+            "l005_word_apple_full_dsf_delivery_count",
+            "l005_word_apple_partial_dsf_delivery_count",
+            "l005_word_apple_external_reassembly_count",
+            "l005_word_apple_causal_transfer_count",
+            "l005_word_apple_body_return_count",
         )
     )
 ):
-    raise SystemExit("A-013 articulated and thermal body rehearsal changed")
+    raise SystemExit("L-005 mature word-apple causal rehearsal changed")
 '
         GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
             CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \

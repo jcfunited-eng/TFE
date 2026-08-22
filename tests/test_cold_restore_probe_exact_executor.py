@@ -214,15 +214,26 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "restore_current_native_organism",
         lambda *_args, **_kwargs: restored,
     )
+    l005_proof = {
+        "l005_word_apple_rehearsed": True,
+        "l005_word_apple_predecessor_tick": 23_723_846,
+        "l005_word_apple_successor_tick": 23_723_864,
+        "l005_word_apple_predecessor_state_sha256": STATE_SHA,
+        "l005_word_apple_successor_state_sha256": "e" * 64,
+        "l005_word_apple_full_dsf_delivery_count": 381,
+        "l005_word_apple_partial_dsf_delivery_count": 381,
+        "l005_word_apple_external_reassembly_count": 1,
+        "l005_word_apple_causal_use_kind": "articulation",
+        "l005_word_apple_formation_receipt_sha256": "f" * 64,
+        "l005_word_apple_causal_transfer_count": 2,
+        "l005_word_apple_body_return_count": 1,
+        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_python_callback_count": 0,
+    }
     monkeypatch.setattr(
         probe,
-        "_rehearse_a013_articulated_body",
-        lambda *_args, **_kwargs: body_proof,
-    )
-    monkeypatch.setattr(
-        probe,
-        "_rehearse_a013_thermal_body",
-        lambda *_args, **_kwargs: thermal_proof,
+        "_rehearse_l005_word_apple",
+        lambda *_args, **_kwargs: l005_proof,
     )
 
     assert probe.main() == 0
@@ -252,8 +263,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "source_advanced_after_baseline": False,
         "source_mount_read_only": True,
         "tick": 23_723_846,
-        **body_proof,
-        **thermal_proof,
+        **l005_proof,
     }
     assert receipt == hashlib.sha256(probe._canonical(proof)).hexdigest()
 

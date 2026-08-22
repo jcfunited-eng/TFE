@@ -1792,6 +1792,125 @@ def _observe_distributed_recognition(
     }
 
 
+def _rehearse_l005_word_apple(
+    organism: object,
+    admission: object,
+) -> dict[str, object]:
+    """Exercise the active learned-recognition path on the discarded body.
+
+    The authenticated production predecessor is restored once above.  This
+    function presents the approved word-apple sight+voice experience and then
+    its strict visual partial cue to that same in-memory resident organism.
+    It follows only native causal interval evidence and discards the successor
+    with the rehearsal task; no production or world pointer is written.
+    """
+
+    from dsf_ai_service import native_production_app as production
+
+    experience = production._read_manifest_card("word-apple")
+    full_episodes = production._card_lesson_hop_episodes(
+        "word-apple", experience, "full"
+    )
+    partial_episodes = production._card_lesson_hop_episodes(
+        "word-apple", experience, "partial"
+    )
+    before = organism.readiness()
+    full_dsf = 0
+    for episode, intervals in full_episodes:
+        hop = production._commit_admitted_hop(organism, episode, intervals)
+        full_dsf += int(hop["dsf_delivery_count"])
+
+    active: dict[tuple[str, str, tuple[str, ...], int], dict[str, tuple]] = {}
+    completed: dict[str, dict[str, object]] = {}
+    partial_dsf = 0
+    external_reassemblies = 0
+    body_return_count = 0
+    for episode, intervals in partial_episodes:
+        hop = production._commit_admitted_hop(organism, episode, intervals)
+        partial_dsf += int(hop["dsf_delivery_count"])
+        external_reassemblies += len(
+            hop["externally_reassembled_formation_frontiers"]
+        )
+        body_return_count += len(hop["body_proprioceptive_sources"])
+        active, completed = production._advance_causal_motor_traces(
+            organism,
+            active,
+            completed,
+            hop,
+        )
+
+    causal_kind = None
+    causal = completed.get("externally_reassembled_retained_formation")
+    if causal is not None:
+        causal_kind = "body_action"
+    articulation = completed.get(
+        "externally_reassembled_retained_formation_articulation"
+    )
+    if articulation is not None:
+        causal_kind = "articulation"
+        causal = articulation
+    if external_reassemblies <= 0:
+        raise RuntimeError(
+            "L-005 word-apple partial cue produced no external reassembly"
+        )
+    if causal is None or causal_kind is None:
+        raise RuntimeError(
+            "L-005 word-apple reassembly produced no later native action or articulation"
+        )
+    if body_return_count <= 0:
+        raise RuntimeError(
+            "L-005 native causal use returned no exact body consequence source"
+        )
+
+    after = organism.readiness()
+    successor = bytes(organism.save())
+    cold = restore_native_resident_organism(
+        current_envelope=successor,
+        max_envelope_bytes=admission.max_envelope_bytes,
+        max_fabric_bytes=admission.max_fabric_bytes,
+        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+    ).readiness()
+    if (
+        full_dsf <= 0
+        or partial_dsf <= 0
+        or after.identity != before.identity
+        or after.organism_tick <= before.organism_tick
+        or after.state_sha256 == before.state_sha256
+        or cold.identity != after.identity
+        or cold.organism_tick != after.organism_tick
+        or cold.state_sha256 != after.state_sha256
+        or len(successor) != after.state_bytes
+        or hashlib.sha256(successor).hexdigest() != after.state_sha256
+        or after.python_callback_count != 0
+    ):
+        raise RuntimeError("L-005 word-apple successor continuity changed")
+    formation_receipt = causal.get("formation_receipt_sha256")
+    transfers = causal.get("directed_physical_transfers")
+    if (
+        not isinstance(formation_receipt, str)
+        or _SHA256.fullmatch(formation_receipt) is None
+        or not isinstance(transfers, tuple)
+        or not transfers
+    ):
+        raise RuntimeError("L-005 causal-use evidence changed format")
+    return {
+        "l005_word_apple_rehearsed": True,
+        "l005_word_apple_predecessor_tick": before.organism_tick,
+        "l005_word_apple_successor_tick": after.organism_tick,
+        "l005_word_apple_predecessor_state_sha256": before.state_sha256,
+        "l005_word_apple_successor_state_sha256": after.state_sha256,
+        "l005_word_apple_full_dsf_delivery_count": full_dsf,
+        "l005_word_apple_partial_dsf_delivery_count": partial_dsf,
+        "l005_word_apple_external_reassembly_count": external_reassemblies,
+        "l005_word_apple_causal_use_kind": causal_kind,
+        "l005_word_apple_formation_receipt_sha256": formation_receipt,
+        "l005_word_apple_causal_transfer_count": len(transfers),
+        "l005_word_apple_body_return_count": body_return_count,
+        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_python_callback_count": after.python_callback_count,
+    }
+
+
 def main() -> int:
     values = _arguments()
     if _SHA256.fullmatch(values.expected_state_sha256) is None:
@@ -1871,10 +1990,10 @@ def main() -> int:
         )
     ):
         raise RuntimeError("native CURRENT cold restore changed")
-    articulated_body_proof = _rehearse_a013_articulated_body(
+    l005_word_apple_proof = _rehearse_l005_word_apple(
         restored.organism,
+        admission,
     )
-    thermal_body_proof = _rehearse_a013_thermal_body(before.identity)
     record = {
         "baseline_observed_state_sha256": values.expected_state_sha256,
         "baseline_observed_tick": values.expected_tick,
@@ -1901,8 +2020,7 @@ def main() -> int:
         "source_mount_read_only": True,
         "tick": before.organism_tick,
         **motor_proof,
-        **articulated_body_proof,
-        **thermal_body_proof,
+        **l005_word_apple_proof,
     }
     proof = {
         **record,
