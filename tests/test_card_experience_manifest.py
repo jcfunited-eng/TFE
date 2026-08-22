@@ -70,7 +70,7 @@ def test_complete_card_roster_is_exact_physical_external_tutoring() -> None:
     assert all(item["presentation_milliseconds"] == 15_000 for item in experiences)
 
     card_paths: set[str] = set()
-    audio_paths: set[str] = set()
+    audio_paths: list[str] = []
     for experience in experiences:
         surface = experience["surface"]
         assert surface["path"] not in card_paths
@@ -84,8 +84,7 @@ def test_complete_card_roster_is_exact_physical_external_tutoring() -> None:
         if tutor_audio is None:
             assert experience["experience_id"].startswith("word-")
             continue
-        assert tutor_audio["path"] not in audio_paths
-        audio_paths.add(tutor_audio["path"])
+        audio_paths.append(tutor_audio["path"])
         audio_path = ROOT / tutor_audio["path"]
         assert audio_path.is_file()
         assert _sha256(audio_path) == tutor_audio["sha256"]
@@ -98,4 +97,6 @@ def test_complete_card_roster_is_exact_physical_external_tutoring() -> None:
 
     assert sum("number-00" in value for value in card_paths) == 1
     assert sum("number-00" in value for value in audio_paths) == 1
-    assert len(audio_paths) == 37
+    assert len(audio_paths) == 38
+    assert audio_paths.count("guala_curriculum/audio/a-apple-tutor-v1.wav") == 2
+    assert len(set(audio_paths)) == 37

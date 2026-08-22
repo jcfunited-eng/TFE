@@ -713,6 +713,11 @@
         "path": "guala_curriculum/cards/word-apple-v1.png",
         "sha256": "e5fb513d19e61216894cdbbe0480de8cbc7db8331f500fb9d742a90da04ce7f5"
       },
+      "tutor_audio": {
+        "path": "guala_curriculum/audio/a-apple-tutor-v1.wav",
+        "sample_count": 26196,
+        "sha256": "51ec5253429f8ca0b68359f7069e9ee8ac85bc3488c5f2c73d6d7a75912a75e3"
+      },
       "presentation_milliseconds": 15000
     },
     {

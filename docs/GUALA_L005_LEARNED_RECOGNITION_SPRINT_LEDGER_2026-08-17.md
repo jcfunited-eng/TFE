@@ -4,6 +4,62 @@ Date: 2026-08-17
 
 Status: In progress. No learned-word recognition is live-proved.
 
+## 2026-08-22 resumed first-word work
+
+- Reconciled production baseline: task 1157, commit `4947977117685c02021135d745e36849068fc46f`, image
+  `sha256:adc8a18ab400219a74cca51846e14090bd8d1e6ba2a4382da48fcfb81fa49b80`,
+  one continuing organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at observed tick 149148.
+- Exact first missing transport boundary: the approved and packaged
+  `word-apple` surface had no tutor-pressure record, so the ordinary bounded
+  production teaching path necessarily refused it. The separately mounted
+  live-spoken route was available, but no human voice capture belongs to this
+  unattended implementation turn and none may be fabricated.
+- Single correction: pair the already approved human tutor recording
+  `a-apple-tutor-v1.wav` with the different approved `word-apple` optical
+  surface. This creates a second physical visual context for the same exact
+  acoustic evidence. The external manifest remains transport-only; neither
+  the card ID nor the media record crosses the receptor boundary or asserts
+  recognition, meaning, or learning.
+- Conservation and bounds: no neuron, DSF field, contact, coefficient, word
+  label, cognition owner, state log, or observer authority is added. The
+  recording already exists in the release image and is referenced rather than
+  copied. One presentation remains the existing bounded 15-second whole-
+  sensorium transaction with one final durable native successor.
+- Acceptance remains unchanged: this correction is only curriculum
+  availability. L-005 still requires later partial/altered evidence to
+  reassemble retained structure and that exact native structure to cause a
+  later action or articulation; only live production evidence can close it.
+- Focused disposable boundary proof passed against a newborn resident body:
+  the full `word-apple` presentation completed in nine hops with 381 full-DSF
+  deliveries and 63 complete-neuron fractals; its subsequent strict partial
+  visual presentation completed in nine hops with 381 full-DSF deliveries,
+  15 complete-neuron fractals, and one externally reassembled retained
+  formation. The retained mosaic count was one at tick 20. The exact
+  reassembled formation did not yet cause a later body action or articulation;
+  both causal-use receipts were absent. This is local physical recognition
+  evidence only, not learned-word evidence and not L-005 closure.
+- Extending the partial lesson by the two later physical intervals required by
+  the existing recurrent-to-motor-to-articulation trace did not change that
+  result: one external reassembly remained, while motor and articulatory
+  recruitment were both zero. Delay, retry, or observer retention is therefore
+  not the correction. The next gate is the exact mature production predecessor:
+  prove whether its already-developed layer-9/11/12/13 topology supplies a
+  source-to-consequence path for this second apple context before packaging.
+
+### Applicable deployment recurrence checks
+
+| Failure | Earliest check for this sprint | Current evidence |
+|---|---|---|
+| RF-001 / RF-002 | exact worktree on `PYTHONPATH`; live task environment resolved before candidate import | local focused proof used the exact worktree; live environment pending read-only target census |
+| RF-004 | run the same ordinary lesson boundary from a pristine body and a discarded authenticated production predecessor | pristine full/partial branch completed; mature predecessor branch pending |
+| RF-005 / RF-012 / RF-020 | require exact external reassembly, its native sparse continuation, action or articulation, and sensed return; HTTP/counters/mounts alone fail | reassembly exists locally; later functional participation is absent |
+| RF-007 / RF-024 / RF-031 / RF-033 | resolve controller, target inventory, and every existing nonzero test before invocation | pending before any deployment clock or build |
+| RF-010 / RF-021 / RF-027 | bind proof to the exact predecessor/input/successor, compare persisted `CURRENT`, cold-start that successor, and run one further ordinary interval | pending candidate rehearsal |
+| RF-018 / RF-028 / RF-040 | ordinary multi-hop lesson must preserve the first decisive event and run only the L-005 source path | local nine-hop aggregate preserved the external reassembly |
+| RF-025 / RF-029 | derive a live write from a fresh operator-origin predecessor; after timeout/refusal read successor before any retry | mandatory for the eventual one-shot live lesson |
+| RF-044 / RF-045 | compare physical observation clocks and producer cardinality; prohibit copied samples or population-wide hot work | manifest change adds no observations or runtime loop; existing bounded lesson cardinality unchanged |
+
 ## Task identity and frozen scope
 
 - Active item: `L-005` — demonstrate genuine learned-word recognition from
