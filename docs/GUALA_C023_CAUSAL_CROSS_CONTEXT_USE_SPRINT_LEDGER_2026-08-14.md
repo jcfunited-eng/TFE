@@ -1003,3 +1003,35 @@ pending, and exactly one completed PRIMARY deployment—for the same existing
 13-minute budget. It no longer composes a terminal ten-minute waiter with a
 second waiter that can immediately inherit the terminal state. No readiness,
 identity, image, state, or one-writer assertion is weakened.
+
+### Task-1167 live cutover and bounded imagination falsification
+
+The already-built candidate was started again without rebuilding it. Production
+now has exactly one `RUNNING`/`HEALTHY` task,
+`f5f347ea991e49de99e841f7d6b000d5`, on `dsf-ai-task:1167`; ECS reports desired
+one, running one, pending zero, and one `PRIMARY` deployment in `COMPLETED`
+state. The running image and the ECR `production-current` tag both identify
+`sha256:d6e3cbbdb906f0b5bdef63ea6d97476b10721e95e53053b4c179f8e00b38d920`.
+The public native observation identifies release commit
+`48dbdaaea66f0e6176b8c28cd7c122ff6aff2d8d` and the unchanged resident organism
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, with zero Python cognition callbacks.
+
+The candidate restored CURRENT at tick 149666 and then advanced under unattended
+ordinary experience through ticks 149682, 149699, 149715, 149731, 149747,
+149763, and 149780. Every observed ordinary successor contained endogenous
+partial-cue reassemblies and a moved native body action. At tick 149780 the
+exact state was
+`ef911c3a20c8a46c4e0205cc1abdce1920542eca2ba5dea4fe84c7e933059c92`;
+the most recent transition contained 16 endogenous reassemblies, 38 motor
+recruitments, 21 articulated-body consequences, one changed vestibular tick,
+and all applicable sight, sound, touch, smell, taste, and 74-axis body sensory
+lanes. Cognition remained continuous and the action was applied.
+
+The bounded 20-minute observation did **not** produce the narrower imagination
+witness. `body.prior_causal_cross_context_use.available` remained false through
+tick 149780. Therefore the deployed read-only trace boundary is live and
+bounded, and ordinary native cognition/action/consequence is live, but this run
+falsifies the proposition that the currently retained canonical internal trace
+is already sufficient to prove internally simulated cross-context action.
+C-023 remains `RECONCILED PARTIAL`; no semantic imagination claim, fabricated
+transfer, replay, or broader completion claim is authorized from this run.
