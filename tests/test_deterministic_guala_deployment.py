@@ -22,7 +22,10 @@ def test_controller_is_one_bounded_reviewed_path() -> None:
     assert "--mode rehearse" not in SCRIPT
     assert "--mode publish" not in SCRIPT
     assert "--mode cold-restore" in SCRIPT
-    assert SCRIPT.count("aws ecs update-service") == 2
+    # One normal cutover drains then starts the candidate. The two additional
+    # command sites are the explicit predecessor restore path; drained recovery
+    # never invokes that broken predecessor and instead returns to zero writers.
+    assert SCRIPT.count("aws ecs update-service") == 4
     assert "--repeat-cutover" not in SCRIPT
     assert "--rehearse-only" in SCRIPT
 

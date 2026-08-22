@@ -1065,3 +1065,12 @@ rounded, scored, or replaced inside the organism. Immutable ECS build identity
 is also resolved once during process startup rather than through metadata after
 every committed transition. Neither observer rendering nor ECS metadata can
 participate in cognition, action, settlement, or persistence.
+
+The deployment controller now also has one explicit `--recover-drained` path
+for this exact incident class. It is admissible only when ECS already proves
+desired zero, running zero, pending zero, and one completed PRIMARY deployment.
+It builds and validates one digest-pinned candidate, starts that candidate as
+the sole writer, and applies the unchanged live identity/readiness checks. If
+the candidate fails, it drains back to zero writers and never restarts the
+known-unstartable predecessor. Normal deployments retain their full live
+preflight and predecessor-restore behavior.

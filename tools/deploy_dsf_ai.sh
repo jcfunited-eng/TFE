@@ -9,7 +9,7 @@
 # creates an owner, lock, database, deployment seal, compatibility brain, or
 # generation-store fallback.
 #
-# Usage: ./tools/deploy_dsf_ai.sh [--rehearse-only]
+# Usage: ./tools/deploy_dsf_ai.sh [--rehearse-only|--recover-drained]
 
 set -euo pipefail
 
@@ -33,6 +33,7 @@ GUALA_ORGANISM_IDENTITY="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 DEPLOY_CONFIGURATION="maximumPercent=100,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}"
 REPEAT_CUTOVER=1
 REHEARSE_ONLY=0
+RECOVER_DRAINED=0
 # How long a readiness call may WAIT -- not how long the organism may take to
 # be correct.  ``/ready/guala`` acquires the transition lock on purpose, so it
 # reports only persisted state, and that lock is held for a whole lesson.  The
@@ -50,6 +51,10 @@ while [ "$#" -gt 0 ]; do
             REHEARSE_ONLY=1
             shift
             ;;
+        --recover-drained)
+            RECOVER_DRAINED=1
+            shift
+            ;;
         *)
             echo "ERROR: unknown argument: $1" >&2
             exit 2
@@ -61,6 +66,10 @@ fail() {
     echo "ERROR: $*" >&2
     exit 1
 }
+
+if [ "${REHEARSE_ONLY}" = "1" ] && [ "${RECOVER_DRAINED}" = "1" ]; then
+    fail "a drained recovery cannot be a disposable rehearsal"
+fi
 
 case "${SERVICE_STABLE_MAX_SECONDS}" in
     ''|*[!0-9]*) fail "service-stable budget must be a positive integer" ;;
@@ -142,16 +151,22 @@ SERVICE_JSON=$(aws ecs describe-services \
     --services "${ECS_SERVICE}" \
     --query 'services[0]' \
     --output json)
-SOURCE_TASK_DEFINITION=$(printf '%s' "${SERVICE_JSON}" | python3 -c '
-import json, sys
+SOURCE_TASK_DEFINITION=$(printf '%s' "${SERVICE_JSON}" | \
+    RECOVER_DRAINED="${RECOVER_DRAINED}" python3 -c '
+import json, os, sys
 service = json.load(sys.stdin)
 if service.get("serviceName") != "dsf-ai-service-lb":
     raise SystemExit("resolved service is not Guala")
 if service.get("status") != "ACTIVE":
     raise SystemExit("production service is not ACTIVE")
 counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
-if counts != {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}:
-    raise SystemExit(f"production does not have exactly one settled process: {counts}")
+expected = (
+    {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}
+    if os.environ["RECOVER_DRAINED"] == "1"
+    else {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}
+)
+if counts != expected:
+    raise SystemExit(f"production process count differs from declared mode: {counts}")
 deployments = service.get("deployments", [])
 primary = [item for item in deployments if item.get("status") == "PRIMARY"]
 if len(deployments) != 1 or len(primary) != 1 or primary[0].get("rolloutState") != "COMPLETED":
@@ -169,8 +184,16 @@ RUNNING_TASKS=$(aws ecs list-tasks \
     --desired-status RUNNING \
     --query 'taskArns' \
     --output text)
-if [ "$(printf '%s\n' "${RUNNING_TASKS}" | wc -w)" -ne 1 ]; then
-    fail "production must have exactly one running ECS task"
+EXPECTED_RUNNING_TASKS=1
+if [ "${RECOVER_DRAINED}" = "1" ]; then
+    EXPECTED_RUNNING_TASKS=0
+fi
+RUNNING_TASK_COUNT=0
+if [ -n "${RUNNING_TASKS}" ] && [ "${RUNNING_TASKS}" != "None" ]; then
+    RUNNING_TASK_COUNT=$(printf '%s\n' "${RUNNING_TASKS}" | wc -w)
+fi
+if [ "${RUNNING_TASK_COUNT}" -ne "${EXPECTED_RUNNING_TASKS}" ]; then
+    fail "production running-task count differs from declared mode"
 fi
 
 # Sensory roster is a per-deploy human declaration. Resolve and export it
@@ -569,12 +592,16 @@ DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
 if [ "${GUALA_GENESIS_CUTOVER:-0}" != "0" ]; then
     fail "this deployment preserves the current organism; genesis is refused"
 fi
-python3 tools/preflight_guala_production.py \
-    --root "${REPOSITORY_ROOT}" \
-    --expected-commit "${GIT_SHA}" \
-    --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
-    --candidate-image-digest "${IMAGE_DIGEST}" \
-    >"${WORK_DIR}/preflight.json"
+if [ "${RECOVER_DRAINED}" = "1" ]; then
+    echo "      recovery preflight: service is exactly drained; no stale HTTP predecessor is accepted"
+else
+    python3 tools/preflight_guala_production.py \
+        --root "${REPOSITORY_ROOT}" \
+        --expected-commit "${GIT_SHA}" \
+        --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
+        --candidate-image-digest "${IMAGE_DIGEST}" \
+        >"${WORK_DIR}/preflight.json"
+fi
 
 verify_live_organism() {
     local expected_task_definition="$1"
@@ -756,6 +783,18 @@ restore_previous_live_organism() {
             'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"'
 }
 
+fail_candidate_cutover() {
+    local reason="$1"
+    if [ "${RECOVER_DRAINED}" = "1" ]; then
+        drain_live_organism \
+            || fail "${reason}; candidate could not be drained"
+        fail "${reason}; service left safely at zero writers"
+    fi
+    restore_previous_live_organism \
+        || fail "${reason}; predecessor restoration also failed"
+    fail "${reason}; predecessor restored"
+}
+
 if [ "${REHEARSE_ONLY}" = "1" ]; then
     echo "[5/7] Rehearsing the digest-pinned candidate without cutover."
     PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
@@ -882,20 +921,14 @@ else
             --desired-count 1 \
             --deployment-configuration "${DEPLOY_CONFIGURATION}" \
             --force-new-deployment >/dev/null; then
-            restore_previous_live_organism \
-                || fail "candidate admission and predecessor restoration both failed"
-            fail "candidate admission failed; predecessor restored"
+            fail_candidate_cutover "candidate admission failed"
         fi
         if ! wait_for_service_stable; then
-            restore_previous_live_organism \
-                || fail "candidate startup and predecessor restoration both failed"
-            fail "candidate startup failed; predecessor restored"
+            fail_candidate_cutover "candidate startup failed"
         fi
         if ! CURRENT_RUNNING_TASK=$(verify_live_organism \
             "${CANDIDATE_TASK_DEFINITION}"); then
-            restore_previous_live_organism \
-                || fail "candidate verification and predecessor restoration both failed"
-            fail "candidate verification failed; predecessor restored"
+            fail_candidate_cutover "candidate verification failed"
         fi
         if [ "${CURRENT_RUNNING_TASK}" = "${PREVIOUS_RUNNING_TASK}" ]; then
             restore_previous_live_organism \
