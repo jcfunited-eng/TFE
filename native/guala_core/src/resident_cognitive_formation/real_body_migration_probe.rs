@@ -405,18 +405,12 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
             .map(|neuron| neuron.probe_gate_open_population())
             .collect::<Vec<_>>()
     };
-    let retained = original_cohort
-        .retained_experience
-        .as_ref()
-        .expect("predecessor retained original");
     let learned_state = |index: usize| {
-        retained
-            .retained_members()
-            .expect("sparse retained original")
-            .iter()
-            .find(|member| member.neuron_index == index)
-            .map(|member| &member.learned)
-            .expect("contact endpoint retained in original")
+        original_cohort
+            .state
+            .neurons()
+            .get(index)
+            .expect("contact endpoint retained in resident state")
     };
     let support_coordinate = |cohort: &ResidentReachedCohort,
                               state: &crate::complete_neuron::NeuronPhysicalState,

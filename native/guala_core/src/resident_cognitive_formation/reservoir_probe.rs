@@ -335,6 +335,7 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
             let actual = super::recurrence_settlement(
                 &cohort.anatomy,
                 retained,
+                &[],
                 cohort.state.as_ref().clone(),
                 recurrence.map_or_else(
                     || vec![None; cohort.anatomy.neuron_count()].into_boxed_slice(),
