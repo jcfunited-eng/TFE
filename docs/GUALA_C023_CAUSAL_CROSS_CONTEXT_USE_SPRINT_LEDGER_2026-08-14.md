@@ -2,8 +2,11 @@
 
 Date: 2026-08-14
 
-Status: Live-Closed on 2026-08-14. The exact reviewed artifact is deployed and
-its causal retained-formation-to-action path was directly observed in production.
+Status: RECONCILED PARTIAL as of 2026-08-22. The exact reviewed artifact and
+later task-1166 evidence live-prove the common retained-formation-to-action
+mechanism, but they do not prove every cognitive family named by C-023. The
+historical 2026-08-14 Live-Closed claim below is retained only as release
+history and is superseded by this status and the canonical delivery ledger.
 
 ## Task identity
 
@@ -893,3 +896,42 @@ retained only as falsification evidence and is not the releasable C-023 law.
   `sha256:adc8a18ab400219a74cca51846e14090bd8d1e6ba2a4382da48fcfb81fa49b80`
   now serve the recurrent-lineage projection. The controller verified native
   state and exactly one cutover; automatic legacy rollback remained disabled.
+
+## 2026-08-22 task-1166 evidence and six-family reconciliation
+
+Production task `dsf-ai-task:1166`, release commit
+`2f2040ce044cd3bd6f5d3ea01626a8062d983d59`, and image
+`sha256:ee39ee8a3958e98f4182edbe2aa01ec668882bab73be536d2cddfc280d822e98`
+preserve the same organism identity with zero Python cognition callbacks.
+
+At tick 149422, retained formation
+`62fa59e7be9028f28972240d1c3d1bfcfcaad1b9224026d3f9933f4035122d77`
+externally reassembled from three exact retinal cue lineages into its mounted
+layer-9 recurrent lineage. The corrected bounded trace survived the intake
+boundary, crossed 31 exact directed physical transfers, changed a contact
+state, reached layer-12 motor discharge at tick 149453, changed the body and
+world, and returned the applicable sight, sound, touch, smell, taste, body, and
+vestibular consequences in the persisted tick-149467 successor
+`185ce1d0ff9658d960a22daaba432291282ede6354187bc1a5d1d16bda7e8968`.
+This is a second live proof of the common C-023 causal mechanism, now from an
+external partial cue across an intake boundary. It is not semantic word proof.
+
+The six named families reconcile as follows:
+
+| Family | Current evidence | Truth status |
+|---|---|---|
+| Self/body continuity | one persistent identity performs native motor action, changes its body/world, receives applicable sensory consequences, persists, and cold-restores | live-proven at the bounded Phase-1 body boundary |
+| Procedural skill | retained physical structure later reaches motor discharge and sensed return; C-024 also retained exact procedural/physical-memory causal-use credit | partial: causal physical reuse is live, but varied execution, correction, and transfer are not proved |
+| Imagination | C-022 live-proved internally simulated reassembly; historical C-023 live-proved an internally reassembled formation reaching action and consequence | partial: no exact evidence yet proves one internally simulated formation survives into a distinct later lived context and is then tested there |
+| Social cognition | A-011 supplies a participant-to-Guala physical circuit and reciprocal sensed interaction | partial: no exact other-perspective formation or socially grounded causal reuse is proved |
+| Creativity | none | unavailable: no internally originated novel coherent recombination has been enacted, sensed, changed, and reused |
+| Reflection | none in native cognition | unavailable: legacy Python reflection monitors and labels are not organism cognition and cannot satisfy C-023 |
+
+C-023 therefore remains RECONCILED PARTIAL. The single next C-023 item is the
+imagination boundary: live-prove that one exact `internally_simulated`
+formation reassembly remains physically causal into a distinct later lived
+context, reaches native action, and receives its sensed consequence. The proof
+may observe the existing native physics but may not add Python cognitive
+authority, a semantic label, a replay archive, a stored answer, or a cognition
+pause. Social perspective, creativity, and native reflection remain later
+separate increments and cannot be inferred from that proof.
