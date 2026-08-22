@@ -876,3 +876,15 @@ retained only as falsification evidence and is not the releasable C-023 law.
   passes, and the exact corrected curriculum/observer boundary passes 5/5.
   C-023 remains Partial pending production cutover of these candidates and
   direct native evidence for each still-unproved cognitive family.
+- Production task `dsf-ai-task:1156`, commit `99907ea1548f6b0499de20319e52b9d46a735e01`,
+  and image `sha256:c46105bbbf63c50b5f688a14d373da27284b5aa1e035d62883f65120501864bd`
+  now serve that observer-authority removal with verified native state and one
+  successful cutover.
+- Candidate commit `c2ce92ba` closes one remaining evidence-translation gap:
+  the native internally reassembled formation projection now exports its exact
+  mounted recurrent lineage, and the bounded Python report follows only that
+  lineage instead of seeding a possible path from every cue member. A formation
+  without a mounted recurrent lineage cannot begin a causal-use claim. Rust
+  compilation passes and the focused C-023/A-006 evidence boundary passes
+  14/14. The remaining semantic observer records were also traced and have no
+  cognition, action, curriculum, persistence, or readiness authority.
