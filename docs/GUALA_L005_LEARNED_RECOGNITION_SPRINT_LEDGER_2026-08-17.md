@@ -54,11 +54,27 @@ Status: In progress. No learned-word recognition is live-proved.
 | RF-001 / RF-002 | exact worktree on `PYTHONPATH`; live task environment resolved before candidate import | local focused proof used the exact worktree; live environment pending read-only target census |
 | RF-004 | run the same ordinary lesson boundary from a pristine body and a discarded authenticated production predecessor | pristine full/partial branch completed; mature predecessor branch pending |
 | RF-005 / RF-012 / RF-020 | require exact external reassembly, its native sparse continuation, action or articulation, and sensed return; HTTP/counters/mounts alone fail | reassembly exists locally; later functional participation is absent |
+| RF-017 / RF-028 | census and falsify every native observation producer, Python validator, aggregate, and consumer when an observation tuple changes | rehearsal exposed a stale two-field internal-cue validator against Rust's exact three-field projection; focused correction passes 2/2 |
 | RF-007 / RF-024 / RF-031 / RF-033 | resolve controller, target inventory, and every existing nonzero test before invocation | pending before any deployment clock or build |
 | RF-010 / RF-021 / RF-027 | bind proof to the exact predecessor/input/successor, compare persisted `CURRENT`, cold-start that successor, and run one further ordinary interval | pending candidate rehearsal |
 | RF-018 / RF-028 / RF-040 | ordinary multi-hop lesson must preserve the first decisive event and run only the L-005 source path | local nine-hop aggregate preserved the external reassembly |
 | RF-025 / RF-029 | derive a live write from a fresh operator-origin predecessor; after timeout/refusal read successor before any retry | mandatory for the eventual one-shot live lesson |
 | RF-044 / RF-045 | compare physical observation clocks and producer cardinality; prohibit copied samples or population-wide hot work | manifest change adds no observations or runtime loop; existing bounded lesson cardinality unchanged |
+
+### Rehearsal attempt record
+
+- Attempt 1 began 2026-08-22 after commit `23ecece645bf385130e0c9eca6ab922087bfdb5d`.
+  Packaging and immutable image build passed; candidate image digest was
+  `sha256:7fed96a7a2220304a33b6dc80f0eff9eeb15d543735b88340f599ec3a1fbfafb`
+  and the controller registered non-live task definition `dsf-ai-task:1158`.
+  No cutover occurred; production remained task 1157.
+- The discarded mature cold-restore task failed once in the unrelated A-013
+  rehearsal branch. Rust projected the current exact internal recurrence tuple
+  `(formation receipt, cue lineages, optional recurrent lineage)`, while
+  `_internally_reassembled_formation_cue_evidence` still required the retired
+  two-field tuple. The first failure was corrected at that translation boundary;
+  the app already consumed the three-field form. No physics, persistence, or
+  organism-state representation changed.
 
 ## Task identity and frozen scope
 

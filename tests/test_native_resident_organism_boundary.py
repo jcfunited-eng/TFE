@@ -177,7 +177,7 @@ class _NativeResidentOrganismPrepare:
     partial_cue_reassembly_count: int = 0
     endogenous_partial_cue_reassembly_count: int = 0
     internally_reassembled_formation_cues: list[
-        tuple[str, list[str]]
+        tuple[str, list[str], str | None]
     ] | None = None
     externally_reassembled_formation_frontiers: list[
         tuple[str, list[str], str]
@@ -1144,3 +1144,47 @@ def test_public_constructor_and_non_fixed_tokens_are_refused(
     organism, _runtime, _native = _restore(monkeypatch)
     with pytest.raises(ValueError, match="exactly 32 immutable bytes"):
         organism.commit(b"short")
+
+
+def test_internal_reassembly_carries_its_exact_recurrent_lineage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    receipt = "11" * 32
+    cue = "22" * 16
+    recurrent = "33" * 16
+    runtime.prepare_result_override = replace(
+        genuine,
+        internally_reassembled_formation_cues=[
+            (receipt, [cue], recurrent),
+        ],
+        endogenous_partial_cue_reassembly_count=1,
+        partial_cue_reassembly_count=1,
+    )
+
+    prepared = organism.prepare(_Source())
+
+    assert prepared.internally_reassembled_formation_cues == (
+        (receipt, (cue,), recurrent),
+    )
+
+
+def test_internal_reassembly_refuses_the_retired_two_field_shape(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organism, runtime, _native = _restore(monkeypatch)
+    genuine = runtime.prepare(_Source())
+    runtime.pending = None
+    runtime.prepare_result_override = replace(
+        genuine,
+        internally_reassembled_formation_cues=[
+            ("11" * 32, ["22" * 16]),
+        ],
+        endogenous_partial_cue_reassembly_count=1,
+        partial_cue_reassembly_count=1,
+    )
+
+    with pytest.raises(RuntimeError, match="cue changed format"):
+        organism.prepare(_Source())

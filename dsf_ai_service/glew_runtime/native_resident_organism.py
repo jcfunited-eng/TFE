@@ -321,7 +321,7 @@ class NativeResidentObservationView(Protocol):
     @property
     def internally_reassembled_formation_cues(
         self,
-    ) -> list[tuple[str, list[str]]]: ...
+    ) -> list[tuple[str, list[str], str | None]]: ...
 
     @property
     def externally_reassembled_formation_frontiers(
@@ -389,7 +389,7 @@ class ResidentCausalIntervalEvidence:
     organism_tick: int
     externally_perturbed_neuron_lineages: tuple[str, ...]
     internally_reassembled_formation_cues: tuple[
-        tuple[str, tuple[str, ...]], ...
+        tuple[str, tuple[str, ...], str | None], ...
     ]
     externally_reassembled_formation_frontiers: tuple[
         tuple[str, tuple[str, ...], str], ...
@@ -443,7 +443,7 @@ class ResidentPrepareEvidence:
     partial_cue_reassembly_count: int
     endogenous_partial_cue_reassembly_count: int
     internally_reassembled_formation_cues: tuple[
-        tuple[str, tuple[str, ...]], ...
+        tuple[str, tuple[str, ...], str | None], ...
     ]
     externally_reassembled_formation_frontiers: tuple[
         tuple[str, tuple[str, ...], str], ...
@@ -715,14 +715,14 @@ def _changed_contact_channel_state_evidence(
 
 def _internally_reassembled_formation_cue_evidence(
     value: object,
-) -> tuple[tuple[str, tuple[str, ...]], ...]:
+) -> tuple[tuple[str, tuple[str, ...], str | None], ...]:
     if not isinstance(value, list):
         raise RuntimeError("internally reassembled formation cues changed format")
-    observed: list[tuple[str, tuple[str, ...]]] = []
+    observed: list[tuple[str, tuple[str, ...], str | None]] = []
     for raw_cue in value:
-        if not isinstance(raw_cue, tuple) or len(raw_cue) != 2:
+        if not isinstance(raw_cue, tuple) or len(raw_cue) != 3:
             raise RuntimeError("internally reassembled formation cue changed format")
-        raw_receipt, raw_cues = raw_cue
+        raw_receipt, raw_cues, raw_recurrent_lineage = raw_cue
         if not isinstance(raw_cues, list) or not raw_cues:
             raise RuntimeError("internally reassembled formation cue is empty")
         receipt = _canonical_sha256(
@@ -734,7 +734,15 @@ def _internally_reassembled_formation_cue_evidence(
         )
         if tuple(sorted(set(cues))) != cues:
             raise RuntimeError("internally reassembled formation cue is not canonical")
-        observed.append((receipt, cues))
+        recurrent_lineage = (
+            None
+            if raw_recurrent_lineage is None
+            else _canonical_lineage_hex(
+                raw_recurrent_lineage,
+                "internally reassembled formation recurrent lineage",
+            )
+        )
+        observed.append((receipt, cues, recurrent_lineage))
     result = tuple(observed)
     if len(set(result)) != len(result):
         raise RuntimeError("internally reassembled formation cue repeated")
