@@ -854,3 +854,25 @@ retained only as falsification evidence and is not the releasable C-023 law.
   retained-formation-to-action-to-sensed-consequence mechanism; it is not a
   claim that later curriculum, language, creativity, or interface tasks are
   complete.
+
+## 2026-08-22 reconciliation and observer-authority removal
+
+- The canonical delivery ledger supersedes the historical broad closure above:
+  C-023 is `RECONCILED PARTIAL`. The live evidence proves one physical causal
+  mechanism, not imagination, social cognition, self/body continuity,
+  procedural skill, creativity, and reflection as six completed families.
+- Production task `dsf-ai-task:1155`, commit `f7a6d4fd8a941a81887f747a357913ba7044e50a`,
+  and image `sha256:6a8d62503743a95dec2cb31094b228259efa701db9ccddfda2997c4322dd55f2`
+  isolate native readiness from the optional public display projection. A
+  display failure cannot clear native readiness or report a committed organism
+  transition as failed.
+- Candidate commits `d058c49e` and `cbd63310` delete the dormant retained-
+  formation readiness scan and remove Python causal-trace authority over
+  curriculum admission. An embodied invitation becomes presentable only when
+  the participant's real movement changes Guala's retinal receptors. Python
+  no longer claims that Guala attended, and a reporting trace cannot permit,
+  revoke, or refuse the physical presentation.
+- Focused source validation and compilation pass. The bounded readiness test
+  passes, and the exact corrected curriculum/observer boundary passes 5/5.
+  C-023 remains Partial pending production cutover of these candidates and
+  direct native evidence for each still-unproved cognitive family.
