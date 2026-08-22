@@ -2107,6 +2107,14 @@ fn decode_organism_mosaic(
     max_encoded_bytes: usize,
 ) -> Result<AdmittedPhysicalMosaic, FormationError> {
     let topology = organism_mosaic_topology(cohorts, electrical_fabric)?;
+    decode_organism_mosaic_for_topology(&topology, encoded, max_encoded_bytes)
+}
+
+fn decode_organism_mosaic_for_topology(
+    topology: &OrganismMosaicTopology,
+    encoded: &[u8],
+    max_encoded_bytes: usize,
+) -> Result<AdmittedPhysicalMosaic, FormationError> {
     decode_admitted_physical_mosaic_for_topology(
         &topology.lineages,
         &topology.bonds,
@@ -3295,6 +3303,22 @@ fn decode_retained_organism_mosaic(
     encoded: &[u8],
     max_encoded_bytes: usize,
 ) -> Result<RetainedOrganismMosaic, FormationError> {
+    let topology_index = ResidentTopologyIndex::build(cohorts, electrical_fabric)?;
+    let topology = indexed_organism_mosaic_topology(cohorts, &topology_index)?;
+    decode_retained_organism_mosaic_for_topology(
+        &topology,
+        &topology_index,
+        encoded,
+        max_encoded_bytes,
+    )
+}
+
+fn decode_retained_organism_mosaic_for_topology(
+    topology: &OrganismMosaicTopology,
+    topology_index: &ResidentTopologyIndex,
+    encoded: &[u8],
+    max_encoded_bytes: usize,
+) -> Result<RetainedOrganismMosaic, FormationError> {
     if encoded.get(..RETAINED_MOSAIC_RECURRENT_MAGIC.len())
         == Some(RETAINED_MOSAIC_RECURRENT_MAGIC)
     {
@@ -3310,17 +3334,15 @@ fn decode_retained_organism_mosaic(
             .try_into()
             .map_err(|_| FormationError::NoncanonicalState)?;
         cursor = lineage_end;
-        let mosaic = decode_organism_mosaic(
-            cohorts,
-            electrical_fabric,
+        let mosaic = decode_organism_mosaic_for_topology(
+            topology,
             encoded
                 .get(cursor..)
                 .ok_or(FormationError::NoncanonicalState)?,
             max_encoded_bytes,
         )?;
-        validate_recurrent_retention_lineage(
-            cohorts,
-            electrical_fabric,
+        validate_recurrent_retention_lineage_indexed(
+            topology_index,
             mosaic.member_lineages(),
             recurrent_lineage,
         )?;
@@ -3332,8 +3354,7 @@ fn decode_retained_organism_mosaic(
         });
     }
     if encoded.get(..RETAINED_MOSAIC_COUNTS_MAGIC.len()) != Some(RETAINED_MOSAIC_COUNTS_MAGIC) {
-        let mosaic =
-            decode_organism_mosaic(cohorts, electrical_fabric, encoded, max_encoded_bytes)?;
+        let mosaic = decode_organism_mosaic_for_topology(topology, encoded, max_encoded_bytes)?;
         return Ok(RetainedOrganismMosaic {
             mosaic,
             recurrent_lineage: None,
@@ -3347,9 +3368,8 @@ fn decode_retained_organism_mosaic(
     if reinforcement_count == 0 && mosaic_of_mosaics_relation_count == 0 {
         return Err(FormationError::NoncanonicalState);
     }
-    let mosaic = decode_organism_mosaic(
-        cohorts,
-        electrical_fabric,
+    let mosaic = decode_organism_mosaic_for_topology(
+        topology,
         encoded
             .get(cursor..)
             .ok_or(FormationError::NoncanonicalState)?,
@@ -7320,6 +7340,13 @@ impl ResidentCognitiveFormationState {
                 .fully_referenced()
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
         }
+        let topology_index = Arc::new(ResidentTopologyIndex::build(
+            &cohorts,
+            &electrical_fabric,
+        )?);
+        let current_mosaic_topology = (format == CognitiveCodecFormat::V24)
+            .then(|| indexed_organism_mosaic_topology(&cohorts, &topology_index))
+            .transpose()?;
         let mosaic_count = read_length(bytes, &mut cursor)?;
         if mosaic_count > bytes.len().saturating_sub(cursor) / 8 {
             return Err(FormationError::NoncanonicalState);
@@ -7333,14 +7360,23 @@ impl ResidentCognitiveFormationState {
             let mosaic_end = cursor
                 .checked_add(mosaic_length)
                 .ok_or(FormationError::ArithmeticOverflow)?;
-            let retained = decode_retained_organism_mosaic(
-                &cohorts,
-                &electrical_fabric,
-                bytes
-                    .get(cursor..mosaic_end)
-                    .ok_or(FormationError::NoncanonicalState)?,
-                max_encoded_bytes,
-            )?;
+            let encoded_mosaic = bytes
+                .get(cursor..mosaic_end)
+                .ok_or(FormationError::NoncanonicalState)?;
+            let retained = match current_mosaic_topology.as_ref() {
+                Some(topology) => decode_retained_organism_mosaic_for_topology(
+                    topology,
+                    &topology_index,
+                    encoded_mosaic,
+                    max_encoded_bytes,
+                ),
+                None => decode_retained_organism_mosaic(
+                    &cohorts,
+                    &electrical_fabric,
+                    encoded_mosaic,
+                    max_encoded_bytes,
+                ),
+            }?;
             cursor = mosaic_end;
             if mosaics
                 .iter()
@@ -7381,7 +7417,7 @@ impl ResidentCognitiveFormationState {
             older_active_electrical_frontier: older_active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
-            topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            topology_index,
         };
         validate_lineage_state(&state)?;
         if format != CognitiveCodecFormat::V24 {
@@ -7390,10 +7426,6 @@ impl ResidentCognitiveFormationState {
                 return Err(FormationError::NoncanonicalState);
             }
         }
-        state.topology_index = Arc::new(ResidentTopologyIndex::build(
-            &state.cohorts,
-            &state.electrical_fabric,
-        )?);
         // Old evidence is admitted only long enough to prove its historical
         // canonical bytes. The live resident keeps reached members only.
         if !require_current_canonical_encoding {
@@ -11283,6 +11315,28 @@ fn validate_recurrent_retention_lineage(
             .all(|member| electrical_fabric.contains_contact(*member, recurrent_lineage))
     {
         return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    Ok(())
+}
+
+fn validate_recurrent_retention_lineage_indexed(
+    topology_index: &ResidentTopologyIndex,
+    members: &[[u8; 16]],
+    recurrent_lineage: [u8; 16],
+) -> Result<(), FormationError> {
+    if topology_index.layer_of(recurrent_lineage) != Some(9) {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    let recurrent_flat = topology_index.flat_for_lineage(recurrent_lineage)?;
+    let neighbours = topology_index
+        .neighbours_by_flat
+        .get(recurrent_flat)
+        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+    for member in members {
+        let member_flat = topology_index.flat_for_lineage(*member)?;
+        if neighbours.binary_search(&member_flat).is_err() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
     }
     Ok(())
 }
