@@ -6136,13 +6136,6 @@ def _refresh_public_observation_cache() -> None:
         # bounded transition witness remain available without that scan.
         retained_impressions = None
         build_identity = _build_identity()
-        body = _canonical(
-            _build_public_observation_from_snapshot(
-                native,
-                retained_impressions,
-                build_identity,
-            )
-        )
         runtime_proof_body = _canonical(
             _readiness_from_snapshot(
                 native,
@@ -6155,9 +6148,24 @@ def _refresh_public_observation_cache() -> None:
         _public_observation_etag = None
         _runtime_proof_body = None
         raise
+    # Native readiness is the committed organism's compact status. The larger
+    # optional display projection cannot make that organism unavailable or
+    # turn an already-committed transition into a reported failure.
+    _runtime_proof_body = runtime_proof_body
+    try:
+        body = _canonical(
+            _build_public_observation_from_snapshot(
+                native,
+                retained_impressions,
+                build_identity,
+            )
+        )
+    except BaseException:
+        _public_observation_body = None
+        _public_observation_etag = None
+        return
     _public_observation_body = body
     _public_observation_etag = f'"{hashlib.sha256(body).hexdigest()}"'
-    _runtime_proof_body = runtime_proof_body
 
 
 def _readiness_from_snapshot(

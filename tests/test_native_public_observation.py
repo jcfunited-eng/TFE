@@ -5,6 +5,9 @@ import hashlib
 import json
 import threading
 
+from fastapi import HTTPException
+import pytest
+
 from dsf_ai_service import native_production_app as serving
 
 
@@ -251,6 +254,31 @@ def test_runtime_proof_is_the_same_committed_snapshot_and_never_borrows_cognitio
     proof = serving.runtime_proof()
     assert proof.body == ready.body
     assert restored.organism.readiness_calls == 1
+
+
+def test_public_projection_failure_does_not_hide_native_readiness(monkeypatch) -> None:
+    restored = _mount(monkeypatch)
+
+    def broken_public_projection(*_args, **_kwargs):
+        raise RuntimeError("optional public projection failed")
+
+    monkeypatch.setattr(
+        serving,
+        "_build_public_observation_from_snapshot",
+        broken_public_projection,
+    )
+
+    serving._refresh_public_observation_cache()
+
+    ready = serving.ready_guala()
+    assert ready.status_code == 200
+    assert json.loads(ready.body)["organism_tick"] == _Observation().organism_tick
+    assert restored.organism.readiness_calls == 2
+    assert serving._public_observation_body is None
+    assert serving._public_observation_etag is None
+    with pytest.raises(HTTPException) as unavailable:
+        serving.native_observation()
+    assert unavailable.value.status_code == 503
 
 
 def test_public_observation_counts_every_fractal_emitted_by_the_experience(
