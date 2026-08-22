@@ -10828,9 +10828,14 @@ def _attempt_unattended_interval() -> dict[str, Any]:
                 "reason": f"{type(error).__name__}: {error}",
             }
             return _last_unattended_pause
-        measured = {
-            key: {"before": before[key], "after": after[key]}
+        energy_coordinate_changes = {
+            key: before[key] != after[key]
             for key in _UNATTENDED_EXACT_ENERGY_KEYS
+        }
+        measured = {
+            "energy_coordinate_changes": energy_coordinate_changes,
+            "exact_energy_coordinates_resident": True,
+            "exact_energy_coordinates_transported": False,
         }
         measured["physically_transitioned_neuron_count"] = result["totals"][
             "physically_transitioned_neuron_count"
@@ -10847,9 +10852,7 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         measured["partial_cue_reassembly_count"] = result["totals"][
             "partial_cue_reassembly_count"
         ]
-        energy_moved = any(
-            after[key] != before[key] for key in _UNATTENDED_EXACT_ENERGY_KEYS
-        )
+        energy_moved = any(energy_coordinate_changes.values())
         settled = measured["physically_transitioned_neuron_count"] > 0
         motor_action = result["observation"].get("motor_action")
         if motor_action is not None:

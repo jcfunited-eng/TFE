@@ -1139,3 +1139,27 @@ focused tests pass 35/35, the exact play and social evidence boundaries pass
 2/2, Python compilation passes, and `git diff --check` passes. This is local
 candidate evidence pending the next production cutover and post-transition
 public observation.
+
+Task definition 1171 deployed commit
+`e6721c96663a15416b97728e2d924a8ed255a721` as image
+`sha256:113992470ce3252e08c9b093344978aa95e0fd843e0cc63c0e0133641eb687e0`.
+The same identity restored and the observer returned 200 at tick 150110. The
+first autonomous interval then reproduced 503 while CURRENT continued. This
+release's new error line identified the exact exception rather than hiding it:
+`ValueError: Exceeds the limit (4300 digits) for integer string conversion`.
+The remaining source was `_attempt_unattended_interval`: it copied all four
+exact native energy fractions both before and after every autonomous interval
+into `_last_unattended_evidence`, after the other display projections had been
+bounded. This was eight redundant arbitrary-precision coordinate bodies in
+Python observation state.
+
+The unattended observer now compares each exact native coordinate before/after
+while both values are locally borrowed, then retains only four changed/unchanged
+facts, transition counts, and the successor native state receipt. It no longer
+stores or serializes either coordinate body. The classification law is
+unchanged: any exact coordinate inequality still constitutes energy movement;
+the observer gains no physics or action authority. A 5,000-digit autonomous-
+interval falsifier proves the resulting autonomy record serializes without
+`before`/`after` coordinate copies. The focused unattended/rest/public/C-023
+boundary passes 41/41, Python compilation passes, and `git diff --check` passes.
+Live post-transition verification remains required.

@@ -31,6 +31,7 @@ def test_unattended_interval_preserves_native_recovered_neuron_count(
                     "external_luminance_present": False,
                     "external_smell_present": False,
                     "passive_interval_receipt_sha256": "cd" * 32,
+                    "retinal_heading_offset_millidegrees": 0,
                     "world_revision_before": 6,
                     "world_revision": 7,
                 },

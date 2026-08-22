@@ -193,15 +193,48 @@ def test_exactly_unchanged_interval_is_rest_not_activity(monkeypatch) -> None:
     assert observed["delivered"] is True
     assert observed["outcome"] == "no_internal_cause"
     assert observed["motor_action"] is None
-    assert all(
-        value["before"] == value["after"]
-        for key, value in observed["measured"].items()
-        if key in production._UNATTENDED_EXACT_ENERGY_KEYS
+    assert not any(
+        observed["measured"]["energy_coordinate_changes"].values()
     )
+    assert observed["measured"]["exact_energy_coordinates_resident"] is True
+    assert observed["measured"]["exact_energy_coordinates_transported"] is False
     autonomy = production._autonomy_record()
     assert autonomy["available"] is False
     assert autonomy["action_observed"] is False
     assert "rest, not activity" in autonomy["reason"]
+
+
+def test_unattended_observer_never_copies_unbounded_energy_coordinates(
+    monkeypatch,
+) -> None:
+    huge = 10**5000
+    before = {
+        key: (huge, 1) for key in production._UNATTENDED_EXACT_ENERGY_KEYS
+    }
+    before.update(organism_tick=60, state_sha256="44" * 32)
+    after = dict(before)
+    after["available_energy_zeptojoules"] = (huge - 1, 1)
+    after.update(organism_tick=61, state_sha256="55" * 32)
+    _mount_translation_boundary(
+        monkeypatch,
+        before=before,
+        after=after,
+        result=_transition_result(None),
+    )
+
+    observed = production._attempt_unattended_interval()
+    public = production._autonomy_record()
+
+    assert observed["outcome"] == "continuous_environment_observed"
+    assert observed["measured"]["energy_coordinate_changes"] == {
+        "available_energy_zeptojoules": True,
+        "dissipated_energy_zeptojoules": False,
+        "spent_energy_zeptojoules": False,
+        "thermal_energy_zeptojoules": False,
+    }
+    encoded = production._canonical(public)
+    assert b'"before"' not in encoded
+    assert b'"after"' not in encoded
 
 
 def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) -> None:
