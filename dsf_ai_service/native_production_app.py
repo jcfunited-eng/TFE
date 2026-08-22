@@ -1579,10 +1579,18 @@ _last_body_owned_laughter_evidence: dict[str, Any] | None = None
 # predecessor/successor world receipts are the only relation between them.
 _reciprocal_social_play_candidate: dict[str, Any] | None = None
 _last_reciprocal_social_play_evidence: dict[str, Any] | None = None
-# One transient, bounded physical frontier from the latest external
-# participant stimulus. It is observation only, does not survive restart, and
-# cannot choose or retain anything for the organism.
-_active_external_participant_causal_motor_traces: dict[
+# Transient, bounded physical frontiers whose exact cause began in one external
+# intake and may continue in the immediately following physical interval.  The
+# values are observation only, do not survive restart, and cannot choose or
+# retain anything for the organism.  Every other causal origin remains
+# transaction-local.
+_CROSS_INTAKE_CAUSAL_TRACE_KINDS = frozenset(
+    {
+        "external_participant_sensory",
+        "externally_reassembled_retained_formation",
+    }
+)
+_active_cross_intake_causal_motor_traces: dict[
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ] = {}
@@ -8689,6 +8697,24 @@ def _advance_causal_motor_traces(
     return advanced, next_completed
 
 
+def _retain_cross_intake_causal_motor_traces(
+    active: dict[
+        tuple[str, str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+) -> dict[
+    tuple[str, str, tuple[str, ...], int],
+    dict[str, tuple[tuple[str, str, int, int], ...]],
+]:
+    """Retain only exact unresolved causes allowed to cross an intake boundary."""
+
+    return {
+        key: paths
+        for key, paths in active.items()
+        if key[0] in _CROSS_INTAKE_CAUSAL_TRACE_KINDS
+    }
+
+
 def _advance_internal_formation_motor_trace(
     organism: Any,
     active: dict[
@@ -8945,7 +8971,7 @@ def _perform_admitted_intake_locked(
     global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
-    global _active_external_participant_causal_motor_traces
+    global _active_cross_intake_causal_motor_traces
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -9035,7 +9061,7 @@ def _perform_admitted_intake_locked(
     active_causal_motor_traces: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
-    ] = dict(_active_external_participant_causal_motor_traces)
+    ] = dict(_active_cross_intake_causal_motor_traces)
     completed_causal_motor_traces: dict[str, dict[str, Any]] = {}
     intake_error: Exception | None = None
     try:
@@ -9718,11 +9744,9 @@ def _perform_admitted_intake_locked(
     _restored = RestoredNativeOrganism(
         organism=organism, pointer=published.pointer
     )
-    _active_external_participant_causal_motor_traces = {
-        key: paths
-        for key, paths in active_causal_motor_traces.items()
-        if key[0] == "external_participant_sensory"
-    }
+    _active_cross_intake_causal_motor_traces = (
+        _retain_cross_intake_causal_motor_traces(active_causal_motor_traces)
+    )
     receptor_ingress = {
         "changing_count": receptor_ingress_changing_count,
         "quiescent_count": receptor_ingress_quiescent_count,
@@ -12574,7 +12598,7 @@ def _startup() -> None:
     global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
-    global _active_external_participant_causal_motor_traces
+    global _active_cross_intake_causal_motor_traces
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
@@ -12588,7 +12612,7 @@ def _startup() -> None:
     _last_body_owned_laughter_evidence = None
     _reciprocal_social_play_candidate = None
     _last_reciprocal_social_play_evidence = None
-    _active_external_participant_causal_motor_traces = {}
+    _active_cross_intake_causal_motor_traces = {}
     _curriculum_invitation = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
@@ -13534,7 +13558,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Let an external participant move only its own authenticated world body."""
 
     global _reciprocal_social_play_candidate
-    global _active_external_participant_causal_motor_traces
+    global _active_cross_intake_causal_motor_traces
     if not WORLD_AUTHORIZED:
         return _refusal(503, "no persistent world is mounted")
     if not isinstance(payload, dict):
@@ -13686,8 +13710,8 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         }
         action["evidence_receipt_sha256"] = _receipt(action)
         prior_social_candidate = _reciprocal_social_play_candidate
-        prior_external_participant_traces = dict(
-            _active_external_participant_causal_motor_traces
+        prior_cross_intake_traces = dict(
+            _active_cross_intake_causal_motor_traces
         )
         if visual_changed > 0:
             _reciprocal_social_play_candidate = (
@@ -13699,7 +13723,11 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             # A later participant stimulus supersedes any still-propagating
             # prior participant frontier. This clears observation only; it
             # does not alter the organism or its retained experience.
-            _active_external_participant_causal_motor_traces = {}
+            _active_cross_intake_causal_motor_traces = {
+                key: paths
+                for key, paths in _active_cross_intake_causal_motor_traces.items()
+                if key[0] != "external_participant_sensory"
+            }
         try:
             sensory_result = _perform_admitted_intake_locked(
                 [(consequence_episode, consequence_admissions)],
@@ -13710,8 +13738,8 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             )
         except (RuntimeError, TypeError, ValueError) as error:
             _reciprocal_social_play_candidate = prior_social_candidate
-            _active_external_participant_causal_motor_traces = (
-                prior_external_participant_traces
+            _active_cross_intake_causal_motor_traces = (
+                prior_cross_intake_traces
             )
             _refresh_public_observation_cache()
             return JSONResponse(

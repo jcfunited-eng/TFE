@@ -255,6 +255,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         ),
     )
     assert completed == {}
+    active = production._retain_cross_intake_causal_motor_traces(active)
 
     observer.transfers = ((*recurrent_to_motor, motor),)
     active, completed = production._advance_causal_motor_traces(
@@ -264,6 +265,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         _hop(61),
     )
     assert completed == {}
+    active = production._retain_cross_intake_causal_motor_traces(active)
 
     observer.transfers = ()
     active, completed = production._advance_causal_motor_traces(
@@ -334,4 +336,27 @@ def test_external_reassembly_does_not_bind_an_unrelated_articulatory_path() -> N
     assert (
         "externally_reassembled_retained_formation_articulation"
         not in completed
+    )
+
+
+def test_only_exact_external_causes_cross_an_intake_boundary() -> None:
+    paths = {"02" * 16: (("01" * 16, "02" * 16, 0, 7),)}
+    active = {
+        ("external_participant_sensory", "11" * 32, ("01" * 16,), 10): paths,
+        (
+            "externally_reassembled_retained_formation",
+            "22" * 32,
+            ("02" * 16, "03" * 16),
+            11,
+        ): paths,
+        ("retained_formation", "33" * 32, ("04" * 16,), 12): paths,
+        ("new_neuronal_fractal", "", ("05" * 16,), 13): paths,
+        ("affective_gradient", "44" * 32, ("06" * 16,), 14): paths,
+    }
+
+    retained = production._retain_cross_intake_causal_motor_traces(active)
+
+    assert tuple(key[0] for key in retained) == (
+        "external_participant_sensory",
+        "externally_reassembled_retained_formation",
     )

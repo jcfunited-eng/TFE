@@ -362,3 +362,42 @@ window as current proof of deliberate thought or autonomous action. The public
 projection expanded large exact recruitment/transition arrays rather than a
 compact sparse summary; its response size was not measured by this single
 request, so it supplies no bounded-observation claim.
+
+## Live word-apple recognition on task 1165
+
+Commit `9abe26c21b8d4362562eb35a652a95a4fadbb55f` deployed once as task
+definition 1165 with image digest
+`sha256:2041495886b05d931ff64191f6f7dfa476739926f1048fdd05c94ef66a882032`.
+The service verified the same native organism at tick 149148 and retained zero
+Python cognition callbacks.
+
+One embodied invitation advanced the organism to tick 149166. One full
+`word-apple` presentation then committed at tick 149197 with 1,606 full-field
+deliveries, 31,339 physical neuron transitions, 203 complete neuron fractals,
+453 partial-cue reassemblies, 10 endogenous reassemblies, and zero exhausted
+intervals. Its exact persisted successor was
+`d35c804ec01b25a33286ae9a670c0168c23d52d0418a30bd932f0f4a97e22120`.
+
+A second fresh invitation advanced the same organism to tick 149223. One strict
+partial glimpse committed at tick 149258 with 1,795 full-field deliveries, 135
+partial-cue reassemblies, one complete neuron fractal, 132 native motor
+recruitments, 76 body consequences, and zero exhausted intervals. The body
+action kept cognition continuous and returned the applicable sight, sound,
+touch, smell, taste, body, and vestibular occurrence to identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Its exact successor was
+`4f17c7efea7a3766bea59c687b9d7c7312a481dd4b646745b985500097ced85b`.
+
+The following unattended world interval committed at tick 149275. It again
+produced native motor and articulatory action, world/body change, full sensory
+return, and one bounded working cause that continued and settled. It did not
+carry the externally reassembled formation receipt into that later action, so
+L-005 remains open and no word claim is made.
+
+Source inspection found the exact observation-continuity defect: after each
+intake, `_perform_admitted_intake_locked` retained only an unresolved
+`external_participant_sensory` trace and discarded an unresolved
+`externally_reassembled_retained_formation` trace. The next correction retains
+only those two exact external causes across adjacent intake boundaries; all
+internal formation, new-fractal, affective, completed, and unrelated traces
+remain transaction-local. A later participant movement supersedes only its
+participant trace and cannot erase an unresolved retained-formation trace.

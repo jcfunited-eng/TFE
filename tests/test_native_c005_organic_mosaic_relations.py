@@ -416,7 +416,7 @@ def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(
     monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
     monkeypatch.setattr(production, "_last_transition_evidence", None)
     monkeypatch.setattr(
-        production, "_active_external_participant_causal_motor_traces", {}
+        production, "_active_cross_intake_causal_motor_traces", {}
     )
     motor = "12" * 16
     articulatory = "13" * 16
