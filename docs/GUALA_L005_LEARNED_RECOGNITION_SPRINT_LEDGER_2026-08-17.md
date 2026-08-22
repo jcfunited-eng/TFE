@@ -431,3 +431,36 @@ only if that rollout label lags, continues the same task for one bounded
 three-minute extension. The measured 7m19s mature application restore plus ECS
 health-label convergence remains inside the normal 20-minute build-and-cutover
 budget. The extension never starts another task or weakens native readiness.
+
+## Live cross-intake causal use on task 1166
+
+A fresh embodied invitation committed at tick 149434. One strict partial
+`word-apple` presentation then committed at tick 149467 with 1,793 unchanged
+full-field deliveries, 36,643 physical neuron transitions, 134 partial-cue
+reassemblies including 24 endogenous reassemblies, 32 complete-neuron-fractal
+change occurrences, 108 motor recruitments, 60 body consequences, and zero
+exhausted intervals. Its exact successor was
+`185ce1d0ff9658d960a22daaba432291282ede6354187bc1a5d1d16bda7e8968`.
+
+The corrected cross-intake trace produced the first exact live external
+formation causal chain. Retained formation
+`62fa59e7be9028f28972240d1c3d1bfcfcaad1b9224026d3f9933f4035122d77`
+reassembled externally at tick 149422 from retinal cue lineages ending `00a2`,
+`00b0`, and `00be` into recurrent lineage ending `00b4`. Its sparse physical
+frontier crossed 31 exact directed transfers, changed a contact state, reached
+layer-12 motor lineage ending `015f` at tick 149453, moved the body, and
+returned the applicable sight, sound, touch, smell, taste, body, and vestibular
+consequences to the same resident organism at tick 149467. No Python cognition
+callback, duplicate organism, cognition pause, or scripted action authority was
+used.
+
+This closes the previously observed cross-intake causal-continuity defect, but
+it does **not** close L-005. The exact formation receipt is the retained
+`alphabet-b`/bee visual formation first proved on task 1122. The current record
+does not prove that the later single `word-apple` presentation grounded that
+formation as the learned word "apple". The governing acceptance contract also
+requires varied lived sensory/word grounding, while the curriculum inventory
+contains only one accepted `word-apple` presentation. The truthful result is
+therefore **live retained sensory-pattern recognition causing action and sensed
+consequence; learned-word recognition remains Partial**. No additional lesson
+loop is authorized merely to force closure.
