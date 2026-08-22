@@ -206,6 +206,10 @@ def test_public_action_consequence_does_not_export_preparation_graphs(
         "moved": True,
         "motor_unit_recruitment_count": 2,
         "prepared_recruitments": ({"large": "internal"},) * 2,
+        "body_effector_bindings": ({"axis": "torso_pitch"},) * 2,
+        "articulated_body_consequences": ({"large": "body"},) * 74,
+        "body_proprioceptive_sources": ({"large": "source"},) * 74,
+        "motor_body_afferent_paths": ({"large": "path"},) * 148,
         "sensory_consequence": {"action_receipt_sha256": "22" * 32},
     }
     monkeypatch.setattr(
@@ -220,16 +224,24 @@ def test_public_action_consequence_does_not_export_preparation_graphs(
             "physical_frontier_routes": (7,),
             "preceding_distinct_physical_frontier_routes": (8, 9),
             "reached_and_foregone_physical_frontier_routes": (10, 11, 12, 13),
+            "working_causal_continuations": ({"large": "frontier"},) * 4096,
         },
     )
 
     observed = production._last_transition_record()
 
     assert "prepared_recruitments" not in observed["motor_action"]
+    assert "articulated_body_consequences" not in observed["motor_action"]
     assert observed["motor_action"]["motor_unit_recruitment_count"] == 2
+    assert observed["motor_action"]["body_effector_binding_count"] == 2
+    assert observed["motor_action"]["articulated_body_consequence_count"] == 74
+    assert observed["motor_action"]["body_proprioceptive_source_count"] == 74
+    assert observed["motor_action"]["motor_body_afferent_path_count"] == 148
     assert observed["motor_unit_recruitment_count"] == 2
     assert observed["articulatory_unit_recruitment_count"] == 1
     assert observed["organic_mosaic_relation_count"] == 3
     assert observed["physical_frontier_route_count"] == 1
     assert observed["preceding_distinct_physical_frontier_route_count"] == 2
     assert observed["reached_and_foregone_physical_frontier_route_count"] == 4
+    assert observed["working_causal_continuation_count"] == 4096
+    assert len(production._canonical(observed)) < 4_096

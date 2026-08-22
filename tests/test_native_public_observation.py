@@ -296,9 +296,7 @@ def test_public_observation_counts_every_fractal_emitted_by_the_experience(
     fractals = json.loads(serving.native_observation().body)["fractals"]
 
     assert fractals["formed_in_last_experience"] == len(emitted)
-    assert fractals["formed_evidence_in_last_experience"] == json.loads(
-        json.dumps(emitted)
-    )
+    assert "formed_evidence_in_last_experience" not in fractals
 
 
 def test_public_observation_reports_exact_sparse_attention_without_a_score(
@@ -722,14 +720,10 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
         assert value["sensory"][modality]["available"] is False
 
     assert value["autonomy"]["action_observed"] is False
-    assert value["neuron_activity"]["reached_count_by_developmental_layer"] == [
-        [0, 27],
-        [1, 27],
-        [6, 42],
-    ]
+    assert value["neuron_activity"]["reached_count_by_developmental_layer"] == []
     # The fixture observation carries zero formations; the projection must
     # report exactly what the observation says, not a hardwired zero.
-    assert value["fractals"]["count"] == 0
+    assert value["fractals"]["count"] is None
     assert value["formations"]["mosaic_count"] == 0
     assert value["full_dsf"]["fields"] == [
         "D_k",
@@ -776,13 +770,7 @@ def test_recall_section_is_truth_coupled_to_the_native_observation(
     assert value["recall"]["available"] is True
     assert value["recall"]["status"] == "endogenous_physical_reassembly_observed"
     assert value["recall"]["partial_cue_reassembly_count"] == 3
-    assert value["recall"]["retained_formation_recurrence_evidence"] == [
-        {
-            "formation_receipt": "d" * 64,
-            "cue_lineages": ["01" * 16],
-            "origin": "internally_simulated",
-        }
-    ]
+    assert value["recall"]["retained_formation_recurrence_evidence"] == []
     assert value["formations"]["mosaic_count"] == 1
 
 

@@ -1695,28 +1695,16 @@ def _native_record() -> dict[str, Any]:
     # transition in flight and re-enters freely inside one.
     with _transition_lock:
         observed = restored.organism.readiness()
-    recurrence_evidence = [
-        {
-            "formation_receipt": receipt,
-            "cue_lineages": list(cue_lineages),
-            "origin": origin,
-        }
-        for receipt, cue_lineages, origin in (
-            restored.organism.observe_retained_formation_recurrence_evidence()
-        )
-    ]
     return {
         "cognitive_mosaic_count": observed.cognitive_mosaic_count,
         "mosaic_of_mosaics_count": observed.mosaic_of_mosaics_count,
         "cognitive_ordinal": observed.cognitive_ordinal,
         "cognitive_trace_count": observed.cognitive_trace_count,
         "complete_neuron_count": getattr(observed, "complete_neuron_count", 0),
-        "reached_neuron_count_by_layer": [
-            [layer, count]
-            for layer, count in (
-                restored.organism.observe_reached_neuron_count_by_layer()
-            )
-        ],
+        # The public observer must not enumerate resident anatomy. Exact
+        # layer membership remains native state and is observed only by an
+        # explicitly requested diagnostic, never by every status refresh.
+        "reached_neuron_count_by_layer": [],
         "developmental_resting_neuron_count": getattr(
             observed, "developmental_resting_neuron_count", 0
         ),
@@ -1766,7 +1754,11 @@ def _native_record() -> dict[str, Any]:
         "endogenous_partial_cue_reassembly_count": (
             observed.endogenous_partial_cue_reassembly_count
         ),
-        "retained_formation_recurrence_evidence": recurrence_evidence,
+        # Retained formation evidence is not a public-cache payload. The old
+        # observer encoded and hashed every retained mosaic here, making a
+        # read scale with Guala's lifetime. Current counters above remain the
+        # bounded public facts.
+        "retained_formation_recurrence_evidence": [],
         "physical_transition_claimed": observed.physical_transition_claimed,
         "python_callback_count": observed.python_callback_count,
         "reached_dsf_perspective_count": observed.joint_neuron_count,
@@ -4929,11 +4921,59 @@ def _last_transition_record() -> dict[str, object]:
             "no_transition_this_process",
             "no admitted native transition has been committed by this process",
         )
-    evidence = dict(_last_transition_evidence)
-    motor_action = evidence.get("motor_action")
-    if isinstance(motor_action, dict):
-        evidence["motor_action"] = _bounded_motor_action_observation(motor_action)
+    source = _last_transition_evidence
+
+    def sequence_count(name: str) -> int:
+        value = source.get(name, ())
+        return len(value) if isinstance(value, (list, tuple)) else 0
+
+    # This is a witness that a transition happened, not a second copy of the
+    # transition. Never pass through per-neuron, per-contact, per-formation,
+    # or per-body-axis arrays from the resident boundary.
+    evidence: dict[str, object] = {
+        key: source[key]
+        for key in (
+            "intake",
+            "hop_count",
+            "vestibular_tick_count",
+            "predecessor_organism_tick",
+            "organism_tick",
+            "predecessor_state_sha256",
+            "state_sha256",
+            "energy_exhausted",
+        )
+        if key in source
+    }
+    totals = source.get("totals")
+    if isinstance(totals, dict):
+        evidence["totals"] = {
+            key: value
+            for key, value in totals.items()
+            if isinstance(key, str)
+            and isinstance(value, (bool, int))
+            and not isinstance(value, float)
+        }
+    ingress = source.get("receptor_ingress")
+    if isinstance(ingress, dict):
+        sense_counts = ingress.get("sense_counts")
+        evidence["receptor_ingress"] = {
+            "changing_count": ingress.get("changing_count"),
+            "quiescent_count": ingress.get("quiescent_count"),
+            "source_hop_count": ingress.get("source_hop_count"),
+            "sense_counts": (
+                {
+                    key: value
+                    for key, value in sense_counts.items()
+                    if isinstance(key, str)
+                    and isinstance(value, int)
+                    and not isinstance(value, bool)
+                }
+                if isinstance(sense_counts, dict)
+                else {}
+            ),
+        }
     for field, count_field in (
+        ("emitted_neuron_fractals", "emitted_neuron_fractal_count"),
         ("motor_unit_recruitments", "motor_unit_recruitment_count"),
         ("articulatory_unit_recruitments", "articulatory_unit_recruitment_count"),
         ("organic_mosaic_relations", "organic_mosaic_relation_count"),
@@ -4946,14 +4986,75 @@ def _last_transition_record() -> dict[str, object]:
             "reached_and_foregone_physical_frontier_routes",
             "reached_and_foregone_physical_frontier_route_count",
         ),
+        ("working_causal_continuations", "working_causal_continuation_count"),
+        ("body_consequence_transfers", "body_consequence_transfer_count"),
+        ("affective_balance_trajectories", "affective_balance_trajectory_count"),
+        ("localized_fluid_chemistry", "localized_fluid_chemistry_count"),
     ):
-        values = evidence.pop(field, ())
-        evidence[count_field] = len(values) if isinstance(values, (list, tuple)) else 0
+        evidence[count_field] = sequence_count(field)
+    motor_action = source.get("motor_action")
+    if isinstance(motor_action, dict):
+        consequence = motor_action.get("sensory_consequence")
+        bounded_action: dict[str, object] = {
+            key: motor_action[key]
+            for key in (
+                "schema",
+                "causal_intent_receipt_sha256",
+                "body_transition_receipt_sha256",
+                "disposition",
+                "moved",
+                "continuous_cognition",
+                "body_state_before_sha256",
+                "body_state_after_sha256",
+                "motor_unit_recruitment_count",
+                "vestibular_tick_count",
+                "world_revision",
+                "world_state_before_sha256",
+                "world_state_after_sha256",
+            )
+            if key in motor_action
+        }
+        bounded_action.update(
+            {
+                "body_effector_binding_count": len(
+                    motor_action.get("body_effector_bindings", ())
+                ),
+                "articulated_body_consequence_count": len(
+                    motor_action.get("articulated_body_consequences", ())
+                ),
+                "body_proprioceptive_source_count": len(
+                    motor_action.get("body_proprioceptive_sources", ())
+                ),
+                "motor_body_afferent_path_count": len(
+                    motor_action.get("motor_body_afferent_paths", ())
+                ),
+            }
+        )
+        if isinstance(consequence, dict):
+            bounded_action["sensory_consequence"] = {
+                key: consequence[key]
+                for key in (
+                    "causal_receipt_sha256",
+                    "organism_identity",
+                    "organism_tick",
+                    "state_sha256",
+                    "externally_perturbed_body_receptor_count",
+                    "internal_metabolic_receptor_count",
+                    "receptor_ingress_changing_count",
+                    "receptor_ingress_quiescent_count",
+                    "receptor_ingress_sense_counts",
+                    "articulated_body_proprioceptive",
+                    "vestibular",
+                )
+                if key in consequence
+            }
+        evidence["motor_action"] = bounded_action
     return _section(
         True,
         "committed_admitted_transition",
-        "bounded facts of the most recent committed admitted transition; exact "
-        "cognitive detail remains in the state identified by state_sha256",
+        "bounded receipt and counts for the most recent committed transition; "
+        "all neuronal, contact, formation, and body-array detail remains only "
+        "in the resident state identified by state_sha256",
         **evidence,
     )
 
@@ -5558,17 +5659,7 @@ def _build_public_observation_from_snapshot(
     build_identity: dict[str, str],
 ) -> dict[str, Any]:
     last = _last_transition_record()
-    last_fractal_evidence = (
-        _last_transition_evidence.get("emitted_neuron_fractals", ())
-        if _last_transition_evidence is not None
-        else ()
-    )
-    # One admitted experience may contain many physical hops.  Its top-level
-    # transition fields describe only the final hop, while this sequence is
-    # assembled from every committed hop.  Count the exact exported evidence;
-    # otherwise a final quiet hop reports zero beside the fractals emitted by
-    # earlier hops of the same experience.
-    last_fractal_count = len(last_fractal_evidence)
+    last_fractal_count = int(last.get("emitted_neuron_fractal_count", 0))
     record: dict[str, Any] = {
         "schema": PUBLIC_OBSERVATION_SCHEMA,
         "generation": native["organism_tick"],
@@ -5866,12 +5957,10 @@ def _build_public_observation_from_snapshot(
             "separate step fact: how many NEW impressions the most recent "
             "experience created, which is legitimately zero for a quiet "
             "moment or for something she has already learned. "
-            "`formed_evidence_in_last_experience` carries each emitted "
-            "neuron's exact lineage, causal tick span, and sparse retained "
-            "post-quiescence physical delta; it is evidence, not a label.",
+            "Per-neuron fractal bodies remain in the resident state and are "
+            "not copied into this bounded public observer.",
             count=retained_impressions,
             formed_in_last_experience=last_fractal_count,
-            formed_evidence_in_last_experience=last_fractal_evidence,
         ),
         # `mosaic_count` and `mosaic_of_mosaics_count` are decoded from her
         # retained formations — physical facts in her body.  The three higher
@@ -6032,7 +6121,7 @@ def _build_public_observation_from_snapshot(
 def _build_public_observation() -> dict[str, Any]:
     return _build_public_observation_from_snapshot(
         _native_record(),
-        _retained_impression_neuron_count(),
+        None,
         _build_identity(),
     )
 
@@ -6042,7 +6131,10 @@ def _refresh_public_observation_cache() -> None:
 
     try:
         native = _native_record()
-        retained_impressions = _retained_impression_neuron_count()
+        # A status refresh must not enumerate every retained formation merely
+        # to derive one display number. The exact resident counters and latest
+        # bounded transition witness remain available without that scan.
+        retained_impressions = None
         build_identity = _build_identity()
         body = _canonical(
             _build_public_observation_from_snapshot(

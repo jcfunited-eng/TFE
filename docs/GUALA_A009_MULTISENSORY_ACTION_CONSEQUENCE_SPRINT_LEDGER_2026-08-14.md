@@ -449,3 +449,34 @@ later cleared its public cache and returned HTTP 503 while CURRENT continued
 advancing. That operational projection defect does not alter the action,
 same-organism sensory return, or continued-cognition proof and is not folded
 back into A-009.
+
+## Bounded public-observer operational correction — 2026-08-22
+
+The post-closure HTTP 503 was isolated to the read-only public projection.
+The old observer enumerated and encoded every retained recurrence mosaic,
+enumerated resident anatomy, copied every emitted neuronal fractal, and passed
+most transition arrays into one JSON response. A prior live response contained
+3,692,751 bytes in `last_transition` alone. None of that work participates in
+cognition, action, consequence settlement, persistence, or CURRENT.
+
+The corrected observer reads the native readiness snapshot once, emits only
+fixed receipts and counts for the latest transition/action/consequence, and
+does not export neuronal, contact, formation, or body-array payloads. Against
+the exact production body at tick 148524, an old 3,692,751-byte transition
+became a 1,717-byte witness. A no-action refresh fell from 1.932 seconds to
+0.208 seconds. The exact ordinary discarded-state action path then advanced
+148524 -> 148540, retained continuous cognition, returned sight 27, sound 34,
+touch 27, smell 8, taste 5, and body 84, and successfully produced a 3,299-byte
+action witness inside a 169,868-byte complete public response.
+
+Applicable recurrence checks:
+
+| ID | Earliest check | Result |
+|---|---|---|
+| RF-001/RF-002 | Exact worktree first on `PYTHONPATH`; exact production roster and identity before import | Passed |
+| RF-005 | Action receipt, continuous-cognition flag, successor tick, and sense counts reach the final observer | Passed |
+| RF-010 | Discarded successor published to its isolated CURRENT before observation | Passed |
+| RF-011 | Measure complete response and latest-transition bytes | 169,868 / 3,299 bytes |
+| RF-012 | Execute one real mature action/consequence interval, not an HTTP-only check | Passed, 148524 -> 148540 |
+| RF-016 | Candidate changes only the post-A-009 observer and its focused tests | Passed |
+| RF-048 | Restore the exact production world before the embodied rehearsal | Passed |
