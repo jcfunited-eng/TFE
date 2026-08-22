@@ -5,6 +5,34 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
+## Current serial execution authority — 2026-08-22
+
+This is the one current work order. If an older sprint ledger, handoff, or
+status note names a different next item, this section governs until a newer
+explicit reconciliation replaces it. Work is serial: one accepted item is
+implemented, reviewed, deployed when required, and truthfully recorded before
+the next begins. A question or status request does not change this order.
+
+Current production baseline: task definition `dsf-ai-task:1175`, commit
+`eface784c40a37cc65c9dad5070349e6335069b3`, immutable image
+`sha256:b0b3bc1e0af20b5b3010256a762edcb0eea9d7052d54b495bfd14bd538821411`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The V25 evidence
+cutover reduced the current body to `131,697,766` bytes at generation `150596`.
+
+| Order | Item | Current truth | Exact next acceptance boundary |
+|---:|---|---|---|
+| 0 | A-009 foundation | Live-closed | Preserve continuous cognition and same-organism action consequence re-entry; no pause machinery or full-neuron evidence duplication may return. |
+| 0 | C-023 bounded mechanism | Direct causal-use witness live; complete top-level capability sentence remains partial | Use as a prerequisite witness only; do not reopen its retired broad mechanism. |
+| 0 | C-024 live record | Corrected translation and 83-cell direct live witness recorded; complete top-level capability sentence remains partial | Closed for the present increment; missing capability families are supplied only by their own later items. |
+| 1 | A-006 | `RECONCILED PARTIAL` — next active item | Prove intrinsic curiosity/motivation from the organism's own changing physical reach, without observer labels, scores, or scripted choice. |
+| 2 | A-011 | `RECONCILED PARTIAL` | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
+| 3 | A-012 | `RECONCILED PARTIAL` | Prove self-selected rest/sleep/wake/exploration/learning/interaction as one unattended native life. |
+| 4 | A-013 | `RECONCILED PARTIAL` | Close only the necessary persistent embodiment and thermal/body participation needed by meaningful learning. |
+| 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
+| 6 | L-005 | Open | Directly prove first genuine learned recognition from novel sensory evidence, not metadata or labels. |
+| 7 | L-006 | Open | Directly prove one physically caused first utterance, self-hearing, and learned reuse in a different context. |
+| 8 | Remaining curriculum/UI/final proof | Open | Continue L-007 onward, U-001 onward, and final P acceptance in dependency order; S-010 and C-013 remain explicit open requirements and cannot be lost. |
+
 ## Neuron and sensory specialization
 
 - [x] **S-001** Production inventory reports exact reached and developmental
