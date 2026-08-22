@@ -1074,3 +1074,42 @@ the sole writer, and applies the unchanged live identity/readiness checks. If
 the candidate fails, it drains back to zero writers and never restarts the
 known-unstartable predecessor. Normal deployments retain their full live
 preflight and predecessor-restore behavior.
+
+### Task-1169 recovery and bounded C-023 observer correction
+
+Commit `da575dd778f7c483b56c16faa77de3d41f70f54d` is live as the sole
+production task `dsf-ai-task:1169` with image
+`sha256:0ea82153daa4a549be09bb6a0e227fd990da85bc898a9ecb4406334ffd0daa90`.
+ECS reports desired one, running one, pending zero, and one completed PRIMARY
+deployment. The candidate restored the unchanged resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; readiness returned 200 and native
+CURRENT advanced from tick 149878 to tick 149910 with state
+`9b5c6968774f9613a7938c100c1e1f0ef14424df09b70d82e30b0b34965688df`.
+It retained 2 endogenous partial-cue reassemblies, 49 total reassemblies,
+2,378 reached complete neurons, 64 mosaics, 194,351 developmental-resting
+neurons, available non-exhausted energy, and zero Python cognition callbacks.
+
+The first recovery controller invocation reached its 780-second service wait
+while the one mature candidate was still performing the same lawful cold
+restore covered by the service's 40-minute health grace. The controller safely
+drained back to zero rather than overlap writers. Starting that same already-
+built task definition under the longer existing health allowance completed
+successfully. The controller service-stability budget is therefore 2,400
+seconds; no health, readiness, identity, digest, state, or one-writer assertion
+is changed.
+
+After the next autonomous transition, `/ready/guala` continued to return 200
+and proved tick 149910 while the optional public observation returned 503.
+Native cognition, persistence, identity, and energy continued; the failure was
+confined to the read-only display cache. The source-proven C-023 breach was that
+a completed causal witness could copy its exact predecessor and successor
+contact-state coordinates into public JSON. Mature rational coordinates can
+exceed Python's finite decimal rendering boundary and do not belong in a
+bounded observer. The correction publishes only the contact identity, causal
+change tick, exact-change fact, and successor resident state receipt; exact
+coordinates remain solely in native state and the observer retains no
+cognition, action, or persistence authority. A 5,000-digit contact-state
+falsifier passes, the full public-observation plus C-023 focused boundary passes
+30/30, the deployment-controller boundary passes 13/13, Python compilation and
+shell syntax pass, and `git diff --check` passes. Live C-023 witness evidence is
+still required after this observer correction is deployed.

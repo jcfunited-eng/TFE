@@ -5041,6 +5041,29 @@ def _causal_cross_context_use_record() -> dict[str, object]:
         )
     changed_contact = evidence.get("changed_contact_channel_state")
     exact_contact_bound = isinstance(changed_contact, dict)
+    public_contact: dict[str, object] | None = None
+    if exact_contact_bound:
+        predecessor_state = changed_contact.get("predecessor_state")
+        successor_state = changed_contact.get("successor_state")
+        public_contact = {
+            key: changed_contact[key]
+            for key in (
+                "change_organism_tick",
+                "contact_cognitive_ordinal",
+                "left_lineage",
+                "right_lineage",
+                "parallel_ordinal",
+            )
+            if key in changed_contact
+        }
+        public_contact.update(
+            {
+                "exact_state_changed": predecessor_state != successor_state,
+                "exact_state_coordinates_resident": True,
+                "exact_state_coordinates_transported": False,
+                "resident_state_sha256": evidence.get("state_sha256"),
+            }
+        )
     return _section(
         True,
         (
@@ -5058,7 +5081,7 @@ def _causal_cross_context_use_record() -> dict[str, object]:
         intake=evidence.get("intake"),
         internally_caused=True,
         scripted_action_authority=False,
-        changed_contact_channel_state=changed_contact,
+        changed_contact_channel_state=public_contact,
         exact_changed_contact_bound_to_motor_path=exact_contact_bound,
         action=evidence.get("action"),
         sensed_consequence=evidence.get("sensed_consequence"),

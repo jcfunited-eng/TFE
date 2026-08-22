@@ -40,10 +40,11 @@ RECOVER_DRAINED=0
 # wait is therefore bounded by a lesson, not by a network round trip; the
 # assertions on the answer are unchanged and still have to pass.
 READY_MAX_SECONDS="${READY_MAX_SECONDS:-900}"
-# Poll the exact service facts for the full existing 10+3 minute budget. AWS's
-# built-in waiter can enter a terminal state while the one candidate task is
-# already healthy but ECS is still retiring the prior deployment record.
-SERVICE_STABLE_MAX_SECONDS="${SERVICE_STABLE_MAX_SECONDS:-780}"
+# Match the service's reviewed 40-minute health grace. A mature CURRENT restore
+# has now exceeded the former 13-minute controller budget while the sole task
+# remained stable and still decoding. This is patience only: every exact ECS,
+# health, readiness, identity, digest, and one-writer assertion remains.
+SERVICE_STABLE_MAX_SECONDS="${SERVICE_STABLE_MAX_SECONDS:-2400}"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in

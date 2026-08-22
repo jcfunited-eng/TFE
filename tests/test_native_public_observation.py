@@ -127,6 +127,7 @@ def _mount(monkeypatch) -> _Restored:
     monkeypatch.setattr(serving, "_last_transition_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_prediction_evidence", None)
     monkeypatch.setattr(serving, "_last_tested_affective_balance_evidence", None)
+    monkeypatch.setattr(serving, "_last_causal_cross_context_use_evidence", None)
     monkeypatch.setattr(serving, "_last_intrinsic_curiosity_evidence", None)
     monkeypatch.setattr(serving, "_sensorimotor_play_candidate", None)
     monkeypatch.setattr(serving, "_last_sensorimotor_play_evidence", None)
@@ -348,6 +349,56 @@ def test_observer_keeps_unbounded_exact_energy_coordinates_native(
     assert observed["energy"]["exact_coordinates_resident"] is True
     assert observed["energy"]["exact_coordinates_transported"] is False
     assert "available_energy_zeptojoules" not in observed["energy"]
+
+
+def test_causal_observer_keeps_unbounded_contact_coordinates_native(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    huge = 10**5000
+    state_sha = "d" * 64
+    monkeypatch.setattr(
+        serving,
+        "_last_causal_cross_context_use_evidence",
+        {
+            "action": {
+                "body_effector_binding_count": 1,
+                "causal_intent_receipt_sha256": "a" * 64,
+                "root_motion": False,
+            },
+            "changed_contact_channel_state": {
+                "change_organism_tick": 24,
+                "contact_cognitive_ordinal": 24,
+                "left_lineage": "01" * 16,
+                "right_lineage": "02" * 16,
+                "parallel_ordinal": 0,
+                "predecessor_state": (huge, (huge, 1), (1, huge)),
+                "successor_state": (huge + 1, (huge, 1), (2, huge)),
+            },
+            "formation_receipt_sha256": "b" * 64,
+            "intake": "continuous-environment:bounded-observer",
+            "organism_tick": 25,
+            "sensed_consequence": {
+                "body_proprioceptive_source_count": 1,
+                "successor_organism_tick": 25,
+                "successor_state_sha256": state_sha,
+            },
+            "state_sha256": state_sha,
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+
+    observed = json.loads(serving.native_observation().body)
+    contact = observed["body"]["prior_causal_cross_context_use"][
+        "changed_contact_channel_state"
+    ]
+    assert contact["exact_state_changed"] is True
+    assert contact["exact_state_coordinates_resident"] is True
+    assert contact["exact_state_coordinates_transported"] is False
+    assert contact["resident_state_sha256"] == state_sha
+    assert "predecessor_state" not in contact
+    assert "successor_state" not in contact
 
 
 def test_public_observation_counts_every_fractal_emitted_by_the_experience(
