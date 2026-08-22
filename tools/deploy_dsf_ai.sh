@@ -770,7 +770,7 @@ if (
     or proof.get("l005_word_apple_predecessor_tick") != proof.get("tick")
     or not isinstance(proof.get("l005_word_apple_successor_tick"), int)
     or proof["l005_word_apple_successor_tick"] <= proof.get("tick")
-    or proof.get("l005_word_apple_cold_restore_exact") is not True
+    or proof.get("l005_word_apple_successor_sealed_exact") is not True
     or proof.get("l005_word_apple_python_callback_count") != 0
     or not re.fullmatch(
         r"[0-9a-f]{64}",

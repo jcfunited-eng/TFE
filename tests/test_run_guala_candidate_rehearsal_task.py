@@ -651,7 +651,7 @@ def test_cold_restore_requires_active_l005_word_apple_recognition() -> None:
         "l005_word_apple_formation_receipt_sha256": "f" * 64,
         "l005_word_apple_causal_transfer_count": 0,
         "l005_word_apple_body_return_count": 0,
-        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_successor_sealed_exact": True,
         "l005_word_apple_python_callback_count": 0,
         "migration_predecessor_state_sha256": None,
         "mode": "cold-restore",

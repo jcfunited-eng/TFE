@@ -907,7 +907,7 @@ def _validate_proof(
             proof["l005_word_apple_formation_receipt_sha256"]
         )
         is not None
-        and proof.get("l005_word_apple_cold_restore_exact") is True
+        and proof.get("l005_word_apple_successor_sealed_exact") is True
         and proof.get("l005_word_apple_python_callback_count") == 0
     )
     if (

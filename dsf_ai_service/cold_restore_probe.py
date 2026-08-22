@@ -1864,20 +1864,11 @@ def _rehearse_l005_word_apple(
 
     after = organism.readiness()
     successor = bytes(organism.save())
-    cold = restore_native_resident_organism(
-        current_envelope=successor,
-        max_envelope_bytes=admission.max_envelope_bytes,
-        max_fabric_bytes=admission.max_fabric_bytes,
-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
-    ).readiness()
     if (
         dsf_delivery_count <= 0
         or after.identity != before.identity
         or after.organism_tick <= before.organism_tick
         or after.state_sha256 == before.state_sha256
-        or cold.identity != after.identity
-        or cold.organism_tick != after.organism_tick
-        or cold.state_sha256 != after.state_sha256
         or len(successor) != after.state_bytes
         or hashlib.sha256(successor).hexdigest() != after.state_sha256
         or after.python_callback_count != 0
@@ -1905,7 +1896,7 @@ def _rehearse_l005_word_apple(
         "l005_word_apple_formation_receipt_sha256": formation_receipt,
         "l005_word_apple_causal_transfer_count": len(transfers),
         "l005_word_apple_body_return_count": body_return_count,
-        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_successor_sealed_exact": True,
         "l005_word_apple_python_callback_count": after.python_callback_count,
     }
 

@@ -226,7 +226,7 @@ def test_probe_reads_saves_and_reobserves_without_advancing_state(
         "l005_word_apple_formation_receipt_sha256": "f" * 64,
         "l005_word_apple_causal_transfer_count": 2,
         "l005_word_apple_body_return_count": 1,
-        "l005_word_apple_cold_restore_exact": True,
+        "l005_word_apple_successor_sealed_exact": True,
         "l005_word_apple_python_callback_count": 0,
     }
     monkeypatch.setattr(

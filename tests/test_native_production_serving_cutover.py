@@ -390,7 +390,7 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
             "l005_word_apple_formation_receipt_sha256": "f" * 64,
             "l005_word_apple_causal_transfer_count": 2,
             "l005_word_apple_body_return_count": 1,
-            "l005_word_apple_cold_restore_exact": True,
+            "l005_word_apple_successor_sealed_exact": True,
             "l005_word_apple_python_callback_count": 0,
         },
     )

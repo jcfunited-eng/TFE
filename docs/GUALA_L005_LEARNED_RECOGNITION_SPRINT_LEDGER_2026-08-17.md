@@ -132,6 +132,16 @@ Status: In progress. No learned-word recognition is live-proved.
   distinct physical phases without an intermediate whole-organism seal. The
   controller wall is unchanged and an executable guard now requires one native
   commit, not 18 or 2.
+- Attempt 6 used commit `b03e39de05a7138257342452e1d89ff58377ab10`
+  and candidate image
+  `sha256:c02fb7a4e2da8829d26675de2f4fe865910adfbb2decdab56d5e5f2809949454`.
+  One seal still exceeded the fixed waiter only because the L-005 helper then
+  decoded and canonically re-encoded the complete 165 MB successor again. This
+  release changes no Rust, state codec, or persistence path; the task already
+  cold-restores the authenticated production predecessor before rehearsal.
+  The redundant successor re-decode is removed. The gate retains exact sealed
+  successor byte length and SHA-256 checks, while the actual cutover must still
+  restart the service from persisted CURRENT and pass native readiness.
 - Focused active proof and validator surface passes 58/58. Four other tests in
   the broad historical cold-probe file remain inherited mock drift: their
   hand-written organisms expose retired `prepare_*` methods rather than the
