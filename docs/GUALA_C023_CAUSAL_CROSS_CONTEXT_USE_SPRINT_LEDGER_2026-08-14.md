@@ -985,3 +985,21 @@ was unchanged before and after the focused run. The exact C-023 file passed
 8/8 tests in 1.07 seconds, Python compilation passed, and `git diff --check`
 passed. This is local candidate evidence only; live imagination evidence is
 still required.
+
+The first production cutover attempt built commit `48dbdaae` once as task
+definition 1167 with image
+`sha256:d6e3cbbdb906f0b5bdef63ea6d97476b10721e95e53053b4c179f8e00b38d920`.
+The candidate started at 11:12:48 UTC, completed application restore after
+7m33s, returned repeated health 200, and later stopped cleanly with exit code
+zero only because the controller restored task 1166. The candidate did not
+crash and no live acceptance claim was made.
+
+The deployment failure was RF-007 controller mechanics: AWS's built-in service
+waiter entered a terminal state while the healthy task was still waiting for
+ECS to retire the prior deployment record. The subsequent predecessor restore
+showed the same delayed bookkeeping and returned health 200. The controller now
+polls the exact service facts—requested count equals running count, zero
+pending, and exactly one completed PRIMARY deployment—for the same existing
+13-minute budget. It no longer composes a terminal ten-minute waiter with a
+second waiter that can immediately inherit the terminal state. No readiness,
+identity, image, state, or one-writer assertion is weakened.

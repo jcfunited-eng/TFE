@@ -39,13 +39,10 @@ REHEARSE_ONLY=0
 # wait is therefore bounded by a lesson, not by a network round trip; the
 # assertions on the answer are unchanged and still have to pass.
 READY_MAX_SECONDS="${READY_MAX_SECONDS:-900}"
-# ECS's built-in service waiter stops after ten minutes.  The measured mature
-# restore reached application health after 7m19s but needed more than ten
-# minutes for ECS to mark the already-healthy target stable.  One three-minute
-# extension keeps the normal build+cutover inside the 20-minute deployment
-# budget without killing a verified process merely because its rollout label
-# lagged behind its health.
-SERVICE_STABLE_EXTENSION_SECONDS="${SERVICE_STABLE_EXTENSION_SECONDS:-180}"
+# Poll the exact service facts for the full existing 10+3 minute budget. AWS's
+# built-in waiter can enter a terminal state while the one candidate task is
+# already healthy but ECS is still retiring the prior deployment record.
+SERVICE_STABLE_MAX_SECONDS="${SERVICE_STABLE_MAX_SECONDS:-780}"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -65,24 +62,51 @@ fail() {
     exit 1
 }
 
-for command_name in aws curl git python3 timeout; do
+case "${SERVICE_STABLE_MAX_SECONDS}" in
+    ''|*[!0-9]*) fail "service-stable budget must be a positive integer" ;;
+esac
+[ "${SERVICE_STABLE_MAX_SECONDS}" -gt 0 ] \
+    || fail "service-stable budget must be positive"
+
+for command_name in aws curl date git python3; do
     command -v "${command_name}" >/dev/null 2>&1 \
         || fail "required command is unavailable: ${command_name}"
 done
 
 wait_for_service_stable() {
-    if aws ecs wait services-stable \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"; then
-        return 0
-    fi
-    echo "      standard ECS waiter elapsed; continuing the same task briefly."
-    timeout "${SERVICE_STABLE_EXTENSION_SECONDS}s" \
-        aws ecs wait services-stable \
+    local deadline_epoch service_json
+    deadline_epoch=$(($(date +%s) + SERVICE_STABLE_MAX_SECONDS))
+    while true; do
+        service_json=$(aws ecs describe-services \
             --region "${AWS_REGION}" \
             --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}"
+            --services "${ECS_SERVICE}" \
+            --query 'services[0]' \
+            --output json)
+        if printf '%s' "${service_json}" | python3 -c '
+import json, sys
+service = json.load(sys.stdin)
+desired = service.get("desiredCount")
+if not isinstance(desired, int) or desired < 0:
+    raise SystemExit(1)
+if service.get("runningCount") != desired or service.get("pendingCount") != 0:
+    raise SystemExit(1)
+deployments = service.get("deployments", [])
+if (
+    len(deployments) != 1
+    or deployments[0].get("status") != "PRIMARY"
+    or deployments[0].get("rolloutState") != "COMPLETED"
+):
+    raise SystemExit(1)
+'; then
+            return 0
+        fi
+        if [ "$(date +%s)" -ge "${deadline_epoch}" ]; then
+            printf '%s\n' "${service_json}" >&2
+            return 1
+        fi
+        sleep 10
+    done
 }
 
 REPOSITORY_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) \
