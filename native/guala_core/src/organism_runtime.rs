@@ -6119,8 +6119,14 @@ mod tests {
         let Some(path) = std::env::var_os("GUALA_REAL_BODY") else {
             return;
         };
-        let budget = RuntimeBudget::new(67_108_864, 67_108_000, 536_870_912).unwrap();
         let predecessor = fs::read(PathBuf::from(path)).expect("production envelope is readable");
+        let max_envelope_bytes = predecessor.len().checked_mul(2).unwrap();
+        let budget = RuntimeBudget::new(
+            max_envelope_bytes,
+            max_envelope_bytes.checked_sub(FIXED_BYTES).unwrap(),
+            max_envelope_bytes.checked_mul(3).unwrap(),
+        )
+        .unwrap();
         let before = parse_current_envelope(&predecessor, budget).unwrap();
         let identity = before.identity;
         let organism_tick = before.organism_tick;

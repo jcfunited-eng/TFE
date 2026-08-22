@@ -138,3 +138,75 @@
 - The verified digest is pinned as `production-current`.
 
 Status: **Live-Closed 2026-08-14**. A-007 is next.
+
+## Reconciled live prerequisite — 2026-08-22
+
+- Active item remains `A-006` under the reconciled delivery order. The direct
+  production predecessor remains the task-1173 C-024 witness; no earlier item
+  is reopened as a substitute for current live behavior.
+- Production task `dsf-ai-task:1175` restores the same resident identity and
+  serves a healthy read-only observation, but CURRENT is fixed at generation
+  and tick `150596`. One native unattended interval is consuming CPU without
+  reaching a successor, so A-006 cannot be re-proved on the current organism.
+- Exact inspection of that authenticated CURRENT found `2,487` complete
+  neurons but `2,353` resident cohorts and `108,915` cross-cohort contacts.
+  `98,053` of those contacts join layer 11 to layer 12, and the body contains
+  `623` layer-12 motor cells for only `70` exact mounted body-effector
+  terminals.
+- The source defect is exact: `mount_reached_motor_effector` says one motor
+  route per body-regulation lineage, but identifies an existing route by the
+  complete, changing set of reached layer-11 participants. Each new participant
+  combination therefore claims another layer-12 cell and another contact fan.
+  This is generated developmental topology, not retained learning authority.
+
+### Frozen prerequisite correction
+
+| Boundary | Exact contract |
+|---|---|
+| Input | One authenticated GLCOG025 resident body and one later physically reached body-regulation/order interval |
+| Physical identity | One layer-12 motor unit per exact `BodyEffectorTerminal`; the terminal and its body-regulation ancestry are the stable biological route, while ordering neurons are variable physical inputs |
+| One-way repair | Keep the oldest stable lineage for each exact mounted terminal; retire later duplicate/unspecialized layer-12 artifacts and every incident generated contact; release their claimed resting places; refuse repair if retained evidence, a mosaic, or an active frontier would be discarded |
+| Ordinary growth | Reuse the terminal-bound motor; batch only genuinely new local ordering contacts into the existing sparse fabric once; never key a motor cell by a changing participant set |
+| Persistence | GLCOG026 is current-only. GLCOG025 enters only through the explicit authenticated migration. Ordinary restore rejects GLCOG025, so the duplicate-growth body cannot return through startup, rollback, or recovery |
+| Work bound | Migration is one cold pass. Ordinary motor mounting allocates at most one terminal-bound cell and performs one batched fabric extension for the reached routes, rather than one whole-fabric clone per participant |
+| Unchanged authority | Full joint seven-field DSF, neuron state, non-motor topology, body terminal identity, organism identity, tick/generation, and Python non-cognition boundary remain unchanged |
+| Decisive exit | Exact production predecessor migrates to one current body with 70 terminal-bound motor cells and no duplicate terminal binding; an ordinary interval advances CURRENT without recreating duplicate motors; cold restart accepts only that successor and advances again |
+
+Authorized files for this prerequisite are
+`native/guala_core/src/resident_cognitive_formation.rs`,
+`native/guala_core/src/resident_electrical_fabric.rs`, the existing production-
+body migration proof in `native/guala_core/src/organism_runtime.rs`, the
+focused native tests inside those owners, and this existing sprint ledger. No observer, Python
+curiosity label, transaction framework, database, score, or DSF mechanism is
+authorized.
+
+### Applicable deployment recurrence checks
+
+| ID | Earliest check | Observed evidence |
+|---|---|---|
+| RF-006 | Derive the proof budget from the authenticated predecessor before restore | The first mature probe exposed the obsolete 64 MiB test allowance before migration; the corrected proof derives a bounded two-envelope/three-region allowance from the exact 131,697,766-byte predecessor |
+| RF-013 | Check the bounded diff separately from inherited crate formatting | `git diff --check` passes; crate-wide `cargo fmt --check` reports inherited drift in untouched files and is not used to rewrite them |
+| RF-016 | Reconcile active ledger, predecessor, source diff, and live target | Active item is the A-006 live prerequisite; the diff contains only motor identity/one-way repair, batched fabric growth, the existing mature proof budget, and this ledger |
+| RF-022 | Prove the new persistent format writes and cold-restores one lawful successor | V25 is migration-only; V26 ordinary decode is current-only; the focused V25→V26 proof cold-restores V26 and proves a second migration is byte-identical |
+| RF-031 | Require nonzero focused test execution | Both focused filters reported exactly one executed test and one pass |
+| RF-032 | Run Rust checks from the crate containing `Cargo.toml` | All native commands ran from `native/guala_core` |
+| RF-033 | Re-resolve the exact AWS target before release | Pending release preflight; no remembered target will be used as authority |
+| RF-044 | Count the production-scale multiplier before packaging | Exact CURRENT contains 623 layer-12 cells/70 terminals and 108,915 fabric contacts; corrected steady growth reuses one terminal motor and batches new contacts into one fabric extension |
+
+### Local executable evidence — 2026-08-22
+
+- `cargo check --locked --lib`: pass.
+- Full native library suite: `462` passed, `0` failed, `10` ignored in
+  `90.07` seconds.
+- `changed_ordering_set_reuses_the_terminal_bound_motor`: 1 passed; a second
+  reached ordering set retained the same layer-12 lineage and added only its
+  missing physical contact.
+- `v25_duplicate_motor_growth_migrates_once_and_cannot_restore`: 1 passed;
+  ordinary restore refused V25, migration retained one terminal motor and
+  removed the duplicate contacts, V26 cold-restored, and repeat migration was
+  byte-identical.
+- `authenticated_production_envelope_migrates_exact_energy_once` against the
+  exact 131,697,766-byte task-1175 CURRENT: 1 passed in 225.87 seconds. The
+  proof preserved organism identity, tick, fabric generation, and complete
+  joint field; cold-restored the V26 successor; completed one body observation;
+  and proved a second migration returned identical bytes.

@@ -15,6 +15,7 @@ use crate::sparse_electrical_contact::{
     sparse_electrical_cell_format, ElectricalContactAnatomy, SparseElectricalAnatomy,
     SparseElectricalCellFormat, SparseElectricalError, SparseElectricalState,
 };
+use std::collections::BTreeSet;
 
 const MAGIC: &[u8; 8] = b"GLREF01\0";
 
@@ -85,8 +86,24 @@ impl ResidentElectricalFabric {
         right_lineage: [u8; 16],
         conductance_picosiemens: ExactRational,
     ) -> Result<Self, SparseElectricalError> {
-        if left_lineage == [0; 16] || right_lineage == [0; 16] || left_lineage == right_lineage {
-            return Err(SparseElectricalError::InvalidEndpoint);
+        self.append_contacts(&[(
+            left_lineage,
+            right_lineage,
+            conductance_picosiemens,
+        )])
+    }
+
+    /// Append one reached set of authored cross-cohort contacts while copying
+    /// the resident fabric exactly once.  A causal interval may physically
+    /// mount several inputs on one already-existing motor route; rebuilding
+    /// the complete retained fabric once per input repeats representation, not
+    /// physics.
+    pub(crate) fn append_contacts(
+        &self,
+        additions: &[([u8; 16], [u8; 16], ExactRational)],
+    ) -> Result<Self, SparseElectricalError> {
+        if additions.is_empty() {
+            return Ok(self.clone());
         }
         let mut lineages = self.lineages.to_vec();
         let mut member = |lineage: [u8; 16]| {
@@ -98,20 +115,31 @@ impl ResidentElectricalFabric {
                 index
             }
         };
-        let left = member(left_lineage);
-        let right = member(right_lineage);
+        let mut indexed = Vec::with_capacity(additions.len());
+        for (left_lineage, right_lineage, conductance) in additions.iter().copied() {
+            if left_lineage == [0; 16]
+                || right_lineage == [0; 16]
+                || left_lineage == right_lineage
+            {
+                return Err(SparseElectricalError::InvalidEndpoint);
+            }
+            let left = member(left_lineage);
+            let right = member(right_lineage);
+            indexed.push((left, right, conductance));
+        }
         let neuron_count = lineages.len();
         let widened = self.anatomy.extend_neuron_count(neuron_count.max(1))?;
         let widened_state = SparseElectricalState::from_contact_states(
             &widened,
             self.state.contact_states().to_vec(),
         )?;
-        let successor_anatomy = widened.append_contacts(vec![ElectricalContactAnatomy::new(
-            left,
-            right,
-            conductance_picosiemens,
-            neuron_count,
-        )?])?;
+        let contacts = indexed
+            .into_iter()
+            .map(|(left, right, conductance)| {
+                ElectricalContactAnatomy::new(left, right, conductance, neuron_count)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let successor_anatomy = widened.append_contacts(contacts)?;
         let successor_state = widened_state.append_genesis_contacts(&successor_anatomy)?;
         Ok(Self {
             lineages: lineages.into_boxed_slice(),
@@ -144,6 +172,7 @@ impl ResidentElectricalFabric {
         if retired.is_empty() {
             return Ok(self.clone());
         }
+        let retired = retired.iter().copied().collect::<BTreeSet<_>>();
         let mut kept = Vec::new();
         for ((left, right), (contact, state)) in self.contact_endpoints().zip(
             self.anatomy
