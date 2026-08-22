@@ -281,6 +281,31 @@ def test_public_projection_failure_does_not_hide_native_readiness(monkeypatch) -
     assert unavailable.value.status_code == 503
 
 
+def test_refresh_reuses_startup_build_identity_without_runtime_metadata(
+    monkeypatch,
+) -> None:
+    restored = _mount(monkeypatch)
+    stable_identity = {
+        "git_sha": "d" * 40,
+        "image_digest": "sha256:" + "e" * 64,
+        "task_definition": "dsf-ai-task:901",
+    }
+    monkeypatch.setattr(serving, "_runtime_build_identity", stable_identity)
+
+    def forbidden_runtime_metadata_read():
+        raise AssertionError("build identity was reread after startup")
+
+    monkeypatch.setattr(serving, "_build_identity", forbidden_runtime_metadata_read)
+
+    serving._refresh_public_observation_cache()
+
+    ready = json.loads(serving.ready_guala().body)
+    assert ready["git_sha"] == "d" * 40
+    assert ready["image_digest"] == "sha256:" + "e" * 64
+    assert ready["task_definition"] == "dsf-ai-task:901"
+    assert restored.organism.readiness_calls == 2
+
+
 def test_public_observation_counts_every_fractal_emitted_by_the_experience(
     monkeypatch,
 ) -> None:

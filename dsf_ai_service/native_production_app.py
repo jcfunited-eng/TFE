@@ -1546,6 +1546,7 @@ _boot_error: str | None = None
 _public_observation_body: bytes | None = None
 _public_observation_etag: str | None = None
 _runtime_proof_body: bytes | None = None
+_runtime_build_identity: dict[str, str] | None = None
 _last_transition_evidence: dict[str, Any] | None = None
 # One bounded observation witness, not organism memory.  A tested physical
 # alternative is otherwise visible only until the next unattended interval,
@@ -6053,7 +6054,15 @@ def _refresh_public_observation_cache() -> None:
         # to derive one display number. The exact resident counters and latest
         # bounded transition witness remain available without that scan.
         retained_impressions = None
-        build_identity = _build_identity()
+        # Build identity is immutable for the life of one ECS process. Resolve
+        # it once during startup; an optional ECS metadata network read must
+        # never make a mounted resident organism or its readiness proof vanish
+        # after a committed transition.
+        build_identity = (
+            dict(_runtime_build_identity)
+            if _runtime_build_identity is not None
+            else _build_identity()
+        )
         runtime_proof_body = _canonical(
             _readiness_from_snapshot(
                 native,
@@ -12594,6 +12603,7 @@ def _startup() -> None:
     global _last_song_lesson_receipt, _last_song_lesson_receipt_error
     global _curriculum_invitation
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
+    global _runtime_build_identity
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
@@ -12620,6 +12630,7 @@ def _startup() -> None:
     _last_reciprocal_social_play_evidence = None
     _active_cross_intake_causal_motor_traces = {}
     _curriculum_invitation = None
+    _runtime_build_identity = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         migration_authorized = os.environ.get(
@@ -12698,6 +12709,7 @@ def _startup() -> None:
         _admission = admission
         _restored = restored
         _boot_error = None
+        _runtime_build_identity = _build_identity()
         try:
             _last_card_lesson_receipt = _load_card_lesson_receipt()
             _last_card_lesson_receipt_error = None
@@ -12723,6 +12735,7 @@ def _startup() -> None:
         _public_observation_body = None
         _public_observation_etag = None
         _runtime_proof_body = None
+        _runtime_build_identity = None
         _boot_error = f"{type(error).__name__}: {error}"
         raise
 

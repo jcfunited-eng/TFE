@@ -1048,3 +1048,14 @@ correction retains every permitted trace that actually advanced at the intake
 boundary. Nonadvancing traces, unrelated origin kinds, semantic labels, and
 history remain excluded. The retained set is bounded by the current reached
 frontier, not by organism age or retained-formation population.
+
+The first deployment of that correction stopped before cutover because task
+1167's `/ready/guala` returned 503. Health remained 200, ECS remained exactly
+one healthy task, and the candidate was only built and registered. Source
+inspection found that observation refresh still resolved immutable ECS build
+identity through the metadata network after every committed transition; one
+metadata failure cleared both the optional public cache and the compact runtime
+proof. The correction resolves build identity once during process startup and
+reuses that immutable value. Public projection remains read-only, and neither
+its rendering nor ECS metadata availability can participate in cognition,
+action, settlement, persistence, or later readiness refreshes.
