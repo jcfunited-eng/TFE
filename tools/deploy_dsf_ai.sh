@@ -39,6 +39,13 @@ REHEARSE_ONLY=0
 # wait is therefore bounded by a lesson, not by a network round trip; the
 # assertions on the answer are unchanged and still have to pass.
 READY_MAX_SECONDS="${READY_MAX_SECONDS:-900}"
+# ECS's built-in service waiter stops after ten minutes.  The measured mature
+# restore reached application health after 7m19s but needed more than ten
+# minutes for ECS to mark the already-healthy target stable.  One three-minute
+# extension keeps the normal build+cutover inside the 20-minute deployment
+# budget without killing a verified process merely because its rollout label
+# lagged behind its health.
+SERVICE_STABLE_EXTENSION_SECONDS="${SERVICE_STABLE_EXTENSION_SECONDS:-180}"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -58,10 +65,25 @@ fail() {
     exit 1
 }
 
-for command_name in aws curl git python3; do
+for command_name in aws curl git python3 timeout; do
     command -v "${command_name}" >/dev/null 2>&1 \
         || fail "required command is unavailable: ${command_name}"
 done
+
+wait_for_service_stable() {
+    if aws ecs wait services-stable \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"; then
+        return 0
+    fi
+    echo "      standard ECS waiter elapsed; continuing the same task briefly."
+    timeout "${SERVICE_STABLE_EXTENSION_SECONDS}s" \
+        aws ecs wait services-stable \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}"
+}
 
 REPOSITORY_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) \
     || fail "run this command inside the reviewed repository"
@@ -658,10 +680,7 @@ drain_live_organism() {
         --service "${ECS_SERVICE}" \
         --desired-count 0 \
         --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
-    aws ecs wait services-stable \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"
+    wait_for_service_stable
     service_json=$(aws ecs describe-services \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
@@ -695,10 +714,7 @@ restore_previous_live_organism() {
         --service "${ECS_SERVICE}" \
         --desired-count 0 \
         --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
-    aws ecs wait services-stable \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"
+    wait_for_service_stable
     aws ecs update-service \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
@@ -707,10 +723,7 @@ restore_previous_live_organism() {
         --desired-count 1 \
         --deployment-configuration "${DEPLOY_CONFIGURATION}" \
         --force-new-deployment >/dev/null
-    aws ecs wait services-stable \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}"
+    wait_for_service_stable
     curl -fsS \
         --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
         --connect-timeout 10 --max-time 30 \
@@ -849,10 +862,7 @@ else
                 || fail "candidate admission and predecessor restoration both failed"
             fail "candidate admission failed; predecessor restored"
         fi
-        if ! aws ecs wait services-stable \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}"; then
+        if ! wait_for_service_stable; then
             restore_previous_live_organism \
                 || fail "candidate startup and predecessor restoration both failed"
             fail "candidate startup failed; predecessor restored"

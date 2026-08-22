@@ -401,3 +401,33 @@ only those two exact external causes across adjacent intake boundaries; all
 internal formation, new-fractal, affective, completed, and unrelated traces
 remain transaction-local. A later participant movement supersedes only its
 participant trace and cannot erase an unresolved retained-formation trace.
+
+## Cross-interval trace correction on task 1166
+
+Commit `2f2040ce044cd3bd6f5d3ea01626a8062d983d59` built once as task
+definition 1166 with image digest
+`sha256:ee39ee8a3958e98f4182edbe2aa01ec668882bab73be536d2cddfc280d822e98`.
+The focused exact causal suite passed 7/7. It proves an external reassembly can
+cross two adjacent intake boundaries and reach later articulation, and proves
+that internal formation, new-fractal, and affective traces remain local.
+
+The first cutover attempt exposed a deployment-controller defect rather than a
+candidate defect. Task 1166 completed application startup and returned repeated
+health 200 responses, but the fixed ten-minute ECS `services-stable` waiter
+expired before ECS updated its rollout label. The controller killed the healthy
+candidate and began restoring task 1165. The restore also exceeded the same
+fixed waiter; task 1165 nevertheless completed cold restore and was verified at
+tick 149376 before any retry.
+
+The already-built task 1166 was then started once without rebuilding. It became
+the sole healthy process and proved exact commit, image, task definition,
+CURRENT tick 149393, state
+`9d3626711f699b2b10cfd002c8e3099ba84f90fac53c6268951f9306ada64d9f`,
+and zero Python cognition callbacks. Its image is pinned as
+`production-current`.
+
+The deployment controller now retains the standard ten-minute ECS waiter and,
+only if that rollout label lags, continues the same task for one bounded
+three-minute extension. The measured 7m19s mature application restore plus ECS
+health-label convergence remains inside the normal 20-minute build-and-cutover
+budget. The extension never starts another task or weakens native readiness.
