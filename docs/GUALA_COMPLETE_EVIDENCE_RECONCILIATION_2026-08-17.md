@@ -122,3 +122,61 @@ preflight predecessor. It is removed from the next reviewed artifact; candidate
 rehearsal consumes the exact preflight predecessor as its admitted lower bound,
 while still requiring the read-only CURRENT restore to preserve identity and be
 at the same or a later organism tick.
+
+## Current readable status snapshot — 2026-08-22
+
+This snapshot supersedes any statement that one old checkbox, sprint title, or
+adjacent receipt proves a complete top-level sentence. It accounts for all 100
+permanent IDs exactly once.
+
+`Live-Closed` below means accepted after this reconciliation. `Partial` means a
+real narrower mechanism is live but the whole sentence is not. `Open` means no
+complete accepted result. `Historical claim; verify` means the delivery ledger
+contains a prior live-closure claim, but P-012 has not yet re-established every
+required current-source, live-behavior, negative-authority, and resource fact.
+It is not being presented as a newly accepted closure.
+
+| Family | Live-Closed | Partial | Open | Historical claim; verify |
+| --- | --- | --- | --- | --- |
+| S (20) | S-009 | — | S-010 | S-001–S-008; S-011–S-020 |
+| C (24) | — | C-023; C-024 | C-013 | C-001–C-012; C-014–C-022 |
+| A (15) | A-009 | A-006; A-011; A-012; A-013; A-014 | — | A-001–A-005; A-007–A-008; A-010; A-015 |
+| L (16) | — | — | L-005–L-016 | L-001–L-004 |
+| U (12) | — | — | U-001–U-012 | — |
+| P (13) | — | — | P-001–P-013 | — |
+| **Total (100)** | **2** | **7** | **39** | **52** |
+
+The C-023 common retained-formation-to-action-to-sensed-return mechanism is
+live-proved on task 1172, but social cognition, creativity, reflection, and
+procedural mastery remain downstream behavioral work. The C-024 omitted-field
+defect is corrected and live-proved on task 1173 with 83 sparse evidence cells,
+but the full C-024 sentence remains Partial because unproved capability
+families correctly remain blank.
+
+## Fixed serial delivery order
+
+Questions and status requests do not change this order. It changes only when an
+actual prerequisite defect is proved.
+
+1. Before the next release, correct the task-1173 deployment-handoff outage:
+   the predecessor was drained before the candidate's approximately 20-minute
+   cold restore completed. This is the currently exposed P-010 production
+   sub-boundary, not a cognition mechanism.
+2. Complete A-006, then A-011, A-012, A-013, and A-014 as whole live behaviors.
+   S-010 is resolved inside A-013 only if the exact body design requires an
+   additional organ-specific afferent; an aggregate substitute is forbidden.
+3. Live-prove L-005 first recognition and L-006 first utterance/self-hearing.
+4. Complete L-007–L-014 lesson and media sources, then L-015 and L-016 learned
+   cross-context language and meaningful conversation.
+5. Complete U-001–U-012 as a bounded read-only interaction and evidence
+   surface; no observer becomes cognition authority.
+6. Close C-013, C-023, and C-024 only from the genuine downstream behaviors
+   they require, never from counts or observer translations.
+7. Reconcile every historical claim and remaining production boundary through
+   P-001–P-012. P-013 closes only when all 100 rows are Live-Closed.
+
+The task-1173 live report also makes the present product limitation explicit:
+the organism advances, settles, moves, senses, and persists, but native causal
+thought is still reported as not mounted and no learned-language interaction
+has been demonstrated. Internal activity is not accepted as a substitute for
+the accessible learned behavior required by the remaining list.
