@@ -10972,12 +10972,12 @@ fn mount_reached_ordering_reach(
     }
     active_routes.sort_unstable();
 
-    // Index the exact retained neighbourhood of every already-mounted
-    // ordering cell once. The former loop rescanned the complete sparse
-    // fabric for every active route and every layer-11 cell even though the
-    // fabric is unchanged while existing matches are identified. This map is
-    // transient bookkeeping only: its key is the same exact two-lineage
-    // physical participant set, and duplicate cells still fail closed.
+    // Index the founding physical bond of every already-mounted ordering cell
+    // once. Its first two relevant contacts were appended together when the
+    // cell was born; later recurrence/motor/articulatory contacts may widen
+    // its neighbourhood but cannot change that founding bond or make the cell
+    // appear unmounted. Contact order is canonical persisted anatomy, not a
+    // heuristic or an observer label.
     let ordering_candidates = mounted
         .iter()
         .filter_map(|(lineage, mount)| {
@@ -11012,10 +11012,11 @@ fn mount_reached_ordering_reach(
     }
     let mut matching_by_participants =
         std::collections::BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
-    for (candidate, mut neighbours) in neighbours_by_ordering {
-        neighbours.sort_unstable();
-        neighbours.dedup();
-        if let [left, right] = neighbours.as_slice() {
+    for (candidate, neighbours) in neighbours_by_ordering {
+        let mut founding = neighbours.into_iter().take(2).collect::<Vec<_>>();
+        founding.sort_unstable();
+        founding.dedup();
+        if let [left, right] = founding.as_slice() {
             matching_by_participants
                 .entry([*left, *right])
                 .or_default()
@@ -11032,34 +11033,38 @@ fn mount_reached_ordering_reach(
         })
         .collect::<BTreeSet<_>>();
 
+    let mut new_contacts = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
     for participants in active_routes {
-        let matching = matching_by_participants
+        let mut matching = matching_by_participants
             .get(&participants)
             .cloned()
             .unwrap_or_default();
-        let ordering_lineage = match matching.as_slice() {
-            [lineage] => *lineage,
-            [] => mount_next_intrinsic_in_layer(
+        matching.sort_unstable();
+        let ordering_lineage = match matching.first().copied() {
+            Some(lineage) => lineage,
+            None => mount_next_intrinsic_in_layer(
                 cohorts,
                 resting_population,
                 next_lineage_ordinal,
                 11,
             )?,
-            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         for participant in participants {
             let pair = canonical_lineage_pair(participant, ordering_lineage);
             if !existing_contacts.contains(&pair) {
-                *electrical_fabric = electrical_fabric
-                    .append_contact(
-                        participant,
-                        ordering_lineage,
-                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                    )
-                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+                new_contacts.push((
+                    participant,
+                    ordering_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ));
                 existing_contacts.insert(pair);
             }
         }
+    }
+    if !new_contacts.is_empty() {
+        *electrical_fabric = electrical_fabric
+            .append_contacts(&new_contacts)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
     }
     Ok(())
 }
@@ -17579,6 +17584,20 @@ mod tests {
         );
         assert!(fabric.contains_contact(association, ordering[0]));
         assert!(fabric.contains_contact(affective, ordering[0]));
+        let later_retention = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(9, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contact(
+                later_retention,
+                ordering[0],
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
 
@@ -17594,7 +17613,7 @@ mod tests {
         assert_eq!(fabric.contact_count(), contact_count);
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
-            resting_before - 1
+            resting_before - 2
         );
     }
 

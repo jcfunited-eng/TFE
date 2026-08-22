@@ -279,3 +279,27 @@ A-006 intrinsic-curiosity proof.
 Candidate status: **source-complete; live acceptance pending**. A-006 closes
 only when production itself exposes the complete new-impression to later motor
 action and physically sensed consequence witness.
+
+### Live cadence obstruction found after task 1178 cutover
+
+- Task 1178 cold-restored exact CURRENT at tick `150706` but its first ordinary
+  interval remained CPU-active for more than 40 minutes without publishing a
+  successor. Exact inspection of that `136,028,019`-byte CURRENT found `1,908`
+  layer-11 ordering cells and `78,433` contacts, including `63,276`
+  layer11-to-layer12 contacts. Layer-12 remained bounded at `72`; the motor
+  identity repair did not regress.
+- Exact source cause: a layer-11 route was looked up by its entire current
+  neighbour set. Later lawful recurrence, motor, or articulation contacts
+  widened that set, so its original active bond no longer matched and the same
+  route was mounted again. Each new route then appended two contacts through
+  two complete fabric extensions.
+- The corrected ordinary rule derives the route's identity from the first two
+  canonical persisted contacts that were appended together at that cell's
+  birth. Later contacts cannot change that founding bond. If historical
+  duplicates already share a founder, the oldest lineage is the exact founder;
+  no existing learned cell is deleted or relabelled during an ordinary
+  interval. All genuinely new route contacts are now admitted in one batched
+  fabric extension.
+- The focused enriched-route falsifier passes: after a retained-memory contact
+  widens an existing ordering cell, reaching the original bond again preserves
+  the same cohort count, contact count, and ordering lineage.
