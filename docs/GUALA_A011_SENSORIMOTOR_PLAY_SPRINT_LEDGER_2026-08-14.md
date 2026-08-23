@@ -2797,21 +2797,3 @@ this closure.
   deployment whenever formation identity or recurrence admission is changed.
   A unit formation and a pristine body cannot prove isolation from unrelated
   recurrent cells in the mature connected topology.
-
-### Two-interval recurrent-frontier candidate
-
-The replacement candidate is limited to the already-existing native retention
-law in `retain_internally_reassembled_recurrent_frontier`: the exact retained
-layer-9 neuron must be the advancing causal frontier in the immediately
-preceding interval and must carry a current nonzero directed transfer with the
-proper cue. Current flow alone remains insufficient. Every retained member
-must still have a current nonzero sparse delta and current active bonds must
-connect the complete formation; the original retained fractals and bonds are
-never rewritten. First recognition and any recurrence without the continuous
-two-interval path retain exact-fractal equality.
-
-This candidate changes no DSF field, neuron equation, topology, schema,
-persistence, observer, action selector, or resource owner. It is not eligible
-for cutover until an immutable discarded-state rehearsal against the mature
-task-1184 predecessor proves bounded recurrence and source continuity under a
-live-sized causal input.
