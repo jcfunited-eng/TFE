@@ -35,6 +35,7 @@ episode = production._whole_roster_hop_episode(
     times,
     (0.5,) * production.CARD_SURFACE_PORT_COUNT,
     (0.0,) * len(times),
+    retinal_transmission=Fraction(1),
     tasted=(Fraction(0),) * production.TASTE_SITE_COUNT,
     smelled=(Fraction(0),) * production.SMELL_SITE_COUNT,
 )

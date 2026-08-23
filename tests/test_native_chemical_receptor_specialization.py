@@ -27,6 +27,7 @@ def occurrence(name):
         times,
         (0.0,) * p.CARD_SURFACE_PORT_COUNT,
         (0.0,) * len(times),
+        retinal_transmission=Fraction(1),
         tasted=(Fraction(1,2), Fraction(1,4), Fraction(3,4), Fraction(1,8), Fraction(1)),
         smelled=(Fraction(1,8), Fraction(1,4), Fraction(3,8), Fraction(1,2),
                  Fraction(5,8), Fraction(3,4), Fraction(7,8), Fraction(1)),

@@ -991,12 +991,69 @@ def _retinal_heading_offset_millidegrees_from_axes(
     return position
 
 
+def _eyelid_transmission_from_axes(
+    axes: tuple[Any, ...] | list[Any],
+) -> Fraction:
+    """Exact fraction of incident light admitted by the two native eyelids.
+
+    The current body has one retinal field and two equal physical eyelid
+    apertures. Their summed open extent therefore carries the admitted-light
+    fraction relative to their summed anatomical maximum. This is transport
+    physics only: it does not label sleep, attention, or cognitive state.
+    """
+
+    apertures: list[tuple[int, int, int]] = []
+    for name in ("left_eyelid_aperture", "right_eyelid_aperture"):
+        matches = tuple(axis for axis in axes if axis[1] == name)
+        if len(matches) != 1:
+            raise RuntimeError(f"the native body has no unique {name} axis")
+        axis = matches[0]
+        if axis[2] != "micrometre":
+            raise RuntimeError(f"the native {name} axis changed physical unit")
+        position, minimum, maximum = axis[3], axis[4], axis[6]
+        if any(
+            isinstance(value, bool) or not isinstance(value, int)
+            for value in (position, minimum, maximum)
+        ):
+            raise RuntimeError(f"the native {name} axis changed representation")
+        if not minimum <= position <= maximum or minimum >= maximum:
+            raise RuntimeError(f"the native {name} axis is outside its anatomy")
+        apertures.append((position, minimum, maximum))
+    admitted = sum(position - minimum for position, minimum, _ in apertures)
+    possible = sum(maximum - minimum for _, minimum, maximum in apertures)
+    return Fraction(admitted, possible)
+
+
+def _retinal_transmission_trajectory(
+    transmission: Fraction | tuple[Fraction, ...],
+    frame_count: int,
+) -> tuple[Fraction, ...]:
+    """Validate one exact eyelid transmission value per retinal frame."""
+
+    values = (
+        (transmission,) * frame_count
+        if isinstance(transmission, Fraction)
+        else transmission
+    )
+    if len(values) != frame_count or any(
+        value < 0 or value > 1 for value in values
+    ):
+        raise ValueError("eyelid transmission changed its retinal clock or bounds")
+    return values
+
+
+def _current_retinal_body_axes() -> tuple[Any, ...]:
+    """Read the one persisted native body observation used by visual transport."""
+
+    restored, _ = _runtime()
+    return tuple(restored.organism.readiness().articulated_body_axes)
+
+
 def _current_retinal_heading_offset_millidegrees() -> int:
     """Read the persisted native neck axis that physically carries the retina."""
 
-    restored, _ = _runtime()
     return _retinal_heading_offset_millidegrees_from_axes(
-        restored.organism.readiness().articulated_body_axes
+        _current_retinal_body_axes()
     )
 
 
@@ -10512,7 +10569,11 @@ def _unattended_interval_episodes(
         physical_receptor_substreams,
     )
 
-    retinal_heading = _current_retinal_heading_offset_millidegrees()
+    retinal_body_axes = _current_retinal_body_axes()
+    retinal_heading = _retinal_heading_offset_millidegrees_from_axes(
+        retinal_body_axes
+    )
+    retinal_transmission = _eyelid_transmission_from_axes(retinal_body_axes)
     world_streams = physical_receptor_substreams(
         snapshot,
         snapshot,
@@ -10535,6 +10596,7 @@ def _unattended_interval_episodes(
                 times,
                 luminance,
                 silence,
+                retinal_transmission=retinal_transmission,
                 tasted=tasted,
                 smelled=smelled,
             ),
@@ -10545,7 +10607,14 @@ def _unattended_interval_episodes(
     return episodes, {
         "external_luminance_present": any(level > 0.0 for level in luminance),
         "external_smell_present": bool(smelled and any(value > 0 for value in smelled)),
+        "retinal_luminance_present": any(
+            level * float(retinal_transmission) > 0.0 for level in luminance
+        ),
         "retinal_heading_offset_millidegrees": retinal_heading,
+        "retinal_transmission": [
+            retinal_transmission.numerator,
+            retinal_transmission.denominator,
+        ],
         "passive_interval_receipt_sha256": (
             environment_interval.authority_receipt_sha256
         ),
@@ -10577,18 +10646,24 @@ def _action_consequence_episode(
     if action_duration <= 0:
         raise ValueError("action consequence duration must be positive")
     times = (Fraction(0), action_duration)
-    after_retinal_heading = (
-        _current_retinal_heading_offset_millidegrees()
+    after_axes = (
+        _current_retinal_body_axes()
         if retinal_body_axes is None
-        else _retinal_heading_offset_millidegrees_from_axes(retinal_body_axes)
+        else tuple(retinal_body_axes)
+    )
+    after_retinal_heading = _retinal_heading_offset_millidegrees_from_axes(
+        after_axes
+    )
+    after_retinal_transmission = _eyelid_transmission_from_axes(after_axes)
+    before_axes = (
+        after_axes
+        if predecessor_retinal_body_axes is None
+        else tuple(predecessor_retinal_body_axes)
     )
     before_retinal_heading = (
-        after_retinal_heading
-        if predecessor_retinal_body_axes is None
-        else _retinal_heading_offset_millidegrees_from_axes(
-            predecessor_retinal_body_axes
-        )
+        _retinal_heading_offset_millidegrees_from_axes(before_axes)
     )
+    before_retinal_transmission = _eyelid_transmission_from_axes(before_axes)
     world_streams = physical_receptor_substreams(
         execution.before,
         execution.after,
@@ -10660,6 +10735,10 @@ def _action_consequence_episode(
         times,
         after_luminance,
         (0.0, 0.0),
+        retinal_transmission=(
+            before_retinal_transmission,
+            after_retinal_transmission,
+        ),
         tasted=after_taste,
         smelled=after_smell,
         moved=body_displacement,
@@ -10679,7 +10758,16 @@ def _action_consequence_episode(
             raise ValueError("action consequence changed receptor anatomy")
         return sum(left != right for left, right in zip(before_values, after_values))
 
-    visual_changed = changed_count(before_luminance, after_luminance)
+    admitted_before_luminance = tuple(
+        level * float(before_retinal_transmission) for level in before_luminance
+    )
+    admitted_after_luminance = tuple(
+        level * float(after_retinal_transmission) for level in after_luminance
+    )
+    visual_changed = changed_count(
+        admitted_before_luminance,
+        admitted_after_luminance,
+    )
     taste_changed = changed_count(before_taste, after_taste)
     smell_changed = changed_count(before_smell, after_smell)
     lane_truth = {
@@ -10687,6 +10775,14 @@ def _action_consequence_episode(
         "action_receipt_sha256": execution.causal_intent_receipt_sha256,
         "before_retinal_heading_offset_millidegrees": before_retinal_heading,
         "after_retinal_heading_offset_millidegrees": after_retinal_heading,
+        "before_retinal_transmission": [
+            before_retinal_transmission.numerator,
+            before_retinal_transmission.denominator,
+        ],
+        "after_retinal_transmission": [
+            after_retinal_transmission.numerator,
+            after_retinal_transmission.denominator,
+        ],
         "auditory": {"changed": 0, "transported": EAR_PORT_COUNT},
         "chemical": {
             "smell_changed": smell_changed,
@@ -11361,6 +11457,7 @@ def _whole_roster_hop_episode(
     cochlear: tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None = None,
     contact: tuple[float, ...] | None = None,
     *,
+    retinal_transmission: Fraction | tuple[Fraction, ...],
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
     moved: tuple[Fraction, ...] | None = None,
@@ -11389,14 +11486,25 @@ def _whole_roster_hop_episode(
     """
 
     frame_count = len(times)
-    retinal_signals = surface_trajectories or tuple(
+    incident_retinal_signals = surface_trajectories or tuple(
         (surface_levels[index],) * frame_count
         for index in range(CARD_SURFACE_PORT_COUNT)
     )
-    if len(retinal_signals) != CARD_SURFACE_PORT_COUNT or any(
-        len(signal) != frame_count for signal in retinal_signals
+    if len(incident_retinal_signals) != CARD_SURFACE_PORT_COUNT or any(
+        len(signal) != frame_count for signal in incident_retinal_signals
     ):
         raise ValueError("retinal trajectories changed anatomy or clock")
+    transmission = _retinal_transmission_trajectory(
+        retinal_transmission,
+        frame_count,
+    )
+    retinal_signals = tuple(
+        tuple(
+            level * float(transmission[frame_index])
+            for frame_index, level in enumerate(signal)
+        )
+        for signal in incident_retinal_signals
+    )
     observed = {
         PhysicalSense.SIGHT: tuple(
             _card_surface_substream(
@@ -11460,11 +11568,16 @@ def _compact_whole_roster_signal_body(
     smelled: tuple[Fraction, ...] | None,
     moved: tuple[Fraction, ...] | None = None,
     *,
+    retinal_transmission: Fraction,
     surface_trajectories: tuple[tuple[float, ...], ...] | None = None,
 ) -> bytes:
     """One port-major binary64 sensorium with no per-sample Python objects."""
 
     frame_count = len(times)
+    transmission = _retinal_transmission_trajectory(
+        retinal_transmission,
+        frame_count,
+    )
     if len(surface_levels) != CARD_SURFACE_PORT_COUNT or len(ear_signal) != frame_count:
         raise ValueError("compact lesson sight or legacy-ear width changed")
     signals = array("d")
@@ -11477,14 +11590,21 @@ def _compact_whole_roster_signal_body(
             signals.extend([float(value)] * frame_count)
 
     if surface_trajectories is None:
-        constant_ports(surface_levels, CARD_SURFACE_PORT_COUNT, "retina")
+        constant_ports(
+            tuple(level * float(retinal_transmission) for level in surface_levels),
+            CARD_SURFACE_PORT_COUNT,
+            "retina",
+        )
     else:
         if len(surface_trajectories) != CARD_SURFACE_PORT_COUNT:
             raise ValueError("compact lesson retinal trajectory width changed")
         for trajectory in surface_trajectories:
             if len(trajectory) != frame_count:
                 raise ValueError("compact lesson retinal trajectory clock changed")
-            signals.extend(trajectory)
+            signals.extend(
+                level * float(transmission[frame_index])
+                for frame_index, level in enumerate(trajectory)
+            )
     for _ in range(LEGACY_EAR_PORT_COUNT):
         signals.extend(ear_signal)
     if COCHLEAR_EARS_AUTHORIZED:
@@ -11621,6 +11741,9 @@ def _partial_card_lesson_hop_episodes(
     times = _quiescent_hop_times()
     silence = (0.0,) * len(times)
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     episodes: list[tuple[Any, list[tuple[int, int]]]] = [
         (
             _whole_roster_hop_episode(
@@ -11628,6 +11751,7 @@ def _partial_card_lesson_hop_episodes(
                 times,
                 _partial_presentation_levels(luminance),
                 silence,
+                retinal_transmission=retinal_transmission,
             ),
             [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
@@ -11640,6 +11764,7 @@ def _partial_card_lesson_hop_episodes(
                     times,
                     dark,
                     silence,
+                    retinal_transmission=retinal_transmission,
                 ),
                 [(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT,
             )
@@ -11718,6 +11843,9 @@ def _card_lesson_hop_episodes(
         raise ValueError("tutor audio exceeds the signed presentation window")
 
     luminance = _card_surface_luminance(surface_path)
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     # THE CARD IS AN OBJECT, not a picture: while it is presented, it rests
     # against the contact sheet for exactly as long as it is lit and the tutor
     # speaks.  Its tactile surface is derived from its OWN declared raster
@@ -11778,6 +11906,7 @@ def _card_lesson_hop_episodes(
                 contact,
                 tasted,
                 smelled,
+                retinal_transmission=retinal_transmission,
             )
         )
         # The maximum causal interval is the signed manifest's presentation
@@ -11808,6 +11937,7 @@ def _card_lesson_hop_episodes(
                 None,
                 None,
                 None,
+                retinal_transmission=retinal_transmission,
             )
         )
         admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
@@ -11959,6 +12089,9 @@ def _song_lesson_hop_episodes(
     clocks: list[tuple[Fraction, ...]] = []
     signal_bodies: list[bytes] = []
     admissions: list[list[tuple[int, int]]] = []
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     interval_index = 0
     for hop_index, (times, pressure) in enumerate(pressure_hops):
         rosters: list[tuple[float, ...]] = []
@@ -11985,6 +12118,7 @@ def _song_lesson_hop_episodes(
                 None,
                 None,
                 None,
+                retinal_transmission=retinal_transmission,
                 surface_trajectories=trajectories,
             )
         )
@@ -12004,6 +12138,7 @@ def _song_lesson_hop_episodes(
                 None,
                 None,
                 None,
+                retinal_transmission=retinal_transmission,
             )
         )
         admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
@@ -12057,6 +12192,9 @@ def _mono_pcm_hop_episodes(
     if articulatory_body is not None and len(articulatory_body_hops) != len(hops):
         raise ValueError("articulatory body and pressure changed hop cardinality")
     dark = (0.0,) * CARD_SURFACE_PORT_COUNT
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     episodes: list[tuple[Any, list[tuple[int, int]]]] = []
     for hop_index, (times, signal) in enumerate(hops):
         episode = _whole_roster_hop_episode(
@@ -12065,6 +12203,7 @@ def _mono_pcm_hop_episodes(
             dark,
             signal,
             cochlear_hops[hop_index] if COCHLEAR_EARS_AUTHORIZED else None,
+            retinal_transmission=retinal_transmission,
             articulated=(
                 articulatory_body_hops[hop_index]
                 if articulatory_body is not None
@@ -12171,6 +12310,9 @@ def _live_sight_hop_episodes(
 
     times = _quiescent_hop_times()
     silence = (0.0,) * len(times)
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     return [
         (
             _whole_roster_hop_episode(
@@ -12178,6 +12320,7 @@ def _live_sight_hop_episodes(
                 times,
                 roster,
                 silence,
+                retinal_transmission=retinal_transmission,
             ),
             [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
@@ -12276,6 +12419,9 @@ def _live_audiovisual_hop_episodes(
         len(rosters) == len(pressure_hops) == len(cochlear_hops)
     ):
         raise ValueError("live audiovisual hop cardinality changed")
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     return [
         (
             _whole_roster_hop_episode(
@@ -12284,6 +12430,7 @@ def _live_audiovisual_hop_episodes(
                 rosters[hop_index],
                 pressure,
                 cochlear_hops[hop_index],
+                retinal_transmission=retinal_transmission,
             ),
             [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
@@ -13352,6 +13499,9 @@ def _offered_visual_episodes(
     if not presented:
         raise ValueError("offered material carried no presentable raster")
     frames = presented + [dark] * LESSON_ENDED_HOP_COUNT
+    retinal_transmission = _eyelid_transmission_from_axes(
+        _current_retinal_body_axes()
+    )
     return [
         (
             _whole_roster_hop_episode(
@@ -13359,6 +13509,7 @@ def _offered_visual_episodes(
                 times,
                 roster,
                 silence,
+                retinal_transmission=retinal_transmission,
             ),
             [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )

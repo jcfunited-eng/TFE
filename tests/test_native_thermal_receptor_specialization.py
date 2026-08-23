@@ -17,6 +17,7 @@ def test_exact_thermal_body_reaches_neurons_and_cold_restores(
 ) -> None:
     program = r'''
 import json
+from fractions import Fraction
 from dsf_ai_service import native_production_app as p
 
 p._startup()
@@ -26,6 +27,7 @@ episode = p._whole_roster_hop_episode(
     times,
     (0.0,) * p.CARD_SURFACE_PORT_COUNT,
     (0.0,) * len(times),
+    retinal_transmission=Fraction(1),
 )
 result = p._perform_admitted_intake(
     [(episode, [(p.INTAKE_HOP_MILLISECONDS, 1000)])],
