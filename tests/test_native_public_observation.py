@@ -262,6 +262,10 @@ def test_runtime_proof_is_the_same_committed_snapshot_and_never_borrows_cognitio
 
 def test_public_projection_failure_does_not_hide_native_readiness(monkeypatch) -> None:
     restored = _mount(monkeypatch)
+    prior_body = b'{"prior_committed_snapshot":true}'
+    prior_etag = '"prior-etag"'
+    monkeypatch.setattr(serving, "_public_observation_body", prior_body)
+    monkeypatch.setattr(serving, "_public_observation_etag", prior_etag)
 
     def broken_public_projection(*_args, **_kwargs):
         raise RuntimeError("optional public projection failed")
@@ -278,11 +282,11 @@ def test_public_projection_failure_does_not_hide_native_readiness(monkeypatch) -
     assert ready.status_code == 200
     assert json.loads(ready.body)["organism_tick"] == _Observation().organism_tick
     assert restored.organism.readiness_calls == 2
-    assert serving._public_observation_body is None
-    assert serving._public_observation_etag is None
-    with pytest.raises(HTTPException) as unavailable:
-        serving.native_observation()
-    assert unavailable.value.status_code == 503
+    assert serving._public_observation_body == prior_body
+    assert serving._public_observation_etag == prior_etag
+    public = serving.native_observation()
+    assert public.status_code == 200
+    assert public.body == prior_body
 
 
 def test_refresh_reuses_startup_build_identity_without_runtime_metadata(

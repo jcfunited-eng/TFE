@@ -6320,8 +6320,9 @@ def _refresh_public_observation_cache() -> None:
             file=sys.stderr,
             flush=True,
         )
-        _public_observation_body = None
-        _public_observation_etag = None
+        # Keep the last valid committed display snapshot. This optional
+        # projection has no authority to make the organism—or observation of
+        # its last proven state—unavailable.
         return
     _public_observation_body = body
     _public_observation_etag = f'"{hashlib.sha256(body).hexdigest()}"'
@@ -11045,7 +11046,7 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         energy_moved = any(energy_coordinate_changes.values())
         settled = measured["physically_transitioned_neuron_count"] > 0
         motor_action = result["observation"].get("motor_action")
-        if motor_action is not None:
+        if isinstance(motor_action, dict) and motor_action.get("moved") is True:
             category = "native_causal_action_observed"
         elif settled and (
             environment["external_luminance_present"]

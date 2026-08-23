@@ -172,6 +172,29 @@ def test_continuous_world_interval_reaches_native_action_and_sensed_return(
     assert autonomy["thought"]["available"] is False
 
 
+def test_unmoved_motor_record_is_not_reported_as_a_body_action(monkeypatch) -> None:
+    motor_action = {
+        "schema": "guala.native.articulated_body_action.v1",
+        "moved": False,
+        "root_motion": False,
+        "motor_unit_recruitment_count": 0,
+        "articulated_body_consequences": [],
+        "body_proprioceptive_sources": [],
+    }
+    _mount_translation_boundary(
+        monkeypatch,
+        before=_native_record(41, "22" * 32),
+        after=_native_record(42, "33" * 32),
+        result=_transition_result(motor_action),
+    )
+
+    observed = production._attempt_unattended_interval()
+
+    assert observed["delivered"] is True
+    assert observed["outcome"] == "continuous_environment_observed"
+    assert production._autonomy_record()["action_observed"] is False
+
+
 def test_exactly_unchanged_interval_is_rest_not_activity(monkeypatch) -> None:
     unchanged = _native_record(50, "33" * 32)
     result = _transition_result(None)
