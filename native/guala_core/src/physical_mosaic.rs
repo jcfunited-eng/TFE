@@ -386,19 +386,22 @@ fn current_recurrence_witness(
     partial_cue_lineages: &[StableNeuronLineage],
     internally_originated: bool,
 ) -> Result<(Vec<StablePhysicalBondReference>, Vec<StableNeuronLineage>), PhysicalMosaicError> {
+    // Recurrence is the current physical response of the already-learned
+    // organism, not a second copy of the original learning event. Every
+    // retained member must change now, but its current delta need not equal
+    // the post-quiescence fractal that originally altered its plastic state.
+    // Proper cue membership and current conducting bonds below prove that the
+    // present activity reaches this exact retained formation.
     if current_physical_deltas
         .windows(2)
         .any(|pair| pair[0].0 >= pair[1].0)
         || retained
             .member_lineages
             .iter()
-            .zip(retained.retained_fractals.iter())
-            .any(|(lineage, retained_fractal)| {
+            .any(|lineage| {
                 current_physical_deltas
                     .binary_search_by_key(lineage, |(candidate, _)| *candidate)
-                    .ok()
-                    .and_then(|index| current_physical_deltas.get(index))
-                    .is_none_or(|(_, current_fractal)| current_fractal != retained_fractal)
+                    .is_err()
             })
     {
         return Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember);
@@ -1805,12 +1808,23 @@ mod codec_tests {
         .unwrap();
         assert_eq!(cold, original);
 
-        let mut mismatched_recurrence = exact_recurrence(&cold);
-        mismatched_recurrence[0].1 = fractal(2, 3);
+        let mut current_recurrence = exact_recurrence(&cold);
+        current_recurrence[0].1 = fractal(2, 3);
+        let recognized = prove_physical_mosaic_recurrence(
+            &cold,
+            &current_recurrence,
+            &topology(),
+            &[lineage(1)],
+        )
+        .unwrap();
+        assert!(!recognized.is_original_only());
+        assert_eq!(recognized.retained_fractals(), cold.retained_fractals());
+
+        current_recurrence.pop();
         assert_eq!(
             prove_physical_mosaic_recurrence(
                 &cold,
-                &mismatched_recurrence,
+                &current_recurrence,
                 &topology(),
                 &[lineage(1)],
             ),

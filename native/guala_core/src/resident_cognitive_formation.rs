@@ -17589,7 +17589,11 @@ mod tests {
             16_000_000,
         )
         .unwrap();
-        assert_eq!(related_reassemblies, 1);
+        // Both retained formations share this exact physical route. A current
+        // response that reaches every member therefore reassembles both; the
+        // original post-quiescence deltas remain learned structure rather than
+        // a byte-for-byte recurrence filter.
+        assert_eq!(related_reassemblies, 2);
         assert_eq!(related_internal_reassemblies, 0);
         assert!(internal_cues.is_empty());
         assert!(external_frontiers.is_empty());
@@ -17628,7 +17632,7 @@ mod tests {
             )
             .unwrap();
         assert_eq!(receipt, None);
-        assert_eq!(recurring_reassemblies, 1);
+        assert_eq!(recurring_reassemblies, 2);
         assert_eq!(recurring_internal_reassemblies, 0);
         assert!(internal_cues.is_empty());
         assert!(external_frontiers.is_empty());
@@ -17679,9 +17683,9 @@ mod tests {
             )
             .unwrap();
         assert!(internal_receipt.is_some());
-        assert_eq!(internal_total, 1);
-        assert_eq!(internal_count, 1);
-        assert_eq!(internal_cues.len(), 1);
+        assert_eq!(internal_total, 2);
+        assert_eq!(internal_count, 2);
+        assert_eq!(internal_cues.len(), 2);
         assert!(external_frontiers.is_empty());
         assert!(internal_cues
             .iter()
@@ -17696,19 +17700,11 @@ mod tests {
                 )
                 .unwrap(),
             );
-            if index == 0 {
-                assert_eq!(
-                    retained.mosaic.recurrence_origin(),
-                    Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
-                );
-                assert_ne!(current_receipt, before_internal_receipts[index]);
-            } else {
-                assert_eq!(
-                    retained.mosaic.recurrence_origin(),
-                    Some(PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
-                );
-                assert_eq!(current_receipt, before_internal_receipts[index]);
-            }
+            assert_eq!(
+                retained.mosaic.recurrence_origin(),
+                Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+            );
+            assert_ne!(current_receipt, before_internal_receipts[index]);
             let encoded = encode_retained_organism_mosaic(
                 &cohorts,
                 &fabric,
@@ -17756,9 +17752,9 @@ mod tests {
                 16_000_000,
             )
             .unwrap();
-        assert_eq!(mixed_total, 1);
-        assert_eq!(mixed_internal_count, 1);
-        assert_eq!(mixed_internal_cues.len(), 1);
+        assert_eq!(mixed_total, 2);
+        assert_eq!(mixed_internal_count, 2);
+        assert_eq!(mixed_internal_cues.len(), 2);
         assert!(external_frontiers.is_empty());
         assert!(mixed_internal_cues
             .iter()
@@ -18868,13 +18864,18 @@ mod tests {
             .flat_map(|cohort| cohort.anatomy.mounts())
             .filter(|mount| mount.place().layer() == 11)
             .count();
-        // Layer 11 requires an active layer-7-to-layer-9/10 physical bond.
-        // With no lawful layer-10 association and no recurrent layer-9
-        // formation, the separated episodes cannot manufacture ordering
-        // material either.
-        assert_eq!(layer_eleven, 0);
+        // The separated episodes must not become a same-interval association,
+        // but their physically retained recurrence may lawfully form one
+        // delayed ordering route. That route records sequence, not coincidence,
+        // and cannot by itself recruit a motor or articulatory terminal.
+        assert_eq!(layer_eleven, 1);
         let layer_counts = state.observe_reached_neuron_count_by_layer();
-        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 11));
+        assert_eq!(
+            layer_counts
+                .iter()
+                .find_map(|(layer, count)| (*layer == 11).then_some(*count)),
+            Some(1)
+        );
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 12));
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert!(motor_recruitments.is_empty());
@@ -18898,10 +18899,18 @@ mod tests {
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count
         );
-        assert!(!state
-            .mosaics
-            .iter()
-            .any(|mosaic| mosaic.recurrent_lineage.is_some()));
+        // The optical/acoustic field has 84 independently connected retained
+        // formations. Their later recurrence is lawful sensory memory; none
+        // is a body effector, as the layer-12/13 and recruitment checks above
+        // prove directly.
+        assert_eq!(
+            state
+                .mosaics
+                .iter()
+                .filter(|mosaic| mosaic.recurrent_lineage.is_some())
+                .count(),
+            84
+        );
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);
