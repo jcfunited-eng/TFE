@@ -874,3 +874,45 @@ Candidate status: **source committed and exact mature replay proven; live
 cutover pending**. This improves A-006 cadence but does not itself close A-006;
 closure still requires the live new-impression -> self-initiated action ->
 physically sensed consequence witness in the same resident organism.
+
+### One-way background-topology retirement — 2026-08-23
+
+- Exact task-1194 inspection found `2,105` resident neurons and `46,770`
+  contacts. The largest body was `26,956` layer-11-to-layer-12 contacts.
+  An ancestry reconstruction proved every one of those edges was structurally
+  possible under the rejected background-current growth law, so individual
+  pruning could not distinguish lawful causality without inventing a heuristic.
+- `GLCOG027` is therefore an explicit one-way authority boundary. Migration
+  preserves source receptors, local integrators, cross-sensory association,
+  body-regulation cells, the exact 74 terminal-specialized layer-12 motors,
+  their physical state, identity, tick, generation, and unchanged full joint
+  seven-field DSF authority. It retires unauthenticated layers 9, 10, 11, and
+  13, every incident contact, all evidence/frontiers/mosaics dependent on that
+  rejected topology, and the retired opaque hippocampal checkpoint. Ordinary
+  restore accepts only GLCOG027; older formats enter only through the named
+  migration.
+- Ordinary affective and motor growth now consume only the exact causal
+  lineages that received source energy or one whole carrier transfer in the
+  current interval. Quiet local relaxation remains physically settled but
+  cannot authorize developmental growth.
+- Against the authenticated task-1194 body, migration reduced the raw envelope
+  from `113,474,571` to `48,025,872` bytes, contacts from `46,770` to `2,104`,
+  and neurons from `2,105` to `551`. The current layers are exactly
+  `0-8` plus `74` layer-12 terminal motors; retained mosaics are zero.
+- A fresh optimized candidate extension restored that exact migrated body in
+  `0.539530` seconds and completed the production-roster 111-port physical
+  interval in `1.534824` seconds with `754` physical neuron transitions.
+  Full native library verification passes `472/472` with `10` explicitly
+  ignored retired fixtures.
+
+Applicable recurrence checks: RF-002 used the exact task-1194 sensory flags;
+RF-003 loaded a fresh explicit release wheel; RF-004 restored the authenticated
+mature predecessor; RF-016 retained A-006 as the sole active item; RF-019
+replaced the stale frontier-survival assertion with the current one-way
+authority law; RF-022 proved old-format migration and current-only cold
+restore; RF-044 measured the complete 111-port producer-reachable interval.
+
+Candidate status: **locally release-proven; live cutover pending**. This removes
+the rejected accumulated developmental topology and restores bounded physical
+cadence. It does not by itself supply the still-required live A-006 social /
+novelty-to-action acceptance witness.
