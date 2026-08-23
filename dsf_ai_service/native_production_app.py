@@ -5259,7 +5259,7 @@ def _intrinsic_curiosity_evidence_from_transition(
     )
     if not shared_lineages:
         return None
-    return {
+    projected = {
         "action": action,
         "attention": attention,
         "directed_physical_transfers": transfers,
@@ -5275,17 +5275,67 @@ def _intrinsic_curiosity_evidence_from_transition(
         "shared_causal_lineages": shared_lineages,
         "state_sha256": evidence.get("state_sha256"),
     }
+    participant = evidence.get("participant_sensory_causal_use")
+    if isinstance(participant, dict):
+        participant_action = participant.get("action")
+        raw_participant_transfers = participant.get(
+            "directed_physical_transfers"
+        )
+        participant_transfers = (
+            tuple(raw_participant_transfers)
+            if isinstance(raw_participant_transfers, (list, tuple))
+            else ()
+        )
+        raw_participant_lineages = participant.get(
+            "perturbed_receptor_lineages"
+        )
+        participant_lineages = (
+            tuple(raw_participant_lineages)
+            if isinstance(raw_participant_lineages, (list, tuple))
+            else ()
+        )
+        participant_receipt = participant.get(
+            "participant_action_causal_intent_receipt_sha256"
+        )
+        participant_motor_tick = participant.get("motor_organism_tick")
+        receptor_tick = participant.get("receptor_settlement_organism_tick")
+        if (
+            participant.get("origin_kind") == "external_participant_sensory"
+            and participant_action == action
+            and isinstance(participant_motor_tick, int)
+            and participant_motor_tick == causal.get("motor_organism_tick")
+            and isinstance(receptor_tick, int)
+            and receptor_tick < participant_motor_tick
+            and isinstance(participant_receipt, str)
+            and re.fullmatch(r"[0-9a-f]{64}", participant_receipt) is not None
+            and participant_transfers
+            and participant_lineages
+        ):
+            projected["social_experience"] = {
+                "directed_physical_transfers": participant_transfers,
+                "motor_organism_tick": participant_motor_tick,
+                "participant_action_causal_intent_receipt_sha256": (
+                    participant_receipt
+                ),
+                "perturbed_receptor_lineages": participant_lineages,
+                "receptor_settlement_organism_tick": receptor_tick,
+            }
+    return projected
 
 
 def _intrinsic_curiosity_record() -> dict[str, object]:
     evidence = _last_intrinsic_curiosity_evidence
+    social_experience_claimed = bool(
+        isinstance(evidence, dict)
+        and isinstance(evidence.get("social_experience"), dict)
+    )
     authority = {
         "curiosity_score_authority": False,
         "named_need_authority": False,
         "python_decision_authority": False,
         "reward_authority": False,
         "scripted_action_authority": False,
-        "social_experience_claimed": False,
+        "social_experience_claimed": social_experience_claimed,
     }
     if evidence is None:
         return _section(
@@ -5297,14 +5347,25 @@ def _intrinsic_curiosity_record() -> dict[str, object]:
             "through body senses",
             **authority,
         )
-    return _section(
-        True,
-        "new_impression_changed_reachable_activity_and_caused_sensed_action",
+    description = (
         "new retained sensory structure propagated through exact sparse "
         "carrier transfers while reached and foregone routes changed, shared "
         "a physical junction with possible-consequence and body/affective "
-        "activity, caused body action, and returned through body senses; this "
-        "is bounded physical curiosity evidence, not a need, reward, or score",
+        "activity, caused body action, and returned through body senses"
+    )
+    if social_experience_claimed:
+        description += (
+            "; an authenticated other body's receptor path independently "
+            "reached that exact same action"
+        )
+    description += (
+        "; this is bounded physical curiosity evidence, not a need, reward, "
+        "or score"
+    )
+    return _section(
+        True,
+        "new_impression_changed_reachable_activity_and_caused_sensed_action",
+        description,
         evidence_scope="latest_tested_intrinsic_causal_event",
         **evidence,
         **authority,

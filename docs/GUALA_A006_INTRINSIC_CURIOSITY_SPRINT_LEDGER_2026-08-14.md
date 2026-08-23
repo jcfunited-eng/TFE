@@ -671,6 +671,28 @@ advances and the intrinsic-curiosity causal witness is re-established.
   Python decision, reward, scripted-action, score, and named-need authorities
   remain false.
 
-Status: **Live-Closed 2026-08-23**. The next serial item is A-011; this closure
-does not authorize reopening A-009 or restoring any rejected transaction or
-whole-state draft.
+Status: **the intrinsic novelty-to-action subpath is live-verified; full A-006
+remains Reconciled Partial**. The canonical acceptance sentence also requires
+actual affection/social experience to participate. Task 1184 truthfully reports
+`social_experience_claimed=false`, so its narrower witness cannot close that
+larger sentence. This does not authorize reopening A-009 or restoring any
+rejected transaction or whole-state draft.
+
+### Exact other-body contribution join — local candidate
+
+- The native causal observer already carries two independent sparse proofs:
+  new neuronal impression to motor action, and authenticated participant
+  receptor activity to motor action. The intrinsic-curiosity projection
+  previously discarded the second proof and hard-coded social experience to
+  false.
+- The local candidate joins no contacts and changes no cognition. It includes
+  the participant contribution only when both sparse proofs terminate in the
+  exact same body-action record, name the same motor tick, carry nonempty exact
+  transfers and receptor lineages, and the authenticated participant receptor
+  settlement precedes that motor tick.
+- A mismatched action, malformed receipt, empty path, or noncausal tick order
+  leaves `social_experience_claimed=false`. Score, reward, named-need, scripted
+  action, Python decision, and observer authority remain false.
+- The focused exact falsifier passes `1/1`. This is local evidence only; A-006
+  remains open until one live authenticated other-body occurrence produces the
+  complete joined witness in the same resident organism.

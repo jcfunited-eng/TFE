@@ -542,6 +542,61 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
     assert curiosity["available"] is True
     assert curiosity["curiosity_score_authority"] is False
     assert curiosity["reward_authority"] is False
+    assert curiosity["social_experience_claimed"] is False
+
+    participant_receipt = "e" * 64
+    social_evidence = production._intrinsic_curiosity_evidence_from_transition(
+        {
+            **transition,
+            "participant_sensory_causal_use": {
+                "action": transition["new_impression_causal_use"]["action"],
+                "directed_physical_transfers": (
+                    ("09" * 16, shared, 0, 11),
+                    motor_transfer,
+                ),
+                "motor_organism_tick": 13,
+                "origin_kind": "external_participant_sensory",
+                "participant_action_causal_intent_receipt_sha256": (
+                    participant_receipt
+                ),
+                "perturbed_receptor_lineages": ("09" * 16,),
+                "receptor_settlement_organism_tick": 10,
+            },
+        }
+    )
+    assert social_evidence is not None
+    assert social_evidence["social_experience"] == {
+        "directed_physical_transfers": (
+            ("09" * 16, shared, 0, 11),
+            motor_transfer,
+        ),
+        "motor_organism_tick": 13,
+        "participant_action_causal_intent_receipt_sha256": participant_receipt,
+        "perturbed_receptor_lineages": ("09" * 16,),
+        "receptor_settlement_organism_tick": 10,
+    }
+    monkeypatch.setattr(
+        production, "_last_intrinsic_curiosity_evidence", social_evidence
+    )
+    assert production._intrinsic_curiosity_record()[
+        "social_experience_claimed"
+    ] is True
+
+    mismatched_social = production._intrinsic_curiosity_evidence_from_transition(
+        {
+            **transition,
+            "participant_sensory_causal_use": {
+                **{
+                    key: value
+                    for key, value in social_evidence["social_experience"].items()
+                },
+                "action": {"command_sha256": "f" * 64},
+                "origin_kind": "external_participant_sensory",
+            },
+        }
+    )
+    assert mismatched_social is not None
+    assert "social_experience" not in mismatched_social
 
     unavailable = {"available": False, "status": "unproved"}
     record = {
