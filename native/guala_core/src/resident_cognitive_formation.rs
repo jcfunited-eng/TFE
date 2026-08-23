@@ -5858,6 +5858,7 @@ impl ResidentCognitiveFormationState {
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
             &physically_transitioned_neuron_lineages,
+            &internal_contact.active_bonds,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -11309,6 +11310,7 @@ fn mount_reached_motor_effector(
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
+    active_bonds: &[StablePhysicalBondReference],
 ) -> Result<(), FormationError> {
     let mounted = cohorts
         .iter()
@@ -11351,6 +11353,10 @@ fn mount_reached_motor_effector(
         neighbours.sort_unstable();
         neighbours.dedup();
     }
+    let active_endpoint_pairs = active_bonds
+        .iter()
+        .map(|bond| bond.endpoints())
+        .collect::<BTreeSet<_>>();
     let mut body_regulation = Vec::new();
     let mut ordering = Vec::new();
     for lineage in physically_transitioned_lineages {
@@ -11420,7 +11426,11 @@ fn mount_reached_motor_effector(
         let local_affective = regulation_neighbours
             .iter()
             .copied()
-            .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(10))
+            .filter(|lineage| {
+                layer_by_lineage.get(lineage).copied() == Some(10)
+                    && active_endpoint_pairs
+                        .contains(&canonical_lineage_pair(regulation, *lineage))
+            })
             .collect::<BTreeSet<_>>();
         let local_ordering = ordering
             .iter()
@@ -11429,9 +11439,12 @@ fn mount_reached_motor_effector(
                 neighbours_by_lineage
                     .get(lineage)
                     .is_some_and(|neighbours| {
-                        neighbours
-                            .iter()
-                            .any(|neighbour| local_affective.contains(neighbour))
+                        neighbours.iter().any(|neighbour| {
+                            local_affective.contains(neighbour)
+                                && active_endpoint_pairs.contains(
+                                    &canonical_lineage_pair(*lineage, *neighbour),
+                                )
+                        })
                     })
             })
             .collect::<Vec<_>>();
@@ -14699,6 +14712,13 @@ mod tests {
             .unwrap();
     }
 
+    fn all_physical_bonds(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+    ) -> Vec<StablePhysicalBondReference> {
+        organism_physical_bonds(cohorts, electrical_fabric).unwrap()
+    }
+
     #[test]
     fn empty_genesis_is_exact_and_bounded() {
         let state = ResidentCognitiveFormationState::default();
@@ -17871,13 +17891,15 @@ mod tests {
             0,
         );
         let resting_before = population.as_ref().unwrap().resting_cell_count();
+        let active_bonds = all_physical_bonds(&cohorts, &fabric);
 
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[ordering],
+            &[ordering, regulation],
+            &[],
         )
         .unwrap();
         assert_eq!(
@@ -17891,6 +17913,7 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &[ordering, regulation],
+            &active_bonds,
         )
         .unwrap();
         let motor = cohorts
@@ -17939,6 +17962,7 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &[regulation, ordering],
+            &active_bonds,
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -17980,12 +18004,14 @@ mod tests {
             first_ordering,
             0,
         );
+        let first_active_bonds = all_physical_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[regulation, first_ordering],
+            &first_active_bonds,
         )
         .unwrap();
         let motor = cohorts
@@ -18016,12 +18042,14 @@ mod tests {
             second_ordering,
             1,
         );
+        let second_active_bonds = all_physical_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[regulation, second_ordering],
+            &second_active_bonds,
         )
         .unwrap();
         let motors = cohorts
@@ -18071,12 +18099,14 @@ mod tests {
             ordering,
             0,
         );
+        let active_bonds = all_physical_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[regulation, ordering],
+            &active_bonds,
         )
         .unwrap();
         let duplicate = mount_next_intrinsic_in_layer(
@@ -18237,12 +18267,14 @@ mod tests {
             ordering,
             1,
         );
+        let active_bonds = all_physical_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[first_regulation, second_regulation, ordering],
+            &active_bonds,
         )
         .unwrap();
         let motors = cohorts
@@ -18299,12 +18331,14 @@ mod tests {
             ordering,
             0,
         );
+        let active_bonds = all_physical_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[regulation, ordering],
+            &active_bonds,
         )
         .unwrap();
 

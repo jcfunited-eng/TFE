@@ -387,3 +387,35 @@ Candidate status: **exact-current local migration proven; production cutover
 pending**. A-006 remains open until the corrected live organism advances at the
 accepted cadence and exposes the required new-impression -> native action ->
 physically sensed consequence witness.
+
+### Reached-path cadence corrections after task 1182 — 2026-08-23
+
+- Task 1182 cold-restored the exact corrected tick-150809 body and was then
+  stopped at desired count zero after one ordinary interval held one full CPU
+  without publishing. The persisted identity and CURRENT body remain intact;
+  production is operationally offline and A-006 is not live-closed.
+- Exact connected-component electrical settlement (`662f9cce`), widened
+  transient membrane arithmetic (`027a74eb` and `42e879be`), and reached-only
+  formation traversal (`cde0d688`) reduced the authenticated body-plus-eight-
+  source local path from more than 22 minutes to `26.233338` seconds. These
+  corrections restore required physical reach but do not by themselves prove
+  intrinsic curiosity.
+- A bounded identical quiescent-occurrence probe found that the first
+  successor added one layer-12 cell and `2,628` layer-11-to-layer-12 contacts.
+  The growth path admitted every statically neighbouring ordering route after
+  topology growth, including contacts that had never carried current in the
+  interval.
+- The corrected motor-growth boundary consumes the interval's exact active
+  bonds and admits only a physically conducting layer-8 -> layer-10 -> layer-11
+  path. The existing focused motor falsifier passes `1/1`. Against the exact
+  tick-150809 body, layer-12 remained `72` and layer-11-to-layer-12 contacts
+  remained `21,664`; the former `2,628`-contact increase is absent.
+- The same probe still takes about `7.6` seconds and retains one later-recognized
+  layer-9 formation plus `1,222,523` bytes on its first repeat. It exposes `313`
+  existing partial-cue reassemblies and `131` endogenous reassemblies while
+  adding one new original. This is now the single unresolved A-006 cadence and
+  bounded-retention boundary; it must be corrected without collapsing distinct
+  exact neuronal fractals or replacing recurrence with a similarity heuristic.
+
+Candidate status: **motor fan-in source-corrected and locally falsified; not
+deployed**. A-006 remains open.
