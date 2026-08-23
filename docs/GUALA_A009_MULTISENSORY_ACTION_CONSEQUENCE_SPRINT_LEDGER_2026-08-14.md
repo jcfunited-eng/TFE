@@ -544,3 +544,32 @@ Status: source and focused proof complete; production cutover and live
 post-restart evidence remain pending. The prior A-009 live evidence remains
 valid, but this efficiency correction is not called deployed until that cutover
 finishes.
+
+### Production cutover — 2026-08-23
+
+The continuous lived-intake correction is live on task `dsf-ai-task:1183`,
+commit `b9135c49d0ed38d2563b50cbb4263674fbe98e8b`, and immutable image
+`sha256:406d7ae2f5f0c8d8794c3455c6b105bb733380040b4bdd97aa059966e47f092c`.
+The deployment controller proved one RUNNING/HEALTHY task, one completed
+PRIMARY deployment, the exact image digest and commit, and restored native
+identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The first live observation reported tick 150841 and world revision 8793. Its
+last applied action explicitly reported `continuous_cognition=true` and
+returned the physically mounted consequence roster to the same identity:
+sight 27, sound 34, touch 27, smell 8, taste 5, and body 84. A second
+observation reported tick 150857, world revision 8795, and a different exact
+state receipt, proving continued cognition and later world action after the
+cutover. Python cognition callbacks remained zero. The persisted resident body
+was 102,079,516 bytes.
+
+The first build attempt made no cutover. Its complete native regression exposed
+two stale test fixtures: one duplicated a receptor identity, while the other
+expected a layer-11 ordering route despite proving that neither a layer-9 nor a
+layer-10 causal route existed. The fixtures were corrected to enforce the
+current exact identity and non-simultaneous causality laws; both formerly
+failing tests then passed individually. The successful immutable build and
+single cutover followed without changing production physics.
+
+Status: **continuous lived-intake correction deployed and live-verified; A-009
+remains Live-Closed**.
