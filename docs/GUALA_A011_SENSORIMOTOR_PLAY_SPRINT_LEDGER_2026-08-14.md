@@ -2771,3 +2771,25 @@ before any broader edit.
 **A-011.7 is Live-Closed. A-011 is complete.** The next incomplete item in the
 carried-forward delivery ledger is A-012. No A-012 implementation is claimed by
 this closure.
+
+## 2026-08-23 rejected recurrent-flow attempt
+
+- Candidate commit `17c2cebb4844fa063d4ba4ea44a792e80bf372f7`
+  replaced exact retained-fractal replay for an already-recognized formation
+  with current flow through that formation's layer-9 recurrent neuron.
+- Local proof passed 472 native tests, but the first live ordinary interval on
+  task `dsf-ai-task:1185` exposed `1,219` partial and `158` endogenous
+  reassemblies. The condition was therefore not formation-specific in the
+  mature connected organism and recreated the rejected broad-recurrence
+  failure shape.
+- Task 1185 was immediately drained. Compatible task `dsf-ai-task:1184` was
+  restored against the same unchanged state format and organism identity. At
+  tick `151736`, health was HTTP 200 and ordinary partial/endogenous recurrence
+  returned to `0 / 0`.
+- Revert commit `930e77eb` removes the candidate source and its acceptance
+  claim. No part of this attempt is production authority or A-011 closure
+  evidence.
+- RF-051 now requires an authenticated mature-predecessor differential before
+  deployment whenever formation identity or recurrence admission is changed.
+  A unit formation and a pristine body cannot prove isolation from unrelated
+  recurrent cells in the mature connected topology.
