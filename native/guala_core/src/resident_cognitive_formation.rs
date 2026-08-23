@@ -79,7 +79,8 @@ use crate::optical_receptor_work::{
 };
 use crate::physical_mosaic::{
     admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
-    alter_physical_mosaic_recurrence_with_origin, connected_members,
+    alter_physical_mosaic_recurrence_with_origin,
+    alter_recognized_physical_mosaic_recurrence_from_continuous_flow, connected_members,
     decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
     prove_physical_mosaic_recurrence, prove_physical_mosaic_recurrence_with_origin,
     AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
@@ -2955,6 +2956,26 @@ fn external_reassembly_reaches_recurrent_frontier(
     })
 }
 
+/// A recognized formation may evolve beyond absolute replay only while its
+/// own recurrent cell carries one uninterrupted two-interval causal wave.
+/// Current contact flow alone is not identity: mature ordinary settlement can
+/// reach many recurrent cells at once.
+fn recognized_formation_has_continuous_recurrent_flow(
+    cue: &[[u8; 16]],
+    recurrent_lineage: [u8; 16],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+) -> bool {
+    predecessor_frontier
+        .iter()
+        .any(|entry| entry.frontier_lineage() == recurrent_lineage)
+        && external_reassembly_reaches_recurrent_frontier(
+            cue,
+            recurrent_lineage,
+            current_frontier,
+        )
+}
+
 fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
     cue.sort_unstable();
     cue.dedup();
@@ -3106,8 +3127,24 @@ fn settle_organism_mosaic_boundary(
         } else {
             continue;
         };
+        let continuous_recurrent_flow = retained.recurrent_lineage.is_some_and(|lineage| {
+            recognized_formation_has_continuous_recurrent_flow(
+                &cue,
+                lineage,
+                predecessor_frontier,
+                current_frontier,
+            )
+        });
         let reassembled = match if retained.mosaic.is_original_only() {
             prove_physical_mosaic_recurrence_with_origin(
+                &retained.mosaic,
+                current_physical_deltas,
+                active_bonds,
+                &cue,
+                origin,
+            )
+        } else if continuous_recurrent_flow {
+            alter_recognized_physical_mosaic_recurrence_from_continuous_flow(
                 &retained.mosaic,
                 current_physical_deltas,
                 active_bonds,
@@ -17216,6 +17253,18 @@ mod tests {
             recurrent,
             &[reached],
         ));
+        assert!(!recognized_formation_has_continuous_recurrent_flow(
+            &[cue],
+            recurrent,
+            &[],
+            &[reached],
+        ));
+        assert!(recognized_formation_has_continuous_recurrent_flow(
+            &[cue],
+            recurrent,
+            &[ActiveElectricalFrontierEntry::legacy_receiver(recurrent)],
+            &[reached],
+        ));
 
         let unrelated_bond =
             StablePhysicalBondReference::new(unrelated, recurrent, 0).unwrap();
@@ -17230,6 +17279,12 @@ mod tests {
         assert!(!external_reassembly_reaches_recurrent_frontier(
             &[cue],
             recurrent,
+            &[unrelated_reached],
+        ));
+        assert!(!recognized_formation_has_continuous_recurrent_flow(
+            &[cue],
+            recurrent,
+            &[ActiveElectricalFrontierEntry::legacy_receiver(recurrent)],
             &[unrelated_reached],
         ));
     }

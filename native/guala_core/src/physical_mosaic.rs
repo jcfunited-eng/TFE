@@ -385,6 +385,7 @@ fn current_recurrence_witness(
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
     internally_originated: bool,
+    require_retained_fractal_equality: bool,
 ) -> Result<(Vec<StablePhysicalBondReference>, Vec<StableNeuronLineage>), PhysicalMosaicError> {
     if current_physical_deltas
         .windows(2)
@@ -398,7 +399,10 @@ fn current_recurrence_witness(
                     .binary_search_by_key(lineage, |(candidate, _)| *candidate)
                     .ok()
                     .and_then(|index| current_physical_deltas.get(index))
-                    .is_none_or(|(_, current_fractal)| current_fractal != retained_fractal)
+                    .is_none_or(|(_, current_fractal)| {
+                        require_retained_fractal_equality
+                            && current_fractal != retained_fractal
+                    })
             })
     {
         return Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember);
@@ -467,6 +471,7 @@ pub(crate) fn prove_physical_mosaic_recurrence_with_origin(
         active_bonds,
         partial_cue_lineages,
         origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated,
+        true,
     )?;
     let mut recognized = original.clone();
     recognized.original_only = false;
@@ -513,6 +518,46 @@ pub(crate) fn alter_physical_mosaic_recurrence_with_origin(
         active_bonds,
         partial_cue_lineages,
         origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated,
+        true,
+    )?;
+    if recurrence_bonds.as_slice() == retained.recurrence_bonds.as_ref()
+        && cue.as_slice() == retained.partial_cue_lineages.as_ref()
+        && retained.recurrence_origin == Some(origin)
+    {
+        return Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation);
+    }
+    let mut altered = retained.clone();
+    altered.recurrence_bonds = recurrence_bonds.into_boxed_slice();
+    altered.partial_cue_lineages = cue.into_boxed_slice();
+    altered.recurrence_origin = Some(origin);
+    Ok(altered)
+}
+
+/// Replace the latest witness of an already-recognized formation whose own
+/// recurrent neuron has carried one continuous causal wave into this cue.
+///
+/// The resident caller proves that exact two-interval physical condition. It
+/// replaces absolute replay of the original living-state delta, not formation
+/// membership: every retained member must still move in the current interval
+/// and current active bonds must connect the complete formation. Original
+/// retained fractals and bonds remain unchanged.
+pub(crate) fn alter_recognized_physical_mosaic_recurrence_from_continuous_flow(
+    retained: &AdmittedPhysicalMosaic,
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
+    active_bonds: &[StablePhysicalBondReference],
+    partial_cue_lineages: &[StableNeuronLineage],
+    origin: PhysicalMosaicRecurrenceOrigin,
+) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
+    if retained.original_only || !retained.exact_pattern_recognition {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+    let (recurrence_bonds, cue) = current_recurrence_witness(
+        retained,
+        current_physical_deltas,
+        active_bonds,
+        partial_cue_lineages,
+        origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated,
+        false,
     )?;
     if recurrence_bonds.as_slice() == retained.recurrence_bonds.as_ref()
         && cue.as_slice() == retained.partial_cue_lineages.as_ref()
@@ -1878,6 +1923,62 @@ mod codec_tests {
                 &[lineage(3)],
             ),
             Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation)
+        );
+    }
+
+    #[test]
+    fn continuous_recurrent_flow_allows_living_delta_without_rewriting_memory() {
+        let original = admit_physical_mosaic_original(
+            &neuron_lineages(),
+            &fractal_anatomies(),
+            &[
+                Some(fractal(1, 3)),
+                Some(fractal(-7, 11)),
+                Some(fractal(5, 13)),
+            ],
+            &topology(),
+        )
+        .unwrap();
+        let recognized = prove_physical_mosaic_recurrence(
+            &original,
+            &exact_recurrence(&original),
+            &topology(),
+            &[lineage(1)],
+        )
+        .unwrap();
+        let mut living_deltas = exact_recurrence(&recognized);
+        living_deltas[0].1 = fractal(2, 3);
+
+        assert_eq!(
+            alter_physical_mosaic_recurrence(
+                &recognized,
+                &living_deltas,
+                &topology(),
+                &[lineage(2)],
+            ),
+            Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember)
+        );
+        let recurrent =
+            alter_recognized_physical_mosaic_recurrence_from_continuous_flow(
+                &recognized,
+                &living_deltas,
+                &topology(),
+                &[lineage(2)],
+                PhysicalMosaicRecurrenceOrigin::ExternallyObserved,
+            )
+            .unwrap();
+        assert_eq!(recurrent.retained_fractals(), recognized.retained_fractals());
+        assert_eq!(recurrent.original_bonds(), recognized.original_bonds());
+        assert_eq!(recurrent.partial_cue_lineages(), &[lineage(2)]);
+        assert_eq!(
+            alter_recognized_physical_mosaic_recurrence_from_continuous_flow(
+                &recognized,
+                &living_deltas[..2],
+                &topology(),
+                &[lineage(2)],
+                PhysicalMosaicRecurrenceOrigin::ExternallyObserved,
+            ),
+            Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember)
         );
     }
 
