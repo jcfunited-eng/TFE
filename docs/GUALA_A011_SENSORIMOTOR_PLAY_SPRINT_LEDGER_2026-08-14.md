@@ -2789,6 +2789,10 @@ this closure.
 - Revert commit `930e77eb` removes the candidate source and its acceptance
   claim. No part of this attempt is production authority or A-011 closure
   evidence.
+- Anti-resurrection cleanup repointed `production-current` to task 1184's
+  healthy digest `sha256:46efc7e3...e54a039`, made task definition 1185
+  inactive, and deleted rejected digest `sha256:475b76ec...adb9a37b` from ECR.
+  The service remained settled at desired/running/pending `1/1/0` on task 1184.
 - RF-051 now requires an authenticated mature-predecessor differential before
   deployment whenever formation identity or recurrence admission is changed.
   A unit formation and a pristine body cannot prove isolation from unrelated
