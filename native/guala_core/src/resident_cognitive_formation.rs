@@ -2950,6 +2950,30 @@ fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
     cue.dedup();
 }
 
+/// Whether two unresolved originals occupy one continuing physical path.
+///
+/// This is not formation identity: exact retained structure remains the only
+/// identity of a recognized mosaic.  It is the narrower custody law for an
+/// original that has not yet earned recurrence.  A later unresolved trace on
+/// any of the same exact member neurons or conducting bonds supersedes the
+/// earlier pending trace instead of turning transient physical motion into an
+/// append-only history.
+fn pending_originals_share_physical_path(
+    prior: &AdmittedPhysicalMosaic,
+    current: &AdmittedPhysicalMosaic,
+) -> bool {
+    debug_assert!(prior.is_original_only());
+    debug_assert!(current.is_original_only());
+    prior
+        .member_lineages()
+        .iter()
+        .any(|lineage| current.member_lineages().binary_search(lineage).is_ok())
+        || prior
+            .original_bonds()
+            .iter()
+            .any(|bond| current.original_bonds().binary_search(bond).is_ok())
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -3011,6 +3035,7 @@ fn settle_organism_mosaic_boundary(
     let mut current_frontier_indices = Vec::new();
     let mut reassembled_indices = Vec::new();
     let mut newly_retained_mosaic_indices = Vec::new();
+    let mut new_pending_originals = Vec::new();
     for (retained_index, retained) in mosaics.iter_mut().enumerate() {
         if !retained.mosaic.is_original_only()
             && retained
@@ -3283,13 +3308,51 @@ fn settle_organism_mosaic_boundary(
         if mosaics
             .iter()
             .any(|prior| prior.mosaic.same_retained_structure(&original))
+            || new_pending_originals
+                .iter()
+                .any(|prior: &AdmittedPhysicalMosaic| {
+                    prior.same_retained_structure(&original)
+                })
         {
             continue;
         }
+        new_pending_originals.push(original);
+    }
+    if !new_pending_originals.is_empty() {
+        let removed_pending = mosaics
+            .iter()
+            .map(|prior| {
+                prior.mosaic.is_original_only()
+                    && new_pending_originals.iter().any(|current| {
+                        pending_originals_share_physical_path(&prior.mosaic, current)
+                    })
+            })
+            .collect::<Vec<_>>();
+        if removed_pending.iter().any(|removed| *removed) {
+            for retained_index in &mut newly_retained_mosaic_indices {
+                let removed_before = removed_pending[..*retained_index]
+                    .iter()
+                    .filter(|removed| **removed)
+                    .count();
+                *retained_index = retained_index
+                    .checked_sub(removed_before)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+            }
+            let mut old_index = 0usize;
+            mosaics.retain(|_| {
+                let keep = !removed_pending[old_index];
+                old_index += 1;
+                keep
+            });
+        }
         mosaics
-            .try_reserve(1)
+            .try_reserve(new_pending_originals.len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
-        mosaics.push(RetainedOrganismMosaic::newly_admitted(original));
+        mosaics.extend(
+            new_pending_originals
+                .into_iter()
+                .map(RetainedOrganismMosaic::newly_admitted),
+        );
     }
     Ok((
         receipt,

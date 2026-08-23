@@ -461,3 +461,34 @@ Candidate status: **exact recurrence physics locally proven; not deployed**.
 A-006 remains open until the remaining non-structural body growth is removed,
 the exact current advances live at accepted cadence, and the required
 new-impression -> self-initiated action -> sensed consequence witness exists.
+
+### Bounded unresolved-formation custody — 2026-08-23
+
+- Two identical exact occurrences proved that the 37 widened `GLNPS01`
+  receptor-state bodies are one-time source-clock capacity: their second
+  occurrence changed zero cohort-cell bytes. Native settlement remained
+  `6.27-6.40` seconds.
+- The old organism-wide admission path nevertheless appended two new
+  `GLMOS006` originals on every occurrence even though none had earned later
+  recurrence. That made transient physical motion an append-only backlog.
+- The corrected boundary batches current unresolved originals and replaces
+  only older `original_only` custody sharing an exact member neuron or
+  conducting bond. Recognized formations retain their exact structural
+  identity and are never replaced by this rule; no threshold, score, timer,
+  quota, similarity, DSF reduction, or semantic identity was added.
+- Against authenticated tick `150809`, pending originals changed
+  `7 -> 6 -> 4` and total formation records changed `182 -> 181 -> 179`
+  across two identical occurrences. The second occurrence retired `86,922`
+  mosaic bytes instead of appending two records. Focused later-recurrence
+  recognition executed `1/1` and passed; `cargo check --locked --lib` and
+  `git diff --check` pass.
+- Section measurement separated the remaining body motion from retention.
+  The second occurrence's `196,860`-byte net increase was a bounded active-
+  frontier rotation (`+283,452` bytes) while experience evidence changed only
+  `+226` bytes and pending mosaics shrank. A third identical occurrence then
+  mounted one new exact layer-12 terminal motor but also added `2,556`
+  layer-11-to-layer-12 contacts; that developmental fan-in is now the single
+  structural cadence/bloat owner under review.
+
+Candidate status: **bounded pending-original correction locally proven; not
+deployed**. A-006 remains open.
