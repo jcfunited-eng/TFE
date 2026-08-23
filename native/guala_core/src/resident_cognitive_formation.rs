@@ -4658,6 +4658,12 @@ impl ResidentCognitiveFormationState {
         let mut endogenous_partial_cue_reassembly_count = 0usize;
         let mut metabolic = ReachedCohortMetabolicObservation::default();
         for (occurrence_index, occurrence) in source.joint_source_occurrences().iter().enumerate() {
+            if !topology_index.matches_shape(&cohorts, &predecessor_electrical_fabric) {
+                topology_index = Arc::new(ResidentTopologyIndex::build(
+                    &cohorts,
+                    &predecessor_electrical_fabric,
+                )?);
+            }
             #[cfg(test)]
             RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(count.get() + 1));
             let admission = admitted_source
@@ -4700,6 +4706,10 @@ impl ResidentCognitiveFormationState {
                 .iter()
                 .map(|(source_site, _)| source_site.clone())
                 .collect::<Vec<_>>();
+            let resident_source_locations = reached_source_sites
+                .iter()
+                .map(|source_site| topology_index.source_location(source_site))
+                .collect::<Result<Vec<_>, FormationError>>()?;
             if reached_sources
                 .iter()
                 .enumerate()
@@ -4722,29 +4732,24 @@ impl ResidentCognitiveFormationState {
             let mut next_new_cohort_index = cohorts.len();
             let mut declared_groups = Vec::new();
             let mut physically_claimed = vec![false; reached_source_sites.len()];
-            for cohort in &cohorts {
-                let group = cohort
-                    .anatomy
-                    .source_sites()
-                    .filter_map(|resident_site| {
-                        reached_source_sites
-                            .iter()
-                            .position(|reached| reached == resident_site)
-                    })
-                    .collect::<Vec<_>>();
-                if group.is_empty() {
-                    continue;
+            let mut existing_groups = BTreeMap::<usize, Vec<(usize, usize)>>::new();
+            for (coordinate_index, location) in resident_source_locations.iter().enumerate() {
+                if let Some((cohort_index, neuron_index, _)) = location {
+                    existing_groups
+                        .entry(*cohort_index)
+                        .or_default()
+                        .push((*neuron_index, coordinate_index));
+                    physically_claimed[coordinate_index] = true;
                 }
-                if group
-                    .iter()
-                    .any(|coordinate_index| physically_claimed[*coordinate_index])
-                {
-                    return Err(FormationError::NeuronLineageAuthorityChanged);
-                }
-                for coordinate_index in &group {
-                    physically_claimed[*coordinate_index] = true;
-                }
-                declared_groups.push(group);
+            }
+            for mut group in existing_groups.into_values() {
+                group.sort_unstable_by_key(|(neuron_index, _)| *neuron_index);
+                declared_groups.push(
+                    group
+                        .into_iter()
+                        .map(|(_, coordinate_index)| coordinate_index)
+                        .collect::<Vec<_>>(),
+                );
             }
             for seed in &unexpressed_electrical_seeds {
                 let mut group = Vec::new();
@@ -4790,13 +4795,10 @@ impl ResidentCognitiveFormationState {
                     let Some(first_index) = group.first().copied() else {
                         return false;
                     };
-                    let retained_formation_owns_group = cohorts.iter().any(|cohort| {
-                        cohort.retained_experience.is_some()
-                            && cohort
-                                .anatomy
-                                .source_sites()
-                                .any(|site| site == &reached_source_sites[first_index])
-                    });
+                    let retained_formation_owns_group = resident_source_locations[first_index]
+                        .is_some_and(|(cohort_index, _, _)| {
+                            cohorts[cohort_index].retained_experience.is_some()
+                        });
                     !retained_formation_owns_group
                         && reached_source_sites[first_index].sensor_id()
                             == reached_source_sites[coordinate_index].sensor_id()
@@ -4821,47 +4823,31 @@ impl ResidentCognitiveFormationState {
                     .collect::<Vec<_>>();
                 let group_receptor_law =
                     receptor_law_for_reached_coordinates(&reached_sources, declared_group);
-                let overlapping_cohorts = cohorts
+                let overlapping_cohorts = declared_group
                     .iter()
-                    .enumerate()
-                    .filter(|(_, cohort)| {
-                        group_sites.iter().any(|site| {
-                            cohort
-                                .anatomy
-                                .source_sites()
-                                .any(|resident| resident == site)
-                        })
+                    .filter_map(|coordinate_index| {
+                        resident_source_locations[*coordinate_index]
+                            .map(|(cohort_index, _, _)| cohort_index)
                     })
-                    .map(|(index, _)| index)
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
                     .collect::<Vec<_>>();
                 if overlapping_cohorts.len() > 1 {
                     for coordinate_index in declared_group {
-                        let site = &reached_source_sites[*coordinate_index];
-                        let resident_matches = overlapping_cohorts
-                            .iter()
-                            .copied()
-                            .filter(|cohort_index| {
-                                cohorts[*cohort_index]
-                                    .anatomy
-                                    .source_sites()
-                                    .any(|resident| resident == site)
-                            })
-                            .collect::<Vec<_>>();
-                        if resident_matches.len() != 1 {
-                            return Err(if resident_matches.is_empty() {
-                                FormationError::NeuronLineageAuthorityAbsent
-                            } else {
-                                FormationError::NeuronLineageAuthorityChanged
-                            });
+                        let resident_index = resident_source_locations[*coordinate_index]
+                            .map(|(cohort_index, _, _)| cohort_index)
+                            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                        if !overlapping_cohorts.contains(&resident_index) {
+                            return Err(FormationError::NeuronLineageAuthorityChanged);
                         }
                         if let Some(target) = cohort_targets
                             .iter_mut()
-                            .find(|(index, _, _, _)| *index == resident_matches[0])
+                            .find(|(index, _, _, _)| *index == resident_index)
                         {
                             target.2.push(*coordinate_index);
                         } else {
                             cohort_targets.push((
-                                resident_matches[0],
+                                resident_index,
                                 None,
                                 vec![*coordinate_index],
                                 group_receptor_law,
@@ -4882,8 +4868,11 @@ impl ResidentCognitiveFormationState {
                     .map_err(|_| FormationError::ArithmeticOverflow)?;
                 for coordinate_index in declared_group {
                     let port = reached_sources[*coordinate_index].1;
-                    let admission =
-                        match resolve_lineage_for_port(&cohorts, &dormant_lineage_seeds, port)? {
+                    let resident_lineage = resident_source_locations[*coordinate_index]
+                        .map(|(_, _, lineage)| lineage);
+                    let admission = match resident_lineage
+                        .or(resolve_dormant_lineage_for_port(&dormant_lineage_seeds, port)?)
+                    {
                             Some(lineage) => ReachedLineageAdmission {
                                 lineage,
                                 claimed_resting_neuron: None,
@@ -4893,7 +4882,7 @@ impl ResidentCognitiveFormationState {
                                 &reached_source_sites[*coordinate_index],
                                 &mut next_lineage_ordinal,
                             )?,
-                        };
+                    };
                     reached_admissions.push(admission);
                 }
                 let reached_lineages = reached_admissions
@@ -11946,6 +11935,7 @@ struct ResidentContactTopologyEntry {
 struct ResidentTopologyIndex {
     flat_locations: Box<[(usize, usize, [u8; 16])]>,
     flat_by_lineage: Box<[([u8; 16], usize)]>,
+    source_locations: Box<[(NeuronSourceSite, usize, usize, [u8; 16])]>,
     lineage_layers: Box<[([u8; 16], u32)]>,
     canonical_lineages: Box<[[u8; 16]]>,
     canonical_bonds: Box<[StablePhysicalBondReference]>,
@@ -11961,6 +11951,7 @@ impl ResidentTopologyIndex {
         Self {
             flat_locations: Box::new([]),
             flat_by_lineage: Box::new([]),
+            source_locations: Box::new([]),
             lineage_layers: Box::new([]),
             canonical_lineages: Box::new([]),
             canonical_bonds: Box::new([]),
@@ -12008,6 +11999,7 @@ impl ResidentTopologyIndex {
         lineage_layers
             .try_reserve_exact(neuron_count)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut source_locations = Vec::new();
         let mut cohort_offsets = Vec::new();
         cohort_offsets
             .try_reserve_exact(cohorts.len())
@@ -12026,13 +12018,31 @@ impl ResidentTopologyIndex {
                 flat_locations.push((cohort_index, neuron_index, lineage));
                 flat_by_lineage.push((lineage, flat));
                 lineage_layers.push((lineage, mount.place().layer()));
+                if let Some(source_site) = mount.source_site() {
+                    source_locations.push((
+                        source_site.clone(),
+                        cohort_index,
+                        neuron_index,
+                        lineage,
+                    ));
+                }
             }
         }
         flat_by_lineage.sort_unstable_by_key(|(lineage, _)| *lineage);
         lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        source_locations.sort_unstable_by(|left, right| {
+            left.0
+                .sensor_id()
+                .cmp(right.0.sensor_id())
+                .then_with(|| left.0.substream_id().cmp(right.0.substream_id()))
+        });
         if flat_by_lineage
             .windows(2)
             .any(|pair| pair[0].0 == pair[1].0)
+            || source_locations.windows(2).any(|pair| {
+                pair[0].0.sensor_id() == pair[1].0.sensor_id()
+                    && pair[0].0.substream_id() == pair[1].0.substream_id()
+            })
         {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
@@ -12128,6 +12138,7 @@ impl ResidentTopologyIndex {
         Ok(Self {
             flat_locations: flat_locations.into_boxed_slice(),
             flat_by_lineage: flat_by_lineage.into_boxed_slice(),
+            source_locations: source_locations.into_boxed_slice(),
             lineage_layers: lineage_layers.into_boxed_slice(),
             canonical_lineages,
             canonical_bonds: canonical_bonds.into_boxed_slice(),
@@ -12177,6 +12188,28 @@ impl ResidentTopologyIndex {
             .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
             .ok()
             .map(|index| self.lineage_layers[index].1)
+    }
+
+    fn source_location(
+        &self,
+        source_site: &NeuronSourceSite,
+    ) -> Result<Option<(usize, usize, [u8; 16])>, FormationError> {
+        let found = self.source_locations.binary_search_by(|candidate| {
+            candidate
+                .0
+                .sensor_id()
+                .cmp(source_site.sensor_id())
+                .then_with(|| candidate.0.substream_id().cmp(source_site.substream_id()))
+        });
+        let Ok(index) = found else {
+            return Ok(None);
+        };
+        let (resident_site, cohort_index, neuron_index, lineage) =
+            &self.source_locations[index];
+        if resident_site != source_site {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        Ok(Some((*cohort_index, *neuron_index, *lineage)))
     }
 
     fn one_interval_frontier(
@@ -13921,31 +13954,11 @@ fn encode_internal_contact_source(
     Ok(encoded)
 }
 
-fn resolve_lineage_for_port(
-    cohorts: &[ResidentReachedCohort],
+fn resolve_dormant_lineage_for_port(
     dormant: &[DormantLineageSeed],
     port: &crate::joint_source_episode::JointSourcePortView,
 ) -> Result<Option<[u8; 16]>, FormationError> {
     let mut resolved = None;
-    for cohort in cohorts {
-        for (mount, lineage) in cohort
-            .anatomy
-            .mounts()
-            .iter()
-            .zip(cohort.anatomy.neuron_lineages())
-        {
-            let Some(site) = mount.source_site() else {
-                continue;
-            };
-            let key = DormantLineageSeed::from_site(site, *lineage)?;
-            if key.matches_port(port) {
-                if resolved.is_some_and(|prior| prior != *lineage) {
-                    return Err(FormationError::NeuronLineageAuthorityChanged);
-                }
-                resolved = Some(*lineage);
-            }
-        }
-    }
     for seed in dormant {
         if seed.matches_port(port) {
             if resolved.is_some_and(|prior| prior != seed.neuron_lineage) {
@@ -16978,6 +16991,7 @@ mod tests {
             ResidentTopologyIndex {
                 flat_locations: flat_locations.into_boxed_slice(),
                 flat_by_lineage: flat_by_lineage.into_boxed_slice(),
+                source_locations: Box::new([]),
                 lineage_layers: lineage_layers.into_boxed_slice(),
                 canonical_lineages,
                 canonical_bonds: canonical_bonds.into_boxed_slice(),

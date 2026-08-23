@@ -492,3 +492,25 @@ new-impression -> self-initiated action -> sensed consequence witness exists.
 
 Candidate status: **bounded pending-original correction locally proven; not
 deployed**. A-006 remains open.
+
+### Exact resident source routing — 2026-08-23
+
+- Ordinary source admission searched every resident cohort and mounted source
+  repeatedly to find the neurons already owned by an incoming occurrence.
+- `ResidentTopologyIndex` now carries an exact source-site location index,
+  built only with genesis, cold restore, or real topology growth. Ordinary
+  admission resolves each source directly and preserves canonical resident
+  neuron order inside every reached cohort.
+- The reordered-source falsifier passes `1/1`; `cargo check --locked --lib`
+  and `git diff --check` pass.
+- The exact tick-150809 production-sized occurrence completed in
+  `6.506235` seconds versus the prior `6.272929`-second sample. That is no
+  material cadence improvement: source searching was redundant but was not
+  the dominant delay. The correction is retained as exact routing cleanup,
+  not presented as A-006 closure or a performance success.
+- The next measured owner is the terminal whole-organism summary pass, which
+  repeats population work after the final canonical seal and accounted for
+  about `1.216` seconds in the phase profile.
+
+Candidate status: **redundant source scans removed and locally falsified; not
+deployed**. A-006 remains open.
