@@ -1403,6 +1403,20 @@ fn attach_contact_local_released_work(
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
     for (contact, transition) in anatomy.contacts.iter().zip(transitions.iter_mut()) {
+        // Exact zero current releases exactly zero work and heat.  Returning
+        // here avoids constructing and multiplying arbitrary-precision
+        // rationals for every quiescent contact in a large reached frontier;
+        // it changes no physical value.
+        if transition
+            .outward_current_from_left_picoamperes
+            .parts()
+            .0
+            == 0
+        {
+            transition.released_work_zeptojoules = BigRational::zero();
+            transition.exported_heat_zeptojoules = BigRational::zero();
+            continue;
+        }
         let potential_difference = wide_rational(potentials_millivolts[contact.left_neuron])
             - wide_rational(potentials_millivolts[contact.right_neuron]);
         let released = wide_rational(transition.outward_current_from_left_picoamperes)

@@ -335,3 +335,17 @@ action and physically sensed consequence witness.
   boundary. Do not reopen the terminal-motor or ordering-route identity fixes,
   weaken the curiosity proof, restart away the process-local causal evidence,
   or substitute another broad test suite.
+
+### Exact zero-current solver correction
+
+- The first mathematically redundant operation on the live path was
+  `attach_contact_local_released_work`: it constructed and multiplied
+  arbitrary-precision rationals for every reached contact even when that
+  contact's already-settled exact current was zero.
+- The corrected branch assigns the same exact zero released work and zero heat
+  immediately for zero current. It changes no contact current, carrier phase,
+  conductance, neuron state, DSF field, topology, evidence, or persistence.
+- One focused exact electrical-settlement test passed `1/1` in `0.09` seconds;
+  `git diff --check` passed. No broad suite or mature-body replay was run for
+  this one-function arithmetic correction. Live cadence remains unproved until
+  the immutable candidate advances the authenticated production successor.
