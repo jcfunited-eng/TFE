@@ -2989,26 +2989,17 @@ fn settle_organism_mosaic_boundary(
         ));
     }
     let topology = indexed_organism_mosaic_topology(cohorts, topology_index)?;
-    let current_fractals = topology
-        .lineages
+    let mut current_fractals = vec![None; topology.lineages.len()];
+    for fractal in emitted_neuron_fractals {
+        let flat = topology_index.flat_for_lineage(fractal.neuron_lineage)?;
+        if topology.lineages.get(flat) != Some(&fractal.neuron_lineage) {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        current_fractals[flat] = Some(fractal.delta.clone());
+    }
+    let mut changed_lineages = current_physical_deltas
         .iter()
-        .map(|lineage| {
-            emitted_neuron_fractals
-                .iter()
-                .rev()
-                .find(|fractal| &fractal.neuron_lineage == lineage)
-                .map(|fractal| fractal.delta.clone())
-        })
-        .collect::<Vec<_>>();
-    let mut changed_lineages = topology
-        .lineages
-        .iter()
-        .copied()
-        .filter(|lineage| {
-            current_physical_deltas
-                .binary_search_by_key(lineage, |(candidate, _)| *candidate)
-                .is_ok()
-        })
+        .map(|(lineage, _)| *lineage)
         .collect::<Vec<_>>();
     changed_lineages.sort_unstable();
     changed_lineages.dedup();
@@ -3212,38 +3203,55 @@ fn settle_organism_mosaic_boundary(
         current_frontier,
         max_encoded_bytes,
     )?;
-    let changed = changed_lineages.clone();
-    let mut unvisited = topology.lineages.clone();
-    while let Some(start) = unvisited.pop() {
+    // A new formation can arise only in an active electrical component that
+    // contains changed neurons. Traverse those exact incident-contact
+    // postings. The former loop started from every resident lineage and then
+    // searched every active bond for every visited neuron, making one local
+    // cascade scale as O(all neurons * all active contacts).
+    let mut visited_active_lineages = BTreeSet::<[u8; 16]>::new();
+    for start in changed_lineages.iter().copied() {
+        if !visited_active_lineages.insert(start) {
+            continue;
+        }
         let mut component = vec![start];
         let mut cursor = 0usize;
         while cursor < component.len() {
             let current = component[cursor];
-            for bond in active_bonds {
-                let (left, right) = bond.endpoints();
-                let neighbour = if left == current {
-                    Some(right)
-                } else if right == current {
-                    Some(left)
+            let current_flat = topology_index.flat_for_lineage(current)?;
+            for contact_index in topology_index
+                .incident_contacts_by_flat
+                .get(current_flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            {
+                let contact = *topology_index
+                    .contacts
+                    .get(*contact_index)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                if active_bonds.binary_search(&contact.stable_bond).is_err() {
+                    continue;
+                }
+                let neighbour_flat = if contact.left == current_flat {
+                    contact.right
+                } else if contact.right == current_flat {
+                    contact.left
                 } else {
-                    None
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
                 };
-                if let Some(neighbour) = neighbour {
-                    if topology.lineages.contains(&neighbour) && !component.contains(&neighbour) {
-                        component.push(neighbour);
-                        if let Some(index) = unvisited.iter().position(|value| value == &neighbour)
-                        {
-                            unvisited.swap_remove(index);
-                        }
-                    }
+                let neighbour = topology
+                    .lineages
+                    .get(neighbour_flat)
+                    .copied()
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                if visited_active_lineages.insert(neighbour) {
+                    component.push(neighbour);
                 }
             }
             cursor += 1;
         }
         let fractal_members = component
-                    .iter()
+            .iter()
             .copied()
-            .filter(|lineage| changed.contains(lineage))
+            .filter(|lineage| changed_lineages.binary_search(lineage).is_ok())
             .collect::<Vec<_>>();
         if fractal_members.len() < 3 {
             continue;

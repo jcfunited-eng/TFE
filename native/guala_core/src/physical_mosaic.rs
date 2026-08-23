@@ -16,7 +16,7 @@ use crate::exact_rational::ExactRational;
 use crate::reached_neuron_cohort::{
     ReachedCohortAnatomy, ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement,
 };
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum PhysicalMosaicError {
@@ -1447,9 +1447,25 @@ fn connecting_bond_witness(
     active_bonds: &[StablePhysicalBondReference],
 ) -> Option<Vec<StablePhysicalBondReference>> {
     let root = *members.first()?;
-    let root_index = available_lineages
-        .iter()
-        .position(|lineage| *lineage == root)?;
+    let mut index_by_lineage = BTreeMap::<StableNeuronLineage, usize>::new();
+    for (index, lineage) in available_lineages.iter().copied().enumerate() {
+        if index_by_lineage.insert(lineage, index).is_some() {
+            return None;
+        }
+    }
+    let root_index = *index_by_lineage.get(&root)?;
+    let mut incident =
+        vec![Vec::<(usize, StablePhysicalBondReference)>::new(); available_lineages.len()];
+    for bond in active_bonds {
+        let (left, right) = bond.endpoints();
+        let (Some(left_index), Some(right_index)) =
+            (index_by_lineage.get(&left), index_by_lineage.get(&right))
+        else {
+            continue;
+        };
+        incident[*left_index].push((*right_index, *bond));
+        incident[*right_index].push((*left_index, *bond));
+    }
     let mut predecessor =
         vec![None::<(usize, StablePhysicalBondReference)>; available_lineages.len()];
     let mut reached = vec![false; available_lineages.len()];
@@ -1457,37 +1473,17 @@ fn connecting_bond_witness(
     reached[root_index] = true;
     queue.push_back(root_index);
     while let Some(current_index) = queue.pop_front() {
-        let current = available_lineages[current_index];
-        for bond in active_bonds {
-            let (left, right) = bond.endpoints();
-            let neighbour = if left == current {
-                Some(right)
-            } else if right == current {
-                Some(left)
-            } else {
-                None
-            };
-            let Some(neighbour) = neighbour else {
-                continue;
-            };
-            let Some(neighbour_index) = available_lineages
-                .iter()
-                .position(|lineage| *lineage == neighbour)
-            else {
-                continue;
-            };
+        for (neighbour_index, bond) in incident[current_index].iter().copied() {
             if !reached[neighbour_index] {
                 reached[neighbour_index] = true;
-                predecessor[neighbour_index] = Some((current_index, *bond));
+                predecessor[neighbour_index] = Some((current_index, bond));
                 queue.push_back(neighbour_index);
             }
         }
     }
     let mut witness = Vec::new();
     for member in members {
-        let mut current = available_lineages
-            .iter()
-            .position(|lineage| lineage == member)?;
+        let mut current = *index_by_lineage.get(member)?;
         if !reached[current] {
             return None;
         }
