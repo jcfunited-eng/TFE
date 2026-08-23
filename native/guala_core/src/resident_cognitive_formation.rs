@@ -5961,7 +5961,7 @@ impl ResidentCognitiveFormationState {
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
-            &internal_contact.active_bonds,
+            &internal_contact.causal_active_bonds,
         )?;
         mount_reached_motor_effector(
             &mut cohorts,
@@ -5969,7 +5969,7 @@ impl ResidentCognitiveFormationState {
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
             &physically_transitioned_neuron_lineages,
-            &internal_contact.active_bonds,
+            &internal_contact.causal_active_bonds,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -5999,7 +5999,7 @@ impl ResidentCognitiveFormationState {
                 &externally_reached_neuron_lineages,
                 &externally_perturbed_neuron_lineages,
                 &metabolically_perturbed_body_receptor_lineages,
-                &internal_contact.active_bonds,
+                &internal_contact.causal_active_bonds,
                 &predecessor_older_active_electrical_frontier,
                 &predecessor_preceding_active_electrical_frontier,
                 &predecessor_active_electrical_frontier,
@@ -12410,6 +12410,15 @@ struct ResidentContactEdge {
     origin: ResidentContactOrigin,
 }
 
+fn contact_touches_causal_seed(
+    left_flat: usize,
+    right_flat: usize,
+    causal_seed_flats: &[usize],
+) -> bool {
+    causal_seed_flats.binary_search(&left_flat).is_ok()
+        || causal_seed_flats.binary_search(&right_flat).is_ok()
+}
+
 fn materialize_resident_contact_edge(
     topology: ResidentContactTopologyEntry,
     cohorts: &[ResidentReachedCohort],
@@ -12467,6 +12476,7 @@ fn materialize_resident_contact_edge(
 struct InternalContactSettlementObservation {
     dsf_delivery_count: usize,
     active_bonds: Vec<StablePhysicalBondReference>,
+    causal_active_bonds: Vec<StablePhysicalBondReference>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     frontier_routes: Vec<PhysicalFrontierRouteObservation>,
     next_active_frontier: Vec<ActiveElectricalFrontierEntry>,
@@ -12665,6 +12675,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            causal_active_bonds: Vec::new(),
             changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
@@ -12710,6 +12721,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            causal_active_bonds: Vec::new(),
             changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
@@ -12760,6 +12772,7 @@ fn settle_internal_contact_interval(
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
+            causal_active_bonds: Vec::new(),
             changed_contact_channel_states: Vec::new(),
             frontier_routes: Vec::new(),
             next_active_frontier: Vec::new(),
@@ -13905,6 +13918,30 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     active_bonds.sort_unstable();
     active_bonds.dedup();
+    // Electrical settlement includes contacts among two immediate neighbours
+    // so their exact local channel state remains physical.  Such a contact is
+    // not, by that fact alone, evidence that the present causal frontier
+    // reached it.  Only an active contact touching an explicit current seed
+    // may authorize developmental growth or cognitive formation.
+    let mut causal_active_bonds = settled
+        .transitions
+        .iter()
+        .zip(compact_bonds.iter().copied())
+        .zip(compact_edge_flat_endpoints.iter().copied())
+        .filter_map(|((transition, bond), (left_flat, right_flat))| {
+            (contact_touches_causal_seed(
+                left_flat,
+                right_flat,
+                &causal_seed_flats,
+            )
+                && (transition.outward_current_from_left_picoamperes.parts().0 != 0
+                    || transition.outward_elementary_charges_from_left != 0
+                    || transition.conductance_changed))
+                .then_some(bond)
+        })
+        .collect::<Vec<_>>();
+    causal_active_bonds.sort_unstable();
+    causal_active_bonds.dedup();
     let mut frontier_routes = Vec::new();
     for ((transition, bond), (left_flat, right_flat)) in settled
         .transitions
@@ -13997,6 +14034,7 @@ fn settle_internal_contact_interval(
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
+        causal_active_bonds,
         changed_contact_channel_states,
         frontier_routes,
         next_active_frontier,
@@ -17205,6 +17243,15 @@ mod tests {
             .unwrap();
         assert_eq!(baseline, (vec![0, 1], vec![0]));
         assert_eq!(wide, baseline);
+    }
+
+    #[test]
+    fn background_neighbour_contact_has_no_causal_learning_authority() {
+        let causal_seeds = [0, 4];
+
+        assert!(contact_touches_causal_seed(0, 1, &causal_seeds));
+        assert!(contact_touches_causal_seed(3, 4, &causal_seeds));
+        assert!(!contact_touches_causal_seed(1, 3, &causal_seeds));
     }
 
     #[test]
