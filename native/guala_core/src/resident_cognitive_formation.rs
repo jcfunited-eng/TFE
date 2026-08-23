@@ -103,14 +103,14 @@ use crate::reached_neuron_cohort::{
     expand_legacy_receptor_channel_populations as expand_reached_receptor_channel_populations,
     extend_reached_cohort_cells, extend_reached_cohort_contacts,
     extend_reached_cohort_positional_fabrics,
+    apply_prepared_reached_cohort_membrane_pumps, prepare_reached_cohort_membrane_pumps,
     legacy_receptor_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     reached_cohort_state_v5_content_digest,
     settle_reached_cohort_dark_rest,
     settle_reached_cohort_interval_in_place,
     settle_reached_cohort_interval_precomputed_in_place,
-    settle_reached_cohort_membrane_pumps_in_place, settle_contact_modulated_gate_energy,
-    LocalizedFluidChemistrySettlement,
+    settle_contact_modulated_gate_energy, LocalizedFluidChemistrySettlement,
     ReachedCohortAnatomy, ReachedCohortEnergyState, ReachedCohortError,
     ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
     ReachedCohortPostExperienceSettlement, ReachedCohortRecurrenceSettlement,
@@ -2992,6 +2992,28 @@ fn pending_originals_share_physical_path(
     formations_share_reached_physical_path(prior, current)
 }
 
+struct PreparedRetainedMosaicBoundary {
+    current_frontier: bool,
+    reassembled: bool,
+    replacement: Option<AdmittedPhysicalMosaic>,
+    replacement_receipt: Option<[u8; 32]>,
+    internal_observation: Option<InternallyReassembledFormationCueObservation>,
+    external_observation: Option<ExternallyReassembledFormationFrontierObservation>,
+}
+
+impl PreparedRetainedMosaicBoundary {
+    fn inactive(current_frontier: bool) -> Self {
+        Self {
+            current_frontier,
+            reassembled: false,
+            replacement: None,
+            replacement_receipt: None,
+            internal_observation: None,
+            external_observation: None,
+        }
+    }
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -3054,184 +3076,183 @@ fn settle_organism_mosaic_boundary(
     let mut reassembled_indices = Vec::new();
     let mut newly_retained_mosaic_indices = Vec::new();
     let mut new_pending_originals = Vec::new();
-    for (retained_index, retained) in mosaics.iter_mut().enumerate() {
-        if !retained.mosaic.is_original_only()
-            && retained
-                .mosaic
-                .member_lineages()
-                .iter()
-                .any(|lineage| changed_lineages.binary_search(lineage).is_ok())
-            && active_bonds.iter().any(|bond| {
-                let (left, right) = bond.endpoints();
-                retained
+    // Every retained formation reads the same immutable physical successor.
+    // Prepare those independent recurrence responses concurrently, then apply
+    // replacements and observations in resident index order. The preparation
+    // has no resident writes, so one failure cannot leave a partial parallel
+    // mutation behind.
+    let prepared_retained = mosaics
+        .par_iter()
+        .map(|retained| -> Result<PreparedRetainedMosaicBoundary, FormationError> {
+            let current_frontier_member = !retained.mosaic.is_original_only()
+                && retained
                     .mosaic
                     .member_lineages()
-                    .binary_search(&left)
-                    .is_ok()
-                    || retained
+                    .iter()
+                    .any(|lineage| changed_lineages.binary_search(lineage).is_ok())
+                && active_bonds.iter().any(|bond| {
+                    let (left, right) = bond.endpoints();
+                    retained
                         .mosaic
                         .member_lineages()
-                        .binary_search(&right)
+                        .binary_search(&left)
                         .is_ok()
-            })
-        {
-            current_frontier_indices.push(retained_index);
-        }
-        let mut external_cue = externally_reached_lineages
-            .iter()
-            .copied()
-            .filter(|lineage| externally_perturbed_lineages.contains(lineage))
-            .filter(|lineage| {
-                retained
-                    .mosaic
-                    .member_lineages()
-                    .binary_search(lineage)
-                    .is_ok()
-            })
-            .collect::<Vec<_>>();
-        canonicalize_formation_cue(&mut external_cue);
-        // Provenance is formation-local. An external perturbation elsewhere
-        // in the continuously sensed organism cannot erase this formation's
-        // independently measured metabolic cue. If this same formation also
-        // carries an external cue, the external branch below remains the
-        // conservative authority; no mixed activity is relabelled internal.
-        let mut internal_cue = metabolically_perturbed_lineages
-            .iter()
-            .copied()
-            .filter(|lineage| {
-                retained
-                    .mosaic
-                    .member_lineages()
-                    .binary_search(lineage)
-                    .is_ok()
-            })
-            .collect::<Vec<_>>();
-        canonicalize_formation_cue(&mut internal_cue);
-        let (cue, origin) = if !external_cue.is_empty() {
-            (external_cue, PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
-        } else if !internal_cue.is_empty() {
-            (internal_cue, PhysicalMosaicRecurrenceOrigin::InternallySimulated)
-        } else {
-            continue;
-        };
-        let reassembled = match if retained.mosaic.is_original_only() {
-            prove_physical_mosaic_recurrence_with_origin(
-                &retained.mosaic,
-                current_physical_deltas,
-                active_bonds,
-                &cue,
-                origin,
-            )
-        } else {
-            alter_physical_mosaic_recurrence_with_origin(
-                &retained.mosaic,
-                current_physical_deltas,
-                active_bonds,
-                &cue,
-                origin,
-            )
-        } {
-            Ok(reassembled) => reassembled,
-            Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation) => {
-                reassembled_indices.push(retained_index);
-                reassemblies = reassemblies
-                    .checked_add(1)
-                    .ok_or(FormationError::ArithmeticOverflow)?;
-                if origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated {
-                    internally_simulated_reassemblies = internally_simulated_reassemblies
-                        .checked_add(1)
-                        .ok_or(FormationError::ArithmeticOverflow)?;
-                    let encoded = encode_admitted_physical_mosaic_for_topology(
-                        &topology.lineages,
-                        &topology.bonds,
-                        &topology.fractal_anatomies,
-                        &retained.mosaic,
-                        max_encoded_bytes,
-                    )
-                    .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
-                    internally_reassembled_formation_cues.push(
-                        InternallyReassembledFormationCueObservation {
-                            formation_receipt: sha256(&encoded),
-                            cue_lineages: cue,
-                            recurrent_lineage: retained.recurrent_lineage,
-                        },
-                    );
-                } else if let Some(recurrent_lineage) = retained.recurrent_lineage {
-                    if external_reassembly_reaches_recurrent_frontier(
+                        || retained
+                            .mosaic
+                            .member_lineages()
+                            .binary_search(&right)
+                            .is_ok()
+                });
+            let mut external_cue = externally_reached_lineages
+                .iter()
+                .copied()
+                .filter(|lineage| externally_perturbed_lineages.contains(lineage))
+                .filter(|lineage| {
+                    retained
+                        .mosaic
+                        .member_lineages()
+                        .binary_search(lineage)
+                        .is_ok()
+                })
+                .collect::<Vec<_>>();
+            canonicalize_formation_cue(&mut external_cue);
+            let mut internal_cue = metabolically_perturbed_lineages
+                .iter()
+                .copied()
+                .filter(|lineage| {
+                    retained
+                        .mosaic
+                        .member_lineages()
+                        .binary_search(lineage)
+                        .is_ok()
+                })
+                .collect::<Vec<_>>();
+            canonicalize_formation_cue(&mut internal_cue);
+            let (cue, origin) = if !external_cue.is_empty() {
+                (external_cue, PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
+            } else if !internal_cue.is_empty() {
+                (internal_cue, PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+            } else {
+                return Ok(PreparedRetainedMosaicBoundary::inactive(
+                    current_frontier_member,
+                ));
+            };
+            let reassembled = match if retained.mosaic.is_original_only() {
+                prove_physical_mosaic_recurrence_with_origin(
+                    &retained.mosaic,
+                    current_physical_deltas,
+                    active_bonds,
+                    &cue,
+                    origin,
+                )
+            } else {
+                alter_physical_mosaic_recurrence_with_origin(
+                    &retained.mosaic,
+                    current_physical_deltas,
+                    active_bonds,
+                    &cue,
+                    origin,
+                )
+            } {
+                Ok(reassembled) => Some(reassembled),
+                Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation) => None,
+                Err(error) if physical_mosaic_non_admission(error) => {
+                    return Ok(PreparedRetainedMosaicBoundary::inactive(
+                        current_frontier_member,
+                    ));
+                }
+                Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
+            };
+            let observed = reassembled.as_ref().unwrap_or(&retained.mosaic);
+            let needs_receipt = reassembled.is_some()
+                || origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated
+                || retained.recurrent_lineage.is_some_and(|recurrent_lineage| {
+                    external_reassembly_reaches_recurrent_frontier(
                         &cue,
                         recurrent_lineage,
                         current_frontier,
-                    ) {
-                        let encoded = encode_admitted_physical_mosaic_for_topology(
-                            &topology.lineages,
-                            &topology.bonds,
-                            &topology.fractal_anatomies,
-                            &retained.mosaic,
-                            max_encoded_bytes,
-                        )
-                        .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
-                        externally_reassembled_formation_frontiers.push(
-                            ExternallyReassembledFormationFrontierObservation {
-                                formation_receipt: sha256(&encoded),
-                                cue_lineages: cue,
-                                recurrent_lineage,
-                            },
-                        );
+                    )
+                });
+            let observed_receipt = if needs_receipt {
+                let encoded = encode_admitted_physical_mosaic_for_topology(
+                    &topology.lineages,
+                    &topology.bonds,
+                    &topology.fractal_anatomies,
+                    observed,
+                    max_encoded_bytes,
+                )
+                .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
+                Some(sha256(&encoded))
+            } else {
+                None
+            };
+            let internal_observation =
+                (origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated).then(|| {
+                    InternallyReassembledFormationCueObservation {
+                        formation_receipt: observed_receipt
+                            .expect("internal recurrence receipt was prepared"),
+                        cue_lineages: cue.clone(),
+                        recurrent_lineage: retained.recurrent_lineage,
                     }
-                }
-                continue;
-            }
-            Err(error) if physical_mosaic_non_admission(error) => continue,
-            Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
-        };
-        let encoded = encode_admitted_physical_mosaic_for_topology(
-            &topology.lineages,
-            &topology.bonds,
-            &topology.fractal_anatomies,
-            &reassembled,
-            max_encoded_bytes,
-        )
-        .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
-        let reassembled_receipt = sha256(&encoded);
-        receipt = Some(reassembled_receipt);
-        let was_retained = retained.mosaic.carries_only_retained_neuron_structure();
-        let is_retained = reassembled.carries_only_retained_neuron_structure();
-        retained.mosaic = reassembled;
-        if !was_retained && is_retained {
-            newly_retained_mosaic_indices.push(retained_index);
-        }
-        if !current_frontier_indices.contains(&retained_index) {
+                });
+            let external_observation = retained.recurrent_lineage.and_then(|recurrent_lineage| {
+                (origin == PhysicalMosaicRecurrenceOrigin::ExternallyObserved
+                    && external_reassembly_reaches_recurrent_frontier(
+                        &cue,
+                        recurrent_lineage,
+                        current_frontier,
+                    ))
+                .then(|| ExternallyReassembledFormationFrontierObservation {
+                    formation_receipt: observed_receipt
+                        .expect("external recurrence receipt was prepared"),
+                    cue_lineages: cue,
+                    recurrent_lineage,
+                })
+            });
+            Ok(PreparedRetainedMosaicBoundary {
+                current_frontier: current_frontier_member,
+                reassembled: true,
+                replacement_receipt: reassembled.as_ref().and(observed_receipt),
+                replacement: reassembled,
+                internal_observation,
+                external_observation,
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    for (retained_index, prepared) in prepared_retained.into_iter().enumerate() {
+        if prepared.current_frontier || prepared.reassembled {
             current_frontier_indices.push(retained_index);
+        }
+        if !prepared.reassembled {
+            continue;
         }
         reassembled_indices.push(retained_index);
         reassemblies = reassemblies
             .checked_add(1)
             .ok_or(FormationError::ArithmeticOverflow)?;
-        if origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated {
+        if prepared.internal_observation.is_some() {
             internally_simulated_reassemblies = internally_simulated_reassemblies
                 .checked_add(1)
                 .ok_or(FormationError::ArithmeticOverflow)?;
-            internally_reassembled_formation_cues.push(
-                InternallyReassembledFormationCueObservation {
-                    formation_receipt: reassembled_receipt,
-                    cue_lineages: cue,
-                    recurrent_lineage: retained.recurrent_lineage,
-                },
-            );
-        } else if let Some(recurrent_lineage) = retained.recurrent_lineage {
-            if external_reassembly_reaches_recurrent_frontier(
-                &cue,
-                recurrent_lineage,
-                current_frontier,
-            ) {
-                externally_reassembled_formation_frontiers.push(
-                    ExternallyReassembledFormationFrontierObservation {
-                        formation_receipt: reassembled_receipt,
-                        cue_lineages: cue,
-                        recurrent_lineage,
-                    },
-                );
+        }
+        if let Some(replacement) = prepared.replacement {
+            let was_retained = mosaics[retained_index]
+                .mosaic
+                .carries_only_retained_neuron_structure();
+            let is_retained = replacement.carries_only_retained_neuron_structure();
+            mosaics[retained_index].mosaic = replacement;
+            if !was_retained && is_retained {
+                newly_retained_mosaic_indices.push(retained_index);
             }
+        }
+        if let Some(replacement_receipt) = prepared.replacement_receipt {
+            receipt = Some(replacement_receipt);
+        }
+        if let Some(observation) = prepared.internal_observation {
+            internally_reassembled_formation_cues.push(observation);
+        }
+        if let Some(observation) = prepared.external_observation {
+            externally_reassembled_formation_frontiers.push(observation);
         }
     }
     let organic_relations = observe_organic_mosaic_relations(
@@ -5853,16 +5874,12 @@ impl ResidentCognitiveFormationState {
             }
         }
         let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
-        let mut locally_settled_lineages = externally_reached_neuron_lineages.clone();
-        for lineage in reached_association_lineages
-            .iter()
-            .chain(&reached_body_regulation_lineages)
-            .chain(&metabolically_perturbed_body_receptor_lineages)
-        {
-            if !locally_settled_lineages.contains(lineage) {
-                locally_settled_lineages.push(*lineage);
-            }
-        }
+        // Presence in the sensory roster is not a causal transition. Seed
+        // electrical settlement only from exact delivered energy, a measured
+        // local metabolic change, newly reached developmental wiring, or the
+        // prior interval's still-active frontier. A zero, unchanged receptor
+        // remains mounted but cannot wake an unrelated pathway.
+        let mut locally_settled_lineages = current_noncontinuation_seed_lineages.clone();
         for entry in &active_electrical_frontier {
             for lineage in entry.affected_lineages().into_iter().flatten() {
                 if !internal_frontier_lineages.contains(&lineage) {
@@ -12780,36 +12797,54 @@ fn settle_internal_contact_interval(
             ));
     }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
+    // Cohort reservoirs are physically independent. Prepare their exact pump
+    // successors concurrently, but retain canonical cohort order for the
+    // deterministic resident commit and observation stream.
+    let prepared_cohort_pumps = selected_cohort_indices
+        .par_iter()
+        .copied()
+        .map(|cohort_index| {
+            let reached_predecessors = selected_predecessor_neurons[cohort_index]
+                .as_ref()
+                .ok_or(FormationError::NoncanonicalState)?;
+            let reached_indices = reached_predecessors
+                .iter()
+                .map(|(neuron_index, _)| *neuron_index)
+                .collect::<Vec<_>>();
+            let prepared = prepare_reached_cohort_membrane_pumps(
+                &cohorts[cohort_index].anatomy,
+                cohorts[cohort_index].state.as_ref(),
+                &reached_indices,
+                interval_microseconds,
+            )
+            .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            Ok((cohort_index, reached_indices, prepared))
+        })
+        .collect::<Result<Vec<_>, FormationError>>()?;
+
     let mut metabolically_perturbed_body_receptor_lineages = Vec::new();
     let mut reached_layer_ten_gradient_settlements = Vec::new();
     let mut localized_fluid_chemistry = Vec::new();
-    for cohort_index in selected_cohort_indices.iter().copied() {
+    for (cohort_index, reached_indices, prepared) in prepared_cohort_pumps {
         let reached_predecessors = selected_predecessor_neurons[cohort_index]
             .as_ref()
             .ok_or(FormationError::NoncanonicalState)?;
-        let reached_indices = reached_predecessors
-            .iter()
-            .map(|(neuron_index, _)| *neuron_index)
-            .collect::<Vec<_>>();
-        let metabolic = settle_reached_cohort_membrane_pumps_in_place(
-            &cohorts[cohort_index].anatomy,
+        let metabolic = apply_prepared_reached_cohort_membrane_pumps(
             Arc::make_mut(&mut cohorts[cohort_index].state),
-            &reached_indices,
-            interval_microseconds,
-        )
-        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            prepared,
+        );
         let successor = cohorts[cohort_index].state.clone();
         if cohorts[cohort_index].anatomy.neuron_count() == 1
             && reached_indices.as_slice() == [0]
             && cohorts[cohort_index].anatomy.mounts()[0].place().layer() == 10
         {
             reached_layer_ten_gradient_settlements.push(ReachedLayerTenGradientSettlement {
-                    neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[0],
-                    neuron_place: cohorts[cohort_index].anatomy.mounts()[0].place(),
+                neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[0],
+                neuron_place: cohorts[cohort_index].anatomy.mounts()[0].place(),
                 predecessor_separated_elementary_charges: cohorts[cohort_index].state.neurons()[0]
-                        .separated_elementary_charges(),
-                    post_gradient_separated_elementary_charges: successor.neurons()[0]
-                        .separated_elementary_charges(),
+                    .separated_elementary_charges(),
+                post_gradient_separated_elementary_charges: successor.neurons()[0]
+                    .separated_elementary_charges(),
                 metabolic: metabolic.clone(),
             });
         }
@@ -13230,14 +13265,12 @@ fn settle_internal_contact_interval(
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
 
-    // Local electrical settlement is wider than causal propagation: quiet
-    // receptors and their adjacent cells must still relax so neuronal
-    // experience can reach quiescence.  That wider settlement is not body
-    // authority.  An effector may emit only when it was already this
-    // interval's causal seed or when an exact whole-carrier transfer moved
-    // away from a causal seed and reached it across one contact.  This keeps
-    // passive balancing in a dark/silent neighbourhood from becoming motion
-    // or articulation without adding a threshold, mode, or command.
+    // A still-active predecessor frontier may continue relaxing, but a quiet
+    // unrelated receptor never enters this compact settlement merely because
+    // it appeared in the sensory roster. An effector may emit only when it
+    // was already this interval's causal seed or when an exact whole-carrier
+    // transfer moved away from a causal seed and reached it across one
+    // contact. No threshold, mode, or command is added.
     let mut causally_active_lineages = causal_seed_flats
         .iter()
         .map(|flat| flat_locations[*flat].2)

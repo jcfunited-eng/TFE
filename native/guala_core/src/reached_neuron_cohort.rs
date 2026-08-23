@@ -3005,12 +3005,21 @@ impl ReachedCohortMetabolicObservation {
 /// pumps remain physical while a cell participates in an active interval.
 /// Unreached neurons and their state remain byte-identical, and no cohort or
 /// organism population is polled to decide participation.
-pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
+pub(crate) struct PreparedReachedCohortMembranePumps {
+    settled_neurons: Vec<(usize, NeuronPhysicalState)>,
+    successor_recovery_fluid: RecoveryFluidReservoirState,
+    observation: ReachedCohortMetabolicObservation,
+}
+
+/// Calculate one cohort's reached membrane-pump successors without changing
+/// resident state. Independent cohorts may prepare concurrently; their own
+/// recovery reservoirs still settle in canonical resident-neuron order.
+pub(crate) fn prepare_reached_cohort_membrane_pumps(
     anatomy: &ReachedCohortAnatomy,
-    state: &mut ReachedCohortState,
+    state: &ReachedCohortState,
     reached_neuron_indices: &[usize],
     interval_microseconds: u32,
-) -> Result<ReachedCohortMetabolicObservation, ReachedCohortError> {
+) -> Result<PreparedReachedCohortMembranePumps, ReachedCohortError> {
     if state.neurons.len() != anatomy.neurons.len()
         || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
         || reached_neuron_indices
@@ -3023,7 +3032,11 @@ pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
     if reached_neuron_indices.is_empty() {
-        return Ok(ReachedCohortMetabolicObservation::default());
+        return Ok(PreparedReachedCohortMembranePumps {
+            settled_neurons: Vec::new(),
+            successor_recovery_fluid: state.recovery_fluid,
+            observation: ReachedCohortMetabolicObservation::default(),
+        });
     }
 
     let predecessor_material = reached_neuron_indices.iter().try_fold(
@@ -3235,15 +3248,41 @@ pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
             actual_successor: actual_successor_material,
         });
     }
-    // Every fallible preparation and conservation check is complete before
-    // the first resident write.  Commit touches only the reached slots and
-    // the one ordered cohort reservoir; unrelated neurons and contacts stay
-    // in their original allocation.
-    for (neuron_index, successor) in settled_neurons {
+    Ok(PreparedReachedCohortMembranePumps {
+        settled_neurons,
+        successor_recovery_fluid: reservoir,
+        observation,
+    })
+}
+
+/// Apply a fully checked pump preparation. This contains no physics,
+/// allocation, fallible arithmetic, or population scan.
+pub(crate) fn apply_prepared_reached_cohort_membrane_pumps(
+    state: &mut ReachedCohortState,
+    prepared: PreparedReachedCohortMembranePumps,
+) -> ReachedCohortMetabolicObservation {
+    for (neuron_index, successor) in prepared.settled_neurons {
         state.neurons[neuron_index] = successor;
     }
-    state.recovery_fluid = reservoir;
-    Ok(observation)
+    state.recovery_fluid = prepared.successor_recovery_fluid;
+    prepared.observation
+}
+
+pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
+    anatomy: &ReachedCohortAnatomy,
+    state: &mut ReachedCohortState,
+    reached_neuron_indices: &[usize],
+    interval_microseconds: u32,
+) -> Result<ReachedCohortMetabolicObservation, ReachedCohortError> {
+    let prepared = prepare_reached_cohort_membrane_pumps(
+        anatomy,
+        state,
+        reached_neuron_indices,
+        interval_microseconds,
+    )?;
+    Ok(apply_prepared_reached_cohort_membrane_pumps(
+        state, prepared,
+    ))
 }
 
 #[cfg(test)]

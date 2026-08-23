@@ -32,6 +32,7 @@ use crate::exact_rational::{ExactRational, ExactRationalError};
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
+use rayon::prelude::*;
 
 const PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE: u128 = 1_000;
 const JUNCTION_TOTAL_CHANNEL_POPULATION: u128 = 6_400;
@@ -632,17 +633,17 @@ fn jointly_carrier_bound_transitions(
     }
 
     let potentials = predecessor_membranes
-        .iter()
+        .par_iter()
         .copied()
-        .zip(capacitances.iter().copied())
+        .zip(capacitances.par_iter().copied())
         .map(|(membrane, capacitance)| membrane.potential_millivolts(capacitance))
         .collect::<Result<Vec<_>, _>>()?;
     let transitions = anatomy
         .contacts
-        .iter()
+        .par_iter()
         .copied()
-        .zip(predecessor_contacts.contacts.iter().cloned())
-        .zip(provisional)
+        .zip(predecessor_contacts.contacts.par_iter().cloned())
+        .zip(provisional.into_par_iter())
         .map(|((contact, predecessor), transition)| -> Result<
             ElectricalContactTransition,
             SparseElectricalError,
@@ -1625,7 +1626,11 @@ fn attach_contact_local_released_work(
     {
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
-    for (contact, transition) in anatomy.contacts.iter().zip(transitions.iter_mut()) {
+    anatomy
+        .contacts
+        .par_iter()
+        .zip(transitions.par_iter_mut())
+        .try_for_each(|(contact, transition)| -> Result<(), SparseElectricalError> {
         // Exact zero current releases exactly zero work and heat.  Returning
         // here avoids constructing and multiplying arbitrary-precision
         // rationals for every quiescent contact in a large reached frontier;
@@ -1638,7 +1643,7 @@ fn attach_contact_local_released_work(
         {
             transition.released_work_zeptojoules = BigRational::zero();
             transition.exported_heat_zeptojoules = BigRational::zero();
-            continue;
+            return Ok(());
         }
         let potential_difference = wide_rational(potentials_millivolts[contact.left_neuron])
             - wide_rational(potentials_millivolts[contact.right_neuron]);
@@ -1650,7 +1655,8 @@ fn attach_contact_local_released_work(
         }
         transition.released_work_zeptojoules = released.clone();
         transition.exported_heat_zeptojoules = released;
-    }
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -1674,33 +1680,40 @@ pub(crate) fn settle_sparse_electrical_transfers(
     }
 
     let potentials = predecessor_membranes
-        .iter()
+        .par_iter()
         .copied()
-        .zip(capacitances.iter().copied())
+        .zip(capacitances.par_iter().copied())
         .map(|(membrane, capacitance)| membrane.potential_millivolts(capacitance))
         .collect::<Result<Vec<_>, _>>()?;
-    let mut provisional = Vec::with_capacity(anatomy.contacts.len());
-
-    for (index, contact) in anatomy.contacts.iter().copied().enumerate() {
-        let transition = settle_contact(
-            contact,
-            predecessor_contacts.contacts[index].clone(),
-            ContactEndpoint::new(
-                potentials[contact.left_neuron],
-                predecessor_membranes[contact.left_neuron],
-                capacitances[contact.left_neuron],
-                u128::MAX,
-            ),
-            ContactEndpoint::new(
-                potentials[contact.right_neuron],
-                predecessor_membranes[contact.right_neuron],
-                capacitances[contact.right_neuron],
-                u128::MAX,
-            ),
-            interval_microseconds,
-        )?;
-        provisional.push(transition);
-    }
+    // Every contact reads the same immutable predecessor generation. Settle
+    // those independent pair proposals concurrently; the exact shared-sender
+    // carrier bound and connected-component energy descent still follow as
+    // their single deterministic reconciliation steps.
+    let provisional = anatomy
+        .contacts
+        .par_iter()
+        .copied()
+        .zip(predecessor_contacts.contacts.par_iter().cloned())
+        .map(|(contact, predecessor)| {
+            settle_contact(
+                contact,
+                predecessor,
+                ContactEndpoint::new(
+                    potentials[contact.left_neuron],
+                    predecessor_membranes[contact.left_neuron],
+                    capacitances[contact.left_neuron],
+                    u128::MAX,
+                ),
+                ContactEndpoint::new(
+                    potentials[contact.right_neuron],
+                    predecessor_membranes[contact.right_neuron],
+                    capacitances[contact.right_neuron],
+                    u128::MAX,
+                ),
+                interval_microseconds,
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let mut transitions = jointly_carrier_bound_transitions(
         anatomy,
         predecessor_contacts,
