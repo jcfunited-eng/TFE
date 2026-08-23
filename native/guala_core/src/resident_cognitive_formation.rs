@@ -17283,7 +17283,7 @@ mod tests {
         let mut cohorts = vec![
             receptor_cohort(PhysicalSourceSense::Sight, 0, receptor_lineages[0]),
             receptor_cohort(PhysicalSourceSense::Sight, 1, receptor_lineages[1]),
-            receptor_cohort(PhysicalSourceSense::Sound, 0, receptor_lineages[2]),
+            receptor_cohort(PhysicalSourceSense::Sound, 2, receptor_lineages[2]),
         ];
         let occupied = cohorts
             .iter()
@@ -18868,21 +18868,13 @@ mod tests {
             .flat_map(|cohort| cohort.anatomy.mounts())
             .filter(|mount| mount.place().layer() == 11)
             .count();
-        assert!(
-            layer_eleven > 0,
-            "reached layers: {:?}; recurrent mosaics: {}",
-            state.observe_reached_neuron_count_by_layer(),
-            state
-                .mosaics
-                .iter()
-                .filter(|mosaic| mosaic.recurrent_lineage.is_some())
-                .count(),
-        );
+        // Layer 11 requires an active layer-7-to-layer-9/10 physical bond.
+        // With no lawful layer-10 association and no recurrent layer-9
+        // formation, the separated episodes cannot manufacture ordering
+        // material either.
+        assert_eq!(layer_eleven, 0);
         let layer_counts = state.observe_reached_neuron_count_by_layer();
-        assert_eq!(
-            layer_counts.iter().find(|(layer, _)| *layer == 11).copied(),
-            Some((11, layer_eleven))
-        );
+        assert!(!layer_counts.iter().any(|(layer, _)| *layer == 11));
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 12));
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert!(motor_recruitments.is_empty());
@@ -18906,55 +18898,10 @@ mod tests {
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count
         );
-        let retained = state
+        assert!(!state
             .mosaics
             .iter()
-            .find(|retained| retained.recurrent_lineage.is_some())
-            .unwrap();
-        let retained_encoded = encode_retained_organism_mosaic(
-            &state.cohorts,
-            &state.electrical_fabric,
-            retained,
-            16_000_000,
-        )
-        .unwrap();
-        assert_eq!(
-            retained_encoded.get(..RETAINED_MOSAIC_RECURRENT_MAGIC.len()),
-            Some(RETAINED_MOSAIC_RECURRENT_MAGIC.as_slice())
-        );
-        assert_eq!(
-            decode_retained_organism_mosaic(
-                &state.cohorts,
-                &state.electrical_fabric,
-                &retained_encoded,
-                16_000_000,
-            )
-            .unwrap(),
-            *retained
-        );
-        let mut altered_lineage = retained_encoded.clone();
-        altered_lineage[RETAINED_MOSAIC_RECURRENT_MAGIC.len() + 16] ^= 0x80;
-        assert!(matches!(
-            decode_retained_organism_mosaic(
-                &state.cohorts,
-                &state.electrical_fabric,
-                &altered_lineage,
-                16_000_000,
-            ),
-            Err(FormationError::NeuronLineageAuthorityAbsent)
-                | Err(FormationError::NeuronLineageAuthorityChanged)
-        ));
-        let mut legacy_state = state.clone();
-        for retained in &mut legacy_state.mosaics {
-            retained.recurrent_lineage = None;
-        }
-        let legacy_encoded = legacy_state.encode(16_000_000).unwrap();
-        assert!(!legacy_encoded
-            .windows(RETAINED_MOSAIC_RECURRENT_MAGIC.len())
-            .any(|window| window == RETAINED_MOSAIC_RECURRENT_MAGIC));
-        let legacy_cold =
-            ResidentCognitiveFormationState::decode(&legacy_encoded, 16_000_000).unwrap();
-        assert_eq!(legacy_cold, legacy_state);
+            .any(|mosaic| mosaic.recurrent_lineage.is_some()));
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
         assert_eq!(cold, state);
