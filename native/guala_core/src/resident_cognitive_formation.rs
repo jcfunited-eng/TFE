@@ -2962,28 +2962,18 @@ fn external_reassembly_reaches_recurrent_frontier(
 /// reach many recurrent cells at once.
 fn recognized_formation_has_continuous_recurrent_flow(
     cue: &[[u8; 16]],
-    retained_members: &[[u8; 16]],
     recurrent_lineage: [u8; 16],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     current_frontier: &[ActiveElectricalFrontierEntry],
 ) -> bool {
     predecessor_frontier
         .iter()
-        .any(|entry| {
-            entry.frontier_lineage() == recurrent_lineage
-                && entry.directed_transfer().is_some_and(|transfer| {
-                    cue.contains(&transfer.sender)
-                        && transfer.receiver == recurrent_lineage
-                })
-        })
-        && current_frontier.iter().any(|entry| {
-            entry.directed_transfer().is_some_and(|transfer| {
-                transfer.sender == recurrent_lineage
-                    && retained_members.binary_search(&transfer.receiver).is_ok()
-                    && !cue.contains(&transfer.receiver)
-                    && entry.frontier_lineage() == transfer.receiver
-            })
-        })
+        .any(|entry| entry.frontier_lineage() == recurrent_lineage)
+        && external_reassembly_reaches_recurrent_frontier(
+            cue,
+            recurrent_lineage,
+            current_frontier,
+        )
 }
 
 fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
@@ -3140,7 +3130,6 @@ fn settle_organism_mosaic_boundary(
         let continuous_recurrent_flow = retained.recurrent_lineage.is_some_and(|lineage| {
             recognized_formation_has_continuous_recurrent_flow(
                 &cue,
-                retained.mosaic.member_lineages(),
                 lineage,
                 predecessor_frontier,
                 current_frontier,
@@ -17248,7 +17237,6 @@ mod tests {
     #[test]
     fn external_reassembly_identity_requires_its_exact_cue_to_recurrent_transfer() {
         let cue = [1_u8; 16];
-        let member = [2_u8; 16];
         let recurrent = [9_u8; 16];
         let unrelated = [7_u8; 16];
         let cue_bond = StablePhysicalBondReference::new(cue, recurrent, 0).unwrap();
@@ -17267,32 +17255,14 @@ mod tests {
         ));
         assert!(!recognized_formation_has_continuous_recurrent_flow(
             &[cue],
-            &[cue, member],
             recurrent,
             &[],
             &[reached],
         ));
-        let member_bond = StablePhysicalBondReference::new(recurrent, member, 0).unwrap();
-        let member_reached = ActiveElectricalFrontierEntry::caused_with_frontier(
-            recurrent,
-            member,
-            member,
-            member_bond,
-            3,
-        )
-        .unwrap();
         assert!(recognized_formation_has_continuous_recurrent_flow(
             &[cue],
-            &[cue, member],
             recurrent,
-            &[reached],
-            &[member_reached],
-        ));
-        assert!(!recognized_formation_has_continuous_recurrent_flow(
-            &[cue],
-            &[cue, member],
-            recurrent,
-            &[reached],
+            &[ActiveElectricalFrontierEntry::legacy_receiver(recurrent)],
             &[reached],
         ));
 
@@ -17313,9 +17283,8 @@ mod tests {
         ));
         assert!(!recognized_formation_has_continuous_recurrent_flow(
             &[cue],
-            &[cue, member],
             recurrent,
-            &[reached],
+            &[ActiveElectricalFrontierEntry::legacy_receiver(recurrent)],
             &[unrelated_reached],
         ));
     }
