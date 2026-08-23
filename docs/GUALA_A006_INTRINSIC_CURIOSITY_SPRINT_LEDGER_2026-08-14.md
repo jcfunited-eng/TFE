@@ -696,3 +696,34 @@ rejected transaction or whole-state draft.
 - The focused exact falsifier passes `1/1`. This is local evidence only; A-006
   remains open until one live authenticated other-body occurrence produces the
   complete joined witness in the same resident organism.
+
+### Task-1188 live result and continuous social lesson correction
+
+- Commit `42fb44a91afe72820bec3bf6987c6bc1f168f0f0` deployed once as task
+  definition 1188 and immutable image
+  `sha256:8cc2fdcb...6b4b5981`. The deterministic build and cutover completed in
+  17 minutes 48 seconds, restored the same CURRENT identity, and left one
+  desired/running healthy task with zero pending tasks.
+- One participant approach changed three exact retinal receptors and advanced
+  the resident to tick `152814`. The approach itself caused no motor action,
+  so the social contribution correctly remained unresolved.
+- The separately requested authorized `word-apple` lesson did not begin until
+  tick `152831` because unattended life lawfully acquired the organism between
+  the two HTTP requests. The full lesson committed at tick `152849` with 1,795
+  unchanged full-field DSF deliveries and 33,078 physical neuron transitions,
+  but the participant frontier was no longer causal. The deployed record
+  therefore truthfully kept `social_experience_claimed=false`.
+- The local correction lets the existing `invite-card` request optionally
+  carry its authorized presentation before that same external-admission signal
+  ends. Preparation of the exact media occurs before the participant moves;
+  after a successful retinal approach, the existing lesson transition consumes
+  that exact invitation immediately. Unattended life sees the still-active
+  external ingress signal and cannot insert an unrelated interval between the
+  person approaching and showing the card.
+- This is transport continuity only. It does not retain a social context,
+  fabricate a causal bridge, select Guala's action, or change cognition. The
+  new response also returns only the bounded lesson receipt/totals and omits
+  the multi-megabyte private per-neuron observation body.
+- Five focused invitation/causal falsifiers pass. The combined correction is
+  not yet deployed; full A-006 remains Reconciled Partial pending its one live
+  joined other-body/new-impression/action/consequence witness.

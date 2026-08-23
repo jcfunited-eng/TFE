@@ -346,3 +346,70 @@ def test_invite_route_binds_card_to_physical_retinal_delivery_only(
     ] == action_receipt
     assert invitation["surface_sha256"] == "99" * 32
     assert invitation["transport_metadata_only"] is True
+
+
+def test_invited_card_can_settle_before_external_admission_ends(monkeypatch) -> None:
+    invitation_receipt = "77" * 32
+    monkeypatch.setattr(
+        production,
+        "_read_manifest_card",
+        lambda _card_id: {"surface": {"sha256": "99" * 32}},
+    )
+    monkeypatch.setattr(
+        production,
+        "_card_lesson_hop_episodes",
+        lambda *_args: [("episode", [(0, 1)])],
+    )
+    monkeypatch.setattr(
+        production,
+        "_embodied_curriculum_invitation",
+        lambda **_kwargs: JSONResponse(
+            status_code=200,
+            content={
+                "accepted": True,
+                "ok": True,
+                "invitation": {
+                    "invitation_receipt_sha256": invitation_receipt,
+                },
+            },
+        ),
+    )
+    observed: dict[str, object] = {}
+
+    def perform(*args):
+        observed["args"] = args
+        return {
+            "hop_count": 3,
+            "observation": {"large_private_body": [1, 2, 3]},
+            "persisted": {"organism_tick": 44, "state_sha256": "88" * 32},
+            "receptor_ingress": {"changing_count": 2},
+            "totals": {"dsf_delivery_count": 7},
+        }
+
+    monkeypatch.setattr(production, "_perform_card_lesson_intake", perform)
+    monkeypatch.setattr(
+        production,
+        "_last_intrinsic_curiosity_evidence",
+        None,
+    )
+
+    response = production.invite_card(
+        {"card_id": "alphabet-a", "presentation": "full"}
+    )
+    body = json.loads(response.body)
+
+    assert response.status_code == 200
+    assert observed["args"][0] == [("episode", [(0, 1)])]
+    assert observed["args"][5] == invitation_receipt
+    assert body["lesson"] == {
+        "accepted": True,
+        "card_id": "alphabet-a",
+        "curiosity_status": "physical_curiosity_mounted_awaiting_causal_witness",
+        "hop_count": 3,
+        "persisted": {"organism_tick": 44, "state_sha256": "88" * 32},
+        "presentation": "full",
+        "receptor_ingress": {"changing_count": 2},
+        "social_experience_claimed": False,
+        "totals": {"dsf_delivery_count": 7},
+    }
+    assert "observation" not in body["lesson"]

@@ -14130,6 +14130,13 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     card_id = payload.get("card_id")
     if not isinstance(card_id, str) or not card_id:
         return _refusal(422, "a curriculum invitation requires an approved card_id")
+    presentation = payload.get("presentation")
+    if presentation is not None and presentation not in PRESENTATION_MODES:
+        return _refusal(
+            422,
+            "an invited card presentation must be one of "
+            + ", ".join(repr(mode) for mode in PRESENTATION_MODES),
+        )
     try:
         experience = _read_manifest_card(card_id)
     except KeyError:
@@ -14145,10 +14152,70 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         r"[0-9a-f]{64}", surface_sha256
     ):
         return _refusal(503, "approved curriculum surface receipt is unavailable")
-    return _embodied_curriculum_invitation(
+    episodes = None
+    if presentation is not None:
+        try:
+            episodes = _card_lesson_hop_episodes(
+                card_id,
+                experience,
+                presentation,
+            )
+        except HTTPException:
+            raise
+        except (OSError, ValueError) as error:
+            return _refusal(503, f"approved curriculum media refused: {error}")
+    invitation_response = _embodied_curriculum_invitation(
         experience_kind="card",
         experience_id=card_id,
         media_receipts={"card_id": card_id, "surface_sha256": surface_sha256},
+    )
+    if presentation is None or invitation_response.status_code != 200:
+        return invitation_response
+    invitation_body = json.loads(invitation_response.body)
+    invitation = invitation_body.get("invitation")
+    invitation_receipt = (
+        invitation.get("invitation_receipt_sha256")
+        if isinstance(invitation, dict)
+        else None
+    )
+    if not isinstance(invitation_receipt, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", invitation_receipt
+    ):
+        return _refusal(503, "embodied invitation lost its exact receipt")
+    try:
+        result = _perform_card_lesson_intake(
+            episodes,
+            f"curriculum-card:{card_id}:{presentation}",
+            card_id,
+            experience,
+            presentation,
+            invitation_receipt,
+        )
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
+    except HTTPException:
+        raise
+    except (RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"invited lesson transition refused: {error}")
+    curiosity = _intrinsic_curiosity_record()
+    return JSONResponse(
+        status_code=200,
+        content={
+            **invitation_body,
+            "lesson": {
+                "accepted": True,
+                "card_id": card_id,
+                "curiosity_status": curiosity["status"],
+                "hop_count": result["hop_count"],
+                "persisted": result["persisted"],
+                "presentation": presentation,
+                "receptor_ingress": result["receptor_ingress"],
+                "social_experience_claimed": curiosity[
+                    "social_experience_claimed"
+                ],
+                "totals": result["totals"],
+            },
+        },
     )
 
 
