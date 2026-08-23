@@ -2800,18 +2800,27 @@ this closure.
 
 ### Two-interval recurrent-frontier candidate
 
-The replacement candidate is limited to the already-existing native retention
-law in `retain_internally_reassembled_recurrent_frontier`: the exact retained
-layer-9 neuron must be the advancing causal frontier in the immediately
-preceding interval and must carry a current nonzero directed transfer with the
-proper cue. Current flow alone remains insufficient. Every retained member
-must still have a current nonzero sparse delta and current active bonds must
-connect the complete formation; the original retained fractals and bonds are
-never rewritten. First recognition and any recurrence without the continuous
-two-interval path retain exact-fractal equality.
+The replacement candidate is limited to an exact ordered path through the
+already-existing recurrent anatomy. In the predecessor interval the proper cue
+must physically transfer into the formation's retained layer-9 neuron and make
+that neuron the advancing frontier. In the current interval that same neuron
+must transfer outward into a retained member outside the cue and advance that
+member. Current recurrent-cell activity alone remains insufficient. Every
+retained member must still have a current nonzero sparse delta and current
+active bonds must connect the complete formation; the original retained
+fractals and bonds are never rewritten. First recognition and any recurrence
+without this ordered two-contact path retain exact-fractal equality.
 
 This candidate changes no DSF field, neuron equation, topology, schema,
 persistence, observer, action selector, or resource owner. It is not eligible
 for cutover until an immutable discarded-state rehearsal against the mature
 task-1184 predecessor proves bounded recurrence and source continuity under a
 live-sized causal input.
+
+The first immutable rehearsal of commit `f390624f`, digest
+`sha256:dbc63c3b...a4e45b`, failed safely before cutover because it required the
+recurrent neuron to remain the current frontier while conducting with the cue;
+the mature word-apple partial cue produced zero external reassembly. Native
+frontier semantics instead advance from cue to recurrent neuron and then from
+that neuron to a different retained member. RF-052 records this exact direction
+and frontier-advance requirement. Task 1184 remained live and unchanged.
