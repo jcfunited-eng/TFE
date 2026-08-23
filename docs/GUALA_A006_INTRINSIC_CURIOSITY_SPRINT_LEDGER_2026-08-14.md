@@ -650,3 +650,27 @@ not a cadence improvement and A-006 remains open.
 Candidate status: **exact live failure corrected and authenticated predecessor
 replay passed; deployment pending**. A-006 remains open until live CURRENT
 advances and the intrinsic-curiosity causal witness is re-established.
+
+### Live A-006 re-closure — 2026-08-23
+
+- Production task `dsf-ai-task:1184` runs commit
+  `5451e2ed2373d3035fdd629a36af444cc72de22e` and image
+  `sha256:46efc7e374118e089d288709a67bdd57b5fcf9017e3bd20c0368079a7e54a039`.
+  ECS is settled at one desired/running healthy task, zero pending tasks, and
+  one completed deployment. The image is pinned as `production-current`.
+- The original resident identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` advanced from the stalled tick
+  `150989` to `151006`, then continued to tick `151023`, CURRENT receipt
+  `31a421b94388fc89be32855d6652eeb33b448d7755991af669a23769a67860df`.
+- One new neuronal impression at tick `150996` crossed three exact directed
+  whole-carrier transfers into layer-12 motor discharge at tick `150999`.
+  The body moved, vestibular change was nonzero, and the same organism sensed
+  the physical consequence at tick `151006` through body receptors.
+- `intrinsic_curiosity.available` is true with status
+  `new_impression_changed_reachable_activity_and_caused_sensed_action`.
+  Python decision, reward, scripted-action, score, and named-need authorities
+  remain false.
+
+Status: **Live-Closed 2026-08-23**. The next serial item is A-011; this closure
+does not authorize reopening A-009 or restoring any rejected transaction or
+whole-state draft.
