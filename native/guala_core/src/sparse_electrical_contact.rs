@@ -706,7 +706,7 @@ fn jointly_carrier_bound_transitions(
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    globally_energy_descending_transitions(
+    component_energy_descending_transitions(
         anatomy,
         predecessor_contacts,
         capacitances,
@@ -717,73 +717,97 @@ fn jointly_carrier_bound_transitions(
     )
 }
 
-/// Settle simultaneous sparse currents on the exact minimum of the cohort's
-/// electrostatic energy along their already-derived flow direction. Pairwise
-/// descent alone is insufficient when contacts share a neuron: two lawful
-/// pair moves can overshoot one another in the same interval. For node outward
-/// transfers `d_i`, cohort energy along scale `lambda` is
+/// Settle simultaneous sparse currents on the exact minimum of each connected
+/// electrical component's stored energy along its already-derived flow
+/// direction. Pairwise descent alone is insufficient when contacts share a
+/// neuron: two lawful pair moves can overshoot one another in the same
+/// interval. Disconnected components share no neuron or contact and therefore
+/// have no physical authority over one another's settlement. For node outward
+/// transfers `d_i`, component energy along scale `lambda` is
 /// `E(lambda)=E(0)-2 B lambda+A lambda²`; its physical line minimum is
 /// `lambda=B/A`. The full step is retained when it already lies before that
-/// minimum. Otherwise all sparse currents receive the same exact scale.
-fn globally_energy_descending_transitions(
+/// minimum. Otherwise only currents in that connected component receive its
+/// exact scale.
+fn component_energy_descending_transitions(
     anatomy: &SparseElectricalAnatomy,
     predecessor_contacts: &SparseElectricalState,
     capacitances: &[MembraneCapacitance],
     predecessor_membranes: &[ElementaryChargeMembraneState],
     available_carriers: &[u128],
     interval_microseconds: u32,
-    transitions: Vec<ElectricalContactTransition>,
+    mut transitions: Vec<ElectricalContactTransition>,
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
-    let outward = outward_by_neuron(anatomy, &transitions)?;
-    let mut curvature = BigRational::from_integer(BigInt::from(0));
-    let mut descent = BigRational::from_integer(BigInt::from(0));
-    for ((membrane, capacitance), node_outward) in predecessor_membranes
-        .iter()
-        .zip(capacitances)
-        .zip(&outward)
-    {
-        let (capacitance_numerator, capacitance_denominator) =
-            capacitance.picofarads().parts();
-        let capacitance = BigRational::new(
-            BigInt::from(capacitance_numerator),
-            BigInt::from(capacitance_denominator),
-        );
-        let flow = BigInt::from(*node_outward);
-        let charge = BigInt::from(membrane.separated_elementary_charges());
-        curvature += BigRational::from_integer(&flow * &flow) / &capacitance;
-        descent += BigRational::from_integer(charge * flow) / capacitance;
+    for component_contacts in connected_contact_components(anatomy) {
+        settle_energy_component(
+            anatomy,
+            predecessor_contacts,
+            capacitances,
+            predecessor_membranes,
+            available_carriers,
+            interval_microseconds,
+            &component_contacts,
+            &mut transitions,
+        )?;
     }
-    if curvature.is_zero() {
-        return Ok(transitions);
-    }
-    if descent <= BigRational::from_integer(BigInt::from(0)) {
-        return Ok(predecessor_contacts
-            .contacts
+    Ok(transitions)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn settle_energy_component(
+    anatomy: &SparseElectricalAnatomy,
+    predecessor_contacts: &SparseElectricalState,
+    capacitances: &[MembraneCapacitance],
+    predecessor_membranes: &[ElementaryChargeMembraneState],
+    available_carriers: &[u128],
+    interval_microseconds: u32,
+    component_contacts: &[usize],
+    transitions: &mut [ElectricalContactTransition],
+) -> Result<(), SparseElectricalError> {
+    let outward = outward_by_contact_indices(anatomy, transitions, component_contacts)?;
+    let common_denominator =
+        inverse_capacitance_common_denominator(capacitances, &outward)?;
+    let curvature = inverse_capacitance_sum_numerator(
+        capacitances,
+        outward.iter().map(|node_outward| {
+            let flow = BigInt::from(*node_outward);
+            &flow * &flow
+        }),
+        &common_denominator,
+    )?;
+    let descent = inverse_capacitance_sum_numerator(
+        capacitances,
+        predecessor_membranes
             .iter()
-            .cloned()
-            .map(quiescent_contact)
-            .collect());
+            .zip(&outward)
+            .map(|(membrane, node_outward)| {
+                BigInt::from(membrane.separated_elementary_charges())
+                    * BigInt::from(*node_outward)
+            }),
+        &common_denominator,
+    )?;
+    if curvature.is_zero() {
+        return Ok(());
     }
-    let scale = &descent / &curvature;
-    if scale >= BigRational::from_integer(BigInt::from(1)) {
-        return Ok(transitions);
+    if descent <= BigInt::from(0_u8) {
+        for contact_index in component_contacts {
+            transitions[*contact_index] =
+                quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
+        }
+        return Ok(());
     }
-    let scaled = anatomy
-        .contacts
-        .iter()
-        .copied()
-        .zip(predecessor_contacts.contacts.iter().cloned())
-        .zip(transitions)
-        .map(|((contact, predecessor), transition)| -> Result<
-            ElectricalContactTransition,
-            SparseElectricalError,
-        > {
+    if descent >= curvature {
+        return Ok(());
+    }
+    for contact_index in component_contacts {
+        let contact = anatomy.contacts[*contact_index];
+        let predecessor = predecessor_contacts.contacts[*contact_index].clone();
+        let transition = &transitions[*contact_index];
             let magnitude = (BigInt::from(
                 transition
                     .outward_elementary_charges_from_left
                     .unsigned_abs(),
-            ) * scale.numer())
-                / scale.denom();
+            ) * &descent)
+                / &curvature;
             let magnitude = magnitude
                 .to_u128()
                 .ok_or(SparseElectricalError::ArithmeticWidth)?;
@@ -795,7 +819,8 @@ fn globally_energy_descending_transitions(
                 magnitude
             };
             if carriers == 0 {
-                return Ok(quiescent_contact(predecessor));
+                transitions[*contact_index] = quiescent_contact(predecessor);
+                continue;
             }
             let left = ContactEndpoint::new(
                 predecessor_membranes[contact.left_neuron]
@@ -812,9 +837,10 @@ fn globally_energy_descending_transitions(
                 available_carriers[contact.right_neuron],
             );
             if !stored_energy_strictly_decreases(left, right, carriers)? {
-                return Ok(quiescent_contact(predecessor));
+                transitions[*contact_index] = quiescent_contact(predecessor);
+                continue;
             }
-            Ok(ElectricalContactTransition {
+            transitions[*contact_index] = ElectricalContactTransition {
                 successor: predecessor,
                 outward_current_from_left_picoamperes:
                     exact_current_for_whole_carrier_transfer(carriers, interval_microseconds)?,
@@ -822,45 +848,80 @@ fn globally_energy_descending_transitions(
                 released_work_zeptojoules: BigRational::zero(),
                 exported_heat_zeptojoules: BigRational::zero(),
                 conductance_changed: false,
-            })
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    let scaled_outward = outward_by_neuron(anatomy, &scaled)?;
-    let mut energy_change = BigRational::from_integer(BigInt::from(0));
-    for ((membrane, capacitance), node_outward) in predecessor_membranes
-        .iter()
-        .zip(capacitances)
-        .zip(scaled_outward)
-    {
-        let (capacitance_numerator, capacitance_denominator) =
-            capacitance.picofarads().parts();
-        let capacitance = BigRational::new(
-            BigInt::from(capacitance_numerator),
-            BigInt::from(capacitance_denominator),
-        );
-        let prior = BigInt::from(membrane.separated_elementary_charges());
-        let successor = &prior - BigInt::from(node_outward);
-        energy_change += BigRational::from_integer(&successor * &successor - &prior * &prior)
-            / capacitance;
+            };
     }
-    if energy_change < BigRational::from_integer(BigInt::from(0)) {
-        Ok(scaled)
-    } else {
-        Ok(predecessor_contacts
-            .contacts
+    let scaled_outward =
+        outward_by_contact_indices(anatomy, transitions, component_contacts)?;
+    let energy_change = inverse_capacitance_sum_numerator(
+        capacitances,
+        predecessor_membranes
             .iter()
-            .cloned()
-            .map(quiescent_contact)
-            .collect())
+            .zip(scaled_outward)
+            .map(|(membrane, node_outward)| {
+                let prior = BigInt::from(membrane.separated_elementary_charges());
+                let successor = &prior - BigInt::from(node_outward);
+                &successor * &successor - &prior * &prior
+            }),
+        &common_denominator,
+    )?;
+    if energy_change < BigInt::from(0_u8) {
+        Ok(())
+    } else {
+        for contact_index in component_contacts {
+            transitions[*contact_index] =
+                quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
+        }
+        Ok(())
     }
 }
 
-fn outward_by_neuron(
+fn connected_contact_components(anatomy: &SparseElectricalAnatomy) -> Vec<Vec<usize>> {
+    fn root(parent: &mut [usize], mut node: usize) -> usize {
+        while parent[node] != node {
+            parent[node] = parent[parent[node]];
+            node = parent[node];
+        }
+        node
+    }
+
+    let mut parent = (0..anatomy.neuron_count).collect::<Vec<_>>();
+    for contact in &anatomy.contacts {
+        let left = root(&mut parent, contact.left_neuron);
+        let right = root(&mut parent, contact.right_neuron);
+        if left != right {
+            parent[right] = left;
+        }
+    }
+    let mut component_by_root = vec![usize::MAX; anatomy.neuron_count];
+    let mut components = Vec::<Vec<usize>>::new();
+    for (contact_index, contact) in anatomy.contacts.iter().enumerate() {
+        let component_root = root(&mut parent, contact.left_neuron);
+        let component_index = if component_by_root[component_root] == usize::MAX {
+            component_by_root[component_root] = components.len();
+            components.push(Vec::new());
+            components.len() - 1
+        } else {
+            component_by_root[component_root]
+        };
+        components[component_index].push(contact_index);
+    }
+    components
+}
+
+fn outward_by_contact_indices(
     anatomy: &SparseElectricalAnatomy,
     transitions: &[ElectricalContactTransition],
+    contact_indices: &[usize],
 ) -> Result<Vec<i128>, SparseElectricalError> {
     let mut outward = vec![0_i128; anatomy.neuron_count];
-    for (contact, transition) in anatomy.contacts.iter().zip(transitions) {
+    for contact_index in contact_indices {
+        let contact = anatomy
+            .contacts
+            .get(*contact_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        let transition = transitions
+            .get(*contact_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
         outward[contact.left_neuron] = outward[contact.left_neuron]
             .checked_add(transition.outward_elementary_charges_from_left)
             .ok_or(SparseElectricalError::ArithmeticWidth)?;
@@ -869,6 +930,79 @@ fn outward_by_neuron(
             .ok_or(SparseElectricalError::ArithmeticWidth)?;
     }
     Ok(outward)
+}
+
+fn positive_bigint_gcd(mut left: BigInt, mut right: BigInt) -> BigInt {
+    while !right.is_zero() {
+        let remainder = &left % &right;
+        left = right;
+        right = remainder;
+    }
+    left
+}
+
+/// Return the one exact common denominator needed by sums of values divided
+/// by the reached membrane capacitances. A capacitance is the exact rational
+/// `n/d`, so each inverse-capacitance term has denominator `n`. Building that
+/// denominator once prevents a population-width chain of progressively larger
+/// `BigRational` reductions while preserving the identical rational value.
+fn inverse_capacitance_common_denominator(
+    capacitances: &[MembraneCapacitance],
+    outward: &[i128],
+) -> Result<BigInt, SparseElectricalError> {
+    if capacitances.len() != outward.len() {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
+    let mut common = BigInt::from(1_u8);
+    for (capacitance, node_outward) in capacitances.iter().zip(outward) {
+        if *node_outward == 0 {
+            continue;
+        }
+        let (numerator, _) = capacitance.picofarads().parts();
+        if numerator <= 0 {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        let numerator = BigInt::from(numerator);
+        let gcd = positive_bigint_gcd(common.clone(), numerator.clone());
+        common = (common / gcd) * numerator;
+    }
+    Ok(common)
+}
+
+fn inverse_capacitance_sum_numerator<I>(
+    capacitances: &[MembraneCapacitance],
+    numerators: I,
+    common_denominator: &BigInt,
+) -> Result<BigInt, SparseElectricalError>
+where
+    I: IntoIterator<Item = BigInt>,
+{
+    let mut numerators = numerators.into_iter();
+    let mut sum = BigInt::from(0_u8);
+    for capacitance in capacitances {
+        let value = numerators
+            .next()
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        if value.is_zero() {
+            continue;
+        }
+        let (capacitance_numerator, capacitance_denominator) =
+            capacitance.picofarads().parts();
+        if capacitance_numerator <= 0 {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        let divisor = BigInt::from(capacitance_numerator);
+        if common_denominator % &divisor != BigInt::from(0_u8) {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        sum += value
+            * BigInt::from(capacitance_denominator)
+            * (common_denominator / divisor);
+    }
+    if numerators.next().is_some() {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
+    Ok(sum)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1693,6 +1827,97 @@ mod tests {
 
     fn capacitances(count: usize) -> Vec<MembraneCapacitance> {
         vec![MembraneCapacitance::new(ExactRational::integer(1)).unwrap(); count]
+    }
+
+    #[test]
+    fn common_denominator_energy_sum_is_exact_for_distinct_capacitances() {
+        let capacitances = [
+            MembraneCapacitance::new(ExactRational::integer(1)).unwrap(),
+            MembraneCapacitance::new(ExactRational::new(3, 2).unwrap()).unwrap(),
+            MembraneCapacitance::new(ExactRational::new(5, 7).unwrap()).unwrap(),
+            MembraneCapacitance::new(ExactRational::integer(11)).unwrap(),
+        ];
+        let values = [BigInt::from(0), BigInt::from(-9), BigInt::from(25), BigInt::from(14)];
+        let common = inverse_capacitance_common_denominator(
+            &capacitances,
+            &[0, 1, 1, 1],
+        )
+        .unwrap();
+        let actual = BigRational::new(
+            inverse_capacitance_sum_numerator(
+                &capacitances,
+                values.clone(),
+                &common,
+            )
+            .unwrap(),
+            common,
+        );
+        let expected = values
+            .into_iter()
+            .zip(capacitances)
+            .fold(BigRational::from_integer(BigInt::from(0)), |sum, (value, capacitance)| {
+                sum + BigRational::from_integer(value)
+                    / wide_rational(capacitance.picofarads())
+            });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn disconnected_pathways_settle_with_independent_exact_energy_scales() {
+        let anatomy = SparseElectricalAnatomy::new(
+            4,
+            vec![
+                ElectricalContactAnatomy::new(0, 1, ExactRational::integer(1), 4)
+                    .unwrap(),
+                ElectricalContactAnatomy::new(2, 3, ExactRational::integer(1), 4)
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let predecessor = SparseElectricalState::genesis(&anatomy);
+        let membranes = [
+            ElementaryChargeMembraneState::genesis(101),
+            ElementaryChargeMembraneState::genesis(0),
+            ElementaryChargeMembraneState::genesis(10),
+            ElementaryChargeMembraneState::genesis(0),
+        ];
+        let provisional = vec![
+            ElectricalContactTransition {
+                successor: predecessor.contacts[0].clone(),
+                outward_current_from_left_picoamperes: ExactRational::integer(100),
+                outward_elementary_charges_from_left: 100,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            },
+            ElectricalContactTransition {
+                successor: predecessor.contacts[1].clone(),
+                outward_current_from_left_picoamperes: ExactRational::integer(1),
+                outward_elementary_charges_from_left: 1,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            },
+        ];
+
+        let settled = component_energy_descending_transitions(
+            &anatomy,
+            &predecessor,
+            &capacitances(4),
+            &membranes,
+            &[u128::MAX; 4],
+            1_000,
+            provisional,
+        )
+        .unwrap();
+
+        // The first pair is past its line minimum and is reduced locally.
+        assert_eq!(settled[0].outward_elementary_charges_from_left, 50);
+        // The second pair is already descending before its own minimum. Its
+        // carrier must move even though the unrelated first pair needs a
+        // different scale; a network-wide fraction incorrectly rounded this
+        // independent one-carrier transfer down to zero.
+        assert_eq!(settled[1].outward_elementary_charges_from_left, 1);
     }
 
     fn total_charge(memebranes: &[ElementaryChargeMembraneState]) -> i128 {
