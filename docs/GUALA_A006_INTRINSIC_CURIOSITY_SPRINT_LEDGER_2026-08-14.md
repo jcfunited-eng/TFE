@@ -748,3 +748,83 @@ rejected transaction or whole-state draft.
   while the existing transition lock is held; then one live combined request
   must produce the joined authenticated participant/new-impression/action/
   sensed-consequence witness in the same resident organism.
+
+### Independent acceptance and cadence correction — 2026-08-23
+
+- Independent read-only review found that A-006 had accumulated observer
+  vetoes that are not ratified organism physics. The native prediction observer
+  returns either no divergent junction or its first exact divergent pair, so
+  requiring `len == 2` is only an observer-shape check, not proof that exactly
+  two consequences were physically possible. The three-way shared-lineage
+  intersection and same-action/same-motor-tick social join remain valuable
+  stronger evidence when present, but no governing law makes either a veto on
+  the broader A-006 sentence. Social experience, recurrence, novelty,
+  body/affective condition, and possible consequences may be proven by exact
+  causal occurrences in the same continuously advancing resident identity.
+- The process-local public record remains observation only. It may name exact
+  completed relations after native settlement, but it does not select an
+  action, enter cognition, persist an event history, or claim affection from a
+  single social occurrence. The reconciliation phrase that treated a named
+  need as missing is wrong: named-need authority is forbidden and remains
+  false.
+- The task-1193 native-borrow race exists at the shared retinal body-axis read,
+  not only at `invite-card`. The correction is one short re-entrant transport
+  read lock at that common boundary plus the existing external-intake
+  admission signal on every physical media intake route. This serializes one
+  native owner without pausing or directing cognition.
+- `observe_reached_source_site_count` still scans every cohort/source mount on
+  every public refresh even though `ResidentTopologyIndex` already owns the
+  exact sorted source locations. The correction is a binary lookup in that
+  derived runtime index; no cache, second authority, or persistent state is
+  added.
+- Production task 1194 has four vCPUs but CloudWatch CPU utilization remains
+  approximately `25%`, proving that ordinary work is effectively using one
+  core. The coupled electrical field must still settle exactly once. After
+  that shared result exists, each reached cohort owns disjoint neuron,
+  contact, and recovery state and may settle concurrently in deterministic
+  cohort order. The correction will parallelize only that exact independent
+  boundary and will compare one-thread and four-thread successor bytes.
+- The historical `6.272929`/`6.194791` measurements are full
+  production-sized occurrences; `4.151781`/`4.284209` are narrower body-only
+  intervals. They are not a like-for-like improvement. This correction must
+  report one identical full occurrence before and after; until then the full
+  approximately-six-second issue is unresolved.
+
+Correction result:
+
+- The public observer no longer requires exactly two returned alternatives,
+  three-way shared lineage, or same-action/same-tick social coincidence as
+  invented vetoes. Each remains available as stronger evidence when it is
+  physically present. One exact other-body receptor-to-action occurrence can
+  now contribute independently when it belongs to the same resident identity.
+- The shared native body-axis read is serialized by the existing short
+  transport lock, and every physical media intake route uses the existing
+  external-intake admission boundary. Focused Python proofs pass `19/19`.
+- Exact source-site observation now reads the resident topology index instead
+  of rescanning every cohort. Its present and absent lookups passed together
+  with cold restore `1/1`.
+- The zero-current electrical bridge was reviewed against the actual solver:
+  raw per-contact transfer is derived before pathway components, so a contact
+  carrying exactly zero current in this interval cannot couple two independent
+  energy settlements. The focused physical falsifier passes `1/1`.
+- The first identical full-occurrence measurement used the authenticated live
+  task-1194 `CURRENT`: identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick
+  `155693`, and `113,474,571` raw bytes. With one Rayon worker it completed in
+  `11.890447` seconds; with four workers it completed in `11.646500` seconds.
+  Both produced byte-identical successor SHA-256
+  `d49227ffdc296dccdf449f738753cf202f96878a10e4ebf16bfaa20f72e2a704`,
+  tick `155695`, `112,647,648` bytes, `2,105` complete neurons, `352`
+  recognized mosaics, and `4,153` physical transitions.
+- The four-worker process consumed only `1.0549` effective cores. A separate
+  phase measurement assigned approximately `9.434` seconds to physical
+  settlement and `3.421` seconds to the one final canonical seal. Therefore
+  deterministic cohort concurrency is correct but not the dominant cadence
+  correction. The mature live body is also materially larger than the earlier
+  tick-150809 body, so its approximately-12-second current result must not be
+  mislabeled as the historical six-second workload.
+
+Candidate status: **Claude findings corrected, source compiled, focused proofs
+passed, and the exact current full occurrence measured; not deployed**. A-006
+remains open. The next correction is to remove remaining selected-cohort
+whole-state clone/scan work from the `9.434`-second physical settlement while
+preserving the unchanged full joint seven-field DSF and the single final seal.

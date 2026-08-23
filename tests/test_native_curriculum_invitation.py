@@ -348,6 +348,38 @@ def test_invite_route_binds_card_to_physical_retinal_delivery_only(
     assert invitation["transport_metadata_only"] is True
 
 
+def test_retinal_body_read_uses_the_transition_lock(monkeypatch) -> None:
+    lock_depth = 0
+
+    class TrackingTransitionLock:
+        def __enter__(self):
+            nonlocal lock_depth
+            lock_depth += 1
+            return self
+
+        def __exit__(self, _error_type, _error, _traceback):
+            nonlocal lock_depth
+            lock_depth -= 1
+
+    class Readiness:
+        articulated_body_axes = ("left-eye", "right-eye")
+
+    class Organism:
+        @staticmethod
+        def readiness():
+            assert lock_depth == 1
+            return Readiness()
+
+    class Restored:
+        organism = Organism()
+
+    monkeypatch.setattr(production, "_transition_lock", TrackingTransitionLock())
+    monkeypatch.setattr(production, "_runtime", lambda: (Restored(), object()))
+
+    assert production._current_retinal_body_axes() == ("left-eye", "right-eye")
+    assert lock_depth == 0
+
+
 def test_invited_card_can_settle_before_external_admission_ends(monkeypatch) -> None:
     invitation_receipt = "77" * 32
     lock_depth = 0

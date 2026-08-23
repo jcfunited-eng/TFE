@@ -1045,8 +1045,13 @@ def _retinal_transmission_trajectory(
 def _current_retinal_body_axes() -> tuple[Any, ...]:
     """Read the one persisted native body observation used by visual transport."""
 
-    restored, _ = _runtime()
-    return tuple(restored.organism.readiness().articulated_body_axes)
+    # The native organism permits one mutable resident borrow at a time.  Keep
+    # this shared body read behind the same short, re-entrant transport lock as
+    # every transition so an unattended interval cannot race any episode
+    # builder.  This lock has no cognitive authority and never enters physics.
+    with _transition_lock:
+        restored, _ = _runtime()
+        return tuple(restored.organism.readiness().articulated_body_axes)
 
 
 def _current_retinal_heading_offset_millidegrees() -> int:
@@ -1617,6 +1622,7 @@ _last_tested_articulation_evidence: dict[str, Any] | None = None
 # Bounded read-only witnesses. They never enter organism state or settlement.
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
+_last_social_experience_evidence: dict[str, Any] | None = None
 _last_tested_physical_choice_evidence: dict[str, Any] | None = None
 # Two constant-size read-only play witnesses. They never enter the organism,
 # select an action, or survive restart. The first holds one qualifying physical
@@ -5285,7 +5291,7 @@ def _intrinsic_curiosity_evidence_from_transition(
     if attention is None:
         return None
     alternatives = tuple(evidence.get("physical_prediction_alternatives", ()))
-    if len(alternatives) != 2:
+    if not alternatives:
         return None
     transfers = tuple(causal.get("directed_physical_transfers", ()))
     path_lineages = {
@@ -5314,11 +5320,10 @@ def _intrinsic_curiosity_evidence_from_transition(
             & {trajectory[0] for trajectory in complete_affective}
         )
     )
-    if not shared_lineages:
-        return None
     projected = {
         "action": action,
         "attention": attention,
+        "complete_affective_trajectory_count": len(complete_affective),
         "directed_physical_transfers": transfers,
         "emitted_neuron_lineages": tuple(
             causal.get("emitted_neuron_lineages", ())
@@ -5328,9 +5333,11 @@ def _intrinsic_curiosity_evidence_from_transition(
         "motor_organism_tick": causal.get("motor_organism_tick"),
         "organism_tick": evidence.get("organism_tick"),
         "physical_prediction_alternatives": alternatives,
+        "possible_consequence_junction_observed": True,
         "sensed_consequence": consequence,
         "shared_causal_lineages": shared_lineages,
         "state_sha256": evidence.get("state_sha256"),
+        "organism_identity": evidence.get("organism_identity"),
     }
     participant = evidence.get("participant_sensory_causal_use")
     if isinstance(participant, dict):
@@ -5380,11 +5387,72 @@ def _intrinsic_curiosity_evidence_from_transition(
     return projected
 
 
+def _social_experience_evidence_from_transition(
+    evidence: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Project one exact other-body receptor-to-action occurrence.
+
+    Social experience is one physical contributor to A-006.  It need not be
+    forced onto the same motor tick as a different novelty occurrence.  The
+    stronger same-action join remains published by the intrinsic projection
+    whenever it genuinely occurs.
+    """
+
+    participant = evidence.get("participant_sensory_causal_use")
+    if not isinstance(participant, dict):
+        return None
+    action = participant.get("action")
+    consequence = participant.get("sensed_consequence")
+    raw_transfers = participant.get("directed_physical_transfers")
+    transfers = tuple(raw_transfers) if isinstance(raw_transfers, (list, tuple)) else ()
+    raw_lineages = participant.get("perturbed_receptor_lineages")
+    lineages = tuple(raw_lineages) if isinstance(raw_lineages, (list, tuple)) else ()
+    receipt = participant.get("participant_action_causal_intent_receipt_sha256")
+    receptor_tick = participant.get("receptor_settlement_organism_tick")
+    motor_tick = participant.get("motor_organism_tick")
+    if (
+        participant.get("origin_kind") != "external_participant_sensory"
+        or not isinstance(action, dict)
+        or not isinstance(consequence, dict)
+        or int(consequence.get("externally_perturbed_body_receptor_count", 0)) <= 0
+        or not isinstance(receipt, str)
+        or re.fullmatch(r"[0-9a-f]{64}", receipt) is None
+        or not isinstance(receptor_tick, int)
+        or not isinstance(motor_tick, int)
+        or receptor_tick >= motor_tick
+        or not transfers
+        or not lineages
+    ):
+        return None
+    return {
+        "action": action,
+        "directed_physical_transfers": transfers,
+        "motor_organism_tick": motor_tick,
+        "organism_identity": evidence.get("organism_identity"),
+        "participant_action_causal_intent_receipt_sha256": receipt,
+        "perturbed_receptor_lineages": lineages,
+        "receptor_settlement_organism_tick": receptor_tick,
+        "sensed_consequence": consequence,
+        "state_sha256": evidence.get("state_sha256"),
+    }
+
+
 def _intrinsic_curiosity_record() -> dict[str, object]:
     evidence = _last_intrinsic_curiosity_evidence
+    independent_social = _last_social_experience_evidence
+    same_resident_social = bool(
+        isinstance(evidence, dict)
+        and isinstance(independent_social, dict)
+        and evidence.get("organism_identity") is not None
+        and evidence.get("organism_identity")
+        == independent_social.get("organism_identity")
+    )
     social_experience_claimed = bool(
         isinstance(evidence, dict)
-        and isinstance(evidence.get("social_experience"), dict)
+        and (
+            isinstance(evidence.get("social_experience"), dict)
+            or same_resident_social
+        )
     )
     authority = {
         "curiosity_score_authority": False,
@@ -5406,25 +5474,35 @@ def _intrinsic_curiosity_record() -> dict[str, object]:
         )
     description = (
         "new retained sensory structure propagated through exact sparse "
-        "carrier transfers while reached and foregone routes changed, shared "
-        "a physical junction with possible-consequence and body/affective "
-        "activity, caused body action, and returned through body senses"
+        "carrier transfers while reached and foregone routes changed, crossed "
+        "a divergent possible-consequence junction, caused body action, and "
+        "returned through body senses"
     )
+    if evidence.get("shared_causal_lineages"):
+        description += (
+            "; the novelty path, possible-consequence junction, and complete "
+            "body/affective trajectory shared exact neuronal lineages"
+        )
     if social_experience_claimed:
         description += (
             "; an authenticated other body's receptor path independently "
-            "reached that exact same action"
+            "reached a body action in this same continuously resident organism"
         )
     description += (
         "; this is bounded physical curiosity evidence, not a need, reward, "
         "or score"
     )
+    social_evidence = evidence.get("social_experience")
+    if social_evidence is None and same_resident_social:
+        social_evidence = independent_social
+    record_evidence = dict(evidence)
+    record_evidence["social_experience"] = social_evidence
     return _section(
         True,
         "new_impression_changed_reachable_activity_and_caused_sensed_action",
         description,
         evidence_scope="latest_tested_intrinsic_causal_event",
-        **evidence,
+        **record_evidence,
         **authority,
     )
 
@@ -9239,6 +9317,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
+    global _last_social_experience_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
     global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
@@ -10206,6 +10285,7 @@ def _perform_admitted_intake_locked(
         )
     _last_transition_evidence = {
         **last_hop,
+        "organism_identity": published.pointer.identity,
         "hop_count": committed_hop_count,
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
@@ -10269,6 +10349,11 @@ def _perform_admitted_intake_locked(
     )
     if intrinsic_curiosity_evidence is not None:
         _last_intrinsic_curiosity_evidence = intrinsic_curiosity_evidence
+    social_experience_evidence = _social_experience_evidence_from_transition(
+        _last_transition_evidence
+    )
+    if social_experience_evidence is not None:
+        _last_social_experience_evidence = social_experience_evidence
     physical_choice_evidence = _physical_choice_evidence_from_transition(
         _last_transition_evidence
     )
@@ -10312,6 +10397,7 @@ def _perform_admitted_intake_locked(
     ):
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
+            "organism_identity": published.pointer.identity,
             "intake": intake,
             "organism_tick": published.pointer.organism_tick,
             "predecessor_state_sha256": predecessor.state_sha256,
@@ -12992,6 +13078,7 @@ def _startup() -> None:
     global _last_tested_articulation_evidence
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
+    global _last_social_experience_evidence
     global _last_tested_physical_choice_evidence
     global _sensorimotor_play_candidate, _last_sensorimotor_play_evidence
     global _body_owned_laughter_candidate, _last_body_owned_laughter_evidence
@@ -13004,6 +13091,7 @@ def _startup() -> None:
     _last_tested_articulation_evidence = None
     _last_causal_cross_context_use_evidence = None
     _last_intrinsic_curiosity_evidence = None
+    _last_social_experience_evidence = None
     _last_tested_physical_choice_evidence = None
     _sensorimotor_play_candidate = None
     _last_sensorimotor_play_evidence = None
@@ -14702,7 +14790,10 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     )
 
 
-@app.post(OFFERED_MATERIAL_ENDPOINT)
+@app.post(
+    OFFERED_MATERIAL_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
 def offered_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """One offered picture, page set, or sound, as one admitted experience."""
 
@@ -14885,7 +14976,10 @@ def development_retinal_lattice() -> JSONResponse:
     return JSONResponse(status_code=200, content=result)
 
 
-@app.post(LIVE_AUDIOVISUAL_INTAKE_ENDPOINT)
+@app.post(
+    LIVE_AUDIOVISUAL_INTAKE_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
 def live_audiovisual_capture(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Admit one bounded co-captured camera/microphone window."""
 
@@ -14921,7 +15015,10 @@ def live_audiovisual_capture(payload: dict[str, Any] = Body(...)) -> JSONRespons
     )
 
 
-@app.post(LIVE_SIGHT_INTAKE_ENDPOINT)
+@app.post(
+    LIVE_SIGHT_INTAKE_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
 def live_sight_frames(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Deliver one batch of real live camera frames as admitted episodes.
 
@@ -14951,7 +15048,10 @@ def live_sight_frames(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     )
 
 
-@app.post("/sight_frame")
+@app.post(
+    "/sight_frame",
+    dependencies=[Depends(_external_intake_admission)],
+)
 def sight_frame(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Legacy mount point; the same live-sight contract and intake path."""
 

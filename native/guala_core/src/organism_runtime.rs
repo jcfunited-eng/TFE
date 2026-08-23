@@ -7037,6 +7037,12 @@ mod tests {
                 .observe_reached_source_site_count("mounted-yaw-canal", "local-hair-bundle-0",),
             1
         );
+        assert_eq!(
+            runtime
+                .cognitive_state()
+                .observe_reached_source_site_count("mounted-yaw-canal", "absent-hair-bundle",),
+            0
+        );
         let body = runtime.active_envelope().to_vec();
         let restored = ResidentOrganismRuntime::restore_envelope(body.clone(), budget()).unwrap();
         assert_eq!(restored.active_envelope(), body);

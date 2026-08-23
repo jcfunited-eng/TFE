@@ -157,6 +157,7 @@ use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
+use rayon::prelude::*;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -6462,11 +6463,8 @@ impl ResidentCognitiveFormationState {
         sensor_id: &str,
         substream_id: &str,
     ) -> usize {
-        self.cohorts
-            .iter()
-            .flat_map(|cohort| cohort.anatomy.source_sites())
-            .filter(|site| site.sensor_id() == sensor_id && site.substream_id() == substream_id)
-            .count()
+        self.topology_index
+            .source_site_count(sensor_id, substream_id)
     }
 
     /// Append caller-AUTHORED contacts to the living cohorts.
@@ -12323,6 +12321,20 @@ impl ResidentTopologyIndex {
         Ok(Some((*cohort_index, *neuron_index, *lineage)))
     }
 
+    fn source_site_count(&self, sensor_id: &str, substream_id: &str) -> usize {
+        usize::from(
+            self.source_locations
+                .binary_search_by(|candidate| {
+                    candidate
+                        .0
+                        .sensor_id()
+                        .cmp(sensor_id)
+                        .then_with(|| candidate.0.substream_id().cmp(substream_id))
+                })
+                .is_ok(),
+        )
+    }
+
     fn one_interval_frontier(
         &self,
         seed_lineages: &[[u8; 16]],
@@ -13130,17 +13142,20 @@ fn settle_internal_contact_interval(
     // Local contact successors are prepared only for reached cohorts.  The
     // former population-width construction copied every local contact state
     // and allocated one neuron-width outward array for every unrelated cohort.
-    let mut local_successors = std::iter::repeat_with(|| None)
+    let mut local_contact_results = std::iter::repeat_with(|| None)
         .take(cohorts.len())
-        .collect::<Vec<Option<Vec<ElectricalContactState>>>>();
-    let mut local_transitions = std::iter::repeat_with(|| None)
-        .take(cohorts.len())
-        .collect::<Vec<Option<Vec<ElectricalContactTransition>>>>();
+        .collect::<
+            Vec<
+                Option<(
+                    Vec<ElectricalContactState>,
+                    Vec<ElectricalContactTransition>,
+                )>,
+            >,
+        >();
     for cohort_index in selected_cohort_indices.iter().copied() {
         let cohort = &cohorts[cohort_index];
-        local_successors[cohort_index] =
-            Some(cohort.state.electrical().contact_states().to_vec());
-        local_transitions[cohort_index] = Some(
+        local_contact_results[cohort_index] = Some((
+            cohort.state.electrical().contact_states().to_vec(),
             cohort
                 .state
                 .electrical()
@@ -13156,7 +13171,7 @@ fn settle_internal_contact_interval(
                     conductance_changed: false,
                 })
                 .collect::<Vec<_>>(),
-        );
+        ));
     }
     let mut fabric_successors = Vec::new();
     for (origin, transition) in compact_origins
@@ -13171,10 +13186,7 @@ fn settle_internal_contact_interval(
                 left_member,
                 right_member,
             } => {
-                let successors = local_successors[cohort_index]
-                    .as_mut()
-                    .ok_or(FormationError::NoncanonicalState)?;
-                let transitions = local_transitions[cohort_index]
+                let (successors, transitions) = local_contact_results[cohort_index]
                     .as_mut()
                     .ok_or(FormationError::NoncanonicalState)?;
                 successors[contact_index] = transition.successor.clone();
@@ -13259,10 +13271,11 @@ fn settle_internal_contact_interval(
     // causal order or allowing one cohort to observe another's mutation.
     // Indexed collection preserves cohort order for the evidence merge below.
     let cohort_results = cohorts
-        .iter_mut()
+        .par_iter_mut()
+        .zip(local_contact_results.into_par_iter())
         .enumerate()
         .map(
-            |(cohort_index, cohort)| -> Result<
+            |(cohort_index, (cohort, local_contact_result))| -> Result<
             Option<(
                 Vec<TransitionNeuronPredecessor>,
                 Vec<MotorUnitRecruitment>,
@@ -13535,19 +13548,16 @@ fn settle_internal_contact_interval(
                     })
             })
             .collect::<Vec<_>>();
+        let (local_successors, local_transitions) = local_contact_result
+            .ok_or(FormationError::NoncanonicalState)?;
         let local_successor = SparseElectricalState::from_contact_states(
             cohort.anatomy.electrical_anatomy(),
-            local_successors[cohort_index]
-                .take()
-                .ok_or(FormationError::NoncanonicalState)?
+            local_successors,
         )
         .map_err(FormationError::ResidentElectricalUnavailable)?;
         let precomputed_local = SparseElectricalTransferSettlement {
             successor_contacts: local_successor,
-            transitions: local_transitions[cohort_index]
-                .take()
-                .ok_or(FormationError::NoncanonicalState)?
-                .into_boxed_slice(),
+            transitions: local_transitions.into_boxed_slice(),
             // The one coupled fabric solve already supplied the reached-only
             // `combined_outward` values below.  A second cohort-width outward
             // vector was redundant and is deliberately absent.

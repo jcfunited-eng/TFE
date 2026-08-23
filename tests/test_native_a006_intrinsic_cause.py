@@ -518,6 +518,7 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
                 "vestibular_tick_count": 0,
             },
         },
+        "organism_identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
         "organism_tick": 14,
         "physical_frontier_routes": (
             ("a", "b", "c", "d", 0, 0, 0, 1),
@@ -544,6 +545,19 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
     assert curiosity["reward_authority"] is False
     assert curiosity["social_experience_claimed"] is False
 
+    # Observer arity and the stronger lineage overlap are evidence details,
+    # not invented vetoes on a genuine novelty-to-action occurrence.
+    unshared = production._intrinsic_curiosity_evidence_from_transition(
+        {
+            **transition,
+            "affective_balance_trajectories": (),
+            "physical_prediction_alternatives": alternatives[:1],
+        }
+    )
+    assert unshared is not None
+    assert unshared["shared_causal_lineages"] == ()
+    assert unshared["possible_consequence_junction_observed"] is True
+
     participant_receipt = "e" * 64
     social_evidence = production._intrinsic_curiosity_evidence_from_transition(
         {
@@ -561,6 +575,9 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
                 ),
                 "perturbed_receptor_lineages": ("09" * 16,),
                 "receptor_settlement_organism_tick": 10,
+                "sensed_consequence": {
+                    "externally_perturbed_body_receptor_count": 1,
+                },
             },
         }
     )
@@ -597,6 +614,31 @@ def test_exact_witness_credits_curiosity_without_a_score(monkeypatch) -> None:
     )
     assert mismatched_social is not None
     assert "social_experience" not in mismatched_social
+
+    independent_social = production._social_experience_evidence_from_transition(
+        {
+            **transition,
+            "participant_sensory_causal_use": {
+                **{
+                    key: value
+                    for key, value in social_evidence["social_experience"].items()
+                },
+                "action": {"command_sha256": "f" * 64},
+                "origin_kind": "external_participant_sensory",
+                "sensed_consequence": {
+                    "externally_perturbed_body_receptor_count": 1,
+                },
+            },
+        }
+    )
+    assert independent_social is not None
+    monkeypatch.setattr(production, "_last_intrinsic_curiosity_evidence", evidence)
+    monkeypatch.setattr(
+        production, "_last_social_experience_evidence", independent_social
+    )
+    assert production._intrinsic_curiosity_record()[
+        "social_experience_claimed"
+    ] is True
 
     unavailable = {"available": False, "status": "unproved"}
     record = {
