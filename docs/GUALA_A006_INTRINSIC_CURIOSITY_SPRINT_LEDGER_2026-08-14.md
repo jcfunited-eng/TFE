@@ -440,8 +440,22 @@ deployed**. A-006 remains open.
   endogenous reassemblies fell `131 -> 0`, and neuron, contact, and mosaic
   counts did not grow. No successor was persisted.
 - The raw successor envelope still grew `1,259,024` bytes without structural
-  growth. That is a separate retained-state/codec owner and remains the one
-  active A-006 cadence and body-growth blocker.
+  neuron/contact growth. Canonical V26 section inspection localized
+  `1,111,110` of those bytes to exactly 37 one-neuron `GLNPS01` physical-state
+  bodies, each expanding `2,228 -> 32,258` bytes; it is not a wide-rational
+  residue, database, history log, anatomy copy, or neuron/contact duplicate.
+  Experience evidence accounts for about another `67` KiB.
+- The canonical body contains `182` retained formation records while the
+  public readiness count reports only the `175` recognized records. The
+  successor adds two new unrecognized originals on different physical paths;
+  the public count therefore remains `175`. A proposed same-path pending
+  replacement was falsified against this exact body and removed before
+  commit—it did not address the actual paths and is not part of the candidate.
+- Remaining A-006 work is now exact: prove whether the 37 physical-state width
+  expansions are the bounded source-clock state required by those mounted
+  receptors or an erroneous repeated width extension; then prevent genuinely
+  unrecognized paths from becoming an unbounded backlog without collapsing
+  distinct patterns that later recur.
 
 Candidate status: **exact recurrence physics locally proven; not deployed**.
 A-006 remains open until the remaining non-structural body growth is removed,
