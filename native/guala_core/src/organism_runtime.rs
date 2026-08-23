@@ -4222,7 +4222,9 @@ fn migrate_resident_organism_exact_energy_envelope(
         // A current cognitive segment does not make an older fabric current.
         // Pre-articulated envelopes can already carry V24 cognition but still
         // require the one-way body/vestibular migration below.
+        let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
         ResidentCognitiveFormationState::encoded_is_current(cognitive)
+            && ResidentCognitiveFormationState::decode(cognitive, cognitive_budget).is_ok()
             && parsed.vestibular.is_some()
             && parsed.articulated_body.is_some()
     };

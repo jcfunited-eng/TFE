@@ -3614,6 +3614,213 @@ impl ResidentCognitiveFormationState {
         Ok(Some(successor))
     }
 
+    /// Return every layer-11 lineage created after the oldest cell for the
+    /// same exact founding route. Ordering cells are born with two fabric
+    /// contacts in one append; later contacts may widen that cell but cannot
+    /// change those first two persisted neighbours.
+    fn duplicate_ordering_route_lineages(&self) -> Result<Vec<[u8; 16]>, FormationError> {
+        let mut layer_by_lineage = BTreeMap::<[u8; 16], u32>::new();
+        let mut ordering_candidates = BTreeSet::<[u8; 16]>::new();
+        for (mount, lineage) in self.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            if layer_by_lineage.insert(*lineage, mount.place().layer()).is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            if mount.source_site().is_none() && mount.place().layer() == 11 {
+                ordering_candidates.insert(*lineage);
+            }
+        }
+
+        let mut neighbours_by_ordering = ordering_candidates
+            .iter()
+            .copied()
+            .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
+            .collect::<BTreeMap<_, _>>();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left_lineage = self.electrical_fabric.lineages()[left];
+            let right_lineage = self.electrical_fabric.lineages()[right];
+            if ordering_candidates.contains(&left_lineage)
+                && matches!(layer_by_lineage.get(&right_lineage), Some(7 | 9 | 10))
+            {
+                neighbours_by_ordering
+                    .get_mut(&left_lineage)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .push(right_lineage);
+            }
+            if ordering_candidates.contains(&right_lineage)
+                && matches!(layer_by_lineage.get(&left_lineage), Some(7 | 9 | 10))
+            {
+                neighbours_by_ordering
+                    .get_mut(&right_lineage)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .push(left_lineage);
+            }
+        }
+
+        let mut lineages_by_founder = BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
+        for (lineage, neighbours) in neighbours_by_ordering {
+            let mut founding = neighbours.into_iter().take(2).collect::<Vec<_>>();
+            founding.sort_unstable();
+            founding.dedup();
+            let [left, right] = founding.as_slice() else {
+                continue;
+            };
+            lineages_by_founder
+                .entry([*left, *right])
+                .or_default()
+                .push(lineage);
+        }
+
+        let mut retired = Vec::new();
+        for lineages in lineages_by_founder.values_mut() {
+            lineages.sort_unstable();
+            retired.extend(lineages.iter().skip(1).copied());
+        }
+        retired.sort_unstable();
+        retired.dedup();
+        Ok(retired)
+    }
+
+    fn validate_current_ordering_routes(&self) -> Result<(), FormationError> {
+        if self.duplicate_ordering_route_lineages()?.is_empty() {
+            Ok(())
+        } else {
+            Err(FormationError::NeuronLineageAuthorityChanged)
+        }
+    }
+
+    /// Excise the ordering-route population created by the rejected mutable-
+    /// neighbour identity law. Any formation or live frontier containing a
+    /// duplicate is contaminated by that invalid anatomy and is removed with
+    /// it; no valid lineage, bond, or physical state is redirected or merged.
+    fn retire_duplicate_ordering_routes(&self) -> Result<Option<Self>, FormationError> {
+        let retired = self.duplicate_ordering_route_lineages()?;
+        if retired.is_empty() {
+            return Ok(None);
+        }
+        let is_retired = |lineage: &[u8; 16]| retired.binary_search(lineage).is_ok();
+        let bond_is_contaminated = |bond: &StablePhysicalBondReference| {
+            let (left, right) = bond.endpoints();
+            is_retired(&left) || is_retired(&right)
+        };
+
+        let mut retired_places = Vec::with_capacity(retired.len());
+        let mut cohorts = Vec::with_capacity(self.cohorts.len());
+        for cohort in self.cohorts.iter() {
+            let retired_members = cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .filter(|lineage| is_retired(lineage))
+                .count();
+            if retired_members == 0 {
+                cohorts.push(cohort.clone());
+                continue;
+            }
+            if retired_members != 1
+                || cohort.anatomy.neuron_count() != 1
+                || cohort.anatomy.mounts()[0].source_site().is_some()
+                || cohort.anatomy.mounts()[0].place().layer() != 11
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            retired_places.push(cohort.anatomy.mounts()[0].place());
+        }
+        if retired_places.len() != retired.len() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+
+        let mut resting_population = self.resting_population.clone();
+        for place in retired_places {
+            let Some(population) = resting_population.as_ref() else {
+                continue;
+            };
+            if population.materialized_lineage_ordinal(place).is_none() {
+                continue;
+            }
+            resting_population = Some(
+                population
+                    .release_claimed_place(place)
+                    .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?,
+            );
+        }
+
+        let mosaics = self
+            .mosaics
+            .iter()
+            .filter(|retained| {
+                !retained.mosaic.member_lineages().iter().any(&is_retired)
+                    && retained
+                        .recurrent_lineage
+                        .as_ref()
+                        .is_none_or(|lineage| !is_retired(lineage))
+                    && !retained
+                        .mosaic
+                        .original_bonds()
+                        .iter()
+                        .chain(retained.mosaic.recurrence_bonds())
+                        .any(&bond_is_contaminated)
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        let keep_frontier = |entry: &ActiveElectricalFrontierEntry| {
+            !is_retired(&entry.receiver())
+                && entry
+                    .sender()
+                    .as_ref()
+                    .is_none_or(|lineage| !is_retired(lineage))
+        };
+        let mut successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: self
+                .electrical_fabric
+                .without_lineages(&retired)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            older_active_electrical_frontier: self
+                .older_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            mosaics: mosaics.into_boxed_slice(),
+            hippocampal: self.hippocampal,
+            topology_index: self.topology_index.clone(),
+        };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
+        successor.validate_current_motor_effectors()?;
+        successor.validate_current_ordering_routes()?;
+        validate_lineage_state(&successor)?;
+        Ok(Some(successor))
+    }
+
     /// Retire the developmental motor cells created by the former
     /// participant-set identity law. A motor unit is body anatomy: its exact
     /// effector terminal is stable while the ordering neurons that reach it
@@ -7641,6 +7848,9 @@ impl ResidentCognitiveFormationState {
         }
         if format == CognitiveCodecFormat::V26 {
             state.validate_current_motor_effectors()?;
+            if require_current_canonical_encoding {
+                state.validate_current_ordering_routes()?;
+            }
         }
         // Old evidence is admitted only long enough to prove its historical
         // canonical bytes. The live resident keeps reached members only.
@@ -7695,6 +7905,10 @@ impl ResidentCognitiveFormationState {
             None => state,
         };
         let state = match state.retire_duplicate_motor_effectors()? {
+            Some(corrected) => corrected,
+            None => state,
+        };
+        let state = match state.retire_duplicate_ordering_routes()? {
             Some(corrected) => corrected,
             None => state,
         };

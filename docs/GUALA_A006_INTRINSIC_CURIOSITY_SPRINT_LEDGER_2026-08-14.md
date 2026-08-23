@@ -349,3 +349,41 @@ action and physically sensed consequence witness.
   `git diff --check` passed. No broad suite or mature-body replay was run for
   this one-function arithmetic correction. Live cadence remains unproved until
   the immutable candidate advances the authenticated production successor.
+
+### Task 1180 result and exact duplicate-ordering retirement
+
+- Production task `dsf-ai-task:1180`, release commit `985ea480`, and image
+  `sha256:6eb0c647414253577c97d3ef12821668e2403a12a830bea195b6e8b4d64328b1`
+  mounted the exact zero-current correction. CPU remained active but CURRENT
+  did not advance beyond tick `150809`; zero-current arithmetic was therefore
+  a correct local reduction but not the dominant cadence obstruction.
+- Exact cold inspection of CURRENT receipt
+  `c4fa8411f32acacd9931921878d88f17e1519c9b3d0a799d39b83f10f1d9473a`
+  found historical layer-11 route duplication left by the rejected mutable-
+  neighbour identity law. The explicit one-way correction groups intrinsic
+  ordering cells by the exact first two relevant persisted contacts used by
+  current route mounting, retains the oldest lineage, releases later duplicate
+  places, removes every contact touching those duplicates, and removes every
+  retained formation or frontier entry that cites them. Ordinary causal
+  settlement does not run this scan or correction.
+- Ordinary V26 restore now requires the duplicate-ordering invariant. The
+  migration entry no longer treats a V26 header alone as proof that the body is
+  current: it returns a body unchanged only when the current canonical decoder
+  accepts it. This prevents the old body or an old startup path from silently
+  restoring the rejected structure.
+- Focused Rust compilation passed with zero errors. The exact authenticated
+  `142,655,289`-byte production predecessor was then exercised through the
+  rebuilt native package. Ordinary restore rejected it; explicit migration
+  produced receipt
+  `ddffb35c0f8a15eacad61a00fc555056f4238590ee81e28ad755fa63bddbeb1e`;
+  and ordinary restore accepted the migrated body while preserving organism
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and tick `150809`.
+- Exact correction delta: body `142,655,289 -> 100,248,055` bytes; complete
+  neurons `2,820 -> 1,888`; layer-11 neurons `1,944 -> 1,012`; contacts
+  `83,437 -> 36,242`; retained formations `200 -> 175`. No DSF field, neuron
+  law, valid lineage, or valid retained formation is approximated.
+
+Candidate status: **exact-current local migration proven; production cutover
+pending**. A-006 remains open until the corrected live organism advances at the
+accepted cadence and exposes the required new-impression -> native action ->
+physically sensed consequence witness.
