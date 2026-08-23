@@ -514,3 +514,26 @@ deployed**. A-006 remains open.
 
 Candidate status: **redundant source scans removed and locally falsified; not
 deployed**. A-006 remains open.
+
+### Retained-fractal projection without discarded transient deltas — 2026-08-23
+
+- `sparse_retained_physical_state_delta` previously constructed the complete
+  transient neuron delta—membrane phase, carrier pools, recovery lanes,
+  dissipation, and metabolic DNA products—then discarded those entries and
+  retained only structural learning coordinates.
+- The corrected projection computes exactly the five authorized retained
+  coordinate families directly: Psi winding, gate open population, plastic
+  rest length, DNA expressed product, and receptor quantum residue. Full
+  physical-delta callers are unchanged.
+- The existing exact wire/apply/retained-coordinate falsifier passes `1/1`.
+  It caught and excluded DNA waste, which is transient metabolism rather than
+  retained structure.
+- Against authenticated tick `150809`, the same production-sized occurrence
+  completed in `6.194791` seconds, down from the immediately preceding
+  `6.506235`-second sample, with tick `150811`, `1,888` complete neurons,
+  `175` recognized formations, `3,569` physical transitions, and zero partial-
+  cue reassemblies. No successor was persisted.
+
+Candidate status: **discarded transient-delta work removed and locally
+falsified; not deployed**. A-006 remains open; the terminal whole-organism
+summary is still the next measured cadence owner.

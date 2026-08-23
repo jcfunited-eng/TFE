@@ -4877,15 +4877,62 @@ pub(crate) fn sparse_retained_physical_state_delta(
     predecessor: &NeuronPhysicalState,
     successor: &NeuronPhysicalState,
 ) -> Result<Option<SparsePhysicalStateDelta>, NeuronPhysicalError> {
-    let Some(delta) = sparse_physical_state_delta(predecessor, successor)? else {
+    if predecessor.shares_physical_body_with(successor) {
         return Ok(None);
-    };
-    let retained = delta
-        .entries()
-        .iter()
-        .cloned()
-        .filter(|entry| retained_physical_state_coordinate(entry.coordinate()))
-        .collect::<Vec<_>>();
+    }
+    if predecessor.psi.rings.len() != successor.psi.rings.len()
+        || predecessor.recovery.psi_lanes.len() != successor.recovery.psi_lanes.len()
+    {
+        return Err(NeuronPhysicalError::AnatomyMismatch);
+    }
+    // A retained neuronal fractal has five exact structural coordinate
+    // families.  Do not first construct the much wider transient physical
+    // delta (membrane phases, carrier pools, recovery lanes, and dissipation)
+    // only to discard it: those values remain in the resident neuron but are
+    // not learned structure.
+    let capacity = predecessor
+        .psi
+        .rings
+        .len()
+        .checked_add(4)
+        .ok_or(NeuronPhysicalError::AnatomyMismatch)?;
+    let mut retained = Vec::new();
+    retained
+        .try_reserve_exact(capacity)
+        .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
+    for index in 0..predecessor.psi.rings.len() {
+        push_i128_delta(
+            &mut retained,
+            PhysicalStateCoordinate::PsiWinding(index),
+            predecessor.psi.rings[index].winding as i8 as i128,
+            successor.psi.rings[index].winding as i8 as i128,
+        );
+    }
+    push_u128_delta(
+        &mut retained,
+        PhysicalStateCoordinate::GateOpenPopulation,
+        predecessor.gate.open_population,
+        successor.gate.open_population,
+    );
+    push_rational_delta(
+        &mut retained,
+        PhysicalStateCoordinate::PlasticRestLength,
+        predecessor.plastic.rest_length_nanometres,
+        successor.plastic.rest_length_nanometres,
+    )?;
+    push_u128_delta(
+        &mut retained,
+        PhysicalStateCoordinate::DnaExpressedProduct,
+        predecessor.dna_expression.expressed_product_quanta,
+        successor.dna_expression.expressed_product_quanta,
+    );
+    push_rational_delta(
+        &mut retained,
+        PhysicalStateCoordinate::ReceptorQuantumResidue,
+        predecessor.receptor_quantum_residue,
+        successor.receptor_quantum_residue,
+    )?;
+    retained.sort_unstable_by_key(|entry| entry.coordinate);
     Ok(SparsePhysicalStateDelta::from_canonical_entries(retained))
 }
 
