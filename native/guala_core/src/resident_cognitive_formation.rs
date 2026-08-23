@@ -2960,6 +2960,20 @@ fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
     cue.dedup();
 }
 
+fn formations_share_reached_physical_path(
+    prior: &AdmittedPhysicalMosaic,
+    current: &AdmittedPhysicalMosaic,
+) -> bool {
+    prior
+        .member_lineages()
+        .iter()
+        .any(|lineage| current.member_lineages().binary_search(lineage).is_ok())
+        || prior
+            .original_bonds()
+            .iter()
+            .any(|bond| current.original_bonds().binary_search(bond).is_ok())
+}
+
 /// Whether two unresolved originals occupy one continuing physical path.
 ///
 /// This is not formation identity: exact retained structure remains the only
@@ -2974,14 +2988,7 @@ fn pending_originals_share_physical_path(
 ) -> bool {
     debug_assert!(prior.is_original_only());
     debug_assert!(current.is_original_only());
-    prior
-        .member_lineages()
-        .iter()
-        .any(|lineage| current.member_lineages().binary_search(lineage).is_ok())
-        || prior
-            .original_bonds()
-            .iter()
-            .any(|bond| current.original_bonds().binary_search(bond).is_ok())
+    formations_share_reached_physical_path(prior, current)
 }
 
 fn settle_organism_mosaic_boundary(
@@ -3313,6 +3320,18 @@ fn settle_organism_mosaic_boundary(
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
         if !mosaic_spans_multiple_cohorts(cohorts, &original) {
+            continue;
+        }
+        // One exact physical route cannot be both a recurrence and a new
+        // original in the same organism interval. The current neuronal
+        // changes already altered the bounded recurrence witness above; minting
+        // another original from those same reached members/bonds would turn
+        // repeated sensation into an append-only episode history and grow one
+        // recurrent neuron on the following interval. A disjoint physical
+        // route remains eligible for ordinary original admission.
+        if reassembled_indices.iter().any(|index| {
+            formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
+        }) {
             continue;
         }
         if mosaics
@@ -17435,6 +17454,25 @@ mod tests {
             .map(|lineage| (*lineage, fractal.clone()))
             .collect::<Vec<_>>();
         current_deltas.sort_unstable_by_key(|(lineage, _)| *lineage);
+        let later_fractal =
+            crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
+                crate::complete_neuron::PhysicalStateDeltaEntry::new(
+                    crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                    crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                        ExactRational::new(2, 5).unwrap(),
+                    ),
+                )
+                .unwrap(),
+            ])
+            .unwrap();
+        let later_emitted = topology
+            .lineages
+            .iter()
+            .map(|lineage| EmittedNeuronFractal {
+                neuron_lineage: *lineage,
+                delta: later_fractal.clone(),
+            })
+            .collect::<Vec<_>>();
         let changed_cue = [receptor_lineages[0]];
         let (
             altered_receipt,
@@ -17448,7 +17486,7 @@ mod tests {
             settle_organism_mosaic_boundary(
             &cohorts,
             &topology_index,
-            &[],
+            &later_emitted,
             &current_deltas,
             &changed_cue,
             &changed_cue,
@@ -18899,9 +18937,9 @@ mod tests {
             layer_counts.iter().map(|(_, count)| *count).sum::<usize>(),
             state.summary().complete_neuron_count
         );
-        // The optical/acoustic field has 84 independently connected retained
-        // formations. Their later recurrence is lawful sensory memory; none
-        // is a body effector, as the layer-12/13 and recruitment checks above
+        // Repeated intervals on this one continuing optical/acoustic path
+        // retain one formation. Its lawful later recurrence is sensory memory,
+        // not a body effector, as the layer-12/13 and recruitment checks above
         // prove directly.
         assert_eq!(
             state
@@ -18909,7 +18947,7 @@ mod tests {
                 .iter()
                 .filter(|mosaic| mosaic.recurrent_lineage.is_some())
                 .count(),
-            84
+            1
         );
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
