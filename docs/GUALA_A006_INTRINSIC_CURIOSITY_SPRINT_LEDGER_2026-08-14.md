@@ -727,3 +727,24 @@ rejected transaction or whole-state draft.
 - Five focused invitation/causal falsifiers pass. The combined correction is
   not yet deployed; full A-006 remains Reconciled Partial pending its one live
   joined other-body/new-impression/action/consequence witness.
+
+### Task-1193 combined live acceptance attempt
+
+- Production task `dsf-ai-task:1193`, commit `712597fd`, preserved the same
+  resident identity and continued advancing CURRENT while the combined
+  `invite-card` plus `alphabet-a` presentation was attempted.
+- The request failed before moving the participant or admitting the lesson.
+  CloudWatch recorded `RuntimeError: Already mutably borrowed` at
+  `_card_lesson_hop_episodes -> _current_retinal_body_axes -> readiness`.
+  The unattended interval already held the native body while the HTTP thread
+  read the current eyelid/retinal axes without `_transition_lock`.
+- The correction is transport serialization only: prepare the lesson's exact
+  current retinal projection under the existing re-entrant transition lock.
+  The already-raised external-intake signal then keeps unattended time behind
+  the participant invitation and its presentation. No cognitive pause,
+  decision, reward, score, observer authority, state copy, or new lock is
+  introduced.
+- Exact exit: the focused invitation test must prove lesson preparation occurs
+  while the existing transition lock is held; then one live combined request
+  must produce the joined authenticated participant/new-impression/action/
+  sensed-consequence witness in the same resident organism.

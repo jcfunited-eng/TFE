@@ -14307,11 +14307,18 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     episodes = None
     if presentation is not None:
         try:
-            episodes = _card_lesson_hop_episodes(
-                card_id,
-                experience,
-                presentation,
-            )
+            # The lesson body includes the current eyelid/retinal axes.  An
+            # unattended interval may already own the native body when this
+            # external request arrives, so read those axes under the same
+            # re-entrant transition lock used by every physical interval.
+            # The external-intake signal remains raised after this read and
+            # keeps unattended time behind the invitation and lesson.
+            with _transition_lock:
+                episodes = _card_lesson_hop_episodes(
+                    card_id,
+                    experience,
+                    presentation,
+                )
         except HTTPException:
             raise
         except (OSError, ValueError) as error:

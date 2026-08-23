@@ -350,15 +350,33 @@ def test_invite_route_binds_card_to_physical_retinal_delivery_only(
 
 def test_invited_card_can_settle_before_external_admission_ends(monkeypatch) -> None:
     invitation_receipt = "77" * 32
+    lock_depth = 0
+
+    class TrackingTransitionLock:
+        def __enter__(self):
+            nonlocal lock_depth
+            lock_depth += 1
+            return self
+
+        def __exit__(self, _error_type, _error, _traceback):
+            nonlocal lock_depth
+            lock_depth -= 1
+
+    monkeypatch.setattr(production, "_transition_lock", TrackingTransitionLock())
     monkeypatch.setattr(
         production,
         "_read_manifest_card",
         lambda _card_id: {"surface": {"sha256": "99" * 32}},
     )
+
+    def build_lesson(*_args):
+        assert lock_depth == 1
+        return [("episode", [(0, 1)])]
+
     monkeypatch.setattr(
         production,
         "_card_lesson_hop_episodes",
-        lambda *_args: [("episode", [(0, 1)])],
+        build_lesson,
     )
     monkeypatch.setattr(
         production,
@@ -399,6 +417,7 @@ def test_invited_card_can_settle_before_external_admission_ends(monkeypatch) -> 
     body = json.loads(response.body)
 
     assert response.status_code == 200
+    assert lock_depth == 0
     assert observed["args"][0] == [("episode", [(0, 1)])]
     assert observed["args"][5] == invitation_receipt
     assert body["lesson"] == {
