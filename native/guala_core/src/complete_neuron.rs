@@ -2511,10 +2511,37 @@ pub(crate) enum NeuronStateCodecError {
     ArithmeticWidth,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct EncodedNeuronEnergyObservation {
+    pub(crate) dissipated_energy_zeptojoules: ExactRational,
+    pub(crate) dissipation_capacity_energy_zeptojoules: ExactRational,
+    pub(crate) separated_elementary_charges: i128,
+}
+
 pub(crate) fn encode_neuron_physical_state(
     anatomy: &NeuronPhysicalAnatomy,
     state: &NeuronPhysicalState,
 ) -> Result<Vec<u8>, NeuronStateCodecError> {
+    encode_neuron_physical_state_observed(anatomy, state, false)
+        .map(|(encoded, _)| encoded)
+}
+
+pub(crate) fn encode_neuron_physical_state_with_energy(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+) -> Result<(Vec<u8>, EncodedNeuronEnergyObservation), NeuronStateCodecError> {
+    let (encoded, energy) = encode_neuron_physical_state_observed(anatomy, state, true)?;
+    Ok((
+        encoded,
+        energy.expect("terminal-observed neuron encoding produces exact energy"),
+    ))
+}
+
+fn encode_neuron_physical_state_observed(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+    include_energy_observation: bool,
+) -> Result<(Vec<u8>, Option<EncodedNeuronEnergyObservation>), NeuronStateCodecError> {
     if state.psi.rings.len() != anatomy.psi.rings.len()
         || state.recovery.psi_lanes.len() != anatomy.recovery.psi_lanes.len()
         || state.gate.open_population > anatomy.gate.population
@@ -2555,6 +2582,16 @@ pub(crate) fn encode_neuron_physical_state(
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
     let mut encoded = Vec::new();
+    let mut energy = include_energy_observation.then(|| {
+        (
+            ExactRational::integer(0),
+            ExactRational::integer(0),
+            state
+                .membrane
+                .membrane()
+                .separated_elementary_charges(),
+        )
+    });
     // Versioned head magic: a zero residue keeps the pre-law `GLNPS01`
     // layout byte for byte (see the magic's doc); a nonzero residue names
     // itself with `GLNPS02` and carries its two exact-rational words next.
@@ -2601,7 +2638,13 @@ pub(crate) fn encode_neuron_physical_state(
         push_u128(&mut encoded, return_residue_denominator);
     }
     push_usize(&mut encoded, state.psi.rings.len())?;
-    for (ring, ring_anatomy) in state.psi.rings.iter().zip(anatomy.psi.rings.iter()) {
+    for (index, (ring, ring_anatomy)) in state
+        .psi
+        .rings
+        .iter()
+        .zip(anatomy.psi.rings.iter())
+        .enumerate()
+    {
         if ring.amplitude_quanta != ring_anatomy.node_amplitude_quanta
             || ring.phase_thirds != canonical_phase_thirds(ring.winding)
             || ring.dissipated_quanta > ring_anatomy.dissipation_capacity_quanta
@@ -2610,9 +2653,47 @@ pub(crate) fn encode_neuron_physical_state(
         }
         encoded.push(ring.winding as i8 as u8);
         push_u128(&mut encoded, ring.dissipated_quanta);
+        if let Some((dissipated, capacity, _)) = energy.as_mut() {
+            let quantum = anatomy
+                .lane_dissipation_quantum_zeptojoules(RecoveryLaneAddress::Psi(index))
+                .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+            *dissipated = dissipated
+                .checked_add(
+                    quantum
+                        .checked_mul_unsigned(ring.dissipated_quanta)
+                        .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+                )
+                .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+            *capacity = capacity
+                .checked_add(
+                    quantum
+                        .checked_mul_unsigned(ring_anatomy.dissipation_capacity_quanta)
+                        .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+                )
+                .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+        }
     }
     push_u128(&mut encoded, state.gate.open_population);
     push_u128(&mut encoded, state.gate.dissipated_quanta);
+    if let Some((dissipated, capacity, _)) = energy.as_mut() {
+        let quantum = anatomy
+            .lane_dissipation_quantum_zeptojoules(RecoveryLaneAddress::Gate)
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+        *dissipated = dissipated
+            .checked_add(
+                quantum
+                    .checked_mul_unsigned(state.gate.dissipated_quanta)
+                    .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+            )
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+        *capacity = capacity
+            .checked_add(
+                quantum
+                    .checked_mul_unsigned(anatomy.gate.dissipation_capacity_quanta)
+                    .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+            )
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+    }
     push_i128(
         &mut encoded,
         state.membrane.membrane().separated_elementary_charges(),
@@ -2648,13 +2729,45 @@ pub(crate) fn encode_neuron_physical_state(
     push_i128(&mut encoded, rest_numerator);
     push_u128(&mut encoded, rest_denominator);
     push_u128(&mut encoded, state.plastic.dissipated_quanta);
+    if let Some((dissipated, capacity, _)) = energy.as_mut() {
+        let quantum = anatomy
+            .lane_dissipation_quantum_zeptojoules(RecoveryLaneAddress::Plastic)
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+        *dissipated = dissipated
+            .checked_add(
+                quantum
+                    .checked_mul_unsigned(state.plastic.dissipated_quanta)
+                    .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+            )
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+        *capacity = capacity
+            .checked_add(
+                quantum
+                    .checked_mul_unsigned(anatomy.plastic.dissipation_capacity_quanta)
+                    .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?,
+            )
+            .map_err(|_| NeuronStateCodecError::ArithmeticWidth)?;
+    }
     // Retained quantized-optical sub-quantum residue (ratified 2026-08-05):
     // encoded with the same exact-rational fixed-width discipline as the
     // retained charge-carrier phases above.
     let (residue_numerator, residue_denominator) = state.receptor_quantum_residue.parts();
     push_i128(&mut encoded, residue_numerator);
     push_u128(&mut encoded, residue_denominator);
-    Ok(encoded)
+    Ok((
+        encoded,
+        energy.map(
+            |(
+                dissipated_energy_zeptojoules,
+                dissipation_capacity_energy_zeptojoules,
+                separated_elementary_charges,
+            )| EncodedNeuronEnergyObservation {
+                dissipated_energy_zeptojoules,
+                dissipation_capacity_energy_zeptojoules,
+                separated_elementary_charges,
+            },
+        ),
+    ))
 }
 
 pub(crate) fn decode_neuron_physical_state(

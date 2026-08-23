@@ -13,7 +13,8 @@ use crate::complete_neuron::{
     add_omitted_virgin_carrier_material, apply_sparse_physical_state_delta,
     decode_neuron_physical_anatomy, decode_neuron_physical_cell, decode_neuron_physical_state,
     decode_sparse_physical_state_delta, encode_neuron_physical_anatomy,
-    encode_neuron_physical_cell, encode_neuron_physical_state, encode_sparse_physical_state_delta,
+    encode_neuron_physical_cell, encode_neuron_physical_state,
+    encode_neuron_physical_state_with_energy, encode_sparse_physical_state_delta,
     expand_legacy_receptor_channel_population, extend_neuron_positional_fabric,
     settle_extended_interval_with_contact, sparse_physical_state_delta,
     sparse_retained_physical_state_delta, NeuronAnatomyCodecError, NeuronIntervalInput,
@@ -1550,6 +1551,15 @@ pub(crate) fn encode_reached_cohort_cell_v9_global(
     state: &ReachedCohortState,
     global_anatomies: &GlobalNeuronAnatomyTable,
 ) -> Result<Vec<u8>, ReachedCohortError> {
+    encode_reached_cohort_cell_v9_global_with_energy(anatomy, state, global_anatomies)
+        .map(|(encoded, _)| encoded)
+}
+
+pub(crate) fn encode_reached_cohort_cell_v9_global_with_energy(
+    anatomy: &ReachedCohortAnatomy,
+    state: &ReachedCohortState,
+    global_anatomies: &GlobalNeuronAnatomyTable,
+) -> Result<(Vec<u8>, ReachedCohortEnergyState), ReachedCohortError> {
     if anatomy.neurons.len() != anatomy.mounts.len()
         || anatomy.neurons.len() != state.neurons.len()
         || anatomy.electrical.contact_count() != state.electrical.contact_count()
@@ -1558,9 +1568,24 @@ pub(crate) fn encode_reached_cohort_cell_v9_global(
     }
     let mut state_table = ContentDigestTable::default();
     let mut state_references = Vec::with_capacity(anatomy.neurons.len());
+    let (fuel_capacity, spent_capacity, heat_capacity) =
+        anatomy.recovery_fluid.reservoir_anatomy().capacities();
+    let (fuel, spent, heat) = state.recovery_fluid.physical_parts();
+    let mut dissipated = ExactRational::integer(0);
+    let mut dissipation_capacity = ExactRational::integer(0);
+    let mut separated_elementary_charges = 0_i128;
     for (neuron_anatomy, neuron_state) in anatomy.neurons.iter().zip(state.neurons.iter()) {
-        state_references
-            .push(state_table.intern(encode_neuron_physical_state(neuron_anatomy, neuron_state)?));
+        let (encoded_state, neuron_energy) =
+            encode_neuron_physical_state_with_energy(neuron_anatomy, neuron_state)?;
+        state_references.push(state_table.intern(encoded_state));
+        dissipated = dissipated
+            .checked_add(neuron_energy.dissipated_energy_zeptojoules)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        dissipation_capacity = dissipation_capacity
+            .checked_add(neuron_energy.dissipation_capacity_energy_zeptojoules)
+            .map_err(|_| ReachedCohortError::InvalidStateEncoding)?;
+        separated_elementary_charges = separated_elementary_charges
+            .saturating_add(neuron_energy.separated_elementary_charges);
     }
 
     let mut encoded = Vec::new();
@@ -1616,7 +1641,18 @@ pub(crate) fn encode_reached_cohort_cell_v9_global(
     let electrical = encode_sparse_electrical_cell(&anatomy.electrical, &state.electrical)?;
     push_cohort_usize(&mut encoded, electrical.len())?;
     encoded.extend_from_slice(&electrical);
-    Ok(encoded)
+    let energy = ReachedCohortEnergyState {
+        available_energy_zeptojoules: wide_energy(fuel),
+        spent_energy_zeptojoules: wide_energy(spent),
+        thermal_energy_zeptojoules: wide_energy(heat),
+        available_energy_capacity_zeptojoules: wide_energy(fuel_capacity),
+        spent_energy_capacity_zeptojoules: wide_energy(spent_capacity),
+        thermal_energy_capacity_zeptojoules: wide_energy(heat_capacity),
+        dissipated_energy_zeptojoules: wide_energy(dissipated),
+        dissipation_capacity_energy_zeptojoules: wide_energy(dissipation_capacity),
+        separated_elementary_charges,
+    };
+    Ok((encoded, energy))
 }
 
 pub(crate) fn decode_reached_cohort_cell_v9_global(

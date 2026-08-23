@@ -2503,21 +2503,18 @@ fn retain_cognitive_trajectory_observation(
 /// every reached physical consequence; these population totals are read once
 /// from the terminal resident state instead of being rescanned after every
 /// intermediate hop.
-fn retain_terminal_cognitive_state(
+fn retain_terminal_cognitive_observation(
     observation: &mut CognitiveFormationObservation,
-    cognitive: &ResidentCognitiveFormationState,
-) -> Result<(), RuntimeError> {
-    let summary = cognitive.summary();
+    summary: CognitiveFormationSummary,
+    mosaic_of_mosaics_count: usize,
+) {
     observation.cognitive_ordinal = summary.cognitive_ordinal;
     observation.trace_count = summary.trace_count;
     observation.mosaic_count = summary.mosaic_count;
     observation.complete_neuron_count = summary.complete_neuron_count;
     observation.resting_neuron_count = summary.resting_neuron_count;
     observation.energy = summary.energy;
-    observation.mosaic_of_mosaics_count = cognitive
-        .mosaic_of_mosaics_count()
-        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-    Ok(())
+    observation.mosaic_of_mosaics_count = mosaic_of_mosaics_count;
 }
 
 impl ResidentOrganismRuntime {
@@ -2833,16 +2830,21 @@ impl ResidentOrganismRuntime {
                 "admitted trajectory carried no cognitive interval".into(),
             )
         })?;
-        retain_terminal_cognitive_state(&mut cognitive_observation, &cognitive)?;
+        let sealed_cognitive = cognitive
+            .seal_with_terminal_observation(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        retain_terminal_cognitive_observation(
+            &mut cognitive_observation,
+            sealed_cognitive.summary,
+            sealed_cognitive.mosaic_of_mosaics_count,
+        );
         let (mounted, _) = restore_resident_mounted_state(
             &joint_state,
             derived_budget.max_joint_state_bytes,
             derived_budget.max_joint_working_bytes,
         )
         .map_err(RuntimeError::MountedTransition)?;
-        let cognitive_state = cognitive
-            .encode(cognitive_budget)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let cognitive_state = sealed_cognitive.encoded;
         let fabric = encode_fabric(
             fabric_generation,
             &joint_state,
@@ -3062,7 +3064,14 @@ impl ResidentOrganismRuntime {
         let mut cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
         })?;
-        retain_terminal_cognitive_state(&mut cognitive_observation, &cognitive)?;
+        let sealed_cognitive = cognitive
+            .seal_with_terminal_observation(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        retain_terminal_cognitive_observation(
+            &mut cognitive_observation,
+            sealed_cognitive.summary,
+            sealed_cognitive.mosaic_of_mosaics_count,
+        );
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let (mounted, _) = restore_resident_mounted_state(
@@ -3071,9 +3080,7 @@ impl ResidentOrganismRuntime {
             derived_budget.max_joint_working_bytes,
         )
         .map_err(RuntimeError::MountedTransition)?;
-        let cognitive_state = cognitive
-            .encode(cognitive_budget)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let cognitive_state = sealed_cognitive.encoded;
         let fabric = encode_fabric(
             fabric_generation,
             &joint_state,

@@ -537,3 +537,60 @@ deployed**. A-006 remains open.
 Candidate status: **discarded transient-delta work removed and locally
 falsified; not deployed**. A-006 remains open; the terminal whole-organism
 summary is still the next measured cadence owner.
+
+### One-pass terminal observation and seal — active correction
+
+- Input: the one final resident cognitive successor after every causal source
+  interval in the admitted or vestibular trajectory has settled.
+- Current conflict: `organism_runtime` first calls `summary()` and
+  `mosaic_of_mosaics_count()`, walking the complete resident body, and then
+  calls the canonical V26 encoder, which walks that same final body again.
+  This terminal duplication is outside the reached physical settlement and
+  accounted for about `1.216` seconds in the exact phase profile.
+- Exact transformation: derive the unchanged terminal neuron, resting,
+  retained-mosaic, mosaic-relation, and energy observations while the one
+  required final V26 seal is traversing those same canonical owners. Return
+  the bytes and observation together. The trajectory must not call the
+  separate whole-body summary readers.
+- Output: byte-identical canonical V26 cognition plus value-identical terminal
+  observation installed into the existing public receipt.
+- Conservation/field law: unchanged exact energy arithmetic and unchanged full
+  seven-field DSF. Observation remains read-only and cannot influence physical
+  settlement.
+- Work bound: one terminal `O(current resident state)` canonical seal, not one
+  summary traversal plus one seal. Every unsealed causal hop remains bounded by
+  its reached physical frontier.
+- Authorized files: the existing canonical state encoders in
+  `complete_neuron.rs`, `reached_neuron_cohort.rs`, and
+  `resident_cognitive_formation.rs`; the terminal caller in
+  `organism_runtime.rs`; their focused native tests; and this existing A-006
+  ledger. No Python, persistence schema, topology, neuron/DSF equation, cache,
+  database, or observer-authority change is authorized.
+- Decisive local exit: a focused falsifier proves the fused bytes equal the
+  ordinary encoder and every fused observation value equals the independent
+  readers; the authenticated tick-150809 occurrence is then measured once.
+
+Correction status: **locally proven; not deployed**.
+
+- Frozen source review passed at fingerprint
+  `e7e854f1eb1b7eff138f827ec7c5dbdee5135e2087ad4fe7dfe3608d5c67ca34`.
+- The focused parity falsifier executed `1/1` and passed. It proves canonical
+  bytes, complete/resting neuron counts, retained-mosaic count,
+  mosaic-relation count, and every exact energy coordinate equal their
+  independent readers.
+- The first mature draft converted every lane to arbitrary-width rational
+  arithmetic before aggregation and regressed the discarded tick-150809
+  body-only interval from `4.282645` to `4.864139` seconds. That arithmetic
+  draft was rejected and is not the candidate.
+- The corrected seal accumulates with the existing fixed-width exact energy
+  arithmetic while each neuron state is encoded, then widens only the final
+  cohort totals as before.
+- Against the same authenticated discarded predecessor, the reviewed
+  candidate completed the body-only interval in `4.151781` seconds. Both
+  versions produced tick `150810`, `101,362,596` bytes, SHA-256
+  `4e3c7cf89d018812520f171be4ae128ac1cd14b4a1093ddbf26f6339ff97ed13`,
+  `1,888` complete neurons, `175` recognized mosaics, and `1,827` physical
+  transitions.
+- The exact gain is `0.130864` seconds. This closes the duplicate terminal
+  body traversal, but not A-006 cadence: most terminal-summary time is exact
+  energy arithmetic, and the larger remaining owner is physical settlement.

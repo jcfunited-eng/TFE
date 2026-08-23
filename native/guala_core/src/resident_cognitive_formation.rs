@@ -95,7 +95,7 @@ use crate::reached_neuron_cohort::{
     decode_reached_cohort_cell_v9_global, decode_reached_cohort_state_delta,
     encode_reached_cohort_cell, encode_reached_cohort_cell_v5,
     encode_reached_cohort_cell_v5_with_contact_plasticity, encode_reached_cohort_cell_v6,
-    encode_reached_cohort_cell_v9_global,
+    encode_reached_cohort_cell_v9_global, encode_reached_cohort_cell_v9_global_with_energy,
     encode_reached_cohort_state, encode_reached_cohort_state_delta,
     encode_reached_cohort_state_delta_v1, encode_reached_cohort_state_delta_v2,
     encode_reached_cohort_state_v4, encode_reached_cohort_state_v5,
@@ -1313,6 +1313,16 @@ pub(crate) struct CognitiveFormationSummary {
     /// The body's decoded energy state.  Present on a restored organism too,
     /// so a restart never hides an exhausted body.
     pub(crate) energy: ReachedCohortEnergyState,
+}
+
+/// The one canonical terminal cognitive seal and the exact read-only totals
+/// observed during that same traversal.  Ordinary causal intervals do not
+/// construct this body; the organism runtime requests it once after the final
+/// interval in a composed trajectory.
+pub(crate) struct SealedCognitiveFormation {
+    pub(crate) encoded: Vec<u8>,
+    pub(crate) summary: CognitiveFormationSummary,
+    pub(crate) mosaic_of_mosaics_count: usize,
 }
 
 /// One caller-AUTHORED contact between two of the caller's own declared
@@ -3525,6 +3535,26 @@ fn decode_retained_organism_mosaic_for_topology(
     })
 }
 
+fn accumulate_reached_cohort_energy(
+    total: &mut ReachedCohortEnergyState,
+    cohort: ReachedCohortEnergyState,
+) {
+    total.available_energy_zeptojoules += cohort.available_energy_zeptojoules;
+    total.spent_energy_zeptojoules += cohort.spent_energy_zeptojoules;
+    total.thermal_energy_zeptojoules += cohort.thermal_energy_zeptojoules;
+    total.available_energy_capacity_zeptojoules +=
+        cohort.available_energy_capacity_zeptojoules;
+    total.spent_energy_capacity_zeptojoules += cohort.spent_energy_capacity_zeptojoules;
+    total.thermal_energy_capacity_zeptojoules +=
+        cohort.thermal_energy_capacity_zeptojoules;
+    total.dissipated_energy_zeptojoules += cohort.dissipated_energy_zeptojoules;
+    total.dissipation_capacity_energy_zeptojoules +=
+        cohort.dissipation_capacity_energy_zeptojoules;
+    total.separated_elementary_charges = total
+        .separated_elementary_charges
+        .saturating_add(cohort.separated_elementary_charges);
+}
+
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
         bytes.get(..MAGIC_V26.len()) == Some(MAGIC_V26)
@@ -4463,22 +4493,10 @@ impl ResidentCognitiveFormationState {
     pub(crate) fn energy_state(&self) -> ReachedCohortEnergyState {
         let mut total = ReachedCohortEnergyState::default();
         for cohort in &self.cohorts {
-            let cohort_energy = reached_cohort_energy_state(&cohort.anatomy, &cohort.state);
-            total.available_energy_zeptojoules += cohort_energy.available_energy_zeptojoules;
-            total.spent_energy_zeptojoules += cohort_energy.spent_energy_zeptojoules;
-            total.thermal_energy_zeptojoules += cohort_energy.thermal_energy_zeptojoules;
-            total.available_energy_capacity_zeptojoules +=
-                cohort_energy.available_energy_capacity_zeptojoules;
-            total.spent_energy_capacity_zeptojoules +=
-                cohort_energy.spent_energy_capacity_zeptojoules;
-            total.thermal_energy_capacity_zeptojoules +=
-                cohort_energy.thermal_energy_capacity_zeptojoules;
-            total.dissipated_energy_zeptojoules += cohort_energy.dissipated_energy_zeptojoules;
-            total.dissipation_capacity_energy_zeptojoules +=
-                cohort_energy.dissipation_capacity_energy_zeptojoules;
-            total.separated_elementary_charges = total
-                .separated_elementary_charges
-                .saturating_add(cohort_energy.separated_elementary_charges);
+            accumulate_reached_cohort_energy(
+                &mut total,
+                reached_cohort_energy_state(&cohort.anatomy, &cohort.state),
+            );
         }
         total
     }
@@ -6023,11 +6041,17 @@ impl ResidentCognitiveFormationState {
             hippocampal,
             topology_index,
         };
-        let successor_encoded = if seal_successor {
-            successor.encode(max_encoded_bytes)?
-        } else {
-            Vec::new()
-        };
+        let (successor_encoded, terminal_summary, mosaic_of_mosaics_count) =
+            if seal_successor {
+                let sealed = successor.seal_with_terminal_observation(max_encoded_bytes)?;
+                (
+                    sealed.encoded,
+                    Some(sealed.summary),
+                    sealed.mosaic_of_mosaics_count,
+                )
+            } else {
+                (Vec::new(), None, 0)
+            };
         // A direct trajectory composes many exact causal intervals before its
         // one final seal.  Population totals describe only the terminal
         // resident state; recomputing them after every unsealed interval
@@ -6035,7 +6059,6 @@ impl ResidentCognitiveFormationState {
         // installs the exact terminal totals after the final interval.  A
         // separately prepared single interval still receives its complete
         // totals here.
-        let terminal_summary = seal_successor.then(|| successor.summary());
         let successor_energy = terminal_summary
             .as_ref()
             .map(|summary| summary.energy.clone())
@@ -6045,11 +6068,6 @@ impl ResidentCognitiveFormationState {
             .map_or(0, |summary| summary.complete_neuron_count);
         let physically_transitioned_neuron_count = physically_transitioned_neuron_lineages.len();
         let complete_neuron_fractal_count = emitted_neuron_fractals.len();
-        let mosaic_of_mosaics_count = if seal_successor {
-            successor.mosaic_of_mosaics_count()?
-        } else {
-            0
-        };
         Ok(PreparedCognitiveFormationTransition {
             predecessor_generation: predecessor_generation_authority,
             predecessor_hippocampal: predecessor_hippocampal_authority,
@@ -6551,9 +6569,10 @@ impl ResidentCognitiveFormationState {
         };
         // Every retained mosaic must still be expressible against the grown
         // anatomy, or the growth is refused and the body is left as it is.
-        let successor_encoded = successor.encode(max_encoded_bytes)?;
-        let summary = successor.summary();
-        let mosaic_of_mosaics_count = successor.mosaic_of_mosaics_count()?;
+        let sealed = successor.seal_with_terminal_observation(max_encoded_bytes)?;
+        let successor_encoded = sealed.encoded;
+        let summary = sealed.summary;
+        let mosaic_of_mosaics_count = sealed.mosaic_of_mosaics_count;
         Ok(PreparedCognitiveFormationTransition {
             predecessor_generation: self.generation,
             predecessor_hippocampal: self.hippocampal,
@@ -6625,7 +6644,28 @@ impl ResidentCognitiveFormationState {
         self.encode_with_format(CognitiveCodecFormat::V26, max_encoded_bytes)
     }
 
-    fn encode_v26(&self, max_encoded_bytes: usize) -> Result<Vec<u8>, FormationError> {
+    pub(crate) fn seal_with_terminal_observation(
+        &self,
+        max_encoded_bytes: usize,
+    ) -> Result<SealedCognitiveFormation, FormationError> {
+        let (encoded, terminal) = self.encode_v26(max_encoded_bytes, true)?;
+        let (summary, mosaic_of_mosaics_count) =
+            terminal.ok_or(FormationError::NoncanonicalState)?;
+        Ok(SealedCognitiveFormation {
+            encoded,
+            summary,
+            mosaic_of_mosaics_count,
+        })
+    }
+
+    fn encode_v26(
+        &self,
+        max_encoded_bytes: usize,
+        include_terminal_observation: bool,
+    ) -> Result<
+        (Vec<u8>, Option<(CognitiveFormationSummary, usize)>),
+        FormationError,
+    > {
         validate_lineage_state(self)?;
         self.validate_current_motor_effectors()?;
         let mut global_anatomies = GlobalNeuronAnatomyTable::default();
@@ -6688,6 +6728,8 @@ impl ResidentCognitiveFormationState {
         output.extend_from_slice(&encoded_global_anatomies);
         ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
 
+        let mut complete_neuron_count = 0usize;
+        let mut energy = include_terminal_observation.then(ReachedCohortEnergyState::default);
         push_length(&mut output, self.cohorts.len())?;
         for cohort in &self.cohorts {
             if cohort
@@ -6701,12 +6743,26 @@ impl ResidentCognitiveFormationState {
             {
                 return Err(FormationError::NoncanonicalState);
             }
-            let cell = encode_reached_cohort_cell_v9_global(
-                &cohort.anatomy,
-                &cohort.state,
-                &global_anatomies,
-            )
-            .map_err(|_| FormationError::NoncanonicalState)?;
+            let cell = if let Some(total_energy) = energy.as_mut() {
+                let (cell, cohort_energy) = encode_reached_cohort_cell_v9_global_with_energy(
+                    &cohort.anatomy,
+                    &cohort.state,
+                    &global_anatomies,
+                )
+                .map_err(|_| FormationError::NoncanonicalState)?;
+                complete_neuron_count = complete_neuron_count
+                    .checked_add(cohort.anatomy.neuron_count())
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                accumulate_reached_cohort_energy(total_energy, cohort_energy);
+                cell
+            } else {
+                encode_reached_cohort_cell_v9_global(
+                    &cohort.anatomy,
+                    &cohort.state,
+                    &global_anatomies,
+                )
+                .map_err(|_| FormationError::NoncanonicalState)?
+            };
             push_length(&mut output, cell.len())?;
             output.extend_from_slice(&cell);
             for evidence in [
@@ -6742,6 +6798,8 @@ impl ResidentCognitiveFormationState {
             ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
         }
 
+        let mut mosaic_count = 0usize;
+        let mut mosaic_of_mosaics_count = 0usize;
         push_length(&mut output, self.mosaics.len())?;
         for retained in &self.mosaics {
             let encoded = encode_retained_organism_mosaic_for_topology(
@@ -6753,6 +6811,19 @@ impl ResidentCognitiveFormationState {
             )?;
             push_length(&mut output, encoded.len())?;
             output.extend_from_slice(&encoded);
+            if include_terminal_observation
+                && retained.mosaic.carries_only_retained_neuron_structure()
+            {
+                mosaic_count = mosaic_count
+                    .checked_add(1)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+                mosaic_of_mosaics_count = usize::try_from(
+                    retained.mosaic_of_mosaics_relation_count,
+                )
+                .ok()
+                .and_then(|count| mosaic_of_mosaics_count.checked_add(count))
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            }
             ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
         }
         let hippocampal = self
@@ -6765,7 +6836,26 @@ impl ResidentCognitiveFormationState {
         push_length(&mut output, hippocampal.len())?;
         output.extend_from_slice(&hippocampal);
         ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
-        Ok(output)
+        let terminal = energy.map(|energy| {
+            (
+                CognitiveFormationSummary {
+                cognitive_ordinal: self.generation,
+                trace_count: 0,
+                mosaic_count,
+                complete_neuron_count,
+                resting_neuron_count: self
+                    .resting_population
+                    .as_ref()
+                    .and_then(|population| {
+                        usize::try_from(population.resting_cell_count()).ok()
+                    })
+                    .unwrap_or(0),
+                    energy,
+                },
+                mosaic_of_mosaics_count,
+            )
+        });
+        Ok((output, terminal))
     }
 
     fn encode_with_format(
@@ -6774,7 +6864,9 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
         if format == CognitiveCodecFormat::V26 {
-            return self.encode_v26(max_encoded_bytes);
+            return self
+                .encode_v26(max_encoded_bytes, false)
+                .map(|(encoded, _)| encoded);
         }
         validate_lineage_state(self)?;
         if matches!(
@@ -14804,6 +14896,34 @@ mod tests {
             ResidentCognitiveFormationState::decode(&encoded, CURRENT_FIXED_BYTES).unwrap(),
             state
         );
+    }
+
+    #[test]
+    fn terminal_observation_is_derived_by_the_canonical_seal() {
+        const MAX_BYTES: usize = 256_000_000;
+        let source = admit_complete_articulated_body_state_source(
+            0,
+            &ArticulatedBodyState::at_neutral(),
+        )
+        .unwrap();
+        let prepared = ResidentCognitiveFormationState::default()
+            .prepare(&source, MAX_BYTES)
+            .unwrap();
+        let expected_bytes = prepared.successor.encode(MAX_BYTES).unwrap();
+        let expected_summary = prepared.successor.summary();
+        let expected_relation_count = prepared
+            .successor
+            .mosaic_of_mosaics_count()
+            .unwrap();
+
+        let sealed = prepared
+            .successor
+            .seal_with_terminal_observation(MAX_BYTES)
+            .unwrap();
+
+        assert_eq!(sealed.encoded, expected_bytes);
+        assert_eq!(sealed.summary, expected_summary);
+        assert_eq!(sealed.mosaic_of_mosaics_count, expected_relation_count);
     }
 
     #[test]
