@@ -828,3 +828,48 @@ passed, and the exact current full occurrence measured; not deployed**. A-006
 remains open. The next correction is to remove remaining selected-cohort
 whole-state clone/scan work from the `9.434`-second physical settlement while
 preserving the unchanged full joint seven-field DSF and the single final seal.
+
+### Exact causal-frontier and independent-formation settlement — 2026-08-23
+
+- A zero, unchanged receptor was still entering electrical settlement merely
+  because its port appeared in the continuous sensory roster. The corrected
+  frontier begins only from exact delivered energy, measured local metabolic
+  change, newly reached developmental wiring, or the prior still-active
+  frontier. Eight unrelated transitions disappeared from the authenticated
+  mature occurrence; no receptor, DSF coordinate, or lawful continuation was
+  removed.
+- Reached cohort membrane pumps now prepare against immutable cohort state in
+  parallel and commit in canonical cohort order. Electrical potentials,
+  independent contact proposals, finite-carrier rebounding, and contact-local
+  released work likewise prepare concurrently; the shared-carrier bound and
+  connected energy descent remain one exact deterministic reconciliation.
+- Every retained formation reads the same immutable physical successor. Its
+  recurrence response is now prepared independently across the four CPUs and
+  applied in resident index order. A failed preparation performs no parallel
+  resident write. Formation identity, exact retained fractals, active bonds,
+  receipts, and canonical application order are unchanged.
+- Against the authenticated task-1194 CURRENT, four CPUs completed the exact
+  full occurrence in `8.486551` seconds; one CPU completed it in `11.954189`
+  seconds. Both produced the identical successor SHA-256
+  `99654202744049b2040ee9859d89d4cb853e393cbf99d4c856cf767348bd4619`,
+  tick `155695`, `112,647,648` bytes, `2,105` complete neurons, `352`
+  recognized mosaics, and `4,145` physical transitions.
+- The retained-formation boundary fell from `2.858709` to `1.522133` seconds
+  across the two causal intervals. Effective CPU use rose from approximately
+  `1.23` to `1.43` cores. The remaining dominant non-physical boundary is the
+  one final canonical whole-body seal, previously measured at approximately
+  `3.421` seconds; it is not repeated per causal hop.
+- Candidate commit `f7efa5c5` passes `cargo check --lib` and
+  `git diff --check`. Temporary timing instrumentation is absent.
+
+Applicable recurrence checks: RF-002 used the exact task-1194 sensory flags;
+RF-003 loaded the rebuilt candidate wheel from an explicit temporary path;
+RF-004 exercised the authenticated retained production body; RF-016 kept
+A-006 as the sole active item; RF-044 measured the complete producer-reachable
+occurrence; and RF-051 preserved the mature formation count and exact
+successor across one- and four-worker execution.
+
+Candidate status: **source committed and exact mature replay proven; live
+cutover pending**. This improves A-006 cadence but does not itself close A-006;
+closure still requires the live new-impression -> self-initiated action ->
+physically sensed consequence witness in the same resident organism.
