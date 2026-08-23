@@ -2,9 +2,11 @@
 
 Date: 2026-08-16
 
-Status: Live-Closed on 2026-08-16 by reconciliation of the already deployed
-physical circuit and direct task-1095 observation. No organism code, image, task
-definition, or persistent state was changed for this closure.
+Status: Direct Live-Closed on 2026-08-23 on production task
+`dsf-ai-task:1193`. The former 2026-08-16 composition-only closure is retained
+below as historical evidence but no longer supplies the acceptance authority.
+Task 1193 directly observed the complete unattended behavior in one continuing
+resident life.
 
 ## Task identity
 
@@ -112,6 +114,39 @@ than an event archive. Its present `internally_simulated` value and the bounded
 cross-context/play receipts establish the required causal continuity without
 adding history storage.
 
+## Direct one-life reclosure — 2026-08-23
+
+Production task `dsf-ai-task:1193`, commit
+`712597fd193dbf7946f84014d766857c5ba9b104`, image
+`sha256:c1214d2231fbe8df64d43d67417992c5e971af73571e5b4348f96d1c26891bf3`,
+and resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` supplied the
+previously missing direct witness. One uninterrupted
+`continuous-environment:<uuid>` life produced all of the following without a
+human choice, Python cognition callback, scheduler-selected thought, reward,
+or semantic command:
+
+- at tick `155185`, 292 neurons physically recovered, 49,028 dissipation
+  quanta drained, 302 exact neuronal fractals formed, and 1,650 internally
+  caused retained-formation reassemblies occurred;
+- retained formation `47e131a6...e5ae6b8` crossed an exact changed contact at
+  cognitive ordinal `155169`, reached 61 native body effectors, changed the
+  persistent body, and returned the consequence through the complete applicable
+  sensory roster to the same organism at tick `155185`;
+- action receipt `d659849f...6cbf7c3` advanced the persistent world to revision
+  `9357`; a later distinct action receipt `3784d463...64877fa` advanced it to
+  revision `9359` at tick `155202`, proving changed-world exploration rather
+  than one isolated movement;
+- continuous cognition remained true and Python cognition callbacks remained
+  zero;
+- after the duplicate-original admission correction, resident neuron count
+  remained exactly `2,105` across ticks `155168`, `155185`, and `155202`, while
+  the canonical state body decreased from `113,327,977` to `113,272,910` bytes.
+
+This single continuing life directly proves physical rest/recovery, internally
+active consolidation, wake/action, exploration, learning, and interaction. It
+does not claim complete A-013 locomotion/manipulation, A-011 play/fun/social joy,
+curriculum completion, or the remaining whole-project resource soak.
+
 ## Verification
 
 - Exact native build target:
@@ -130,8 +165,9 @@ adding history storage.
 
 ## Closure boundary
 
-A-012 is Live-Closed as the truthful composition of live-deployed physical
-mechanisms and current task-1095 evidence. It does not claim complete locomotion,
-manipulation, eyelids, pose, or every body effector; those remain A-013. It does
-not claim curriculum completion, four-year-old conversation, complete Loom UI,
-or long-soak resource closure; those remain later explicit items.
+A-012 is Direct Live-Closed by the one continuing task-1193 life above, not by
+composition of separate historical demonstrations. It does not claim complete
+locomotion, manipulation, eyelids, pose, or every body effector; those remain
+A-013. It does not claim A-011 play/fun/social joy, curriculum completion,
+four-year-old conversation, complete Loom UI, or long-soak resource closure;
+those remain later explicit items.

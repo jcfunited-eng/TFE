@@ -13,14 +13,14 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1176`, commit
-`96bc624e7155ce49e06af17c9b2e8edf06abf99a`, immutable image
-`sha256:5ed0d38abb083476ac9083d9729fc9fbd21d5e1ad4d20c981ecf053430b5cb53`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The one-way V26
-motor-identity repair reduced the frozen `131,697,766`-byte body to
-`95,060,017` bytes, and ordinary unattended life subsequently advanced through
-generation `150644`. An exact tick-150612 successor cold-restored with no
-duplicate or unspecialized motor terminal binding.
+Current production baseline: task definition `dsf-ai-task:1193`, commit
+`712597fd193dbf7946f84014d766857c5ba9b104`, immutable image
+`sha256:c1214d2231fbe8df64d43d67417992c5e971af73571e5b4348f96d1c26891bf3`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Direct unattended
+life advanced through generation `155202`; repeated activity no longer admits
+the same physical route as both recurrence and a new original. Resident neuron
+count remained `2,105` and the canonical body decreased from `113,327,977` to
+`113,272,910` bytes across the last two observed generations.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
@@ -30,7 +30,7 @@ duplicate or unspecialized motor terminal binding.
 | 0 | A-006 motor-growth prerequisite | Live-closed on task 1176 | The terminal-bound motor invariant is current-format enforced and continuous physical advancement is restored; do not reopen the participant-set motor identity. |
 | 1 | A-006 | `RECONCILED PARTIAL` — next active item | Prove intrinsic curiosity/motivation from the organism's own changing physical reach, without observer labels, scores, or scripted choice. |
 | 2 | A-011 | `RECONCILED PARTIAL` | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
-| 3 | A-012 | `RECONCILED PARTIAL` | Prove self-selected rest/sleep/wake/exploration/learning/interaction as one unattended native life. |
+| 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
 | 4 | A-013 | `RECONCILED PARTIAL` | Close only the necessary persistent embodiment and thermal/body participation needed by meaningful learning. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
 | 6 | L-005 | Open | Directly prove first genuine learned recognition from novel sensory evidence, not metadata or labels. |
@@ -518,12 +518,15 @@ duplicate or unspecialized motor terminal binding.
   **Live-closed 2026-08-16:** all bounded A-011.1--A-011.7 increments are
   closed; task 1091 supplies the participant-to-Guala physical circuit and
   task 1095 supplies the body-owned laughter receipt `8d1b7bfe...de32aa`.
-- [ ] **A-012 — RECONCILED PARTIAL 2026-08-17:** Prove self-selected rest, sleep, wake, exploration, learning,
-  and interaction can occur while no human or development agent is present.
-  **Live-closed 2026-08-16:** task 1095 preserved the composed physical
-  rest/wake, internal consolidation, later causal body use, unattended
-  interaction, and changed-world exploration circuit with zero Python
-  cognition callbacks.
+- [x] **A-012 — DIRECT LIVE-CLOSED 2026-08-23:** Prove self-selected rest,
+  sleep, wake, exploration, learning, and interaction can occur while no human
+  or development agent is present. Task 1193 directly observed one continuing
+  unattended life recover 292 neurons, form 302 exact neuronal fractals,
+  produce 1,650 endogenous retained-formation reassemblies, carry an exact
+  changed contact into native body action and sensory return, and then produce
+  two distinct action receipts at world revisions 9357 and 9359. Identity was
+  unchanged, Python cognition callbacks were zero, neuron count stayed 2,105,
+  and state bytes decreased across the final two generations.
 - [ ] **A-013 thermal amendment — RECONCILED PARTIAL 2026-08-17:** the original bounded
   Phase-1 pose/gaze/eyes/blink/face/mouth/breath/voice/locomotion/manipulation
   evidence remains live, but its core/cutaneous thermal body was explicitly

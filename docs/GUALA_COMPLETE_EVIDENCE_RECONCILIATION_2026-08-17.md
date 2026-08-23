@@ -73,7 +73,7 @@ do not require interpretation:
 | A-006 | Partial | The proof covers a novelty-to-action physical route but explicitly does not establish named need, affection/social experience, or the full intrinsic-motivation sentence. |
 | A-009 | Live-Closed 2026-08-22 | Task 1153 returned all applicable sensory lanes, including 74 articulated-body proprioceptive axes with one changed axis, to the same resident identity under the action receipt; CURRENT then advanced from tick 148208 to 148238. |
 | A-011 | Partial pending full audit | A participant circuit and laughter receipt do not alone prove the entire self-selected play, fun, social joy, and body-owned laughter sentence. |
-| A-012 | Partial pending direct audit | The closure is described as a composed circuit; the complete self-selected unattended behavior must be directly observed as one continuing organism life. |
+| A-012 | Direct Live-Closed 2026-08-23 | Task 1193 directly observed one continuing unattended resident life recover, internally reassemble retained formations, form new neuronal fractals, causally move the persistent body, receive its sensory consequence, and produce distinct later actions in changed world revisions with zero Python cognition callbacks and stable neuron/state bounds. |
 | A-013 | Partial | The old closure explicitly defers detailed morphology, gait, and dexterity. The current companion-care audit also finds no truthful body-to-body hold/lift, bed support, bathing, or painting physics. |
 | A-014 | Partial | Camera/microphone ingress reached the organism, but the user directly observed unreliable microphone controls and the rejected Loom surface; “seamless windows” is therefore not closed. |
 
