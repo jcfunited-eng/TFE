@@ -904,8 +904,17 @@ physically sensed consequence witness in the same resident organism.
   interval in `1.534824` seconds with `754` physical neuron transitions.
   Full native library verification passes `472/472` with `10` explicitly
   ignored retired fixtures.
+- Immediately before release, task 1196 reported the same identity at tick
+  `156849`, `112,629,414` raw bytes, state receipt
+  `15a4ecc823b0ec16bedd52017d6caabd967499971975ed3ec31666bfa747b57b`.
+  The exact mirrored CURRENT was downloaded and checksum-verified. A fresh
+  release build from commit `33163727` migrated it in `3.298975` seconds to
+  `48,025,872` bytes, receipt
+  `c7677addbe31a6b4a5d019df089deaf72f3c43ab6e6b327e5781d7885013e8ed`,
+  cold-restored it in `0.480616` seconds, and completed the exact live 111-port
+  roster in `1.448848` seconds with `760` physical neuron transitions.
 
-Applicable recurrence checks: RF-002 used the exact task-1194 sensory flags;
+Applicable recurrence checks: RF-002 used the exact task-1196 sensory flags;
 RF-003 loaded a fresh explicit release wheel; RF-004 restored the authenticated
 mature predecessor; RF-016 retained A-006 as the sole active item; RF-019
 replaced the stale frontier-survival assertion with the current one-way
