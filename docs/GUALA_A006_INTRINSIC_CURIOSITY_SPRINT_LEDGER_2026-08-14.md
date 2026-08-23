@@ -627,3 +627,26 @@ Correction status: **locally proven; not deployed**.
 Candidate status: **exact electrical correctness and redundant fabric-state
 copy corrected; locally proven; not deployed**. The `4.284209`-second result is
 not a cadence improvement and A-006 remains open.
+
+### Continuous vestibular-return correction — 2026-08-23
+
+- Live task 1183 stopped publishing after tick `150989` while its world kept
+  advancing. Exact discarded-state replay failed with `resident organism
+  already has one pending candidate` when the ordinary intake appended its
+  vestibular return.
+- `advance_vestibular_trajectory_unsealed` incorrectly rejected an existing
+  unsealed trajectory immediately before taking that same trajectory for
+  continuation. The contradictory guard is removed; all genuine pending,
+  direct-predecessor, and contact-growth custody exclusions remain unchanged.
+- RF-050's exact mixed admitted-to-vestibular single-seal test executed `1/1`
+  and passed. A fresh candidate-native build replayed the authenticated
+  tick-`150989` CURRENT and exact retained world: eight ordinary physical
+  episodes completed in `55.389483` seconds and the same organism advanced to
+  tick `151006`, state receipt
+  `84d0284ad0500497637fcae2326ccb041e326ba7852ea809435037709e0d3e27`.
+- No storage design, observer authority, DSF equation, cognitive pause, second
+  organism, retry, or whole-state transition mechanism was added.
+
+Candidate status: **exact live failure corrected and authenticated predecessor
+replay passed; deployment pending**. A-006 remains open until live CURRENT
+advances and the intrinsic-curiosity causal witness is re-established.

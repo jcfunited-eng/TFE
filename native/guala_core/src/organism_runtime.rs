@@ -3256,8 +3256,7 @@ impl ResidentOrganismRuntime {
         predecessor_heading_millidegrees: u32,
         signed_body_motion_millidegrees: &[i32],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.unsealed.is_some()
-            || self.pending.is_some()
+        if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
@@ -7249,6 +7248,55 @@ mod tests {
 
         let (token, sealed) = candidate.seal_unsealed_trajectory_direct().unwrap();
         assert_eq!(sealed.organism_tick, second.observation.organism_tick);
+        candidate.acknowledge_direct_commit(token).unwrap();
+
+        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
+        assert_eq!(candidate.active.articulated_body, reference.active.articulated_body);
+        assert_eq!(candidate.active.vestibular, reference.active.vestibular);
+        assert!(candidate.unsealed.is_none());
+        assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn lived_intake_appends_vestibular_return_before_its_single_seal() {
+        let source = source("unsealed-lived-intake-before-vestibular-return");
+        let intervals = vec![(5, 1); source.joint_source_occurrences().len()];
+        let episodes = vec![(source, intervals)];
+
+        let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        reference.active.articulated_body.initialize_proprioception();
+        let admitted = reference
+            .commit_admitted_trajectory_direct(&episodes)
+            .unwrap();
+        reference.acknowledge_direct_commit(admitted.token).unwrap();
+        let vestibular = reference
+            .commit_vestibular_trajectory_direct(0, &[1])
+            .unwrap();
+        reference
+            .acknowledge_direct_commit(vestibular.token)
+            .unwrap();
+
+        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        candidate.active.articulated_body.initialize_proprioception();
+        let predecessor_envelope = candidate.active_envelope().to_vec();
+
+        let admitted = candidate
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        assert!(!admitted.sealed);
+        let vestibular = candidate
+            .advance_vestibular_trajectory_unsealed(0, &[1])
+            .unwrap();
+        assert!(!vestibular.sealed);
+        assert_eq!(
+            vestibular.observation.organism_tick,
+            admitted.observation.organism_tick + 1
+        );
+        assert_eq!(candidate.active_envelope(), predecessor_envelope);
+
+        let (token, sealed) = candidate.seal_unsealed_trajectory_direct().unwrap();
+        assert_eq!(sealed.organism_tick, vestibular.observation.organism_tick);
         candidate.acknowledge_direct_commit(token).unwrap();
 
         assert_eq!(candidate.active_envelope(), reference.active_envelope());
