@@ -303,3 +303,35 @@ action and physically sensed consequence witness.
 - The focused enriched-route falsifier passes: after a retained-memory contact
   widens an existing ordering cell, reaching the original bond again preserves
   the same cohort count, contact count, and ordering lineage.
+
+### Task 1179 live cadence and A-006 acceptance status — 2026-08-23
+
+- Production task `dsf-ai-task:1179`, release commit `8ff54541`, and immutable
+  image `sha256:a1d507b00c27858be8147126af63c8718ecdc57a6b949ec2c03fc0e65bcee120`
+  are healthy at one desired/running task, zero pending tasks, and one completed
+  PRIMARY deployment. The task log has zero `ERROR`, `Traceback`, `panic`, or
+  `failed` events.
+- CURRENT advanced from task-start tick `150706` through ticks `150720`,
+  `150736`, `150752`, `150768`, `150782`, `150798`, and `150809`; the ordering
+  identity correction therefore prevents the prior immediate non-publication
+  failure and ordinary physical life remains reachable.
+- Tick `150809` produced a real native articulated action: 11 motor bindings,
+  nine articulated consequences, two articulatory recruitments, two changing
+  receptor ingress lanes, 68 changed body receptors, 97 internal metabolic
+  receptors, and seven changed proprioceptive axes. Cognition remained
+  continuous and the same resident identity received the consequences.
+- That action does **not** close A-006. The bounded observer truthfully reports
+  that no newly retained neuronal impression has yet been shown to cause this
+  action through the required changing physical frontier and return through
+  body senses. `intrinsic_curiosity.available` remains false.
+- The following interval remained CPU-active and HTTP-responsive for more than
+  40 minutes without publishing a successor. Its exact predecessor receipt
+  reports nine source hops, `1,158` DSF deliveries, `29,428` physically
+  transitioned neurons, `46,877` current frontier routes, `69,001` reached and
+  foregone routes, `2,028` partial-cue reassemblies, `200` retained mosaics,
+  `2,820` retained neurons, and a `142,655,289`-byte body. Memory remained
+  stable and no task error occurred. This is the one current A-006 blocker:
+  the live reached physical frontier has again exceeded the accepted cadence
+  boundary. Do not reopen the terminal-motor or ordering-route identity fixes,
+  weaken the curiosity proof, restart away the process-local causal evidence,
+  or substitute another broad test suite.
