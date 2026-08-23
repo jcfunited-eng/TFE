@@ -149,16 +149,17 @@ impl ResidentElectricalFabric {
         })
     }
 
-    pub(crate) fn with_contact_states(
-        &self,
-        contact_states: Vec<crate::sparse_electrical_contact::ElectricalContactState>,
-    ) -> Result<Self, SparseElectricalError> {
-        Ok(Self {
-            lineages: self.lineages.clone(),
-            anatomy: self.anatomy.clone(),
-            state: SparseElectricalState::from_contact_states(&self.anatomy, contact_states)?,
-            cell_format: SparseElectricalCellFormat::V3,
-        })
+    /// Apply one already-settled sparse contact projection without cloning the
+    /// complete resident fabric.  Physical anatomy and lineage ownership do
+    /// not change during an ordinary interval.
+    pub(crate) fn replace_contact_states(
+        &mut self,
+        replacements: Vec<(
+            usize,
+            crate::sparse_electrical_contact::ElectricalContactState,
+        )>,
+    ) -> Result<(), SparseElectricalError> {
+        self.state.replace_contact_states(replacements)
     }
 
     /// Remove every cross-cohort contact incident to a physically retired
@@ -376,5 +377,37 @@ mod tests {
         assert_eq!(successor.lineages(), &[[3; 16], [4; 16]]);
         assert_eq!(successor.contact_count(), 1);
         assert_eq!(successor.state().contact_states(), &[kept_state]);
+    }
+
+    #[test]
+    fn sparse_contact_replacement_changes_only_validated_resident_indices() {
+        let mut fabric = ResidentElectricalFabric::default()
+            .append_contact([1; 16], [2; 16], ExactRational::integer(500))
+            .unwrap()
+            .append_contact([3; 16], [4; 16], ExactRational::integer(700))
+            .unwrap();
+        let predecessor = fabric.clone();
+        let replacement =
+            crate::sparse_electrical_contact::ElectricalContactState::from_channel_parts(
+                fabric.anatomy().contact_anatomies()[1],
+                fabric.state().contact_states()[1].carrier_phase(),
+                1,
+                ExactRational::new(1, 2).unwrap(),
+            )
+            .unwrap();
+
+        assert!(fabric
+            .replace_contact_states(vec![(1, replacement.clone()), (1, replacement.clone())])
+            .is_err());
+        assert_eq!(fabric, predecessor);
+
+        fabric
+            .replace_contact_states(vec![(1, replacement.clone())])
+            .unwrap();
+        assert_eq!(
+            fabric.state().contact_states()[0],
+            predecessor.state().contact_states()[0]
+        );
+        assert_eq!(fabric.state().contact_states()[1], replacement);
     }
 }

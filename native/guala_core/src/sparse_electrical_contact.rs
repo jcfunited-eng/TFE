@@ -733,7 +733,7 @@ fn component_energy_descending_transitions(
     interval_microseconds: u32,
     mut transitions: Vec<ElectricalContactTransition>,
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
-    for component_contacts in connected_contact_components(anatomy) {
+    for component_contacts in connected_contact_components(anatomy, &transitions)? {
         settle_energy_component(
             anatomy,
             predecessor_contacts,
@@ -880,7 +880,10 @@ fn settle_energy_component(
     }
 }
 
-fn connected_contact_components(anatomy: &SparseElectricalAnatomy) -> Vec<Vec<usize>> {
+fn connected_contact_components(
+    anatomy: &SparseElectricalAnatomy,
+    transitions: &[ElectricalContactTransition],
+) -> Result<Vec<Vec<usize>>, SparseElectricalError> {
     fn root(parent: &mut [usize], mut node: usize) -> usize {
         while parent[node] != node {
             parent[node] = parent[parent[node]];
@@ -889,8 +892,14 @@ fn connected_contact_components(anatomy: &SparseElectricalAnatomy) -> Vec<Vec<us
         node
     }
 
+    if transitions.len() != anatomy.contacts.len() {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
     let mut parent = (0..anatomy.neuron_count).collect::<Vec<_>>();
-    for contact in &anatomy.contacts {
+    for (contact, transition) in anatomy.contacts.iter().zip(transitions) {
+        if transition.outward_elementary_charges_from_left == 0 {
+            continue;
+        }
         let left = root(&mut parent, contact.left_neuron);
         let right = root(&mut parent, contact.right_neuron);
         if left != right {
@@ -899,7 +908,12 @@ fn connected_contact_components(anatomy: &SparseElectricalAnatomy) -> Vec<Vec<us
     }
     let mut component_by_root = vec![usize::MAX; anatomy.neuron_count];
     let mut components = Vec::<Vec<usize>>::new();
-    for (contact_index, contact) in anatomy.contacts.iter().enumerate() {
+    for (contact_index, (contact, transition)) in
+        anatomy.contacts.iter().zip(transitions).enumerate()
+    {
+        if transition.outward_elementary_charges_from_left == 0 {
+            continue;
+        }
         let component_root = root(&mut parent, contact.left_neuron);
         let component_index = if component_by_root[component_root] == usize::MAX {
             component_by_root[component_root] = components.len();
@@ -910,7 +924,7 @@ fn connected_contact_components(anatomy: &SparseElectricalAnatomy) -> Vec<Vec<us
         };
         components[component_index].push(contact_index);
     }
-    components
+    Ok(components)
 }
 
 fn outward_by_contact_indices(
@@ -1189,6 +1203,28 @@ impl SparseElectricalState {
 
     pub(crate) fn contact_states(&self) -> &[ElectricalContactState] {
         &self.contacts
+    }
+
+    /// Replace only the exact resident contacts reached by one settled
+    /// interval.  Validate every address before the first write so a malformed
+    /// sparse projection cannot partially mutate the resident state.
+    pub(crate) fn replace_contact_states(
+        &mut self,
+        replacements: Vec<(usize, ElectricalContactState)>,
+    ) -> Result<(), SparseElectricalError> {
+        if replacements
+            .iter()
+            .any(|(contact_index, _)| *contact_index >= self.contacts.len())
+            || replacements
+                .windows(2)
+                .any(|pair| pair[0].0 >= pair[1].0)
+        {
+            return Err(SparseElectricalError::AnatomyStateWidth);
+        }
+        for (contact_index, successor) in replacements {
+            self.contacts[contact_index] = successor;
+        }
+        Ok(())
     }
 
     pub(crate) fn from_contact_states(
@@ -1952,6 +1988,53 @@ mod tests {
         // different scale; a network-wide fraction incorrectly rounded this
         // independent one-carrier transfer down to zero.
         assert_eq!(settled[1].outward_elementary_charges_from_left, 1);
+    }
+
+    #[test]
+    fn zero_current_contact_does_not_merge_independent_energy_settlements() {
+        let anatomy = SparseElectricalAnatomy::new(
+            4,
+            vec![
+                ElectricalContactAnatomy::new(0, 1, ExactRational::integer(1), 4)
+                    .unwrap(),
+                ElectricalContactAnatomy::new(1, 2, ExactRational::integer(1), 4)
+                    .unwrap(),
+                ElectricalContactAnatomy::new(2, 3, ExactRational::integer(1), 4)
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let predecessor = SparseElectricalState::genesis(&anatomy);
+        let membranes = [
+            ElementaryChargeMembraneState::genesis(101),
+            ElementaryChargeMembraneState::genesis(0),
+            ElementaryChargeMembraneState::genesis(10),
+            ElementaryChargeMembraneState::genesis(0),
+        ];
+        let transition = |contact_index: usize, carriers: i128| {
+            ElectricalContactTransition {
+                successor: predecessor.contacts[contact_index].clone(),
+                outward_current_from_left_picoamperes: ExactRational::integer(carriers),
+                outward_elementary_charges_from_left: carriers,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            }
+        };
+        let settled = component_energy_descending_transitions(
+            &anatomy,
+            &predecessor,
+            &capacitances(4),
+            &membranes,
+            &[u128::MAX; 4],
+            1_000,
+            vec![transition(0, 100), transition(1, 0), transition(2, 1)],
+        )
+        .unwrap();
+
+        assert_eq!(settled[0].outward_elementary_charges_from_left, 50);
+        assert_eq!(settled[1].outward_elementary_charges_from_left, 0);
+        assert_eq!(settled[2].outward_elementary_charges_from_left, 1);
     }
 
     fn total_charge(memebranes: &[ElementaryChargeMembraneState]) -> i128 {

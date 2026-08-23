@@ -594,3 +594,36 @@ Correction status: **locally proven; not deployed**.
 - The exact gain is `0.130864` seconds. This closes the duplicate terminal
   body traversal, but not A-006 cadence: most terminal-summary time is exact
   energy arithmetic, and the larger remaining owner is physical settlement.
+
+### Active electrical pathways and sparse fabric state — 2026-08-23
+
+- The coupled electrical solver previously formed components from every
+  authored contact, including contacts carrying exactly zero current. A
+  zero-current bridge could therefore force two otherwise independent active
+  pathways to share one global energy scale and suppress a lawful transfer.
+- Components are now formed only from contacts carrying nonzero exact charge
+  transfer. Active contacts sharing a neuron still settle together; a contact
+  with zero transfer does not create physical coupling. No threshold,
+  heuristic, score, DSF reduction, or approximation was introduced.
+- The resident cross-cohort fabric previously copied all contact states and
+  reconstructed the whole fabric after one coupled interval. It now validates
+  a sorted set of exact resident contact indices before the first write and
+  replaces only those settled contact states. The obsolete full-vector
+  replacement method was deleted.
+- Focused falsifiers prove both laws: disconnected active pathways retain
+  independent exact energy scales even with a zero-current topological bridge,
+  and malformed sparse contact replacements refuse without any mutation while
+  valid replacements leave unrelated contacts byte-identical.
+- `cargo check --locked --lib` and `git diff --check` pass. Against authenticated
+  tick `150809`, the actual pared candidate completed one discarded body-only
+  interval in `4.284209` seconds, producing tick `150810`, `101,363,110` bytes,
+  SHA-256 `a92d48381001dadb85f8beae027232f4e64f60037f0e31fe567079bc3f905b20`,
+  `1,888` complete neurons, `175` recognized mosaics, `1,827` physical
+  transitions, and one successor seal.
+- A proposed in-place dark-rest rewrite was removed before commit after source
+  review proved `Arc::make_mut` would still clone the shared cohort. It is not
+  part of this candidate and is not recorded as a performance correction.
+
+Candidate status: **exact electrical correctness and redundant fabric-state
+copy corrected; locally proven; not deployed**. The `4.284209`-second result is
+not a cadence improvement and A-006 remains open.

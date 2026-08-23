@@ -13139,7 +13139,7 @@ fn settle_internal_contact_interval(
                 .collect::<Vec<_>>(),
         );
     }
-    let mut fabric_states = electrical_fabric.state().contact_states().to_vec();
+    let mut fabric_successors = Vec::new();
     for (origin, transition) in compact_origins
         .iter()
         .copied()
@@ -13163,12 +13163,13 @@ fn settle_internal_contact_interval(
                 let _ = (left_member, right_member);
             }
             ResidentContactOrigin::Fabric { contact_index } => {
-                fabric_states[contact_index] = transition.successor;
+                fabric_successors.push((contact_index, transition.successor));
             }
         }
     }
-    *electrical_fabric = electrical_fabric
-        .with_contact_states(fabric_states)
+    fabric_successors.sort_unstable_by_key(|(contact_index, _)| *contact_index);
+    electrical_fabric
+        .replace_contact_states(fabric_successors)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
 
     // Preserve the exact directed whole-carrier transfers from this settled
