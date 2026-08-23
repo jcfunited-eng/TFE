@@ -381,18 +381,25 @@ pub(crate) fn admit_physical_mosaic_original(
 
 fn current_recurrence_witness(
     retained: &AdmittedPhysicalMosaic,
-    physically_changed_lineages: &[StableNeuronLineage],
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
     internally_originated: bool,
 ) -> Result<(Vec<StablePhysicalBondReference>, Vec<StableNeuronLineage>), PhysicalMosaicError> {
-    let mut changed = physically_changed_lineages.to_vec();
-    changed.sort_unstable();
-    changed.dedup();
-    if retained
-        .member_lineages
-        .iter()
-        .any(|lineage| changed.binary_search(lineage).is_err())
+    if current_physical_deltas
+        .windows(2)
+        .any(|pair| pair[0].0 >= pair[1].0)
+        || retained
+            .member_lineages
+            .iter()
+            .zip(retained.retained_fractals.iter())
+            .any(|(lineage, retained_fractal)| {
+                current_physical_deltas
+                    .binary_search_by_key(lineage, |(candidate, _)| *candidate)
+                    .ok()
+                    .and_then(|index| current_physical_deltas.get(index))
+                    .is_none_or(|(_, current_fractal)| current_fractal != retained_fractal)
+            })
     {
         return Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember);
     }
@@ -431,13 +438,13 @@ fn current_recurrence_witness(
 /// partial cue and actual sparse contact flow reassemble every member.
 pub(crate) fn prove_physical_mosaic_recurrence(
     original: &AdmittedPhysicalMosaic,
-    physically_changed_lineages: &[StableNeuronLineage],
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
 ) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
     prove_physical_mosaic_recurrence_with_origin(
         original,
-        physically_changed_lineages,
+        current_physical_deltas,
         active_bonds,
         partial_cue_lineages,
         PhysicalMosaicRecurrenceOrigin::ExternallyObserved,
@@ -446,7 +453,7 @@ pub(crate) fn prove_physical_mosaic_recurrence(
 
 pub(crate) fn prove_physical_mosaic_recurrence_with_origin(
     original: &AdmittedPhysicalMosaic,
-    physically_changed_lineages: &[StableNeuronLineage],
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
     origin: PhysicalMosaicRecurrenceOrigin,
@@ -456,7 +463,7 @@ pub(crate) fn prove_physical_mosaic_recurrence_with_origin(
     }
     let (recurrence_bonds, cue) = current_recurrence_witness(
         original,
-        physically_changed_lineages,
+        current_physical_deltas,
         active_bonds,
         partial_cue_lineages,
         origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated,
@@ -477,13 +484,13 @@ pub(crate) fn prove_physical_mosaic_recurrence_with_origin(
 /// quiescent at this formation boundary and does not mint a counter or write.
 pub(crate) fn alter_physical_mosaic_recurrence(
     retained: &AdmittedPhysicalMosaic,
-    physically_changed_lineages: &[StableNeuronLineage],
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
 ) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
     alter_physical_mosaic_recurrence_with_origin(
         retained,
-        physically_changed_lineages,
+        current_physical_deltas,
         active_bonds,
         partial_cue_lineages,
         PhysicalMosaicRecurrenceOrigin::ExternallyObserved,
@@ -492,7 +499,7 @@ pub(crate) fn alter_physical_mosaic_recurrence(
 
 pub(crate) fn alter_physical_mosaic_recurrence_with_origin(
     retained: &AdmittedPhysicalMosaic,
-    physically_changed_lineages: &[StableNeuronLineage],
+    current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
     active_bonds: &[StablePhysicalBondReference],
     partial_cue_lineages: &[StableNeuronLineage],
     origin: PhysicalMosaicRecurrenceOrigin,
@@ -502,7 +509,7 @@ pub(crate) fn alter_physical_mosaic_recurrence_with_origin(
     }
     let (recurrence_bonds, cue) = current_recurrence_witness(
         retained,
-        physically_changed_lineages,
+        current_physical_deltas,
         active_bonds,
         partial_cue_lineages,
         origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated,
@@ -1685,6 +1692,17 @@ mod codec_tests {
         .unwrap()
     }
 
+    fn exact_recurrence(
+        retained: &AdmittedPhysicalMosaic,
+    ) -> Vec<(StableNeuronLineage, SparsePhysicalStateDelta)> {
+        retained
+            .member_lineages()
+            .iter()
+            .copied()
+            .zip(retained.retained_fractals().iter().cloned())
+            .collect()
+    }
+
     fn mosaic() -> AdmittedPhysicalMosaic {
         AdmittedPhysicalMosaic {
             original_only: false,
@@ -1787,9 +1805,25 @@ mod codec_tests {
         .unwrap();
         assert_eq!(cold, original);
 
-        let recognized =
-            prove_physical_mosaic_recurrence(&cold, &neuron_lineages(), &topology(), &[lineage(1)])
-                .unwrap();
+        let mut mismatched_recurrence = exact_recurrence(&cold);
+        mismatched_recurrence[0].1 = fractal(2, 3);
+        assert_eq!(
+            prove_physical_mosaic_recurrence(
+                &cold,
+                &mismatched_recurrence,
+                &topology(),
+                &[lineage(1)],
+            ),
+            Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember)
+        );
+
+        let recognized = prove_physical_mosaic_recurrence(
+            &cold,
+            &exact_recurrence(&cold),
+            &topology(),
+            &[lineage(1)],
+        )
+        .unwrap();
         assert!(!recognized.is_original_only());
         assert!(recognized.carries_only_retained_neuron_structure());
         assert_eq!(recognized.original_bonds(), topology());
@@ -1812,7 +1846,7 @@ mod codec_tests {
         .unwrap();
         let recognized = prove_physical_mosaic_recurrence(
             &original,
-            &neuron_lineages(),
+            &exact_recurrence(&original),
             &topology(),
             &[lineage(1)],
         )
@@ -1825,7 +1859,7 @@ mod codec_tests {
         alternate.sort_unstable();
         let altered = alter_physical_mosaic_recurrence(
             &recognized,
-            &neuron_lineages(),
+            &exact_recurrence(&recognized),
             &alternate,
             &[lineage(3)],
         )
@@ -1839,7 +1873,7 @@ mod codec_tests {
         assert_eq!(
             alter_physical_mosaic_recurrence(
                 &altered,
-                &neuron_lineages(),
+                &exact_recurrence(&altered),
                 &alternate,
                 &[lineage(3)],
             ),
@@ -1852,7 +1886,7 @@ mod codec_tests {
         let external = mosaic();
         let internal = alter_physical_mosaic_recurrence_with_origin(
             &external,
-            &neuron_lineages(),
+            &exact_recurrence(&external),
             &topology(),
             &neuron_lineages(),
             PhysicalMosaicRecurrenceOrigin::InternallySimulated,
@@ -1932,7 +1966,7 @@ mod codec_tests {
         .unwrap();
         let recognized = prove_physical_mosaic_recurrence(
             &cold,
-            &[lineage(1), lineage(3), lineage(5)],
+            &exact_recurrence(&cold),
             &bonds,
             &[lineage(1)],
         )

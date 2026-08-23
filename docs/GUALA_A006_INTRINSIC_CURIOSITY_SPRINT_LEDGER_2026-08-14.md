@@ -419,3 +419,31 @@ physically sensed consequence witness.
 
 Candidate status: **motor fan-in source-corrected and locally falsified; not
 deployed**. A-006 remains open.
+
+### Exact recurrence-pattern correction — 2026-08-23
+
+- The organism-wide recurrence boundary received exact sparse per-neuron
+  physical deltas, reduced them to changed lineage identities, and therefore
+  allowed unrelated co-activity on the same neurons to count as recurrence.
+  The local formation law already required exact retained-delta equality.
+- The corrected organism-wide boundary preserves the supplied sparse deltas
+  and requires every retained member's current delta to equal its retained
+  physical fractal. Extra simultaneous activity elsewhere remains lawful.
+  No similarity threshold, score, semantic identity, or reduced DSF field was
+  introduced.
+- Focused proofs pass: the retained pattern recurs; the same lineages carrying
+  a different exact pattern do not; and the multi-formation boundary preserves
+  distinct patterns on shared neurons.
+- A read-only transition from authenticated identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at tick `150809` completed in
+  `6.517794` seconds. False partial-cue reassemblies fell `313 -> 0`, false
+  endogenous reassemblies fell `131 -> 0`, and neuron, contact, and mosaic
+  counts did not grow. No successor was persisted.
+- The raw successor envelope still grew `1,259,024` bytes without structural
+  growth. That is a separate retained-state/codec owner and remains the one
+  active A-006 cadence and body-growth blocker.
+
+Candidate status: **exact recurrence physics locally proven; not deployed**.
+A-006 remains open until the remaining non-structural body growth is removed,
+the exact current advances live at accepted cadence, and the required
+new-impression -> self-initiated action -> sensed consequence witness exists.

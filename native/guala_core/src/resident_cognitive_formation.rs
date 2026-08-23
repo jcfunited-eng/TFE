@@ -3074,7 +3074,7 @@ fn settle_organism_mosaic_boundary(
         let reassembled = match if retained.mosaic.is_original_only() {
             prove_physical_mosaic_recurrence_with_origin(
                 &retained.mosaic,
-                &changed_lineages,
+                current_physical_deltas,
                 active_bonds,
                 &cue,
                 origin,
@@ -3082,7 +3082,7 @@ fn settle_organism_mosaic_boundary(
         } else {
             alter_physical_mosaic_recurrence_with_origin(
                 &retained.mosaic,
-                &changed_lineages,
+                current_physical_deltas,
                 active_bonds,
                 &cue,
                 origin,
@@ -17211,9 +17211,15 @@ mod tests {
         let encoded = encode_organism_mosaic(&cohorts, &fabric, &original, 16_000_000).unwrap();
         let cold = decode_organism_mosaic(&cohorts, &fabric, &encoded, 16_000_000).unwrap();
         assert_eq!(cold, original);
+        let original_current_deltas = cold
+            .member_lineages()
+            .iter()
+            .copied()
+            .zip(cold.retained_fractals().iter().cloned())
+            .collect::<Vec<_>>();
         let recognized = prove_physical_mosaic_recurrence(
             &cold,
-            &topology.lineages,
+            &original_current_deltas,
             &topology.bonds,
             &receptor_lineages,
         )
@@ -17296,9 +17302,15 @@ mod tests {
             &topology.bonds,
         )
         .unwrap();
+        let second_current_deltas = second_original
+            .member_lineages()
+            .iter()
+            .copied()
+            .zip(second_original.retained_fractals().iter().cloned())
+            .collect::<Vec<_>>();
         let second_recognized = prove_physical_mosaic_recurrence(
             &second_original,
-            &topology.lineages,
+            &second_current_deltas,
             &topology.bonds,
             &receptor_lineages,
         )
@@ -17326,7 +17338,7 @@ mod tests {
         let alternate_cue = [receptor_lineages[1]];
         mosaics[1].mosaic = alter_physical_mosaic_recurrence(
             &mosaics[1].mosaic,
-            &topology.lineages,
+            &second_current_deltas,
             &topology.bonds,
             &alternate_cue,
         )
@@ -17379,7 +17391,7 @@ mod tests {
             16_000_000,
         )
         .unwrap();
-        assert_eq!(related_reassemblies, 2);
+        assert_eq!(related_reassemblies, 1);
         assert_eq!(related_internal_reassemblies, 0);
         assert!(internal_cues.is_empty());
         assert!(external_frontiers.is_empty());
@@ -17418,7 +17430,7 @@ mod tests {
             )
             .unwrap();
         assert_eq!(receipt, None);
-        assert_eq!(recurring_reassemblies, 2);
+        assert_eq!(recurring_reassemblies, 1);
         assert_eq!(recurring_internal_reassemblies, 0);
         assert!(internal_cues.is_empty());
         assert!(external_frontiers.is_empty());
@@ -17469,30 +17481,36 @@ mod tests {
             )
             .unwrap();
         assert!(internal_receipt.is_some());
-        assert_eq!(internal_total, 2);
-        assert_eq!(internal_count, 2);
-        assert_eq!(internal_cues.len(), 2);
+        assert_eq!(internal_total, 1);
+        assert_eq!(internal_count, 1);
+        assert_eq!(internal_cues.len(), 1);
         assert!(external_frontiers.is_empty());
         assert!(internal_cues
             .iter()
             .all(|observation| observation.cue_lineages == expected_internal_cue));
         for (index, retained) in mosaics.iter().enumerate() {
-            assert_eq!(
-                retained.mosaic.recurrence_origin(),
-                Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+            let current_receipt = sha256(
+                &encode_retained_organism_mosaic(
+                    &cohorts,
+                    &fabric,
+                    retained,
+                    16_000_000,
+                )
+                .unwrap(),
             );
-            assert_ne!(
-                sha256(
-                    &encode_retained_organism_mosaic(
-                        &cohorts,
-                        &fabric,
-                        retained,
-                        16_000_000,
-                    )
-                    .unwrap(),
-                ),
-                before_internal_receipts[index]
-            );
+            if index == 0 {
+                assert_eq!(
+                    retained.mosaic.recurrence_origin(),
+                    Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+                );
+                assert_ne!(current_receipt, before_internal_receipts[index]);
+            } else {
+                assert_eq!(
+                    retained.mosaic.recurrence_origin(),
+                    Some(PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
+                );
+                assert_eq!(current_receipt, before_internal_receipts[index]);
+            }
             let encoded = encode_retained_organism_mosaic(
                 &cohorts,
                 &fabric,
@@ -17540,9 +17558,9 @@ mod tests {
                 16_000_000,
             )
             .unwrap();
-        assert_eq!(mixed_total, 2);
-        assert_eq!(mixed_internal_count, 2);
-        assert_eq!(mixed_internal_cues.len(), 2);
+        assert_eq!(mixed_total, 1);
+        assert_eq!(mixed_internal_count, 1);
+        assert_eq!(mixed_internal_cues.len(), 1);
         assert!(external_frontiers.is_empty());
         assert!(mixed_internal_cues
             .iter()
