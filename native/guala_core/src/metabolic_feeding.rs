@@ -27,10 +27,10 @@
 //! an owner, a lock, a timer, a schedule, a database, or a whole-brain scan.
 
 use crate::complete_neuron::{
-    membrane_and_gradient_work_zeptojoules, membrane_gradient_pump_charge_bound,
+    membrane_and_gradient_work_zeptojoules_wide, membrane_gradient_pump_charge_bound,
     settle_membrane_pump_transport, settle_recovery_only, NeuronPhysicalAnatomy,
-    NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError,
-    RecoveryLaneAddress, RecoveryLaneState,
+    NeuronPhysicalError, NeuronPhysicalState, RecoveryContact, RecoveryError, RecoveryLaneAddress,
+    RecoveryLaneState,
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use crate::elementary_charge_membrane::MembraneChargeError;
@@ -41,7 +41,7 @@ use crate::recovery_fluid_contact::{
 };
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::ToPrimitive;
+use num_traits::{Signed, ToPrimitive};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum MetabolicError {
@@ -347,7 +347,7 @@ pub(crate) fn settle_membrane_gradient_transport(
         ));
     }
     let predecessor_work =
-        membrane_and_gradient_work_zeptojoules(neuron_anatomy, predecessor_neuron)?;
+        membrane_and_gradient_work_zeptojoules_wide(neuron_anatomy, predecessor_neuron)?;
     let direction_negative = bound.charges.is_negative();
     let full_magnitude = bound.charges.unsigned_abs();
     let mut lower = 0_u128;
@@ -370,17 +370,10 @@ pub(crate) fn settle_membrane_gradient_transport(
                 .flatten(),
             interval_microseconds,
         )?;
-        let successor_work = membrane_and_gradient_work_zeptojoules(neuron_anatomy, &candidate)?;
-        let signed_work = match wide_sub(successor_work, predecessor_work) {
-            Ok(required) => required,
-            Err(MetabolicError::ArithmeticWidth) => {
-                upper = middle - 1;
-                continue;
-            }
-            Err(error) => return Err(error),
-        };
-        let candidate_passive = wide_rational(signed_work)
-            < wide_rational(ExactRational::integer(0));
+        let successor_work =
+            membrane_and_gradient_work_zeptojoules_wide(neuron_anatomy, &candidate)?;
+        let signed_work = successor_work - &predecessor_work;
+        let candidate_passive = signed_work.is_negative();
         if passive.is_none() {
             passive = Some(candidate_passive);
         }
@@ -390,15 +383,19 @@ pub(crate) fn settle_membrane_gradient_transport(
             upper = middle - 1;
             continue;
         }
-        let settled_work = if candidate_passive {
-            signed_work.checked_neg()?
-        } else {
-            signed_work
-        };
-        if !candidate_passive && wide_rational(settled_work) > budget {
+        let settled_work_wide = signed_work.abs();
+        if !candidate_passive && settled_work_wide > budget {
             upper = middle - 1;
             continue;
         }
+        let settled_work = match narrow_rational(settled_work_wide) {
+            Ok(work) => work,
+            Err(MetabolicError::ArithmeticWidth) => {
+                upper = middle - 1;
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
         let candidate_reservoir = match if candidate_passive {
             passive_reservoir_successor(
                 reservoir_anatomy,

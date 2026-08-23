@@ -5678,18 +5678,30 @@ pub(crate) fn membrane_and_gradient_work_zeptojoules(
     anatomy: &NeuronPhysicalAnatomy,
     state: &NeuronPhysicalState,
 ) -> Result<ExactRational, NeuronPhysicalError> {
+    exact_to_rational(&membrane_and_gradient_work_zeptojoules_wide(
+        anatomy, state,
+    )?)
+}
+
+/// Wide exact form of the derived membrane-plus-gradient work observation.
+/// The resident state remains fixed-width; only this transient calculation is
+/// widened so two large finite observations can be subtracted before their
+/// small physical difference is narrowed for a reservoir state change.
+pub(crate) fn membrane_and_gradient_work_zeptojoules_wide(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+) -> Result<BigRational, NeuronPhysicalError> {
     let potential = state
         .membrane
         .membrane()
         .potential_millivolts(anatomy.capacitance)
         .map_err(MembraneConductanceError::from)
         .map_err(GateSettlementError::from)?;
-    let capacitor = anatomy
-        .capacitance
-        .picofarads()
-        .checked_mul(potential)?
-        .checked_mul(potential)?
-        .checked_mul_unsigned(500)?;
+    let potential = rational_to_exact(potential);
+    let capacitor = rational_to_exact(anatomy.capacitance.picofarads())
+        * &potential
+        * potential
+        * BigInt::from(500_u16);
     let reversal = anatomy.gate.reversal_potential_millivolts;
     let uphill_carriers = if reversal.parts().0 < 0 {
         state.carriers.intracellular
@@ -5698,10 +5710,12 @@ pub(crate) fn membrane_and_gradient_work_zeptojoules(
     } else {
         0
     };
-    let gradient = ExactRational::new(801_088_317, 5_000_000_000)?
-        .checked_mul(reversal.checked_abs()?)?
-        .checked_mul_unsigned(uphill_carriers)?;
-    capacitor.checked_add(gradient).map_err(Into::into)
+    let gradient = BigRational::new(
+        BigInt::from(801_088_317_u32),
+        BigInt::from(5_000_000_000_u64),
+    ) * rational_to_exact(reversal.checked_abs()?)
+        * BigInt::from(uphill_carriers);
+    Ok(capacitor + gradient)
 }
 
 /// Move an exact whole-carrier pump extent across this neuron's membrane.
