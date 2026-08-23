@@ -2771,37 +2771,3 @@ before any broader edit.
 **A-011.7 is Live-Closed. A-011 is complete.** The next incomplete item in the
 carried-forward delivery ledger is A-012. No A-012 implementation is claimed by
 this closure.
-
-## 2026-08-23 exact recurrent-flow correction
-
-The historical task-1095 closure above is no longer current acceptance
-authority. Commit `b6c8fbdc` correctly removed its broad recurrence rule after
-live evidence showed that merely changing the same member lineages could mint
-false partial/endogenous recurrence. Production task `dsf-ai-task:1184` retains
-that correction and remains the authenticated predecessor. A-006 is
-Live-Closed there; A-011 remains open until new exact live causal evidence is
-produced.
-
-The current correction does **not** restore the broad rule. First recognition
-still requires byte-exact retained post-quiescence fractals. A recognized
-formation may accept different absolute living-state deltas only when all of
-the following current physical facts coexist:
-
-- every retained member has a nonzero current sparse physical delta;
-- current active bonds connect the complete retained formation;
-- the cue is a proper subset of that formation; and
-- that exact formation's retained layer-9 recurrent neuron carries a current
-  directed transfer to one of those cue lineages.
-
-Without that formation-specific recurrent flow, the existing exact-fractal
-rule remains authoritative. The retained original fractals and bonds are never
-rewritten. No DSF field, neuron equation, persistence schema, observer, action
-selector, topology owner, or whole-state transaction changes in this release.
-
-Applicable recurrence checks for this bounded release are RF-003 (candidate
-native provenance), RF-004 (retained predecessor), RF-005/RF-012 (exact causal
-evidence, not counters or HTTP health), RF-010 (CURRENT continuity), RF-016
-(A-011 only), RF-020 (functional recurrent-neuron participation), RF-031
-(nonzero focused tests), RF-034 (do not require the obsolete task-1095
-witness), RF-041 (unique/composed neuronal deltas), RF-044 (no population-wide
-new work), and RF-050 (preserve the already-closed continuous intake path).

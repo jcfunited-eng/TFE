@@ -78,10 +78,8 @@ use crate::optical_receptor_work::{
     RETINAL_SPECTRAL_IRRADIANCE_QUANTITY,
 };
 use crate::physical_mosaic::{
-    admit_physical_mosaic, admit_physical_mosaic_original,
-    alter_physical_mosaic_recurrence,
-    alter_physical_mosaic_recurrence_with_origin,
-    alter_recognized_physical_mosaic_recurrence_from_recurrent_flow, connected_members,
+    admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
+    alter_physical_mosaic_recurrence_with_origin, connected_members,
     decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
     prove_physical_mosaic_recurrence, prove_physical_mosaic_recurrence_with_origin,
     AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
@@ -2943,7 +2941,7 @@ fn observe_organic_mosaic_relations(
     Ok(relations)
 }
 
-fn reassembly_reaches_recurrent_frontier(
+fn external_reassembly_reaches_recurrent_frontier(
     cue: &[[u8; 16]],
     recurrent_lineage: [u8; 16],
     current_frontier: &[ActiveElectricalFrontierEntry],
@@ -3108,19 +3106,8 @@ fn settle_organism_mosaic_boundary(
         } else {
             continue;
         };
-        let recurrent_flow = retained.recurrent_lineage.is_some_and(|lineage| {
-            reassembly_reaches_recurrent_frontier(&cue, lineage, current_frontier)
-        });
         let reassembled = match if retained.mosaic.is_original_only() {
             prove_physical_mosaic_recurrence_with_origin(
-                &retained.mosaic,
-                current_physical_deltas,
-                active_bonds,
-                &cue,
-                origin,
-            )
-        } else if recurrent_flow {
-            alter_recognized_physical_mosaic_recurrence_from_recurrent_flow(
                 &retained.mosaic,
                 current_physical_deltas,
                 active_bonds,
@@ -3162,7 +3149,7 @@ fn settle_organism_mosaic_boundary(
                         },
                     );
                 } else if let Some(recurrent_lineage) = retained.recurrent_lineage {
-                    if reassembly_reaches_recurrent_frontier(
+                    if external_reassembly_reaches_recurrent_frontier(
                         &cue,
                         recurrent_lineage,
                         current_frontier,
@@ -3224,7 +3211,7 @@ fn settle_organism_mosaic_boundary(
                 },
             );
         } else if let Some(recurrent_lineage) = retained.recurrent_lineage {
-            if reassembly_reaches_recurrent_frontier(
+            if external_reassembly_reaches_recurrent_frontier(
                 &cue,
                 recurrent_lineage,
                 current_frontier,
@@ -17211,7 +17198,7 @@ mod tests {
     }
 
     #[test]
-    fn reassembly_identity_requires_its_exact_cue_to_recurrent_transfer() {
+    fn external_reassembly_identity_requires_its_exact_cue_to_recurrent_transfer() {
         let cue = [1_u8; 16];
         let recurrent = [9_u8; 16];
         let unrelated = [7_u8; 16];
@@ -17224,7 +17211,7 @@ mod tests {
             5,
         )
         .unwrap();
-        assert!(reassembly_reaches_recurrent_frontier(
+        assert!(external_reassembly_reaches_recurrent_frontier(
             &[cue],
             recurrent,
             &[reached],
@@ -17240,7 +17227,7 @@ mod tests {
             5,
         )
         .unwrap();
-        assert!(!reassembly_reaches_recurrent_frontier(
+        assert!(!external_reassembly_reaches_recurrent_frontier(
             &[cue],
             recurrent,
             &[unrelated_reached],
