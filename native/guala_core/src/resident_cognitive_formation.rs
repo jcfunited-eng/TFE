@@ -5874,12 +5874,16 @@ impl ResidentCognitiveFormationState {
             }
         }
         let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
-        // Presence in the sensory roster is not a causal transition. Seed
-        // electrical settlement only from exact delivered energy, a measured
-        // local metabolic change, newly reached developmental wiring, or the
-        // prior interval's still-active frontier. A zero, unchanged receptor
-        // remains mounted but cannot wake an unrelated pathway.
-        let mut locally_settled_lineages = current_noncontinuation_seed_lineages.clone();
+        let mut locally_settled_lineages = externally_reached_neuron_lineages.clone();
+        for lineage in reached_association_lineages
+            .iter()
+            .chain(&reached_body_regulation_lineages)
+            .chain(&metabolically_perturbed_body_receptor_lineages)
+        {
+            if !locally_settled_lineages.contains(lineage) {
+                locally_settled_lineages.push(*lineage);
+            }
+        }
         for entry in &active_electrical_frontier {
             for lineage in entry.affected_lineages().into_iter().flatten() {
                 if !internal_frontier_lineages.contains(&lineage) {
@@ -13265,12 +13269,14 @@ fn settle_internal_contact_interval(
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
 
-    // A still-active predecessor frontier may continue relaxing, but a quiet
-    // unrelated receptor never enters this compact settlement merely because
-    // it appeared in the sensory roster. An effector may emit only when it
-    // was already this interval's causal seed or when an exact whole-carrier
-    // transfer moved away from a causal seed and reached it across one
-    // contact. No threshold, mode, or command is added.
+    // Local electrical settlement is wider than causal propagation: quiet
+    // receptors and their adjacent cells must still relax so neuronal
+    // experience can reach quiescence.  That wider settlement is not body
+    // authority.  An effector may emit only when it was already this
+    // interval's causal seed or when an exact whole-carrier transfer moved
+    // away from a causal seed and reached it across one contact.  This keeps
+    // passive balancing in a dark/silent neighbourhood from becoming motion
+    // or articulation without adding a threshold, mode, or command.
     let mut causally_active_lineages = causal_seed_flats
         .iter()
         .map(|flat| flat_locations[*flat].2)
