@@ -69,11 +69,14 @@ episode, admissions, lanes = production._action_consequence_episode(
     retinal_body_axes=organism.readiness().articulated_body_axes,
 )
 hop = production._commit_admitted_hop(organism, episode, admissions)
+sealed = organism.seal_unsealed_trajectory_direct()
+organism.acknowledge_sealed_trajectory()
 print(json.dumps({
     "admissions": admissions,
     "body": lanes["proprioceptive"],
     "body_feedback_extents": hop["body_proprioceptive_source_extents"],
     "causal_interval_count": len(hop["causal_interval_evidence"]),
+    "causal_transition_sha256": hop["causal_transition_sha256"],
     "chemical": lanes["chemical"],
     "duration": lanes["action_duration_microseconds"],
     "episode_occurrences": episode.occurrence_count,
@@ -87,6 +90,8 @@ print(json.dumps({
     "python_callbacks": episode.python_callback_count,
     "receipt_matches": lanes["action_receipt_sha256"] == execution.causal_intent_receipt_sha256,
     "schema": episode.schema,
+    "sealed_state_sha256": sealed.state_sha256,
+    "unsealed_state_sha256": hop["state_sha256"],
     "sound": lanes["auditory"],
     "touch": lanes["tactile"],
     "thermal": lanes["thermal"],
@@ -112,6 +117,9 @@ print(json.dumps({
     assert evidence["episode_samples"] == 222
     assert evidence["organism_tick"] == 2
     assert evidence["causal_interval_count"] == 2
+    assert len(evidence["causal_transition_sha256"]) == 64
+    assert evidence["unsealed_state_sha256"] is None
+    assert len(evidence["sealed_state_sha256"]) == 64
     # A newborn native test body first admits its complete 74-axis
     # proprioceptive state, then this one external joint occurrence.  No
     # motor feedback occurrence was authored by Python or required here.

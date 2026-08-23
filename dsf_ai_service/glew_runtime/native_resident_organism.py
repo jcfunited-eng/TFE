@@ -418,8 +418,10 @@ class ResidentPrepareEvidence:
 
     token: bytes
     token_hex: str
+    sealed: bool
+    causal_transition_sha256: str
     predecessor_state_sha256: str
-    prepared_state_sha256: str
+    prepared_state_sha256: str | None
     predecessor_organism_tick: int
     organism_tick: int
     predecessor_fabric_generation: int
@@ -559,6 +561,8 @@ class ResidentPrepareEvidence:
         ...,
     ] = ()
     causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...] = ()
+    energy_exhausted: bool = False
+    dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
 
 
 def _native_core():
@@ -1531,6 +1535,8 @@ class NativeResidentOrganism:
         "__runtime_type",
         "__observation_type",
         "__prepare_type",
+        "__sealed_direct_token",
+        "__unsealed_tick",
     )
 
     def __new__(cls, authority: object = None, *args: object, **kwargs: object):
@@ -1557,6 +1563,8 @@ class NativeResidentOrganism:
         self.__runtime_type = runtime_type
         self.__observation_type = observation_type
         self.__prepare_type = prepare_type
+        self.__sealed_direct_token: bytes | None = None
+        self.__unsealed_tick: int | None = None
 
     def _require_observation(
         self, candidate: object
@@ -2016,6 +2024,114 @@ class NativeResidentOrganism:
                         ) from rollback_error
             raise
 
+    def advance_admitted_trajectory_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Advance the living intake without serializing a checkpoint."""
+
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = 74 + sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate = self.__runtime.advance_admitted_trajectory_unsealed(
+            list(sources), [list(value) for value in intervals]
+        )
+        try:
+            return self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources) + 1,
+                body_feedback_reentered=False,
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+        except BaseException:
+            try:
+                self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def seal_unsealed_trajectory_direct(self) -> NativeResidentObservationView:
+        """Seal the completed lived intake once for immediate persistence."""
+
+        if self.__sealed_direct_token is not None:
+            raise RuntimeError("resident sealed intake is awaiting publication")
+        active_before = self.readiness()
+        token, candidate = self.__runtime.seal_unsealed_trajectory_direct()
+        try:
+            if not isinstance(token, bytes) or len(token) != 32:
+                raise RuntimeError("resident final seal token changed format")
+            observed = self._require_observation(candidate)
+            if (
+                observed.predecessor_state_sha256 != active_before.state_sha256
+                or observed.predecessor_organism_tick != active_before.organism_tick
+                or self.__unsealed_tick is None
+                or observed.organism_tick != self.__unsealed_tick
+            ):
+                raise RuntimeError("resident final seal changed lived continuity")
+            self.__sealed_direct_token = token
+            self.__unsealed_tick = None
+            return observed
+        except BaseException:
+            try:
+                self.__runtime.rollback_direct_commit(token)
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def acknowledge_sealed_trajectory(self) -> None:
+        """Release predecessor custody only after durable publication."""
+
+        token = self.__sealed_direct_token
+        if token is None:
+            raise RuntimeError("resident has no sealed intake awaiting publication")
+        self.__runtime.acknowledge_direct_commit(token)
+        self.__sealed_direct_token = None
+
+    def abort_unsealed_trajectory(self) -> None:
+        """Restore the authenticated predecessor after a refused open intake."""
+
+        if self.__sealed_direct_token is not None:
+            token = self.__sealed_direct_token
+            self.__runtime.rollback_direct_commit(token)
+            self.__sealed_direct_token = None
+            self.__unsealed_tick = None
+            return
+        try:
+            self.__runtime.abort_unsealed_trajectory()
+        finally:
+            self.__unsealed_tick = None
+
+    def live_articulated_body_axes(
+        self,
+    ) -> tuple[tuple[int, str, str, int, int, int, int], ...]:
+        """Read the exact current body during an open lived intake."""
+
+        axes = self.__runtime.live_articulated_body_axes()
+        if not isinstance(axes, list) or len(axes) != 37:
+            raise RuntimeError("resident live articulated body axis count changed")
+        return tuple(axes)
+
     def commit_vestibular_trajectory_direct(
         self,
         predecessor_heading_millidegrees: int,
@@ -2070,6 +2186,54 @@ class NativeResidentOrganism:
                         ) from rollback_error
             raise
 
+    def advance_vestibular_trajectory_unsealed(
+        self,
+        predecessor_heading_millidegrees: int,
+        signed_body_motion_millidegrees: tuple[int, ...],
+    ) -> ResidentPrepareEvidence:
+        """Advance balance within the open lived intake without sealing."""
+
+        predecessor_heading = _nonnegative_integer(
+            predecessor_heading_millidegrees,
+            "vestibular predecessor heading",
+        )
+        if predecessor_heading >= 360_000:
+            raise ValueError("vestibular predecessor heading must be below 360000")
+        if (
+            not isinstance(signed_body_motion_millidegrees, tuple)
+            or not signed_body_motion_millidegrees
+        ):
+            raise TypeError("vestibular trajectory must be a nonempty tuple")
+        if any(
+            not isinstance(step, int)
+            or isinstance(step, bool)
+            or not -(1 << 31) <= step < (1 << 31)
+            for step in signed_body_motion_millidegrees
+        ):
+            raise TypeError(
+                "vestibular trajectory steps must be signed 32-bit integers"
+            )
+        active_before = self.readiness()
+        candidate = self.__runtime.advance_vestibular_trajectory_unsealed(
+            predecessor_heading,
+            list(signed_body_motion_millidegrees),
+        )
+        try:
+            return self._validated_prepare_evidence_body(
+                candidate,
+                len(signed_body_motion_millidegrees),
+                active_before,
+                causal_interval_count=len(signed_body_motion_millidegrees),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+        except BaseException:
+            try:
+                self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
     def _validated_prepare_evidence(
         self,
         candidate: object,
@@ -2118,11 +2282,15 @@ class NativeResidentOrganism:
         causal_interval_count: int = 1,
         body_feedback_reentered: bool = False,
         candidate_committed: bool = False,
+        expected_sealed: bool = True,
     ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
         if candidate.schema != PREPARE_SCHEMA:
             raise RuntimeError("resident organism prepare schema changed")
+        sealed = getattr(candidate, "sealed", None)
+        if not isinstance(sealed, bool) or sealed is not expected_sealed:
+            raise RuntimeError("resident organism prepare seal boundary changed")
         token = candidate.token
         if (
             not isinstance(token, bytes)
@@ -2133,9 +2301,20 @@ class NativeResidentOrganism:
         predecessor_state_sha256 = _canonical_sha256(
             candidate.predecessor_state_sha256, "predecessor state receipt"
         )
-        prepared_state_sha256 = _canonical_sha256(
-            candidate.prepared_state_sha256, "prepared state receipt"
+        causal_transition_sha256 = _canonical_sha256(
+            candidate.causal_transition_sha256, "causal transition receipt"
         )
+        if causal_transition_sha256 != token.hex():
+            raise RuntimeError("resident causal transition receipt changed")
+        prepared_state_sha256 = (
+            _canonical_sha256(
+                candidate.prepared_state_sha256, "prepared state receipt"
+            )
+            if sealed
+            else None
+        )
+        if not sealed and candidate.prepared_state_sha256 is not None:
+            raise RuntimeError("unsealed resident interval claimed a state receipt")
         predecessor_organism_tick = _nonnegative_integer(
             candidate.predecessor_organism_tick, "predecessor organism tick"
         )
@@ -2874,23 +3053,35 @@ class NativeResidentOrganism:
             active_before.developmental_resting_neuron_count
             - developmental_resting_neuron_count
         )
+        expected_predecessor_tick = (
+            active_before.organism_tick
+            if sealed or self.__unsealed_tick is None
+            else self.__unsealed_tick
+        )
+        unsealed_advance = expected_predecessor_tick - active_before.organism_tick
+        expected_predecessor_fabric_generation = (
+            active_before.fabric_generation + unsealed_advance
+        )
+        expected_predecessor_mounted_generation = (
+            active_before.mounted_generation + unsealed_advance
+        )
         if (
             predecessor_state_sha256 != active_before.state_sha256
-            or predecessor_organism_tick != active_before.organism_tick
+            or predecessor_organism_tick != expected_predecessor_tick
             or organism_tick != predecessor_organism_tick + causal_interval_count
             or predecessor_fabric_generation
-            != active_before.fabric_generation
+            != expected_predecessor_fabric_generation
             or fabric_generation
             != predecessor_fabric_generation + causal_interval_count
             or predecessor_mounted_generation
-            != active_before.mounted_generation
+            != expected_predecessor_mounted_generation
             or mounted_generation
             != predecessor_mounted_generation + causal_interval_count
             or predecessor_authentication_count != 0
             or predecessor_decode_count != 0
             or predecessor_rebuilt_field_count != 0
             or cohort_count_changed
-            or successor_seal_count != 1
+            or successor_seal_count != int(sealed)
             or recurrent_complete_neuron_fractal_count
             > complete_neuron_fractal_count
             or reached_neuron_growth < 0
@@ -2928,6 +3119,8 @@ class NativeResidentOrganism:
         active_after = self.readiness()
         active_after_signature = _observation_signature(active_after)
         if candidate_committed:
+            if not sealed or prepared_state_sha256 is None:
+                raise RuntimeError("resident direct commit was not sealed")
             if (
                 active_after.state_sha256 != prepared_state_sha256
                 or active_after.organism_tick != organism_tick
@@ -2939,9 +3132,30 @@ class NativeResidentOrganism:
                 )
         elif active_after_signature != _observation_signature(active_before):
             raise RuntimeError("resident organism prepare published pending state")
+        if not sealed:
+            self.__unsealed_tick = organism_tick
+        energy_exhausted = candidate.energy_exhausted
+        if not isinstance(energy_exhausted, bool):
+            raise RuntimeError("resident energy exhaustion changed format")
+        raw_dissipation_capacity = candidate.dissipation_capacity_energy_zeptojoules
+        if (
+            not isinstance(raw_dissipation_capacity, tuple)
+            or len(raw_dissipation_capacity) != 2
+        ):
+            raise RuntimeError("resident dissipation capacity changed format")
+        dissipation_capacity = (
+            _nonnegative_integer(
+                raw_dissipation_capacity[0], "dissipation capacity numerator"
+            ),
+            _positive_integer(
+                raw_dissipation_capacity[1], "dissipation capacity denominator"
+            ),
+        )
         return ResidentPrepareEvidence(
             token=token,
             token_hex=candidate.token_hex,
+            sealed=sealed,
+            causal_transition_sha256=causal_transition_sha256,
             predecessor_state_sha256=predecessor_state_sha256,
             prepared_state_sha256=prepared_state_sha256,
             predecessor_organism_tick=predecessor_organism_tick,
@@ -3033,6 +3247,8 @@ class NativeResidentOrganism:
             localized_metabolic_strain=localized_metabolic_strain,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
             causal_interval_evidence=causal_interval_evidence,
+            energy_exhausted=energy_exhausted,
+            dissipation_capacity_energy_zeptojoules=dissipation_capacity,
         )
 
     def prepare_authored_contacts(

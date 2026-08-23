@@ -7646,11 +7646,10 @@ def _commit_admitted_hop(
         if isinstance(episode, tuple)
         else (maximum_causal_intervals,)
     )
-    evidence: ResidentPrepareEvidence = organism.commit_admitted_trajectory_direct(
+    evidence: ResidentPrepareEvidence = organism.advance_admitted_trajectory_unsealed(
         sources,
         intervals,
     )
-    observed = organism.readiness()
     ingress_sense_counts = {
         sense.value: count
         for sense, count in zip(
@@ -7658,13 +7657,11 @@ def _commit_admitted_hop(
         )
     }
     return {
-        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
-        "cognitive_trace_count": observed.cognitive_trace_count,
-        "complete_neuron_count": getattr(
-            observed, "complete_neuron_count", 0
-        ),
-        "developmental_resting_neuron_count": getattr(
-            observed, "developmental_resting_neuron_count", 0
+        "cognitive_mosaic_count": evidence.cognitive_mosaic_count,
+        "cognitive_trace_count": evidence.cognitive_trace_count,
+        "complete_neuron_count": evidence.complete_neuron_count,
+        "developmental_resting_neuron_count": (
+            evidence.developmental_resting_neuron_count
         ),
         "complete_neuron_fractal_count": (
             evidence.complete_neuron_fractal_count
@@ -7682,14 +7679,14 @@ def _commit_admitted_hop(
             evidence.current_cohort_evaluation_count
         ),
         "dsf_delivery_count": evidence.dsf_delivery_count,
-        "formation_activation_count": observed.formation_activation_count,
+        "formation_activation_count": evidence.formation_activation_count,
         "predecessor_organism_tick": evidence.predecessor_organism_tick,
-        "organism_tick": observed.organism_tick,
+        "organism_tick": evidence.organism_tick,
         "partial_cue_reassembly_count": (
-            observed.partial_cue_reassembly_count
+            evidence.partial_cue_reassembly_count
         ),
         "endogenous_partial_cue_reassembly_count": (
-            observed.endogenous_partial_cue_reassembly_count
+            evidence.endogenous_partial_cue_reassembly_count
         ),
         "internally_reassembled_formation_cues": (
             evidence.internally_reassembled_formation_cues
@@ -7708,10 +7705,10 @@ def _commit_admitted_hop(
             evidence.rest_drained_dissipation_quanta
         ),
         "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
-        "energy_exhausted": observed.energy_exhausted,
-        "energy_exhausted_interval_count": int(observed.energy_exhausted),
+        "energy_exhausted": evidence.energy_exhausted,
+        "energy_exhausted_interval_count": int(evidence.energy_exhausted),
         "dissipation_capacity_energy_zeptojoules": (
-            observed.dissipation_capacity_energy_zeptojoules
+            evidence.dissipation_capacity_energy_zeptojoules
         ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
@@ -7782,7 +7779,8 @@ def _commit_admitted_hop(
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
-        "state_sha256": observed.state_sha256,
+        "causal_transition_sha256": evidence.causal_transition_sha256,
+        "state_sha256": evidence.prepared_state_sha256,
     }
 
 
@@ -7791,19 +7789,18 @@ def _commit_vestibular_trajectory(
     predecessor_heading_millidegrees: int,
     signed_body_motion_millidegrees: tuple[int, ...],
 ) -> dict[str, Any]:
-    """Commit every ordered 1 ms vestibular interval and seal only the end."""
+    """Advance every ordered 1 ms vestibular interval inside the lived intake."""
 
-    evidence: ResidentPrepareEvidence = organism.commit_vestibular_trajectory_direct(
+    evidence: ResidentPrepareEvidence = organism.advance_vestibular_trajectory_unsealed(
         predecessor_heading_millidegrees,
         signed_body_motion_millidegrees,
     )
-    observed = organism.readiness()
     return {
-        "cognitive_mosaic_count": observed.cognitive_mosaic_count,
-        "cognitive_trace_count": observed.cognitive_trace_count,
-        "complete_neuron_count": observed.complete_neuron_count,
+        "cognitive_mosaic_count": evidence.cognitive_mosaic_count,
+        "cognitive_trace_count": evidence.cognitive_trace_count,
+        "complete_neuron_count": evidence.complete_neuron_count,
         "developmental_resting_neuron_count": (
-            observed.developmental_resting_neuron_count
+            evidence.developmental_resting_neuron_count
         ),
         "complete_neuron_fractal_count": evidence.complete_neuron_fractal_count,
         "emitted_neuron_fractals": tuple(
@@ -7819,12 +7816,12 @@ def _commit_vestibular_trajectory(
             evidence.current_cohort_evaluation_count
         ),
         "dsf_delivery_count": evidence.dsf_delivery_count,
-        "formation_activation_count": observed.formation_activation_count,
+        "formation_activation_count": evidence.formation_activation_count,
         "predecessor_organism_tick": evidence.predecessor_organism_tick,
-        "organism_tick": observed.organism_tick,
-        "partial_cue_reassembly_count": observed.partial_cue_reassembly_count,
+        "organism_tick": evidence.organism_tick,
+        "partial_cue_reassembly_count": evidence.partial_cue_reassembly_count,
         "endogenous_partial_cue_reassembly_count": (
-            observed.endogenous_partial_cue_reassembly_count
+            evidence.endogenous_partial_cue_reassembly_count
         ),
         "internally_reassembled_formation_cues": (
             evidence.internally_reassembled_formation_cues
@@ -7840,10 +7837,10 @@ def _commit_vestibular_trajectory(
             evidence.rest_drained_dissipation_quanta
         ),
         "unmet_dissipation_quanta": evidence.unmet_dissipation_quanta,
-        "energy_exhausted": observed.energy_exhausted,
-        "energy_exhausted_interval_count": int(observed.energy_exhausted),
+        "energy_exhausted": evidence.energy_exhausted,
+        "energy_exhausted_interval_count": int(evidence.energy_exhausted),
         "dissipation_capacity_energy_zeptojoules": (
-            observed.dissipation_capacity_energy_zeptojoules
+            evidence.dissipation_capacity_energy_zeptojoules
         ),
         "externally_perturbed_body_receptor_count": (
             evidence.externally_perturbed_body_receptor_count
@@ -7901,7 +7898,8 @@ def _commit_vestibular_trajectory(
         "recurrent_complete_neuron_fractal_count": (
             evidence.recurrent_complete_neuron_fractal_count
         ),
-        "state_sha256": observed.state_sha256,
+        "causal_transition_sha256": evidence.causal_transition_sha256,
+        "state_sha256": evidence.prepared_state_sha256,
     }
 
 
@@ -8994,7 +8992,7 @@ def _prepare_continuous_native_action_consequence(
     *,
     organism_identity: str,
     predecessor_state_sha256: str,
-    successor_state_sha256: str,
+    causal_transition_sha256: str,
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
     motor_unit_recruitments: tuple[Any, ...],
@@ -9032,8 +9030,8 @@ def _prepare_continuous_native_action_consequence(
             "motor_unit_recruitments": motor_unit_recruitments,
             "organism_identity": organism_identity,
             "predecessor_state_sha256": predecessor_state_sha256,
-            "schema": "guala.native_action_world_interval_intent.v2",
-            "successor_state_sha256": successor_state_sha256,
+            "schema": "guala.native_action_world_interval_intent.v3",
+            "causal_transition_sha256": causal_transition_sha256,
             "world_revision": before.revision,
             "world_state_before_sha256": before.state_sha256,
         }
@@ -9545,27 +9543,37 @@ def _perform_admitted_intake_locked(
         if intake_error is not None:
             raise intake_error
         raise RuntimeError("admitted intake carried no hop episodes")
-    action_body_observation = organism.readiness()
-    action_body_state_sha256 = (
-        action_body_observation.articulated_body_state_sha256
-    )
-    prepared_action = _prepare_continuous_native_action_consequence(
-        organism_identity=predecessor.identity,
-        predecessor_state_sha256=predecessor.state_sha256,
-        successor_state_sha256=last_hop["state_sha256"],
-        predecessor_body_axes=predecessor_body_axes,
-        successor_body_axes=tuple(action_body_observation.articulated_body_axes),
-        motor_unit_recruitments=tuple(motor_unit_recruitments),
-        body_effector_bindings=tuple(sorted(set(body_effector_bindings))),
-        articulated_body_consequences=tuple(articulated_body_consequences),
-    )
+    action_body_axes = organism.live_articulated_body_axes()
+    try:
+        prepared_action = _prepare_continuous_native_action_consequence(
+            organism_identity=predecessor.identity,
+            predecessor_state_sha256=predecessor.state_sha256,
+            causal_transition_sha256=last_hop["causal_transition_sha256"],
+            predecessor_body_axes=predecessor_body_axes,
+            successor_body_axes=action_body_axes,
+            motor_unit_recruitments=tuple(motor_unit_recruitments),
+            body_effector_bindings=tuple(sorted(set(body_effector_bindings))),
+            articulated_body_consequences=tuple(articulated_body_consequences),
+        )
+    except BaseException:
+        organism.abort_unsealed_trajectory()
+        raise
     action_execution: Any | None = None
     action_consequence: dict[str, Any] | None = None
     action_vestibular_tick_count = 0
     if prepared_action is None:
-        published = _publish_committed_organism(
-            organism, admission, predecessor.state_sha256
-        )
+        sealed_observation = organism.seal_unsealed_trajectory_direct()
+        try:
+            if sealed_observation.organism_tick != last_hop["organism_tick"]:
+                raise RuntimeError("final resident seal changed the lived intake tick")
+            last_hop["state_sha256"] = sealed_observation.state_sha256
+            published = _publish_committed_organism(
+                organism, admission, predecessor.state_sha256
+            )
+        except BaseException:
+            organism.abort_unsealed_trajectory()
+            raise
+        organism.acknowledge_sealed_trajectory()
     else:
         (
             action_authority,
@@ -9577,6 +9585,7 @@ def _perform_admitted_intake_locked(
         ) = prepared_action
         world_committed = False
         world_persisted = False
+        organism_published = False
         predecessor_world_body = action_authority.encoded_snapshot()
         try:
             with action_authority.prepared_action_visibility_transaction(
@@ -9700,10 +9709,31 @@ def _perform_admitted_intake_locked(
                 )
                 _persist_world_body(successor_world_body)
                 world_persisted = True
+                sealed_observation = organism.seal_unsealed_trajectory_direct()
+                if sealed_observation.organism_tick != last_hop["organism_tick"]:
+                    raise RuntimeError(
+                        "final resident seal changed the lived intake tick"
+                    )
+                last_hop["state_sha256"] = sealed_observation.state_sha256
+                if action_consequence is not None:
+                    action_consequence["state_sha256"] = (
+                        sealed_observation.state_sha256
+                    )
                 published = _publish_committed_organism(
                     organism, admission, predecessor.state_sha256
                 )
+                organism_published = True
+                organism.acknowledge_sealed_trajectory()
         except BaseException:
+            if organism_published:
+                raise
+            try:
+                organism.abort_unsealed_trajectory()
+            except (RuntimeError, ValueError) as abort_error:
+                if "has no pending candidate" not in str(abort_error):
+                    raise RuntimeError(
+                        "resident lived intake and world rollback both failed"
+                    ) from abort_error
             if world_committed:
                 with action_authority.committed_prepared_action_rollback_transaction(
                     prepared_world

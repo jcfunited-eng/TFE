@@ -512,3 +512,35 @@ passes 19 tests, including a forced display exception that leaves
 `/ready/guala` at HTTP 200 while only `/api/v1/guala/native-observation`
 truthfully reports unavailable. This amendment does not reopen A-009 behavior
 and changes no cognition, physics, persistence, identity, or DSF field.
+
+## Continuous lived-intake seal correction — 2026-08-23
+
+Source review after the live closure found that the same resident organism did
+receive action consequences and continue cognition, but the runtime still
+serialized the complete organism between causal segments. That serialization
+was persistence work incorrectly placed inside the physical loop; it was not a
+biological pause and supplied no cognition.
+
+The candidate now moves the sole typed cognition and body through every
+admitted, action-consequence, vestibular, and self-hearing segment without
+creating an intermediate checkpoint. The authenticated predecessor envelope is
+held only for recovery. After the final segment, the runtime creates one
+canonical envelope, the existing store atomically publishes it, and only then
+releases predecessor custody. No DSF field, neuron law, sensory roster,
+persisted schema, observer authority, history, database, or second organism was
+introduced.
+
+Focused evidence on the exact candidate:
+
+- `cargo test --locked lived_intake --lib`: 2 passed. Two unsealed segments
+  left the persisted envelope byte-identical until the final seal, produced the
+  exact same final cognition/body/envelope as the former two-seal sequence, and
+  exact abort restored the predecessor.
+- `test_one_millisecond_action_builds_one_truthful_joint_consequence`: 1 passed.
+  The exact action consequence entered the resident without claiming an
+  intermediate state receipt, then the final resident state sealed once.
+
+Status: source and focused proof complete; production cutover and live
+post-restart evidence remain pending. The prior A-009 live evidence remains
+valid, but this efficiency correction is not called deployed until that cutover
+finishes.

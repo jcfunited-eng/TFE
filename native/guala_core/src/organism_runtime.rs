@@ -692,9 +692,26 @@ struct UnacknowledgedDirectPredecessor {
     next_prepare_ordinal: u64,
 }
 
+/// The one live causal intake between durable boundaries.
+///
+/// The resident cognition and body move here; `active.envelope` remains only
+/// the authenticated recovery predecessor until the intake is sealed once.
+/// No second cognitive body exists.
+#[derive(Debug, Eq, PartialEq)]
+struct UnsealedResidentOrganismState {
+    predecessor: RuntimeObservation,
+    predecessor_next_prepare_ordinal: u64,
+    mounted: ResidentMountedState,
+    cognitive: ResidentCognitiveFormationState,
+    vestibular: ResidentVestibularBody,
+    articulated_body: ArticulatedBodyState,
+    observation: RuntimeObservation,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ResidentPrepareReceipt {
     token: [u8; 32],
+    sealed: bool,
     observation: RuntimeObservation,
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
@@ -737,6 +754,7 @@ struct CausalIntervalEvidence {
 #[derive(Debug, Eq, PartialEq)]
 struct ResidentOrganismRuntime {
     active: ActiveResidentOrganismState,
+    unsealed: Option<UnsealedResidentOrganismState>,
     pending: Option<PendingResidentOrganismState>,
     direct_predecessor: Option<UnacknowledgedDirectPredecessor>,
     /// One prepared authored contact growth.  Like a feed it carries no
@@ -770,6 +788,7 @@ pub struct NativeResidentOrganismObservation {
 #[pyclass(frozen, module = "guala_core")]
 pub struct NativeResidentOrganismPrepare {
     token: [u8; 32],
+    sealed: bool,
     observation: RuntimeObservation,
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
@@ -913,6 +932,19 @@ impl NativeResidentOrganismObservation {
         std::str::from_utf8(&self.observation.identity)
             .expect("validated canonical organism identity")
             .to_owned()
+    }
+
+    #[getter]
+    fn predecessor_state_sha256(&self) -> Option<String> {
+        self.observation
+            .predecessor_state_receipt
+            .as_ref()
+            .map(hex_digest)
+    }
+
+    #[getter]
+    fn predecessor_organism_tick(&self) -> Option<u64> {
+        self.observation.predecessor_organism_tick
     }
 
     #[getter]
@@ -1299,6 +1331,11 @@ impl NativeResidentOrganismObservation {
 #[pymethods]
 impl NativeResidentOrganismPrepare {
     #[getter]
+    fn sealed(&self) -> bool {
+        self.sealed
+    }
+
+    #[getter]
     fn schema(&self) -> &'static str {
         RESIDENT_PREPARE_SCHEMA
     }
@@ -1322,8 +1359,14 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
-    fn prepared_state_sha256(&self) -> String {
-        hex_digest(&self.observation.state_receipt)
+    fn prepared_state_sha256(&self) -> Option<String> {
+        self.sealed
+            .then(|| hex_digest(&self.observation.state_receipt))
+    }
+
+    #[getter]
+    fn causal_transition_sha256(&self) -> String {
+        hex_digest(&self.token)
     }
 
     #[getter]
@@ -1893,6 +1936,27 @@ impl NativeResidentOrganismPrepare {
                 .energy
                 .dissipation_capacity_energy_zeptojoules,
         )
+    }
+
+    #[getter]
+    fn energy_exhausted(&self) -> bool {
+        let zero = BigRational::zero();
+        (self
+            .observation
+            .energy
+            .available_energy_capacity_zeptojoules
+            != zero
+            && self.observation.energy.available_energy_zeptojoules == zero)
+            || (self
+                .observation
+                .energy
+                .dissipation_capacity_energy_zeptojoules
+                != zero
+                && self.observation.energy.dissipated_energy_zeptojoules
+                    >= self
+                        .observation
+                        .energy
+                        .dissipation_capacity_energy_zeptojoules)
     }
 
     #[getter]
@@ -2567,6 +2631,7 @@ impl ResidentOrganismRuntime {
                 articulated_body,
                 observation,
             },
+            unsealed: None,
             pending: None,
             direct_predecessor: None,
             pending_contact_growth: None,
@@ -2602,7 +2667,8 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some()
+        if self.unsealed.is_some()
+            || self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
@@ -2611,7 +2677,14 @@ impl ResidentOrganismRuntime {
         let predecessor_envelope = std::mem::take(&mut self.active.envelope);
         let predecessor_next_prepare_ordinal = self.next_prepare_ordinal;
         let initial_cognitive = std::mem::take(&mut self.active.cognitive);
-        let built = self.build_admitted_trajectory(episodes, initial_cognitive);
+        let built = self.build_admitted_trajectory(
+            episodes,
+            initial_cognitive,
+            self.active.observation.clone(),
+            self.active.vestibular.clone(),
+            self.active.articulated_body.clone(),
+            true,
+        );
         let (pending, receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
@@ -2647,6 +2720,184 @@ impl ResidentOrganismRuntime {
         Ok(receipt)
     }
 
+    /// Advance one part of the current lived intake without serializing the
+    /// resident organism. The exact typed cognition and body remain the only
+    /// live successor; the previous envelope is recovery custody until the
+    /// caller seals the completed intake once.
+    fn advance_admitted_trajectory_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let prior = self.unsealed.take();
+        let (
+            predecessor,
+            predecessor_next_prepare_ordinal,
+            current_observation,
+            initial_cognitive,
+            initial_vestibular,
+            initial_articulated_body,
+        ) = match prior {
+            Some(state) => (
+                state.predecessor,
+                state.predecessor_next_prepare_ordinal,
+                state.observation,
+                state.cognitive,
+                state.vestibular,
+                state.articulated_body,
+            ),
+            None => (
+                self.active.observation.clone(),
+                self.next_prepare_ordinal,
+                self.active.observation.clone(),
+                std::mem::take(&mut self.active.cognitive),
+                self.active.vestibular.clone(),
+                self.active.articulated_body.clone(),
+            ),
+        };
+        let built = self.build_admitted_trajectory(
+            episodes,
+            initial_cognitive,
+            current_observation,
+            initial_vestibular,
+            initial_articulated_body,
+            false,
+        );
+        let (pending, mut receipt, next_prepare_ordinal) = match built {
+            Ok(value) => value,
+            Err(error) => {
+                let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
+                self.active = restored.active;
+                self.next_prepare_ordinal = predecessor_next_prepare_ordinal;
+                return Err(error);
+            }
+        };
+        receipt.observation.predecessor_state_receipt = Some(predecessor.state_receipt);
+        self.unsealed = Some(UnsealedResidentOrganismState {
+            predecessor,
+            predecessor_next_prepare_ordinal,
+            mounted: pending.mounted,
+            cognitive: pending.cognitive,
+            vestibular: pending.vestibular,
+            articulated_body: pending.articulated_body,
+            observation: pending.observation,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(receipt)
+    }
+
+    /// Seal the current lived intake once at its explicit persistence boundary.
+    fn seal_unsealed_trajectory_direct(
+        &mut self,
+    ) -> Result<([u8; 32], RuntimeObservation), RuntimeError> {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let source_authority = self
+            .unsealed
+            .as_ref()
+            .and_then(|state| state.observation.source_authority)
+            .ok_or(RuntimeError::AdmittedSourceRequired)?;
+        let next_prepare_ordinal = self
+            .next_prepare_ordinal
+            .checked_add(1)
+            .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
+        let unsealed = self
+            .unsealed
+            .take()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        let sealed = (|| {
+            let derived_budget = self.budget.derive()?;
+            let joint_state =
+                encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+            let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+            let sealed_cognitive = unsealed
+                .cognitive
+                .seal_with_terminal_observation(cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            let fabric = encode_fabric(
+                unsealed.observation.fabric_generation,
+                &joint_state,
+                &sealed_cognitive.encoded,
+                &unsealed.vestibular,
+                &unsealed.articulated_body,
+                self.budget,
+            )?;
+            let envelope = encode_envelope(
+                unsealed.predecessor.identity,
+                unsealed.observation.organism_tick,
+                &fabric,
+                self.budget,
+            )?;
+            Ok::<_, RuntimeError>((derived_budget, sealed_cognitive, fabric, envelope))
+        })();
+        let (derived_budget, sealed_cognitive, fabric, envelope) = match sealed {
+            Ok(value) => value,
+            Err(error) => {
+                let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
+                self.active = restored.active;
+                self.next_prepare_ordinal = unsealed.predecessor_next_prepare_ordinal;
+                return Err(error);
+            }
+        };
+        let mut observation = unsealed.observation;
+        observation.predecessor_state_receipt = Some(unsealed.predecessor.state_receipt);
+        observation.predecessor_organism_tick = Some(unsealed.predecessor.organism_tick);
+        observation.predecessor_fabric_generation = Some(unsealed.predecessor.fabric_generation);
+        observation.predecessor_mounted_generation = Some(unsealed.predecessor.mounted_generation);
+        observation.state_bytes = envelope.len();
+        observation.state_receipt = sha256(&envelope);
+        observation.fabric_bytes = fabric.len();
+        observation.fabric_receipt = sha256(&fabric);
+        observation.complete_neuron_count = sealed_cognitive.summary.complete_neuron_count;
+        observation.developmental_resting_neuron_count =
+            sealed_cognitive.summary.resting_neuron_count;
+        observation.cognitive_mosaic_count = sealed_cognitive.summary.mosaic_count;
+        observation.mosaic_of_mosaics_count = sealed_cognitive.mosaic_of_mosaics_count;
+        observation.energy = sealed_cognitive.summary.energy;
+        observation.derived_budget = derived_budget;
+        let token = prepare_token(
+            unsealed.predecessor.state_receipt,
+            observation.state_receipt,
+            source_authority,
+            self.next_prepare_ordinal,
+        );
+        let predecessor_envelope = std::mem::replace(&mut self.active.envelope, envelope);
+        self.active.mounted = unsealed.mounted;
+        self.active.cognitive = unsealed.cognitive;
+        self.active.vestibular = unsealed.vestibular;
+        self.active.articulated_body = unsealed.articulated_body;
+        self.active.observation = observation.clone();
+        self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
+            token,
+            envelope: predecessor_envelope,
+            next_prepare_ordinal: unsealed.predecessor_next_prepare_ordinal,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok((token, observation))
+    }
+
+    fn abort_unsealed_trajectory(&mut self) -> Result<(), RuntimeError> {
+        let predecessor_next_prepare_ordinal = self
+            .unsealed
+            .as_ref()
+            .map(|state| state.predecessor_next_prepare_ordinal)
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
+        self.unsealed = None;
+        self.active = restored.active;
+        self.next_prepare_ordinal = predecessor_next_prepare_ordinal;
+        Ok(())
+    }
+
     fn acknowledge_direct_commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
         let predecessor = self
             .direct_predecessor
@@ -2679,6 +2930,10 @@ impl ResidentOrganismRuntime {
         &self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         initial_cognitive: ResidentCognitiveFormationState,
+        predecessor: RuntimeObservation,
+        initial_vestibular: ResidentVestibularBody,
+        initial_articulated_body: ArticulatedBodyState,
+        seal_successor: bool,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -2688,7 +2943,6 @@ impl ResidentOrganismRuntime {
         RuntimeError,
     > {
         let derived_budget = self.budget.derive()?;
-        let predecessor = self.active.observation.clone();
         // Proprioception is a continuously present organ, not a one-time
         // genesis observation.  Every lived trajectory therefore begins
         // with one exact observation of the current fixed-capacity body.
@@ -2699,7 +2953,7 @@ impl ResidentOrganismRuntime {
         // an unmounted motor move the body first.
         let current_body_source = admit_complete_articulated_body_state_source(
             predecessor.organism_tick,
-            &self.active.articulated_body,
+            &initial_articulated_body,
         )
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
         let current_body_intervals = vec![(1_i64, 1_000_i64); BODY_AXES.len()];
@@ -2724,7 +2978,7 @@ impl ResidentOrganismRuntime {
         let mut receptor_ingress = ResidentReceptorIngressObservation::default();
         let mut source_port_count = 0usize;
         let mut source_occurrence_count = 0usize;
-        let mut articulated_body = self.active.articulated_body.clone();
+        let mut articulated_body = initial_articulated_body;
         let mut articulated_body_consequences = Vec::new();
         // A motor discharge ends this native causal turn.  Its exact body
         // successor is retained below and the caller immediately advances
@@ -2830,13 +3084,22 @@ impl ResidentOrganismRuntime {
                 "admitted trajectory carried no cognitive interval".into(),
             )
         })?;
-        let sealed_cognitive = cognitive
-            .seal_with_terminal_observation(cognitive_budget)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let (cognitive_state, terminal_summary, terminal_mosaic_count) = if seal_successor {
+            let sealed = cognitive
+                .seal_with_terminal_observation(cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            (sealed.encoded, sealed.summary, sealed.mosaic_of_mosaics_count)
+        } else {
+            let summary = cognitive.summary();
+            let mosaic_count = cognitive
+                .mosaic_of_mosaics_count()
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            (Vec::new(), summary, mosaic_count)
+        };
         retain_terminal_cognitive_observation(
             &mut cognitive_observation,
-            sealed_cognitive.summary,
-            sealed_cognitive.mosaic_of_mosaics_count,
+            terminal_summary,
+            terminal_mosaic_count,
         );
         let (mounted, _) = restore_resident_mounted_state(
             &joint_state,
@@ -2844,16 +3107,21 @@ impl ResidentOrganismRuntime {
             derived_budget.max_joint_working_bytes,
         )
         .map_err(RuntimeError::MountedTransition)?;
-        let cognitive_state = sealed_cognitive.encoded;
-        let fabric = encode_fabric(
-            fabric_generation,
-            &joint_state,
-            &cognitive_state,
-            &self.active.vestibular,
-            &articulated_body,
-            self.budget,
-        )?;
-        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+        let (fabric, envelope) = if seal_successor {
+            let fabric = encode_fabric(
+                fabric_generation,
+                &joint_state,
+                &cognitive_state,
+                &initial_vestibular,
+                &articulated_body,
+                self.budget,
+            )?;
+            let envelope =
+                encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+            (fabric, envelope)
+        } else {
+            (Vec::new(), Vec::new())
+        };
         let trajectory_authority =
             admitted_trajectory_authority(&trajectory_authority_entries)?;
         let transition = MountedJointDsfTransition {
@@ -2897,12 +3165,13 @@ impl ResidentOrganismRuntime {
             envelope,
             mounted,
             cognitive,
-            vestibular: self.active.vestibular.clone(),
+            vestibular: initial_vestibular,
             articulated_body,
             observation: observation.clone(),
         };
         let receipt = ResidentPrepareReceipt {
             token,
+            sealed: seal_successor,
             observation,
             phase_counts: MountedTransitionPhaseCounts {
                 predecessor_authentication_count: 0,
@@ -2911,7 +3180,7 @@ impl ResidentOrganismRuntime {
                 retained_neuron_index_entry_count: predecessor.complete_neuron_count,
                 reached_neuron_lookup_count: source_port_count,
                 current_cohort_evaluation_count: source_occurrence_count,
-                successor_seal_count: 1,
+                successor_seal_count: usize::from(seal_successor),
             },
             receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
@@ -2928,7 +3197,8 @@ impl ResidentOrganismRuntime {
         predecessor_heading_millidegrees: u32,
         signed_body_motion_millidegrees: &[i32],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some()
+        if self.unsealed.is_some()
+            || self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
@@ -2941,6 +3211,10 @@ impl ResidentOrganismRuntime {
             predecessor_heading_millidegrees,
             signed_body_motion_millidegrees,
             initial_cognitive,
+            self.active.observation.clone(),
+            self.active.vestibular.clone(),
+            self.active.articulated_body.clone(),
+            true,
         );
         let (pending, receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
@@ -2977,11 +3251,85 @@ impl ResidentOrganismRuntime {
         Ok(receipt)
     }
 
+    fn advance_vestibular_trajectory_unsealed(
+        &mut self,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: &[i32],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if self.unsealed.is_some()
+            || self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let prior = self.unsealed.take();
+        let (
+            predecessor,
+            predecessor_next_prepare_ordinal,
+            current_observation,
+            initial_cognitive,
+            initial_vestibular,
+            initial_articulated_body,
+        ) = match prior {
+            Some(state) => (
+                state.predecessor,
+                state.predecessor_next_prepare_ordinal,
+                state.observation,
+                state.cognitive,
+                state.vestibular,
+                state.articulated_body,
+            ),
+            None => (
+                self.active.observation.clone(),
+                self.next_prepare_ordinal,
+                self.active.observation.clone(),
+                std::mem::take(&mut self.active.cognitive),
+                self.active.vestibular.clone(),
+                self.active.articulated_body.clone(),
+            ),
+        };
+        let built = self.build_vestibular_trajectory(
+            predecessor_heading_millidegrees,
+            signed_body_motion_millidegrees,
+            initial_cognitive,
+            current_observation,
+            initial_vestibular,
+            initial_articulated_body,
+            false,
+        );
+        let (pending, mut receipt, next_prepare_ordinal) = match built {
+            Ok(value) => value,
+            Err(error) => {
+                let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
+                self.active = restored.active;
+                self.next_prepare_ordinal = predecessor_next_prepare_ordinal;
+                return Err(error);
+            }
+        };
+        receipt.observation.predecessor_state_receipt = Some(predecessor.state_receipt);
+        self.unsealed = Some(UnsealedResidentOrganismState {
+            predecessor,
+            predecessor_next_prepare_ordinal,
+            mounted: pending.mounted,
+            cognitive: pending.cognitive,
+            vestibular: pending.vestibular,
+            articulated_body: pending.articulated_body,
+            observation: pending.observation,
+        });
+        self.next_prepare_ordinal = next_prepare_ordinal;
+        Ok(receipt)
+    }
+
     fn build_vestibular_trajectory(
         &self,
         predecessor_heading_millidegrees: u32,
         signed_body_motion_millidegrees: &[i32],
         initial_cognitive: ResidentCognitiveFormationState,
+        predecessor: RuntimeObservation,
+        initial_vestibular: ResidentVestibularBody,
+        initial_articulated_body: ArticulatedBodyState,
+        seal_successor: bool,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -2996,7 +3344,6 @@ impl ResidentOrganismRuntime {
             ));
         }
         let derived_budget = self.budget.derive()?;
-        let predecessor = self.active.observation.clone();
         let interval_count = u64::try_from(signed_body_motion_millidegrees.len())
             .map_err(|_| RuntimeError::OrganismTickOverflow)?;
         let organism_tick = predecessor
@@ -3014,7 +3361,7 @@ impl ResidentOrganismRuntime {
             self.budget,
         )?;
         let mut cognitive = initial_cognitive;
-        let mut vestibular = self.active.vestibular.clone();
+        let mut vestibular = initial_vestibular;
         let mut heading = predecessor_heading_millidegrees;
         let mut aggregate: Option<CognitiveFormationObservation> = None;
         let mut causal_interval_evidence =
@@ -3064,13 +3411,22 @@ impl ResidentOrganismRuntime {
         let mut cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
         })?;
-        let sealed_cognitive = cognitive
-            .seal_with_terminal_observation(cognitive_budget)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let (cognitive_state, terminal_summary, terminal_mosaic_count) = if seal_successor {
+            let sealed = cognitive
+                .seal_with_terminal_observation(cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            (sealed.encoded, sealed.summary, sealed.mosaic_of_mosaics_count)
+        } else {
+            let summary = cognitive.summary();
+            let mosaic_count = cognitive
+                .mosaic_of_mosaics_count()
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            (Vec::new(), summary, mosaic_count)
+        };
         retain_terminal_cognitive_observation(
             &mut cognitive_observation,
-            sealed_cognitive.summary,
-            sealed_cognitive.mosaic_of_mosaics_count,
+            terminal_summary,
+            terminal_mosaic_count,
         );
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
@@ -3080,16 +3436,21 @@ impl ResidentOrganismRuntime {
             derived_budget.max_joint_working_bytes,
         )
         .map_err(RuntimeError::MountedTransition)?;
-        let cognitive_state = sealed_cognitive.encoded;
-        let fabric = encode_fabric(
-            fabric_generation,
-            &joint_state,
-            &cognitive_state,
-            &vestibular,
-            &self.active.articulated_body,
-            self.budget,
-        )?;
-        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+        let (fabric, envelope) = if seal_successor {
+            let fabric = encode_fabric(
+                fabric_generation,
+                &joint_state,
+                &cognitive_state,
+                &vestibular,
+                &initial_articulated_body,
+                self.budget,
+            )?;
+            let envelope =
+                encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+            (fabric, envelope)
+        } else {
+            (Vec::new(), Vec::new())
+        };
         let trajectory_authority = vestibular_trajectory_authority(
             predecessor_heading_millidegrees,
             signed_body_motion_millidegrees,
@@ -3136,11 +3497,12 @@ impl ResidentOrganismRuntime {
             mounted,
             cognitive,
             vestibular,
-            articulated_body: self.active.articulated_body.clone(),
+            articulated_body: initial_articulated_body,
             observation: observation.clone(),
         };
         let receipt = ResidentPrepareReceipt {
             token,
+            sealed: seal_successor,
             observation,
             phase_counts: MountedTransitionPhaseCounts {
                 predecessor_authentication_count: 0,
@@ -3149,7 +3511,7 @@ impl ResidentOrganismRuntime {
                 retained_neuron_index_entry_count: predecessor.complete_neuron_count,
                 reached_neuron_lookup_count: signed_body_motion_millidegrees.len(),
                 current_cohort_evaluation_count: signed_body_motion_millidegrees.len(),
-                successor_seal_count: 1,
+                successor_seal_count: usize::from(seal_successor),
             },
             receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
@@ -3168,7 +3530,8 @@ impl ResidentOrganismRuntime {
         vestibular: Option<&ResidentVestibularIngress>,
         initialize_articulated_body_proprioception: bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some()
+        if self.unsealed.is_some()
+            || self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
@@ -3329,6 +3692,7 @@ impl ResidentOrganismRuntime {
         self.next_prepare_ordinal = next_prepare_ordinal;
         Ok(ResidentPrepareReceipt {
             token,
+            sealed: true,
             observation,
             phase_counts,
             receptor_ingress,
@@ -3425,7 +3789,8 @@ impl ResidentOrganismRuntime {
         &mut self,
         authored: &[AuthoredDeclaredContact],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if self.pending.is_some()
+        if self.unsealed.is_some()
+            || self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
@@ -3494,6 +3859,7 @@ impl ResidentOrganismRuntime {
         self.next_prepare_ordinal = next_prepare_ordinal;
         Ok(ResidentPrepareReceipt {
             token,
+            sealed: true,
             observation,
             phase_counts: MountedTransitionPhaseCounts::default(),
             receptor_ingress: ResidentReceptorIngressObservation::default(),
@@ -3510,7 +3876,9 @@ impl ResidentOrganismRuntime {
     }
 
     fn cognitive_state(&self) -> &ResidentCognitiveFormationState {
-        &self.active.cognitive
+        self.unsealed
+            .as_ref()
+            .map_or(&self.active.cognitive, |state| &state.cognitive)
     }
 
     fn cold_restore_work(&self) -> ResidentMountedRestoreWork {
@@ -3519,6 +3887,14 @@ impl ResidentOrganismRuntime {
 
     fn active_envelope(&self) -> &[u8] {
         &self.active.envelope
+    }
+
+    fn live_articulated_body(&self) -> &ArticulatedBodyState {
+        self.unsealed
+            .as_ref()
+            .map_or(&self.active.articulated_body, |state| {
+                &state.articulated_body
+            })
     }
 }
 
@@ -3692,6 +4068,7 @@ impl NativeResidentOrganismRuntime {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
+            sealed: prepared.sealed,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
@@ -3715,6 +4092,7 @@ impl NativeResidentOrganismRuntime {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
+            sealed: prepared.sealed,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
@@ -3745,6 +4123,35 @@ impl NativeResidentOrganismRuntime {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    fn advance_vestibular_trajectory_unsealed(
+        &mut self,
+        py: Python<'_>,
+        predecessor_heading_millidegrees: u32,
+        signed_body_motion_millidegrees: Vec<i32>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime.advance_vestibular_trajectory_unsealed(
+                    predecessor_heading_millidegrees,
+                    &signed_body_motion_millidegrees,
+                )
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
@@ -3783,6 +4190,7 @@ impl NativeResidentOrganismRuntime {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
+            sealed: prepared.sealed,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
@@ -3792,6 +4200,89 @@ impl NativeResidentOrganismRuntime {
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
         })
+    }
+
+    /// Continue the one resident causal intake without producing a checkpoint.
+    fn advance_admitted_trajectory_unsealed(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "admitted trajectory source and interval counts differ",
+            ));
+        }
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime
+                    .advance_admitted_trajectory_unsealed(&episodes)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    /// Produce the intake's sole canonical checkpoint immediately before the
+    /// existing persistence boundary.
+    fn seal_unsealed_trajectory_direct<'py>(
+        &mut self,
+        py: Python<'py>,
+    ) -> PyResult<(Bound<'py, PyBytes>, NativeResidentOrganismObservation)> {
+        let (token, observation) = py
+            .allow_threads(|| self.runtime.seal_unsealed_trajectory_direct())
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok((
+            PyBytes::new(py, &token),
+            NativeResidentOrganismObservation {
+                observation,
+                cold_restore_work: self.runtime.cold_restore_work(),
+                articulated_body: self.runtime.active.articulated_body.clone(),
+            },
+        ))
+    }
+
+    fn abort_unsealed_trajectory(&mut self, py: Python<'_>) -> PyResult<()> {
+        py.allow_threads(|| self.runtime.abort_unsealed_trajectory())
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Exact current body during an open lived intake. This exposes no stale
+    /// checkpoint identity and advances nothing.
+    fn live_articulated_body_axes(&self) -> Vec<(u8, String, String, i32, i32, i32, i32)> {
+        let body = self.runtime.live_articulated_body();
+        BODY_AXES
+            .iter()
+            .copied()
+            .map(|axis| {
+                let anatomy = axis.anatomy();
+                (
+                    u8::try_from(axis.index()).expect("body axis count fits u8"),
+                    axis.anatomical_name().to_owned(),
+                    anatomy.unit.physical_name().to_owned(),
+                    body.axis(axis),
+                    anatomy.minimum,
+                    anatomy.neutral,
+                    anatomy.maximum,
+                )
+            })
+            .collect()
     }
 
     fn acknowledge_direct_commit(&mut self, token: Vec<u8>) -> PyResult<()> {
@@ -3847,6 +4338,7 @@ impl NativeResidentOrganismRuntime {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
+            sealed: prepared.sealed,
             observation: prepared.observation,
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
@@ -6707,6 +7199,86 @@ mod tests {
         assert_eq!(runtime.observation(), predecessor_observation);
         assert_eq!(runtime.next_prepare_ordinal, predecessor_ordinal);
         assert!(runtime.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn lived_intake_advances_twice_and_seals_only_once() {
+        let first_source = source("unsealed-lived-intake-first");
+        let second_source = source("unsealed-lived-intake-second");
+        let first_intervals = vec![(5, 1); first_source.joint_source_occurrences().len()];
+        let second_intervals = vec![(5, 1); second_source.joint_source_occurrences().len()];
+        let first_episode = vec![(first_source.clone(), first_intervals.clone())];
+        let second_episode = vec![(second_source.clone(), second_intervals.clone())];
+
+        let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        reference.active.articulated_body.initialize_proprioception();
+        let first_reference = reference
+            .commit_admitted_trajectory_direct(&first_episode)
+            .unwrap();
+        reference
+            .acknowledge_direct_commit(first_reference.token)
+            .unwrap();
+        let second_reference = reference
+            .commit_admitted_trajectory_direct(&second_episode)
+            .unwrap();
+        reference
+            .acknowledge_direct_commit(second_reference.token)
+            .unwrap();
+
+        let mut candidate = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        candidate.active.articulated_body.initialize_proprioception();
+        let predecessor_envelope = candidate.active_envelope().to_vec();
+        let predecessor_observation = candidate.observation();
+
+        let first = candidate
+            .advance_admitted_trajectory_unsealed(&first_episode)
+            .unwrap();
+        assert!(!first.sealed);
+        assert_eq!(first.phase_counts.successor_seal_count, 0);
+        assert_eq!(candidate.active_envelope(), predecessor_envelope);
+        assert_eq!(candidate.observation(), predecessor_observation);
+
+        let second = candidate
+            .advance_admitted_trajectory_unsealed(&second_episode)
+            .unwrap();
+        assert!(!second.sealed);
+        assert_eq!(second.phase_counts.successor_seal_count, 0);
+        assert!(second.observation.organism_tick > first.observation.organism_tick);
+        assert_eq!(candidate.active_envelope(), predecessor_envelope);
+        assert_eq!(candidate.observation(), predecessor_observation);
+
+        let (token, sealed) = candidate.seal_unsealed_trajectory_direct().unwrap();
+        assert_eq!(sealed.organism_tick, second.observation.organism_tick);
+        candidate.acknowledge_direct_commit(token).unwrap();
+
+        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
+        assert_eq!(candidate.active.articulated_body, reference.active.articulated_body);
+        assert_eq!(candidate.active.vestibular, reference.active.vestibular);
+        assert!(candidate.unsealed.is_none());
+        assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn aborted_lived_intake_restores_the_exact_predecessor() {
+        let episode = source("unsealed-lived-intake-abort");
+        let intervals = vec![(5, 1); episode.joint_source_occurrences().len()];
+        let episodes = vec![(episode, intervals)];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor_envelope = runtime.active_envelope().to_vec();
+        let predecessor_observation = runtime.observation();
+        let predecessor_ordinal = runtime.next_prepare_ordinal;
+
+        runtime
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        runtime.abort_unsealed_trajectory().unwrap();
+
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+        assert_eq!(runtime.observation(), predecessor_observation);
+        assert_eq!(runtime.next_prepare_ordinal, predecessor_ordinal);
+        assert!(runtime.unsealed.is_none());
     }
 
     #[test]
