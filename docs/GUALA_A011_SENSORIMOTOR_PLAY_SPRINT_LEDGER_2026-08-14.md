@@ -2797,3 +2797,27 @@ this closure.
   deployment whenever formation identity or recurrence admission is changed.
   A unit formation and a pristine body cannot prove isolation from unrelated
   recurrent cells in the mature connected topology.
+
+## 2026-08-23 rejected two-interval recurrence experiments
+
+- Commits `f390624f` and `e14451d9` attempted to admit changed living-state
+  deltas only when a cue, the retained recurrent neuron, and another retained
+  member formed an ordered two-interval electrical path.
+- Both immutable discarded-state rehearsals failed before cutover: neither
+  produced an external reassembly during the mature `word-apple` partial-cue
+  suffix. Production was never switched from healthy task definition 1184.
+- An exact local replay of the authenticated tick-152324 body under the live
+  receptor configuration then showed why the later condition was still
+  invalid. Across all nine partial-cue episodes it admitted one recurrence per
+  episode, but every one was internally originated and none was the required
+  externally cued recognition. The condition therefore recognized ordinary
+  mature recurrent circulation rather than the requested external formation.
+- Revert commits `161ec65a` and `0b48b7a2` remove both mechanisms from the
+  current source. Task definition 1187 and cold-rehearsal definition 256 are
+  inactive, and rejected image digest `sha256:0b53e49b...ad93b42` was deleted
+  without failures. Task 1184 remained desired/running/pending `1/1/0` and
+  healthy throughout cleanup.
+- These experiments do not reopen completed A-011 work and must not be used as
+  recurrence, recognition, autonomy, or production authority. Any later
+  recurrence correction requires direct evidence from the exact externally
+  perturbed formation, not merely activity through a recurrent neuron.
