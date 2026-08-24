@@ -213,6 +213,8 @@ CURRICULUM_INVITATION_SCHEMA = "guala.embodied_curriculum_invitation.v1"
 CURRICULUM_INVITE_ENDPOINT = "/api/v1/curriculum/invite-card"
 CURRICULUM_INVITE_SONG_ENDPOINT = "/api/v1/curriculum/invite-song"
 CURRICULUM_TEACH_SONG_ENDPOINT = "/api/v1/curriculum/teach-song"
+GUIDED_WORLD_VOICE_ENDPOINT = "/api/v1/curriculum/guided-world-voice"
+GUIDED_WORLD_VOICE_SCHEMA = "guala.guided_world_voice.v1"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
@@ -2459,6 +2461,7 @@ def _curriculum_media_record() -> dict[str, object]:
             invitation_endpoint=CURRICULUM_INVITE_ENDPOINT,
             song_invitation_endpoint=CURRICULUM_INVITE_SONG_ENDPOINT,
             teach_card_endpoint="/api/v1/curriculum/teach-card",
+            guided_world_voice_endpoint=GUIDED_WORLD_VOICE_ENDPOINT,
             teach_song_endpoint=CURRICULUM_TEACH_SONG_ENDPOINT,
             tutoring_transition_available=True,
         )
@@ -6127,6 +6130,27 @@ def _build_public_observation_from_snapshot(
                 ),
                 "status": (
                     "mounted" if COCHLEAR_EARS_AUTHORIZED else "not_mounted"
+                ),
+            },
+            "grounded_world_voice": {
+                "available": COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED,
+                "endpoint": (
+                    GUIDED_WORLD_VOICE_ENDPOINT
+                    if COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED
+                    else None
+                ),
+                "reason": (
+                    "physical tutor pressure coexists with Guala's actual "
+                    "current world, body, and every available sensory lane; "
+                    "the intake accepts no word, object, or meaning field"
+                    if COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED
+                    else "grounded world voice requires both the persistent "
+                    "world and mounted cochlear ears"
+                ),
+                "status": (
+                    "mounted"
+                    if COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED
+                    else "not_mounted"
                 ),
             },
             "nutrition": _unmounted(
@@ -10868,6 +10892,135 @@ def _unattended_interval_episodes(
     }
 
 
+def _guided_world_voice_episodes(
+    samples: tuple[int, ...],
+    sample_rate_hz: int,
+) -> tuple[list[tuple[Any, list[tuple[int, int]]]], dict[str, Any]]:
+    """One tutor utterance inside Guala's actual current world and body.
+
+    This transport accepts no word, object, lesson, or meaning identifier. The
+    tutor pressure coexists on one clock with the world light, local chemistry,
+    mounted body lanes, and temperature that are physically present where the
+    resident organism is. The world remains present after the finite utterance;
+    only tutor pressure ends.
+    """
+
+    if not WORLD_AUTHORIZED:
+        raise RuntimeError("grounded teaching requires the persistent world")
+    if sample_rate_hz != COCHLEAR_SAMPLE_RATE_HZ:
+        raise ValueError(
+            "grounded teaching requires pcm_s16le mono at the mounted "
+            f"{COCHLEAR_SAMPLE_RATE_HZ} Hz cochlear rate"
+        )
+    if not samples:
+        raise ValueError("grounded teaching requires tutor pressure samples")
+    if Fraction(len(samples), sample_rate_hz) > AMBIENT_INTAKE_MAX_SECONDS:
+        raise ValueError("grounded tutor pressure exceeds the declared intake window")
+
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        physical_receptor_substreams,
+    )
+
+    snapshot = _world().observation_snapshot()
+    retinal_body_axes = _current_retinal_body_axes()
+    retinal_heading = _retinal_heading_offset_millidegrees_from_axes(
+        retinal_body_axes
+    )
+    retinal_transmission = _eyelid_transmission_from_axes(retinal_body_axes)
+    world_streams = physical_receptor_substreams(
+        snapshot,
+        snapshot,
+        causal_transition=False,
+        before_retinal_heading_offset_millidegrees=retinal_heading,
+        after_retinal_heading_offset_millidegrees=retinal_heading,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+    )
+    luminance = _world_retinal_luminance(
+        world_streams.get(PhysicalSense.SIGHT, ())
+    )
+    tasted, smelled = _world_chemistry(
+        snapshot,
+        snapshot,
+        source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+    )
+    pressure_hops = _pcm_hops(samples, sample_rate_hz)
+    cochlear_hops = _cochlear_hops(
+        samples,
+        sample_rate_hz,
+        LESSON_ENDED_HOP_COUNT,
+    )
+    if len(cochlear_hops) < len(pressure_hops) + LESSON_ENDED_HOP_COUNT:
+        raise ValueError("grounded tutor pressure lost its cochlear decay")
+
+    assembly_ids: list[str] = []
+    clocks: list[tuple[Fraction, ...]] = []
+    signal_bodies: list[bytes] = []
+    admissions: list[list[tuple[int, int]]] = []
+    maximum_interval = max(
+        Fraction(len(samples), sample_rate_hz),
+        Fraction(INTAKE_HOP_MILLISECONDS, 1000),
+    )
+    for hop_index, (times, pressure) in enumerate(pressure_hops):
+        assembly_ids.append(f"guided-world-voice-hop-{hop_index}")
+        clocks.append(times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
+                times,
+                luminance,
+                pressure,
+                cochlear_hops[hop_index],
+                None,
+                tasted,
+                smelled,
+                retinal_transmission=retinal_transmission,
+            )
+        )
+        admissions.append(
+            [(maximum_interval.numerator, maximum_interval.denominator)]
+            * LESSON_OCCURRENCE_COUNT
+        )
+
+    quiet_times = _quiescent_hop_times()
+    quiet_pressure = (0.0,) * len(quiet_times)
+    for ended_index in range(LESSON_ENDED_HOP_COUNT):
+        assembly_ids.append(f"guided-world-voice-ended-{ended_index}")
+        clocks.append(quiet_times)
+        signal_bodies.append(
+            _compact_whole_roster_signal_body(
+                quiet_times,
+                luminance,
+                quiet_pressure,
+                cochlear_hops[len(pressure_hops) + ended_index],
+                None,
+                tasted,
+                smelled,
+                retinal_transmission=retinal_transmission,
+            )
+        )
+        admissions.append(
+            [(maximum_interval.numerator, maximum_interval.denominator)]
+            * LESSON_OCCURRENCE_COUNT
+        )
+
+    episodes = settle_native_joint_source_episode_batch_from_anatomy(
+        anatomy=_lesson_anatomy(),
+        assembly_ids=tuple(assembly_ids),
+        source_times=tuple(clocks),
+        signal_bodies=tuple(signal_bodies),
+    )
+    return list(zip(episodes, admissions, strict=True)), {
+        "audio_sample_count": len(samples),
+        "retinal_luminance_present": any(
+            level * float(retinal_transmission) > 0.0 for level in luminance
+        ),
+        "smell_present": bool(smelled and any(value > 0 for value in smelled)),
+        "taste_present": bool(tasted and any(value > 0 for value in tasted)),
+        "world_revision": snapshot.revision,
+        "world_state_sha256": snapshot.state_sha256,
+    }
+
+
 def _action_consequence_episode(
     execution: Any,
     *,
@@ -15102,6 +15255,95 @@ def teach_card_spoken(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "voice": "live_human_speaker",
             "spoken_sample_count": len(samples),
             **result,
+        },
+    )
+
+
+@app.post(
+    GUIDED_WORLD_VOICE_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
+def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Let a tutor speak while Guala experiences her actual current world.
+
+    The request deliberately has no semantic field. It cannot tell cognition
+    what the pressure means or which thing to learn. The expected predecessor
+    makes one presentation at-most-once across an ambiguous client response.
+    """
+
+    refusal = _spoken_voice_refusal()
+    if refusal is not None:
+        return refusal
+    expected_fields = {
+        "schema",
+        "expected_predecessor_state_sha256",
+        "pcm_s16le_base64",
+        "sample_rate_hz",
+    }
+    if not isinstance(payload, dict) or set(payload) != expected_fields:
+        return _refusal(
+            422,
+            "grounded world voice accepts only schema, exact predecessor, "
+            "sample rate, and physical PCM pressure",
+        )
+    if payload.get("schema") != GUIDED_WORLD_VOICE_SCHEMA:
+        return _refusal(422, f"grounded world voice requires {GUIDED_WORLD_VOICE_SCHEMA}")
+    predecessor = payload.get("expected_predecessor_state_sha256")
+    if not isinstance(predecessor, str) or not re.fullmatch(r"[0-9a-f]{64}", predecessor):
+        return _refusal(422, "grounded world voice requires an exact predecessor state")
+    sample_rate = payload.get("sample_rate_hz")
+    if sample_rate != COCHLEAR_SAMPLE_RATE_HZ:
+        return _refusal(
+            422,
+            "grounded world voice requires pcm_s16le mono at "
+            f"{COCHLEAR_SAMPLE_RATE_HZ} Hz",
+        )
+    encoded = payload.get("pcm_s16le_base64")
+    if not isinstance(encoded, str) or not encoded:
+        return _refusal(422, "grounded world voice requires pcm_s16le_base64")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError):
+        return _refusal(422, "grounded world voice is not canonical base64")
+    if len(raw) % 2 or len(raw) < 4:
+        return _refusal(422, "grounded world voice requires whole signed-16 samples")
+    samples = struct.unpack(f"<{len(raw) // 2}h", raw)
+    if Fraction(len(samples), sample_rate) > AMBIENT_INTAKE_MAX_SECONDS:
+        return _refusal(422, "grounded world voice exceeds the declared intake window")
+
+    try:
+        with _transition_lock:
+            restored, _ = _runtime()
+            current = restored.organism.readiness()
+            if current.state_sha256 != predecessor:
+                return _refusal(
+                    409,
+                    "grounded world voice predecessor is stale; the presentation "
+                    "was not repeated",
+                )
+            episodes, world_sensorium = _guided_world_voice_episodes(
+                samples,
+                sample_rate,
+            )
+            audio_sha256 = hashlib.sha256(raw).hexdigest()
+            result = _perform_admitted_intake_locked(
+                episodes,
+                f"guided-world-voice:{audio_sha256}",
+            )
+    except HTTPException:
+        raise
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
+        return _refusal(422, f"grounded world voice transition refused: {error}")
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            **result,
+            "accepted": True,
+            "audio_sha256": audio_sha256,
+            "schema": GUIDED_WORLD_VOICE_SCHEMA,
+            "transport_metadata_only": True,
+            "world_sensorium": world_sensorium,
         },
     )
 

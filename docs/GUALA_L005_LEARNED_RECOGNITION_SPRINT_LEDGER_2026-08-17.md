@@ -464,3 +464,90 @@ contains only one accepted `word-apple` presentation. The truthful result is
 therefore **live retained sensory-pattern recognition causing action and sensed
 consequence; learned-word recognition remains Partial**. No additional lesson
 loop is authorized merely to force closure.
+
+## 2026-08-24 grounded-world teaching continuation
+
+- Production baseline is the sole healthy `dsf-ai-task:1222`, image
+  `sha256:2fcb66b95f5bfcf59230fd0c1f63010015c3e7d88e9125b4644b1d6476e3112e`,
+  code commit `62b11186f860387ad28e25e63148eb95ea9ace97`, and the same organism
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. A-011 through A-013
+  remain Live-Closed; this turn continues L-005 and does not reopen them.
+- The prior single `word-apple` card is insufficient grounding. Cards remain
+  one tool only. L-005 now uses a tutor utterance concurrently with the
+  organism's actual persistent world, current retinal field, local chemistry,
+  body state, temperature, and every other physically available lane. Later
+  changed views and silent cues must reassemble and causally use retained
+  structure before any learned-word claim.
+- Exact input: bounded mono signed-16-bit 16-kHz tutor pressure samples plus
+  the caller's exact expected predecessor state receipt. No word, object,
+  lesson, meaning, answer, or semantic identifier is accepted by the intake.
+- Exact output: one ordered native whole-roster trajectory and one durable
+  successor of the same organism. The observation may report transport
+  receipt, world revision, physical lane availability, native recurrence,
+  action, and sensed return; none becomes cognitive authority.
+- Physical authority remains the existing world/receptor mechanics, unchanged
+  full joint seven-field DSF, complete-neuron settlement, physical formation
+  recurrence, motor/articulatory discharge, and returned body/world senses.
+  No coefficient, neuron, contact, field, or formation law changes.
+- Work is bounded by the PCM hop count and each hop's already-declared reached
+  receptor/neuron/contact frontier. There is no whole-organism scan, retained
+  event log, retry loop, semantic table, observer selection, or duplicate
+  cognition owner.
+- Preparation reads the immutable current world/body and constructs every
+  source episode before native mutation. Native publication remains the one
+  existing atomic current-state path. A stale predecessor refuses before
+  presentation; after an ambiguous response the changed predecessor prevents
+  accidental replay. Cold restore uses the unchanged canonical organism and
+  world bodies.
+- Authorized files for this slice are
+  `dsf_ai_service/native_production_app.py`, one focused transport test, and
+  this ledger. Replaced single-sense or label-bearing lesson mechanisms will
+  not be added or extended.
+- Acceptance remains one live grounded chain: varied physical experience with
+  the real referent and utterance -> later altered/partial physical cue ->
+  exact retained formation reassembly -> causal action or articulation ->
+  sensed consequence -> cold-restored reuse. Presentation alone cannot close
+  L-005.
+
+### Grounded-world voice translation and acceptance map
+
+- Source-review freeze began from candidate fingerprint
+  `4f77ed26008d7805c3726d8466d1dc88cd315850bb805980ff604674e35320e1`;
+  the ledger-only recording changed that fingerprint, so the authoritative
+  post-ledger fingerprint is recorded below before execution.
+
+- Production parity for task definition 1222 is explicit:
+  `GUALA_WORLD=1`, `GUALA_COCHLEAR_EARS=1`, `GUALA_TOUCH_RECEPTORS=1`,
+  `GUALA_CHEMORECEPTION=1`, `GUALA_VESTIBULAR=1`, and
+  `GUALA_INTEROCEPTION=1`. The route refuses when its world or cochlear
+  producer is absent; it does not substitute local defaults.
+- Transport fields are exactly
+  `schema`, `expected_predecessor_state_sha256`, `pcm_s16le_base64`, and
+  `sample_rate_hz`. Base64 becomes exact little-endian signed-16 pressure
+  samples. The predecessor receipt is compared with the resident native
+  readiness receipt under the existing transition lock before any episode is
+  built or committed. Every other request field is refused.
+- `_guided_world_voice_episodes` reads one immutable current world snapshot,
+  exact current retinal/body axes, physical receptor substreams, current
+  chemistry, and the mounted cochlear response. It carries those values into
+  `_compact_whole_roster_signal_body`, then into
+  `settle_native_joint_source_episode_batch_from_anatomy`. No Boolean or
+  transport receipt is passed into neuronal physics.
+- `_perform_admitted_intake_locked` remains the sole native transition and
+  durable publication authority. Its returned native recurrence, fractal,
+  motor/articulatory, consequence, tick, and state fields are passed through
+  unchanged. The endpoint adds only an audio-byte receipt and world-snapshot
+  receipt for external observation.
+- The route performs no post-commit display refresh. The read-only observer
+  cannot reject, roll back, repeat, or otherwise alter the committed lesson.
+- First-use and recurrent branches use this same producer and transition.
+  First use may retain new physical change. A later varied occurrence must
+  preserve prior structure while producing a bounded successor; only exact
+  later reassembly and causal use can satisfy the learned-recognition claim.
+- Source-only review found and removed one redundant post-commit observer
+  refresh and one response-schema overwrite. The reviewed source fingerprint
+  was `70adc9b9ad1ad5c5bbcab1e4024326e10fbf353d6141386afa4a0b94cc6fa3b9`.
+  `python -m py_compile dsf_ai_service/native_production_app.py` passed, and
+  `PYTHONPATH=. pytest -q tests/test_grounded_world_voice_lesson.py` passed
+  3/3 in 1.56 seconds. This is focused local transport evidence only; it is
+  not production delivery or learned-word evidence.
