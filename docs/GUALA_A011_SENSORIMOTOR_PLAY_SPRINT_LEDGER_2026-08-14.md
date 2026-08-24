@@ -3127,3 +3127,28 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   receiving nonempty typed body-return sources and subsequently producing the
   required varied retained-formation actions with their complete sensed
   consequences.
+
+### Exact native body-return live cutover
+
+- Commit `98bee50669881467ffce6b0ee13269ec2e248180` deployed on the first and
+  only controller attempt from `2026-08-24T04:51:00Z` through
+  `2026-08-24T05:08:46Z` as task `dsf-ai-task:1205`, immutable image
+  `sha256:8d348181b05c1483dd23832530bffb82ed82e3f81fcc97e6a5980fae859d0a53`.
+  The controller reported one verified cutover, `verified_native_state=true`,
+  and automatic legacy rollback disabled. ECS settled at desired/running/
+  pending `1/1/0` with rollout `COMPLETED`.
+- The first bounded live world readback exposed four exact native `GLJSRC03`
+  proprioceptive sources at source ticks `161406`, `161410`, `161414`, and
+  `161418`; each carried one occurrence, two ports, four samples, and two
+  occurrence frames. The ordinary complete sensory consequence at organism tick
+  `161425` reported `typed_source_count=4`, unchanged identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and `continuous_cognition=true`.
+- The sampled motor lineage still drove left grip aperture toward maximum while
+  the joint was already at its exact maximum `60000`, so all four consequences
+  truthfully reported zero displacement and nonzero stalled carriers. This
+  proves the missing same-organism typed body return is repaired; it does not
+  manufacture movement or satisfy varied-play acceptance.
+- A-011 remains open at
+  `awaiting_varied_retained_formation_sensorimotor_return`. The next item is the
+  native physical cause of repeated same-terminal saturation, not another
+  observer rule or observer-driven action.
