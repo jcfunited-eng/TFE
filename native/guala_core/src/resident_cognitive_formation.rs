@@ -12956,6 +12956,37 @@ fn local_gradient_direction(
         })
 }
 
+/// Return the exact physical transfers that can prepare one mounted motor.
+///
+/// Layer 11 carries an internally ordered action preparation. Layer 8 carries
+/// the motor's own mounted body-regulation reflex: receptor -> local
+/// integration -> body regulation -> motor. Both are real contact-local
+/// causes. No other layer, observation, score, or action label can prepare a
+/// motor through this boundary.
+fn exact_motor_preparation_transfers(
+    motor_lineage: [u8; 16],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    layer_of: impl Fn([u8; 16]) -> Option<u32>,
+) -> Vec<DirectedPhysicalTransferObservation> {
+    let mut preparation_transfers = settled_directed_transfers
+        .iter()
+        .copied()
+        .filter(|transfer| {
+            let adjacent_layer = if transfer.receiver == motor_lineage {
+                layer_of(transfer.sender)
+            } else if transfer.sender == motor_lineage {
+                layer_of(transfer.receiver)
+            } else {
+                None
+            };
+            matches!(adjacent_layer, Some(8 | 11))
+        })
+        .collect::<Vec<_>>();
+    preparation_transfers.sort_unstable();
+    preparation_transfers.dedup();
+    preparation_transfers
+}
+
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -13980,18 +14011,11 @@ fn settle_internal_contact_interval(
                 let mount = &cohort.anatomy.mounts()[*neuron_index];
                 let body_effector_terminal = mount.body_effector_terminal()?;
                 let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let mut preparation_transfers = settled_directed_transfers
-                    .iter()
-                    .copied()
-                    .filter(|transfer| {
-                        (transfer.receiver == motor_lineage
-                            && layer_of(transfer.sender) == Some(11))
-                            || (transfer.sender == motor_lineage
-                                && layer_of(transfer.receiver) == Some(11))
-                    })
-                    .collect::<Vec<_>>();
-                preparation_transfers.sort_unstable();
-                preparation_transfers.dedup();
+                let preparation_transfers = exact_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    &layer_of,
+                );
                 (mount.source_site().is_none()
                     && mount.place().layer() == 12
                     && causally_active_lineages.contains(&motor_lineage)
@@ -18932,6 +18956,40 @@ mod tests {
         assert_eq!(
             motor_terminal,
             BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum)
+        );
+    }
+
+    #[test]
+    fn exact_body_regulation_transfer_prepares_its_mounted_motor() {
+        let regulation = [8_u8; 16];
+        let ordering = [11_u8; 16];
+        let unrelated = [7_u8; 16];
+        let motor = [12_u8; 16];
+        let transfer = |sender, receiver, carriers| DirectedPhysicalTransferObservation {
+            sender,
+            receiver,
+            bond: StablePhysicalBondReference::new(sender, receiver, 0).unwrap(),
+            transferred_whole_carriers: carriers,
+        };
+        let settled = [
+            transfer(regulation, motor, 9),
+            transfer(motor, ordering, 5),
+            transfer(unrelated, motor, 7),
+        ];
+        let layer_of = |lineage| {
+            [
+                (regulation, 8),
+                (ordering, 11),
+                (unrelated, 7),
+                (motor, 12),
+            ]
+            .into_iter()
+            .find_map(|(candidate, layer)| (candidate == lineage).then_some(layer))
+        };
+
+        assert_eq!(
+            exact_motor_preparation_transfers(motor, &settled, layer_of),
+            vec![settled[0], settled[1]],
         );
     }
 
