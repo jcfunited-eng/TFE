@@ -3030,3 +3030,23 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 - The focused A-006 causal, C-023 causal, and curriculum invitation selection
   passes `28/28`; Python compilation and `git diff --check` pass. This is source
   evidence only until the corrected image is cut over and read back live.
+
+### Observer-callback retirement live cutover
+
+- Commit `7ddd7cc4e1144b025927867ee0fb97fc1b794b28` deployed on the first and
+  only controller attempt from `2026-08-24T02:44:16Z` through
+  `2026-08-24T03:01:06Z`.
+- The immutable image is
+  `sha256:c437841ba92357fcc1a17dfdbef27f2a4ff040c709126f11e30f1ff585243e70`
+  on `dsf-ai-task:1202`; the controller reported exactly one verified cutover,
+  `verified_native_state=true`, and automatic legacy rollback disabled.
+- ECS settled at desired/running/pending `1/1/0` with rollout `COMPLETED`.
+  The live native observation reported the exact commit, image, and task above,
+  and preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at tick `159949`.
+- The live observation contract reports `cognition_authority=false` and
+  `read_advances_organism=false`. The world observation remained available and
+  advanced independently to revision `9945`. A-011 remains truthfully open at
+  `awaiting_varied_retained_formation_sensorimotor_return`; this cutover retires
+  the recoverable observer callback but does not manufacture its missing native
+  causal witness.
