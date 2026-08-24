@@ -15395,6 +15395,42 @@ mod tests {
     }
 
     #[test]
+    fn load_feedback_reenters_after_complete_body_and_repeats() {
+        let complete = admit_complete_articulated_body_state_source(
+            0,
+            &ArticulatedBodyState::at_neutral(),
+        )
+        .unwrap();
+        let complete_body = ResidentCognitiveFormationState::default()
+            .prepare(&complete, 16_000_000)
+            .unwrap()
+            .successor;
+        let axis = BodyAxis::LeftGripAperture;
+        let anatomy = axis.anatomy();
+        let consequence = BodyProprioceptiveConsequence {
+            axis,
+            unit: anatomy.unit,
+            predecessor_position: anatomy.maximum,
+            successor_position: anatomy.maximum,
+            signed_displacement: 0,
+            toward_minimum_carriers: 0,
+            toward_maximum_carriers: 240,
+            opposed_carriers_per_terminal: 0,
+            applied_displacement_quanta: 0,
+            stalled_carriers: 240,
+        };
+        let first_source =
+            admit_articulated_body_consequence_source(1, &[consequence]).unwrap();
+        let first = complete_body
+            .prepare(&first_source, 16_000_000)
+            .unwrap()
+            .successor;
+        let second_source =
+            admit_articulated_body_consequence_source(2, &[consequence]).unwrap();
+        first.prepare(&second_source, 16_000_000).unwrap();
+    }
+
+    #[test]
     fn every_declared_antagonist_pair_settles_independently() {
         for axis in crate::virtual_articulated_body::BODY_AXES {
             let anatomy = axis.anatomy();

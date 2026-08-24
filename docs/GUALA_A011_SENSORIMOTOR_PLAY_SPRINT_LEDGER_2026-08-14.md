@@ -3175,3 +3175,29 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   regulation; the exact stopped interval correctly advances only its two
   nonzero endings. No production claim is made until immutable cutover and live
   same-identity evidence.
+
+### Task-1206 recurrent source-identity refusal and correction
+
+- Commit `0dc44b2ba56d6c58eeb130099d8bd35f932b5758` deployed once as task
+  `dsf-ai-task:1206`, image
+  `sha256:1b537d3ea90b307c6512c7c7c5d4fcb9b4e4e8557170556db8d55a9c374e57bd`.
+  The controller preserved the same organism identity and one healthy process,
+  but no new CURRENT transition committed after startup. This is not live
+  stopped-load evidence.
+- The smallest recurrent lifecycle falsifier reproduced the first hidden native
+  refusal without production polling: complete 74-terminal body admission ->
+  first exact GLJSRC04 stopped-load return failed with
+  `NeuronLineageAuthorityChanged`; repeating the load return was therefore
+  unreachable.
+- The failure was one exact source-identity regression in the GLJSRC04 builder.
+  It renamed the already-mounted GLJSRC03 length receptor coordinate from
+  `body-antagonist-proprioceptor-terminal` to `body-antagonist-terminal`.
+  The resident correctly refused that as a living neuron changing physical
+  identity. The corrected GLJSRC04 keeps the length receptor byte-for-byte
+  anatomically named and gives only the new load ending its distinct
+  `body-effector-load-terminal` coordinate.
+- The complete-body -> first-load -> repeated-load lifecycle now passes. The
+  observer, action authority, L0--L4/DSF, persistence, body settlement, and
+  resident source-index law are unchanged. Production remains task 1206 until
+  the corrected immutable candidate is cut over and CURRENT advancement plus
+  GLJSRC04 load return are directly observed.

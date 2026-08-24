@@ -285,7 +285,17 @@ pub(crate) fn admit_articulated_body_consequence_source(
                     },
                 )?;
                 output.extend_from_slice(&1_u16.to_le_bytes());
-                text(&mut output, "body-antagonist-terminal")?;
+                text(
+                    &mut output,
+                    if load_ending {
+                        "body-effector-load-terminal"
+                    } else {
+                        // GLJSRC04 extends the occurrence with load endings;
+                        // it does not rename the already-mounted GLJSRC03
+                        // length receptor.
+                        "body-antagonist-proprioceptor-terminal"
+                    },
+                )?;
                 text(&mut output, &terminal.ordinal().to_string())?;
                 text(
                     &mut output,
@@ -585,6 +595,14 @@ mod tests {
         assert_eq!(&episode.joint_source_body()[..8], b"GLJSRC04");
         assert_eq!(episode.joint_source_ports().len(), 4);
         assert_eq!(episode.joint_source_occurrences().len(), 1);
+        assert_eq!(
+            episode.joint_source_ports()[0].coordinates[0].axis_id,
+            "body-antagonist-proprioceptor-terminal"
+        );
+        assert_eq!(
+            episode.joint_source_ports()[2].coordinates[0].axis_id,
+            "body-effector-load-terminal"
+        );
         let toward_minimum_load = &episode.joint_source_ports()[2];
         let toward_maximum_load = &episode.joint_source_ports()[3];
         assert_eq!(
