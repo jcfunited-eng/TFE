@@ -3050,3 +3050,32 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   `awaiting_varied_retained_formation_sensorimotor_return`; this cutover retires
   the recoverable observer callback but does not manufacture its missing native
   causal witness.
+
+### Exact recurrent-origin witness correction
+
+- Source review after the task-1202 cutover found one read-only evidence defect,
+  not a cognition defect. Native recurrence law may carry an exact cue-member
+  transfer back into the retained formation's recurrent neuron. The observer's
+  generic no-cycle rule correctly discarded the older path at that return, but
+  it also discarded the newly proven recurrent origin before the next physical
+  interval could advance from it toward ordering and motor layers.
+- The correction recognizes only a committed frontier entry whose frontier is
+  the reported recurrent lineage and whose other endpoint is one of that exact
+  formation's reported cue lineages. It starts a new bounded trace at the
+  current recurrence tick with that physical transfer as its first edge. The
+  prior path remains retired; arbitrary lineage revisits remain rejected; a
+  trace that does not advance on the next interval is still dropped.
+- This changes no neuron, contact, DSF field, motor selection, body action,
+  persistence, or scheduling. It consumes only immutable hop evidence after
+  CURRENT publication and cannot call, pause, reject, roll back, or otherwise
+  affect resident cognition.
+- The new falsifier proves exact cue-to-recurrent return, later
+  recurrent-to-ordering advance, and exact layer-11-to-layer-12 motor
+  preparation as one directed path. The pre-existing arbitrary-cycle refusal
+  remains passing. The focused A-006 causal, C-023 causal, and curriculum
+  invitation suites pass `29/29`; Python compilation and `git diff --check`
+  pass.
+- This is source proof only. A-011 remains open until the immutable correction
+  is live and ordinary production life yields the required varied
+  retained-formation actions with sensed consequences; the observer may reveal
+  that evidence but may never create it.

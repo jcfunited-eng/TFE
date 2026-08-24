@@ -176,6 +176,71 @@ def test_causal_trace_does_not_revisit_a_lineage() -> None:
     assert completed == {}
 
 
+def test_exact_recurrent_return_begins_the_next_causal_motor_path() -> None:
+    cue = "01" * 16
+    recurrent = "02" * 16
+    ordering = "03" * 16
+    motor = "04" * 16
+    receipt = "11" * 32
+    recurrent_return = (cue, recurrent, 0, 9)
+    recurrent_to_ordering = (recurrent, ordering, 0, 7)
+    ordering_to_motor = (ordering, motor, 0, 5)
+    observer = _FrontierObserver()
+
+    observer.transfers = ((*recurrent_return, recurrent),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(40, cues=((receipt, (cue,), recurrent),)),
+    )
+    assert completed == {}
+    assert active == {
+        ("retained_formation", receipt, (cue,), 41): {
+            recurrent: (recurrent_return,)
+        }
+    }
+
+    observer.transfers = ((*recurrent_to_ordering, ordering),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(41),
+    )
+    assert completed == {}
+
+    observer.transfers = ()
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            42,
+            motors=(
+                (
+                    motor,
+                    7,
+                    5,
+                    ((ordering, 11, motor, 12, 0, 5),),
+                    (),
+                ),
+            ),
+        ),
+    )
+
+    assert active == {}
+    proof = completed["retained_formation"]
+    assert proof["formation_receipt_sha256"] == receipt
+    assert proof["recurrence_organism_tick"] == 41
+    assert proof["motor_organism_tick"] == 43
+    assert proof["directed_physical_transfers"] == (
+        recurrent_return,
+        recurrent_to_ordering,
+        ordering_to_motor,
+    )
+
+
 def test_retained_path_reaches_layer_13_without_false_body_motor_proof() -> None:
     cue = "01" * 16
     association = "02" * 16

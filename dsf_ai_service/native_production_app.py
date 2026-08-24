@@ -8754,6 +8754,31 @@ def _advance_causal_motor_traces(
                 next_paths[frontier] = candidate
         if next_paths:
             advanced[key] = next_paths
+    if "retained_formation" not in completed:
+        for receipt, cue_lineages, recurrent_lineage in hop[
+            "internally_reassembled_formation_cues"
+        ]:
+            if recurrent_lineage is None:
+                continue
+            cues = tuple(cue_lineages)
+            recurrent_returns = tuple(
+                (sender, receiver, ordinal, carriers)
+                for sender, receiver, ordinal, carriers, frontier in (
+                    observed_interval_frontier
+                )
+                if frontier == recurrent_lineage
+                and (
+                    (sender == recurrent_lineage and receiver in cues)
+                    or (receiver == recurrent_lineage and sender in cues)
+                )
+            )
+            if not recurrent_returns:
+                continue
+            key = ("retained_formation", receipt, cues, organism_tick)
+            advanced.setdefault(key, {}).setdefault(
+                recurrent_lineage,
+                (min(recurrent_returns),),
+            )
     proofs: dict[str, list[dict[str, Any]]] = {
         kind: [] for kind in origin_kinds if kind not in completed
     }
