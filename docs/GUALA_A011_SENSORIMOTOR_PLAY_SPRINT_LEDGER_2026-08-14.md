@@ -3227,3 +3227,27 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   the recurrent stopped-load source-identity correction in live production;
   it does not by itself close A-011's still-required varied retained-formation
   play witness.
+
+### Antagonist stopped-load feedback live correction
+
+- Commit `b3090944cdaa27c9d107dad533a6919bab5e3114` deployed on the first and
+  only controller attempt from `2026-08-24T07:30:26Z` through
+  `2026-08-24T07:47:58Z` as task `dsf-ai-task:1208`, immutable image
+  `sha256:91529dc77c6b9c3934e40d79ab621dba78247e921932c3de9be52c0917869be1`.
+  The controller verified one cutover and exact native-state continuity with
+  automatic legacy rollback disabled.
+- Reacted-load endings now develop toward the antagonist motor on the same
+  articulated axis; ordinary antagonist-length endings retain their existing
+  same-terminal pairing. The explicit cold correction rewired only retained
+  task-1207 load contacts, preserved their exact conductance and carrier phase,
+  and removed only frontier/formation evidence naming the rejected bond.
+- The same organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` advanced through tick `162545`, state
+  `53b3b85049984d1a69983dba2ef983d4dd855d6d2a27a188343adc3af8a6ede3`.
+  `continuous_cognition=true`; the observer remained downstream with
+  `cognition_authority=false` and `read_advances_organism=false`.
+- The bounded later reading still reported `moved=false`, four typed body
+  consequence sources, 100 body receptor ingresses, and two exact motor/body
+  afferent paths. The correction is therefore live, but A-011 remains open at
+  `awaiting_varied_retained_formation_sensorimotor_return`; no varied-play
+  witness is claimed.
