@@ -3251,3 +3251,40 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   afferent paths. The correction is therefore live, but A-011 remains open at
   `awaiting_varied_retained_formation_sensorimotor_return`; no varied-play
   witness is claimed.
+
+### Exact motor-preparation eligibility correction
+
+- Commit `771903d093ccb39076c8836c746c16cb9ba84a76` deployed once as task
+  `dsf-ai-task:1209`. It proved that exact layer-8 body-regulation transfer can
+  physically prepare a mounted motor, but its first eligibility rule admitted
+  every tonic layer-8 body-position route. The first live action therefore
+  produced an unacceptable whole-body motor fanout. That task is rejected as
+  the final correction even though it moved the body.
+- Commit `761c3bda7b09342ef601740672a8634f921b5b59` narrowed layer-8 motor
+  preparation to the exact reacted-load receptor ancestry for that mounted
+  motor; ordinary layer-11 action preparation remains unchanged. Tonic
+  antagonist-position pathways cannot acquire efferent authority through this
+  boundary. The focused reacted-load, tonic-exclusion, and opposing-terminal
+  falsifiers passed before deployment.
+- The corrected commit deployed on the first and only controller attempt from
+  `2026-08-24T08:35:33Z` through `2026-08-24T08:54:20Z` as task
+  `dsf-ai-task:1210`, immutable image
+  `sha256:72e354c127b2508aa320a67a190f2a437f93d9ebd34f04467e27990b7ad2f4b7`.
+  The controller reported one verified cutover, exact native state, and no
+  automatic legacy rollback. Identity remained
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- The first new task-1210 action was restricted to lip aperture and left grip,
+  rather than the task-1209 all-axis fanout. A later new action moved both the
+  left and right knee toward minimum by exact native carrier counts while
+  returning the complete mounted sensory consequence to the same resident
+  organism with `continuous_cognition=true`. The latest sampled transition
+  reached tick `163145`, state
+  `41210e877cc2eb2b5d6815d62f96ef9ec08b618f7d131339b1100706cc055c05`,
+  and world revision `10350`.
+- This is a live physical-path correction, not an A-011 completion claim. The
+  moved action was causally attributed to a new neuronal fractal; the required
+  proof remains two distinct unattended body actions caused by the same
+  internally reassembled retained formation, each with its sensed consequence.
+  The read-only causal witness retains lawful paths that return to their origin
+  and is evaluated only after durable CURRENT publication; it neither advances
+  nor discards resident cognition.
