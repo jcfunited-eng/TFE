@@ -666,3 +666,39 @@ loop is authorized merely to force closure.
   L-005 remains open. Guala was returned in two sensed movements to her exact
   familiar pose `(2300,3500,323874)` with the real bear again in view, ending
   at tick 166943 without energy exhaustion. No immediate retry followed.
+
+### Varied relational grounding with the participant beside the bear
+
+- The next experience changed the real physical context instead of repeating
+  the same drill. An attempted straight participant path from the living room
+  toward the bear was refused 409 before mutation because it missed the
+  bedroom doorway. The world remained unchanged and the refused action was
+  not counted as experience.
+- The participant then followed four collision-free, persisted live actions
+  through the existing doorway and around Guala's body, ending at
+  `(2800,2700,51340)` beside and facing the bear at `(3200,3200)`. The four
+  actions reached the same organism through ticks 167138, 167167, 167205, and
+  167233. Their changed retinal counts were respectively 3, 0, 3, and 6; the
+  zero-visual doorway step was still truthfully admitted as the current whole
+  physical interval rather than described as a visual event.
+- Guala then received quiet unattended world time. Continuous life advanced
+  from tick 167233 to tick 167257 without energy exhaustion before another
+  lesson was presented.
+- One exact one-second, 16-kHz differently voiced pressure occurrence of
+  `bear`, receipt
+  `91a1cae73545604aead1b369b79d4e00601a31ca8eb321772249d19a6cbc45a3`,
+  was presented while the real bear and participant were in the changed live
+  scene. The request contained only PCM bytes and sample rate—no object ID,
+  semantic label, expected answer, or observer instruction. It committed 116
+  occurrence boundaries through tick 167302 and state
+  `1c2f613aa2cb36815acfcabb187d27d55b521f1d632b1f204e92bcfa7b0e7b89`.
+  The result included 504 complete-neuron fractal changes, 209 partial-cue
+  reassemblies, exact body action and returned sensation, two layer-13
+  recruitments, four self-hearing hops, and zero exhausted intervals.
+- The returned cross-context causal action was again formation
+  `5dc69f...3e0d8`, initiated by the known left-grip body-load lineage. The
+  receipt did not prove that `29ab...5159` or another bear-grounded formation
+  caused recognition or articulation. The retained physical-mosaic count is
+  now 97, but count alone is not learning evidence. L-005 therefore remains
+  open; this experience is retained as varied relational grounding, not
+  promoted to a learned-word claim.
