@@ -5,31 +5,18 @@ from __future__ import annotations
 import base64
 import json
 import struct
-from types import SimpleNamespace
-
 from dsf_ai_service import native_production_app as production
-
-
-STATE = "1" * 64
 
 
 def _payload() -> dict[str, object]:
     return {
         "schema": production.GUIDED_WORLD_VOICE_SCHEMA,
-        "expected_predecessor_state_sha256": STATE,
         "pcm_s16le_base64": base64.b64encode(struct.pack("<hh", 2, -2)).decode(),
         "sample_rate_hz": production.COCHLEAR_SAMPLE_RATE_HZ,
     }
 
 
 def _mount_transport(monkeypatch) -> list[tuple[object, str]]:
-    readiness = SimpleNamespace(state_sha256=STATE)
-    organism = SimpleNamespace(readiness=lambda: readiness)
-    monkeypatch.setattr(
-        production,
-        "_runtime",
-        lambda: (SimpleNamespace(organism=organism), SimpleNamespace()),
-    )
     monkeypatch.setattr(production, "_spoken_voice_refusal", lambda: None)
     monkeypatch.setattr(
         production,
@@ -82,14 +69,14 @@ def test_grounded_world_voice_refuses_semantic_or_object_fields(monkeypatch) -> 
     assert json.loads(response.body)["accepted"] is False
 
 
-def test_grounded_world_voice_refuses_a_stale_predecessor(monkeypatch) -> None:
+def test_grounded_world_voice_refuses_a_caller_predecessor_gate(monkeypatch) -> None:
     calls = _mount_transport(monkeypatch)
     payload = _payload()
     payload["expected_predecessor_state_sha256"] = "4" * 64
 
     response = production.guided_world_voice(payload)
 
-    assert response.status_code == 409
+    assert response.status_code == 422
     assert calls == []
 
 

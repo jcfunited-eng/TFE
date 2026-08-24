@@ -214,7 +214,7 @@ CURRICULUM_INVITE_ENDPOINT = "/api/v1/curriculum/invite-card"
 CURRICULUM_INVITE_SONG_ENDPOINT = "/api/v1/curriculum/invite-song"
 CURRICULUM_TEACH_SONG_ENDPOINT = "/api/v1/curriculum/teach-song"
 GUIDED_WORLD_VOICE_ENDPOINT = "/api/v1/curriculum/guided-world-voice"
-GUIDED_WORLD_VOICE_SCHEMA = "guala.guided_world_voice.v1"
+GUIDED_WORLD_VOICE_SCHEMA = "guala.guided_world_voice.v2"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
@@ -15267,8 +15267,9 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Let a tutor speak while Guala experiences her actual current world.
 
     The request deliberately has no semantic field. It cannot tell cognition
-    what the pressure means or which thing to learn. The expected predecessor
-    makes one presentation at-most-once across an ambiguous client response.
+    what the pressure means or which thing to learn. External-intake admission
+    yields unattended time before this function takes the resident transition
+    lock, so this one request binds the exact then-current organism internally.
     """
 
     refusal = _spoken_voice_refusal()
@@ -15276,21 +15277,17 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         return refusal
     expected_fields = {
         "schema",
-        "expected_predecessor_state_sha256",
         "pcm_s16le_base64",
         "sample_rate_hz",
     }
     if not isinstance(payload, dict) or set(payload) != expected_fields:
         return _refusal(
             422,
-            "grounded world voice accepts only schema, exact predecessor, "
-            "sample rate, and physical PCM pressure",
+            "grounded world voice accepts only schema, sample rate, and "
+            "physical PCM pressure",
         )
     if payload.get("schema") != GUIDED_WORLD_VOICE_SCHEMA:
         return _refusal(422, f"grounded world voice requires {GUIDED_WORLD_VOICE_SCHEMA}")
-    predecessor = payload.get("expected_predecessor_state_sha256")
-    if not isinstance(predecessor, str) or not re.fullmatch(r"[0-9a-f]{64}", predecessor):
-        return _refusal(422, "grounded world voice requires an exact predecessor state")
     sample_rate = payload.get("sample_rate_hz")
     if sample_rate != COCHLEAR_SAMPLE_RATE_HZ:
         return _refusal(
@@ -15313,14 +15310,6 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
     try:
         with _transition_lock:
-            restored, _ = _runtime()
-            current = restored.organism.readiness()
-            if current.state_sha256 != predecessor:
-                return _refusal(
-                    409,
-                    "grounded world voice predecessor is stale; the presentation "
-                    "was not repeated",
-                )
             episodes, world_sensorium = _guided_world_voice_episodes(
                 samples,
                 sample_rate,

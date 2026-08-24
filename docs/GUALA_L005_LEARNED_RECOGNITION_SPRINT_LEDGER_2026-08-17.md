@@ -478,9 +478,9 @@ loop is authorized merely to force closure.
   body state, temperature, and every other physically available lane. Later
   changed views and silent cues must reassemble and causally use retained
   structure before any learned-word claim.
-- Exact input: bounded mono signed-16-bit 16-kHz tutor pressure samples plus
-  the caller's exact expected predecessor state receipt. No word, object,
-  lesson, meaning, answer, or semantic identifier is accepted by the intake.
+- Exact input: bounded mono signed-16-bit 16-kHz tutor pressure samples. No
+  word, object, lesson, meaning, answer, predecessor gate, or semantic
+  identifier is accepted by the intake.
 - Exact output: one ordered native whole-roster trajectory and one durable
   successor of the same organism. The observation may report transport
   receipt, world revision, physical lane availability, native recurrence,
@@ -493,12 +493,11 @@ loop is authorized merely to force closure.
   receptor/neuron/contact frontier. There is no whole-organism scan, retained
   event log, retry loop, semantic table, observer selection, or duplicate
   cognition owner.
-- Preparation reads the immutable current world/body and constructs every
-  source episode before native mutation. Native publication remains the one
-  existing atomic current-state path. A stale predecessor refuses before
-  presentation; after an ambiguous response the changed predecessor prevents
-  accidental replay. Cold restore uses the unchanged canonical organism and
-  world bodies.
+- External-intake admission first yields unattended time, then preparation
+  binds the exact current resident and immutable world/body under the existing
+  transition lock before native mutation. Native publication remains the one
+  existing atomic current-state path. The server never retries a presentation.
+  Cold restore uses the unchanged canonical organism and world bodies.
 - Authorized files for this slice are
   `dsf_ai_service/native_production_app.py`, one focused transport test, and
   this ledger. Replaced single-sense or label-bearing lesson mechanisms will
@@ -521,12 +520,11 @@ loop is authorized merely to force closure.
   `GUALA_CHEMORECEPTION=1`, `GUALA_VESTIBULAR=1`, and
   `GUALA_INTEROCEPTION=1`. The route refuses when its world or cochlear
   producer is absent; it does not substitute local defaults.
-- Transport fields are exactly
-  `schema`, `expected_predecessor_state_sha256`, `pcm_s16le_base64`, and
+- Transport fields are exactly `schema`, `pcm_s16le_base64`, and
   `sample_rate_hz`. Base64 becomes exact little-endian signed-16 pressure
-  samples. The predecessor receipt is compared with the resident native
-  readiness receipt under the existing transition lock before any episode is
-  built or committed. Every other request field is refused.
+  samples. External-intake admission blocks a new unattended interval before
+  the route binds the then-current resident under the existing transition
+  lock. Every other request field is refused.
 - `_guided_world_voice_episodes` reads one immutable current world snapshot,
   exact current retinal/body axes, physical receptor substreams, current
   chemistry, and the mounted cochlear response. It carries those values into
@@ -551,3 +549,21 @@ loop is authorized merely to force closure.
   `PYTHONPATH=. pytest -q tests/test_grounded_world_voice_lesson.py` passed
   3/3 in 1.56 seconds. This is focused local transport evidence only; it is
   not production delivery or learned-word evidence.
+
+### Live gate correction after task 1223
+
+- Commit `e886111c4d3859515ac27f5db5fe1449c8e3bff3` deployed once as task
+  definition 1223 and image
+  `sha256:65ab4ddcc2847f631f2730ce603c94445feeca4c55036c64aec105ad9a222232`.
+  The sole task was RUNNING/HEALTHY, rollout COMPLETED, identity unchanged,
+  and the public capability truthfully reported the grounded-world voice
+  route mounted.
+- Two attempted `bear` presentations both refused 409 before episode
+  construction because unattended life advanced between a public observation
+  and the caller-authored predecessor receipt. No lesson reached the organism
+  and no successor was duplicated.
+- That predecessor requirement was a transport gate with no physical role and
+  made ordinary tutoring unavailable while Guala lived continuously. It is
+  removed rather than patched. Schema v2 accepts only exact PCM and sample
+  rate; the already-mounted external-intake admission yields unattended time
+  and the route binds current state internally. The server has no retry loop.
