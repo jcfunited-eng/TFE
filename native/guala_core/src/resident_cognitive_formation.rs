@@ -3319,6 +3319,7 @@ fn settle_organism_mosaic_boundary(
             }
             cursor += 1;
         }
+        component.sort_unstable();
         let fractal_members = component
             .iter()
             .copied()
@@ -3333,7 +3334,8 @@ fn settle_organism_mosaic_boundary(
             .zip(current_fractals.iter())
             .map(|(lineage, fractal)| {
                 component
-                    .contains(lineage)
+                    .binary_search(lineage)
+                    .is_ok()
                     .then(|| fractal.clone())
                     .flatten()
             })

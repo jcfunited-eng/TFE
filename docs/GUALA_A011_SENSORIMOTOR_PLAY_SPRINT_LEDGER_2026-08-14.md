@@ -3363,3 +3363,26 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   compiled. Both fixtures now construct the same `BTreeSet`; `cargo test --lib
   --no-run` compiled the complete test target in 8.17 seconds. Task 1212 was
   never drained or replaced by that failed build.
+
+### Task-1213 passive timing rejection and active-component membership correction
+
+- Commit `c79b256e91c3b3f5390b275c8d98c984de90c541` deployed once as task
+  `dsf-ai-task:1213`, image
+  `sha256:605dadabbed0a0e245ab03309ab6bdbfcb8fde9f1b916e9d803ceb4b8b56fe16`.
+  Identity and native state continuity passed, but the first ordinary interval
+  remained at tick `163574` beyond twelve minutes. CPU averaged roughly
+  `42%`--`57%` of four vCPUs; memory remained roughly `12%`--`13%` of 16 GiB;
+  the 163,439,326-byte CURRENT did not grow. This is bounded but unacceptably
+  slow, and no action or consequence is claimed.
+- The live body contains only 80 retained formations, falsifying the hypothesis
+  that the ordinary retained-formation filter caused this delay. Static tracing
+  then found an exact quadratic operation after physical settlement: for each
+  active component, construction of the topology-indexed sparse fractal view
+  tested every resident lineage with linear `component.contains`. The observed
+  approximately 63,000-participant frontier therefore permits billions of
+  lineage comparisons unrelated to neuron physics.
+- The current candidate sorts that already-complete component once and performs
+  exact binary membership. Component membership, topology order, every sparse
+  delta, bond, and full DSF result remain unchanged. Passive production timing
+  remains the acceptance evidence; no injected stimulus or behavioral label is
+  authorized.
