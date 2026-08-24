@@ -279,7 +279,7 @@ def _validate_proof(
     expected_native_internal_consolidation_rehearsal: bool = False,
     expected_native_causal_cross_context_rehearsal: bool = False,
     expected_a013_articulated_body_rehearsal: bool = False,
-    expected_l005_word_apple_rehearsal: bool = False,
+    expected_a011_ordinary_interval_rehearsal: bool = False,
 ) -> dict[str, object]:
     if not isinstance(proof, dict):
         raise RuntimeError("native candidate proof is not an object")
@@ -858,57 +858,20 @@ def _validate_proof(
         is not None
         and proof.get("a013_thermal_body_python_callback_count") == 0
     )
-    l005_word_apple_rehearsal = (
-        proof.get("l005_word_apple_rehearsed") is True
-        and proof.get("l005_word_apple_predecessor_tick") == actual_tick
-        and isinstance(proof.get("l005_word_apple_successor_tick"), int)
-        and not isinstance(proof["l005_word_apple_successor_tick"], bool)
-        and proof["l005_word_apple_successor_tick"] > actual_tick
-        and proof.get("l005_word_apple_predecessor_state_sha256")
-        == actual_state_sha256
-        and isinstance(proof.get("l005_word_apple_successor_state_sha256"), str)
-        and _SHA.fullmatch(proof["l005_word_apple_successor_state_sha256"])
-        is not None
-        and proof["l005_word_apple_successor_state_sha256"]
-        != actual_state_sha256
-        and all(
-            isinstance(proof.get(name), int)
-            and not isinstance(proof[name], bool)
-            and proof[name] > 0
-            for name in (
-                "l005_word_apple_dsf_delivery_count",
-                "l005_word_apple_external_reassembly_count",
-            )
-        )
-        and all(
-            isinstance(proof.get(name), int)
-            and not isinstance(proof[name], bool)
-            and proof[name] >= 0
-            for name in (
-                "l005_word_apple_causal_transfer_count",
-                "l005_word_apple_body_return_count",
-            )
-        )
-        and (
-            (
-                proof.get("l005_word_apple_causal_use_kind") is None
-                and proof.get("l005_word_apple_causal_transfer_count") == 0
-            )
-            or (
-                proof.get("l005_word_apple_causal_use_kind")
-                in {"body_action", "articulation"}
-                and proof.get("l005_word_apple_causal_transfer_count", 0) > 0
-            )
-        )
-        and isinstance(
-            proof.get("l005_word_apple_formation_receipt_sha256"), str
-        )
-        and _SHA.fullmatch(
-            proof["l005_word_apple_formation_receipt_sha256"]
-        )
-        is not None
-        and proof.get("l005_word_apple_successor_sealed_exact") is True
-        and proof.get("l005_word_apple_python_callback_count") == 0
+    a011_ordinary_interval_rehearsal = (
+        proof.get("a011_ordinary_interval_rehearsed") is True
+        and proof.get("a011_predecessor_tick") == actual_tick
+        and isinstance(proof.get("a011_successor_tick"), int)
+        and not isinstance(proof["a011_successor_tick"], bool)
+        and proof["a011_successor_tick"] > actual_tick
+        and proof.get("a011_body_moved") is True
+        and proof.get("a011_continuous_cognition") is True
+        and proof.get("a011_articulated_body_receptor_count") == 74
+        and isinstance(proof.get("a011_retained_formation_reassembly_count"), int)
+        and proof["a011_retained_formation_reassembly_count"] > 0
+        and isinstance(proof.get("a011_successor_state_sha256"), str)
+        and _SHA.fullmatch(proof["a011_successor_state_sha256"]) is not None
+        and proof["a011_successor_state_sha256"] != actual_state_sha256
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
@@ -967,8 +930,8 @@ def _validate_proof(
             )
         )
         or (
-            expected_l005_word_apple_rehearsal
-            and not l005_word_apple_rehearsal
+            expected_a011_ordinary_interval_rehearsal
+            and not a011_ordinary_interval_rehearsal
         )
         or not isinstance(proof.get("resident_state_bytes"), int)
         or isinstance(proof.get("resident_state_bytes"), bool)
@@ -1077,7 +1040,7 @@ def main() -> int:
     expected_native_internal_consolidation_rehearsal = False
     expected_native_causal_cross_context_rehearsal = False
     expected_a013_articulated_body_rehearsal = False
-    expected_l005_word_apple_rehearsal = values.mode == "cold-restore"
+    expected_a011_ordinary_interval_rehearsal = values.mode == "cold-restore"
     task_input = probe_task_definition(
         source,
         mode=values.mode,
@@ -1186,8 +1149,8 @@ def main() -> int:
             expected_a013_articulated_body_rehearsal=(
                 expected_a013_articulated_body_rehearsal
             ),
-            expected_l005_word_apple_rehearsal=(
-                expected_l005_word_apple_rehearsal
+            expected_a011_ordinary_interval_rehearsal=(
+                expected_a011_ordinary_interval_rehearsal
             ),
         )
         print(_canonical(validated).decode("ascii"))
