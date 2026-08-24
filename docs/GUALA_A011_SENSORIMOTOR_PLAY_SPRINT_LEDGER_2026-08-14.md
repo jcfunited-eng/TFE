@@ -2962,3 +2962,23 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 - Python compilation, `git diff --check`, and the exact A-006 causal,
   C-023 causal, A-011 play, and public-observation selection passed `59/59` in
   `1.55 s`. This is reviewed local candidate evidence, not a production claim.
+
+### Observer non-authority live cutover
+
+- Reviewed commit `037515de3e52d296e89be64fe81ecd6281cc909c`
+  deployed on the first and only controller attempt from
+  `2026-08-24T01:40:20Z` through `2026-08-24T01:58:28Z`.
+- The immutable image is
+  `sha256:09f4867686431a52c770add5c014c373bfb0f6bb7b96ef86de6a585bd12348d9`
+  on `dsf-ai-task:1201`; automatic legacy rollback is disabled and the
+  controller reports `verified_native_state=true`.
+- ECS settled at desired/running/pending `1/1/0` with one completed PRIMARY
+  deployment. One cached public read reported the exact candidate commit,
+  image, task, and unchanged identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, with Python cognition, action,
+  timer-choice, random-selector, reward, and semantic-label authority all
+  false.
+- A-011 truthfully remains open: the live observer reports
+  `awaiting_varied_retained_formation_sensorimotor_return`. Deployment proves
+  observer non-authority and continuity, not the still-unobserved naturally
+  completed two-episode play witness.
