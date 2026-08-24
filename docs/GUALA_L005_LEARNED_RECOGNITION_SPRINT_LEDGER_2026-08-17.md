@@ -592,3 +592,37 @@ loop is authorized merely to force closure.
   changed context. The next lawful step is quiet lived time followed by a
   later varied bear experience and partial-cue causal-use proof—not an
   immediate drill or observer-selected answer test.
+
+### Second live experience, bounded receipt, and silent partial cue
+
+- A later, slower and differently pitched external utterance of `bear` reached
+  the same live bedroom and organism once. The public gateway returned 504,
+  but CURRENT proved that the request had already committed through tick
+  165962 and state
+  `9e25e678606e5789ee636dfca01b19a11bb0147cc070b4c8cd55577d64a545b1`.
+  It produced 519 complete-neuron fractal changes, 314 partial-cue
+  reassemblies, an applied body action with returned whole-roster consequence,
+  and four self-hearing hops. The request was not repeated.
+- The post-commit HTTP failure was not cognition or rollback. The route tried
+  to JSON-encode its full internal native observation, and one conditional
+  body value was `bytes`. Commit `b1d1b881528f0606b9e7e28d30db68680f3569bd`
+  removes that full-observation response. The route now returns only a bounded
+  passive transition, causal-use, articulation, persistence, ingress, totals,
+  and world receipt. A focused falsifier places an explicit byte buffer in the
+  internal observation and proves it cannot enter the response; all three
+  grounded-world voice tests pass.
+- That correction is live as sole healthy task `dsf-ai-task:1225`, image
+  `sha256:458b6a19f936fd46de39e564e952e8fab300eb3993e3a3fb0808c28e8b5e9561`.
+  The deployment controller verified the unchanged organism identity and
+  native CURRENT, with one desired/running task and no pending task.
+- After the deployment/quiet interval, 4,000 exact zero-pressure samples were
+  supplied while the current real room remained present. This was a silent
+  partial physical cue, not a word or semantic command. It committed once
+  through tick 166309 and state
+  `1c3e6de9663c02234291dbc8bcce257d9cb31365687e005294199d8f79dcbe05`.
+  Native recurrence did cause retained formation
+  `5dc69f24270b535b2b7ba1fdd3e09c1231b00e751518e2f9798dd778a3d3e0d8`
+  to reach layer-12 action and returned sensation. Its exact initiating lineage
+  is receptor `...0786`, the mounted
+  `left_grip_aperture-toward-maximum-load` body-load lane. That is truthful
+  body-memory use, not visual/auditory bear recognition, so L-005 remains open.
