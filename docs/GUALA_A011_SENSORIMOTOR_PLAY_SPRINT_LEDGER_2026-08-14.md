@@ -3079,3 +3079,23 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   is live and ordinary production life yields the required varied
   retained-formation actions with sensed consequences; the observer may reveal
   that evidence but may never create it.
+
+### Exact recurrent-origin witness live cutover
+
+- Commit `18ac25a4b6c8877ab86a812f56f2bca43a97c81a` deployed on the first and
+  only controller attempt from `2026-08-24T03:34:05Z` through
+  `2026-08-24T03:51:56Z` as task `dsf-ai-task:1203`, immutable image
+  `sha256:4f2d1b017f6dbc746d22aa9e042531dce93cb18d9989f4522233fc322f91ea1c`.
+  The controller reported one verified cutover, `verified_native_state=true`,
+  and automatic legacy rollback disabled.
+- One bounded read-only public observation after cutover reported organism tick
+  `160525`, committed CURRENT state
+  `57d9ab79e8fb469898caaac5023584e13f78b52b8b6c4b9089ade7e39ab94ae7`,
+  `working_causal_continuation_count=1`, and a complete same-organism body/world
+  sensory return. The sampled action was stalled (`moved=false`) and was not a
+  completed varied retained-formation play witness.
+- A-011 therefore remains truthfully open at
+  `awaiting_varied_retained_formation_sensorimotor_return`. This cutover repairs
+  the observer's ability to retain the exact native recurrent origin; it does
+  not claim that ordinary life has yet carried that origin through a moved body
+  action twice.
