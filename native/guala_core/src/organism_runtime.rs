@@ -2980,14 +2980,12 @@ impl ResidentOrganismRuntime {
         let mut source_occurrence_count = 0usize;
         let mut articulated_body = initial_articulated_body;
         let mut articulated_body_consequences = Vec::new();
-        // A motor discharge ends this native causal turn.  Its exact body
-        // successor is retained below and the caller immediately advances
-        // the world, then enters the same resident again through the ordinary
-        // complete-body + world-sensorium boundary.  Do not recursively feed
-        // proprioception here: that used to run cognition ahead of the
-        // visual/tactile/world consequence and could spin through an entire
-        // motor frontier before returning.
-        let body_proprioceptive_sources = Vec::new();
+        // A motor discharge ends this native causal turn. Preserve its exact
+        // sparse proprioceptive consequence for the caller to deliver beside
+        // the world/visual/tactile consequence in the next ordinary interval.
+        // It is deliberately not consumed recursively here: later cognition
+        // cannot run ahead of the rest of the physical consequence.
+        let mut body_proprioceptive_sources = Vec::new();
         let mut trajectory_authority_entries = Vec::new();
         let mut processed_interval_count = 0usize;
         let mut advance_interval = |
@@ -3028,6 +3026,12 @@ impl ResidentOrganismRuntime {
                 &articulated_body,
                 &observation.motor_unit_recruitments,
             )?;
+            if let Some((_source, receipt)) = body_proprioceptive_source(
+                source_tick,
+                &body_transition.proprioceptive_consequences,
+            )? {
+                body_proprioceptive_sources.push(receipt);
+            }
             articulated_body_consequences.extend(
                 body_transition
                     .proprioceptive_consequences

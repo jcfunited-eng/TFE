@@ -3056,25 +3056,24 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 - Source review after the task-1202 cutover found one read-only evidence defect,
   not a cognition defect. Native recurrence law may carry an exact cue-member
   transfer back into the retained formation's recurrent neuron. The observer's
-  generic no-cycle rule correctly discarded the older path at that return, but
-  it also discarded the newly proven recurrent origin before the next physical
-  interval could advance from it toward ordering and motor layers.
-- The correction recognizes only a committed frontier entry whose frontier is
-  the reported recurrent lineage and whose other endpoint is one of that exact
-  formation's reported cue lineages. It starts a new bounded trace at the
-  current recurrence tick with that physical transfer as its first edge. The
-  prior path remains retired; arbitrary lineage revisits remain rejected; a
-  trace that does not advance on the next interval is still dropped.
+  generic no-cycle rule wrongly discarded that lawful return. A read-only
+  observer has no authority to suppress a physical path because it revisits its
+  origin or another prior endpoint; it may only report the committed path.
+- The correction recognizes only committed frontier entries. The later
+  task-1204 correction removed every generic revisit rejection: return to an
+  origin, reuse of a transfer, and return to any prior endpoint remain visible
+  when they are present in committed physical evidence. The observer may expire
+  its own constant-size, process-local display candidate when no later advance
+  exists; that forgets no neuron, contact, formation, or organism state.
 - This changes no neuron, contact, DSF field, motor selection, body action,
   persistence, or scheduling. It consumes only immutable hop evidence after
   CURRENT publication and cannot call, pause, reject, roll back, or otherwise
   affect resident cognition.
-- The new falsifier proves exact cue-to-recurrent return, later
-  recurrent-to-ordering advance, and exact layer-11-to-layer-12 motor
-  preparation as one directed path. The pre-existing arbitrary-cycle refusal
-  remains passing. The focused A-006 causal, C-023 causal, and curriculum
-  invitation suites pass `29/29`; Python compilation and `git diff --check`
-  pass.
+- The falsifiers prove exact cue-to-recurrent return, a lawful return to the
+  path's origin, later recurrent-to-ordering advance, and exact
+  layer-11-to-layer-12 motor preparation as one directed path. The focused
+  A-006 causal, C-023 causal, and curriculum invitation suites pass; Python
+  compilation and `git diff --check` pass.
 - This is source proof only. A-011 remains open until the immutable correction
   is live and ordinary production life yields the required varied
   retained-formation actions with sensed consequences; the observer may reveal
@@ -3099,3 +3098,32 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   the observer's ability to retain the exact native recurrent origin; it does
   not claim that ordinary life has yet carried that origin through a moved body
   action twice.
+
+### Exact native body-return diagnosis and correction candidate
+
+- Task `1204` preserved lawful causal returns in the observer, then ordinary
+  life repeatedly discharged two exact native motor lineages at their physical
+  stops: lip aperture toward its already-minimum position and left grip aperture
+  toward its already-maximum position. The world and organism kept advancing,
+  but every sampled consequence was an exact zero-displacement stall.
+- Source trace found the causal defect in
+  `native/guala_core/src/organism_runtime.rs`: the trajectory builder retained
+  exact articulated-body consequences but deliberately returned an empty typed
+  proprioceptive-source vector. Thus the next ordinary complete world/sensory
+  interval could not carry the body's exact applied/stalled motor consequence
+  back into the same resident organism.
+- The correction emits the existing exact sparse `GLJSRC03` body source from
+  native settlement without recursively consuming it. Python restores those
+  authenticated bytes and places them beside the complete world/visual/
+  auditory/tactile/chemical consequence in the next ordinary admitted interval.
+  Cognition is never paused, the observer is not involved, and no action,
+  displacement, selector, label, reward, DSF field, or L0--L4 value is authored.
+- Focused source proof passes: native antagonist/stall settlement `1/1`, native
+  typed body consequence `1/1`, and Python exact body-source/world-source joining
+  `3/3` selected A-009 tests. `cargo check --lib`, Python compilation, and
+  `git diff --check` pass. This remains a local candidate until immutable
+  deployment and direct same-identity live readback.
+- A-011 remains open. The live acceptance boundary is ordinary production life
+  receiving nonempty typed body-return sources and subsequently producing the
+  required varied retained-formation actions with their complete sensed
+  consequences.

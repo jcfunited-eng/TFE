@@ -82,7 +82,10 @@ from typing import Any, Iterable, NamedTuple
 import uuid
 import wave
 
-from guala_core import auditory_gammatone_field
+from guala_core import (
+    auditory_gammatone_field,
+    settle_native_joint_source_episode as restore_native_joint_source_episode,
+)
 
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -9326,6 +9329,9 @@ def _prepare_continuous_native_action_consequence(
     motor_unit_recruitments: tuple[Any, ...],
     body_effector_bindings: tuple[Any, ...],
     articulated_body_consequences: tuple[Any, ...],
+    body_proprioceptive_sources: tuple[
+        tuple[bytes, tuple[int, int, int, int, int]], ...
+    ],
 ) -> tuple[Any, Any, Any, list[tuple[int, int]], dict[str, Any], Any] | None:
     """Prepare one immediate world/sensor interval for a native body action.
 
@@ -9383,13 +9389,41 @@ def _prepare_continuous_native_action_consequence(
 
     try:
         execution = prepared.execution_receipt
-        episode, admissions, lane_truth = _action_consequence_episode(
+        world_episode, world_admissions, lane_truth = _action_consequence_episode(
             execution,
             action_duration=Fraction(WORLD_BODY_ACTION_MILLISECONDS, 1_000),
             body_displacement=(Fraction(0),) * DISPLACEMENT_SITE_COUNT,
             predecessor_retinal_body_axes=predecessor_body_axes,
             retinal_body_axes=successor_body_axes,
         )
+        restored_body_sources = tuple(
+            restore_native_joint_source_episode(
+                raw_source,
+                port_count,
+                sample_count,
+                occurrence_count,
+                occurrence_frame_count,
+            )
+            for raw_source, (
+                _source_tick,
+                port_count,
+                sample_count,
+                occurrence_count,
+                occurrence_frame_count,
+            ) in body_proprioceptive_sources
+        )
+        if restored_body_sources:
+            episode = (world_episode, *restored_body_sources)
+            admissions = (
+                world_admissions,
+                *(
+                    [(1, 1_000)] * source.occurrence_count
+                    for source in restored_body_sources
+                ),
+            )
+        else:
+            episode = world_episode
+            admissions = world_admissions
         predecessor_axes = {axis[1]: axis[3] for axis in predecessor_body_axes}
         successor_axes = {axis[1]: axis[3] for axis in successor_body_axes}
         if predecessor_axes.keys() != successor_axes.keys():
@@ -9507,6 +9541,9 @@ def _perform_admitted_intake_locked(
     body_proprioceptive_source_receipts: list[
         tuple[str, tuple[int, int, int, int, int]]
     ] = []
+    body_proprioceptive_sources: list[
+        tuple[bytes, tuple[int, int, int, int, int]]
+    ] = []
 
     def retain_articulated_body_evidence(hop: dict[str, Any]) -> None:
         body_effector_bindings.extend(hop["body_effector_bindings"])
@@ -9520,6 +9557,9 @@ def _perform_admitted_intake_locked(
         body_proprioceptive_source_receipts.extend(
             (hashlib.sha256(source).hexdigest(), extent)
             for source, extent in zip(sources, extents, strict=True)
+        )
+        body_proprioceptive_sources.extend(
+            zip(sources, extents, strict=True)
         )
 
     articulation: dict[str, Any] | None = None
@@ -9863,6 +9903,7 @@ def _perform_admitted_intake_locked(
             motor_unit_recruitments=tuple(motor_unit_recruitments),
             body_effector_bindings=tuple(sorted(set(body_effector_bindings))),
             articulated_body_consequences=tuple(articulated_body_consequences),
+            body_proprioceptive_sources=tuple(body_proprioceptive_sources),
         )
     except BaseException:
         organism.abort_unsealed_trajectory()
