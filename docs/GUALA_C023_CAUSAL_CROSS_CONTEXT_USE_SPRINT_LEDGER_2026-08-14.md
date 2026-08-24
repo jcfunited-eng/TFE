@@ -1209,3 +1209,31 @@ social cognition, self/body continuity, procedural skill, creativity, and
 reflection still require their own reconciled causal outcomes. C-023 therefore
 remains `RECONCILED PARTIAL` while its imagination/common cross-context-use
 increment is live-proved.
+
+### Task-1204 lawful causal-return observer correction
+
+Commit `c995e0a723f8db4d32536453864b91a172497c9f` deployed in one verified
+cutover as the sole production task `dsf-ai-task:1204`, image
+`sha256:7d4b4de8ef49a4a855b519cca2b1c5a9997c061448593ee4c2355a08ae064052`.
+ECS reported desired one, running one, pending zero, and one completed PRIMARY
+deployment. Native state verification passed without automatic legacy rollback,
+and the resident identity remained
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The read-only causal witness had rejected an otherwise exact transfer whenever
+its destination lineage, or the same contact, appeared earlier in the current
+bounded path. When that left no unseen destination it discarded the active
+path, falsely hiding a lawful recurrent return. The correction removes that
+observer-only no-revisit rule. Ordered native intervals may now report a lawful
+path such as `origin -> frontier -> origin`; the transaction's finite native
+interval list remains the bound, and only one canonical path per current
+frontier is retained. No cognition, neuron physics, DSF, action, persistence,
+or restore code changed.
+
+The exact origin-return and retained recurrent-to-motor falsifiers passed 2/2;
+Python compilation and `git diff --check` passed. After cutover the public API
+reported tick 160861, state
+`e8bd5e5235c95a5bdf24989959598ddc17b1820bafd2986e4ae686e633935470`,
+`cognition_authority=false`, `read_advances_organism=false`, and a retained
+`bounded_working_cause_continued_and_settled` witness. No ERROR, traceback,
+panic, fatal, or poison event was present in the recent task log.
