@@ -21,6 +21,28 @@ class _FrontierObserver:
         )
 
 
+def test_post_publication_observer_failure_cannot_reject_or_change_prior_witness() -> None:
+    recurrent = "05" * 16
+    prior_key = ("retained_formation", "11" * 32, ("01" * 16,), 9)
+    prior = {prior_key: {recurrent: ()}}
+    malformed = _hop(
+        10,
+        cues=(("22" * 32, ("02" * 16,), recurrent),),
+    )
+
+    active, completed, error = (
+        production._derive_causal_motor_observation_after_publication(
+            prior,
+            ((malformed, ()),),
+        )
+    )
+
+    assert active == prior
+    assert completed == {}
+    assert error is not None
+    assert error.startswith("AttributeError:")
+
+
 def _hop(
     predecessor_tick: int,
     *,

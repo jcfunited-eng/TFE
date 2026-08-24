@@ -2942,3 +2942,23 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 - A follow-up transient-frontier diagnostic exceeded its 30-second read bound
   and was terminated. Its absence is not behavioral evidence, and it will not
   be repeated as a polling loop.
+
+### Observer non-authority correction
+
+- Source review found one operational breach behind the otherwise read-only
+  public cache: `_advance_causal_motor_traces` derived Python causal evidence
+  inline after native hops but before the final CURRENT publication. It never
+  chose neural activity, but a malformed observation could still become a
+  rollback/refusal cause.
+- The corrected path retains only each bounded native hop projection during
+  settlement, publishes and mounts the exact CURRENT successor first, and then
+  derives the causal observation solely from each hop's embedded transient
+  frontier. Production no longer calls back into the resident organism to
+  reconstruct that observer record.
+- Observer failure is bounded to a 512-character unavailable reason, preserves
+  the prior compact cross-intake witness, and cannot reject, roll back, poison,
+  or replace the already-published organism. The reason is included in the
+  transition observation rather than hidden.
+- Python compilation, `git diff --check`, and the exact A-006 causal,
+  C-023 causal, A-011 play, and public-observation selection passed `59/59` in
+  `1.55 s`. This is reviewed local candidate evidence, not a production claim.

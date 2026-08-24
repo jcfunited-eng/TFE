@@ -9133,6 +9133,48 @@ def _retain_cross_intake_causal_motor_traces(
     }
 
 
+def _derive_causal_motor_observation_after_publication(
+    prior_active: dict[
+        tuple[str, str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+    hops: tuple[tuple[dict[str, Any], tuple[tuple[Any, ...], ...]], ...],
+) -> tuple[
+    dict[
+        tuple[str, str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ],
+    dict[str, dict[str, Any]],
+    str | None,
+]:
+    """Derive bounded causal evidence without organism authority.
+
+    Every hop is already committed and published before this function is
+    called. It consumes only the exact transient frontier embedded in those
+    hop bodies. A malformed observer payload is reported and preserves the
+    prior bounded witness; it cannot reject or roll back lived cognition.
+    """
+
+    active = dict(prior_active)
+    completed: dict[str, dict[str, Any]] = {}
+    try:
+        for hop, affective in hops:
+            active, completed = _advance_causal_motor_traces(
+                None,
+                active,
+                completed,
+                hop,
+                affective,
+            )
+    except Exception as error:
+        return (
+            dict(prior_active),
+            {},
+            f"{type(error).__name__}: {error}"[:512],
+        )
+    return active, completed, None
+
+
 def _advance_internal_formation_motor_trace(
     organism: Any,
     active: dict[
@@ -9477,11 +9519,12 @@ def _perform_admitted_intake_locked(
     localized_fluid_chemistry: tuple[tuple[Any, ...], ...] = ()
     localized_metabolic_strain_evaluated_body_receptor_lineages: tuple[str, ...] = ()
     localized_metabolic_strain: tuple[tuple[Any, ...], ...] = ()
-    active_causal_motor_traces: dict[
-        tuple[str, str, tuple[str, ...], int],
-        dict[str, tuple[tuple[str, str, int, int], ...]],
-    ] = dict(_active_cross_intake_causal_motor_traces)
-    completed_causal_motor_traces: dict[str, dict[str, Any]] = {}
+    # Causal-path reconstruction is observation only. Keep the exact bounded
+    # native hop bodies until CURRENT is durable; an observer must never sit
+    # between native settlement and publication or become a rollback cause.
+    causal_observation_hops: list[
+        tuple[dict[str, Any], tuple[tuple[Any, ...], ...]]
+    ] = []
     intake_error: Exception | None = None
     try:
         if vestibular_yaw is not None:
@@ -9497,15 +9540,8 @@ def _perform_admitted_intake_locked(
                     last_hop,
                 )
             )
-            (
-                active_causal_motor_traces,
-                completed_causal_motor_traces,
-            ) = _advance_causal_motor_traces(
-                organism,
-                active_causal_motor_traces,
-                completed_causal_motor_traces,
-                last_hop,
-                affective_balance_trajectories,
+            causal_observation_hops.append(
+                (last_hop, affective_balance_trajectories)
             )
             (
                 physical_frontier_routes,
@@ -9578,15 +9614,8 @@ def _perform_admitted_intake_locked(
                     last_hop,
                 )
             )
-            (
-                active_causal_motor_traces,
-                completed_causal_motor_traces,
-            ) = _advance_causal_motor_traces(
-                organism,
-                active_causal_motor_traces,
-                completed_causal_motor_traces,
-                last_hop,
-                affective_balance_trajectories,
+            causal_observation_hops.append(
+                (last_hop, affective_balance_trajectories)
             )
             (
                 physical_frontier_routes,
@@ -9708,15 +9737,8 @@ def _perform_admitted_intake_locked(
                         last_hop,
                     )
                 )
-                (
-                    active_causal_motor_traces,
-                    completed_causal_motor_traces,
-                ) = _advance_causal_motor_traces(
-                    organism,
-                    active_causal_motor_traces,
-                    completed_causal_motor_traces,
-                    last_hop,
-                    affective_balance_trajectories,
+                causal_observation_hops.append(
+                    (last_hop, affective_balance_trajectories)
                 )
                 committed_hop_count += self_hearing_hop_count
                 self_hearing_transitioned_neuron_count = last_hop[
@@ -9868,15 +9890,8 @@ def _perform_admitted_intake_locked(
                         action_execution.causal_intent_receipt_sha256
                     ),
                 )
-                (
-                    active_causal_motor_traces,
-                    completed_causal_motor_traces,
-                ) = _advance_causal_motor_traces(
-                    organism,
-                    active_causal_motor_traces,
-                    completed_causal_motor_traces,
-                    consequence_hop,
-                    affective_balance_trajectories,
+                causal_observation_hops.append(
+                    (consequence_hop, affective_balance_trajectories)
                 )
                 committed_hop_count += 1
                 emitted_neuron_fractals.extend(
@@ -10009,6 +10024,21 @@ def _perform_admitted_intake_locked(
             else:
                 action_authority.discard_prepared_action(prepared_world)
             raise
+    # CURRENT and the in-process resident owner are authoritative before any
+    # observer derives a causal path. The observer consumes only the exact
+    # transient frontier carried by the committed hop; it never reads back
+    # into cognition, selects an action, or participates in rollback.
+    _restored = RestoredNativeOrganism(
+        organism=organism, pointer=published.pointer
+    )
+    (
+        active_causal_motor_traces,
+        completed_causal_motor_traces,
+        causal_observation_error,
+    ) = _derive_causal_motor_observation_after_publication(
+        _active_cross_intake_causal_motor_traces,
+        tuple(causal_observation_hops),
+    )
     successor_body_observation = organism.readiness()
     successor_body_state_sha256 = (
         successor_body_observation.articulated_body_state_sha256
@@ -10192,9 +10222,6 @@ def _perform_admitted_intake_locked(
                 action_execution.after,
             )
         )
-    _restored = RestoredNativeOrganism(
-        organism=organism, pointer=published.pointer
-    )
     _active_cross_intake_causal_motor_traces = (
         _retain_cross_intake_causal_motor_traces(active_causal_motor_traces)
     )
@@ -10357,6 +10384,7 @@ def _perform_admitted_intake_locked(
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
         "motor_action": motor_action,
+        "causal_observation_error": causal_observation_error,
         "causal_cross_context_use": causal_cross_context_use,
         "externally_reassembled_formation_causal_use": (
             externally_reassembled_formation_causal_use
