@@ -1841,7 +1841,7 @@ def _rehearse_l005_word_apple(
     external_reassemblies = len(external_frontiers)
     body_return_count = len(lesson_hop["body_proprioceptive_sources"])
     active, completed = production._advance_causal_motor_traces(
-        organism,
+        None,
         active,
         completed,
         partial_hop,

@@ -20,6 +20,9 @@ class _FrontierObserver:
             if (transfer[1] if transfer[4] == transfer[0] else transfer[0]) in lineages
         )
 
+    def __iter__(self):
+        return iter(self.transfers)
+
 
 def test_post_publication_observer_failure_cannot_reject_or_change_prior_witness() -> None:
     recurrent = "05" * 16
@@ -40,7 +43,7 @@ def test_post_publication_observer_failure_cannot_reject_or_change_prior_witness
     assert active == prior
     assert completed == {}
     assert error is not None
-    assert error.startswith("AttributeError:")
+    assert error.startswith("RuntimeError:")
 
 
 def _hop(
@@ -89,7 +92,6 @@ def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() 
         _hop(10, cues=((receipt, (cue,), recurrent),)),
     )
     assert proof is None
-    assert observer.filters[0] == (recurrent,)
 
     observer.transfers = ((*second, association),)
     active, proof = production._advance_internal_formation_motor_trace(
@@ -126,7 +128,6 @@ def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() 
     assert proof["motor_organism_tick"] == 13
     assert proof["directed_physical_transfers"] == (first, second, third)
     assert proof["motor_unit_recruitment"]["motor_lineage"] == motor
-    assert len(observer.filters) == 3
 
 
 def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> None:
@@ -147,7 +148,6 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
 
     assert active == {}
     assert proof is None
-    assert observer.filters == []
 
 
 def test_causal_trace_does_not_revisit_a_lineage() -> None:

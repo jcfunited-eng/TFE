@@ -8597,7 +8597,7 @@ def _changed_contact_on_causal_path(
 
 
 def _advance_causal_motor_traces(
-    organism: Any,
+    committed_frontier: tuple[tuple[str, str, int, int, str], ...] | None,
     active: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
@@ -8620,10 +8620,12 @@ def _advance_causal_motor_traces(
 
     A one-seal native trajectory may carry its exact ordered transient interval
     observations; those are consumed in order and never persisted. An aggregate
-    without those boundaries is still refused. Neither a retained formation, a
-    new neuronal impression, nor an affective trajectory becomes settlement
-    authority: this observer follows only whole-carrier transfers already
-    present in each native active frontier.
+    without those boundaries is still refused. The optional first argument is
+    committed frontier data for isolated legacy proof callers, never an organism
+    or native callback. Neither a retained formation, a new neuronal impression,
+    nor an affective trajectory becomes settlement authority: this observer
+    follows only whole-carrier transfers already present in each committed native
+    active frontier.
     """
 
     if external_participant_action_receipt is None:
@@ -8638,7 +8640,7 @@ def _advance_causal_motor_traces(
         next_completed = completed
         for interval in causal_intervals:
             next_active, next_completed = _advance_causal_motor_traces(
-                organism,
+                None,
                 next_active,
                 next_completed,
                 interval,
@@ -8704,21 +8706,23 @@ def _advance_causal_motor_traces(
         )
         observed_interval_frontier = hop.get("causal_frontier_advances")
         if observed_interval_frontier is None:
-            transfers = organism.observe_active_electrical_frontier_advances_from(
-                reached_lineages
-            )
-        else:
-            reached = set(reached_lineages)
-            transfers = tuple(
-                transfer
-                for transfer in observed_interval_frontier
-                if (
-                    transfer[1]
-                    if transfer[4] == transfer[0]
-                    else transfer[0]
+            if committed_frontier is None:
+                raise RuntimeError(
+                    "committed causal frontier is absent; observation cannot "
+                    "read resident cognition"
                 )
-                in reached
+            observed_interval_frontier = tuple(committed_frontier)
+        reached = set(reached_lineages)
+        transfers = tuple(
+            transfer
+            for transfer in observed_interval_frontier
+            if (
+                transfer[1]
+                if transfer[4] == transfer[0]
+                else transfer[0]
             )
+            in reached
+        )
     else:
         transfers = ()
     advanced: dict[
@@ -9176,7 +9180,7 @@ def _derive_causal_motor_observation_after_publication(
 
 
 def _advance_internal_formation_motor_trace(
-    organism: Any,
+    committed_frontier: tuple[tuple[str, str, int, int, str], ...] | None,
     active: dict[
         tuple[str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
@@ -9202,7 +9206,7 @@ def _advance_internal_formation_motor_trace(
         {"retained_formation": completed} if completed is not None else {}
     )
     next_active, next_completed = _advance_causal_motor_traces(
-        organism,
+        committed_frontier,
         typed_active,
         typed_completed,
         hop,

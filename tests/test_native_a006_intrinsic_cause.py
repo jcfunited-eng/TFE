@@ -36,6 +36,9 @@ class _FrontierObserver:
             in lineages
         )
 
+    def __iter__(self):
+        return iter(self.transfers)
+
 
 def _hop(
     predecessor_tick: int,
@@ -72,7 +75,6 @@ def test_new_impression_crosses_intake_boundaries_only_while_advancing_to_motor(
         _hop(10, emitted=(impression,)),
     )
     assert completed == {}
-    assert observer.filters == []
     active = production._retain_cross_intake_causal_motor_traces(active)
     assert tuple(key[0] for key in active) == ("new_neuronal_fractal",)
 
@@ -114,7 +116,6 @@ def test_new_impression_crosses_intake_boundaries_only_while_advancing_to_motor(
     assert proof["motor_organism_tick"] == 13
     assert proof["directed_physical_transfers"] == (first, second)
     assert proof["motor_unit_recruitment"]["motor_lineage"] == motor
-    assert observer.filters == [(impression,), (association,)]
 
 
 def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
@@ -136,7 +137,6 @@ def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
         _hop(21, cues=(("11" * 32, (cue,), cue),)),
     )
 
-    assert observer.filters == [(impression, cue)]
 
 
 def test_external_participant_receptor_pulse_crosses_intervals_to_motor() -> None:
@@ -244,7 +244,6 @@ def test_one_seal_trajectory_preserves_external_cause_across_exact_intervals() -
     )
 
     assert active == {}
-    assert observer.filters == []
     proof = completed["external_participant_sensory"]
     assert proof["participant_action_causal_intent_receipt_sha256"] == (
         participant_receipt
@@ -338,7 +337,6 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
         },
     )
     assert completed == {}
-    assert observer.filters == []
 
     first = (affective, ordering, 0, 13)
     observer.transfers = ((*first, ordering),)
@@ -382,7 +380,6 @@ def test_complete_affective_trajectory_reaches_motor_by_exact_carrier_path() -> 
     assert proof["affective_trajectory_receipt_sha256"] == production._receipt(
         trajectory
     )
-    assert observer.filters == [(affective,), (ordering,)]
 
 
 def test_transaction_assembled_affective_trajectory_reaches_motor() -> None:

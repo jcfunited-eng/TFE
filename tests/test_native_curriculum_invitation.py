@@ -216,7 +216,7 @@ def test_participant_path_enters_native_attention_without_motor_requirement() ->
     }
 
     _active, completed = production._advance_causal_motor_traces(
-        object(),
+        None,
         {},
         {},
         hop,

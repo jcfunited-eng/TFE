@@ -3014,3 +3014,19 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   layer 12 and receives its body/sensory consequence, or settles without doing
   so. Only the former can satisfy this A-011 increment. No observer-fed trigger
   or native topology rewrite is authorized by the present evidence.
+
+### Observer-to-cognition callback retirement
+
+- A final source audit found that the causal observer still accepted a resident
+  organism argument and retained a fallback call to
+  `observe_active_electrical_frontier_advances_from` when committed hop evidence
+  was absent. The deployed path passed `None`, but the dormant callback made the
+  forbidden observer-to-cognition mechanism recoverable.
+- The callback is deleted. Causal observation now accepts only immutable
+  frontier tuples already embedded in a committed hop. Missing frontier evidence
+  produces a bounded unavailable observer result after publication and preserves
+  the prior witness; it cannot read, advance, reject, roll back, or poison the
+  resident organism.
+- The focused A-006 causal, C-023 causal, and curriculum invitation selection
+  passes `28/28`; Python compilation and `git diff --check` pass. This is source
+  evidence only until the corrected image is cut over and read back live.
