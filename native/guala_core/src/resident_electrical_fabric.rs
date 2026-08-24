@@ -15,7 +15,7 @@ use crate::sparse_electrical_contact::{
     sparse_electrical_cell_format, ElectricalContactAnatomy, SparseElectricalAnatomy,
     SparseElectricalCellFormat, SparseElectricalError, SparseElectricalState,
 };
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 const MAGIC: &[u8; 8] = b"GLREF01\0";
 
@@ -287,11 +287,14 @@ impl ResidentElectricalFabric {
         }
 
         let mut lineages = Vec::<[u8; 16]>::new();
+        let mut lineage_indices = BTreeMap::<[u8; 16], usize>::new();
         for (left, right, _, _) in &kept {
-            if !lineages.contains(left) {
+            if !lineage_indices.contains_key(left) {
+                lineage_indices.insert(*left, lineages.len());
                 lineages.push(*left);
             }
-            if !lineages.contains(right) {
+            if !lineage_indices.contains_key(right) {
+                lineage_indices.insert(*right, lineages.len());
                 lineages.push(*right);
             }
         }
@@ -299,13 +302,13 @@ impl ResidentElectricalFabric {
         let mut contacts = Vec::with_capacity(kept.len());
         let mut states = Vec::with_capacity(kept.len());
         for (left, right, conductance, state) in kept {
-            let left = lineages
-                .iter()
-                .position(|lineage| *lineage == left)
+            let left = lineage_indices
+                .get(&left)
+                .copied()
                 .ok_or(SparseElectricalError::InvalidEndpoint)?;
-            let right = lineages
-                .iter()
-                .position(|lineage| *lineage == right)
+            let right = lineage_indices
+                .get(&right)
+                .copied()
                 .ok_or(SparseElectricalError::InvalidEndpoint)?;
             contacts.push(ElectricalContactAnatomy::new(
                 left,

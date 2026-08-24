@@ -16,13 +16,15 @@ use crate::complete_neuron::RecoveryLaneAddress;
 use crate::exact_rational::ExactRational;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
+use crate::virtual_articulated_body::ARTICULATED_BODY_STATE_BYTES;
 use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
 
 const ENVELOPE_MAGIC: &[u8; 8] = b"GLORUN01";
 const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
-const CURRENT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
+const PRE_ARTICULATED_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
+const CURRENT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB09";
 const CANAL_STATE_BYTES: usize = 32;
 const IDENTITY_BYTES: usize = 36;
 
@@ -63,13 +65,17 @@ pub(super) fn parse_envelope(bytes: &[u8]) -> (u64, Vec<u8>) {
     let mut fc = 0usize;
     let fabric_magic = take(fabric, &mut fc, 8);
     assert!(
-        fabric_magic == PRE_VESTIBULAR_FABRIC_MAGIC || fabric_magic == CURRENT_FABRIC_MAGIC,
+        fabric_magic == PRE_VESTIBULAR_FABRIC_MAGIC
+            || fabric_magic == PRE_ARTICULATED_FABRIC_MAGIC
+            || fabric_magic == CURRENT_FABRIC_MAGIC,
         "fabric magic"
     );
     let fabric_version = take_u16(fabric, &mut fc);
     assert_eq!(
         fabric_version,
         if fabric_magic == CURRENT_FABRIC_MAGIC {
+            9
+        } else if fabric_magic == PRE_ARTICULATED_FABRIC_MAGIC {
             8
         } else {
             7
@@ -79,10 +85,15 @@ pub(super) fn parse_envelope(bytes: &[u8]) -> (u64, Vec<u8>) {
     let _generation = take_u64(fabric, &mut fc);
     let joint_len = take_u32(fabric, &mut fc) as usize;
     let cognitive_len = take_u32(fabric, &mut fc) as usize;
-    if fabric_magic == CURRENT_FABRIC_MAGIC {
+    if fabric_magic == CURRENT_FABRIC_MAGIC
+        || fabric_magic == PRE_ARTICULATED_FABRIC_MAGIC
+    {
         let _vestibular_anatomy = take(fabric, &mut fc, FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES);
         let _canal_state = take(fabric, &mut fc, CANAL_STATE_BYTES);
         let _vestibular_source_tick = take_u64(fabric, &mut fc);
+    }
+    if fabric_magic == CURRENT_FABRIC_MAGIC {
+        let _articulated_body = take(fabric, &mut fc, ARTICULATED_BODY_STATE_BYTES);
     }
     let _joint = take(fabric, &mut fc, joint_len);
     let cognitive = take(fabric, &mut fc, cognitive_len).to_vec();

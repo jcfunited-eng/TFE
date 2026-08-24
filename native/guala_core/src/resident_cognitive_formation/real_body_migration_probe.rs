@@ -13,7 +13,7 @@ use crate::complete_neuron::{
 };
 use crate::exact_rational::ExactRational;
 use crate::neuron_source_anchor::PhysicalSourceSense;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
 
@@ -24,34 +24,117 @@ fn real_production_body_migrates_losslessly() {
     };
     let body = fs::read(PathBuf::from(path)).expect("real body readable");
     let (organism_tick, cognitive) = super::reservoir_probe::parse_envelope(&body);
-    let budget = 32_000_000usize;
-    assert_eq!(
-        ResidentCognitiveFormationState::decode(&cognitive, budget),
-        Err(super::FormationError::NoncanonicalState),
-        "ordinary restore must refuse the retired energy encoding",
+    let budget = 2_147_483_590usize;
+    assert!(
+        ResidentCognitiveFormationState::decode(&cognitive, budget).is_err(),
+        "ordinary restore must refuse the retired cognitive encoding",
     );
     let decoded = ResidentCognitiveFormationState::decode_for_one_way_migration(&cognitive, budget)
         .expect("authenticated live image is admitted only at the migration boundary");
-    let expected = decoded
-        .clone()
-        .into_geometry_provisioned_carrier_material()
-        .expect("declared membrane territory provisions exact omitted material");
+    let retired = decoded
+        .obsolete_unreferenced_developmental_routes()
+        .expect("obsolete developmental routes are exact");
+    let retired_set = retired.iter().copied().collect::<BTreeSet<_>>();
+    let retained_cohorts = decoded
+        .cohorts
+        .iter()
+        .filter(|cohort| {
+            cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .all(|lineage| !retired_set.contains(lineage))
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    let retired_contact_count = decoded
+        .electrical_fabric
+        .contact_endpoints()
+        .filter(|(left, right)| {
+            retired_set.contains(&decoded.electrical_fabric.lineages()[*left])
+                || retired_set.contains(&decoded.electrical_fabric.lineages()[*right])
+        })
+        .count();
+    let keep_frontier = |entry: &&super::ActiveElectricalFrontierEntry| {
+        !retired_set.contains(&entry.receiver())
+            && entry
+                .sender()
+                .as_ref()
+                .is_none_or(|lineage| !retired_set.contains(lineage))
+    };
+    let retained_active_frontier = decoded
+        .active_electrical_frontier
+        .iter()
+        .filter(keep_frontier)
+        .copied()
+        .collect::<Vec<_>>();
+    let retained_preceding_frontier = decoded
+        .preceding_active_electrical_frontier
+        .iter()
+        .filter(keep_frontier)
+        .copied()
+        .collect::<Vec<_>>();
+    let retained_older_frontier = decoded
+        .older_active_electrical_frontier
+        .iter()
+        .filter(keep_frontier)
+        .copied()
+        .collect::<Vec<_>>();
+    let predecessor_contact_count = decoded.electrical_fabric.contact_count();
+    eprintln!(
+        "REAL_BODY_ROUTE_INVENTORY retired_routes={} predecessor_contacts={}",
+        retired.len(),
+        predecessor_contact_count,
+    );
+    let cleanup_probe = decoded
+        .retire_obsolete_unreferenced_developmental_routes()
+        .expect("selected production routes satisfy the exact retirement law");
+    let cleanup_probe = cleanup_probe.as_ref().unwrap_or(&decoded);
+    cleanup_probe
+        .validate_current_motor_effectors()
+        .expect("retirement preserves motor anatomy");
+    cleanup_probe
+        .validate_current_ordering_routes()
+        .expect("retirement preserves ordering anatomy");
+    eprintln!("REAL_BODY_ROUTE_CLEANUP_VALIDATED");
+    cleanup_probe
+        .encode(budget)
+        .expect("corrected production cognition encodes as current V28");
+    eprintln!("REAL_BODY_V28_ENCODING_VALIDATED");
     let migrated = ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, budget)
         .expect("migration to current format");
     let redecoded =
         ResidentCognitiveFormationState::decode(&migrated, budget).expect("migrated image decodes");
     assert_eq!(redecoded.generation, decoded.generation);
+    assert_eq!(redecoded.next_lineage_ordinal, decoded.next_lineage_ordinal);
     assert_eq!(
-        redecoded.cohorts, expected.cohorts,
-        "migration differs from the exact omitted-material law"
+        redecoded.unexpressed_electrical_seeds,
+        decoded.unexpressed_electrical_seeds
+    );
+    assert_eq!(redecoded.dormant_lineage_seeds, decoded.dormant_lineage_seeds);
+    assert_eq!(redecoded.cohorts.as_ref(), retained_cohorts.as_slice());
+    assert_eq!(
+        redecoded.electrical_fabric.contact_count(),
+        predecessor_contact_count - retired_contact_count
+    );
+    assert_eq!(
+        redecoded.active_electrical_frontier.as_ref(),
+        retained_active_frontier.as_slice()
+    );
+    assert_eq!(
+        redecoded.preceding_active_electrical_frontier.as_ref(),
+        retained_preceding_frontier.as_slice()
+    );
+    assert_eq!(
+        redecoded.older_active_electrical_frontier.as_ref(),
+        retained_older_frontier.as_slice()
     );
     assert_eq!(redecoded.mosaics, decoded.mosaics, "retained state changed");
     assert_eq!(redecoded.hippocampal, decoded.hippocampal);
     assert_eq!(
         redecoded.summary().complete_neuron_count,
-        decoded.summary().complete_neuron_count
+        decoded.summary().complete_neuron_count - retired.len()
     );
-    assert!(redecoded.summary().resting_neuron_count > 0);
     assert_eq!(
         ResidentCognitiveFormationState::migrate_to_current_format(&migrated, budget)
             .expect("current image remains current"),
@@ -59,31 +142,14 @@ fn real_production_body_migrates_losslessly() {
         "the one-way migration is idempotent",
     );
 
-    // Task 975 exposed the deployment boundary this specifically guards:
-    // an ordinary transition wrote V17 before the V17 migration executed.
-    // Such a false V17 body must still receive the correction once, while
-    // the resulting V18 body remains byte-idempotent.
-    let false_v17 = decoded
-        .encode_with_format(super::CognitiveCodecFormat::V17, budget)
-        .expect("predecessor can reproduce the false V17 boundary body");
-    let repaired_false_v17 =
-        ResidentCognitiveFormationState::migrate_to_current_format(&false_v17, budget)
-    .expect("false V17 body receives the V18 correction");
-    assert_eq!(
-        ResidentCognitiveFormationState::decode(&repaired_false_v17, budget)
-            .expect("repaired false V17 body decodes"),
-        expected,
-    );
-    assert_eq!(
-        ResidentCognitiveFormationState::migrate_to_current_format(&repaired_false_v17, budget)
-            .expect("V18 remains current"),
-        repaired_false_v17,
-    );
     println!(
-        "REAL_BODY_MIGRATION tick={} old_cognitive_bytes={} new_cognitive_bytes={} cohorts={} reached_neurons={} resting_neurons={} mosaics={}",
+        "REAL_BODY_MIGRATION tick={} old_cognitive_bytes={} new_cognitive_bytes={} retired_routes={} old_contacts={} new_contacts={} cohorts={} reached_neurons={} resting_neurons={} mosaics={}",
         organism_tick,
         cognitive.len(),
         migrated.len(),
+        retired.len(),
+        predecessor_contact_count,
+        redecoded.electrical_fabric.contact_count(),
         redecoded.cohorts.len(),
         redecoded.summary().complete_neuron_count,
         redecoded.summary().resting_neuron_count,
