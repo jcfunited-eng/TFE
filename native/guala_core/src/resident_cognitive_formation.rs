@@ -11734,11 +11734,12 @@ fn mount_reached_body_regulation(
     Ok(reached_regulation)
 }
 
-/// Relate body regulation to the association material that physically moved
-/// with it in this exact organism interval.  Layer 10 is developmental
-/// geography, not an emotion label: its only authority is the coincident
-/// changed layer-7/layer-8 lineage set and the sparse contacts retained here.
-/// Reaching the same set again reuses the same cell without population growth.
+/// Relate each reached body-regulation pathway to the association material
+/// that physically moved with it in this exact organism interval. Layer 10 is
+/// developmental geography, not an episode record or emotion label. Its
+/// stable identity is therefore the exact layer-8 body pathway; the changing
+/// set of coincident association inputs may widen that pathway's sparse
+/// contacts but must not manufacture another neuron.
 fn mount_reached_affective_reach_indexed(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -11766,31 +11767,15 @@ fn mount_reached_affective_reach_indexed(
     if association.is_empty() || body_regulation.is_empty() {
         return Ok(());
     }
-    let mut participants = association.into_iter().collect::<Vec<_>>();
-    participants.extend(body_regulation);
-    participants.sort_unstable();
-
-    let mut matching = Vec::new();
-    for (candidate, layer) in topology_index.lineage_layers.iter().copied() {
-        if layer != 10 {
-            continue;
-        }
-        let candidate_flat = topology_index.flat_for_lineage(candidate)?;
-        let (cohort_index, neuron_index, _) = *topology_index
-            .flat_locations
-            .get(candidate_flat)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        if cohorts
-            .get(cohort_index)
-            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
-            .is_none_or(|mount| mount.source_site().is_some())
-        {
-            continue;
-        }
-        let mut neighbours = Vec::new();
+    let association = association.into_iter().collect::<Vec<_>>();
+    let mut prepared_pairs = BTreeSet::new();
+    let mut additions = Vec::new();
+    for regulation in body_regulation {
+        let regulation_flat = topology_index.flat_for_lineage(regulation)?;
+        let mut matching = Vec::new();
         for contact_index in topology_index
             .incident_contacts_by_flat
-            .get(candidate_flat)
+            .get(regulation_flat)
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
         {
             let contact = topology_index
@@ -11800,9 +11785,9 @@ fn mount_reached_affective_reach_indexed(
             if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
                 continue;
             }
-            let neighbour_flat = if contact.left == candidate_flat {
+            let neighbour_flat = if contact.left == regulation_flat {
                 contact.right
-            } else if contact.right == candidate_flat {
+            } else if contact.right == regulation_flat {
                 contact.left
             } else {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
@@ -11812,40 +11797,71 @@ fn mount_reached_affective_reach_indexed(
                 .get(neighbour_flat)
                 .map(|location| location.2)
                 .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-            if matches!(topology_index.layer_of(neighbour), Some(7) | Some(8)) {
-                neighbours.push(neighbour);
+            if topology_index.layer_of(neighbour) == Some(10) {
+                matching.push(neighbour);
             }
         }
-        neighbours.sort_unstable();
-        neighbours.dedup();
-        if neighbours == participants {
-            matching.push(candidate);
+        matching.sort_unstable();
+        matching.dedup();
+        // Bodies written by the rejected interval-set identity may expose
+        // more than one layer-10 neighbour for one stable body pathway. The
+        // oldest exact lineage remains its developmental route. Ordinary life
+        // neither deletes learned cells nor creates another competing route.
+        let (affective_lineage, newly_mounted) = match matching.first().copied() {
+            Some(lineage) => (lineage, false),
+            None => (
+                mount_next_intrinsic_in_layer(
+                    cohorts,
+                    resting_population,
+                    next_lineage_ordinal,
+                    10,
+                )?,
+                true,
+            ),
+        };
+        let mut existing_neighbours = BTreeSet::new();
+        if !newly_mounted {
+            let affective_flat = topology_index.flat_for_lineage(affective_lineage)?;
+            for contact_index in topology_index
+                .incident_contacts_by_flat
+                .get(affective_flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            {
+                let contact = topology_index
+                    .contacts
+                    .get(*contact_index)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
+                    continue;
+                }
+                let neighbour_flat = if contact.left == affective_flat {
+                    contact.right
+                } else if contact.right == affective_flat {
+                    contact.left
+                } else {
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                };
+                existing_neighbours.insert(
+                    topology_index
+                        .flat_locations
+                        .get(neighbour_flat)
+                        .map(|location| location.2)
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
+                );
+            }
         }
-    }
-    let (affective_lineage, newly_mounted) = match matching.as_slice() {
-        [lineage] => (*lineage, false),
-        [] => (
-            mount_next_intrinsic_in_layer(
-                cohorts,
-                resting_population,
-                next_lineage_ordinal,
-                10,
-            )?,
-            true,
-        ),
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-    };
-    if newly_mounted {
-        let additions = participants
-            .into_iter()
-            .map(|participant| {
-                (
+        for participant in association.iter().copied().chain([regulation]) {
+            let pair = canonical_lineage_pair(participant, affective_lineage);
+            if !existing_neighbours.contains(&participant) && prepared_pairs.insert(pair) {
+                additions.push((
                     participant,
                     affective_lineage,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                )
-            })
-            .collect::<Vec<_>>();
+                ));
+            }
+        }
+    }
+    if !additions.is_empty() {
         *electrical_fabric = electrical_fabric
             .append_contacts(&additions)
             .map_err(FormationError::ResidentElectricalUnavailable)?;
@@ -11861,88 +11877,15 @@ fn mount_reached_affective_reach(
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
 ) -> Result<(), FormationError> {
-    let mounted = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
-                .iter()
-                .zip(cohort.anatomy.neuron_lineages())
-        })
-        .map(|(mount, lineage)| (*lineage, mount.clone()))
-        .collect::<Vec<_>>();
-    let mut association = Vec::new();
-    let mut body_regulation = Vec::new();
-    for lineage in physically_transitioned_lineages {
-        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
-        };
-        match mount.place().layer() {
-            7 if !association.contains(lineage) => association.push(*lineage),
-            8 if !body_regulation.contains(lineage) => body_regulation.push(*lineage),
-            _ => {}
-        }
-    }
-    if association.is_empty() || body_regulation.is_empty() {
-        return Ok(());
-    }
-    let mut participants = association;
-    participants.extend(body_regulation);
-    participants.sort_unstable();
-    participants.dedup();
-
-    let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
-    };
-    let mut matching = Vec::new();
-    for (candidate, _) in mounted
-        .iter()
-        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 10)
-    {
-        let mut neighbours = Vec::new();
-        for (left, right) in electrical_fabric.contact_endpoints() {
-            let left_lineage = electrical_fabric.lineages()[left];
-            let right_lineage = electrical_fabric.lineages()[right];
-            let neighbour = if left_lineage == *candidate {
-                Some(right_lineage)
-            } else if right_lineage == *candidate {
-                Some(left_lineage)
-            } else {
-                None
-            };
-            if let Some(neighbour) = neighbour {
-                if matches!(layer_of(neighbour), Some(7) | Some(8)) {
-                    neighbours.push(neighbour);
-                }
-            }
-        }
-        neighbours.sort_unstable();
-        neighbours.dedup();
-        if neighbours == participants {
-            matching.push(*candidate);
-        }
-    }
-    let affective_lineage = match matching.as_slice() {
-        [lineage] => *lineage,
-        [] => mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 10)?,
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-    };
-    for participant in participants {
-        if !electrical_fabric.contains_contact(participant, affective_lineage) {
-            *electrical_fabric = electrical_fabric
-                .append_contact(
-                    participant,
-                    affective_lineage,
-                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                )
-                .map_err(FormationError::ResidentElectricalUnavailable)?;
-        }
-    }
-    Ok(())
+    let topology_index = ResidentTopologyIndex::build(cohorts, electrical_fabric)?;
+    mount_reached_affective_reach_indexed(
+        cohorts,
+        resting_population,
+        next_lineage_ordinal,
+        electrical_fabric,
+        &topology_index,
+        physically_transitioned_lineages,
+    )
 }
 
 fn canonical_lineage_pair(
@@ -18709,6 +18652,13 @@ mod tests {
             DeclaredNeuronPlace::new(7, 0),
         )
         .unwrap();
+        let later_association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 1),
+        )
+        .unwrap();
         let regulation = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -18758,6 +18708,29 @@ mod tests {
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
         assert_eq!(fabric.contact_count(), contact_count);
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before - 1
+        );
+
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[later_association, regulation],
+        )
+        .unwrap();
+        assert_eq!(
+            cohorts
+                .iter()
+                .flat_map(|cohort| cohort.anatomy.mounts())
+                .filter(|mount| mount.place().layer() == 10)
+                .count(),
+            1
+        );
+        assert_eq!(fabric.contact_count(), contact_count + 1);
+        assert!(fabric.contains_contact(later_association, affective[0]));
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
             resting_before - 1
