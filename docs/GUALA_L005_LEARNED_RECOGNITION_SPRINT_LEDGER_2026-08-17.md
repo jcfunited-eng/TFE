@@ -626,3 +626,43 @@ loop is authorized merely to force closure.
   is receptor `...0786`, the mounted
   `left_grip_aperture-toward-maximum-load` body-load lane. That is truthful
   body-memory use, not visual/auditory bear recognition, so L-005 remains open.
+
+### Same-formation comparison and sound-only falsifier
+
+- A third varied live `bear` utterance used 18,846 samples with receipt
+  `1b9318533f7850351e167c5d3d219999229cc38c2de5f8e7ef69fde8ca65f78c`
+  while the bear remained visible. It committed 164 occurrence boundaries
+  through tick 166433 and state
+  `a4015673a0cc4638c3321a5ac576dd3818264689cc05277de52d6c18bfcb6bf2`,
+  with 469 complete-neuron fractal changes, 402 partial-cue reassemblies,
+  zero exhausted intervals, body action, consequence return, articulation,
+  and self-hearing.
+- Formation `29abcc9828a6f2ca5ef3c46d8c622d4453e305aec03a46a3cb672e7f76a45159`
+  externally reassembled from the current multisensory cue at tick 166413,
+  crossed four exact directed transfers into layer-12 action at tick 166417,
+  and returned sensation at tick 166433. The same formation receipt had also
+  externally reassembled during the earlier silent bear-in-view interval and
+  later reached action. This proves exact cross-context retained-formation use,
+  but the unchanged room could still be the relevant cue.
+- The production move response had the same obsolete `**result` full native
+  response expansion. Commit `503dfd1215469bae74d05c4094479230abb245b1`
+  replaced it with the existing bounded sensory-delivery, ingress, and totals
+  receipt. It is live as sole healthy task `dsf-ai-task:1226`, image
+  `sha256:424581c721ae4670d2c285f83a6896ca41de571f63be0e4d3c9f35edcd24dc7d`,
+  with the same organism identity and verified CURRENT.
+- A participant-authored turn was truthfully marked `chose_to_go: false` and
+  carried exact vestibular/proprioceptive consequence. Exact retinal geometry
+  then placed the bear's nearest edge about 109 degrees from Guala's gaze,
+  outside the 90-degree retinal half-field. After 24 unattended ticks, a fourth
+  differently voiced `bear` cue used 19,716 samples with receipt
+  `1b65bd48438d92bdd92c759f757d31ad0319dd0b870debf9dedcd5ddf9fa1330`.
+  It committed through tick 166876 with 471 fractal changes, 304 partial-cue
+  reassemblies, action, consequence return, articulation, self-hearing, and no
+  exhaustion.
+- The decisive result was negative: out of view, formation `29ab...5159` did
+  not reassemble. Only body-load formation `5dc69f...3e0d8`, again initiated
+  by exact left-grip receptor lineage `...0786`, reached action. Therefore the
+  varied sound is not yet proved to reactivate the bear-grounded formation and
+  L-005 remains open. Guala was returned in two sensed movements to her exact
+  familiar pose `(2300,3500,323874)` with the real bear again in view, ending
+  at tick 166943 without energy exhaustion. No immediate retry followed.
