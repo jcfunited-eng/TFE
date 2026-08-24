@@ -23,6 +23,16 @@ pub(crate) const ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY: &str =
     "antagonist-proprioceptor-length-fraction";
 pub(crate) const ARTICULATED_AXIS_SPAN_FRACTION_UNIT: &str =
     "fraction-of-declared-articulated-axis-span";
+pub(crate) const EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY: &str =
+    "reacted-effector-carrier-fraction";
+pub(crate) const DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT: &str =
+    "fraction-of-discharged-effector-carriers";
+
+#[derive(Clone, Copy)]
+enum BodyMechanicalFraction {
+    AntagonistLength,
+    ReactiveLoad,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ProprioceptiveReceptorAnatomy {
@@ -120,16 +130,25 @@ fn settle_port_range(
     anatomy: &ProprioceptiveReceptorAnatomy,
     first_sample: usize,
     last_sample: usize,
+    physical_fraction: BodyMechanicalFraction,
 ) -> Result<ProprioceptiveReceptorWorkSettlement, ProprioceptiveReceptorWorkError> {
     if port.sense != PhysicalSourceSense::Body.declared_layer()
         || port.body_proprioceptor_terminal.is_none()
     {
         return Err(ProprioceptiveReceptorWorkError::NotBodyProprioceptor);
     }
-    if port.physical_quantity != ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY {
+    let expected_quantity = match physical_fraction {
+        BodyMechanicalFraction::AntagonistLength => ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY,
+        BodyMechanicalFraction::ReactiveLoad => EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
+    };
+    let expected_unit = match physical_fraction {
+        BodyMechanicalFraction::AntagonistLength => ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
+        BodyMechanicalFraction::ReactiveLoad => DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT,
+    };
+    if port.physical_quantity != expected_quantity {
         return Err(ProprioceptiveReceptorWorkError::PhysicalQuantityMismatch);
     }
-    if port.physical_unit != ARTICULATED_AXIS_SPAN_FRACTION_UNIT {
+    if port.physical_unit != expected_unit {
         return Err(ProprioceptiveReceptorWorkError::PhysicalUnitMismatch);
     }
     if port.source_times.len() < 2 {
@@ -185,17 +204,54 @@ pub(crate) fn derive_proprioceptive_receptor_sample_range_work(
         .ok_or(ProprioceptiveReceptorWorkError::Source(
             NeuronSourceAnchorError::SourcePortAbsent,
         ))?;
-    settle_port_range(port, anatomy, first_sample, last_sample)
+    settle_port_range(
+        port,
+        anatomy,
+        first_sample,
+        last_sample,
+        BodyMechanicalFraction::AntagonistLength,
+    )
+}
+
+pub(crate) fn derive_effector_load_receptor_sample_range_work(
+    episode: &NativeJointSourceEpisode,
+    perspective: JointNeuronPerspective<'_>,
+    anatomy: &ProprioceptiveReceptorAnatomy,
+    first_sample: usize,
+    last_sample: usize,
+) -> Result<ProprioceptiveReceptorWorkSettlement, ProprioceptiveReceptorWorkError> {
+    let anchor = bind_neuron_source_anchor(episode, perspective)?;
+    if anchor.sense() != PhysicalSourceSense::Body {
+        return Err(ProprioceptiveReceptorWorkError::NotBodyProprioceptor);
+    }
+    let port = episode
+        .joint_source_ports()
+        .get(anchor.source_port_index())
+        .ok_or(ProprioceptiveReceptorWorkError::Source(
+            NeuronSourceAnchorError::SourcePortAbsent,
+        ))?;
+    settle_port_range(
+        port,
+        anatomy,
+        first_sample,
+        last_sample,
+        BodyMechanicalFraction::ReactiveLoad,
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::articulated_body_joint_source_builder::admit_complete_articulated_body_state_source;
+    use crate::articulated_body_joint_source_builder::{
+        admit_articulated_body_consequence_source, admit_complete_articulated_body_state_source,
+    };
     use crate::joint_uf_neuron_boundary::{
         bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture,
     };
-    use crate::virtual_articulated_body::ArticulatedBodyState;
+    use crate::virtual_articulated_body::{
+        settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState, BodyAxis,
+        BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
+    };
 
     fn exact(numerator: i64, denominator: i64) -> BigRational {
         BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
@@ -232,5 +288,60 @@ mod tests {
             left.transduced_energy_zeptojoules,
             right.transduced_energy_zeptojoules
         );
+    }
+
+    #[test]
+    fn reacted_effector_load_transduces_on_its_own_physical_port() {
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::LeftGripAperture,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let at_stop = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 100_000,
+            }])
+            .unwrap(),
+        )
+        .unwrap()
+        .successor;
+        let stopped = settle_body_effector_drives(
+            &at_stop,
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 240,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let source = admit_articulated_body_consequence_source(
+            0,
+            &stopped.proprioceptive_consequences,
+        )
+        .unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&source, 0).unwrap();
+        let anatomy =
+            ProprioceptiveReceptorAnatomy::new(exact(4, 1), exact(1, 1), exact(1, 2), exact(1, 1))
+                .unwrap();
+        let load = derive_effector_load_receptor_sample_range_work(
+            &source,
+            bind_neuron_perspective(&shared, 3, 0).unwrap(),
+            &anatomy,
+            0,
+            1,
+        )
+        .unwrap();
+        assert!(load.transduced_energy_zeptojoules > BigRational::zero());
+        assert!(matches!(
+            derive_proprioceptive_receptor_sample_range_work(
+                &source,
+                bind_neuron_perspective(&shared, 3, 0).unwrap(),
+                &anatomy,
+                0,
+                1,
+            ),
+            Err(ProprioceptiveReceptorWorkError::PhysicalQuantityMismatch)
+        ));
     }
 }

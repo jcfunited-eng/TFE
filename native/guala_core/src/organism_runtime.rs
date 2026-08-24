@@ -16,7 +16,7 @@
 //! persistence, owner, lock, or global clock.
 
 use crate::articulated_body_joint_source_builder::{
-    admit_articulated_body_proprioceptive_source, admit_complete_articulated_body_state_source,
+    admit_articulated_body_consequence_source, admit_complete_articulated_body_state_source,
 };
 use crate::complete_neuron::{ExactPhysicalStateDelta, PhysicalStateCoordinate};
 use crate::developmental_electrical_anatomy::build_authored_growth_dna_seeds;
@@ -3942,15 +3942,15 @@ fn body_proprioceptive_source(
     if consequences.is_empty() {
         return Ok(None);
     }
-    let source = admit_articulated_body_proprioceptive_source(source_tick, consequences)
+    let source = admit_articulated_body_consequence_source(source_tick, consequences)
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
     let receipt = BodyProprioceptiveSourceReceipt {
         source_tick,
         payload: source.joint_source_body().to_vec(),
-        port_count: consequences.len() * 2,
-        sample_count: consequences.len() * 4,
-        occurrence_count: consequences.len(),
-        occurrence_frame_count: consequences.len() * 2,
+        port_count: source.joint_source_ports().len(),
+        sample_count: source.joint_source_sample_count(),
+        occurrence_count: source.joint_source_occurrences().len(),
+        occurrence_frame_count: source.joint_source_occurrence_frame_count(),
     };
     Ok(Some((source, receipt)))
 }

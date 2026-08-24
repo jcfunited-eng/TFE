@@ -14,10 +14,12 @@ use crate::joint_source_episode::{decode_native_joint_source_episode, NativeJoin
 use crate::joint_uf_source_adapter::SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE;
 use crate::proprioceptive_receptor_work::{
     ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
+    DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT, EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
 };
 use crate::virtual_articulated_body::{
     ArticulatedBodyState, BodyEffectorDirection, BodyProprioceptiveConsequence,
-    BodyProprioceptorTerminal, BODY_AXES, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyProprioceptorTerminal, BODY_AXES, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
+    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
 
 const VERSION: u16 = 3;
@@ -26,6 +28,10 @@ const PORT_RELEVANCE: &str = "guala.body.proprioceptor.present.r(t)=1.exact.v1";
 const JOINT_RELEVANCE: &[u8] = b"guala.body.antagonist_pair.present.r(t)=1.exact.v1";
 const INPUT_MAP: &str = "antagonist-length-over-articulated-axis-span-v1";
 const EVIDENCE_MAGIC: &[u8; 8] = b"GLBPEV01";
+const CONSEQUENCE_VERSION: u16 = 4;
+const CONSEQUENCE_MAGIC: &[u8; 8] = b"GLJSRC04";
+const LOAD_PORT_RELEVANCE: &str = "guala.body.effector_load.present.r(t)=1.exact.v1";
+const LOAD_INPUT_MAP: &str = "reacted-over-discharged-effector-carriers-v1";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum ArticulatedBodyJointSourceError {
@@ -183,6 +189,189 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
     .map_err(ArticulatedBodyJointSourceError::Carrier)
 }
 
+/// Admit position and reacted load as distinct simultaneous physical endings.
+/// The load fraction is exact: opposed carriers plus any stop-stalled net
+/// drive, divided by the carriers discharged through that terminal.  Nothing
+/// is scored, thresholded, or inferred from an action label.
+pub(crate) fn admit_articulated_body_consequence_source(
+    source_tick: u64,
+    consequences: &[BodyProprioceptiveConsequence],
+) -> Result<NativeJointSourceEpisode, ArticulatedBodyJointSourceError> {
+    if consequences.is_empty() {
+        return Err(ArticulatedBodyJointSourceError::EmptyConsequences);
+    }
+    if consequences.windows(2).any(|pair| pair[0].axis >= pair[1].axis) {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    for consequence in consequences {
+        let anatomy = consequence.axis.anatomy();
+        if consequence.unit != anatomy.unit
+            || !(anatomy.minimum..=anatomy.maximum).contains(&consequence.predecessor_position)
+            || !(anatomy.minimum..=anatomy.maximum).contains(&consequence.successor_position)
+            || consequence.successor_position - consequence.predecessor_position
+                != consequence.signed_displacement
+        {
+            return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+        }
+    }
+
+    let successor_tick = source_tick
+        .checked_add(1)
+        .ok_or(ArticulatedBodyJointSourceError::SourceTickOverflow)?;
+    let times = [
+        BigRational::new(BigInt::from(source_tick), BigInt::from(TICKS_PER_SECOND)),
+        BigRational::new(BigInt::from(successor_tick), BigInt::from(TICKS_PER_SECOND)),
+    ];
+    let port_count = consequences
+        .len()
+        .checked_mul(4)
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
+    let sample_count = port_count
+        .checked_mul(2)
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
+    let occurrence_frame_count = consequences
+        .len()
+        .checked_mul(2)
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
+
+    let mut output = CONSEQUENCE_MAGIC.to_vec();
+    output.extend_from_slice(&CONSEQUENCE_VERSION.to_le_bytes());
+    text(&mut output, "articulated-body-position-and-load-interval")?;
+    output.extend_from_slice(&[1, 1, 1, 1, 1, 0]);
+    u32_value(&mut output, port_count)?;
+    for consequence in consequences {
+        for load_ending in [false, true] {
+            for direction in [
+                BodyEffectorDirection::TowardMinimum,
+                BodyEffectorDirection::TowardMaximum,
+            ] {
+                let terminal = BodyProprioceptorTerminal::new(consequence.axis, direction);
+                output.push(5);
+                let topology_offset = if load_ending {
+                    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET
+                } else {
+                    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+                };
+                u32_value(
+                    &mut output,
+                    topology_offset
+                        .checked_add(terminal.ordinal())
+                        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?,
+                )?;
+                output.push(1);
+                output.push(
+                    u8::try_from(consequence.axis.index())
+                        .map_err(|_| ArticulatedBodyJointSourceError::ArithmeticWidth)?,
+                );
+                output.push(direction as u8);
+                text(
+                    &mut output,
+                    if load_ending {
+                        "articulated-body-effector-load-receptor"
+                    } else {
+                        "articulated-body-proprioceptor"
+                    },
+                )?;
+                let direction_name = match direction {
+                    BodyEffectorDirection::TowardMinimum => "toward-minimum",
+                    BodyEffectorDirection::TowardMaximum => "toward-maximum",
+                };
+                text(
+                    &mut output,
+                    &if load_ending {
+                        format!("{}-{direction_name}-load", consequence.axis.anatomical_name())
+                    } else {
+                        format!("{}-{direction_name}", consequence.axis.anatomical_name())
+                    },
+                )?;
+                output.extend_from_slice(&1_u16.to_le_bytes());
+                text(&mut output, "body-antagonist-terminal")?;
+                text(&mut output, &terminal.ordinal().to_string())?;
+                text(
+                    &mut output,
+                    if load_ending {
+                        EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+                    } else {
+                        ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
+                    },
+                )?;
+                text(
+                    &mut output,
+                    if load_ending {
+                        DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT
+                    } else {
+                        ARTICULATED_AXIS_SPAN_FRACTION_UNIT
+                    },
+                )?;
+                text(
+                    &mut output,
+                    if load_ending { LOAD_PORT_RELEVANCE } else { PORT_RELEVANCE },
+                )?;
+                text(&mut output, "")?;
+                text(&mut output, if load_ending { LOAD_INPUT_MAP } else { INPUT_MAP })?;
+                rational(&mut output, &BigRational::zero())?;
+                rational(&mut output, &BigRational::one())?;
+                rational(&mut output, &BigRational::zero())?;
+                rational(&mut output, &BigRational::one())?;
+                let evidence = exact_evidence(source_tick, successor_tick, consequence, terminal);
+                bytes(&mut output, &evidence)?;
+                u32_value(&mut output, 2)?;
+                let load = reactive_load_fraction(consequence, direction)?;
+                for (time, position) in times.iter().zip([
+                    consequence.predecessor_position,
+                    consequence.successor_position,
+                ]) {
+                    let exact = if load_ending {
+                        load.clone()
+                    } else {
+                        normalized_antagonist_length(consequence, position, direction)?
+                    };
+                    let projection = exact
+                        .to_f64()
+                        .filter(|value| value.is_finite() && (0.0..=1.0).contains(value))
+                        .ok_or(ArticulatedBodyJointSourceError::NonFiniteCoordinate)?;
+                    rational(&mut output, time)?;
+                    output.extend_from_slice(&projection.to_bits().to_le_bytes());
+                    rational(&mut output, &BigRational::zero())?;
+                    rational(&mut output, &BigRational::one())?;
+                    rational(&mut output, &exact)?;
+                }
+            }
+        }
+    }
+
+    u32_value(&mut output, consequences.len())?;
+    for axis_ordinal in 0..consequences.len() {
+        u32_value(&mut output, 4)?;
+        for port in axis_ordinal * 4..axis_ordinal * 4 + 4 {
+            u32_value(&mut output, port)?;
+        }
+        u32_value(&mut output, 2)?;
+        for time in &times {
+            rational(&mut output, time)?;
+        }
+        bytes(&mut output, SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE)?;
+        u32_value(&mut output, 1)?;
+        u32_value(&mut output, 4)?;
+        for group_member in 0..4 {
+            u32_value(&mut output, group_member)?;
+        }
+        bytes(&mut output, JOINT_RELEVANCE)?;
+        u32_value(&mut output, 2)?;
+        rational(&mut output, &BigRational::one())?;
+        rational(&mut output, &BigRational::one())?;
+    }
+
+    decode_native_joint_source_episode(
+        &output,
+        port_count,
+        sample_count,
+        consequences.len(),
+        occurrence_frame_count,
+    )
+    .map_err(ArticulatedBodyJointSourceError::Carrier)
+}
+
 /// Observe the complete fixed-capacity body once without inventing motion.
 /// This gives every terminal a stable receptor site before any motor ancestry
 /// can reach it. The roster is bounded at 74 ports and contains no history.
@@ -228,6 +417,35 @@ fn normalized_antagonist_length(
         BodyEffectorDirection::TowardMaximum => span - toward_minimum_length,
     };
     Ok(BigRational::new(BigInt::from(length), BigInt::from(span)))
+}
+
+fn reactive_load_fraction(
+    consequence: &BodyProprioceptiveConsequence,
+    direction: BodyEffectorDirection,
+) -> Result<BigRational, ArticulatedBodyJointSourceError> {
+    let discharged = match direction {
+        BodyEffectorDirection::TowardMinimum => consequence.toward_minimum_carriers,
+        BodyEffectorDirection::TowardMaximum => consequence.toward_maximum_carriers,
+    };
+    if discharged == 0 {
+        return Ok(BigRational::zero());
+    }
+    let carries_stall = match direction {
+        BodyEffectorDirection::TowardMinimum => {
+            consequence.toward_minimum_carriers > consequence.toward_maximum_carriers
+        }
+        BodyEffectorDirection::TowardMaximum => {
+            consequence.toward_maximum_carriers > consequence.toward_minimum_carriers
+        }
+    };
+    let reacted = consequence
+        .opposed_carriers_per_terminal
+        .checked_add(if carries_stall { consequence.stalled_carriers } else { 0 })
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
+    if reacted > discharged {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    Ok(BigRational::new(BigInt::from(reacted), BigInt::from(discharged)))
 }
 
 fn exact_evidence(
@@ -332,6 +550,58 @@ mod tests {
                 BodyAxis::LeftElbowFlexion,
                 BodyEffectorDirection::TowardMaximum,
             ))
+        );
+    }
+
+    #[test]
+    fn anatomical_stop_becomes_a_distinct_exact_load_ending() {
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::LeftGripAperture,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let reach_stop = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 100_000,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let stopped = settle_body_effector_drives(
+            &reach_stop.successor,
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 240,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let episode = admit_articulated_body_consequence_source(
+            43,
+            &stopped.proprioceptive_consequences,
+        )
+        .unwrap();
+        assert_eq!(&episode.joint_source_body()[..8], b"GLJSRC04");
+        assert_eq!(episode.joint_source_ports().len(), 4);
+        assert_eq!(episode.joint_source_occurrences().len(), 1);
+        let toward_minimum_load = &episode.joint_source_ports()[2];
+        let toward_maximum_load = &episode.joint_source_ports()[3];
+        assert_eq!(
+            toward_minimum_load.physical_quantity,
+            EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+        );
+        assert_eq!(
+            toward_maximum_load.topology_index,
+            u32::try_from(BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + terminal.ordinal()).unwrap()
+        );
+        assert_eq!(
+            toward_minimum_load.exact_normalized_sources,
+            vec![BigRational::zero(), BigRational::zero()]
+        );
+        assert_eq!(
+            toward_maximum_load.exact_normalized_sources,
+            vec![BigRational::one(), BigRational::one()]
         );
     }
 

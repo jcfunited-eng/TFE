@@ -86,9 +86,11 @@ use crate::physical_mosaic::{
     PhysicalMosaicRecurrenceOrigin, StablePhysicalBondReference,
 };
 use crate::proprioceptive_receptor_work::{
+    derive_effector_load_receptor_sample_range_work,
     derive_proprioceptive_receptor_sample_range_work, quantize_proprioceptive_delivery,
     ProprioceptiveReceptorAnatomy, ProprioceptiveReceptorWorkError,
     ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
+    DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT, EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
 };
 use crate::reached_neuron_cohort::{
     add_omitted_geometry_carrier_material, decode_reached_cohort_cell, decode_reached_cohort_state,
@@ -151,7 +153,8 @@ use crate::virtual_material_neuron_genesis::{
     reach_quiescent_virtual_material_neuron, VirtualMaterialGenesisError,
 };
 use crate::virtual_articulated_body::{
-    BodyEffectorTerminal, BODY_EFFECTOR_TERMINAL_COUNT, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyEffectorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET, BODY_EFFECTOR_TERMINAL_COUNT,
+    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
 use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
@@ -211,6 +214,8 @@ const BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 = {
         PRE_PROPRIOCEPTIVE_WIDEST_SENSE_LAYER + PRE_PROPRIOCEPTIVE_WIDEST_TOPOLOGY_INDEX;
     eccentricity * (eccentricity + 1) / 2 + PRE_PROPRIOCEPTIVE_WIDEST_TOPOLOGY_INDEX + 1
 };
+const BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
+    BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 /// Body regulation is its own layer-8 geography. Before proprioception, its
 /// widest body receptor is layer 5, topology 9, whose local projection is 114.
 /// The fixed antagonist terminals therefore occupy the next disjoint layer-8
@@ -222,6 +227,8 @@ const BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 = {
         PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER + PRE_PROPRIOCEPTIVE_WIDEST_BODY_TOPOLOGY_INDEX;
     eccentricity * (eccentricity + 1) / 2 + PRE_PROPRIOCEPTIVE_WIDEST_BODY_TOPOLOGY_INDEX + 1
 };
+const BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
+    BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const HIPPOCAMPAL_CHECKPOINT_BYTES: usize = 8 + 33 + 33;
 const FIXED_BYTES: usize = MAGIC.len()
     + std::mem::size_of::<u16>()
@@ -5511,6 +5518,24 @@ impl ResidentCognitiveFormationState {
                                                 )?;
                                             settlement.transduced_energy_zeptojoules
                                         }
+                                        ReceptorLaw::EffectorLoadBody => {
+                                            let proprioceptive_anatomy =
+                                                exact_proprioceptive_receptor_anatomy(
+                                                    neuron_anatomy.gate_population(),
+                                                )?;
+                                            let settlement =
+                                                derive_effector_load_receptor_sample_range_work(
+                                                    source,
+                                                    perspective,
+                                                    &proprioceptive_anatomy,
+                                                    field_gate_interval.first_sev,
+                                                    field_gate_interval.last_sev,
+                                                )
+                                                .map_err(
+                                                    FormationError::ProprioceptiveWorkUnavailable,
+                                                )?;
+                                            settlement.transduced_energy_zeptojoules
+                                        }
                                     };
                                     if !transduced_energy_zeptojoules.is_zero() {
                                         exogenous_receptor_energy = Some(true);
@@ -5612,6 +5637,12 @@ impl ResidentCognitiveFormationState {
                                                         error.into(),
                                                     )
                                                 })?,
+                                            ReceptorLaw::EffectorLoadBody => population
+                                                .map_err(|error| {
+                                                    FormationError::ProprioceptiveWorkUnavailable(
+                                                        error.into(),
+                                                    )
+                                                })?,
                                         }
                                     } else {
                                         match law {
@@ -5678,6 +5709,19 @@ impl ResidentCognitiveFormationState {
                                             )?
                                         }
                                         ReceptorLaw::ProprioceptiveBody => {
+                                            quantize_proprioceptive_delivery(
+                                                &transduced_energy_zeptojoules,
+                                                predecessor_neuron.receptor_quantum_residue,
+                                                neuron_anatomy
+                                                    .gate_dissipation_quantum_zeptojoules(),
+                                                window.opening_threshold_quanta,
+                                                window.window_cap_quanta,
+                                            )
+                                            .map_err(
+                                                FormationError::ProprioceptiveWorkUnavailable,
+                                            )?
+                                        }
+                                        ReceptorLaw::EffectorLoadBody => {
                                             quantize_proprioceptive_delivery(
                                                 &transduced_energy_zeptojoules,
                                                 predecessor_neuron.receptor_quantum_residue,
@@ -11064,6 +11108,28 @@ fn local_integration_place(
             .ok_or(FormationError::ArithmeticOverflow)?;
         return Ok(DeclaredNeuronPlace::new(6, topology_index));
     }
+    let load_start = u32::try_from(BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let load_end = load_start
+        .checked_add(
+            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (load_start..load_end).contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(load_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     let paired = declared_neuron_territory(receptor_place)
         .map_err(|_| FormationError::ArithmeticOverflow)?
         .checked_sub(1)
@@ -11094,6 +11160,28 @@ fn body_regulation_place(
         return Ok(DeclaredNeuronPlace::new(
             8,
             BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let load_start = u32::try_from(BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let load_end = load_start
+        .checked_add(
+            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (load_start..load_end).contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(load_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET
                 .checked_add(terminal_ordinal)
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
@@ -14672,6 +14760,7 @@ pub(crate) enum ReceptorLaw {
     ArticulatoryBody,
     ThermalBody,
     ProprioceptiveBody,
+    EffectorLoadBody,
 }
 
 fn receptor_law_for_reached_coordinates(
@@ -14774,6 +14863,14 @@ fn receptor_law_for_ports(
             && port.physical_unit == ARTICULATED_AXIS_SPAN_FRACTION_UNIT
     }) {
         return Some(ReceptorLaw::ProprioceptiveBody);
+    }
+    if all_ports(|port| {
+        port.sense == PhysicalSourceSense::Body.declared_layer()
+            && port.body_proprioceptor_terminal.is_some()
+            && port.physical_quantity == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+            && port.physical_unit == DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT
+    }) {
+        return Some(ReceptorLaw::EffectorLoadBody);
     }
     None
 }
@@ -14951,7 +15048,7 @@ mod tests {
         DevelopmentalElectricalContact, DevelopmentalElectricalSeed,
     };
     use crate::articulated_body_joint_source_builder::{
-        admit_articulated_body_proprioceptive_source,
+        admit_articulated_body_consequence_source, admit_articulated_body_proprioceptive_source,
         admit_complete_articulated_body_state_source,
     };
     use crate::exact_rational::ExactRational;
@@ -15263,6 +15360,37 @@ mod tests {
         let counts = prepared.successor.observe_reached_neuron_count_by_layer();
         assert_eq!(counts.iter().find(|(layer, _)| *layer == 5), Some(&(5, 2)));
         assert_eq!(counts.iter().find(|(layer, _)| *layer == 6), Some(&(6, 2)));
+        assert_eq!(counts.iter().find(|(layer, _)| *layer == 8), Some(&(8, 2)));
+    }
+
+    #[test]
+    fn one_acted_axis_mounts_position_and_load_as_distinct_receptors() {
+        let axis = BodyAxis::LeftGripAperture;
+        let anatomy = axis.anatomy();
+        let source = admit_articulated_body_consequence_source(
+            0,
+            &[BodyProprioceptiveConsequence {
+                axis,
+                unit: anatomy.unit,
+                predecessor_position: anatomy.maximum,
+                successor_position: anatomy.maximum,
+                signed_displacement: 0,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 240,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 0,
+                stalled_carriers: 240,
+            }],
+        )
+        .unwrap();
+        let prepared = ResidentCognitiveFormationState::default()
+            .prepare(&source, 16_000_000)
+            .unwrap();
+        let counts = prepared.successor.observe_reached_neuron_count_by_layer();
+        assert_eq!(counts.iter().find(|(layer, _)| *layer == 5), Some(&(5, 4)));
+        assert_eq!(counts.iter().find(|(layer, _)| *layer == 6), Some(&(6, 4)));
+        // Only the nonzero toward-minimum length and toward-maximum load
+        // endings reach regulation in this stopped interval.
         assert_eq!(counts.iter().find(|(layer, _)| *layer == 8), Some(&(8, 2)));
     }
 

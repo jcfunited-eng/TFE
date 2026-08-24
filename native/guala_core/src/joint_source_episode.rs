@@ -19,13 +19,16 @@ use pyo3::types::PyBytes;
 use crate::full_field_bank::rational_to_f64_bits;
 use crate::sha256::sha256;
 use crate::virtual_articulated_body::{
-    BodyProprioceptorTerminal, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyProprioceptorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
+    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
 
 const MAGIC: &[u8; 8] = b"GLJSRC02";
 const VERSION: u16 = 2;
 const BODY_MAGIC: &[u8; 8] = b"GLJSRC03";
 const BODY_VERSION: u16 = 3;
+const BODY_LOAD_MAGIC: &[u8; 8] = b"GLJSRC04";
+const BODY_LOAD_VERSION: u16 = 4;
 const SENSE_COUNT: usize = 6;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -106,6 +109,7 @@ impl NativeJointSourceEpisode {
     #[getter]
     fn schema(&self) -> &'static str {
         match self.storage.version {
+            BODY_LOAD_VERSION => "guala.native.exact_joint_source_episode.v4",
             BODY_VERSION => "guala.native.exact_joint_source_episode.v3",
             _ => "guala.native.exact_joint_source_episode.v2",
         }
@@ -527,7 +531,8 @@ impl<'a> Parser<'a> {
         let magic = self.take(MAGIC.len())?;
         let version = self.u16()?;
         if !((magic == MAGIC && version == VERSION)
-            || (magic == BODY_MAGIC && version == BODY_VERSION))
+            || (magic == BODY_MAGIC && version == BODY_VERSION)
+            || (magic == BODY_LOAD_MAGIC && version == BODY_LOAD_VERSION))
         {
             return Err("unsupported joint-source episode version".into());
         }
@@ -570,20 +575,25 @@ impl<'a> Parser<'a> {
             if sense_states[port.sense as usize] != 0 {
                 return Err("non-observed sense contains a fabricated receptor".into());
             }
-            if version == BODY_VERSION && port.sense == 5 {
+            if matches!(version, BODY_VERSION | BODY_LOAD_VERSION) && port.sense == 5 {
                 let terminal = port.body_proprioceptor_terminal.ok_or_else(|| {
-                    "v3 body receptor lacks an explicit proprioceptor terminal".to_string()
+                    "body receptor lacks an explicit proprioceptor terminal".to_string()
                 })?;
-                if usize::try_from(port.topology_index).ok()
-                    != BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET.checked_add(terminal.ordinal())
+                let topology = usize::try_from(port.topology_index).ok();
+                let length_topology =
+                    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET.checked_add(terminal.ordinal());
+                let load_topology =
+                    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET.checked_add(terminal.ordinal());
+                if topology != length_topology
+                    && !(version == BODY_LOAD_VERSION && topology == load_topology)
                 {
                     return Err(
-                        "v3 body receptor topology differs from its fixed proprioceptor terminal"
+                        "body receptor topology differs from its fixed terminal territory"
                             .into(),
                     );
                 }
-                if !body_proprioceptor_terminals.insert(terminal) {
-                    return Err("v3 body source repeats a proprioceptor terminal".into());
+                if !body_proprioceptor_terminals.insert((terminal, port.topology_index)) {
+                    return Err("body source repeats one physical terminal ending".into());
                 }
             }
             topology_indices[port.sense as usize].push(port.topology_index);
@@ -597,7 +607,7 @@ impl<'a> Parser<'a> {
             if sense_states[sense] == 0 && topology_indices[sense].is_empty() {
                 return Err("observed sense has no physical receptor".into());
             }
-            if !(version == BODY_VERSION && sense == 5)
+            if !(matches!(version, BODY_VERSION | BODY_LOAD_VERSION) && sense == 5)
                 && topology_indices[sense]
                     .iter()
                     .copied()
@@ -789,7 +799,7 @@ impl<'a> Parser<'a> {
             return Err("joint-source receptor sense is outside topology".into());
         }
         let topology_index = self.u32()?;
-        let body_proprioceptor_terminal = if version == BODY_VERSION {
+        let body_proprioceptor_terminal = if matches!(version, BODY_VERSION | BODY_LOAD_VERSION) {
             match self.u8()? {
                 0 => None,
                 1 => {
@@ -810,8 +820,11 @@ impl<'a> Parser<'a> {
         } else {
             None
         };
-        if version == BODY_VERSION && sense == 5 && body_proprioceptor_terminal.is_none() {
-            return Err("v3 body receptor lacks an explicit proprioceptor terminal".into());
+        if matches!(version, BODY_VERSION | BODY_LOAD_VERSION)
+            && sense == 5
+            && body_proprioceptor_terminal.is_none()
+        {
+            return Err("body receptor lacks an explicit proprioceptor terminal".into());
         }
         let sensor_id = self.identifier("sensor_id")?;
         let substream_id = self.identifier("substream_id")?;

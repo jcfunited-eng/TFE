@@ -19,6 +19,11 @@ pub(crate) const BODY_EFFECTOR_TERMINAL_COUNT: usize = BODY_AXIS_COUNT * 2;
 /// declared place. This is fixed anatomy, not a runtime offset or an action
 /// selector; terminal ordinals themselves remain 0..73.
 pub(crate) const BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize = 10;
+/// Load endings are distinct from antagonist-length endings.  They occupy the
+/// next fixed body territory, preserving both physical quantities without
+/// flattening either one into a combined proprioceptive score.
+pub(crate) const BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET: usize =
+    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT;
 pub(crate) const VOCAL_TRACT_SECTION_COUNT: usize = 8;
 const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
 pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES

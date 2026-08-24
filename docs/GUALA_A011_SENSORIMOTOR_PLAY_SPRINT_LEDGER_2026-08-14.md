@@ -3152,3 +3152,26 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   `awaiting_varied_retained_formation_sensorimotor_return`. The next item is the
   native physical cause of repeated same-terminal saturation, not another
   observer rule or observer-driven action.
+
+### Exact stopped-effector load-return candidate
+
+- Task `1205` proved that position feedback alone returns to the same organism,
+  but a terminal motor discharge at an anatomical stop remained physically
+  invisible: the length ending was already zero while the exact reacted/stalled
+  carriers existed only in transient evidence.
+- The candidate preserves the existing 74 antagonist-length endings and adds a
+  distinct fixed load-ending territory. Each acted axis now returns four
+  simultaneous physical ports: toward-minimum/toward-maximum length and
+  toward-minimum/toward-maximum reacted-load fraction. The load fraction is
+  exact reacted carriers divided by discharged carriers; there is no score,
+  threshold, reward, selector, or reduced DSF field.
+- The causal source is native `GLJSRC04`. Python only validates and transports
+  its exact bytes beside the next world consequence. The causal observer is not
+  changed and remains strictly after durable CURRENT publication.
+- `cargo check --lib`, Python compilation, `git diff --check`, the exact stop
+  load-source proof, the load-transduction proof, the legacy length-source
+  proof, and the resident four-ending mounting proof pass. One initial mounting
+  assertion incorrectly expected all four declared endings to advance into
+  regulation; the exact stopped interval correctly advances only its two
+  nonzero endings. No production claim is made until immutable cutover and live
+  same-identity evidence.

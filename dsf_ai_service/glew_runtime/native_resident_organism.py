@@ -2886,13 +2886,20 @@ class NativeResidentOrganism:
         for raw_body, raw_extent in zip(
             raw_body_sources, raw_body_source_extents, strict=True
         ):
+            body_source_version = (
+                3
+                if isinstance(raw_body, bytes) and raw_body.startswith(b"GLJSRC03")
+                else 4
+                if isinstance(raw_body, bytes) and raw_body.startswith(b"GLJSRC04")
+                else None
+            )
             if (
                 not isinstance(raw_body, bytes)
-                or not raw_body.startswith(b"GLJSRC03")
+                or body_source_version is None
                 or not isinstance(raw_extent, tuple)
                 or len(raw_extent) != 5
             ):
-                raise RuntimeError("body proprioceptive source is not exact GLJSRC03")
+                raise RuntimeError("body proprioceptive source is not exact GLJSRC03/04")
             source_tick = _nonnegative_integer(raw_extent[0], "body source tick")
             port_count = _positive_integer(raw_extent[1], "body source port count")
             sample_count = _positive_integer(raw_extent[2], "body source sample count")
@@ -2905,7 +2912,8 @@ class NativeResidentOrganism:
                 or source_tick >= organism_tick
                 or prior_source_tick is not None
                 and source_tick <= prior_source_tick
-                or port_count != occurrence_count * 2
+                or port_count
+                != occurrence_count * (2 if body_source_version == 3 else 4)
                 or sample_count != port_count * 2
                 or frame_count != occurrence_count * 2
             ):
