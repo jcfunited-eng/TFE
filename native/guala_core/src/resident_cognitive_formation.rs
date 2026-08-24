@@ -2230,25 +2230,22 @@ struct TransitionNeuronPredecessor {
 }
 
 fn retain_first_transition_predecessor(
-    predecessors: &mut Vec<TransitionNeuronPredecessor>,
+    predecessors: &mut BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
     predecessor: TransitionNeuronPredecessor,
 ) {
-    match predecessors.binary_search_by_key(&predecessor.lineage, |entry| entry.lineage) {
-        Ok(_) => {}
-        Err(index) => predecessors.insert(index, predecessor),
-    }
+    predecessors.entry(predecessor.lineage).or_insert(predecessor);
 }
 
 fn exact_transition_physical_deltas(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
-    predecessors: &[TransitionNeuronPredecessor],
+    predecessors: &BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
 ) -> Result<Vec<([u8; 16], SparsePhysicalStateDelta)>, FormationError> {
     let mut deltas = Vec::new();
     deltas
         .try_reserve(predecessors.len())
         .map_err(|_| FormationError::ArithmeticOverflow)?;
-    for predecessor in predecessors {
+    for predecessor in predecessors.values() {
         let flat = topology_index.flat_for_lineage(predecessor.lineage)?;
         let (cohort_index, neuron_index, _) = topology_index
             .flat_locations
@@ -5009,7 +5006,7 @@ impl ResidentCognitiveFormationState {
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
-        let mut physically_transitioned_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut physically_transitioned_neuron_lineages = BTreeSet::<[u8; 16]>::new();
         let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut localized_metabolic_strain_evaluated_body_receptor_lineages =
             Vec::<[u8; 16]>::new();
@@ -5018,7 +5015,8 @@ impl ResidentCognitiveFormationState {
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_perturbed_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_energized_neuron_lineages = Vec::<[u8; 16]>::new();
-        let mut transition_neuron_predecessors = Vec::<TransitionNeuronPredecessor>::new();
+        let mut transition_neuron_predecessors =
+            BTreeMap::<[u8; 16], TransitionNeuronPredecessor>::new();
         let mut externally_reached_receptor_places = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
         let mut externally_energized_by_occurrence =
             vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
@@ -6081,10 +6079,8 @@ impl ResidentCognitiveFormationState {
                         for (neuron_index, predecessor) in &interval_predecessor_neurons {
                             let successor = &cohort.state.neurons()[*neuron_index];
                             let lineage = &cohort.anatomy.neuron_lineages()[*neuron_index];
-                            if predecessor != successor
-                                && !physically_transitioned_neuron_lineages.contains(lineage)
-                            {
-                                physically_transitioned_neuron_lineages.push(*lineage);
+                            if predecessor != successor {
+                                physically_transitioned_neuron_lineages.insert(*lineage);
                             }
                             if predecessor != successor {
                                 retain_first_transition_predecessor(
@@ -6216,38 +6212,41 @@ impl ResidentCognitiveFormationState {
         // already-moving frontier still continues below, and a local metabolic
         // membrane perturbation remains an intrinsic reached cause. This keeps
         // darkness and silence physical without turning them into commands.
-        let mut current_noncontinuation_seed_lineages =
-            externally_energized_neuron_lineages.clone();
+        let mut current_noncontinuation_seed_lineages = externally_energized_neuron_lineages
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
         for lineage in reached_association_lineages
             .iter()
             .chain(&reached_body_regulation_lineages)
             .chain(&metabolically_perturbed_body_receptor_lineages)
         {
-            if !current_noncontinuation_seed_lineages.contains(lineage) {
-                current_noncontinuation_seed_lineages.push(*lineage);
-            }
+            current_noncontinuation_seed_lineages.insert(*lineage);
         }
         let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
-        let mut locally_settled_lineages = externally_reached_neuron_lineages.clone();
+        let mut locally_settled_lineages = externally_reached_neuron_lineages
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
         for lineage in reached_association_lineages
             .iter()
             .chain(&reached_body_regulation_lineages)
             .chain(&metabolically_perturbed_body_receptor_lineages)
         {
-            if !locally_settled_lineages.contains(lineage) {
-                locally_settled_lineages.push(*lineage);
-            }
+            locally_settled_lineages.insert(*lineage);
         }
         for entry in &active_electrical_frontier {
             for lineage in entry.affected_lineages().into_iter().flatten() {
-                if !internal_frontier_lineages.contains(&lineage) {
-                    internal_frontier_lineages.push(lineage);
-                }
-                if !locally_settled_lineages.contains(&lineage) {
-                    locally_settled_lineages.push(lineage);
-                }
+                internal_frontier_lineages.insert(lineage);
+                locally_settled_lineages.insert(lineage);
             }
         }
+        let current_noncontinuation_seed_lineages =
+            current_noncontinuation_seed_lineages.into_iter().collect::<Vec<_>>();
+        let internal_frontier_lineages =
+            internal_frontier_lineages.into_iter().collect::<Vec<_>>();
+        let locally_settled_lineages =
+            locally_settled_lineages.into_iter().collect::<Vec<_>>();
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
                 &cohorts,
@@ -6290,7 +6289,7 @@ impl ResidentCognitiveFormationState {
             &reached_body_regulation_lineages,
             vestibular.is_some(),
         );
-        for predecessor in internal_contact.transition_predecessors {
+        for predecessor in internal_contact.transition_predecessors.into_values() {
             retain_first_transition_predecessor(&mut transition_neuron_predecessors, predecessor);
         }
         emitted_neuron_fractals.extend(internal_contact.emitted_neuron_fractals.iter().cloned());
@@ -12926,7 +12925,7 @@ struct InternalContactSettlementObservation {
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
-    transition_predecessors: Vec<TransitionNeuronPredecessor>,
+    transition_predecessors: BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
 }
 
 #[derive(Clone)]
@@ -13139,7 +13138,7 @@ fn settle_internal_contact_interval(
     topology_index: &ResidentTopologyIndex,
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
-    physically_transitioned_neuron_lineages: &mut Vec<[u8; 16]>,
+    physically_transitioned_neuron_lineages: &mut BTreeSet<[u8; 16]>,
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
@@ -13159,7 +13158,7 @@ fn settle_internal_contact_interval(
             motor_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
-            transition_predecessors: Vec::new(),
+            transition_predecessors: BTreeMap::new(),
         });
     }
 
@@ -13206,7 +13205,7 @@ fn settle_internal_contact_interval(
             motor_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
-            transition_predecessors: Vec::new(),
+            transition_predecessors: BTreeMap::new(),
         });
     }
     let mut selected_cohort_indices = selected
@@ -13258,7 +13257,7 @@ fn settle_internal_contact_interval(
             motor_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
-            transition_predecessors: Vec::new(),
+            transition_predecessors: BTreeMap::new(),
         });
     }
     let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
@@ -14229,7 +14228,7 @@ fn settle_internal_contact_interval(
     let mut motor_unit_recruitments = Vec::new();
     let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
-    let mut transition_predecessors = Vec::new();
+    let mut transition_predecessors = BTreeMap::new();
     let mut layer_ten_plasticity_settlements = Vec::new();
     for result in cohort_results {
         if let Some((
@@ -14242,9 +14241,7 @@ fn settle_internal_contact_interval(
         {
             for predecessor in changed_predecessors {
                 let lineage = predecessor.lineage;
-                if !physically_transitioned_neuron_lineages.contains(&lineage) {
-                    physically_transitioned_neuron_lineages.push(lineage);
-                }
+                physically_transitioned_neuron_lineages.insert(lineage);
                 retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
             }
             motor_unit_recruitments.extend(cohort_motor_recruitments);
@@ -18624,7 +18621,7 @@ mod tests {
         let association_predecessor = participant_plastic(association, &cohorts);
         let regulation_predecessor = participant_plastic(regulation, &cohorts);
         let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
-        let mut transitioned = Vec::new();
+        let mut transitioned = BTreeSet::new();
         let mut retained_settlement = None;
         for ordinal in 1..=128 {
             let observation = settle_internal_contact_interval(

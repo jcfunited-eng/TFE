@@ -485,7 +485,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
                 })
         })
         .collect::<Vec<_>>();
-    let mut changed = Vec::new();
+    let mut changed = std::collections::BTreeSet::new();
     let unchanged_developmental_resting_neuron_count = successor
         .resting_population
         .as_ref()

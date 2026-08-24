@@ -3334,3 +3334,32 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   persistence, body, DSF, neuron, contact, L0--L4, threshold, label, or score
   changed. A corrected immutable cutover and passive mature-state interval are
   still required.
+
+### Task-1212 passive timing rejection and reached-lineage bookkeeping correction
+
+- Corrected commit `e48dcf2a98fa07d18d1400521a1466f53ab08bb7` deployed once as task
+  `dsf-ai-task:1212`, image
+  `sha256:b2dab19c1103e21c04f8fff4e301e2000af308a3b5f59808a8cdd91937185428`.
+  The same resident organism restored at tick `163574`, but its first ordinary
+  interval did not publish within the established twelve-minute bound while
+  CPU remained active. This is a live timing rejection, not evidence of an
+  observer failure and not A-011 completion.
+- Source inspection found two nested quadratic bookkeeping paths on the real
+  reached frontier: each changed-neuron predecessor was inserted into a sorted
+  `Vec`, shifting already-retained neuron bodies, and the resulting predecessor
+  set was inserted the same way again at the trajectory boundary. A
+  63,282-neuron transition therefore performed order-squared bookkeeping that
+  is not neuronal settlement.
+- The current source correction preserves the exact earliest predecessor for
+  every stable lineage in deterministic order using `BTreeMap`, preserves the
+  exact transitioned-lineage set using `BTreeSet`, and replaces repeated
+  linear union scans with exact set union. Full DSF, physical settlement,
+  bodies, contacts, formations, persistence, and observation are unchanged.
+  `cargo check --lib` passed in 2.46 seconds. Passive live action/consequence
+  evidence is still required; no synthetic stimulus or behavioral label is
+  authorized as acceptance.
+- The first immutable build stopped before cutover because two test-only
+  callers still constructed the prior `Vec` parameter. Production source had
+  compiled. Both fixtures now construct the same `BTreeSet`; `cargo test --lib
+  --no-run` compiled the complete test target in 8.17 seconds. Task 1212 was
+  never drained or replaced by that failed build.
