@@ -1282,11 +1282,12 @@ pub(crate) struct MotorUnitRecruitment {
     /// effector, action name, or command.
     pub(crate) body_afferent_paths: Vec<MotorBodyAfferentPath>,
     /// Every exact whole-carrier transfer across this motor cell's direct
-    /// contact with a mounted layer-11 ordering cell in the settled actuator
-    /// interval. The potential difference of both endpoints causes the
-    /// transfer; its signed direction is preserved rather than relabelled as
-    /// excitation. This is transient causal evidence, not a plan, score,
-    /// command, or retained action object.
+    /// contact with a mounted layer-11 ordering cell or its explicitly traced
+    /// reacted-load layer-8 regulator in the settled actuator interval. Tonic
+    /// position regulation is excluded. The potential difference of both
+    /// endpoints causes the transfer; its signed direction is preserved rather
+    /// than relabelled as excitation. This is transient causal evidence, not a
+    /// plan, score, command, or retained action object.
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
 }
 
@@ -12958,14 +12959,16 @@ fn local_gradient_direction(
 
 /// Return the exact physical transfers that can prepare one mounted motor.
 ///
-/// Layer 11 carries an internally ordered action preparation. Layer 8 carries
-/// the motor's own mounted body-regulation reflex: receptor -> local
-/// integration -> body regulation -> motor. Both are real contact-local
-/// causes. No other layer, observation, score, or action label can prepare a
-/// motor through this boundary.
+/// Layer 11 carries an internally ordered action preparation. The explicitly
+/// identified layer-8 lines carry only this motor's mounted reacted-load
+/// reflex: load receptor -> local integration -> body regulation -> motor.
+/// Both are real contact-local causes. Tonic position regulation and every
+/// other layer remain ineligible; no observation, score, or action label can
+/// prepare a motor through this boundary.
 fn exact_motor_preparation_transfers(
     motor_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    reacted_load_regulation_lineages: &[[u8; 16]],
     layer_of: impl Fn([u8; 16]) -> Option<u32>,
 ) -> Vec<DirectedPhysicalTransferObservation> {
     let mut preparation_transfers = settled_directed_transfers
@@ -12979,7 +12982,15 @@ fn exact_motor_preparation_transfers(
             } else {
                 None
             };
-            matches!(adjacent_layer, Some(8 | 11))
+            matches!(adjacent_layer, Some(11))
+                || matches!(adjacent_layer, Some(8))
+                    && reacted_load_regulation_lineages
+                        .binary_search(&if transfer.receiver == motor_lineage {
+                            transfer.sender
+                        } else {
+                            transfer.receiver
+                        })
+                        .is_ok()
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
@@ -13727,8 +13738,9 @@ fn settle_internal_contact_interval(
     // Preserve the exact directed whole-carrier transfers from this settled
     // interval before the disjoint cohort consequences are applied. A motor
     // recruitment may use only the exact current settled across its direct
-    // contact with a mounted layer-11 neighbour. The two endpoint potentials
-    // jointly cause that transfer; its observed direction is never rewritten.
+    // contact with a mounted layer-11 neighbour or its own exact reacted-load
+    // layer-8 regulator. The two endpoint potentials jointly cause that
+    // transfer; its observed direction is never rewritten.
     let mut settled_directed_transfers = Vec::new();
     for (transition, bond) in settled.transitions.iter().zip(&compact_bonds) {
         let signed_transfer = transition.outward_elementary_charges_from_left;
@@ -13785,6 +13797,35 @@ fn settle_internal_contact_interval(
     }
     causally_active_lineages.sort_unstable();
     causally_active_lineages.dedup();
+
+    // Resolve only the mounted reacted-load branch before the disjoint cohort
+    // mutation begins. Tonic antagonist-length receptors share layer 8, but
+    // they are position sense—not a stop/load reflex—and must not recruit the
+    // whole motor population merely because the body is present.
+    let mut reacted_load_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
+    for (motor_flat, (_, _, motor_lineage)) in flat_locations.iter().copied().enumerate() {
+        if layer_of(motor_lineage) != Some(12) {
+            continue;
+        }
+        let mut regulations = exact_motor_body_afferent_paths(
+            motor_flat,
+            flat_locations,
+            cohorts,
+            &topology_index.neighbours_by_flat,
+        )?
+        .into_iter()
+        .filter_map(|path| {
+            (path.receptor_site.physical_quantity()
+                == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
+                .then_some(path.body_regulation_lineage)
+        })
+        .collect::<Vec<_>>();
+        regulations.sort_unstable();
+        regulations.dedup();
+        if !regulations.is_empty() {
+            reacted_load_regulations_by_motor.insert(motor_lineage, regulations);
+        }
+    }
 
     // The shared contact field and carrier transfers above are settled once.
     // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
@@ -14014,6 +14055,10 @@ fn settle_internal_contact_interval(
                 let preparation_transfers = exact_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
+                    reacted_load_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
                     &layer_of,
                 );
                 (mount.source_site().is_none()
@@ -18962,6 +19007,7 @@ mod tests {
     #[test]
     fn exact_body_regulation_transfer_prepares_its_mounted_motor() {
         let regulation = [8_u8; 16];
+        let tonic_position_regulation = [9_u8; 16];
         let ordering = [11_u8; 16];
         let unrelated = [7_u8; 16];
         let motor = [12_u8; 16];
@@ -18973,12 +19019,14 @@ mod tests {
         };
         let settled = [
             transfer(regulation, motor, 9),
+            transfer(tonic_position_regulation, motor, 8),
             transfer(motor, ordering, 5),
             transfer(unrelated, motor, 7),
         ];
         let layer_of = |lineage| {
             [
                 (regulation, 8),
+                (tonic_position_regulation, 8),
                 (ordering, 11),
                 (unrelated, 7),
                 (motor, 12),
@@ -18988,8 +19036,8 @@ mod tests {
         };
 
         assert_eq!(
-            exact_motor_preparation_transfers(motor, &settled, layer_of),
-            vec![settled[0], settled[1]],
+            exact_motor_preparation_transfers(motor, &settled, &[regulation], layer_of),
+            vec![settled[0], settled[2]],
         );
     }
 
