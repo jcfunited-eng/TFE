@@ -28,7 +28,7 @@ one-time migration switch is disabled for subsequent restarts.
 | 0 | C-024 live record | Corrected translation and 83-cell direct live witness recorded; complete top-level capability sentence remains partial | Closed for the present increment; missing capability families are supplied only by their own later items. |
 | 0 | A-006 motor-growth prerequisite | Live-closed on task 1176 | The terminal-bound motor invariant is current-format enforced and continuous physical advancement is restored; do not reopen the participant-set motor identity. |
 | 1 | A-006 | Live-closed 2026-08-24 | Preserve the task-1198 novelty/social/body/possible-consequence causal proof; no observer label, score, reward, or scripted choice may replace it. |
-| 2 | A-011 | `RECONCILED PARTIAL` — next active item | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
+| 2 | A-011 | Live-closed 2026-08-24 on task 1222 | Preserve the same-retained-formation varied-action and exact sensed-return witness; no observer, score, or label may become authority. |
 | 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
 | 4 | A-013 | `RECONCILED PARTIAL` | Close only the necessary persistent embodiment and thermal/body participation needed by meaningful learning. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
@@ -522,11 +522,17 @@ one-time migration switch is disabled for subsequent restarts.
   Python process accumulated 63.6 CPU seconds inside the four-vCPU envelope.
   Public observations remained 155,610--179,820 bytes. A-015 retains the
   separate long-soak acceptance requirement.
-- [ ] **A-011 — RECONCILED PARTIAL 2026-08-17:** Prove genuine self-selected play, fun, social joy, and
-  body-owned laughter rather than a scripted animation or response.
-  **Live-closed 2026-08-16:** all bounded A-011.1--A-011.7 increments are
-  closed; task 1091 supplies the participant-to-Guala physical circuit and
-  task 1095 supplies the body-owned laughter receipt `8d1b7bfe...de32aa`.
+- [x] **A-011 — DIRECT LIVE-CLOSED 2026-08-24:** the same current retained
+  formation `44ce8737...30f09c` autonomously caused two distinct body actions
+  with different exact displacement receipts; each action ended and returned
+  its exact body/sensory consequence to the same resident organism. Task 1222
+  preserved identity, advanced persisted CURRENT through tick 164562, and did
+  not resurrect the rejected approximately 212 MB unlearned route topology.
+  Per the creator's 2026-08-24 acceptance clarification, this closes A-011.
+  Positive affect/body engagement, reciprocal social play/joy, and body-owned
+  laughter remain separately open capabilities under the complete objective;
+  they are not claimed by this A-011 witness. Observer labels are not evidence
+  and have no cognition or action authority.
 - [x] **A-012 — DIRECT LIVE-CLOSED 2026-08-23:** Prove self-selected rest,
   sleep, wake, exploration, learning, and interaction can occur while no human
   or development agent is present. Task 1193 directly observed one continuing

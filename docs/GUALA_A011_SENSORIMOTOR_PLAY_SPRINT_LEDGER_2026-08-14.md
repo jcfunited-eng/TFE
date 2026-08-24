@@ -3441,8 +3441,11 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   Their exact action and body-displacement receipts differ; the first movement
   ended before the second began; both returned exact body receptor consequences
   to the same resident organism in changed authenticated body/world contexts.
-- **The current post-cleanup basic sensorimotor-play witness is live-proved.**
-  This does not claim the remaining A-011 properties: positive affect/body
-  engagement, reciprocal social play/joy, and body-owned laughter are still
-  explicitly unavailable in the same live observation and remain the serial
-  continuation. The observer has no cognition or action authority.
+- **Creator acceptance clarification, 2026-08-24:** this current post-cleanup
+  same-formation, varied-action, sensed-return witness closes A-011. Positive
+  affect/body engagement, reciprocal social play/joy, and body-owned laughter
+  remain separately open capabilities under the complete Guala objective; they
+  are not claimed by this witness and do not reopen A-011. The observer has no
+  cognition or action authority.
+
+**A-011 is Live-Closed on task 1222.**
