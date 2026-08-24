@@ -267,3 +267,25 @@ The release wheel SHA-256 is
 This evidence Live-Closes only the bounded Phase-1 A-013 embodiment. It does
 not claim final android morphology, detailed gait, dexterous hands, expressive
 materials, or a selected physical actuator/sensor platform.
+
+## 2026-08-24 current-body re-proof
+
+- Production task `dsf-ai-task:1222`, image
+  `sha256:2fcb66b95f5bfcf59230fd0c1f63010015c3e7d88e9125b4644b1d6476e3112e`,
+  is the sole healthy running task and retains organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- Direct persisted CURRENT advanced through tick `164706`. The same live body
+  retains all 37 bounded local axes, initialized proprioception, persistent
+  world and vestibular state, and exact action/consequence re-entry.
+- The same live observation retains thermal anatomy receipt
+  `d19bf5f75d92f5bc6b9817ce25a15b7a1fd538843b237d73c8d14be891ba5d50`,
+  exact persistent core and cutaneous temperatures, two transported thermal
+  sites, and one reached native neuron for each channel.
+- Stale observer prose claiming absent limb/joint anatomy or absent autonomous
+  action contradicts the current 37-axis body and direct task-1222 action
+  evidence. It has no cognition authority and does not reopen the ratified
+  bounded Phase-1 scope.
+
+**A-013 is Live-Closed on task 1222.** Final gait, dexterous manipulation,
+care-contact morphology, and a selected hardware body remain later physical
+increments and are not claimed here.

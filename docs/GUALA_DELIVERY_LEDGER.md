@@ -30,7 +30,7 @@ one-time migration switch is disabled for subsequent restarts.
 | 1 | A-006 | Live-closed 2026-08-24 | Preserve the task-1198 novelty/social/body/possible-consequence causal proof; no observer label, score, reward, or scripted choice may replace it. |
 | 2 | A-011 | Live-closed 2026-08-24 on task 1222 | Preserve the same-retained-formation varied-action and exact sensed-return witness; no observer, score, or label may become authority. |
 | 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
-| 4 | A-013 | `RECONCILED PARTIAL` | Close only the necessary persistent embodiment and thermal/body participation needed by meaningful learning. |
+| 4 | A-013 | Live-closed 2026-08-24 on task 1222 | Preserve the bounded Phase-1 articulated body, world/vestibular state, and exact core/cutaneous neuronal thermal participation; final gait, dexterity, and hardware morphology remain later scope. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
 | 6 | L-005 | Open | Directly prove first genuine learned recognition from novel sensory evidence, not metadata or labels. |
 | 7 | L-006 | Open | Directly prove one physically caused first utterance, self-hearing, and learned reuse in a different context. |
@@ -542,7 +542,7 @@ one-time migration switch is disabled for subsequent restarts.
   two distinct action receipts at world revisions 9357 and 9359. Identity was
   unchanged, Python cognition callbacks were zero, neuron count stayed 2,105,
   and state bytes decreased across the final two generations.
-- [ ] **A-013 thermal amendment — RECONCILED PARTIAL 2026-08-17:** the original bounded
+- [x] **A-013 thermal amendment — DIRECT LIVE-CLOSED 2026-08-24:** the original bounded
   Phase-1 pose/gaze/eyes/blink/face/mouth/breath/voice/locomotion/manipulation
   evidence remains live, but its core/cutaneous thermal body was explicitly
   unmounted. Restore Live-Closed status only after the persistent home/body
@@ -550,8 +550,10 @@ one-time migration switch is disabled for subsequent restarts.
   candidate rehearsal, two live one-tick actions separated by a zero-writer
   cold restart, and bounded resource observation on task 1113. See the
   thermal amendment sprint ledger for receipts and the truthful open
-  wall-clock settlement qualification.
-- [ ] **A-013 original non-thermal boundary — RECONCILED PARTIAL 2026-08-17:** Complete truthful persistent embodiment: pose, gaze, eyes,
+  wall-clock settlement qualification. Current task 1222 directly preserves
+  the same thermal anatomy receipt, persistent core and cutaneous stocks, two
+  transported thermal sites, and one reached native neuron per channel.
+- [x] **A-013 original non-thermal boundary — DIRECT LIVE-CLOSED 2026-08-24:** Complete truthful persistent embodiment: pose, gaze, eyes,
   blinking, face, mouth, breath, voice, locomotion, manipulation, and body
   state. **Live-closed 2026-08-16:** task 1098, commit `bb085947`, and image
   `sha256:1f091e57...4fbe5` live-prove the bounded Phase-1 37-axis,
