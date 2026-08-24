@@ -567,3 +567,28 @@ loop is authorized merely to force closure.
   removed rather than patched. Schema v2 accepts only exact PCM and sample
   rate; the already-mounted external-intake admission yields unattended time
   and the route binds current state internally. The server has no retry loop.
+- The correction deployed once as task definition 1224, commit
+  `369f48d3f48e5449c37a3b14b6efa30b8e076377`, and image
+  `sha256:aed8e6d01259efa7434bbe8da95191ea9bd4b2fa712e59b831531d55e0c50ed7`.
+  The first live v2 experience used 18,322 exact 16-kHz PCM samples of the
+  softly synthesized utterance `bear` while the real toy bear remained in her
+  current bedroom view. The request committed 123 full-roster occurrence
+  boundaries through tick 165827 and state
+  `1156fb00f854205bdc040df57ba354cd0d194850dbb24d8424d247d43cbab155`.
+  World revision 10682 supplied real retinal light; smell and taste were
+  truthfully absent.
+- Native results were 2,316 full-field deliveries, 27,673 physical neuron
+  transitions, 513 complete-neuron fractal change occurrences, 323 partial-cue
+  reassemblies (229 endogenous), and zero exhausted intervals. An externally
+  reassembled retained formation changed an exact contact, reached a layer-12
+  body action, and returned proprioceptive consequence. Three layer-13
+  recruitments also produced 16,000 samples of organism-owned pressure with
+  receipt `5a36237810cc44729f6b7d9691af67cf035998881118e1bed948c60ab4dc0d5d`,
+  followed by four self-hearing hops, 6,344 self-hearing neuron transitions,
+  and 135 self-hearing fractal change occurrences.
+- This is live grounded experience plus native articulation and self-hearing,
+  not yet learned-word recognition or a first-word claim. The emitted waveform
+  has not been shown to be `bear`, independently reactivated, or reused in a
+  changed context. The next lawful step is quiet lived time followed by a
+  later varied bear experience and partial-cue causal-use proof—not an
+  immediate drill or observer-selected answer test.
