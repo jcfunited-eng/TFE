@@ -99,8 +99,8 @@ fn real_production_body_migrates_losslessly() {
     eprintln!("REAL_BODY_ROUTE_CLEANUP_VALIDATED");
     cleanup_probe
         .encode(budget)
-        .expect("corrected production cognition encodes as current V28");
-    eprintln!("REAL_BODY_V28_ENCODING_VALIDATED");
+        .expect("corrected production cognition encodes as current V29");
+    eprintln!("REAL_BODY_V29_ENCODING_VALIDATED");
     let migrated = ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, budget)
         .expect("migration to current format");
     let redecoded =
