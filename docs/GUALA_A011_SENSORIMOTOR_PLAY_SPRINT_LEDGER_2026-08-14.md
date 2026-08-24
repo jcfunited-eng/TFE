@@ -2982,3 +2982,35 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   `awaiting_varied_retained_formation_sensorimotor_return`. Deployment proves
   observer non-authority and continuity, not the still-unobserved naturally
   completed two-episode play witness.
+
+### Post-cutover native recurrent-frontier evidence
+
+- No stimulus, lesson, action request, retry, observer callback, or state write
+  was issued. Three bounded cold reads decoded authenticated `CURRENT` and
+  compared the state receipt before and after their read-only native
+  observations.
+- Formation index 1 has 25 retained members and the separate layer-9 recurrent
+  lineage `474c4e4c494e4531000000000000006e`. That lineage has exactly 25
+  mounted contacts and contacts every one of the formation's 25 members. This
+  identifies its persisted recurrent endpoint by physical topology rather than
+  by a label or observer guess.
+- At live-source tick `159357`, the persisted active electrical frontier
+  carried an exact transfer from recurrent lineage `...006e` into retained
+  member lineage `...0060`: parallel ordinal `0`, `527` whole carriers. The
+  formation's retained physical recurrence evidence remained externally
+  observed; no Python mechanism initiated that transfer.
+- At live-source tick `159405`, the same recurrent-to-member transfer remained
+  active with `526` whole carriers. The same exact native frontier separately
+  carried transfers from layer-11 lineage `...0062` into layer-12 motor
+  lineages `...0063`, `...0071`, `...007f`, and `...008d` with `6`, `6`, `7`,
+  and `7` whole carriers respectively.
+- These facts prove that retained recurrent activity and the native motor
+  boundary are both physically live. They do **not** yet prove that the
+  recurrent cause crossed continuously into those motor transfers. A-011
+  therefore remains open, and the observer must continue to refuse rather than
+  join simultaneous but unconnected transfers.
+- The single next evidence boundary is one later ordinary interval in which the
+  exact recurrent causal frontier either advances through mounted contacts into
+  layer 12 and receives its body/sensory consequence, or settles without doing
+  so. Only the former can satisfy this A-011 increment. No observer-fed trigger
+  or native topology rewrite is authorized by the present evidence.
