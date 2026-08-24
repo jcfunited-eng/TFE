@@ -4234,6 +4234,191 @@ impl ResidentCognitiveFormationState {
         Ok(())
     }
 
+    /// Correct the task-1207 reacted-load route once at an authenticated cold
+    /// boundary. The rejected route connected a stopped effector's load
+    /// ending back to the motor already pushing into that stop. Position
+    /// feedback is untouched. Each corrected contact preserves its exact
+    /// conductance and retained carrier phase while its motor endpoint moves
+    /// to the antagonist terminal.
+    fn correct_effector_load_motor_feedback(&self) -> Result<Option<Self>, FormationError> {
+        let mounted = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount))
+            .collect::<Vec<_>>();
+        let mut motors_by_terminal = BTreeMap::<BodyEffectorTerminal, [u8; 16]>::new();
+        for (lineage, mount) in &mounted {
+            if mount.place().layer() != 12 {
+                continue;
+            }
+            let terminal = mount
+                .body_effector_terminal()
+                .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            if motors_by_terminal.insert(terminal, *lineage).is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+        }
+        let intrinsic_at_place = |place: DeclaredNeuronPlace| {
+            let matches = mounted
+                .iter()
+                .filter(|(_, mount)| mount.source_site().is_none() && mount.place() == place)
+                .map(|(lineage, _)| *lineage)
+                .collect::<Vec<_>>();
+            match matches.as_slice() {
+                [lineage] => Ok(Some(*lineage)),
+                [] => Ok(None),
+                _ => Err(FormationError::NeuronLineageAuthorityChanged),
+            }
+        };
+
+        let mut rewires = Vec::new();
+        for (receptor_lineage, mount) in &mounted {
+            let Some(source_site) = mount.source_site() else {
+                continue;
+            };
+            if source_site.physical_quantity() != EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY {
+                continue;
+            }
+            let terminal = source_site
+                .body_proprioceptor_terminal()
+                .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            let integration_place = local_integration_place(mount.place())?;
+            let regulation_place = body_regulation_place(mount.place(), integration_place)?;
+            let integration = intrinsic_at_place(integration_place)?
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let Some(regulation) = intrinsic_at_place(regulation_place)? else {
+                // A declared but mechanically quiet load ending has a receptor
+                // and local integrator but has never reached regulation or a
+                // motor contact, so there is no rejected route to correct.
+                continue;
+            };
+            if !self
+                .electrical_fabric
+                .contains_contact(*receptor_lineage, integration)
+                || !self
+                    .electrical_fabric
+                    .contains_contact(integration, regulation)
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            let Some(wrong_motor) = motors_by_terminal.get(&terminal.paired_effector()).copied()
+            else {
+                continue;
+            };
+            let Some(correct_motor) = motors_by_terminal.get(&terminal.opposing_effector()).copied()
+            else {
+                if self
+                    .electrical_fabric
+                    .contains_contact(regulation, wrong_motor)
+                {
+                    return Err(FormationError::NeuronLineageAuthorityAbsent);
+                }
+                continue;
+            };
+            let carries_wrong = self
+                .electrical_fabric
+                .contains_contact(regulation, wrong_motor);
+            let carries_correct = self
+                .electrical_fabric
+                .contains_contact(regulation, correct_motor);
+            match (carries_wrong, carries_correct) {
+                (true, false) => rewires.push((
+                    regulation,
+                    wrong_motor,
+                    regulation,
+                    correct_motor,
+                )),
+                (true, true) => return Err(FormationError::NeuronLineageAuthorityChanged),
+                (false, _) => {}
+            }
+        }
+        rewires.sort_unstable();
+        rewires.dedup();
+        if rewires.is_empty() {
+            return Ok(None);
+        }
+
+        let old_pairs = rewires
+            .iter()
+            .map(|(left, right, _, _)| canonical_lineage_pair(*left, *right))
+            .collect::<BTreeSet<_>>();
+        let old_bonds = organism_physical_bonds(&self.cohorts, &self.electrical_fabric)?
+            .into_iter()
+            .filter(|bond| old_pairs.contains(&bond.endpoints()))
+            .collect::<BTreeSet<_>>();
+        if old_bonds.len() != rewires.len() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        let keep_frontier = |entry: &&ActiveElectricalFrontierEntry| {
+            entry
+                .cause
+                .as_ref()
+                .is_none_or(|cause| !old_bonds.contains(&cause.bond))
+        };
+        let mosaics = self
+            .mosaics
+            .iter()
+            .filter(|retained| {
+                !retained
+                    .mosaic
+                    .original_bonds()
+                    .iter()
+                    .chain(retained.mosaic.recurrence_bonds())
+                    .any(|bond| old_bonds.contains(bond))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population: self.resting_population.clone(),
+            cohorts: self.cohorts.clone(),
+            electrical_fabric: self
+                .electrical_fabric
+                .rewire_contacts_exact(&rewires)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            older_active_electrical_frontier: self
+                .older_active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            mosaics: mosaics.into_boxed_slice(),
+            hippocampal: self.hippocampal,
+            topology_index: self.topology_index.clone(),
+        };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
+        validate_lineage_state(&successor)?;
+        Ok(Some(successor))
+    }
+
     /// Make every already-declared receptor territory explicit once for bodies
     /// written by the aggregate one-channel implementation. This is a
     /// representation correction, not neuronal growth: stable lineage,
@@ -8257,6 +8442,7 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
+        let current_v27 = bytes.get(..MAGIC_V27.len()) == Some(MAGIC_V27);
         let already_geometry_provisioned = bytes.len() >= MAGIC_V18.len()
             && (&bytes[..MAGIC_V18.len()] == MAGIC_V18
                 || &bytes[..MAGIC_V19.len()] == MAGIC_V19
@@ -8273,23 +8459,35 @@ impl ResidentCognitiveFormationState {
         // authenticated migration and nowhere in ordinary cognition.  The
         // former live path rescanned every cohort before every causal hop even
         // after a current body had already crossed the correction once.
-        let state = match state.retire_aliased_local_integrators()? {
+        // A V27 body has already crossed those historical retirements. Running
+        // them again would mistake living current cognition for legacy
+        // background custody. Current migration may apply only newly ratified,
+        // idempotent corrections such as the exact load-route rewire below.
+        let state = if current_v27 {
+            state
+        } else {
+            let state = match state.retire_aliased_local_integrators()? {
+                Some(corrected) => corrected,
+                None => state,
+            };
+            let state = match state.retire_background_authorized_development()? {
+                Some(corrected) => corrected,
+                None => state,
+            };
+            let state = match state.retire_duplicate_motor_effectors()? {
+                Some(corrected) => corrected,
+                None => state,
+            };
+            let state = match state.retire_duplicate_ordering_routes()? {
+                Some(corrected) => corrected,
+                None => state,
+            };
+            state.into_expanded_legacy_receptor_channel_populations()?
+        };
+        let state = match state.correct_effector_load_motor_feedback()? {
             Some(corrected) => corrected,
             None => state,
         };
-        let state = match state.retire_background_authorized_development()? {
-            Some(corrected) => corrected,
-            None => state,
-        };
-        let state = match state.retire_duplicate_motor_effectors()? {
-            Some(corrected) => corrected,
-            None => state,
-        };
-        let state = match state.retire_duplicate_ordering_routes()? {
-            Some(corrected) => corrected,
-            None => state,
-        };
-        let state = state.into_expanded_legacy_receptor_channel_populations()?;
         let state = if already_geometry_provisioned {
             state
         } else {
@@ -11822,8 +12020,14 @@ fn mount_reached_motor_effector(
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
             .iter()
             .filter_map(|lineage| mounts_by_lineage.get(lineage)?.source_site())
-            .filter_map(NeuronSourceSite::body_proprioceptor_terminal)
-            .map(|terminal| terminal.paired_effector())
+            .filter_map(|source_site| {
+                let terminal = source_site.body_proprioceptor_terminal()?;
+                Some(match source_site.physical_quantity() {
+                    EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY => terminal.opposing_effector(),
+                    ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY => terminal.paired_effector(),
+                    _ => return None,
+                })
+            })
             .collect::<Vec<_>>();
         terminals.sort_unstable();
         terminals.dedup();
@@ -15155,6 +15359,22 @@ mod tests {
             &source.joint_source_ports()[terminal.ordinal()],
         )
         .unwrap();
+        mount_body_regulation_from_site_fixture(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            electrical_fabric,
+            receptor_site,
+        )
+    }
+
+    fn mount_body_regulation_from_site_fixture(
+        cohorts: &mut Vec<ResidentReachedCohort>,
+        resting_population: &mut Option<DevelopmentalRestingPopulation>,
+        next_lineage_ordinal: &mut u64,
+        electrical_fabric: &mut ResidentElectricalFabric,
+        receptor_site: NeuronSourceSite,
+    ) -> ([u8; 16], [u8; 16], NeuronSourceSite) {
         let receptor_place = DeclaredNeuronPlace::from_source_site(&receptor_site);
         let receptor_neuron = create_quiescent_virtual_material_neuron(receptor_place).unwrap();
         let receptor_lineage = allocate_local_lineage(next_lineage_ordinal).unwrap();
@@ -18627,6 +18847,240 @@ mod tests {
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
             resting_before - 1
+        );
+    }
+
+    #[test]
+    fn reacted_load_reaches_the_opposing_motor_terminal() {
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let axis = BodyAxis::LeftGripAperture;
+        let anatomy = axis.anatomy();
+        let source = admit_articulated_body_consequence_source(
+            0,
+            &[BodyProprioceptiveConsequence {
+                axis,
+                unit: anatomy.unit,
+                predecessor_position: anatomy.maximum,
+                successor_position: anatomy.maximum,
+                signed_displacement: 0,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 240,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 0,
+                stalled_carriers: 240,
+            }],
+        )
+        .unwrap();
+        let receptor_site = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.body_proprioceptor_terminal
+                    == Some(BodyProprioceptorTerminal::new(
+                        axis,
+                        BodyEffectorDirection::TowardMaximum,
+                    ))
+                    && port.physical_quantity == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+            })
+            .map(NeuronSourceSite::from_source_port)
+            .unwrap()
+            .unwrap();
+        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site,
+        );
+        let ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            regulation,
+            ordering,
+            0,
+        );
+        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+        )
+        .unwrap();
+
+        let motor_terminal = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .find_map(ReachedNeuronMount::body_effector_terminal)
+            .unwrap();
+        assert_eq!(
+            motor_terminal,
+            BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum)
+        );
+    }
+
+    #[test]
+    fn current_migration_rewires_only_the_rejected_load_motor_contact() {
+        const MAX_BYTES: usize = 64_000_000;
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let axis = BodyAxis::LeftGripAperture;
+        let anatomy = axis.anatomy();
+        let source = admit_articulated_body_consequence_source(
+            0,
+            &[BodyProprioceptiveConsequence {
+                axis,
+                unit: anatomy.unit,
+                predecessor_position: anatomy.maximum,
+                successor_position: anatomy.maximum,
+                signed_displacement: 0,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 240,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 0,
+                stalled_carriers: 240,
+            }],
+        )
+        .unwrap();
+        let receptor_site = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.body_proprioceptor_terminal
+                    == Some(BodyProprioceptorTerminal::new(
+                        axis,
+                        BodyEffectorDirection::TowardMaximum,
+                    ))
+                    && port.physical_quantity == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+            })
+            .map(NeuronSourceSite::from_source_port)
+            .unwrap()
+            .unwrap();
+        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site,
+        );
+        let wrong_motor = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            12,
+        )
+        .unwrap();
+        let correct_motor = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            12,
+        )
+        .unwrap();
+        for (lineage, direction) in [
+            (wrong_motor, BodyEffectorDirection::TowardMaximum),
+            (correct_motor, BodyEffectorDirection::TowardMinimum),
+        ] {
+            cohorts
+                .iter_mut()
+                .find(|cohort| cohort.anatomy.neuron_lineages().contains(&lineage))
+                .unwrap()
+                .anatomy
+                .specialize_motor_effector(lineage, BodyEffectorTerminal::new(axis, direction))
+                .unwrap();
+        }
+        let unrelated = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contacts(&[
+                (
+                    regulation,
+                    wrong_motor,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    unrelated,
+                    correct_motor,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+            ])
+            .unwrap();
+        let contact_count = fabric.contact_count();
+        let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let occupied_places = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .map(ReachedNeuronMount::place)
+            .collect::<Vec<_>>();
+        let resting_population = DevelopmentalRestingPopulation::admit(
+            MAX_BYTES,
+            100_000,
+            next_lineage,
+            &occupied_places,
+        )
+        .unwrap();
+        next_lineage = resting_population.lineage_end_exclusive();
+        let state = ResidentCognitiveFormationState {
+            generation: 5,
+            next_lineage_ordinal: next_lineage,
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: Some(resting_population),
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+        };
+        validate_lineage_state(&state).unwrap();
+        let current = state.encode(MAX_BYTES).unwrap();
+
+        let corrected = ResidentCognitiveFormationState::migrate_to_current_format(
+            &current,
+            MAX_BYTES,
+        )
+        .unwrap();
+        let restored = ResidentCognitiveFormationState::decode(&corrected, MAX_BYTES).unwrap();
+        assert_eq!(restored.electrical_fabric.contact_count(), contact_count);
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(regulation, wrong_motor));
+        assert!(restored
+            .electrical_fabric
+            .contains_contact(regulation, correct_motor));
+        assert!(restored
+            .electrical_fabric
+            .contains_contact(unrelated, correct_motor));
+        assert_eq!(
+            ResidentCognitiveFormationState::migrate_to_current_format(&corrected, MAX_BYTES)
+                .unwrap(),
+            corrected
         );
     }
 

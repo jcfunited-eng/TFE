@@ -162,6 +162,99 @@ impl ResidentElectricalFabric {
         self.state.replace_contact_states(replacements)
     }
 
+    /// Rewire an exact set of already-retained contacts during an explicit
+    /// one-way topology correction. Every untouched contact keeps its exact
+    /// anatomy, order, and carrier phase; the corrected contact keeps its
+    /// conductance and carrier phase and changes only its named endpoint.
+    pub(crate) fn rewire_contacts_exact(
+        &self,
+        rewires: &[([u8; 16], [u8; 16], [u8; 16], [u8; 16])],
+    ) -> Result<Self, SparseElectricalError> {
+        if rewires.is_empty() {
+            return Ok(self.clone());
+        }
+        let canonical_pair = |left: [u8; 16], right: [u8; 16]| {
+            if left < right {
+                (left, right)
+            } else {
+                (right, left)
+            }
+        };
+        let mut old_pairs = BTreeSet::new();
+        let mut new_pairs = BTreeSet::new();
+        for (old_left, old_right, new_left, new_right) in rewires.iter().copied() {
+            if old_left == [0; 16]
+                || old_right == [0; 16]
+                || new_left == [0; 16]
+                || new_right == [0; 16]
+                || old_left == old_right
+                || new_left == new_right
+                || !self.lineages.contains(&new_left)
+                || !self.lineages.contains(&new_right)
+                || !old_pairs.insert(canonical_pair(old_left, old_right))
+                || !new_pairs.insert(canonical_pair(new_left, new_right))
+            {
+                return Err(SparseElectricalError::InvalidEndpoint);
+            }
+        }
+
+        let resident_pairs = self
+            .contact_endpoints()
+            .map(|(left, right)| canonical_pair(self.lineages[left], self.lineages[right]))
+            .collect::<Vec<_>>();
+        if old_pairs
+            .iter()
+            .any(|pair| resident_pairs.iter().filter(|candidate| *candidate == pair).count() != 1)
+            || new_pairs.iter().any(|pair| {
+                resident_pairs.contains(pair) && !old_pairs.contains(pair)
+            })
+        {
+            return Err(SparseElectricalError::InvalidEndpoint);
+        }
+
+        let mut contacts = Vec::with_capacity(self.contact_count());
+        for ((left, right), contact) in self
+            .contact_endpoints()
+            .zip(self.anatomy.contact_anatomies().iter().copied())
+        {
+            let resident_pair = canonical_pair(self.lineages[left], self.lineages[right]);
+            let successor_pair = rewires
+                .iter()
+                .find_map(|(old_left, old_right, new_left, new_right)| {
+                    (canonical_pair(*old_left, *old_right) == resident_pair)
+                        .then_some(canonical_pair(*new_left, *new_right))
+                })
+                .unwrap_or(resident_pair);
+            let successor_left = self
+                .lineages
+                .iter()
+                .position(|lineage| *lineage == successor_pair.0)
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            let successor_right = self
+                .lineages
+                .iter()
+                .position(|lineage| *lineage == successor_pair.1)
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            contacts.push(ElectricalContactAnatomy::new(
+                successor_left,
+                successor_right,
+                contact.conductance_picosiemens(),
+                self.lineages.len(),
+            )?);
+        }
+        let anatomy = SparseElectricalAnatomy::new(self.lineages.len(), contacts)?;
+        let state = SparseElectricalState::from_contact_states(
+            &anatomy,
+            self.state.contact_states().to_vec(),
+        )?;
+        Ok(Self {
+            lineages: self.lineages.clone(),
+            anatomy,
+            state,
+            cell_format: self.cell_format,
+        })
+    }
+
     /// Remove every cross-cohort contact incident to a physically retired
     /// lineage while preserving every unrelated contact and its exact retained
     /// carrier phase.  Endpoint indices are rebuilt from the surviving stable

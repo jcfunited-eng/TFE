@@ -210,6 +210,17 @@ impl BodyProprioceptorTerminal {
     pub(crate) fn paired_effector(self) -> BodyEffectorTerminal {
         BodyEffectorTerminal::new(self.axis, self.direction)
     }
+
+    /// The antagonist effector on the same articulated axis. A reacted-load
+    /// ending uses this terminal for local negative force feedback: load from
+    /// a motor pushing toward one stop reaches the motor that can unload it.
+    pub(crate) fn opposing_effector(self) -> BodyEffectorTerminal {
+        let direction = match self.direction {
+            BodyEffectorDirection::TowardMinimum => BodyEffectorDirection::TowardMaximum,
+            BodyEffectorDirection::TowardMaximum => BodyEffectorDirection::TowardMinimum,
+        };
+        BodyEffectorTerminal::new(self.axis, direction)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

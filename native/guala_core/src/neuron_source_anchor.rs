@@ -147,6 +147,10 @@ impl NeuronSourceSite {
         &self.substream_id
     }
 
+    pub(crate) fn physical_quantity(&self) -> &str {
+        &self.physical_quantity
+    }
+
     fn valid(&self) -> bool {
         (self.body_proprioceptor_terminal.is_none() || self.sense == PhysicalSourceSense::Body)
             && !self.sensor_id.is_empty()
