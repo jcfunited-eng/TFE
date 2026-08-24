@@ -15324,13 +15324,71 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     except (OSError, RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"grounded world voice transition refused: {error}")
 
+    observation = result.get("observation")
+    if not isinstance(observation, dict):
+        observation = {}
+    transition = {
+        key: observation[key]
+        for key in (
+            "predecessor_organism_tick",
+            "organism_tick",
+            "predecessor_state_sha256",
+            "state_sha256",
+            "causal_transition_sha256",
+            "energy_exhausted",
+        )
+        if key in observation
+    }
+    causal_use = {
+        key: observation[key]
+        for key in (
+            "causal_cross_context_use",
+            "externally_reassembled_formation_causal_use",
+            "new_impression_causal_use",
+            "articulatory_causal_cross_context_use",
+            "externally_reassembled_articulation_causal_use",
+        )
+        if isinstance(observation.get(key), dict)
+    }
+    articulation = observation.get("articulation")
+    if isinstance(articulation, dict):
+        articulation = {
+            key: articulation[key]
+            for key in (
+                "layer_13_recruitment_count",
+                "sample_rate_hz",
+                "pressure_sample_count",
+                "pressure_sha256",
+                "applied_motor_quanta",
+                "stalled_motor_quanta",
+                "articulatory_body_port_count",
+                "articulatory_body_nonquiescent_port_count",
+                "articulatory_body_receptor_ingress_count",
+                "articulatory_body_perturbed_neuron_count",
+                "self_hearing_hop_count",
+                "self_hearing_transitioned_neuron_count",
+                "self_hearing_fractal_count",
+                "retained_formation_causal_path",
+                "externally_reassembled_formation_causal_path",
+            )
+            if key in articulation
+        }
+    else:
+        articulation = None
+
     return JSONResponse(
         status_code=200,
         content={
-            **result,
             "accepted": True,
             "audio_sha256": audio_sha256,
+            "articulation": articulation,
+            "causal_use": causal_use,
+            "hop_count": result.get("hop_count"),
+            "persisted": result.get("persisted"),
+            "receptor_ingress": result.get("receptor_ingress"),
             "schema": GUIDED_WORLD_VOICE_SCHEMA,
+            "totals": result.get("totals"),
+            "transition": transition,
             "transport_metadata_only": True,
             "world_sensorium": world_sensorium,
         },
