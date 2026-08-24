@@ -2915,3 +2915,30 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   motion.
 - The corrected focused suite passes `42/42` in `1.11 s`; task1199 is therefore
   a continuity-safe predecessor, not A-011 closure evidence.
+
+### Corrected cutover and read-only native reachability proof
+
+- Commit `96ab4340f70237c116b9a48ecc6af9e3de0a259a` deployed once as task
+  `dsf-ai-task:1200`, image
+  `sha256:8e5ed539e8d74c8bf54326167a043ffb7333f745b385f9b35087c126deab6562`.
+  ECS is settled at desired/running/pending `1/1/0` with one healthy container,
+  the same organism identity, and CURRENT continuing to advance.
+- One bounded cold read of authenticated CURRENT at ticks `158810` and
+  `158826` advanced no state and published nothing. It found exactly four
+  retained formations, `74` reached layer-12 motor neurons, and `71,231`
+  mounted sparse contacts.
+- None of the four current formations directly contains a layer-12 motor
+  neuron. The sole formation carrying a layer-9 recurrent neuron also contains
+  layer-11 lineage `474c4e4c494e45310000000000000062`, which has a direct
+  mounted contact to layer-12 motor lineage
+  `474c4e4c494e45310000000000000063`. The other three formations also have
+  bounded mounted routes to layer 12 of one to three contacts.
+- This falsifies both “no current motor anatomy” and “the current learned
+  formation is topologically isolated from action.” No observer-fed trigger,
+  timer, score, replay, or topology rewrite is authorized. A-011 remains open
+  only until ordinary native activity actually carries the retained-formation
+  cause across that route, performs a varied body action, and receives its
+  exact body/sensory consequence in the same resident organism.
+- A follow-up transient-frontier diagnostic exceeded its 30-second read bound
+  and was terminated. Its absence is not behavioral evidence, and it will not
+  be repeated as a polling loop.
