@@ -3288,3 +3288,26 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   The read-only causal witness retains lawful paths that return to their origin
   and is evaluated only after durable CURRENT publication; it neither advances
   nor discards resident cognition.
+
+### Physical effector authority correction candidate
+
+- Task 1210 is the authenticated production predecessor. A-011 remains the
+  active item; no closed prerequisite or later curriculum item is reopened.
+- Source review found that motor and articulatory recruitment required both
+  their exact physical preparation/discharge law and membership in a transient
+  `causally_active_lineages` record. That record is useful as a sparse physical
+  settlement frontier, but it is not membrane, contact, or effector physics and
+  must not grant or withhold body authority.
+- The candidate removes only that record-membership requirement. A mounted
+  motor still requires a real layer-11 action-preparation transfer or its exact
+  mounted reacted-load reflex, plus positive outward whole-carrier discharge.
+  Articulation still requires a real adjacent motor transfer plus its own
+  positive discharge. No threshold, score, label, observer, DSF field, neuron,
+  contact, body law, persistence format, or L0--L4 value changes.
+- The focused non-simultaneous body/sensory falsifier passed `1/1` in 22.43
+  seconds: unrelated physical activity still manufactured no motor or speech
+  recruitment. `git diff --check` passes.
+- RF-016/RF-034: this is only the continuing A-011 physical action boundary.
+  RF-020/RF-051/RF-052: live acceptance still requires ordinary mature-state
+  retained-formation reassembly to produce the real motor/body/sensed-return
+  chain; the source correction and unit falsifier alone do not close A-011.

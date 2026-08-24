@@ -13763,14 +13763,10 @@ fn settle_internal_contact_interval(
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
 
-    // Local electrical settlement is wider than causal propagation: quiet
-    // receptors and their adjacent cells must still relax so neuronal
-    // experience can reach quiescence.  That wider settlement is not body
-    // authority.  An effector may emit only when it was already this
-    // interval's causal seed or when an exact whole-carrier transfer moved
-    // away from a causal seed and reached it across one contact.  This keeps
-    // passive balancing in a dark/silent neighbourhood from becoming motion
-    // or articulation without adding a threshold, mode, or command.
+    // Retain the sparse active set for reached-frontier learning and the next
+    // physical settlement. It is scheduling state, not effector authority:
+    // motor and articulatory emission are governed below by their mounted
+    // preparation transfers and their own outward carrier discharge.
     let mut causally_active_lineages = causal_seed_flats
         .iter()
         .map(|flat| flat_locations[*flat].2)
@@ -14063,7 +14059,6 @@ fn settle_internal_contact_interval(
                 );
                 (mount.source_site().is_none()
                     && mount.place().layer() == 12
-                    && causally_active_lineages.contains(&motor_lineage)
                     && outward > 0
                     && !preparation_transfers.is_empty())
                     .then_some(MotorUnitRecruitment {
@@ -14096,7 +14091,6 @@ fn settle_internal_contact_interval(
                 motor_transfers.dedup();
                 (mount.source_site().is_none()
                     && mount.place().layer() == 13
-                    && causally_active_lineages.contains(&articulatory_lineage)
                     && outward > 0
                     && !motor_transfers.is_empty())
                     .then_some(ArticulatoryUnitRecruitment {
