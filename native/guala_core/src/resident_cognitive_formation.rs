@@ -12962,9 +12962,11 @@ fn local_gradient_direction(
 /// Layer 11 carries an internally ordered action preparation. The explicitly
 /// identified layer-8 lines carry only this motor's mounted reacted-load
 /// reflex: load receptor -> local integration -> body regulation -> motor.
-/// Both are real contact-local causes. Tonic position regulation and every
-/// other layer remain ineligible; no observation, score, or action label can
-/// prepare a motor through this boundary.
+/// Both are real contact-local causes only when carrier transfer arrives at
+/// the motor. Motor-to-neighbour flow is a consequence, never preparation.
+/// Tonic position regulation and every other layer remain ineligible; no
+/// observation, score, or action label can prepare a motor through this
+/// boundary.
 fn exact_motor_preparation_transfers(
     motor_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
@@ -12975,21 +12977,14 @@ fn exact_motor_preparation_transfers(
         .iter()
         .copied()
         .filter(|transfer| {
-            let adjacent_layer = if transfer.receiver == motor_lineage {
-                layer_of(transfer.sender)
-            } else if transfer.sender == motor_lineage {
-                layer_of(transfer.receiver)
-            } else {
-                None
-            };
+            if transfer.receiver != motor_lineage {
+                return false;
+            }
+            let adjacent_layer = layer_of(transfer.sender);
             matches!(adjacent_layer, Some(11))
                 || matches!(adjacent_layer, Some(8))
                     && reacted_load_regulation_lineages
-                        .binary_search(&if transfer.receiver == motor_lineage {
-                            transfer.sender
-                        } else {
-                            transfer.receiver
-                        })
+                        .binary_search(&transfer.sender)
                         .is_ok()
         })
         .collect::<Vec<_>>();
@@ -18999,7 +18994,7 @@ mod tests {
     }
 
     #[test]
-    fn exact_body_regulation_transfer_prepares_its_mounted_motor() {
+    fn only_incoming_ordering_or_body_regulation_transfer_prepares_motor() {
         let regulation = [8_u8; 16];
         let tonic_position_regulation = [9_u8; 16];
         let ordering = [11_u8; 16];
@@ -19015,6 +19010,7 @@ mod tests {
             transfer(regulation, motor, 9),
             transfer(tonic_position_regulation, motor, 8),
             transfer(motor, ordering, 5),
+            transfer(ordering, motor, 6),
             transfer(unrelated, motor, 7),
         ];
         let layer_of = |lineage| {
@@ -19031,7 +19027,7 @@ mod tests {
 
         assert_eq!(
             exact_motor_preparation_transfers(motor, &settled, &[regulation], layer_of),
-            vec![settled[0], settled[2]],
+            vec![settled[0], settled[3]],
         );
     }
 

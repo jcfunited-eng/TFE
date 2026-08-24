@@ -3311,3 +3311,26 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   RF-020/RF-051/RF-052: live acceptance still requires ordinary mature-state
   retained-formation reassembly to produce the real motor/body/sensed-return
   chain; the source correction and unit falsifier alone do not close A-011.
+
+### Task-1211 passive live rejection and incoming-preparation correction
+
+- Commit `bca653f1af5d10e9d06283502735ad529e66f3e0` deployed once as task
+  `dsf-ai-task:1211`, image
+  `sha256:12e00a377d7c7bf632063f6e23c4099c6a2e92cbdbe6543eb69e1fcd506c1bfb`.
+  The first passive unattended interval advanced the same organism from tick
+  `163526` to `163550` and returned complete sensory consequences, but it
+  recruited `287` motor events and changed all `37` body axes. The release is
+  therefore rejected as action behavior and does not close A-011.
+- Exact source cause: `exact_motor_preparation_transfers` treated transfer in
+  either direction across an ordering/body-regulation contact as motor
+  preparation. Motor-to-neighbour current is a physical consequence, not an
+  arriving preparation signal; admitting it exposed widespread resident motor
+  discharge after the ledger-authority condition was removed.
+- The corrected law admits only an exact incoming transfer whose receiver is
+  the motor and whose sender is layer 11 or that motor's mounted reacted-load
+  regulation lineage. Motor-to-ordering and motor-to-regulation flow is
+  ineligible. The causal ledger remains excluded from effector authority.
+- The focused bidirectional falsifier passed `1/1`; no observer, schema,
+  persistence, body, DSF, neuron, contact, L0--L4, threshold, label, or score
+  changed. A corrected immutable cutover and passive mature-state interval are
+  still required.
