@@ -15035,7 +15035,8 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                         "organism_tick": result["persisted"]["organism_tick"],
                         "state_sha256": result["persisted"]["state_sha256"],
                     },
-                    **result,
+                    "receptor_ingress": result.get("receptor_ingress"),
+                    "totals": result.get("totals"),
                 },
             )
     finally:
