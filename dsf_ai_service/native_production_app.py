@@ -3348,9 +3348,57 @@ def _same_transition_localized_metabolic_strain(
     }
 
 
+def _typed_body_displacements(
+    action: dict[str, Any],
+) -> tuple[tuple[int, str, str, int, int, int], ...] | None:
+    """Return the exact nonzero typed body changes from one native action."""
+
+    consequences = action.get("articulated_body_consequences")
+    if not isinstance(consequences, (list, tuple)) or not consequences:
+        return None
+    displacements: list[tuple[int, str, str, int, int, int]] = []
+    for consequence in consequences:
+        if not isinstance(consequence, dict):
+            return None
+        axis = consequence.get("axis")
+        unit = consequence.get("unit")
+        if (
+            not isinstance(axis, str)
+            or not axis
+            or not isinstance(unit, str)
+            or not unit
+        ):
+            return None
+        numeric = (
+            consequence.get("source_tick"),
+            consequence.get("predecessor_position"),
+            consequence.get("successor_position"),
+            consequence.get("signed_displacement"),
+            consequence.get("applied_displacement_quanta"),
+        )
+        if any(
+            isinstance(value, bool) or not isinstance(value, int)
+            for value in numeric
+        ):
+            return None
+        source_tick, predecessor, successor, signed, applied = numeric
+        if (
+            source_tick <= 0
+            or signed == 0
+            or applied <= 0
+            or successor - predecessor != signed
+            or abs(signed) != applied
+        ):
+            return None
+        displacements.append(
+            (source_tick, axis, unit, predecessor, successor, signed)
+        )
+    return tuple(sorted(displacements))
+
+
 def _sensorimotor_play_episode_from_transition(
     evidence: dict[str, Any],
-    physical_choice: dict[str, Any] | None,
+    _physical_choice: dict[str, Any] | None,
     intake: str,
     *,
     allow_external_participant: bool = False,
@@ -3359,7 +3407,7 @@ def _sensorimotor_play_episode_from_transition(
 
     This observer does not decide whether to move. It accepts only a movement
     whose already-completed native evidence binds internal formation
-    recurrence, physical choice, exact action, and sensed body return.
+    recurrence, exact typed body action, and sensed body return.
     """
 
     if not (
@@ -3376,7 +3424,6 @@ def _sensorimotor_play_episode_from_transition(
         not isinstance(causal, dict)
         or causal.get("origin_kind") != "retained_formation"
         or not isinstance(action, dict)
-        or not isinstance(physical_choice, dict)
     ):
         return None
     causal_action = causal.get("action")
@@ -3386,30 +3433,37 @@ def _sensorimotor_play_episode_from_transition(
     action_receipt = action.get("causal_intent_receipt_sha256")
     formation_receipt = causal.get("formation_receipt_sha256")
     state_sha256 = evidence.get("state_sha256")
-    world_state_before_sha256 = causal_action.get("world_state_before_sha256")
-    world_state_after_sha256 = causal_action.get("world_state_after_sha256")
+    body_state_before_sha256 = action.get("body_state_before_sha256")
+    body_state_after_sha256 = action.get("body_state_after_sha256")
     if not all(
         isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
         for value in (
             action_receipt,
             formation_receipt,
             state_sha256,
-            world_state_before_sha256,
-            world_state_after_sha256,
+            body_state_before_sha256,
+            body_state_after_sha256,
         )
     ):
         return None
     if (
         causal_action.get("causal_intent_receipt_sha256") != action_receipt
-        or physical_choice.get("causal_intent_receipt_sha256") != action_receipt
-        or physical_choice.get("formation_receipt_sha256") != formation_receipt
+        or causal_action.get("body_state_before_sha256")
+        != body_state_before_sha256
+        or causal_action.get("body_state_after_sha256") != body_state_after_sha256
     ):
         return None
     origin_tick = int(causal.get("origin_organism_tick", 0))
     motor_tick = int(causal.get("motor_organism_tick", 0))
     consequence_tick = int(consequence.get("successor_organism_tick", 0))
-    world_revision = int(action.get("observed_world_revision", 0))
-    yaw = int(action.get("signed_yaw_millidegrees", 0))
+    world_revision = int(action.get("world_revision") or 0)
+    world_state_before_sha256 = action.get("world_state_before_sha256")
+    world_state_after_sha256 = action.get("world_state_after_sha256")
+    world_state_available = all(
+        isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
+        for value in (world_state_before_sha256, world_state_after_sha256)
+    )
+    body_displacements = _typed_body_displacements(action)
     vestibular_ticks = int(consequence.get("vestibular_tick_count", 0))
     body_receptors = int(
         consequence.get("externally_perturbed_body_receptor_count", 0)
@@ -3418,28 +3472,36 @@ def _sensorimotor_play_episode_from_transition(
         origin_tick <= 0
         or motor_tick <= origin_tick
         or consequence_tick < motor_tick
-        or world_revision <= 0
-        or yaw == 0
-        or vestibular_ticks <= 0
+        or body_displacements is None
         or body_receptors <= 0
+        or body_state_before_sha256 == body_state_after_sha256
     ):
         return None
+    # Source ticks identify the occurrence, not the movement shape. Variation
+    # compares the exact typed physical displacement, independent of when it ran.
+    body_displacement_receipt = _receipt(
+        tuple(displacement[1:] for displacement in body_displacements)
+    )
     episode = {
         "action_causal_intent_receipt_sha256": action_receipt,
+        "body_axis_count": len({row[1] for row in body_displacements}),
+        "body_displacement_receipt_sha256": body_displacement_receipt,
+        "body_displacements": body_displacements,
         "body_receptor_return_count": body_receptors,
+        "body_state_after_sha256": body_state_after_sha256,
+        "body_state_before_sha256": body_state_before_sha256,
         "causal_path_receipt_sha256": _receipt(causal),
         "consequence_organism_tick": consequence_tick,
         "formation_receipt_sha256": formation_receipt,
         "motor_organism_tick": motor_tick,
         "origin_organism_tick": origin_tick,
-        "physical_choice_receipt_sha256": _receipt(physical_choice),
-        "signed_yaw_millidegrees": yaw,
         "state_sha256": state_sha256,
         "vestibular_tick_count": vestibular_ticks,
         "world_revision": world_revision,
-        "world_state_after_sha256": world_state_after_sha256,
-        "world_state_before_sha256": world_state_before_sha256,
     }
+    if world_state_available:
+        episode["world_state_after_sha256"] = world_state_after_sha256
+        episode["world_state_before_sha256"] = world_state_before_sha256
     affective_participation = _same_transition_affective_body_participation(
         evidence, causal
     )
@@ -3496,15 +3558,20 @@ def _advance_bounded_sensorimotor_play_evidence(
         return episode, completed
     if (
         episode["origin_organism_tick"] <= candidate["consequence_organism_tick"]
-        or episode["world_revision"] <= candidate["world_revision"]
-        or episode["signed_yaw_millidegrees"]
-        == candidate["signed_yaw_millidegrees"]
+        or episode["body_displacement_receipt_sha256"]
+        == candidate["body_displacement_receipt_sha256"]
     ):
         return candidate, completed
     play = {
-        "activity": "sensorimotor_body_yaw",
+        "activity": "sensorimotor_body_movement",
+        "changed_body_context": (
+            episode["body_state_before_sha256"]
+            != candidate["body_state_before_sha256"]
+        ),
         "changed_world_context": (
-            episode["world_state_before_sha256"]
+            isinstance(episode.get("world_state_before_sha256"), str)
+            and isinstance(candidate.get("world_state_before_sha256"), str)
+            and episode["world_state_before_sha256"]
             != candidate["world_state_before_sha256"]
         ),
         "first_episode": candidate,
@@ -3554,7 +3621,10 @@ def _body_owned_laughter_episode_from_transition(
         or not isinstance(return_play, dict)
         or not _complete_positive_engagement_episode(first_play)
         or not _complete_positive_engagement_episode(return_play)
-        or not bool(play_evidence.get("changed_world_context"))
+        or not (
+            bool(play_evidence.get("changed_body_context"))
+            or bool(play_evidence.get("changed_world_context"))
+        )
     ):
         return None
     causal = evidence.get("causal_cross_context_use")
@@ -3585,8 +3655,6 @@ def _body_owned_laughter_episode_from_transition(
     action_receipt = action.get("causal_intent_receipt_sha256")
     state_sha256 = evidence.get("state_sha256")
     pressure_sha256 = articulation.get("pressure_sha256")
-    world_state_after_sha256 = action.get("world_state_after_sha256")
-    world_state_before_sha256 = action.get("world_state_before_sha256")
     if not all(
         isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value)
         for value in (
@@ -3594,8 +3662,6 @@ def _body_owned_laughter_episode_from_transition(
             action_receipt,
             state_sha256,
             pressure_sha256,
-            world_state_after_sha256,
-            world_state_before_sha256,
         )
     ):
         return None
@@ -3651,16 +3717,14 @@ def _body_owned_laughter_episode_from_transition(
     motor_tick = int(causal.get("motor_organism_tick", 0))
     consequence_tick = int(consequence.get("successor_organism_tick", 0))
     organism_tick = int(evidence.get("organism_tick", 0))
-    signed_yaw = int(action.get("signed_yaw_millidegrees", 0))
-    world_revision = int(action.get("observed_world_revision", 0))
+    body_displacements = _typed_body_displacements(action)
+    world_revision = int(action.get("world_revision") or 0)
     if (
         origin_tick <= 0
         or motor_tick <= origin_tick
         or consequence_tick < motor_tick
         or organism_tick != consequence_tick
-        or signed_yaw == 0
-        or world_revision <= 0
-        or int(consequence.get("vestibular_tick_count", 0)) <= 0
+        or body_displacements is None
         or int(consequence.get("externally_perturbed_body_receptor_count", 0)) <= 0
         or not isinstance(visual_return, dict)
         or int(visual_return.get("transported", 0)) <= 0
@@ -3690,6 +3754,10 @@ def _body_owned_laughter_episode_from_transition(
             "trajectory_receipt_sha256"
         ],
         "articulatory_body_nonquiescent_port_count": 4,
+        "body_axis_count": len({row[1] for row in body_displacements}),
+        "body_displacement_receipt_sha256": _receipt(
+            tuple(displacement[1:] for displacement in body_displacements)
+        ),
         "causal_motor_lineage": motor_lineage,
         "consequence_organism_tick": consequence_tick,
         "formation_receipt_sha256": formation_receipt,
@@ -3717,13 +3785,10 @@ def _body_owned_laughter_episode_from_transition(
         "self_hearing_transitioned_neuron_count": articulation[
             "self_hearing_transitioned_neuron_count"
         ],
-        "signed_body_head_yaw_millidegrees": signed_yaw,
         "state_sha256": state_sha256,
         "visual_receptor_return_count": int(visual_return["transported"]),
-        "vestibular_tick_count": int(consequence["vestibular_tick_count"]),
+        "vestibular_tick_count": int(consequence.get("vestibular_tick_count", 0)),
         "world_revision": world_revision,
-        "world_state_after_sha256": world_state_after_sha256,
-        "world_state_before_sha256": world_state_before_sha256,
     }
     episode["evidence_receipt_sha256"] = _receipt(episode)
     return episode
@@ -3756,7 +3821,6 @@ def _advance_bounded_body_owned_laughter_evidence(
         != candidate["formation_receipt_sha256"]
         or episode["origin_organism_tick"]
         <= candidate["consequence_organism_tick"]
-        or episode["world_revision"] <= candidate["world_revision"]
     ):
         return candidate, completed
     laughter = {
@@ -3771,9 +3835,9 @@ def _advance_bounded_body_owned_laughter_evidence(
         "varied_acoustic_pressure": (
             episode["pressure_sha256"] != candidate["pressure_sha256"]
         ),
-        "varied_body_orientation": (
-            episode["signed_body_head_yaw_millidegrees"]
-            != candidate["signed_body_head_yaw_millidegrees"]
+        "varied_body_displacement": (
+            episode["body_displacement_receipt_sha256"]
+            != candidate["body_displacement_receipt_sha256"]
         ),
     }
     laughter["evidence_receipt_sha256"] = _receipt(laughter)
@@ -3807,7 +3871,7 @@ def _body_owned_laughter_record() -> dict[str, object]:
         "the learned playful retained formation twice caused exact localized "
         "affect/body settlement, a physical layer-12-to-layer-13 discharge, "
         "breath/glottis/mouth/perioral movement, emitted acoustic pressure, "
-        "cochlear self-hearing, body/head orientation, and sensed world return; "
+        "cochlear self-hearing, typed body movement, and sensed world return; "
         "the later episode is recurrence evidence, not a claim about a named "
         "feeling or another participant's state",
         evidence_scope="latest_completed_bounded_laughter_witness_this_process",
@@ -3841,14 +3905,16 @@ def _public_sensorimotor_episode_record(
         key: episode[key]
         for key in (
             "action_causal_intent_receipt_sha256",
+            "body_axis_count",
+            "body_displacement_receipt_sha256",
             "body_receptor_return_count",
+            "body_state_after_sha256",
+            "body_state_before_sha256",
             "causal_path_receipt_sha256",
             "consequence_organism_tick",
             "formation_receipt_sha256",
             "motor_organism_tick",
             "origin_organism_tick",
-            "physical_choice_receipt_sha256",
-            "signed_yaw_millidegrees",
             "state_sha256",
             "vestibular_tick_count",
             "world_revision",
@@ -4026,8 +4092,8 @@ def _advance_bounded_reciprocal_social_play_evidence(
         or episode["action_causal_intent_receipt_sha256"]
         == first["action_causal_intent_receipt_sha256"]
         or episode["origin_organism_tick"] <= first["consequence_organism_tick"]
-        or episode["signed_yaw_millidegrees"]
-        == first["signed_yaw_millidegrees"]
+        or episode["body_displacement_receipt_sha256"]
+        == first["body_displacement_receipt_sha256"]
         or not _participant_stimulus_caused_episode(episode, other_return)
         or not _complete_positive_engagement_episode(episode)
     ):
@@ -4191,6 +4257,7 @@ def _sensorimotor_play_record() -> dict[str, object]:
         key: _last_sensorimotor_play_evidence[key]
         for key in (
             "activity",
+            "changed_body_context",
             "changed_world_context",
             "evidence_receipt_sha256",
             "formation_receipt_sha256",

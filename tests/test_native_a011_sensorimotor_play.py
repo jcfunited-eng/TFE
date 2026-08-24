@@ -20,6 +20,13 @@ SHARED_AFFECTIVE_LINEAGE = "02" * 16
 BODY_RECEPTOR_LINEAGE = "05" * 16
 
 
+RETINAL_BODY_AXES = (
+    (2, "neck_yaw", "millidegree", 0, -75_000, 0, 75_000),
+    (8, "left_eyelid_aperture", "micrometre", 12_000, 0, 10_000, 12_000),
+    (9, "right_eyelid_aperture", "micrometre", 12_000, 0, 10_000, 12_000),
+)
+
+
 def _plasticity(ordinal: int) -> tuple[object, ...]:
     return (
         ordinal,
@@ -45,6 +52,8 @@ def _transition(
 ) -> tuple[dict[str, object], dict[str, object]]:
     motor_tick = origin_tick + 2
     consequence_tick = motor_tick + 1
+    body_state_before_sha256 = f"{origin_tick + 1_000:064x}"
+    body_state_after_sha256 = f"{origin_tick + 1_001:064x}"
     consequence = {
         "externally_perturbed_body_receptor_count": 1,
         "successor_organism_tick": consequence_tick,
@@ -52,11 +61,10 @@ def _transition(
         "vestibular_tick_count": 1,
     }
     causal_action = {
+        "body_state_after_sha256": body_state_after_sha256,
+        "body_state_before_sha256": body_state_before_sha256,
         "causal_intent_receipt_sha256": action_receipt,
         "command_sha256": "c" * 64,
-        "observed_world_revision": world_revision,
-        "world_state_after_sha256": f"{world_revision + 1:064x}",
-        "world_state_before_sha256": f"{world_revision:064x}",
     }
     causal = {
         "action": causal_action,
@@ -140,9 +148,23 @@ def _transition(
         "organic_mosaic_relations": (),
         "motor_action": {
             **causal_action,
+            "articulated_body_consequences": (
+                {
+                    "applied_displacement_quanta": abs(yaw),
+                    "axis": "neck_yaw",
+                    "predecessor_position": 0,
+                    "signed_displacement": yaw,
+                    "source_tick": motor_tick,
+                    "successor_position": yaw,
+                    "unit": "millidegree",
+                },
+            ),
             "internally_reassembled_formation_motor_path": causal,
             "moved": True,
-            "signed_yaw_millidegrees": yaw,
+            "root_motion": False,
+            "world_revision": world_revision,
+            "world_state_after_sha256": f"{world_revision + 1:064x}",
+            "world_state_before_sha256": f"{world_revision:064x}",
         },
         "organism_tick": consequence_tick,
         "state_sha256": "d" * 64,
@@ -241,6 +263,9 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
         yaw=-58,
         world_revision=10,
     )
+    first["motor_action"]["world_revision"] = None
+    first["motor_action"].pop("world_state_before_sha256")
+    first["motor_action"].pop("world_state_after_sha256")
     candidate, completed = production._advance_bounded_sensorimotor_play_evidence(
         None,
         None,
@@ -269,6 +294,9 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
         yaw=-40,
         world_revision=11,
     )
+    second["motor_action"]["world_revision"] = None
+    second["motor_action"].pop("world_state_before_sha256")
+    second["motor_action"].pop("world_state_after_sha256")
     candidate, completed = production._advance_bounded_sensorimotor_play_evidence(
         candidate,
         None,
@@ -281,10 +309,12 @@ def test_two_varied_retained_formation_actions_form_one_bounded_play_witness() -
     assert completed is not None
     assert completed["formation_receipt_sha256"] == FORMATION
     assert completed["movement_ceased_before_return"] is True
+    assert completed["changed_body_context"] is True
+    assert completed["changed_world_context"] is False
     assert completed["varied_displacement"] is True
     assert completed["return_gap_organism_ticks"] == 11
-    assert completed["first_episode"]["signed_yaw_millidegrees"] == -58
-    assert completed["return_episode"]["signed_yaw_millidegrees"] == -40
+    assert completed["first_episode"]["body_displacements"][0][-1] == -58
+    assert completed["return_episode"]["body_displacements"][0][-1] == -40
     assert completed["first_episode"]["affective_body_participation"][
         "affective_neuron_lineage"
     ] == SHARED_AFFECTIVE_LINEAGE
@@ -388,8 +418,8 @@ def test_exact_other_guala_other_guala_chain_proves_reciprocal_social_play(
     assert completed["other_body_id"] == "person-body-1"
     assert completed["first_formation_receipt_sha256"] == FORMATION
     assert completed["return_formation_receipt_sha256"] == return_formation
-    assert completed["first_guala_episode"]["signed_yaw_millidegrees"] == -31
-    assert completed["return_guala_episode"]["signed_yaw_millidegrees"] == -17
+    assert completed["first_guala_episode"]["body_displacements"][0][-1] == -31
+    assert completed["return_guala_episode"]["body_displacements"][0][-1] == -17
     monkeypatch.setattr(
         production,
         "_last_reciprocal_social_play_evidence",
@@ -554,6 +584,11 @@ def test_other_participant_moves_only_its_authenticated_world_body(
         "_perform_admitted_intake_locked",
         _accepted_external_intake,
     )
+    monkeypatch.setattr(
+        production,
+        "_current_retinal_body_axes",
+        lambda: RETINAL_BODY_AXES,
+    )
 
     response = production.world_other_body_move(
         {
@@ -602,6 +637,11 @@ def test_other_participant_action_physically_changes_gualas_retina(
         production,
         "_perform_admitted_intake_locked",
         accepted_with_candidate,
+    )
+    monkeypatch.setattr(
+        production,
+        "_current_retinal_body_axes",
+        lambda: RETINAL_BODY_AXES,
     )
 
     authority = production._world()
@@ -817,7 +857,7 @@ def test_playful_formation_vocal_body_chain_and_recurrence_form_laughter_witness
         "learned_playful_formation_recurrence"
     )
     assert laughter_completed["varied_acoustic_pressure"] is True
-    assert laughter_completed["varied_body_orientation"] is True
+    assert laughter_completed["varied_body_displacement"] is True
     monkeypatch.setattr(
         production, "_last_sensorimotor_play_evidence", play_completed
     )
@@ -1135,12 +1175,7 @@ def test_unchanged_world_context_refuses_positive_engagement_claim(
         yaw=-17,
         world_revision=71,
     )
-    same_context = first["causal_cross_context_use"]["action"][
-        "world_state_before_sha256"
-    ]
-    second["causal_cross_context_use"]["action"][
-        "world_state_before_sha256"
-    ] = same_context
+    same_context = first["motor_action"]["world_state_before_sha256"]
     second["motor_action"]["world_state_before_sha256"] = same_context
     _, completed = production._advance_bounded_sensorimotor_play_evidence(
         candidate,
@@ -1240,8 +1275,8 @@ def test_incomplete_first_play_is_replaced_by_two_later_qualified_episodes() -> 
 
     assert candidate is None
     assert completed is not None
-    assert completed["first_episode"]["signed_yaw_millidegrees"] == -39
-    assert completed["return_episode"]["signed_yaw_millidegrees"] == -27
+    assert completed["first_episode"]["body_displacements"][0][-1] == -39
+    assert completed["return_episode"]["body_displacements"][0][-1] == -27
     assert completed["first_episode"]["localized_metabolic_strain"][
         "evaluated_body_receptor_count"
     ] == 1

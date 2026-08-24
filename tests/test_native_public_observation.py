@@ -876,11 +876,14 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     _mount(monkeypatch)
     huge = 10**5000
     evidence = {
-        "activity": "sensorimotor_body_yaw",
+        "activity": "sensorimotor_body_movement",
+        "changed_body_context": True,
         "changed_world_context": True,
         "evidence_receipt_sha256": "e" * 64,
         "first_episode": {
             "action_causal_intent_receipt_sha256": "1" * 64,
+            "body_axis_count": 1,
+            "body_displacement_receipt_sha256": "9" * 64,
             "affective_body_participation": {
                 "active_contact_predecessor_state": (huge, (huge, 1)),
                 "active_contact_successor_state": (huge + 1, (huge, 1)),
@@ -895,13 +898,14 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
                 "localized_nonzero_strain": ((huge, huge),),
                 "witness_receipt_sha256": "7" * 64,
             },
-            "signed_yaw_millidegrees": -58,
             "world_revision": 40,
         },
         "formation_receipt_sha256": "f" * 64,
         "movement_ceased_before_return": True,
         "return_episode": {
             "action_causal_intent_receipt_sha256": "2" * 64,
+            "body_axis_count": 1,
+            "body_displacement_receipt_sha256": "a" * 64,
             "affective_body_participation": {
                 "active_contact_predecessor_state": (huge, (huge, 1)),
                 "active_contact_successor_state": (huge + 1, (huge, 1)),
@@ -916,7 +920,6 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
                 "localized_nonzero_strain": ((huge, huge),),
                 "witness_receipt_sha256": "8" * 64,
             },
-            "signed_yaw_millidegrees": -40,
             "world_revision": 41,
         },
         "return_gap_organism_ticks": 11,
@@ -930,8 +933,9 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     assert play["available"] is True
     assert play["status"] == "sensorimotor_play_observed"
     assert play["formation_receipt_sha256"] == "f" * 64
-    assert play["first_episode"]["signed_yaw_millidegrees"] == -58
-    assert play["return_episode"]["signed_yaw_millidegrees"] == -40
+    assert play["first_episode"]["body_axis_count"] == 1
+    assert play["first_episode"]["body_displacement_receipt_sha256"] == "9" * 64
+    assert play["return_episode"]["body_displacement_receipt_sha256"] == "a" * 64
     assert "active_contact_predecessor_state" not in play["first_episode"][
         "affective_body_participation"
     ]

@@ -2821,3 +2821,79 @@ this closure.
   recurrence, recognition, autonomy, or production authority. Any later
   recurrence correction requires direct evidence from the exact externally
   perturbed formation, not merely activity through a recurrent neuron.
+
+## 2026-08-24 post-GLCOG027 current-body re-proof
+
+### Frozen scope
+
+- **Active item:** A-011 only. A-006 is Live-Closed on task 1198; A-007 through
+  A-010 remain closed prerequisites and are not reopened.
+- **Production predecessor:** task `dsf-ai-task:1198`, commit `1a3f4d08`, image
+  `sha256:42546cc71784e7eba1abb6e3a659e5efd7dce9065ae807dbe8d125dadcb841de`,
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- GLCOG027 lawfully retired every prior formation that depended on rejected
+  background topology. The historical task-1095 play/laughter witness cannot
+  be restored or reused as current learned experience.
+
+### Exact current defect and correction contract
+
+- The native body now exposes exact typed `articulated_body_consequences`, but
+  `_sensorimotor_play_episode_from_transition` still requires the obsolete
+  yaw-only `signed_yaw_millidegrees`, `observed_world_revision`, positive
+  vestibular change, and a yaw-specific physical-choice receipt.
+- This is an observation-schema conflict: a lawful retained-formation action
+  through any of the current body axes cannot become a play candidate unless
+  it also happens to reconstruct the retired yaw-only projection.
+- The correction changes only `dsf_ai_service/native_production_app.py`, its
+  existing A-011/public-observation falsifiers, and this ledger. It accepts one
+  episode only when an internally reassembled retained formation names the
+  exact motor action receipt, at least one typed body axis has nonzero applied
+  displacement, the action changed the authenticated body receipt, and
+  the same resident organism received a nonzero body-receptor consequence.
+- Variation is exact: a later episode must carry the same formation receipt, a
+  distinct action receipt, strict causal tick order, and a different canonical
+  typed body-displacement receipt. Vestibular change remains reported when a
+  rotation occurred but is not fabricated or required for a non-rotational
+  action. World revision and world-state receipts remain optional facts for a
+  local articulated-body action and stay mandatory at the separate social/world
+  interaction boundary.
+- Laughter uses the same exact typed displacement receipt for body variation
+  while retaining every existing motor-to-articulator, breath, glottis, mouth,
+  perioral, pressure, self-hearing, visual-return, affect/body, and recurrence
+  requirement.
+- The observer remains constant-size, process-local, read-only, and unable to
+  select or repeat an action. No timer, random choice, reward, score, activity
+  label, persisted event, Python cognition, DSF change, or restored formation
+  is authorized.
+
+### Decisive exit
+
+The focused current-schema falsifier must reject external, zero-displacement,
+unsensed, duplicate, unordered, and unvaried actions and accept two varied
+retained-formation typed-body episodes. Production closes A-011 only after a
+new post-cleanup formation produces that play witness and the complete current
+social/laughter evidence through ordinary life; source or tests alone do not.
+
+### Deployment recurrence checks
+
+| Failure | Prior failure | Earliest check | Current result |
+|---|---|---|---|
+| RF-001 | isolated worktree imports the wrong Python source | run with `PYTHONPATH=.` from this exact worktree | focused suite loaded this worktree and passed |
+| RF-005 / RF-028 | exact native evidence is dropped or defaulted before the public observer | current-schema fixture carries typed body consequences through the ordinary bounded observer and public projection | passed |
+| RF-011 | public evidence copies raw resident coordinate bodies | public projection retains only counts, hashes, ticks, and bounded receipts | passed |
+| RF-012 | HTTP or a counter is mistaken for lived play | source/tests remain candidate evidence only; closure still requires a fresh production witness | enforced |
+| RF-016 / RF-034 | a closed or historical witness is replayed as the active item | A-006 remains closed; task-1095 play evidence is explicitly inadmissible after GLCOG027 cleanup | enforced |
+| RF-042 | only one signed movement direction is accepted | typed displacement accepts either nonzero sign and rejects only zero/inconsistent displacement | passed |
+| RF-046 | a body consequence omits optional vestibular/world facts | local articulated-body actions require exact body change and receptor return but do not fabricate root-world or vestibular change | passed |
+| RF-049 | the observer blocks its own repair | deployment continuity is independently grounded in ECS identity, image, health, and persisted CURRENT; corrected observation is required after cutover | pending cutover proof |
+
+### Source proof
+
+- `python -m py_compile` passed for the production observer and both focused
+  falsifier files.
+- `PYTHONPATH=. pytest -q tests/test_native_a011_sensorimotor_play.py
+  tests/test_native_public_observation.py` passed `42/42` in `1.92 s`.
+- `git diff --check` passed.
+- This is not A-011 live closure. It proves only that the current native action
+  schema can reach the bounded observer without restoring the retired yaw-only
+  schema.
