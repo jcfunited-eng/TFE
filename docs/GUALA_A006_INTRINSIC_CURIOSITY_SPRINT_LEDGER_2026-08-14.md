@@ -925,3 +925,39 @@ Candidate status: **locally release-proven; live cutover pending**. This removes
 the rejected accumulated developmental topology and restores bounded physical
 cadence. It does not by itself supply the still-required live A-006 social /
 novelty-to-action acceptance witness.
+
+### Final live A-006 closure — 2026-08-24
+
+- Production task `dsf-ai-task:1198` runs commit `1a3f4d08` and immutable image
+  `sha256:42546cc71784e7eba1abb6e3a659e5efd7dce9065ae807dbe8d125dadcb841de`.
+  ECS reports the task running and healthy with the one-time migration switch
+  disabled. The original resident identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` is unchanged.
+- Live production reached tick `157698` and exposed one bounded intrinsic-
+  curiosity witness. A new retained sensory impression at tick `157683`
+  crossed two exact directed whole-carrier transfers into motor discharge at
+  tick `157685`; the action was applied and its body-sensory consequence
+  committed in the same resident organism at tick `157698`.
+- The exact reached/foregone route sets changed, two physical consequence
+  alternatives were present, and thirteen complete body/affective trajectories
+  participated. A separately authenticated other-body receptor path in this
+  same continuously resident organism crossed three exact carrier transfers,
+  caused body action, and received its sensed consequence. The public witness
+  therefore reports `social_experience_claimed=true` without requiring the
+  social and novelty paths to fabricate one shared action.
+- `intrinsic_curiosity.available=true` with status
+  `new_impression_changed_reachable_activity_and_caused_sensed_action`.
+  Cognitive capital credits exactly availability, participation, causal use,
+  autonomous use, and integration depth for `Motivation, needs, and
+  curiosity`, under receipt
+  `b8e3b0ad8a7e784b999aafc4a1609f6262e17ddad630492b4282fe295cb0d57c`.
+- Curiosity-score, reward, named-need, scripted-action, and Python-decision
+  authority remain false. Python cognition callback count remains zero.
+- The same task advanced from tick `157214` to `157248` during a time-separated
+  public check. Its action record states `continuous_cognition=true`, and the
+  exact sight, sound, touch, smell, taste, body, and vestibular consequence
+  roster returned to the same organism.
+
+Status: **Live-Closed 2026-08-24**. The accepted 1.448848-second production-
+roster settlement is sufficient for this item and is not reopened. The next
+serial open item is A-011; A-007 through A-010 remain closed prerequisites.

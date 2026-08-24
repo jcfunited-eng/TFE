@@ -13,14 +13,13 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1193`, commit
-`712597fd193dbf7946f84014d766857c5ba9b104`, immutable image
-`sha256:c1214d2231fbe8df64d43d67417992c5e971af73571e5b4348f96d1c26891bf3`,
+Current production baseline: task definition `dsf-ai-task:1198`, commit
+`1a3f4d0880dbaa6181a9535d4a2e3b13f309d071`, immutable image
+`sha256:42546cc71784e7eba1abb6e3a659e5efd7dce9065ae807dbe8d125dadcb841de`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Direct unattended
-life advanced through generation `155202`; repeated activity no longer admits
-the same physical route as both recurrence and a new original. Resident neuron
-count remained `2,105` and the canonical body decreased from `113,327,977` to
-`113,272,910` bytes across the last two observed generations.
+life advanced through generation `157698`; the rejected background topology
+was retired once, ordinary growth now requires exact causal transfer, and the
+one-time migration switch is disabled for subsequent restarts.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
@@ -28,8 +27,8 @@ count remained `2,105` and the canonical body decreased from `113,327,977` to
 | 0 | C-023 bounded mechanism | Direct causal-use witness live; complete top-level capability sentence remains partial | Use as a prerequisite witness only; do not reopen its retired broad mechanism. |
 | 0 | C-024 live record | Corrected translation and 83-cell direct live witness recorded; complete top-level capability sentence remains partial | Closed for the present increment; missing capability families are supplied only by their own later items. |
 | 0 | A-006 motor-growth prerequisite | Live-closed on task 1176 | The terminal-bound motor invariant is current-format enforced and continuous physical advancement is restored; do not reopen the participant-set motor identity. |
-| 1 | A-006 | `RECONCILED PARTIAL` — next active item | Prove intrinsic curiosity/motivation from the organism's own changing physical reach, without observer labels, scores, or scripted choice. |
-| 2 | A-011 | `RECONCILED PARTIAL` | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
+| 1 | A-006 | Live-closed 2026-08-24 | Preserve the task-1198 novelty/social/body/possible-consequence causal proof; no observer label, score, reward, or scripted choice may replace it. |
+| 2 | A-011 | `RECONCILED PARTIAL` — next active item | Prove genuine self-selected play/fun/social joy/body laughter; observer labels are not evidence. |
 | 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
 | 4 | A-013 | `RECONCILED PARTIAL` | Close only the necessary persistent embodiment and thermal/body participation needed by meaningful learning. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
@@ -453,7 +452,7 @@ count remained `2,105` and the canonical body decreased from `113,327,977` to
   163 downstream neurons while adjacent route sets changed. Attention-score,
   scripted-focus, and Python cognition authority were all absent. System Greed
   is the resulting unequal geometry-mediated access, not a stored coefficient.
-- [ ] **A-006 — RECONCILED PARTIAL 2026-08-17:** Prove curiosity and intrinsic motivation emerge as changing
+- [x] **A-006 — LIVE-CLOSED 2026-08-24:** Prove curiosity and intrinsic motivation emerge as changing
   reachable activity from novelty, uncertainty, recurrence, body condition,
   affection/social experience, and possible consequences.
   **Live-closed 2026-08-14:** production task 1052 observed newly retained
@@ -464,6 +463,16 @@ count remained `2,105` and the canonical body decreased from `113,327,977` to
   cognitive-capital grid credits five exact curiosity dimensions; score,
   reward, named-need, scripted-action, social-experience, and Python decision
   authority remain false.
+  **Current live closure:** production task 1198 preserved the same resident
+  identity and exposed a new retained sensory impression at tick 157683 that
+  crossed exact carrier transfers into motor discharge at tick 157685 and
+  returned through body senses at tick 157698. Reached/foregone routes changed,
+  two physical consequence alternatives and thirteen complete affective/body
+  trajectories participated, and an authenticated other-body receptor path in
+  the same continuous resident organism independently caused and sensed an
+  action. `intrinsic_curiosity.available=true`; the five non-flattened
+  motivation/curiosity evidence dimensions are credited while score, reward,
+  named-need, scripted-action, and Python-decision authority remain false.
 - [x] **A-007** Prove one internally caused attention-to-choice transition with
   no authored goal, random selector, semantic command, or Python cognition.
   **Live-closed 2026-08-14:** production task 1054, commit `a4ae22e3`, and
