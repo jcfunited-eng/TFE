@@ -3201,3 +3201,29 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   resident source-index law are unchanged. Production remains task 1206 until
   the corrected immutable candidate is cut over and CURRENT advancement plus
   GLJSRC04 load return are directly observed.
+
+### Recurrent stopped-load return live cutover
+
+- Commit `e5dfc4a4cbd31e99c4e1cba675d91f3b9d2ce85b` deployed on the first and
+  only controller attempt from `2026-08-24T06:48:07Z` through
+  `2026-08-24T07:06:23Z` as task `dsf-ai-task:1207`, immutable image
+  `sha256:ae4605794654cf7cc0165b2da686054f18b2543e669e93678d052f8d4d896f89`.
+  The controller verified exact native state, one cutover, disabled automatic
+  legacy rollback, and preserved organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- CURRENT committed after cutover at `07:09:23Z` and again at `07:11:04Z`;
+  the associated world authority advanced at `07:09:26Z` and `07:11:07Z`.
+  The later public observation reached tick `162125`, state
+  `e2ff01c3801cdd1e672aae41e4c1c267e24018ff61245b795e15ca22ff1b2bc0`,
+  from predecessor tick `162119`.
+- That later ordinary transition carried four exact GLJSRC04 body sources.
+  It preserved all `74` antagonist-position terminals and admitted `16`
+  distinct load-ending ports from four acted axes, for `100` truthful body
+  receptor ingresses. `continuous_cognition=true`; the read-only observation
+  contract reports `cognition_authority=false` and
+  `read_advances_organism=false`.
+- ECS remained exactly desired/running/pending `1/1/0` on one completed PRIMARY
+  deployment. The current native root occupied `189,488,538` bytes. This closes
+  the recurrent stopped-load source-identity correction in live production;
+  it does not by itself close A-011's still-required varied retained-formation
+  play witness.
