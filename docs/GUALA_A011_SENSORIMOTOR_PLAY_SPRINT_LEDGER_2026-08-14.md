@@ -3416,3 +3416,33 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   participation; RF-025 read before retry; RF-034 no reopened closed witness;
   RF-044 reached-frontier cardinality; RF-046 real action plus complete sensed
   consequence on the ordinary mixed-modality path.
+
+### Task-1222 bounded growth and current sensorimotor-play witness
+
+- Commit `62b11186f860387ad28e25e63148eb95ea9ace97` is live on task
+  `dsf-ai-task:1222`, image
+  `sha256:2fcb66b95f5bfcf59230fd0c1f63010015c3e7d88e9125b4644b1d6476e3112e`.
+  ECS is healthy with one completed PRIMARY deployment and the unchanged
+  organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- GLCOG030 restricts permanent layer-11 ordering growth to exact active bonds
+  carried by current or reassembled retained formations. The authenticated
+  task-1221 predecessor at tick `164315` migrated from `212,628,888` cognitive
+  bytes and `238,255` contacts to `77,037,502` cognitive bytes and `30,433`
+  contacts while preserving all `93` retained mosaics. The exact mature-body
+  migration proof passed.
+- Direct persisted `CURRENT`, not the public observer, advanced through ticks
+  `164514` and `164562` with bodies of `90,547,908` and `92,116,981` bytes.
+  The rejected immediate return to the approximately 212 MB unlearned route
+  topology did not recur.
+- The bounded read-only public observation at persisted state
+  `b70c91ca271b4710d76b37cf7b120892c547c40a8b3d272027be04483a11b659`
+  revealed two ordinary unattended episodes caused by the same retained
+  formation `44ce8737413328a26cde273a0a93a3fbbc54db763d7899bd7c231b05a430f09c`.
+  Their exact action and body-displacement receipts differ; the first movement
+  ended before the second began; both returned exact body receptor consequences
+  to the same resident organism in changed authenticated body/world contexts.
+- **The current post-cleanup basic sensorimotor-play witness is live-proved.**
+  This does not claim the remaining A-011 properties: positive affect/body
+  engagement, reciprocal social play/joy, and body-owned laughter are still
+  explicitly unavailable in the same live observation and remain the serial
+  continuation. The observer has no cognition or action authority.
