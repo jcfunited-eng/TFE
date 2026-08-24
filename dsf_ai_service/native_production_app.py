@@ -3382,18 +3382,18 @@ def _typed_body_displacements(
         ):
             return None
         source_tick, predecessor, successor, signed, applied = numeric
-        if (
-            source_tick <= 0
-            or signed == 0
-            or applied <= 0
-            or successor - predecessor != signed
-            or abs(signed) != applied
-        ):
+        if source_tick <= 0 or successor - predecessor != signed:
+            return None
+        if signed == 0:
+            if applied != 0:
+                return None
+            continue
+        if applied <= 0 or abs(signed) != applied:
             return None
         displacements.append(
             (source_tick, axis, unit, predecessor, successor, signed)
         )
-    return tuple(sorted(displacements))
+    return tuple(sorted(displacements)) or None
 
 
 def _sensorimotor_play_episode_from_transition(

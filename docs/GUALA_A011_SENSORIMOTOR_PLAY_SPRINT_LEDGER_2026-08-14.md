@@ -2886,6 +2886,7 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 | RF-042 | only one signed movement direction is accepted | typed displacement accepts either nonzero sign and rejects only zero/inconsistent displacement | passed |
 | RF-046 | a body consequence omits optional vestibular/world facts | local articulated-body actions require exact body change and receptor return but do not fabricate root-world or vestibular change | passed |
 | RF-049 | the observer blocks its own repair | deployment continuity is independently grounded in ECS identity, image, health, and persisted CURRENT; corrected observation is required after cutover | pending cutover proof |
+| RF-054 | one moved body row is accompanied by stalled zero-displacement recruitment rows | validate every typed row, discard only exact zero movement, and require at least one retained nonzero displacement | live task1199 exposed it; corrected mixed-row falsifier passes |
 
 ### Source proof
 
@@ -2897,3 +2898,20 @@ social/laughter evidence through ordinary life; source or tests alone do not.
 - This is not A-011 live closure. It proves only that the current native action
   schema can reach the bounded observer without restoring the retired yaw-only
   schema.
+
+### First cutover and live source-shape correction
+
+- Commit `fb2e495cfd0099899396a9f0755bf04705529159` deployed once as task
+  `dsf-ai-task:1199`, image
+  `sha256:bde0e3033fe1a8bf27ab38656af5f0aa7523a45f5e8bb3a8e1f5fa86621f7885`.
+- Live identity/current continuity passed and `CURRENT` advanced from tick
+  `158330` to `158346`. A fourth post-cleanup mosaic and endogenous reassembly
+  were observed; the sampled action was not formation-caused, so A-011 remained
+  open.
+- The live typed action contained one nonzero body displacement and three exact
+  stalled zero-displacement rows. The first observer parser rejected the mixed
+  list. The corrected parser validates all rows, retains only the real movement,
+  requires that retained set to be nonempty, and never reports a stalled row as
+  motion.
+- The corrected focused suite passes `42/42` in `1.11 s`; task1199 is therefore
+  a continuity-safe predecessor, not A-011 closure evidence.
