@@ -150,7 +150,7 @@ def test_multi_interval_hop_refuses_to_invent_unobserved_causal_boundaries() -> 
     assert proof is None
 
 
-def test_causal_trace_does_not_revisit_a_lineage() -> None:
+def test_causal_trace_preserves_a_lawful_return_to_its_origin() -> None:
     origin = "01" * 16
     frontier = "02" * 16
     observer = _FrontierObserver()
@@ -172,7 +172,14 @@ def test_causal_trace_does_not_revisit_a_lineage() -> None:
         _hop(31),
     )
 
-    assert active == {}
+    assert active == {
+        ("retained_formation", "11" * 32, (origin,), 31): {
+            origin: (
+                (origin, frontier, 0, 7),
+                (frontier, origin, 0, 9),
+            )
+        }
+    }
     assert completed == {}
 
 

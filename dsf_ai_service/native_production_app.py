@@ -8735,16 +8735,9 @@ def _advance_causal_motor_traces(
             sender, receiver, ordinal, carriers, frontier = observed
             transfer = (sender, receiver, ordinal, carriers)
             predecessor = receiver if frontier == sender else sender
-            if predecessor not in paths_by_lineage or frontier in paths_by_lineage:
+            if predecessor not in paths_by_lineage:
                 continue
             prior_path = paths_by_lineage[predecessor]
-            if transfer in prior_path:
-                continue
-            if any(
-                frontier == prior_sender or frontier == prior_receiver
-                for prior_sender, prior_receiver, _ordinal, _carriers in prior_path
-            ):
-                continue
             candidate = prior_path + (transfer,)
             existing = next_paths.get(frontier)
             if existing is None or (len(candidate), candidate) < (
