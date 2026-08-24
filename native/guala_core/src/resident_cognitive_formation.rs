@@ -86,6 +86,7 @@ use crate::physical_mosaic::{
     PhysicalMosaicRecurrenceOrigin, StablePhysicalBondReference,
 };
 use crate::proprioceptive_receptor_work::{
+    canonical_effector_load_predecessor_residue,
     derive_effector_load_receptor_sample_range_work,
     derive_proprioceptive_receptor_sample_range_work, quantize_proprioceptive_delivery,
     ProprioceptiveReceptorAnatomy, ProprioceptiveReceptorWorkError,
@@ -2972,14 +2973,19 @@ fn formations_share_reached_physical_path(
     prior: &AdmittedPhysicalMosaic,
     current: &AdmittedPhysicalMosaic,
 ) -> bool {
-    prior
-        .member_lineages()
-        .iter()
-        .any(|lineage| current.member_lineages().binary_search(lineage).is_ok())
-        || prior
-            .original_bonds()
+    fn sorted_values_intersect<T: Ord>(left: &[T], right: &[T]) -> bool {
+        let (smaller, larger) = if left.len() <= right.len() {
+            (left, right)
+        } else {
+            (right, left)
+        };
+        smaller
             .iter()
-            .any(|bond| current.original_bonds().binary_search(bond).is_ok())
+            .any(|value| larger.binary_search(value).is_ok())
+    }
+
+    sorted_values_intersect(prior.member_lineages(), current.member_lineages())
+        || sorted_values_intersect(prior.original_bonds(), current.original_bonds())
 }
 
 /// Whether two unresolved originals occupy one continuing physical path.
@@ -3074,6 +3080,62 @@ fn settle_organism_mosaic_boundary(
         .collect::<Vec<_>>();
     changed_lineages.sort_unstable();
     changed_lineages.dedup();
+    // One interval can contain several electrically disconnected physical
+    // pathways.  Derive those pathways once.  A retained formation may be
+    // reassembled only by the one active component carrying its cue; making
+    // every formation repeatedly traverse every unrelated active bond was
+    // both physically false and the dominant mature-body cost.
+    struct ActivePhysicalComponent {
+        lineages: Vec<[u8; 16]>,
+        bonds: Vec<StablePhysicalBondReference>,
+        deltas: Vec<([u8; 16], SparsePhysicalStateDelta)>,
+    }
+    let mut incident_bonds =
+        BTreeMap::<[u8; 16], Vec<StablePhysicalBondReference>>::new();
+    let mut unvisited_active_lineages = BTreeSet::<[u8; 16]>::new();
+    for bond in active_bonds.iter().copied() {
+        let (left, right) = bond.endpoints();
+        incident_bonds.entry(left).or_default().push(bond);
+        incident_bonds.entry(right).or_default().push(bond);
+        unvisited_active_lineages.insert(left);
+        unvisited_active_lineages.insert(right);
+    }
+    let mut active_components = Vec::<ActivePhysicalComponent>::new();
+    let mut component_by_lineage = BTreeMap::<[u8; 16], usize>::new();
+    while let Some(start) = unvisited_active_lineages.pop_first() {
+        let mut lineages = vec![start];
+        let mut component_bonds = BTreeSet::<StablePhysicalBondReference>::new();
+        let mut cursor = 0usize;
+        while cursor < lineages.len() {
+            let lineage = lineages[cursor];
+            if let Some(bonds) = incident_bonds.get(&lineage) {
+                for bond in bonds.iter().copied() {
+                    component_bonds.insert(bond);
+                    let (left, right) = bond.endpoints();
+                    let neighbour = if left == lineage { right } else { left };
+                    if unvisited_active_lineages.remove(&neighbour) {
+                        lineages.push(neighbour);
+                    }
+                }
+            }
+            cursor += 1;
+        }
+        lineages.sort_unstable();
+        let component_index = active_components.len();
+        for lineage in lineages.iter().copied() {
+            component_by_lineage.insert(lineage, component_index);
+        }
+        let deltas = current_physical_deltas
+            .iter()
+            .filter(|(lineage, _)| lineages.binary_search(lineage).is_ok())
+            .cloned()
+            .collect::<Vec<_>>();
+        active_components.push(ActivePhysicalComponent {
+            lineages,
+            bonds: component_bonds.into_iter().collect(),
+            deltas,
+        });
+    }
     let mut receipt = None;
     let mut reassemblies = 0usize;
     let mut internally_simulated_reassemblies = 0usize;
@@ -3097,19 +3159,11 @@ fn settle_organism_mosaic_boundary(
                     .member_lineages()
                     .iter()
                     .any(|lineage| changed_lineages.binary_search(lineage).is_ok())
-                && active_bonds.iter().any(|bond| {
-                    let (left, right) = bond.endpoints();
-                    retained
-                        .mosaic
-                        .member_lineages()
-                        .binary_search(&left)
-                        .is_ok()
-                        || retained
-                            .mosaic
-                            .member_lineages()
-                            .binary_search(&right)
-                            .is_ok()
-                });
+                && retained
+                    .mosaic
+                    .member_lineages()
+                    .iter()
+                    .any(|lineage| component_by_lineage.contains_key(lineage));
             let mut external_cue = externally_reached_lineages
                 .iter()
                 .copied()
@@ -3144,19 +3198,40 @@ fn settle_organism_mosaic_boundary(
                     current_frontier_member,
                 ));
             };
+            let Some(component_index) = component_by_lineage.get(&cue[0]).copied() else {
+                return Ok(PreparedRetainedMosaicBoundary::inactive(
+                    current_frontier_member,
+                ));
+            };
+            if cue.iter().any(|lineage| {
+                component_by_lineage.get(lineage).copied() != Some(component_index)
+            }) {
+                return Ok(PreparedRetainedMosaicBoundary::inactive(
+                    current_frontier_member,
+                ));
+            }
+            let component = active_components
+                .get(component_index)
+                .ok_or(FormationError::NoncanonicalState)?;
+            if cue
+                .iter()
+                .any(|lineage| component.lineages.binary_search(lineage).is_err())
+            {
+                return Err(FormationError::NoncanonicalState);
+            }
             let reassembled = match if retained.mosaic.is_original_only() {
                 prove_physical_mosaic_recurrence_with_origin(
                     &retained.mosaic,
-                    current_physical_deltas,
-                    active_bonds,
+                    &component.deltas,
+                    &component.bonds,
                     &cue,
                     origin,
                 )
             } else {
                 alter_physical_mosaic_recurrence_with_origin(
                     &retained.mosaic,
-                    current_physical_deltas,
-                    active_bonds,
+                    &component.deltas,
+                    &component.bonds,
                     &cue,
                     origin,
                 )
@@ -3274,83 +3349,72 @@ fn settle_organism_mosaic_boundary(
         current_frontier,
         max_encoded_bytes,
     )?;
-    // A new formation can arise only in an active electrical component that
-    // contains changed neurons. Traverse those exact incident-contact
-    // postings. The former loop started from every resident lineage and then
-    // searched every active bond for every visited neuron, making one local
-    // cascade scale as O(all neurons * all active contacts).
-    let mut visited_active_lineages = BTreeSet::<[u8; 16]>::new();
-    for start in changed_lineages.iter().copied() {
-        if !visited_active_lineages.insert(start) {
-            continue;
-        }
-        let mut component = vec![start];
-        let mut cursor = 0usize;
-        while cursor < component.len() {
-            let current = component[cursor];
-            let current_flat = topology_index.flat_for_lineage(current)?;
-            for contact_index in topology_index
-                .incident_contacts_by_flat
-                .get(current_flat)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            {
-                let contact = *topology_index
-                    .contacts
-                    .get(*contact_index)
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                if active_bonds.binary_search(&contact.stable_bond).is_err() {
-                    continue;
-                }
-                let neighbour_flat = if contact.left == current_flat {
-                    contact.right
-                } else if contact.right == current_flat {
-                    contact.left
-                } else {
-                    return Err(FormationError::NeuronLineageAuthorityChanged);
-                };
-                let neighbour = topology
-                    .lineages
-                    .get(neighbour_flat)
-                    .copied()
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                if visited_active_lineages.insert(neighbour) {
-                    component.push(neighbour);
-                }
-            }
-            cursor += 1;
-        }
-        component.sort_unstable();
-        let fractal_members = component
-            .iter()
-            .copied()
-            .filter(|lineage| changed_lineages.binary_search(lineage).is_ok())
-            .collect::<Vec<_>>();
-        if fractal_members.len() < 3 {
-            continue;
-        }
-        let component_fractals = topology
+    // The active components above are the exact physical pathways available
+    // to form a new original. Reuse them directly: rebuilding the same graph
+    // here made one interval traverse every active contact a second time and
+    // made each component allocate an organism-width fractal array.
+    for component in &active_components {
+        let component_flats = component
             .lineages
             .iter()
-            .zip(current_fractals.iter())
-            .map(|(lineage, fractal)| {
-                component
-                    .binary_search(lineage)
-                    .is_ok()
-                    .then(|| fractal.clone())
-                    .flatten()
+            .map(|lineage| topology_index.flat_for_lineage(*lineage))
+            .collect::<Result<Vec<_>, _>>()?;
+        if component_flats
+            .iter()
+            .filter(|flat| current_fractals[**flat].is_some())
+            .count()
+            < 3
+        {
+            continue;
+        }
+        let component_fractal_anatomies = component_flats
+            .iter()
+            .map(|flat| {
+                topology
+                    .fractal_anatomies
+                    .get(*flat)
+                    .copied()
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)
             })
-            .collect::<Vec<_>>();
+            .collect::<Result<Vec<_>, _>>()?;
+        let component_fractals = component_flats
+            .iter()
+            .map(|flat| {
+                current_fractals
+                    .get(*flat)
+                    .cloned()
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         let original = match admit_physical_mosaic_original(
-            &topology.lineages,
-            &topology.fractal_anatomies,
+            &component.lineages,
+            &component_fractal_anatomies,
             &component_fractals,
-            active_bonds,
+            &component.bonds,
         ) {
             Ok(original) => original,
             Err(error) if physical_mosaic_non_admission(error) => continue,
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
-        if !mosaic_spans_multiple_cohorts(cohorts, &original) {
+        let first_member = *original
+            .member_lineages()
+            .first()
+            .ok_or(FormationError::NoncanonicalState)?;
+        let first_member_cohort = topology_index
+            .flat_locations
+            .get(topology_index.flat_for_lineage(first_member)?)
+            .map(|location| location.0)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let mut spans_multiple_cohorts = false;
+        for lineage in &original.member_lineages()[1..] {
+            let cohort_index = topology_index
+                .flat_locations
+                .get(topology_index.flat_for_lineage(*lineage)?)
+                .map(|location| location.0)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            spans_multiple_cohorts |= cohort_index != first_member_cohort;
+        }
+        if !spans_multiple_cohorts {
             continue;
         }
         // One exact physical route cannot be both a recurrence and a new
@@ -3360,20 +3424,21 @@ fn settle_organism_mosaic_boundary(
         // repeated sensation into an append-only episode history and grow one
         // recurrent neuron on the following interval. A disjoint physical
         // route remains eligible for ordinary original admission.
-        if reassembled_indices.iter().any(|index| {
+        let shares_reassembled_path = reassembled_indices.iter().any(|index| {
             formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
-        }) {
+        });
+        if shares_reassembled_path {
             continue;
         }
-        if mosaics
+        let duplicates_retained_structure = mosaics
             .iter()
             .any(|prior| prior.mosaic.same_retained_structure(&original))
             || new_pending_originals
                 .iter()
                 .any(|prior: &AdmittedPhysicalMosaic| {
                     prior.same_retained_structure(&original)
-                })
-        {
+                });
+        if duplicates_retained_structure {
             continue;
         }
         new_pending_originals.push(original);
@@ -5589,6 +5654,7 @@ impl ResidentCognitiveFormationState {
                                         receptor_law.ok_or(FormationError::NoncanonicalState)?;
                                     let neuron_anatomy =
                                         &cohort.anatomy.neuron_anatomies()[resident_index];
+                                    let mut effector_load_elementary_energy = None;
                                     let transduced_energy_zeptojoules = match law {
                                         ReceptorLaw::Sight => {
                                             let retinal_anatomy = exact_optical_receptor_anatomy(
@@ -5720,6 +5786,10 @@ impl ResidentCognitiveFormationState {
                                                 .map_err(
                                                     FormationError::ProprioceptiveWorkUnavailable,
                                                 )?;
+                                            effector_load_elementary_energy = Some(
+                                                settlement
+                                                    .elementary_reaction_energy_zeptojoules,
+                                            );
                                             settlement.transduced_energy_zeptojoules
                                         }
                                     };
@@ -5743,6 +5813,22 @@ impl ResidentCognitiveFormationState {
                                     );
                                     let predecessor_neuron =
                                         &cohort.state.neurons()[resident_index];
+                                    let receptor_predecessor_residue = match
+                                        effector_load_elementary_energy.as_ref()
+                                    {
+                                        Some(elementary_energy) => {
+                                            canonical_effector_load_predecessor_residue(
+                                                predecessor_neuron.receptor_quantum_residue,
+                                                elementary_energy,
+                                                neuron_anatomy
+                                                    .gate_dissipation_quantum_zeptojoules(),
+                                            )
+                                            .map_err(
+                                                FormationError::ProprioceptiveWorkUnavailable,
+                                            )?
+                                        }
+                                        None => predecessor_neuron.receptor_quantum_residue,
+                                    };
                                     let prepared_psi = neuron_anatomy
                                         .prepare_psi_settlement(predecessor_neuron, perspective)
                                         .map_err(|error| {
@@ -5782,7 +5868,7 @@ impl ResidentCognitiveFormationState {
                                                 })?;
                                         let population = quantize_population_receptor_delivery(
                                             &transduced_energy_zeptojoules,
-                                            predecessor_neuron.receptor_quantum_residue,
+                                            receptor_predecessor_residue,
                                             neuron_anatomy.gate_dissipation_quantum_zeptojoules(),
                                             &schedule,
                                         );
@@ -5903,22 +5989,26 @@ impl ResidentCognitiveFormationState {
                                                 window.opening_threshold_quanta,
                                                 window.window_cap_quanta,
                                             )
-                                            .map_err(
-                                                FormationError::ProprioceptiveWorkUnavailable,
-                                            )?
+                                            .map_err(|error| {
+                                                FormationError::ProprioceptiveWorkUnavailable(
+                                                    error.into(),
+                                                )
+                                            })?
                                         }
                                         ReceptorLaw::EffectorLoadBody => {
                                             quantize_proprioceptive_delivery(
                                                 &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                receptor_predecessor_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                                 window.opening_threshold_quanta,
                                                 window.window_cap_quanta,
                                             )
-                                            .map_err(
-                                                FormationError::ProprioceptiveWorkUnavailable,
-                                            )?
+                                            .map_err(|error| {
+                                                FormationError::ProprioceptiveWorkUnavailable(
+                                                    error.into(),
+                                                )
+                                            })?
                                         }
                                         }
                                     };
@@ -6304,11 +6394,12 @@ impl ResidentCognitiveFormationState {
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
-        mount_reached_affective_reach(
+        mount_reached_affective_reach_indexed(
             &mut cohorts,
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
+            &topology_index,
             &internal_contact.causally_transitioned_lineages,
         )?;
         mount_reached_ordering_reach(
@@ -8880,12 +8971,11 @@ fn settle_resident_original_interval(
         input,
     )
     .map_err(FormationError::PhysicalSettlementUnavailable)?;
-    let successor_state = cohort.state.clone();
     let mut retained_interval_deltas = Vec::new();
     for (neuron_index, predecessor) in &predecessor_members {
         if let Some(delta) = sparse_retained_physical_state_delta(
             predecessor,
-            &successor_state.neurons()[*neuron_index],
+            &cohort.state.neurons()[*neuron_index],
         )
         .map_err(|error| {
             FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
@@ -8913,7 +9003,7 @@ fn settle_resident_original_interval(
     for (neuron_index, predecessor) in &predecessor_members {
         if sparse_physical_state_delta(
             predecessor,
-            &successor_state.neurons()[*neuron_index],
+            &cohort.state.neurons()[*neuron_index],
         )
         .map_err(|error| {
             FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
@@ -9029,7 +9119,6 @@ fn settle_resident_original_interval(
     } else {
         cohort.pending_experience = None;
     }
-    cohort.state = successor_state;
     let mut mosaic_resolutions = Vec::new();
     let mut partial_cue_reassembly_count = 0usize;
     let mut recognized_endogenously = false;
@@ -9291,13 +9380,12 @@ fn settle_resident_recurrence_interval(
         input,
     )
     .map_err(FormationError::PhysicalSettlementUnavailable)?;
-    let successor_state = cohort.state.clone();
     let partial_cue_reassembly_count = 0;
     let mut retained_interval_deltas = Vec::new();
     for (neuron_index, predecessor) in &predecessor_members {
         if let Some(delta) = sparse_retained_physical_state_delta(
             predecessor,
-            &successor_state.neurons()[*neuron_index],
+            &cohort.state.neurons()[*neuron_index],
         )
         .map_err(|error| {
             FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
@@ -9322,7 +9410,7 @@ fn settle_resident_recurrence_interval(
     for (neuron_index, predecessor) in &predecessor_members {
         if let Some(delta) = sparse_physical_state_delta(
             predecessor,
-            &successor_state.neurons()[*neuron_index],
+            &cohort.state.neurons()[*neuron_index],
         )
         .map_err(|error| {
             FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
@@ -9350,7 +9438,6 @@ fn settle_resident_recurrence_interval(
         &sparse_receptor_excitation,
         &active_contacts,
     )?;
-    cohort.state = successor_state;
     let formation_locally_settled = {
         let retained = cohort
             .retained_experience
@@ -11652,6 +11739,121 @@ fn mount_reached_body_regulation(
 /// geography, not an emotion label: its only authority is the coincident
 /// changed layer-7/layer-8 lineage set and the sparse contacts retained here.
 /// Reaching the same set again reuses the same cell without population growth.
+fn mount_reached_affective_reach_indexed(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
+    physically_transitioned_lineages: &[[u8; 16]],
+) -> Result<(), FormationError> {
+    let mut association = BTreeSet::new();
+    let mut body_regulation = BTreeSet::new();
+    for lineage in physically_transitioned_lineages {
+        match topology_index
+            .layer_of(*lineage)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+        {
+            7 => {
+                association.insert(*lineage);
+            }
+            8 => {
+                body_regulation.insert(*lineage);
+            }
+            _ => {}
+        }
+    }
+    if association.is_empty() || body_regulation.is_empty() {
+        return Ok(());
+    }
+    let mut participants = association.into_iter().collect::<Vec<_>>();
+    participants.extend(body_regulation);
+    participants.sort_unstable();
+
+    let mut matching = Vec::new();
+    for (candidate, layer) in topology_index.lineage_layers.iter().copied() {
+        if layer != 10 {
+            continue;
+        }
+        let candidate_flat = topology_index.flat_for_lineage(candidate)?;
+        let (cohort_index, neuron_index, _) = *topology_index
+            .flat_locations
+            .get(candidate_flat)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        if cohorts
+            .get(cohort_index)
+            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+            .is_none_or(|mount| mount.source_site().is_some())
+        {
+            continue;
+        }
+        let mut neighbours = Vec::new();
+        for contact_index in topology_index
+            .incident_contacts_by_flat
+            .get(candidate_flat)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+        {
+            let contact = topology_index
+                .contacts
+                .get(*contact_index)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
+                continue;
+            }
+            let neighbour_flat = if contact.left == candidate_flat {
+                contact.right
+            } else if contact.right == candidate_flat {
+                contact.left
+            } else {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            };
+            let neighbour = topology_index
+                .flat_locations
+                .get(neighbour_flat)
+                .map(|location| location.2)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            if matches!(topology_index.layer_of(neighbour), Some(7) | Some(8)) {
+                neighbours.push(neighbour);
+            }
+        }
+        neighbours.sort_unstable();
+        neighbours.dedup();
+        if neighbours == participants {
+            matching.push(candidate);
+        }
+    }
+    let (affective_lineage, newly_mounted) = match matching.as_slice() {
+        [lineage] => (*lineage, false),
+        [] => (
+            mount_next_intrinsic_in_layer(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                10,
+            )?,
+            true,
+        ),
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    if newly_mounted {
+        let additions = participants
+            .into_iter()
+            .map(|participant| {
+                (
+                    participant,
+                    affective_lineage,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+            })
+            .collect::<Vec<_>>();
+        *electrical_fabric = electrical_fabric
+            .append_contacts(&additions)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
 fn mount_reached_affective_reach(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -12190,16 +12392,30 @@ fn mount_reached_articulatory_effector(
             mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 13)?
         }
     };
+    let mut existing_contacts = electrical_fabric
+        .contact_endpoints()
+        .map(|(left, right)| {
+            canonical_lineage_pair(
+                electrical_fabric.lineages()[left],
+                electrical_fabric.lineages()[right],
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let mut additions = Vec::new();
     for participant in participants {
-        if !electrical_fabric.contains_contact(participant, articulatory_lineage) {
-            *electrical_fabric = electrical_fabric
-                .append_contact(
-                    participant,
-                    articulatory_lineage,
-                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                )
-                .map_err(FormationError::ResidentElectricalUnavailable)?;
+        let pair = canonical_lineage_pair(participant, articulatory_lineage);
+        if existing_contacts.insert(pair) {
+            additions.push((
+                participant,
+                articulatory_lineage,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            ));
         }
+    }
+    if !additions.is_empty() {
+        *electrical_fabric = electrical_fabric
+            .append_contacts(&additions)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
     }
     Ok(())
 }
@@ -13280,8 +13496,12 @@ fn settle_internal_contact_interval(
     let mut selected_predecessor_neurons = std::iter::repeat_with(|| None)
         .take(cohorts.len())
         .collect::<Vec<Option<Vec<(usize, NeuronPhysicalState)>>>>();
-    for flat in &selected {
-        let (cohort_index, neuron_index, _) = flat_locations[*flat];
+    let mut selected_members_by_cohort = std::iter::repeat_with(Vec::new)
+        .take(cohorts.len())
+        .collect::<Vec<Vec<(usize, usize)>>>();
+    for (coordinate, flat) in selected.iter().copied().enumerate() {
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        selected_members_by_cohort[cohort_index].push((coordinate, neuron_index));
         selected_predecessor_neurons[cohort_index]
             .get_or_insert_with(Vec::new)
             .push((
@@ -13827,9 +14047,10 @@ fn settle_internal_contact_interval(
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
+        .zip(selected_members_by_cohort.into_par_iter())
         .enumerate()
         .map(
-            |(cohort_index, (cohort, local_contact_result))| -> Result<
+            |(cohort_index, ((cohort, local_contact_result), selected_members))| -> Result<
             Option<(
                 Vec<TransitionNeuronPredecessor>,
                 Vec<MotorUnitRecruitment>,
@@ -13839,14 +14060,6 @@ fn settle_internal_contact_interval(
             )>,
             FormationError,
         > {
-        let selected_members = selected
-            .iter()
-            .enumerate()
-            .filter_map(|(coordinate, flat)| {
-                let (resident_cohort, neuron_index, _) = flat_locations[*flat];
-                (resident_cohort == cohort_index).then_some((coordinate, neuron_index))
-            })
-            .collect::<Vec<_>>();
         if selected_members.is_empty() {
             return Ok(None);
         }

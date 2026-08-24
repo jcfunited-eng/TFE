@@ -1480,9 +1480,11 @@ fn connecting_bond_witness(
         vec![None::<(usize, StablePhysicalBondReference)>; available_lineages.len()];
     let mut reached = vec![false; available_lineages.len()];
     let mut queue = VecDeque::new();
+    let mut reached_order = Vec::new();
     reached[root_index] = true;
     queue.push_back(root_index);
     while let Some(current_index) = queue.pop_front() {
+        reached_order.push(current_index);
         for (neighbour_index, bond) in incident[current_index].iter().copied() {
             if !reached[neighbour_index] {
                 reached[neighbour_index] = true;
@@ -1491,16 +1493,25 @@ fn connecting_bond_witness(
             }
         }
     }
-    let mut witness = Vec::new();
+    // The witness is the union of the root paths for every retained member.
+    // Mark those members, then fold the breadth-first tree once from leaves
+    // toward the root. Walking each member back to the root independently
+    // repeated shared path segments and made a large connected occurrence
+    // quadratic in its physical depth.
+    let mut required = vec![false; available_lineages.len()];
     for member in members {
-        let mut current = *index_by_lineage.get(member)?;
+        let current = *index_by_lineage.get(member)?;
         if !reached[current] {
             return None;
         }
-        while current != root_index {
+        required[current] = true;
+    }
+    let mut witness = Vec::new();
+    for current in reached_order.into_iter().rev() {
+        if required[current] && current != root_index {
             let (prior, bond) = predecessor[current]?;
             witness.push(bond);
-            current = prior;
+            required[prior] = true;
         }
     }
     witness.sort_unstable();

@@ -3386,3 +3386,33 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   delta, bond, and full DSF result remain unchanged. Passive production timing
   remains the acceptance evidence; no injected stimulus or behavioral label is
   authorized.
+
+### Task-1214 load-residue refusal and fixed carrier-lattice correction
+
+- Task `1214`, commit `ca9a9e2eb6d55d021438be05dfea9577a3146091`,
+  image `sha256:047c97357dc5bb2e14cc9a93b278b046537c4cf720b251b8603b46db18ee348f`,
+  remained healthy at tick `163574` but refused its first ordinary interval
+  with `exact antagonist proprioceptor work is unavailable: ResidueWidth`.
+- The rejected load law accumulated `reacted/discharged` fractions whose
+  denominator changed with each action. That history is not a mechanical state
+  variable and eventually exceeded the fixed exact-rational neuron coordinate.
+- The candidate keeps the normalized fraction as validated source evidence but
+  transduces the underlying native integer reaction: each reacted elementary
+  carrier contributes one fixed one-millisecond elementary mechanical energy.
+  Existing load residues not on that fixed carrier/gate lattice are retired
+  when next reached. The existing modality-blind receptor gate law then settles
+  the energy; no load-only gate, clipping rule, score, observer authority, or
+  second organism state was added.
+- One exact discarded-state run from the authenticated task-1214 predecessor
+  advanced tick `163574 -> 163598` in `109.39` seconds, moved the body from a
+  retained-formation causal path, retained `continuous_cognition=true`, returned
+  all mounted sensory/body consequences, and reassembled `74` retained
+  formations. This proves source-to-consequence reachability but does not alone
+  close A-011: live acceptance still requires a later different action from the
+  same internally reassembled formation.
+- Applicable recurrence checks: RF-003 candidate wheel provenance; RF-004 and
+  RF-010 authenticated cold predecessor/current successor; RF-011 bounded live
+  evidence output; RF-016 active A-011 identity; RF-020 functional native
+  participation; RF-025 read before retry; RF-034 no reopened closed witness;
+  RF-044 reached-frontier cardinality; RF-046 real action plus complete sensed
+  consequence on the ordinary mixed-modality path.
