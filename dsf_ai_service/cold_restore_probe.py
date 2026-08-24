@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
@@ -1792,15 +1793,22 @@ def _observe_distributed_recognition(
     }
 
 
-def _rehearse_a011_ordinary_interval() -> dict[str, object]:
+def _rehearse_a011_ordinary_interval(
+    source_root: str | os.PathLike[str],
+) -> dict[str, object]:
     """Run the active A-011 path through the real isolated production boundary."""
 
-    from dsf_ai_service import native_production_app as production
+    with tempfile.TemporaryDirectory(prefix="guala-a011-rehearsal-") as directory:
+        rehearsal_root = Path(directory) / "native-organism"
+        shutil.copytree(Path(source_root), rehearsal_root)
+        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = str(rehearsal_root)
+        os.environ["GUALA_S3_BACKUP_BUCKET"] = ""
+        from dsf_ai_service import native_production_app as production
 
-    production._startup()
-    before = production._native_record()
-    result = production._attempt_unattended_interval()
-    after = production._native_record()
+        production._startup()
+        before = production._native_record()
+        result = production._attempt_unattended_interval()
+        after = production._native_record()
     action = result.get("motor_action")
     consequence = action.get("sensory_consequence") if isinstance(action, dict) else None
     articulated = (
@@ -1917,7 +1925,7 @@ def main() -> int:
         )
     ):
         raise RuntimeError("native CURRENT cold restore changed")
-    a011_proof = _rehearse_a011_ordinary_interval()
+    a011_proof = _rehearse_a011_ordinary_interval(values.native_store_root)
     record = {
         "baseline_observed_state_sha256": values.expected_state_sha256,
         "baseline_observed_tick": values.expected_tick,
