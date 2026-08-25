@@ -5700,6 +5700,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         seal_successor: bool,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
+        let settlement_stopwatch = std::time::Instant::now();
         let Self {
             generation: predecessor_generation,
             next_lineage_ordinal: predecessor_next_lineage_ordinal,
@@ -6923,6 +6924,7 @@ impl ResidentCognitiveFormationState {
                 }
             }
         }
+        let source_physics_wall = settlement_stopwatch.elapsed();
         let mut electrical_fabric = predecessor_electrical_fabric;
         let predecessor_active_electrical_frontier =
             predecessor_active_electrical_frontier.into_vec();
@@ -6994,6 +6996,7 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
+        let precontact_growth_wall = settlement_stopwatch.elapsed();
         let internal_contact = settle_internal_contact_interval(
             &mut cohorts,
             &mut electrical_fabric,
@@ -7010,6 +7013,7 @@ impl ResidentCognitiveFormationState {
                 .map_err(|_| FormationError::ArithmeticOverflow)?
                 .unwrap_or(0),
         )?;
+        let internal_contact_wall = settlement_stopwatch.elapsed();
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
         let (working_causal_continuations, settled_working_frontier) =
             working_causal_frontier_observation(
@@ -7076,6 +7080,7 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
+        let postcontact_growth_wall = settlement_stopwatch.elapsed();
         let current_physical_deltas = exact_transition_physical_deltas(
             &cohorts,
             &topology_index,
@@ -7109,6 +7114,7 @@ impl ResidentCognitiveFormationState {
                 &mut formation_index,
                 max_encoded_bytes,
             )?;
+        let mosaic_wall = settlement_stopwatch.elapsed();
         newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
         newly_retained_mosaic_indices.sort_unstable();
         newly_retained_mosaic_indices.dedup();
@@ -7190,6 +7196,7 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
+        let terminal_growth_wall = settlement_stopwatch.elapsed();
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -7218,6 +7225,20 @@ impl ResidentCognitiveFormationState {
             } else {
                 (Vec::new(), None, 0)
             };
+        let seal_wall = settlement_stopwatch.elapsed();
+        eprintln!(
+            "guala-native-physics-stopwatch source_physics_ms={} precontact_growth_ms={} internal_contact_ms={} postcontact_growth_ms={} mosaic_ms={} terminal_growth_ms={} seal_ms={} total_ms={} generation={} sealed={}",
+            source_physics_wall.as_millis(),
+            (precontact_growth_wall - source_physics_wall).as_millis(),
+            (internal_contact_wall - precontact_growth_wall).as_millis(),
+            (postcontact_growth_wall - internal_contact_wall).as_millis(),
+            (mosaic_wall - postcontact_growth_wall).as_millis(),
+            (terminal_growth_wall - mosaic_wall).as_millis(),
+            (seal_wall - terminal_growth_wall).as_millis(),
+            seal_wall.as_millis(),
+            source_generation,
+            seal_successor,
+        );
         // A direct trajectory composes many exact causal intervals before its
         // one final seal.  Population totals describe only the terminal
         // resident state; recomputing them after every unsealed interval
