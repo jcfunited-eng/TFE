@@ -3285,6 +3285,7 @@ fn settle_organism_mosaic_boundary(
     mosaics: &mut Vec<RetainedOrganismMosaic>,
     formation_index: &mut ResidentFormationIndex,
     max_encoded_bytes: usize,
+    observe_relations: bool,
 ) -> Result<
     (
         Option<[u8; 32]>,
@@ -3656,7 +3657,10 @@ fn settle_organism_mosaic_boundary(
         .into_iter()
         .collect::<Vec<_>>();
     let authority_wall = boundary_stopwatch.elapsed();
-    let organic_relations = observe_organic_mosaic_relations(
+    let organic_relations = if !observe_relations {
+        Vec::new()
+    } else {
+        observe_organic_mosaic_relations(
         &topology,
         mosaics,
         &current_frontier_indices,
@@ -3667,7 +3671,8 @@ fn settle_organism_mosaic_boundary(
         predecessor_frontier,
         current_frontier,
         max_encoded_bytes,
-    )?;
+        )?
+    };
     let relations_wall = boundary_stopwatch.elapsed();
     eprintln!(
         "guala-mosaic-aftermath apply_ms={} authority_ms={} relations_ms={} frontier_indices={} reassembled={}",
@@ -5694,6 +5699,7 @@ impl ResidentCognitiveFormationState {
             vestibular,
             max_encoded_bytes,
             true,
+            true,
         )
     }
 
@@ -5705,6 +5711,7 @@ impl ResidentCognitiveFormationState {
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
         seal_successor: bool,
+        observe_relations: bool,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         let settlement_stopwatch = std::time::Instant::now();
         let Self {
@@ -7125,6 +7132,7 @@ impl ResidentCognitiveFormationState {
                 &mut mosaics,
                 &mut formation_index,
                 max_encoded_bytes,
+                observe_relations,
             )?;
         let mosaic_wall = settlement_stopwatch.elapsed();
         newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
@@ -7365,6 +7373,7 @@ impl ResidentCognitiveFormationState {
             Some(ingress),
             max_encoded_bytes,
             false,
+            true,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -7373,6 +7382,7 @@ impl ResidentCognitiveFormationState {
         self,
         admitted_source: &AdmittedJointSourceEpisode,
         max_encoded_bytes: usize,
+        observe_relations: bool,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
@@ -7384,6 +7394,7 @@ impl ResidentCognitiveFormationState {
             None,
             max_encoded_bytes,
             false,
+            observe_relations,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -19408,6 +19419,7 @@ mod tests {
             &mut mosaics,
             &mut formation_index,
             16_000_000,
+                true,
         )
         .unwrap();
         assert!(altered_receipt.is_some());
@@ -19478,6 +19490,7 @@ mod tests {
             &[],
             &[],
             16_000_000,
+                true,
         )
         .unwrap();
         assert_eq!(one_reassembled_relation.len(), 1);
@@ -19504,6 +19517,7 @@ mod tests {
             &[],
             &[],
             16_000_000,
+                true,
         )
         .unwrap();
         assert_ne!(
@@ -19543,6 +19557,7 @@ mod tests {
             &mut mosaics,
             &mut formation_index,
             16_000_000,
+                true,
         )
         .unwrap();
         // Both retained formations share this exact physical route. A current
@@ -19589,6 +19604,7 @@ mod tests {
                 &mut mosaics,
                 &mut formation_index,
                 16_000_000,
+                true,
             )
             .unwrap();
         assert_eq!(receipt, None);
@@ -19608,6 +19624,7 @@ mod tests {
                         &fabric,
                         retained,
                         16_000_000,
+                true,
                     )
                     .unwrap(),
                 )
@@ -19644,6 +19661,7 @@ mod tests {
                 &mut mosaics,
                 &mut formation_index,
                 16_000_000,
+                true,
             )
             .unwrap();
         assert!(internal_receipt.is_some());
@@ -19661,6 +19679,7 @@ mod tests {
                     &fabric,
                     retained,
                     16_000_000,
+                true,
                 )
                 .unwrap(),
             );
@@ -19674,6 +19693,7 @@ mod tests {
                 &fabric,
                 retained,
                 16_000_000,
+                true,
             )
             .unwrap();
             let cold = decode_retained_organism_mosaic(
@@ -19681,6 +19701,7 @@ mod tests {
                 &fabric,
                 &encoded,
                 16_000_000,
+                true,
             )
             .unwrap();
             assert_eq!(cold, *retained);
@@ -19718,6 +19739,7 @@ mod tests {
                 &mut mosaics,
                 &mut formation_index,
                 16_000_000,
+                true,
             )
             .unwrap();
         assert_eq!(mixed_total, 2);

@@ -3005,6 +3005,7 @@ impl ResidentOrganismRuntime {
         let mut advance_interval = |
             source: &NativeJointSourceEpisode,
             intervals: &[(i64, i64)],
+            interval_terminal: bool,
         | -> Result<(), RuntimeError> {
             let admitted = admitted_episode_with_authored_intervals(source, intervals)
                 .map_err(RuntimeError::CognitiveFormation)?;
@@ -3024,7 +3025,7 @@ impl ResidentOrganismRuntime {
             let (successor, observation) = cognitive
                 .take()
                 .expect("trajectory cognition is restored after every interval")
-                .advance_admitted_transition(&admitted, cognitive_budget)
+                .advance_admitted_transition(&admitted, cognitive_budget, interval_terminal)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             let source_tick = predecessor
                 .organism_tick
@@ -3086,8 +3087,9 @@ impl ResidentOrganismRuntime {
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
             Ok(())
         };
-        for (source, intervals) in &causal_sources {
-            advance_interval(source, intervals)?;
+        let causal_source_count = causal_sources.len();
+        for (index, (source, intervals)) in causal_sources.iter().enumerate() {
+            advance_interval(source, intervals, index + 1 == causal_source_count)?;
         }
         drop(advance_interval);
         let cognitive = cognitive.expect("trajectory cognition has a final successor");
