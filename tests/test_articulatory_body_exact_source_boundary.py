@@ -11,12 +11,34 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
 )
-from guala_core import exact_articulatory_unit_trajectory
+from guala_core import exact_articulatory_interval_trajectory
+
+
+def test_articulatory_body_preserves_native_interval_timing() -> None:
+    _, contiguous_pressure, *_ = exact_articulatory_interval_trajectory(
+        intervals=(
+            (4_000, ((0, 8),)),
+            (4_000, ((0, 8),)),
+        )
+    )
+    separated = exact_articulatory_interval_trajectory(
+        intervals=(
+            (4_000, ((0, 8),)),
+            (4_000, ()),
+            (4_000, ((0, 8),)),
+        )
+    )
+    separated_pressure = separated[1]
+
+    assert contiguous_pressure != separated_pressure
+    assert len(separated_pressure) == 12_000 + separated[-1]
 
 
 def test_articulatory_body_retains_real_span_fraction_and_binary64_projection() -> None:
     sample_rate_hz, pressure, packed_body, *_ = (
-        exact_articulatory_unit_trajectory(recruitments=((0, 8),))
+        exact_articulatory_interval_trajectory(
+            intervals=((16_000, ((0, 8),)),)
+        )
     )
     body_hops = production._articulatory_body_hops(
         packed_body,

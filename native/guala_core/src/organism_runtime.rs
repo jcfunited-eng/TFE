@@ -67,7 +67,7 @@ use crate::virtual_articulated_body::{
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
 };
 use crate::virtual_articulatory_body::{
-    settle_articulatory_unit_discharge, ARTICULATORY_SAMPLE_RATE_HZ,
+    settle_articulatory_interval_discharges, ARTICULATORY_SAMPLE_RATE_HZ,
 };
 use crate::virtual_body_yaw_motion::{
     settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
@@ -75,7 +75,7 @@ use crate::virtual_body_yaw_motion::{
 use crate::virtual_vestibular_canal::{decode_canal_state, encode_canal_state, CanalState};
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -143,6 +143,12 @@ type MotorUnitRecruitmentProjection = (
     u128,
     Vec<(String, u32, String, u32, u32, u128)>,
     Vec<(String, String, String, u8, u32, String, String)>,
+);
+type ArticulatoryUnitRecruitmentProjection = (
+    String,
+    u32,
+    u128,
+    Vec<(String, u32, String, u32, u32, u128)>,
 );
 type ArticulatedBodyConsequenceProjection = (
     u64,
@@ -228,10 +234,12 @@ type AffectiveBalanceTrajectoryProjection = (
     Option<LocalAffectivePlasticitySettlementProjection>,
 );
 type CausalIntervalEvidenceProjection = (
+    usize,
     Vec<String>,
     Vec<InternallyReassembledFormationCueProjection>,
     Vec<ExternallyReassembledFormationFrontierProjection>,
     Vec<MotorUnitRecruitmentProjection>,
+    Vec<ArticulatoryUnitRecruitmentProjection>,
     Vec<String>,
     Vec<ChangedContactChannelStateProjection>,
     Vec<AffectiveBalanceTrajectoryProjection>,
@@ -740,11 +748,13 @@ struct BodyProprioceptiveSourceReceipt {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct CausalIntervalEvidence {
+    source_duration_samples_at_articulatory_rate: usize,
     externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
     internally_reassembled_formation_cues: Vec<InternallyReassembledFormationCueObservation>,
     externally_reassembled_formation_frontiers:
         Vec<ExternallyReassembledFormationFrontierObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_lineages: Vec<[u8; 16]>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
@@ -1529,6 +1539,7 @@ impl NativeResidentOrganismPrepare {
             .iter()
             .map(|interval| {
                 (
+                    interval.source_duration_samples_at_articulatory_rate,
                     interval
                         .externally_perturbed_neuron_lineages
                         .iter()
@@ -1541,6 +1552,9 @@ impl NativeResidentOrganismPrepare {
                         &interval.externally_reassembled_formation_frontiers,
                     ),
                     project_motor_unit_recruitments(&interval.motor_unit_recruitments),
+                    project_articulatory_unit_recruitments(
+                        &interval.articulatory_unit_recruitments,
+                    ),
                     interval
                         .emitted_neuron_lineages
                         .iter()
@@ -3044,6 +3058,8 @@ impl ResidentOrganismRuntime {
             );
             articulated_body = body_transition.successor;
             causal_interval_evidence.push(CausalIntervalEvidence {
+                source_duration_samples_at_articulatory_rate:
+                    source_duration_samples_at_articulatory_rate(source)?,
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
                     .clone(),
@@ -3054,6 +3070,9 @@ impl ResidentOrganismRuntime {
                     .externally_reassembled_formation_frontiers
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                articulatory_unit_recruitments: observation
+                    .articulatory_unit_recruitments
+                    .clone(),
                 emitted_neuron_lineages: observation
                     .emitted_neuron_fractals
                     .iter()
@@ -3380,6 +3399,8 @@ impl ResidentOrganismRuntime {
                 .advance_vestibular_transition(&ingress, cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             causal_interval_evidence.push(CausalIntervalEvidence {
+                source_duration_samples_at_articulatory_rate:
+                    source_duration_samples_at_articulatory_rate(source)?,
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
                     .clone(),
@@ -3390,6 +3411,9 @@ impl ResidentOrganismRuntime {
                     .externally_reassembled_formation_frontiers
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                articulatory_unit_recruitments: observation
+                    .articulatory_unit_recruitments
+                    .clone(),
                 emitted_neuron_lineages: observation
                     .emitted_neuron_fractals
                     .iter()
@@ -3933,6 +3957,53 @@ fn settle_motor_recruitments_into_articulated_body(
     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
     settle_body_effector_drives(predecessor, &admitted)
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))
+}
+
+/// Cover one joint source's exact temporal support on the 16-kHz vocal-body
+/// clock. A non-integral endpoint occupies the next physical sample rather
+/// than deleting the remaining fraction of time.
+fn source_duration_samples_at_articulatory_rate(
+    source: &NativeJointSourceEpisode,
+) -> Result<usize, RuntimeError> {
+    let mut lower: Option<BigRational> = None;
+    let mut upper: Option<BigRational> = None;
+    for occurrence in source.joint_source_occurrences() {
+        let Some(first) = occurrence.source_times.first() else {
+            return Err(RuntimeError::CognitiveFormation(
+                "joint source occurrence has no physical time".into(),
+            ));
+        };
+        let Some(last) = occurrence.source_times.last() else {
+            return Err(RuntimeError::CognitiveFormation(
+                "joint source occurrence has no physical time".into(),
+            ));
+        };
+        lower = Some(lower.map_or_else(|| first.clone(), |value| value.min(first.clone())));
+        upper = Some(upper.map_or_else(|| last.clone(), |value| value.max(last.clone())));
+    }
+    let (Some(lower), Some(upper)) = (lower, upper) else {
+        return Err(RuntimeError::CognitiveFormation(
+            "joint source has no physical occurrence".into(),
+        ));
+    };
+    let duration = upper - lower;
+    if duration <= BigRational::zero() {
+        return Ok(1);
+    }
+    let scaled = duration * BigInt::from(ARTICULATORY_SAMPLE_RATE_HZ);
+    let numerator = scaled.numer().clone();
+    let denominator = scaled.denom().clone();
+    let quotient = &numerator / &denominator;
+    let remainder = numerator % denominator;
+    let covered = if remainder.is_zero() {
+        quotient
+    } else {
+        quotient + BigInt::from(1_u8)
+    };
+    covered
+        .to_usize()
+        .filter(|samples| *samples > 0)
+        .ok_or(RuntimeError::OrganismTickOverflow)
 }
 
 fn body_proprioceptive_source(
@@ -4651,9 +4722,9 @@ fn exact_virtual_yaw_trajectory(
 }
 
 #[pyfunction]
-fn exact_articulatory_unit_trajectory<'py>(
+fn exact_articulatory_interval_trajectory<'py>(
     py: Python<'py>,
-    recruitments: Vec<(u32, u128)>,
+    intervals: Vec<(usize, Vec<(u32, u128)>)>,
 ) -> PyResult<(
     u32,
     Vec<i16>,
@@ -4666,7 +4737,7 @@ fn exact_articulatory_unit_trajectory<'py>(
     u128,
     usize,
 )> {
-    let settled = settle_articulatory_unit_discharge(&recruitments)
+    let settled = settle_articulatory_interval_discharges(&intervals)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let body_bytes = settled
         .body_mechanical_trajectories
@@ -5221,7 +5292,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
     module.add_function(wrap_pyfunction!(
-        exact_articulatory_unit_trajectory,
+        exact_articulatory_interval_trajectory,
         module
     )?)?;
     module.add_function(wrap_pyfunction!(
@@ -6236,6 +6307,41 @@ fn project_motor_unit_recruitments(
         .collect()
 }
 
+fn project_articulatory_unit_recruitments(
+    events: &[ArticulatoryUnitRecruitment],
+) -> Vec<ArticulatoryUnitRecruitmentProjection> {
+    events
+        .iter()
+        .map(|event| {
+            (
+                hex_bytes(&event.neuron_lineage),
+                event.topology_index,
+                event.outward_elementary_carriers,
+                event
+                    .motor_transfers
+                    .iter()
+                    .map(|transfer| {
+                        let (sender_layer, receiver_layer) =
+                            if transfer.sender == event.neuron_lineage {
+                                (13, 12)
+                            } else {
+                                (12, 13)
+                            };
+                        (
+                            hex_bytes(&transfer.sender),
+                            sender_layer,
+                            hex_bytes(&transfer.receiver),
+                            receiver_layer,
+                            transfer.bond.parallel_ordinal(),
+                            transfer.transferred_whole_carriers,
+                        )
+                    })
+                    .collect(),
+            )
+        })
+        .collect()
+}
+
 fn project_affective_balance_trajectories(
     trajectories: &[AffectiveBalanceTrajectoryObservation],
 ) -> Vec<AffectiveBalanceTrajectoryProjection> {
@@ -6730,6 +6836,15 @@ mod tests {
         source_occurrence(&mut body, 0, [1, 2]);
         source_occurrence(&mut body, 1, [1, 2]);
         decode_native_joint_source_episode(&body, 2, 4, 2, 4).unwrap()
+    }
+
+    #[test]
+    fn source_interval_projects_exactly_to_the_articulatory_clock() {
+        assert_eq!(
+            source_duration_samples_at_articulatory_rate(&source("articulatory-clock"))
+                .unwrap(),
+            ARTICULATORY_SAMPLE_RATE_HZ as usize
+        );
     }
 
     fn source_with_port_count(episode: &str, port_count: u32) -> NativeJointSourceEpisode {

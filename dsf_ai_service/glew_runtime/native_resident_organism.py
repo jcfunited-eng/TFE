@@ -387,6 +387,7 @@ class ResidentCausalIntervalEvidence:
 
     predecessor_organism_tick: int
     organism_tick: int
+    source_duration_samples_at_articulatory_rate: int
     externally_perturbed_neuron_lineages: tuple[str, ...]
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...], str | None], ...
@@ -401,6 +402,15 @@ class ResidentCausalIntervalEvidence:
             int,
             tuple[tuple[str, int, str, int, int, int], ...],
             tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ]
+    articulatory_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
         ],
         ...,
     ]
@@ -915,6 +925,87 @@ def _motor_unit_recruitment_evidence(
     return tuple(observed)
 
 
+def _articulatory_unit_recruitment_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    if not isinstance(value, list):
+        raise RuntimeError("articulatory-unit recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 4:
+            raise RuntimeError("articulatory-unit recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "articulatory-unit lineage")
+        topology_index = _nonnegative_integer(
+            raw[1], "articulatory-unit topology index"
+        )
+        outward_elementary_carriers = _positive_integer(
+            raw[2], "articulatory-unit outward elementary carriers"
+        )
+        if not isinstance(raw[3], list) or not raw[3]:
+            raise RuntimeError("articulatory-unit motor transfers changed format")
+        motor_transfers = []
+        for transfer in raw[3]:
+            if not isinstance(transfer, tuple) or len(transfer) != 6:
+                raise RuntimeError("articulatory-unit motor transfer changed format")
+            sender = _canonical_lineage_hex(
+                transfer[0], "articulatory motor sender"
+            )
+            sender_layer = _nonnegative_integer(
+                transfer[1], "articulatory motor sender layer"
+            )
+            receiver = _canonical_lineage_hex(
+                transfer[2], "articulatory motor receiver"
+            )
+            receiver_layer = _nonnegative_integer(
+                transfer[3], "articulatory motor receiver layer"
+            )
+            parallel_ordinal = _nonnegative_integer(
+                transfer[4], "articulatory motor parallel ordinal"
+            )
+            transferred_whole_carriers = _positive_integer(
+                transfer[5], "articulatory motor transferred whole carriers"
+            )
+            if sender == receiver or not (
+                sender == lineage
+                and sender_layer == 13
+                and receiver_layer == 12
+                or receiver == lineage
+                and receiver_layer == 13
+                and sender_layer == 12
+            ):
+                raise RuntimeError(
+                    "articulatory-unit preparation is not an exact layer "
+                    "12/layer 13 contact transfer"
+                )
+            motor_transfers.append(
+                (
+                    sender,
+                    sender_layer,
+                    receiver,
+                    receiver_layer,
+                    parallel_ordinal,
+                    transferred_whole_carriers,
+                )
+            )
+        observed.append(
+            (
+                lineage,
+                topology_index,
+                outward_elementary_carriers,
+                tuple(motor_transfers),
+            )
+        )
+    return tuple(observed)
+
+
 def _causal_interval_evidence(
     value: object,
     predecessor_organism_tick: int,
@@ -923,18 +1014,24 @@ def _causal_interval_evidence(
         raise RuntimeError("causal interval evidence changed format")
     intervals = []
     for index, raw in enumerate(value):
-        if not isinstance(raw, tuple) or len(raw) != 8:
+        if not isinstance(raw, tuple) or len(raw) != 10:
             raise RuntimeError("causal interval evidence changed format")
         (
+            raw_duration_samples,
             raw_external,
             raw_cues,
             raw_external_frontiers,
             raw_motors,
+            raw_articulatory,
             raw_emitted,
             raw_changes,
             raw_affect,
             raw_frontier,
         ) = raw
+        duration_samples = _positive_integer(
+            raw_duration_samples,
+            "causal interval articulatory-clock duration",
+        )
         if not isinstance(raw_external, list):
             raise RuntimeError("causal interval external lineages changed format")
         external = tuple(
@@ -974,6 +1071,7 @@ def _causal_interval_evidence(
             ResidentCausalIntervalEvidence(
                 predecessor_organism_tick=predecessor_tick,
                 organism_tick=predecessor_tick + 1,
+                source_duration_samples_at_articulatory_rate=duration_samples,
                 externally_perturbed_neuron_lineages=external,
                 internally_reassembled_formation_cues=(
                     _internally_reassembled_formation_cue_evidence(raw_cues)
@@ -984,6 +1082,9 @@ def _causal_interval_evidence(
                     )
                 ),
                 motor_unit_recruitments=_motor_unit_recruitment_evidence(raw_motors),
+                articulatory_unit_recruitments=(
+                    _articulatory_unit_recruitment_evidence(raw_articulatory)
+                ),
                 emitted_neuron_lineages=emitted,
                 changed_contact_channel_states=(
                     _changed_contact_channel_state_evidence(raw_changes)
@@ -2962,92 +3063,11 @@ class NativeResidentOrganism:
         raw_articulatory_recruitments = getattr(
             candidate, "articulatory_unit_recruitments", []
         )
-        if not isinstance(raw_articulatory_recruitments, list):
-            raise RuntimeError("articulatory-unit recruitments changed format")
-        articulatory_unit_recruitments: list[
-            tuple[
-                str,
-                int,
-                int,
-                tuple[tuple[str, int, str, int, int, int], ...],
-            ]
-        ] = []
-        for raw in raw_articulatory_recruitments:
-            if not isinstance(raw, tuple) or len(raw) != 4:
-                raise RuntimeError("articulatory-unit recruitment changed format")
-            lineage = _canonical_lineage_hex(raw[0], "articulatory-unit lineage")
-            topology_index = _nonnegative_integer(
-                raw[1], "articulatory-unit topology index"
+        articulatory_unit_recruitments = (
+            _articulatory_unit_recruitment_evidence(
+                raw_articulatory_recruitments
             )
-            outward_elementary_carriers = _positive_integer(
-                raw[2], "articulatory-unit outward elementary carriers"
-            )
-            if not isinstance(raw[3], list) or not raw[3]:
-                raise RuntimeError(
-                    "articulatory-unit motor transfers changed format"
-                )
-            motor_transfers: list[
-                tuple[str, int, str, int, int, int]
-            ] = []
-            for transfer in raw[3]:
-                if not isinstance(transfer, tuple) or len(transfer) != 6:
-                    raise RuntimeError(
-                        "articulatory-unit motor transfer changed format"
-                    )
-                sender = _canonical_lineage_hex(
-                    transfer[0], "articulatory motor sender"
-                )
-                sender_layer = _nonnegative_integer(
-                    transfer[1], "articulatory motor sender layer"
-                )
-                receiver = _canonical_lineage_hex(
-                    transfer[2], "articulatory motor receiver"
-                )
-                receiver_layer = _nonnegative_integer(
-                    transfer[3], "articulatory motor receiver layer"
-                )
-                parallel_ordinal = _nonnegative_integer(
-                    transfer[4], "articulatory motor parallel ordinal"
-                )
-                transferred_whole_carriers = _positive_integer(
-                    transfer[5], "articulatory motor transferred whole carriers"
-                )
-                if (
-                    sender == receiver
-                    or not (
-                        (
-                            sender == lineage
-                            and sender_layer == 13
-                            and receiver_layer == 12
-                        )
-                        or (
-                            receiver == lineage
-                            and receiver_layer == 13
-                            and sender_layer == 12
-                        )
-                    )
-                ):
-                    raise RuntimeError(
-                        "articulatory-unit preparation is not an exact layer 12/layer 13 contact transfer"
-                    )
-                motor_transfers.append(
-                    (
-                        sender,
-                        sender_layer,
-                        receiver,
-                        receiver_layer,
-                        parallel_ordinal,
-                        transferred_whole_carriers,
-                    )
-                )
-            articulatory_unit_recruitments.append(
-                (
-                    lineage,
-                    topology_index,
-                    outward_elementary_carriers,
-                    tuple(motor_transfers),
-                )
-            )
+        )
         # A mounted joint cohort exists only where at least two ports share
         # one exact source clock, so a lawful episode can evaluate zero
         # mounted cohorts (cognition still receives its occurrences).
@@ -3604,17 +3624,23 @@ def exact_native_yaw_trajectory(
     return int(successor), tuple(int(step) for step in steps)
 
 
-def exact_articulatory_unit_trajectory(
+def exact_articulatory_interval_trajectory(
     *,
-    recruitments: tuple[tuple[int, int], ...],
+    intervals: tuple[tuple[int, tuple[tuple[int, int], ...]], ...],
 ) -> tuple[int, tuple[int, ...], bytes, int, int, int, int, int, int, int]:
-    """Settle native layer-13 discharge through the bounded vocal body."""
+    """Settle ordered native layer-13 intervals without flattening time."""
 
-    trajectory = getattr(_native_core(), "exact_articulatory_unit_trajectory", None)
+    trajectory = getattr(
+        _native_core(), "exact_articulatory_interval_trajectory", None
+    )
     if not callable(trajectory):
         raise RuntimeError(
-            "guala_core does not expose native articulatory body physics"
+            "guala_core does not expose interval articulatory body physics"
         )
+    native_intervals = [
+        (int(sample_count), list(recruitments))
+        for sample_count, recruitments in intervals
+    ]
     (
         sample_rate_hz,
         radiated_pressure_pcm,
@@ -3626,7 +3652,7 @@ def exact_articulatory_unit_trajectory(
         applied_motor_quanta,
         stalled_motor_quanta,
         relaxation_sample_count,
-    ) = trajectory(list(recruitments))
+    ) = trajectory(native_intervals)
     return (
         int(sample_rate_hz),
         tuple(int(value) for value in radiated_pressure_pcm),
@@ -3853,7 +3879,7 @@ __all__ = (
     "ResidentCausalIntervalEvidence",
     "ResidentPrepareEvidence",
     "create_native_resident_organism",
-    "exact_articulatory_unit_trajectory",
+    "exact_articulatory_interval_trajectory",
     "exact_native_yaw_trajectory",
     "restore_native_resident_organism",
     "migrate_native_resident_organism_exact_energy",

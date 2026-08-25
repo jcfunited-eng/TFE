@@ -70,6 +70,21 @@ def _quiescent_body_organism() -> SimpleNamespace:
     )
 
 
+def _retain_articulation(
+    hop: dict[str, object],
+    recruitments: tuple[tuple[object, ...], ...],
+) -> None:
+    hop["articulatory_unit_recruitments"] = recruitments
+    hop["causal_interval_evidence"] = (
+        {
+            **hop,
+            "source_duration_samples_at_articulatory_rate": 16_000,
+            "articulatory_unit_recruitments": recruitments,
+            "causal_interval_evidence": (),
+        },
+    )
+
+
 def _episode() -> SimpleNamespace:
     return SimpleNamespace(occurrence_count=1)
 
@@ -247,7 +262,7 @@ def test_layer_thirteen_discharge_commits_its_own_pressure_as_self_hearing(
         (("12" * 16, 12, "13" * 16, 13, 0, 13),),
     )
     first = _hop(11, ())
-    first["articulatory_unit_recruitments"] = (recruitment,)
+    _retain_articulation(first, (recruitment,))
     heard = _hop(12, ())
     heard["physically_transitioned_neuron_count"] = 4
     heard["complete_neuron_fractal_count"] = 1
@@ -322,7 +337,7 @@ def test_self_hearing_hops_share_one_native_trajectory_boundary(monkeypatch) -> 
         (("12" * 16, 12, "13" * 16, 13, 0, 13),),
     )
     first = _hop(11, ())
-    first["articulatory_unit_recruitments"] = (recruitment,)
+    _retain_articulation(first, (recruitment,))
     heard = _hop(15, ())
     heard["physically_transitioned_neuron_count"] = 40
     heard["complete_neuron_fractal_count"] = 3
@@ -454,7 +469,7 @@ def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(
         },
     }
     first = _hop(11, ())
-    first["articulatory_unit_recruitments"] = (recruitment,)
+    _retain_articulation(first, (recruitment,))
     heard = _hop(12, ())
     heard["physically_transitioned_neuron_count"] = 4
     heard["externally_perturbed_body_receptor_count"] = 4
@@ -537,7 +552,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
     monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
     monkeypatch.setattr(production, "_last_transition_evidence", None)
     cancelled = _hop(11, ())
-    cancelled["articulatory_unit_recruitments"] = (
+    _retain_articulation(cancelled, (
         (
             "13" * 16,
             0,
@@ -550,7 +565,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
             5,
             (("12" * 16, 12, "14" * 16, 13, 0, 5),),
         ),
-    )
+    ))
     organism = _quiescent_body_organism()
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
@@ -572,7 +587,7 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
 
     monkeypatch.setattr(
         production,
-        "exact_articulatory_unit_trajectory",
+        "exact_articulatory_interval_trajectory",
         exact_cancellation,
     )
     monkeypatch.setattr(
@@ -606,9 +621,7 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
     monkeypatch,
 ) -> None:
     failed = _hop(11, ())
-    failed["articulatory_unit_recruitments"] = (
-        ("13" * 16, 0, 5, ()),
-    )
+    _retain_articulation(failed, (("13" * 16, 0, 5, ()),))
     predecessor = SimpleNamespace(state_sha256="aa" * 32)
     monkeypatch.setattr(
         production,
@@ -631,7 +644,7 @@ def test_non_cancellation_articulation_error_still_refuses_intake(
 
     monkeypatch.setattr(
         production,
-        "exact_articulatory_unit_trajectory",
+        "exact_articulatory_interval_trajectory",
         arithmetic_failure,
     )
     monkeypatch.setattr(
@@ -674,7 +687,7 @@ def test_vestibular_trajectory_articulation_reaches_the_ordinary_aggregate(
         (("12" * 16, 12, "13" * 16, 13, 0, 5),),
     )
     trajectory = _hop(261, ())
-    trajectory["articulatory_unit_recruitments"] = (recruitment,)
+    _retain_articulation(trajectory, (recruitment,))
     heard = _hop(262, ())
     heard["physically_transitioned_neuron_count"] = 3
     heard["complete_neuron_fractal_count"] = 2

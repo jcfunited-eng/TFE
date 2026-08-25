@@ -415,7 +415,7 @@ def test_articulation_rehearsal_reads_tick_through_native_observation(
 
     monkeypatch.setattr(
         probe,
-        "exact_articulatory_unit_trajectory",
+        "exact_articulatory_interval_trajectory",
         lambda **_kwargs: (
             16_000,
             (1, -1),
@@ -626,13 +626,13 @@ def test_articulation_translation_preserves_only_exact_native_cancellation(
     def cancelled(**_kwargs):
         raise ValueError("CancelledRecruitment")
 
-    monkeypatch.setattr(probe, "exact_articulatory_unit_trajectory", cancelled)
+    monkeypatch.setattr(probe, "exact_articulatory_interval_trajectory", cancelled)
     assert probe._exact_articulatory_trajectory_or_none(recruitment) is None
 
     def failed(**_kwargs):
         raise ValueError("ArithmeticWidth")
 
-    monkeypatch.setattr(probe, "exact_articulatory_unit_trajectory", failed)
+    monkeypatch.setattr(probe, "exact_articulatory_interval_trajectory", failed)
     with pytest.raises(ValueError, match="ArithmeticWidth"):
         probe._exact_articulatory_trajectory_or_none(recruitment)
 

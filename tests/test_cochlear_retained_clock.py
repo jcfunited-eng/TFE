@@ -18,7 +18,7 @@ def test_authorized_cochlea_does_not_repeat_envelopes_on_pcm_grid() -> None:
 import json
 from fractions import Fraction
 from dsf_ai_service import native_production_app as production
-from guala_core import exact_articulatory_unit_trajectory
+from guala_core import exact_articulatory_interval_trajectory
 
 observed_filter_input_lengths = []
 real_filter = production.auditory_gammatone_field
@@ -37,8 +37,8 @@ cochlear_hops = production._cochlear_hops(
     samples,
     production.COCHLEAR_SAMPLE_RATE_HZ,
 )
-sample_rate_hz, pressure, body, *_ = exact_articulatory_unit_trajectory(
-    recruitments=((0, 8),)
+sample_rate_hz, pressure, body, *_ = exact_articulatory_interval_trajectory(
+    intervals=((16_000, ((0, 8),)),)
 )
 body_hops = production._articulatory_body_hops(
     body,

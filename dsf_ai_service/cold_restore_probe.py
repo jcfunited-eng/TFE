@@ -14,7 +14,7 @@ import shutil
 import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
-    exact_articulatory_unit_trajectory,
+    exact_articulatory_interval_trajectory,
     exact_native_yaw_trajectory,
     restore_native_resident_organism,
 )
@@ -1360,11 +1360,14 @@ def _exact_articulatory_trajectory_or_none(
     """Translate the native body's exact antagonist cancellation, and only it."""
 
     try:
-        return exact_articulatory_unit_trajectory(
-            recruitments=tuple(
-                (topology_index, carriers)
-                for _lineage, topology_index, carriers, _transfers in recruitments
-            )
+        return exact_articulatory_interval_trajectory(
+            intervals=((
+                16_000,
+                tuple(
+                    (topology_index, carriers)
+                    for _lineage, topology_index, carriers, _transfers in recruitments
+                ),
+            ),)
         )
     except ValueError as error:
         if error.args == ("CancelledRecruitment",):

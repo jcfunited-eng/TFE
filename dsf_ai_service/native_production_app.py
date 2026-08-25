@@ -100,7 +100,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     ResidentPrepareEvidence,
     create_native_resident_organism,
-    exact_articulatory_unit_trajectory,
+    exact_articulatory_interval_trajectory,
     exact_native_yaw_trajectory,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
@@ -7902,6 +7902,9 @@ def _causal_interval_hops(
         {
             "predecessor_organism_tick": interval.predecessor_organism_tick,
             "organism_tick": interval.organism_tick,
+            "source_duration_samples_at_articulatory_rate": (
+                interval.source_duration_samples_at_articulatory_rate
+            ),
             "externally_perturbed_neuron_lineages": (
                 interval.externally_perturbed_neuron_lineages
             ),
@@ -7912,6 +7915,9 @@ def _causal_interval_hops(
                 interval.externally_reassembled_formation_frontiers
             ),
             "motor_unit_recruitments": interval.motor_unit_recruitments,
+            "articulatory_unit_recruitments": (
+                interval.articulatory_unit_recruitments
+            ),
             "emitted_neuron_fractals": tuple(
                 {"neuron_lineage": lineage}
                 for lineage in interval.emitted_neuron_lineages
@@ -9683,6 +9689,9 @@ def _perform_admitted_intake_locked(
             tuple[tuple[str, int, str, int, int, int], ...],
         ]
     ] = []
+    articulatory_intervals: list[
+        tuple[int, tuple[tuple[int, int], ...]]
+    ] = []
     body_effector_bindings: list[tuple[str, str, str, int]] = []
     articulated_body_consequences: list[
         tuple[int, str, str, int, int, int, int, int, int, int, int]
@@ -9710,6 +9719,30 @@ def _perform_admitted_intake_locked(
         body_proprioceptive_sources.extend(
             zip(sources, extents, strict=True)
         )
+
+    def retain_articulatory_interval_evidence(hop: dict[str, Any]) -> None:
+        for interval in hop["causal_interval_evidence"]:
+            duration_samples = interval[
+                "source_duration_samples_at_articulatory_rate"
+            ]
+            if (
+                isinstance(duration_samples, bool)
+                or not isinstance(duration_samples, int)
+                or duration_samples <= 0
+            ):
+                raise RuntimeError(
+                    "native articulatory interval lost physical duration"
+                )
+            recruitments = interval["articulatory_unit_recruitments"]
+            articulatory_intervals.append(
+                (
+                    duration_samples,
+                    tuple(
+                        (int(topology), int(carriers))
+                        for _lineage, topology, carriers, _transfers in recruitments
+                    ),
+                )
+            )
 
     articulation: dict[str, Any] | None = None
     emitted_neuron_fractals: list[dict[str, Any]] = []
@@ -9802,6 +9835,7 @@ def _perform_admitted_intake_locked(
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
             )
+            retain_articulatory_interval_evidence(last_hop)
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             retain_articulated_body_evidence(last_hop)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
@@ -9883,6 +9917,7 @@ def _perform_admitted_intake_locked(
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
             )
+            retain_articulatory_interval_evidence(last_hop)
             retain_articulated_body_evidence(last_hop)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
@@ -9901,6 +9936,34 @@ def _perform_admitted_intake_locked(
                 "receptor_ingress_quiescent_count"
             ]
         if articulatory_unit_recruitments:
+            flattened_interval_recruitments = tuple(
+                recruitment
+                for _duration, recruitments in articulatory_intervals
+                for recruitment in recruitments
+            )
+            aggregate_recruitments = tuple(
+                (int(topology), int(carriers))
+                for _lineage, topology, carriers, _transfers in (
+                    articulatory_unit_recruitments
+                )
+            )
+            if flattened_interval_recruitments != aggregate_recruitments:
+                raise RuntimeError(
+                    "native articulatory intervals lost recruitment order"
+                )
+            active_interval_indices = tuple(
+                index
+                for index, (_duration, recruitments) in enumerate(
+                    articulatory_intervals
+                )
+                if recruitments
+            )
+            if not active_interval_indices:
+                raise RuntimeError(
+                    "native articulatory aggregate has no causal interval"
+                )
+            first_active = active_interval_indices[0]
+            last_active = active_interval_indices[-1]
             try:
                 (
                     sample_rate_hz,
@@ -9913,10 +9976,9 @@ def _perform_admitted_intake_locked(
                     applied_motor_quanta,
                     stalled_motor_quanta,
                     relaxation_sample_count,
-                ) = exact_articulatory_unit_trajectory(
-                    recruitments=tuple(
-                        (topology, carriers)
-                        for _, topology, carriers, _ in articulatory_unit_recruitments
+                ) = exact_articulatory_interval_trajectory(
+                    intervals=tuple(
+                        articulatory_intervals[first_active : last_active + 1]
                     )
                 )
             except ValueError as error:
