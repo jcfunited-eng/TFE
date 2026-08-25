@@ -379,6 +379,88 @@ pub(crate) fn admit_physical_mosaic_original(
     })
 }
 
+/// Complete one still-unresolved physical original with a later piece of the
+/// same bounded causal assembly.
+///
+/// Each input was independently admitted from exact post-quiescence neuronal
+/// change and exact conducting bonds.  Existing member deltas remain the
+/// original learned displacement; the later piece contributes only genuinely
+/// new members and the bonds needed to connect the combined physical path.
+/// This is not recurrence, reinforcement, or semantic binding.  The caller is
+/// responsible for proving that both pieces share the same still-active native
+/// association frontier before invoking this operation.
+pub(crate) fn continue_physical_mosaic_original(
+    prior: &AdmittedPhysicalMosaic,
+    current: &AdmittedPhysicalMosaic,
+) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
+    if !prior.original_only
+        || !current.original_only
+        || prior.member_lineages.len() != prior.retained_fractals.len()
+        || current.member_lineages.len() != current.retained_fractals.len()
+    {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+
+    let mut retained_by_lineage = BTreeMap::<
+        StableNeuronLineage,
+        SparsePhysicalStateDelta,
+    >::new();
+    for (lineage, fractal) in prior
+        .member_lineages
+        .iter()
+        .copied()
+        .zip(prior.retained_fractals.iter().cloned())
+    {
+        if retained_by_lineage.insert(lineage, fractal).is_some() {
+            return Err(PhysicalMosaicError::WidthMismatch);
+        }
+    }
+    for (lineage, fractal) in current
+        .member_lineages
+        .iter()
+        .copied()
+        .zip(current.retained_fractals.iter().cloned())
+    {
+        retained_by_lineage.entry(lineage).or_insert(fractal);
+    }
+    if retained_by_lineage.len() < 3 {
+        return Err(PhysicalMosaicError::FewerThanThreeRetainedFractals);
+    }
+
+    let member_lineages = retained_by_lineage.keys().copied().collect::<Vec<_>>();
+    let retained_fractals = retained_by_lineage.into_values().collect::<Vec<_>>();
+    let mut available_bonds = prior.original_bonds.to_vec();
+    available_bonds.extend_from_slice(&current.original_bonds);
+    available_bonds.sort_unstable();
+    available_bonds.dedup();
+    let mut available_lineages = member_lineages.clone();
+    for bond in &available_bonds {
+        let (left, right) = bond.endpoints();
+        available_lineages.push(left);
+        available_lineages.push(right);
+    }
+    available_lineages.sort_unstable();
+    available_lineages.dedup();
+    let original_bonds = connecting_bond_witness(
+        &available_lineages,
+        &member_lineages,
+        &available_bonds,
+    )
+    .ok_or(PhysicalMosaicError::OriginalRelationNotConnected)?;
+
+    Ok(AdmittedPhysicalMosaic {
+        original_only: true,
+        exact_pattern_recognition: false,
+        member_lineages: member_lineages.into_boxed_slice(),
+        retained_fractals: retained_fractals.into_boxed_slice(),
+        retained_excitation_zeptojoules: Box::new([]),
+        original_bonds: original_bonds.into_boxed_slice(),
+        recurrence_bonds: Box::new([]),
+        partial_cue_lineages: Box::new([]),
+        recurrence_origin: None,
+    })
+}
+
 fn current_recurrence_witness(
     retained: &AdmittedPhysicalMosaic,
     current_physical_deltas: &[(StableNeuronLineage, SparsePhysicalStateDelta)],
@@ -1854,6 +1936,92 @@ mod codec_tests {
         assert_eq!(recognized.original_bonds(), topology());
         assert_eq!(recognized.recurrence_bonds(), topology());
         assert_eq!(recognized.partial_cue_lineages(), &[lineage(1)]);
+    }
+
+    #[test]
+    fn adjacent_original_pieces_complete_only_one_connected_physical_assembly() {
+        let association = lineage(9);
+        let prior_lineages = [lineage(1), lineage(2), lineage(3), association];
+        let prior_bonds = [
+            StablePhysicalBondReference::new(lineage(1), association, 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(2), association, 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(3), association, 0).unwrap(),
+        ];
+        let prior = admit_physical_mosaic_original(
+            &prior_lineages,
+            &[(1, 24); 4],
+            &[
+                Some(fractal(1, 3)),
+                Some(fractal(2, 5)),
+                Some(fractal(3, 5)),
+                None,
+            ],
+            &prior_bonds,
+        )
+        .unwrap();
+
+        let current_lineages = [lineage(4), lineage(5), lineage(6), association];
+        let current_bonds = [
+            StablePhysicalBondReference::new(lineage(4), association, 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(5), association, 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(6), association, 0).unwrap(),
+        ];
+        let current = admit_physical_mosaic_original(
+            &current_lineages,
+            &[(1, 24); 4],
+            &[
+                Some(fractal(4, 7)),
+                Some(fractal(5, 7)),
+                Some(fractal(6, 7)),
+                None,
+            ],
+            &current_bonds,
+        )
+        .unwrap();
+
+        let completed = continue_physical_mosaic_original(&prior, &current).unwrap();
+        assert!(completed.is_original_only());
+        assert_eq!(
+            completed.member_lineages(),
+            &[
+                lineage(1),
+                lineage(2),
+                lineage(3),
+                lineage(4),
+                lineage(5),
+                lineage(6),
+            ]
+        );
+        assert_eq!(
+            &completed.retained_fractals()[..3],
+            prior.retained_fractals()
+        );
+        assert_eq!(completed.original_bonds().len(), 6);
+
+        let unrelated_association = lineage(10);
+        let unrelated = admit_physical_mosaic_original(
+            &[lineage(4), lineage(5), lineage(6), unrelated_association],
+            &[(1, 24); 4],
+            &[
+                Some(fractal(4, 7)),
+                Some(fractal(5, 7)),
+                Some(fractal(6, 7)),
+                None,
+            ],
+            &[
+                StablePhysicalBondReference::new(lineage(4), unrelated_association, 0)
+                    .unwrap(),
+                StablePhysicalBondReference::new(lineage(5), unrelated_association, 0)
+                    .unwrap(),
+                StablePhysicalBondReference::new(lineage(6), unrelated_association, 0)
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        assert_eq!(
+            continue_physical_mosaic_original(&prior, &unrelated),
+            Err(PhysicalMosaicError::OriginalRelationNotConnected)
+        );
     }
 
     #[test]

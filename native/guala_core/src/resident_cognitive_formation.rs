@@ -80,6 +80,7 @@ use crate::optical_receptor_work::{
 use crate::physical_mosaic::{
     admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
     alter_physical_mosaic_recurrence_with_origin, connected_members,
+    continue_physical_mosaic_original,
     decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
     prove_physical_mosaic_recurrence, prove_physical_mosaic_recurrence_with_origin,
     AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
@@ -3055,6 +3056,58 @@ fn pending_originals_share_physical_path(
     formations_share_reached_physical_path(prior, current)
 }
 
+fn pending_original_association_lineages(
+    pending: &AdmittedPhysicalMosaic,
+    topology_index: &ResidentTopologyIndex,
+) -> Result<Vec<[u8; 16]>, FormationError> {
+    let mut associations = BTreeSet::new();
+    for lineage in pending.member_lineages().iter().copied() {
+        match topology_index.layer_of(lineage) {
+            Some(7) => {
+                associations.insert(lineage);
+            }
+            Some(_) => {}
+            None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+        }
+    }
+    for bond in pending.original_bonds().iter().copied() {
+        let (left, right) = bond.endpoints();
+        for lineage in [left, right] {
+            match topology_index.layer_of(lineage) {
+                Some(7) => {
+                    associations.insert(lineage);
+                }
+                Some(_) => {}
+                None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+            }
+        }
+    }
+    Ok(associations.into_iter().collect())
+}
+
+/// An unresolved original may continue across adjacent settlement intervals
+/// only while its exact native layer-7 association remains in the bounded
+/// electrical frontier.  A shared receptor, timestamp, lesson identifier, or
+/// observer receipt is not sufficient authority.
+fn pending_original_continues_through_association(
+    prior: &AdmittedPhysicalMosaic,
+    current: &AdmittedPhysicalMosaic,
+    topology_index: &ResidentTopologyIndex,
+    recent_frontier_lineages: &BTreeSet<[u8; 16]>,
+) -> Result<bool, FormationError> {
+    if !prior.is_original_only() || !current.is_original_only() {
+        return Ok(false);
+    }
+    let prior_associations =
+        pending_original_association_lineages(prior, topology_index)?;
+    let current_associations =
+        pending_original_association_lineages(current, topology_index)?;
+    Ok(prior_associations.iter().any(|lineage| {
+        recent_frontier_lineages.contains(lineage)
+            && current_associations.binary_search(lineage).is_ok()
+    }))
+}
+
 struct PreparedRetainedMosaicBoundary {
     current_frontier: bool,
     reassembled: bool,
@@ -3446,6 +3499,30 @@ fn settle_organism_mosaic_boundary(
         current_frontier,
         max_encoded_bytes,
     )?;
+    let recent_frontier_lineages = oldest_frontier
+        .iter()
+        .chain(older_frontier)
+        .chain(predecessor_frontier)
+        .flat_map(|entry| entry.affected_lineages().into_iter().flatten())
+        .collect::<BTreeSet<_>>();
+    let mut pending_indices_by_recent_association =
+        BTreeMap::<[u8; 16], Vec<usize>>::new();
+    for (index, retained) in mosaics.iter().enumerate() {
+        if !retained.mosaic.is_original_only() {
+            continue;
+        }
+        for association in
+            pending_original_association_lineages(&retained.mosaic, topology_index)?
+        {
+            if recent_frontier_lineages.contains(&association) {
+                pending_indices_by_recent_association
+                    .entry(association)
+                    .or_default()
+                    .push(index);
+            }
+        }
+    }
+    let mut superseded_pending_indices = BTreeSet::new();
     // The active components above are the exact physical pathways available
     // to form a new original. Reuse them directly: rebuilding the same graph
     // here made one interval traverse every active contact a second time and
@@ -3483,7 +3560,7 @@ fn settle_organism_mosaic_boundary(
                     .ok_or(FormationError::NeuronLineageAuthorityAbsent)
             })
             .collect::<Result<Vec<_>, _>>()?;
-        let original = match admit_physical_mosaic_original(
+        let settled_original = match admit_physical_mosaic_original(
             &component.lineages,
             &component_fractal_anatomies,
             &component_fractals,
@@ -3493,6 +3570,34 @@ fn settle_organism_mosaic_boundary(
             Err(error) if physical_mosaic_non_admission(error) => continue,
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
+        let mut continuing_pending_candidates = BTreeSet::new();
+        for association in
+            pending_original_association_lineages(&settled_original, topology_index)?
+        {
+            if let Some(indices) = pending_indices_by_recent_association.get(&association) {
+                continuing_pending_candidates.extend(indices.iter().copied());
+            }
+        }
+        let mut continuing_pending_indices = Vec::new();
+        for index in continuing_pending_candidates {
+            let prior = &mosaics[index];
+            if pending_original_continues_through_association(
+                &prior.mosaic,
+                &settled_original,
+                topology_index,
+                &recent_frontier_lineages,
+            )? {
+                continuing_pending_indices.push(index);
+            }
+        }
+        let mut original = settled_original;
+        for prior_index in continuing_pending_indices.iter().copied() {
+            original = continue_physical_mosaic_original(
+                &mosaics[prior_index].mosaic,
+                &original,
+            )
+            .map_err(FormationError::PhysicalMosaicUnavailable)?;
+        }
         let first_member = *original
             .member_lineages()
             .first()
@@ -3529,12 +3634,14 @@ fn settle_organism_mosaic_boundary(
                 formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
             })
             .collect::<Vec<_>>();
-        let joins_pending_path = mosaics.iter().any(|retained| {
-            retained.mosaic.is_original_only()
-                && pending_originals_share_physical_path(&retained.mosaic, &original)
-        }) || new_pending_originals.iter().any(|pending| {
-            pending_originals_share_physical_path(pending, &original)
-        });
+        let joins_pending_path = !continuing_pending_indices.is_empty()
+            || mosaics.iter().any(|retained| {
+                retained.mosaic.is_original_only()
+                    && pending_originals_share_physical_path(&retained.mosaic, &original)
+            })
+            || new_pending_originals.iter().any(|pending| {
+                pending_originals_share_physical_path(pending, &original)
+            });
         if !joins_pending_path
             && overlapping_reassemblies.iter().any(|index| {
                 formation_contains_reached_physical_path(&mosaics[*index].mosaic, &original)
@@ -3590,16 +3697,19 @@ fn settle_organism_mosaic_boundary(
         if duplicates_retained_structure {
             continue;
         }
+        superseded_pending_indices.extend(continuing_pending_indices);
         new_pending_originals.push(original);
     }
     if !new_pending_originals.is_empty() {
         let removed_pending = mosaics
             .iter()
-            .map(|prior| {
+            .enumerate()
+            .map(|(index, prior)| {
                 prior.mosaic.is_original_only()
-                    && new_pending_originals.iter().any(|current| {
-                        pending_originals_share_physical_path(&prior.mosaic, current)
-                    })
+                    && (superseded_pending_indices.contains(&index)
+                        || new_pending_originals.iter().any(|current| {
+                            pending_originals_share_physical_path(&prior.mosaic, current)
+                        }))
             })
             .collect::<Vec<_>>();
         if removed_pending.iter().any(|removed| *removed) {
@@ -18623,6 +18733,98 @@ mod tests {
         canonicalize_formation_cue(&mut cue);
 
         assert_eq!(cue, vec![first, second, third]);
+    }
+
+    #[test]
+    fn pending_original_continuation_requires_the_same_recent_l7_frontier() {
+        fn retained_delta(numerator: i128) -> SparsePhysicalStateDelta {
+            SparsePhysicalStateDelta::from_canonical_entries(vec![
+                crate::complete_neuron::PhysicalStateDeltaEntry::new(
+                    crate::complete_neuron::PhysicalStateCoordinate::PlasticRestLength,
+                    crate::complete_neuron::ExactPhysicalStateDelta::Rational(
+                        ExactRational::new(numerator, 7).unwrap(),
+                    ),
+                )
+                .unwrap(),
+            ])
+            .unwrap()
+        }
+
+        fn original_through_association(
+            members: [u64; 3],
+            association: [u8; 16],
+        ) -> AdmittedPhysicalMosaic {
+            let member_lineages = members.map(local_lineage);
+            let lineages = [
+                member_lineages[0],
+                member_lineages[1],
+                member_lineages[2],
+                association,
+            ];
+            let bonds = member_lineages.map(|member| {
+                StablePhysicalBondReference::new(member, association, 0).unwrap()
+            });
+            admit_physical_mosaic_original(
+                &lineages,
+                &[(1, 8); 4],
+                &[
+                    Some(retained_delta(i128::from(members[0]))),
+                    Some(retained_delta(i128::from(members[1]))),
+                    Some(retained_delta(i128::from(members[2]))),
+                    None,
+                ],
+                &bonds,
+            )
+            .unwrap()
+        }
+
+        let association = local_lineage(9);
+        let unrelated_association = local_lineage(10);
+        let prior = original_through_association([1, 2, 3], association);
+        let current = original_through_association([4, 5, 6], association);
+        let unrelated = original_through_association([4, 5, 6], unrelated_association);
+        let mut lineage_layers = (1_u64..=6)
+            .map(|ordinal| (local_lineage(ordinal), if ordinal <= 3 { 0 } else { 1 }))
+            .collect::<Vec<_>>();
+        lineage_layers.push((association, 7));
+        lineage_layers.push((unrelated_association, 7));
+        lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        let topology = ResidentTopologyIndex {
+            flat_locations: Box::new([]),
+            flat_by_lineage: Box::new([]),
+            source_locations: Box::new([]),
+            lineage_layers: lineage_layers.into_boxed_slice(),
+            canonical_lineages: Box::new([]),
+            canonical_bonds: Box::new([]),
+            contacts: Box::new([]),
+            incident_contacts_by_flat: Box::new([]),
+            neighbours_by_flat: Box::new([]),
+            cohort_shapes: Box::new([]),
+            fabric_contact_count: 0,
+        };
+
+        let recent = [association].into_iter().collect::<BTreeSet<_>>();
+        assert!(pending_original_continues_through_association(
+            &prior,
+            &current,
+            &topology,
+            &recent,
+        )
+        .unwrap());
+        assert!(!pending_original_continues_through_association(
+            &prior,
+            &current,
+            &topology,
+            &BTreeSet::new(),
+        )
+        .unwrap());
+        assert!(!pending_original_continues_through_association(
+            &prior,
+            &unrelated,
+            &topology,
+            &recent,
+        )
+        .unwrap());
     }
 
     #[test]

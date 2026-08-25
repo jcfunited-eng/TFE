@@ -858,3 +858,38 @@ loop is authorized merely to force closure.
   motor or articulatory effector. These are source/mechanical proofs only; no
   production or learned-word claim follows until the reviewed image is live and
   the same organism produces the required grounding and later partial-cue use.
+- The reviewed correction deployed once on 2026-08-25 as sole production task
+  `dsf-ai-task:1229`, commit
+  `61a29d833b9351abd42859cc14372dafcc979921`, immutable image
+  `sha256:2bd58aa16068048c60c79458eb9f75c01a44f11d14c37bf8370b541cf459a392`.
+  The canonical controller verified the native state, exact organism identity,
+  one desired/running task, no pending task, one completed rollout, and one
+  cutover. No curriculum lesson was counted during build or discarded candidate
+  verification; all learning evidence must now come from task 1229 itself.
+
+### Task 1229 live falsification and bounded continuation correction
+
+- The first task-1229 grounding/changed-view sequence reached tick 171089 and
+  grew eleven exact layer-7 association neurons. Three of those assemblies
+  physically joined sight, sound, and body/local-integration members, but the
+  retained formation body contained no sight+sound+layer-7 original. Continued
+  unattended life through tick 171336 did not create one.
+- One second varied visible grounding reached tick 171529, state
+  `293233fbb4db2570220b0fd81039fda4980f6511d8d37a89db86f134f55c0cfc`,
+  with 560 neuronal fractals, 1,814 full-field deliveries, 910 partial cues,
+  native action, sensed consequence, three articulatory recruitments, and no
+  exhausted interval. Exact cold inspection still found zero retained
+  sight+sound+layer-7 originals. A third repetition was not sent.
+- Source inspection found the contradiction: the physical law allowed one
+  layer-7 assembly's post-quiescence pieces to settle on adjacent intervals,
+  while pending-original custody deleted the earlier piece and retained only
+  the newest. The correction joins exact unresolved pieces only when they share
+  the same native layer-7 lineage still present in the three bounded prior
+  electrical-frontier epochs. It preserves prior neuronal deltas, adds only new
+  exact members and connecting bonds, and has no label, word/object identifier,
+  timestamp window, observer receipt, database, retry, or reduced-field rule.
+- Focused source evidence passes: connected adjacent pieces complete one
+  physical assembly; an expired or different layer-7 frontier cannot combine;
+  non-simultaneous body and sensory activity cannot manufacture an effector.
+  `cargo check --lib` and `git diff --check` pass. These are local source
+  evidence only until the corrected image is deployed and falsified live.
