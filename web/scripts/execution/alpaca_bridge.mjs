@@ -707,6 +707,7 @@ const CH2_RISK_PCT         = 2.5;
 // TP bracket removed — sentinel EXIT-B handles upside when the wave releases.
 const CH2_STOP_LOSS_MULT   = 3.0;   // 3×ATR — backstop only, not primary exit
 const CH2_MIN_SL_PCT       = 0.05;  // minimum 5% stop regardless of ATR
+const CH2_MIN_TP_PCT       = 0.05;  // TP floor: 5% above entry or 1×ATR, whichever larger (restored 2026-08-25)
 
 /**
  * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
@@ -804,18 +805,23 @@ export async function executeCh2BracketOrder(signal) {
   // 0.99x discount tested May 19 — killed 4/12 fills. Reverted.
   const KINETIC_BUFFER = 1.001;
   const entryPrice     = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
-  // SL: 3×ATR below entry, minimum 5% — backstop only. Primary exit is EXIT-B (D_k collapse).
+  // SL: 3×ATR below entry, minimum 5% — backstop only.
   const atrSlDistance  = CH2_STOP_LOSS_MULT * atr;
   const minSlDistance  = entryPrice * CH2_MIN_SL_PCT;
   const stopLossPrice  = parseFloat((entryPrice - Math.max(atrSlDistance, minSlDistance)).toFixed(2));
-  // No TP bracket — let winners ride to EXIT-B.
-  const takeProfitPrice = null;
+  // TP RESTORED (Joseph 2026-08-25: "we need the profit taking rules
+  // back"). The 2026-07-22 removal promised EXIT-B would harvest the
+  // upside; the surviving exit fires only on breakdowns, so winners
+  // were never banked (receipt: zero positive CH2 trades 8/12-8/25).
+  // Rule as it was: TP at 5% above entry or 1×ATR, whichever is larger.
+  const takeProfitPrice = parseFloat(
+    (entryPrice + Math.max(entryPrice * CH2_MIN_TP_PCT, atr)).toFixed(2));
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
   }
 
-  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | SL=${stopLossPrice} (3xATR=${(atrSlDistance).toFixed(2)} min5%=${(minSlDistance).toFixed(2)}) | no TP`);
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} (3xATR=${(atrSlDistance).toFixed(2)} min5%=${(minSlDistance).toFixed(2)})`);
 
   let ledgerId;
   try {
@@ -876,8 +882,8 @@ export async function executeCh2BracketOrder(signal) {
 
   let order;
   try {
-    // oto (one-triggers-other) with stop-loss only — no TP bracket.
-    // Primary exit is sentinel EXIT-B (ticker D_k collapse).
+    // bracket restored (Joseph 2026-08-25): buy + take-profit + stop.
+    // Winners bank at the TP; the stop stays the disaster backstop.
     order = await alpacaPost("/v2/orders", {
       symbol:          ticker,
       qty:             shares,
@@ -886,7 +892,10 @@ export async function executeCh2BracketOrder(signal) {
       limit_price:     entryPrice,
       time_in_force:   "day",
       client_order_id: dedupeKey,
-      order_class:     "oto",
+      order_class:     "bracket",
+      take_profit: {
+        limit_price: takeProfitPrice,
+      },
       stop_loss: {
         stop_price: stopLossPrice,
       },

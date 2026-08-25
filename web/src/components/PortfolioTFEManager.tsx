@@ -169,6 +169,8 @@ export default function PortfolioTFEManager() {
   const [config, setConfig] = useState<PEE1Config | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [closedSortKey, setClosedSortKey] = useState<keyof ClosedTrade>("closed_at");
+  const [closedSortDesc, setClosedSortDesc] = useState(true);
   const [notInitialized, setNotInitialized] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [fundedInput, setFundedInput] = useState("");
@@ -337,8 +339,28 @@ export default function PortfolioTFEManager() {
             <div style={{ color: "#64748b", fontSize: ".74rem", marginTop: 3 }}>Provenance record only; not a complete broker realized-P&amp;L statement.</div>
           </div>
           <div style={{ overflowX: "auto" }}><table className="tfe-table">
-            <thead><tr>{["Closed", "Ticker", "Class", "Shares", "Entry", "Exit", "Ledger P&L", "Return", "Reason"].map((heading) => <th key={heading} scope="col">{heading}</th>)}</tr></thead>
-            <tbody>{summary.recent_closed_trades.map((trade, index) => <tr key={`${trade.ticker}:${trade.closed_at}:${index}`}>
+            <thead><tr>{([
+              ["closed_at", "Closed"], ["ticker", "Ticker"], ["signal_class", "Class"],
+              ["shares", "Shares"], ["entry", "Entry"], ["exit", "Exit"],
+              ["pnl", "Ledger P&L"], ["pnl_pct", "Return"], ["exit_reason", "Reason"],
+            ] as const).map(([key, heading]) => (
+              <th key={key} scope="col" title="Click to sort"
+                style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
+                onClick={() => {
+                  if (closedSortKey === key) setClosedSortDesc((d) => !d);
+                  else { setClosedSortKey(key); setClosedSortDesc(true); }
+                }}>
+                {heading}{closedSortKey === key ? (closedSortDesc ? " ▼" : " ▲") : ""}
+              </th>
+            ))}</tr></thead>
+            <tbody>{[...summary.recent_closed_trades].sort((a, b) => {
+              const av = a[closedSortKey];
+              const bv = b[closedSortKey];
+              const cmp = typeof av === "number" && typeof bv === "number"
+                ? av - bv
+                : String(av ?? "").localeCompare(String(bv ?? ""));
+              return closedSortDesc ? -cmp : cmp;
+            }).map((trade, index) => <tr key={`${trade.ticker}:${trade.closed_at}:${index}`}>
               <td>{displayDate(trade.closed_at)}</td><td style={{ fontWeight: 700 }}>{trade.ticker}</td><td>{signalBadge(trade.signal_class)}</td>
               <td style={{ textAlign: "right" }}>{fmt(trade.shares, 4)}</td><td style={{ textAlign: "right" }}>{money(trade.entry)}</td><td style={{ textAlign: "right" }}>{money(trade.exit)}</td>
               <td style={{ textAlign: "right", color: pnlColor(trade.pnl), fontWeight: 700 }}>{money(trade.pnl)}</td>
