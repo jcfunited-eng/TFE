@@ -98,6 +98,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
     settle_native_joint_source_episode_batch_from_anatomy,
 )
 from dsf_ai_service.glew_runtime.native_resident_organism import (
+    RUNTIME_PHASE_WALL_MS,
     ResidentPrepareEvidence,
     create_native_resident_organism,
     exact_articulatory_interval_trajectory,
@@ -8078,6 +8079,7 @@ def _commit_admitted_hop(
     maximum_causal_intervals: Any,
     *,
     external_participant_action_receipt: str | None = None,
+    purpose: str = "primary",
 ) -> dict[str, Any]:
     """Prepare and commit one admitted hop or one ordered native trajectory.
 
@@ -8097,9 +8099,13 @@ def _commit_admitted_hop(
         sources,
         intervals,
     )
-    _transport_stage_wall_ms["native_settlement"] = _transport_stage_wall_ms.get(
-        "native_settlement", 0.0
-    ) + (time.perf_counter() - _stage_started) * 1000.0
+    _elapsed_ms = (time.perf_counter() - _stage_started) * 1000.0
+    _transport_stage_wall_ms["native_settlement"] = (
+        _transport_stage_wall_ms.get("native_settlement", 0.0) + _elapsed_ms
+    )
+    _transport_stage_wall_ms[f"native_{purpose}"] = (
+        _transport_stage_wall_ms.get(f"native_{purpose}", 0.0) + _elapsed_ms
+    )
     ingress_sense_counts = {
         sense.value: count
         for sense, count in zip(
@@ -10002,6 +10008,7 @@ def _perform_admitted_intake_locked(
                 organism,
                 tuple(episode for episode, _ in episodes),
                 tuple(admissions for _, admissions in episodes),
+                purpose="primary",
                 external_participant_action_receipt=(
                     external_participant_action_receipt
                 ),
@@ -10156,6 +10163,7 @@ def _perform_admitted_intake_locked(
                     organism,
                     tuple(episode for episode, _ in self_hearing_episodes),
                     tuple(admissions for _, admissions in self_hearing_episodes),
+                    purpose="self_hearing",
                 )
                 affective_balance_trajectories = (
                     _advance_bounded_affective_balance_evidence(
@@ -10317,6 +10325,7 @@ def _perform_admitted_intake_locked(
                     organism,
                     consequence_episode,
                     consequence_admissions,
+                    purpose="action_consequence",
                     external_participant_action_receipt=(
                         action_execution.causal_intent_receipt_sha256
                     ),
@@ -11774,6 +11783,7 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         interval_id = str(uuid.uuid4())
         _interval_started = time.perf_counter()
         _stage_totals_before = dict(_transport_stage_wall_ms)
+        _runtime_totals_before = dict(RUNTIME_PHASE_WALL_MS)
         try:
             _episodes_started = time.perf_counter()
             episodes, environment = _unattended_interval_episodes(interval_id)
@@ -11841,8 +11851,22 @@ def _attempt_unattended_interval() -> dict[str, Any]:
                 - _stage_totals_before.get(stage, 0.0),
                 1,
             )
-            for stage in ("native_settlement", "seal", "custody_stage", "custody_publish")
+            for stage in (
+                "native_settlement",
+                "native_primary",
+                "native_self_hearing",
+                "native_action_consequence",
+                "seal",
+                "custody_stage",
+                "custody_publish",
+            )
         }
+        for phase in ("rust_advance", "python_validation"):
+            _stage_wall_ms[phase] = round(
+                RUNTIME_PHASE_WALL_MS.get(phase, 0.0)
+                - _runtime_totals_before.get(phase, 0.0),
+                1,
+            )
         _stage_wall_ms["world_and_episode_build"] = round(_episodes_wall_ms, 1)
         _stage_wall_ms["interval_total"] = round(
             (time.perf_counter() - _interval_started) * 1000.0, 1
@@ -11855,9 +11879,14 @@ def _attempt_unattended_interval() -> dict[str, Any]:
                 0.0,
                 _stage_wall_ms["interval_total"]
                 - sum(
-                    value
-                    for stage, value in _stage_wall_ms.items()
-                    if stage != "interval_total"
+                    _stage_wall_ms.get(stage, 0.0)
+                    for stage in (
+                        "native_settlement",
+                        "seal",
+                        "custody_stage",
+                        "custody_publish",
+                        "world_and_episode_build",
+                    )
                 ),
             ),
             1,

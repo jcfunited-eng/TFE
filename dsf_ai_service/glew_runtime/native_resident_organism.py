@@ -10,8 +10,22 @@ from __future__ import annotations
 import hashlib
 import importlib
 import sys
+import time
 from dataclasses import dataclass
 from typing import Protocol
+
+# Transport stopwatch only: cumulative wall-clock milliseconds separating the
+# native (Rust) compute of each runtime call from the Python-side evidence
+# validation that follows it. Written under the caller's transition lock,
+# read by the serving app for per-interval deltas. Pure measurement; no
+# organism state, no cognitive authority, no effect on any result.
+RUNTIME_PHASE_WALL_MS: dict[str, float] = {}
+
+
+def _record_runtime_phase(phase: str, started: float) -> None:
+    RUNTIME_PHASE_WALL_MS[phase] = RUNTIME_PHASE_WALL_MS.get(phase, 0.0) + (
+        (time.perf_counter() - started) * 1000.0
+    )
 
 
 RUNTIME_SCHEMA = "guala.native.resident_organism_runtime.v3"
@@ -2152,11 +2166,14 @@ class NativeResidentOrganism:
             for source in sources
         )
         active_before = self.readiness()
+        _rust_started = time.perf_counter()
         candidate = self.__runtime.advance_admitted_trajectory_unsealed(
             list(sources), [list(value) for value in intervals]
         )
+        _record_runtime_phase("rust_advance", _rust_started)
         try:
-            return self._validated_prepare_evidence_body(
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
                 candidate,
                 source_port_count,
                 active_before,
@@ -2165,6 +2182,8 @@ class NativeResidentOrganism:
                 candidate_committed=False,
                 expected_sealed=False,
             )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
         except BaseException:
             try:
                 self.__runtime.abort_unsealed_trajectory()

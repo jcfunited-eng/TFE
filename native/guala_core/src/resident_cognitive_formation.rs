@@ -3299,6 +3299,7 @@ fn settle_organism_mosaic_boundary(
     ),
     FormationError,
 > {
+    let boundary_stopwatch = std::time::Instant::now();
     if active_bonds.is_empty() {
         return Ok((
             None,
@@ -3383,6 +3384,7 @@ fn settle_organism_mosaic_boundary(
             deltas,
         });
     }
+    let components_wall = boundary_stopwatch.elapsed();
     let mut receipt = None;
     let mut reassemblies = 0usize;
     let mut internally_simulated_reassemblies = 0usize;
@@ -3573,6 +3575,16 @@ fn settle_organism_mosaic_boundary(
             ))
         })
         .collect::<Result<Vec<_>, _>>()?;
+    let formations_wall = boundary_stopwatch.elapsed();
+    eprintln!(
+        "guala-mosaic-subphase components_ms={} formations_ms={} deltas={} active_bonds={} candidates={} components={}",
+        components_wall.as_millis(),
+        (formations_wall - components_wall).as_millis(),
+        current_physical_deltas.len(),
+        active_bonds.len(),
+        retained_candidate_indices.len(),
+        active_components.len(),
+    );
     for (retained_index, prepared) in prepared_retained {
         if prepared.current_frontier || prepared.reassembled {
             current_frontier_indices.push(retained_index);
@@ -3611,6 +3623,7 @@ fn settle_organism_mosaic_boundary(
             externally_reassembled_formation_frontiers.push(observation);
         }
     }
+    let apply_wall = boundary_stopwatch.elapsed();
     // Only a formation that is physically current or reassembled in this
     // interval may authorize new developmental affective anatomy. Return its
     // exact retained members to the caller while those indices are already in
@@ -3642,6 +3655,7 @@ fn settle_organism_mosaic_boundary(
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
+    let authority_wall = boundary_stopwatch.elapsed();
     let organic_relations = observe_organic_mosaic_relations(
         &topology,
         mosaics,
@@ -3654,6 +3668,15 @@ fn settle_organism_mosaic_boundary(
         current_frontier,
         max_encoded_bytes,
     )?;
+    let relations_wall = boundary_stopwatch.elapsed();
+    eprintln!(
+        "guala-mosaic-aftermath apply_ms={} authority_ms={} relations_ms={} frontier_indices={} reassembled={}",
+        (apply_wall - formations_wall).as_millis(),
+        (authority_wall - apply_wall).as_millis(),
+        (relations_wall - authority_wall).as_millis(),
+        current_frontier_indices.len(),
+        reassembled_indices.len(),
+    );
     let recent_frontier_lineages = oldest_frontier
         .iter()
         .chain(older_frontier)
@@ -7064,11 +7087,17 @@ impl ResidentCognitiveFormationState {
             )?);
         }
         let postcontact_growth_wall = settlement_stopwatch.elapsed();
+        let deltas_started = std::time::Instant::now();
         let current_physical_deltas = exact_transition_physical_deltas(
             &cohorts,
             &topology_index,
             &transition_neuron_predecessors,
         )?;
+        eprintln!(
+            "guala-delta-extraction deltas_ms={} predecessors={}",
+            deltas_started.elapsed().as_millis(),
+            transition_neuron_predecessors.len(),
+        );
         let (
             organism_mosaic_receipt,
             organism_reassemblies,
