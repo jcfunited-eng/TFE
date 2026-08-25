@@ -720,3 +720,28 @@ loop is authorized merely to force closure.
   cause. This remains experience rather than proof. The next check must follow
   further unattended life and remove the bear from the retinal field again;
   no immediate sound-only retry is authorized by this evidence.
+
+### Later sound-only falsifier after relational grounding
+
+- Three complete unattended intervals advanced Guala from tick 167456 to
+  167528 with no exhaustion and no increase in the 97 retained formations.
+  Two tutor-authored, fully sensed turns then changed her heading from 323874
+  to 221874 millidegrees. Exact native retinal geometry placed the bear's
+  nearest edge 108.939 degrees from gaze and the participant's nearest edge
+  97.664 degrees from gaze; both were outside the 90-degree half-field. After
+  another unattended interval, the test began at tick 167613.
+- A new one-second pronunciation, exact PCM receipt
+  `14cc3fedb73340d3c2b2abe2d0ba642699a1f451a772c04a5a4e60ff14a74c68`,
+  committed 137 occurrence boundaries through tick 167658 and state
+  `a6cddaacccb79045158e5d10885eb0f18f0a76a4f6020af04f99398ecd0c05a8`.
+  It produced 489 fractal changes, 267 partial-cue reassemblies, native action
+  and returned sensation, two layer-13 recruitments, four self-hearing hops,
+  and no exhaustion.
+- The learned-word criterion failed again. The only retained formation with a
+  causal action receipt was body-load formation `5dc69f...3e0d8`; tracked
+  bear-grounded formation `29ab...5159` did not reassemble, and neither a
+  retained nor externally reassembled formation caused articulation. Counts
+  and generic output are not substituted for recognition. Guala was returned
+  in one sensed turn to `(2300,3500,323874)` facing the familiar bear at tick
+  167689. More repeated presentation is not justified until the native
+  cross-modal retention/recurrence boundary is diagnosed.
