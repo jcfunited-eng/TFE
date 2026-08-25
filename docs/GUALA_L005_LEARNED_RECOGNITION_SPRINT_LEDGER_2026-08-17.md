@@ -745,3 +745,60 @@ loop is authorized merely to force closure.
   in one sensed turn to `(2300,3500,323874)` facing the familiar bear at tick
   167689. More repeated presentation is not justified until the native
   cross-modal retention/recurrence boundary is diagnosed.
+
+### Native cross-sensory retention correction and live falsifier
+
+- Exact diagnosis found that the already-mounted layer-6/layer-7 cross-sensory
+  topology was being declared physically settled merely because it had been
+  mounted, while a broad retained-overlap rule discarded a new physical
+  original whenever any older formation shared one member or bond. The first
+  error substituted topology for causation; the second let an older visual
+  path permanently exclude a later auditory relation.
+- Commit `cb3749be4cf6ab019d4d626e8c867b3f38c4d058` removes the fabricated
+  layer-7 seed and permits an overlapping new original only when its current
+  members span at least two real sensory/body layers and its exact original
+  bond path crosses a layer-7 association absent from every overlapping
+  retained path. It adds no label, object ID, semantic table, score, observer
+  authority, persistent record, or whole-organism copy. Full seven-field DSF
+  delivery and the neuron/contact equations are unchanged.
+- The focused native falsifier settled 256 identical joint optical/binaural
+  occurrences, retained exactly one formation rather than a growing series,
+  proved layer-0, layer-1, and layer-7 emission plus an exact original bond
+  across layer 7, preserved the no-fabricated-effector assertion, and passed
+  exact cold encode/decode equality. The one focused Rust test passed in
+  22.95 seconds. This is mechanical evidence only, not a lesson.
+- The correction deployed once on 2026-08-25 as sole production task
+  `dsf-ai-task:1227`, immutable image
+  `sha256:704f7c1838d1e2a1e8c2dc87b803a8a9d5ba2d0a2ab69051b2baa63fe631a0e6`.
+  The controller verified the same organism identity and native CURRENT.
+- One bear-visible live production experience then supplied 18,859 exact
+  16-kHz pressure samples, receipt
+  `9b904b5c0e46c49d384aba5467aa2a71eb8bb7459c75baec608b784c13270ca4`,
+  while world revision 10950 supplied real retinal light from the current
+  bedroom. It committed 129 physical hops through tick 168933 and state
+  `160a9464d697baba1b8ef25b00347131e96a1cbce09fc4382af5c27fd8bcf91d`,
+  with 559 fractal changes, 416 partial-cue reassemblies, four layer-13
+  recruitments, four self-hearing hops, sensed body action, and no exhausted
+  interval. The transport contained only schema, sample rate, and PCM bytes.
+- After quiet live time, one sensed turn placed the bear 119.691 degrees and
+  the person 107.870 degrees from gaze, both outside the 90-degree retinal
+  half-field. The turn committed through tick 168976 with no exhaustion.
+- One different live pronunciation then supplied 17,721 pressure samples,
+  receipt
+  `bf32e5138649db801d2355b47738216b5af1d743bcb96f34895ed177396ab923`.
+  It committed 169 physical hops through tick 169026 and state
+  `8a3cbe375885ba787e1916762135ac85f8d007df26e21866fdc2fd5a56ebe7a6`,
+  with 551 fractal changes, 435 partial-cue reassemblies, four layer-13
+  recruitments, four self-hearing hops, sensed body action, and no exhaustion.
+- Unlike both prior negative sound-only trials, a new retained formation,
+  `fec1e0657731ad7d4095a486cdd2cee300787a87a3ebebaf8f42f0c889063813`,
+  externally reassembled from two current external cue lineages at tick
+  169006, recruited a layer-12 body action at tick 169011, and received its
+  sensed consequence through tick 169026. It is neither prior visual receipt
+  `29ab...5159` nor body-load receipt `5dc69f...3e0d8`.
+- This is materially new live evidence, but L-005 remains open. Current-only
+  retention retired the pre-cue object before a passive structural comparison
+  could be completed, and one bounded local cold inspection was terminated
+  after remaining CPU-bound too long. Therefore this record does not yet
+  claim that `fec1...63813` existed before the sound-only request or prove its
+  exact layer-0/layer-1/layer-7 membership. No further presentation was sent.
