@@ -7,9 +7,10 @@ from dsf_ai_service import native_production_app as production
 
 FORMATION = "01" * 16
 ORDERING = "02" * 16
-POSITIVE_MOTOR = "03" * 16
-NEGATIVE_MOTOR = "04" * 16
+FLEXOR_MOTOR = "03" * 16
+EXTENSOR_MOTOR = "04" * 16
 FOREGONE = "05" * 16
+AXIS = "right_elbow_flexion"
 
 
 def _transfer(sender: str, sender_layer: int, receiver: str, receiver_layer: int):
@@ -24,7 +25,16 @@ def _transfer(sender: str, sender_layer: int, receiver: str, receiver_layer: int
 
 
 def _transition() -> dict[str, object]:
-    reached = (ORDERING, 11, 0, POSITIVE_MOTOR, 12, 0, 0, 3)
+    """One completed transition in the living articulated-body action schema.
+
+    The retired yaw body's ``signed_yaw_millidegrees`` and even/odd topology
+    partition are deliberately absent: the antagonist identity lives on each
+    terminal's declared axis and direction, and the settled record follows the
+    body's own law — intent = toward_maximum - toward_minimum, applied =
+    min(|intent|, remaining travel), remainder stalled.
+    """
+
+    reached = (ORDERING, 11, 0, FLEXOR_MOTOR, 12, 0, 0, 3)
     foregone = (ORDERING, 11, 0, FOREGONE, 12, 2, 0, 0)
     transition = {
         "organism_tick": 12,
@@ -34,44 +44,72 @@ def _transition() -> dict[str, object]:
         "reached_and_foregone_physical_frontier_routes": (reached, foregone),
         "motor_unit_recruitments": (
             (
-                POSITIVE_MOTOR,
+                FLEXOR_MOTOR,
                 0,
                 7,
-                ((ORDERING, 11, POSITIVE_MOTOR, 12, 0, 3),),
+                ((ORDERING, 11, FLEXOR_MOTOR, 12, 0, 3),),
                 (),
             ),
             (
-                NEGATIVE_MOTOR,
+                EXTENSOR_MOTOR,
                 1,
                 2,
-                ((ORDERING, 11, NEGATIVE_MOTOR, 12, 0, 3),),
+                ((ORDERING, 11, EXTENSOR_MOTOR, 12, 0, 3),),
                 (),
             ),
         ),
         "causal_cross_context_use": {
             "origin_kind": "retained_formation",
             "formation_receipt_sha256": "11" * 32,
-            "motor_unit_recruitment": {"motor_lineage": POSITIVE_MOTOR},
+            "motor_unit_recruitment": {"motor_lineage": FLEXOR_MOTOR},
         },
         "motor_action": {
             "causal_intent_receipt_sha256": "12" * 32,
-            "signed_yaw_millidegrees": 5,
             "prepared_recruitments": (
                 {
-                    "motor_lineage": POSITIVE_MOTOR,
+                    "motor_lineage": FLEXOR_MOTOR,
                     "motor_topology_index": 0,
                     "outward_elementary_carriers": 7,
                     "preparation_transfers": (
-                        _transfer(ORDERING, 11, POSITIVE_MOTOR, 12),
+                        _transfer(ORDERING, 11, FLEXOR_MOTOR, 12),
                     ),
                 },
                 {
-                    "motor_lineage": NEGATIVE_MOTOR,
+                    "motor_lineage": EXTENSOR_MOTOR,
                     "motor_topology_index": 1,
                     "outward_elementary_carriers": 2,
                     "preparation_transfers": (
-                        _transfer(ORDERING, 11, NEGATIVE_MOTOR, 12),
+                        _transfer(ORDERING, 11, EXTENSOR_MOTOR, 12),
                     ),
+                },
+            ),
+            "body_effector_bindings": (
+                {
+                    "motor_lineage": FLEXOR_MOTOR,
+                    "axis": AXIS,
+                    "direction": "toward_minimum",
+                    "outward_elementary_carriers": 7,
+                },
+                {
+                    "motor_lineage": EXTENSOR_MOTOR,
+                    "axis": AXIS,
+                    "direction": "toward_maximum",
+                    "outward_elementary_carriers": 2,
+                },
+            ),
+            "articulated_body_consequences": (
+                {
+                    "source_tick": 12,
+                    "axis": AXIS,
+                    "unit": "millidegrees",
+                    "predecessor_position": 40_000,
+                    "successor_position": 39_995,
+                    "signed_displacement": -5,
+                    "toward_minimum_carriers": 7,
+                    "toward_maximum_carriers": 2,
+                    "opposed_carriers_per_terminal": 2,
+                    "applied_displacement_quanta": 5,
+                    "stalled_carriers": 0,
                 },
             ),
         },
@@ -82,16 +120,35 @@ def _transition() -> dict[str, object]:
     return transition
 
 
-def test_attention_enters_opposed_motor_settlement_and_prepares_one_intent() -> None:
+def test_attention_enters_opposed_antagonist_settlement_and_applies_one_intent() -> None:
     evidence = production._physical_choice_evidence_from_transition(_transition())
 
     assert evidence is not None
     assert evidence["matched_attention_route_count"] == 1
-    assert evidence["positive_antagonist_carriers"] == 7
-    assert evidence["negative_antagonist_carriers"] == 2
-    assert evidence["settled_signed_yaw_millidegrees"] == 5
+    assert evidence["axis"] == AXIS
+    assert evidence["toward_minimum_antagonist_carriers"] == 7
+    assert evidence["toward_maximum_antagonist_carriers"] == 2
+    assert evidence["settled_signed_intent_carriers"] == -5
+    assert evidence["applied_signed_displacement_quanta"] == -5
+    assert evidence["stalled_carriers"] == 0
     assert evidence["prepared_intent_count"] == 1
-    assert evidence["internal_cause_motor_lineage"] == POSITIVE_MOTOR
+    assert evidence["internal_cause_motor_lineage"] == FLEXOR_MOTOR
+    assert "settled_signed_yaw_millidegrees" not in evidence
+
+
+def test_retired_yaw_law_evidence_cannot_pass() -> None:
+    """The removed yaw body's action shape must never witness a choice again."""
+
+    transition = _transition()
+    transition["motor_action"] = {
+        "causal_intent_receipt_sha256": "12" * 32,
+        "signed_yaw_millidegrees": 5,
+        "prepared_recruitments": transition["motor_action"][
+            "prepared_recruitments"
+        ],
+    }
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
 
 
 def test_completed_transaction_supplies_the_later_route_comparison() -> None:
@@ -160,14 +217,79 @@ def test_coexisting_attention_without_motor_contact_is_not_choice() -> None:
     assert production._physical_choice_evidence_from_transition(transition) is None
 
 
-def test_exact_antagonist_cancellation_is_not_one_prepared_continuation() -> None:
+def test_exact_antagonist_cancellation_is_not_one_applied_continuation() -> None:
     transition = deepcopy(_transition())
-    transition["motor_action"]["prepared_recruitments"][1][
-        "outward_elementary_carriers"
-    ] = 7
-    transition["motor_action"]["signed_yaw_millidegrees"] = 0
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["toward_maximum_carriers"] = 7
+    consequence["signed_displacement"] = 0
+    consequence["applied_displacement_quanta"] = 0
+    consequence["stalled_carriers"] = 0
+    consequence["opposed_carriers_per_terminal"] = 7
+    consequence["successor_position"] = consequence["predecessor_position"]
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
 
     assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_fully_stalled_intent_is_not_an_applied_choice() -> None:
+    """A settled intent absorbed entirely by the joint's stop moved nothing."""
+
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["signed_displacement"] = 0
+    consequence["applied_displacement_quanta"] = 0
+    consequence["stalled_carriers"] = 5
+    consequence["successor_position"] = consequence["predecessor_position"]
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_settlement_must_decompose_by_the_bodys_own_law() -> None:
+    """|applied| + stalled must equal |intent| exactly, or the record lies."""
+
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["signed_displacement"] = -3
+    consequence["applied_displacement_quanta"] = 3
+    consequence["stalled_carriers"] = 0
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_severed_formation_origin_removes_the_witness() -> None:
+    transition = deepcopy(_transition())
+    transition["causal_cross_context_use"]["origin_kind"] = "affective_gradient"
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_severed_antagonist_pairing_removes_the_witness() -> None:
+    """With only one direction bound on the causal axis there is no opposition."""
+
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["toward_maximum_carriers"] = 0
+    consequence["signed_displacement"] = -7
+    consequence["applied_displacement_quanta"] = 7
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_shadowed_attention_binding_is_counted_not_witnessed(monkeypatch) -> None:
+    monkeypatch.setattr(production, "_choice_attention_binding_miss_count", 0)
+    transition = deepcopy(_transition())
+    transition["attention_motor_binding"] = {
+        "attention": transition["attention_motor_binding"]["attention"],
+        "matched_attention_route_count": 1,
+        "matched_motor_lineages": (EXTENSOR_MOTOR,),
+        "organism_tick": 12,
+    }
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+    assert production._choice_attention_binding_miss_count == 1
 
 
 def test_choice_projection_has_no_selector_or_semantic_authority(monkeypatch) -> None:
@@ -182,3 +304,4 @@ def test_choice_projection_has_no_selector_or_semantic_authority(monkeypatch) ->
     assert record["random_selector_authority"] is False
     assert record["score_selector_authority"] is False
     assert record["semantic_command_authority"] is False
+    assert isinstance(record["attention_binding_miss_count"], int)

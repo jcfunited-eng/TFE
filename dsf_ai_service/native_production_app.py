@@ -1629,6 +1629,17 @@ _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
 _last_social_experience_evidence: dict[str, Any] | None = None
 _last_tested_physical_choice_evidence: dict[str, Any] | None = None
+# Transport observation only: counts transitions where an internally caused
+# retained-formation motor path and an applied opposed-antagonist settlement
+# were both present but the retained attention window did not contain the
+# causal motor lineage. A persistently climbing count is the live evidence
+# that the first-retained attention window shadows the causal binding; the
+# window law itself is deliberately unchanged until that evidence exists.
+_choice_attention_binding_miss_count: int = 0
+# Transport stopwatch: cumulative wall-clock milliseconds per pipeline stage.
+# Written only under _transition_lock, read for per-interval deltas and a log
+# line. Pure transport measurement; no organism state, no cognitive authority.
+_transport_stage_wall_ms: dict[str, float] = {}
 # Two constant-size read-only play witnesses. They never enter the organism,
 # select an action, or survive restart. The first holds one qualifying physical
 # episode while ordinary native settlement determines whether the same retained
@@ -2859,7 +2870,24 @@ def _attention_stage() -> dict[str, object]:
 def _physical_choice_evidence_from_transition(
     evidence: dict[str, Any],
 ) -> dict[str, Any] | None:
-    """Bind sparse attention to exact opposed motor settlement without choosing."""
+    """Bind sparse attention to exact opposed antagonist settlement without choosing.
+
+    The witness reads the articulated body's own settlement law: on one joint
+    axis the two opposed terminal populations discharge ``toward_minimum`` and
+    ``toward_maximum`` carriers; their conserved signed difference is the
+    settled intent; the body applies ``min(|intent|, remaining anatomical
+    travel)`` as the signed displacement and reports the remainder as
+    ``stalled_carriers``. Every check below re-verifies that exact record —
+    nothing is scored, selected, or approximated. A fully stalled intent (the
+    joint already at its stop) is not an applied choice, exactly as the
+    retired whole-body law refused a zero applied yaw. The retired law's
+    even/odd topology partition and ``signed_yaw_millidegrees`` equality are
+    gone with the yaw body that defined them; the antagonist identity now
+    comes from each terminal's declared axis and direction, which is where
+    this body actually keeps it.
+    """
+
+    global _choice_attention_binding_miss_count
 
     attention_motor_binding = evidence.get("attention_motor_binding")
     causal = evidence.get("causal_cross_context_use")
@@ -2879,25 +2907,12 @@ def _physical_choice_evidence_from_transition(
     recruitments = tuple(action.get("prepared_recruitments", ()))
     if not recruitments:
         return None
-
-    positive_carriers = 0
-    negative_carriers = 0
-    positive_recruitments = 0
-    negative_recruitments = 0
     causal_motor_prepared = False
     for recruitment in recruitments:
         if not isinstance(recruitment, dict):
             return None
-        topology_index = int(recruitment["motor_topology_index"])
-        carriers = int(recruitment["outward_elementary_carriers"])
-        if carriers <= 0:
+        if int(recruitment["outward_elementary_carriers"]) <= 0:
             return None
-        if topology_index % 2 == 0:
-            positive_carriers += carriers
-            positive_recruitments += 1
-        else:
-            negative_carriers += carriers
-            negative_recruitments += 1
         if recruitment.get("motor_lineage") == causal_motor_lineage:
             causal_motor_prepared = True
         if not all(
@@ -2905,44 +2920,72 @@ def _physical_choice_evidence_from_transition(
             for transfer in recruitment.get("preparation_transfers", ())
         ):
             return None
-    if (
-        not causal_motor_prepared
-        or causal_motor_lineage
-        not in attention_motor_binding["matched_motor_lineages"]
-        or positive_carriers <= 0
-        or negative_carriers <= 0
-    ):
+    if not causal_motor_prepared:
+        return None
+    if causal_motor_lineage not in attention_motor_binding["matched_motor_lineages"]:
+        _choice_attention_binding_miss_count += 1
         return None
 
-    settled_signed_intent = positive_carriers - negative_carriers
-    if (
-        settled_signed_intent == 0
-        or settled_signed_intent != int(action.get("signed_yaw_millidegrees", 0))
-    ):
+    bindings = tuple(action.get("body_effector_bindings", ()))
+    consequences = tuple(action.get("articulated_body_consequences", ()))
+    if not bindings or not consequences:
         return None
-    causal_intent = action.get("causal_intent_receipt_sha256")
-    if not isinstance(causal_intent, str) or len(causal_intent) != 64:
-        return None
-    return {
-        "attention": attention_motor_binding["attention"],
-        "attention_motor_binding_organism_tick": attention_motor_binding[
-            "organism_tick"
-        ],
-        "causal_intent_receipt_sha256": causal_intent,
-        "formation_receipt_sha256": causal.get("formation_receipt_sha256"),
-        "internal_cause_motor_lineage": causal_motor_lineage,
-        "matched_attention_route_count": attention_motor_binding[
-            "matched_attention_route_count"
-        ],
-        "negative_antagonist_carriers": negative_carriers,
-        "negative_antagonist_recruitment_count": negative_recruitments,
-        "organism_tick": evidence.get("organism_tick"),
-        "positive_antagonist_carriers": positive_carriers,
-        "positive_antagonist_recruitment_count": positive_recruitments,
-        "prepared_intent_count": 1,
-        "settled_signed_yaw_millidegrees": settled_signed_intent,
-        "state_sha256": evidence.get("state_sha256"),
+    causal_axes = {
+        binding["axis"]
+        for binding in bindings
+        if isinstance(binding, dict)
+        and binding.get("motor_lineage") == causal_motor_lineage
     }
+    if not causal_axes:
+        return None
+    for consequence in consequences:
+        if not isinstance(consequence, dict):
+            return None
+        axis = consequence["axis"]
+        if axis not in causal_axes:
+            continue
+        toward_minimum = int(consequence["toward_minimum_carriers"])
+        toward_maximum = int(consequence["toward_maximum_carriers"])
+        if toward_minimum <= 0 or toward_maximum <= 0:
+            continue
+        settled_signed_intent = toward_maximum - toward_minimum
+        if settled_signed_intent == 0:
+            continue
+        signed_displacement = int(consequence["signed_displacement"])
+        if signed_displacement == 0:
+            continue
+        stalled = int(consequence["stalled_carriers"])
+        if (signed_displacement > 0) != (settled_signed_intent > 0):
+            return None
+        if abs(signed_displacement) + stalled != abs(settled_signed_intent):
+            return None
+        causal_intent = action.get("causal_intent_receipt_sha256")
+        if not isinstance(causal_intent, str) or len(causal_intent) != 64:
+            return None
+        return {
+            "attention": attention_motor_binding["attention"],
+            "attention_motor_binding_organism_tick": attention_motor_binding[
+                "organism_tick"
+            ],
+            "applied_signed_displacement_quanta": signed_displacement,
+            "axis": axis,
+            "axis_unit": consequence.get("unit"),
+            "causal_intent_receipt_sha256": causal_intent,
+            "consequence_source_tick": consequence.get("source_tick"),
+            "formation_receipt_sha256": causal.get("formation_receipt_sha256"),
+            "internal_cause_motor_lineage": causal_motor_lineage,
+            "matched_attention_route_count": attention_motor_binding[
+                "matched_attention_route_count"
+            ],
+            "organism_tick": evidence.get("organism_tick"),
+            "prepared_intent_count": 1,
+            "settled_signed_intent_carriers": settled_signed_intent,
+            "stalled_carriers": stalled,
+            "state_sha256": evidence.get("state_sha256"),
+            "toward_maximum_antagonist_carriers": toward_maximum,
+            "toward_minimum_antagonist_carriers": toward_minimum,
+        }
+    return None
 
 
 def _attention_motor_binding_from_hop(
@@ -3040,16 +3083,20 @@ def _physical_choice_record() -> dict[str, object]:
             False,
             "physical_choice_mounted_awaiting_causal_witness",
             "this process has not yet observed internally caused sparse attention "
-            "enter both opposed motor populations and settle one nonzero intent",
+            "enter both opposed antagonist populations of one joint axis and "
+            "settle one nonzero applied intent",
+            attention_binding_miss_count=_choice_attention_binding_miss_count,
             **authority,
         )
     return _section(
         True,
         "internally_caused_attention_settled_one_physical_continuation",
         "transported routes from a changing reached/foregone attention frontier "
-        "entered exact motor preparation; both antagonist populations discharged, "
-        "and their conserved signed difference prepared one nonzero body intent",
+        "entered exact motor preparation; both antagonist populations of one "
+        "joint axis discharged, their conserved signed difference settled one "
+        "nonzero intent, and the body applied it as its own clamped displacement",
         evidence_scope="latest_tested_physical_choice_this_process",
+        attention_binding_miss_count=_choice_attention_binding_miss_count,
         **evidence,
         **authority,
     )
@@ -7954,10 +8001,14 @@ def _commit_admitted_hop(
         if isinstance(episode, tuple)
         else (maximum_causal_intervals,)
     )
+    _stage_started = time.perf_counter()
     evidence: ResidentPrepareEvidence = organism.advance_admitted_trajectory_unsealed(
         sources,
         intervals,
     )
+    _transport_stage_wall_ms["native_settlement"] = _transport_stage_wall_ms.get(
+        "native_settlement", 0.0
+    ) + (time.perf_counter() - _stage_started) * 1000.0
     ingress_sense_counts = {
         sense.value: count
         for sense, count in zip(
@@ -9411,12 +9462,17 @@ def _publish_committed_organism(
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
 
     try:
+        _stage_started = time.perf_counter()
         staged = stage_active_native_organism(
             STATE_ROOT,
             organism,
             max_envelope_bytes=admission.max_envelope_bytes,
         )
-        return publish_staged_native_organism(
+        _publish_started = time.perf_counter()
+        _transport_stage_wall_ms["custody_stage"] = _transport_stage_wall_ms.get(
+            "custody_stage", 0.0
+        ) + (_publish_started - _stage_started) * 1000.0
+        published = publish_staged_native_organism(
             staged,
             expected_predecessor_sha256=predecessor_state_sha256,
             object_store=_object_store(),
@@ -9424,6 +9480,10 @@ def _publish_committed_organism(
             max_fabric_bytes=admission.max_fabric_bytes,
             max_logical_peak_bytes=admission.max_logical_peak_bytes,
         )
+        _transport_stage_wall_ms["custody_publish"] = _transport_stage_wall_ms.get(
+            "custody_publish", 0.0
+        ) + (time.perf_counter() - _publish_started) * 1000.0
+        return published
     except BaseException as error:
         _restored = None
         _boot_error = (
@@ -10123,7 +10183,11 @@ def _perform_admitted_intake_locked(
     action_consequence: dict[str, Any] | None = None
     action_vestibular_tick_count = 0
     if prepared_action is None:
+        _seal_started = time.perf_counter()
         sealed_observation = organism.seal_unsealed_trajectory_direct()
+        _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
+            "seal", 0.0
+        ) + (time.perf_counter() - _seal_started) * 1000.0
         try:
             if sealed_observation.organism_tick != last_hop["organism_tick"]:
                 raise RuntimeError("final resident seal changed the lived intake tick")
@@ -10263,7 +10327,11 @@ def _perform_admitted_intake_locked(
                 )
                 _persist_world_body(successor_world_body)
                 world_persisted = True
+                _seal_started = time.perf_counter()
                 sealed_observation = organism.seal_unsealed_trajectory_direct()
+                _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
+                    "seal", 0.0
+                ) + (time.perf_counter() - _seal_started) * 1000.0
                 if sealed_observation.organism_tick != last_hop["organism_tick"]:
                     raise RuntimeError(
                         "final resident seal changed the lived intake tick"
@@ -11604,8 +11672,12 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         # interval reaches native cohort physics; refusing here would prevent
         # the exact recovery law from ever observing the exhausted body.
         interval_id = str(uuid.uuid4())
+        _interval_started = time.perf_counter()
+        _stage_totals_before = dict(_transport_stage_wall_ms)
         try:
+            _episodes_started = time.perf_counter()
             episodes, environment = _unattended_interval_episodes(interval_id)
+            _episodes_wall_ms = (time.perf_counter() - _episodes_started) * 1000.0
             intake_reason = f"continuous-environment:{interval_id}"
             result = _perform_admitted_intake_locked(episodes, intake_reason)
             after = _native_record()
@@ -11663,9 +11735,31 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             category = "retained_state_settling_observed"
         else:
             category = "no_internal_cause"
+        _stage_wall_ms = {
+            stage: round(
+                _transport_stage_wall_ms.get(stage, 0.0)
+                - _stage_totals_before.get(stage, 0.0),
+                1,
+            )
+            for stage in ("native_settlement", "seal", "custody_stage", "custody_publish")
+        }
+        _stage_wall_ms["world_and_episode_build"] = round(_episodes_wall_ms, 1)
+        _stage_wall_ms["interval_total"] = round(
+            (time.perf_counter() - _interval_started) * 1000.0, 1
+        )
+        print(
+            "guala-transport-stopwatch "
+            + " ".join(
+                f"{stage}={_stage_wall_ms[stage]}ms"
+                for stage in sorted(_stage_wall_ms)
+            )
+            + f" intake={interval_id}",
+            flush=True,
+        )
         _last_unattended_evidence = {
             "category": category,
             "declared_interval_milliseconds": CONTINUOUS_INTERVAL_MILLISECONDS,
+            "transport_wall_milliseconds": _stage_wall_ms,
             "hop_count": result["hop_count"],
             "intake": intake_reason,
             "measured": measured,
