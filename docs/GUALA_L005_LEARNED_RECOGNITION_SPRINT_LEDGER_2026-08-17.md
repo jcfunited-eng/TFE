@@ -802,3 +802,59 @@ loop is authorized merely to force closure.
   after remaining CPU-bound too long. Therefore this record does not yet
   claim that `fec1...63813` existed before the sound-only request or prove its
   exact layer-0/layer-1/layer-7 membership. No further presentation was sent.
+
+### Post-settlement association correction and live structural falsification
+
+- Commit `96a00f7df2bc03bfeb3f5ddf78f3405074d5f593` moved layer-7
+  developmental admission after the native internal-contact settlement and
+  limited its candidate inputs to layer-6 lineages with emitted neuronal
+  fractals. It deployed once as sole production task `dsf-ai-task:1228`, image
+  `sha256:1a90b0a8add3c9561e7c71b32326180b050ffe68f83e64953f25ce9f144d1233`,
+  with the same organism identity, one desired/running task, no pending task,
+  and a completed rollout.
+- All three subsequent experiences occurred in that live production organism:
+  a bear-visible varied voice experience through tick 170099/state
+  `c554452e45086c5c57b08c5a20619cd557a2a2c3b0048515d284ef82da475175`,
+  a sensed turn plus bear-hidden varied sound cue through tick 170184/state
+  `c688f59a1837d64d59eaee53d70327d096aa2aef0d8f100624f1c63a4d25449e`,
+  and a sensed return plus changed visible grounding through tick 170410/state
+  `b7bdfe9c40d02fa6f34099fca7c60d2e1bf246682752101ac421871efc5ac3ce`.
+  Each request carried physical PCM and the current world sensorium only; no
+  semantic object ID, word label, expected answer, or observer instruction
+  entered cognition.
+- Passive exact cold inspection of all three immutable successor bodies found
+  42 reached layer-7 cells but no retained formation whose exact members
+  included both layer 0 and layer 1 and whose original bond path touched layer
+  7. The visible-ground, hidden-cue, and changed-visible-ground sequence
+  therefore falsified learned bear-word recognition; L-005 remains open.
+- Chronology corrects an earlier inference about the newest layer-7 lineage
+  `...029c`. The immutable tick-167761 predecessor, before task 1227's live
+  experiences, contains 41 layer-7 cells and no `...029c`. The task-1228
+  visible-ground body contains 42, and `...029c` has 33 distinct layer-6
+  neighbours. Task 1227 still used the retired pre-settlement whole-set growth
+  path during its ground/hidden-cue sequence, while task 1228 inherited that
+  resulting body and added no further layer-7 cell. The source chronology and
+  counts therefore show that task 1228 did not create the 33-input cell; it
+  inherited it from the older live path.
+- Source reconciliation found that task 1228's pairwise two-input correction
+  also conflicts with the ratified layer-7 law. The governing physical
+  architecture requires one exact same-occurrence assembly of at least three
+  distinct layer-6 cells spanning at least two sensory/body layers, with exact
+  assembly reuse and no mixing across occurrences. The next correction is
+  limited to that developmental boundary: use only layer-6 cells that actually
+  settled through the occurrence's causal frontier, retain the exact qualifying
+  assembly, and neither widen an old assembly nor manufacture one pair per
+  coordinate combination. Full seven-field DSF delivery remains unchanged.
+- The corrected native boundary now intersects each occurrence's exact
+  energized receptor set with only layer-6 cells that actually changed through
+  the settled causal electrical frontier. Fewer than three members, one sensory
+  layer, and multiple separate sub-threshold occurrences create nothing. One
+  qualifying multi-sensory assembly creates one resting layer-7 cell with one
+  sparse contact per exact member; only the same exact member set reuses it.
+- Focused native evidence passed: the assembly falsifier proved two separate
+  two-member occurrences cannot combine, two distinct three-member assemblies
+  remain distinct, and exact repetition adds no neuron or contact. The existing
+  non-simultaneous body/sensory falsifier also passed and produced no fabricated
+  motor or articulatory effector. These are source/mechanical proofs only; no
+  production or learned-word claim follows until the reviewed image is live and
+  the same organism produces the required grounding and later partial-cue use.

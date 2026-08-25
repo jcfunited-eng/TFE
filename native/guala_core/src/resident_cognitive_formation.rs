@@ -6734,19 +6734,16 @@ impl ResidentCognitiveFormationState {
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
-        let emitted_layer_six_lineages = emitted_neuron_fractals
+        let settled_layer_six_lineages = internal_contact
+            .causally_transitioned_lineages
             .iter()
-            .filter_map(|fractal| {
-                (topology_index.layer_of(fractal.neuron_lineage) == Some(6))
-                    .then_some(fractal.neuron_lineage)
-            })
+            .copied()
+            .filter(|lineage| topology_index.layer_of(*lineage) == Some(6))
             .collect::<BTreeSet<_>>();
-        // Cross-sensory anatomy grows only from layer-6 cells that actually
-        // reached post-quiescence physical change.  The new resting layer-7
-        // cell is not seeded into this interval; later current must reach it
-        // through the two retained contacts.  Pair identity stays stable when
-        // a live sound or image occurrence energizes a different wider set of
-        // receptor coordinates.
+        // Cross-sensory anatomy grows only after the occurrence's layer-6
+        // cells actually settle through the causal electrical frontier. The
+        // new resting layer-7 cell is not seeded into this interval; later
+        // current must reach it through the retained assembly contacts.
         let _ = mount_reached_cross_sensory_association(
             &mut cohorts,
             &mut resting_population,
@@ -6754,7 +6751,7 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &topology_index,
             &externally_energized_by_occurrence,
-            &emitted_layer_six_lineages,
+            &settled_layer_six_lineages,
         )?;
         mount_reached_motor_effector(
             &mut cohorts,
@@ -11956,12 +11953,14 @@ fn mount_next_intrinsic_in_layer(
     Ok(lineage)
 }
 
-/// Grow or reuse sparse pairwise physical cross-sensory associations after
-/// layer-6 settlement. Membership comes only from layer-6 cells that emitted
-/// an exact post-quiescence fractal and whose own receptors were energized in
-/// the same occurrence. Labels, source order, and the occurrence's complete
-/// changing coordinate set have no authority. The two retained contacts are
-/// the association; a newly mounted resting cell is never seeded directly.
+/// Grow or reuse one exact physical cross-sensory assembly per qualifying
+/// occurrence after layer-6 settlement. Membership comes only from layer-6
+/// cells that actually changed through the causal frontier and whose own
+/// receptors were energized in that same occurrence. At least three distinct
+/// integrations across at least two sensory/body layers are required. Labels,
+/// source order, unrelated reached cells, and separate occurrences have no
+/// authority. The retained sparse contacts are the assembly; a newly mounted
+/// resting cell is never seeded directly.
 fn mount_reached_cross_sensory_association(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -11969,7 +11968,7 @@ fn mount_reached_cross_sensory_association(
     electrical_fabric: &mut ResidentElectricalFabric,
     topology: &ResidentTopologyIndex,
     externally_energized_by_occurrence: &[Vec<[u8; 16]>],
-    emitted_layer_six_lineages: &BTreeSet<[u8; 16]>,
+    settled_layer_six_lineages: &BTreeSet<[u8; 16]>,
 ) -> Result<Vec<[u8; 16]>, FormationError> {
     let integration_for_receptor =
         |receptor_lineage: [u8; 16]| -> Result<Option<([u8; 16], u32)>, FormationError> {
@@ -12024,7 +12023,7 @@ fn mount_reached_cross_sensory_association(
             Ok(Some((*integration_lineage, receptor_place.layer())))
         };
 
-    let mut candidate_pairs = BTreeSet::<([u8; 16], [u8; 16])>::new();
+    let mut candidate_assemblies = BTreeSet::<Vec<[u8; 16]>>::new();
     for occurrence in externally_energized_by_occurrence {
         let mut reached_integrations = Vec::<([u8; 16], u32)>::new();
         for receptor_lineage in occurrence.iter().copied() {
@@ -12033,40 +12032,47 @@ fn mount_reached_cross_sensory_association(
             else {
                 continue;
             };
-            if emitted_layer_six_lineages.contains(&integration_lineage) {
+            if settled_layer_six_lineages.contains(&integration_lineage) {
                 reached_integrations.push((integration_lineage, sensory_layer));
             }
         }
         reached_integrations.sort_unstable();
         reached_integrations.dedup();
-        for left in 0..reached_integrations.len() {
-            for right in left + 1..reached_integrations.len() {
-                if reached_integrations[left].1 == reached_integrations[right].1 {
-                    continue;
-                }
-                let pair = if reached_integrations[left].0 < reached_integrations[right].0 {
-                    (reached_integrations[left].0, reached_integrations[right].0)
-                } else {
-                    (reached_integrations[right].0, reached_integrations[left].0)
-                };
-                candidate_pairs.insert(pair);
-            }
+        if reached_integrations.len() < 3 {
+            continue;
         }
+        let sensory_layer_count = reached_integrations
+            .iter()
+            .map(|(_, layer)| *layer)
+            .collect::<BTreeSet<_>>()
+            .len();
+        if sensory_layer_count < 2 {
+            continue;
+        }
+        candidate_assemblies.insert(
+            reached_integrations
+                .into_iter()
+                .map(|(lineage, _)| lineage)
+                .collect(),
+        );
     }
-    if candidate_pairs.is_empty() {
+    if candidate_assemblies.is_empty() {
         return Ok(Vec::new());
     }
 
     let existing_association_for =
-        |pair: ([u8; 16], [u8; 16])| -> Result<Option<[u8; 16]>, FormationError> {
-            let left_flat = topology.flat_for_lineage(pair.0)?;
+        |assembly: &[[u8; 16]]| -> Result<Option<[u8; 16]>, FormationError> {
+            let first = *assembly
+                .first()
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let first_flat = topology.flat_for_lineage(first)?;
             let mut candidates = BTreeSet::new();
-            for contact_index in topology.incident_contacts_by_flat[left_flat]
+            for contact_index in topology.incident_contacts_by_flat[first_flat]
                 .iter()
                 .copied()
             {
                 let contact = topology.contacts[contact_index];
-                let other_flat = if contact.left == left_flat {
+                let other_flat = if contact.left == first_flat {
                     contact.right
                 } else {
                     contact.left
@@ -12095,7 +12101,7 @@ fn mount_reached_cross_sensory_association(
                     .collect::<Vec<_>>();
                 layer_six_neighbours.sort_unstable();
                 layer_six_neighbours.dedup();
-                if layer_six_neighbours.as_slice() == [pair.0, pair.1] {
+                if layer_six_neighbours.as_slice() == assembly {
                     matching.push(candidate);
                 }
             }
@@ -12108,23 +12114,20 @@ fn mount_reached_cross_sensory_association(
 
     let mut associations = Vec::new();
     let mut additions = Vec::new();
-    for pair in candidate_pairs {
-        if let Some(lineage) = existing_association_for(pair)? {
+    for assembly in candidate_assemblies {
+        if let Some(lineage) = existing_association_for(&assembly)? {
             associations.push(lineage);
             continue;
         }
         let association =
             mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 7)?;
-        additions.push((
-            pair.0,
-            association,
-            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-        ));
-        additions.push((
-            pair.1,
-            association,
-            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-        ));
+        for integration in assembly {
+            additions.push((
+                integration,
+                association,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            ));
+        }
         associations.push(association);
     }
     if !additions.is_empty() {
@@ -18623,7 +18626,7 @@ mod tests {
     }
 
     #[test]
-    fn varied_multisensory_occurrences_mount_only_reusable_emitted_pairs() {
+    fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         fn receptor_cohort(
             sense: PhysicalSourceSense,
             topology_index: u32,
@@ -18655,11 +18658,17 @@ mod tests {
             }
         }
 
-        let receptor_lineages = [local_lineage(1), local_lineage(2), local_lineage(3)];
+        let receptor_lineages = [
+            local_lineage(1),
+            local_lineage(2),
+            local_lineage(3),
+            local_lineage(4),
+        ];
         let mut cohorts = vec![
             receptor_cohort(PhysicalSourceSense::Sight, 0, receptor_lineages[0]),
             receptor_cohort(PhysicalSourceSense::Sight, 1, receptor_lineages[1]),
             receptor_cohort(PhysicalSourceSense::Sound, 2, receptor_lineages[2]),
+            receptor_cohort(PhysicalSourceSense::Sound, 3, receptor_lineages[3]),
         ];
         let occupied = cohorts
             .iter()
@@ -18668,7 +18677,7 @@ mod tests {
         let mut population = Some(
             DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &occupied).unwrap(),
         );
-        let mut next_lineage = 4;
+        let mut next_lineage = 5;
         let mut fabric = ResidentElectricalFabric::default();
         let reached_receptors = cohorts
             .iter()
@@ -18727,12 +18736,12 @@ mod tests {
         )
         .unwrap();
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
-        let emitted_layer_six = topology
+        let settled_layer_six = topology
             .lineage_layers
             .iter()
             .filter_map(|(lineage, layer)| (*layer == 6).then_some(*lineage))
             .collect::<BTreeSet<_>>();
-        assert_eq!(emitted_layer_six.len(), 3);
+        assert_eq!(settled_layer_six.len(), 4);
 
         let absent = mount_reached_cross_sensory_association(
             &mut cohorts,
@@ -18740,12 +18749,15 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &topology,
-            &[vec![receptor_lineages[0], receptor_lineages[2]]],
-            &BTreeSet::new(),
+            &[
+                vec![receptor_lineages[0], receptor_lineages[2]],
+                vec![receptor_lineages[1], receptor_lineages[3]],
+            ],
+            &settled_layer_six,
         )
         .unwrap();
         assert!(absent.is_empty());
-        assert_eq!(fabric.contact_count(), 3);
+        assert_eq!(fabric.contact_count(), 4);
 
         mount_reached_cross_sensory_association(
             &mut cohorts,
@@ -18753,8 +18765,12 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &topology,
-            &[vec![receptor_lineages[0], receptor_lineages[2]]],
-            &emitted_layer_six,
+            &[vec![
+                receptor_lineages[0],
+                receptor_lineages[1],
+                receptor_lineages[2],
+            ]],
+            &settled_layer_six,
         )
         .unwrap();
         let association = cohorts
@@ -18770,7 +18786,7 @@ mod tests {
             .map(|(_, lineage)| *lineage)
             .collect::<Vec<_>>();
         assert_eq!(association.len(), 1);
-        assert_eq!(fabric.contact_count(), 5);
+        assert_eq!(fabric.contact_count(), 7);
 
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
         mount_reached_cross_sensory_association(
@@ -18779,8 +18795,12 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &topology,
-            &[vec![receptor_lineages[1], receptor_lineages[2]]],
-            &emitted_layer_six,
+            &[vec![
+                receptor_lineages[0],
+                receptor_lineages[1],
+                receptor_lineages[3],
+            ]],
+            &settled_layer_six,
         )
         .unwrap();
         let association = cohorts
@@ -18796,7 +18816,7 @@ mod tests {
             .map(|(_, lineage)| *lineage)
             .collect::<Vec<_>>();
         assert_eq!(association.len(), 2);
-        assert_eq!(fabric.contact_count(), 7);
+        assert_eq!(fabric.contact_count(), 10);
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
 
@@ -18807,8 +18827,12 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &topology,
-            &[receptor_lineages.to_vec()],
-            &emitted_layer_six,
+            &[vec![
+                receptor_lineages[0],
+                receptor_lineages[1],
+                receptor_lineages[2],
+            ]],
+            &settled_layer_six,
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
