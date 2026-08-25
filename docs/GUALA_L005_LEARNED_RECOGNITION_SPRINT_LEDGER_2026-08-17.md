@@ -702,3 +702,21 @@ loop is authorized merely to force closure.
   now 97, but count alone is not learning evidence. L-005 therefore remains
   open; this experience is retained as varied relational grounding, not
   promoted to a learned-word claim.
+- After another 85 live ticks including unattended intervals, the participant
+  moved to `(3500,2800,126870)` on the opposite side of the bear. The movement
+  changed three retinal receptors and entered Guala through 43 causal hops at
+  tick 167387. A later unattended interval advanced her to tick 167411 before
+  any further voice.
+- A second one-second contextual utterance used a different voice, rate, pitch,
+  and amplitude, with exact PCM receipt
+  `72d254974a573b231caa05e381e0b736fc658e0d2cd170beea3c897b3352dac2`.
+  It committed 153 occurrence boundaries through tick 167456 and state
+  `0480e9565b50a8c2c6b4cb1f245a1d4165a3ada6f2d00611164940f9ce0f568e`.
+  Native evidence was 496 fractal changes, 267 partial-cue reassemblies, two
+  layer-13 recruitments, four self-hearing hops, physical action and returned
+  sensation, and no exhaustion.
+- Its only returned retained-formation causal action was still body-load
+  formation `5dc69f...3e0d8`; no bear-grounded formation was identified as the
+  cause. This remains experience rather than proof. The next check must follow
+  further unattended life and remove the bear from the retinal field again;
+  no immediate sound-only retry is authorized by this evidence.
