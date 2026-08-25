@@ -35,6 +35,10 @@ while true; do
       python tools/ch4_spring_page.py artifacts/vtvr_observer/ch4_page.html
       python tools/ch3_shadow_page.py artifacts/vtvr_observer/ch3_shadow_page.html
       python tools/ch6_perception_nightly.py
+      # the CH6 readings door: pool -> fine scan -> readings -> stage.
+      # Runs detached with its own lock/log so a slow reading pass
+      # never blocks the rest of the nightly chain.
+      nohup bash tools/ch6_nightly_door.sh >/dev/null 2>&1 &
     } >> artifacts/vtvr_observer/spring_passes.log 2>&1
     echo "[spring-runner] close pass done $(date -u +%FT%TZ)"
     sleep 3600 9>&-

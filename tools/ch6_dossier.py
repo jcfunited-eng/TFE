@@ -21,7 +21,9 @@ import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DAY_LANES = os.path.join(ROOT, "artifacts", "ch4_uf", "population_lanes")
-FINE_LANES = os.path.join(ROOT, "artifacts", "ch6_harvest", "year_lanes")
+FINE_LANES = os.environ.get(
+    "CH6_FINE_LANES",
+    os.path.join(ROOT, "artifacts", "ch6_harvest", "year_lanes"))
 
 
 def build(symbol: str) -> str:

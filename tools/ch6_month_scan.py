@@ -111,7 +111,14 @@ def main() -> None:
     KEY = _key()
     workers = int(sys.argv[1]) if len(sys.argv) > 1 else 8
     os.makedirs(OUT_DIR, exist_ok=True)
-    symbols = pd.read_csv(UNIVERSE)["Symbol"].astype(str).tolist()
+    subset = os.environ.get("SCAN_SYMBOLS_FILE")
+    if subset:
+        # nightly door: fine-scan only the admitted pool, not the world
+        symbols = json.load(open(subset))
+        if isinstance(symbols, dict):
+            symbols = symbols["admitted"]
+    else:
+        symbols = pd.read_csv(UNIVERSE)["Symbol"].astype(str).tolist()
     t0 = time.time()
     done = failed = 0
     with Pool(workers, initializer=init) as pool:
