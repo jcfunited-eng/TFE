@@ -2089,6 +2089,159 @@ impl RetainedOrganismMosaic {
     }
 }
 
+/// Runtime-only exact navigation from physical lineage/bond authority to the
+/// retained formations that actually contain it. The resident mosaics remain
+/// the sole cognitive owners and every recurrence/identity predicate remains
+/// authoritative; this index only removes the population-wide search needed
+/// to find the small candidate set reached by one physical interval.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct ResidentFormationIndex {
+    by_lineage: Vec<([u8; 16], Vec<usize>)>,
+    by_bond: Vec<(StablePhysicalBondReference, Vec<usize>)>,
+}
+
+impl ResidentFormationIndex {
+    fn build(mosaics: &[RetainedOrganismMosaic]) -> Result<Self, FormationError> {
+        let mut index = Self::default();
+        for (mosaic_index, retained) in mosaics.iter().enumerate() {
+            index.insert(mosaic_index, &retained.mosaic)?;
+        }
+        Ok(index)
+    }
+
+    fn candidate_indices(
+        &self,
+        lineages: impl IntoIterator<Item = [u8; 16]>,
+        bonds: impl IntoIterator<Item = StablePhysicalBondReference>,
+    ) -> Vec<usize> {
+        let mut candidates = BTreeSet::new();
+        for lineage in lineages {
+            if let Ok(position) = self
+                .by_lineage
+                .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
+            {
+                candidates.extend(self.by_lineage[position].1.iter().copied());
+            }
+        }
+        for bond in bonds {
+            if let Ok(position) = self
+                .by_bond
+                .binary_search_by_key(&bond, |(candidate, _)| *candidate)
+            {
+                candidates.extend(self.by_bond[position].1.iter().copied());
+            }
+        }
+        candidates.into_iter().collect()
+    }
+
+    fn insert(
+        &mut self,
+        mosaic_index: usize,
+        mosaic: &AdmittedPhysicalMosaic,
+    ) -> Result<(), FormationError> {
+        let mut lineages = mosaic.member_lineages().iter().copied().collect::<BTreeSet<_>>();
+        for bond in mosaic
+            .original_bonds()
+            .iter()
+            .chain(mosaic.recurrence_bonds())
+        {
+            let (left, right) = bond.endpoints();
+            lineages.insert(left);
+            lineages.insert(right);
+        }
+        for lineage in lineages {
+            insert_formation_posting(&mut self.by_lineage, lineage, mosaic_index)?;
+        }
+        let bonds = mosaic
+            .original_bonds()
+            .iter()
+            .chain(mosaic.recurrence_bonds())
+            .copied()
+            .collect::<BTreeSet<_>>();
+        for bond in bonds {
+            insert_formation_posting(&mut self.by_bond, bond, mosaic_index)?;
+        }
+        Ok(())
+    }
+
+    fn replace(
+        &mut self,
+        mosaic_index: usize,
+        predecessor: &AdmittedPhysicalMosaic,
+        successor: &AdmittedPhysicalMosaic,
+    ) -> Result<(), FormationError> {
+        self.remove(mosaic_index, predecessor)?;
+        self.insert(mosaic_index, successor)
+    }
+
+    fn remove(
+        &mut self,
+        mosaic_index: usize,
+        mosaic: &AdmittedPhysicalMosaic,
+    ) -> Result<(), FormationError> {
+        let mut lineages = mosaic.member_lineages().iter().copied().collect::<BTreeSet<_>>();
+        for bond in mosaic
+            .original_bonds()
+            .iter()
+            .chain(mosaic.recurrence_bonds())
+        {
+            let (left, right) = bond.endpoints();
+            lineages.insert(left);
+            lineages.insert(right);
+        }
+        for lineage in lineages {
+            remove_formation_posting(&mut self.by_lineage, lineage, mosaic_index)?;
+        }
+        let bonds = mosaic
+            .original_bonds()
+            .iter()
+            .chain(mosaic.recurrence_bonds())
+            .copied()
+            .collect::<BTreeSet<_>>();
+        for bond in bonds {
+            remove_formation_posting(&mut self.by_bond, bond, mosaic_index)?;
+        }
+        Ok(())
+    }
+}
+
+fn insert_formation_posting<K: Copy + Ord>(
+    postings: &mut Vec<(K, Vec<usize>)>,
+    key: K,
+    mosaic_index: usize,
+) -> Result<(), FormationError> {
+    match postings.binary_search_by_key(&key, |(candidate, _)| *candidate) {
+        Ok(position) => {
+            let values = &mut postings[position].1;
+            match values.binary_search(&mosaic_index) {
+                Ok(_) => return Err(FormationError::NoncanonicalState),
+                Err(insert_at) => values.insert(insert_at, mosaic_index),
+            }
+        }
+        Err(insert_at) => postings.insert(insert_at, (key, vec![mosaic_index])),
+    }
+    Ok(())
+}
+
+fn remove_formation_posting<K: Copy + Ord>(
+    postings: &mut Vec<(K, Vec<usize>)>,
+    key: K,
+    mosaic_index: usize,
+) -> Result<(), FormationError> {
+    let position = postings
+        .binary_search_by_key(&key, |(candidate, _)| *candidate)
+        .map_err(|_| FormationError::NoncanonicalState)?;
+    let value_position = postings[position]
+        .1
+        .binary_search(&mosaic_index)
+        .map_err(|_| FormationError::NoncanonicalState)?;
+    postings[position].1.remove(value_position);
+    if postings[position].1.is_empty() {
+        postings.remove(position);
+    }
+    Ok(())
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ResidentCognitiveFormationState {
     generation: u64,
@@ -2122,6 +2275,10 @@ pub(crate) struct ResidentCognitiveFormationState {
     /// intervals borrow this index instead of rediscovering every lineage,
     /// contact, stable bond, layer, and neighbour.
     topology_index: Arc<ResidentTopologyIndex>,
+    /// Runtime-only causal navigation over retained formation membership.
+    /// It is derived on cold restore and updated only for exact changed or
+    /// admitted formations; it is never encoded and never decides physics.
+    formation_index: ResidentFormationIndex,
 }
 
 impl Default for ResidentCognitiveFormationState {
@@ -2140,6 +2297,7 @@ impl Default for ResidentCognitiveFormationState {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: ResidentFormationIndex::default(),
         }
     }
 }
@@ -2402,34 +2560,6 @@ fn organism_physical_bonds(
     }
     bonds.sort_unstable();
     Ok(bonds)
-}
-
-/// A retained organism mosaic must cross at least one cohort boundary. A
-/// formation wholly contained in one receptor cohort is sensory-local
-/// structure, not a whole-organism mosaic, irrespective of how many neurons
-/// it contains. Every member lineage is already validated against the living
-/// anatomy by the mosaic codec; this function only classifies that exact
-/// structural scope.
-fn mosaic_spans_multiple_cohorts(
-    cohorts: &[ResidentReachedCohort],
-    mosaic: &AdmittedPhysicalMosaic,
-) -> bool {
-    let mut cohort_indices = Vec::new();
-    for lineage in mosaic.member_lineages() {
-        let Some(cohort_index) = cohorts.iter().position(|cohort| {
-            cohort
-                .anatomy
-                .neuron_lineages()
-                .binary_search(lineage)
-                .is_ok()
-        }) else {
-            return false;
-        };
-        if !cohort_indices.contains(&cohort_index) {
-            cohort_indices.push(cohort_index);
-        }
-    }
-    cohort_indices.len() >= 2
 }
 
 fn merge_relation_components(component_roots: &mut [usize], left: usize, right: usize) {
@@ -3015,6 +3145,27 @@ fn formation_contains_reached_physical_path(
             .all(|bond| prior.original_bonds().binary_search(bond).is_ok())
 }
 
+fn mosaic_spans_multiple_cohorts_indexed(
+    topology_index: &ResidentTopologyIndex,
+    mosaic: &AdmittedPhysicalMosaic,
+) -> Result<bool, FormationError> {
+    let mut first_cohort = None;
+    for lineage in mosaic.member_lineages().iter().copied() {
+        let flat = topology_index.flat_for_lineage(lineage)?;
+        let cohort_index = topology_index
+            .flat_locations
+            .get(flat)
+            .map(|location| location.0)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        match first_cohort {
+            Some(first) if first != cohort_index => return Ok(true),
+            Some(_) => {}
+            None => first_cohort = Some(cohort_index),
+        }
+    }
+    Ok(false)
+}
+
 fn pending_association_has_cross_sensory_members(
     pending: &AdmittedPhysicalMosaic,
     topology_index: &ResidentTopologyIndex,
@@ -3144,6 +3295,7 @@ fn settle_organism_mosaic_boundary(
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     current_frontier: &[ActiveElectricalFrontierEntry],
     mosaics: &mut Vec<RetainedOrganismMosaic>,
+    formation_index: &mut ResidentFormationIndex,
     max_encoded_bytes: usize,
 ) -> Result<
     (
@@ -3257,9 +3409,20 @@ fn settle_organism_mosaic_boundary(
     // replacements and observations in resident index order. The preparation
     // has no resident writes, so one failure cannot leave a partial parallel
     // mutation behind.
-    let prepared_retained = mosaics
+    let retained_candidate_indices = formation_index.candidate_indices(
+        changed_lineages
+            .iter()
+            .copied()
+            .chain(externally_reached_lineages.iter().copied())
+            .chain(metabolically_perturbed_lineages.iter().copied()),
+        std::iter::empty(),
+    );
+    let prepared_retained = retained_candidate_indices
         .par_iter()
-        .map(|retained| -> Result<PreparedRetainedMosaicBoundary, FormationError> {
+        .map(|retained_index| -> Result<(usize, PreparedRetainedMosaicBoundary), FormationError> {
+            let retained = mosaics
+                .get(*retained_index)
+                .ok_or(FormationError::NoncanonicalState)?;
             // A layer-7 trace is developmental cross-sensory anatomy.  Its
             // post-quiescence pieces may arrive on adjacent intervals, but it
             // cannot be promoted to retained recurrence until at least two
@@ -3270,7 +3433,7 @@ fn settle_organism_mosaic_boundary(
                     topology_index,
                 )?
             {
-                return Ok(PreparedRetainedMosaicBoundary::inactive(false));
+                return Ok((*retained_index, PreparedRetainedMosaicBoundary::inactive(false)));
             }
             let current_frontier_member = !retained.mosaic.is_original_only()
                 && retained
@@ -3313,20 +3476,23 @@ fn settle_organism_mosaic_boundary(
             } else if !internal_cue.is_empty() {
                 (internal_cue, PhysicalMosaicRecurrenceOrigin::InternallySimulated)
             } else {
-                return Ok(PreparedRetainedMosaicBoundary::inactive(
-                    current_frontier_member,
+                return Ok((
+                    *retained_index,
+                    PreparedRetainedMosaicBoundary::inactive(current_frontier_member),
                 ));
             };
             let Some(component_index) = component_by_lineage.get(&cue[0]).copied() else {
-                return Ok(PreparedRetainedMosaicBoundary::inactive(
-                    current_frontier_member,
+                return Ok((
+                    *retained_index,
+                    PreparedRetainedMosaicBoundary::inactive(current_frontier_member),
                 ));
             };
             if cue.iter().any(|lineage| {
                 component_by_lineage.get(lineage).copied() != Some(component_index)
             }) {
-                return Ok(PreparedRetainedMosaicBoundary::inactive(
-                    current_frontier_member,
+                return Ok((
+                    *retained_index,
+                    PreparedRetainedMosaicBoundary::inactive(current_frontier_member),
                 ));
             }
             let component = active_components
@@ -3358,8 +3524,9 @@ fn settle_organism_mosaic_boundary(
                 Ok(reassembled) => Some(reassembled),
                 Err(PhysicalMosaicError::RecurrenceDidNotAlterFormation) => None,
                 Err(error) if physical_mosaic_non_admission(error) => {
-                    return Ok(PreparedRetainedMosaicBoundary::inactive(
-                        current_frontier_member,
+                    return Ok((
+                        *retained_index,
+                        PreparedRetainedMosaicBoundary::inactive(current_frontier_member),
                     ));
                 }
                 Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
@@ -3410,17 +3577,20 @@ fn settle_organism_mosaic_boundary(
                     recurrent_lineage,
                 })
             });
-            Ok(PreparedRetainedMosaicBoundary {
-                current_frontier: current_frontier_member,
-                reassembled: true,
-                replacement_receipt: reassembled.as_ref().and(observed_receipt),
-                replacement: reassembled,
-                internal_observation,
-                external_observation,
-            })
+            Ok((
+                *retained_index,
+                PreparedRetainedMosaicBoundary {
+                    current_frontier: current_frontier_member,
+                    reassembled: true,
+                    replacement_receipt: reassembled.as_ref().and(observed_receipt),
+                    replacement: reassembled,
+                    internal_observation,
+                    external_observation,
+                },
+            ))
         })
         .collect::<Result<Vec<_>, _>>()?;
-    for (retained_index, prepared) in prepared_retained.into_iter().enumerate() {
+    for (retained_index, prepared) in prepared_retained {
         if prepared.current_frontier || prepared.reassembled {
             current_frontier_indices.push(retained_index);
         }
@@ -3441,6 +3611,8 @@ fn settle_organism_mosaic_boundary(
                 .mosaic
                 .carries_only_retained_neuron_structure();
             let is_retained = replacement.carries_only_retained_neuron_structure();
+            let predecessor = mosaics[retained_index].mosaic.clone();
+            formation_index.replace(retained_index, &predecessor, &replacement)?;
             mosaics[retained_index].mosaic = replacement;
             if !was_retained && is_retained {
                 newly_retained_mosaic_indices.push(retained_index);
@@ -3507,14 +3679,16 @@ fn settle_organism_mosaic_boundary(
         .collect::<BTreeSet<_>>();
     let mut pending_indices_by_recent_association =
         BTreeMap::<[u8; 16], Vec<usize>>::new();
-    for (index, retained) in mosaics.iter().enumerate() {
-        if !retained.mosaic.is_original_only() {
-            continue;
-        }
-        for association in
-            pending_original_association_lineages(&retained.mosaic, topology_index)?
-        {
-            if recent_frontier_lineages.contains(&association) {
+    for association in recent_frontier_lineages.iter().copied() {
+        for index in formation_index.candidate_indices([association], std::iter::empty()) {
+            let retained = mosaics
+                .get(index)
+                .ok_or(FormationError::NoncanonicalState)?;
+            if retained.mosaic.is_original_only()
+                && pending_original_association_lineages(&retained.mosaic, topology_index)?
+                    .binary_search(&association)
+                    .is_ok()
+            {
                 pending_indices_by_recent_association
                     .entry(association)
                     .or_default()
@@ -3634,8 +3808,13 @@ fn settle_organism_mosaic_boundary(
                 formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
             })
             .collect::<Vec<_>>();
+        let indexed_path_candidates = formation_index.candidate_indices(
+            original.member_lineages().iter().copied(),
+            original.original_bonds().iter().copied(),
+        );
         let joins_pending_path = !continuing_pending_indices.is_empty()
-            || mosaics.iter().any(|retained| {
+            || indexed_path_candidates.iter().copied().any(|index| {
+                let retained = &mosaics[index];
                 retained.mosaic.is_original_only()
                     && pending_originals_share_physical_path(&retained.mosaic, &original)
             })
@@ -3686,9 +3865,13 @@ fn settle_organism_mosaic_boundary(
                 continue;
             }
         }
-        let duplicates_retained_structure = mosaics
+        let duplicate_candidates = formation_index.candidate_indices(
+            original.member_lineages().iter().copied().take(1),
+            std::iter::empty(),
+        );
+        let duplicates_retained_structure = duplicate_candidates
             .iter()
-            .any(|prior| prior.mosaic.same_retained_structure(&original))
+            .any(|index| mosaics[*index].mosaic.same_retained_structure(&original))
             || new_pending_originals
                 .iter()
                 .any(|prior: &AdmittedPhysicalMosaic| {
@@ -3701,17 +3884,24 @@ fn settle_organism_mosaic_boundary(
         new_pending_originals.push(original);
     }
     if !new_pending_originals.is_empty() {
-        let removed_pending = mosaics
-            .iter()
-            .enumerate()
-            .map(|(index, prior)| {
-                prior.mosaic.is_original_only()
-                    && (superseded_pending_indices.contains(&index)
-                        || new_pending_originals.iter().any(|current| {
-                            pending_originals_share_physical_path(&prior.mosaic, current)
-                        }))
-            })
+        let mut removed_pending_indices = superseded_pending_indices;
+        for current in &new_pending_originals {
+            for index in formation_index.candidate_indices(
+                current.member_lineages().iter().copied(),
+                current.original_bonds().iter().copied(),
+            ) {
+                let prior = &mosaics[index].mosaic;
+                if prior.is_original_only()
+                    && pending_originals_share_physical_path(prior, current)
+                {
+                    removed_pending_indices.insert(index);
+                }
+            }
+        }
+        let removed_pending = (0..mosaics.len())
+            .map(|index| removed_pending_indices.contains(&index))
             .collect::<Vec<_>>();
+        let removed_any = !removed_pending_indices.is_empty();
         if removed_pending.iter().any(|removed| *removed) {
             for retained_index in &mut newly_retained_mosaic_indices {
                 let removed_before = removed_pending[..*retained_index]
@@ -3732,11 +3922,19 @@ fn settle_organism_mosaic_boundary(
         mosaics
             .try_reserve(new_pending_originals.len())
             .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let appended_start = mosaics.len();
         mosaics.extend(
             new_pending_originals
                 .into_iter()
                 .map(RetainedOrganismMosaic::newly_admitted),
         );
+        if removed_any {
+            *formation_index = ResidentFormationIndex::build(mosaics)?;
+        } else {
+            for index in appended_start..mosaics.len() {
+                formation_index.insert(index, &mosaics[index].mosaic)?;
+            }
+        }
     }
     Ok((
         receipt,
@@ -4082,11 +4280,13 @@ impl ResidentCognitiveFormationState {
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
             &successor.electrical_fabric,
         )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
         validate_lineage_state(&successor)?;
         Ok(Some(successor))
     }
@@ -4203,6 +4403,7 @@ impl ResidentCognitiveFormationState {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
@@ -4406,6 +4607,7 @@ impl ResidentCognitiveFormationState {
             mosaics: self.mosaics.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: self.formation_index.clone(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
@@ -4612,11 +4814,13 @@ impl ResidentCognitiveFormationState {
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
             &successor.electrical_fabric,
         )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
         successor.validate_current_motor_effectors()?;
         successor.validate_current_ordering_routes()?;
         validate_lineage_state(&successor)?;
@@ -4737,6 +4941,7 @@ impl ResidentCognitiveFormationState {
             mosaics: Box::new([]),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
@@ -4939,11 +5144,13 @@ impl ResidentCognitiveFormationState {
             mosaics: mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
             &successor.electrical_fabric,
         )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
         validate_lineage_state(&successor)?;
         Ok(Some(successor))
     }
@@ -5014,6 +5221,7 @@ impl ResidentCognitiveFormationState {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         validate_lineage_state(&successor)?;
         Ok(successor)
@@ -5165,6 +5373,7 @@ impl ResidentCognitiveFormationState {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: ResidentFormationIndex::default(),
         };
         validate_lineage_state(&state)?;
         Ok(state)
@@ -5505,6 +5714,7 @@ impl ResidentCognitiveFormationState {
             mosaics: predecessor_mosaics,
             hippocampal: predecessor_hippocampal,
             topology_index: predecessor_topology_index,
+            formation_index: predecessor_formation_index,
         } = expanded;
         let source = admitted_source.episode();
         if source.joint_source_occurrences().is_empty() {
@@ -5519,20 +5729,11 @@ impl ResidentCognitiveFormationState {
         let mut next_lineage_ordinal = predecessor_next_lineage_ordinal;
         let mut cohorts = predecessor_cohorts.into_vec();
         let mut topology_index = predecessor_topology_index;
-        // Bodies written before the retained-fractal boundary may still carry
-        // transient charge, phase, gate, residue, or metabolic coordinates in
-        // a mosaic body.  They remain readable only so the living neuron and
-        // retained-experience state can cross the release boundary.  They are
-        // not cognitive authority and leave on the next physical transition;
-        // a later recurrence must form a new mosaic from retained structure.
-        let mut mosaics = predecessor_mosaics
-            .into_vec()
-            .into_iter()
-            .filter(|retained| {
-                retained.mosaic.carries_retained_original_structure()
-                    && mosaic_spans_multiple_cohorts(&cohorts, &retained.mosaic)
-            })
-            .collect::<Vec<_>>();
+        let mut formation_index = predecessor_formation_index;
+        // Current bodies crossed the retained-formation authority boundary at
+        // cold migration. Ordinary cognition moves that canonical owner as
+        // is; it must never rescan/filter the complete learned population.
+        let mut mosaics = predecessor_mosaics.into_vec();
         let mut newly_retained_mosaic_indices = Vec::new();
         cohorts
             .try_reserve(source.joint_source_occurrences().len())
@@ -6684,16 +6885,14 @@ impl ResidentCognitiveFormationState {
                         for resolution in outcome.mosaic_resolutions {
                             let predecessor_count = mosaics.len();
                             apply_mosaic_structural_resolution(&mut mosaics, resolution)?;
-                            if mosaics.len() > predecessor_count
-                                && mosaics
-                                    .last()
-                                    .is_some_and(|retained| {
-                                        retained
-                                            .mosaic
-                                            .carries_only_retained_neuron_structure()
-                                    })
-                            {
-                                newly_retained_mosaic_indices.push(predecessor_count);
+                            if mosaics.len() > predecessor_count {
+                                let retained = mosaics
+                                    .get(predecessor_count)
+                                    .ok_or(FormationError::NoncanonicalState)?;
+                                formation_index.insert(predecessor_count, &retained.mosaic)?;
+                                if retained.mosaic.carries_only_retained_neuron_structure() {
+                                    newly_retained_mosaic_indices.push(predecessor_count);
+                                }
                             }
                         }
                         // No episode is admitted to cold custody any more, so
@@ -6907,6 +7106,7 @@ impl ResidentCognitiveFormationState {
                 &predecessor_active_electrical_frontier,
                 &active_electrical_frontier,
                 &mut mosaics,
+                &mut formation_index,
                 max_encoded_bytes,
             )?;
         newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
@@ -7005,6 +7205,7 @@ impl ResidentCognitiveFormationState {
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
             topology_index,
+            formation_index,
         };
         let (successor_encoded, terminal_summary, mosaic_of_mosaics_count) =
             if seal_successor {
@@ -7528,6 +7729,7 @@ impl ResidentCognitiveFormationState {
             mosaics: self.mosaics.clone(),
             hippocampal: self.hippocampal,
             topology_index,
+            formation_index: self.formation_index.clone(),
         };
         // Every retained mosaic must still be expressible against the grown
         // anatomy, or the growth is refused and the body is left as it is.
@@ -8938,6 +9140,16 @@ impl ResidentCognitiveFormationState {
                 ),
             }?;
             cursor = mosaic_end;
+            if current_v30
+                && require_current_canonical_encoding
+                && (!retained.mosaic.carries_retained_original_structure()
+                    || !mosaic_spans_multiple_cohorts_indexed(
+                        &topology_index,
+                        &retained.mosaic,
+                    )?)
+            {
+                return Err(FormationError::RetiredCognitiveState);
+            }
             if mosaics
                 .iter()
                 .any(|prior: &RetainedOrganismMosaic| prior.mosaic == retained.mosaic)
@@ -8963,6 +9175,7 @@ impl ResidentCognitiveFormationState {
         if cursor != bytes.len() {
             return Err(FormationError::NoncanonicalState);
         }
+        let formation_index = ResidentFormationIndex::build(&mosaics)?;
         let mut state = Self {
             generation,
             next_lineage_ordinal,
@@ -8978,6 +9191,7 @@ impl ResidentCognitiveFormationState {
             mosaics: mosaics.into_boxed_slice(),
             hippocampal,
             topology_index,
+            formation_index,
         };
         validate_lineage_state(&state)?;
         if !matches!(
@@ -9014,6 +9228,30 @@ impl ResidentCognitiveFormationState {
             )?;
         }
         Ok(state)
+    }
+
+    /// Cross the retained-formation authority boundary once during cold
+    /// migration. Historical transient/local bodies leave here; current live
+    /// intervals never revisit the complete learned population to rediscover
+    /// the same answer.
+    fn into_current_retained_formation_authority(mut self) -> Result<Self, FormationError> {
+        let mut retained = Vec::new();
+        retained
+            .try_reserve_exact(self.mosaics.len())
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        for formation in self.mosaics.into_vec() {
+            if formation.mosaic.carries_retained_original_structure()
+                && mosaic_spans_multiple_cohorts_indexed(
+                    &self.topology_index,
+                    &formation.mosaic,
+                )?
+            {
+                retained.push(formation);
+            }
+        }
+        self.mosaics = retained.into_boxed_slice();
+        self.formation_index = ResidentFormationIndex::build(&self.mosaics)?;
+        Ok(self)
     }
 
     /// Rewrite one already-admitted body into the current layout. V18 marks
@@ -9100,6 +9338,7 @@ impl ResidentCognitiveFormationState {
                 None => state,
             }
         };
+        let state = state.into_current_retained_formation_authority()?;
         let state = if already_geometry_provisioned {
             state
         } else {
@@ -19109,6 +19348,7 @@ mod tests {
             })
             .collect::<Vec<_>>();
         let changed_cue = [receptor_lineages[0]];
+        let mut formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
         let (
             altered_receipt,
             reassemblies,
@@ -19134,6 +19374,7 @@ mod tests {
             &[],
             &[],
             &mut mosaics,
+            &mut formation_index,
             16_000_000,
         )
         .unwrap();
@@ -19242,6 +19483,7 @@ mod tests {
             first_structure
         );
 
+        let mut formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
         let (
             _,
             related_reassemblies,
@@ -19267,6 +19509,7 @@ mod tests {
             &[],
             &[],
             &mut mosaics,
+            &mut formation_index,
             16_000_000,
         )
         .unwrap();
@@ -19286,6 +19529,7 @@ mod tests {
         assert!(!related[0].active_bonds.is_empty());
 
         let before_quiescent_relation = mosaics.clone();
+        let mut formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
         let (
             receipt,
             recurring_reassemblies,
@@ -19311,6 +19555,7 @@ mod tests {
                 &[],
                 &[],
                 &mut mosaics,
+                &mut formation_index,
                 16_000_000,
             )
             .unwrap();
@@ -19339,6 +19584,7 @@ mod tests {
         let internal_cue = topology.lineages.clone();
         let mut expected_internal_cue = internal_cue.clone();
         canonicalize_formation_cue(&mut expected_internal_cue);
+        let mut formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
         let (
             internal_receipt,
             internal_total,
@@ -19364,6 +19610,7 @@ mod tests {
                 &[],
                 &[],
                 &mut mosaics,
+                &mut formation_index,
                 16_000_000,
             )
             .unwrap();
@@ -19411,6 +19658,7 @@ mod tests {
         // either retained formation. It must therefore neither relabel nor
         // erase their independently measured metabolic recurrence.
         let unrelated_external = [[0xfe_u8; 16]];
+        let mut formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
         let (
             _,
             mixed_total,
@@ -19436,6 +19684,7 @@ mod tests {
                 &[],
                 &[],
                 &mut mosaics,
+                &mut formation_index,
                 16_000_000,
             )
             .unwrap();
@@ -19690,6 +19939,7 @@ mod tests {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index,
+            formation_index: ResidentFormationIndex::default(),
         };
         validate_lineage_state(&state).unwrap();
         assert_eq!(state.electrical_fabric.contact_count(), 8);
@@ -20323,6 +20573,7 @@ mod tests {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index,
+            formation_index: ResidentFormationIndex::default(),
         };
         validate_lineage_state(&state).unwrap();
         let corrected = state
@@ -20536,6 +20787,7 @@ mod tests {
             mosaics: Box::new([]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index,
+            formation_index: ResidentFormationIndex::default(),
         };
         let occupied_places = state
             .cohorts
