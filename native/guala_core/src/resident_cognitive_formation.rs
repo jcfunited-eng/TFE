@@ -6627,18 +6627,6 @@ impl ResidentCognitiveFormationState {
         )?;
         let mut reached_body_regulation_lineages = Vec::new();
         for occurrence_lineages in &externally_energized_by_occurrence {
-            // This admits only the sparse layer-6 <-> layer-7 anatomy.  The
-            // association cell is resting material at this boundary; it is
-            // not an external cause.  Current must first cross the receptor
-            // -> layer-6 contacts below, then the resulting retained frontier
-            // may reach layer 7 on the following physical interval.
-            let _ = mount_reached_cross_sensory_association(
-                &mut cohorts,
-                &mut resting_population,
-                &mut next_lineage_ordinal,
-                &mut electrical_fabric,
-                occurrence_lineages,
-            )?;
             for lineage in mount_reached_body_regulation(
                 &mut cohorts,
                 &mut resting_population,
@@ -6746,6 +6734,28 @@ impl ResidentCognitiveFormationState {
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
+        let emitted_layer_six_lineages = emitted_neuron_fractals
+            .iter()
+            .filter_map(|fractal| {
+                (topology_index.layer_of(fractal.neuron_lineage) == Some(6))
+                    .then_some(fractal.neuron_lineage)
+            })
+            .collect::<BTreeSet<_>>();
+        // Cross-sensory anatomy grows only from layer-6 cells that actually
+        // reached post-quiescence physical change.  The new resting layer-7
+        // cell is not seeded into this interval; later current must reach it
+        // through the two retained contacts.  Pair identity stays stable when
+        // a live sound or image occurrence energizes a different wider set of
+        // receptor coordinates.
+        let _ = mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &topology_index,
+            &externally_energized_by_occurrence,
+            &emitted_layer_six_lineages,
+        )?;
         mount_reached_motor_effector(
             &mut cohorts,
             &mut resting_population,
@@ -11946,117 +11956,185 @@ fn mount_next_intrinsic_in_layer(
     Ok(lineage)
 }
 
-/// Grow or reuse one physical cross-sensory association reached by this exact
-/// occurrence.  Membership comes only from distinct layer-6 cells whose own
-/// receptors were externally reached; matching indices, labels, and source
-/// order have no authority.  The retained sparse contacts are the assembly.
+/// Grow or reuse sparse pairwise physical cross-sensory associations after
+/// layer-6 settlement. Membership comes only from layer-6 cells that emitted
+/// an exact post-quiescence fractal and whose own receptors were energized in
+/// the same occurrence. Labels, source order, and the occurrence's complete
+/// changing coordinate set have no authority. The two retained contacts are
+/// the association; a newly mounted resting cell is never seeded directly.
 fn mount_reached_cross_sensory_association(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
-    externally_reached_lineages: &[[u8; 16]],
-) -> Result<Option<[u8; 16]>, FormationError> {
-    let mounted = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
+    topology: &ResidentTopologyIndex,
+    externally_energized_by_occurrence: &[Vec<[u8; 16]>],
+    emitted_layer_six_lineages: &BTreeSet<[u8; 16]>,
+) -> Result<Vec<[u8; 16]>, FormationError> {
+    let integration_for_receptor =
+        |receptor_lineage: [u8; 16]| -> Result<Option<([u8; 16], u32)>, FormationError> {
+            let receptor_flat = topology.flat_for_lineage(receptor_lineage)?;
+            let (cohort_index, neuron_index, _) = *topology
+                .flat_locations
+                .get(receptor_flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let receptor_mount = cohorts
+                .get(cohort_index)
+                .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            if receptor_mount.source_site().is_none() {
+                return Ok(None);
+            }
+            let receptor_place = receptor_mount.place();
+            let integration_place = local_integration_place(receptor_place)?;
+            let mut matching = Vec::new();
+            for contact_index in topology.incident_contacts_by_flat[receptor_flat]
                 .iter()
-                .zip(cohort.anatomy.neuron_lineages())
-        })
-        .map(|(mount, lineage)| (*lineage, mount.clone()))
-        .collect::<Vec<_>>();
-    let mut sensory_layers = Vec::<u32>::new();
-    let mut integration_lineages = Vec::<[u8; 16]>::new();
-    for receptor_lineage in externally_reached_lineages {
-        let Some((_, receptor_mount)) = mounted
-            .iter()
-            .find(|(lineage, mount)| lineage == receptor_lineage && mount.source_site().is_some())
-        else {
-            continue;
-        };
-        let receptor_place = receptor_mount.place();
-        if !sensory_layers.contains(&receptor_place.layer()) {
-            sensory_layers.push(receptor_place.layer());
-        }
-        let integration_place = local_integration_place(receptor_place)?;
-        let integration = mounted
-            .iter()
-            .filter(|(_, mount)| {
-                mount.source_site().is_none() && mount.place() == integration_place
-            })
-            .map(|(lineage, _)| *lineage)
-            .collect::<Vec<_>>();
-        let [integration_lineage] = integration.as_slice() else {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
-        };
-        if !electrical_fabric.contains_contact(*receptor_lineage, *integration_lineage) {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
-        }
-        if !integration_lineages.contains(integration_lineage) {
-            integration_lineages.push(*integration_lineage);
-        }
-    }
-    integration_lineages.sort_unstable();
-    sensory_layers.sort_unstable();
-    if integration_lineages.len() < 3 || sensory_layers.len() < 2 {
-        return Ok(None);
-    }
-
-    let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
-    };
-    let mut matching_associations = Vec::new();
-    for (association_lineage, association_mount) in mounted
-        .iter()
-        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 7)
-    {
-        let mut layer_six_neighbours = Vec::new();
-        for (left, right) in electrical_fabric.contact_endpoints() {
-            let left_lineage = electrical_fabric.lineages()[left];
-            let right_lineage = electrical_fabric.lineages()[right];
-            let neighbour = if left_lineage == *association_lineage {
-                Some(right_lineage)
-            } else if right_lineage == *association_lineage {
-                Some(left_lineage)
-            } else {
-                None
-            };
-            if let Some(neighbour) = neighbour {
-                if layer_of(neighbour) == Some(6) {
-                    layer_six_neighbours.push(neighbour);
+                .copied()
+            {
+                let contact = topology.contacts[contact_index];
+                if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
+                    continue;
+                }
+                let other_flat = if contact.left == receptor_flat {
+                    contact.right
+                } else {
+                    contact.left
+                };
+                let (other_cohort, other_neuron, integration_lineage) = topology
+                    .flat_locations
+                    .get(other_flat)
+                    .copied()
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                let integration_mount = cohorts
+                    .get(other_cohort)
+                    .and_then(|cohort| cohort.anatomy.mounts().get(other_neuron))
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                if integration_mount.source_site().is_none()
+                    && integration_mount.place() == integration_place
+                {
+                    matching.push(integration_lineage);
                 }
             }
+            matching.sort_unstable();
+            matching.dedup();
+            let [integration_lineage] = matching.as_slice() else {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            };
+            Ok(Some((*integration_lineage, receptor_place.layer())))
+        };
+
+    let mut candidate_pairs = BTreeSet::<([u8; 16], [u8; 16])>::new();
+    for occurrence in externally_energized_by_occurrence {
+        let mut reached_integrations = Vec::<([u8; 16], u32)>::new();
+        for receptor_lineage in occurrence.iter().copied() {
+            let Some((integration_lineage, sensory_layer)) =
+                integration_for_receptor(receptor_lineage)?
+            else {
+                continue;
+            };
+            if emitted_layer_six_lineages.contains(&integration_lineage) {
+                reached_integrations.push((integration_lineage, sensory_layer));
+            }
         }
-        layer_six_neighbours.sort_unstable();
-        layer_six_neighbours.dedup();
-        if layer_six_neighbours == integration_lineages {
-            matching_associations.push(*association_lineage);
+        reached_integrations.sort_unstable();
+        reached_integrations.dedup();
+        for left in 0..reached_integrations.len() {
+            for right in left + 1..reached_integrations.len() {
+                if reached_integrations[left].1 == reached_integrations[right].1 {
+                    continue;
+                }
+                let pair = if reached_integrations[left].0 < reached_integrations[right].0 {
+                    (reached_integrations[left].0, reached_integrations[right].0)
+                } else {
+                    (reached_integrations[right].0, reached_integrations[left].0)
+                };
+                candidate_pairs.insert(pair);
+            }
         }
-        let _ = association_mount;
     }
-    let association_lineage = match matching_associations.as_slice() {
-        [lineage] => *lineage,
-        [] => mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 7)?,
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-    };
-    for integration_lineage in integration_lineages {
-        if !electrical_fabric.contains_contact(integration_lineage, association_lineage) {
-            *electrical_fabric = electrical_fabric
-                .append_contact(
-                    integration_lineage,
-                    association_lineage,
-                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-                )
-                .map_err(FormationError::ResidentElectricalUnavailable)?;
-        }
+    if candidate_pairs.is_empty() {
+        return Ok(Vec::new());
     }
-    Ok(Some(association_lineage))
+
+    let existing_association_for =
+        |pair: ([u8; 16], [u8; 16])| -> Result<Option<[u8; 16]>, FormationError> {
+            let left_flat = topology.flat_for_lineage(pair.0)?;
+            let mut candidates = BTreeSet::new();
+            for contact_index in topology.incident_contacts_by_flat[left_flat]
+                .iter()
+                .copied()
+            {
+                let contact = topology.contacts[contact_index];
+                let other_flat = if contact.left == left_flat {
+                    contact.right
+                } else {
+                    contact.left
+                };
+                let candidate = topology.flat_locations[other_flat].2;
+                if topology.layer_of(candidate) == Some(7) {
+                    candidates.insert(candidate);
+                }
+            }
+            let mut matching = Vec::new();
+            for candidate in candidates {
+                let candidate_flat = topology.flat_for_lineage(candidate)?;
+                let mut layer_six_neighbours = topology.incident_contacts_by_flat[candidate_flat]
+                    .iter()
+                    .copied()
+                    .filter_map(|contact_index| {
+                        let contact = topology.contacts[contact_index];
+                        let other_flat = if contact.left == candidate_flat {
+                            contact.right
+                        } else {
+                            contact.left
+                        };
+                        let lineage = topology.flat_locations[other_flat].2;
+                        (topology.layer_of(lineage) == Some(6)).then_some(lineage)
+                    })
+                    .collect::<Vec<_>>();
+                layer_six_neighbours.sort_unstable();
+                layer_six_neighbours.dedup();
+                if layer_six_neighbours.as_slice() == [pair.0, pair.1] {
+                    matching.push(candidate);
+                }
+            }
+            match matching.as_slice() {
+                [] => Ok(None),
+                [lineage] => Ok(Some(*lineage)),
+                _ => Err(FormationError::NeuronLineageAuthorityChanged),
+            }
+        };
+
+    let mut associations = Vec::new();
+    let mut additions = Vec::new();
+    for pair in candidate_pairs {
+        if let Some(lineage) = existing_association_for(pair)? {
+            associations.push(lineage);
+            continue;
+        }
+        let association =
+            mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 7)?;
+        additions.push((
+            pair.0,
+            association,
+            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+        ));
+        additions.push((
+            pair.1,
+            association,
+            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+        ));
+        associations.push(association);
+    }
+    if !additions.is_empty() {
+        *electrical_fabric = electrical_fabric
+            .append_contacts(&additions)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    associations.sort_unstable();
+    associations.dedup();
+    Ok(associations)
 }
 
 /// Couple each genuinely reached body-or-balance receptor to its own local
@@ -18545,7 +18623,7 @@ mod tests {
     }
 
     #[test]
-    fn one_multisensory_occurrence_mounts_one_reusable_physical_association() {
+    fn varied_multisensory_occurrences_mount_only_reusable_emitted_pairs() {
         fn receptor_cohort(
             sense: PhysicalSourceSense,
             topology_index: u32,
@@ -18648,12 +18726,35 @@ mod tests {
             &reached_receptors[1..],
         )
         .unwrap();
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let emitted_layer_six = topology
+            .lineage_layers
+            .iter()
+            .filter_map(|(lineage, layer)| (*layer == 6).then_some(*lineage))
+            .collect::<BTreeSet<_>>();
+        assert_eq!(emitted_layer_six.len(), 3);
+
+        let absent = mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &topology,
+            &[vec![receptor_lineages[0], receptor_lineages[2]]],
+            &BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(absent.is_empty());
+        assert_eq!(fabric.contact_count(), 3);
+
         mount_reached_cross_sensory_association(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &receptor_lineages,
+            &topology,
+            &[vec![receptor_lineages[0], receptor_lineages[2]]],
+            &emitted_layer_six,
         )
         .unwrap();
         let association = cohorts
@@ -18669,16 +18770,45 @@ mod tests {
             .map(|(_, lineage)| *lineage)
             .collect::<Vec<_>>();
         assert_eq!(association.len(), 1);
-        assert_eq!(fabric.contact_count(), 6);
-        let cohort_count = cohorts.len();
-        let contact_count = fabric.contact_count();
+        assert_eq!(fabric.contact_count(), 5);
 
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
         mount_reached_cross_sensory_association(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &receptor_lineages,
+            &topology,
+            &[vec![receptor_lineages[1], receptor_lineages[2]]],
+            &emitted_layer_six,
+        )
+        .unwrap();
+        let association = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 7)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(association.len(), 2);
+        assert_eq!(fabric.contact_count(), 7);
+        let cohort_count = cohorts.len();
+        let contact_count = fabric.contact_count();
+
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &topology,
+            &[receptor_lineages.to_vec()],
+            &emitted_layer_six,
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
