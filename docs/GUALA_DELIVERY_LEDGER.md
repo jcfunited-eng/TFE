@@ -13,13 +13,13 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1198`, commit
-`1a3f4d0880dbaa6181a9535d4a2e3b13f309d071`, immutable image
-`sha256:42546cc71784e7eba1abb6e3a659e5efd7dce9065ae807dbe8d125dadcb841de`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Direct unattended
-life advanced through generation `157698`; the rejected background topology
-was retired once, ordinary growth now requires exact causal transfer, and the
-one-time migration switch is disabled for subsequent restarts.
+Current production baseline: task definition `dsf-ai-task:1232`, commit
+`0d8f392611eaed9baaf72f1b370342e65d708ae7`, immutable image
+`sha256:46ea2a9da593f5b09b35da00bddb4e86eb26d612ffd797fc205f0a54d6e45c9a`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The exact learned
+recognition successor is CURRENT at tick 172663/state
+`daebf329033be470804daebcb064934a0f6f29bed9534c229dafdc45063ef740`;
+task 1232 bounded only passive causal observation and sent no duplicate lesson.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
@@ -32,7 +32,7 @@ one-time migration switch is disabled for subsequent restarts.
 | 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
 | 4 | A-013 | Live-closed 2026-08-24 on task 1222 | Preserve the bounded Phase-1 articulated body, world/vestibular state, and exact core/cutaneous neuronal thermal participation; final gait, dexterity, and hardware morphology remain later scope. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
-| 6 | L-005 | Open | Directly prove first genuine learned recognition from novel sensory evidence, not metadata or labels. |
+| 6 | L-005 | Live-closed 2026-08-25 on tasks 1231/1232 | Preserve the exact bear-hidden acoustic reassembly of cross-sensory recurrent route `...08da`, its layer-12 action, and same-organism sensed return; no label or observer may become authority. |
 | 7 | L-006 | Open | Directly prove one physically caused first utterance, self-hearing, and learned reuse in a different context. |
 | 8 | Remaining curriculum/UI/final proof | Open | Continue L-007 onward, U-001 onward, and final P acceptance in dependency order; S-010 and C-013 remain explicit open requirements and cannot be lost. |
 
@@ -634,8 +634,13 @@ one-time migration switch is disabled for subsequent restarts.
   song-recognition, or speech claim is made. The next ordinary interval after
   the post-lesson consolidation burst added only 12,034 bytes and no retained
   impression or mosaic. See the L-004 synchronized-song sprint ledger.
-- [ ] **L-005** Demonstrate first genuine learned word recognition from novel
+- [x] **L-005** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
+  **Live-closed 2026-08-25:** one grounded sight+sound+layer-7 formation retained
+  unique recurrent route `...08da`; later bear-hidden physical PCM reassembled
+  that route, reached layer-12 action, and returned exact proprioceptive/load
+  consequence in the same production organism. Task 1232 bounded the passive
+  proof to one witness per recurrent formation without changing cognition.
 - [ ] **L-006** Demonstrate a physically caused first utterance and self-heard
   consequence, then repeated learned use in a different context.
 - [ ] **L-007** Connect live camera, microphone, and text input so the organism
