@@ -432,6 +432,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
     motor_b = "09" * 16
     receipt_a = "11" * 32
     receipt_b = "22" * 32
+    receipt_b_alternate = "33" * 32
     observer = _FrontierObserver()
 
     active, completed = production._advance_causal_motor_traces(
@@ -443,6 +444,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
             external_reassemblies=(
                 (receipt_a, (cue_a,), recurrent_a),
                 (receipt_b, (cue_b,), recurrent_b),
+                (receipt_b_alternate, (cue_b,), recurrent_b),
             ),
         ),
     )
@@ -480,7 +482,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
     assert completed[
         "externally_reassembled_retained_formation"
     ]["recurrent_lineage"] == recurrent_a
-    assert tuple(key[2][0] for key in active) == (recurrent_b,)
+    assert {key[2][0] for key in active} == {recurrent_b}
 
     observer.transfers = ()
     active, completed = production._advance_causal_motor_traces(
@@ -501,9 +503,8 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         ),
     )
 
-    all_paths = production._compact_completed_retained_motor_paths(
+    all_paths = production._compact_completed_external_retained_motor_paths(
         completed,
-        "externally_reassembled_retained_formation",
     )
     assert tuple(path["recurrent_lineage"] for path in all_paths) == (
         recurrent_a,
