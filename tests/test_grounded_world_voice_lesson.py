@@ -51,6 +51,9 @@ def _mount_transport(monkeypatch) -> list[tuple[object, str]]:
             "observation": {
                 "organism_tick": 4,
                 "state_sha256": "3" * 64,
+                "externally_reassembled_formation_causal_uses": (
+                    {"recurrent_lineage": "4" * 32},
+                ),
                 "native_body_buffer": b"must-not-be-serialized",
             },
             "persisted": {"state_sha256": "3" * 64},
@@ -96,6 +99,9 @@ def test_grounded_world_voice_commits_one_physical_world_trajectory(monkeypatch)
     assert body["transport_metadata_only"] is True
     assert body["world_sensorium"]["world_revision"] == 9
     assert body["transition"]["organism_tick"] == 4
+    assert body["causal_use"][
+        "externally_reassembled_formation_causal_uses"
+    ] == [{"recurrent_lineage": "4" * 32}]
     assert "observation" not in body
     assert calls[0][0] == [("physical-world-episode", [(1, 1)])]
     assert calls[0][1].startswith("guided-world-voice:")

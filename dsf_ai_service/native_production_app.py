@@ -1663,6 +1663,16 @@ _CROSS_INTAKE_CAUSAL_TRACE_KINDS = frozenset(
         "retained_formation",
     }
 )
+_MULTI_PATH_CAUSAL_TRACE_KINDS = frozenset(
+    {
+        "externally_reassembled_retained_formation",
+        "retained_formation",
+    }
+)
+_COMPLETED_MOTOR_PATHS_BY_ORIGIN = "_completed_motor_paths_by_origin"
+_COMPLETED_ARTICULATION_ORIGINS = (
+    "_completed_articulation_origins"
+)
 _active_cross_intake_causal_motor_traces: dict[
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
@@ -8623,13 +8633,49 @@ def _changed_contact_on_causal_path(
     }
 
 
+def _compact_retained_motor_path(proof: dict[str, Any]) -> dict[str, Any]:
+    """Drop the complete motor-preparation fanout from one passive proof."""
+
+    recruitment = proof["motor_unit_recruitment"]
+    projected = {
+        key: proof[key]
+        for key in (
+            "origin_kind",
+            "origin_lineages",
+            "origin_organism_tick",
+            "motor_organism_tick",
+            "directed_physical_transfers",
+            "formation_receipt_sha256",
+            "internal_cue_lineages",
+            "recurrence_organism_tick",
+            "recurrent_lineage",
+            "external_cue_lineages",
+            "reassembly_organism_tick",
+            "changed_contact_channel_state",
+        )
+        if key in proof
+    }
+    projected["motor_unit_recruitment"] = {
+        key: recruitment[key]
+        for key in (
+            "motor_lineage",
+            "motor_layer",
+            "motor_topology_index",
+            "outward_elementary_carriers",
+            "body_afferent_paths",
+        )
+        if key in recruitment
+    }
+    return projected
+
+
 def _advance_causal_motor_traces(
     committed_frontier: tuple[tuple[str, str, int, int, str], ...] | None,
     active: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
-    completed: dict[str, dict[str, Any]],
+    completed: dict[str, Any],
     hop: dict[str, Any],
     transaction_affective_balance_trajectories: tuple[
         tuple[Any, ...], ...
@@ -8641,7 +8687,7 @@ def _advance_causal_motor_traces(
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
-    dict[str, dict[str, Any]],
+    dict[str, Any],
 ]:
     """Follow exact changed endpoints from physical causes to later motor discharge.
 
@@ -8691,8 +8737,6 @@ def _advance_causal_motor_traces(
         "affective_gradient",
         "external_participant_sensory",
     )
-    if all(kind in completed for kind in origin_kinds):
-        return active, completed
     predecessor_tick = int(hop["predecessor_organism_tick"])
     organism_tick = int(hop["organism_tick"])
     if organism_tick != predecessor_tick + 1:
@@ -8710,17 +8754,17 @@ def _advance_causal_motor_traces(
     next_active = {
         key: paths
         for key, paths in active.items()
-        if key[0] not in completed
+        if key[0] in _MULTI_PATH_CAUSAL_TRACE_KINDS
+        or key[0] not in completed
     }
-    if "retained_formation" not in completed:
-        for receipt, cue_lineages, recurrent_lineage in hop[
-            "internally_reassembled_formation_cues"
-        ]:
-            if recurrent_lineage is None:
-                continue
-            cues = tuple(cue_lineages)
-            key = ("retained_formation", receipt, cues, organism_tick)
-            next_active.setdefault(key, {recurrent_lineage: ()})
+    for receipt, cue_lineages, recurrent_lineage in hop[
+        "internally_reassembled_formation_cues"
+    ]:
+        if recurrent_lineage is None:
+            continue
+        cues = tuple(cue_lineages)
+        key = ("retained_formation", receipt, cues, organism_tick)
+        next_active.setdefault(key, {recurrent_lineage: ()})
     if next_active:
         reached_lineages = tuple(
             sorted(
@@ -8774,35 +8818,58 @@ def _advance_causal_motor_traces(
                 next_paths[frontier] = candidate
         if next_paths:
             advanced[key] = next_paths
-    if "retained_formation" not in completed:
-        for receipt, cue_lineages, recurrent_lineage in hop[
-            "internally_reassembled_formation_cues"
-        ]:
-            if recurrent_lineage is None:
-                continue
-            cues = tuple(cue_lineages)
-            recurrent_returns = tuple(
-                (sender, receiver, ordinal, carriers)
-                for sender, receiver, ordinal, carriers, frontier in (
-                    observed_interval_frontier
-                )
-                if frontier == recurrent_lineage
-                and (
-                    (sender == recurrent_lineage and receiver in cues)
-                    or (receiver == recurrent_lineage and sender in cues)
-                )
+    for receipt, cue_lineages, recurrent_lineage in hop[
+        "internally_reassembled_formation_cues"
+    ]:
+        if recurrent_lineage is None:
+            continue
+        cues = tuple(cue_lineages)
+        recurrent_returns = tuple(
+            (sender, receiver, ordinal, carriers)
+            for sender, receiver, ordinal, carriers, frontier in (
+                observed_interval_frontier
             )
-            if not recurrent_returns:
-                continue
-            key = ("retained_formation", receipt, cues, organism_tick)
-            advanced.setdefault(key, {}).setdefault(
-                recurrent_lineage,
-                (min(recurrent_returns),),
+            if frontier == recurrent_lineage
+            and (
+                (sender == recurrent_lineage and receiver in cues)
+                or (receiver == recurrent_lineage and sender in cues)
             )
-    proofs: dict[str, list[dict[str, Any]]] = {
-        kind: [] for kind in origin_kinds if kind not in completed
+        )
+        if not recurrent_returns:
+            continue
+        key = ("retained_formation", receipt, cues, organism_tick)
+        advanced.setdefault(key, {}).setdefault(
+            recurrent_lineage,
+            (min(recurrent_returns),),
+        )
+    motor_paths_by_origin = dict(
+        completed.get(_COMPLETED_MOTOR_PATHS_BY_ORIGIN, {})
+    )
+    articulation_completed_origins = set(
+        completed.get(_COMPLETED_ARTICULATION_ORIGINS, ())
+    )
+    proofs: dict[
+        str,
+        list[
+            tuple[
+                tuple[str, str, tuple[str, ...], int],
+                dict[str, Any],
+            ]
+        ],
+    ] = {
+        kind: []
+        for kind in origin_kinds
+        if kind in _MULTI_PATH_CAUSAL_TRACE_KINDS or kind not in completed
     }
-    retained_articulation_proofs: dict[str, list[dict[str, Any]]] = {
+    retained_articulation_proofs: dict[
+        str,
+        list[
+            tuple[
+                tuple[str, str, tuple[str, ...], int],
+                dict[str, Any],
+            ]
+        ],
+    ] = {
         "retained_formation": [],
         "externally_reassembled_retained_formation": [],
     }
@@ -8816,15 +8883,20 @@ def _advance_causal_motor_traces(
         for trajectory in observed_affective_trajectories
         if _complete_local_affective_balance_trajectory(trajectory)
     }
-    for (
-        origin_kind,
-        origin_receipt,
-        origin_lineages,
-        origin_tick,
-    ), paths_by_lineage in next_active.items():
+    for origin_key, paths_by_lineage in next_active.items():
+        (
+            origin_kind,
+            origin_receipt,
+            origin_lineages,
+            origin_tick,
+        ) = origin_key
         if organism_tick <= origin_tick:
             continue
-        for recruitment in hop["motor_unit_recruitments"]:
+        for recruitment in (
+            ()
+            if origin_key in motor_paths_by_origin
+            else hop["motor_unit_recruitments"]
+        ):
             (
                 motor_lineage,
                 topology_index,
@@ -8953,7 +9025,7 @@ def _advance_causal_motor_traces(
                         emitted_neuron_lineages=origin_lineages,
                         impression_organism_tick=origin_tick,
                     )
-                proofs[origin_kind].append(proof)
+                proofs[origin_kind].append((origin_key, proof))
         articulation_completion_kind = (
             f"{origin_kind}_articulation"
             if origin_kind in retained_articulation_proofs
@@ -8961,7 +9033,7 @@ def _advance_causal_motor_traces(
         )
         if (
             articulation_completion_kind is not None
-            and articulation_completion_kind not in completed
+            and origin_key not in articulation_completed_origins
         ):
             for recruitment in tuple(
                 hop.get("articulatory_unit_recruitments", ())
@@ -9046,7 +9118,9 @@ def _advance_causal_motor_traces(
                     )
                     if changed_contact is not None:
                         proof["changed_contact_channel_state"] = changed_contact
-                    retained_articulation_proofs[origin_kind].append(proof)
+                    retained_articulation_proofs[origin_kind].append(
+                        (origin_key, proof)
+                    )
     next_completed = dict(completed)
     if changed_by_bond:
         next_completed["_changed_contact_channel_states"] = {
@@ -9054,47 +9128,65 @@ def _advance_causal_motor_traces(
                 changed_by_bond[bond] for bond in sorted(changed_by_bond)
             )
         }
+
+    def proof_order(item: dict[str, Any]) -> tuple[object, ...]:
+        return (
+            0 if "changed_contact_channel_state" in item else 1,
+            len(item["directed_physical_transfers"]),
+            item["directed_physical_transfers"],
+            item["origin_lineages"],
+            item["origin_organism_tick"],
+        )
+
     for origin_kind, candidates in proofs.items():
-        if candidates:
+        selected: dict[
+            tuple[str, str, tuple[str, ...], int], dict[str, Any]
+        ] = {}
+        for origin_key, proof in candidates:
+            prior = selected.get(origin_key)
+            if prior is None or proof_order(proof) < proof_order(prior):
+                selected[origin_key] = proof
+        if origin_kind in _MULTI_PATH_CAUSAL_TRACE_KINDS:
+            motor_paths_by_origin.update(
+                (origin_key, _compact_retained_motor_path(proof))
+                for origin_key, proof in selected.items()
+            )
+        if selected and origin_kind not in next_completed:
             next_completed[origin_kind] = min(
-                candidates,
-                key=lambda item: (
-                    0 if "changed_contact_channel_state" in item else 1,
-                    len(item["directed_physical_transfers"]),
-                    item["directed_physical_transfers"],
-                    item["origin_lineages"],
-                    item["origin_organism_tick"],
-                ),
+                selected.values(),
+                key=proof_order,
             )
     for origin_kind, candidates in retained_articulation_proofs.items():
-        if candidates:
+        selected = {}
+        for origin_key, proof in candidates:
+            prior = selected.get(origin_key)
+            if prior is None or proof_order(proof) < proof_order(prior):
+                selected[origin_key] = proof
+        articulation_completed_origins.update(selected)
+        if selected and f"{origin_kind}_articulation" not in next_completed:
             next_completed[f"{origin_kind}_articulation"] = min(
-                candidates,
-                key=lambda item: (
-                    0 if "changed_contact_channel_state" in item else 1,
-                    len(item["directed_physical_transfers"]),
-                    item["directed_physical_transfers"],
-                    item["origin_lineages"],
-                    item["origin_organism_tick"],
-                ),
+                selected.values(),
+                key=proof_order,
             )
-    advanced = {
-        key: paths
-        for key, paths in advanced.items()
-        if key[0] not in next_completed
-    }
-    if "externally_reassembled_retained_formation" not in next_completed:
-        for receipt, cue_lineages, recurrent_lineage in hop.get(
-            "externally_reassembled_formation_frontiers", ()
-        ):
-            cues = tuple(cue_lineages)
-            key = (
-                "externally_reassembled_retained_formation",
-                receipt,
-                (recurrent_lineage, *cues),
-                organism_tick,
-            )
-            advanced.setdefault(key, {recurrent_lineage: ()})
+    if motor_paths_by_origin:
+        next_completed[_COMPLETED_MOTOR_PATHS_BY_ORIGIN] = (
+            motor_paths_by_origin
+        )
+    if articulation_completed_origins:
+        next_completed[_COMPLETED_ARTICULATION_ORIGINS] = tuple(
+            sorted(articulation_completed_origins)
+        )
+    for receipt, cue_lineages, recurrent_lineage in hop.get(
+        "externally_reassembled_formation_frontiers", ()
+    ):
+        cues = tuple(cue_lineages)
+        key = (
+            "externally_reassembled_retained_formation",
+            receipt,
+            (recurrent_lineage, *cues),
+            organism_tick,
+        )
+        advanced.setdefault(key, {recurrent_lineage: ()})
     if "new_neuronal_fractal" not in next_completed:
         emitted = tuple(
             sorted(
@@ -9193,7 +9285,7 @@ def _derive_causal_motor_observation_after_publication(
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
-    dict[str, dict[str, Any]],
+    dict[str, Any],
     str | None,
 ]:
     """Derive bounded causal evidence without organism authority.
@@ -9205,7 +9297,7 @@ def _derive_causal_motor_observation_after_publication(
     """
 
     active = dict(prior_active)
-    completed: dict[str, dict[str, Any]] = {}
+    completed: dict[str, Any] = {}
     try:
         for hop, affective in hops:
             active, completed = _advance_causal_motor_traces(
@@ -9222,6 +9314,23 @@ def _derive_causal_motor_observation_after_publication(
             f"{type(error).__name__}: {error}"[:512],
         )
     return active, completed, None
+
+
+def _compact_completed_retained_motor_paths(
+    completed: dict[str, Any],
+    origin_kind: str,
+) -> tuple[dict[str, Any], ...]:
+    """Project every exact completed retained path without heavy preparation arrays."""
+
+    paths_by_origin = completed.get(_COMPLETED_MOTOR_PATHS_BY_ORIGIN, {})
+    if not isinstance(paths_by_origin, dict):
+        raise RuntimeError("completed causal motor paths changed format")
+    compact = []
+    for origin_key in sorted(paths_by_origin):
+        if origin_key[0] != origin_kind:
+            continue
+        compact.append(dict(paths_by_origin[origin_key]))
+    return tuple(compact)
 
 
 def _advance_internal_formation_motor_trace(
@@ -10346,6 +10455,18 @@ def _perform_admitted_intake_locked(
     external_participant_attention_path = completed_causal_motor_traces.get(
         "external_participant_attention"
     )
+    all_internally_reassembled_motor_paths = (
+        _compact_completed_retained_motor_paths(
+            completed_causal_motor_traces,
+            "retained_formation",
+        )
+    )
+    all_externally_reassembled_motor_paths = (
+        _compact_completed_retained_motor_paths(
+            completed_causal_motor_traces,
+            "externally_reassembled_retained_formation",
+        )
+    )
     motor_action_projection: dict[str, Any] | None = None
     motor_sensed_consequence: dict[str, Any] | None = None
     if motor_action is not None:
@@ -10388,6 +10509,30 @@ def _perform_admitted_intake_locked(
             "action": dict(motor_action_projection),
             "sensed_consequence": dict(motor_sensed_consequence),
         }
+    all_internally_reassembled_formation_causal_uses = (
+        ()
+        if motor_action is None
+        else tuple(
+            {
+                **path,
+                "action": dict(motor_action_projection),
+                "sensed_consequence": dict(motor_sensed_consequence),
+            }
+            for path in all_internally_reassembled_motor_paths
+        )
+    )
+    all_externally_reassembled_formation_causal_uses = (
+        ()
+        if motor_action is None
+        else tuple(
+            {
+                **path,
+                "action": dict(motor_action_projection),
+                "sensed_consequence": dict(motor_sensed_consequence),
+            }
+            for path in all_externally_reassembled_motor_paths
+        )
+    )
     new_impression_causal_use: dict[str, Any] | None = None
     if motor_action is not None and new_neuronal_fractal_motor_path is not None:
         new_impression_causal_use = {
@@ -10475,6 +10620,12 @@ def _perform_admitted_intake_locked(
         "causal_cross_context_use": causal_cross_context_use,
         "externally_reassembled_formation_causal_use": (
             externally_reassembled_formation_causal_use
+        ),
+        "internally_reassembled_formation_causal_uses": (
+            all_internally_reassembled_formation_causal_uses
+        ),
+        "externally_reassembled_formation_causal_uses": (
+            all_externally_reassembled_formation_causal_uses
         ),
         "new_impression_causal_use": new_impression_causal_use,
         "affective_motor_causal_use": affective_motor_causal_use,
@@ -15351,6 +15502,13 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         )
         if isinstance(observation.get(key), dict)
     }
+    for key in (
+        "internally_reassembled_formation_causal_uses",
+        "externally_reassembled_formation_causal_uses",
+    ):
+        value = observation.get(key)
+        if isinstance(value, (list, tuple)) and value:
+            causal_use[key] = value
     articulation = observation.get("articulation")
     if isinstance(articulation, dict):
         articulation = {
