@@ -85,12 +85,14 @@ def _transition() -> dict[str, object]:
             ),
             "body_effector_bindings": (
                 {
+                    "source_tick": 12,
                     "motor_lineage": FLEXOR_MOTOR,
                     "axis": AXIS,
                     "direction": "toward_minimum",
                     "outward_elementary_carriers": 7,
                 },
                 {
+                    "source_tick": 12,
                     "motor_lineage": EXTENSOR_MOTOR,
                     "axis": AXIS,
                     "direction": "toward_maximum",
@@ -274,6 +276,82 @@ def test_severed_antagonist_pairing_removes_the_witness() -> None:
     consequence["signed_displacement"] = -7
     consequence["applied_displacement_quanta"] = 7
     transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_severed_antagonist_binding_alone_removes_the_witness() -> None:
+    """Removing one antagonist's BINDING severs the witness even though the
+    consequence record still reports both pools — the settled totals can no
+    longer be accounted for by the discharges in evidence."""
+
+    transition = deepcopy(_transition())
+    transition["motor_action"]["body_effector_bindings"] = (
+        transition["motor_action"]["body_effector_bindings"][0],
+    )
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_severed_antagonist_recruitment_alone_removes_the_witness() -> None:
+    """Removing one antagonist's RECRUITMENT severs the witness even though
+    its binding and the consequence record are left untouched."""
+
+    transition = deepcopy(_transition())
+    transition["motor_action"]["prepared_recruitments"] = (
+        transition["motor_action"]["prepared_recruitments"][0],
+    )
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_binding_and_consequence_carrier_mismatch_is_refused() -> None:
+    transition = deepcopy(_transition())
+    bindings = tuple(
+        dict(binding)
+        for binding in transition["motor_action"]["body_effector_bindings"]
+    )
+    bindings[0]["outward_elementary_carriers"] = 6
+    transition["motor_action"]["body_effector_bindings"] = bindings
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_corrupted_applied_displacement_quanta_is_refused() -> None:
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["applied_displacement_quanta"] = 4
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_corrupted_position_difference_is_refused() -> None:
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["successor_position"] = consequence["predecessor_position"] - 4
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_corrupted_opposed_carrier_count_is_refused() -> None:
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["opposed_carriers_per_terminal"] = 3
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_binding_from_a_different_tick_cannot_account_for_the_settlement() -> None:
+    transition = deepcopy(_transition())
+    bindings = tuple(
+        dict(binding)
+        for binding in transition["motor_action"]["body_effector_bindings"]
+    )
+    bindings[1]["source_tick"] = 11
+    transition["motor_action"]["body_effector_bindings"] = bindings
 
     assert production._physical_choice_evidence_from_transition(transition) is None
 

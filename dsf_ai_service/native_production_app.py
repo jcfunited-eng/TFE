@@ -2959,6 +2959,51 @@ def _physical_choice_evidence_from_transition(
             return None
         if abs(signed_displacement) + stalled != abs(settled_signed_intent):
             return None
+        # The remaining identities are guaranteed by the body's settlement
+        # law; a record violating any of them is corrupted evidence and the
+        # whole transition is refused rather than searched for a better axis.
+        if int(consequence["applied_displacement_quanta"]) != abs(
+            signed_displacement
+        ):
+            return None
+        if (
+            int(consequence["successor_position"])
+            - int(consequence["predecessor_position"])
+        ) != signed_displacement:
+            return None
+        if int(consequence["opposed_carriers_per_terminal"]) != min(
+            toward_minimum, toward_maximum
+        ):
+            return None
+        # Join the settled pools back to the discharges that produced them:
+        # the same tick's bindings must account, direction by direction and
+        # carrier by carrier, for exactly the settled totals, and every bound
+        # lineage must be present in the prepared recruitments. Severing one
+        # antagonist's binding or recruitment now severs the witness even
+        # when the consequence record is left untouched.
+        consequence_source_tick = consequence.get("source_tick")
+        directed_totals: dict[str, int] = {}
+        bound_lineages: set[str] = set()
+        for binding in bindings:
+            if (
+                not isinstance(binding, dict)
+                or binding.get("axis") != axis
+                or binding.get("source_tick") != consequence_source_tick
+            ):
+                continue
+            directed_totals[binding.get("direction")] = directed_totals.get(
+                binding.get("direction"), 0
+            ) + int(binding["outward_elementary_carriers"])
+            bound_lineages.add(binding.get("motor_lineage"))
+        if directed_totals.get("toward_minimum", 0) != toward_minimum:
+            return None
+        if directed_totals.get("toward_maximum", 0) != toward_maximum:
+            return None
+        recruited_lineages = {
+            recruitment.get("motor_lineage") for recruitment in recruitments
+        }
+        if not bound_lineages or not bound_lineages <= recruited_lineages:
+            return None
         causal_intent = action.get("causal_intent_receipt_sha256")
         if not isinstance(causal_intent, str) or len(causal_intent) != 64:
             return None
@@ -9752,7 +9797,7 @@ def _perform_admitted_intake_locked(
     articulatory_intervals: list[
         tuple[int, tuple[tuple[int, int], ...]]
     ] = []
-    body_effector_bindings: list[tuple[str, str, str, int]] = []
+    body_effector_bindings: list[tuple[int, str, str, str, int]] = []
     articulated_body_consequences: list[
         tuple[int, str, str, int, int, int, int, int, int, int, int]
     ] = []
@@ -9764,7 +9809,15 @@ def _perform_admitted_intake_locked(
     ] = []
 
     def retain_articulated_body_evidence(hop: dict[str, Any]) -> None:
-        body_effector_bindings.extend(hop["body_effector_bindings"])
+        # The settlement tick is attached at accumulation so the flattened
+        # binding set stays joinable, entry by entry, to the per-tick
+        # consequence record it produced. Without the tick, identical
+        # discharges at different ticks dedupe and the carrier-total join
+        # below the choice witness becomes unverifiable.
+        hop_tick = int(hop["organism_tick"])
+        body_effector_bindings.extend(
+            (hop_tick, *binding) for binding in hop["body_effector_bindings"]
+        )
         articulated_body_consequences.extend(
             hop["articulated_body_consequences"]
         )
@@ -10418,12 +10471,19 @@ def _perform_admitted_intake_locked(
             "motor_unit_recruitment_count": len(motor_unit_recruitments),
             "body_effector_bindings": [
                 {
+                    "source_tick": binding_source_tick,
                     "motor_lineage": lineage,
                     "axis": axis,
                     "direction": direction,
                     "outward_elementary_carriers": carriers,
                 }
-                for lineage, axis, direction, carriers in canonical_bindings
+                for (
+                    binding_source_tick,
+                    lineage,
+                    axis,
+                    direction,
+                    carriers,
+                ) in canonical_bindings
             ],
             "articulated_body_consequences": [
                 {
@@ -11746,6 +11806,21 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         _stage_wall_ms["world_and_episode_build"] = round(_episodes_wall_ms, 1)
         _stage_wall_ms["interval_total"] = round(
             (time.perf_counter() - _interval_started) * 1000.0, 1
+        )
+        # Wall time no named stage claims: world persistence, evidence
+        # validation, record assembly, observation refresh. Kept explicit so
+        # overhead cannot disappear between the named stages.
+        _stage_wall_ms["unattributed"] = round(
+            max(
+                0.0,
+                _stage_wall_ms["interval_total"]
+                - sum(
+                    value
+                    for stage, value in _stage_wall_ms.items()
+                    if stage != "interval_total"
+                ),
+            ),
+            1,
         )
         print(
             "guala-transport-stopwatch "
