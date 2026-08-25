@@ -2999,10 +2999,15 @@ def _physical_choice_evidence_from_transition(
             return None
         if directed_totals.get("toward_maximum", 0) != toward_maximum:
             return None
+        # The internal cause must have discharged AT this settlement, not
+        # merely somewhere in the transaction: a consequence whose tick does
+        # not carry the causal motor's own discharge is not the caused one.
+        if causal_motor_lineage not in bound_lineages:
+            continue
         recruited_lineages = {
             recruitment.get("motor_lineage") for recruitment in recruitments
         }
-        if not bound_lineages or not bound_lineages <= recruited_lineages:
+        if not bound_lineages <= recruited_lineages:
             return None
         causal_intent = action.get("causal_intent_receipt_sha256")
         if not isinstance(causal_intent, str) or len(causal_intent) != 64:
@@ -7985,6 +7990,47 @@ def _perform_genesis(admission: NativeResidentResourceAdmission) -> None:
     )
 
 
+def _tick_attributed_effector_bindings(
+    hop: dict[str, Any],
+) -> tuple[tuple[int, str, str, str, int], ...]:
+    """Attribute each effector binding to the exact tick its discharge settled.
+
+    The native evidence flattens motor-to-terminal bindings across the whole
+    prepared trajectory without a tick, while each body consequence carries
+    the PREDECESSOR tick of the interval that settled it. The real tick of a
+    binding therefore comes from the per-interval causal evidence: each
+    interval names its own predecessor tick and its own motor discharges, and
+    a motor lineage's terminal (axis, direction) is fixed anatomy read from
+    the flattened bindings. Manufacturing a tick from the hop's final
+    organism_tick is wrong by one for a single interval and wrong entirely
+    for multi-interval trajectories.
+    """
+
+    terminal_by_lineage: dict[str, tuple[str, str]] = {}
+    for binding in hop["body_effector_bindings"]:
+        lineage, axis, direction, _carriers = binding
+        terminal_by_lineage[str(lineage)] = (str(axis), str(direction))
+    attributed: list[tuple[int, str, str, str, int]] = []
+    for interval in hop.get("causal_interval_evidence", ()):
+        settlement_tick = int(interval["predecessor_organism_tick"])
+        for recruitment in interval["motor_unit_recruitments"]:
+            lineage = str(recruitment[0])
+            carriers = int(recruitment[2])
+            terminal = terminal_by_lineage.get(lineage)
+            if terminal is None:
+                raise RuntimeError(
+                    "native motor discharge lost its effector terminal"
+                )
+            attributed.append(
+                (settlement_tick, lineage, terminal[0], terminal[1], carriers)
+            )
+    if not attributed and hop["body_effector_bindings"]:
+        raise RuntimeError(
+            "native effector bindings lost their causal interval evidence"
+        )
+    return tuple(attributed)
+
+
 def _causal_interval_hops(
     evidence: ResidentPrepareEvidence,
 ) -> tuple[dict[str, Any], ...]:
@@ -9809,14 +9855,8 @@ def _perform_admitted_intake_locked(
     ] = []
 
     def retain_articulated_body_evidence(hop: dict[str, Any]) -> None:
-        # The settlement tick is attached at accumulation so the flattened
-        # binding set stays joinable, entry by entry, to the per-tick
-        # consequence record it produced. Without the tick, identical
-        # discharges at different ticks dedupe and the carrier-total join
-        # below the choice witness becomes unverifiable.
-        hop_tick = int(hop["organism_tick"])
         body_effector_bindings.extend(
-            (hop_tick, *binding) for binding in hop["body_effector_bindings"]
+            _tick_attributed_effector_bindings(hop)
         )
         articulated_body_consequences.extend(
             hop["articulated_body_consequences"]

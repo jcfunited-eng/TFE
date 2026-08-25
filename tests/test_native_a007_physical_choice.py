@@ -85,14 +85,14 @@ def _transition() -> dict[str, object]:
             ),
             "body_effector_bindings": (
                 {
-                    "source_tick": 12,
+                    "source_tick": 11,
                     "motor_lineage": FLEXOR_MOTOR,
                     "axis": AXIS,
                     "direction": "toward_minimum",
                     "outward_elementary_carriers": 7,
                 },
                 {
-                    "source_tick": 12,
+                    "source_tick": 11,
                     "motor_lineage": EXTENSOR_MOTOR,
                     "axis": AXIS,
                     "direction": "toward_maximum",
@@ -101,7 +101,7 @@ def _transition() -> dict[str, object]:
             ),
             "articulated_body_consequences": (
                 {
-                    "source_tick": 12,
+                    "source_tick": 11,
                     "axis": AXIS,
                     "unit": "millidegrees",
                     "predecessor_position": 40_000,
@@ -350,10 +350,116 @@ def test_binding_from_a_different_tick_cannot_account_for_the_settlement() -> No
         dict(binding)
         for binding in transition["motor_action"]["body_effector_bindings"]
     )
-    bindings[1]["source_tick"] = 11
+    bindings[1]["source_tick"] = 10
     transition["motor_action"]["body_effector_bindings"] = bindings
 
     assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_causal_lineage_absent_from_the_settlement_tick_is_not_the_cause() -> None:
+    """A consequence whose tick does not carry the causal motor's own
+    discharge is not the caused settlement, even on the causal axis."""
+
+    transition = deepcopy(_transition())
+    bindings = tuple(
+        dict(binding)
+        for binding in transition["motor_action"]["body_effector_bindings"]
+    )
+    bindings[0]["source_tick"] = 10
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["toward_minimum_carriers"] = 0
+    consequence["toward_maximum_carriers"] = 2
+    consequence["signed_displacement"] = 2
+    consequence["applied_displacement_quanta"] = 2
+    consequence["opposed_carriers_per_terminal"] = 0
+    consequence["successor_position"] = consequence["predecessor_position"] + 2
+    transition["motor_action"]["body_effector_bindings"] = bindings
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def _interval(predecessor_tick: int, recruitments) -> dict[str, object]:
+    return {
+        "predecessor_organism_tick": predecessor_tick,
+        "organism_tick": predecessor_tick + 1,
+        "motor_unit_recruitments": tuple(recruitments),
+    }
+
+
+def test_binding_ticks_come_from_each_settling_interval() -> None:
+    """The single-interval case: the binding must carry the PREDECESSOR tick
+    (matching the native consequence record), never the hop's final tick."""
+
+    hop = {
+        "organism_tick": 12,
+        "body_effector_bindings": (
+            (FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+        ),
+        "causal_interval_evidence": (
+            _interval(11, ((FLEXOR_MOTOR, 0, 7, ()),)),
+        ),
+    }
+
+    assert production._tick_attributed_effector_bindings(hop) == (
+        (11, FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+    )
+
+
+def test_multi_interval_discharges_keep_their_own_ticks() -> None:
+    hop = {
+        "organism_tick": 14,
+        "body_effector_bindings": (
+            (FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+            (EXTENSOR_MOTOR, AXIS, "toward_maximum", 2),
+        ),
+        "causal_interval_evidence": (
+            _interval(11, ((FLEXOR_MOTOR, 0, 7, ()),)),
+            _interval(12, ()),
+            _interval(13, ((EXTENSOR_MOTOR, 1, 2, ()),)),
+        ),
+    }
+
+    assert production._tick_attributed_effector_bindings(hop) == (
+        (11, FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+        (13, EXTENSOR_MOTOR, AXIS, "toward_maximum", 2),
+    )
+
+
+def test_discharge_without_a_terminal_is_refused() -> None:
+    hop = {
+        "organism_tick": 12,
+        "body_effector_bindings": (
+            (FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+        ),
+        "causal_interval_evidence": (
+            _interval(11, ((EXTENSOR_MOTOR, 1, 2, ()),)),
+        ),
+    }
+
+    try:
+        production._tick_attributed_effector_bindings(hop)
+    except RuntimeError as error:
+        assert "lost its effector terminal" in str(error)
+    else:
+        raise AssertionError("unknown discharge lineage must refuse")
+
+
+def test_bindings_without_interval_evidence_are_refused() -> None:
+    hop = {
+        "organism_tick": 12,
+        "body_effector_bindings": (
+            (FLEXOR_MOTOR, AXIS, "toward_minimum", 7),
+        ),
+        "causal_interval_evidence": (),
+    }
+
+    try:
+        production._tick_attributed_effector_bindings(hop)
+    except RuntimeError as error:
+        assert "lost their causal interval evidence" in str(error)
+    else:
+        raise AssertionError("tickless bindings must refuse, never guess")
 
 
 def test_shadowed_attention_binding_is_counted_not_witnessed(monkeypatch) -> None:
