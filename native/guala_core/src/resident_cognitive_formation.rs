@@ -13851,6 +13851,7 @@ impl ResidentTopologyIndex {
             .map(|lineage| self.flat_for_lineage(lineage))
             .collect::<Result<BTreeSet<_>, _>>()?;
         let seeds = selected.iter().copied().collect::<Vec<_>>();
+        let mut selected_contacts = BTreeSet::new();
         for flat in seeds {
             for contact_index in self
                 .incident_contacts_by_flat
@@ -13859,6 +13860,7 @@ impl ResidentTopologyIndex {
                 .iter()
                 .copied()
             {
+                selected_contacts.insert(contact_index);
                 let contact = *self
                     .contacts
                     .get(contact_index)
@@ -13866,17 +13868,6 @@ impl ResidentTopologyIndex {
                 for endpoint in [contact.left, contact.right] {
                     selected.insert(endpoint);
                 }
-            }
-        }
-        let mut selected_contacts = BTreeSet::new();
-        for flat in selected.iter().copied() {
-            for contact_index in self.incident_contacts_by_flat[flat].iter().copied() {
-                let contact = self.contacts[contact_index];
-                if !selected.contains(&contact.left) || !selected.contains(&contact.right)
-                {
-                    continue;
-                }
-                selected_contacts.insert(contact_index);
             }
         }
         Ok((
@@ -18877,6 +18868,44 @@ mod tests {
             .unwrap();
         assert_eq!(baseline, (vec![0, 1], vec![0]));
         assert_eq!(wide, baseline);
+
+        // Neighbours reached from the same seed do not make their lateral
+        // contact part of this clock. That contact may settle only when one of
+        // those neighbours is carried as a seed by the next causal interval.
+        let mut triangle = index(1);
+        triangle.contacts = vec![
+            ResidentContactTopologyEntry {
+                left: 0,
+                right: 1,
+                stable_bond: StablePhysicalBondReference::new(lineage(0), lineage(1), 0)
+                    .unwrap(),
+                origin: ResidentContactOrigin::Fabric { contact_index: 0 },
+            },
+            ResidentContactTopologyEntry {
+                left: 0,
+                right: 2,
+                stable_bond: StablePhysicalBondReference::new(lineage(0), lineage(2), 0)
+                    .unwrap(),
+                origin: ResidentContactOrigin::Fabric { contact_index: 1 },
+            },
+            ResidentContactTopologyEntry {
+                left: 1,
+                right: 2,
+                stable_bond: StablePhysicalBondReference::new(lineage(1), lineage(2), 0)
+                    .unwrap(),
+                origin: ResidentContactOrigin::Fabric { contact_index: 2 },
+            },
+        ]
+        .into_boxed_slice();
+        triangle.incident_contacts_by_flat = vec![vec![0, 1], vec![0, 2], vec![1, 2], vec![]]
+            .into_iter()
+            .map(Vec::into_boxed_slice)
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
+        assert_eq!(
+            triangle.one_interval_frontier(&[lineage(0)]).unwrap(),
+            (vec![0, 1, 2], vec![0, 1]),
+        );
     }
 
     #[test]
