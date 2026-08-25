@@ -893,3 +893,37 @@ loop is authorized merely to force closure.
   non-simultaneous body and sensory activity cannot manufacture an effector.
   `cargo check --lib` and `git diff --check` pass. These are local source
   evidence only until the corrected image is deployed and falsified live.
+
+### Task 1230 live result
+
+- Commit `2249b18ac361df741cbfb7c12cf4a0905dcfc75d` deployed once as sole
+  production task `dsf-ai-task:1230`, immutable image
+  `sha256:18c7edb0a41a3ac515c6ce3a9672891158ff69ae2e95ddec5594682537938ed3`.
+  The controller verified native state and completed exactly one cutover in
+  19 minutes 11 seconds. The organism identity remained unchanged.
+- One visible-bear grounding committed at tick 171933 with 593 exact neuronal
+  fractals, 1,789 full-field deliveries, 1,220 physical reassemblies, native
+  action, sensed proprioceptive return, self-hearing, and zero exhausted
+  intervals. The world was then turned once to heading 221874; read-only world
+  state proved the bear approximately 120 degrees outside the retinal
+  half-field. The move response was ambiguous, so it was not repeated.
+- One varied hidden-view pressure cue committed at tick 172026, state
+  `debbc42582eda37a8efe4a2205b9b35847be38610567761991a85a0b3cb3e321`,
+  with 648 neuronal fractals, 2,071 full-field deliveries, 1,477 physical
+  reassemblies, native action, self-hearing, and zero exhausted intervals.
+- Passive cold inspection of that exact production body found one retained
+  formation whose original physical structure contains 23 layer-0 visual
+  members, 31 layer-1 auditory members, two layer-5 body/local members, 32
+  layer-6 integrations, two layer-7 associations, three layer-9 recurrent
+  members, and one layer-10 affective member. It carries 58 retained members,
+  93 exact original bonds, and 62 recurrence bonds. Receipt:
+  `74aeca3f774d3d751568f7c89a79952c6c6c3fba0bcb7bcb44c44642d64f7464`.
+  Task 1229 produced no such structure; the bounded continuation correction is
+  therefore live-effective.
+- The latest retained recurrence witness for that formation is
+  `internally_simulated` from two layer-5 members. The endpoint's externally
+  reassembled action was caused by a different retained visual formation, not
+  this new cross-sensory formation. Therefore this record proves live exact
+  cross-sensory retention and recurrence, but **does not yet close L-005** as
+  learned-word recognition or first utterance. No third bear repetition is
+  authorized merely to force the claim.
