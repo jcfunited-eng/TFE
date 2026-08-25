@@ -26,6 +26,30 @@ import {
 // constants as the entry gate — no separate exit formula to drift.
 import { computeV3Basin } from "./v3_basin.mjs";
 // assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+
+// ── CH2 nightly verdict sheet (Joseph's exit law 2026-08-25) ──────────────
+// Published by tools/ch2_holdings_read.py beside the channel books. The
+// sheet is advisory-fresh for 4 days (weekend-safe); older is stale.
+const CH2_VERDICTS_BUCKET = "tfe-codebuild-src-418384447921-us-east-1";
+const CH2_VERDICTS_KEY = "runtime-refresh-checkpoints/channel-books/ch2-verdicts.json";
+const CH2_VERDICTS_MAX_AGE_MS = 4 * 24 * 60 * 60 * 1000;
+
+async function loadCh2Verdicts() {
+  const s3 = new S3Client({ region: "us-east-1" });
+  const res = await s3.send(new GetObjectCommand({
+    Bucket: CH2_VERDICTS_BUCKET, Key: CH2_VERDICTS_KEY,
+  }));
+  const body = JSON.parse(await res.Body.transformToString());
+  const readAt = new Date(body?.read_at ?? 0).getTime();
+  if (!Number.isFinite(readAt) || Date.now() - readAt > CH2_VERDICTS_MAX_AGE_MS) {
+    throw new Error(`verdict sheet stale (read_at ${body?.read_at ?? "missing"})`);
+  }
+  if (!body || typeof body.verdicts !== "object") {
+    throw new Error("verdict sheet malformed");
+  }
+  return body;
+}
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -324,7 +348,12 @@ async function rearmOvernightProtection(positions, base) {
     if (qty <= 0) continue;
     const entry = parseFloat(ap?.avg_entry_price ?? "0");
     const tp = parseFloat(pos.take_profit_price ?? "0");
-    const sl = parseFloat(pos.stop_loss_price ?? "0");
+    // Joseph's exit law 2026-08-25: the overnight stop is the far-out
+    // emergency brake — 20% below entry, gap insurance only — lifted by
+    // the profit-protect floor once a big winner arms. The old 3xATR /
+    // min-5% custody stop was the -6% loser-seller; it no longer sets
+    // the price.
+    const sl = entry > 0 ? entry * 0.80 : 0;
     const peak = Math.max(
       parseFloat(pos.rationale_json?.peak_price ?? "") || 0,
       parseFloat(ap?.current_price ?? "0") || 0,
@@ -698,6 +727,17 @@ export async function runSentinel() {
 
   const ALPACA_BASE = await resolveAlpacaBase();
   console.log(`[SENTINEL] Alpaca base: ${ALPACA_BASE}`);
+
+  // Nightly long-view verdicts for CH2 holdings (Joseph's exit law
+  // 2026-08-25). Sheets older than 4 days are stale and ignored; a
+  // missing or unreadable sheet means every position simply holds.
+  const ch2Verdicts = await loadCh2Verdicts().catch((err) => {
+    console.warn(`[SENTINEL] CH2 verdict sheet unavailable (${err.message}) — holdings keep current protections`);
+    return null;
+  });
+  if (ch2Verdicts) {
+    console.log(`[SENTINEL] CH2 verdicts loaded: ${Object.keys(ch2Verdicts.verdicts ?? {}).length} (read_at ${ch2Verdicts.read_at})`);
+  }
 
   const [positions, spyDk, accountRaw] = await Promise.all([
     fetchOpenPositions(),
@@ -1077,7 +1117,12 @@ export async function runSentinel() {
         // Skip EXIT-F outside market hours — prices unreliable
       } else {
       const signalClassRaw = String(pos.signal_class ?? "").trim().toUpperCase();
-      const catastrophicPct = signalClassRaw === "CH3" ? -0.01 : -0.10;
+      // CH2: one FAR-OUT emergency brake (Joseph's exit law 2026-08-25) —
+      // -20%, gap insurance only. Selling is the readings' job, not a
+      // percentage's. CH3 keeps its own tight floor; others unchanged.
+      const catastrophicPct =
+        signalClassRaw === "CH3" ? -0.01 :
+        signalClassRaw === "CH2" ? -0.20 : -0.10;
       const catastrophicLabel = signalClassRaw === "CH3"
         ? "ch3_catastrophic_floor" : "ch2_catastrophic_floor";
 
@@ -1200,18 +1245,47 @@ export async function runSentinel() {
       // as EXIT-D/H/S: structural-costume story, no backtest, winner-capping.
       // Destruction-pattern registry entry: GL-BRIEF-039.
 
-      // Exit B — Directional collapse: D_k no longer 1
-      // 7-day minimum hold: D_k collapse on day 0-6 is transient noise.
-      // Production data: 85% of D_k collapse exits recovered at 10-20 days.
-      // Only allow losing D_k exits after 7 days. Winning exits always allowed.
+      // ── THE READINGS EXIT (Joseph's exit law 2026-08-25) ─────────────
+      // Sells exist to keep profits. The nightly long-view reading of
+      // every holding (ch2-verdicts.json, published like the channel
+      // books) is the selling authority: DRIVE_DYING banks a winner
+      // whose fueling structure is failing at the scale of weeks; DEAD
+      // sells a loser whose repair has stopped (measured floor: no
+      // healing 16+ sessions past the last damage — beyond the 99th
+      // percentile of 53,890 healed wounds, both halves of a decade).
+      // ALIVE verdicts, UNREADABLE, or a missing/stale sheet hold —
+      // absence of evidence never liquidates a position.
+      const verdict = ch2Verdicts?.verdicts?.[pos.ticker] ?? null;
+      if ((verdict === "DRIVE_DYING" || verdict === "DEAD")
+          && isMarketHoursForExitF()) {
+        console.log(
+          `[SENTINEL] CH2 ${pos.ticker} READING ${verdict} | ` +
+          `P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% age=${posAge}d — ` +
+          (verdict === "DRIVE_DYING"
+            ? "the energy that carried it is failing; banking"
+            : "repair has stopped; selling the dead")
+        );
+        await killPosition(pos,
+          verdict === "DRIVE_DYING" ? "ch2_reading_energy_exit"
+                                    : "ch2_reading_dead_exit",
+          ALPACA_BASE);
+        continue;
+      }
+
+      // ── THE 90-DAY WALL (Joseph 2026-08-25): dead money time-box ─────
+      // No CH2 position outlives 90 days. (The old 25-day cap was never
+      // implemented — 42- and 138-day positions were found 2026-08-25.)
+      if (posAge >= 90 && isMarketHoursForExitF()) {
+        console.log(`[SENTINEL] CH2 ${pos.ticker} 90-DAY WALL | age=${posAge}d — selling`);
+        await killPosition(pos, "ch2_90day_wall", ALPACA_BASE);
+        continue;
+      }
+
+      // Exit B DEMOTED to an input (Joseph's exit law 2026-08-25): a
+      // one-day D_k flip is a micro shift, not the arc. It informs the
+      // nightly reading; it no longer sells anything.
       if (currentDk !== null && currentDk !== 1) {
-        if (isYoung && currentPnlPct !== null && currentPnlPct < 0) {
-          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — MIN HOLD GUARD: holding (P&L=${currentPnlPct.toFixed(1)}%, age=${posAge}d, need ${MIN_HOLD_DAYS}d)`);
-        } else {
-          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — directional collapse, exiting (age=${posAge}d)`);
-          await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
-          continue;
-        }
+        console.log(`[SENTINEL] CH2 ${pos.ticker} | D_k=${currentDk} — noted for the reading (no sell authority)`);
       }
 
       // ── EXIT-BASIN-BREAK: the physics exit (2026-08-11, Joe's dispatch) ──
@@ -1251,14 +1325,17 @@ export async function runSentinel() {
             B_k:      toF(snap.B_k      ?? snap.b_k),
           });
           if (basin && basin.break_agreement >= BREAK_AGREEMENT_EXIT) {
+            // DEMOTED to an input (Joseph's exit law 2026-08-25): the
+            // basin break fires on breakdowns and sold every loser at
+            // -6% while winners sat unbanked (receipt: five sales
+            // 8/12-8/25, all losses). It informs the nightly reading;
+            // it no longer sells anything.
             console.log(
-              `[SENTINEL] CH2 EXIT-BASIN-BREAK ${pos.ticker} | ` +
+              `[SENTINEL] CH2 ${pos.ticker} basin BROKEN | ` +
               `break_agreement=${basin.break_agreement.toFixed(4)} >= ${BREAK_AGREEMENT_EXIT} | ` +
               `age=${posAge}d P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% — ` +
-              `structure broken, harvesting`
+              `noted for the reading (no sell authority)`
             );
-            await killPosition(pos, "ch2_exit_basin_break", ALPACA_BASE);
-            continue;
           } else if (basin) {
             console.log(
               `[SENTINEL] CH2 ${pos.ticker} basin intact | ` +

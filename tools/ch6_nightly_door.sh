@@ -29,4 +29,11 @@ python tools/ch6_stage_slate.py >> "$LOG" 2>&1 \
   || { echo "[ch6-door] STAGING FAILED — book untouched" >> "$LOG"; exit 1; }
 
 python tools/publish_channel_books.py >> "$LOG" 2>&1
+
+# CH2 holdings get their nightly long-view readings after the CH6 door
+# (Joseph's exit law 2026-08-25). Failure holds every position — the
+# production engine ignores a missing or stale verdict sheet.
+python tools/ch2_holdings_read.py >> "$LOG" 2>&1 \
+  || echo "[ch6-door] CH2 READING PASS FAILED — holdings keep current protections" >> "$LOG"
+
 echo "[ch6-door] done $(date -u +%FT%TZ)" >> "$LOG"
