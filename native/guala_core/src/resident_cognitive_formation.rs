@@ -19490,7 +19490,6 @@ mod tests {
             &[],
             &[],
             16_000_000,
-                true,
         )
         .unwrap();
         assert_eq!(one_reassembled_relation.len(), 1);
@@ -19517,7 +19516,6 @@ mod tests {
             &[],
             &[],
             16_000_000,
-                true,
         )
         .unwrap();
         assert_ne!(
@@ -19624,7 +19622,6 @@ mod tests {
                         &fabric,
                         retained,
                         16_000_000,
-                true,
                     )
                     .unwrap(),
                 )
@@ -19679,7 +19676,6 @@ mod tests {
                     &fabric,
                     retained,
                     16_000_000,
-                true,
                 )
                 .unwrap(),
             );
@@ -19693,7 +19689,6 @@ mod tests {
                 &fabric,
                 retained,
                 16_000_000,
-                true,
             )
             .unwrap();
             let cold = decode_retained_organism_mosaic(
@@ -19701,7 +19696,6 @@ mod tests {
                 &fabric,
                 &encoded,
                 16_000_000,
-                true,
             )
             .unwrap();
             assert_eq!(cold, *retained);
