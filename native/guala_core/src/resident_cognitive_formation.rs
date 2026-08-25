@@ -2994,6 +2994,50 @@ fn formations_share_reached_physical_path(
         || sorted_values_intersect(prior.original_bonds(), current.original_bonds())
 }
 
+/// Whether `prior` already contains every physical member and original bond
+/// carried by `current`.  Different retained deltas on the same assembly are
+/// recurrence, not a new memory.  A current path with even one new neuron or
+/// bond is new physical structure and must remain eligible for retention;
+/// otherwise an established visual path could never learn an auditory
+/// relation that physically joins it later.
+fn formation_contains_reached_physical_path(
+    prior: &AdmittedPhysicalMosaic,
+    current: &AdmittedPhysicalMosaic,
+) -> bool {
+    current
+        .member_lineages()
+        .iter()
+        .all(|lineage| prior.member_lineages().binary_search(lineage).is_ok())
+        && current
+            .original_bonds()
+            .iter()
+            .all(|bond| prior.original_bonds().binary_search(bond).is_ok())
+}
+
+fn pending_association_has_cross_sensory_members(
+    pending: &AdmittedPhysicalMosaic,
+    topology_index: &ResidentTopologyIndex,
+) -> Result<bool, FormationError> {
+    let mut sensory_layers = BTreeSet::new();
+    let mut has_association = false;
+    for lineage in pending.member_lineages().iter().copied() {
+        match topology_index.layer_of(lineage) {
+            Some(layer @ 0..=5) => {
+                sensory_layers.insert(layer);
+            }
+            Some(7) => has_association = true,
+            Some(_) => {}
+            None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+        }
+    }
+    for bond in pending.original_bonds().iter().copied() {
+        let (left, right) = bond.endpoints();
+        has_association |= topology_index.layer_of(left) == Some(7)
+            || topology_index.layer_of(right) == Some(7);
+    }
+    Ok(!has_association || sensory_layers.len() >= 2)
+}
+
 /// Whether two unresolved originals occupy one continuing physical path.
 ///
 /// This is not formation identity: exact retained structure remains the only
@@ -3163,6 +3207,18 @@ fn settle_organism_mosaic_boundary(
     let prepared_retained = mosaics
         .par_iter()
         .map(|retained| -> Result<PreparedRetainedMosaicBoundary, FormationError> {
+            // A layer-7 trace is developmental cross-sensory anatomy.  Its
+            // post-quiescence pieces may arrive on adjacent intervals, but it
+            // cannot be promoted to retained recurrence until at least two
+            // real receptor layers have joined that exact pending path.
+            if retained.mosaic.is_original_only()
+                && !pending_association_has_cross_sensory_members(
+                    &retained.mosaic,
+                    topology_index,
+                )?
+            {
+                return Ok(PreparedRetainedMosaicBoundary::inactive(false));
+            }
             let current_frontier_member = !retained.mosaic.is_original_only()
                 && retained
                     .mosaic
@@ -3458,18 +3514,70 @@ fn settle_organism_mosaic_boundary(
         if !spans_multiple_cohorts {
             continue;
         }
-        // One exact physical route cannot be both a recurrence and a new
-        // original in the same organism interval. The current neuronal
-        // changes already altered the bounded recurrence witness above; minting
-        // another original from those same reached members/bonds would turn
-        // repeated sensation into an append-only episode history and grow one
-        // recurrent neuron on the following interval. A disjoint physical
-        // route remains eligible for ordinary original admission.
-        let shares_reassembled_path = reassembled_indices.iter().any(|index| {
-            formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
+        // Repeated motion on an already-retained assembly is recurrence, not
+        // an append-only history entry.  A genuinely cross-sensory
+        // developmental extension is the narrow exception: the current
+        // physical path must contain receptors from at least two sensory/body
+        // layers and must cross a layer-7 association absent from every
+        // retained path it overlaps. Those are mounted anatomy and exact
+        // conducting bonds, not a similarity score or semantic label. Once
+        // that association is retained, later motion on it is recurrence.
+        let overlapping_reassemblies = reassembled_indices
+            .iter()
+            .copied()
+            .filter(|index| {
+                formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
+            })
+            .collect::<Vec<_>>();
+        let joins_pending_path = mosaics.iter().any(|retained| {
+            retained.mosaic.is_original_only()
+                && pending_originals_share_physical_path(&retained.mosaic, &original)
+        }) || new_pending_originals.iter().any(|pending| {
+            pending_originals_share_physical_path(pending, &original)
         });
-        if shares_reassembled_path {
+        if !joins_pending_path
+            && overlapping_reassemblies.iter().any(|index| {
+                formation_contains_reached_physical_path(&mosaics[*index].mosaic, &original)
+            })
+        {
             continue;
+        }
+        if !overlapping_reassemblies.is_empty() && !joins_pending_path {
+            let mut sensory_layers = BTreeSet::new();
+            let mut current_associations = BTreeSet::new();
+            for lineage in original.member_lineages().iter().copied() {
+                match topology_index.layer_of(lineage) {
+                    Some(layer @ 0..=5) => {
+                        sensory_layers.insert(layer);
+                    }
+                    Some(7) => {
+                        current_associations.insert(lineage);
+                    }
+                    Some(_) => {}
+                    None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+                }
+            }
+            for bond in original.original_bonds().iter().copied() {
+                let (left, right) = bond.endpoints();
+                for lineage in [left, right] {
+                    if topology_index.layer_of(lineage) == Some(7) {
+                        current_associations.insert(lineage);
+                    }
+                }
+            }
+            let adds_new_association = current_associations.iter().any(|lineage| {
+                overlapping_reassemblies.iter().all(|index| {
+                    let prior = &mosaics[*index].mosaic;
+                    prior.member_lineages().binary_search(lineage).is_err()
+                        && prior.original_bonds().iter().all(|bond| {
+                            let (left, right) = bond.endpoints();
+                            left != *lineage && right != *lineage
+                        })
+                })
+            });
+            if sensory_layers.len() < 2 || !adds_new_association {
+                continue;
+            }
         }
         let duplicates_retained_structure = mosaics
             .iter()
@@ -6517,20 +6625,20 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &externally_reached_receptor_places,
         )?;
-        let mut reached_association_lineages = Vec::new();
         let mut reached_body_regulation_lineages = Vec::new();
         for occurrence_lineages in &externally_energized_by_occurrence {
-            if let Some(lineage) = mount_reached_cross_sensory_association(
+            // This admits only the sparse layer-6 <-> layer-7 anatomy.  The
+            // association cell is resting material at this boundary; it is
+            // not an external cause.  Current must first cross the receptor
+            // -> layer-6 contacts below, then the resulting retained frontier
+            // may reach layer 7 on the following physical interval.
+            let _ = mount_reached_cross_sensory_association(
                 &mut cohorts,
                 &mut resting_population,
                 &mut next_lineage_ordinal,
                 &mut electrical_fabric,
                 occurrence_lineages,
-            )? {
-                if !reached_association_lineages.contains(&lineage) {
-                    reached_association_lineages.push(lineage);
-                }
-            }
+            )?;
             for lineage in mount_reached_body_regulation(
                 &mut cohorts,
                 &mut resting_population,
@@ -6554,9 +6662,8 @@ impl ResidentCognitiveFormationState {
             .iter()
             .copied()
             .collect::<BTreeSet<_>>();
-        for lineage in reached_association_lineages
+        for lineage in reached_body_regulation_lineages
             .iter()
-            .chain(&reached_body_regulation_lineages)
             .chain(&metabolically_perturbed_body_receptor_lineages)
         {
             current_noncontinuation_seed_lineages.insert(*lineage);
@@ -6566,9 +6673,8 @@ impl ResidentCognitiveFormationState {
             .iter()
             .copied()
             .collect::<BTreeSet<_>>();
-        for lineage in reached_association_lineages
+        for lineage in reached_body_regulation_lineages
             .iter()
-            .chain(&reached_body_regulation_lineages)
             .chain(&metabolically_perturbed_body_receptor_lineages)
         {
             locally_settled_lineages.insert(*lineage);
@@ -20531,10 +20637,17 @@ mod tests {
         let mut motor_recruitments = Vec::new();
         let mut articulatory_recruitments = Vec::new();
         let mut repeated_optical_frontier_route_sets = Vec::new();
+        let mut emitted_layers = BTreeSet::new();
         for interval in 0..256 {
             let prepared = state.prepare(&source, 16_000_000).unwrap_or_else(|error| {
                 panic!("optical interval {interval} failed: {error:?}")
             });
+            let emitted_lineages = prepared
+                .observation
+                .emitted_neuron_fractals
+                .iter()
+                .map(|fractal| fractal.neuron_lineage)
+                .collect::<Vec<_>>();
             motor_recruitments.extend(
                 prepared
                     .observation
@@ -20555,6 +20668,13 @@ mod tests {
                     .push(prepared.observation.physical_frontier_routes.clone());
             }
             state = prepared.successor;
+            for lineage in emitted_lineages {
+                let layer = state
+                    .topology_index
+                    .layer_of(lineage)
+                    .expect("every emitted lineage remains mounted");
+                emitted_layers.insert(layer);
+            }
         }
         let layer_ten = state
             .cohorts
@@ -20619,6 +20739,63 @@ mod tests {
                 .filter(|mosaic| mosaic.recurrent_lineage.is_some())
                 .count(),
             1
+        );
+        let retained = state
+            .mosaics
+            .iter()
+            .find(|mosaic| mosaic.recurrent_lineage.is_some())
+            .expect("the repeated physical path retained one formation");
+        let retained_layers = retained
+            .mosaic
+            .member_lineages()
+            .iter()
+            .map(|lineage| {
+                state
+                    .topology_index
+                    .layer_of(*lineage)
+                    .expect("every retained lineage remains mounted")
+            })
+            .collect::<BTreeSet<_>>();
+        let formation_layers = state
+            .mosaics
+            .iter()
+            .map(|formation| {
+                formation
+                    .mosaic
+                    .member_lineages()
+                    .iter()
+                    .map(|lineage| {
+                        state
+                            .topology_index
+                            .layer_of(*lineage)
+                            .expect("every formation lineage remains mounted")
+                    })
+                    .collect::<BTreeSet<_>>()
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            emitted_layers.contains(&0)
+                && emitted_layers.contains(&1)
+                && emitted_layers.contains(&7),
+            "physical producer did not emit sight, sound, and association fractals: {emitted_layers:?}"
+        );
+        let cross_sensory_retained = state.mosaics.iter().any(|formation| {
+            let layers = formation
+                .mosaic
+                .member_lineages()
+                .iter()
+                .filter_map(|lineage| state.topology_index.layer_of(*lineage))
+                .collect::<BTreeSet<_>>();
+            let association_bond = formation.mosaic.original_bonds().iter().any(|bond| {
+                let (left, right) = bond.endpoints();
+                state.topology_index.layer_of(left) == Some(7)
+                    || state.topology_index.layer_of(right) == Some(7)
+            });
+            layers.contains(&0) && layers.contains(&1) && association_bond
+        });
+        assert!(
+            cross_sensory_retained,
+            "no retained physical path spanned sight and sound through association: {formation_layers:?}; recurrent={retained_layers:?}"
         );
         let encoded = state.encode(16_000_000).unwrap();
         let cold = ResidentCognitiveFormationState::decode(&encoded, 16_000_000).unwrap();
