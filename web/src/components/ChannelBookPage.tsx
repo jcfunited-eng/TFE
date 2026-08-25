@@ -1,6 +1,7 @@
 import type React from "react";
 import Link from "next/link";
 import type { ChannelBookView, ChannelPerceptionView } from "@/lib/channel-books";
+import ClosedRecordTable from "@/components/ClosedRecordTable";
 import styles from "@/app/portfolio/[channel]/page.module.css";
 
 
@@ -141,31 +142,7 @@ export default function ChannelBookPage({
       <section className={styles.tableCard}>
         <h2>Closed record <span>{book.closed.length}</span></h2>
         <div className={styles.tableWrap}>
-          <table>
-            <thead>
-              <tr>
-                <th>Ticker</th><th>Side</th><th>Shares</th><th>Entry</th><th>Exit</th>
-                <th>P&amp;L</th><th>Return</th><th>Reason</th><th>Exited</th>
-              </tr>
-            </thead>
-            <tbody>
-              {book.closed.length ? book.closed.map((trade, index) => (
-                <tr key={`${trade.symbol}-${trade.exitedAt}-${index}`}>
-                  <td className={styles.ticker}>{trade.symbol}</td>
-                  <td>{trade.side === -1 ? "SHORT" : "LONG"}</td>
-                  <td>{trade.shares ? trade.shares.toLocaleString("en-US") : "—"}</td>
-                  <td>{price(trade.entryPrice)}</td>
-                  <td>{price(trade.exitPrice)}</td>
-                  <td style={cellColor(trade.pnl)}>{dollars(trade.pnl, true)}</td>
-                  <td style={cellColor(trade.returnPct)}>{percent(trade.returnPct)}</td>
-                  <td>{trade.reason || "—"}</td>
-                  <td>{trade.exitedAt || "—"}</td>
-                </tr>
-              )) : (
-                <tr><td colSpan={9} className={styles.empty}>No closed positions.</td></tr>
-              )}
-            </tbody>
-          </table>
+          <ClosedRecordTable trades={book.closed} />
         </div>
       </section>
 
