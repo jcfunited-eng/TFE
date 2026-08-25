@@ -2,7 +2,11 @@
 
 Date: 2026-08-17
 
-Status: In progress. No learned-word recognition is live-proved.
+Status: Live-Closed for L-005 on 2026-08-25. The same production organism
+physically retained a grounded sight+sound+association formation, later
+reassembled its unique recurrent route from bear-hidden acoustic evidence,
+caused a native body action, and sensed the consequence. L-006 first learned
+utterance remains open; no emitted waveform is yet claimed to mean `bear`.
 
 ## 2026-08-22 resumed first-word work
 
@@ -927,3 +931,62 @@ loop is authorized merely to force closure.
   cross-sensory retention and recurrence, but **does not yet close L-005** as
   learned-word recognition or first utterance. No third bear repetition is
   authorized merely to force the claim.
+
+### Task 1231 learned recognition and task 1232 bounded observation
+
+- The final task-1230 conclusion above was true only of the single causal-use
+  proof returned by the then-current public response. Source tracing found that
+  the passive post-publication observer discarded every later causal path of a
+  kind after selecting the first one. It did not alter cognition, action, or
+  persistence, but it hid simultaneous retained-formation uses and made the
+  negative inference incomplete.
+- Passive cold inspection of the exact task-1230 successor proved that retained
+  formation
+  `74aeca3f774d3d751568f7c89a79952c6c3fba0bcb7bcb44c44642d64f7464`
+  has exactly one recurrent layer-9 endpoint:
+  `474c4e4c494e453100000000000008da`. Native recurrent retention is injective:
+  every retained formation owns one distinct recurrent endpoint, and cold
+  restore rejects duplicate ownership. The lineage therefore identifies this
+  retained structure without a word label, object label, score, or semantic
+  table.
+- Commit `eb03f360b9ee273fecbc825fe6d71015ca3e0f86` deployed as sole live task
+  `dsf-ai-task:1231` and changed only post-publication observation: concurrent
+  retained-formation causal paths were allowed to remain visible independently.
+  It did not add a cognitive input, choice, retry, state owner, or persistent
+  history.
+- Before the next production experience, read-only world revision 11240 placed
+  Guala at `(2300,3500)` facing 221.874 degrees and the real toy bear at
+  `(3200,3200)`. The bear was 119.691 degrees from gaze, outside the 90-degree
+  retinal half-field. One documented varied pronunciation of `bear` then
+  entered the same live organism as 9,062 exact 16-kHz pressure samples with
+  receipt
+  `d747cebf66ea4792e0797d94e53e9be107bc621fed0072aaf9c2ec1dc3379c9a`.
+  The request contained only schema, sample rate, and PCM bytes; filenames,
+  labels, object IDs, expected answers, and observer instructions did not enter
+  cognition.
+- That single live request committed 122 causal source hops through tick 172663
+  and state
+  `daebf329033be470804daebcb064934a0f6f29bed9534c229dafdc45063ef740`.
+  It produced 1,953 full seven-field DSF deliveries, 623 exact neuronal fractal
+  changes, 1,917 physical reassemblies, 36,614 transitioned neurons, native
+  layer-12 body action, two layer-13 recruitments, four self-hearing hops, and
+  zero exhausted intervals.
+- The target recurrent endpoint `...08da` externally reassembled repeatedly
+  from current acoustic cue lineages and crossed exact directed physical
+  transfers to layer-12 motor lineage `...0063`. The motor discharge returned
+  two exact body-afferent paths, including right-elbow proprioception and
+  effector-load sensation, into successor tick 172663 of the same organism.
+  This supplies the missing functional use: the grounded cross-sensory retained
+  structure was later recognized from physically changed, bear-hidden evidence
+  and caused sensed action. L-005 is therefore Live-Closed. It is not L-006:
+  the organism-owned emitted pressure has not yet been shown to encode or reuse
+  the learned word.
+- The first concurrent observer response exposed 777 repeated external records
+  and was 10.6 MB. That was observer waste, not cognitive growth. Commit
+  `0d8f392611eaed9baaf72f1b370342e65d708ae7` now keeps at most one canonical
+  exact external witness per distinct recurrent formation and restores internal
+  proof to its prior singular bound. It deployed once as sole production task
+  `dsf-ai-task:1232`, immutable image
+  `sha256:46ea2a9da593f5b09b35da00bddb4e86eb26d612ffd797fc205f0a54d6e45c9a`.
+  The controller verified the same organism identity and native CURRENT. No
+  duplicate lesson or local organism was created during that deployment.
