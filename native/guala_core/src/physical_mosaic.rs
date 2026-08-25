@@ -963,6 +963,20 @@ pub(crate) fn encode_admitted_physical_mosaic_for_topology(
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, PhysicalMosaicCodecError> {
     validate_decoded_mosaic(neuron_lineages, bonds, fractal_anatomies, mosaic)?;
+    encode_resident_admitted_physical_mosaic(mosaic, max_encoded_bytes)
+}
+
+/// Encode a resident mosaic that has already crossed the topology admission
+/// boundary. `AdmittedPhysicalMosaic` has no public field constructor: every
+/// resident value either passed `validate_decoded_mosaic` during cold restore
+/// or was produced by this module's exact admission/recurrence laws. Repeating
+/// the complete organism-topology validation for every recurrence receipt and
+/// again for every final seal adds no authority and makes unrelated anatomy
+/// part of the hot cognitive path.
+pub(crate) fn encode_resident_admitted_physical_mosaic(
+    mosaic: &AdmittedPhysicalMosaic,
+    max_encoded_bytes: usize,
+) -> Result<Vec<u8>, PhysicalMosaicCodecError> {
     let required = physical_mosaic_encoded_bytes(mosaic)?;
     if required > max_encoded_bytes {
         return Err(PhysicalMosaicCodecError::BudgetExceeded);
@@ -1828,6 +1842,10 @@ mod codec_tests {
     #[test]
     fn complete_sparse_fractals_round_trip_and_reencode_canonically() {
         let bytes = encoded();
+        assert_eq!(
+            encode_resident_admitted_physical_mosaic(&mosaic(), bytes.len()).unwrap(),
+            bytes,
+        );
         let decoded = decode_admitted_physical_mosaic_for_topology(
             &neuron_lineages(),
             &topology(),

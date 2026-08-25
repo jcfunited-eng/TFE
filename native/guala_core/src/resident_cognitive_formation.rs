@@ -81,7 +81,7 @@ use crate::physical_mosaic::{
     admit_physical_mosaic, admit_physical_mosaic_original, alter_physical_mosaic_recurrence,
     alter_physical_mosaic_recurrence_with_origin, connected_members,
     continue_physical_mosaic_original,
-    decode_admitted_physical_mosaic_for_topology, encode_admitted_physical_mosaic_for_topology,
+    decode_admitted_physical_mosaic_for_topology, encode_resident_admitted_physical_mosaic,
     prove_physical_mosaic_recurrence, prove_physical_mosaic_recurrence_with_origin,
     AdmittedPhysicalMosaic, PhysicalMosaicCodecError, PhysicalMosaicError,
     PhysicalMosaicRecurrenceOrigin, StablePhysicalBondReference,
@@ -2344,17 +2344,11 @@ fn encode_organism_mosaic(
 }
 
 fn encode_organism_mosaic_for_topology(
-    topology: &OrganismMosaicTopology,
+    _topology: &OrganismMosaicTopology,
     mosaic: &AdmittedPhysicalMosaic,
     max_encoded_bytes: usize,
 ) -> Result<Vec<u8>, FormationError> {
-    encode_admitted_physical_mosaic_for_topology(
-        &topology.lineages,
-        &topology.bonds,
-        &topology.fractal_anatomies,
-        mosaic,
-        max_encoded_bytes,
-    )
+    encode_resident_admitted_physical_mosaic(mosaic, max_encoded_bytes)
     .map_err(FormationError::PhysicalMosaicCodecUnavailable)
 }
 
@@ -3000,13 +2994,7 @@ fn observe_organic_mosaic_relations(
             .iter()
             .map(|local_index| {
                 let retained = &mosaics[frontier_indices[*local_index]].mosaic;
-                encode_admitted_physical_mosaic_for_topology(
-                    &topology.lineages,
-                    &topology.bonds,
-                    &topology.fractal_anatomies,
-                    retained,
-                    max_encoded_bytes,
-                )
+                encode_resident_admitted_physical_mosaic(retained, max_encoded_bytes)
                 .map(|encoded| sha256(&encoded))
                 .map_err(FormationError::PhysicalMosaicCodecUnavailable)
             })
@@ -3542,13 +3530,8 @@ fn settle_organism_mosaic_boundary(
                     )
                 });
             let observed_receipt = if needs_receipt {
-                let encoded = encode_admitted_physical_mosaic_for_topology(
-                    &topology.lineages,
-                    &topology.bonds,
-                    &topology.fractal_anatomies,
-                    observed,
-                    max_encoded_bytes,
-                )
+                let encoded =
+                    encode_resident_admitted_physical_mosaic(observed, max_encoded_bytes)
                 .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
                 Some(sha256(&encoded))
             } else {
