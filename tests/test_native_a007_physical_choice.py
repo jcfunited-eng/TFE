@@ -358,25 +358,68 @@ def test_binding_from_a_different_tick_cannot_account_for_the_settlement() -> No
 
 def test_causal_lineage_absent_from_the_settlement_tick_is_not_the_cause() -> None:
     """A consequence whose tick does not carry the causal motor's own
-    discharge is not the caused settlement, even on the causal axis."""
+    discharge is not the caused settlement, even on the causal axis.
 
+    Every other conjunct is deliberately kept satisfied: a different,
+    non-causal flexor supplies the toward_minimum pool at the witnessed
+    tick, both antagonist totals stay valid and fully accounted for, and
+    the helper is present in the prepared recruitments. Only the causal
+    motor's discharge sits at another tick — so this test fails if the
+    causal-settlement-tick requirement is ever deleted."""
+
+    helper_flexor = "07" * 16
     transition = deepcopy(_transition())
-    bindings = tuple(
-        dict(binding)
-        for binding in transition["motor_action"]["body_effector_bindings"]
+    transition["motor_action"]["prepared_recruitments"] = (
+        *transition["motor_action"]["prepared_recruitments"],
+        {
+            "motor_lineage": helper_flexor,
+            "motor_topology_index": 2,
+            "outward_elementary_carriers": 7,
+            "preparation_transfers": (
+                _transfer(ORDERING, 11, helper_flexor, 12),
+            ),
+        },
     )
-    bindings[0]["source_tick"] = 10
-    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
-    consequence["toward_minimum_carriers"] = 0
-    consequence["toward_maximum_carriers"] = 2
-    consequence["signed_displacement"] = 2
-    consequence["applied_displacement_quanta"] = 2
-    consequence["opposed_carriers_per_terminal"] = 0
-    consequence["successor_position"] = consequence["predecessor_position"] + 2
-    transition["motor_action"]["body_effector_bindings"] = bindings
-    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+    transition["motor_action"]["body_effector_bindings"] = (
+        {
+            "source_tick": 10,
+            "motor_lineage": FLEXOR_MOTOR,
+            "axis": AXIS,
+            "direction": "toward_minimum",
+            "outward_elementary_carriers": 7,
+        },
+        {
+            "source_tick": 11,
+            "motor_lineage": helper_flexor,
+            "axis": AXIS,
+            "direction": "toward_minimum",
+            "outward_elementary_carriers": 7,
+        },
+        {
+            "source_tick": 11,
+            "motor_lineage": EXTENSOR_MOTOR,
+            "axis": AXIS,
+            "direction": "toward_maximum",
+            "outward_elementary_carriers": 2,
+        },
+    )
 
     assert production._physical_choice_evidence_from_transition(transition) is None
+
+    # The construction is otherwise witness-complete: restoring the causal
+    # discharge to the witnessed tick must produce the witness, proving the
+    # refusal above came from the causal-tick requirement alone.
+    witnessed = deepcopy(transition)
+    bindings = tuple(
+        dict(binding) for binding in witnessed["motor_action"]["body_effector_bindings"]
+    )
+    bindings[0]["source_tick"] = 11
+    bindings[1]["source_tick"] = 10
+    witnessed["motor_action"]["body_effector_bindings"] = bindings
+
+    assert (
+        production._physical_choice_evidence_from_transition(witnessed) is not None
+    )
 
 
 def _interval(predecessor_tick: int, recruitments) -> dict[str, object]:
