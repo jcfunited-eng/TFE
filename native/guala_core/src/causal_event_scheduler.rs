@@ -1,10 +1,18 @@
 //! Exact causal event scheduler foundation (S15, Codex-corrected form).
 //!
 //! One entry per contact in a preallocated indexed binary heap ordered by
-//! `(due_clock, contact_index)`. An entry's due clock is the earliest clock
-//! at which EITHER of the contact's accumulators — carrier phase toward a
-//! whole elementary charge, or transition work phase toward one work
-//! quantum — can cross under the standing drive set at its last settlement.
+//! `(due_clock, contact_index)`. An entry's due clock is the CARRIER
+//! crossing alone: the earliest clock at which carrier phase can reach a
+//! whole elementary charge under the standing drive set at its last
+//! settlement. Transition work is never scheduled for a sleeper — it is
+//! evaluated synchronously when a gradient event wakes an endpoint, and the
+//! catch-up below carries the predecessor work phase through unchanged as a
+//! structural invariant (Codex-concurred physics: the quiescent branch
+//! exports released work as heat and cannot move work phase).
+//! MANDATORY WIRING CONDITION (Codex): every nonzero pump or passive-return
+//! settlement is a waking endpoint event and must enter the frontier before
+//! contact selection — otherwise a sleeper could sleep through the very
+//! event that enables its work accumulation.
 //! Firing early is lawful (settlement finds no crossing and reschedules
 //! exactly); firing late is impossible by construction because both
 //! crossing clocks are computed from the same exact integer arithmetic the
@@ -180,6 +188,9 @@ pub(crate) struct ContactIntegrationClock {
 
 pub(crate) struct SleepingSpanCatchUp {
     pub(crate) successor_phase: crate::elementary_charge_transfer::ChargeCarrierPhase,
+    /// Carried through byte-identical from the predecessor: a sleeping span
+    /// cannot move work phase, and the type enforces that invariance.
+    pub(crate) transition_work_phase: crate::exact_rational::ExactRational,
     pub(crate) outward_elementary_charges: i128,
     pub(crate) exported_heat_zeptojoules: num_rational::BigRational,
 }
@@ -189,6 +200,7 @@ pub(crate) fn catch_up_sleeping_contact(
     clock: &mut ContactIntegrationClock,
     now: u64,
     predecessor_phase: crate::elementary_charge_transfer::ChargeCarrierPhase,
+    predecessor_transition_work_phase: crate::exact_rational::ExactRational,
     standing_current_picoamperes: crate::exact_rational::ExactRational,
     standing_potential_difference_millivolts: crate::exact_rational::ExactRational,
     interval_microseconds: u32,
@@ -201,6 +213,7 @@ pub(crate) fn catch_up_sleeping_contact(
     if elapsed == 0 {
         return Ok(SleepingSpanCatchUp {
             successor_phase: predecessor_phase,
+            transition_work_phase: predecessor_transition_work_phase,
             outward_elementary_charges: 0,
             exported_heat_zeptojoules: BigRational::from_integer(BigInt::from(0_u8)),
         });
@@ -225,6 +238,7 @@ pub(crate) fn catch_up_sleeping_contact(
     clock.last_integrated_clock = now;
     Ok(SleepingSpanCatchUp {
         successor_phase: transition.successor_phase,
+        transition_work_phase: predecessor_transition_work_phase,
         outward_elementary_charges: transition.outward_elementary_charges,
         exported_heat_zeptojoules: BigRational::new(heat_numerator, heat_denominator),
     })
@@ -385,6 +399,7 @@ mod tests {
                     &mut clock,
                     100 + span,
                     start,
+                    ExactRational::integer(0),
                     drive,
                     ExactRational::integer(2),
                     interval,
@@ -414,6 +429,7 @@ mod tests {
             &mut clock,
             48,
             ChargeCarrierPhase::zero(),
+            ExactRational::integer(7),
             drive,
             difference,
             250_000,
@@ -427,12 +443,15 @@ mod tests {
             &mut clock,
             48,
             caught.successor_phase,
+            caught.transition_work_phase,
             drive,
             difference,
             250_000,
         )
         .unwrap();
+        assert_eq!(caught.transition_work_phase, ExactRational::integer(7));
         assert_eq!(same.successor_phase, caught.successor_phase);
+        assert_eq!(same.transition_work_phase, caught.transition_work_phase);
         assert_eq!(same.outward_elementary_charges, 0);
         assert!(same.exported_heat_zeptojoules
             == BigRational::from_integer(BigInt::from(0_u8)));
