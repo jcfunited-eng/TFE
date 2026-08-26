@@ -687,6 +687,61 @@ def stage_active_native_organism(
     return staged
 
 
+def stage_native_organism_state_bytes(
+    store_root: str | os.PathLike[str],
+    state: bytes,
+    *,
+    identity: str,
+    organism_tick: int,
+    max_envelope_bytes: int,
+    failure_injector: FailureInjector | None = None,
+) -> StagedNativeOrganism:
+    """Durably stage one already-encoded exact GLORUN body.
+
+    The bounded external custodian encodes a lived-state snapshot OFF the
+    runtime lock and stages the resulting bytes here; the organism is never
+    observed, paused, or controlled by this path.
+    """
+
+    root = _store_root(store_root)
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
+    if (
+        not isinstance(state, bytes)
+        or not state.startswith(STATE_MAGIC)
+        or len(state) > maximum
+    ):
+        raise NativeOrganismBinaryStoreError(
+            "custodian snapshot is not exact GLORUN"
+        )
+    state_sha256 = hashlib.sha256(state).hexdigest()
+    stored = _encode_stored_state(state)
+    stored_sha256 = hashlib.sha256(stored).hexdigest()
+    stage = root / f".stage-{uuid.uuid4()}{STATE_SUFFIX}"
+    descriptor = os.open(
+        stage,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600,
+    )
+    try:
+        _write_all(descriptor, stored)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    _sync_directory(root)
+    if failure_injector is not None:
+        failure_injector("staged")
+    return StagedNativeOrganism(
+        store_root=root,
+        path=stage,
+        identity=identity,
+        organism_tick=organism_tick,
+        state_bytes=len(state),
+        state_sha256=state_sha256,
+        stored_bytes=len(stored),
+        stored_sha256=stored_sha256,
+    )
+
+
 def discard_staged_native_organism(staged: StagedNativeOrganism) -> None:
     """Remove exactly one private stage and no neighboring artifact."""
 
@@ -1347,6 +1402,7 @@ __all__ = (
     "StreamingObjectStore",
     "discard_staged_native_organism",
     "migrate_current_native_organism_exact_energy",
+    "stage_native_organism_state_bytes",
     "migrate_current_native_organism_current_format",
     "publish_staged_native_organism",
     "rehearse_current_native_organism_exact_energy",

@@ -803,7 +803,12 @@ pub struct NativeResidentOrganismRuntime {
 #[pyclass(frozen, module = "guala_core")]
 pub struct NativeLivedStateSnapshot {
     cognitive: ResidentCognitiveFormationState,
+    vestibular: ResidentVestibularBody,
+    articulated_body: ArticulatedBodyState,
+    fabric_generation: u64,
     organism_tick: u64,
+    identity: [u8; IDENTITY_BYTES],
+    budget: RuntimeBudget,
 }
 
 #[pymethods]
@@ -813,21 +818,39 @@ impl NativeLivedStateSnapshot {
         self.organism_tick
     }
 
-    /// Encode this snapshot as one complete sealed generation, off-lock.
-    fn encode_generation<'py>(
-        &self,
-        py: Python<'py>,
-        max_encoded_bytes: usize,
-    ) -> PyResult<Bound<'py, PyBytes>> {
-        let encoded = py
+    /// Encode this snapshot as one complete GLORUN generation envelope,
+    /// entirely off the runtime lock. Identical assembly to the sealing
+    /// boundary: empty mounted joint state, sealed cognitive bytes, the
+    /// vestibular and articulated bodies, one envelope.
+    fn encode_generation<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let envelope = py
             .allow_threads(|| {
-                self.cognitive
+                let joint_state = encode_empty_mounted_joint_state()
+                    .map_err(RuntimeError::MountedTransition)?;
+                let cognitive_budget =
+                    cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+                let sealed_cognitive = self
+                    .cognitive
                     .clone()
-                    .seal_with_terminal_observation(max_encoded_bytes)
-                    .map(|sealed| sealed.encoded)
+                    .seal_with_terminal_observation(cognitive_budget)
+                    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+                let fabric = encode_fabric(
+                    self.fabric_generation,
+                    &joint_state,
+                    &sealed_cognitive.encoded,
+                    &self.vestibular,
+                    &self.articulated_body,
+                    self.budget,
+                )?;
+                encode_envelope(
+                    self.identity,
+                    self.organism_tick,
+                    &fabric,
+                    self.budget,
+                )
             })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok(PyBytes::new(py, &encoded))
+            .map_err(|error: RuntimeError| PyValueError::new_err(error.to_string()))?;
+        Ok(PyBytes::new(py, &envelope))
     }
 }
 
@@ -4215,66 +4238,35 @@ impl NativeResidentOrganismRuntime {
         RESIDENT_RUNTIME_SCHEMA
     }
 
-    /// One fast clone of the lived cognitive state (unsealed if a
-    /// trajectory is open, else the committed state) with its organism
-    /// tick, for off-lock custodial encoding. Touches nothing.
+    /// One fast clone of the complete lived state (unsealed if a
+    /// trajectory is open, else the committed state) for off-lock
+    /// custodial encoding. Touches nothing and never pauses cognition.
     fn snapshot_lived_state(&self) -> NativeLivedStateSnapshot {
+        let runtime = &self.runtime;
+        let (vestibular, articulated_body, observation) = runtime
+            .unsealed
+            .as_ref()
+            .map(|state| {
+                (
+                    &state.vestibular,
+                    &state.articulated_body,
+                    &state.observation,
+                )
+            })
+            .unwrap_or((
+                &runtime.active.vestibular,
+                &runtime.active.articulated_body,
+                &runtime.active.observation,
+            ));
         NativeLivedStateSnapshot {
-            cognitive: self.runtime.cognitive_state().clone(),
-            organism_tick: self.runtime.active.observation.organism_tick,
+            cognitive: runtime.cognitive_state().clone(),
+            vestibular: vestibular.clone(),
+            articulated_body: articulated_body.clone(),
+            fabric_generation: observation.fabric_generation,
+            organism_tick: observation.organism_tick,
+            identity: observation.identity,
+            budget: runtime.budget,
         }
-    }
-
-    /// Read-only census of the derived standing carrier schedule, rebuilt
-    /// exactly as cold restore would build it. Returns
-    /// `(contact_count, scheduled, nearest_due_offset, [(bucket_bound, count)])`
-    /// where offsets are clocks past the current organism generation. Pure
-    /// measurement: touches no state, retains nothing, and schedules nothing.
-    fn carrier_schedule_census(
-        &self,
-        py: Python<'_>,
-    ) -> PyResult<(usize, usize, Option<u64>, Vec<(u64, u64)>, u64, u64, u64)> {
-        let census = py
-            .allow_threads(|| {
-                crate::resident_cognitive_formation::carrier_schedule_census(
-                    self.runtime.cognitive_state(),
-                )
-            })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok((
-            census.contact_count,
-            census.scheduled,
-            census.nearest_due_offset,
-            census.due_offset_buckets,
-            census.motor_pool_contacts,
-            census.motor_pool_due_within_one,
-            census.elsewhere_due_within_one,
-        ))
-    }
-
-    /// Read-only anatomical census: contacts bucketed by endpoint layer
-    /// pairing, neurons per layer, and conducting-population summary.
-    /// Returns `(layer_pairs, neurons_by_layer, at_genesis, fully_closed,
-    /// genesis_population)`. Pure measurement; touches nothing.
-    #[allow(clippy::type_complexity)]
-    fn contact_layer_census(
-        &self,
-        py: Python<'_>,
-    ) -> PyResult<(Vec<((u8, u8), u64)>, Vec<(u8, u64)>, u64, u64, u128)> {
-        let census = py
-            .allow_threads(|| {
-                crate::resident_cognitive_formation::contact_layer_census(
-                    self.runtime.cognitive_state(),
-                )
-            })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
-        Ok((
-            census.layer_pairs,
-            census.neurons_by_layer,
-            census.at_genesis_population,
-            census.fully_closed,
-            census.genesis_population,
-        ))
     }
 
     fn prepare(

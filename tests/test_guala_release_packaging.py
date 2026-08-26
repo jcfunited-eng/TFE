@@ -50,6 +50,7 @@ NATIVE_CORE_SOURCES = {
     "native/guala_core/src/elementary_charge_transfer.rs",
     "native/guala_core/src/embryonic_neuron_genesis_candidate.rs",
     "native/guala_core/src/exact_rational.rs",
+    "native/guala_core/src/causal_event_scheduler.rs",
     "native/guala_core/src/fast_charge_math.rs",
     "native/guala_core/src/exact_time_grid_occurrence.rs",
     "native/guala_core/src/full_field_bank_final.rs",

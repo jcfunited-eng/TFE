@@ -1865,6 +1865,11 @@ class NativeResidentOrganism:
         del cognitive_mosaic_count
         return candidate
 
+    def snapshot_lived_state(self) -> object:
+        """One fast clone of the lived state for off-lock custodial
+        encoding; touches nothing and never pauses cognition."""
+        return self.__runtime.snapshot_lived_state()
+
     def readiness(self) -> NativeResidentObservationView:
         """Observe only the active native state."""
 
