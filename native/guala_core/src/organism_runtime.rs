@@ -4141,7 +4141,7 @@ impl NativeResidentOrganismRuntime {
     fn carrier_schedule_census(
         &self,
         py: Python<'_>,
-    ) -> PyResult<(usize, usize, Option<u64>, Vec<(u64, u64)>)> {
+    ) -> PyResult<(usize, usize, Option<u64>, Vec<(u64, u64)>, u64, u64, u64)> {
         let census = py
             .allow_threads(|| {
                 crate::resident_cognitive_formation::carrier_schedule_census(
@@ -4154,6 +4154,34 @@ impl NativeResidentOrganismRuntime {
             census.scheduled,
             census.nearest_due_offset,
             census.due_offset_buckets,
+            census.motor_pool_contacts,
+            census.motor_pool_due_within_one,
+            census.elsewhere_due_within_one,
+        ))
+    }
+
+    /// Read-only anatomical census: contacts bucketed by endpoint layer
+    /// pairing, neurons per layer, and conducting-population summary.
+    /// Returns `(layer_pairs, neurons_by_layer, at_genesis, fully_closed,
+    /// genesis_population)`. Pure measurement; touches nothing.
+    #[allow(clippy::type_complexity)]
+    fn contact_layer_census(
+        &self,
+        py: Python<'_>,
+    ) -> PyResult<(Vec<((u8, u8), u64)>, Vec<(u8, u64)>, u64, u64, u128)> {
+        let census = py
+            .allow_threads(|| {
+                crate::resident_cognitive_formation::contact_layer_census(
+                    self.runtime.cognitive_state(),
+                )
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok((
+            census.layer_pairs,
+            census.neurons_by_layer,
+            census.at_genesis_population,
+            census.fully_closed,
+            census.genesis_population,
         ))
     }
 
