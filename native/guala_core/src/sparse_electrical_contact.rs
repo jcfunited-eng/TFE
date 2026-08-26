@@ -194,6 +194,17 @@ pub(crate) struct ElectricalContactState {
 }
 
 impl ElectricalContactState {
+    /// Same contact, carrier phase advanced by an exact sleeping-span
+    /// catch-up. Channel population, transition work phase, and legacy
+    /// material are untouched — a sleeping span cannot cross work quanta.
+    pub(crate) fn with_caught_up_carrier_phase(
+        mut self,
+        phase: crate::elementary_charge_transfer::ChargeCarrierPhase,
+    ) -> Self {
+        self.carrier_phase = phase;
+        self
+    }
+
     pub(crate) fn genesis(anatomy: ElectricalContactAnatomy) -> Self {
         Self {
             carrier_phase: ChargeCarrierPhase::zero(),

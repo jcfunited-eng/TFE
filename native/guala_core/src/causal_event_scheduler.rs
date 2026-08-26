@@ -34,6 +34,7 @@
 /// each contact's current position in that heap (or NONE), and each
 /// contact's due clock. Replacement and removal are O(log n) with no
 /// scanning, no allocation after construction, and no stale entries.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CarrierCrossingSchedule {
     heap: Vec<u32>,
     position_by_contact: Vec<u32>,
@@ -220,6 +221,27 @@ pub(crate) struct SleepingSpanCatchUp {
 }
 
 /// Advance a sleeping contact exactly from its retained clock to `now`.
+/// The runtime-resident derived event state of the causal scheduler: the
+/// carrier-crossing schedule and last-integrated clock per contact, and
+/// the membrane-recovery schedule per neuron. Derived, never encoded,
+/// rebuilt at cold restore and on any topology change; owning it in the
+/// runtime keeps every retained predecessor state value-consistent.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct CausalEventResidency {
+    pub(crate) contact_schedule: CarrierCrossingSchedule,
+    pub(crate) contact_last_integrated: Vec<u64>,
+    pub(crate) recovery_schedule: CarrierCrossingSchedule,
+    pub(crate) contact_count: usize,
+    pub(crate) neuron_count: usize,
+    pub(crate) organism_clock: u64,
+}
+
+impl CausalEventResidency {
+    pub(crate) fn matches_shape(&self, neuron_count: usize, contact_count: usize) -> bool {
+        self.neuron_count == neuron_count && self.contact_count == contact_count
+    }
+}
+
 pub(crate) fn catch_up_sleeping_contact(
     clock: ContactIntegrationClock,
     now: u64,

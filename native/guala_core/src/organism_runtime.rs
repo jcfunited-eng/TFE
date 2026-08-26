@@ -767,6 +767,13 @@ struct ResidentOrganismRuntime {
     unsealed: Option<UnsealedResidentOrganismState>,
     pending: Option<PendingResidentOrganismState>,
     direct_predecessor: Option<UnacknowledgedDirectPredecessor>,
+    /// Runtime-resident derived event state of the causal scheduler.
+    /// Never encoded; rebuilt in one walk at cold restore (lazily, on the
+    /// first interval) and after growth; invalidated to None whenever a
+    /// prepared trajectory aborts so a stale schedule can never leak into
+    /// a live clock.
+    causal_event_residency:
+        Option<crate::causal_event_scheduler::CausalEventResidency>,
     /// One prepared authored contact growth.  Like a feed it carries no
     /// sensory occurrence, so the mounted joint state and its generation
     /// travel through verbatim and only the cognitive body advances.
@@ -2684,6 +2691,7 @@ impl ResidentOrganismRuntime {
             unsealed: None,
             pending: None,
             direct_predecessor: None,
+            causal_event_residency: None,
             pending_contact_growth: None,
             budget,
             next_prepare_ordinal: 1,
@@ -2727,6 +2735,7 @@ impl ResidentOrganismRuntime {
         let predecessor_envelope = std::mem::take(&mut self.active.envelope);
         let predecessor_next_prepare_ordinal = self.next_prepare_ordinal;
         let initial_cognitive = std::mem::take(&mut self.active.cognitive);
+        let mut residency = self.causal_event_residency.take();
         let built = self.build_admitted_trajectory(
             episodes,
             initial_cognitive,
@@ -2734,7 +2743,9 @@ impl ResidentOrganismRuntime {
             self.active.vestibular.clone(),
             self.active.articulated_body.clone(),
             true,
+            &mut residency,
         );
+        self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
@@ -2810,6 +2821,7 @@ impl ResidentOrganismRuntime {
                 self.active.articulated_body.clone(),
             ),
         };
+        let mut residency = self.causal_event_residency.take();
         let built = self.build_admitted_trajectory(
             episodes,
             initial_cognitive,
@@ -2817,7 +2829,9 @@ impl ResidentOrganismRuntime {
             initial_vestibular,
             initial_articulated_body,
             false,
+            &mut residency,
         );
+        self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, mut receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
@@ -2936,6 +2950,7 @@ impl ResidentOrganismRuntime {
     }
 
     fn abort_unsealed_trajectory(&mut self) -> Result<(), RuntimeError> {
+        self.causal_event_residency = None;
         let predecessor_next_prepare_ordinal = self
             .unsealed
             .as_ref()
@@ -2984,6 +2999,7 @@ impl ResidentOrganismRuntime {
         initial_vestibular: ResidentVestibularBody,
         initial_articulated_body: ArticulatedBodyState,
         seal_successor: bool,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -3061,7 +3077,12 @@ impl ResidentOrganismRuntime {
             let (successor, observation) = cognitive
                 .take()
                 .expect("trajectory cognition is restored after every interval")
-                .advance_admitted_transition(&admitted, cognitive_budget, interval_terminal)
+                .advance_admitted_transition_with_residency(
+                    &admitted,
+                    cognitive_budget,
+                    interval_terminal,
+                    residency,
+                )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             let source_tick = predecessor
                 .organism_tick
@@ -3640,7 +3661,11 @@ impl ResidentOrganismRuntime {
             (None, Some(admitted_source)) => self
                 .active
                 .cognitive
-                .prepare_admitted_transition(admitted_source, cognitive_budget),
+                .prepare_admitted_transition_with_residency(
+                    admitted_source,
+                    cognitive_budget,
+                    &mut self.causal_event_residency,
+                ),
             (None, None) => self
                 .active
                 .cognitive

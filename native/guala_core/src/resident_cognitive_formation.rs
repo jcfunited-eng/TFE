@@ -5829,7 +5829,25 @@ impl ResidentCognitiveFormationState {
         admitted_source: &AdmittedJointSourceEpisode,
         max_encoded_bytes: usize,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
-        self.prepare_typed_admitted_transition(admitted_source, None, max_encoded_bytes)
+        self.prepare_admitted_transition_with_residency(
+            admitted_source,
+            max_encoded_bytes,
+            &mut None,
+        )
+    }
+
+    pub(crate) fn prepare_admitted_transition_with_residency(
+        &self,
+        admitted_source: &AdmittedJointSourceEpisode,
+        max_encoded_bytes: usize,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+    ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
+        self.prepare_typed_admitted_transition(
+            admitted_source,
+            None,
+            max_encoded_bytes,
+            residency,
+        )
     }
 
     pub(crate) fn prepare_vestibular_transition(
@@ -5853,7 +5871,12 @@ impl ResidentCognitiveFormationState {
             .map_err(|error| {
                 FormationError::JointFieldUnavailable(JointNeuronBoundaryError::Source(error))
             })?;
-        self.prepare_typed_admitted_transition(&admitted_source, Some(ingress), max_encoded_bytes)
+        self.prepare_typed_admitted_transition(
+            &admitted_source,
+            Some(ingress),
+            max_encoded_bytes,
+            &mut None,
+        )
     }
 
     fn prepare_typed_admitted_transition(
@@ -5861,6 +5884,7 @@ impl ResidentCognitiveFormationState {
         admitted_source: &AdmittedJointSourceEpisode,
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         // Historical topology corrections execute only at the explicit
         // migration boundary. Re-running them during ordinary cognition made
@@ -5875,6 +5899,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             true,
             true,
+            residency,
         )
     }
 
@@ -5887,6 +5912,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         seal_successor: bool,
         observe_relations: bool,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         let settlement_stopwatch = std::time::Instant::now();
         let Self {
@@ -7200,6 +7226,7 @@ impl ResidentCognitiveFormationState {
                 .transpose()
                 .map_err(|_| FormationError::ArithmeticOverflow)?
                 .unwrap_or(0),
+            residency,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
@@ -7550,6 +7577,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             true,
+            &mut None,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -7559,6 +7587,21 @@ impl ResidentCognitiveFormationState {
         admitted_source: &AdmittedJointSourceEpisode,
         max_encoded_bytes: usize,
         observe_relations: bool,
+    ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
+        self.advance_admitted_transition_with_residency(
+            admitted_source,
+            max_encoded_bytes,
+            observe_relations,
+            &mut None,
+        )
+    }
+
+    pub(crate) fn advance_admitted_transition_with_residency(
+        self,
+        admitted_source: &AdmittedJointSourceEpisode,
+        max_encoded_bytes: usize,
+        observe_relations: bool,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
@@ -7571,6 +7614,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             observe_relations,
+            residency,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -14097,48 +14141,6 @@ impl ResidentTopologyIndex {
         )
     }
 
-    fn one_interval_frontier(
-        &self,
-        seed_lineages: &[[u8; 16]],
-    ) -> Result<(Vec<usize>, Vec<usize>), FormationError> {
-        let mut selected = seed_lineages
-            .iter()
-            .copied()
-            .map(|lineage| self.flat_for_lineage(lineage))
-            .collect::<Result<BTreeSet<_>, _>>()?;
-        let seeds = selected.iter().copied().collect::<Vec<_>>();
-        for flat in seeds {
-            for contact_index in self
-                .incident_contacts_by_flat
-                .get(flat)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-                .iter()
-                .copied()
-            {
-                let contact = *self
-                    .contacts
-                    .get(contact_index)
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                for endpoint in [contact.left, contact.right] {
-                    selected.insert(endpoint);
-                }
-            }
-        }
-        let mut selected_contacts = BTreeSet::new();
-        for flat in selected.iter().copied() {
-            for contact_index in self.incident_contacts_by_flat[flat].iter().copied() {
-                let contact = self.contacts[contact_index];
-                if !selected.contains(&contact.left) || !selected.contains(&contact.right) {
-                    continue;
-                }
-                selected_contacts.insert(contact_index);
-            }
-        }
-        Ok((
-            selected.into_iter().collect(),
-            selected_contacts.into_iter().collect(),
-        ))
-    }
 }
 
 /// Read-only census of the standing carrier schedule over one state.
@@ -14430,6 +14432,55 @@ pub(crate) fn rebuild_carrier_schedule_on_restore(
         }
     }
     Ok((schedule, clocks))
+}
+
+/// Build the complete causal-event residency for one state: the carrier
+/// schedule from every contact once (settlement-authority gated), every
+/// integration clock at the given organism clock, and the membrane
+/// recovery schedule from every neuron's own anatomy once. One boot-time
+/// walk at cold restore or topology change — never the per-clock sweep.
+pub(crate) fn rebuild_causal_event_residency(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
+    persisted_organism_clock: u64,
+) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
+    use crate::causal_event_scheduler::{CarrierCrossingSchedule, CausalEventResidency};
+    use crate::complete_neuron::next_membrane_recovery_crossing_clocks;
+
+    let (schedule, clocks) = rebuild_carrier_schedule_on_restore(
+        cohorts,
+        electrical_fabric,
+        topology_index,
+        persisted_organism_clock,
+    )?;
+    let interval = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let neuron_count = topology_index.flat_locations.len();
+    let mut recovery_schedule = CarrierCrossingSchedule::with_contact_count(neuron_count);
+    for flat in 0..neuron_count {
+        let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
+        let crossing = next_membrane_recovery_crossing_clocks(
+            &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+            &cohorts[cohort_index].state.neurons()[neuron_index],
+            interval,
+        )
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+        if let Some(clocks_until) = crossing {
+            let due = persisted_organism_clock
+                .checked_add(clocks_until)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            recovery_schedule.reschedule(flat, Some(due));
+        }
+    }
+    Ok(CausalEventResidency {
+        contact_last_integrated: vec![persisted_organism_clock; clocks.len()],
+        contact_schedule: schedule,
+        recovery_schedule,
+        contact_count: topology_index.contacts.len(),
+        neuron_count,
+        organism_clock: persisted_organism_clock,
+    })
 }
 
 fn touches_local_gradient(
@@ -14847,6 +14898,7 @@ fn settle_internal_contact_interval(
     physically_transitioned_neuron_lineages: &mut BTreeSet<[u8; 16]>,
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
+    residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     if locally_settled_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
         return Ok(InternalContactSettlementObservation {
@@ -14885,8 +14937,65 @@ fn settle_internal_contact_interval(
     // This replaces the false rule that eventually made every reached neuron
     // and contact a permanent seed.
     let contact_stopwatch = std::time::Instant::now();
-    let (selected, compact_contact_indices) =
-        topology_index.one_interval_frontier(locally_settled_lineages)?;
+    // Causal event selection. Work is proportional to events: this clock
+    // settles exactly (a) contacts whose scheduled whole-carrier crossing
+    // is due, (b) contacts incident to a causally reached neuron (external
+    // or metabolic seed, prior-clock arrival, or a due membrane-recovery
+    // event), and nothing else. The former neighbour-closure sweep over
+    // the whole fabric is deleted; the derived residency is rebuilt in one
+    // walk at cold restore or after growth, never per clock.
+    let clock = cognitive_ordinal;
+    let needs_rebuild = residency.as_ref().is_none_or(|events| {
+        !events.matches_shape(flat_locations.len(), topology_index.contacts.len())
+    });
+    if needs_rebuild {
+        *residency = Some(rebuild_causal_event_residency(
+            cohorts,
+            electrical_fabric,
+            topology_index,
+            clock.saturating_sub(1),
+        )?);
+    }
+    let events = residency
+        .as_mut()
+        .ok_or(FormationError::NoncanonicalState)?;
+    events.organism_clock = clock;
+    let mut seed_flats = locally_settled_lineages
+        .iter()
+        .copied()
+        .map(lineage_member)
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut due_recovery_flats = Vec::new();
+    events
+        .recovery_schedule
+        .drain_due_at(clock, &mut due_recovery_flats);
+    seed_flats.extend(due_recovery_flats);
+    seed_flats.sort_unstable();
+    seed_flats.dedup();
+    let mut compact_contact_indices = Vec::new();
+    events
+        .contact_schedule
+        .drain_due_at(clock, &mut compact_contact_indices);
+    for flat in seed_flats.iter().copied() {
+        compact_contact_indices.extend(
+            topology_index
+                .incident_contacts_by_flat
+                .get(flat)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                .iter()
+                .copied(),
+        );
+    }
+    compact_contact_indices.sort_unstable();
+    compact_contact_indices.dedup();
+    let mut selected = seed_flats.clone();
+    for contact_index in compact_contact_indices.iter().copied() {
+        let entry = topology_index.contacts[contact_index];
+        selected.push(entry.left);
+        selected.push(entry.right);
+    }
+    selected.sort_unstable();
+    selected.dedup();
     let mut causal_seed_flats = causal_seed_lineages
         .iter()
         .copied()
@@ -15087,12 +15196,34 @@ fn settle_internal_contact_interval(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         );
     }
+    // The sleeping span ended before this clock began, so catch-up reads
+    // the endpoints exactly as they stood before this clock's pump ran:
+    // the predecessor clones captured ahead of pump application.
+    let mut pre_pump_membranes = vec![None; selected.len()];
+    let mut pre_pump_available = vec![0_u128; selected.len()];
+    for (cohort_index, members) in selected_members_by_cohort.iter().enumerate() {
+        let Some(predecessors) = selected_predecessor_neurons[cohort_index].as_ref() else {
+            continue;
+        };
+        for ((coordinate, neuron_index), (predecessor_index, predecessor)) in
+            members.iter().zip(predecessors.iter())
+        {
+            if neuron_index != predecessor_index {
+                return Err(FormationError::NoncanonicalState);
+            }
+            pre_pump_membranes[*coordinate] = Some(predecessor.membrane_state());
+            pre_pump_available[*coordinate] =
+                predecessor.carrier_reservoirs().intracellular();
+        }
+    }
     let mut compact_contacts = Vec::new();
     let mut compact_states = Vec::new();
     let mut compact_origins = Vec::new();
     let mut compact_bonds = Vec::new();
     let mut compact_edge_flat_endpoints = Vec::new();
-    for contact_index in compact_contact_indices {
+    let mut compact_original_indices = Vec::new();
+    let mut caught_up_heat = Vec::new();
+    for contact_index in compact_contact_indices.iter().copied() {
         let entry = topology_index.contacts[contact_index];
         let edge = materialize_resident_contact_edge(
             entry,
@@ -15105,15 +15236,80 @@ fn settle_internal_contact_interval(
         let right = selected
             .binary_search(&edge.right)
             .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
+        // Exact sleeping-span catch-up: a contact untouched since its last
+        // integration slept under frozen endpoints, so its standing drive
+        // is derivable now. Its carrier phase advances across the whole
+        // span in one exact step; a sleeping span moving a whole carrier
+        // would violate the wake law (its crossing was scheduled), so the
+        // catch-up asserts zero outward charges. The span's conduction
+        // heat is deposited on this clock's settled transition.
+        let mut contact_state = edge.state;
+        let last = events.contact_last_integrated[contact_index];
+        let mut span_heat: Option<num_rational::BigRational> = None;
+        if last.checked_add(1).ok_or(FormationError::ArithmeticOverflow)? < clock {
+            let left_membrane = pre_pump_membranes[left]
+                .ok_or(FormationError::NoncanonicalState)?;
+            let right_membrane = pre_pump_membranes[right]
+                .ok_or(FormationError::NoncanonicalState)?;
+            let left_potential = left_membrane
+                .potential_millivolts(capacitances[left])
+                .map_err(FormationError::InternalMembraneUnavailable)?;
+            let right_potential = right_membrane
+                .potential_millivolts(capacitances[right])
+                .map_err(FormationError::InternalMembraneUnavailable)?;
+            let standing = crate::sparse_electrical_contact::standing_contact_current(
+                edge.anatomy,
+                &contact_state,
+                left_potential,
+                left_membrane.separated_elementary_charges(),
+                capacitances[left],
+                pre_pump_available[left],
+                right_potential,
+                right_membrane.separated_elementary_charges(),
+                capacitances[right],
+                pre_pump_available[right],
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+            if let Some(standing_current) = standing {
+                let potential_difference = left_potential
+                    .checked_sub(right_potential)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                let caught = crate::causal_event_scheduler::catch_up_sleeping_contact(
+                    crate::causal_event_scheduler::ContactIntegrationClock {
+                        last_integrated_clock: last,
+                    },
+                    clock
+                        .checked_sub(1)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                    contact_state.carrier_phase(),
+                    contact_state.transition_work_phase(),
+                    standing_current,
+                    potential_difference,
+                    u32::try_from(interval_microseconds)
+                        .map_err(|_| FormationError::ArithmeticOverflow)?,
+                )
+                .map_err(|_| FormationError::ArithmeticOverflow)?;
+                assert_eq!(
+                    caught.outward_elementary_charges, 0,
+                    "a sleeping span crossed a whole carrier without its \
+                     scheduled wake — the causal event schedule is unsound"
+                );
+                span_heat = Some(caught.exported_heat_zeptojoules);
+                contact_state =
+                    contact_state.with_caught_up_carrier_phase(caught.successor_phase);
+            }
+        }
         compact_contacts.push(
             edge.anatomy
                 .rebind_endpoints(left, right, selected.len())
                 .map_err(FormationError::ResidentElectricalUnavailable)?,
         );
-        compact_states.push(edge.state);
+        compact_states.push(contact_state);
         compact_origins.push(edge.origin);
         compact_bonds.push(edge.stable_bond);
         compact_edge_flat_endpoints.push((edge.left, edge.right));
+        compact_original_indices.push(contact_index);
+        caught_up_heat.push(span_heat);
     }
     if compact_contacts.is_empty() {
         return Ok(InternalContactSettlementObservation {
@@ -15188,6 +15384,16 @@ fn settle_internal_contact_interval(
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
     settled.transitions = contact_transitions.into_boxed_slice();
+    // Conservation across sleeping spans: the caught-up conduction heat of
+    // each span joins this clock's settled transition for that contact —
+    // released as work and exported as heat, exactly as the per-clock law
+    // would have accumulated it.
+    for (position, span_heat) in caught_up_heat.iter().enumerate() {
+        if let Some(heat) = span_heat {
+            settled.transitions[position].released_work_zeptojoules += heat;
+            settled.transitions[position].exported_heat_zeptojoules += heat;
+        }
+    }
 
     // The compact predecessor, compact anatomy, stable bond, and settled
     // successor share one construction order. Project only the sparse reached
@@ -16243,6 +16449,98 @@ fn settle_internal_contact_interval(
         (contact_stopwatch.elapsed() - shared_wall).as_millis(),
         contact_stopwatch.elapsed().as_millis(),
     );
+    // Event bookkeeping for the next clocks, read from the fully applied
+    // state: every settled contact is marked integrated at this clock and
+    // rescheduled from its successor state under the settlement authority;
+    // every reached neuron's membrane-recovery event is rescheduled from
+    // its own settled anatomy. Untouched contacts and neurons keep their
+    // standing schedules — nothing about them changed.
+    {
+        let interval = u32::try_from(interval_microseconds)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let endpoint_now = |flat: usize| -> Result<
+            (
+                crate::exact_rational::ExactRational,
+                i128,
+                crate::elementary_charge_membrane::MembraneCapacitance,
+                u128,
+            ),
+            FormationError,
+        > {
+            let (cohort_index, neuron_index, _) = flat_locations[flat];
+            let state = &cohorts[cohort_index].state.neurons()[neuron_index];
+            let capacitance =
+                cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].capacitance();
+            let membrane = state.membrane_state();
+            Ok((
+                membrane
+                    .potential_millivolts(capacitance)
+                    .map_err(FormationError::InternalMembraneUnavailable)?,
+                membrane.separated_elementary_charges(),
+                capacitance,
+                state.carrier_reservoirs().intracellular(),
+            ))
+        };
+        for (position, contact_index) in
+            compact_original_indices.iter().copied().enumerate()
+        {
+            events.contact_last_integrated[contact_index] = clock;
+            let successor_state = &settled.transitions[position].successor;
+            let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
+            let (left_potential, left_charges, left_capacitance, left_available) =
+                endpoint_now(left_flat)?;
+            let (right_potential, right_charges, right_capacitance, right_available) =
+                endpoint_now(right_flat)?;
+            let standing = crate::sparse_electrical_contact::standing_contact_current(
+                compact_anatomy.contact_anatomies()[position],
+                successor_state,
+                left_potential,
+                left_charges,
+                left_capacitance,
+                left_available,
+                right_potential,
+                right_charges,
+                right_capacitance,
+                right_available,
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+            let due = match standing {
+                Some(current) => {
+                    crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
+                        successor_state.carrier_phase(),
+                        current,
+                        interval,
+                    )
+                    .map_err(|_| FormationError::ArithmeticOverflow)?
+                    .map(|clocks_until| {
+                        clock
+                            .checked_add(clocks_until)
+                            .ok_or(FormationError::ArithmeticOverflow)
+                    })
+                    .transpose()?
+                }
+                None => None,
+            };
+            events.contact_schedule.reschedule(contact_index, due);
+        }
+        for flat in selected.iter().copied() {
+            let (cohort_index, neuron_index, _) = flat_locations[flat];
+            let crossing = crate::complete_neuron::next_membrane_recovery_crossing_clocks(
+                &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+                &cohorts[cohort_index].state.neurons()[neuron_index],
+                interval,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+            let due = crossing
+                .map(|clocks_until| {
+                    clock
+                        .checked_add(clocks_until)
+                        .ok_or(FormationError::ArithmeticOverflow)
+                })
+                .transpose()?;
+            events.recovery_schedule.reschedule(flat, due);
+        }
+    }
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
@@ -19537,108 +19835,7 @@ mod tests {
         }
     }
 
-    #[test]
-    fn one_interval_frontier_does_not_jump_across_a_contact_chain() {
-        let reached = one_interval_electrical_frontier(
-            &[true, false, false, false],
-            &[(0, 1), (1, 2), (2, 3)],
-        )
-        .unwrap();
-        assert_eq!(reached, vec![true, true, false, false]);
 
-        let next = one_interval_electrical_frontier(&reached, &[(0, 1), (1, 2), (2, 3)]).unwrap();
-        assert_eq!(next, vec![true, true, true, false]);
-    }
-
-    #[test]
-    fn indexed_frontier_is_invariant_under_unrelated_topology() {
-        let lineage = |ordinal: u32| {
-            let mut lineage = [0_u8; 16];
-            lineage[12..].copy_from_slice(&ordinal.to_be_bytes());
-            lineage
-        };
-        let index = |unrelated_pairs: usize| {
-            let neuron_count = 2 + unrelated_pairs * 2;
-            let mut flat_locations = Vec::with_capacity(neuron_count);
-            let mut flat_by_lineage = Vec::with_capacity(neuron_count);
-            let mut lineage_layers = Vec::with_capacity(neuron_count);
-            for flat in 0..neuron_count {
-                let id = lineage(u32::try_from(flat).unwrap());
-                flat_locations.push((0, flat, id));
-                flat_by_lineage.push((id, flat));
-                lineage_layers.push((id, 6));
-            }
-            let mut contacts = Vec::with_capacity(1 + unrelated_pairs);
-            for contact_index in 0..=unrelated_pairs {
-                let (left, right) = if contact_index == 0 {
-                    (0, 1)
-                } else {
-                    (contact_index * 2, contact_index * 2 + 1)
-                };
-                contacts.push(ResidentContactTopologyEntry {
-                    left,
-                    right,
-                    stable_bond: StablePhysicalBondReference::new(
-                        flat_locations[left].2,
-                        flat_locations[right].2,
-                        0,
-                    )
-                    .unwrap(),
-                    origin: ResidentContactOrigin::Local {
-                        cohort_index: 0,
-                        contact_index,
-                        left_member: left,
-                        right_member: right,
-                    },
-                });
-            }
-            let mut incident = vec![Vec::new(); neuron_count];
-            let mut neighbours = vec![Vec::new(); neuron_count];
-            for (contact_index, contact) in contacts.iter().enumerate() {
-                incident[contact.left].push(contact_index);
-                incident[contact.right].push(contact_index);
-                neighbours[contact.left].push(contact.right);
-                neighbours[contact.right].push(contact.left);
-            }
-            let canonical_lineages = flat_locations
-                .iter()
-                .map(|(_, _, lineage)| *lineage)
-                .collect::<Vec<_>>()
-                .into_boxed_slice();
-            let mut canonical_bonds = contacts
-                .iter()
-                .map(|contact| contact.stable_bond)
-                .collect::<Vec<_>>();
-            canonical_bonds.sort_unstable();
-            ResidentTopologyIndex {
-                flat_locations: flat_locations.into_boxed_slice(),
-                flat_by_lineage: flat_by_lineage.into_boxed_slice(),
-                source_locations: Box::new([]),
-                lineage_layers: lineage_layers.into_boxed_slice(),
-                canonical_lineages,
-                canonical_bonds: canonical_bonds.into_boxed_slice(),
-                contacts: contacts.into_boxed_slice(),
-                incident_contacts_by_flat: incident
-                    .into_iter()
-                    .map(Vec::into_boxed_slice)
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-                neighbours_by_flat: neighbours
-                    .into_iter()
-                    .map(Vec::into_boxed_slice)
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-                cohort_shapes: Box::new([]),
-                fabric_contact_count: 0,
-            }
-        };
-        let baseline = index(0).one_interval_frontier(&[lineage(0)]).unwrap();
-        let wide = index(1_024)
-            .one_interval_frontier(&[lineage(0)])
-            .unwrap();
-        assert_eq!(baseline, (vec![0, 1], vec![0]));
-        assert_eq!(wide, baseline);
-    }
 
     #[test]
     fn background_neighbour_contact_has_no_causal_learning_authority() {
@@ -20845,6 +21042,7 @@ mod tests {
                 &mut transitioned,
                 ordinal,
                 0,
+            &mut None,
             )
             .unwrap();
             if let Some(plasticity) = observation
