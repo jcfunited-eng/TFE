@@ -7111,7 +7111,7 @@ impl ResidentCognitiveFormationState {
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
             &internal_contact.causally_transitioned_lineages,
-            &internal_contact.causal_active_bonds,
+            &internal_contact.settled_directed_transfers,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -12988,25 +12988,30 @@ fn mount_reached_ordering_reach(
     Ok(())
 }
 
-/// Materialize one motor/effector route per exact reached body terminal
-/// when that lineage and delayed-ordering material on its own mounted
-/// layer-8 -> layer-10 -> layer-11 path both physically change in the same
-/// organism interval. Global coincidence is not a physical connection and
-/// cannot author an all-to-all motor pool. The new layer-12 cell is
-/// mounted after settlement, so it cannot move the body during the interval
-/// that creates it. The effector terminal is stable body anatomy; the set of
-/// ordering neurons reaching it changes with lived activity and therefore
-/// cannot be the identity of a motor cell. Keeping each terminal in its own
-/// motor pool preserves the receptor's explicit antagonist pairing. No action
-/// name, target pose, score, readiness projection, or scripted command enters
-/// the neuron.
+/// Materialize one motor/effector route per exact reached body terminal,
+/// authored only along the proven directed causal path of this interval.
+/// A permanent ordering-to-motor contact requires the full directed chain:
+/// the ordering (layer 11) cell moved whole carriers into an affective
+/// (layer 10) cell that itself moved whole carriers into the transitioned
+/// body-regulation (layer 8) cell whose transition IS the body's returned
+/// consequence for the effector terminal. A neuron merely becoming active
+/// in the same interval is coincidence, not causation, and authors
+/// nothing: coincidence repeated over a lifetime is how a near-complete
+/// ordering-to-motor pool accumulated, and that fan-out is deleted here at
+/// its source. Both proof hops are directed settled transfers of this
+/// interval; neither hop may touch a layer-12 cell, so existing motor
+/// contacts can never help prove new motor contacts. The new layer-12 cell
+/// is mounted after settlement, so it cannot move the body during the
+/// interval that creates it. The effector terminal is stable body anatomy.
+/// No action name, target pose, score, readiness projection, or scripted
+/// command enters the neuron.
 fn mount_reached_motor_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
-    active_bonds: &[StablePhysicalBondReference],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
 ) -> Result<(), FormationError> {
     let mounted = cohorts
         .iter()
@@ -13049,9 +13054,12 @@ fn mount_reached_motor_effector(
         neighbours.sort_unstable();
         neighbours.dedup();
     }
-    let active_endpoint_pairs = active_bonds
+    // Directed proof material: whole-carrier transfers of this interval,
+    // keyed by (sender, receiver). Undirected co-activity has no authority.
+    let directed_pairs = settled_directed_transfers
         .iter()
-        .map(|bond| bond.endpoints())
+        .filter(|transfer| transfer.transferred_whole_carriers > 0)
+        .map(|transfer| (transfer.sender, transfer.receiver))
         .collect::<BTreeSet<_>>();
     let mut body_regulation = Vec::new();
     let mut ordering = Vec::new();
@@ -13125,37 +13133,36 @@ fn mount_reached_motor_effector(
         if layer_by_lineage.get(&regulation).copied() != Some(8) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
-        let local_affective = regulation_neighbours
+        // Proven affective drivers: layer-10 cells that moved whole
+        // carriers INTO this consequence-returned regulation cell during
+        // this interval. Direction is the proof; adjacency alone is not.
+        let proven_affective = regulation_neighbours
             .iter()
             .copied()
             .filter(|lineage| {
                 layer_by_lineage.get(lineage).copied() == Some(10)
-                    && active_endpoint_pairs
-                        .contains(&canonical_lineage_pair(regulation, *lineage))
+                    && directed_pairs.contains(&(*lineage, regulation))
             })
             .collect::<BTreeSet<_>>();
-        let local_ordering = ordering
+        // Proven ordering causes: layer-11 cells that moved whole carriers
+        // INTO one of those proven affective drivers in this interval.
+        // The chain 11 -> 10 -> 8 never touches a layer-12 cell, so an
+        // existing motor contact can never help prove a new one.
+        let proven_ordering = ordering
             .iter()
             .copied()
             .filter(|lineage| {
-                neighbours_by_lineage
-                    .get(lineage)
-                    .is_some_and(|neighbours| {
-                        neighbours.iter().any(|neighbour| {
-                            local_affective.contains(neighbour)
-                                && active_endpoint_pairs.contains(
-                                    &canonical_lineage_pair(*lineage, *neighbour),
-                                )
-                        })
-                    })
+                proven_affective
+                    .iter()
+                    .any(|affective| directed_pairs.contains(&(*lineage, *affective)))
             })
             .collect::<Vec<_>>();
-        if local_ordering.is_empty() {
+        if proven_ordering.is_empty() {
             continue;
         }
-        let mut participants = Vec::with_capacity(local_ordering.len() + 1);
+        let mut participants = Vec::with_capacity(proven_ordering.len() + 1);
         participants.push(regulation);
-        participants.extend(local_ordering);
+        participants.extend(proven_ordering);
         participants.sort_unstable();
         participants.dedup();
 
@@ -17025,6 +17032,63 @@ mod tests {
         organism_physical_bonds(cohorts, electrical_fabric).unwrap()
     }
 
+    /// Fixture proof material: every physical bond expressed as directed
+    /// whole-carrier transfers in both directions. Tests that exercise
+    /// plumbing (creation, reuse, idempotence) use this saturated form;
+    /// direction-sensitive law tests construct exact one-way chains.
+    fn directed_transfers_from_bonds(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+    ) -> Vec<DirectedPhysicalTransferObservation> {
+        all_physical_bonds(cohorts, electrical_fabric)
+            .into_iter()
+            .flat_map(|bond| {
+                let (left, right) = bond.endpoints();
+                [
+                    DirectedPhysicalTransferObservation {
+                        sender: left,
+                        receiver: right,
+                        bond,
+                        transferred_whole_carriers: 1,
+                    },
+                    DirectedPhysicalTransferObservation {
+                        sender: right,
+                        receiver: left,
+                        bond,
+                        transferred_whole_carriers: 1,
+                    },
+                ]
+            })
+            .collect()
+    }
+
+    /// One exact directed chain a -> b -> c ... as whole-carrier transfers,
+    /// resolved against the real bonds of the fabric.
+    fn directed_chain(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+        chain: &[[u8; 16]],
+    ) -> Vec<DirectedPhysicalTransferObservation> {
+        let bonds = all_physical_bonds(cohorts, electrical_fabric);
+        chain
+            .windows(2)
+            .map(|hop| {
+                let pair = canonical_lineage_pair(hop[0], hop[1]);
+                let bond = bonds
+                    .iter()
+                    .copied()
+                    .find(|bond| bond.endpoints() == pair)
+                    .expect("chain hop must be a real physical bond");
+                DirectedPhysicalTransferObservation {
+                    sender: hop[0],
+                    receiver: hop[1],
+                    bond,
+                    transferred_whole_carriers: 1,
+                }
+            })
+            .collect()
+    }
+
     #[test]
     fn empty_genesis_is_exact_and_bounded() {
         let state = ResidentCognitiveFormationState::default();
@@ -20738,7 +20802,7 @@ mod tests {
             0,
         );
         let resting_before = population.as_ref().unwrap().resting_cell_count();
-        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
 
         mount_reached_motor_effector(
             &mut cohorts,
@@ -20882,7 +20946,7 @@ mod tests {
             ordering,
             0,
         );
-        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
 
         mount_reached_motor_effector(
             &mut cohorts,
@@ -21093,6 +21157,173 @@ mod tests {
         );
     }
 
+    /// The correction's core proofs: a permanent motor contact requires
+    /// the exact directed causal chain ordering -> affective -> consequence-
+    /// returned regulation. Same-interval coincidence authors nothing, an
+    /// unrelated ordering neuron can never connect, the contact count does
+    /// not scale with coincident-active ordering neurons, and an interval
+    /// with no directed transfers (unattended, no action) adds zero motor
+    /// contacts.
+    #[test]
+    fn motor_contact_requires_directed_causal_chain_not_coincidence() {
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let (regulation, _, _) = mount_body_regulation_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            BodyAxis::LeftElbowFlexion,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let routed_ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            regulation,
+            routed_ordering,
+            0,
+        );
+        let affective = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| (mount.place().layer() == 10).then_some(*lineage))
+            .unwrap();
+        // Coincident ordering neurons: physically adjacent to the same
+        // affective cell, transitioned in the same interval, but with no
+        // directed transfer along their own path.
+        let mut coincident = Vec::new();
+        for topology in 1..=4_u32 {
+            let bystander = mount_intrinsic_neuron_at_place(
+                &mut cohorts,
+                &mut population,
+                &mut next_lineage,
+                DeclaredNeuronPlace::new(11, topology),
+            )
+            .unwrap();
+            fabric = fabric
+                .append_contact(
+                    affective,
+                    bystander,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                )
+                .unwrap();
+            coincident.push(bystander);
+        }
+        let contacts_before = fabric.contact_count();
+
+        // Proof: an interval with NO directed transfers (unattended or
+        // actionless) authors nothing, however many neurons transitioned.
+        let mut transitioned = vec![regulation, routed_ordering];
+        transitioned.extend(coincident.iter().copied());
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contacts_before);
+        assert!(!cohorts.iter().any(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .any(|mount| mount.place().layer() == 12)
+        }));
+
+        // Proof: with the exact directed chain present for one ordering
+        // neuron and four coincident-active bystanders, exactly one
+        // ordering->motor contact and one regulation->motor contact author.
+        let chain = directed_chain(
+            &cohorts,
+            &fabric,
+            &[routed_ordering, affective, regulation],
+        );
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &chain,
+        )
+        .unwrap();
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| (mount.place().layer() == 12).then_some(*lineage))
+            .expect("directed chain must mount the motor cell");
+        assert!(fabric.contains_contact(routed_ordering, motor));
+        assert!(fabric.contains_contact(regulation, motor));
+        for bystander in &coincident {
+            assert!(
+                !fabric.contains_contact(*bystander, motor),
+                "coincident-active ordering neuron must never reach the motor"
+            );
+        }
+        // Exactly participants + motor mount: no ordering x motor scaling.
+        assert_eq!(fabric.contact_count(), contacts_before + 2);
+
+        // Proof: repeating the same interval evidence is idempotent.
+        let repeat_chain = directed_chain(
+            &cohorts,
+            &fabric,
+            &[routed_ordering, affective, regulation],
+        );
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &repeat_chain,
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contacts_before + 2);
+
+        // Proof: a directed transfer along a bystander's own contact that
+        // does NOT complete the chain into the regulation cell still
+        // authors nothing for that bystander.
+        let partial = directed_chain(&cohorts, &fabric, &[coincident[0], affective]);
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &partial,
+        )
+        .unwrap();
+        assert!(!fabric.contains_contact(coincident[0], motor));
+        assert_eq!(fabric.contact_count(), contacts_before + 2);
+    }
+
     #[test]
     fn changed_ordering_set_reuses_the_terminal_bound_motor() {
         let mut cohorts = Vec::new();
@@ -21124,7 +21355,7 @@ mod tests {
             first_ordering,
             0,
         );
-        let first_active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let first_active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21162,7 +21393,7 @@ mod tests {
             second_ordering,
             1,
         );
-        let second_active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let second_active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21219,7 +21450,7 @@ mod tests {
             ordering,
             0,
         );
-        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21394,7 +21625,7 @@ mod tests {
             ordering,
             1,
         );
-        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21458,7 +21689,7 @@ mod tests {
             ordering,
             0,
         );
-        let active_bonds = all_physical_bonds(&cohorts, &fabric);
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
