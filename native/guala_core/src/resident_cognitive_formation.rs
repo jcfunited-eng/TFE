@@ -2098,6 +2098,12 @@ impl RetainedOrganismMosaic {
 struct ResidentFormationIndex {
     by_lineage: Vec<([u8; 16], Vec<usize>)>,
     by_bond: Vec<(StablePhysicalBondReference, Vec<usize>)>,
+    /// Non-persisted memo of each retained formation's canonical structure
+    /// receipt. A formation's receipt changes only when the formation itself
+    /// is replaced, and `replace`/`insert` clear the slot, so a filled entry
+    /// is always the exact sha256 the encoder would produce. Pure derivation
+    /// cache: never stored, never authoritative, rebuilt empty on restore.
+    receipt_memo: Vec<Option<[u8; 32]>>,
 }
 
 impl ResidentFormationIndex {
@@ -2134,11 +2140,19 @@ impl ResidentFormationIndex {
         candidates.into_iter().collect()
     }
 
+    fn receipt_memo_mut(&mut self) -> &mut Vec<Option<[u8; 32]>> {
+        &mut self.receipt_memo
+    }
+
     fn insert(
         &mut self,
         mosaic_index: usize,
         mosaic: &AdmittedPhysicalMosaic,
     ) -> Result<(), FormationError> {
+        if self.receipt_memo.len() <= mosaic_index {
+            self.receipt_memo.resize(mosaic_index + 1, None);
+        }
+        self.receipt_memo[mosaic_index] = None;
         let mut lineages = mosaic.member_lineages().iter().copied().collect::<BTreeSet<_>>();
         for bond in mosaic
             .original_bonds()
@@ -2926,6 +2940,7 @@ fn observe_organic_mosaic_relations(
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     current_frontier: &[ActiveElectricalFrontierEntry],
     max_encoded_bytes: usize,
+    receipt_memo: &mut Vec<Option<[u8; 32]>>,
 ) -> Result<Vec<OrganicMosaicRelationObservation>, FormationError> {
     if frontier_indices.len() < 2 || reassembled_indices.is_empty() {
         return Ok(Vec::new());
@@ -2993,10 +3008,20 @@ fn observe_organic_mosaic_relations(
         let mut formation_receipts = members
             .iter()
             .map(|local_index| {
-                let retained = &mosaics[frontier_indices[*local_index]].mosaic;
-                encode_resident_admitted_physical_mosaic(retained, max_encoded_bytes)
-                .map(|encoded| sha256(&encoded))
-                .map_err(FormationError::PhysicalMosaicCodecUnavailable)
+                let mosaic_index = frontier_indices[*local_index];
+                if let Some(Some(receipt)) = receipt_memo.get(mosaic_index) {
+                    return Ok(*receipt);
+                }
+                let retained = &mosaics[mosaic_index].mosaic;
+                let receipt =
+                    encode_resident_admitted_physical_mosaic(retained, max_encoded_bytes)
+                        .map(|encoded| sha256(&encoded))
+                        .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
+                if receipt_memo.len() <= mosaic_index {
+                    receipt_memo.resize(mosaic_index + 1, None);
+                }
+                receipt_memo[mosaic_index] = Some(receipt);
+                Ok(receipt)
             })
             .collect::<Result<Vec<_>, _>>()?;
         formation_receipts.sort_unstable();
@@ -3671,6 +3696,7 @@ fn settle_organism_mosaic_boundary(
         predecessor_frontier,
         current_frontier,
         max_encoded_bytes,
+        formation_index.receipt_memo_mut(),
         )?
     };
     let relations_wall = boundary_stopwatch.elapsed();
@@ -19624,6 +19650,7 @@ mod tests {
             &[],
             &[],
             16_000_000,
+            &mut Vec::new(),
         )
         .unwrap();
         assert_eq!(one_reassembled_relation.len(), 1);
@@ -19650,6 +19677,7 @@ mod tests {
             &[],
             &[],
             16_000_000,
+            &mut Vec::new(),
         )
         .unwrap();
         assert_ne!(

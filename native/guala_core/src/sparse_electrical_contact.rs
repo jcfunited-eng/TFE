@@ -1976,6 +1976,7 @@ pub(crate) fn settle_sparse_electrical_transfers(
     // those independent pair proposals concurrently; the exact shared-sender
     // carrier bound and connected-component energy descent still follow as
     // their single deterministic reconciliation steps.
+    let solver_stopwatch = std::time::Instant::now();
     let provisional = anatomy
         .contacts
         .par_iter()
@@ -2001,6 +2002,7 @@ pub(crate) fn settle_sparse_electrical_transfers(
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
+    let provisional_wall = solver_stopwatch.elapsed();
     let mut transitions = jointly_carrier_bound_transitions(
         anatomy,
         predecessor_contacts,
@@ -2010,13 +2012,21 @@ pub(crate) fn settle_sparse_electrical_transfers(
         interval_microseconds,
         provisional,
     )?;
+    let jointly_wall = solver_stopwatch.elapsed();
     attach_contact_local_released_work(
         anatomy,
         &potentials,
         interval_microseconds,
         &mut transitions,
     )?;
+    let attach_wall = solver_stopwatch.elapsed();
     let outward_by_neuron = settled_outward_by_neuron(anatomy, &transitions)?;
+    eprintln!(
+        "guala-solver-phases provisional_ms={} jointly_ms={} attach_ms={} tail_ms_pending",
+        provisional_wall.as_millis(),
+        (jointly_wall - provisional_wall).as_millis(),
+        (attach_wall - jointly_wall).as_millis(),
+    );
     let mut moved_whole = 0usize;
     let mut phase_only = 0usize;
     let mut true_identity = 0usize;
