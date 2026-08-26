@@ -511,6 +511,71 @@ fn quiescent_contact(predecessor: ElectricalContactState) -> ElectricalContactTr
     }
 }
 
+
+/// Read-only standing-current authority for scheduling.
+///
+/// Returns `Some(current)` exactly when the standing conditions permit an
+/// eventual whole-carrier transfer under the mounted settlement law: a
+/// nonzero Ohmic drive, strict electrostatic-energy descent for one
+/// elementary charge in the driven direction, and at least one available
+/// descending sender carrier within the lawful maximum. A contact resting
+/// on an odd residual imbalance, or with an empty sender reservoir, answers
+/// `None` — it can never cross while sleeping, exactly as settlement would
+/// refuse it every clock. While a permitted contact sleeps, each clock's
+/// settlement would integrate phase at the unbounded requested current
+/// (zero whole charges never trip the carrier clamp), so the returned raw
+/// current is the exact sleeping integration rate. Read-only: no state is
+/// touched, and this is the single authority the restore rebuild may use.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn standing_contact_current(
+    anatomy: ElectricalContactAnatomy,
+    state: &ElectricalContactState,
+    left_potential: ExactRational,
+    left_charges: i128,
+    left_capacitance: MembraneCapacitance,
+    left_available: u128,
+    right_potential: ExactRational,
+    right_charges: i128,
+    right_capacitance: MembraneCapacitance,
+    right_available: u128,
+) -> Result<Option<ExactRational>, SparseElectricalError> {
+    let potential_difference = left_potential.checked_sub(right_potential)?;
+    let current = anatomy
+        .effective_conductance(state)?
+        .checked_mul(potential_difference)?
+        .checked_div_unsigned(PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE)?;
+    let driven_direction = i128::from(current.parts().0.signum());
+    if driven_direction == 0 {
+        return Ok(None);
+    }
+    let left = ContactEndpoint {
+        potential_millivolts: left_potential,
+        separated_elementary_charges: left_charges,
+        capacitance: left_capacitance,
+        available_carriers: left_available,
+    };
+    let right = ContactEndpoint {
+        potential_millivolts: right_potential,
+        separated_elementary_charges: right_charges,
+        capacitance: right_capacitance,
+        available_carriers: right_available,
+    };
+    if !stored_energy_strictly_decreases(left, right, driven_direction)? {
+        return Ok(None);
+    }
+    let maximum_descending =
+        maximum_energy_descending_carriers(left, right, driven_direction)?;
+    let sender_reserve = if driven_direction > 0 {
+        left.available_carriers
+    } else {
+        right.available_carriers
+    };
+    if maximum_descending.min(sender_reserve) == 0 {
+        return Ok(None);
+    }
+    Ok(Some(current))
+}
+
 /// Exact fixed-width settlement of one contact: the same law as
 /// ``settle_contact`` evaluated in 256-bit machine arithmetic. Returns
 /// ``None`` whenever any width gate fails, and the caller runs the
@@ -2390,6 +2455,170 @@ mod tests {
             .unwrap()
     }
     use super::*;
+
+    fn unit_capacitance() -> MembraneCapacitance {
+        MembraneCapacitance::new(ExactRational::integer(1)).unwrap()
+    }
+
+    fn standing_fixture_state(
+        conductance_denominator: i128,
+    ) -> (ElectricalContactAnatomy, ElectricalContactState) {
+        let anatomy = ElectricalContactAnatomy::new(
+            0,
+            1,
+            ExactRational::integer(1)
+                .checked_div(ExactRational::integer(conductance_denominator))
+                .unwrap(),
+            2,
+        )
+        .unwrap();
+        let mut state = ElectricalContactState::from_legacy_carrier_phase(
+            anatomy,
+            ChargeCarrierPhase::zero(),
+        );
+        state.conducting_channel_population = 1;
+        (anatomy, state)
+    }
+
+    /// Falsifier 1: a mature odd-charge pair rests with a genuine residual
+    /// voltage, yet moving its one elementary charge only mirrors the pair —
+    /// stored energy does not strictly descend, so settlement refuses every
+    /// clock. The standing authority must answer None (unscheduled), even
+    /// though the naive Ohmic current is nonzero. This is exactly the
+    /// eternal-false-schedule defect the raw-current rebuild had.
+    #[test]
+    fn standing_authority_refuses_odd_residual_resting_pair() {
+        let (anatomy, state) = standing_fixture_state(100_000);
+        let c = unit_capacitance();
+        let left_potential = potential_from_membrane(1, c);
+        let right_potential = potential_from_membrane(0, c);
+        assert!(
+            left_potential.checked_sub(right_potential).unwrap().parts().0 != 0,
+            "fixture must carry a real residual voltage"
+        );
+        let standing = standing_contact_current(
+            anatomy,
+            &state,
+            left_potential,
+            1,
+            c,
+            100,
+            right_potential,
+            0,
+            c,
+            100,
+        )
+        .unwrap();
+        assert!(standing.is_none(), "resting residual pair must stay unscheduled");
+        let oracle = settle_contact(
+            anatomy,
+            state,
+            ContactEndpoint::new(left_potential, membrane_with_charge(1), c, 100),
+            ContactEndpoint::new(right_potential, membrane_with_charge(0), c, 100),
+            250_000,
+        )
+        .unwrap();
+        assert_eq!(oracle.outward_elementary_charges_from_left, 0);
+        assert_eq!(
+            oracle.successor.carrier_phase().parts(),
+            (0, 1),
+            "settlement must hold the resting pair at exact rest"
+        );
+    }
+
+    /// Falsifier 2: lawful descent exists but the sender reservoir is empty.
+    /// Settlement can never move a carrier, so the authority must refuse.
+    #[test]
+    fn standing_authority_refuses_empty_sender_reservoir() {
+        let (anatomy, state) = standing_fixture_state(100_000);
+        let c = unit_capacitance();
+        let left_potential = potential_from_membrane(10, c);
+        let right_potential = potential_from_membrane(0, c);
+        let standing = standing_contact_current(
+            anatomy,
+            &state,
+            left_potential,
+            10,
+            c,
+            0,
+            right_potential,
+            0,
+            c,
+            100,
+        )
+        .unwrap();
+        assert!(standing.is_none(), "empty sender reservoir must stay unscheduled");
+        let flush = settle_contact(
+            anatomy,
+            state,
+            ContactEndpoint::new(left_potential, membrane_with_charge(10), c, 0),
+            ContactEndpoint::new(right_potential, membrane_with_charge(0), c, 100),
+            250_000,
+        )
+        .unwrap();
+        assert_eq!(flush.outward_elementary_charges_from_left, 0);
+    }
+
+    /// Falsifiers 3 and 4 together, for both drive signs: a lawful drive is
+    /// scheduled at its exact computed crossing, and that restored due clock
+    /// agrees with the real settlement law stepped clock by clock — zero
+    /// whole carriers on every clock before the due clock, exactly one whole
+    /// carrier in the driven direction on the due clock itself.
+    #[test]
+    fn standing_authority_due_clock_agrees_with_settlement() {
+        for (q_left, q_right, expected_sign) in [(10_i128, 0_i128, 1_i128), (0, 10, -1)] {
+            let (anatomy, state) = standing_fixture_state(100);
+            let c = unit_capacitance();
+            let left_potential = potential_from_membrane(q_left, c);
+            let right_potential = potential_from_membrane(q_right, c);
+            let standing = standing_contact_current(
+                anatomy,
+                &state,
+                left_potential,
+                q_left,
+                c,
+                100,
+                right_potential,
+                q_right,
+                c,
+                100,
+            )
+            .unwrap()
+            .expect("lawful drive must be schedulable");
+            assert_eq!(i128::from(standing.parts().0.signum()), expected_sign);
+            let due = crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
+                state.carrier_phase(),
+                standing,
+                250_000,
+            )
+            .unwrap()
+            .expect("standing drive must cross");
+            assert!(
+                (2..=100_000).contains(&due),
+                "fixture must be multi-clock and steppable, got {due}"
+            );
+            let left = ContactEndpoint::new(left_potential, membrane_with_charge(q_left), c, 100);
+            let right =
+                ContactEndpoint::new(right_potential, membrane_with_charge(q_right), c, 100);
+            let mut stepped = state;
+            for clock in 1..=due {
+                let transition =
+                    settle_contact(anatomy, stepped, left, right, 250_000).unwrap();
+                if clock < due {
+                    assert_eq!(
+                        transition.outward_elementary_charges_from_left, 0,
+                        "no whole carrier may move before the due clock (clock {clock})"
+                    );
+                } else {
+                    assert_eq!(
+                        transition.outward_elementary_charges_from_left, expected_sign,
+                        "exactly one whole carrier must move on the due clock"
+                    );
+                }
+                stepped = transition.successor;
+            }
+        }
+    }
 
     fn capacitances(count: usize) -> Vec<MembraneCapacitance> {
         vec![MembraneCapacitance::new(ExactRational::integer(1)).unwrap(); count]

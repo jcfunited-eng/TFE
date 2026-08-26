@@ -14009,17 +14009,28 @@ pub(crate) fn rebuild_carrier_schedule_on_restore(
             .membrane_state()
             .potential_millivolts(right_capacitance)
             .map_err(FormationError::InternalMembraneUnavailable)?;
-        let difference = left_potential
-            .checked_sub(right_potential)
-            .map_err(|_| FormationError::ArithmeticOverflow)?;
-        let standing_current = edge
-            .anatomy
-            .effective_conductance(&edge.state)
-            .map_err(FormationError::ResidentElectricalUnavailable)?
-            .checked_mul(difference)
-            .map_err(|_| FormationError::ArithmeticOverflow)?
-            .checked_div_unsigned(1_000)
-            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        // The settlement law itself decides whether this contact can ever
+        // cross while sleeping: strict energy descent, lawful maximum, and
+        // sender-reservoir availability all live in the one read-only
+        // authority. A refused contact stays unscheduled — an odd residual
+        // resting pair or an empty sender reservoir must never occupy the
+        // schedule.
+        let standing_current = crate::sparse_electrical_contact::standing_contact_current(
+            edge.anatomy,
+            &edge.state,
+            left_potential,
+            left_state.membrane_state().separated_elementary_charges(),
+            left_capacitance,
+            left_state.carrier_reservoirs().intracellular(),
+            right_potential,
+            right_state.membrane_state().separated_elementary_charges(),
+            right_capacitance,
+            right_state.carrier_reservoirs().intracellular(),
+        )
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+        let Some(standing_current) = standing_current else {
+            continue;
+        };
         let crossing = next_whole_carrier_crossing_clocks(
             edge.state.carrier_phase(),
             standing_current,
