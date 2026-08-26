@@ -525,6 +525,12 @@ fn settle_contact_fast(
 ) -> Option<ElectricalContactTransition> {
     use crate::fast_charge_math::{SignedRatio256, U256};
 
+    // The exact path refuses a zero-duration active settlement; the fast
+    // path must present the identical refusal boundary, so it answers None
+    // and lets the exact path speak for every zero-duration call.
+    if interval_microseconds == 0 {
+        return None;
+    }
     // Current numerator/denominator: g_single * population * dV / PSMV.
     let (single_n, single_d) = anatomy.single_channel_conductance_picosiemens.parts();
     let population = predecessor.conducting_channel_population;
@@ -843,13 +849,15 @@ fn jointly_carrier_bound_transitions(
     available_carriers: &[u128],
     interval_microseconds: u32,
     provisional: Vec<ElectricalContactTransition>,
+    potentials: &[ExactRational],
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
     // A neuron's per-contact demands are individually bounded whole-carrier
     // values, but their transient sum across a real fan-out need not fit the
     // width of one resident carrier store.  The sum exists only to derive the
     // exact per-neuron availability fraction, so keep it wide and narrow only
     // each physically allocated contact transfer below.
-    let mut demanded_by_sender = vec![BigInt::from(0_u8); anatomy.neuron_count];
+    let mut demanded_by_sender =
+        vec![crate::fast_charge_math::U256::ZERO; anatomy.neuron_count];
     for (contact, transition) in anatomy.contacts.iter().zip(&provisional) {
         let sender = if transition.outward_elementary_charges_from_left > 0 {
             Some(contact.left_neuron)
@@ -859,18 +867,14 @@ fn jointly_carrier_bound_transitions(
             None
         };
         if let Some(sender) = sender {
-            demanded_by_sender[sender] += BigInt::from(
-                transition.outward_elementary_charges_from_left.unsigned_abs(),
-            );
+            demanded_by_sender[sender] = demanded_by_sender[sender]
+                .checked_add(crate::fast_charge_math::U256::from_u128(
+                    transition.outward_elementary_charges_from_left.unsigned_abs(),
+                ))
+                .ok_or(SparseElectricalError::ArithmeticWidth)?;
         }
     }
 
-    let potentials = predecessor_membranes
-        .par_iter()
-        .copied()
-        .zip(capacitances.par_iter().copied())
-        .map(|(membrane, capacitance)| membrane.potential_millivolts(capacitance))
-        .collect::<Result<Vec<_>, _>>()?;
     let transitions = anatomy
         .contacts
         .par_iter()
@@ -891,16 +895,20 @@ fn jointly_carrier_bound_transitions(
             let Some(sender) = sender else {
                 return Ok(transition);
             };
-            let total_demand = &demanded_by_sender[sender];
+            let total_demand = demanded_by_sender[sender];
             let available = available_carriers[sender];
-            if total_demand <= &BigInt::from(available) {
+            if total_demand <= crate::fast_charge_math::U256::from_u128(available) {
                 return Ok(transition);
             }
             let demand = transition.outward_elementary_charges_from_left.unsigned_abs();
-            let allocated = (BigInt::from(demand) * BigInt::from(available)
-                / total_demand)
-            .to_u128()
+            let (allocated_wide, _) = crate::fast_charge_math::U256::mul_u128(
+                demand, available,
+            )
+            .div_rem(total_demand)
             .ok_or(SparseElectricalError::ArithmeticWidth)?;
+            let allocated = allocated_wide
+                .to_u128()
+                .ok_or(SparseElectricalError::ArithmeticWidth)?;
             let bounded_current = current_limited_by_available_carriers(
                 predecessor.carrier_phase,
                 transition.outward_current_from_left_picoamperes,
@@ -995,6 +1003,50 @@ fn settle_energy_component(
 ) -> Result<(), SparseElectricalError> {
     let (component_neurons, outward) =
         outward_by_contact_indices(anatomy, transitions, component_contacts)?;
+    // Per-neuron integer pre-scan with the exact wide path as fallback.
+    // descent - curvature = sum over neurons of w(q - w)/C with C > 0, and
+    // descent = sum of qw/C. When every neuron's w(q - w) is nonnegative the
+    // sum cannot be negative, so descent >= curvature and the component
+    // keeps its transitions unchanged (the same early return the exact
+    // arithmetic below reaches); when additionally some qw > 0, descent > 0.
+    // Only a neuron that moved more carriers than its separated charge — a
+    // genuine overshoot candidate — forces the exact common-denominator
+    // computation. Machine integers with checked widening; any overflow
+    // falls through to the exact path.
+    {
+        let mut all_within_charge = true;
+        let mut any_positive_descent_term = false;
+        for (neuron_index, node_outward) in component_neurons.iter().zip(&outward) {
+            let Some(w) = node_outward.to_i128() else {
+                all_within_charge = false;
+                break;
+            };
+            let q = predecessor_membranes[*neuron_index].separated_elementary_charges();
+            let Some(q_minus_w) = q.checked_sub(w) else {
+                all_within_charge = false;
+                break;
+            };
+            let Some(product) = w.checked_mul(q_minus_w) else {
+                all_within_charge = false;
+                break;
+            };
+            if product < 0 {
+                all_within_charge = false;
+                break;
+            }
+            match w.checked_mul(q) {
+                Some(qw) if qw > 0 => any_positive_descent_term = true,
+                Some(_) => {}
+                None => {
+                    all_within_charge = false;
+                    break;
+                }
+            }
+        }
+        if all_within_charge && any_positive_descent_term {
+            return Ok(());
+        }
+    }
     let common_denominator = inverse_capacitance_common_denominator(
         capacitances,
         component_neurons.iter().copied(),
@@ -2011,6 +2063,7 @@ pub(crate) fn settle_sparse_electrical_transfers(
         available_carriers,
         interval_microseconds,
         provisional,
+        &potentials,
     )?;
     let jointly_wall = solver_stopwatch.elapsed();
     attach_contact_local_released_work(
@@ -2146,6 +2199,7 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
         available_carriers,
         interval_microseconds,
         provisional,
+        &potentials,
     )?;
     attach_contact_local_released_work(
         anatomy,

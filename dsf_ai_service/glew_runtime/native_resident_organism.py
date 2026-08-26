@@ -656,9 +656,18 @@ def _canonical_sha256(value: object, label: str) -> str:
 
 # The same few thousand lineages cross this boundary millions of times per
 # interval. Remember every string that has already passed the exact canonical
-# test so repeats cost one set lookup; the accepted and rejected sets are
-# unchanged, and the cache is bounded by the organism's real lineage count.
+# test so repeats cost one set lookup. The accepted and rejected sets are
+# unchanged. HONEST BOUND (corrected after review): this set retains any
+# canonical 32-hex string ever validated in this process, up to the cap
+# below — roughly the declared structural-graph lineage ceiling, ~50MB
+# worst case — and it is cleared whenever an organism is restored so no
+# earlier body's strings persist across a restore.
 _CANONICAL_LINEAGES_SEEN: set[str] = set()
+_CANONICAL_LINEAGES_CAP = 500_000
+
+
+def _clear_canonical_lineage_cache() -> None:
+    _CANONICAL_LINEAGES_SEEN.clear()
 
 
 def _canonical_lineage_hex(value: object, label: str) -> str:
@@ -670,7 +679,7 @@ def _canonical_lineage_hex(value: object, label: str) -> str:
         or value.strip("0123456789abcdef")
     ):
         raise RuntimeError(f"resident organism {label} is not canonical")
-    if len(_CANONICAL_LINEAGES_SEEN) < 4_000_000:
+    if len(_CANONICAL_LINEAGES_SEEN) < _CANONICAL_LINEAGES_CAP:
         _CANONICAL_LINEAGES_SEEN.add(value)
     return value
 
@@ -3600,6 +3609,7 @@ def restore_native_resident_organism(
 ) -> NativeResidentOrganism:
     """Cold restore one current GLORUN state into one native resident runtime."""
 
+    _clear_canonical_lineage_cache()
     if (
         not isinstance(current_envelope, bytes)
         or not current_envelope.startswith(b"GLORUN01")
