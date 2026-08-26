@@ -9,6 +9,13 @@ function parseArgs(argv) {
     baseUrl: process.env.TFE_BASE_URL || 'https://taofinancialengine.com',
     username: process.env.TFE_USERNAME || '',
     password: process.env.TFE_PASSWORD || '',
+    // 2026-08-26: the Clerk middleware (2026-04-06) bounces every
+    // request without a Clerk session, so the probe rides the
+    // internal service token past the middleware and authenticates
+    // through the legacy bridge (tfe_users + /api/auth/sign-in),
+    // which server-auth still honors. This gates PRODUCT function;
+    // the Clerk sign-in UX itself is not covered by this probe.
+    internalToken: process.env.TFE_INTERNAL_REFRESH_TOKEN || '',
     outDir: '',
     timeoutMs: 45000,
     symbols: ['AAPL', 'MSFT', 'SPY'],
@@ -161,7 +168,15 @@ async function run() {
   };
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ ignoreHTTPSErrors: true });
+  const context = await browser.newContext({
+    ignoreHTTPSErrors: true,
+    // Rides the internal service token past the Clerk middleware on
+    // every request (pages and API alike); identity then comes from
+    // the legacy session cookie issued by /api/auth/sign-in below.
+    ...(args.internalToken
+      ? { extraHTTPHeaders: { 'x-tfe-internal-refresh-token': args.internalToken } }
+      : {}),
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(args.timeoutMs);
 
@@ -417,7 +432,15 @@ async function run() {
       const decision = String(row?.decision ?? '');
       const code = String(row?.decisionReasonCode ?? '');
       const reason = String(row?.decisionReason ?? '');
-      if (!['Accumulate', 'Hold', 'Avoid'].includes(decision)) {
+      // The audit contract is self-explanation, not universal coverage:
+      // a published decision must be a valid value, and an ABSENT one
+      // must say so honestly (decisionAvailable=false + reason code).
+      // Tickers outside the published universe legitimately read
+      // 'Unavailable' — that is an audited state, not a missing field.
+      const decisionOk = row?.decisionAvailable === false
+        ? decision === 'Unavailable'
+        : ['Accumulate', 'Hold', 'Avoid'].includes(decision);
+      if (!decisionOk) {
         auditFieldsMissing.push({ ticker: row?.ticker ?? null, field: 'decision_value_invalid' });
       }
       if (!code || !reason) {

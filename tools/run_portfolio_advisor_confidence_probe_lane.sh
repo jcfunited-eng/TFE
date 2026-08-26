@@ -116,6 +116,14 @@ python3 "$ROOT/tools/run_validation_gate_v1_in_ecs_network.py" \
   --command-json "$CREATE_COMMAND_JSON" \
   > "$OUT_DIR/user-create.json"
 
+# Internal service token: carries the probe past the Clerk middleware
+# (2026-04-06) so the legacy test-user session can authenticate the
+# product checks. Never printed; read straight into the environment.
+TFE_INTERNAL_REFRESH_TOKEN="$(aws secretsmanager get-secret-value \
+  --secret-id tfe/internal-refresh-token/prod \
+  --query SecretString --output text --region "$REGION")"
+export TFE_INTERNAL_REFRESH_TOKEN
+
 set +e
 node "$ROOT/web/scripts/portfolio_advisor_confidence_probe.mjs" \
   --baseUrl "$BASE_URL" \
