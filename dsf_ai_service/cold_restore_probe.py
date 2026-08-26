@@ -1811,6 +1811,11 @@ def _rehearse_a011_ordinary_interval(
         production._startup()
         before = production._native_record()
         result = production._attempt_unattended_interval()
+        # Persistence is off cognition's critical path: an ordinary interval
+        # lawfully defers its seal to the checkpoint cadence. The rehearsal
+        # proves durable advancement by sealing the pending chain itself
+        # before comparing published state.
+        production._seal_pending_chain()
         after = production._native_record()
     action = result.get("motor_action")
     consequence = action.get("sensory_consequence") if isinstance(action, dict) else None
@@ -1834,7 +1839,19 @@ def _rehearse_a011_ordinary_interval(
         or after["organism_tick"] <= before["organism_tick"]
         or after["state_sha256"] == before["state_sha256"]
     ):
-        raise RuntimeError("A-011 ordinary action/consequence rehearsal changed")
+        raise RuntimeError(
+            "A-011 ordinary action/consequence rehearsal changed: "
+            f"delivered={result.get('delivered')!r} "
+            f"outcome={result.get('outcome')!r} "
+            f"moved={action.get('moved') if isinstance(action, dict) else None!r} "
+            "continuous_cognition="
+            f"{action.get('continuous_cognition') if isinstance(action, dict) else None!r} "
+            f"transported={articulated.get('transported') if isinstance(articulated, dict) else None!r} "
+            "reassembly="
+            f"{measured.get('partial_cue_reassembly_count') if isinstance(measured, dict) else None!r} "
+            f"tick={before['organism_tick']}->{after['organism_tick']} "
+            f"sha_changed={after['state_sha256'] != before['state_sha256']}"
+        )
     return {
         "a011_ordinary_interval_rehearsed": True,
         "a011_predecessor_tick": before["organism_tick"],
