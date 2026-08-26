@@ -5023,6 +5023,22 @@ impl ResidentCognitiveFormationState {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
         }
+        // Exact retained evidence exempts a contact from removal: a link
+        // that is a member bond of a retained mosaic is part of a lived
+        // memory, and memories are preserved. Everything else in the pool
+        // was authored by coincidence and goes. Refuse-not-guess holds:
+        // membership is read from the retained formations themselves.
+        let mut retained_bond_pairs = std::collections::BTreeSet::new();
+        for retained in self.mosaics.iter() {
+            for bond in retained
+                .mosaic
+                .original_bonds()
+                .iter()
+                .chain(retained.mosaic.recurrence_bonds())
+            {
+                retained_bond_pairs.insert(bond.endpoints());
+            }
+        }
         let mut contaminated = std::collections::BTreeSet::new();
         for (left, right) in self.electrical_fabric.contact_endpoints() {
             let left_lineage = self.electrical_fabric.lineages()[left];
@@ -5037,8 +5053,11 @@ impl ResidentCognitiveFormationState {
             if layers.0 > layers.1 {
                 layers = (layers.1, layers.0);
             }
-            if layers == (11, 12) || layers == (11, 13) {
-                contaminated.insert(canonical_lineage_pair(left_lineage, right_lineage));
+            let pair = canonical_lineage_pair(left_lineage, right_lineage);
+            if (layers == (11, 12) || layers == (11, 13))
+                && !retained_bond_pairs.contains(&pair)
+            {
+                contaminated.insert(pair);
             }
         }
         if contaminated.is_empty() {
