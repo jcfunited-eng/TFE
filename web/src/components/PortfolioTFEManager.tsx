@@ -13,6 +13,7 @@ type PEE1Config = {
 type CustodyStatus =
   | "matched"
   | "broker_only"
+  | "frozen_corporate_action"
   | "ledger_only"
   | "quantity_mismatch"
   | "duplicate_ledger"
@@ -171,6 +172,12 @@ export default function PortfolioTFEManager() {
   const [error, setError] = useState<string | null>(null);
   const [closedSortKey, setClosedSortKey] = useState<keyof ClosedTrade>("closed_at");
   const [closedSortDesc, setClosedSortDesc] = useState(true);
+  // Frozen delisted remnants (broker-held, awaiting corporate-action
+  // settlement) are real but unactionable — they collapse to one
+  // footnote instead of standing rows. Custody stays truthful; the
+  // list shows only what an engine can act on.
+  const visiblePositions = positions.filter((p) => p.custody_status !== "frozen_corporate_action");
+  const frozenRemnants = positions.filter((p) => p.custody_status === "frozen_corporate_action");
   const [notInitialized, setNotInitialized] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [fundedInput, setFundedInput] = useState("");
@@ -305,14 +312,14 @@ export default function PortfolioTFEManager() {
       <div className="tfe-panel" style={{ padding: 0, overflow: "hidden" }}>
         <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", gap: 8, alignItems: "center" }}>
           <h3 style={{ margin: 0, fontSize: ".95rem" }}>Broker / ledger position custody</h3>
-          <span style={{ background: "#e2e8f0", borderRadius: 12, padding: "2px 8px", fontSize: ".72rem" }}>{positions.length}</span>
+          <span style={{ background: "#e2e8f0", borderRadius: 12, padding: "2px 8px", fontSize: ".72rem" }}>{visiblePositions.length}</span>
         </div>
-        {positions.length === 0 ? <div style={{ padding: 22, color: "#64748b" }}>No broker holdings or open ledger rows.</div> : (
+        {visiblePositions.length === 0 ? <div style={{ padding: 22, color: "#64748b" }}>No broker holdings or open ledger rows.</div> : (
           <div style={{ overflowX: "auto" }}>
             <table className="tfe-table">
               <caption style={{ position: "absolute", width: 1, height: 1, overflow: "hidden" }}>Broker and ledger custody reconciliation</caption>
               <thead><tr>{["Ticker", "Ledger class", "Broker qty", "Ledger qty", "Entry", "Broker mark", "Market value", "Unrealized", "Return", "Custody", "Ledger detected"].map((heading) => <th key={heading} scope="col" style={{ whiteSpace: "nowrap" }}>{heading}</th>)}</tr></thead>
-              <tbody>{positions.map((position) => (
+              <tbody>{visiblePositions.map((position) => (
                 <tr key={position.id}>
                   <td style={{ fontWeight: 700 }}>{position.ticker}</td>
                   <td>{signalBadge(position.signal_class)}</td>
@@ -330,6 +337,11 @@ export default function PortfolioTFEManager() {
             </table>
           </div>
         )}
+        {frozenRemnants.length ? (
+          <div style={{ padding: "10px 18px", borderTop: "1px solid rgba(0,0,0,.06)", color: "#64748b", fontSize: ".74rem" }}>
+            {frozenRemnants.length} delisted remnant{frozenRemnants.length > 1 ? "s" : ""} ({frozenRemnants.map((p) => p.ticker).join(", ")}) held at the broker awaiting corporate-action settlement — untradable, excluded from this list, leaves the account when the broker processes the action.
+          </div>
+        ) : null}
       </div>
 
       {summary?.recent_closed_trades.length ? (
