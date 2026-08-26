@@ -13943,6 +13943,99 @@ struct ResidentContactEdge {
     origin: ResidentContactOrigin,
 }
 
+
+/// One-time cold-restore rebuild of the derived carrier schedule.
+///
+/// Codex-defined boundary: walk every restored contact ONCE, compute its
+/// standing drive from the restored endpoint states exactly as settlement
+/// would, and schedule its computed carrier crossing relative to the
+/// persisted organism clock. Persisted frontier entries are the restored
+/// arrival sources; every integration clock starts at the persisted
+/// organism clock. No pump schedule exists to rebuild — the mounted pump
+/// law runs only for neurons already reached by another causal event, so
+/// pump work re-derives from ordinary wakes after restore. This pass is
+/// lawful because it is one boot-time walk, never the per-clock sweep.
+pub(crate) fn rebuild_carrier_schedule_on_restore(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
+    persisted_organism_clock: u64,
+) -> Result<
+    (
+        crate::causal_event_scheduler::CarrierCrossingSchedule,
+        Vec<crate::causal_event_scheduler::ContactIntegrationClock>,
+    ),
+    FormationError,
+> {
+    use crate::causal_event_scheduler::{
+        CarrierCrossingSchedule, ContactIntegrationClock,
+    };
+    use crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks;
+
+    let contact_count = topology_index.contacts.len();
+    let mut schedule = CarrierCrossingSchedule::with_contact_count(contact_count);
+    let clocks = vec![
+        ContactIntegrationClock {
+            last_integrated_clock: persisted_organism_clock,
+        };
+        contact_count
+    ];
+    let interval = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    for contact_index in 0..contact_count {
+        let entry = topology_index.contacts[contact_index];
+        let edge = materialize_resident_contact_edge(entry, cohorts, electrical_fabric)?;
+        let (left_cohort, left_neuron, _) = topology_index
+            .flat_locations
+            .get(edge.left)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let (right_cohort, right_neuron, _) = topology_index
+            .flat_locations
+            .get(edge.right)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let left_state = &cohorts[left_cohort].state.neurons()[left_neuron];
+        let right_state = &cohorts[right_cohort].state.neurons()[right_neuron];
+        let left_capacitance =
+            cohorts[left_cohort].anatomy.neuron_anatomies()[left_neuron].capacitance();
+        let right_capacitance =
+            cohorts[right_cohort].anatomy.neuron_anatomies()[right_neuron].capacitance();
+        let left_potential = left_state
+            .membrane_state()
+            .potential_millivolts(left_capacitance)
+            .map_err(FormationError::InternalMembraneUnavailable)?;
+        let right_potential = right_state
+            .membrane_state()
+            .potential_millivolts(right_capacitance)
+            .map_err(FormationError::InternalMembraneUnavailable)?;
+        let difference = left_potential
+            .checked_sub(right_potential)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let standing_current = edge
+            .anatomy
+            .effective_conductance(&edge.state)
+            .map_err(FormationError::ResidentElectricalUnavailable)?
+            .checked_mul(difference)
+            .map_err(|_| FormationError::ArithmeticOverflow)?
+            .checked_div_unsigned(1_000)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let crossing = next_whole_carrier_crossing_clocks(
+            edge.state.carrier_phase(),
+            standing_current,
+            interval,
+        )
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+        if let Some(clocks_until) = crossing {
+            let due = persisted_organism_clock
+                .checked_add(clocks_until)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            schedule.reschedule(contact_index, Some(due));
+        }
+    }
+    Ok((schedule, clocks))
+}
+
 fn touches_local_gradient(
     settlements: &[ReachedLayerTenGradientSettlement],
     left_lineage: [u8; 16],
