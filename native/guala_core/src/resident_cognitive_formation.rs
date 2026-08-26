@@ -14985,22 +14985,33 @@ fn settle_internal_contact_interval(
     // event), and nothing else. The former neighbour-closure sweep over
     // the whole fabric is deleted; the derived residency is rebuilt in one
     // walk at cold restore or after growth, never per clock.
-    let clock = cognitive_ordinal;
+    // The event clock counts SETTLED intervals, never generations: a
+    // generation that performs no settlement advances no physics, so it
+    // advances no clock and no due can ever lapse unseen.
     let needs_rebuild = residency.as_ref().is_none_or(|events| {
         !events.matches_shape(flat_locations.len(), topology_index.contacts.len())
     });
     if needs_rebuild {
+        let base_clock = residency
+            .as_ref()
+            .map_or(cognitive_ordinal.saturating_sub(1), |events| {
+                events.organism_clock
+            });
         *residency = Some(rebuild_causal_event_residency(
             cohorts,
             electrical_fabric,
             topology_index,
-            clock.saturating_sub(1),
+            base_clock,
         )?);
     }
     let events = residency
         .as_mut()
         .ok_or(FormationError::NoncanonicalState)?;
-    events.organism_clock = clock;
+    events.organism_clock = events
+        .organism_clock
+        .checked_add(1)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    let clock = events.organism_clock;
     let mut seed_flats = locally_settled_lineages
         .iter()
         .copied()
