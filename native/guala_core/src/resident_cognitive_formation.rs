@@ -13934,6 +13934,66 @@ impl ResidentTopologyIndex {
     }
 }
 
+/// Read-only census of the standing carrier schedule over one state.
+///
+/// Rebuilds the derived schedule exactly as cold restore would and reports
+/// how the body's contacts divide under the settlement authority: resting
+/// (refused — no lawful eventual crossing) versus scheduled, and how far
+/// out the scheduled crossings sit. Pure measurement: no state is touched
+/// and nothing is retained.
+#[derive(Clone, Debug)]
+pub(crate) struct CarrierScheduleCensus {
+    pub(crate) contact_count: usize,
+    pub(crate) scheduled: usize,
+    pub(crate) nearest_due_offset: Option<u64>,
+    /// (upper bound of clock-offset bucket, count); buckets are powers of
+    /// two over `due - organism_clock`, final bucket collects the rest.
+    pub(crate) due_offset_buckets: Vec<(u64, u64)>,
+}
+
+pub(crate) fn carrier_schedule_census(
+    state: &ResidentCognitiveFormationState,
+) -> Result<CarrierScheduleCensus, FormationError> {
+    let index = if state
+        .topology_index
+        .matches_shape(&state.cohorts, &state.electrical_fabric)
+    {
+        Arc::clone(&state.topology_index)
+    } else {
+        Arc::new(ResidentTopologyIndex::build(
+            &state.cohorts,
+            &state.electrical_fabric,
+        )?)
+    };
+    let organism_clock = state.generation;
+    let (schedule, _clocks) = rebuild_carrier_schedule_on_restore(
+        &state.cohorts,
+        &state.electrical_fabric,
+        &index,
+        organism_clock,
+    )?;
+    let mut buckets: Vec<(u64, u64)> =
+        (0..=20).map(|power| (1_u64 << power, 0_u64)).collect();
+    let overflow_index = buckets.len();
+    buckets.push((u64::MAX, 0));
+    let mut nearest: Option<u64> = None;
+    for (_, due) in schedule.scheduled_dues() {
+        let offset = due.saturating_sub(organism_clock);
+        nearest = Some(nearest.map_or(offset, |n: u64| n.min(offset)));
+        let slot = buckets[..overflow_index]
+            .iter()
+            .position(|(bound, _)| offset <= *bound)
+            .unwrap_or(overflow_index);
+        buckets[slot].1 += 1;
+    }
+    Ok(CarrierScheduleCensus {
+        contact_count: index.contacts.len(),
+        scheduled: schedule.scheduled_len(),
+        nearest_due_offset: nearest,
+        due_offset_buckets: buckets,
+    })
+}
+
 struct ResidentContactEdge {
     left: usize,
     right: usize,

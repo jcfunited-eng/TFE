@@ -4133,6 +4133,30 @@ impl NativeResidentOrganismRuntime {
         RESIDENT_RUNTIME_SCHEMA
     }
 
+    /// Read-only census of the derived standing carrier schedule, rebuilt
+    /// exactly as cold restore would build it. Returns
+    /// `(contact_count, scheduled, nearest_due_offset, [(bucket_bound, count)])`
+    /// where offsets are clocks past the current organism generation. Pure
+    /// measurement: touches no state, retains nothing, and schedules nothing.
+    fn carrier_schedule_census(
+        &self,
+        py: Python<'_>,
+    ) -> PyResult<(usize, usize, Option<u64>, Vec<(u64, u64)>)> {
+        let census = py
+            .allow_threads(|| {
+                crate::resident_cognitive_formation::carrier_schedule_census(
+                    self.runtime.cognitive_state(),
+                )
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok((
+            census.contact_count,
+            census.scheduled,
+            census.nearest_due_offset,
+            census.due_offset_buckets,
+        ))
+    }
+
     fn prepare(
         &mut self,
         py: Python<'_>,

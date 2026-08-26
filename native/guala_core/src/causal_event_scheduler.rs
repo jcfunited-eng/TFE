@@ -61,6 +61,15 @@ impl CarrierCrossingSchedule {
         self.len = 0;
     }
 
+    /// Read-only walk of every scheduled contact and its absolute due clock.
+    /// Order is contact-index order, not due order; use `drain_due_at` for
+    /// causal ordering. Used by the census probe and the restore report.
+    pub(crate) fn scheduled_dues(&self) -> impl Iterator<Item = (usize, u64)> + '_ {
+        self.heap[..self.len as usize].iter().map(move |contact| {
+            (*contact as usize, self.due_by_contact[*contact as usize])
+        })
+    }
+
     pub(crate) fn scheduled_len(&self) -> usize {
         self.len
     }
