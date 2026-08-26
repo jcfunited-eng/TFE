@@ -79,7 +79,7 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
         ),
     )
 
-    def admit(_episodes, intake):
+    def admit(_episodes, intake, **_kwargs):
         admitted_intakes.append(intake)
         return result
 

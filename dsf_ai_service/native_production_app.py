@@ -1647,7 +1647,7 @@ _pending_chain_predecessor_sha: str | None = None
 
 
 def _checkpoint_every_intervals() -> int:
-    raw = os.environ.get("GUALA_CHECKPOINT_EVERY_INTERVALS", "1")
+    raw = os.environ.get("GUALA_CHECKPOINT_EVERY_INTERVALS", "4")
     try:
         value = int(raw)
     except ValueError:
@@ -10317,30 +10317,33 @@ def _perform_admitted_intake_locked(
             last_hop = dict(last_hop)
             last_hop["sealed"] = False
             last_hop["pending_unsealed_intervals"] = _pending_unsealed_intervals
-            return last_hop
-        _seal_started = time.perf_counter()
-        sealed_observation = organism.seal_unsealed_trajectory_direct()
-        _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
-            "seal", 0.0
-        ) + (time.perf_counter() - _seal_started) * 1000.0
-        try:
-            if sealed_observation.organism_tick != last_hop["organism_tick"]:
-                raise RuntimeError("final resident seal changed the lived intake tick")
-            last_hop["state_sha256"] = sealed_observation.state_sha256
-            _chain_predecessor = (
-                _pending_chain_predecessor_sha or predecessor.state_sha256
-            )
-            published = _publish_committed_organism(
-                organism, admission, _chain_predecessor
-            )
-            _pending_unsealed_intervals = 0
-            _pending_chain_predecessor_sha = None
-        except BaseException:
-            organism.abort_unsealed_trajectory()
-            _pending_unsealed_intervals = 0
-            _pending_chain_predecessor_sha = None
-            raise
-        organism.acknowledge_sealed_trajectory()
+            published = None
+        else:
+            _seal_started = time.perf_counter()
+            sealed_observation = organism.seal_unsealed_trajectory_direct()
+            _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
+                "seal", 0.0
+            ) + (time.perf_counter() - _seal_started) * 1000.0
+            try:
+                if sealed_observation.organism_tick != last_hop["organism_tick"]:
+                    raise RuntimeError(
+                        "final resident seal changed the lived intake tick"
+                    )
+                last_hop["state_sha256"] = sealed_observation.state_sha256
+                _chain_predecessor = (
+                    _pending_chain_predecessor_sha or predecessor.state_sha256
+                )
+                published = _publish_committed_organism(
+                    organism, admission, _chain_predecessor
+                )
+                _pending_unsealed_intervals = 0
+                _pending_chain_predecessor_sha = None
+            except BaseException:
+                organism.abort_unsealed_trajectory()
+                _pending_unsealed_intervals = 0
+                _pending_chain_predecessor_sha = None
+                raise
+            organism.acknowledge_sealed_trajectory()
     else:
         (
             action_authority,
@@ -10518,9 +10521,11 @@ def _perform_admitted_intake_locked(
     # observer derives a causal path. The observer consumes only the exact
     # transient frontier carried by the committed hop; it never reads back
     # into cognition, selects an action, or participates in rollback.
-    _restored = RestoredNativeOrganism(
-        organism=organism, pointer=published.pointer
-    )
+    if published is not None:
+        _restored = RestoredNativeOrganism(
+            organism=organism, pointer=published.pointer
+        )
+    _sealed_pointer = published.pointer if published is not None else predecessor
     (
         active_causal_motor_traces,
         completed_causal_motor_traces,
@@ -10893,7 +10898,7 @@ def _perform_admitted_intake_locked(
         )
     _last_transition_evidence = {
         **last_hop,
-        "organism_identity": published.pointer.identity,
+        "organism_identity": _sealed_pointer.identity,
         "hop_count": committed_hop_count,
         "vestibular_tick_count": committed_vestibular_tick_count,
         "intake": intake,
@@ -11009,18 +11014,18 @@ def _perform_admitted_intake_locked(
     ):
         _last_causal_cross_context_use_evidence = {
             **causal_cross_context_use,
-            "organism_identity": published.pointer.identity,
+            "organism_identity": _sealed_pointer.identity,
             "intake": intake,
-            "organism_tick": published.pointer.organism_tick,
+            "organism_tick": _sealed_pointer.organism_tick,
             "predecessor_state_sha256": predecessor.state_sha256,
-            "state_sha256": published.pointer.state_sha256,
+            "state_sha256": _sealed_pointer.state_sha256,
         }
     if articulation is not None:
         _last_tested_articulation_evidence = {
             **articulation,
             "intake": intake,
-            "organism_tick": published.pointer.organism_tick,
-            "state_sha256": published.pointer.state_sha256,
+            "organism_tick": _sealed_pointer.organism_tick,
+            "state_sha256": _sealed_pointer.state_sha256,
         }
     if (
         len(physical_prediction_alternatives) == 2
@@ -11029,9 +11034,9 @@ def _perform_admitted_intake_locked(
         _last_tested_prediction_evidence = {
             "body_consequence_transfers": body_consequence_transfers[:1],
             "intake": intake,
-            "organism_tick": published.pointer.organism_tick,
+            "organism_tick": _sealed_pointer.organism_tick,
             "physical_prediction_alternatives": physical_prediction_alternatives,
-            "state_sha256": published.pointer.state_sha256,
+            "state_sha256": _sealed_pointer.state_sha256,
         }
     complete_affective_balance = tuple(
         trajectory
@@ -11042,8 +11047,8 @@ def _perform_admitted_intake_locked(
         _last_tested_affective_balance_evidence = {
             "affective_balance_trajectories": complete_affective_balance[:1],
             "intake": intake,
-            "organism_tick": published.pointer.organism_tick,
-            "state_sha256": published.pointer.state_sha256,
+            "organism_tick": _sealed_pointer.organism_tick,
+            "state_sha256": _sealed_pointer.state_sha256,
         }
     complete_localized_fluid_chemistry = tuple(
         settlement
@@ -11055,8 +11060,8 @@ def _perform_admitted_intake_locked(
         _last_tested_localized_fluid_chemistry_evidence = {
             "intake": intake,
             "localized_fluid_chemistry": complete_localized_fluid_chemistry[:1],
-            "organism_tick": published.pointer.organism_tick,
-            "state_sha256": published.pointer.state_sha256,
+            "organism_tick": _sealed_pointer.organism_tick,
+            "state_sha256": _sealed_pointer.state_sha256,
         }
     _refresh_public_observation_cache()
     if intake_error is not None:
@@ -11075,11 +11080,11 @@ def _perform_admitted_intake_locked(
         "vestibular_tick_count": committed_vestibular_tick_count,
         "observation": dict(_last_transition_evidence),
         "persisted": {
-            "organism_tick": published.pointer.organism_tick,
+            "organism_tick": _sealed_pointer.organism_tick,
             "predecessor_state_sha256": predecessor.state_sha256,
             "schema": PERSISTENCE_SCHEMA,
             "state_bytes": published.pointer.state_bytes,
-            "state_sha256": published.pointer.state_sha256,
+            "state_sha256": _sealed_pointer.state_sha256,
         },
         "schema": "guala.native_admitted_intake_result.v1",
         "receptor_ingress": receptor_ingress,
@@ -11166,11 +11171,11 @@ def _perform_retinal_lattice_growth() -> dict[str, Any]:
             },
             "organism_tick": observed.organism_tick,
             "persisted": {
-                "organism_tick": published.pointer.organism_tick,
+                "organism_tick": _sealed_pointer.organism_tick,
                 "predecessor_state_sha256": predecessor.state_sha256,
                 "schema": PERSISTENCE_SCHEMA,
                 "state_bytes": published.pointer.state_bytes,
-                "state_sha256": published.pointer.state_sha256,
+                "state_sha256": _sealed_pointer.state_sha256,
             },
             "schema": "guala.native_authored_contact_growth_result.v1",
         }
