@@ -626,7 +626,7 @@ def _positive_decimal_integer(value: object, label: str) -> int:
     if (
         not isinstance(value, str)
         or not value
-        or any(character not in "0123456789" for character in value)
+        or value.strip("0123456789")
         or value[0] == "0"
     ):
         raise RuntimeError(f"resident organism {label} is not a positive exact integer")
@@ -637,7 +637,7 @@ def _nonnegative_decimal_integer(value: object, label: str) -> int:
     if (
         not isinstance(value, str)
         or not value
-        or any(character not in "0123456789" for character in value)
+        or value.strip("0123456789")
         or (len(value) > 1 and value[0] == "0")
     ):
         raise RuntimeError(f"resident organism {label} is not a nonnegative exact integer")
@@ -648,19 +648,30 @@ def _canonical_sha256(value: object, label: str) -> str:
     if (
         not isinstance(value, str)
         or len(value) != 64
-        or any(character not in "0123456789abcdef" for character in value)
+        or value.strip("0123456789abcdef")
     ):
         raise RuntimeError(f"resident organism {label} is not canonical SHA-256")
     return value
 
 
+# The same few thousand lineages cross this boundary millions of times per
+# interval. Remember every string that has already passed the exact canonical
+# test so repeats cost one set lookup; the accepted and rejected sets are
+# unchanged, and the cache is bounded by the organism's real lineage count.
+_CANONICAL_LINEAGES_SEEN: set[str] = set()
+
+
 def _canonical_lineage_hex(value: object, label: str) -> str:
+    if type(value) is str and value in _CANONICAL_LINEAGES_SEEN:
+        return value
     if (
         not isinstance(value, str)
         or len(value) != 32
-        or any(character not in "0123456789abcdef" for character in value)
+        or value.strip("0123456789abcdef")
     ):
         raise RuntimeError(f"resident organism {label} is not canonical")
+    if len(_CANONICAL_LINEAGES_SEEN) < 4_000_000:
+        _CANONICAL_LINEAGES_SEEN.add(value)
     return value
 
 
