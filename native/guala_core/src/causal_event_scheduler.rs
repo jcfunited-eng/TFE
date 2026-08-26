@@ -14,9 +14,9 @@
 //! contact selection — otherwise a sleeper could sleep through the very
 //! event that enables its work accumulation.
 //! Firing early is lawful (settlement finds no crossing and reschedules
-//! exactly); firing late is impossible by construction because both
-//! crossing clocks are computed from the same exact integer arithmetic the
-//! settlement itself uses.
+//! exactly); firing late is impossible by construction because the carrier
+//! crossing clock is computed from the same exact arithmetic the settlement
+//! itself uses.
 //!
 //! Companion contract (enforced by the integration layer, tested against
 //! the settlement oracle below): every contact carries
@@ -186,7 +186,22 @@ pub(crate) struct ContactIntegrationClock {
     pub(crate) last_integrated_clock: u64,
 }
 
+impl ContactIntegrationClock {
+    /// Commit a prepared catch-up: the schedule advances only after the
+    /// caller has accepted the physics, never before.
+    pub(crate) fn commit(&mut self, prepared: PreparedIntegrationClock) {
+        self.last_integrated_clock = prepared.successor_clock;
+    }
+}
+
+/// The successor clock a catch-up prepares; applied only via `commit`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct PreparedIntegrationClock {
+    pub(crate) successor_clock: u64,
+}
+
 pub(crate) struct SleepingSpanCatchUp {
+    pub(crate) prepared_clock: PreparedIntegrationClock,
     pub(crate) successor_phase: crate::elementary_charge_transfer::ChargeCarrierPhase,
     /// Carried through byte-identical from the predecessor: a sleeping span
     /// cannot move work phase, and the type enforces that invariance.
@@ -197,7 +212,7 @@ pub(crate) struct SleepingSpanCatchUp {
 
 /// Advance a sleeping contact exactly from its retained clock to `now`.
 pub(crate) fn catch_up_sleeping_contact(
-    clock: &mut ContactIntegrationClock,
+    clock: ContactIntegrationClock,
     now: u64,
     predecessor_phase: crate::elementary_charge_transfer::ChargeCarrierPhase,
     predecessor_transition_work_phase: crate::exact_rational::ExactRational,
@@ -207,11 +222,24 @@ pub(crate) fn catch_up_sleeping_contact(
 ) -> Result<SleepingSpanCatchUp, crate::elementary_charge_transfer::ChargeTransferError> {
     use num_bigint::BigInt;
     use num_rational::BigRational;
+    let zero = crate::exact_rational::ExactRational::integer(0);
+    let one = crate::exact_rational::ExactRational::integer(1);
+    let lawful_work_phase = matches!(
+        predecessor_transition_work_phase.checked_cmp(zero),
+        Ok(core::cmp::Ordering::Greater | core::cmp::Ordering::Equal)
+    ) && matches!(
+        predecessor_transition_work_phase.checked_cmp(one),
+        Ok(core::cmp::Ordering::Less)
+    );
+    if !lawful_work_phase {
+        return Err(crate::elementary_charge_transfer::ChargeTransferError::InvalidPhase);
+    }
     let elapsed = now
         .checked_sub(clock.last_integrated_clock)
         .ok_or(crate::elementary_charge_transfer::ChargeTransferError::InvalidDuration)?;
     if elapsed == 0 {
         return Ok(SleepingSpanCatchUp {
+            prepared_clock: PreparedIntegrationClock { successor_clock: now },
             successor_phase: predecessor_phase,
             transition_work_phase: predecessor_transition_work_phase,
             outward_elementary_charges: 0,
@@ -235,8 +263,8 @@ pub(crate) fn catch_up_sleeping_contact(
         * BigInt::from(elapsed);
     let heat_denominator =
         BigInt::from(current_denominator) * BigInt::from(difference_denominator);
-    clock.last_integrated_clock = now;
     Ok(SleepingSpanCatchUp {
+        prepared_clock: PreparedIntegrationClock { successor_clock: now },
         successor_phase: transition.successor_phase,
         transition_work_phase: predecessor_transition_work_phase,
         outward_elementary_charges: transition.outward_elementary_charges,
@@ -396,7 +424,7 @@ mod tests {
                 }
                 let mut clock = ContactIntegrationClock { last_integrated_clock: 100 };
                 let caught = catch_up_sleeping_contact(
-                    &mut clock,
+                    clock,
                     100 + span,
                     start,
                     ExactRational::integer(0),
@@ -407,6 +435,8 @@ mod tests {
                 .unwrap();
                 assert_eq!(caught.successor_phase, stepped);
                 assert_eq!(caught.outward_elementary_charges, whole);
+                assert_eq!(clock.last_integrated_clock, 100);
+                clock.commit(caught.prepared_clock);
                 assert_eq!(clock.last_integrated_clock, 100 + span);
             }
         }
@@ -425,11 +455,14 @@ mod tests {
             .checked_div(ExactRational::integer(4))
             .unwrap();
         let mut clock = ContactIntegrationClock { last_integrated_clock: 40 };
+        let lawful_work = ExactRational::integer(7)
+            .checked_div(ExactRational::integer(10))
+            .unwrap();
         let caught = catch_up_sleeping_contact(
-            &mut clock,
+            clock,
             48,
             ChargeCarrierPhase::zero(),
-            ExactRational::integer(7),
+            lawful_work,
             drive,
             difference,
             250_000,
@@ -439,8 +472,9 @@ mod tests {
             caught.exported_heat_zeptojoules,
             BigRational::from_integer(BigInt::from(3_750_000_u64)),
         );
+        clock.commit(caught.prepared_clock);
         let same = catch_up_sleeping_contact(
-            &mut clock,
+            clock,
             48,
             caught.successor_phase,
             caught.transition_work_phase,
@@ -449,7 +483,17 @@ mod tests {
             250_000,
         )
         .unwrap();
-        assert_eq!(caught.transition_work_phase, ExactRational::integer(7));
+        assert_eq!(caught.transition_work_phase, lawful_work);
+        assert!(catch_up_sleeping_contact(
+            clock,
+            50,
+            ChargeCarrierPhase::zero(),
+            ExactRational::integer(7),
+            drive,
+            difference,
+            250_000,
+        )
+        .is_err());
         assert_eq!(same.successor_phase, caught.successor_phase);
         assert_eq!(same.transition_work_phase, caught.transition_work_phase);
         assert_eq!(same.outward_elementary_charges, 0);
