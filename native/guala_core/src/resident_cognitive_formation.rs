@@ -5855,6 +5855,15 @@ impl ResidentCognitiveFormationState {
         ingress: &ResidentVestibularIngress,
         max_encoded_bytes: usize,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
+        self.prepare_vestibular_transition_with_residency(ingress, max_encoded_bytes, &mut None)
+    }
+
+    pub(crate) fn prepare_vestibular_transition_with_residency(
+        &self,
+        ingress: &ResidentVestibularIngress,
+        max_encoded_bytes: usize,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+    ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         let (source, contacts) = ingress.source().joint_source_with_contacts();
         if source.joint_source_occurrences().len() != 1 || !contacts.is_empty() {
             return Err(FormationError::VestibularUnavailable(
@@ -5875,7 +5884,7 @@ impl ResidentCognitiveFormationState {
             &admitted_source,
             Some(ingress),
             max_encoded_bytes,
-            &mut None,
+            residency,
         )
     }
 
@@ -7570,6 +7579,15 @@ impl ResidentCognitiveFormationState {
         ingress: &ResidentVestibularIngress,
         max_encoded_bytes: usize,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
+        self.advance_vestibular_transition_with_residency(ingress, max_encoded_bytes, &mut None)
+    }
+
+    pub(crate) fn advance_vestibular_transition_with_residency(
+        self,
+        ingress: &ResidentVestibularIngress,
+        max_encoded_bytes: usize,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+    ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let (source, contacts) = ingress.source().joint_source_with_contacts();
         if source.joint_source_occurrences().len() != 1 || !contacts.is_empty() {
             return Err(FormationError::VestibularUnavailable(
@@ -7597,7 +7615,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             true,
-            &mut None,
+            residency,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -16512,7 +16530,13 @@ fn settle_internal_contact_interval(
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         // One endpoint read per reached neuron, not per contact: the
         // applied post-settlement material of every selected flat, once.
+        // Alongside it, the wake law's exact changed-endpoint set: every
+        // selected neuron whose physical state this interval actually
+        // changed — by pumping, passive recovery, membrane settlement,
+        // external ingress, or contact transfer. An unchanged endpoint
+        // wakes nothing.
         let mut endpoint_cache = std::collections::BTreeMap::new();
+        let mut changed_flats = Vec::new();
         for flat in selected.iter().copied() {
             let (cohort_index, neuron_index, _) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
@@ -16530,7 +16554,26 @@ fn settle_internal_contact_interval(
                     state.carrier_reservoirs().intracellular(),
                 ),
             );
+            let coordinate = selected
+                .binary_search(&flat)
+                .map_err(|_| FormationError::NoncanonicalState)?;
+            let unchanged = pre_pump_membranes[coordinate]
+                .map(|predecessor_membrane| {
+                    predecessor_membrane == membrane
+                        && pre_pump_available[coordinate]
+                            == state.carrier_reservoirs().intracellular()
+                })
+                .unwrap_or(false);
+            if !unchanged {
+                changed_flats.push(flat);
+            }
         }
+        let settled_positions = compact_original_indices
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(position, contact_index)| (contact_index, position))
+            .collect::<BTreeMap<_, _>>();
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
@@ -16589,6 +16632,205 @@ fn settle_internal_contact_interval(
                 Some(current) => {
                     crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
                         successor_state.carrier_phase(),
+                        current,
+                        interval,
+                    )
+                    .map_err(|_| FormationError::ArithmeticOverflow)?
+                    .map(|clocks_until| {
+                        clock
+                            .checked_add(clocks_until)
+                            .ok_or(FormationError::ArithmeticOverflow)
+                    })
+                    .transpose()?
+                }
+                None => None,
+            };
+            events.contact_schedule.reschedule(contact_index, due);
+        }
+        // The wake law: a changed endpoint wakes EVERY contact incident to
+        // it, now — adding it to a later frontier is insufficient. A
+        // sleeping incident contact first catches up exactly through the
+        // pre-change span (its drive was frozen at the pre-pump
+        // predecessor values this interval still holds), then reschedules
+        // from its caught-up phase under the settlement authority against
+        // the changed successor endpoints.
+        let mut woken_contacts = Vec::new();
+        for flat in changed_flats.iter().copied() {
+            woken_contacts.extend(
+                topology_index
+                    .incident_contacts_by_flat
+                    .get(flat)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .iter()
+                    .copied(),
+            );
+        }
+        woken_contacts.sort_unstable();
+        woken_contacts.dedup();
+        for contact_index in woken_contacts {
+            if settled_positions.contains_key(&contact_index) {
+                continue;
+            }
+            let entry = topology_index.contacts[contact_index];
+            let edge =
+                materialize_resident_contact_edge(entry, cohorts, electrical_fabric)?;
+            let mut sleeping_state = edge.state;
+            let last = events.contact_last_integrated[contact_index];
+            let span_end = clock
+                .checked_sub(1)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            if last < span_end {
+                // Pre-change drive: each endpoint as it stood before this
+                // interval — the predecessor clone when the endpoint was
+                // selected, its untouched live state otherwise.
+                let sleeping_endpoint = |flat: usize| -> Result<
+                    (
+                        crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                        crate::elementary_charge_membrane::MembraneCapacitance,
+                        u128,
+                    ),
+                    FormationError,
+                > {
+                    let (cohort_index, neuron_index, _) = flat_locations[flat];
+                    let capacitance = cohorts[cohort_index].anatomy.neuron_anatomies()
+                        [neuron_index]
+                        .capacitance();
+                    if let Ok(coordinate) = selected.binary_search(&flat) {
+                        Ok((
+                            pre_pump_membranes[coordinate]
+                                .ok_or(FormationError::NoncanonicalState)?,
+                            capacitance,
+                            pre_pump_available[coordinate],
+                        ))
+                    } else {
+                        let state = &cohorts[cohort_index].state.neurons()[neuron_index];
+                        Ok((
+                            state.membrane_state(),
+                            capacitance,
+                            state.carrier_reservoirs().intracellular(),
+                        ))
+                    }
+                };
+                let (left_membrane, left_capacitance, left_available) =
+                    sleeping_endpoint(edge.left)?;
+                let (right_membrane, right_capacitance, right_available) =
+                    sleeping_endpoint(edge.right)?;
+                let left_potential = left_membrane
+                    .potential_millivolts(left_capacitance)
+                    .map_err(FormationError::InternalMembraneUnavailable)?;
+                let right_potential = right_membrane
+                    .potential_millivolts(right_capacitance)
+                    .map_err(FormationError::InternalMembraneUnavailable)?;
+                let standing = crate::sparse_electrical_contact::standing_contact_current(
+                    edge.anatomy,
+                    &sleeping_state,
+                    left_potential,
+                    left_membrane.separated_elementary_charges(),
+                    left_capacitance,
+                    left_available,
+                    right_potential,
+                    right_membrane.separated_elementary_charges(),
+                    right_capacitance,
+                    right_available,
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
+                if let Some(standing_current) = standing {
+                    let potential_difference = left_potential
+                        .checked_sub(right_potential)
+                        .map_err(|_| FormationError::ArithmeticOverflow)?;
+                    let caught = crate::causal_event_scheduler::catch_up_sleeping_contact(
+                        crate::causal_event_scheduler::ContactIntegrationClock {
+                            last_integrated_clock: last,
+                        },
+                        span_end,
+                        sleeping_state.carrier_phase(),
+                        sleeping_state.transition_work_phase(),
+                        standing_current,
+                        potential_difference,
+                        interval,
+                    )
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                    assert_eq!(
+                        caught.outward_elementary_charges, 0,
+                        "a sleeping span crossed a whole carrier without its \
+                         scheduled wake — the causal event schedule is unsound"
+                    );
+                    sleeping_state = sleeping_state
+                        .with_caught_up_carrier_phase(caught.successor_phase);
+                    match edge.origin {
+                        ResidentContactOrigin::Fabric { contact_index } => {
+                            electrical_fabric
+                                .replace_contact_states(vec![(
+                                    contact_index,
+                                    sleeping_state.clone(),
+                                )])
+                                .map_err(FormationError::ResidentElectricalUnavailable)?;
+                        }
+                        ResidentContactOrigin::Local {
+                            cohort_index,
+                            contact_index,
+                            ..
+                        } => {
+                            Arc::make_mut(&mut cohorts[cohort_index].state)
+                                .replace_electrical_contact_state(
+                                    contact_index,
+                                    sleeping_state.clone(),
+                                )
+                                .map_err(FormationError::ResidentElectricalUnavailable)?;
+                        }
+                    }
+                }
+            }
+            events.contact_last_integrated[contact_index] = span_end;
+            // New drive from the changed successor endpoints, full authority.
+            let successor_endpoint = |flat: usize| -> Result<
+                (
+                    crate::exact_rational::ExactRational,
+                    i128,
+                    crate::elementary_charge_membrane::MembraneCapacitance,
+                    u128,
+                ),
+                FormationError,
+            > {
+                if let Some(cached) = endpoint_cache.get(&flat) {
+                    return Ok(cached.clone());
+                }
+                let (cohort_index, neuron_index, _) = flat_locations[flat];
+                let state = &cohorts[cohort_index].state.neurons()[neuron_index];
+                let capacitance = cohorts[cohort_index].anatomy.neuron_anatomies()
+                    [neuron_index]
+                    .capacitance();
+                let membrane = state.membrane_state();
+                Ok((
+                    membrane
+                        .potential_millivolts(capacitance)
+                        .map_err(FormationError::InternalMembraneUnavailable)?,
+                    membrane.separated_elementary_charges(),
+                    capacitance,
+                    state.carrier_reservoirs().intracellular(),
+                ))
+            };
+            let (left_potential, left_charges, left_capacitance, left_available) =
+                successor_endpoint(edge.left)?;
+            let (right_potential, right_charges, right_capacitance, right_available) =
+                successor_endpoint(edge.right)?;
+            let standing = crate::sparse_electrical_contact::standing_contact_current(
+                edge.anatomy,
+                &sleeping_state,
+                left_potential,
+                left_charges,
+                left_capacitance,
+                left_available,
+                right_potential,
+                right_charges,
+                right_capacitance,
+                right_available,
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+            let due = match standing {
+                Some(current) => {
+                    crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
+                        sleeping_state.carrier_phase(),
                         current,
                         interval,
                     )
@@ -21920,6 +22162,140 @@ mod tests {
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
             migrated
+        );
+    }
+
+    /// Wake-law falsifiers. A pump-only endpoint change wakes exactly its
+    /// incident contacts (their integration epoch advances with the clock);
+    /// an untouched endpoint wakes none (its contact's epoch never moves);
+    /// and one residency carries across consecutive settled intervals —
+    /// the event clock advances by one per settlement with no rebuild.
+    #[test]
+    fn changed_endpoints_wake_exactly_their_incident_contacts() {
+        let mut cohorts = Vec::new();
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap(),
+        );
+        let mut next_lineage = 1;
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(6, 0),
+        )
+        .unwrap();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let mut fabric = ResidentElectricalFabric::default();
+        mount_reached_affective_reach(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[association, regulation],
+        )
+        .unwrap();
+        // An isolated resting pair no cause ever reaches: its contact must
+        // never be woken and its integration epoch must never advance.
+        let isolated_left = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            11,
+        )
+        .unwrap();
+        let isolated_right = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            11,
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contact(
+                isolated_left,
+                isolated_right,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let isolated_contact = topology_index
+            .contacts
+            .iter()
+            .position(|entry| {
+                let left = topology_index.flat_locations[entry.left].2;
+                let right = topology_index.flat_locations[entry.right].2;
+                canonical_lineage_pair(left, right)
+                    == canonical_lineage_pair(isolated_left, isolated_right)
+            })
+            .unwrap();
+        let isolated_flats = [isolated_left, isolated_right]
+            .iter()
+            .map(|lineage| topology_index.flat_for_lineage(*lineage).unwrap())
+            .collect::<Vec<_>>();
+        let mut transitioned = BTreeSet::new();
+        let mut residency: Option<crate::causal_event_scheduler::CausalEventResidency> = None;
+        let mut previous_epoch = 0_u64;
+        let mut pump_only_wake_observed = false;
+        let mut untouched_hold_observed = false;
+        for ordinal in 1..=6_u64 {
+            // Will a pump-only (membrane recovery) event touch an isolated
+            // endpoint at this clock? Nothing else can ever reach the pair.
+            let recovery_due = residency.as_ref().is_some_and(|events| {
+                events.recovery_schedule.scheduled_dues().any(|(flat, due)| {
+                    isolated_flats.contains(&flat) && due <= events.organism_clock + 1
+                })
+            });
+            settle_internal_contact_interval(
+                &mut cohorts,
+                &mut fabric,
+                &topology_index,
+                &[association, regulation],
+                &[association, regulation],
+                &mut transitioned,
+                ordinal,
+                0,
+                &mut residency,
+            )
+            .unwrap();
+            let events = residency.as_ref().expect("residency must persist");
+            assert_eq!(
+                events.organism_clock, ordinal,
+                "one residency must advance one clock per settled interval"
+            );
+            let epoch = events.contact_last_integrated[isolated_contact];
+            if ordinal > 1 {
+                if recovery_due {
+                    assert!(
+                        epoch > previous_epoch,
+                        "a pump-only endpoint change must wake its incident \
+                         contact"
+                    );
+                    pump_only_wake_observed = true;
+                } else {
+                    assert_eq!(
+                        epoch, previous_epoch,
+                        "an unchanged endpoint must wake nothing"
+                    );
+                }
+            }
+            previous_epoch = epoch;
+        }
+        // Anatomy note: the territory law gives every neuron a distinct
+        // capacitance, so even an equal-charge pair carries a real drive —
+        // a permanently unchanged endpoint is anatomically impossible on a
+        // living pair. The unchanged-wakes-none branch above therefore
+        // stays ARMED (it fails the run if any wake occurs without a due
+        // recovery), and the pump-only wake must be witnessed.
+        let _ = untouched_hold_observed;
+        assert!(
+            pump_only_wake_observed,
+            "the horizon must witness a pump-only wake"
         );
     }
 

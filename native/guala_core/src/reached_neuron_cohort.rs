@@ -395,6 +395,18 @@ impl ReachedCohortState {
         &self.electrical
     }
 
+    /// Exact single-contact state replacement for the wake law's sleeping
+    /// catch-up: the caught-up carrier phase persists on the one authority
+    /// state so a later settlement resumes from it.
+    pub(crate) fn replace_electrical_contact_state(
+        &mut self,
+        contact_index: usize,
+        successor: ElectricalContactState,
+    ) -> Result<(), SparseElectricalError> {
+        self.electrical
+            .replace_contact_states(vec![(contact_index, successor)])
+    }
+
     pub(crate) fn recovery_fluid(&self) -> RecoveryFluidReservoirState {
         self.recovery_fluid
     }

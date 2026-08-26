@@ -2984,6 +2984,9 @@ impl ResidentOrganismRuntime {
             self.direct_predecessor = Some(predecessor);
             return Err(RuntimeError::PendingTokenMismatch);
         }
+        // The successor whose intervals advanced the schedule is being
+        // abandoned; a stale schedule must never survive it.
+        self.causal_event_residency = None;
         let restored = Self::restore_envelope(predecessor.envelope, self.budget)?;
         let next_prepare_ordinal = predecessor.next_prepare_ordinal;
         self.active = restored.active;
@@ -3289,6 +3292,7 @@ impl ResidentOrganismRuntime {
         let predecessor_envelope = std::mem::take(&mut self.active.envelope);
         let predecessor_next_prepare_ordinal = self.next_prepare_ordinal;
         let initial_cognitive = std::mem::take(&mut self.active.cognitive);
+        let mut residency = self.causal_event_residency.take();
         let built = self.build_vestibular_trajectory(
             predecessor_heading_millidegrees,
             signed_body_motion_millidegrees,
@@ -3297,7 +3301,9 @@ impl ResidentOrganismRuntime {
             self.active.vestibular.clone(),
             self.active.articulated_body.clone(),
             true,
+            &mut residency,
         );
+        self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
@@ -3370,6 +3376,7 @@ impl ResidentOrganismRuntime {
                 self.active.articulated_body.clone(),
             ),
         };
+        let mut residency = self.causal_event_residency.take();
         let built = self.build_vestibular_trajectory(
             predecessor_heading_millidegrees,
             signed_body_motion_millidegrees,
@@ -3378,7 +3385,9 @@ impl ResidentOrganismRuntime {
             initial_vestibular,
             initial_articulated_body,
             false,
+            &mut residency,
         );
+        self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, mut receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
@@ -3411,6 +3420,7 @@ impl ResidentOrganismRuntime {
         initial_vestibular: ResidentVestibularBody,
         initial_articulated_body: ArticulatedBodyState,
         seal_successor: bool,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -3455,7 +3465,11 @@ impl ResidentOrganismRuntime {
                 .checked_merge(observe_canonical_receptor_ingress(source))
                 .ok_or(RuntimeError::OrganismTickOverflow)?;
             let (successor, observation) = cognitive
-                .advance_vestibular_transition(&ingress, cognitive_budget)
+                .advance_vestibular_transition_with_residency(
+                    &ingress,
+                    cognitive_budget,
+                    residency,
+                )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate:
@@ -3657,7 +3671,11 @@ impl ResidentOrganismRuntime {
             (Some(vestibular), None) => self
                 .active
                 .cognitive
-                .prepare_vestibular_transition(vestibular, cognitive_budget),
+                .prepare_vestibular_transition_with_residency(
+                    vestibular,
+                    cognitive_budget,
+                    &mut self.causal_event_residency,
+                ),
             (None, Some(admitted_source)) => self
                 .active
                 .cognitive
@@ -3849,6 +3867,9 @@ impl ResidentOrganismRuntime {
     }
 
     fn discard(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {
+        // Any discarded candidate abandons intervals that advanced the
+        // schedule; the residency dies with the candidate.
+        self.causal_event_residency = None;
         if let Some(pending) = self.pending_contact_growth.as_ref() {
             if pending.token != token {
                 return Err(RuntimeError::PendingTokenMismatch);
@@ -7556,6 +7577,80 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    /// Scheduler-residency lifecycle falsifiers: a lived advance
+    /// materializes it; unsealed abort and direct rollback invalidate it
+    /// (a stale schedule must never survive an abandoned successor); a
+    /// committed successor retains it; and a multi-hop vestibular
+    /// trajectory reuses one residency — the event clock advances once
+    /// per settled interval instead of rebuilding per hop.
+    #[test]
+    fn scheduler_residency_follows_the_successor_lifecycle() {
+        let episode = source("residency-lifecycle");
+        let intervals = vec![(5, 1); episode.joint_source_occurrences().len()];
+        let episodes = vec![(episode, intervals)];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+
+        // Prime one committed trajectory so the body holds contacts.
+        runtime
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.acknowledge_direct_commit(token).unwrap();
+
+        runtime
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        assert!(
+            runtime.causal_event_residency.is_some(),
+            "a lived advance must materialize the residency"
+        );
+        runtime.abort_unsealed_trajectory().unwrap();
+        assert!(
+            runtime.causal_event_residency.is_none(),
+            "unsealed abort must invalidate the residency"
+        );
+
+        runtime
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        let clock_before_commit = runtime
+            .causal_event_residency
+            .as_ref()
+            .expect("advance rebuilds the residency")
+            .organism_clock;
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.acknowledge_direct_commit(token).unwrap();
+        let clock_after_commit = runtime
+            .causal_event_residency
+            .as_ref()
+            .expect("a committed successor must retain the residency")
+            .organism_clock;
+        assert_eq!(clock_before_commit, clock_after_commit);
+
+        // Multi-hop vestibular trajectory: one residency, one clock per
+        // settled interval, no rebuild between hops.
+        runtime
+            .advance_vestibular_trajectory_unsealed(0, &[1, 1, 1])
+            .unwrap();
+        let clock_after_vestibular = runtime
+            .causal_event_residency
+            .as_ref()
+            .expect("vestibular hops must thread the same residency")
+            .organism_clock;
+        assert_eq!(
+            clock_after_vestibular,
+            clock_after_commit + 3,
+            "three vestibular hops must advance the one event clock thrice"
+        );
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.rollback_direct_commit(token).unwrap();
+        assert!(
+            runtime.causal_event_residency.is_none(),
+            "direct rollback must invalidate the residency"
+        );
     }
 
     #[test]
