@@ -7281,6 +7281,25 @@ impl ResidentCognitiveFormationState {
             &externally_energized_by_occurrence,
             &settled_layer_six_lineages,
         )?;
+        let moved_axes = {
+            let mut moved = Vec::new();
+            for port in source.joint_source_ports() {
+                let Some(terminal) = port.body_proprioceptor_terminal else {
+                    continue;
+                };
+                if port.physical_quantity != ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY {
+                    continue;
+                }
+                let changed = port
+                    .exact_normalized_sources
+                    .windows(2)
+                    .any(|pair| pair[0] != pair[1]);
+                if changed && !moved.contains(&terminal.axis()) {
+                    moved.push(terminal.axis());
+                }
+            }
+            moved
+        };
         mount_reached_motor_effector(
             &mut cohorts,
             &mut resting_population,
@@ -7289,6 +7308,7 @@ impl ResidentCognitiveFormationState {
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
+            &moved_axes,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -13219,7 +13239,18 @@ fn mount_reached_motor_effector(
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    moved_axes: &[crate::virtual_articulated_body::BodyAxis],
 ) -> Result<(), FormationError> {
+    // On a saturated fabric, directed transfers exist between almost every
+    // adjacent pair every interval, so window evidence alone cannot
+    // separate causation from ambient conduction. The body's returned
+    // consequence is the discriminator the law demands: a motor route may
+    // only be authored in an interval whose own source evidence shows the
+    // terminal's axis physically MOVED (its proprioceptor length samples
+    // changed). Stillness and darkness author nothing.
+    if moved_axes.is_empty() {
+        return Ok(());
+    }
     let mounted = cohorts
         .iter()
         .flat_map(|cohort| {
@@ -13337,6 +13368,9 @@ fn mount_reached_motor_effector(
             [terminal] => *terminal,
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
+        if !moved_axes.contains(&effector_terminal.axis()) {
+            continue;
+        }
         if layer_by_lineage.get(&regulation).copied() != Some(8) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
@@ -13432,6 +13466,7 @@ fn mount_reached_motor_effector(
         physically_transitioned_lineages,
         &mounted,
         predecessor_frontier,
+        moved_axes,
     )?;
     Ok(())
 }
@@ -13461,7 +13496,13 @@ fn mount_reached_articulatory_effector(
     physically_transitioned_lineages: &[[u8; 16]],
     mounted: &[([u8; 16], ReachedNeuronMount)],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    moved_axes: &[crate::virtual_articulated_body::BodyAxis],
 ) -> Result<(), FormationError> {
+    // Actual articulation moves articulators; an interval whose body
+    // evidence shows no movement at all cannot author speech wiring.
+    if moved_axes.is_empty() {
+        return Ok(());
+    }
     let mut acoustic = Vec::new();
     let mut body_regulation = Vec::new();
     for lineage in physically_transitioned_lineages {
@@ -16458,52 +16499,81 @@ fn settle_internal_contact_interval(
     {
         let interval = u32::try_from(interval_microseconds)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
-        let endpoint_now = |flat: usize| -> Result<
-            (
-                crate::exact_rational::ExactRational,
-                i128,
-                crate::elementary_charge_membrane::MembraneCapacitance,
-                u128,
-            ),
-            FormationError,
-        > {
+        // One endpoint read per reached neuron, not per contact: the
+        // applied post-settlement material of every selected flat, once.
+        let mut endpoint_cache = std::collections::BTreeMap::new();
+        for flat in selected.iter().copied() {
             let (cohort_index, neuron_index, _) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
             let capacitance =
                 cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].capacitance();
             let membrane = state.membrane_state();
-            Ok((
-                membrane
-                    .potential_millivolts(capacitance)
-                    .map_err(FormationError::InternalMembraneUnavailable)?,
-                membrane.separated_elementary_charges(),
-                capacitance,
-                state.carrier_reservoirs().intracellular(),
-            ))
-        };
+            endpoint_cache.insert(
+                flat,
+                (
+                    membrane
+                        .potential_millivolts(capacitance)
+                        .map_err(FormationError::InternalMembraneUnavailable)?,
+                    membrane.separated_elementary_charges(),
+                    capacitance,
+                    state.carrier_reservoirs().intracellular(),
+                ),
+            );
+        }
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
             events.contact_last_integrated[contact_index] = clock;
-            let successor_state = &settled.transitions[position].successor;
+            let transition = &settled.transitions[position];
+            let successor_state = &transition.successor;
             let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
             let (left_potential, left_charges, left_capacitance, left_available) =
-                endpoint_now(left_flat)?;
+                endpoint_cache
+                    .get(&left_flat)
+                    .ok_or(FormationError::NoncanonicalState)?;
             let (right_potential, right_charges, right_capacitance, right_available) =
-                endpoint_now(right_flat)?;
-            let standing = crate::sparse_electrical_contact::standing_contact_current(
-                compact_anatomy.contact_anatomies()[position],
-                successor_state,
-                left_potential,
-                left_charges,
-                left_capacitance,
-                left_available,
-                right_potential,
-                right_charges,
-                right_capacitance,
-                right_available,
-            )
-            .map_err(FormationError::ResidentElectricalUnavailable)?;
+                endpoint_cache
+                    .get(&right_flat)
+                    .ok_or(FormationError::NoncanonicalState)?;
+            // Two exact tiers. An ACTIVELY settled contact (whole carriers
+            // moved or channels transitioned) reschedules from its raw
+            // Ohmic drive without re-proving energy descent: if the pair
+            // has in fact come to rest, its scheduled clock settles it
+            // quiescently exactly once and THAT settlement pays the full
+            // authority, unscheduling it for good. A QUIESCENTLY settled
+            // contact pays the full settlement authority now — the only
+            // path that may refuse forever, so the only one needing the
+            // refusal proof. No polling loop can form: active -> at most
+            // one quiescent settle -> authority decision.
+            let actively_settled = transition.outward_elementary_charges_from_left != 0
+                || transition.conductance_changed;
+            let standing = if actively_settled {
+                let difference = left_potential
+                    .checked_sub(*right_potential)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                let raw = compact_anatomy.contact_anatomies()[position]
+                    .effective_conductance(successor_state)
+                    .map_err(FormationError::ResidentElectricalUnavailable)?
+                    .checked_mul(difference)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?
+                    .checked_div_unsigned(1_000)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                (raw.parts().0 != 0).then_some(raw)
+            } else {
+                crate::sparse_electrical_contact::standing_contact_current(
+                    compact_anatomy.contact_anatomies()[position],
+                    successor_state,
+                    *left_potential,
+                    *left_charges,
+                    *left_capacitance,
+                    *left_available,
+                    *right_potential,
+                    *right_charges,
+                    *right_capacitance,
+                    *right_available,
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?
+            };
             let due = match standing {
                 Some(current) => {
                     crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
@@ -21243,6 +21313,7 @@ mod tests {
             &[ordering, regulation],
             &[],
             &[],
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert_eq!(
@@ -21259,6 +21330,7 @@ mod tests {
             &[ordering, regulation],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let motor = cohorts
@@ -21310,6 +21382,7 @@ mod tests {
             &[regulation, ordering],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -21393,6 +21466,7 @@ mod tests {
             &[ordering, regulation],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
 
@@ -21922,6 +21996,7 @@ mod tests {
             &transitioned,
             &[],
             &[],
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before);
@@ -21932,6 +22007,27 @@ mod tests {
                 .iter()
                 .any(|mount| mount.place().layer() == 12)
         }));
+
+        // Falsifier per the movement gate: full consecutive evidence with
+        // NO actual body movement this interval authors nothing at all.
+        let still_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
+        let still_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &still_now,
+            &still_prior,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            fabric.contact_count(),
+            contacts_before,
+            "stillness must never author a motor route"
+        );
 
         // Falsifier per the consecutive law: BOTH hops delivered in the
         // same interval are synchronous and prove nothing, even though the
@@ -21949,6 +22045,7 @@ mod tests {
             &transitioned,
             &synchronous,
             &[],
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before);
@@ -21968,6 +22065,7 @@ mod tests {
             &transitioned,
             &hop_now,
             &hop_prior,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let motor = cohorts
@@ -22003,6 +22101,7 @@ mod tests {
             &transitioned,
             &repeat_now,
             &repeat_prior,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before + 2);
@@ -22018,6 +22117,7 @@ mod tests {
             &transitioned,
             &[],
             &partial_prior,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         assert!(!fabric.contains_contact(coincident[0], motor));
@@ -22065,6 +22165,7 @@ mod tests {
             &[regulation, first_ordering],
             &first_active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let motor = cohorts
@@ -22105,6 +22206,7 @@ mod tests {
             &[regulation, second_ordering],
             &second_active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let motors = cohorts
@@ -22164,6 +22266,7 @@ mod tests {
             &[regulation, ordering],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let duplicate = mount_next_intrinsic_in_layer(
@@ -22341,6 +22444,7 @@ mod tests {
             &[first_regulation, second_regulation, ordering],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
         let motors = cohorts
@@ -22407,6 +22511,7 @@ mod tests {
             &[regulation, ordering],
             &active_bonds,
             &prior_frontier,
+            &[BodyAxis::RightGripAperture],
         )
         .unwrap();
 
@@ -22537,6 +22642,7 @@ mod tests {
             &[acoustic, regulation, ordering, motor],
             &mounted,
             &[],
+            &[BodyAxis::LeftElbowFlexion],
         )
         .unwrap();
         assert_eq!(
@@ -22555,6 +22661,7 @@ mod tests {
             &[acoustic, regulation],
             &mounted,
             &articulation,
+            &[BodyAxis::LeftElbowFlexion],
         )
         .unwrap();
         let articulatory = cohorts
@@ -22601,6 +22708,7 @@ mod tests {
             &[regulation, acoustic],
             &remounted,
             &articulation,
+            &[BodyAxis::LeftElbowFlexion],
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -22630,6 +22738,7 @@ mod tests {
             &[second_acoustic, regulation],
             &distinct_remounted,
             &articulation,
+            &[BodyAxis::LeftElbowFlexion],
         )
         .unwrap();
         assert_eq!(
