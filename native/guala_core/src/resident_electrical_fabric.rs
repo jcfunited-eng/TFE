@@ -259,6 +259,87 @@ impl ResidentElectricalFabric {
     /// lineage while preserving every unrelated contact and its exact retained
     /// carrier phase.  Endpoint indices are rebuilt from the surviving stable
     /// lineages; no contact is redirected.
+    /// Rebuild the fabric without the named canonical endpoint pairs,
+    /// preserving every other contact's exact conductance and retained
+    /// state. Neurons themselves are never removed by this operation; a
+    /// neuron left with no contacts simply holds none.
+    pub(crate) fn without_contact_pairs(
+        &self,
+        removed: &std::collections::BTreeSet<([u8; 16], [u8; 16])>,
+    ) -> Result<Self, SparseElectricalError> {
+        if removed.is_empty() {
+            return Ok(self.clone());
+        }
+        let mut kept = Vec::new();
+        for ((left, right), (contact, state)) in self.contact_endpoints().zip(
+            self.anatomy
+                .contact_anatomies()
+                .iter()
+                .copied()
+                .zip(self.state.contact_states().iter().cloned()),
+        ) {
+            let left_lineage = self.lineages[left];
+            let right_lineage = self.lineages[right];
+            let pair = if left_lineage <= right_lineage {
+                (left_lineage, right_lineage)
+            } else {
+                (right_lineage, left_lineage)
+            };
+            if removed.contains(&pair) {
+                continue;
+            }
+            kept.push((
+                left_lineage,
+                right_lineage,
+                contact.conductance_picosiemens(),
+                state,
+            ));
+        }
+        if kept.is_empty() {
+            return Ok(Self::default());
+        }
+        let mut lineages = Vec::<[u8; 16]>::new();
+        let mut lineage_indices = BTreeMap::<[u8; 16], usize>::new();
+        for (left, right, _, _) in &kept {
+            if !lineage_indices.contains_key(left) {
+                lineage_indices.insert(*left, lineages.len());
+                lineages.push(*left);
+            }
+            if !lineage_indices.contains_key(right) {
+                lineage_indices.insert(*right, lineages.len());
+                lineages.push(*right);
+            }
+        }
+        let neuron_count = lineages.len();
+        let mut contacts = Vec::with_capacity(kept.len());
+        let mut states = Vec::with_capacity(kept.len());
+        for (left, right, conductance, state) in kept {
+            let left = lineage_indices
+                .get(&left)
+                .copied()
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            let right = lineage_indices
+                .get(&right)
+                .copied()
+                .ok_or(SparseElectricalError::InvalidEndpoint)?;
+            contacts.push(ElectricalContactAnatomy::new(
+                left,
+                right,
+                conductance,
+                neuron_count,
+            )?);
+            states.push(state);
+        }
+        let anatomy = SparseElectricalAnatomy::new(neuron_count, contacts)?;
+        let state = SparseElectricalState::from_contact_states(&anatomy, states)?;
+        Ok(Self {
+            lineages: lineages.into_boxed_slice(),
+            anatomy,
+            state,
+            cell_format: SparseElectricalCellFormat::V3,
+        })
+    }
+
     pub(crate) fn without_lineages(
         &self,
         retired: &[[u8; 16]],

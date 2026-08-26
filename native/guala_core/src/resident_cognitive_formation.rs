@@ -205,6 +205,12 @@ const VERSION_V28: u16 = 28;
 const MAGIC_V29: &[u8; 8] = b"GLCOG029";
 const VERSION_V29: u16 = 29;
 const MAGIC_V30: &[u8; 8] = b"GLCOG030";
+/// V31 marks the one-way effector-pool decontamination boundary: a V31 body
+/// has crossed the removal of every historically accumulated layer-11->12
+/// and layer-11->13 contact, and its remaining effector contacts were
+/// authored only under the consecutive causal-frontier law. The byte layout
+/// is identical to V30.
+const MAGIC_V31: &[u8; 8] = b"GLCOG031";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -4168,7 +4174,7 @@ fn accumulate_reached_cohort_energy(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30)
+        bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31)
     }
 
     /// Retire the task-955 local-integration projection that equated
@@ -4979,6 +4985,107 @@ impl ResidentCognitiveFormationState {
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
+        };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
+        successor.validate_current_motor_effectors()?;
+        validate_lineage_state(&successor)?;
+        Ok(Some(successor))
+    }
+
+    /// One-way decontamination of the accumulated effector pools: remove
+    /// EVERY layer-11->12 and layer-11->13 fabric contact. The historical
+    /// pool was authored by same-interval coincidence and carries no
+    /// trustworthy causal evidence, so no per-contact evidence test is
+    /// attempted. Neurons, effector terminals, body anatomy, memories,
+    /// reservoirs, and every unrelated contact are preserved exactly;
+    /// retained frontier entries riding a removed contact are dropped with
+    /// it. Runs once at the authenticated V31 migration boundary; a V31
+    /// body never re-enters it, and the consecutive causal-frontier law is
+    /// the only way a new effector contact can ever be authored again.
+    fn retire_contaminated_effector_pools(
+        &self,
+    ) -> Result<Option<Self>, FormationError> {
+        let mut layer_by_lineage = BTreeMap::<[u8; 16], u32>::new();
+        for (mount, lineage) in self.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            if layer_by_lineage
+                .insert(*lineage, mount.place().layer())
+                .is_some()
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+        }
+        let mut contaminated = std::collections::BTreeSet::new();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left_lineage = self.electrical_fabric.lineages()[left];
+            let right_lineage = self.electrical_fabric.lineages()[right];
+            let (Some(left_layer), Some(right_layer)) = (
+                layer_by_lineage.get(&left_lineage).copied(),
+                layer_by_lineage.get(&right_lineage).copied(),
+            ) else {
+                return Err(FormationError::NeuronLineageAuthorityAbsent);
+            };
+            let mut layers = (left_layer, right_layer);
+            if layers.0 > layers.1 {
+                layers = (layers.1, layers.0);
+            }
+            if layers == (11, 12) || layers == (11, 13) {
+                contaminated.insert(canonical_lineage_pair(left_lineage, right_lineage));
+            }
+        }
+        if contaminated.is_empty() {
+            return Ok(None);
+        }
+        let keep_frontier = |entry: &ActiveElectricalFrontierEntry| {
+            let Some(sender) = entry.sender() else {
+                return true;
+            };
+            !contaminated.contains(&canonical_lineage_pair(sender, entry.receiver()))
+        };
+        let mut successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population: self.resting_population.clone(),
+            cohorts: self.cohorts.clone(),
+            electrical_fabric: self
+                .electrical_fabric
+                .without_contact_pairs(&contaminated)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            older_active_electrical_frontier: self
+                .older_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            mosaics: self.mosaics.clone(),
+            hippocampal: self.hippocampal,
+            topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: self.formation_index.clone(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
@@ -7918,7 +8025,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V30);
+        output.extend_from_slice(MAGIC_V31);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -8738,7 +8845,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V30.len()) != Some(MAGIC_V30) {
+        if bytes.get(..MAGIC_V31.len()) != Some(MAGIC_V31) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -8765,8 +8872,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v30 =
-            bytes.len() >= MAGIC_V30.len() && &bytes[..MAGIC_V30.len()] == MAGIC_V30;
+        let current_v31 =
+            bytes.len() >= MAGIC_V31.len() && &bytes[..MAGIC_V31.len()] == MAGIC_V31;
+        let current_v30 = current_v31
+            || (bytes.len() >= MAGIC_V30.len() && &bytes[..MAGIC_V30.len()] == MAGIC_V30);
         let previous_current_v29 =
             bytes.len() >= MAGIC_V29.len() && &bytes[..MAGIC_V29.len()] == MAGIC_V29;
         let previous_current_v28 =
@@ -9336,7 +9445,9 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v30 = bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30);
+        let current_v31 = bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31);
+        let current_v30 =
+            current_v31 || bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30);
         let previous_current_v29 = bytes.get(..MAGIC_V29.len()) == Some(MAGIC_V29);
         let previous_current_v28 = bytes.get(..MAGIC_V28.len()) == Some(MAGIC_V28);
         let previous_current_v27 = bytes.get(..MAGIC_V27.len()) == Some(MAGIC_V27);
@@ -9353,7 +9464,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V27.len()] == MAGIC_V27
                 || &bytes[..MAGIC_V28.len()] == MAGIC_V28
                 || &bytes[..MAGIC_V29.len()] == MAGIC_V29
-                || &bytes[..MAGIC_V30.len()] == MAGIC_V30);
+                || &bytes[..MAGIC_V30.len()] == MAGIC_V30
+                || &bytes[..MAGIC_V31.len()] == MAGIC_V31);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -9405,6 +9517,14 @@ impl ResidentCognitiveFormationState {
             state
         } else {
             match state.retire_obsolete_unreferenced_developmental_routes()? {
+                Some(corrected) => corrected,
+                None => state,
+            }
+        };
+        let state = if current_v31 {
+            state
+        } else {
+            match state.retire_contaminated_effector_pools()? {
                 Some(corrected) => corrected,
                 None => state,
             }
@@ -19136,7 +19256,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V30.len()], MAGIC_V30);
+        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -20587,7 +20707,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V30.len()], MAGIC_V30);
+        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -21235,6 +21355,211 @@ mod tests {
         );
     }
 
+    /// The one-way V31 decontamination: every historical layer-11->12 and
+    /// layer-11->13 contact is removed at the migration boundary; neurons,
+    /// terminals, unrelated contacts, and lawful frontier entries are
+    /// preserved; frontier entries riding a removed contact drop with it;
+    /// the migrated body is V31 and re-migration is the identity, so a
+    /// restart can never restore the fan-out; pre-V31 bytes are refused by
+    /// ordinary decode and must cross this boundary.
+    #[test]
+    fn v31_migration_removes_contaminated_effector_pools_one_way() {
+        const MAX_BYTES: usize = 1_600_000_000;
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let axis = BodyAxis::LeftGripAperture;
+        let anatomy = axis.anatomy();
+        let source = admit_articulated_body_consequence_source(
+            0,
+            &[BodyProprioceptiveConsequence {
+                axis,
+                unit: anatomy.unit,
+                predecessor_position: anatomy.maximum,
+                successor_position: anatomy.maximum,
+                signed_displacement: 0,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 240,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 0,
+                stalled_carriers: 240,
+            }],
+        )
+        .unwrap();
+        let receptor_site = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.body_proprioceptor_terminal
+                    == Some(BodyProprioceptorTerminal::new(
+                        axis,
+                        BodyEffectorDirection::TowardMaximum,
+                    ))
+                    && port.physical_quantity == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+            })
+            .map(NeuronSourceSite::from_source_port)
+            .unwrap()
+            .unwrap();
+        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site,
+        );
+        let motor = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            12,
+        )
+        .unwrap();
+        cohorts
+            .iter_mut()
+            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&motor))
+            .unwrap()
+            .anatomy
+            .specialize_motor_effector(
+                motor,
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
+            )
+            .unwrap();
+        let articulatory = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            13,
+        )
+        .unwrap();
+        let ordering_a = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        let ordering_b = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 1),
+        )
+        .unwrap();
+        let affective = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(10, 0),
+        )
+        .unwrap();
+        let conductance =
+            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS);
+        fabric = fabric
+            .append_contacts(&[
+                (regulation, motor, conductance),
+                (ordering_a, affective, conductance),
+                (ordering_a, motor, conductance),
+                (ordering_b, motor, conductance),
+                (ordering_a, articulatory, conductance),
+            ])
+            .unwrap();
+        let contaminated_entry = frontier_hop(&cohorts, &fabric, ordering_a, motor)
+            .into_iter()
+            .next()
+            .unwrap();
+        let lawful_entry = frontier_hop(&cohorts, &fabric, regulation, motor)
+            .into_iter()
+            .next()
+            .unwrap();
+        let cohort_count = cohorts.len();
+        let topology_index =
+            Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let occupied_places = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .map(ReachedNeuronMount::place)
+            .collect::<Vec<_>>();
+        let next_lineage = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.neuron_lineages().iter())
+            .map(|lineage| lineage_ordinal(*lineage).unwrap())
+            .max()
+            .unwrap()
+            .checked_add(1)
+            .unwrap();
+        let resting_population = DevelopmentalRestingPopulation::admit(
+            MAX_BYTES,
+            100_000,
+            next_lineage,
+            &occupied_places,
+        )
+        .unwrap();
+        let next_lineage = resting_population.lineage_end_exclusive();
+        let state = ResidentCognitiveFormationState {
+            generation: 5,
+            next_lineage_ordinal: next_lineage,
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: Some(resting_population),
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: {
+                let mut entries = vec![contaminated_entry, lawful_entry];
+                entries.sort_unstable();
+                entries.into_boxed_slice()
+            },
+            preceding_active_electrical_frontier: Box::new([contaminated_entry]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+            formation_index: ResidentFormationIndex::default(),
+        };
+        validate_lineage_state(&state).unwrap();
+        let current = state.encode(MAX_BYTES).unwrap();
+        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+
+        // Simulate the legacy body: identical layout under the V30 magic.
+        let mut legacy = current.clone();
+        legacy[..MAGIC_V30.len()].copy_from_slice(MAGIC_V30);
+        assert!(ResidentCognitiveFormationState::decode(&legacy, MAX_BYTES).is_err());
+        let migrated =
+            ResidentCognitiveFormationState::migrate_to_current_format(&legacy, MAX_BYTES)
+                .unwrap();
+        let restored =
+            ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
+        assert!(!restored.electrical_fabric.contains_contact(ordering_a, motor));
+        assert!(!restored.electrical_fabric.contains_contact(ordering_b, motor));
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(ordering_a, articulatory));
+        assert!(restored.electrical_fabric.contains_contact(regulation, motor));
+        assert!(restored
+            .electrical_fabric
+            .contains_contact(ordering_a, affective));
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(ordering_a, articulatory));
+        assert_eq!(restored.cohorts.len(), cohort_count);
+        assert_eq!(restored.active_electrical_frontier.len(), 1);
+        assert_eq!(
+            restored.active_electrical_frontier[0].receiver(),
+            lawful_entry.receiver()
+        );
+        assert!(restored.preceding_active_electrical_frontier.is_empty());
+
+        // One-way and restart-proof: the migrated body is V31 and crossing
+        // the boundary again is the identity.
+        assert_eq!(&migrated[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(
+            ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
+                .unwrap(),
+            migrated
+        );
+    }
+
     /// The correction's core proofs: a permanent motor contact requires
     /// the exact directed causal chain ordering -> affective -> consequence-
     /// returned regulation. Same-interval coincidence authors nothing, an
@@ -21658,7 +21983,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V30.len()], MAGIC_V30);
+        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -22804,7 +23129,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V30.len()], MAGIC_V30);
+        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());
