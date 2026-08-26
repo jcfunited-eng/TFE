@@ -76,6 +76,107 @@ pub(crate) struct ElementaryChargeTransition {
     pub(crate) resident_state_bytes: usize,
 }
 
+
+/// Wide-duration form of the same integration law: identical arithmetic
+/// with the duration taken as `interval_microseconds x elapsed_clocks`,
+/// widened before multiplication so arbitrarily long quiet spans integrate
+/// in one exact step. `settle_elementary_charge_transfer(p, i, d)` equals
+/// `settle_elementary_charge_transfer_clocks(p, i, d, 1)` by construction.
+pub(crate) fn settle_elementary_charge_transfer_clocks(
+    predecessor_phase: ChargeCarrierPhase,
+    outward_current_picoamperes: ExactRational,
+    interval_microseconds: u32,
+    elapsed_clocks: u64,
+) -> Result<ElementaryChargeTransition, ChargeTransferError> {
+    if interval_microseconds == 0 || elapsed_clocks == 0 {
+        return Err(ChargeTransferError::InvalidDuration);
+    }
+    let (current_numerator, current_denominator) = outward_current_picoamperes.parts();
+    let (phase_numerator, phase_denominator) = predecessor_phase.parts();
+    let wide_duration =
+        BigInt::from(interval_microseconds) * BigInt::from(elapsed_clocks);
+    let ideal_carrier_transfer = BigRational::new(
+        BigInt::from(current_numerator)
+            * wide_duration
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR),
+        BigInt::from(current_denominator)
+            * BigInt::from(MICROSECONDS_PER_MILLISECOND)
+            * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR),
+    );
+    let accumulated = ideal_carrier_transfer
+        + BigRational::new(
+            BigInt::from(phase_numerator),
+            BigInt::from(phase_denominator),
+        );
+    let outward_elementary_charges = (accumulated.numer() / accumulated.denom())
+        .to_i128()
+        .ok_or(ChargeTransferError::ArithmeticWidth)?;
+    let unresolved = accumulated
+        - BigRational::from_integer(BigInt::from(outward_elementary_charges));
+    let successor_phase = ChargeCarrierPhase::new(
+        unresolved
+            .numer()
+            .to_i128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+        unresolved
+            .denom()
+            .to_u128()
+            .ok_or(ChargeTransferError::ArithmeticWidth)?,
+    )?;
+    Ok(ElementaryChargeTransition {
+        successor_phase,
+        outward_elementary_charges,
+        interval_microseconds,
+        resident_state_bytes: ChargeCarrierPhase::resident_bytes(),
+    })
+}
+
+/// Earliest whole number of clocks at which a contact under this standing
+/// drive crosses its next whole elementary charge, computed — never
+/// discovered by repeated settlement. `None` when the drive can never cross
+/// (zero current). The claim proven by the oracle tests: settling at the
+/// returned clock count transfers at least one whole carrier and settling
+/// one clock earlier transfers none.
+pub(crate) fn next_whole_carrier_crossing_clocks(
+    predecessor_phase: ChargeCarrierPhase,
+    outward_current_picoamperes: ExactRational,
+    interval_microseconds: u32,
+) -> Result<Option<u64>, ChargeTransferError> {
+    if interval_microseconds == 0 {
+        return Err(ChargeTransferError::InvalidDuration);
+    }
+    let (current_numerator, current_denominator) = outward_current_picoamperes.parts();
+    if current_numerator == 0 {
+        return Ok(None);
+    }
+    let (phase_numerator, phase_denominator) = predecessor_phase.parts();
+    // Per-clock transfer t and remaining distance r to the next whole charge
+    // in the drive's direction; the crossing is ceil(r / |t|) clocks.
+    let per_clock_numerator = BigInt::from(current_numerator)
+        * BigInt::from(interval_microseconds)
+        * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR);
+    let per_clock_denominator = BigInt::from(current_denominator)
+        * BigInt::from(MICROSECONDS_PER_MILLISECOND)
+        * BigInt::from(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR);
+    let per_clock = BigRational::new(per_clock_numerator, per_clock_denominator);
+    let phase = BigRational::new(
+        BigInt::from(phase_numerator),
+        BigInt::from(phase_denominator),
+    );
+    let remaining = if per_clock < BigRational::from_integer(BigInt::from(0_u8)) {
+        BigRational::from_integer(BigInt::from(-1_i8)) - phase
+    } else {
+        BigRational::from_integer(BigInt::from(1_u8)) - phase
+    };
+    let ratio = remaining / per_clock;
+    debug_assert!(ratio >= BigRational::from_integer(BigInt::from(0_u8)));
+    let ceiling = (ratio.numer() + ratio.denom() - BigInt::from(1_u8)) / ratio.denom();
+    ceiling
+        .to_u64()
+        .map(Some)
+        .ok_or(ChargeTransferError::ArithmeticWidth)
+}
+
 pub(crate) fn settle_elementary_charge_transfer(
     predecessor_phase: ChargeCarrierPhase,
     outward_current_picoamperes: ExactRational,

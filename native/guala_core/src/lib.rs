@@ -28,6 +28,7 @@ mod elementary_charge_membrane;
 mod elementary_charge_transfer;
 #[cfg(test)]
 mod embryonic_neuron_genesis_candidate;
+mod causal_event_scheduler;
 mod exact_rational;
 mod fast_charge_math;
 #[cfg(test)]
