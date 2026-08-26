@@ -61,9 +61,17 @@ export type AlpacaCustodySnapshot = {
   openOrders: AlpacaOpenOrder[] | null;
 };
 
+// Delisted remnants frozen at the broker (verified inactive and
+// not-tradable 2026-08-26; CWAN carries a pending merger announcement).
+// Visible and labeled, excluded from the discrepancy count — no order
+// of any kind is accepted on them; the broker clears them when it
+// processes the corporate action.
+const FROZEN_CORPORATE_ACTION_SYMBOLS = new Set(["CWAN", "HTBK"]);
+
 export type CustodyStatus =
   | "matched"
   | "broker_only"
+  | "frozen_corporate_action"
   | "ledger_only"
   | "quantity_mismatch"
   | "duplicate_ledger"
@@ -308,6 +316,7 @@ function newest(rows: LedgerOpenPosition[]): LedgerOpenPosition {
 function custodyNote(status: CustodyStatus, ledgerShares: number, brokerShares: number | null): string {
   if (status === "matched") return "Broker position and open-ledger quantity agree.";
   if (status === "broker_only") return "Alpaca holds this position, but no open ledger row owns it.";
+  if (status === "frozen_corporate_action") return "Delisted asset frozen at the broker pending corporate-action settlement; no order of any kind is accepted. Leaves the account when the broker processes the action.";
   if (status === "ledger_only") return "Ledger says filled, but Alpaca has no corresponding position.";
   if (status === "quantity_mismatch") return `Quantity differs: ledger ${ledgerShares}, broker ${brokerShares}.`;
   if (status === "duplicate_ledger") return "More than one open ledger row claims this broker symbol.";
@@ -344,7 +353,13 @@ export function reconcileCustody(
     if (brokerBySymbol === null) {
       status = "broker_unavailable";
     } else if (!rows.length && broker) {
-      status = "broker_only";
+      // Known delisted remnants (verified inactive/not-tradable at the
+      // broker 2026-08-26; CWAN carries a pending merger announcement).
+      // They are visible, labeled, and excluded from the discrepancy
+      // count -- there is nothing any engine can do with them.
+      status = FROZEN_CORPORATE_ACTION_SYMBOLS.has(symbol)
+        ? "frozen_corporate_action"
+        : "broker_only";
     } else if (rows.length > 1) {
       status = "duplicate_ledger";
     } else if (broker) {
@@ -391,6 +406,7 @@ export function reconcileCustody(
   const statuses: CustodyStatus[] = [
     "matched",
     "broker_only",
+    "frozen_corporate_action",
     "ledger_only",
     "quantity_mismatch",
     "duplicate_ledger",

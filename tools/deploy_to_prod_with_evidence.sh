@@ -1671,7 +1671,7 @@ fi
 jq \
   --arg IMAGE "$IMAGE_URI" \
   --arg FILTER_SOURCE "$SCREENER_FILTER_SOURCE_BASE_URL" \
-  --arg ENTRIES_HALTED "${TFE_ENTRIES_HALTED:-1}" \
+  --arg ENTRIES_HALTED "${TFE_ENTRIES_HALTED:-$(aws ecs describe-task-definition --task-definition tfe-web-task --query "taskDefinition.containerDefinitions[0].environment[?name=='TFE_ENTRIES_HALTED'].value | [0]" --output text 2>/dev/null || echo 1)}" \
   --arg GIT_COMMIT_SHA "$GIT_COMMIT_SHA" \
   --arg RUNTIME_DB_SECRET_ARN "$CURRENT_RUNTIME_DB_SECRET_ARN" \
   --arg SOURCE_ARCHIVE "$S3_ARCHIVE" \
