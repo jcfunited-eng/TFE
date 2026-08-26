@@ -5827,6 +5827,66 @@ pub(crate) fn membrane_gradient_pump_charge_bound(
     })
 }
 
+/// The clock at which a resting neuron's own membrane transport path next
+/// moves one whole elementary charge — the local-rest event source.
+///
+/// Rate is anatomy-derived and local: the neuron's single-channel pump
+/// conductance times its own electrochemical drive (membrane potential
+/// minus the authored reversal potential), integrated by the same
+/// elementary-charge law as contact carriers — identical current
+/// arithmetic to `membrane_gradient_pump_charge_bound`, expressed as a
+/// crossing clock instead of one interval's transport. No global
+/// constant, cap, or timeout exists here. `None` means this neuron
+/// produces no event until some state changes: zero reversal (no mounted
+/// path), zero drive, or an empty sending compartment. At the returned
+/// clock the mounted gradient-transport law settles the whole event
+/// exactly — passive excess-charge return releases work as heat, an
+/// uphill pump must be paid by the neuron's own recovery reservoir; both
+/// conserve carriers and energy by the existing settlement.
+pub(crate) fn next_membrane_recovery_crossing_clocks(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    interval_microseconds: u32,
+) -> Result<Option<u64>, NeuronPhysicalError> {
+    let reversal = anatomy.gate.reversal_potential_millivolts;
+    let reversal_sign = reversal.parts().0.signum();
+    if reversal_sign == 0 {
+        return Ok(None);
+    }
+    let membrane = predecessor.membrane.membrane();
+    let potential = membrane
+        .potential_millivolts(anatomy.capacitance)
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+    let electrochemical_drive = potential.checked_sub(reversal)?;
+    let magnitude_current = anatomy
+        .gate
+        .single_channel_conductance_picosiemens
+        .checked_mul(electrochemical_drive.checked_abs()?)?
+        .checked_div_unsigned(1_000)?;
+    let pump_current = if reversal_sign < 0 {
+        magnitude_current.checked_neg()?
+    } else {
+        magnitude_current
+    };
+    let sending_compartment = if pump_current.parts().0.signum() >= 0 {
+        predecessor.carriers.intracellular
+    } else {
+        predecessor.carriers.extracellular
+    };
+    if sending_compartment == 0 {
+        return Ok(None);
+    }
+    crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
+        membrane.carrier_phase(),
+        pump_current,
+        interval_microseconds,
+    )
+    .map_err(MembraneConductanceError::from)
+    .map_err(GateSettlementError::from)
+    .map_err(NeuronPhysicalError::from)
+}
+
 /// Exact retained electrical plus generic carrier-gradient work.
 ///
 /// The electrical term is 1/2 C V^2, with the exact unit conversion
@@ -6898,6 +6958,84 @@ mod tests {
             zero_catalysts: vec![0; ring_count],
             ring_count,
         }
+    }
+
+    /// Local-rest event source: the crossing clock must agree exactly with
+    /// the elementary-charge integration law at the same anatomy-derived
+    /// pump current — zero whole charges before the due clock, at least
+    /// one at it — and a neuron whose sending compartment is empty must
+    /// produce no event at all until state changes.
+    #[test]
+    fn membrane_recovery_crossing_agrees_with_charge_transfer_oracle() {
+        let fixture = physical_fixture();
+        let interval = 250_000_u32;
+        let due = next_membrane_recovery_crossing_clocks(
+            &fixture.anatomy,
+            &fixture.state,
+            interval,
+        )
+        .unwrap()
+        .expect("nonzero reversal with stocked compartments must schedule");
+        assert!(due >= 1);
+
+        let reversal = fixture.anatomy.gate.reversal_potential_millivolts;
+        let potential = fixture
+            .state
+            .membrane
+            .membrane()
+            .potential_millivolts(fixture.anatomy.capacitance)
+            .unwrap();
+        let drive = potential.checked_sub(reversal).unwrap();
+        let magnitude = fixture
+            .anatomy
+            .gate
+            .single_channel_conductance_picosiemens
+            .checked_mul(drive.checked_abs().unwrap())
+            .unwrap()
+            .checked_div_unsigned(1_000)
+            .unwrap();
+        let pump_current = if reversal.parts().0.signum() < 0 {
+            magnitude.checked_neg().unwrap()
+        } else {
+            magnitude
+        };
+        let phase = fixture.state.membrane.membrane().carrier_phase();
+        let at_due = crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
+            phase,
+            pump_current,
+            interval,
+            due,
+        )
+        .unwrap();
+        assert!(
+            at_due.outward_elementary_charges.unsigned_abs() >= 1,
+            "a whole carrier must cross at the due clock"
+        );
+        if due > 1 {
+            let early =
+                crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
+                    phase,
+                    pump_current,
+                    interval,
+                    due - 1,
+                )
+                .unwrap();
+            assert_eq!(early.outward_elementary_charges, 0);
+        }
+
+        let mut drained = fixture.state.clone();
+        drained.carriers = if pump_current.parts().0.signum() >= 0 {
+            CarrierReservoirs::new(0, 1_000_000)
+        } else {
+            CarrierReservoirs::new(1_000_000, 0)
+        };
+        assert!(next_membrane_recovery_crossing_clocks(
+            &fixture.anatomy,
+            &drained,
+            interval,
+        )
+        .unwrap()
+        .is_none());
     }
 
     /// PERSISTED-STATE QUARANTINE: a body whose retired membrane-return residue
