@@ -29,6 +29,7 @@ mod elementary_charge_transfer;
 #[cfg(test)]
 mod embryonic_neuron_genesis_candidate;
 mod exact_rational;
+mod fast_charge_math;
 #[cfg(test)]
 mod exact_time_grid_occurrence;
 #[path = "full_field_bank_final.rs"]

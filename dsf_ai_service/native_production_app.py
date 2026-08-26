@@ -1637,6 +1637,24 @@ _last_tested_physical_choice_evidence: dict[str, Any] | None = None
 # that the first-retained attention window shadows the causal binding; the
 # window law itself is deliberately unchanged until that evidence exists.
 _choice_attention_binding_miss_count: int = 0
+# Deferred-checkpoint chain: how many unattended intervals have advanced the
+# open unsealed trajectory since the last seal, and the published predecessor
+# sha the eventual seal must chain from. Persistence cadence is transport;
+# physics is untouched — the chain's final sealed state is proven identical
+# to sealing every interval. Any exception aborts the whole open chain.
+_pending_unsealed_intervals: int = 0
+_pending_chain_predecessor_sha: str | None = None
+
+
+def _checkpoint_every_intervals() -> int:
+    raw = os.environ.get("GUALA_CHECKPOINT_EVERY_INTERVALS", "1")
+    try:
+        value = int(raw)
+    except ValueError:
+        return 1
+    return max(1, value)
+
+
 # Transport stopwatch: cumulative wall-clock milliseconds per pipeline stage.
 # Written only under _transition_lock, read for per-interval deltas and a log
 # line. Pure transport measurement; no organism state, no cognitive authority.
@@ -9784,6 +9802,7 @@ def _perform_admitted_intake_locked(
     *,
     vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
     external_participant_action_receipt: str | None = None,
+    defer_seal: bool = False,
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
@@ -10284,6 +10303,21 @@ def _perform_admitted_intake_locked(
     action_consequence: dict[str, Any] | None = None
     action_vestibular_tick_count = 0
     if prepared_action is None:
+        global _pending_unsealed_intervals, _pending_chain_predecessor_sha
+        if defer_seal:
+            # The trajectory stays open; this interval's physics is already
+            # lived and its evidence retained. The next sealing intake — the
+            # Nth unattended interval, any external experience, or shutdown —
+            # seals and publishes the whole chain from the stashed
+            # predecessor. Nothing physical differs from sealing every
+            # interval; only the copy cadence does.
+            if _pending_chain_predecessor_sha is None:
+                _pending_chain_predecessor_sha = predecessor.state_sha256
+            _pending_unsealed_intervals += 1
+            last_hop = dict(last_hop)
+            last_hop["sealed"] = False
+            last_hop["pending_unsealed_intervals"] = _pending_unsealed_intervals
+            return last_hop
         _seal_started = time.perf_counter()
         sealed_observation = organism.seal_unsealed_trajectory_direct()
         _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
@@ -10293,11 +10327,18 @@ def _perform_admitted_intake_locked(
             if sealed_observation.organism_tick != last_hop["organism_tick"]:
                 raise RuntimeError("final resident seal changed the lived intake tick")
             last_hop["state_sha256"] = sealed_observation.state_sha256
-            published = _publish_committed_organism(
-                organism, admission, predecessor.state_sha256
+            _chain_predecessor = (
+                _pending_chain_predecessor_sha or predecessor.state_sha256
             )
+            published = _publish_committed_organism(
+                organism, admission, _chain_predecessor
+            )
+            _pending_unsealed_intervals = 0
+            _pending_chain_predecessor_sha = None
         except BaseException:
             organism.abort_unsealed_trajectory()
+            _pending_unsealed_intervals = 0
+            _pending_chain_predecessor_sha = None
             raise
         organism.acknowledge_sealed_trajectory()
     else:
@@ -10443,9 +10484,14 @@ def _perform_admitted_intake_locked(
                     action_consequence["state_sha256"] = (
                         sealed_observation.state_sha256
                     )
-                published = _publish_committed_organism(
-                    organism, admission, predecessor.state_sha256
+                _chain_predecessor = (
+                    _pending_chain_predecessor_sha or predecessor.state_sha256
                 )
+                published = _publish_committed_organism(
+                    organism, admission, _chain_predecessor
+                )
+                _pending_unsealed_intervals = 0
+                _pending_chain_predecessor_sha = None
                 organism_published = True
                 organism.acknowledge_sealed_trajectory()
         except BaseException:
@@ -11789,7 +11835,13 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             episodes, environment = _unattended_interval_episodes(interval_id)
             _episodes_wall_ms = (time.perf_counter() - _episodes_started) * 1000.0
             intake_reason = f"continuous-environment:{interval_id}"
-            result = _perform_admitted_intake_locked(episodes, intake_reason)
+            _defer = _pending_unsealed_intervals + 1 < _checkpoint_every_intervals()
+            if _defer:
+                result = _perform_admitted_intake_locked(
+                    episodes, intake_reason, defer_seal=True
+                )
+            else:
+                result = _perform_admitted_intake_locked(episodes, intake_reason)
             after = _native_record()
         except HTTPException as error:
             _last_unattended_pause = {
@@ -11903,6 +11955,10 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         _last_unattended_evidence = {
             "category": category,
             "declared_interval_milliseconds": CONTINUOUS_INTERVAL_MILLISECONDS,
+            "sealed": result.get("sealed", True),
+            "pending_unsealed_intervals": result.get(
+                "pending_unsealed_intervals", 0
+            ),
             "transport_wall_milliseconds": _stage_wall_ms,
             "hop_count": result["hop_count"],
             "intake": intake_reason,
@@ -13968,6 +14024,38 @@ def _startup() -> None:
 
 
 @asynccontextmanager
+def _seal_pending_chain() -> None:
+    """Seal and publish any open deferred-checkpoint chain.
+
+    Runs under the transition lock at shutdown (and is safe to call when no
+    chain is open). The chain's physics is already lived; this closes custody
+    exactly as the Nth interval would have.
+    """
+
+    global _restored, _pending_unsealed_intervals, _pending_chain_predecessor_sha
+
+    with _transition_lock:
+        if _pending_unsealed_intervals == 0:
+            return
+        restored, admission = _runtime()
+        organism = restored.organism
+        sealed_observation = organism.seal_unsealed_trajectory_direct()
+        chain_predecessor = (
+            _pending_chain_predecessor_sha or restored.pointer.state_sha256
+        )
+        published = _publish_committed_organism(
+            organism, admission, chain_predecessor
+        )
+        organism.acknowledge_sealed_trajectory()
+        _pending_unsealed_intervals = 0
+        _pending_chain_predecessor_sha = None
+        _restored = RestoredNativeOrganism(
+            organism=organism, pointer=published.pointer
+        )
+        del sealed_observation
+        _refresh_public_observation_cache()
+
+
 async def _lifespan(_application: FastAPI):
     _startup()
     _start_unattended_time()
@@ -13975,6 +14063,14 @@ async def _lifespan(_application: FastAPI):
         yield
     finally:
         _stop_unattended_time()
+        try:
+            _seal_pending_chain()
+        except BaseException as error:
+            print(
+                f"ERROR: shutdown chain seal failed: {type(error).__name__}: {error}",
+                file=sys.stderr,
+                flush=True,
+            )
 
 
 app = FastAPI(title="Guala native organism", version="1", lifespan=_lifespan)

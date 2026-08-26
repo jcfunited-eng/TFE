@@ -511,7 +511,240 @@ fn quiescent_contact(predecessor: ElectricalContactState) -> ElectricalContactTr
     }
 }
 
+/// Exact fixed-width settlement of one contact: the same law as
+/// ``settle_contact`` evaluated in 256-bit machine arithmetic. Returns
+/// ``None`` whenever any width gate fails, and the caller runs the
+/// arbitrary-precision path; a returned transition is byte-identical to
+/// that path's result by construction and by the differential test below.
+fn settle_contact_fast(
+    anatomy: ElectricalContactAnatomy,
+    predecessor: &ElectricalContactState,
+    left: &ContactEndpoint,
+    right: &ContactEndpoint,
+    interval_microseconds: u32,
+) -> Option<ElectricalContactTransition> {
+    use crate::fast_charge_math::{SignedRatio256, U256};
+
+    // Current numerator/denominator: g_single * population * dV / PSMV.
+    let (single_n, single_d) = anatomy.single_channel_conductance_picosiemens.parts();
+    let population = predecessor.conducting_channel_population;
+    let (vl_n, vl_d) = left.potential_millivolts.parts();
+    let (vr_n, vr_d) = right.potential_millivolts.parts();
+    let cross_left = U256::mul_u128(vl_n.unsigned_abs(), vr_d);
+    let cross_right = U256::mul_u128(vr_n.unsigned_abs(), vl_d);
+    let (difference_negative, difference) = match (vl_n < 0, vr_n < 0) {
+        (false, false) => match cross_left.cmp(&cross_right) {
+            core::cmp::Ordering::Less => (true, cross_right.checked_sub(cross_left)?),
+            _ => (false, cross_left.checked_sub(cross_right)?),
+        },
+        (true, true) => match cross_left.cmp(&cross_right) {
+            core::cmp::Ordering::Greater => (true, cross_left.checked_sub(cross_right)?),
+            _ => (false, cross_right.checked_sub(cross_left)?),
+        },
+        (false, true) => (false, cross_left.checked_add(cross_right)?),
+        (true, false) => (true, cross_left.checked_add(cross_right)?),
+    };
+    let conductance_scale = U256::mul_u128(single_n.unsigned_abs(), population).to_u128()?;
+    if conductance_scale == 0 || difference.is_zero() {
+        return Some(quiescent_contact(predecessor.clone()));
+    }
+    let current_numerator = difference.checked_mul_small(conductance_scale)?;
+    let current_denominator = U256::mul_u128(vl_d, vr_d)
+        .checked_mul_small(single_d)?
+        .checked_mul_small(PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE)?;
+    let current_negative = difference_negative;
+
+    // Energy-descent test for one elementary charge in the driven direction,
+    // and the strict maximum descending transfer, in shared integer scale.
+    let driven_from_left = !current_negative;
+    let (q_sender, q_receiver, sender_available) = if driven_from_left {
+        (
+            left.separated_elementary_charges,
+            right.separated_elementary_charges,
+            left.available_carriers,
+        )
+    } else {
+        (
+            right.separated_elementary_charges,
+            left.separated_elementary_charges,
+            right.available_carriers,
+        )
+    };
+    let (cs_n, cs_d, cr_n, cr_d) = if driven_from_left {
+        let (a, b) = left.capacitance.picofarads().parts();
+        let (c, d) = right.capacitance.picofarads().parts();
+        (a, b, c, d)
+    } else {
+        let (a, b) = right.capacitance.picofarads().parts();
+        let (c, d) = left.capacitance.picofarads().parts();
+        (a, b, c, d)
+    };
+    let cs_n = u128::try_from(cs_n).ok()?;
+    let cr_n = u128::try_from(cr_n).ok()?;
+    // term_sender = (1 - 2 q_s) * cr_n * cs_d ; term_receiver = (1 + 2 q_r) * cs_n * cr_d
+    let signed_term = |base: i128, scale_a: u128, scale_b: u128| -> Option<(bool, U256)> {
+        let magnitude = U256::mul_u128(base.unsigned_abs(), scale_a)
+            .checked_mul_small(scale_b)?;
+        Some((base < 0, magnitude))
+    };
+    let one_minus = 1_i128.checked_sub(q_sender.checked_mul(2)?)?;
+    let one_plus = 1_i128.checked_add(q_receiver.checked_mul(2)?)?;
+    let (sender_negative, sender_magnitude) = signed_term(one_minus, cr_n, cs_d)?;
+    let (receiver_negative, receiver_magnitude) = signed_term(one_plus, cs_n, cr_d)?;
+    let (bracket_negative, bracket_magnitude) = match (sender_negative, receiver_negative) {
+        (a, b) if a == b => (a, sender_magnitude.checked_add(receiver_magnitude)?),
+        (a, _) => match sender_magnitude.cmp(&receiver_magnitude) {
+            core::cmp::Ordering::Less => (
+                !a,
+                receiver_magnitude.checked_sub(sender_magnitude)?,
+            ),
+            _ => (a, sender_magnitude.checked_sub(receiver_magnitude)?),
+        },
+    };
+    if !bracket_negative || bracket_magnitude.is_zero() {
+        // Even one elementary charge cannot strictly descend: quiescent.
+        return Some(quiescent_contact(predecessor.clone()));
+    }
+    // A = cr_n * cs_d + cs_n * cr_d ; 2*drive*scale = A + |bracket| ; m_max = (2drive - 1) / A
+    let a_coefficient = U256::mul_u128(cr_n, cs_d).checked_add(U256::mul_u128(cs_n, cr_d))?;
+    let two_drive = a_coefficient.checked_add(bracket_magnitude)?;
+    let (m_max, _) = two_drive
+        .checked_sub(U256::from_u128(1))?
+        .div_rem(a_coefficient)?;
+    let m_max = m_max.to_u128()?;
+    let available_descending = m_max.min(sender_available);
+    if available_descending == 0 {
+        return Some(quiescent_contact(predecessor.clone()));
+    }
+
+    // Ideal transfer ratio: current * dt * E_d / (MSPM * E_n), reduced once.
+    let transfer_numerator = current_numerator
+        .checked_mul_small(u128::from(interval_microseconds))?
+        .checked_mul_small(FAST_E_DENOMINATOR)?;
+    let transfer_denominator = current_denominator
+        .checked_mul_small(FAST_MICROSECONDS_PER_MILLISECOND)?
+        .checked_mul_small(FAST_E_NUMERATOR)?;
+    let reduction = transfer_numerator.gcd(transfer_denominator);
+    let (transfer_numerator, _) = transfer_numerator.div_rem(reduction)?;
+    let (transfer_denominator, _) = transfer_denominator.div_rem(reduction)?;
+    let transfer = SignedRatio256 {
+        negative: current_negative,
+        numerator: transfer_numerator,
+        denominator: transfer_denominator,
+    };
+    let (phase_n, phase_d) = predecessor.carrier_phase.parts();
+    let phase = SignedRatio256::from_i128_ratio(phase_n, phase_d);
+    let accumulated = transfer.checked_add(phase)?;
+    let (requested_whole, _) = accumulated.trunc_rem()?;
+
+    let (bounded_negative, bounded_numerator, bounded_denominator, final_accumulated) =
+        if requested_whole.unsigned_abs() <= available_descending {
+            (
+                current_negative,
+                current_numerator,
+                current_denominator,
+                accumulated,
+            )
+        } else {
+            // Clamp to the exact inverse current for the available transfer,
+            // then integrate again with the existing phase, as the law does.
+            let clamped = available_descending;
+            let clamped_negative = requested_whole < 0;
+            let numerator = U256::mul_u128(clamped, FAST_E_NUMERATOR)
+                .checked_mul_small(FAST_MICROSECONDS_PER_MILLISECOND)?;
+            let denominator = U256::mul_u128(
+                u128::from(interval_microseconds),
+                FAST_E_DENOMINATOR,
+            );
+            let reduction = numerator.gcd(denominator);
+            let (numerator, _) = numerator.div_rem(reduction)?;
+            let (denominator, _) = denominator.div_rem(reduction)?;
+            let clamped_transfer = SignedRatio256 {
+                negative: clamped_negative,
+                numerator: U256::from_u128(clamped),
+                denominator: U256::from_u128(1),
+            };
+            let accumulated = clamped_transfer.checked_add(phase)?;
+            (clamped_negative, numerator, denominator, accumulated)
+        };
+    let (whole, remainder) = final_accumulated.trunc_rem()?;
+
+    // The settled whole transfer must itself strictly descend, mirrored from
+    // the law's final refusal: bracket(m) = A m^2 - 2 drive m, strict.
+    if whole != 0 {
+        let magnitude = whole.unsigned_abs();
+        let quadratic = a_coefficient
+            .checked_mul_small(magnitude)?
+            .checked_mul_small(magnitude)?;
+        let linear = two_drive.checked_mul_small(magnitude)?;
+        let descends = match (whole < 0) == current_negative {
+            true => quadratic < linear,
+            false => false,
+        };
+        if !descends {
+            return Some(quiescent_contact(predecessor.clone()));
+        }
+    }
+
+    let (remainder_numerator, remainder_denominator) = remainder.reduced_parts()?;
+    let successor_phase =
+        ChargeCarrierPhase::new(remainder_numerator, remainder_denominator).ok()?;
+    let bounded_current = exact_rational_from_reduced(
+        bounded_negative,
+        bounded_numerator,
+        bounded_denominator,
+    )?;
+    Some(ElectricalContactTransition {
+        successor: ElectricalContactState {
+            carrier_phase: successor_phase,
+            ..predecessor.clone()
+        },
+        outward_current_from_left_picoamperes: bounded_current,
+        outward_elementary_charges_from_left: whole,
+        released_work_zeptojoules: BigRational::zero(),
+        exported_heat_zeptojoules: BigRational::zero(),
+        conductance_changed: false,
+    })
+}
+
+const FAST_E_NUMERATOR: u128 = 801_088_317;
+const FAST_E_DENOMINATOR: u128 = 5_000_000_000_000;
+const FAST_MICROSECONDS_PER_MILLISECOND: u128 = 1_000;
+
+fn exact_rational_from_reduced(
+    negative: bool,
+    numerator: crate::fast_charge_math::U256,
+    denominator: crate::fast_charge_math::U256,
+) -> Option<ExactRational> {
+    let reduction = numerator.gcd(denominator);
+    let (numerator, _) = numerator.div_rem(reduction)?;
+    let (denominator, _) = denominator.div_rem(reduction)?;
+    let numerator = numerator.to_u128().and_then(|n| i128::try_from(n).ok())?;
+    let denominator = denominator
+        .to_u128()
+        .and_then(|d| i128::try_from(d).ok())?;
+    let signed = if negative { numerator.checked_neg()? } else { numerator };
+    ExactRational::integer(signed)
+        .checked_div(ExactRational::integer(denominator))
+        .ok()
+}
+
 fn settle_contact(
+    anatomy: ElectricalContactAnatomy,
+    predecessor: ElectricalContactState,
+    left: ContactEndpoint,
+    right: ContactEndpoint,
+    interval_microseconds: u32,
+) -> Result<ElectricalContactTransition, SparseElectricalError> {
+    if let Some(transition) =
+        settle_contact_fast(anatomy, &predecessor, &left, &right, interval_microseconds)
+    {
+        return Ok(transition);
+    }
+    settle_contact_exact(anatomy, predecessor, left, right, interval_microseconds)
+}
+
+fn settle_contact_exact(
     anatomy: ElectricalContactAnatomy,
     predecessor: ElectricalContactState,
     left: ContactEndpoint,
@@ -1615,6 +1848,49 @@ pub(crate) struct SparseElectricalTransferSettlement {
     pub(crate) outward_elementary_charges_by_neuron: Box<[i128]>,
 }
 
+/// Exact fixed-width form of ``current x potential difference x interval``:
+/// the released-work value with the same sign law as the arbitrary-precision
+/// expression. ``None`` on any width gate or on a negative product, which the
+/// caller's original path then reports exactly as before.
+fn fast_released_work_parts(
+    current: ExactRational,
+    left_potential: ExactRational,
+    right_potential: ExactRational,
+    interval_microseconds: u32,
+) -> Option<(u128, u128)> {
+    use crate::fast_charge_math::U256;
+    let (i_n, i_d) = current.parts();
+    let (vl_n, vl_d) = left_potential.parts();
+    let (vr_n, vr_d) = right_potential.parts();
+    let cross_left = U256::mul_u128(vl_n.unsigned_abs(), vr_d);
+    let cross_right = U256::mul_u128(vr_n.unsigned_abs(), vl_d);
+    let (difference_negative, difference) = match (vl_n < 0, vr_n < 0) {
+        (false, false) => match cross_left.cmp(&cross_right) {
+            core::cmp::Ordering::Less => (true, cross_right.checked_sub(cross_left)?),
+            _ => (false, cross_left.checked_sub(cross_right)?),
+        },
+        (true, true) => match cross_left.cmp(&cross_right) {
+            core::cmp::Ordering::Greater => (true, cross_left.checked_sub(cross_right)?),
+            _ => (false, cross_right.checked_sub(cross_left)?),
+        },
+        (false, true) => (false, cross_left.checked_add(cross_right)?),
+        (true, false) => (true, cross_left.checked_add(cross_right)?),
+    };
+    if (i_n < 0) != difference_negative {
+        // A negative product is the exact path's own refusal; let it speak.
+        return None;
+    }
+    let numerator = difference
+        .to_u128()
+        .map(|d| U256::mul_u128(i_n.unsigned_abs(), d))?
+        .checked_mul_small(u128::from(interval_microseconds))?;
+    let denominator = U256::mul_u128(i_d, vl_d).checked_mul_small(vr_d)?;
+    let reduction = numerator.gcd(denominator);
+    let (numerator, _) = numerator.div_rem(reduction)?;
+    let (denominator, _) = denominator.div_rem(reduction)?;
+    Some((numerator.to_u128()?, denominator.to_u128()?))
+}
+
 fn attach_contact_local_released_work(
     anatomy: &SparseElectricalAnatomy,
     potentials_millivolts: &[ExactRational],
@@ -1643,6 +1919,17 @@ fn attach_contact_local_released_work(
         {
             transition.released_work_zeptojoules = BigRational::zero();
             transition.exported_heat_zeptojoules = BigRational::zero();
+            return Ok(());
+        }
+        if let Some((numerator, denominator)) = fast_released_work_parts(
+            transition.outward_current_from_left_picoamperes,
+            potentials_millivolts[contact.left_neuron],
+            potentials_millivolts[contact.right_neuron],
+            interval_microseconds,
+        ) {
+            let released = BigRational::new(BigInt::from(numerator), BigInt::from(denominator));
+            transition.released_work_zeptojoules = released.clone();
+            transition.exported_heat_zeptojoules = released;
             return Ok(());
         }
         let potential_difference = wide_rational(potentials_millivolts[contact.left_neuron])
@@ -1730,6 +2017,44 @@ pub(crate) fn settle_sparse_electrical_transfers(
         &mut transitions,
     )?;
     let outward_by_neuron = settled_outward_by_neuron(anatomy, &transitions)?;
+    let mut moved_whole = 0usize;
+    let mut phase_only = 0usize;
+    let mut true_identity = 0usize;
+    for (transition, predecessor) in transitions.iter().zip(&predecessor_contacts.contacts) {
+        if transition.outward_elementary_charges_from_left != 0 {
+            moved_whole += 1;
+        } else if transition.successor != *predecessor {
+            phase_only += 1;
+        } else {
+            true_identity += 1;
+        }
+    }
+    let mut sender_flags = vec![false; anatomy.neuron_count];
+    for (contact, transition) in anatomy.contacts.iter().zip(&transitions) {
+        if transition.outward_elementary_charges_from_left > 0 {
+            sender_flags[contact.left_neuron] = true;
+        } else if transition.outward_elementary_charges_from_left < 0 {
+            sender_flags[contact.right_neuron] = true;
+        }
+    }
+    let senders = sender_flags.iter().filter(|flag| **flag).count();
+    let mut approximate_potentials = potentials
+        .iter()
+        .map(|potential| {
+            let (numerator, denominator) = potential.parts();
+            numerator as f64 / denominator as f64
+        })
+        .collect::<Vec<f64>>();
+    approximate_potentials.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let quartile = |fraction: f64| {
+        approximate_potentials
+            [(fraction * (approximate_potentials.len() - 1) as f64) as usize]
+    };
+    eprintln!(
+        "guala-contact-outcomes moved_whole={} phase_only={} true_identity={} senders={} pot_min={:.3} p25={:.3} p50={:.3} p75={:.3} pot_max={:.3}",
+        moved_whole, phase_only, true_identity, senders,
+        quartile(0.0), quartile(0.25), quartile(0.5), quartile(0.75), quartile(1.0),
+    );
 
     Ok(SparseElectricalTransferSettlement {
         successor_contacts: SparseElectricalState {
@@ -1884,6 +2209,122 @@ pub(crate) fn settle_sparse_electrical_contacts(
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn fast_settlement_matches_exact_settlement_across_grid() {
+        let capacitance = |n: i128, d: u128| {
+            MembraneCapacitance::new(
+                ExactRational::integer(n)
+                    .checked_div(ExactRational::integer(d as i128))
+                    .unwrap(),
+            )
+            .unwrap()
+        };
+        let anatomy = |g_n: i128, g_d: u128, _population: u128| {
+            ElectricalContactAnatomy::new(
+                0,
+                1,
+                ExactRational::integer(g_n)
+                    .checked_div(ExactRational::integer(g_d as i128))
+                    .unwrap(),
+                2,
+            )
+            .unwrap()
+        };
+        let mut compared = 0_u64;
+        let mut fast_answers = 0_u64;
+        for q_left in [-1_000_000_007_i128, -7, 0, 3, 981_234_567] {
+            for q_right in [-13_i128, 0, 5, 40_000_001] {
+                for (cl_n, cl_d, cr_n, cr_d) in
+                    [(3_i128, 2_u128, 7_i128, 5_u128), (1, 1, 1, 1), (11, 4, 5, 8)]
+                {
+                    for (g_n, g_d) in [(1_i128, 2_u128), (500, 1)] {
+                        for population in [0_u128, 1, 9] {
+                            for (p_n, p_d) in [(0_i128, 1_u128), (1, 3), (-2, 5)] {
+                                for (avail_l, avail_r) in [(0_u128, 0_u128), (1, 1), (100, 3)]
+                                {
+                                    let contact_anatomy = anatomy(g_n, g_d, population.max(1));
+                                    let mut state =
+                                        ElectricalContactState::from_legacy_carrier_phase(
+                                            contact_anatomy,
+                                            ChargeCarrierPhase::new(p_n, p_d).unwrap(),
+                                        );
+                                    state.conducting_channel_population = population;
+                                    let cl = capacitance(cl_n, cl_d);
+                                    let cr = capacitance(cr_n, cr_d);
+                                    let left = ContactEndpoint::new(
+                                        potential_from_membrane(q_left, cl),
+                                        membrane_with_charge(q_left),
+                                        cl,
+                                        avail_l,
+                                    );
+                                    let right = ContactEndpoint::new(
+                                        potential_from_membrane(q_right, cr),
+                                        membrane_with_charge(q_right),
+                                        cr,
+                                        avail_r,
+                                    );
+                                    compared += 1;
+                                    let fast = settle_contact_fast(
+                                        contact_anatomy,
+                                        &state,
+                                        &left,
+                                        &right,
+                                        250_000,
+                                    );
+                                    let exact = settle_contact_exact(
+                                        contact_anatomy,
+                                        state.clone(),
+                                        left,
+                                        right,
+                                        250_000,
+                                    )
+                                    .unwrap();
+                                    if let Some(fast) = fast {
+                                        fast_answers += 1;
+                                        assert_eq!(
+                                            fast.successor, exact.successor,
+                                            "successor diverged at q=({q_left},{q_right}) c=({cl_n}/{cl_d},{cr_n}/{cr_d}) g={g_n}/{g_d} pop={population} phase={p_n}/{p_d} avail=({avail_l},{avail_r})"
+                                        );
+                                        assert_eq!(
+                                            fast.outward_elementary_charges_from_left,
+                                            exact.outward_elementary_charges_from_left,
+                                        );
+                                        assert_eq!(
+                                            fast.outward_current_from_left_picoamperes.parts(),
+                                            exact.outward_current_from_left_picoamperes.parts(),
+                                        );
+                                        assert_eq!(
+                                            fast.conductance_changed,
+                                            exact.conductance_changed,
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert!(compared > 1_000);
+        assert!(
+            fast_answers * 10 >= compared * 9,
+            "fast path answered only {fast_answers} of {compared}"
+        );
+    }
+
+    fn membrane_with_charge(charges: i128) -> ElementaryChargeMembraneState {
+        ElementaryChargeMembraneState::genesis(charges)
+    }
+
+    fn potential_from_membrane(
+        charges: i128,
+        capacitance: MembraneCapacitance,
+    ) -> ExactRational {
+        membrane_with_charge(charges)
+            .potential_millivolts(capacitance)
+            .unwrap()
+    }
     use super::*;
 
     fn capacitances(count: usize) -> Vec<MembraneCapacitance> {

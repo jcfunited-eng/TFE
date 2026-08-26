@@ -13917,6 +13917,91 @@ struct ResidentContactEdge {
     origin: ResidentContactOrigin,
 }
 
+fn touches_local_gradient(
+    settlements: &[ReachedLayerTenGradientSettlement],
+    left_lineage: [u8; 16],
+    right_lineage: [u8; 16],
+) -> bool {
+    settlements.iter().any(|settlement| {
+        settlement.neuron_lineage == left_lineage
+            || settlement.neuron_lineage == right_lineage
+    })
+}
+
+/// True only when this contact's full settlement is provably the exact
+/// quiescent identity from the predecessor pair alone: equal potentials
+/// drive zero current, and an unequal pair still rests when moving one
+/// elementary charge in the driven direction cannot strictly lower the
+/// pair's stored energy — the same inequality the full path evaluates,
+/// cross-multiplied into checked integer arithmetic. Any overflow answers
+/// "not provable" and the contact takes the full path.
+fn contact_provably_quiescent(
+    left_potential: crate::exact_rational::ExactRational,
+    right_potential: crate::exact_rational::ExactRational,
+    left_membrane: crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+    right_membrane: crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+    left_capacitance: crate::elementary_charge_membrane::MembraneCapacitance,
+    right_capacitance: crate::elementary_charge_membrane::MembraneCapacitance,
+    left_available_carriers: u128,
+    right_available_carriers: u128,
+) -> bool {
+    if left_potential == right_potential {
+        return true;
+    }
+    // An empty sender reservoir is the law's own quiescent branch: with both
+    // reservoirs empty no direction can send regardless of the field.
+    if left_available_carriers == 0 && right_available_carriers == 0 {
+        return true;
+    }
+    (|| -> Option<bool> {
+        let (pl_n, pl_d) = left_potential.parts();
+        let (pr_n, pr_d) = right_potential.parts();
+        let left_cross = pl_n.checked_mul(i128::try_from(pr_d).ok()?)?;
+        let right_cross = pr_n.checked_mul(i128::try_from(pl_d).ok()?)?;
+        let toward_right = left_cross > right_cross;
+        let sender_available = if toward_right {
+            left_available_carriers
+        } else {
+            right_available_carriers
+        };
+        if sender_available == 0 {
+            return Some(true);
+        }
+        let (q_sender, q_receiver) = if toward_right {
+            (
+                left_membrane.separated_elementary_charges(),
+                right_membrane.separated_elementary_charges(),
+            )
+        } else {
+            (
+                right_membrane.separated_elementary_charges(),
+                left_membrane.separated_elementary_charges(),
+            )
+        };
+        let ((n_sender, d_sender), (n_receiver, d_receiver)) = if toward_right {
+            (
+                left_capacitance.picofarads().parts(),
+                right_capacitance.picofarads().parts(),
+            )
+        } else {
+            (
+                right_capacitance.picofarads().parts(),
+                left_capacitance.picofarads().parts(),
+            )
+        };
+        let sender_term = 1_i128
+            .checked_sub(q_sender.checked_mul(2)?)?
+            .checked_mul(n_receiver)?
+            .checked_mul(i128::try_from(d_sender).ok()?)?;
+        let receiver_term = 1_i128
+            .checked_add(q_receiver.checked_mul(2)?)?
+            .checked_mul(n_sender)?
+            .checked_mul(i128::try_from(d_receiver).ok()?)?;
+        Some(sender_term.checked_add(receiver_term)? >= 0)
+    })()
+    .unwrap_or(false)
+}
+
 fn contact_touches_causal_seed(
     left_flat: usize,
     right_flat: usize,
@@ -13924,6 +14009,39 @@ fn contact_touches_causal_seed(
 ) -> bool {
     causal_seed_flats.binary_search(&left_flat).is_ok()
         || causal_seed_flats.binary_search(&right_flat).is_ok()
+}
+
+/// One-field read of a contact's currently conducting channel population,
+/// by the same origin resolution the full materialization uses, without
+/// cloning anatomy or state. Zero conducting channels is the law's own
+/// impenetrable condition: effective conductance is exactly zero, so the
+/// settlement is the quiescent identity for any drive.
+fn peek_conducting_channel_population(
+    topology: ResidentContactTopologyEntry,
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+) -> Result<u128, FormationError> {
+    Ok(match topology.origin {
+        ResidentContactOrigin::Local {
+            cohort_index,
+            contact_index,
+            ..
+        } => cohorts
+            .get(cohort_index)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .state
+            .electrical()
+            .contact_states()
+            .get(contact_index)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .conducting_channel_population(),
+        ResidentContactOrigin::Fabric { contact_index } => electrical_fabric
+            .state()
+            .contact_states()
+            .get(contact_index)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .conducting_channel_population(),
+    })
 }
 
 fn materialize_resident_contact_edge(
@@ -14251,6 +14369,7 @@ fn settle_internal_contact_interval(
     // caller combines those with this interval's external or metabolic cause.
     // This replaces the false rule that eventually made every reached neuron
     // and contact a permanent seed.
+    let contact_stopwatch = std::time::Instant::now();
     let (selected, compact_contact_indices) =
         topology_index.one_interval_frontier(locally_settled_lineages)?;
     let mut causal_seed_flats = causal_seed_lineages
@@ -14287,57 +14406,6 @@ fn settle_internal_contact_interval(
         .collect::<Vec<_>>();
     selected_cohort_indices.sort_unstable();
     selected_cohort_indices.dedup();
-    let mut compact_contacts = Vec::new();
-    let mut compact_states = Vec::new();
-    let mut compact_origins = Vec::new();
-    let mut compact_bonds = Vec::new();
-    let mut compact_edge_flat_endpoints = Vec::new();
-    for contact_index in compact_contact_indices {
-        let edge = materialize_resident_contact_edge(
-            topology_index.contacts[contact_index],
-            cohorts,
-            electrical_fabric,
-        )?;
-        let left = selected
-            .binary_search(&edge.left)
-            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
-        let right = selected
-            .binary_search(&edge.right)
-            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
-        compact_contacts.push(
-            edge.anatomy
-                .rebind_endpoints(left, right, selected.len())
-                .map_err(FormationError::ResidentElectricalUnavailable)?,
-        );
-        compact_states.push(edge.state);
-        compact_origins.push(edge.origin);
-        compact_bonds.push(edge.stable_bond);
-        compact_edge_flat_endpoints.push((edge.left, edge.right));
-    }
-    if compact_contacts.is_empty() {
-        return Ok(InternalContactSettlementObservation {
-            dsf_delivery_count: 0,
-            active_bonds: Vec::new(),
-            causal_active_bonds: Vec::new(),
-            causally_transitioned_lineages: Vec::new(),
-            changed_contact_channel_states: Vec::new(),
-            frontier_routes: Vec::new(),
-            next_active_frontier: Vec::new(),
-            settled_directed_transfers: Vec::new(),
-            metabolically_perturbed_body_receptor_lineages: Vec::new(),
-            affective_balance_trajectories: Vec::new(),
-            localized_fluid_chemistry: Vec::new(),
-            motor_unit_recruitments: Vec::new(),
-            articulatory_unit_recruitments: Vec::new(),
-            emitted_neuron_fractals: Vec::new(),
-            transition_predecessors: BTreeMap::new(),
-        });
-    }
-    let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
-        .map_err(FormationError::ResidentElectricalUnavailable)?;
-    let compact_predecessor =
-        SparseElectricalState::from_contact_states(&compact_anatomy, compact_states)
-            .map_err(FormationError::ResidentElectricalUnavailable)?;
 
     // Membrane pumping is local cell metabolism, not a darkness detector. Run
     // the existing exact pump only for this interval's already-derived causal
@@ -14504,6 +14572,65 @@ fn settle_internal_contact_interval(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         );
     }
+    let mut compact_contacts = Vec::new();
+    let mut compact_states = Vec::new();
+    let mut compact_origins = Vec::new();
+    let mut compact_bonds = Vec::new();
+    let mut compact_edge_flat_endpoints = Vec::new();
+    for contact_index in compact_contact_indices {
+        let entry = topology_index.contacts[contact_index];
+        let edge = materialize_resident_contact_edge(
+            entry,
+            cohorts,
+            electrical_fabric,
+        )?;
+        let left = selected
+            .binary_search(&edge.left)
+            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
+        let right = selected
+            .binary_search(&edge.right)
+            .map_err(|_| FormationError::NeuronLineageAuthorityAbsent)?;
+        compact_contacts.push(
+            edge.anatomy
+                .rebind_endpoints(left, right, selected.len())
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+        );
+        compact_states.push(edge.state);
+        compact_origins.push(edge.origin);
+        compact_bonds.push(edge.stable_bond);
+        compact_edge_flat_endpoints.push((edge.left, edge.right));
+    }
+    if compact_contacts.is_empty() {
+        return Ok(InternalContactSettlementObservation {
+            dsf_delivery_count: 0,
+            active_bonds: Vec::new(),
+            causal_active_bonds: Vec::new(),
+            causally_transitioned_lineages: Vec::new(),
+            changed_contact_channel_states: Vec::new(),
+            frontier_routes: Vec::new(),
+            next_active_frontier: Vec::new(),
+            settled_directed_transfers: Vec::new(),
+            metabolically_perturbed_body_receptor_lineages: Vec::new(),
+            affective_balance_trajectories: Vec::new(),
+            localized_fluid_chemistry: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
+            emitted_neuron_fractals: Vec::new(),
+            transition_predecessors: BTreeMap::new(),
+        });
+    }
+    let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let compact_predecessor =
+        SparseElectricalState::from_contact_states(&compact_anatomy, compact_states)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let compact_wall = contact_stopwatch.elapsed();
+    eprintln!(
+        "guala-contact-frontier selected={} contacts={} compact_ms={}",
+        selected.len(),
+        compact_anatomy.contact_count(),
+        compact_wall.as_millis(),
+    );
     let mut settled = settle_sparse_electrical_transfers(
         &compact_anatomy,
         &compact_predecessor,
@@ -14899,6 +15026,7 @@ fn settle_internal_contact_interval(
     // so those local consequences can settle concurrently without changing
     // causal order or allowing one cohort to observe another's mutation.
     // Indexed collection preserves cohort order for the evidence merge below.
+    let shared_wall = contact_stopwatch.elapsed();
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
@@ -15594,6 +15722,12 @@ fn settle_internal_contact_interval(
     // One shared full-field occurrence was evaluated for the entire reached
     // contact frontier, irrespective of how many neurons received their
     // coordinate-local perspectives.
+    eprintln!(
+        "guala-contact-phases shared_field_ms={} cohort_and_evidence_ms={} total_ms={}",
+        (shared_wall - compact_wall).as_millis(),
+        (contact_stopwatch.elapsed() - shared_wall).as_millis(),
+        contact_stopwatch.elapsed().as_millis(),
+    );
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
