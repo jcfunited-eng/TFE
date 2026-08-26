@@ -5023,12 +5023,39 @@ impl ResidentCognitiveFormationState {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
         }
-        // Exact retained evidence exempts a contact from removal: a link
-        // that is a member bond of a retained mosaic is part of a lived
-        // memory, and memories are preserved. Everything else in the pool
-        // was authored by coincidence and goes. Refuse-not-guess holds:
-        // membership is read from the retained formations themselves.
-        let mut retained_bond_pairs = std::collections::BTreeSet::new();
+        // A retained mosaic reference is retention evidence, not proof of
+        // lawful authorship: every legacy pool contact goes, including
+        // memory-referenced ones. The invalid references are then removed
+        // from the retained formations themselves as exact
+        // StablePhysicalBondReferences (parallel ordinal included, never
+        // endpoint pairs alone); a formation whose surviving original
+        // bonds no longer connect its members is retired rather than kept
+        // as rejected topology — its learned neuronal state remains in
+        // the untouched cohorts.
+        let contaminated_layers = |left_lineage: [u8; 16], right_lineage: [u8; 16]| {
+            let (Some(left_layer), Some(right_layer)) = (
+                layer_by_lineage.get(&left_lineage).copied(),
+                layer_by_lineage.get(&right_lineage).copied(),
+            ) else {
+                return None;
+            };
+            let mut layers = (left_layer, right_layer);
+            if layers.0 > layers.1 {
+                layers = (layers.1, layers.0);
+            }
+            Some(layers == (11, 12) || layers == (11, 13))
+        };
+        let mut contaminated = std::collections::BTreeSet::new();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left_lineage = self.electrical_fabric.lineages()[left];
+            let right_lineage = self.electrical_fabric.lineages()[right];
+            if contaminated_layers(left_lineage, right_lineage)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            {
+                contaminated.insert(canonical_lineage_pair(left_lineage, right_lineage));
+            }
+        }
+        let mut invalid_references = std::collections::BTreeSet::new();
         for retained in self.mosaics.iter() {
             for bond in retained
                 .mosaic
@@ -5036,32 +5063,27 @@ impl ResidentCognitiveFormationState {
                 .iter()
                 .chain(retained.mosaic.recurrence_bonds())
             {
-                retained_bond_pairs.insert(bond.endpoints());
+                let (left_lineage, right_lineage) = bond.endpoints();
+                if contaminated_layers(left_lineage, right_lineage) == Some(true) {
+                    invalid_references.insert(*bond);
+                }
             }
         }
-        let mut contaminated = std::collections::BTreeSet::new();
-        for (left, right) in self.electrical_fabric.contact_endpoints() {
-            let left_lineage = self.electrical_fabric.lineages()[left];
-            let right_lineage = self.electrical_fabric.lineages()[right];
-            let (Some(left_layer), Some(right_layer)) = (
-                layer_by_lineage.get(&left_lineage).copied(),
-                layer_by_lineage.get(&right_lineage).copied(),
-            ) else {
-                return Err(FormationError::NeuronLineageAuthorityAbsent);
-            };
-            let mut layers = (left_layer, right_layer);
-            if layers.0 > layers.1 {
-                layers = (layers.1, layers.0);
-            }
-            let pair = canonical_lineage_pair(left_lineage, right_lineage);
-            if (layers == (11, 12) || layers == (11, 13))
-                && !retained_bond_pairs.contains(&pair)
-            {
-                contaminated.insert(pair);
-            }
-        }
-        if contaminated.is_empty() {
+        if contaminated.is_empty() && invalid_references.is_empty() {
             return Ok(None);
+        }
+        let mut surviving_mosaics = Vec::with_capacity(self.mosaics.len());
+        for retained in self.mosaics.iter() {
+            match retained.mosaic.without_invalid_bonds(&invalid_references) {
+                Some(corrected) => surviving_mosaics.push(RetainedOrganismMosaic {
+                    mosaic: corrected,
+                    recurrent_lineage: retained.recurrent_lineage,
+                    reinforcement_count: retained.reinforcement_count,
+                    mosaic_of_mosaics_relation_count: retained
+                        .mosaic_of_mosaics_relation_count,
+                }),
+                None => {}
+            }
         }
         let keep_frontier = |entry: &ActiveElectricalFrontierEntry| {
             let Some(sender) = entry.sender() else {
@@ -5101,15 +5123,16 @@ impl ResidentCognitiveFormationState {
                 .filter(&keep_frontier)
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
-            mosaics: self.mosaics.clone(),
+            mosaics: surviving_mosaics.into_boxed_slice(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
-            formation_index: self.formation_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
         };
         successor.topology_index = Arc::new(ResidentTopologyIndex::build(
             &successor.cohorts,
             &successor.electrical_fabric,
         )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
         successor.validate_current_motor_effectors()?;
         validate_lineage_state(&successor)?;
         Ok(Some(successor))
@@ -21516,6 +21539,40 @@ mod tests {
         )
         .unwrap();
         let next_lineage = resting_population.lineage_end_exclusive();
+        // The focused falsifier: a retained formation referencing the
+        // contaminated ordering_a->motor bond (exact reference, ordinal
+        // included) must NOT exempt that contact; and because losing it
+        // disconnects the formation's members, the invalid relationship
+        // retires while the neurons live on.
+        let bonds = all_physical_bonds(&cohorts, &fabric);
+        let referencing_mosaic = RetainedOrganismMosaic {
+            mosaic: AdmittedPhysicalMosaic::admitted_for_test(
+                {
+                    let mut members = vec![ordering_a, motor, affective];
+                    members.sort_unstable();
+                    members
+                },
+                vec![
+                    bonds
+                        .iter()
+                        .copied()
+                        .find(|bond| {
+                            bond.endpoints() == canonical_lineage_pair(ordering_a, affective)
+                        })
+                        .unwrap(),
+                    bonds
+                        .iter()
+                        .copied()
+                        .find(|bond| {
+                            bond.endpoints() == canonical_lineage_pair(ordering_a, motor)
+                        })
+                        .unwrap(),
+                ],
+            ),
+            recurrent_lineage: None,
+            reinforcement_count: 0,
+            mosaic_of_mosaics_relation_count: 0,
+        };
         let state = ResidentCognitiveFormationState {
             generation: 5,
             next_lineage_ordinal: next_lineage,
@@ -21531,7 +21588,7 @@ mod tests {
             },
             preceding_active_electrical_frontier: Box::new([contaminated_entry]),
             older_active_electrical_frontier: Box::new([]),
-            mosaics: Box::new([]),
+            mosaics: Box::new([referencing_mosaic]),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index,
             formation_index: ResidentFormationIndex::default(),
@@ -21562,6 +21619,10 @@ mod tests {
             .electrical_fabric
             .contains_contact(ordering_a, articulatory));
         assert_eq!(restored.cohorts.len(), cohort_count);
+        assert!(
+            restored.mosaics.is_empty(),
+            "a formation disconnected by losing its invalid bond must retire"
+        );
         assert_eq!(restored.active_electrical_frontier.len(), 1);
         assert_eq!(
             restored.active_electrical_frontier[0].receiver(),

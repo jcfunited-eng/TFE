@@ -107,6 +107,90 @@ pub(crate) struct AdmittedPhysicalMosaic {
 }
 
 impl AdmittedPhysicalMosaic {
+    /// Remove exact invalid bond references from this retained formation,
+    /// matched as complete `StablePhysicalBondReference`s including the
+    /// parallel ordinal — never endpoint pairs alone. Member lineages,
+    /// retained neuronal fractals, excitations, cue material, and every
+    /// lawful bond are preserved. Returns `None` when the surviving
+    /// original bonds no longer physically connect the member lineages:
+    /// a disconnected relationship is retired, not preserved as active
+    /// cognition — the underlying learned neuronal state lives on in the
+    /// cohorts untouched by this operation.
+    pub(crate) fn without_invalid_bonds(
+        &self,
+        invalid: &std::collections::BTreeSet<StablePhysicalBondReference>,
+    ) -> Option<Self> {
+        let original = self
+            .original_bonds
+            .iter()
+            .copied()
+            .filter(|bond| !invalid.contains(bond))
+            .collect::<Vec<_>>();
+        let recurrence = self
+            .recurrence_bonds
+            .iter()
+            .copied()
+            .filter(|bond| !invalid.contains(bond))
+            .collect::<Vec<_>>();
+        if original.len() == self.original_bonds.len()
+            && recurrence.len() == self.recurrence_bonds.len()
+        {
+            return Some(self.clone());
+        }
+        if self.member_lineages.len() > 1 {
+            connecting_bond_witness(
+                &self.member_lineages,
+                &self.member_lineages,
+                &original,
+            )?;
+        }
+        Some(Self {
+            original_only: self.original_only,
+            exact_pattern_recognition: self.exact_pattern_recognition,
+            member_lineages: self.member_lineages.clone(),
+            retained_fractals: self.retained_fractals.clone(),
+            retained_excitation_zeptojoules: self.retained_excitation_zeptojoules.clone(),
+            original_bonds: original.into_boxed_slice(),
+            recurrence_bonds: recurrence.into_boxed_slice(),
+            partial_cue_lineages: self.partial_cue_lineages.clone(),
+            recurrence_origin: self.recurrence_origin,
+        })
+    }
+
+    /// Test-only literal constructor for migration falsifiers.
+    #[cfg(test)]
+    pub(crate) fn admitted_for_test(
+        member_lineages: Vec<StableNeuronLineage>,
+        original_bonds: Vec<StablePhysicalBondReference>,
+    ) -> Self {
+        let retained_fractals = member_lineages
+            .iter()
+            .map(|_| {
+                SparsePhysicalStateDelta::from_canonical_entries(vec![
+                    PhysicalStateDeltaEntry::new(
+                        PhysicalStateCoordinate::GateOpenPopulation,
+                        ExactPhysicalStateDelta::Integral(
+                            ExactSignedDelta::from_parts(false, 1).unwrap(),
+                        ),
+                    )
+                    .unwrap(),
+                ])
+                .unwrap()
+            })
+            .collect::<Vec<_>>();
+        Self {
+            original_only: true,
+            exact_pattern_recognition: false,
+            member_lineages: member_lineages.into_boxed_slice(),
+            retained_fractals: retained_fractals.into_boxed_slice(),
+            retained_excitation_zeptojoules: Box::new([]),
+            original_bonds: original_bonds.into_boxed_slice(),
+            recurrence_bonds: Box::new([]),
+            partial_cue_lineages: Box::new([]),
+            recurrence_origin: None,
+        }
+    }
+
     pub(crate) fn is_original_only(&self) -> bool {
         self.original_only
     }
