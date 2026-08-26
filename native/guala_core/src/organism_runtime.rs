@@ -788,6 +788,42 @@ pub struct NativeResidentOrganismRuntime {
     runtime: ResidentOrganismRuntime,
 }
 
+/// A lived-state snapshot taken under the runtime's lock in one fast
+/// clone, so the expensive generation encoding can run OUTSIDE that lock
+/// in the bounded external custodian. Pure custody material: encoding a
+/// snapshot touches no runtime bookkeeping, never pauses cognition, and
+/// carries no authority over the organism.
+#[pyclass(frozen, module = "guala_core")]
+pub struct NativeLivedStateSnapshot {
+    cognitive: ResidentCognitiveFormationState,
+    organism_tick: u64,
+}
+
+#[pymethods]
+impl NativeLivedStateSnapshot {
+    #[getter]
+    fn organism_tick(&self) -> u64 {
+        self.organism_tick
+    }
+
+    /// Encode this snapshot as one complete sealed generation, off-lock.
+    fn encode_generation<'py>(
+        &self,
+        py: Python<'py>,
+        max_encoded_bytes: usize,
+    ) -> PyResult<Bound<'py, PyBytes>> {
+        let encoded = py
+            .allow_threads(|| {
+                self.cognitive
+                    .clone()
+                    .seal_with_terminal_observation(max_encoded_bytes)
+                    .map(|sealed| sealed.encoded)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(PyBytes::new(py, &encoded))
+    }
+}
+
 #[pyclass(frozen, module = "guala_core")]
 pub struct NativeResidentOrganismObservation {
     observation: RuntimeObservation,
@@ -4133,6 +4169,16 @@ impl NativeResidentOrganismRuntime {
         RESIDENT_RUNTIME_SCHEMA
     }
 
+    /// One fast clone of the lived cognitive state (unsealed if a
+    /// trajectory is open, else the committed state) with its organism
+    /// tick, for off-lock custodial encoding. Touches nothing.
+    fn snapshot_lived_state(&self) -> NativeLivedStateSnapshot {
+        NativeLivedStateSnapshot {
+            cognitive: self.runtime.cognitive_state().clone(),
+            organism_tick: self.runtime.active.observation.organism_tick,
+        }
+    }
+
     /// Read-only census of the derived standing carrier schedule, rebuilt
     /// exactly as cold restore would build it. Returns
     /// `(contact_count, scheduled, nearest_due_offset, [(bucket_bound, count)])`
@@ -5338,6 +5384,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeAuthenticatedTask853RuntimeMigration>()?;
     module.add_class::<NativeResidentOrganismRuntime>()?;
     module.add_class::<NativeResidentOrganismObservation>()?;
+    module.add_class::<NativeLivedStateSnapshot>()?;
     module.add_class::<NativeResidentOrganismPrepare>()?;
     module.add_function(wrap_pyfunction!(
         transition_native_organism_runtime,

@@ -9802,12 +9802,14 @@ def _perform_admitted_intake_locked(
     *,
     vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
     external_participant_action_receipt: str | None = None,
-    defer_seal: bool = False,
+    defer_seal: bool | None = None,
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
+
     global _restored, _last_transition_evidence, _last_self_moved
     global _last_displacement
+    global _pending_unsealed_intervals, _pending_chain_predecessor_sha
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
@@ -9820,6 +9822,15 @@ def _perform_admitted_intake_locked(
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
     global _active_cross_intake_causal_motor_traces
+
+    # Persistence is off cognition's critical path: by default every moment
+    # defers its seal and the checkpoint cadence decides when the chain
+    # copies out. An explicit True/False from the caller still wins
+    # (shutdown and chain-flush paths pass False to force a seal).
+    if defer_seal is None:
+        defer_seal = (
+            _pending_unsealed_intervals + 1 < _checkpoint_every_intervals()
+        )
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -10303,7 +10314,6 @@ def _perform_admitted_intake_locked(
     action_consequence: dict[str, Any] | None = None
     action_vestibular_tick_count = 0
     if prepared_action is None:
-        global _pending_unsealed_intervals, _pending_chain_predecessor_sha
         if defer_seal:
             # The trajectory stays open; this interval's physics is already
             # lived and its evidence retained. The next sealing intake — the
@@ -10473,30 +10483,47 @@ def _perform_admitted_intake_locked(
                 )
                 _persist_world_body(successor_world_body)
                 world_persisted = True
-                _seal_started = time.perf_counter()
-                sealed_observation = organism.seal_unsealed_trajectory_direct()
-                _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
-                    "seal", 0.0
-                ) + (time.perf_counter() - _seal_started) * 1000.0
-                if sealed_observation.organism_tick != last_hop["organism_tick"]:
-                    raise RuntimeError(
-                        "final resident seal changed the lived intake tick"
+                if defer_seal:
+                    # Action moments defer exactly like actionless ones: the
+                    # lived physics and the committed world action stand in
+                    # resident state; only the copy cadence differs. The Nth
+                    # interval, shutdown, or an explicit checkpoint seals the
+                    # whole chain from the stashed predecessor.
+                    if _pending_chain_predecessor_sha is None:
+                        _pending_chain_predecessor_sha = predecessor.state_sha256
+                    _pending_unsealed_intervals += 1
+                    last_hop = dict(last_hop)
+                    last_hop["sealed"] = False
+                    last_hop["pending_unsealed_intervals"] = (
+                        _pending_unsealed_intervals
                     )
-                last_hop["state_sha256"] = sealed_observation.state_sha256
-                if action_consequence is not None:
-                    action_consequence["state_sha256"] = (
-                        sealed_observation.state_sha256
+                    published = None
+                    organism_published = True
+                else:
+                    _seal_started = time.perf_counter()
+                    sealed_observation = organism.seal_unsealed_trajectory_direct()
+                    _transport_stage_wall_ms["seal"] = _transport_stage_wall_ms.get(
+                        "seal", 0.0
+                    ) + (time.perf_counter() - _seal_started) * 1000.0
+                    if sealed_observation.organism_tick != last_hop["organism_tick"]:
+                        raise RuntimeError(
+                            "final resident seal changed the lived intake tick"
+                        )
+                    last_hop["state_sha256"] = sealed_observation.state_sha256
+                    if action_consequence is not None:
+                        action_consequence["state_sha256"] = (
+                            sealed_observation.state_sha256
+                        )
+                    _chain_predecessor = (
+                        _pending_chain_predecessor_sha or predecessor.state_sha256
                     )
-                _chain_predecessor = (
-                    _pending_chain_predecessor_sha or predecessor.state_sha256
-                )
-                published = _publish_committed_organism(
-                    organism, admission, _chain_predecessor
-                )
-                _pending_unsealed_intervals = 0
-                _pending_chain_predecessor_sha = None
-                organism_published = True
-                organism.acknowledge_sealed_trajectory()
+                    published = _publish_committed_organism(
+                        organism, admission, _chain_predecessor
+                    )
+                    _pending_unsealed_intervals = 0
+                    _pending_chain_predecessor_sha = None
+                    organism_published = True
+                    organism.acknowledge_sealed_trajectory()
         except BaseException:
             if organism_published:
                 raise
