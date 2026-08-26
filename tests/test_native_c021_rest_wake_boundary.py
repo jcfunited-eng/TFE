@@ -40,7 +40,7 @@ def test_unattended_interval_preserves_native_recovered_neuron_count(
     monkeypatch.setattr(
         production,
         "_perform_admitted_intake_locked",
-        lambda _episodes, _reason: {
+        lambda _episodes, _reason, **_kwargs: {
             "hop_count": 1,
             "observation": {"motor_action": None},
             "receptor_ingress": {},
