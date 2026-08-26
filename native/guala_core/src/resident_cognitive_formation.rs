@@ -7112,6 +7112,7 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
+            &predecessor_active_electrical_frontier,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -12989,22 +12990,21 @@ fn mount_reached_ordering_reach(
 }
 
 /// Materialize one motor/effector route per exact reached body terminal,
-/// authored only along the proven directed causal path of this interval.
-/// A permanent ordering-to-motor contact requires the full directed chain:
-/// the ordering (layer 11) cell moved whole carriers into an affective
-/// (layer 10) cell that itself moved whole carriers into the transitioned
-/// body-regulation (layer 8) cell whose transition IS the body's returned
-/// consequence for the effector terminal. A neuron merely becoming active
-/// in the same interval is coincidence, not causation, and authors
-/// nothing: coincidence repeated over a lifetime is how a near-complete
-/// ordering-to-motor pool accumulated, and that fan-out is deleted here at
-/// its source. Both proof hops are directed settled transfers of this
-/// interval; neither hop may touch a layer-12 cell, so existing motor
-/// contacts can never help prove new motor contacts. The new layer-12 cell
-/// is mounted after settlement, so it cannot move the body during the
-/// interval that creates it. The effector terminal is stable body anatomy.
-/// No action name, target pose, score, readiness projection, or scripted
-/// command enters the neuron.
+/// authored only along the proven CONSECUTIVE directed causal chain. A
+/// permanent ordering-to-motor contact requires two hops in consecutive
+/// physical windows: in the preceding interval the ordering (layer 11)
+/// cell moved whole carriers into an affective (layer 10) cell — carried
+/// as a directed entry of the retained causal frontier — and in the
+/// current interval that same affective cell moved whole carriers into
+/// the transitioned body-regulation (layer 8) cell whose transition IS
+/// the body's returned consequence. Two same-interval transfers are
+/// synchronous and can never prove a causal double-hop; same-interval
+/// coincidence authors nothing. Neither hop may touch a layer-12 cell,
+/// so existing motor contacts can never help prove new motor contacts.
+/// The new layer-12 cell is mounted after settlement, so it cannot move
+/// the body during the interval that creates it. No action name, target
+/// pose, score, readiness projection, or scripted command enters the
+/// neuron.
 fn mount_reached_motor_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -13012,6 +13012,7 @@ fn mount_reached_motor_effector(
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
 ) -> Result<(), FormationError> {
     let mounted = cohorts
         .iter()
@@ -13145,16 +13146,20 @@ fn mount_reached_motor_effector(
             })
             .collect::<BTreeSet<_>>();
         // Proven ordering causes: layer-11 cells that moved whole carriers
-        // INTO one of those proven affective drivers in this interval.
+        // INTO one of those proven affective drivers in the PRECEDING
+        // interval, carried as directed entries of the retained causal
+        // frontier. Consecutive windows are the causal proof; two
+        // same-interval transfers are synchronous and prove nothing.
         // The chain 11 -> 10 -> 8 never touches a layer-12 cell, so an
         // existing motor contact can never help prove a new one.
         let proven_ordering = ordering
             .iter()
             .copied()
             .filter(|lineage| {
-                proven_affective
-                    .iter()
-                    .any(|affective| directed_pairs.contains(&(*lineage, *affective)))
+                predecessor_frontier.iter().any(|entry| {
+                    entry.sender() == Some(*lineage)
+                        && proven_affective.contains(&entry.receiver())
+                })
             })
             .collect::<Vec<_>>();
         if proven_ordering.is_empty() {
@@ -13220,6 +13225,7 @@ fn mount_reached_motor_effector(
         electrical_fabric,
         physically_transitioned_lineages,
         &mounted,
+        predecessor_frontier,
     )?;
     Ok(())
 }
@@ -13232,6 +13238,15 @@ fn mount_reached_motor_effector(
 /// Later qualifying participants converge on the topologically first retained
 /// route; sensory variation grows sparse contacts, not one new cell per
 /// participant combination.
+/// The articulatory route is authored only by an actual articulation
+/// followed by its returned consequences in the immediately following
+/// window: the preceding interval's retained causal frontier must carry a
+/// directed entry of an ordering (layer 11) cell moving whole carriers
+/// INTO a motor (layer 12) cell — the articulation — and the current
+/// interval must carry both the matching self-hearing (a transitioned
+/// acoustic layer-1 cell) and the articulatory-body consequence (a
+/// transitioned layer-8 regulation cell). Four cells merely transitioning
+/// in one interval is coincidence and authors nothing.
 fn mount_reached_articulatory_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -13239,11 +13254,10 @@ fn mount_reached_articulatory_effector(
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
     mounted: &[([u8; 16], ReachedNeuronMount)],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
 ) -> Result<(), FormationError> {
     let mut acoustic = Vec::new();
     let mut body_regulation = Vec::new();
-    let mut ordering = Vec::new();
-    let mut motor = Vec::new();
     for lineage in physically_transitioned_lineages {
         let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
             return Err(FormationError::NeuronLineageAuthorityAbsent);
@@ -13251,16 +13265,40 @@ fn mount_reached_articulatory_effector(
         let target = match mount.place().layer() {
             1 => &mut acoustic,
             8 => &mut body_regulation,
-            11 => &mut ordering,
-            12 => &mut motor,
             _ => continue,
         };
         if !target.contains(lineage) {
             target.push(*lineage);
         }
     }
-    if acoustic.is_empty() || body_regulation.is_empty() || ordering.is_empty() || motor.is_empty()
-    {
+    if acoustic.is_empty() || body_regulation.is_empty() {
+        return Ok(());
+    }
+    let layer_of = |lineage: [u8; 16]| {
+        mounted
+            .iter()
+            .find(|(candidate, _)| *candidate == lineage)
+            .map(|(_, mount)| mount.place().layer())
+    };
+    // The articulation itself, from the preceding window: directed frontier
+    // entries of ordering cells driving motor cells.
+    let mut ordering = Vec::new();
+    let mut motor = Vec::new();
+    for entry in predecessor_frontier {
+        let Some(sender) = entry.sender() else {
+            continue;
+        };
+        let receiver = entry.receiver();
+        if layer_of(sender) == Some(11) && layer_of(receiver) == Some(12) {
+            if !ordering.contains(&sender) {
+                ordering.push(sender);
+            }
+            if !motor.contains(&receiver) {
+                motor.push(receiver);
+            }
+        }
+    }
+    if ordering.is_empty() || motor.is_empty() {
         return Ok(());
     }
     let mut participants = acoustic;
@@ -17089,6 +17127,39 @@ mod tests {
             .collect()
     }
 
+    /// Fixture proof material for the PRECEDING window: every physical
+    /// bond expressed as directed frontier entries in both directions.
+    fn frontier_entries_from_bonds(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+    ) -> Vec<ActiveElectricalFrontierEntry> {
+        all_physical_bonds(cohorts, electrical_fabric)
+            .into_iter()
+            .flat_map(|bond| {
+                let (left, right) = bond.endpoints();
+                [
+                    ActiveElectricalFrontierEntry::caused(left, right, bond, 1).unwrap(),
+                    ActiveElectricalFrontierEntry::caused(right, left, bond, 1).unwrap(),
+                ]
+            })
+            .collect()
+    }
+
+    /// One exact directed PRIOR-window hop a -> b as a frontier entry.
+    fn frontier_hop(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+        sender: [u8; 16],
+        receiver: [u8; 16],
+    ) -> Vec<ActiveElectricalFrontierEntry> {
+        let pair = canonical_lineage_pair(sender, receiver);
+        let bond = all_physical_bonds(cohorts, electrical_fabric)
+            .into_iter()
+            .find(|bond| bond.endpoints() == pair)
+            .expect("hop must be a real physical bond");
+        vec![ActiveElectricalFrontierEntry::caused(sender, receiver, bond, 1).unwrap()]
+    }
+
     #[test]
     fn empty_genesis_is_exact_and_bounded() {
         let state = ResidentCognitiveFormationState::default();
@@ -20811,6 +20882,7 @@ mod tests {
             &mut fabric,
             &[ordering, regulation],
             &[],
+            &[],
         )
         .unwrap();
         assert_eq!(
@@ -20818,6 +20890,7 @@ mod tests {
             resting_before
         );
 
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -20825,6 +20898,7 @@ mod tests {
             &mut fabric,
             &[ordering, regulation],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         let motor = cohorts
@@ -20867,6 +20941,7 @@ mod tests {
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
 
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -20874,6 +20949,7 @@ mod tests {
             &mut fabric,
             &[regulation, ordering],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -20948,6 +21024,7 @@ mod tests {
         );
         let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
 
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -20955,6 +21032,7 @@ mod tests {
             &mut fabric,
             &[ordering, regulation],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
 
@@ -21240,6 +21318,7 @@ mod tests {
             &mut fabric,
             &transitioned,
             &[],
+            &[],
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before);
@@ -21251,10 +21330,10 @@ mod tests {
                 .any(|mount| mount.place().layer() == 12)
         }));
 
-        // Proof: with the exact directed chain present for one ordering
-        // neuron and four coincident-active bystanders, exactly one
-        // ordering->motor contact and one regulation->motor contact author.
-        let chain = directed_chain(
+        // Falsifier per the consecutive law: BOTH hops delivered in the
+        // same interval are synchronous and prove nothing, even though the
+        // full path is present in the evidence.
+        let synchronous = directed_chain(
             &cohorts,
             &fabric,
             &[routed_ordering, affective, regulation],
@@ -21265,7 +21344,27 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &transitioned,
-            &chain,
+            &synchronous,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contacts_before);
+
+        // Proof: the consecutive chain — ordering drove the affective cell
+        // in the PRECEDING window (exact frontier entry), the affective
+        // cell drove the consequence-returned regulation cell NOW —
+        // authors exactly one ordering->motor and one regulation->motor
+        // contact, with four coincident-active bystanders refused.
+        let hop_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
+        let hop_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &transitioned,
+            &hop_now,
+            &hop_prior,
         )
         .unwrap();
         let motor = cohorts
@@ -21290,34 +21389,32 @@ mod tests {
         // Exactly participants + motor mount: no ordering x motor scaling.
         assert_eq!(fabric.contact_count(), contacts_before + 2);
 
-        // Proof: repeating the same interval evidence is idempotent.
-        let repeat_chain = directed_chain(
-            &cohorts,
-            &fabric,
-            &[routed_ordering, affective, regulation],
-        );
+        // Proof: repeating the same consecutive evidence is idempotent.
+        let repeat_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
+        let repeat_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &transitioned,
-            &repeat_chain,
+            &repeat_now,
+            &repeat_prior,
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before + 2);
 
-        // Proof: a directed transfer along a bystander's own contact that
-        // does NOT complete the chain into the regulation cell still
-        // authors nothing for that bystander.
-        let partial = directed_chain(&cohorts, &fabric, &[coincident[0], affective]);
+        // Proof: a prior-window hop for a bystander WITHOUT the current
+        // consequence hop into the regulation cell authors nothing.
+        let partial_prior = frontier_hop(&cohorts, &fabric, coincident[0], affective);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &transitioned,
-            &partial,
+            &[],
+            &partial_prior,
         )
         .unwrap();
         assert!(!fabric.contains_contact(coincident[0], motor));
@@ -21356,6 +21453,7 @@ mod tests {
             0,
         );
         let first_active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21363,6 +21461,7 @@ mod tests {
             &mut fabric,
             &[regulation, first_ordering],
             &first_active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         let motor = cohorts
@@ -21394,6 +21493,7 @@ mod tests {
             1,
         );
         let second_active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21401,6 +21501,7 @@ mod tests {
             &mut fabric,
             &[regulation, second_ordering],
             &second_active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         let motors = cohorts
@@ -21451,6 +21552,7 @@ mod tests {
             0,
         );
         let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21458,6 +21560,7 @@ mod tests {
             &mut fabric,
             &[regulation, ordering],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         let duplicate = mount_next_intrinsic_in_layer(
@@ -21626,6 +21729,7 @@ mod tests {
             1,
         );
         let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21633,6 +21737,7 @@ mod tests {
             &mut fabric,
             &[first_regulation, second_regulation, ordering],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
         let motors = cohorts
@@ -21690,6 +21795,7 @@ mod tests {
             0,
         );
         let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
@@ -21697,6 +21803,7 @@ mod tests {
             &mut fabric,
             &[regulation, ordering],
             &active_bonds,
+            &prior_frontier,
         )
         .unwrap();
 
@@ -21809,21 +21916,16 @@ mod tests {
             .collect::<Vec<_>>();
         let resting_before = population.as_ref().unwrap().resting_cell_count();
         let mut fabric = ResidentElectricalFabric::default();
+        fabric = fabric
+            .append_contact(
+                ordering,
+                motor,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
 
-        mount_reached_articulatory_effector(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            &mut fabric,
-            &[acoustic, regulation, ordering],
-            &mounted,
-        )
-        .unwrap();
-        assert_eq!(
-            population.as_ref().unwrap().resting_cell_count(),
-            resting_before
-        );
-
+        // Four transitioned classes with NO prior-window articulation:
+        // coincidence, authors nothing under the consecutive law.
         mount_reached_articulatory_effector(
             &mut cohorts,
             &mut population,
@@ -21831,6 +21933,25 @@ mod tests {
             &mut fabric,
             &[acoustic, regulation, ordering, motor],
             &mounted,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            population.as_ref().unwrap().resting_cell_count(),
+            resting_before
+        );
+
+        // Actual articulation in the preceding window (ordering drove the
+        // motor cell), followed by self-hearing and body consequence now.
+        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
+        mount_reached_articulatory_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[acoustic, regulation],
+            &mounted,
+            &articulation,
         )
         .unwrap();
         let articulatory = cohorts
@@ -21853,6 +21974,7 @@ mod tests {
         for participant in [acoustic, regulation, ordering, motor] {
             assert!(fabric.contains_contact(participant, articulatory[0]));
         }
+        assert_eq!(fabric.contact_count(), 5);
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
         let remounted = cohorts
@@ -21867,13 +21989,15 @@ mod tests {
             .map(|(mount, lineage)| (*lineage, mount.clone()))
             .collect::<Vec<_>>();
 
+        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
         mount_reached_articulatory_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[motor, ordering, regulation, acoustic],
+            &[regulation, acoustic],
             &remounted,
+            &articulation,
         )
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
@@ -21894,13 +22018,15 @@ mod tests {
             })
             .map(|(mount, lineage)| (*lineage, mount.clone()))
             .collect::<Vec<_>>();
+        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
         mount_reached_articulatory_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[second_acoustic, regulation, ordering, motor],
+            &[second_acoustic, regulation],
             &distinct_remounted,
+            &articulation,
         )
         .unwrap();
         assert_eq!(
