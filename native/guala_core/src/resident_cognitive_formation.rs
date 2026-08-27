@@ -3297,6 +3297,92 @@ fn pending_original_association_lineages(
     Ok(associations.into_iter().collect())
 }
 
+/// Whether this exact current physical path extends an existing association
+/// with a sensory/body layer that no reassembled formation on that same
+/// association already retains.
+///
+/// Association anatomy is stable developmental structure. Requiring a new
+/// layer-7 cell for every learned cross-sensory relation made a lawful
+/// surviving association unable to learn again after an invalid formation
+/// was retired. The authority here remains entirely physical: mounted layer
+/// identity, the exact association lineage, and the exact currently
+/// reassembled retained paths. Once one retained path on an association
+/// already covers every current sensory layer, repetition is recurrence and
+/// cannot append another formation.
+fn adds_unretained_cross_sensory_relation(
+    current: &AdmittedPhysicalMosaic,
+    retained: &[RetainedOrganismMosaic],
+    overlapping_reassemblies: &[usize],
+    topology_index: &ResidentTopologyIndex,
+) -> Result<bool, FormationError> {
+    let mut current_sensory_layers = BTreeSet::new();
+    let mut current_associations = BTreeSet::new();
+    for lineage in current.member_lineages().iter().copied() {
+        match topology_index.layer_of(lineage) {
+            Some(layer @ 0..=5) => {
+                current_sensory_layers.insert(layer);
+            }
+            Some(7) => {
+                current_associations.insert(lineage);
+            }
+            Some(_) => {}
+            None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+        }
+    }
+    for bond in current.original_bonds().iter().copied() {
+        let (left, right) = bond.endpoints();
+        for lineage in [left, right] {
+            if topology_index.layer_of(lineage) == Some(7) {
+                current_associations.insert(lineage);
+            }
+        }
+    }
+    if current_sensory_layers.len() < 2 || current_associations.is_empty() {
+        return Ok(false);
+    }
+
+    for association in current_associations {
+        let mut relation_already_retained = false;
+        for index in overlapping_reassemblies.iter().copied() {
+            let prior = &retained
+                .get(index)
+                .ok_or(FormationError::NoncanonicalState)?
+                .mosaic;
+            let carries_association = prior
+                .member_lineages()
+                .binary_search(&association)
+                .is_ok()
+                || prior.original_bonds().iter().any(|bond| {
+                    let (left, right) = bond.endpoints();
+                    left == association || right == association
+                });
+            if !carries_association {
+                continue;
+            }
+            let mut prior_sensory_layers = BTreeSet::new();
+            for lineage in prior.member_lineages().iter().copied() {
+                match topology_index.layer_of(lineage) {
+                    Some(layer @ 0..=5) => {
+                        prior_sensory_layers.insert(layer);
+                    }
+                    Some(_) => {}
+                    None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+                }
+            }
+            relation_already_retained = current_sensory_layers
+                .iter()
+                .all(|layer| prior_sensory_layers.contains(layer));
+            if relation_already_retained {
+                break;
+            }
+        }
+        if !relation_already_retained {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 /// An unresolved original may continue across adjacent settlement intervals
 /// only while its exact native layer-7 association remains in the bounded
 /// electrical frontier.  A shared receptor, timestamp, lesson identifier, or
@@ -3916,42 +4002,16 @@ fn settle_organism_mosaic_boundary(
         {
             continue;
         }
-        if !overlapping_reassemblies.is_empty() && !joins_pending_path {
-            let mut sensory_layers = BTreeSet::new();
-            let mut current_associations = BTreeSet::new();
-            for lineage in original.member_lineages().iter().copied() {
-                match topology_index.layer_of(lineage) {
-                    Some(layer @ 0..=5) => {
-                        sensory_layers.insert(layer);
-                    }
-                    Some(7) => {
-                        current_associations.insert(lineage);
-                    }
-                    Some(_) => {}
-                    None => return Err(FormationError::NeuronLineageAuthorityAbsent),
-                }
-            }
-            for bond in original.original_bonds().iter().copied() {
-                let (left, right) = bond.endpoints();
-                for lineage in [left, right] {
-                    if topology_index.layer_of(lineage) == Some(7) {
-                        current_associations.insert(lineage);
-                    }
-                }
-            }
-            let adds_new_association = current_associations.iter().any(|lineage| {
-                overlapping_reassemblies.iter().all(|index| {
-                    let prior = &mosaics[*index].mosaic;
-                    prior.member_lineages().binary_search(lineage).is_err()
-                        && prior.original_bonds().iter().all(|bond| {
-                            let (left, right) = bond.endpoints();
-                            left != *lineage && right != *lineage
-                        })
-                })
-            });
-            if sensory_layers.len() < 2 || !adds_new_association {
-                continue;
-            }
+        if !overlapping_reassemblies.is_empty()
+            && !joins_pending_path
+            && !adds_unretained_cross_sensory_relation(
+                &original,
+                mosaics,
+                &overlapping_reassemblies,
+                topology_index,
+            )?
+        {
+            continue;
         }
         let duplicate_candidates = formation_index.candidate_indices(
             original.member_lineages().iter().copied().take(1),
@@ -19690,6 +19750,54 @@ mod tests {
             recurrence_bonds,
             vec![structural_test_lineage(cue)],
         )
+    }
+
+    #[test]
+    fn surviving_association_can_relearn_one_missing_cross_sensory_relation() {
+        let current = synthetic_admitted_mosaic(&[1, 2, 7], &[(1, 7), (2, 7)], 1);
+        let visual_only = synthetic_admitted_mosaic(&[1, 3, 7], &[(1, 7), (3, 7)], 1);
+        let already_cross_sensory = current.clone();
+        let lineage_layers = [
+            (structural_test_lineage(1), 0),
+            (structural_test_lineage(2), 1),
+            (structural_test_lineage(3), 0),
+            (structural_test_lineage(7), 7),
+        ]
+        .into_iter()
+        .collect::<Box<[_]>>();
+        let topology = ResidentTopologyIndex {
+            flat_locations: Box::new([]),
+            flat_by_lineage: Box::new([]),
+            source_locations: Box::new([]),
+            lineage_layers,
+            canonical_lineages: Box::new([]),
+            canonical_bonds: Box::new([]),
+            contacts: Box::new([]),
+            incident_contacts_by_flat: Box::new([]),
+            neighbours_by_flat: Box::new([]),
+            cohort_shapes: Box::new([]),
+            fabric_contact_count: 0,
+        };
+
+        let retained = vec![RetainedOrganismMosaic::newly_admitted(visual_only)];
+        assert!(adds_unretained_cross_sensory_relation(
+            &current,
+            &retained,
+            &[0],
+            &topology,
+        )
+        .unwrap());
+
+        let retained = vec![RetainedOrganismMosaic::newly_admitted(
+            already_cross_sensory,
+        )];
+        assert!(!adds_unretained_cross_sensory_relation(
+            &current,
+            &retained,
+            &[0],
+            &topology,
+        )
+        .unwrap());
     }
 
     #[test]
