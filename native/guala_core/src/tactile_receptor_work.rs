@@ -74,6 +74,7 @@ use crate::neuron_source_anchor::{
 };
 use crate::receptor_quantum_delivery::{
     quantize_receptor_delivery, QuantizedReceptorDelivery, ReceptorDeliveryError,
+    ReceptorResidueValue,
 };
 
 /// The declared tactile quantity a contact-sheet port carries: the fraction of
@@ -179,7 +180,7 @@ impl From<ReceptorDeliveryError> for TactileReceptorWorkError {
 /// `quantize_auditory_delivery` are the same call on the same function.
 pub(crate) fn quantize_tactile_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
@@ -482,7 +483,7 @@ mod tests {
             // footprint reaches.
             assert!(energy > BigRational::zero());
 
-            let mut residue = ExactRational::new(0, 1).unwrap();
+            let mut residue = BigRational::zero();
             let mut first = None;
             for _ in 0..5 {
                 let delivery =
@@ -496,11 +497,11 @@ mod tests {
                 "{width}x{height} edge_occupancy={occupancy} \
                  transduced_zJ={energy} first_hop_quanta={} residue_after_5={}",
                 first.unwrap(),
-                exact_rational_to_big(residue)
+                exact_rational_to_big(&residue)
             );
             energies.push(energy);
             first_hop_quanta.push(first.unwrap());
-            residues_after_five_hops.push(exact_rational_to_big(residue));
+            residues_after_five_hops.push(exact_rational_to_big(&residue));
         }
         // FIVE distinct declared shapes, FIVE distinct transduced energies:
         // the law loses no shape information.
@@ -549,7 +550,7 @@ mod tests {
             (1000, 13, 64),
             (1, 999983, 1000000),
         ];
-        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut residue = BigRational::zero();
         let mut delivered_total = BigRational::zero();
         let mut exact_total = BigRational::zero();
         for (occupancy_numerator, dwell_numerator, dwell_denominator) in sequence {
@@ -557,7 +558,7 @@ mod tests {
                 * exact(*occupancy_numerator, 1000)
                 * exact(*dwell_numerator, *dwell_denominator);
             exact_total += &energy;
-            let delivery = quantize_tactile_delivery(&energy, residue, &quantum, 17, 52).unwrap();
+            let delivery = quantize_tactile_delivery(&energy, &residue, &quantum, 17, 52).unwrap();
             delivered_total += &delivery.delivered_energy_zeptojoules;
             assert_eq!(
                 &delivery.delivered_energy_zeptojoules,
@@ -565,7 +566,7 @@ mod tests {
             );
             assert!(delivery.delivered_quanta == 0 || (17..=52).contains(&delivery.delivered_quanta));
             residue = delivery.successor_residue;
-            let residue_big = exact_rational_to_big(residue);
+            let residue_big = exact_rational_to_big(&residue);
             assert!(residue_big >= BigRational::zero());
             assert_eq!(&delivered_total + &residue_big, exact_total);
         }
@@ -578,17 +579,17 @@ mod tests {
     fn releasing_the_object_neither_delivers_nor_erases() {
         let quantum = exact(1, 16);
         let hop = exact(2, 1) * exact(1, 1) * exact(1, 4);
-        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut residue = BigRational::zero();
         let mut total = BigRational::zero();
         for _ in 0..2 {
             total += &hop;
             let delivery = quantize_tactile_delivery(&hop, residue, &quantum, 17, 52).unwrap();
             assert_eq!(delivery.delivered_quanta, 0);
             residue = delivery.successor_residue;
-            assert_eq!(exact_rational_to_big(residue), total);
+            assert_eq!(exact_rational_to_big(&residue), total);
         }
         let released =
-            quantize_tactile_delivery(&BigRational::zero(), residue, &quantum, 17, 52).unwrap();
+            quantize_tactile_delivery(&BigRational::zero(), &residue, &quantum, 17, 52).unwrap();
         assert_eq!(released.delivered_quanta, 0);
         assert_eq!(released.successor_residue, residue);
         // The third contact hop crosses the threshold: 3 × 0.5 zJ = 24 quanta.

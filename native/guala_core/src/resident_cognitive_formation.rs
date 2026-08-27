@@ -704,14 +704,14 @@ pub(crate) struct LocalAffectiveGradientSettlementObservation {
 /// recovery reservoir supplies the energy; the ordinary gate and plastic
 /// return map decide whether anything is retained. This is neither reward nor
 /// named chemistry.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct LocalAffectivePlasticitySettlementObservation {
     pub(crate) cognitive_ordinal: u64,
     pub(crate) incident_catalyst_quanta: u128,
     pub(crate) reaction_extent: u128,
     pub(crate) delivered_energy_zeptojoules: ExactRational,
-    pub(crate) predecessor_gate_work_residue_zeptojoules: ExactRational,
-    pub(crate) successor_gate_work_residue_zeptojoules: ExactRational,
+    pub(crate) predecessor_gate_work_residue_zeptojoules: BigRational,
+    pub(crate) successor_gate_work_residue_zeptojoules: BigRational,
     pub(crate) predecessor_plastic_rest_length_nanometres: ExactRational,
     pub(crate) successor_plastic_rest_length_nanometres: ExactRational,
     pub(crate) predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
@@ -1270,6 +1270,18 @@ fn compose_retained_entry(
                 .map_err(|_| FormationError::ArithmeticOverflow)?;
             (summed.parts().0 != 0).then_some(ExactPhysicalStateDelta::Rational(summed))
         }
+        (
+            ExactPhysicalStateDelta::WideRational(_),
+            ExactPhysicalStateDelta::WideRational(_),
+        )
+        | (
+            ExactPhysicalStateDelta::Rational(_),
+            ExactPhysicalStateDelta::WideRational(_),
+        )
+        | (
+            ExactPhysicalStateDelta::WideRational(_),
+            ExactPhysicalStateDelta::Rational(_),
+        ) => return Err(FormationError::NoncanonicalState),
         _ => return Err(FormationError::NoncanonicalState),
     };
     Ok(delta.and_then(|delta| PhysicalStateDeltaEntry::new(first.coordinate(), delta)))
@@ -7137,7 +7149,7 @@ impl ResidentCognitiveFormationState {
                                     {
                                         Some(elementary_energy) => {
                                             canonical_effector_load_predecessor_residue(
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 elementary_energy,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
@@ -7146,7 +7158,10 @@ impl ResidentCognitiveFormationState {
                                                 FormationError::ProprioceptiveWorkUnavailable,
                                             )?
                                         }
-                                        None => predecessor_neuron.receptor_quantum_residue,
+                                        None => predecessor_neuron
+                                            .receptor_quantum_residue
+                                            .energy()
+                                            .clone(),
                                     };
                                     let prepared_psi = neuron_anatomy
                                         .prepare_psi_settlement(predecessor_neuron, perspective)
@@ -7239,7 +7254,7 @@ impl ResidentCognitiveFormationState {
                                         match law {
                                             ReceptorLaw::Sound => quantize_auditory_delivery(
                                                 &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                                 window.opening_threshold_quanta,
@@ -7248,7 +7263,7 @@ impl ResidentCognitiveFormationState {
                                             .map_err(FormationError::AuditoryWorkUnavailable)?,
                                         ReceptorLaw::Sight => quantize_optical_delivery(
                                             &transduced_energy_zeptojoules,
-                                            predecessor_neuron.receptor_quantum_residue,
+                                            &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                             window.opening_threshold_quanta,
@@ -7257,7 +7272,7 @@ impl ResidentCognitiveFormationState {
                                         .map_err(FormationError::OpticalWorkUnavailable)?,
                                         ReceptorLaw::Touch => quantize_tactile_delivery(
                                             &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                 .gate_dissipation_quantum_zeptojoules(),
                                             window.opening_threshold_quanta,
@@ -7266,7 +7281,7 @@ impl ResidentCognitiveFormationState {
                                         .map_err(FormationError::TactileWorkUnavailable)?,
                                         ReceptorLaw::Chemical => quantize_chemical_delivery(
                                             &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                 .gate_dissipation_quantum_zeptojoules(),
                                             window.opening_threshold_quanta,
@@ -7276,7 +7291,7 @@ impl ResidentCognitiveFormationState {
                                         ReceptorLaw::ArticulatoryBody => {
                                             quantize_articulatory_delivery(
                                                 &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                                 window.opening_threshold_quanta,
@@ -7289,7 +7304,7 @@ impl ResidentCognitiveFormationState {
                                         ReceptorLaw::ThermalBody => {
                                             quantize_thermal_delivery(
                                                 &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                                 window.opening_threshold_quanta,
@@ -7302,7 +7317,7 @@ impl ResidentCognitiveFormationState {
                                         ReceptorLaw::ProprioceptiveBody => {
                                             quantize_proprioceptive_delivery(
                                                 &transduced_energy_zeptojoules,
-                                                predecessor_neuron.receptor_quantum_residue,
+                                                &predecessor_neuron.receptor_quantum_residue,
                                                 neuron_anatomy
                                                     .gate_dissipation_quantum_zeptojoules(),
                                                 window.opening_threshold_quanta,
@@ -15061,8 +15076,8 @@ struct PendingLayerTenPlasticitySettlement {
     incident_catalyst_quanta: u128,
     reaction_extent: u128,
     delivered_energy_zeptojoules: ExactRational,
-    predecessor_gate_work_residue_zeptojoules: ExactRational,
-    successor_gate_work_residue_zeptojoules: ExactRational,
+    predecessor_gate_work_residue_zeptojoules: BigRational,
+    successor_gate_work_residue_zeptojoules: BigRational,
     predecessor_plastic_rest_length_nanometres: ExactRational,
     predecessor_reservoir: (ExactRational, ExactRational, ExactRational),
     successor_reservoir: (ExactRational, ExactRational, ExactRational),
@@ -16370,7 +16385,7 @@ fn settle_internal_contact_interval(
                 })?;
                 let delivery = quantize_receptor_delivery(
                     &exact_rational_to_big(energetic.delivered_energy_zeptojoules),
-                    predecessor_neuron.receptor_quantum_residue,
+                    &predecessor_neuron.receptor_quantum_residue,
                     cohort.anatomy.neuron_anatomies()[neuron_index]
                         .gate_dissipation_quantum_zeptojoules(),
                     window.opening_threshold_quanta,
@@ -16384,8 +16399,12 @@ fn settle_internal_contact_interval(
                     reaction_extent: energetic.reaction_extent,
                     delivered_energy_zeptojoules: energetic.delivered_energy_zeptojoules,
                     predecessor_gate_work_residue_zeptojoules: predecessor_neuron
-                        .receptor_quantum_residue,
-                    successor_gate_work_residue_zeptojoules: delivery.successor_residue,
+                        .receptor_quantum_residue
+                        .energy()
+                        .clone(),
+                    successor_gate_work_residue_zeptojoules: delivery
+                        .successor_residue
+                        .clone(),
                     predecessor_plastic_rest_length_nanometres: predecessor_neuron
                         .plastic
                         .rest_length_nanometres(),
@@ -16720,9 +16739,11 @@ fn settle_internal_contact_interval(
                     reaction_extent: settlement.reaction_extent,
                     delivered_energy_zeptojoules: settlement.delivered_energy_zeptojoules,
                     predecessor_gate_work_residue_zeptojoules: settlement
-                        .predecessor_gate_work_residue_zeptojoules,
+                        .predecessor_gate_work_residue_zeptojoules
+                        .clone(),
                     successor_gate_work_residue_zeptojoules: settlement
-                        .successor_gate_work_residue_zeptojoules,
+                        .successor_gate_work_residue_zeptojoules
+                        .clone(),
                     predecessor_plastic_rest_length_nanometres: settlement
                         .predecessor_plastic_rest_length_nanometres,
                     successor_plastic_rest_length_nanometres,
@@ -21885,7 +21906,7 @@ mod tests {
                 .affective_balance_trajectories
                 .iter()
                 .find(|trajectory| trajectory.neuron_lineage == affective)
-                .and_then(|trajectory| trajectory.localized_plasticity_settlement)
+                .and_then(|trajectory| trajectory.localized_plasticity_settlement.clone())
             {
                 assert!(plasticity.incident_catalyst_quanta > 0);
                 assert!(plasticity.reaction_extent > 0);

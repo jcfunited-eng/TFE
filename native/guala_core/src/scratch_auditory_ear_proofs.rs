@@ -373,7 +373,7 @@ fn a2_real_tutor_audio_transduces_nonzero_work_varying_with_amplitude_and_pitch(
         let mut band_energy = vec![BigRational::zero(); COCHLEAR_CHANNELS_PER_EAR as usize];
         let mut band_quanta = vec![0_u128; COCHLEAR_CHANNELS_PER_EAR as usize];
         for channel_index in 0..COCHLEAR_CHANNELS_PER_EAR as usize {
-            let mut residue = ExactRational::new(0, 1).unwrap();
+            let mut residue = BigRational::zero();
             let mut delivered = 0_u128;
             let mut energy = BigRational::zero();
             // One 250 ms transport hop at a time, exactly as the app delivers.
@@ -395,7 +395,7 @@ fn a2_real_tutor_audio_transduces_nonzero_work_varying_with_amplitude_and_pitch(
                 energy += &settled.transduced_energy_zeptojoules;
                 let delivery = quantize_receptor_delivery(
                     &settled.transduced_energy_zeptojoules,
-                    residue,
+                    &residue,
                     &quantum,
                     opening_threshold,
                     window_cap,
@@ -404,7 +404,7 @@ fn a2_real_tutor_audio_transduces_nonzero_work_varying_with_amplitude_and_pitch(
                 delivered += delivery.delivered_quanta;
                 residue = delivery.successor_residue;
                 // Conservation holds at every hop.
-                assert!(exact_rational_to_big(residue) >= BigRational::zero());
+                assert!(exact_rational_to_big(&residue) >= BigRational::zero());
             }
             band_energy[channel_index] = energy;
             band_quanta[channel_index] = delivered;
@@ -770,7 +770,7 @@ fn a2_lessons_to_the_first_ear_gate_opening_and_the_delivered_work_ladder() {
         let mut delivered_first_lesson = 0_u128;
         for channel_index in 0..COCHLEAR_CHANNELS_PER_EAR as usize {
             let mut energy = BigRational::zero();
-            let mut residue = ExactRational::new(0, 1).unwrap();
+            let mut residue = BigRational::zero();
             for hop_start in (0..envelopes.len())
                 .step_by(INTAKE_HOP_SAMPLES / COCHLEAR_OBSERVATION_HOP_SAMPLES)
             {

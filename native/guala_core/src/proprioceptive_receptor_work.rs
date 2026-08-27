@@ -17,7 +17,7 @@ use crate::neuron_source_anchor::{
 };
 use crate::receptor_quantum_delivery::{
     exact_rational_to_big, quantize_receptor_delivery, QuantizedReceptorDelivery,
-    ReceptorDeliveryError,
+    ReceptorDeliveryError, ReceptorResidueValue,
 };
 
 pub(crate) const ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY: &str =
@@ -112,7 +112,7 @@ impl From<ReceptorDeliveryError> for ProprioceptiveReceptorWorkError {
 
 pub(crate) fn quantize_proprioceptive_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
@@ -135,10 +135,10 @@ pub(crate) fn quantize_proprioceptive_delivery(
 /// A predecessor outside that lattice is not physical energy from the current
 /// law and is retired exactly once when that load ending is next reached.
 pub(crate) fn canonical_effector_load_predecessor_residue(
-    predecessor: ExactRational,
+    predecessor: impl ReceptorResidueValue,
     elementary_reaction_energy_zeptojoules: &BigRational,
     lattice_quantum_zeptojoules: &BigRational,
-) -> Result<ExactRational, ProprioceptiveReceptorWorkError> {
+) -> Result<BigRational, ProprioceptiveReceptorWorkError> {
     let predecessor_big = exact_rational_to_big(predecessor);
     if predecessor_big < BigRational::zero() {
         return Err(ProprioceptiveReceptorWorkError::ResidueOutsideLattice);
@@ -151,12 +151,12 @@ pub(crate) fn canonical_effector_load_predecessor_residue(
     let first = elementary_reaction_energy_zeptojoules.denom().clone();
     let second = lattice_quantum_zeptojoules.denom().clone();
     let common_denominator = (&first / positive_big_gcd(first.clone(), second.clone())) * second;
-    let on_current_lattice = predecessor_big
+    let on_current_lattice = predecessor_big.clone()
         * BigRational::from_integer(common_denominator);
     Ok(if on_current_lattice.is_integer() {
-        predecessor
+        predecessor_big
     } else {
-        ExactRational::integer(0)
+        BigRational::zero()
     })
 }
 
@@ -537,7 +537,7 @@ mod tests {
         let lattice = exact(1, 16);
         assert_eq!(
             canonical_effector_load_predecessor_residue(legacy, &elementary, &lattice).unwrap(),
-            ExactRational::integer(0),
+            BigRational::zero(),
         );
         let first = quantize_proprioceptive_delivery(
             &exact(12, 25),
@@ -548,7 +548,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(first.delivered_quanta, 0);
-        assert_eq!(first.successor_residue, ExactRational::new(12, 25).unwrap());
+        assert_eq!(
+            first.successor_residue,
+            exact_rational_to_big(ExactRational::new(12, 25).unwrap())
+        );
         let second = quantize_proprioceptive_delivery(
             &exact(12, 25),
             first.successor_residue,

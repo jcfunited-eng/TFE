@@ -19,7 +19,9 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{Signed, ToPrimitive, Zero};
 
-use crate::complete_neuron::{GatePopulationOpeningSchedule, GateWorkOccurrence};
+use crate::complete_neuron::{
+    GatePopulationOpeningSchedule, GateWorkOccurrence, PhysicalEnergyResidue,
+};
 use crate::exact_rational::ExactRational;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -39,13 +41,41 @@ pub(crate) enum ReceptorDeliveryError {
 pub(crate) struct QuantizedReceptorDelivery {
     pub(crate) delivered_quanta: u128,
     pub(crate) delivered_energy_zeptojoules: BigRational,
-    pub(crate) successor_residue: ExactRational,
+    pub(crate) successor_residue: BigRational,
     pub(crate) gate_work: GateWorkOccurrence,
 }
 
-pub(crate) fn exact_rational_to_big(value: ExactRational) -> BigRational {
-    let (numerator, denominator) = value.parts();
-    BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+pub(crate) trait ReceptorResidueValue {
+    fn into_receptor_residue(self) -> BigRational;
+}
+
+impl ReceptorResidueValue for ExactRational {
+    fn into_receptor_residue(self) -> BigRational {
+        let (numerator, denominator) = self.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    }
+}
+
+impl ReceptorResidueValue for BigRational {
+    fn into_receptor_residue(self) -> BigRational {
+        self
+    }
+}
+
+impl ReceptorResidueValue for &BigRational {
+    fn into_receptor_residue(self) -> BigRational {
+        self.clone()
+    }
+}
+
+impl ReceptorResidueValue for &PhysicalEnergyResidue {
+    fn into_receptor_residue(self) -> BigRational {
+        self.energy().clone()
+    }
+}
+
+pub(crate) fn exact_rational_to_big(value: impl ReceptorResidueValue) -> BigRational {
+    value.into_receptor_residue()
 }
 
 pub(crate) fn big_to_exact_rational(
@@ -68,7 +98,7 @@ pub(crate) fn big_to_exact_rational(
 /// residue must be non-negative; the successor residue always is.
 pub(crate) fn quantize_receptor_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
@@ -82,7 +112,7 @@ pub(crate) fn quantize_receptor_delivery(
     if transduced_energy_zeptojoules.is_negative() {
         return Err(ReceptorDeliveryError::TransducedEnergyNegative);
     }
-    let residue = exact_rational_to_big(predecessor_residue);
+    let residue = predecessor_residue.into_receptor_residue();
     if residue.is_negative() {
         return Err(ReceptorDeliveryError::ResidueOutsideLattice);
     }
@@ -104,12 +134,11 @@ pub(crate) fn quantize_receptor_delivery(
         lattice_quantum_zeptojoules * BigRational::from_integer(BigInt::from(delivered_quanta));
     let successor_residue_big = accumulated - &delivered_energy_zeptojoules;
     debug_assert!(!successor_residue_big.is_negative());
-    let successor_residue = big_to_exact_rational(&successor_residue_big)?;
     Ok(QuantizedReceptorDelivery {
         delivered_quanta,
         gate_work: GateWorkOccurrence::new(-delivered_energy_zeptojoules.clone()),
         delivered_energy_zeptojoules,
-        successor_residue,
+        successor_residue: successor_residue_big,
     })
 }
 
@@ -127,7 +156,7 @@ pub(crate) fn quantize_receptor_delivery(
 /// conductance, driving potential, elapsed time, and finite carriers.
 pub(crate) fn quantize_population_receptor_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     schedule: &GatePopulationOpeningSchedule,
 ) -> Result<QuantizedReceptorDelivery, ReceptorDeliveryError> {
@@ -137,7 +166,7 @@ pub(crate) fn quantize_population_receptor_delivery(
     if transduced_energy_zeptojoules.is_negative() {
         return Err(ReceptorDeliveryError::TransducedEnergyNegative);
     }
-    let residue = exact_rational_to_big(predecessor_residue);
+    let residue = predecessor_residue.into_receptor_residue();
     if residue.is_negative() {
         return Err(ReceptorDeliveryError::ResidueOutsideLattice);
     }
@@ -162,7 +191,6 @@ pub(crate) fn quantize_population_receptor_delivery(
     let delivered_energy_zeptojoules =
         lattice_quantum_zeptojoules * BigRational::from_integer(BigInt::from(consumed_quanta));
     let successor_residue_big = &accumulated - &delivered_energy_zeptojoules;
-    let successor_residue = big_to_exact_rational(&successor_residue_big)?;
     let gate_work = if !occurrence_reaches_settlement {
         GateWorkOccurrence::new(BigRational::zero())
     } else {
@@ -175,7 +203,7 @@ pub(crate) fn quantize_population_receptor_delivery(
     Ok(QuantizedReceptorDelivery {
         delivered_quanta: consumed_quanta,
         delivered_energy_zeptojoules,
-        successor_residue,
+        successor_residue: successor_residue_big,
         gate_work,
     })
 }
@@ -331,7 +359,7 @@ mod tests {
             delivery.delivered_energy_zeptojoules,
             &quantum * BigRational::from_integer(BigInt::from(35))
         );
-        assert_eq!(delivery.successor_residue, rational(0, 1));
+        assert_eq!(delivery.successor_residue, exact_rational_to_big(rational(0, 1)));
         assert!(!delivery.gate_work.is_zero());
         assert_eq!(
             delivery.delivered_energy_zeptojoules
@@ -358,7 +386,7 @@ mod tests {
                 .unwrap();
         assert_eq!(delivery.delivered_quanta, 0);
         assert!(delivery.gate_work.is_zero());
-        assert_eq!(delivery.successor_residue, rational(1, 1));
+        assert_eq!(delivery.successor_residue, exact_rational_to_big(rational(1, 1)));
         assert_eq!(
             exact_rational_to_big(delivery.successor_residue),
             exact_rational_to_big(predecessor) + energy,
@@ -387,10 +415,10 @@ mod tests {
 
         assert_eq!(delivery.delivered_quanta, 1_207);
         assert!(!delivery.gate_work.is_zero());
-        assert!(exact_rational_to_big(delivery.successor_residue) < quantum);
+        assert!(exact_rational_to_big(&delivery.successor_residue) < quantum);
         assert_eq!(
             delivery.delivered_energy_zeptojoules
-                + exact_rational_to_big(delivery.successor_residue),
+                + exact_rational_to_big(&delivery.successor_residue),
             exact_rational_to_big(predecessor) + energy,
         );
     }
@@ -414,7 +442,7 @@ mod tests {
 
         assert_eq!(delivery.delivered_quanta, 16);
         assert!(!delivery.gate_work.is_zero());
-        assert_eq!(delivery.successor_residue, rational(0, 1));
+        assert_eq!(delivery.successor_residue, exact_rational_to_big(rational(0, 1)));
         assert_eq!(
             delivery.delivered_energy_zeptojoules
                 + exact_rational_to_big(delivery.successor_residue),

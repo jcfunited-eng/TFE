@@ -17,6 +17,7 @@ use crate::exact_rational::ExactRational;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
 use crate::virtual_articulated_body::ARTICULATED_BODY_STATE_BYTES;
+use num_traits::Zero;
 use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
@@ -187,11 +188,11 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
         if state.gate.open_population() != 0 {
             neurons_with_open_gates += 1;
         }
-        let (residue_numerator, residue_denominator) = state.receptor_quantum_residue.parts();
-        if residue_numerator != 0 {
+        let residue = state.receptor_quantum_residue.energy();
+        if !residue.is_zero() {
             neurons_with_nonzero_residue += 1;
         }
-        residues.push(format!("{residue_numerator}/{residue_denominator}"));
+        residues.push(format!("{}/{}", residue.numer(), residue.denom()));
         let (owed_numerator, owed_denominator) = state.membrane_return_work_residue.parts();
         if owed_numerator != 0 {
             neurons_owing_return_work += 1;

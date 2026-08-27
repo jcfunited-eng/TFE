@@ -2199,12 +2199,13 @@ class NativeResidentOrganism:
             for source in sources
         )
         active_before = self.readiness()
-        _rust_started = time.perf_counter()
-        candidate = self.__runtime.advance_admitted_trajectory_unsealed(
-            list(sources), [list(value) for value in intervals]
-        )
-        _record_runtime_phase("rust_advance", _rust_started)
+        candidate: object | None = None
         try:
+            _rust_started = time.perf_counter()
+            candidate = self.__runtime.advance_admitted_trajectory_unsealed(
+                list(sources), [list(value) for value in intervals]
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()
             validated = self._validated_prepare_evidence_body(
                 candidate,
@@ -2219,7 +2220,8 @@ class NativeResidentOrganism:
             return validated
         except BaseException:
             try:
-                self.__runtime.abort_unsealed_trajectory()
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
             finally:
                 self.__unsealed_tick = None
             raise
@@ -2367,11 +2369,12 @@ class NativeResidentOrganism:
                 "vestibular trajectory steps must be signed 32-bit integers"
             )
         active_before = self.readiness()
-        candidate = self.__runtime.advance_vestibular_trajectory_unsealed(
-            predecessor_heading,
-            list(signed_body_motion_millidegrees),
-        )
+        candidate: object | None = None
         try:
+            candidate = self.__runtime.advance_vestibular_trajectory_unsealed(
+                predecessor_heading,
+                list(signed_body_motion_millidegrees),
+            )
             return self._validated_prepare_evidence_body(
                 candidate,
                 len(signed_body_motion_millidegrees),
@@ -2382,7 +2385,8 @@ class NativeResidentOrganism:
             )
         except BaseException:
             try:
-                self.__runtime.abort_unsealed_trajectory()
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
             finally:
                 self.__unsealed_tick = None
             raise

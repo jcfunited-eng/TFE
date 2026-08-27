@@ -282,7 +282,7 @@ fn measured_acoustic_energy_conserves_through_the_ratified_delivery_machinery() 
         (0, 1),
         (0, 1),
     ];
-    let mut residue = ExactRational::new(0, 1).unwrap();
+    let mut residue = BigRational::zero();
     let mut delivered_total = BigRational::zero();
     let mut exact_total = BigRational::zero();
     let mut opened = 0_u32;
@@ -300,7 +300,7 @@ fn measured_acoustic_energy_conserves_through_the_ratified_delivery_machinery() 
         .unwrap();
         delivered_total += &delivery.delivered_energy_zeptojoules;
         residue = delivery.successor_residue;
-        let residue_big = exact_rational_to_big(residue);
+        let residue_big = exact_rational_to_big(&residue);
         assert!(residue_big >= BigRational::zero());
         // Bit-exact conservation at EVERY step.
         assert_eq!(&delivered_total + &residue_big, exact_total);
@@ -315,7 +315,7 @@ fn measured_acoustic_energy_conserves_through_the_ratified_delivery_machinery() 
     println!(
         "openings={opened}  delivered_total={} zJ  retained={} zJ",
         delivered_total,
-        exact_rational_to_big(residue)
+        exact_rational_to_big(&residue)
     );
 }
 
@@ -335,7 +335,7 @@ fn measured_lessons_to_the_first_ear_gate_opening() {
             ("loudest tutor utterance", exact(52_718, 1_000_000)),
         ] {
             let per_lesson = &k * &integrated;
-            let mut residue = ExactRational::new(0, 1).unwrap();
+            let mut residue = BigRational::zero();
             let mut lesson = 0_u32;
             let mut first_opening = None;
             while lesson < 512 && first_opening.is_none() {

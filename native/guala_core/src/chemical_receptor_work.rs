@@ -20,6 +20,7 @@ use crate::neuron_source_anchor::{
 };
 use crate::receptor_quantum_delivery::{
     quantize_receptor_delivery, QuantizedReceptorDelivery, ReceptorDeliveryError,
+    ReceptorResidueValue,
 };
 
 pub(crate) const OLFACTORY_VOLATILE_CONCENTRATION_QUANTITY: &str =
@@ -116,7 +117,7 @@ impl From<ReceptorDeliveryError> for ChemicalReceptorWorkError {
 
 pub(crate) fn quantize_chemical_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,

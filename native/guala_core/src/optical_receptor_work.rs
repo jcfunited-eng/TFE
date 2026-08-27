@@ -22,6 +22,7 @@ use crate::neuron_source_anchor::{
 pub(crate) use crate::receptor_quantum_delivery::exact_rational_to_big;
 use crate::receptor_quantum_delivery::{
     quantize_population_receptor_delivery, quantize_receptor_delivery, ReceptorDeliveryError,
+    ReceptorResidueValue,
 };
 
 pub(crate) const RETINAL_SPECTRAL_IRRADIANCE_QUANTITY: &str = "retinal-spectral-irradiance";
@@ -132,7 +133,7 @@ impl From<ReceptorDeliveryError> for OpticalReceptorWorkError {
 /// error surface.
 pub(crate) fn quantize_optical_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
@@ -149,7 +150,7 @@ pub(crate) fn quantize_optical_delivery(
 
 pub(crate) fn quantize_optical_population_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     schedule: &GatePopulationOpeningSchedule,
 ) -> Result<QuantizedOpticalDelivery, OpticalReceptorWorkError> {
@@ -363,7 +364,7 @@ mod tests {
             (255, 1, 1000000),
             (3, 999983, 1000000),
         ];
-        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut residue = BigRational::zero();
         let mut delivered_total = BigRational::zero();
         let mut exact_total = BigRational::zero();
         for (luminance_numerator, dwell_numerator, dwell_denominator) in sequence {
@@ -386,14 +387,14 @@ mod tests {
                     || (17..=52).contains(&delivery.delivered_quanta)
             );
             residue = delivery.successor_residue;
-            let residue_big = exact_rational_to_big(residue);
+            let residue_big = exact_rational_to_big(&residue);
             assert!(residue_big >= BigRational::zero());
             // Bit-exact conservation at EVERY step, not only at the end.
             assert_eq!(&delivered_total + &residue_big, exact_total);
         }
         // The sequence must have exercised both delivery and retention.
         assert!(delivered_total > BigRational::zero());
-        assert!(exact_rational_to_big(residue) > BigRational::zero());
+        assert!(exact_rational_to_big(&residue) > BigRational::zero());
     }
 
     /// Law 1 proof obligation: a sequence that never reaches the receiving
@@ -406,7 +407,7 @@ mod tests {
     fn sub_threshold_sequences_deliver_nothing_and_retain_everything() {
         let quantum = exact(1, 16);
         let hop = exact(2, 1) * exact(217, 255) * exact(1, 4);
-        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut residue = BigRational::zero();
         let mut exact_total = BigRational::zero();
         // Two lit hops stay under the threshold (about 13.6 quanta).
         for _ in 0..2 {
@@ -415,11 +416,11 @@ mod tests {
             assert_eq!(delivery.delivered_quanta, 0);
             assert!(delivery.gate_work.is_zero());
             residue = delivery.successor_residue;
-            assert_eq!(exact_rational_to_big(residue), exact_total);
+            assert_eq!(exact_rational_to_big(&residue), exact_total);
         }
         // A dark interval delivers nothing and erases nothing.
         let dark =
-            quantize_optical_delivery(&BigRational::zero(), residue, &quantum, 17, 52).unwrap();
+            quantize_optical_delivery(&BigRational::zero(), &residue, &quantum, 17, 52).unwrap();
         assert_eq!(dark.delivered_quanta, 0);
         assert_eq!(dark.successor_residue, residue);
         // The third lit hop crosses the threshold (about 20.4 quanta).
@@ -450,12 +451,12 @@ mod tests {
         .unwrap();
         assert_eq!(delivery.delivered_quanta, 52);
         assert_eq!(
-            exact_rational_to_big(delivery.successor_residue),
+            exact_rational_to_big(&delivery.successor_residue),
             &quantum * BigRational::from_integer(18.into()) + exact(1, 32)
         );
         assert_eq!(
             &delivery.delivered_energy_zeptojoules
-                + exact_rational_to_big(delivery.successor_residue),
+                + exact_rational_to_big(&delivery.successor_residue),
             energy
         );
     }

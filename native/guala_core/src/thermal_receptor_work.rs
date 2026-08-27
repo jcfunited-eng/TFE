@@ -21,6 +21,7 @@ use crate::neuron_source_anchor::{
 };
 use crate::receptor_quantum_delivery::{
     quantize_receptor_delivery, QuantizedReceptorDelivery, ReceptorDeliveryError,
+    ReceptorResidueValue,
 };
 
 pub(crate) const THERMORECEPTOR_TEMPERATURE_QUANTITY: &str = "thermoreceptor-temperature";
@@ -105,7 +106,7 @@ impl From<ReceptorDeliveryError> for ThermalReceptorWorkError {
 
 pub(crate) fn quantize_thermal_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,

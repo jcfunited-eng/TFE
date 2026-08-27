@@ -1122,7 +1122,7 @@ pub(crate) fn encode_resident_admitted_physical_mosaic(
                     encoded.extend_from_slice(&numerator.to_le_bytes());
                     encoded.extend_from_slice(&denominator.to_le_bytes());
                 }
-                ExactPhysicalStateDelta::Energy(_) => {
+                ExactPhysicalStateDelta::WideRational(_) => {
                     return Err(PhysicalMosaicCodecError::InvalidRetainedFractal);
                 }
             }

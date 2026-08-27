@@ -1786,7 +1786,7 @@ impl NativeResidentOrganismPrepare {
                                     denominator.to_string(),
                                 )
                             }
-                            ExactPhysicalStateDelta::Energy(_) => {
+                            ExactPhysicalStateDelta::WideRational(_) => {
                                 return Err(PyValueError::new_err(
                                     "neuronal fractal carried retained energy",
                                 ));
@@ -6625,6 +6625,9 @@ fn project_affective_balance_trajectories(
         let (numerator, denominator) = value.parts();
         (numerator.to_string(), denominator.to_string())
     };
+    let wide_rational = |value: &num_rational::BigRational| {
+        (value.numer().to_string(), value.denom().to_string())
+    };
     trajectories
         .iter()
         .map(|trajectory| {
@@ -6651,14 +6654,19 @@ fn project_affective_balance_trajectories(
                 }),
                 trajectory
                     .localized_plasticity_settlement
+                    .as_ref()
                     .map(|plasticity| {
                         (
                             plasticity.cognitive_ordinal,
                             plasticity.incident_catalyst_quanta.to_string(),
                             plasticity.reaction_extent.to_string(),
                             rational(plasticity.delivered_energy_zeptojoules),
-                            rational(plasticity.predecessor_gate_work_residue_zeptojoules),
-                            rational(plasticity.successor_gate_work_residue_zeptojoules),
+                            wide_rational(
+                                &plasticity.predecessor_gate_work_residue_zeptojoules,
+                            ),
+                            wide_rational(
+                                &plasticity.successor_gate_work_residue_zeptojoules,
+                            ),
                             rational(plasticity.predecessor_plastic_rest_length_nanometres),
                             rational(plasticity.successor_plastic_rest_length_nanometres),
                             (

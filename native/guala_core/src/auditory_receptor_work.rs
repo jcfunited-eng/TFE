@@ -67,6 +67,7 @@ use crate::neuron_source_anchor::{
 };
 use crate::receptor_quantum_delivery::{
     quantize_receptor_delivery, QuantizedReceptorDelivery, ReceptorDeliveryError,
+    ReceptorResidueValue,
 };
 
 /// The declared acoustic quantity a cochlear port carries: the normalized
@@ -176,7 +177,7 @@ impl From<ReceptorDeliveryError> for AuditoryReceptorWorkError {
 /// the same call on the same function.
 pub(crate) fn quantize_auditory_delivery(
     transduced_energy_zeptojoules: &BigRational,
-    predecessor_residue: ExactRational,
+    predecessor_residue: impl ReceptorResidueValue,
     lattice_quantum_zeptojoules: &BigRational,
     opening_threshold_quanta: u128,
     window_cap_quanta: u128,
@@ -537,7 +538,7 @@ mod tests {
             &[(1, 100), (-1, 100), (1, 50), (0, 1), (0, 1), (1, 1000)],
             &[(1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1)],
         ];
-        let mut residue = ExactRational::new(0, 1).unwrap();
+        let mut residue = BigRational::zero();
         let mut delivered_total = BigRational::zero();
         let mut exact_total = BigRational::zero();
         let mut deliveries = 0_u32;
@@ -552,7 +553,7 @@ mod tests {
                 exact_total += &settled.transduced_energy_zeptojoules;
                 let delivery = quantize_auditory_delivery(
                     &settled.transduced_energy_zeptojoules,
-                    residue,
+                    &residue,
                     &quantum,
                     17,
                     52,
@@ -564,7 +565,7 @@ mod tests {
                 }
                 delivered_total += &delivery.delivered_energy_zeptojoules;
                 residue = delivery.successor_residue;
-                let residue_big = exact_rational_to_big(residue);
+                let residue_big = exact_rational_to_big(&residue);
                 assert!(residue_big >= BigRational::zero());
                 assert_eq!(&delivered_total + &residue_big, exact_total);
             }
@@ -599,7 +600,7 @@ mod tests {
         .unwrap();
         let second = quantize_auditory_delivery(
             &silence.transduced_energy_zeptojoules,
-            first.successor_residue,
+            &first.successor_residue,
             &quantum,
             17,
             52,

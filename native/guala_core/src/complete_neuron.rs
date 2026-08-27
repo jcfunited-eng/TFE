@@ -506,7 +506,7 @@ impl TwoStateGateAnatomy {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct PhysicalEnergyResidue {
+pub(crate) struct PhysicalEnergyResidue {
     energy_zeptojoules: Exact,
 }
 
@@ -523,7 +523,13 @@ impl PhysicalEnergyResidue {
         }
     }
 
-    fn energy(&self) -> &Exact {
+    fn from_exact(value: Exact) -> Self {
+        Self {
+            energy_zeptojoules: value,
+        }
+    }
+
+    pub(crate) fn energy(&self) -> &Exact {
         &self.energy_zeptojoules
     }
 
@@ -1260,7 +1266,7 @@ pub(crate) struct NeuronPhysicalStateBody {
     /// bound is strictly under 17/16 zJ.  Non-negativity is enforced at the
     /// codec boundary; the upper bound is a consequence of the delivery law,
     /// not a clamp.
-    pub(crate) receptor_quantum_residue: ExactRational,
+    pub(crate) receptor_quantum_residue: PhysicalEnergyResidue,
     /// Inert legacy membrane-return residue retained only so GLNPS01-04 bodies
     /// cold-restore byte-exactly.  The fabricated zero-voltage return and its
     /// quantized billing law are deleted; current pump settlement neither
@@ -1283,6 +1289,31 @@ impl NeuronPhysicalState {
         receptor_quantum_residue: ExactRational,
         membrane_return_work_residue: ExactRational,
     ) -> Self {
+        Self::new_with_exact_receptor_residue(
+            psi,
+            gate,
+            membrane,
+            carriers,
+            recovery,
+            dna_expression,
+            plastic,
+            rational_to_exact(receptor_quantum_residue),
+            membrane_return_work_residue,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn new_with_exact_receptor_residue(
+        psi: PsiKrimelackState,
+        gate: TwoStateGateState,
+        membrane: LocalMembraneConductanceState<1>,
+        carriers: CarrierReservoirs,
+        recovery: RecoveryState,
+        dna_expression: DnaExpressionState,
+        plastic: PlasticSupportState,
+        receptor_quantum_residue: Exact,
+        membrane_return_work_residue: ExactRational,
+    ) -> Self {
         Self(Arc::new(NeuronPhysicalStateBody {
             psi,
             gate,
@@ -1291,7 +1322,9 @@ impl NeuronPhysicalState {
             recovery,
             dna_expression,
             plastic,
-            receptor_quantum_residue,
+            receptor_quantum_residue: PhysicalEnergyResidue::from_exact(
+                receptor_quantum_residue,
+            ),
             membrane_return_work_residue,
         }))
     }
@@ -1668,7 +1701,8 @@ impl NeuronPhysicalState {
                     .checked_mul(core::mem::size_of::<RecoveryLaneState>())?,
             )?
             .checked_add(self.gate.dissipation_residue_zeptojoules.heap_bytes()?)?
-            .checked_add(self.plastic.dissipation_residue_zeptojoules.heap_bytes()?)
+            .checked_add(self.plastic.dissipation_residue_zeptojoules.heap_bytes()?)?
+            .checked_add(self.receptor_quantum_residue.heap_bytes()?)
     }
 }
 
@@ -2008,7 +2042,7 @@ fn retire_unbounded_receptor_population_state(
     successor_state.recovery.plastic_lane = RecoveryLaneState::new(plastic_fuel_capacity);
     successor_state.plastic =
         PlasticSupportState::new(anatomy.plastic.closed_coordinate_nanometres)?;
-    successor_state.receptor_quantum_residue = ExactRational::integer(0);
+    successor_state.receptor_quantum_residue = PhysicalEnergyResidue::zero();
     successor_state.membrane_return_work_residue = ExactRational::integer(0);
     encode_neuron_physical_state(&successor_anatomy, &successor_state)
         .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
@@ -2503,6 +2537,12 @@ const NEURON_STATE_RETURN_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS02\0";
 /// nonzero.
 const NEURON_STATE_PLASTIC_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS03\0";
 const NEURON_STATE_WIDE_DISSIPATION_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS04\0";
+/// Neuron-state layout carrying a receptor accumulator whose exact numerator
+/// or denominator exceeds the historical fixed-width pair. Existing narrow
+/// states retain their GLNPS01-04 bytes. This head carries membrane-return,
+/// receptor, gate and plastic residues, then the unchanged historical body
+/// with a canonical zero receptor placeholder.
+const NEURON_STATE_WIDE_RECEPTOR_RESIDUE_MAGIC: &[u8; 8] = b"GLNPS05\0";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum NeuronStateCodecError {
@@ -2555,7 +2595,7 @@ fn encode_neuron_physical_state_observed(
         // residue is routinely several whole quanta.  Its only canonical
         // bound is non-negativity; no anatomy number bounds it from above,
         // and inventing one would silently destroy retained energy.
-        || rational_to_exact(state.receptor_quantum_residue) < Exact::zero()
+        || state.receptor_quantum_residue.energy() < &Exact::zero()
         // The retained membrane-return work residue is what the body still
         // owes for return work already done.  Its canonical bound is
         // `[0, gate dissipation quantum)`: the billing law takes every whole
@@ -2599,7 +2639,22 @@ fn encode_neuron_physical_state_observed(
         state.membrane_return_work_residue.parts();
     let fixed_gate_residue = state.gate.dissipation_residue_zeptojoules.fixed_width();
     let fixed_plastic_residue = state.plastic.dissipation_residue_zeptojoules.fixed_width();
-    if (!state.gate.dissipation_residue_zeptojoules.is_zero() && fixed_gate_residue.is_none())
+    let fixed_receptor_residue = state.receptor_quantum_residue.fixed_width();
+    let wide_receptor_residue = fixed_receptor_residue.is_none();
+    if wide_receptor_residue {
+        encoded.extend_from_slice(NEURON_STATE_WIDE_RECEPTOR_RESIDUE_MAGIC);
+        push_i128(&mut encoded, return_residue_numerator);
+        push_u128(&mut encoded, return_residue_denominator);
+        push_state_big_rational(&mut encoded, state.receptor_quantum_residue.energy())?;
+        push_state_big_rational(
+            &mut encoded,
+            state.gate.dissipation_residue_zeptojoules.energy(),
+        )?;
+        push_state_big_rational(
+            &mut encoded,
+            state.plastic.dissipation_residue_zeptojoules.energy(),
+        )?;
+    } else if (!state.gate.dissipation_residue_zeptojoules.is_zero() && fixed_gate_residue.is_none())
         || (!state.plastic.dissipation_residue_zeptojoules.is_zero()
             && fixed_plastic_residue.is_none())
     {
@@ -2751,7 +2806,12 @@ fn encode_neuron_physical_state_observed(
     // Retained quantized-optical sub-quantum residue (ratified 2026-08-05):
     // encoded with the same exact-rational fixed-width discipline as the
     // retained charge-carrier phases above.
-    let (residue_numerator, residue_denominator) = state.receptor_quantum_residue.parts();
+    let fixed_encoded_receptor_residue = if wide_receptor_residue {
+        ExactRational::integer(0)
+    } else {
+        fixed_receptor_residue.expect("narrow receptor residue fits the historical body")
+    };
+    let (residue_numerator, residue_denominator) = fixed_encoded_receptor_residue.parts();
     push_i128(&mut encoded, residue_numerator);
     push_u128(&mut encoded, residue_denominator);
     Ok((
@@ -2780,10 +2840,16 @@ pub(crate) fn decode_neuron_physical_state(
     // membrane-return work residue.  A `GLNPS02` body carrying zero is
     // refused — its canonical form is the bare `GLNPS01` body, and accepting
     // both would let one physical state admit two encodings.
-    let (membrane_return_work_residue, gate_dissipation_residue, plastic_dissipation_residue) =
+    let (
+        membrane_return_work_residue,
+        wide_receptor_quantum_residue,
+        gate_dissipation_residue,
+        plastic_dissipation_residue,
+    ) =
         match reader.take(NEURON_STATE_CODEC_MAGIC.len())? {
             magic if magic == NEURON_STATE_CODEC_MAGIC => (
                 ExactRational::integer(0),
+                None,
                 PhysicalEnergyResidue::zero(),
                 PhysicalEnergyResidue::zero(),
             ),
@@ -2795,6 +2861,7 @@ pub(crate) fn decode_neuron_physical_state(
                 }
                 (
                     residue,
+                    None,
                     PhysicalEnergyResidue::zero(),
                     PhysicalEnergyResidue::zero(),
                 )
@@ -2811,6 +2878,7 @@ pub(crate) fn decode_neuron_physical_state(
                 }
                 (
                     membrane_residue,
+                    None,
                     PhysicalEnergyResidue::from_exact_rational(gate_residue),
                     PhysicalEnergyResidue::from_exact_rational(plastic_residue),
                 )
@@ -2830,7 +2898,23 @@ pub(crate) fn decode_neuron_physical_state(
                 {
                     return Err(NeuronStateCodecError::InvalidEncoding);
                 }
-                (membrane_residue, gate_residue, plastic_residue)
+                (membrane_residue, None, gate_residue, plastic_residue)
+            }
+            magic if magic == NEURON_STATE_WIDE_RECEPTOR_RESIDUE_MAGIC => {
+                let membrane_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+                    .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+                let receptor_residue = PhysicalEnergyResidue::from_exact(reader.big_rational()?);
+                let gate_residue = PhysicalEnergyResidue::from_exact(reader.big_rational()?);
+                let plastic_residue = PhysicalEnergyResidue::from_exact(reader.big_rational()?);
+                if receptor_residue.fixed_width().is_some() {
+                    return Err(NeuronStateCodecError::InvalidEncoding);
+                }
+                (
+                    membrane_residue,
+                    Some(receptor_residue),
+                    gate_residue,
+                    plastic_residue,
+                )
             }
             _ => return Err(NeuronStateCodecError::InvalidEncoding),
         };
@@ -2911,13 +2995,21 @@ pub(crate) fn decode_neuron_physical_state(
         dissipated_quanta: reader.u128()?,
         dissipation_residue_zeptojoules: plastic_dissipation_residue,
     };
-    let receptor_quantum_residue = ExactRational::new(reader.i128()?, reader.u128()?)
+    let fixed_receptor_quantum_residue = ExactRational::new(reader.i128()?, reader.u128()?)
         .map_err(|_| NeuronStateCodecError::InvalidEncoding)?;
+    if wide_receptor_quantum_residue.is_some()
+        && fixed_receptor_quantum_residue != ExactRational::integer(0)
+    {
+        return Err(NeuronStateCodecError::InvalidEncoding);
+    }
+    let receptor_quantum_residue = wide_receptor_quantum_residue.unwrap_or_else(|| {
+        PhysicalEnergyResidue::from_exact_rational(fixed_receptor_quantum_residue)
+    });
     if plastic.rest_length_nanometres.parts().0 <= 0
         || plastic.dissipated_quanta > anatomy.plastic.dissipation_capacity_quanta
         // Law 1: a retained receptor accumulator is bounded only by
         // non-negativity (see the encoder).
-        || rational_to_exact(receptor_quantum_residue) < Exact::zero()
+        || receptor_quantum_residue.energy() < &Exact::zero()
         // The retained membrane-return work residue is bounded by
         // `[0, gate dissipation quantum)` (see the encoder).
         || rational_to_exact(membrane_return_work_residue) < Exact::zero()
@@ -2937,8 +3029,8 @@ pub(crate) fn decode_neuron_physical_state(
     {
         return Err(NeuronStateCodecError::AnatomyMismatch);
     }
-    Ok(NeuronPhysicalState::new(
-        PsiKrimelackState {
+    Ok(NeuronPhysicalState(Arc::new(NeuronPhysicalStateBody {
+        psi: PsiKrimelackState {
             rings: rings.into_boxed_slice(),
         },
         gate,
@@ -2949,7 +3041,7 @@ pub(crate) fn decode_neuron_physical_state(
         plastic,
         receptor_quantum_residue,
         membrane_return_work_residue,
-    ))
+    })))
 }
 
 fn encode_recovery_lane(
@@ -3231,7 +3323,7 @@ pub(crate) fn settle_neuron_physical_interval_with_contact(
         interval_microseconds,
         inter_neuron_outward_elementary_charges,
     )?;
-    let successor = NeuronPhysicalState::new(
+    let successor = NeuronPhysicalState::new_with_exact_receptor_residue(
         psi.successor.clone(),
         gate_membrane.successor_gate.clone(),
         gate_membrane.membrane.successor,
@@ -3239,7 +3331,7 @@ pub(crate) fn settle_neuron_physical_interval_with_contact(
         predecessor.recovery.clone(),
         predecessor.dna_expression,
         predecessor.plastic.clone(),
-        predecessor.receptor_quantum_residue,
+        predecessor.receptor_quantum_residue.energy().clone(),
         // A stimulus interval does no membrane-RETURN work — the return path
         // is the rest metabolism's — so it neither adds to nor erases the
         // retained sub-quantum remainder, exactly as a dark interval leaves
@@ -4442,7 +4534,7 @@ pub(crate) struct NeuronIntervalInput<'a> {
     /// retain in the successor state after the whole-quantum delivery carried
     /// by `gate_work`. `None` for every non-optical delivery: the predecessor
     /// residue is carried through unchanged.
-    pub(crate) receptor_successor_residue: Option<ExactRational>,
+    pub(crate) receptor_successor_residue: Option<Exact>,
     /// The one local Psi/Krimelack settlement already derived from this
     /// interval's complete field and predecessor. Gate-window, recovery and
     /// membrane consequences consume the same physical result rather than
@@ -4536,7 +4628,7 @@ impl ExactSignedDelta {
 pub(crate) enum ExactPhysicalStateDelta {
     Integral(ExactSignedDelta),
     Rational(ExactRational),
-    Energy(Exact),
+    WideRational(Exact),
 }
 
 impl ExactPhysicalStateDelta {
@@ -4544,7 +4636,7 @@ impl ExactPhysicalStateDelta {
         match self {
             Self::Integral(delta) => delta.magnitude == 0,
             Self::Rational(delta) => delta.parts().0 == 0,
-            Self::Energy(delta) => delta.is_zero(),
+            Self::WideRational(delta) => delta.is_zero(),
         }
     }
 }
@@ -4617,7 +4709,7 @@ impl SparsePhysicalStateDelta {
         )?;
         self.entries.iter().try_fold(fixed, |total, entry| {
             let extra = match &entry.delta {
-                ExactPhysicalStateDelta::Energy(value) => value
+                ExactPhysicalStateDelta::WideRational(value) => value
                     .numer()
                     .to_signed_bytes_le()
                     .len()
@@ -4645,9 +4737,14 @@ fn coordinate_accepts_delta(
                 | PhysicalStateCoordinate::GateDissipationResidue,
             &ExactPhysicalStateDelta::Rational(_)
         ) | (
-            PhysicalStateCoordinate::GateDissipationResidue
+            PhysicalStateCoordinate::MembraneCarrierPhase
+                | PhysicalStateCoordinate::ConductancePathCarrierPhase(_)
+                | PhysicalStateCoordinate::PlasticRestLength
+                | PhysicalStateCoordinate::ReceptorQuantumResidue
+                | PhysicalStateCoordinate::MembraneReturnWorkResidue
+                | PhysicalStateCoordinate::GateDissipationResidue
                 | PhysicalStateCoordinate::PlasticDissipationResidue,
-            &ExactPhysicalStateDelta::Energy(_)
+            &ExactPhysicalStateDelta::WideRational(_)
         ) | (
             PhysicalStateCoordinate::PsiWinding(_)
                 | PhysicalStateCoordinate::PsiDissipatedEnergy(_)
@@ -4741,7 +4838,7 @@ pub(crate) fn settle_extended_interval_with_contact(
     // settled physical coordinate: it does not enter the quiescence
     // predicate.  The ratified law changes WHAT energy arrives, nothing else.
     if let Some(residue) = input.receptor_successor_residue {
-        successor.receptor_quantum_residue = residue;
+        successor.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(residue);
     }
     let plastic = settle_plastic_support(
         &anatomy.plastic,
@@ -4901,7 +4998,7 @@ pub(crate) fn sparse_physical_state_delta(
         PhysicalStateCoordinate::MembraneCarrierPhase,
         ExactRational::new(prior_membrane_phase.0, prior_membrane_phase.1)?,
         ExactRational::new(next_membrane_phase.0, next_membrane_phase.1)?,
-    )?;
+    );
     for (index, (prior_phase, next_phase)) in predecessor
         .membrane
         .path_carrier_phases()
@@ -4916,7 +5013,7 @@ pub(crate) fn sparse_physical_state_delta(
             PhysicalStateCoordinate::ConductancePathCarrierPhase(index),
             ExactRational::new(prior.0, prior.1)?,
             ExactRational::new(next.0, next.1)?,
-        )?;
+        );
     }
     push_u128_delta(
         &mut entries,
@@ -4941,19 +5038,19 @@ pub(crate) fn sparse_physical_state_delta(
         PhysicalStateCoordinate::PlasticRestLength,
         predecessor.plastic.rest_length_nanometres,
         successor.plastic.rest_length_nanometres,
-    )?;
-    push_rational_delta(
+    );
+    push_energy_delta(
         &mut entries,
         PhysicalStateCoordinate::ReceptorQuantumResidue,
-        predecessor.receptor_quantum_residue,
-        successor.receptor_quantum_residue,
-    )?;
+        predecessor.receptor_quantum_residue.energy(),
+        successor.receptor_quantum_residue.energy(),
+    );
     push_rational_delta(
         &mut entries,
         PhysicalStateCoordinate::MembraneReturnWorkResidue,
         predecessor.membrane_return_work_residue,
         successor.membrane_return_work_residue,
-    )?;
+    );
     push_energy_delta(
         &mut entries,
         PhysicalStateCoordinate::PlasticDissipationResidue,
@@ -5027,7 +5124,7 @@ pub(crate) fn sparse_retained_physical_state_delta(
         predecessor.gate.open_population,
         successor.gate.open_population,
     );
-    push_rational_delta(
+    push_retained_rational_delta(
         &mut retained,
         PhysicalStateCoordinate::PlasticRestLength,
         predecessor.plastic.rest_length_nanometres,
@@ -5039,17 +5136,14 @@ pub(crate) fn sparse_retained_physical_state_delta(
         predecessor.dna_expression.expressed_product_quanta,
         successor.dna_expression.expressed_product_quanta,
     );
-    push_rational_delta(
-        &mut retained,
-        PhysicalStateCoordinate::ReceptorQuantumResidue,
-        predecessor.receptor_quantum_residue,
-        successor.receptor_quantum_residue,
-    )?;
     retained.sort_unstable_by_key(|entry| entry.coordinate);
     Ok(SparsePhysicalStateDelta::from_canonical_entries(retained))
 }
 
 pub(crate) fn retained_physical_state_coordinate(coordinate: PhysicalStateCoordinate) -> bool {
+    // ReceptorQuantumResidue remains accepted here only so existing cold
+    // evidence can be restored byte-for-byte. New neuronal fractals no longer
+    // emit that transient continuation coordinate.
     matches!(
         coordinate,
         PhysicalStateCoordinate::PsiWinding(_)
@@ -5168,6 +5262,28 @@ fn push_rational_delta(
     coordinate: PhysicalStateCoordinate,
     predecessor: ExactRational,
     successor: ExactRational,
+) {
+    let delta = rational_to_exact(successor) - rational_to_exact(predecessor);
+    if !delta.is_zero() {
+        let fixed = delta
+            .numer()
+            .to_i128()
+            .zip(delta.denom().to_u128())
+            .and_then(|(numerator, denominator)| ExactRational::new(numerator, denominator).ok());
+        entries.push(PhysicalStateDeltaEntry {
+            coordinate,
+            delta: fixed
+                .map(ExactPhysicalStateDelta::Rational)
+                .unwrap_or(ExactPhysicalStateDelta::WideRational(delta)),
+        });
+    }
+}
+
+fn push_retained_rational_delta(
+    entries: &mut Vec<PhysicalStateDeltaEntry>,
+    coordinate: PhysicalStateCoordinate,
+    predecessor: ExactRational,
+    successor: ExactRational,
 ) -> Result<(), NeuronPhysicalError> {
     let delta = successor.checked_sub(predecessor)?;
     if delta.parts().0 != 0 {
@@ -5196,7 +5312,7 @@ fn push_energy_delta(
             coordinate,
             delta: fixed
                 .map(ExactPhysicalStateDelta::Rational)
-                .unwrap_or(ExactPhysicalStateDelta::Energy(delta)),
+                .unwrap_or(ExactPhysicalStateDelta::WideRational(delta)),
         });
     }
 }
@@ -5322,7 +5438,7 @@ pub(crate) fn encode_sparse_physical_state_delta(
                 push_i128(&mut encoded, numerator);
                 push_u128(&mut encoded, denominator);
             }
-            ExactPhysicalStateDelta::Energy(rational) => {
+            ExactPhysicalStateDelta::WideRational(rational) => {
                 encoded.push(2);
                 push_state_big_rational(&mut encoded, rational)?;
             }
@@ -5374,7 +5490,7 @@ pub(crate) fn decode_sparse_physical_state_delta(
                         .map_err(|_| NeuronStateCodecError::InvalidEncoding)?,
                 )
             }
-            2 => ExactPhysicalStateDelta::Energy(reader.big_rational()?),
+            2 => ExactPhysicalStateDelta::WideRational(reader.big_rational()?),
             _ => return Err(NeuronStateCodecError::InvalidEncoding),
         };
         entries.push(
@@ -5419,15 +5535,24 @@ fn apply_signed_member_delta(
 
 fn apply_rational_member_delta(
     base: ExactRational,
-    delta: ExactRational,
+    delta: Exact,
 ) -> Result<ExactRational, NeuronStateCodecError> {
-    base.checked_add(delta)
+    let successor = rational_to_exact(base) + delta;
+    let numerator = successor
+        .numer()
+        .to_i128()
+        .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+    let denominator = successor
+        .denom()
+        .to_u128()
+        .ok_or(NeuronStateCodecError::InvalidEncoding)?;
+    ExactRational::new(numerator, denominator)
         .map_err(|_| NeuronStateCodecError::InvalidEncoding)
 }
 
 fn apply_phase_member_delta(
     base: ChargeCarrierPhase,
-    delta: ExactRational,
+    delta: Exact,
 ) -> Result<ChargeCarrierPhase, NeuronStateCodecError> {
     let (numerator, denominator) = base.parts();
     let base = ExactRational::new(numerator, denominator)
@@ -5442,7 +5567,7 @@ fn integral_member_delta(
 ) -> Result<ExactSignedDelta, NeuronStateCodecError> {
     match delta {
         ExactPhysicalStateDelta::Integral(signed) => Ok(signed),
-        ExactPhysicalStateDelta::Rational(_) | ExactPhysicalStateDelta::Energy(_) => {
+        ExactPhysicalStateDelta::Rational(_) | ExactPhysicalStateDelta::WideRational(_) => {
             Err(NeuronStateCodecError::InvalidEncoding)
         }
     }
@@ -5450,18 +5575,17 @@ fn integral_member_delta(
 
 fn rational_member_delta(
     delta: ExactPhysicalStateDelta,
-) -> Result<ExactRational, NeuronStateCodecError> {
+) -> Result<Exact, NeuronStateCodecError> {
     match delta {
-        ExactPhysicalStateDelta::Rational(rational) => Ok(rational),
-        ExactPhysicalStateDelta::Integral(_) | ExactPhysicalStateDelta::Energy(_) => {
-            Err(NeuronStateCodecError::InvalidEncoding)
-        }
+        ExactPhysicalStateDelta::Rational(rational) => Ok(rational_to_exact(rational)),
+        ExactPhysicalStateDelta::WideRational(rational) => Ok(rational),
+        ExactPhysicalStateDelta::Integral(_) => Err(NeuronStateCodecError::InvalidEncoding),
     }
 }
 
 fn energy_member_delta(delta: ExactPhysicalStateDelta) -> Result<Exact, NeuronStateCodecError> {
     match delta {
-        ExactPhysicalStateDelta::Energy(rational) => Ok(rational),
+        ExactPhysicalStateDelta::WideRational(rational) => Ok(rational),
         ExactPhysicalStateDelta::Rational(rational) => Ok(rational_to_exact(rational)),
         ExactPhysicalStateDelta::Integral(_) => Err(NeuronStateCodecError::InvalidEncoding),
     }
@@ -5667,10 +5791,10 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 )?;
             }
             PhysicalStateCoordinate::ReceptorQuantumResidue => {
-                applied.receptor_quantum_residue = apply_rational_member_delta(
-                    applied.receptor_quantum_residue,
-                    rational_member_delta(entry.delta())?,
-                )?;
+                applied.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(
+                    applied.receptor_quantum_residue.energy()
+                        + energy_member_delta(entry.delta())?,
+                );
             }
             PhysicalStateCoordinate::MembraneReturnWorkResidue => {
                 applied.membrane_return_work_residue = apply_rational_member_delta(
@@ -7246,7 +7370,7 @@ mod tests {
             original_bytes
         );
 
-        successor.receptor_quantum_residue = r(1, 2);
+        successor.receptor_quantum_residue = PhysicalEnergyResidue::from_exact_rational(r(1, 2));
 
         assert!(!fixture.state.shares_physical_body_with(&successor));
         assert!(
@@ -7254,8 +7378,8 @@ mod tests {
                 .unwrap()
                 .is_some()
         );
-        assert_eq!(fixture.state.receptor_quantum_residue, r(0, 1));
-        assert_eq!(successor.receptor_quantum_residue, r(1, 2));
+        assert_eq!(fixture.state.receptor_quantum_residue.energy(), &q(0, 1));
+        assert_eq!(successor.receptor_quantum_residue.energy(), &q(1, 2));
         assert_eq!(
             encode_neuron_physical_state(&fixture.anatomy, &fixture.state).unwrap(),
             original_bytes
@@ -8564,6 +8688,59 @@ mod tests {
         unordered[0] = 2;
         assert!(decode_sparse_physical_state_delta(&unordered).is_err());
         assert!(decode_sparse_physical_state_delta(&u64::MAX.to_le_bytes()).is_err());
+    }
+
+    #[test]
+    fn sparse_delta_preserves_wide_transient_rational_without_making_it_memory() {
+        let fixture = physical_fixture();
+        let mut base = fixture.state.clone();
+        let mut target = base.clone();
+        base.receptor_quantum_residue =
+            PhysicalEnergyResidue::from_exact_rational(r(1, u128::MAX));
+        target.receptor_quantum_residue =
+            PhysicalEnergyResidue::from_exact_rational(r(1, u128::MAX - 1));
+
+        let delta = sparse_physical_state_delta(&base, &target)
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            delta.exact_delta(PhysicalStateCoordinate::ReceptorQuantumResidue),
+            Some(ExactPhysicalStateDelta::WideRational(_))
+        ));
+        let encoded = encode_sparse_physical_state_delta(&delta).unwrap();
+        let decoded = decode_sparse_physical_state_delta(&encoded).unwrap();
+        assert_eq!(
+            apply_sparse_physical_state_delta(&fixture.anatomy, &base, &decoded).unwrap(),
+            target
+        );
+        assert!(sparse_retained_physical_state_delta(&base, &target)
+            .unwrap()
+            .is_none());
+    }
+
+    #[test]
+    fn wide_receptor_residue_cold_restores_without_changing_narrow_state_bytes() {
+        let fixture = physical_fixture();
+        let narrow = encode_neuron_physical_state(&fixture.anatomy, &fixture.state).unwrap();
+        assert_ne!(&narrow[..8], NEURON_STATE_WIDE_RECEPTOR_RESIDUE_MAGIC);
+
+        let mut wide = fixture.state.clone();
+        wide.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(
+            BigRational::new(
+                BigInt::from(1_u8),
+                BigInt::from(u128::MAX) + BigInt::from(1_u8),
+            ),
+        );
+        let encoded = encode_neuron_physical_state(&fixture.anatomy, &wide).unwrap();
+        assert_eq!(&encoded[..8], NEURON_STATE_WIDE_RECEPTOR_RESIDUE_MAGIC);
+        assert_eq!(
+            decode_neuron_physical_state(&fixture.anatomy, &encoded).unwrap(),
+            wide
+        );
+        assert_eq!(
+            encode_neuron_physical_state(&fixture.anatomy, &fixture.state).unwrap(),
+            narrow
+        );
     }
 
     #[test]

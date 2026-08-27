@@ -899,7 +899,7 @@ mod tests {
             let energy = &quantum * BigRational::from_integer(BigInt::from(10));
             let delivery = quantize_optical_population_delivery(
                 &energy,
-                specialized.state().receptor_quantum_residue,
+                &specialized.state().receptor_quantum_residue,
                 &quantum,
                 &schedule,
             )
@@ -989,7 +989,7 @@ mod tests {
             let energy = &quantum * BigRational::from_integer(BigInt::from(energy_quanta));
             let delivery = quantize_optical_population_delivery(
                 &energy,
-                genesis.state().receptor_quantum_residue,
+                &genesis.state().receptor_quantum_residue,
                 &quantum,
                 &schedule,
             )

@@ -10279,11 +10279,18 @@ def _perform_admitted_intake_locked(
             }
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
+    if intake_error is not None:
+        try:
+            organism.abort_unsealed_trajectory()
+        except (RuntimeError, ValueError) as abort_error:
+            if "has no pending candidate" not in str(abort_error):
+                raise RuntimeError(
+                    "resident intake refusal and predecessor restoration both failed"
+                ) from abort_error
+        raise intake_error
     if last_hop is None or (
         committed_hop_count == 0 and committed_vestibular_tick_count == 0
     ):
-        if intake_error is not None:
-            raise intake_error
         raise RuntimeError("admitted intake carried no hop episodes")
     action_body_axes = organism.live_articulated_body_axes()
     try:
@@ -11087,15 +11094,6 @@ def _perform_admitted_intake_locked(
             "state_sha256": _sealed_pointer.state_sha256,
         }
     _refresh_public_observation_cache()
-    if intake_error is not None:
-        # 2026-08-07 truth repair: this refusal follows hops that already
-        # COMMITTED and PERSISTED.  A reason silent about that invites the
-        # double-teach hazard (client re-sends, she experiences it twice).
-        raise type(intake_error)(
-            f"{intake_error} [{committed_hop_count} hop(s) of this "
-            "experience already committed and persisted before the "
-            "refusal — do not re-send]"
-        )
     return {
         "accepted": True,
         "ok": True,
