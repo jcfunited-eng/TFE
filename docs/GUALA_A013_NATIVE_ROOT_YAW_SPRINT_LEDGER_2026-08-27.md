@@ -386,3 +386,18 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   when both physical facts exist, and continues to refuse the opposite
   antagonist during later motor preparation. Full joint seven-field DSF and
   every charge/work/heat settlement remain unchanged.
+- Commit `5098e6b39cd6f5cd4bc2af40ad32d39ac90e3b14` deployed as sole
+  production task `dsf-ai-task:1278`. Its first tutor turn moved and persisted
+  the world, but the sensory transaction returned HTTP 503 and CURRENT stayed
+  at 74 layer-12 neurons.
+- Exact frozen-body reproduction proved the native sequence itself was lawful:
+  vestibular settlement succeeded, root proprioception grew the resident body
+  from 1,373 to 1,374 neurons, and its returned body consequence also settled.
+  Only the final canonical seal failed with `resident neuron lineage authority
+  changed` and caused the service wrapper to roll the valid growth back.
+- The seal validator was stale: it required every layer-12 neuron to carry an
+  articulated-joint terminal. It now accepts exactly one typed articulated or
+  root-yaw effector terminal and still rejects missing, mixed, or duplicate
+  authority. The same exact sequence now seals at 1,374 neurons; focused root
+  development proof remains `1/1`. Live task-1278 is not credited with the
+  correction; a new cutover and live retained-root witness are still required.

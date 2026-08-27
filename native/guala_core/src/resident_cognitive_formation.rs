@@ -4274,6 +4274,27 @@ fn accumulate_reached_cohort_energy(
         .saturating_add(cohort.separated_elementary_charges);
 }
 
+fn validate_motor_effector_mounts(
+    cohorts: &[ResidentReachedCohort],
+) -> Result<(), FormationError> {
+    let mut body_terminals = BTreeSet::<BodyEffectorTerminal>::new();
+    let mut root_yaw_terminals = BTreeSet::<RootYawEffectorTerminal>::new();
+    for mount in cohorts.iter().flat_map(|cohort| cohort.anatomy.mounts()) {
+        if mount.place().layer() != 12 {
+            continue;
+        }
+        match (
+            mount.body_effector_terminal(),
+            mount.root_yaw_effector_terminal(),
+        ) {
+            (Some(terminal), None) if body_terminals.insert(terminal) => {}
+            (None, Some(terminal)) if root_yaw_terminals.insert(terminal) => {}
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+        }
+    }
+    Ok(())
+}
+
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
         bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31)
@@ -5605,19 +5626,7 @@ impl ResidentCognitiveFormationState {
     }
 
     fn validate_current_motor_effectors(&self) -> Result<(), FormationError> {
-        let mut terminals = BTreeSet::<BodyEffectorTerminal>::new();
-        for mount in self.cohorts.iter().flat_map(|cohort| cohort.anatomy.mounts()) {
-            if mount.place().layer() != 12 {
-                continue;
-            }
-            let terminal = mount
-                .body_effector_terminal()
-                .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
-            if !terminals.insert(terminal) {
-                return Err(FormationError::NeuronLineageAuthorityChanged);
-            }
-        }
-        Ok(())
+        validate_motor_effector_mounts(&self.cohorts)
     }
 
     /// Correct the task-1207 reacted-load route once at an authenticated cold
@@ -23475,6 +23484,7 @@ mod tests {
         let motor = motors[0];
         assert!(fabric.contains_contact(regulation, motor));
         assert_eq!(fabric.contact_count(), contacts_before + 1);
+        validate_motor_effector_mounts(&cohorts).unwrap();
 
         let opposite_port = source
             .joint_source_ports()
