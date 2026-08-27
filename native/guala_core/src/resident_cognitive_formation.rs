@@ -7810,7 +7810,6 @@ impl ResidentCognitiveFormationState {
         let root_yaw_continuations = exact_root_yaw_causal_continuations(
             &cohorts,
             &topology_index,
-            &active_electrical_frontier,
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
         )?;
@@ -13759,13 +13758,15 @@ enum DevelopedMotorTerminal {
 /// interval; only a later integration <-> regulation transfer can reach layer
 /// 8. Carrier direction is not causal direction: a receptor made more negative
 /// draws carriers toward itself while its potential perturbation advances to
-/// the adjacent cell. This therefore joins the explicit advancing frontier
-/// endpoint across two adjacent, carrier-moving intervals and derives terminal
-/// identity from the mounted source receptor itself.
+/// the adjacent cell. This therefore joins the predecessor's explicit
+/// receptor-to-integration frontier to the next interval's exact settled
+/// integration/regulation contact. The current contact need not create a new
+/// frontier entry: on a mature body both endpoints can already be causal seeds,
+/// while their physical transfer remains real. Terminal identity is derived
+/// from the mounted source receptor itself.
 fn exact_root_yaw_causal_continuations(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
-    current_frontier: &[ActiveElectricalFrontierEntry],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
 ) -> Result<BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>, FormationError> {
@@ -13790,12 +13791,6 @@ fn exact_root_yaw_causal_continuations(
             (Some(8), Some(6)) => (current.receiver, current.sender),
             _ => continue,
         };
-        if !current_frontier.iter().any(|entry| {
-            entry.frontier_lineage() == regulation
-                && entry.directed_transfer() == Some(*current)
-        }) {
-            continue;
-        }
         for predecessor in predecessor_frontier {
             if predecessor.frontier_lineage() != integration {
                 continue;
@@ -23436,27 +23431,25 @@ mod tests {
             bond: StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
             transferred_whole_carriers: 1,
         };
-        let current_frontier = ActiveElectricalFrontierEntry::caused_with_frontier(
-            regulation,
-            integration,
-            regulation,
-            current.bond,
-            current.transferred_whole_carriers,
-        )
-        .unwrap();
+        // A current transfer alone is ambient conduction, not a causal
+        // continuation. The exact predecessor receptor -> integration hop is
+        // still mandatory.
         assert!(exact_root_yaw_causal_continuations(
             &cohorts,
             &topology,
-            &[],
             &[current],
             &[],
         )
         .unwrap()
         .is_empty());
+        // On a mature reached frontier both integration and regulation can
+        // already be causal seeds. Their exact contact still settles, but no
+        // new-frontier entry is emitted because neither endpoint is newly
+        // reached. The consecutive predecessor hop plus this physical
+        // transfer is the complete two-contact causal path.
         let continuations = exact_root_yaw_causal_continuations(
             &cohorts,
             &topology,
-            &[current_frontier],
             &[current],
             &[predecessor],
         )
