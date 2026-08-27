@@ -432,3 +432,39 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
 - The exact membrane fact requires adding `native/guala_core/src/complete_neuron.rs`
   to this sprint's source boundary; it is the existing physical settlement
   owner and no duplicate membrane calculation is introduced elsewhere.
+
+## Live membrane-output result and root projection correction — 2026-08-27
+
+- Commit `40a0222cdc803666266712bef24ab8af444a2f51` is live as sole task
+  `dsf-ai-task:1280`, image
+  `sha256:6410e0f77be7737823a8c0a81982791b56504d08e76b1a5f6b078fa1db338950`.
+  The same organism identity remained resident and unattended ticks advanced.
+- One exact one-millidegree tutor turn moved heading `341575 -> 341576`,
+  returned HTTP 200, and delivered sight, sound, touch, smell, taste, body,
+  and vestibular consequences into the same organism. Thirty-six later
+  unattended samples produced no root recruitment and no further root move.
+- Read-only CURRENT inspection proved the retained root motor lineage
+  `474c4e4c494e4531000000000000009b` was physically neutral and had one
+  500-pS contact to layer-8 regulation lineage
+  `474c4e4c494e4531000000000002ecfd`. That regulation membrane had
+  capacitance `93,824,443 pF`. Its exact standing current accumulated only
+  approximately `3.62e-7` carrier per millisecond clock, placing the next
+  whole-carrier crossing approximately 2.76 million clocks away. The deployed
+  motor-output law was not suppressing a discharge; the malformed anatomy
+  supplied none on a useful timescale.
+- Source tracing proved both fixed root-yaw endings were omitted from the
+  compact body-terminal projection branches. They fell through the generic
+  Cantor projection for layer 6 and then copied that huge coordinate into
+  layer 8. The correction assigns the two exact endings disjoint compact
+  layer-6 places `777..778` and layer-8 places `263..264`; the resulting
+  regulation capacitances are `37,120..37,393 pF`, not tens of millions.
+- V32 is the one-way anti-resurrection boundary. It removes every contact
+  incident to the two historical malformed integration/regulation paths,
+  cleans dependent frontier/bond evidence through the existing single contact
+  retirement authority, and preserves receptors, typed motors, unrelated
+  tissue, and the unchanged full seven-field DSF. A real later root occurrence
+  mounts the compact route; migration fabricates no action or sensory event.
+- Focused proofs pass: compact/disjoint projection, paired root reflex with
+  exact membrane-owned output, malformed-path retirement, and second-migration
+  identity. `git diff --check` passes. Live V32 cutover and native root action
+  remain pending and A-013 remains open.

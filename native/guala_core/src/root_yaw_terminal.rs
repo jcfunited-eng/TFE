@@ -13,6 +13,7 @@ use crate::virtual_articulated_body::{
 /// local joint receptor merely because both are body sense.
 pub(crate) const ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize =
     BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT;
+pub(crate) const ROOT_YAW_TERMINAL_COUNT: usize = 2;
 
 /// The two fixed antagonist directions of the world's root-yaw actuator.
 /// These are physical terminal identities, not action labels or a choice

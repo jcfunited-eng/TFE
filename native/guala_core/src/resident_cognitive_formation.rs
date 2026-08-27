@@ -160,6 +160,7 @@ use crate::virtual_articulated_body::{
 };
 use crate::root_yaw_terminal::{
     RootYawEffectorTerminal, RootYawProprioceptorTerminal,
+    ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET, ROOT_YAW_TERMINAL_COUNT,
 };
 use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
@@ -214,6 +215,11 @@ const MAGIC_V30: &[u8; 8] = b"GLCOG030";
 /// authored only under the consecutive causal-frontier law. The byte layout
 /// is identical to V30.
 const MAGIC_V31: &[u8; 8] = b"GLCOG031";
+/// V32 retires the malformed root-yaw projection that sent the two fixed
+/// directional endings through the generic Cantor projection twice. The byte
+/// layout remains V30/V31; the identity makes the one-way contact retirement
+/// restart-proof.
+const MAGIC_V32: &[u8; 8] = b"GLCOG032";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -233,6 +239,8 @@ const BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 = {
 };
 const BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
     BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+const ROOT_YAW_LAYER6_TOPOLOGY_OFFSET: u32 =
+    BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 /// Body regulation is its own layer-8 geography. Before proprioception, its
 /// widest body receptor is layer 5, topology 9, whose local projection is 114.
 /// The fixed antagonist terminals therefore occupy the next disjoint layer-8
@@ -246,6 +254,8 @@ const BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 = {
 };
 const BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
     BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+const ROOT_YAW_LAYER8_TOPOLOGY_OFFSET: u32 =
+    BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const HIPPOCAMPAL_CHECKPOINT_BYTES: usize = 8 + 33 + 33;
 const FIXED_BYTES: usize = MAGIC.len()
     + std::mem::size_of::<u16>()
@@ -4297,7 +4307,7 @@ fn validate_motor_effector_mounts(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31)
+        bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32)
     }
 
     /// Retire the task-955 local-integration projection that equated
@@ -5178,7 +5188,21 @@ impl ResidentCognitiveFormationState {
                 contaminated.insert(canonical_lineage_pair(left_lineage, right_lineage));
             }
         }
-        let mut invalid_references = std::collections::BTreeSet::new();
+        self.retire_fabric_contact_pairs(&contaminated)
+    }
+
+    /// Remove exact cross-cohort contact pairs and every structural reference
+    /// that depends on those pairs. This is the single one-way contact
+    /// retirement authority used by format migrations; ordinary cognition
+    /// never calls it.
+    fn retire_fabric_contact_pairs(
+        &self,
+        retired: &BTreeSet<([u8; 16], [u8; 16])>,
+    ) -> Result<Option<Self>, FormationError> {
+        if retired.is_empty() {
+            return Ok(None);
+        }
+        let mut invalid_references = BTreeSet::new();
         for retained in self.mosaics.iter() {
             for bond in retained
                 .mosaic
@@ -5187,13 +5211,10 @@ impl ResidentCognitiveFormationState {
                 .chain(retained.mosaic.recurrence_bonds())
             {
                 let (left_lineage, right_lineage) = bond.endpoints();
-                if contaminated_layers(left_lineage, right_lineage) == Some(true) {
+                if retired.contains(&canonical_lineage_pair(left_lineage, right_lineage)) {
                     invalid_references.insert(*bond);
                 }
             }
-        }
-        if contaminated.is_empty() && invalid_references.is_empty() {
-            return Ok(None);
         }
         let mut surviving_mosaics = Vec::with_capacity(self.mosaics.len());
         for retained in self.mosaics.iter() {
@@ -5212,7 +5233,7 @@ impl ResidentCognitiveFormationState {
             let Some(sender) = entry.sender() else {
                 return true;
             };
-            !contaminated.contains(&canonical_lineage_pair(sender, entry.receiver()))
+            !retired.contains(&canonical_lineage_pair(sender, entry.receiver()))
         };
         let mut successor = Self {
             generation: self.generation,
@@ -5223,7 +5244,7 @@ impl ResidentCognitiveFormationState {
             cohorts: self.cohorts.clone(),
             electrical_fabric: self
                 .electrical_fabric
-                .without_contact_pairs(&contaminated)
+                .without_contact_pairs(retired)
                 .map_err(FormationError::ResidentElectricalUnavailable)?,
             active_electrical_frontier: self
                 .active_electrical_frontier
@@ -5259,6 +5280,64 @@ impl ResidentCognitiveFormationState {
         successor.validate_current_motor_effectors()?;
         validate_lineage_state(&successor)?;
         Ok(Some(successor))
+    }
+
+    /// Retire the exact anatomy created when root-yaw endings fell through
+    /// the generic local-integration projection. Every contact incident to
+    /// the two malformed intrinsic paths leaves; source receptors, the fixed
+    /// motor terminals, and all unrelated tissue remain resident. The
+    /// compact projection is mounted normally by the next real root-yaw
+    /// occurrence, so no action or sensory event is fabricated here.
+    fn retire_misprojected_root_yaw_paths(&self) -> Result<Option<Self>, FormationError> {
+        let mounted = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount))
+            .collect::<Vec<_>>();
+        let mut malformed = BTreeSet::new();
+        for (_, receptor_mount) in mounted.iter().copied() {
+            let Some(source) = receptor_mount.source_site() else {
+                continue;
+            };
+            if source.root_yaw_proprioceptor_terminal().is_none() {
+                continue;
+            }
+            let receptor_place = receptor_mount.place();
+            let legacy_topology = declared_neuron_territory(receptor_place)
+                .map_err(|_| FormationError::ArithmeticOverflow)?
+                .checked_sub(1)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            let legacy_topology =
+                u32::try_from(legacy_topology).map_err(|_| FormationError::ArithmeticOverflow)?;
+            let legacy_integration = DeclaredNeuronPlace::new(6, legacy_topology);
+            let legacy_regulation = DeclaredNeuronPlace::new(8, legacy_topology);
+            for (lineage, mount) in mounted.iter().copied() {
+                if mount.source_site().is_none()
+                    && (mount.place() == legacy_integration || mount.place() == legacy_regulation)
+                {
+                    malformed.insert(lineage);
+                }
+            }
+        }
+        if malformed.is_empty() {
+            return Ok(None);
+        }
+        let mut retired = BTreeSet::new();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left = self.electrical_fabric.lineages()[left];
+            let right = self.electrical_fabric.lineages()[right];
+            if malformed.contains(&left) || malformed.contains(&right) {
+                retired.insert(canonical_lineage_pair(left, right));
+            }
+        }
+        self.retire_fabric_contact_pairs(&retired)
     }
 
     /// One explicit correction for anatomy admitted by the rejected
@@ -8669,7 +8748,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V31);
+        output.extend_from_slice(MAGIC_V32);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -9489,7 +9568,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V31.len()) != Some(MAGIC_V31) {
+        if bytes.get(..MAGIC_V32.len()) != Some(MAGIC_V32) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -9516,8 +9595,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v31 =
-            bytes.len() >= MAGIC_V31.len() && &bytes[..MAGIC_V31.len()] == MAGIC_V31;
+        let current_v32 =
+            bytes.len() >= MAGIC_V32.len() && &bytes[..MAGIC_V32.len()] == MAGIC_V32;
+        let current_v31 = current_v32
+            || (bytes.len() >= MAGIC_V31.len() && &bytes[..MAGIC_V31.len()] == MAGIC_V31);
         let current_v30 = current_v31
             || (bytes.len() >= MAGIC_V30.len() && &bytes[..MAGIC_V30.len()] == MAGIC_V30);
         let previous_current_v29 =
@@ -10089,9 +10170,10 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v31 = bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31);
-        let current_v30 =
-            current_v31 || bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30);
+        let current_v32 = bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32);
+        let current_v31 =
+            current_v32 || bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31);
+        let current_v30 = current_v31 || bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30);
         let previous_current_v29 = bytes.get(..MAGIC_V29.len()) == Some(MAGIC_V29);
         let previous_current_v28 = bytes.get(..MAGIC_V28.len()) == Some(MAGIC_V28);
         let previous_current_v27 = bytes.get(..MAGIC_V27.len()) == Some(MAGIC_V27);
@@ -10109,7 +10191,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V28.len()] == MAGIC_V28
                 || &bytes[..MAGIC_V29.len()] == MAGIC_V29
                 || &bytes[..MAGIC_V30.len()] == MAGIC_V30
-                || &bytes[..MAGIC_V31.len()] == MAGIC_V31);
+                || &bytes[..MAGIC_V31.len()] == MAGIC_V31
+                || &bytes[..MAGIC_V32.len()] == MAGIC_V32);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -10169,6 +10252,14 @@ impl ResidentCognitiveFormationState {
             state
         } else {
             match state.retire_contaminated_effector_pools()? {
+                Some(corrected) => corrected,
+                None => state,
+            }
+        };
+        let state = if current_v32 {
+            state
+        } else {
+            match state.retire_misprojected_root_yaw_paths()? {
                 Some(corrected) => corrected,
                 None => state,
             }
@@ -12988,6 +13079,28 @@ fn local_integration_place(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
+    let root_yaw_start = u32::try_from(ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let root_yaw_end = root_yaw_start
+        .checked_add(
+            u32::try_from(ROOT_YAW_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (root_yaw_start..root_yaw_end).contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(root_yaw_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            ROOT_YAW_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     let paired = declared_neuron_territory(receptor_place)
         .map_err(|_| FormationError::ArithmeticOverflow)?
         .checked_sub(1)
@@ -13040,6 +13153,28 @@ fn body_regulation_place(
         return Ok(DeclaredNeuronPlace::new(
             8,
             BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let root_yaw_start = u32::try_from(ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let root_yaw_end = root_yaw_start
+        .checked_add(
+            u32::try_from(ROOT_YAW_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (root_yaw_start..root_yaw_end).contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(root_yaw_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            ROOT_YAW_LAYER8_TOPOLOGY_OFFSET
                 .checked_add(terminal_ordinal)
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
@@ -20816,7 +20951,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -21045,6 +21180,48 @@ mod tests {
         .unwrap();
         assert_eq!(first_regulation, DeclaredNeuronPlace::new(8, 115));
         assert_eq!(last_regulation, DeclaredNeuronPlace::new(8, 188));
+        let first_root = local_integration_place(DeclaredNeuronPlace::new(
+            PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+            u32::try_from(ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET).unwrap(),
+        ))
+        .unwrap();
+        let last_root = local_integration_place(DeclaredNeuronPlace::new(
+            PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+            u32::try_from(
+                ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET + ROOT_YAW_TERMINAL_COUNT - 1,
+            )
+            .unwrap(),
+        ))
+        .unwrap();
+        assert_eq!(first_root, DeclaredNeuronPlace::new(6, 777));
+        assert_eq!(last_root, DeclaredNeuronPlace::new(6, 778));
+        assert_eq!(
+            body_regulation_place(
+                DeclaredNeuronPlace::new(
+                    PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+                    u32::try_from(ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET).unwrap(),
+                ),
+                first_root,
+            )
+            .unwrap(),
+            DeclaredNeuronPlace::new(8, 263),
+        );
+        assert_eq!(
+            body_regulation_place(
+                DeclaredNeuronPlace::new(
+                    PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+                    u32::try_from(
+                        ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+                            + ROOT_YAW_TERMINAL_COUNT
+                            - 1,
+                    )
+                    .unwrap(),
+                ),
+                last_root,
+            )
+            .unwrap(),
+            DeclaredNeuronPlace::new(8, 264),
+        );
         for topology_index in 0..=PRE_PROPRIOCEPTIVE_WIDEST_BODY_TOPOLOGY_INDEX {
             let existing = local_integration_place(DeclaredNeuronPlace::new(
                 PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
@@ -22129,7 +22306,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -22992,7 +23169,7 @@ mod tests {
         };
         validate_lineage_state(&state).unwrap();
         let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
 
         // Simulate the legacy body: identical layout under the V30 magic.
         let mut legacy = current.clone();
@@ -23029,7 +23206,7 @@ mod tests {
 
         // One-way and restart-proof: the migrated body is V31 and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&migrated[..MAGIC_V32.len()], MAGIC_V32);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -23584,6 +23761,174 @@ mod tests {
     }
 
     #[test]
+    fn v32_retires_misprojected_root_yaw_paths_once() {
+        const MAX_BYTES: usize = 1_600_000_000;
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let source = crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source(
+            0, 1_000,
+        )
+        .unwrap();
+        let moved_port = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.root_yaw_proprioceptor_terminal.is_some()
+                    && port.exact_normalized_sources.windows(2).any(|pair| pair[0] != pair[1])
+            })
+            .unwrap();
+        let receptor_site = NeuronSourceSite::from_source_port(moved_port).unwrap();
+        let (_, receptor, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site.clone(),
+        );
+        let legacy_topology = u32::try_from(
+            declared_neuron_territory(DeclaredNeuronPlace::from_source_site(&receptor_site))
+                .unwrap()
+                - 1,
+        )
+        .unwrap();
+        let legacy_integration = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(6, legacy_topology),
+        )
+        .unwrap();
+        let legacy_regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, legacy_topology),
+        )
+        .unwrap();
+        let unrelated = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contacts(&[
+                (
+                    receptor,
+                    legacy_integration,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    legacy_integration,
+                    legacy_regulation,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    legacy_regulation,
+                    unrelated,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+            ])
+            .unwrap();
+        let occupied_places = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .map(ReachedNeuronMount::place)
+            .collect::<Vec<_>>();
+        let admitted_population = DevelopmentalRestingPopulation::admit(
+            MAX_BYTES,
+            100_000,
+            next_lineage,
+            &occupied_places,
+        )
+        .unwrap();
+        next_lineage = admitted_population.lineage_end_exclusive();
+        population = Some(admitted_population);
+        let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let state = ResidentCognitiveFormationState {
+            generation: 5,
+            next_lineage_ordinal: next_lineage,
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+            formation_index: ResidentFormationIndex::default(),
+        };
+        let mut v31 = state.encode(MAX_BYTES).unwrap();
+        v31[..MAGIC_V31.len()].copy_from_slice(MAGIC_V31);
+        let decoded = ResidentCognitiveFormationState::decode_for_one_way_migration(
+            &v31,
+            MAX_BYTES,
+        )
+        .expect("V31 fixture must decode at the one-way boundary");
+        assert!(decoded.resting_population.is_some());
+        let corrected = decoded
+            .retire_misprojected_root_yaw_paths()
+            .expect("misprojected route retirement must settle")
+            .expect("fixture must carry one misprojected route");
+        corrected
+            .clone()
+            .encode(MAX_BYTES)
+            .expect("corrected V32 fixture must encode canonically");
+        corrected
+            .into_current_retained_formation_authority()
+            .expect("retained-formation authority must preserve the corrected fixture")
+            .encode(MAX_BYTES)
+            .expect("final migrated fixture must encode canonically");
+        let migrated = ResidentCognitiveFormationState::migrate_to_current_format(
+            &v31,
+            MAX_BYTES,
+        )
+        .unwrap();
+        assert_eq!(&migrated[..MAGIC_V32.len()], MAGIC_V32);
+        let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
+        assert!(restored.electrical_fabric.contains_contact(receptor, {
+            restored
+                .cohorts
+                .iter()
+                .flat_map(|cohort| {
+                    cohort
+                        .anatomy
+                        .mounts()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                })
+                .find_map(|(mount, lineage)| {
+                    (mount.place() == local_integration_place(
+                        DeclaredNeuronPlace::from_source_site(&receptor_site),
+                    )
+                    .unwrap())
+                    .then_some(*lineage)
+                })
+                .unwrap()
+        }));
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(receptor, legacy_integration));
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(legacy_integration, legacy_regulation));
+        assert!(!restored
+            .electrical_fabric
+            .contains_contact(legacy_regulation, unrelated));
+        assert_eq!(
+            ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
+                .unwrap(),
+            migrated
+        );
+    }
+
+    #[test]
     fn changed_ordering_set_reuses_the_terminal_bound_motor() {
         let mut cohorts = Vec::new();
         let mut population =
@@ -23823,7 +24168,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -24975,7 +25320,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V31.len()], MAGIC_V31);
+        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());
