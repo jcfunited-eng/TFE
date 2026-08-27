@@ -938,13 +938,10 @@ def _rehearse_articulation_and_self_hearing(
 ) -> dict[str, object] | None:
     """Run only a reached layer-13 discharge through body and cochlear return."""
 
-    recruitments = tuple(prepared.articulatory_unit_recruitments)
-    if not recruitments:
+    if not tuple(prepared.articulatory_unit_recruitments):
         return None
     if trajectory is None:
-        trajectory = _exact_articulatory_trajectory_or_none(recruitments)
-    if trajectory is None:
-        return None
+        trajectory = _exact_articulatory_trajectory(prepared)
     (
         sample_rate_hz,
         pressure_pcm,
@@ -1354,25 +1351,27 @@ def _rehearse_a013_thermal_body(expected_identity: str) -> dict[str, object]:
     }
 
 
-def _exact_articulatory_trajectory_or_none(
-    recruitments: tuple[tuple[object, int, int, object], ...],
-) -> object | None:
-    """Translate the native body's exact antagonist cancellation, and only it."""
+def _exact_articulatory_trajectory(
+    prepared: object,
+) -> object:
+    """Settle the exact interval discharge through its resident body."""
 
-    try:
-        return exact_articulatory_interval_trajectory(
-            intervals=((
-                16_000,
-                tuple(
-                    (topology_index, carriers)
-                    for _lineage, topology_index, carriers, _transfers in recruitments
-                ),
-            ),)
+    intervals = tuple(
+        (
+            interval.source_duration_samples_at_articulatory_rate,
+            tuple(
+                (topology_index, carriers)
+                for _lineage, topology_index, carriers, _transfers in (
+                    interval.articulatory_unit_recruitments
+                )
+            ),
+            interval.articulated_body_state,
         )
-    except ValueError as error:
-        if error.args == ("CancelledRecruitment",):
-            return None
-        raise
+        for interval in prepared.causal_interval_evidence
+    )
+    if not intervals:
+        raise RuntimeError("native articulation lost causal interval body evidence")
+    return exact_articulatory_interval_trajectory(intervals=intervals)
 
 
 def _rehearse_native_articulation_source(
@@ -1435,14 +1434,10 @@ def _rehearse_native_articulation_source(
                 )
                 heading = (heading + signed_step) % 360_000
                 if candidate.articulatory_unit_recruitments:
-                    candidate_trajectory = _exact_articulatory_trajectory_or_none(
-                        tuple(candidate.articulatory_unit_recruitments)
-                    )
-                    if candidate_trajectory is not None:
-                        prepared = candidate
-                        after_source = after_candidate
-                        articulation_trajectory = candidate_trajectory
-                        break
+                    prepared = candidate
+                    after_source = after_candidate
+                    articulation_trajectory = _exact_articulatory_trajectory(candidate)
+                    break
             if prepared is None or after_source is None:
                 raise RuntimeError("ordinary native source produced no articulation")
             source_steps = steps[:source_interval_count]
@@ -1456,11 +1451,7 @@ def _rehearse_native_articulation_source(
             after_source = organism.readiness()
             if not prepared.articulatory_unit_recruitments:
                 raise RuntimeError("native articulation replay lost its discharge")
-            articulation_trajectory = _exact_articulatory_trajectory_or_none(
-                tuple(prepared.articulatory_unit_recruitments)
-            )
-            if articulation_trajectory is None:
-                raise RuntimeError("native articulation replay cancelled its discharge")
+            articulation_trajectory = _exact_articulatory_trajectory(prepared)
             source_interval_count = len(replay_source_steps)
             source_dsf_deliveries = prepared.dsf_delivery_count
             source_physical_transitions = (

@@ -618,35 +618,42 @@ def test_internal_consolidation_changes_one_formation_and_cold_replays(monkeypat
     assert proof["native_internal_consolidation_articulatory_recruitment_count"] == 1
 
 
-def test_articulation_translation_preserves_only_exact_native_cancellation(
+def test_articulation_translation_never_restores_retired_topology_cancellation(
     monkeypatch,
 ) -> None:
-    recruitment = (("13" * 16, 1, 5, ()),)
+    prepared = SimpleNamespace(
+        causal_interval_evidence=(
+            SimpleNamespace(
+                source_duration_samples_at_articulatory_rate=16_000,
+                articulatory_unit_recruitments=(("13" * 16, 1, 5, ()),),
+                articulated_body_state=b"resident-body",
+            ),
+        ),
+    )
 
-    def cancelled(**_kwargs):
+    def retired_cancellation(**_kwargs):
         raise ValueError("CancelledRecruitment")
 
-    monkeypatch.setattr(probe, "exact_articulatory_interval_trajectory", cancelled)
-    assert probe._exact_articulatory_trajectory_or_none(recruitment) is None
+    monkeypatch.setattr(
+        probe,
+        "exact_articulatory_interval_trajectory",
+        retired_cancellation,
+    )
+    with pytest.raises(ValueError, match="CancelledRecruitment"):
+        probe._exact_articulatory_trajectory(prepared)
 
     def failed(**_kwargs):
         raise ValueError("ArithmeticWidth")
 
     monkeypatch.setattr(probe, "exact_articulatory_interval_trajectory", failed)
     with pytest.raises(ValueError, match="ArithmeticWidth"):
-        probe._exact_articulatory_trajectory_or_none(recruitment)
+        probe._exact_articulatory_trajectory(prepared)
 
 
-def test_native_articulation_source_skips_cancelled_recruitment_and_replays_exactly(
+def test_native_articulation_source_uses_first_physical_recruitment_and_replays_exactly(
     monkeypatch,
 ) -> None:
     trajectory_calls: list[tuple[int, tuple[int, ...]]] = []
-    cancelled = (
-        "13" * 16,
-        1,
-        5,
-        (("12" * 16, 12, "13" * 16, 13, 0, 5),),
-    )
     recruitment = (
         "13" * 16,
         0,
@@ -679,9 +686,7 @@ def test_native_articulation_source_skips_cancelled_recruitment_and_replays_exac
             return SimpleNamespace(
                 token=f"source-{self.prepared_intervals}",
                 articulatory_unit_recruitments=(
-                    (cancelled,)
-                    if self.prepared_intervals == 2
-                    else ((recruitment,) if self.prepared_intervals == 3 else ())
+                    (recruitment,) if self.prepared_intervals == 3 else ()
                 ),
                 dsf_delivery_count=2,
                 physically_transitioned_neuron_count=10 * self.prepared_intervals,
@@ -701,6 +706,27 @@ def test_native_articulation_source_skips_cancelled_recruitment_and_replays_exac
                 dsf_delivery_count=6,
                 physically_transitioned_neuron_count=60,
             )
+
+        def commit_vestibular_trajectory_direct(
+            self, heading: int, steps: tuple[int, ...]
+        ) -> SimpleNamespace:
+            if len(steps) == 1:
+                assert heading == 0
+                assert steps == (0,)
+                self.prepared_intervals += 1
+                self.tick += 1
+                return SimpleNamespace(
+                    articulatory_unit_recruitments=(
+                        (recruitment,) if self.prepared_intervals == 3 else ()
+                    ),
+                    dsf_delivery_count=2,
+                    physically_transitioned_neuron_count=(
+                        10 * self.prepared_intervals
+                    ),
+                )
+            prepared = self.prepare_vestibular_trajectory(heading, steps)
+            self.tick += len(steps)
+            return prepared
 
         def commit(self, token: str) -> SimpleNamespace:
             assert token == f"source-{self.prepared_intervals}"
@@ -723,8 +749,8 @@ def test_native_articulation_source_skips_cancelled_recruitment_and_replays_exac
     )
     monkeypatch.setattr(
         probe,
-        "_exact_articulatory_trajectory_or_none",
-        lambda recruitments: None if recruitments == (cancelled,) else ("trajectory",),
+        "_exact_articulatory_trajectory",
+        lambda _prepared: ("trajectory",),
     )
 
     def articulate(organism, prepared, trajectory):

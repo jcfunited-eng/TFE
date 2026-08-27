@@ -434,6 +434,7 @@ class ResidentCausalIntervalEvidence:
         AffectiveBalanceTrajectoryEvidence, ...
     ]
     causal_frontier_advances: tuple[tuple[str, str, int, int, str], ...]
+    articulated_body_state: bytes
 
 
 @dataclass(frozen=True, slots=True)
@@ -1048,7 +1049,7 @@ def _causal_interval_evidence(
         raise RuntimeError("causal interval evidence changed format")
     intervals = []
     for index, raw in enumerate(value):
-        if not isinstance(raw, tuple) or len(raw) != 10:
+        if not isinstance(raw, tuple) or len(raw) != 11:
             raise RuntimeError("causal interval evidence changed format")
         (
             raw_duration_samples,
@@ -1061,7 +1062,21 @@ def _causal_interval_evidence(
             raw_changes,
             raw_affect,
             raw_frontier,
+            raw_articulated_body,
         ) = raw
+        if (
+            not isinstance(raw_articulated_body, list)
+            or len(raw_articulated_body) != 195
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or not 0 <= value <= 255
+                for value in raw_articulated_body
+            )
+        ):
+            raise RuntimeError(
+                "causal interval articulated body changed format"
+            )
         duration_samples = _positive_integer(
             raw_duration_samples,
             "causal interval articulatory-clock duration",
@@ -1127,6 +1142,7 @@ def _causal_interval_evidence(
                     _affective_balance_trajectory_evidence(raw_affect)
                 ),
                 causal_frontier_advances=canonical_frontier,
+                articulated_body_state=bytes(raw_articulated_body),
             )
         )
     return tuple(intervals)
@@ -3670,7 +3686,9 @@ def exact_native_yaw_trajectory(
 
 def exact_articulatory_interval_trajectory(
     *,
-    intervals: tuple[tuple[int, tuple[tuple[int, int], ...]], ...],
+    intervals: tuple[
+        tuple[int, tuple[tuple[int, int], ...], bytes], ...
+    ],
 ) -> tuple[int, tuple[int, ...], bytes, int, int, int, int, int, int, int]:
     """Settle ordered native layer-13 intervals without flattening time."""
 
@@ -3682,8 +3700,8 @@ def exact_articulatory_interval_trajectory(
             "guala_core does not expose interval articulatory body physics"
         )
     native_intervals = [
-        (int(sample_count), list(recruitments))
-        for sample_count, recruitments in intervals
+        (int(sample_count), list(recruitments), body_state)
+        for sample_count, recruitments, body_state in intervals
     ]
     (
         sample_rate_hz,

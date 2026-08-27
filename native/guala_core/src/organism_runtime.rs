@@ -244,6 +244,7 @@ type CausalIntervalEvidenceProjection = (
     Vec<ChangedContactChannelStateProjection>,
     Vec<AffectiveBalanceTrajectoryProjection>,
     Vec<CausalFrontierTransferProjection>,
+    Vec<u8>,
 );
 type LocalizedFluidChemistryProjection = (
     String,
@@ -759,6 +760,7 @@ struct CausalIntervalEvidence {
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     frontier_advances: Vec<CausalFrontierTransferObservation>,
+    articulated_body: ArticulatedBodyState,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -1633,6 +1635,11 @@ impl NativeResidentOrganismPrepare {
                         &interval.affective_balance_trajectories,
                     ),
                     project_causal_frontier_transfers(&interval.frontier_advances),
+                    interval
+                        .articulated_body
+                        .encode()
+                        .expect("resident causal interval body was already validated")
+                        .to_vec(),
                 )
             })
             .collect()
@@ -3172,6 +3179,7 @@ impl ResidentOrganismRuntime {
                 changed_contact_channel_states: observation.changed_contact_channel_states.clone(),
                 affective_balance_trajectories: observation.affective_balance_trajectories.clone(),
                 frontier_advances: successor.observe_active_electrical_frontier_advances(),
+                articulated_body: articulated_body.clone(),
             });
             cognitive = Some(successor);
             retain_cognitive_trajectory_observation(&mut aggregate, observation)?;
@@ -3525,6 +3533,7 @@ impl ResidentOrganismRuntime {
                 changed_contact_channel_states: observation.changed_contact_channel_states.clone(),
                 affective_balance_trajectories: observation.affective_balance_trajectories.clone(),
                 frontier_advances: successor.observe_active_electrical_frontier_advances(),
+                articulated_body: initial_articulated_body.clone(),
             });
             cognitive = successor;
             vestibular = ResidentVestibularBody {
@@ -4867,9 +4876,17 @@ fn exact_virtual_yaw_trajectory(
 }
 
 #[pyfunction]
+fn exact_neutral_articulated_body_state<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+    let encoded = ArticulatedBodyState::at_neutral()
+        .encode()
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+    Ok(PyBytes::new(py, &encoded))
+}
+
+#[pyfunction]
 fn exact_articulatory_interval_trajectory<'py>(
     py: Python<'py>,
-    intervals: Vec<(usize, Vec<(u32, u128)>)>,
+    intervals: Vec<(usize, Vec<(u32, u128)>, Vec<u8>)>,
 ) -> PyResult<(
     u32,
     Vec<i16>,
@@ -4882,6 +4899,14 @@ fn exact_articulatory_interval_trajectory<'py>(
     u128,
     usize,
 )> {
+    let intervals = intervals
+        .into_iter()
+        .map(|(samples, recruitments, body)| {
+            ArticulatedBodyState::decode(&body)
+                .map(|body| (samples, recruitments, body))
+                .map_err(|error| PyValueError::new_err(format!("{error:?}")))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
     let settled = settle_articulatory_interval_discharges(&intervals)
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
     let body_bytes = settled
@@ -5522,6 +5547,10 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        exact_neutral_articulated_body_state,
+        module
+    )?)?;
     module.add_function(wrap_pyfunction!(
         exact_articulatory_interval_trajectory,
         module

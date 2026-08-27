@@ -131,10 +131,6 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 )
 
 
-class _ExactArticulatoryAntagonistCancellation(RuntimeError):
-    """One native vocal antagonist pair settled to exact physical rest."""
-
-
 APP_SCHEMA = "guala.native_production_http.v1"
 PUBLIC_OBSERVATION_SCHEMA = "guala.native.public_observation.v1"
 COGNITIVE_CAPITAL_SCHEMA = "guala.cognitive_capital.evidence.v1"
@@ -1253,7 +1249,7 @@ ARTICULATORY_BODY_QUANTITIES = (
     "oral-aperture-area",
     "perioral-skin-area-deformation",
 )
-ARTICULATORY_BODY_DECLARED_SPANS = (4_000, 64, 40, 40)
+ARTICULATORY_BODY_DECLARED_SPANS = (4_000, 320, 1_000, 600)
 ARTICULATORY_BODY_PORT_COUNT = len(ARTICULATORY_BODY_CHANNELS)
 ARTICULATORY_BODY_SENSOR_ID = "articulatory-body-mechanoreceptors"
 ARTICULATORY_BODY_UNIT = "fraction-of-declared-articulatory-mechanical-span"
@@ -8088,6 +8084,7 @@ def _causal_interval_hops(
                 interval.affective_balance_trajectories
             ),
             "causal_frontier_advances": interval.causal_frontier_advances,
+            "articulated_body_state": interval.articulated_body_state,
         }
         for interval in evidence.causal_interval_evidence
     )
@@ -9879,7 +9876,7 @@ def _perform_admitted_intake_locked(
         ]
     ] = []
     articulatory_intervals: list[
-        tuple[int, tuple[tuple[int, int], ...]]
+        tuple[int, tuple[tuple[int, int], ...], bytes]
     ] = []
     body_effector_bindings: list[tuple[int, str, str, str, int]] = []
     articulated_body_consequences: list[
@@ -9932,6 +9929,7 @@ def _perform_admitted_intake_locked(
                         (int(topology), int(carriers))
                         for _lineage, topology, carriers, _transfers in recruitments
                     ),
+                    interval["articulated_body_state"],
                 )
             )
 
@@ -10130,7 +10128,7 @@ def _perform_admitted_intake_locked(
         if articulatory_unit_recruitments:
             flattened_interval_recruitments = tuple(
                 recruitment
-                for _duration, recruitments in articulatory_intervals
+                for _duration, recruitments, _body in articulatory_intervals
                 for recruitment in recruitments
             )
             aggregate_recruitments = tuple(
@@ -10145,7 +10143,7 @@ def _perform_admitted_intake_locked(
                 )
             active_interval_indices = tuple(
                 index
-                for index, (_duration, recruitments) in enumerate(
+                for index, (_duration, recruitments, _body) in enumerate(
                     articulatory_intervals
                 )
                 if recruitments
@@ -10156,27 +10154,22 @@ def _perform_admitted_intake_locked(
                 )
             first_active = active_interval_indices[0]
             last_active = active_interval_indices[-1]
-            try:
-                (
-                    sample_rate_hz,
-                    pressure_pcm,
-                    articulatory_body_trajectories,
-                    peak_breath_flow_pcm,
-                    glottal_open_samples_at_apex,
-                    mouth_area_square_millimetres_at_apex,
-                    perioral_area_displacement_square_millimetres,
-                    applied_motor_quanta,
-                    stalled_motor_quanta,
-                    relaxation_sample_count,
-                ) = exact_articulatory_interval_trajectory(
-                    intervals=tuple(
-                        articulatory_intervals[first_active : last_active + 1]
-                    )
+            (
+                sample_rate_hz,
+                pressure_pcm,
+                articulatory_body_trajectories,
+                peak_breath_flow_pcm,
+                glottal_open_samples_at_apex,
+                mouth_area_square_millimetres_at_apex,
+                perioral_area_displacement_square_millimetres,
+                applied_motor_quanta,
+                stalled_motor_quanta,
+                relaxation_sample_count,
+            ) = exact_articulatory_interval_trajectory(
+                intervals=tuple(
+                    articulatory_intervals[first_active : last_active + 1]
                 )
-            except ValueError as error:
-                if error.args != ("CancelledRecruitment",):
-                    raise
-                raise _ExactArticulatoryAntagonistCancellation from None
+            )
             self_hearing_episodes = tuple(_mono_pcm_hop_episodes(
                 assembly_prefix=(
                     f"native-self-articulation-{last_hop['organism_tick']}"
@@ -10286,8 +10279,6 @@ def _perform_admitted_intake_locked(
                     deferred_recurrent_articulation_count
                 ),
             }
-    except _ExactArticulatoryAntagonistCancellation:
-        pass
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if last_hop is None or (
@@ -12212,10 +12203,11 @@ def _articulatory_body_hops(
         values = raw[start : start + sample_count]
         if any(abs(value) > span for value in values):
             raise ValueError("native articulatory body exceeded its declared span")
+        terminal_value = values[-1]
         remainder = len(values) % hop_samples
         if remainder:
-            values.extend([0] * (hop_samples - remainder))
-        values.append(0)
+            values.extend([terminal_value] * (hop_samples - remainder))
+        values.append(terminal_value)
         channels.append(values)
     if not channels or len({len(values) for values in channels}) != 1:
         raise ValueError("native articulatory body channels lost their shared clock")

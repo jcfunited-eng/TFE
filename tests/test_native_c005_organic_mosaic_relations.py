@@ -5,6 +5,10 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from dsf_ai_service import native_production_app as production
+from guala_core import exact_neutral_articulated_body_state
+
+
+NEUTRAL_ARTICULATED_BODY = bytes(exact_neutral_articulated_body_state())
 
 
 def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, object]:
@@ -42,6 +46,7 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
         "motor_unit_recruitments": (),
         "body_effector_bindings": (),
         "articulated_body_consequences": (),
+        "articulated_body_state": NEUTRAL_ARTICULATED_BODY,
         "body_proprioceptive_sources": (),
         "body_proprioceptive_source_extents": (),
         "articulatory_unit_recruitments": (),
@@ -63,6 +68,7 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
 
 def _quiescent_body_organism() -> SimpleNamespace:
     return SimpleNamespace(
+        live_articulated_body_axes=lambda: (),
         readiness=lambda: SimpleNamespace(
             articulated_body_state_sha256="44" * 32,
             articulated_body_axes=(),
@@ -544,15 +550,16 @@ def test_exact_retained_path_is_bound_to_articulation_and_self_hearing(
     assert retained["retained_formation_causal_path"] == causal
 
 
-def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
+def test_articulatory_topology_order_cannot_silence_a_physical_discharge(
     monkeypatch,
 ) -> None:
-    """Equal vocal antagonists do not invalidate their admitted experience."""
+    """Topology ordinals identify cells; they never supply actuator direction."""
 
     monkeypatch.setattr(production, "_last_tested_articulation_evidence", None)
     monkeypatch.setattr(production, "_last_transition_evidence", None)
-    cancelled = _hop(11, ())
-    _retain_articulation(cancelled, (
+    discharged = _hop(11, ())
+    discharged["causal_transition_sha256"] = "55" * 32
+    _retain_articulation(discharged, (
         (
             "13" * 16,
             0,
@@ -567,7 +574,12 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
         ),
     ))
     organism = _quiescent_body_organism()
-    predecessor = SimpleNamespace(state_sha256="aa" * 32)
+    predecessor = SimpleNamespace(
+        identity="resident-test",
+        organism_tick=10,
+        state_bytes=100,
+        state_sha256="aa" * 32,
+    )
     monkeypatch.setattr(
         production,
         "_runtime",
@@ -579,17 +591,9 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
     monkeypatch.setattr(
         production,
         "_commit_admitted_hop",
-        lambda *_args, **_kwargs: cancelled,
+        lambda *_args, **_kwargs: discharged,
     )
-
-    def exact_cancellation(**_kwargs):
-        raise ValueError("CancelledRecruitment")
-
-    monkeypatch.setattr(
-        production,
-        "exact_articulatory_interval_trajectory",
-        exact_cancellation,
-    )
+    monkeypatch.setattr(production, "_mono_pcm_hop_episodes", lambda **_kwargs: [])
     monkeypatch.setattr(
         production,
         "_publish_committed_organism",
@@ -606,14 +610,19 @@ def test_exact_antagonist_cancellation_is_a_lawful_no_vocal_act(
         "_refresh_public_observation_cache",
         lambda: None,
     )
+    monkeypatch.setattr(
+        production,
+        "_prepare_continuous_native_action_consequence",
+        lambda **_kwargs: None,
+    )
 
     result = production._perform_admitted_intake_locked(
         [(_episode(), [])],
-        "exact-antagonist-cancellation-test",
+        "articulatory-topology-has-no-direction-test",
     )
 
     assert result["observation"]["organism_tick"] == 11
-    assert result["observation"]["articulation"] is None
+    assert result["observation"]["articulation"]["applied_motor_quanta"] == 8
     assert result["observation"]["hop_count"] == 1
 
 
