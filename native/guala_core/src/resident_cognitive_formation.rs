@@ -13870,6 +13870,30 @@ fn mount_reached_motor_effector_with_root(
             _ => {}
         }
     }
+    // A root consequence returns after the world boundary, so the ordering
+    // sender that caused it need not transition again in this final feedback
+    // hop.  Admit only layer-11 senders carried by the same bounded retained
+    // causal window used below to prove the directed 11 -> 10 -> 8 chain.
+    // Articulated-body development keeps its original current-transition
+    // requirement.
+    if !moved_root_yaw_terminals.is_empty() {
+        for frontier in [
+            older_frontier,
+            preceding_frontier,
+            predecessor_frontier,
+        ] {
+            for entry in frontier {
+                let Some(sender) = entry.sender() else {
+                    continue;
+                };
+                if layer_by_lineage.get(&sender).copied() == Some(11)
+                    && !ordering.contains(&sender)
+                {
+                    ordering.push(sender);
+                }
+            }
+        }
+    }
     if body_regulation.is_empty() || ordering.is_empty() {
         return Ok(());
     }
