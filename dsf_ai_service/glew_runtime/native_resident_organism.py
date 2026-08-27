@@ -2181,7 +2181,6 @@ class NativeResidentOrganism:
                 source_port_count,
                 active_before,
                 causal_interval_count=len(sources),
-                body_feedback_reentered=False,
                 candidate_committed=True,
             )
             self.__runtime.acknowledge_direct_commit(token)
@@ -2237,7 +2236,6 @@ class NativeResidentOrganism:
                 source_port_count,
                 active_before,
                 causal_interval_count=len(sources),
-                body_feedback_reentered=False,
                 candidate_committed=False,
                 expected_sealed=False,
             )
@@ -2423,7 +2421,6 @@ class NativeResidentOrganism:
         active_before: NativeResidentObservationView,
         *,
         causal_interval_count: int = 1,
-        body_feedback_reentered: bool = False,
     ) -> ResidentPrepareEvidence:
         """Validate one native candidate or discard its uncommitted custody."""
 
@@ -2433,7 +2430,6 @@ class NativeResidentOrganism:
                 source_port_count,
                 active_before,
                 causal_interval_count=causal_interval_count,
-                body_feedback_reentered=body_feedback_reentered,
             )
         except BaseException:
             if isinstance(candidate, self.__prepare_type):
@@ -2462,7 +2458,6 @@ class NativeResidentOrganism:
         active_before: NativeResidentObservationView,
         *,
         causal_interval_count: int = 1,
-        body_feedback_reentered: bool = False,
         candidate_committed: bool = False,
         expected_sealed: bool = True,
     ) -> ResidentPrepareEvidence:
@@ -3116,25 +3111,20 @@ class NativeResidentOrganism:
             if initial_body_source_count
             else 0
         )
-        if not body_feedback_reentered and body_proprioceptive_sources:
-            raise RuntimeError("native prepare inserted unauthorized body feedback")
-        expected_feedback_source_count = (
-            len(body_proprioceptive_sources) if body_feedback_reentered else 0
-        )
-        expected_feedback_port_count = (
-            sum(extent[1] for extent in body_proprioceptive_source_extents)
-            if body_feedback_reentered
-            else 0
-        )
+        # These receipts are outputs of the admitted interval: sparse body
+        # consequences retained for the caller to deliver in the following
+        # causal interval. They are not additional inputs to this candidate,
+        # so they must never be added to its admitted source/port counts.
+        # Their exact bytes and causal extents were validated above. Python
+        # observes that native physical output; it has no authority to permit
+        # or suppress it.
         if (
             causal_interval_count
             != requested_causal_interval_count
             + initial_body_source_count
-            + expected_feedback_source_count
             or source_port_count
             != requested_source_port_count
             + initial_body_source_port_count
-            + expected_feedback_port_count
         ):
             raise RuntimeError("native prepare inserted an unauthorized causal source")
         raw_causal_interval_evidence = getattr(
