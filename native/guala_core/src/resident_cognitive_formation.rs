@@ -5231,23 +5231,8 @@ impl ResidentCognitiveFormationState {
             }
         }
 
-        let mut invalid_references = BTreeSet::<StablePhysicalBondReference>::new();
-        for retained in self.mosaics.iter() {
-            for bond in retained
-                .mosaic
-                .original_bonds()
-                .iter()
-                .chain(retained.mosaic.recurrence_bonds())
-            {
-                let (left, right) = bond.endpoints();
-                if contaminated_layers(left, right) == Some(true) {
-                    invalid_references.insert(*bond);
-                }
-            }
-        }
-
         let mut retired_recurrent = BTreeSet::<[u8; 16]>::new();
-        let mut surviving_mosaics = Vec::<RetainedOrganismMosaic>::new();
+        let mut root_mosaics = Vec::<RetainedOrganismMosaic>::new();
         for retained in self.mosaics.iter() {
             let recursively_authored = retained
                 .mosaic
@@ -5260,30 +5245,59 @@ impl ResidentCognitiveFormationState {
                 }
                 continue;
             }
-            match retained.mosaic.without_invalid_bonds(&invalid_references) {
-                Some(corrected) => surviving_mosaics.push(RetainedOrganismMosaic {
-                    mosaic: corrected,
-                    recurrent_lineage: retained.recurrent_lineage,
-                    reinforcement_count: retained.reinforcement_count,
-                    mosaic_of_mosaics_relation_count: retained
-                        .mosaic_of_mosaics_relation_count,
-                }),
-                None => {
-                    if let Some(lineage) = retained.recurrent_lineage {
-                        retired_recurrent.insert(lineage);
+            root_mosaics.push(retained.clone());
+        }
+
+        let mut invalid_references = BTreeSet::<StablePhysicalBondReference>::new();
+        let surviving_mosaics = loop {
+            invalid_references.clear();
+            for retained in self.mosaics.iter() {
+                for bond in retained
+                    .mosaic
+                    .original_bonds()
+                    .iter()
+                    .chain(retained.mosaic.recurrence_bonds())
+                {
+                    let (left, right) = bond.endpoints();
+                    if contaminated_layers(left, right) == Some(true)
+                        || retired_recurrent.contains(&left)
+                        || retired_recurrent.contains(&right)
+                    {
+                        invalid_references.insert(*bond);
                     }
                 }
             }
-        }
-        let protected_recurrent = surviving_mosaics
-            .iter()
-            .filter_map(|retained| retained.recurrent_lineage)
-            .collect::<BTreeSet<_>>();
-        for (lineage, layer) in &layer_by_lineage {
-            if *layer == 9 && !protected_recurrent.contains(lineage) {
-                retired_recurrent.insert(*lineage);
+            let predecessor_retired_count = retired_recurrent.len();
+            let mut corrected_roots = Vec::<RetainedOrganismMosaic>::new();
+            for retained in &root_mosaics {
+                match retained.mosaic.without_invalid_bonds(&invalid_references) {
+                    Some(corrected) => corrected_roots.push(RetainedOrganismMosaic {
+                        mosaic: corrected,
+                        recurrent_lineage: retained.recurrent_lineage,
+                        reinforcement_count: retained.reinforcement_count,
+                        mosaic_of_mosaics_relation_count: retained
+                            .mosaic_of_mosaics_relation_count,
+                    }),
+                    None => {
+                        if let Some(lineage) = retained.recurrent_lineage {
+                            retired_recurrent.insert(lineage);
+                        }
+                    }
+                }
             }
-        }
+            let protected_recurrent = corrected_roots
+                .iter()
+                .filter_map(|retained| retained.recurrent_lineage)
+                .collect::<BTreeSet<_>>();
+            for (lineage, layer) in &layer_by_lineage {
+                if *layer == 9 && !protected_recurrent.contains(lineage) {
+                    retired_recurrent.insert(*lineage);
+                }
+            }
+            if retired_recurrent.len() == predecessor_retired_count {
+                break corrected_roots;
+            }
+        };
 
         if retired_recurrent.is_empty()
             && contaminated_pairs.is_empty()
