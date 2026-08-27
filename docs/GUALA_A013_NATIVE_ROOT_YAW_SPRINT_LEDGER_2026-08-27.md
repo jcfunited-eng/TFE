@@ -338,3 +338,17 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   toward integration while the explicit frontier advances to regulation; the
   paired root motor is mounted only when both consecutive frontier entries are
   present. `git diff --check` passed.
+- **Live result — rejected:** commit
+  `93b235874a3ea7a8ce0df0180975ae0a84055b17` deployed as the sole production
+  task `dsf-ai-task:1276`, image
+  `sha256:8132d732bb413904f7d50de4476f04ade1fa2f6d1a26cb01459513977a8fae5b`,
+  with identity continuity verified at or beyond tick `203609`. A physical
+  one-millidegree tutor turn settled heading `341569 -> 341570`, returned HTTP
+  200, completed eight causal hops, and reported successor tick `203764`.
+  A later exact CURRENT restore at tick `203865` still contained only 74
+  layer-12 neurons. No root motor was retained; A-013 remains open and this
+  candidate's current-frontier requirement is falsified by live production.
+- The immutable generation named by the move response had already left the
+  bounded local generation set before the read-only inspection, so its exact
+  transient root frontier could not be recovered after the fact. No further
+  causal condition is being inferred from the later CURRENT head.
