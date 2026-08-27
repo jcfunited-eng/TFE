@@ -5944,6 +5944,7 @@ impl ResidentCognitiveFormationState {
         if source.joint_source_occurrences().is_empty() {
             return Err(FormationError::SourceOccurrenceAbsent);
         }
+
         let source_generation = predecessor_generation
             .checked_add(1)
             .ok_or(FormationError::InvalidSourceGeneration)?;
@@ -5952,6 +5953,36 @@ impl ResidentCognitiveFormationState {
         let mut resting_population = predecessor_resting_population;
         let mut next_lineage_ordinal = predecessor_next_lineage_ordinal;
         let mut cohorts = predecessor_cohorts.into_vec();
+        // The exact endpoint values that HELD while contacts slept: every
+        // neuron's membrane and sending reservoir before this interval's
+        // external ingress touches anything. A sleeping span ends before
+        // this clock begins, so its catch-up drive must come from here —
+        // post-ingress values would integrate a drive that never existed.
+        let pre_source_membranes = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .neuron_lineages()
+                    .iter()
+                    .zip(cohort.state.neurons().iter())
+                    .map(|(lineage, state)| {
+                        (
+                            *lineage,
+                            (
+                                state.membrane_state(),
+                                state.carrier_reservoirs().intracellular(),
+                            ),
+                        )
+                    })
+            })
+            .collect::<BTreeMap<
+                [u8; 16],
+                (
+                    crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                    u128,
+                ),
+            >>();
         let mut topology_index = predecessor_topology_index;
         let mut formation_index = predecessor_formation_index;
         // Current bodies crossed the retained-formation authority boundary at
@@ -7236,6 +7267,7 @@ impl ResidentCognitiveFormationState {
                 .map_err(|_| FormationError::ArithmeticOverflow)?
                 .unwrap_or(0),
             residency,
+            &pre_source_membranes,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
@@ -14780,6 +14812,13 @@ fn settle_internal_contact_interval(
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
     residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+    pre_source_membranes: &BTreeMap<
+        [u8; 16],
+        (
+            crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+            u128,
+        ),
+    >,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     if locally_settled_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
         return Ok(InternalContactSettlementObservation {
@@ -15139,10 +15178,27 @@ fn settle_internal_contact_interval(
         let last = events.contact_last_integrated[contact_index];
         let mut span_heat: Option<num_rational::BigRational> = None;
         if last.checked_add(1).ok_or(FormationError::ArithmeticOverflow)? < clock {
-            let left_membrane = pre_pump_membranes[left]
-                .ok_or(FormationError::NoncanonicalState)?;
-            let right_membrane = pre_pump_membranes[right]
-                .ok_or(FormationError::NoncanonicalState)?;
+            let sleeping_view = |flat: usize,
+                                 coordinate: usize|
+             -> Result<
+                (
+                    crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                    u128,
+                ),
+                FormationError,
+            > {
+                let lineage = flat_locations[flat].2;
+                if let Some(held) = pre_source_membranes.get(&lineage) {
+                    return Ok(*held);
+                }
+                Ok((
+                    pre_pump_membranes[coordinate]
+                        .ok_or(FormationError::NoncanonicalState)?,
+                    pre_pump_available[coordinate],
+                ))
+            };
+            let (left_membrane, left_held_available) = sleeping_view(edge.left, left)?;
+            let (right_membrane, right_held_available) = sleeping_view(edge.right, right)?;
             let left_potential = left_membrane
                 .potential_millivolts(capacitances[left])
                 .map_err(FormationError::InternalMembraneUnavailable)?;
@@ -15155,11 +15211,11 @@ fn settle_internal_contact_interval(
                 left_potential,
                 left_membrane.separated_elementary_charges(),
                 capacitances[left],
-                pre_pump_available[left],
+                left_held_available,
                 right_potential,
                 right_membrane.separated_elementary_charges(),
                 capacitances[right],
-                pre_pump_available[right],
+                right_held_available,
             )
             .map_err(FormationError::ResidentElectricalUnavailable)?;
             if let Some(standing_current) = standing {
@@ -16358,7 +16414,6 @@ fn settle_internal_contact_interval(
         // external ingress, or contact transfer. An unchanged endpoint
         // wakes nothing.
         let mut endpoint_cache = std::collections::BTreeMap::new();
-        let mut changed_flats = Vec::new();
         for flat in selected.iter().copied() {
             let (cohort_index, neuron_index, _) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
@@ -16376,17 +16431,26 @@ fn settle_internal_contact_interval(
                     state.carrier_reservoirs().intracellular(),
                 ),
             );
-            let coordinate = selected
-                .binary_search(&flat)
-                .map_err(|_| FormationError::NoncanonicalState)?;
-            let unchanged = pre_pump_membranes[coordinate]
-                .map(|predecessor_membrane| {
-                    predecessor_membrane == membrane
-                        && pre_pump_available[coordinate]
-                            == state.carrier_reservoirs().intracellular()
+        }
+        // The wake law's changed-endpoint set is UNIVERSAL: every neuron
+        // whose state at this interval's end differs from the entry view —
+        // external ingress (a silent zero-work settlement included),
+        // pumping, passive recovery, membrane settlement, or contact
+        // transfer. A receptor changed by silence is still a changed
+        // endpoint, even though silence originates no causal frontier.
+        let mut changed_flats = Vec::new();
+        for flat in 0..flat_locations.len() {
+            let (cohort_index, neuron_index, lineage) = flat_locations[flat];
+            let state = &cohorts[cohort_index].state.neurons()[neuron_index];
+            let changed = pre_source_membranes
+                .get(&lineage)
+                .map(|(held_membrane, held_available)| {
+                    *held_membrane != state.membrane_state()
+                        || *held_available
+                            != state.carrier_reservoirs().intracellular()
                 })
-                .unwrap_or(false);
-            if !unchanged {
+                .unwrap_or(true);
+            if changed {
                 changed_flats.push(flat);
             }
         }
@@ -16498,9 +16562,11 @@ fn settle_internal_contact_interval(
                 materialize_resident_contact_edge(entry, cohorts, electrical_fabric)?;
             let mut sleeping_state = edge.state;
             let last = events.contact_last_integrated[contact_index];
-            let span_end = clock
-                .checked_sub(1)
-                .ok_or(FormationError::ArithmeticOverflow)?;
+            // The endpoint's change reaches this sleeping neighbour at the
+            // NEXT clock (the one-clock arrival law), so the sleeping span
+            // integrates THROUGH this clock at the held pre-change drive;
+            // the new drive counts from here.
+            let span_end = clock;
             if last < span_end {
                 // Pre-change drive: each endpoint as it stood before this
                 // interval — the predecessor clone when the endpoint was
@@ -16513,10 +16579,15 @@ fn settle_internal_contact_interval(
                     ),
                     FormationError,
                 > {
-                    let (cohort_index, neuron_index, _) = flat_locations[flat];
+                    let (cohort_index, neuron_index, lineage) = flat_locations[flat];
                     let capacitance = cohorts[cohort_index].anatomy.neuron_anatomies()
                         [neuron_index]
                         .capacitance();
+                    if let Some((membrane, available)) =
+                        pre_source_membranes.get(&lineage)
+                    {
+                        return Ok((*membrane, capacitance, *available));
+                    }
                     if let Ok(coordinate) = selected.binary_search(&flat) {
                         Ok((
                             pre_pump_membranes[coordinate]
@@ -21188,6 +21259,7 @@ mod tests {
                 ordinal,
                 0,
             &mut None,
+            &BTreeMap::new(),
             )
             .unwrap();
             if let Some(plasticity) = observation
@@ -22083,6 +22155,7 @@ mod tests {
                 ordinal,
                 0,
                 &mut residency,
+                &BTreeMap::new(),
             )
             .unwrap();
             let events = residency.as_ref().expect("residency must persist");

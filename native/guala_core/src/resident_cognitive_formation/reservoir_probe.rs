@@ -513,6 +513,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         successor.generation,
         unchanged_developmental_resting_neuron_count,
         &mut None,
+        &std::collections::BTreeMap::new(),
     )
     .expect("maximal external frontier settles");
     let pending_post_quiescence_candidates = successor

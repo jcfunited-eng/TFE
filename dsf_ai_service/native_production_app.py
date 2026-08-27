@@ -10572,7 +10572,12 @@ def _perform_admitted_intake_locked(
         canonical_bindings = tuple(sorted(set(body_effector_bindings)))
         receipt_material = bytearray(b"guala.native-articulated-body.v1\0")
         receipt_material.extend(bytes.fromhex(predecessor.state_sha256))
-        receipt_material.extend(bytes.fromhex(last_hop["state_sha256"]))
+        # An open (deferred) trajectory has no sealed successor yet; the
+        # last sealed pointer is still the predecessor — the same
+        # substitution the evidence tail already uses.
+        receipt_material.extend(
+            bytes.fromhex(last_hop.get("state_sha256") or predecessor.state_sha256)
+        )
         receipt_material.extend(bytes.fromhex(predecessor_body_state_sha256))
         receipt_material.extend(bytes.fromhex(successor_body_state_sha256))
         for source_receipt, extent in body_proprioceptive_source_receipts:
@@ -11112,7 +11117,7 @@ def _perform_admitted_intake_locked(
             "organism_tick": _sealed_pointer.organism_tick,
             "predecessor_state_sha256": predecessor.state_sha256,
             "schema": PERSISTENCE_SCHEMA,
-            "state_bytes": published.pointer.state_bytes,
+            "state_bytes": _sealed_pointer.state_bytes,
             "state_sha256": _sealed_pointer.state_sha256,
         },
         "schema": "guala.native_admitted_intake_result.v1",
