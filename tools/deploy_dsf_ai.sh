@@ -767,7 +767,8 @@ if (
 }
 
 drain_live_organism() {
-    local service_json running_tasks
+    local service_json running_tasks prior_tasks
+    local -a prior_task_arns=()
 
     # A persistent body cannot have two writers, even briefly. ECS rolling
     # replacement may start the successor while the retiring task is still
@@ -775,6 +776,16 @@ drain_live_organism() {
     # 2026-08-17, that overlap let the retiring task advance CURRENT after the
     # successor had begun restoring its predecessor. Stop and verify the sole
     # writer is gone before allowing the successor to start.
+    prior_tasks=$(aws ecs list-tasks \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service-name "${ECS_SERVICE}" \
+        --desired-status RUNNING \
+        --query 'taskArns' --output text)
+    if [ -n "${prior_tasks}" ] && [ "${prior_tasks}" != "None" ]; then
+        read -r -a prior_task_arns <<<"${prior_tasks}"
+    fi
+
     aws ecs update-service \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
@@ -782,6 +793,12 @@ drain_live_organism() {
         --desired-count 0 \
         --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
     wait_for_service_stable
+    if [ "${#prior_task_arns[@]}" -gt 0 ]; then
+        aws ecs wait tasks-stopped \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --tasks "${prior_task_arns[@]}"
+    fi
     service_json=$(aws ecs describe-services \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
@@ -948,26 +965,9 @@ if not isinstance(tick, int) or isinstance(tick, bool) or tick < 1:
     raise SystemExit("hot predecessor tick is invalid")
 print(tick)
 ') || fail "hot deployment could not authenticate the living predecessor"
-        aws ecs update-service \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --desired-count 0 \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" \
-            >/dev/null
+        drain_live_organism \
+            || fail "hot deployment could not stop the prior writer completely"
         hot_deadline=$(($(date +%s) + 300))
-        while true; do
-            hot_counts=$(aws ecs describe-services \
-                --region "${AWS_REGION}" \
-                --cluster "${ECS_CLUSTER}" \
-                --services "${ECS_SERVICE}" \
-                --query 'services[0].[runningCount,pendingCount]' \
-                --output text)
-            [ "${hot_counts}" = $'0\t0' ] && break
-            [ "$(date +%s)" -lt "${hot_deadline}" ] \
-                || fail "hot deployment could not drain the prior writer"
-            sleep 2
-        done
         aws ecs update-service \
             --region "${AWS_REGION}" \
             --cluster "${ECS_CLUSTER}" \
