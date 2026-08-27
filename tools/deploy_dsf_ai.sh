@@ -607,6 +607,29 @@ DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
 if [ "${GUALA_GENESIS_CUTOVER:-0}" != "0" ]; then
     fail "this deployment preserves the current organism; genesis is refused"
 fi
+
+read_live_organism() {
+    local attempt ready_nonce ready_body
+
+    # This is a custody read at cutover, not an organism decision surface.
+    # A transient public-cache refusal must not turn continuity verification
+    # into either a false deployment failure or permission to skip the read.
+    for attempt in 1 2 3 4 5; do
+        ready_nonce=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+        if ready_body=$(curl -fsS \
+            --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+            --connect-timeout 10 --max-time "${READY_MAX_SECONDS}" \
+            -H "X-API-Key: ${DEPLOY_API_KEY}" \
+            -H "X-Deploy-Nonce: ${ready_nonce}" \
+            "${CONTROL_ORIGIN}/ready/guala"); then
+            printf '%s' "${ready_body}"
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
 if [ "${HOT_DEPLOY}" = "1" ]; then
     echo "      hot deployment: source and task identity resolved; full preflight omitted"
 elif [ "${RECOVER_DRAINED}" = "1" ]; then
@@ -622,8 +645,9 @@ fi
 
 verify_live_organism() {
     local expected_task_definition="$1"
+    local expected_minimum_tick="${2:-}"
     local expected_task_name="${expected_task_definition##*/}"
-    local task_arns task_json ready_nonce ready_body service_json
+    local task_arns task_json ready_body service_json
 
     service_json=$(aws ecs describe-services \
         --region "${AWS_REGION}" \
@@ -675,21 +699,17 @@ if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPEC
         "${CONTROL_ORIGIN}/health" \
         | python3 -c \
             'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"'
-    ready_nonce=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
     # ``/ready/guala`` takes the transition lock deliberately, so that it can
     # only ever report persisted state -- and that lock is held for a WHOLE
     # lesson.  A 30s cap therefore fails a perfectly healthy body that merely
     # happens to be mid-lesson, which is a false negative, not a safety check.
     # Waiting is the honest behaviour: every assertion below still has to pass.
-    ready_body=$(curl -fsS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time "${READY_MAX_SECONDS}" \
-        -H "X-API-Key: ${DEPLOY_API_KEY}" \
-        -H "X-Deploy-Nonce: ${ready_nonce}" \
-        "${CONTROL_ORIGIN}/ready/guala")
+    ready_body=$(read_live_organism)
     printf '%s' "${ready_body}" | \
         EXPECTED_TASK="${expected_task_name}" \
         EXPECTED_DIGEST="${IMAGE_DIGEST}" EXPECTED_SHA="${GIT_SHA}" \
+        EXPECTED_IDENTITY="${GUALA_ORGANISM_IDENTITY}" \
+        EXPECTED_MINIMUM_TICK="${expected_minimum_tick}" \
         python3 -c '
 import json, os, re, sys
 value = json.load(sys.stdin)
@@ -703,6 +723,8 @@ if value.get("git_sha") != os.environ["EXPECTED_SHA"]:
     raise SystemExit("organism reports a different reviewed commit")
 if value.get("ready_scope") != "http_native_current_and_admitted_sensory_transitions":
     raise SystemExit("readiness scope is not the reviewed sensory-transitions scope")
+if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
+    raise SystemExit("candidate restored a different organism identity")
 native = value.get("native_resident", {})
 if native.get("available") is not True:
     raise SystemExit("native resident observation is unavailable")
@@ -714,6 +736,17 @@ if not isinstance(state_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", state_sha
 state_bytes = native.get("state_bytes")
 if not isinstance(state_bytes, int) or state_bytes <= 0:
     raise SystemExit("native resident state byte count is invalid")
+tick = native.get(
+    "organism_tick",
+    value.get("organism_tick", value.get("active_recovery_tick")),
+)
+if not isinstance(tick, int) or isinstance(tick, bool) or tick < 0:
+    raise SystemExit("native resident tick is invalid")
+minimum = os.environ.get("EXPECTED_MINIMUM_TICK", "")
+if minimum and tick < int(minimum):
+    raise SystemExit(
+        f"candidate restored tick {tick} behind living predecessor {minimum}"
+    )
 if native.get("persistence_schema") not in {
     "guala.native_organism_binary_store.v1",
 }:
@@ -895,6 +928,26 @@ print(json.dumps({
 else
     if [ "${HOT_DEPLOY}" = "1" ]; then
         echo "[5/7] Hot-cutting directly to the candidate."
+        HOT_PREDECESSOR=$(read_live_organism) \
+            || fail "hot deployment could not read the living predecessor"
+        HOT_PREDECESSOR_TICK=$(printf '%s' "${HOT_PREDECESSOR}" | \
+            EXPECTED_IDENTITY="${GUALA_ORGANISM_IDENTITY}" python3 -c '
+import json, os, re, sys
+value = json.load(sys.stdin)
+if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
+    raise SystemExit("hot predecessor identity differs from continuity pin")
+native = value.get("native_resident", {})
+state_sha = native.get("state_sha256")
+tick = native.get(
+    "organism_tick",
+    value.get("organism_tick", value.get("active_recovery_tick")),
+)
+if not isinstance(state_sha, str) or re.fullmatch(r"[0-9a-f]{64}", state_sha) is None:
+    raise SystemExit("hot predecessor state identity is absent")
+if not isinstance(tick, int) or isinstance(tick, bool) or tick < 1:
+    raise SystemExit("hot predecessor tick is invalid")
+print(tick)
+') || fail "hot deployment could not authenticate the living predecessor"
         aws ecs update-service \
             --region "${AWS_REGION}" \
             --cluster "${ECS_CLUSTER}" \
@@ -948,7 +1001,18 @@ else
             --query 'tasks[0].taskDefinitionArn' --output text)
         [ "${hot_task_definition}" = "${CANDIDATE_TASK_DEFINITION}" ] \
             || fail "hot candidate task identity differs"
-        echo "      hot cutover: candidate is the sole RUNNING task"
+        if ! wait_for_service_stable; then
+            drain_live_organism \
+                || fail "hot candidate failed and could not be drained"
+            fail "hot candidate failed before continuity verification; service left at zero writers"
+        fi
+        if ! CURRENT_RUNNING_TASK=$(verify_live_organism \
+            "${CANDIDATE_TASK_DEFINITION}" "${HOT_PREDECESSOR_TICK}"); then
+            drain_live_organism \
+                || fail "hot continuity failure and candidate drain both failed"
+            fail "hot candidate did not preserve living continuity; service left at zero writers"
+        fi
+        echo "      hot cutover: candidate is the sole live-verified task at or beyond tick ${HOT_PREDECESSOR_TICK}"
     else
     echo "[5/7] Starting and verifying the candidate once."
     PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"

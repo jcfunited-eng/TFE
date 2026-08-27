@@ -381,3 +381,32 @@ tactile, thermal, proprioceptive, articulated-body, and vestibular consequence
 evidence, and raised no carrier-schedule assertion. This is focused candidate
 evidence only; A-014 remains Partial until the same continuity is observed
 after live cutover. RF-055 is now the durable earliest recurrence check.
+
+### Live cutover and continuity recovery
+
+Commit `b55dda4c3c1fe9d161778be4da97bc4b03354cf0` is live as task definition
+`dsf-ai-task:1259`, image digest
+`sha256:24170be2651938348848489810082e97bed1ad28c6cce79cd3e39edc51674bbc`.
+The first hot start exposed a separate controller defect: hot mode accepted a
+sole `RUNNING` task without authenticating native continuity, and that task had
+created a small genesis because it did not find the persistent `CURRENT` it
+expected. The false writer was drained. A one-off, zero-concurrency recovery
+publisher atomically restored the exact authenticated tick-`186200` body, and
+the candidate was restarted as the sole writer.
+
+The restarted process cold-restored that body and advanced from generation
+`186201` through the former failure at `186209`, then continued beyond
+`186364` without a carrier-schedule panic. Individual native physical steps
+settled in approximately `0.43` to `0.64` seconds in the observed window. A
+complete action/consequence trajectory remained approximately `19` seconds
+because it contains many consecutive native steps; that wider latency remains
+open and is not relabeled as millisecond completion. The background custodian
+checkpointed successfully, and its two retained S3 generations each decode to
+the full approximately 75.3-MB raw organism rather than the false genesis.
+
+The hot controller now authenticates the predecessor identity, immutable state
+receipt, and tick before drain; after start it requires the same identity and a
+candidate tick at or beyond that predecessor before pinning the artifact. A
+failure drains the candidate and leaves zero writers instead of restoring an
+old image against a possibly changed pointer. RF-056 permanently records this
+continuity failure class.
