@@ -474,6 +474,18 @@ fn transport_stays_on_reversal_side(
     Ok(successor_sign == 0 || predecessor_sign == successor_sign)
 }
 
+/// Deposit exact released work from a passive membrane return into the
+/// reservoir's thermal state. `None` when the thermal capacity cannot
+/// take it (the deposit is then refused and the return must not settle).
+pub(crate) fn deposit_passive_return_work(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    reservoir: RecoveryFluidReservoirState,
+    released_work: ExactRational,
+) -> Result<Option<RecoveryFluidReservoirState>, MetabolicError> {
+    let (available, spent, thermal) = reservoir.physical_parts();
+    passive_reservoir_successor(anatomy, available, spent, thermal, released_work)
+}
+
 fn passive_reservoir_successor(
     anatomy: RecoveryFluidReservoirAnatomy,
     available: ExactRational,

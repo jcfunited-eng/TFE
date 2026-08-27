@@ -5972,6 +5972,7 @@ impl ResidentCognitiveFormationState {
                             (
                                 state.membrane_state(),
                                 state.carrier_reservoirs().intracellular(),
+                                state.carrier_reservoirs().extracellular(),
                             ),
                         )
                     })
@@ -5980,6 +5981,7 @@ impl ResidentCognitiveFormationState {
                 [u8; 16],
                 (
                     crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                    u128,
                     u128,
                 ),
             >>();
@@ -14359,7 +14361,8 @@ pub(crate) fn rebuild_causal_event_residency(
     persisted_organism_clock: u64,
 ) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
     use crate::causal_event_scheduler::{CarrierCrossingSchedule, CausalEventResidency};
-    use crate::complete_neuron::next_membrane_recovery_crossing_clocks;
+    use crate::complete_neuron::next_passive_membrane_return_crossing_clocks;
+    use crate::elementary_charge_transfer::ChargeCarrierPhase;
 
     let (schedule, clocks) = rebuild_carrier_schedule_on_restore(
         cohorts,
@@ -14373,9 +14376,10 @@ pub(crate) fn rebuild_causal_event_residency(
     let mut recovery_schedule = CarrierCrossingSchedule::with_contact_count(neuron_count);
     for flat in 0..neuron_count {
         let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
-        let crossing = next_membrane_recovery_crossing_clocks(
+        let crossing = next_passive_membrane_return_crossing_clocks(
             &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
             &cohorts[cohort_index].state.neurons()[neuron_index],
+            ChargeCarrierPhase::zero(),
             interval,
         )
         .map_err(|_| FormationError::ArithmeticOverflow)?;
@@ -14390,6 +14394,8 @@ pub(crate) fn rebuild_causal_event_residency(
         contact_last_integrated: vec![persisted_organism_clock; clocks.len()],
         contact_schedule: schedule,
         recovery_schedule,
+        recovery_phase: vec![ChargeCarrierPhase::zero(); neuron_count],
+        recovery_last_integrated: vec![persisted_organism_clock; neuron_count],
         contact_count: topology_index.contacts.len(),
         neuron_count,
         organism_clock: persisted_organism_clock,
@@ -14817,10 +14823,26 @@ fn settle_internal_contact_interval(
         (
             crate::elementary_charge_membrane::ElementaryChargeMembraneState,
             u128,
+            u128,
         ),
     >,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
-    if locally_settled_lineages.is_empty() || electrical_fabric.contact_count() == 0 {
+    let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
+        events.matches_shape(
+            topology_index.flat_locations.len(),
+            topology_index.contacts.len(),
+        ) && (events
+            .contact_schedule
+            .scheduled_dues()
+            .any(|(_, due)| due <= events.organism_clock + 1)
+            || events
+                .recovery_schedule
+                .scheduled_dues()
+                .any(|(_, due)| due <= events.organism_clock + 1))
+    });
+    if (locally_settled_lineages.is_empty() && !residency_holds_due_events)
+        || electrical_fabric.contact_count() == 0
+    {
         return Ok(InternalContactSettlementObservation {
             dsf_delivery_count: 0,
             active_bonds: Vec::new(),
@@ -14886,6 +14908,24 @@ fn settle_internal_contact_interval(
     let events = residency
         .as_mut()
         .ok_or(FormationError::NoncanonicalState)?;
+    // Discrete event time: with no external ingress this clock, nothing
+    // can change before the earliest scheduled event, so the clock skips
+    // the silent span exactly — zero settlements spent on silence.
+    if locally_settled_lineages.is_empty() {
+        let earliest_due = events
+            .contact_schedule
+            .scheduled_dues()
+            .map(|(_, due)| due)
+            .chain(events.recovery_schedule.scheduled_dues().map(|(_, due)| due))
+            .min();
+        if let Some(earliest) = earliest_due {
+            if earliest > events.organism_clock + 1 {
+                events.organism_clock = earliest
+                    .checked_sub(1)
+                    .ok_or(FormationError::ArithmeticOverflow)?;
+            }
+        }
+    }
     events.organism_clock = events
         .organism_clock
         .checked_add(1)
@@ -14896,13 +14936,85 @@ fn settle_internal_contact_interval(
         .copied()
         .map(lineage_member)
         .collect::<Result<Vec<_>, _>>()?;
-    let mut due_recovery_flats = Vec::new();
-    events
-        .recovery_schedule
-        .drain_due_at(clock, &mut due_recovery_flats);
-    seed_flats.extend(due_recovery_flats);
     seed_flats.sort_unstable();
     seed_flats.dedup();
+    // PASSIVE MEMBRANE RETURN events settle here directly: one whole
+    // elementary charge toward zero per due neuron, carriers conserved on
+    // the neuron's own compartments, released work deposited into its
+    // cohort's reservoir thermal state. A return NEVER seeds the causal
+    // frontier and NEVER runs the active pump — the pump cannot
+    // masquerade as rest. The changed neuron's incident contacts are
+    // reconsidered by the universal wake law at this interval's end.
+    let mut due_return_flats = Vec::new();
+    events
+        .recovery_schedule
+        .drain_due_at(clock, &mut due_return_flats);
+    for flat in due_return_flats.iter().copied() {
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        let elapsed = clock
+            .checked_sub(events.recovery_last_integrated[flat])
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        if elapsed == 0 {
+            continue;
+        }
+        let interval_u32 = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let settled_return = crate::complete_neuron::settle_passive_membrane_return(
+            &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+            &cohorts[cohort_index].state.neurons()[neuron_index],
+            events.recovery_phase[flat],
+            interval_u32,
+            elapsed,
+        )
+        .map_err(|error| {
+            FormationError::PhysicalSettlementUnavailable(
+                ReachedCohortError::Neuron {
+                    neuron_index,
+                    error,
+                },
+            )
+        })?;
+        events.recovery_last_integrated[flat] = clock;
+        let Some((successor_neuron, successor_phase, released)) = settled_return
+        else {
+            events.recovery_phase[flat] =
+                crate::elementary_charge_transfer::ChargeCarrierPhase::zero();
+            continue;
+        };
+        events.recovery_phase[flat] = successor_phase;
+        if successor_neuron == cohorts[cohort_index].state.neurons()[neuron_index] {
+            continue;
+        }
+        let released_exact = crate::exact_rational::ExactRational::new(
+            i128::try_from(released.numer().clone())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            u128::try_from(released.denom().clone())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let reservoir_anatomy = cohorts[cohort_index]
+            .anatomy
+            .recovery_fluid_reservoir_anatomy();
+        let Some(successor_reservoir) =
+            crate::metabolic_feeding::deposit_passive_return_work(
+                reservoir_anatomy,
+                cohorts[cohort_index].state.recovery_fluid(),
+                released_exact,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?
+        else {
+            // The thermal capacity refuses the deposit: the return does
+            // not settle, and this neuron reschedules from its held state.
+            continue;
+        };
+        Arc::make_mut(&mut cohorts[cohort_index].state)
+            .apply_passive_membrane_return(
+                neuron_index,
+                successor_neuron,
+                successor_reservoir,
+            )
+            .map_err(FormationError::PhysicalSettlementUnavailable)?;
+    }
     let mut compact_contact_indices = Vec::new();
     events
         .contact_schedule
@@ -15188,8 +15300,10 @@ fn settle_internal_contact_interval(
                 FormationError,
             > {
                 let lineage = flat_locations[flat].2;
-                if let Some(held) = pre_source_membranes.get(&lineage) {
-                    return Ok(*held);
+                if let Some((held_membrane, held_intracellular, _)) =
+                    pre_source_membranes.get(&lineage)
+                {
+                    return Ok((*held_membrane, *held_intracellular));
                 }
                 Ok((
                     pre_pump_membranes[coordinate]
@@ -16444,10 +16558,12 @@ fn settle_internal_contact_interval(
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
             let changed = pre_source_membranes
                 .get(&lineage)
-                .map(|(held_membrane, held_available)| {
+                .map(|(held_membrane, held_intracellular, held_extracellular)| {
                     *held_membrane != state.membrane_state()
-                        || *held_available
+                        || *held_intracellular
                             != state.carrier_reservoirs().intracellular()
+                        || *held_extracellular
+                            != state.carrier_reservoirs().extracellular()
                 })
                 .unwrap_or(true);
             if changed {
@@ -16583,7 +16699,7 @@ fn settle_internal_contact_interval(
                     let capacitance = cohorts[cohort_index].anatomy.neuron_anatomies()
                         [neuron_index]
                         .capacitance();
-                    if let Some((membrane, available)) =
+                    if let Some((membrane, available, _)) =
                         pre_source_membranes.get(&lineage)
                     {
                         return Ok((*membrane, capacitance, *available));
@@ -16739,14 +16855,83 @@ fn settle_internal_contact_interval(
             };
             events.contact_schedule.reschedule(contact_index, due);
         }
-        for flat in selected.iter().copied() {
-            let (cohort_index, neuron_index, _) = flat_locations[flat];
-            let crossing = crate::complete_neuron::next_membrane_recovery_crossing_clocks(
-                &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
-                &cohorts[cohort_index].state.neurons()[neuron_index],
-                interval,
-            )
-            .map_err(|_| FormationError::ArithmeticOverflow)?;
+        for flat in changed_flats.iter().copied() {
+            let (cohort_index, neuron_index, lineage) = flat_locations[flat];
+            // The neuron's displacement changed this clock, so its return
+            // rate changed. Catch its return phase up through this clock
+            // at the HELD pre-change rate first — the change reaches this
+            // separate path at the next clock — then reschedule under the
+            // new rate. A crossing inside the caught-up span cannot occur:
+            // its due would have fired.
+            let last = events.recovery_last_integrated[flat];
+            let return_was_scheduled = events
+                .recovery_schedule
+                .scheduled_dues()
+                .any(|(scheduled_flat, _)| scheduled_flat == flat);
+            if last < clock {
+                // An unscheduled return means the descent law refused its
+                // current for the whole span: zero flow, frozen phase.
+                // Only a scheduled span integrates, at the exact held
+                // state's current — membrane and compartments together.
+                if !return_was_scheduled {
+                    events.recovery_last_integrated[flat] = clock;
+                } else if let Some((held_membrane, held_intracellular, held_extracellular)) =
+                    pre_source_membranes.get(&lineage)
+                {
+                    let held_state = crate::complete_neuron::with_held_membrane_and_carriers(
+                        &cohorts[cohort_index].state.neurons()[neuron_index],
+                        *held_membrane,
+                        *held_intracellular,
+                        *held_extracellular,
+                    );
+                    let held_current =
+                        crate::complete_neuron::passive_membrane_return_current(
+                            &cohorts[cohort_index].anatomy.neuron_anatomies()
+                                [neuron_index],
+                            &held_state,
+                        )
+                        .map_err(|error| {
+                            FormationError::PhysicalSettlementUnavailable(
+                                ReachedCohortError::Neuron {
+                                    neuron_index,
+                                    error,
+                                },
+                            )
+                        })?;
+                    if let Some(current) = held_current {
+                        let caught =
+                            crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
+                                events.recovery_phase[flat],
+                                current,
+                                interval,
+                                clock - last,
+                            )
+                            .map_err(|_| FormationError::ArithmeticOverflow)?;
+                        assert_eq!(
+                            caught.outward_elementary_charges, 0,
+                            "a sleeping membrane return crossed without its \
+                             scheduled event — the return schedule is unsound"
+                        );
+                        events.recovery_phase[flat] = caught.successor_phase;
+                    }
+                }
+                events.recovery_last_integrated[flat] = clock;
+            }
+            let crossing =
+                crate::complete_neuron::next_passive_membrane_return_crossing_clocks(
+                    &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+                    &cohorts[cohort_index].state.neurons()[neuron_index],
+                    events.recovery_phase[flat],
+                    interval,
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(
+                        ReachedCohortError::Neuron {
+                            neuron_index,
+                            error,
+                        },
+                    )
+                })?;
             let due = crossing
                 .map(|clocks_until| {
                     clock
@@ -22134,17 +22319,7 @@ mod tests {
             .collect::<Vec<_>>();
         let mut transitioned = BTreeSet::new();
         let mut residency: Option<crate::causal_event_scheduler::CausalEventResidency> = None;
-        let mut previous_epoch = 0_u64;
-        let mut pump_only_wake_observed = false;
-        let mut untouched_hold_observed = false;
         for ordinal in 1..=6_u64 {
-            // Will a pump-only (membrane recovery) event touch an isolated
-            // endpoint at this clock? Nothing else can ever reach the pair.
-            let recovery_due = residency.as_ref().is_some_and(|events| {
-                events.recovery_schedule.scheduled_dues().any(|(flat, due)| {
-                    isolated_flats.contains(&flat) && due <= events.organism_clock + 1
-                })
-            });
             settle_internal_contact_interval(
                 &mut cohorts,
                 &mut fabric,
@@ -22163,34 +22338,74 @@ mod tests {
                 events.organism_clock, ordinal,
                 "one residency must advance one clock per settled interval"
             );
-            let epoch = events.contact_last_integrated[isolated_contact];
-            if ordinal > 1 {
-                if recovery_due {
-                    assert!(
-                        epoch > previous_epoch,
-                        "a pump-only endpoint change must wake its incident \
-                         contact"
-                    );
-                    pump_only_wake_observed = true;
-                } else {
-                    assert_eq!(
-                        epoch, previous_epoch,
-                        "an unchanged endpoint must wake nothing"
-                    );
-                }
-            }
-            previous_epoch = epoch;
+            // The zero-displacement pair is UNCHANGED every clock under the
+            // passive-return law (no displacement -> no return event, no
+            // reach -> no pump): its contact epoch must never move and its
+            // return schedule must stay empty. An unchanged endpoint wakes
+            // nothing — strictly, forever.
+            assert_eq!(
+                events.contact_last_integrated[isolated_contact], 0,
+                "an unchanged endpoint must wake nothing"
+            );
+            let isolated_return_scheduled = events
+                .recovery_schedule
+                .scheduled_dues()
+                .any(|(flat, _)| isolated_flats.contains(&flat));
+            assert!(
+                !isolated_return_scheduled,
+                "zero displacement must schedule no return event"
+            );
+            // The SEEDED subsystem's endpoints change every clock (external
+            // seed + pump + settlement): every contact incident to a
+            // changed endpoint is woken to the current epoch.
+            let reached_advanced = events
+                .contact_last_integrated
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| *index != isolated_contact)
+                .all(|(_, last)| *last + 1 >= events.organism_clock);
+            assert!(
+                reached_advanced,
+                "every contact incident to a changed endpoint must be woken"
+            );
         }
-        // Anatomy note: the territory law gives every neuron a distinct
-        // capacitance, so even an equal-charge pair carries a real drive —
-        // a permanently unchanged endpoint is anatomically impossible on a
-        // living pair. The unchanged-wakes-none branch above therefore
-        // stays ARMED (it fails the run if any wake occurs without a due
-        // recovery), and the pump-only wake must be witnessed.
-        let _ = untouched_hold_observed;
-        assert!(
-            pump_only_wake_observed,
-            "the horizon must witness a pump-only wake"
+
+        // Quiet termination: with ingress gone, due events settle (the
+        // clock skipping silent spans exactly) until charge has returned
+        // and every contact rests — no due membrane or contact events
+        // remain, and further quiet clocks are pure no-ops.
+        for _ in 0..10_000 {
+            let events = residency.as_ref().unwrap();
+            if events.contact_schedule.scheduled_len() == 0
+                && events.recovery_schedule.scheduled_len() == 0
+            {
+                break;
+            }
+            let next_ordinal = events.organism_clock + 1;
+            settle_internal_contact_interval(
+                &mut cohorts,
+                &mut fabric,
+                &topology_index,
+                &[],
+                &[],
+                &mut transitioned,
+                next_ordinal,
+                0,
+                &mut residency,
+                &BTreeMap::new(),
+            )
+            .unwrap();
+        }
+        let events = residency.as_ref().unwrap();
+        assert_eq!(
+            events.contact_schedule.scheduled_len(),
+            0,
+            "repeated quiet intervals must terminate with no due contact events"
+        );
+        assert_eq!(
+            events.recovery_schedule.scheduled_len(),
+            0,
+            "repeated quiet intervals must terminate with no due membrane events"
         );
     }
 

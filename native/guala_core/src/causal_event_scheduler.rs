@@ -230,7 +230,14 @@ pub(crate) struct SleepingSpanCatchUp {
 pub(crate) struct CausalEventResidency {
     pub(crate) contact_schedule: CarrierCrossingSchedule,
     pub(crate) contact_last_integrated: Vec<u64>,
+    /// Per-neuron schedule of the PASSIVE MEMBRANE RETURN — the true
+    /// rest transition, separate from the active gradient pump. The
+    /// return path's sub-carrier phase lives here as derived state: a
+    /// cold restore restarts each neuron's return progress at zero,
+    /// forfeiting strictly less than one elementary charge per neuron.
     pub(crate) recovery_schedule: CarrierCrossingSchedule,
+    pub(crate) recovery_phase: Vec<crate::elementary_charge_transfer::ChargeCarrierPhase>,
+    pub(crate) recovery_last_integrated: Vec<u64>,
     pub(crate) contact_count: usize,
     pub(crate) neuron_count: usize,
     pub(crate) organism_clock: u64,

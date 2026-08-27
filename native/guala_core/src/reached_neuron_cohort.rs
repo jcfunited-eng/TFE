@@ -184,6 +184,12 @@ pub(crate) struct ReachedCohortAnatomy {
 }
 
 impl ReachedCohortAnatomy {
+    pub(crate) fn recovery_fluid_reservoir_anatomy(
+        &self,
+    ) -> crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy {
+        self.recovery_fluid.reservoir_anatomy()
+    }
+
     pub(crate) fn new(
         neurons: Vec<NeuronPhysicalAnatomy>,
         neuron_lineages: Vec<[u8; 16]>,
@@ -405,6 +411,24 @@ impl ReachedCohortState {
     ) -> Result<(), SparseElectricalError> {
         self.electrical
             .replace_contact_states(vec![(contact_index, successor)])
+    }
+
+    /// Exact single-neuron replacement plus reservoir update for a settled
+    /// passive membrane return: the one lawful mutation path of the return
+    /// event, conserving carriers on the neuron and depositing released
+    /// work into this cohort's own reservoir thermal state.
+    pub(crate) fn apply_passive_membrane_return(
+        &mut self,
+        neuron_index: usize,
+        successor: NeuronPhysicalState,
+        successor_reservoir: RecoveryFluidReservoirState,
+    ) -> Result<(), ReachedCohortError> {
+        if neuron_index >= self.neurons.len() {
+            return Err(ReachedCohortError::AnatomyStateWidth);
+        }
+        self.neurons.as_mut()[neuron_index] = successor;
+        self.recovery_fluid = successor_reservoir;
+        Ok(())
     }
 
     pub(crate) fn recovery_fluid(&self) -> RecoveryFluidReservoirState {

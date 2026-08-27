@@ -5827,65 +5827,176 @@ pub(crate) fn membrane_gradient_pump_charge_bound(
     })
 }
 
-/// The clock at which a resting neuron's own membrane transport path next
-/// moves one whole elementary charge — the local-rest event source.
+/// The clock of a neuron's next PASSIVE MEMBRANE RETURN — the true
+/// local-rest event source, separate from the active gradient pump.
 ///
-/// Rate is anatomy-derived and local: the neuron's single-channel pump
-/// conductance times its own electrochemical drive (membrane potential
-/// minus the authored reversal potential), integrated by the same
-/// elementary-charge law as contact carriers — identical current
-/// arithmetic to `membrane_gradient_pump_charge_bound`, expressed as a
-/// crossing clock instead of one interval's transport. No global
-/// constant, cap, or timeout exists here. `None` means this neuron
-/// produces no event until some state changes: zero reversal (no mounted
-/// path), zero drive, or an empty sending compartment. At the returned
-/// clock the mounted gradient-transport law settles the whole event
-/// exactly — passive excess-charge return releases work as heat, an
-/// uphill pump must be paid by the neuron's own recovery reservoir; both
-/// conserve carriers and energy by the existing settlement.
-pub(crate) fn next_membrane_recovery_crossing_clocks(
+/// Direction is always toward zero separated membrane charge. Rate
+/// derives from the neuron's own mounted membrane conductance (the same
+/// single-channel conductance its transport path declares) and its own
+/// displacement voltage — no global constant. `None` when the neuron is
+/// at zero displacement, when the sending compartment holds no carrier
+/// to return, or when moving one elementary charge toward zero does not
+/// strictly lower the exact stored membrane-plus-gradient work: that is
+/// the lawful rest floor, and a resting neuron schedules nothing. The
+/// caller owns the return path's carrier phase (the pump's persisted
+/// phase is never shared with this separate transition).
+pub(crate) fn next_passive_membrane_return_crossing_clocks(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
+    return_phase: ChargeCarrierPhase,
     interval_microseconds: u32,
 ) -> Result<Option<u64>, NeuronPhysicalError> {
-    let reversal = anatomy.gate.reversal_potential_millivolts;
-    let reversal_sign = reversal.parts().0.signum();
-    if reversal_sign == 0 {
+    let Some(current) =
+        passive_membrane_return_current(anatomy, predecessor)?
+    else {
         return Ok(None);
-    }
-    let membrane = predecessor.membrane.membrane();
-    let potential = membrane
-        .potential_millivolts(anatomy.capacitance)
-        .map_err(MembraneConductanceError::from)
-        .map_err(GateSettlementError::from)?;
-    let electrochemical_drive = potential.checked_sub(reversal)?;
-    let magnitude_current = anatomy
-        .gate
-        .single_channel_conductance_picosiemens
-        .checked_mul(electrochemical_drive.checked_abs()?)?
-        .checked_div_unsigned(1_000)?;
-    let pump_current = if reversal_sign < 0 {
-        magnitude_current.checked_neg()?
-    } else {
-        magnitude_current
     };
-    let sending_compartment = if pump_current.parts().0.signum() >= 0 {
-        predecessor.carriers.intracellular
-    } else {
-        predecessor.carriers.extracellular
-    };
-    if sending_compartment == 0 {
-        return Ok(None);
-    }
     crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
-        membrane.carrier_phase(),
-        pump_current,
+        return_phase,
+        current,
         interval_microseconds,
     )
     .map_err(MembraneConductanceError::from)
     .map_err(GateSettlementError::from)
     .map_err(NeuronPhysicalError::from)
 }
+
+/// Exact held-state reconstruction for span catch-up: the neuron as it
+/// stood before this clock's changes — held membrane and held carrier
+/// compartments together, never mixed with current state.
+pub(crate) fn with_held_membrane_and_carriers(
+    current: &NeuronPhysicalState,
+    held_membrane: ElementaryChargeMembraneState,
+    held_intracellular: u128,
+    held_extracellular: u128,
+) -> NeuronPhysicalState {
+    let mut held = current.clone();
+    held.membrane = LocalMembraneConductanceState::from_physical_parts(
+        held_membrane,
+        current.membrane.path_carrier_phases(),
+    );
+    held.carriers = CarrierReservoirs::new(held_intracellular, held_extracellular);
+    held
+}
+
+/// The exact standing current of the passive membrane return, or `None`
+/// when no lawful return event can ever fire from this state. The signed
+/// convention matches the pump transport: positive outward moves
+/// intracellular material outward, so a positive displacement returns
+/// with a NEGATIVE current and a negative displacement with a POSITIVE
+/// one — always toward zero.
+pub(crate) fn passive_membrane_return_current(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+) -> Result<Option<ExactRational>, NeuronPhysicalError> {
+    let displacement = predecessor.membrane.membrane().separated_elementary_charges();
+    if displacement == 0 {
+        return Ok(None);
+    }
+    // One elementary charge toward zero must strictly lower the exact
+    // stored work, and the receiving/sending compartments must hold the
+    // material; the transport itself saturates at zero available, which
+    // the candidate comparison detects as no lawful move. Positive
+    // outward REDUCES separation, so toward-zero outward carries the
+    // displacement's own sign.
+    let toward_zero = displacement.signum();
+    let candidate = settle_membrane_pump_transport(
+        anatomy,
+        predecessor,
+        toward_zero,
+        None,
+        1,
+    )?;
+    if candidate.membrane.membrane().separated_elementary_charges() == displacement {
+        return Ok(None);
+    }
+    let predecessor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)?;
+    let successor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, &candidate)?;
+    if successor_work >= predecessor_work {
+        return Ok(None);
+    }
+    let potential = predecessor
+        .membrane
+        .membrane()
+        .potential_millivolts(anatomy.capacitance)
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+    // The displacement voltage carries the displacement's sign, so the
+    // raw conductance-times-voltage current is already the toward-zero
+    // return current under the outward convention.
+    let current = anatomy
+        .gate
+        .single_channel_conductance_picosiemens
+        .checked_mul(potential)?
+        .checked_div_unsigned(1_000)?;
+    if current.parts().0 == 0 {
+        return Ok(None);
+    }
+    Ok(Some(current))
+}
+
+/// Settle one due passive membrane return: exactly one whole elementary
+/// charge toward zero, never crossing it, with the released stored work
+/// returned for deposit into the neuron's own recovery reservoir thermal
+/// state. Returns the successor neuron state, the caller-owned successor
+/// return phase, and the released work in zeptojoules (exact, wide).
+pub(crate) fn settle_passive_membrane_return(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    return_phase: ChargeCarrierPhase,
+    interval_microseconds: u32,
+    elapsed_clocks: u64,
+) -> Result<
+    Option<(NeuronPhysicalState, ChargeCarrierPhase, num_rational::BigRational)>,
+    NeuronPhysicalError,
+> {
+    let Some(current) = passive_membrane_return_current(anatomy, predecessor)? else {
+        return Ok(None);
+    };
+    let transfer = crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
+        return_phase,
+        current,
+        interval_microseconds,
+        elapsed_clocks,
+    )
+    .map_err(MembraneConductanceError::from)
+    .map_err(GateSettlementError::from)?;
+    let displacement = predecessor.membrane.membrane().separated_elementary_charges();
+    // One whole charge per settlement: the rate law changes after every
+    // returned charge, so each event moves exactly one and reschedules
+    // from the new displacement. Zero is never crossed by construction.
+    let toward_zero = displacement.signum();
+    if transfer.outward_elementary_charges == 0 {
+        return Ok(Some((
+            predecessor.clone(),
+            transfer.successor_phase,
+            num_rational::BigRational::from_integer(num_bigint::BigInt::from(0)),
+        )));
+    }
+    let predecessor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)?;
+    let successor = settle_membrane_pump_transport(
+        anatomy,
+        predecessor,
+        toward_zero,
+        None,
+        interval_microseconds,
+    )?;
+    let successor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, &successor)?;
+    let released = &predecessor_work - &successor_work;
+    // The return phase resets at the crossing: whatever fraction the span
+    // accumulated beyond one whole charge belongs to the NEW displacement's
+    // rate law, which the next scheduling computes from zero progress.
+    Ok(Some((
+        successor,
+        ChargeCarrierPhase::zero(),
+        released,
+    )))
+}
+
 
 /// Exact retained electrical plus generic carrier-gradient work.
 ///
@@ -6960,82 +7071,100 @@ mod tests {
         }
     }
 
-    /// Local-rest event source: the crossing clock must agree exactly with
-    /// the elementary-charge integration law at the same anatomy-derived
-    /// pump current — zero whole charges before the due clock, at least
-    /// one at it — and a neuron whose sending compartment is empty must
-    /// produce no event at all until state changes.
+
+    /// Passive-return focused proofs: positive and negative displacement
+    /// both approach zero one whole charge per settlement; zero
+    /// displacement schedules no event; the return never overshoots zero;
+    /// carriers and stored energy remain exact, with released work equal
+    /// to the exact stored-work drop.
     #[test]
-    fn membrane_recovery_crossing_agrees_with_charge_transfer_oracle() {
+    fn passive_membrane_return_approaches_zero_exactly() {
         let fixture = physical_fixture();
         let interval = 250_000_u32;
-        let due = next_membrane_recovery_crossing_clocks(
-            &fixture.anatomy,
-            &fixture.state,
-            interval,
-        )
-        .unwrap()
-        .expect("nonzero reversal with stocked compartments must schedule");
-        assert!(due >= 1);
-
-        let reversal = fixture.anatomy.gate.reversal_potential_millivolts;
-        let potential = fixture
-            .state
-            .membrane
-            .membrane()
-            .potential_millivolts(fixture.anatomy.capacitance)
-            .unwrap();
-        let drive = potential.checked_sub(reversal).unwrap();
-        let magnitude = fixture
-            .anatomy
-            .gate
-            .single_channel_conductance_picosiemens
-            .checked_mul(drive.checked_abs().unwrap())
-            .unwrap()
-            .checked_div_unsigned(1_000)
-            .unwrap();
-        let pump_current = if reversal.parts().0.signum() < 0 {
-            magnitude.checked_neg().unwrap()
-        } else {
-            magnitude
-        };
-        let phase = fixture.state.membrane.membrane().carrier_phase();
-        let at_due = crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
-            phase,
-            pump_current,
-            interval,
-            due,
-        )
-        .unwrap();
-        assert!(
-            at_due.outward_elementary_charges.unsigned_abs() >= 1,
-            "a whole carrier must cross at the due clock"
-        );
-        if due > 1 {
-            let early =
-                crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
+        for start in [5_i128, -5_i128] {
+            let mut state = fixture.state.clone();
+            state.membrane = LocalMembraneConductanceState::genesis(start);
+            let mut phase = ChargeCarrierPhase::zero();
+            let mut displacement = start;
+            let mut guard = 0;
+            while displacement != 0 {
+                guard += 1;
+                assert!(guard <= 16, "return must terminate");
+                let due = next_passive_membrane_return_crossing_clocks(
+                    &fixture.anatomy,
+                    &state,
                     phase,
-                    pump_current,
                     interval,
-                    due - 1,
                 )
                 .unwrap();
-            assert_eq!(early.outward_elementary_charges, 0);
+                let Some(clocks_until) = due else {
+                    // Lawful rest floor before zero: energy descent refused.
+                    break;
+                };
+                let carriers_before = state.carriers;
+                let work_before = membrane_and_gradient_work_zeptojoules_wide(
+                    &fixture.anatomy,
+                    &state,
+                )
+                .unwrap();
+                let (successor, successor_phase, released) =
+                    settle_passive_membrane_return(
+                        &fixture.anatomy,
+                        &state,
+                        phase,
+                        interval,
+                        clocks_until,
+                    )
+                    .unwrap()
+                    .expect("scheduled return must settle");
+                let next = successor.membrane.membrane().separated_elementary_charges();
+                assert_eq!(
+                    next,
+                    displacement - displacement.signum(),
+                    "exactly one whole charge toward zero"
+                );
+                assert!(next.abs() < displacement.abs(), "never overshoots");
+                // Exact carrier conservation between the two compartments.
+                let before_total = carriers_before.intracellular + carriers_before.extracellular;
+                let after_total =
+                    successor.carriers.intracellular + successor.carriers.extracellular;
+                assert_eq!(before_total, after_total, "carriers conserved");
+                // Released work equals the exact stored-work drop.
+                let work_after = membrane_and_gradient_work_zeptojoules_wide(
+                    &fixture.anatomy,
+                    &successor,
+                )
+                .unwrap();
+                assert_eq!(
+                    released,
+                    &work_before - &work_after,
+                    "released work must equal the exact stored-work drop"
+                );
+                assert!(released > num_rational::BigRational::from_integer(0.into()));
+                state = successor;
+                phase = successor_phase;
+                displacement = next;
+            }
+            // Zero (or the lawful rest floor): no further event, ever.
+            assert!(next_passive_membrane_return_crossing_clocks(
+                &fixture.anatomy,
+                &state,
+                phase,
+                interval,
+            )
+            .unwrap()
+            .is_none() || displacement != 0);
+            if displacement == 0 {
+                assert!(next_passive_membrane_return_crossing_clocks(
+                    &fixture.anatomy,
+                    &state,
+                    phase,
+                    interval,
+                )
+                .unwrap()
+                .is_none(), "zero displacement schedules no event");
+            }
         }
-
-        let mut drained = fixture.state.clone();
-        drained.carriers = if pump_current.parts().0.signum() >= 0 {
-            CarrierReservoirs::new(0, 1_000_000)
-        } else {
-            CarrierReservoirs::new(1_000_000, 0)
-        };
-        assert!(next_membrane_recovery_crossing_clocks(
-            &fixture.anatomy,
-            &drained,
-            interval,
-        )
-        .unwrap()
-        .is_none());
     }
 
     /// PERSISTED-STATE QUARANTINE: a body whose retired membrane-return residue
