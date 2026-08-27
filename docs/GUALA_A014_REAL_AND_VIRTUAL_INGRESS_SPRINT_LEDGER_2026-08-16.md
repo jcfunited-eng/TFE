@@ -307,3 +307,77 @@ evidence in the same identity, real camera/microphone hardware has a persisted
 native consequence receipt, failure/off states were observed truthfully, raw
 media was not retained, and the one-process resource envelope remained
 bounded. A-014 is Live-Closed.
+
+## 2026-08-27 reconciliation — continuous ingress is Partial
+
+The later canonical delivery reconciliation governs this older closure claim:
+A-014 is **Reconciled Partial**, not Live-Closed. The physical camera,
+microphone, rendered-light, bounded-media, and persistent-world routes above
+remain real predecessor evidence, but their shared continuous native transport
+must also advance the current organism without a causal-event residency
+failure.
+
+The exact production baseline is commit
+`34be4d99620e4f25657c9418949732e4823cca19`, task definition
+`dsf-ai-task:1258`, image digest
+`sha256:1a21463d3a69043c9fdb8ee3dd3d6428e50ca2112329964ec1cc2656b1155eb6`,
+organism identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and authenticated
+CURRENT tick `186200` / state SHA-256
+`797d3cad4153c7b441514abfa48a8dd5949cbf0e57fbbe5eadc7829fb1c03f7a`.
+The exact running image and authenticated production body/world reproduce this
+failure: eight ordinary 250-millisecond whole-roster hops settle through tick
+`186208`; the first internally caused consequence hop then panics because one
+sleeping contact crosses a whole carrier before its retained due event. The
+live loop retries the same transaction, so service health remains green while
+CURRENT does not advance.
+
+### One active correction
+
+- **Input:** the authenticated tick-186200 body, the production world, eight
+  ordinary whole-roster hops, and the resulting native consequence hop.
+- **Required output:** the same resident organism advances through the
+  consequence without a sleeping-span crossing, retains the exact physical
+  action/consequence evidence, and continues unattended.
+- **Authorized source boundary:**
+  `native/guala_core/src/resident_cognitive_formation.rs` and
+  `native/guala_core/src/reached_neuron_cohort.rs`; the scheduler primitive is
+  unchanged because exact replay proved its crossing arithmetic correct.
+- **Prohibited:** weakening/removing the soundness assertion; dropping the
+  consequence; restoring a whole-fabric poll; changing L0-L4 or the seven-field
+  DSF; migration/genesis; observer authority; scripted meaning; or ML.
+- **Acceptance:** the exact production predecessor and live-sized path complete;
+  a cold-restored successor completes another ordinary action/consequence
+  interval; production CURRENT advances beyond `186200` with no repeated
+  schedule panic; identity, one writer, bounded CPU/RAM/storage, and exact
+  energy/carrier conservation remain true.
+
+Applicable recurrence classes: RF-002, RF-003, RF-004, RF-008, RF-010,
+RF-018, RF-028, RF-030, RF-041, RF-044, RF-046, RF-050, RF-053, and RF-054.
+RF-003 was observed directly in this correction: the locally installed native
+extension predated the production commit and did not reproduce the failure;
+the exact production image did.
+
+### Exact defect and focused replay
+
+The scheduler was not the defect. At clock `186208`, local contact 14 was
+retained and scheduled from carrier phase `-43/272`, due at `186210`. Before
+the next resident coupled frontier, source/receptor settlement independently
+advanced that same local contact to `91/272`. The next wake therefore saw a
+physical predecessor different from the one the schedule owned and correctly
+raised the soundness assertion. This was two contact-settlement authorities in
+one lived interval.
+
+Source ingress now explicitly defers local electrical settlement: it changes
+only its reached neurons. The one resident coupled frontier remains sole owner
+of local plus cross-cohort contact motion and its carrier schedule. The
+deferral flag carries no cloned contact vector and creates no synthetic
+transition records.
+
+The exact authenticated production body and world then completed the complete
+312-source ordinary action/consequence transaction. It crossed the former
+failure at generation `186209`, continued through generation `186231`, emitted
+the native motor action and physically applicable visual, auditory, chemical,
+tactile, thermal, proprioceptive, articulated-body, and vestibular consequence
+evidence, and raised no carrier-schedule assertion. This is focused candidate
+evidence only; A-014 remains Partial until the same continuity is observed
+after live cutover. RF-055 is now the durable earliest recurrence check.

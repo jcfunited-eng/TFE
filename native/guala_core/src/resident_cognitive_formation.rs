@@ -10372,6 +10372,7 @@ fn settle_resident_physical_interval(
     // and woke every otherwise quiescent resident neuron.
     let metabolic = ReachedCohortMetabolicObservation::default();
     let metabolically_perturbed_neurons = vec![false; cohort.anatomy.neuron_count()];
+    let input = input.defer_local_electrical_to_coupled_frontier();
     let mut outcome = if cohort.retained_experience.is_some() {
         settle_resident_recurrence_interval(
             cohort,
@@ -17159,7 +17160,20 @@ fn settle_internal_contact_interval(
                     assert_eq!(
                         caught.outward_elementary_charges, 0,
                         "a sleeping span crossed a whole carrier without its \
-                         scheduled wake — the causal event schedule is unsound"
+                         scheduled wake — the causal event schedule is unsound; \
+                         contact={contact_index} last={last} span_end={span_end} \
+                         clock={clock} rebuilt={needs_rebuild} \
+                         endpoints=({}, {}) predecessor_phase={:?} current={:?} \
+                         left_charges={} right_charges={} left_available={} \
+                         right_available={}",
+                        edge.left,
+                        edge.right,
+                        sleeping_state.carrier_phase().parts(),
+                        standing_current.parts(),
+                        left_membrane.separated_elementary_charges(),
+                        right_membrane.separated_elementary_charges(),
+                        left_available,
+                        right_available,
                     );
                     sleeping_state = sleeping_state
                         .with_caught_up_carrier_phase(caught.successor_phase);

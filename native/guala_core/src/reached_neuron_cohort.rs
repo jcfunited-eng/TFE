@@ -2755,6 +2755,7 @@ pub(crate) struct ReachedCohortIntervalInput<'a> {
     resident_indices: Option<Box<[usize]>>,
     external_contact_outward_elementary_charges: Box<[i128]>,
     precomputed_local_electrical: Option<SparseElectricalTransferSettlement>,
+    defer_local_electrical: bool,
 }
 
 impl<'a> ReachedCohortIntervalInput<'a> {
@@ -2808,6 +2809,7 @@ impl<'a> ReachedCohortIntervalInput<'a> {
             external_contact_outward_elementary_charges:
                 external_contact_outward_elementary_charges.into_boxed_slice(),
             precomputed_local_electrical: None,
+            defer_local_electrical: false,
         })
     }
 
@@ -2847,11 +2849,22 @@ impl<'a> ReachedCohortIntervalInput<'a> {
             source_sites: source_sites.into_boxed_slice(),
             resident_indices: None,
             precomputed_local_electrical: None,
+            defer_local_electrical: false,
         })
     }
 
     pub(crate) fn interval_microseconds(&self) -> u32 {
         self.neurons[0].interval_microseconds
+    }
+
+    /// Keep local contact state unchanged while an external receptor settles
+    /// its own reached neurons. The resident coupled frontier owns every
+    /// local and cross-cohort contact transition for the lived interval; a
+    /// source-local contact solve here would advance the same contact twice
+    /// and invalidate its retained carrier schedule.
+    pub(crate) fn defer_local_electrical_to_coupled_frontier(mut self) -> Self {
+        self.defer_local_electrical = true;
+        self
     }
 
     pub(crate) fn resident_indices(
@@ -3813,13 +3826,15 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     }) {
         return Err(ReachedCohortError::PerspectiveMismatch);
     }
-    let electrical = input
-        .precomputed_local_electrical
-        .take()
-        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
-    if electrical.successor_contacts.contact_count() != anatomy.contact_count()
-        || electrical.transitions.len() != anatomy.contact_count()
-    {
+    let electrical = input.precomputed_local_electrical.take();
+    if input.defer_local_electrical {
+        if electrical.is_some() {
+            return Err(ReachedCohortError::AnatomyStateWidth);
+        }
+    } else if electrical.as_ref().is_none_or(|electrical| {
+        electrical.successor_contacts.contact_count() != anatomy.contact_count()
+            || electrical.transitions.len() != anatomy.contact_count()
+    }) {
         return Err(ReachedCohortError::AnatomyStateWidth);
     }
     let predecessor_material = resident_indices.iter().try_fold(
@@ -3940,11 +3955,13 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
             actual_successor: actual_successor_material,
         });
     }
-    let electrically_active = electrical.successor_contacts != state.electrical
-        || electrical.transitions.iter().any(|transition| {
-            transition.outward_current_from_left_picoamperes.parts().0 != 0
-                || transition.outward_elementary_charges_from_left != 0
-        });
+    let electrically_active = electrical.as_ref().is_some_and(|electrical| {
+        electrical.successor_contacts != state.electrical
+            || electrical.transitions.iter().any(|transition| {
+                transition.outward_current_from_left_picoamperes.parts().0 != 0
+                    || transition.outward_elementary_charges_from_left != 0
+            })
+    });
     let quiescent = !recovery_active
         && !electrically_active
         && locally_quiescent.iter().all(|(_, value)| *value);
@@ -3952,10 +3969,15 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     for (resident_index, successor) in successors {
         state.neurons[resident_index] = successor;
     }
-    state.electrical = electrical.successor_contacts;
+    let contact_transitions = if let Some(electrical) = electrical {
+        state.electrical = electrical.successor_contacts;
+        electrical.transitions
+    } else {
+        Box::new([])
+    };
     state.recovery_fluid = reservoir;
     Ok(SparseReachedCohortIntervalSettlement {
-        contact_transitions: electrical.transitions,
+        contact_transitions,
         newly_opened_gate_channels: newly_opened_gate_channels.into_boxed_slice(),
         locally_quiescent: locally_quiescent.into_boxed_slice(),
         electrically_active,
@@ -3973,7 +3995,7 @@ pub(crate) fn settle_reached_cohort_interval_in_place(
     state: &mut ReachedCohortState,
     mut input: ReachedCohortIntervalInput<'_>,
 ) -> Result<SparseReachedCohortIntervalSettlement, ReachedCohortError> {
-    if input.precomputed_local_electrical.is_some() {
+    if input.precomputed_local_electrical.is_some() || input.defer_local_electrical {
         return settle_reached_cohort_interval_precomputed_in_place(anatomy, state, input);
     }
     let resident_indices = input.resident_indices(anatomy)?;
