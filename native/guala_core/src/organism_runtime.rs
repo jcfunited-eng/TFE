@@ -4238,23 +4238,6 @@ impl NativeResidentOrganismRuntime {
         RESIDENT_RUNTIME_SCHEMA
     }
 
-    /// The acceptance instrument for the rest law: the residency's due
-    /// event population — (scheduled contact crossings, scheduled
-    /// membrane returns, event clock). Read-only.
-    fn due_event_population(&self) -> (usize, usize, u64) {
-        self.runtime
-            .causal_event_residency
-            .as_ref()
-            .map(|events| {
-                (
-                    events.contact_schedule.scheduled_len(),
-                    events.recovery_schedule.scheduled_len(),
-                    events.organism_clock,
-                )
-            })
-            .unwrap_or((0, 0, 0))
-    }
-
     /// One fast clone of the complete lived state (unsealed if a
     /// trajectory is open, else the committed state) for off-lock
     /// custodial encoding. Touches nothing and never pauses cognition.

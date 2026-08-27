@@ -16952,6 +16952,18 @@ fn settle_internal_contact_interval(
             events.recovery_schedule.reschedule(flat, due);
         }
     }
+    eprintln!(
+        "guala-event-census clock={} due_now_contacts={} future_contacts={} \
+         returns_due={} future_returns={} seeds={} selected={} contacts={}",
+        clock,
+        due_now_contact_count,
+        events.contact_schedule.scheduled_len(),
+        return_due_count,
+        events.recovery_schedule.scheduled_len(),
+        seed_flats.len(),
+        selected.len(),
+        compact_original_indices.len(),
+    );
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
