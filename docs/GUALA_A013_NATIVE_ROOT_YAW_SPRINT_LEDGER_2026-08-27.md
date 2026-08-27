@@ -301,3 +301,40 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   typed root receptor, then accept a nonzero current layer-6/layer-8 transfer
   in either carrier direction only when the layer-8 regulation is the newly
   causal endpoint. No causal direction is inferred from current sign.
+
+## Current-frontier authority correction — 2026-08-27
+
+- Commit `f3b11a5b7e0b6839cb2e1497df07c821d6d52e75` is live as sole task
+  `dsf-ai-task:1275`, with identity continuity preserved. A tutor-caused turn
+  settled the world at heading `341569`, but CURRENT still retained exactly
+  the 74 articulated layer-12 motors and no root motor.
+- A bounded read-only restore at tick `202865` found no current frontier entry
+  advancing from the six mounted root receptor/integration/regulation cells.
+  This observation is expected after later autonomous intervals and cannot by
+  itself identify the interval-local break.
+- **Exact remaining source defect:** `next_active_frontier` correctly marks the
+  previously unseeded contact endpoint as the causal advance independently of
+  carrier sign. The root continuation nevertheless received
+  `causally_transitioned_lineages`, whose construction still admits a far
+  endpoint only when carriers move away from the seed. On the measured live
+  root anatomy, carriers move back toward the negative receptor, so the exact
+  layer-8 arrival was discarded before motor development.
+- **Frozen correction:** join the predecessor receptor-to-integration entry to
+  the current integration-to-regulation entry by exact bond, directed carrier
+  transfer, and explicit `frontier_lineage == regulation`. Admit that same
+  regulation into root motor development from this joined causal fact, not
+  from the carrier-oriented transition list. No observer data, timer, score,
+  label, new contact law, or DSF value enters the transition.
+- **Translation/conservation review:** both inputs are native transient
+  `ActiveElectricalFrontierEntry` values already produced by the one contact
+  settlement. The join copies no state, changes no charge/work/heat, and adds
+  no Python/native field. A missing predecessor entry, missing current entry,
+  mismatched transfer, wrong frontier endpoint, untyped receptor, or opposite
+  terminal still authors nothing. The focused falsifier must prove reverse
+  carrier direction succeeds only with both exact causal frontier entries.
+- **Focused result:** release-mode library test
+  `moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex` executed
+  `1/1` and passed. Its current transfer carries charge from regulation back
+  toward integration while the explicit frontier advances to regulation; the
+  paired root motor is mounted only when both consecutive frontier entries are
+  present. `git diff --check` passed.

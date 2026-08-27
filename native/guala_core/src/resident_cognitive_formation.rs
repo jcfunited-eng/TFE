@@ -7810,7 +7810,7 @@ impl ResidentCognitiveFormationState {
         let root_yaw_continuations = exact_root_yaw_causal_continuations(
             &cohorts,
             &topology_index,
-            &internal_contact.causally_transitioned_lineages,
+            &active_electrical_frontier,
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
         )?;
@@ -13765,7 +13765,7 @@ enum DevelopedMotorTerminal {
 fn exact_root_yaw_causal_continuations(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
-    physically_transitioned_lineages: &[[u8; 16]],
+    current_frontier: &[ActiveElectricalFrontierEntry],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
 ) -> Result<BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>, FormationError> {
@@ -13790,7 +13790,10 @@ fn exact_root_yaw_causal_continuations(
             (Some(8), Some(6)) => (current.receiver, current.sender),
             _ => continue,
         };
-        if !physically_transitioned_lineages.contains(&regulation) {
+        if !current_frontier.iter().any(|entry| {
+            entry.frontier_lineage() == regulation
+                && entry.directed_transfer() == Some(*current)
+        }) {
             continue;
         }
         for predecessor in predecessor_frontier {
@@ -13931,6 +13934,16 @@ fn mount_reached_motor_effector_with_root(
             8 if !body_regulation.contains(lineage) => body_regulation.push(*lineage),
             11 if !ordering.contains(lineage) => ordering.push(*lineage),
             _ => {}
+        }
+    }
+    // Root proprioception may drive carriers back toward its negative
+    // receptor while the causal potential change advances outward.  The
+    // exact two-frontier join above is therefore the authority that its
+    // layer-8 regulation was reached; the carrier-oriented transition list
+    // cannot replace that causal fact.
+    for regulation in root_yaw_continuations.keys().copied() {
+        if !body_regulation.contains(&regulation) {
+            body_regulation.push(regulation);
         }
     }
     if body_regulation.is_empty()
@@ -23423,10 +23436,18 @@ mod tests {
             bond: StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
             transferred_whole_carriers: 1,
         };
+        let current_frontier = ActiveElectricalFrontierEntry::caused_with_frontier(
+            regulation,
+            integration,
+            regulation,
+            current.bond,
+            current.transferred_whole_carriers,
+        )
+        .unwrap();
         assert!(exact_root_yaw_causal_continuations(
             &cohorts,
             &topology,
-            &[regulation],
+            &[],
             &[current],
             &[],
         )
@@ -23435,7 +23456,7 @@ mod tests {
         let continuations = exact_root_yaw_causal_continuations(
             &cohorts,
             &topology,
-            &[regulation],
+            &[current_frontier],
             &[current],
             &[predecessor],
         )
@@ -23447,7 +23468,7 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[regulation],
+            &[],
             &[current],
             &[predecessor],
             &[],
