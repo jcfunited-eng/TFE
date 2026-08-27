@@ -1064,16 +1064,9 @@ def _causal_interval_evidence(
             raw_frontier,
             raw_articulated_body,
         ) = raw
-        if (
-            not isinstance(raw_articulated_body, list)
-            or len(raw_articulated_body) != 195
-            or any(
-                isinstance(value, bool)
-                or not isinstance(value, int)
-                or not 0 <= value <= 255
-                for value in raw_articulated_body
-            )
-        ):
+        if not isinstance(raw_articulated_body, bytes) or len(
+            raw_articulated_body
+        ) != 195:
             raise RuntimeError(
                 "causal interval articulated body changed format"
             )
@@ -1142,7 +1135,7 @@ def _causal_interval_evidence(
                     _affective_balance_trajectory_evidence(raw_affect)
                 ),
                 causal_frontier_advances=canonical_frontier,
-                articulated_body_state=bytes(raw_articulated_body),
+                articulated_body_state=raw_articulated_body,
             )
         )
     return tuple(intervals)

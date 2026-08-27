@@ -41,6 +41,12 @@ task 1232 bounded only passive causal observation and sent no duplicate lesson.
   and cold-restores the resulting `CURRENT`. L-006 itself remains open until a
   physical utterance, self-hearing, and different-context learned reuse are
   directly observed.
+- **First cutover result:** task `1261` deployed the sole-writer correction and
+  restored the same identity, but the exact discarded-current replay exposed a
+  separate translation refusal after all eight native hops: Rust/PyO3 emits the
+  fixed 195-byte body as Python `bytes`, while the new wrapper required a
+  Python integer list. The correction requires the exact native `bytes` body;
+  it does not accept both formats or add a compatibility branch.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
