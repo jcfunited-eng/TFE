@@ -2137,7 +2137,6 @@ class NativeResidentOrganism:
             for value in maximum_causal_intervals
         )
         active_before = self.readiness()
-        source_port_count += 74
         candidate = self.__runtime.commit_admitted_trajectory_direct(
             list(sources), [list(value) for value in intervals]
         )
@@ -2184,7 +2183,7 @@ class NativeResidentOrganism:
             _validated_causal_intervals(value)
             for value in maximum_causal_intervals
         )
-        source_port_count = 74 + sum(
+        source_port_count = sum(
             _nonnegative_integer(
                 getattr(source, "port_count", None), "trajectory source port count"
             )
