@@ -2146,7 +2146,7 @@ class NativeResidentOrganism:
                 candidate,
                 source_port_count,
                 active_before,
-                causal_interval_count=len(sources) + 1,
+                causal_interval_count=len(sources),
                 body_feedback_reentered=False,
                 candidate_committed=True,
             )
@@ -2201,7 +2201,7 @@ class NativeResidentOrganism:
                 candidate,
                 source_port_count,
                 active_before,
-                causal_interval_count=len(sources) + 1,
+                causal_interval_count=len(sources),
                 body_feedback_reentered=False,
                 candidate_committed=False,
                 expected_sealed=False,
