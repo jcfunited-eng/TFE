@@ -7825,6 +7825,8 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
+            &predecessor_older_active_electrical_frontier,
+            &predecessor_preceding_active_electrical_frontier,
             &predecessor_active_electrical_frontier,
             &moved_axes,
             &moved_root_yaw_terminals,
@@ -13776,6 +13778,8 @@ fn mount_reached_motor_effector(
         electrical_fabric,
         physically_transitioned_lineages,
         settled_directed_transfers,
+        &[],
+        &[],
         predecessor_frontier,
         moved_axes,
         &[],
@@ -13789,6 +13793,8 @@ fn mount_reached_motor_effector_with_root(
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    older_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_frontier: &[ActiveElectricalFrontierEntry],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     moved_root_yaw_terminals: &[RootYawEffectorTerminal],
@@ -13949,32 +13955,65 @@ fn mount_reached_motor_effector_with_root(
         if layer_by_lineage.get(&regulation).copied() != Some(8) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
-        // Proven affective drivers: layer-10 cells that moved whole
-        // carriers INTO this consequence-returned regulation cell during
-        // this interval. Direction is the proof; adjacency alone is not.
-        let proven_affective = regulation_neighbours
+        let affective_lineages = regulation_neighbours
             .iter()
             .copied()
-            .filter(|lineage| {
-                layer_by_lineage.get(lineage).copied() == Some(10)
-                    && directed_pairs.contains(&(*lineage, regulation))
-            })
+            .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(10))
             .collect::<BTreeSet<_>>();
-        // Proven ordering causes: layer-11 cells that moved whole carriers
-        // INTO one of those proven affective drivers in the PRECEDING
-        // interval, carried as directed entries of the retained causal
-        // frontier. Consecutive windows are the causal proof; two
-        // same-interval transfers are synchronous and prove nothing.
-        // The chain 11 -> 10 -> 8 never touches a layer-12 cell, so an
-        // existing motor contact can never help prove a new one.
+        let retained_window_contains =
+            |frontier: &[ActiveElectricalFrontierEntry],
+             sender: [u8; 16],
+             receivers: &BTreeSet<[u8; 16]>| {
+                frontier.iter().any(|entry| {
+                    entry.sender() == Some(sender) && receivers.contains(&entry.receiver())
+                })
+            };
+        let retained_affective_into_regulation =
+            |frontier: &[ActiveElectricalFrontierEntry]| {
+                frontier.iter().filter_map(|entry| {
+                    (entry.receiver() == regulation)
+                        .then(|| entry.sender())
+                        .flatten()
+                        .filter(|sender| affective_lineages.contains(sender))
+                })
+                .collect::<BTreeSet<_>>()
+            };
+        let current_affective_into_regulation = affective_lineages
+            .iter()
+            .copied()
+            .filter(|lineage| directed_pairs.contains(&(*lineage, regulation)))
+            .collect::<BTreeSet<_>>();
+        // Articulated terminals retain the original consecutive-window law.
+        // A root turn, however, crosses the world boundary before its exact
+        // proprioceptive consequence returns. Its same directed 11 -> 10 -> 8
+        // proof may therefore occupy any adjacent pair in the already-retained
+        // three-frontier window. No coincidence, score, label, or undirected
+        // activity can satisfy this test, and nothing older is considered.
         let proven_ordering = ordering
             .iter()
             .copied()
             .filter(|lineage| {
-                predecessor_frontier.iter().any(|entry| {
-                    entry.sender() == Some(*lineage)
-                        && proven_affective.contains(&entry.receiver())
-                })
+                let immediate = retained_window_contains(
+                    predecessor_frontier,
+                    *lineage,
+                    &current_affective_into_regulation,
+                );
+                if immediate || !matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_)) {
+                    return immediate;
+                }
+                let predecessor_affective =
+                    retained_affective_into_regulation(predecessor_frontier);
+                let preceding_affective =
+                    retained_affective_into_regulation(preceding_frontier);
+                retained_window_contains(
+                    preceding_frontier,
+                    *lineage,
+                    &predecessor_affective,
+                ) || retained_window_contains(
+                    older_frontier,
+                    *lineage,
+                    &preceding_affective,
+                )
             })
             .collect::<Vec<_>>();
         if proven_ordering.is_empty() {
