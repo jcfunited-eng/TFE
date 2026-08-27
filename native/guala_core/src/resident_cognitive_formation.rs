@@ -5232,6 +5232,57 @@ impl ResidentCognitiveFormationState {
         }
 
         let mut retired_recurrent = BTreeSet::<[u8; 16]>::new();
+        // The rejected association identity used the complete changing
+        // participant set.  Its first two canonical layer-6 contacts are the
+        // stable founding physical pair; retain the oldest cell for each pair
+        // and retire later set-identity duplicates.
+        let association_lineages = layer_by_lineage
+            .iter()
+            .filter_map(|(lineage, layer)| (*layer == 7).then_some(*lineage))
+            .collect::<BTreeSet<_>>();
+        let mut layer_six_by_association = association_lineages
+            .iter()
+            .copied()
+            .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
+            .collect::<BTreeMap<_, _>>();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left = self.electrical_fabric.lineages()[left];
+            let right = self.electrical_fabric.lineages()[right];
+            if association_lineages.contains(&left)
+                && layer_by_lineage.get(&right) == Some(&6)
+            {
+                layer_six_by_association
+                    .get_mut(&left)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .push(right);
+            }
+            if association_lineages.contains(&right)
+                && layer_by_lineage.get(&left) == Some(&6)
+            {
+                layer_six_by_association
+                    .get_mut(&right)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .push(left);
+            }
+        }
+        let mut associations_by_founder = BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
+        for (lineage, mut neighbours) in layer_six_by_association {
+            neighbours.sort_unstable();
+            neighbours.dedup();
+            let [left, right, ..] = neighbours.as_slice() else {
+                retired_recurrent.insert(lineage);
+                continue;
+            };
+            associations_by_founder
+                .entry([*left, *right])
+                .or_default()
+                .push(lineage);
+        }
+        for lineages in associations_by_founder.values_mut() {
+            lineages.sort_unstable();
+            retired_recurrent.extend(lineages.iter().skip(1).copied());
+        }
+
         let mut root_mosaics = Vec::<RetainedOrganismMosaic>::new();
         for retained in self.mosaics.iter() {
             let recursively_authored = retained
@@ -5270,6 +5321,17 @@ impl ResidentCognitiveFormationState {
             let predecessor_retired_count = retired_recurrent.len();
             let mut corrected_roots = Vec::<RetainedOrganismMosaic>::new();
             for retained in &root_mosaics {
+                if retained
+                    .mosaic
+                    .member_lineages()
+                    .iter()
+                    .any(|lineage| retired_recurrent.contains(lineage))
+                {
+                    if let Some(lineage) = retained.recurrent_lineage {
+                        retired_recurrent.insert(lineage);
+                    }
+                    continue;
+                }
                 match retained.mosaic.without_invalid_bonds(&invalid_references) {
                     Some(corrected) => corrected_roots.push(RetainedOrganismMosaic {
                         mosaic: corrected,
@@ -5293,6 +5355,63 @@ impl ResidentCognitiveFormationState {
                 if *layer == 9 && !protected_recurrent.contains(lineage) {
                     retired_recurrent.insert(*lineage);
                 }
+            }
+            // An ordering cell is defined by its first two surviving
+            // layer-7/9/10 neighbours. If either founder was retired, the
+            // route has no physical identity; if several cells share the same
+            // founders, only the oldest predates the rejected set-identity
+            // duplication.
+            let ordering_lineages = layer_by_lineage
+                .iter()
+                .filter_map(|(lineage, layer)| {
+                    (*layer == 11 && !retired_recurrent.contains(lineage))
+                        .then_some(*lineage)
+                })
+                .collect::<BTreeSet<_>>();
+            let mut relevant_by_ordering = ordering_lineages
+                .iter()
+                .copied()
+                .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
+                .collect::<BTreeMap<_, _>>();
+            for (left, right) in self.electrical_fabric.contact_endpoints() {
+                let left = self.electrical_fabric.lineages()[left];
+                let right = self.electrical_fabric.lineages()[right];
+                if ordering_lineages.contains(&left)
+                    && matches!(layer_by_lineage.get(&right), Some(7 | 9 | 10))
+                    && !retired_recurrent.contains(&right)
+                {
+                    relevant_by_ordering
+                        .get_mut(&left)
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                        .push(right);
+                }
+                if ordering_lineages.contains(&right)
+                    && matches!(layer_by_lineage.get(&left), Some(7 | 9 | 10))
+                    && !retired_recurrent.contains(&left)
+                {
+                    relevant_by_ordering
+                        .get_mut(&right)
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                        .push(left);
+                }
+            }
+            let mut ordering_by_founder =
+                BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
+            for (lineage, mut neighbours) in relevant_by_ordering {
+                neighbours.sort_unstable();
+                neighbours.dedup();
+                let [left, right, ..] = neighbours.as_slice() else {
+                    retired_recurrent.insert(lineage);
+                    continue;
+                };
+                ordering_by_founder
+                    .entry([*left, *right])
+                    .or_default()
+                    .push(lineage);
+            }
+            for lineages in ordering_by_founder.values_mut() {
+                lineages.sort_unstable();
+                retired_recurrent.extend(lineages.iter().skip(1).copied());
             }
             if retired_recurrent.len() == predecessor_retired_count {
                 break corrected_roots;
@@ -5329,7 +5448,10 @@ impl ResidentCognitiveFormationState {
                     .anatomy
                     .mounts()
                     .iter()
-                    .any(|mount| mount.source_site().is_some() || mount.place().layer() != 9)
+                    .any(|mount| {
+                        mount.source_site().is_some()
+                            || !matches!(mount.place().layer(), 7 | 9 | 11)
+                    })
             {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
@@ -7705,14 +7827,13 @@ impl ResidentCognitiveFormationState {
             .copied()
             .filter(|lineage| physically_transitioned_neuron_lineages.contains(lineage))
             .collect::<Vec<_>>();
-        mount_reached_affective_reach_indexed(
-            &mut cohorts,
-            &mut resting_population,
-            &mut next_lineage_ordinal,
-            &mut electrical_fabric,
-            &topology_index,
-            &exact_developmental_authority_lineages,
-        )?;
+        // Historical affective growth paired every coincident layer-7 and
+        // layer-8 transition, which recreates a Cartesian contact pool on a
+        // conducting body.  Until an exact directed association-to-body
+        // transfer is carried here, coincidence has no authority to author
+        // anatomy. Existing unauthenticated contacts leave at the explicit
+        // one-way correction boundary below.
+        let _ = exact_developmental_authority_lineages;
         // Delayed ordering anatomy is likewise learned growth: only an exact
         // active bond carried by a current or reassembled retained formation
         // may author it. A large transient electrical frontier cannot mint a
@@ -13088,7 +13209,10 @@ fn mount_reached_cross_sensory_association(
                     .collect::<Vec<_>>();
                 layer_six_neighbours.sort_unstable();
                 layer_six_neighbours.dedup();
-                if layer_six_neighbours.as_slice() == assembly {
+                if layer_six_neighbours.len() >= 2
+                    && assembly.len() >= 2
+                    && layer_six_neighbours[..2] == assembly[..2]
+                {
                     matching.push(candidate);
                 }
             }
@@ -13103,6 +13227,15 @@ fn mount_reached_cross_sensory_association(
     let mut additions = Vec::new();
     for assembly in candidate_assemblies {
         if let Some(lineage) = existing_association_for(&assembly)? {
+            for integration in assembly {
+                if !electrical_fabric.contains_contact(integration, lineage) {
+                    additions.push((
+                        integration,
+                        lineage,
+                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                    ));
+                }
+            }
             associations.push(lineage);
             continue;
         }
