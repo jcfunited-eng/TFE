@@ -3164,6 +3164,37 @@ fn formation_contains_reached_physical_path(
             .all(|bond| prior.original_bonds().binary_search(bond).is_ok())
 }
 
+/// Whether the current path is only a retained formation plus the recurrent
+/// route that formation itself mounted.  A recurrence cell and its member
+/// contacts are consequences of retention, not fresh sensory structure, and
+/// therefore cannot recursively authorize another retained formation.
+fn retained_formation_contains_own_recurrent_projection(
+    prior: &RetainedOrganismMosaic,
+    current: &AdmittedPhysicalMosaic,
+) -> bool {
+    let Some(recurrent_lineage) = prior.recurrent_lineage else {
+        return formation_contains_reached_physical_path(&prior.mosaic, current);
+    };
+    let member_is_owned = |lineage: &[u8; 16]| {
+        *lineage == recurrent_lineage
+            || prior.mosaic.member_lineages().binary_search(lineage).is_ok()
+    };
+    let bond_is_owned = |bond: &StablePhysicalBondReference| {
+        if prior.mosaic.original_bonds().binary_search(bond).is_ok()
+            || prior.mosaic.recurrence_bonds().binary_search(bond).is_ok()
+        {
+            return true;
+        }
+        let (left, right) = bond.endpoints();
+        (left == recurrent_lineage
+            && prior.mosaic.member_lineages().binary_search(&right).is_ok())
+            || (right == recurrent_lineage
+                && prior.mosaic.member_lineages().binary_search(&left).is_ok())
+    };
+    current.member_lineages().iter().all(member_is_owned)
+        && current.original_bonds().iter().all(bond_is_owned)
+}
+
 fn mosaic_spans_multiple_cohorts_indexed(
     topology_index: &ResidentTopologyIndex,
     mosaic: &AdmittedPhysicalMosaic,
@@ -3866,7 +3897,10 @@ fn settle_organism_mosaic_boundary(
             });
         if !joins_pending_path
             && overlapping_reassemblies.iter().any(|index| {
-                formation_contains_reached_physical_path(&mosaics[*index].mosaic, &original)
+                retained_formation_contains_own_recurrent_projection(
+                    &mosaics[*index],
+                    &original,
+                )
             })
         {
             continue;
@@ -7424,13 +7458,18 @@ impl ResidentCognitiveFormationState {
         // New layer-10 anatomy is admitted only after this exact physical
         // interval has proved retained formation authority. Transient
         // electrical coincidence alone cannot become permanent anatomy.
+        let exact_developmental_authority_lineages = developmental_authority_lineages
+            .iter()
+            .copied()
+            .filter(|lineage| physically_transitioned_neuron_lineages.contains(lineage))
+            .collect::<Vec<_>>();
         mount_reached_affective_reach_indexed(
             &mut cohorts,
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
             &topology_index,
-            &developmental_authority_lineages,
+            &exact_developmental_authority_lineages,
         )?;
         // Delayed ordering anatomy is likewise learned growth: only an exact
         // active bond carried by a current or reassembled retained formation
