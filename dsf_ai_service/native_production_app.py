@@ -15685,16 +15685,17 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                             signed_displacement_millidegrees=signed_yaw,
                         )
                     )
-                    admitted_episode: Any = (consequence, root_yaw_source)
-                    admitted_intervals: Any = (
-                        admissions,
-                        [(1, 1_000)] * root_yaw_source.occurrence_count,
-                    )
+                    admitted_episodes = [
+                        (consequence, admissions),
+                        (
+                            root_yaw_source,
+                            [(1, 1_000)] * root_yaw_source.occurrence_count,
+                        ),
+                    ]
                 else:
-                    admitted_episode = consequence
-                    admitted_intervals = admissions
+                    admitted_episodes = [(consequence, admissions)]
                 result = _perform_admitted_intake_locked(
-                    [(admitted_episode, admitted_intervals)],
+                    admitted_episodes,
                     f"world-move:{intent}",
                     vestibular_yaw=(predecessor_heading, yaw_trajectory),
                 )

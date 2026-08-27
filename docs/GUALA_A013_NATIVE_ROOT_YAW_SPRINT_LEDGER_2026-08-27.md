@@ -150,6 +150,7 @@ cutover until it becomes an exact result.
 | RF-035/042/054 | Use a production-sized signed yaw, prove positive/negative/zero semantics, and tolerate consistent stalled rows while retaining actual displacement. | Signed native source proves positive and negative direction plus tamper refusal; production-sized replay pending. |
 | RF-048 | Cold-restore the exact production world under candidate limits and exercise the live read-only world path. | Pending before immutable build. |
 | RF-056 | Authenticate identity/tick before draining and require the candidate to restore the same identity at or beyond that tick. | Baseline identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; cutover proof pending. |
+| RF-057 | Pass world consequence and root proprioception as separate top-level intake items, never a nested compound item. | First copied-live replay exposed and refused the nested shape after world commit; corrected replay returned HTTP 200, changed heading by exactly 1 millidegree, changed 197 receptor lanes, and completed 78 causal hops. |
 
 The production preflight at candidate commit `4e3b1bdb` observed one healthy
 owner on task definition `1266`, image digest
