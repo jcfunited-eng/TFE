@@ -60,7 +60,6 @@ from __future__ import annotations
 from array import array
 import base64
 import binascii
-from contextlib import asynccontextmanager
 from dataclasses import replace
 from fractions import Fraction
 from functools import lru_cache
@@ -123,7 +122,6 @@ from dsf_ai_service.substrate.native_organism_binary_store import (
     publish_staged_native_organism,
     restore_current_native_organism,
     stage_active_native_organism,
-    stage_native_organism_state_bytes,
 )
 from dsf_ai_service.substrate.native_resident_resource_admission import (
     NativeResidentResourceAdmission,
@@ -14054,7 +14052,6 @@ def _startup() -> None:
         raise
 
 
-@asynccontextmanager
 def _seal_pending_chain() -> None:
     """Seal and publish any open deferred-checkpoint chain.
 
@@ -14087,112 +14084,12 @@ def _seal_pending_chain() -> None:
         _refresh_public_observation_cache()
 
 
-_custodian_stop = threading.Event()
-_custodian_thread: threading.Thread | None = None
-_custodian_last_tick: int | None = None
-
-
-def _custodian_seconds() -> float:
-    try:
-        value = float(os.environ.get("GUALA_CUSTODIAN_SECONDS", "120"))
-    except ValueError:
-        return 120.0
-    return value
-
-
-def _custodian_cycle() -> str:
-    """One bounded checkpoint of committed lived state.
-
-    Never pauses or controls the organism: the runtime lock is held only
-    for one fast state clone; encoding and custody run entirely outside.
-    Failure skips the cycle — cognition is never poisoned by custody.
-    """
-
-    global _custodian_last_tick
-    if _restored is None or _admission is None:
-        return "organism_unavailable"
-    with _transition_lock:
-        restored = _restored
-        admission = _admission
-        if restored is None or admission is None:
-            return "organism_unavailable"
-        snapshot = restored.organism.snapshot_lived_state()
-    if _custodian_last_tick == snapshot.organism_tick:
-        return "unchanged"
-    current = _read_current(Path(STATE_ROOT))
-    if current is None:
-        return "no_current"
-    envelope = bytes(snapshot.encode_generation())
-    if hashlib.sha256(envelope).hexdigest() == current.state_sha256:
-        _custodian_last_tick = snapshot.organism_tick
-        return "identical"
-    staged = stage_native_organism_state_bytes(
-        STATE_ROOT,
-        envelope,
-        identity=current.identity,
-        organism_tick=snapshot.organism_tick,
-        max_envelope_bytes=admission.max_envelope_bytes,
-    )
-    publish_staged_native_organism(
-        staged,
-        expected_predecessor_sha256=current.state_sha256,
-        object_store=_object_store(),
-        max_envelope_bytes=admission.max_envelope_bytes,
-        max_fabric_bytes=admission.max_fabric_bytes,
-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
-    )
-    _custodian_last_tick = snapshot.organism_tick
-    return "checkpointed"
-
-
-def _custodian_loop() -> None:
-    while not _custodian_stop.is_set():
-        cadence = _custodian_seconds()
-        if cadence <= 0:
-            _custodian_stop.wait(60.0)
-            continue
-        if _custodian_stop.wait(cadence):
-            return
-        started = time.perf_counter()
-        try:
-            outcome = _custodian_cycle()
-        except BaseException as error:  # noqa: BLE001 - custody must not die
-            outcome = f"failed:{type(error).__name__}"
-        print(
-            f"guala-custodian outcome={outcome} "
-            f"wall_ms={(time.perf_counter() - started) * 1000.0:.0f}",
-            file=sys.stderr,
-            flush=True,
-        )
-
-
-def _start_custodian() -> None:
-    global _custodian_thread
-    if _custodian_thread is not None:
-        return
-    _custodian_stop.clear()
-    _custodian_thread = threading.Thread(
-        target=_custodian_loop, name="guala-custodian", daemon=True
-    )
-    _custodian_thread.start()
-
-
-def _stop_custodian() -> None:
-    global _custodian_thread
-    _custodian_stop.set()
-    if _custodian_thread is not None:
-        _custodian_thread.join(timeout=5.0)
-        _custodian_thread = None
-
-
 async def _lifespan(_application: FastAPI):
     _startup()
     _start_unattended_time()
-    _start_custodian()
     try:
         yield
     finally:
-        _stop_custodian()
         _stop_unattended_time()
         try:
             _seal_pending_chain()

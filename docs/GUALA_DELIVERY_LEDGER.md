@@ -21,6 +21,27 @@ recognition successor is CURRENT at tick 172663/state
 `daebf329033be470804daebcb064934a0f6f29bed9534c229dafdc45063ef740`;
 task 1232 bounded only passive causal observation and sent no duplicate lesson.
 
+### L-006 current production-custody correction — 2026-08-27
+
+- **Active item:** L-006 remains open; L-005 remains live-closed.
+- **Observed production baseline:** task `1260`, commit `a47c9944`, identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored at tick `186364`.
+- **Exact blocker:** the background custodian independently published an
+  unsealed snapshot to `CURRENT` without advancing the resident runtime's
+  predecessor pointer. The next ordinary fourth-interval seal then refused its
+  stale predecessor and made the public surface unavailable. The shutdown
+  chain seal was also inert because a synchronous function was decorated as an
+  async context manager and called without entering it.
+- **Frozen correction:** delete the custodian writer and its raw-state staging
+  API; retain the organism's existing fourth-interval atomic publication as the
+  sole `CURRENT` and immutable-custody path; make shutdown execute that same
+  chain seal. No neuron, DSF, body, learning, or observer law changes.
+- **Live exit:** one task restores the same identity, advances and publishes at
+  least two checkpoint cadences without predecessor conflict or public 503,
+  and cold-restores the resulting `CURRENT`. L-006 itself remains open until a
+  physical utterance, self-hearing, and different-context learned reuse are
+  directly observed.
+
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
 | 0 | A-009 foundation | Live-closed | Preserve continuous cognition and same-organism action consequence re-entry; no pause machinery or full-neuron evidence duplication may return. |
