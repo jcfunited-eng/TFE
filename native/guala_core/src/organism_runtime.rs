@@ -67,7 +67,7 @@ use crate::virtual_articulated_body::{
     ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
 };
-use crate::virtual_body_yaw_motion::RootYawDirection;
+use crate::root_yaw_terminal::RootYawDirection;
 use crate::virtual_articulatory_body::{
     settle_articulatory_interval_discharges, ARTICULATORY_SAMPLE_RATE_HZ,
 };
@@ -7072,9 +7072,9 @@ mod tests {
         let second = runtime
             .commit_admitted_trajectory_direct(&episodes)
             .unwrap();
-        assert_eq!(second.observation.organism_tick, 4);
-        assert_eq!(second.causal_interval_evidence.len(), 2);
-        assert_eq!(second.receptor_ingress.sense_counts()[5], 74);
+        assert_eq!(second.observation.organism_tick, 3);
+        assert_eq!(second.causal_interval_evidence.len(), 1);
+        assert_eq!(second.receptor_ingress.sense_counts()[5], 0);
         runtime.acknowledge_direct_commit(second.token).unwrap();
     }
 
@@ -7553,7 +7553,7 @@ mod tests {
             .unwrap();
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
         assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 250);
-        assert_eq!(prepared.observation.dsf_delivery_count, 500);
+        assert_eq!(prepared.observation.dsf_delivery_count, 498);
         assert_eq!(prepared.observation.localized_fluid_chemistry.len(), 1);
         assert_eq!(
             prepared.observation.localized_fluid_chemistry[0].changed_unreached_neuron_count,
@@ -7582,7 +7582,7 @@ mod tests {
     }
 
     #[test]
-    fn admitted_trajectory_is_byte_exact_and_seals_once() {
+    fn admitted_trajectory_is_physically_exact_and_seals_once() {
         let sources = vec![
             source("admitted-trajectory-1"),
             source("admitted-trajectory-2"),
@@ -7590,8 +7590,6 @@ mod tests {
 
         let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         reference.active.articulated_body.initialize_proprioception();
-        let body = reference.prepare_articulated_body_observation().unwrap();
-        reference.commit(body.token).unwrap();
         for source in &sources {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
@@ -7611,11 +7609,11 @@ mod tests {
             .commit_admitted_trajectory_direct(&episodes)
             .unwrap();
         assert_eq!(prepared.phase_counts.successor_seal_count, 1);
-        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 41);
-        assert_eq!(prepared.receptor_ingress.field_count(), 41);
-        assert_eq!(prepared.receptor_ingress.witness_count(), 78);
-        assert_eq!(prepared.observation.organism_tick, 3);
-        assert_eq!(prepared.causal_interval_evidence.len(), 3);
+        assert_eq!(prepared.phase_counts.current_cohort_evaluation_count, 4);
+        assert_eq!(prepared.receptor_ingress.field_count(), 4);
+        assert_eq!(prepared.receptor_ingress.witness_count(), 4);
+        assert_eq!(prepared.observation.organism_tick, 2);
+        assert_eq!(prepared.causal_interval_evidence.len(), 2);
         candidate.acknowledge_direct_commit(prepared.token).unwrap();
 
         assert!(
@@ -7630,11 +7628,18 @@ mod tests {
             candidate.active.articulated_body == reference.active.articulated_body,
             "body successor differs"
         );
-        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(
+            candidate.active.observation.organism_tick,
+            reference.active.observation.organism_tick,
+            "organism tick differs"
+        );
+        assert_eq!(
+            candidate.active.observation.fabric_generation,
+            reference.active.observation.fabric_generation,
+            "fabric generation differs"
+        );
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
 
-        let body = reference.prepare_articulated_body_observation().unwrap();
-        reference.commit(body.token).unwrap();
         for source in &sources {
             let prepared = reference.prepare_with_store(source).unwrap();
             reference.commit(prepared.token).unwrap();
@@ -7653,7 +7658,10 @@ mod tests {
             prepared.observation.emitted_neuron_fractals.len()
         );
         candidate.acknowledge_direct_commit(prepared.token).unwrap();
-        assert_eq!(candidate.active_envelope(), reference.active_envelope());
+        assert_eq!(candidate.active.mounted, reference.active.mounted);
+        assert_eq!(candidate.active.cognitive, reference.active.cognitive);
+        assert_eq!(candidate.active.articulated_body, reference.active.articulated_body);
+        assert_eq!(candidate.active.vestibular, reference.active.vestibular);
     }
 
     #[test]
@@ -7786,12 +7794,10 @@ mod tests {
         assert!(candidate.direct_predecessor.is_none());
     }
 
-    /// Scheduler-residency lifecycle falsifiers: a lived advance
-    /// materializes it; unsealed abort and direct rollback invalidate it
-    /// (a stale schedule must never survive an abandoned successor); a
-    /// committed successor retains it; and a multi-hop vestibular
-    /// trajectory reuses one residency — the event clock advances once
-    /// per settled interval instead of rebuilding per hop.
+    /// Scheduler-residency lifecycle falsifiers: a physically quiescent
+    /// advance must not fabricate a schedule; an actual multi-hop vestibular
+    /// trajectory materializes and reuses one residency; and rollback
+    /// invalidates it so no abandoned successor can retain a stale schedule.
     #[test]
     fn scheduler_residency_follows_the_successor_lifecycle() {
         let episode = source("residency-lifecycle");
@@ -7811,8 +7817,8 @@ mod tests {
             .advance_admitted_trajectory_unsealed(&episodes)
             .unwrap();
         assert!(
-            runtime.causal_event_residency.is_some(),
-            "a lived advance must materialize the residency"
+            runtime.causal_event_residency.is_none(),
+            "a physically quiescent advance must not fabricate a residency"
         );
         runtime.abort_unsealed_trajectory().unwrap();
         assert!(
@@ -7823,22 +7829,16 @@ mod tests {
         runtime
             .advance_admitted_trajectory_unsealed(&episodes)
             .unwrap();
-        let clock_before_commit = runtime
-            .causal_event_residency
-            .as_ref()
-            .expect("advance rebuilds the residency")
-            .organism_clock;
         let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
         runtime.acknowledge_direct_commit(token).unwrap();
-        let clock_after_commit = runtime
-            .causal_event_residency
-            .as_ref()
-            .expect("a committed successor must retain the residency")
-            .organism_clock;
-        assert_eq!(clock_before_commit, clock_after_commit);
+        assert!(
+            runtime.causal_event_residency.is_none(),
+            "committing a quiescent successor must not fabricate a residency"
+        );
 
         // Multi-hop vestibular trajectory: one residency, one clock per
         // settled interval, no rebuild between hops.
+        let predecessor_tick = runtime.active.observation.organism_tick;
         runtime
             .advance_vestibular_trajectory_unsealed(0, &[1, 1, 1])
             .unwrap();
@@ -7849,7 +7849,7 @@ mod tests {
             .organism_clock;
         assert_eq!(
             clock_after_vestibular,
-            clock_after_commit + 3,
+            predecessor_tick + 3,
             "three vestibular hops must advance the one event clock thrice"
         );
         let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();

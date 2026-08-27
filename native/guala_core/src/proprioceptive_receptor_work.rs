@@ -19,7 +19,7 @@ use crate::receptor_quantum_delivery::{
     exact_rational_to_big, quantize_receptor_delivery, QuantizedReceptorDelivery,
     ReceptorDeliveryError, ReceptorResidueValue,
 };
-use crate::virtual_body_yaw_motion::RootYawDirection;
+use crate::root_yaw_terminal::RootYawDirection;
 
 pub(crate) const ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY: &str =
     "antagonist-proprioceptor-length-fraction";

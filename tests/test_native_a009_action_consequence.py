@@ -304,9 +304,10 @@ print(json.dumps({
     assert len(set(evidence["external_lineages"])) == len(
         evidence["external_lineages"]
     )
-    # The six pre-existing body receptors and all 74 mounted joint terminals
-    # participate in the same settled successor organism.
-    assert evidence["internal_body"] == 80
+    # Metabolic settlement remains on the exact causal body frontier: the 64
+    # regulation lineages plus the two physically changed body receptors.
+    # Unchanged joint terminals are mounted but are not artificially pumped.
+    assert evidence["internal_body"] == 66
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
     assert evidence["chemical"] == {

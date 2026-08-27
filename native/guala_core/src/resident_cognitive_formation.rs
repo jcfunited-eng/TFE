@@ -158,7 +158,7 @@ use crate::virtual_articulated_body::{
     BodyEffectorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET, BODY_EFFECTOR_TERMINAL_COUNT,
     BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
-use crate::virtual_body_yaw_motion::{
+use crate::root_yaw_terminal::{
     RootYawEffectorTerminal, RootYawProprioceptorTerminal,
 };
 use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
@@ -13259,10 +13259,7 @@ fn mount_reached_cross_sensory_association(
                     .collect::<Vec<_>>();
                 layer_six_neighbours.sort_unstable();
                 layer_six_neighbours.dedup();
-                if layer_six_neighbours.len() >= 2
-                    && assembly.len() >= 2
-                    && layer_six_neighbours[..2] == assembly[..2]
-                {
+                if layer_six_neighbours == assembly {
                     matching.push(candidate);
                 }
             }

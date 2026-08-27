@@ -13,7 +13,7 @@ use crate::joint_source_episode::{
 };
 use crate::joint_uf_neuron_boundary::JointNeuronPerspective;
 use crate::virtual_articulated_body::BodyProprioceptorTerminal;
-use crate::virtual_body_yaw_motion::RootYawProprioceptorTerminal;
+use crate::root_yaw_terminal::RootYawProprioceptorTerminal;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum PhysicalSourceSense {

@@ -14,7 +14,7 @@ use crate::joint_uf_source_adapter::SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEA
 use crate::proprioceptive_receptor_work::{
     ROOT_YAW_DIRECTIONAL_MOTION_QUANTITY, ROOT_YAW_DIRECTIONAL_MOTION_UNIT,
 };
-use crate::virtual_body_yaw_motion::{
+use crate::root_yaw_terminal::{
     RootYawDirection, RootYawProprioceptorTerminal,
     ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };

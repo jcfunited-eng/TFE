@@ -54,7 +54,7 @@ use crate::sparse_electrical_contact::{
     SparseElectricalTransferSettlement,
 };
 use crate::virtual_articulated_body::BodyEffectorTerminal;
-use crate::virtual_body_yaw_motion::RootYawEffectorTerminal;
+use crate::root_yaw_terminal::RootYawEffectorTerminal;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;

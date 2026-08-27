@@ -22,7 +22,7 @@ use crate::virtual_articulated_body::{
     BodyProprioceptorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
     BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
-use crate::virtual_body_yaw_motion::{
+use crate::root_yaw_terminal::{
     RootYawProprioceptorTerminal, ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
 

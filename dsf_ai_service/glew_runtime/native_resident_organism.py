@@ -3108,21 +3108,33 @@ class NativeResidentOrganism:
             body_proprioceptive_source_extents.append(
                 (source_tick, port_count, sample_count, occurrence_count, frame_count)
             )
-        if body_feedback_reentered:
-            if (
-                causal_interval_count
-                != requested_causal_interval_count
-                + len(body_proprioceptive_sources)
-                or source_port_count
-                != requested_source_port_count
-                + sum(extent[1] for extent in body_proprioceptive_source_extents)
-            ):
-                raise RuntimeError(
-                    "native body feedback did not re-enter exactly once"
-                )
-        elif (
-            causal_interval_count != requested_causal_interval_count
-            or source_port_count != requested_source_port_count
+        initial_body_source_count = int(
+            not active_before.articulated_body_proprioception_initialized
+        )
+        initial_body_source_port_count = (
+            len(active_before.articulated_body_axes) * 2
+            if initial_body_source_count
+            else 0
+        )
+        if not body_feedback_reentered and body_proprioceptive_sources:
+            raise RuntimeError("native prepare inserted unauthorized body feedback")
+        expected_feedback_source_count = (
+            len(body_proprioceptive_sources) if body_feedback_reentered else 0
+        )
+        expected_feedback_port_count = (
+            sum(extent[1] for extent in body_proprioceptive_source_extents)
+            if body_feedback_reentered
+            else 0
+        )
+        if (
+            causal_interval_count
+            != requested_causal_interval_count
+            + initial_body_source_count
+            + expected_feedback_source_count
+            or source_port_count
+            != requested_source_port_count
+            + initial_body_source_port_count
+            + expected_feedback_port_count
         ):
             raise RuntimeError("native prepare inserted an unauthorized causal source")
         raw_causal_interval_evidence = getattr(
