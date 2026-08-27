@@ -767,7 +767,7 @@ if (
 }
 
 drain_live_organism() {
-    local service_json running_tasks prior_tasks
+    local drain_counts drain_deadline service_json running_tasks prior_tasks
     local -a prior_task_arns=()
 
     # A persistent body cannot have two writers, even briefly. ECS rolling
@@ -792,7 +792,24 @@ drain_live_organism() {
         --service "${ECS_SERVICE}" \
         --desired-count 0 \
         --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
-    wait_for_service_stable
+    # A zero-writer handoff depends on task reality, not on ECS retaining and
+    # later compacting historical deployment records. Waiting for rolloutState
+    # here previously left production empty for minutes after the sole task had
+    # already stopped. Poll the exact writer counts, then prove the captured
+    # predecessor tasks are STOPPED below.
+    drain_deadline=$(($(date +%s) + 300))
+    while true; do
+        drain_counts=$(aws ecs describe-services \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}" \
+            --query 'services[0].[desiredCount,runningCount,pendingCount]' \
+            --output text)
+        [ "${drain_counts}" = $'0\t0\t0' ] && break
+        [ "$(date +%s)" -lt "${drain_deadline}" ] \
+            || fail "production writer counts did not drain to zero"
+        sleep 2
+    done
     if [ "${#prior_task_arns[@]}" -gt 0 ]; then
         aws ecs wait tasks-stopped \
             --region "${AWS_REGION}" \
