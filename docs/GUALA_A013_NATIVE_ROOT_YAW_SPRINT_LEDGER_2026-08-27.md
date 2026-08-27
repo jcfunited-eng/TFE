@@ -152,6 +152,14 @@ cutover until it becomes an exact result.
 | RF-056 | Authenticate identity/tick before draining and require the candidate to restore the same identity at or beyond that tick. | Baseline identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; cutover proof pending. |
 | RF-057 | Pass world consequence and root proprioception as separate top-level intake items, never a nested compound item. | First copied-live replay exposed and refused the nested shape after world commit; corrected replay returned HTTP 200, changed heading by exactly 1 millidegree, changed 197 receptor lanes, and completed 78 causal hops. |
 
+The final candidate full native library gate executed 506 tests: 501 passed,
+five failed, and ten were ignored. Each of the five failures was then executed
+individually at the exact deployed predecessor commit
+`eedc9e4268f98ba7a9b86edc954d0be4c98cee0b`; all five fail there before any
+root-yaw source exists. They are inherited release drift, not a regression of
+this candidate. The root-yaw release will not expand into those unrelated
+owners; its focused Rust and Python gates remain green.
+
 The production preflight at candidate commit `4e3b1bdb` observed one healthy
 owner on task definition `1266`, image digest
 `sha256:c68fa7b99dc61b027b29539baf95316164c3bf05a1346b023c22c53e6aa0b3a4`,
