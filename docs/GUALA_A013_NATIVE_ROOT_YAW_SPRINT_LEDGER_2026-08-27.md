@@ -157,3 +157,28 @@ owner on task definition `1266`, image digest
 `sha256:c68fa7b99dc61b027b29539baf95316164c3bf05a1346b023c22c53e6aa0b3a4`,
 and HTTP 200 from both public pages. Those facts establish the target only;
 they are not A-013 behavior evidence.
+
+## Copied-live-body replay
+
+The candidate native wheel was built in release mode and loaded from the fresh
+isolated path `/tmp/guala-a013-wheel-install.AZycjqXo/guala_core/__init__.py`;
+the new root-source symbol was present. The latest available copied production
+body/world restored identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick
+`186598`, state `3f284090...e1`, world revision `13156`, and heading `341565`.
+
+The first replay found RF-057: the world committed a one-millidegree turn but
+the nested admission shape made cognition refuse the consequence. After the
+source correction, a fresh replay from the same predecessor returned HTTP 200,
+changed the world heading exactly `341565 -> 341566`, changed 197 receptor
+lanes across body, sight, smell, sound, taste, and touch, and completed 78
+native causal hops with no Python cognition callback.
+
+The exact successor was then sealed and cold-restored. After 24 unattended
+lived moments it reached tick `187391` and state
+`a735cfa24af48a237af2d257689ad1d030ea0ca4d8fc7e750b2491413f4f3c34`.
+An opposite two-millidegree physical turn then returned through the same path;
+four more unattended moments sealed at tick `187532` and state
+`183ed5149e4ed039a0250a71bad4785d8639183edce048a5575c06e524efe6bc`.
+No unattended root discharge occurred in those 28 sampled moments. This proves
+the typed action/consequence and cold-restore pathway on a mature copied body,
+but it does not satisfy the A-013 autonomous-action acceptance condition.
