@@ -15099,6 +15099,22 @@ fn settle_internal_contact_interval(
                 cohorts[cohort_index].state.neurons()[neuron_index].clone(),
             ));
     }
+    // The active pump serves the CAUSAL FRONTIER — this clock's seeds —
+    // never every endpoint the settlement sweeps in. Pumping the whole
+    // selection kept every sleeping neuron awake through its neighbours;
+    // an unseeded endpoint's metabolism waits for its own reach, and its
+    // excess charge drains through the passive return instead.
+    let mut pump_members_by_cohort = std::iter::repeat_with(Vec::new)
+        .take(cohorts.len())
+        .collect::<Vec<Vec<usize>>>();
+    for flat in seed_flats.iter().copied() {
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        pump_members_by_cohort[cohort_index].push(neuron_index);
+    }
+    for members in pump_members_by_cohort.iter_mut() {
+        members.sort_unstable();
+        members.dedup();
+    }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     // Cohort reservoirs are physically independent. Prepare their exact pump
     // successors concurrently, but retain canonical cohort order for the
@@ -15107,13 +15123,7 @@ fn settle_internal_contact_interval(
         .par_iter()
         .copied()
         .map(|cohort_index| {
-            let reached_predecessors = selected_predecessor_neurons[cohort_index]
-                .as_ref()
-                .ok_or(FormationError::NoncanonicalState)?;
-            let reached_indices = reached_predecessors
-                .iter()
-                .map(|(neuron_index, _)| *neuron_index)
-                .collect::<Vec<_>>();
+            let reached_indices = pump_members_by_cohort[cohort_index].clone();
             let prepared = prepare_reached_cohort_membrane_pumps(
                 &cohorts[cohort_index].anatomy,
                 cohorts[cohort_index].state.as_ref(),
@@ -21434,12 +21444,23 @@ mod tests {
         let mut transitioned = BTreeSet::new();
         let mut retained_settlement = None;
         for ordinal in 1..=128 {
+            // Under the arrival law the affective neighbour is reached at
+            // interval 1 (charge arrives through its seeded contact) and
+            // is therefore itself a causal seed from interval 2 onward —
+            // exactly what the production caller's frontier continuation
+            // provides. Its metabolism (and so its plastic consequence)
+            // lawfully lands one clock after first reach, not same-clock.
+            let seeds: &[[u8; 16]] = if ordinal == 1 {
+                &[association, regulation]
+            } else {
+                &[association, regulation, affective]
+            };
             let observation = settle_internal_contact_interval(
                 &mut cohorts,
                 &mut fabric,
                 &topology_index,
-                &[association, regulation],
-                &[association, regulation],
+                seeds,
+                seeds,
                 &mut transitioned,
                 ordinal,
                 0,
