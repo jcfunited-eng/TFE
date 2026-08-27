@@ -7246,6 +7246,14 @@ impl ResidentCognitiveFormationState {
             internal_frontier_lineages.into_iter().collect::<Vec<_>>();
         let locally_settled_lineages =
             locally_settled_lineages.into_iter().collect::<Vec<_>>();
+        eprintln!(
+            "guala-causal-seeds external={} regulation={} metabolic={} frontier={} total={}",
+            externally_reached_neuron_lineages.len(),
+            reached_body_regulation_lineages.len(),
+            metabolically_perturbed_body_receptor_lineages.len(),
+            active_electrical_frontier.len(),
+            locally_settled_lineages.len(),
+        );
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
                 &cohorts,
@@ -15019,6 +15027,8 @@ fn settle_internal_contact_interval(
     events
         .contact_schedule
         .drain_due_at(clock, &mut compact_contact_indices);
+    let due_now_contact_count = compact_contact_indices.len();
+    let return_due_count = due_return_flats.len();
     for flat in seed_flats.iter().copied() {
         compact_contact_indices.extend(
             topology_index
