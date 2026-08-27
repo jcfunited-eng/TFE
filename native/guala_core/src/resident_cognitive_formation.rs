@@ -111,7 +111,6 @@ use crate::reached_neuron_cohort::{
     legacy_receptor_channel_populations_require_expansion, reached_cohort_energy_state,
     reached_cohort_state_content_digest, reached_cohort_state_v4_content_digest,
     reached_cohort_state_v5_content_digest,
-    settle_reached_cohort_dark_rest,
     settle_reached_cohort_interval_in_place,
     settle_reached_cohort_interval_precomputed_in_place,
     settle_contact_modulated_gate_energy, LocalizedFluidChemistrySettlement,
@@ -7390,26 +7389,14 @@ impl ResidentCognitiveFormationState {
                                     .then_some(neuron_index)
                             })
                             .collect::<Vec<_>>();
-                        let local_dark_recovery_settled =
-                            exogenous_receptor_energy == Some(false);
-                        let interval_predecessor_neurons = if local_dark_recovery_settled {
-                            cohort
-                                .state
-                                .neurons()
-                                .iter()
-                                .cloned()
-                                .enumerate()
-                                .collect::<Vec<_>>()
-                        } else {
-                            input
-                                .resident_indices(&cohort.anatomy)
-                                .map_err(FormationError::PhysicalSettlementUnavailable)?
-                                .into_iter()
-                                .map(|neuron_index| {
-                                    (neuron_index, cohort.state.neurons()[neuron_index].clone())
-                                })
-                                .collect::<Vec<_>>()
-                        };
+                        let interval_predecessor_neurons = input
+                            .resident_indices(&cohort.anatomy)
+                            .map_err(FormationError::PhysicalSettlementUnavailable)?
+                            .into_iter()
+                            .map(|neuron_index| {
+                                (neuron_index, cohort.state.neurons()[neuron_index].clone())
+                            })
+                            .collect::<Vec<_>>();
                         for (perturbed, lineage) in gate_work_perturbed_neurons
                             .iter()
                             .zip(cohort.anatomy.neuron_lineages())
@@ -7452,10 +7439,9 @@ impl ResidentCognitiveFormationState {
                             let mount = &cohort.anatomy.mounts()[neuron_index];
                             if mount.source_site().is_some()
                                 && mount.place().layer() == 5
-                                && (local_dark_recovery_settled
-                                    || reached_body_receptor_indices
-                                        .binary_search(&neuron_index)
-                                        .is_ok())
+                                && reached_body_receptor_indices
+                                    .binary_search(&neuron_index)
+                                    .is_ok()
                             {
                                 retain_latest_localized_metabolic_strain(
                                     &mut localized_metabolic_strain_evaluated_body_receptor_lineages,
@@ -10379,36 +10365,13 @@ fn settle_resident_physical_interval(
     max_encoded_bytes: usize,
     source_generation: u64,
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
-    // Rest metabolism (minimal feeding metabolism, authorized 2026-08-05).
-    // A genuinely dark interval — the stimulus-boundary law's OWN truth
-    // signal, derived from the settled occurrence's exact `2·L·T` transduction
-    // integral — is when the body's recovery reactions and its membrane return
-    // path run.  Nothing here decides when it is dark, and nothing runs while
-    // exogenous energy is still arriving.
-    let (metabolic, metabolically_perturbed_neurons) = if exogenous_receptor_energy == Some(false) {
-        let pre_metabolic_state = cohort.state.clone();
-        let (successor, observation) = settle_reached_cohort_dark_rest(
-            &cohort.anatomy,
-            &cohort.state,
-            input.interval_microseconds(),
-        )
-        .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        cohort.state = successor.into();
-        let perturbed = pre_metabolic_state
-            .neurons()
-            .iter()
-            .zip(cohort.state.neurons())
-            .map(|(prior, successor)| {
-                prior.separated_elementary_charges() != successor.separated_elementary_charges()
-            })
-            .collect::<Vec<_>>();
-        (observation, perturbed)
-    } else {
-        (
-            ReachedCohortMetabolicObservation::default(),
-            vec![false; cohort.anatomy.neuron_count()],
-        )
-    };
+    // Darkness performs no population-wide metabolic heartbeat. Passive
+    // membrane return is already settled by the resident causal-event path,
+    // and active pumping is restricted there to the exact reached frontier.
+    // The retired whole-cohort dark-rest loop duplicated those authorities
+    // and woke every otherwise quiescent resident neuron.
+    let metabolic = ReachedCohortMetabolicObservation::default();
+    let metabolically_perturbed_neurons = vec![false; cohort.anatomy.neuron_count()];
     let mut outcome = if cohort.retained_experience.is_some() {
         settle_resident_recurrence_interval(
             cohort,
