@@ -984,15 +984,28 @@ print(tick)
 ') || fail "hot deployment could not authenticate the living predecessor"
         drain_live_organism \
             || fail "hot deployment could not stop the prior writer completely"
-        hot_deadline=$(($(date +%s) + 300))
+        # Install the candidate as the service's sole completed deployment
+        # while no organism writer exists.  Starting it in the same forced
+        # rollout used to leave an older deployment eligible to reappear.
+        # Once this zero-writer registration is stable, raising desired count
+        # starts exactly this already-selected candidate without another
+        # deployment generation.
         aws ecs update-service \
             --region "${AWS_REGION}" \
             --cluster "${ECS_CLUSTER}" \
             --service "${ECS_SERVICE}" \
             --task-definition "${CANDIDATE_TASK_DEFINITION}" \
+            --desired-count 0 \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" >/dev/null
+        wait_for_service_stable \
+            || fail "hot deployment could not make the candidate the sole zero-writer deployment"
+        hot_deadline=$(($(date +%s) + 300))
+        aws ecs update-service \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
             --desired-count 1 \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" \
-            --force-new-deployment >/dev/null
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" >/dev/null
         while true; do
             hot_counts=$(aws ecs describe-services \
                 --region "${AWS_REGION}" \

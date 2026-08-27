@@ -15163,8 +15163,9 @@ fn local_gradient_direction(
 /// Return the exact physical transfers that can prepare one mounted motor.
 ///
 /// Layer 11 carries an internally ordered action preparation. The explicitly
-/// identified layer-8 lines carry only this motor's mounted reacted-load
-/// reflex: load receptor -> local integration -> body regulation -> motor.
+/// identified layer-8 lines carry only this motor's mounted terminal-paired
+/// reflex: reacted load or directional root receptor -> local integration ->
+/// body regulation -> motor.
 /// Both are real contact-local causes only when carrier transfer arrives at
 /// the motor. Motor-to-neighbour flow is a consequence, never preparation.
 /// Tonic position regulation and every other layer remain ineligible; no
@@ -15327,6 +15328,30 @@ fn exact_motor_body_afferent_paths(
     });
     paths.dedup();
     Ok(paths)
+}
+
+/// Resolve only the layer-8 regulation line whose typed directional root-yaw
+/// receptor is physically paired with this root motor.  The motor contact is
+/// not enough by itself: a different layer-8 neighbour, including the opposite
+/// antagonist, cannot prepare this terminal.
+fn exact_root_yaw_preparation_regulations(
+    motor_terminal: RootYawEffectorTerminal,
+    paths: &[MotorBodyAfferentPath],
+) -> Vec<[u8; 16]> {
+    let mut regulations = paths
+        .iter()
+        .filter_map(|path| {
+            (path
+                .receptor_site
+                .root_yaw_proprioceptor_terminal()
+                .map(RootYawProprioceptorTerminal::paired_effector)
+                == Some(motor_terminal))
+            .then_some(path.body_regulation_lineage)
+        })
+        .collect::<Vec<_>>();
+    regulations.sort_unstable();
+    regulations.dedup();
+    regulations
 }
 
 /// Settle the bounded contact-connected frontier reached by this external
@@ -16323,27 +16348,41 @@ fn settle_internal_contact_interval(
     // they are position sense—not a stop/load reflex—and must not recruit the
     // whole motor population merely because the body is present.
     let mut reacted_load_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
+    let mut root_yaw_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     for (motor_flat, (_, _, motor_lineage)) in flat_locations.iter().copied().enumerate() {
         if layer_of(motor_lineage) != Some(12) {
             continue;
         }
-        let mut regulations = exact_motor_body_afferent_paths(
+        let paths = exact_motor_body_afferent_paths(
             motor_flat,
             flat_locations,
             cohorts,
             &topology_index.neighbours_by_flat,
-        )?
-        .into_iter()
-        .filter_map(|path| {
-            (path.receptor_site.physical_quantity()
-                == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
-                .then_some(path.body_regulation_lineage)
-        })
-        .collect::<Vec<_>>();
+        )?;
+        let mut regulations = paths
+            .iter()
+            .filter_map(|path| {
+                (path.receptor_site.physical_quantity()
+                    == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
+                    .then_some(path.body_regulation_lineage)
+            })
+            .collect::<Vec<_>>();
         regulations.sort_unstable();
         regulations.dedup();
         if !regulations.is_empty() {
             reacted_load_regulations_by_motor.insert(motor_lineage, regulations);
+        }
+        let (cohort_index, neuron_index, _) = flat_locations[motor_flat];
+        let motor_mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+        if let Some(motor_terminal) = motor_mount.root_yaw_effector_terminal() {
+            if motor_mount.source_site().is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            let root_yaw_regulations =
+                exact_root_yaw_preparation_regulations(motor_terminal, &paths);
+            if !root_yaw_regulations.is_empty() {
+                root_yaw_regulations_by_motor.insert(motor_lineage, root_yaw_regulations);
+            }
         }
     }
 
@@ -16604,7 +16643,10 @@ fn settle_internal_contact_interval(
                 let preparation_transfers = exact_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
-                    &[],
+                    root_yaw_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
                     &layer_of,
                 );
                 (mount.source_site().is_none()
@@ -23313,8 +23355,74 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(motors.len(), 1);
-        assert!(fabric.contains_contact(regulation, motors[0]));
+        let motor = motors[0];
+        assert!(fabric.contains_contact(regulation, motor));
         assert_eq!(fabric.contact_count(), contacts_before + 1);
+
+        let opposite_port = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.root_yaw_proprioceptor_terminal
+                    .map(RootYawProprioceptorTerminal::paired_effector)
+                    .is_some_and(|candidate| candidate != terminal)
+            })
+            .unwrap();
+        let opposite_site = NeuronSourceSite::from_source_port(opposite_port).unwrap();
+        let (opposite_regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            opposite_site,
+        );
+        fabric = fabric
+            .append_contact(
+                opposite_regulation,
+                motor,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let motor_flat = topology
+            .flat_locations
+            .iter()
+            .position(|(_, _, lineage)| *lineage == motor)
+            .unwrap();
+        let paths = exact_motor_body_afferent_paths(
+            motor_flat,
+            &topology.flat_locations,
+            &cohorts,
+            &topology.neighbours_by_flat,
+        )
+        .unwrap();
+        let permitted = exact_root_yaw_preparation_regulations(terminal, &paths);
+        assert_eq!(permitted, vec![regulation]);
+
+        let transfer = |sender| DirectedPhysicalTransferObservation {
+            sender,
+            receiver: motor,
+            bond: StablePhysicalBondReference::new(sender, motor, 0).unwrap(),
+            transferred_whole_carriers: 1,
+        };
+        let settled = [transfer(regulation), transfer(opposite_regulation)];
+        let layers = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount.place().layer()))
+            .collect::<BTreeMap<_, _>>();
+        assert_eq!(
+            exact_motor_preparation_transfers(motor, &settled, &permitted, |lineage| {
+                layers.get(&lineage).copied()
+            }),
+            vec![settled[0]],
+        );
     }
 
     #[test]

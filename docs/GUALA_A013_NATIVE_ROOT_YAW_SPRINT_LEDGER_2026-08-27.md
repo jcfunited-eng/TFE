@@ -202,3 +202,48 @@ four more unattended moments sealed at tick `187532` and state
 No unattended root discharge occurred in those 28 sampled moments. This proves
 the typed action/consequence and cold-restore pathway on a mature copied body,
 but it does not satisfy the A-013 autonomous-action acceptance condition.
+
+## Live root-reflex correction — 2026-08-27
+
+- **Active item:** A-013 remains reopened; A-009 remains live-closed because
+  task `1272` continued native articulated actions and returned their exact
+  proprioceptive and multisensory consequences without pausing cognition.
+- **Production baseline:** task `dsf-ai-task:1272`, source commit
+  `c024a6feaf823c5c6dea6eae7f575c15f976ad46`, one desired/running task,
+  zero pending tasks, one completed PRIMARY deployment, organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- **Live contradiction:** after one tutor-authored signed turn, twelve passive
+  samples from 18:42:12 through 18:53:23 UTC advanced the most recent native
+  transition tick `199347 -> 199843` and world revision `14964 -> 14997`.
+  Articulated motor activity varied, but pose remained `(2300,3500,0)` at
+  heading `341565`; every sample reported zero root-yaw recruitments.
+- **First causal source defect:** the guided turn mounts the exact paired
+  layer-8 regulation -> layer-12 root-motor contact, but ordinary recruitment
+  calls `exact_motor_preparation_transfers` with an empty permitted layer-8
+  set for root motors. The filter consequently rejects the exact reflex
+  transfer it was built to carry. Articulated motors pass their exact reacted-
+  load regulation lineages through this same boundary.
+- **Frozen correction:** derive each root motor's permitted layer-8 lineage
+  only from its mounted motor -> regulation -> integration -> typed root-yaw
+  proprioceptor path, require that receptor's paired effector terminal to equal
+  the motor terminal, and pass only those exact lineages to the existing
+  preparation filter. No new contact, selector, threshold, timer, score,
+  semantic label, or DSF change is authorized.
+- **Exit evidence:** the focused falsifier must prove that the paired root
+  regulation transfer is accepted and a different layer-8 transfer is refused;
+  live acceptance remains an unattended root discharge followed by changed
+  world heading and returned signed visual/vestibular/body consequences.
+- **Focused source result:** the production path derives reacted-load and
+  directional-root permissions from one shared physical-path traversal per
+  reached motor. Release-mode test
+  `moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex` passed
+  `1/1`: the terminal-paired regulation was admitted and the mounted opposite
+  antagonist was refused. `git diff --check` and the deployment shell syntax
+  check passed.
+- **Cutover correction:** hot deployment now installs the candidate as the
+  sole completed ECS deployment while desired count is zero, then starts that
+  already-selected candidate without `force-new-deployment`. This prevents an
+  older retained deployment from becoming a writer again after cutover.
+- **Separate later defect:** direct grounded-world audio requests timed out and
+  left no new native transition evidence even for a 250 ms sample. It does not
+  block the frozen root-yaw correction and is not being folded into this edit.
