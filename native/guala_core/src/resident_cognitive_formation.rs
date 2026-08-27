@@ -5172,6 +5172,234 @@ impl ResidentCognitiveFormationState {
         Ok(Some(successor))
     }
 
+    /// One explicit correction for anatomy admitted by the rejected
+    /// recurrence-as-new-experience and broad coincidence laws.  A retained
+    /// formation whose member set already contains a layer-9 recurrent cell
+    /// is a formation made from retention's own projection, not from new
+    /// sensory/body evidence.  Remove those records and their unreferenced
+    /// recurrent cells.  The historical layer-7/8/9-to-10 and
+    /// layer-11-to-12/13 pools likewise carry no per-edge causal provenance,
+    /// so every such contact leaves together.  Root sensory/body formations,
+    /// their exact neuron states, and their one retained recurrent cell remain
+    /// resident; corrected causal laws may grow new higher routes afterward.
+    pub(crate) fn retire_recursive_growth_contamination(
+        &self,
+    ) -> Result<Option<Self>, FormationError> {
+        let mut layer_by_lineage = BTreeMap::<[u8; 16], u32>::new();
+        for (mount, lineage) in self.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            if layer_by_lineage
+                .insert(*lineage, mount.place().layer())
+                .is_some()
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+        }
+
+        let contaminated_layers = |left: [u8; 16], right: [u8; 16]| {
+            let (Some(mut left_layer), Some(mut right_layer)) = (
+                layer_by_lineage.get(&left).copied(),
+                layer_by_lineage.get(&right).copied(),
+            ) else {
+                return None;
+            };
+            if left_layer > right_layer {
+                std::mem::swap(&mut left_layer, &mut right_layer);
+            }
+            Some(matches!(
+                (left_layer, right_layer),
+                (7, 10) | (8, 10) | (9, 10) | (11, 12) | (11, 13)
+            ))
+        };
+
+        let mut contaminated_pairs = BTreeSet::<([u8; 16], [u8; 16])>::new();
+        for (left, right) in self.electrical_fabric.contact_endpoints() {
+            let left_lineage = self.electrical_fabric.lineages()[left];
+            let right_lineage = self.electrical_fabric.lineages()[right];
+            if contaminated_layers(left_lineage, right_lineage)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            {
+                contaminated_pairs.insert(canonical_lineage_pair(
+                    left_lineage,
+                    right_lineage,
+                ));
+            }
+        }
+
+        let mut invalid_references = BTreeSet::<StablePhysicalBondReference>::new();
+        for retained in self.mosaics.iter() {
+            for bond in retained
+                .mosaic
+                .original_bonds()
+                .iter()
+                .chain(retained.mosaic.recurrence_bonds())
+            {
+                let (left, right) = bond.endpoints();
+                if contaminated_layers(left, right) == Some(true) {
+                    invalid_references.insert(*bond);
+                }
+            }
+        }
+
+        let mut retired_recurrent = BTreeSet::<[u8; 16]>::new();
+        let mut surviving_mosaics = Vec::<RetainedOrganismMosaic>::new();
+        for retained in self.mosaics.iter() {
+            let recursively_authored = retained
+                .mosaic
+                .member_lineages()
+                .iter()
+                .any(|lineage| layer_by_lineage.get(lineage) == Some(&9));
+            if recursively_authored {
+                if let Some(lineage) = retained.recurrent_lineage {
+                    retired_recurrent.insert(lineage);
+                }
+                continue;
+            }
+            match retained.mosaic.without_invalid_bonds(&invalid_references) {
+                Some(corrected) => surviving_mosaics.push(RetainedOrganismMosaic {
+                    mosaic: corrected,
+                    recurrent_lineage: retained.recurrent_lineage,
+                    reinforcement_count: retained.reinforcement_count,
+                    mosaic_of_mosaics_relation_count: retained
+                        .mosaic_of_mosaics_relation_count,
+                }),
+                None => {
+                    if let Some(lineage) = retained.recurrent_lineage {
+                        retired_recurrent.insert(lineage);
+                    }
+                }
+            }
+        }
+        let protected_recurrent = surviving_mosaics
+            .iter()
+            .filter_map(|retained| retained.recurrent_lineage)
+            .collect::<BTreeSet<_>>();
+        for (lineage, layer) in &layer_by_lineage {
+            if *layer == 9 && !protected_recurrent.contains(lineage) {
+                retired_recurrent.insert(*lineage);
+            }
+        }
+
+        if retired_recurrent.is_empty()
+            && contaminated_pairs.is_empty()
+            && invalid_references.is_empty()
+            && surviving_mosaics.len() == self.mosaics.len()
+        {
+            return Ok(None);
+        }
+
+        let mut resting_population = self.resting_population.clone();
+        let mut cohorts = Vec::with_capacity(self.cohorts.len());
+        for cohort in self.cohorts.iter() {
+            let retired_members = cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .filter(|lineage| retired_recurrent.contains(*lineage))
+                .count();
+            if retired_members == 0 {
+                let mut preserved = cohort.clone();
+                preserved.pending_experience = None;
+                preserved.retained_experience = None;
+                preserved.pending_recurrence = None;
+                cohorts.push(preserved);
+                continue;
+            }
+            if retired_members != cohort.anatomy.neuron_count()
+                || cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .any(|mount| mount.source_site().is_some() || mount.place().layer() != 9)
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            for place in cohort.anatomy.mounts().iter().map(ReachedNeuronMount::place) {
+                let Some(population) = resting_population.as_ref() else {
+                    continue;
+                };
+                if population.materialized_lineage_ordinal(place).is_some() {
+                    resting_population = Some(
+                        population
+                            .release_claimed_place(place)
+                            .map_err(
+                                FormationError::DevelopmentalRestingPopulationUnavailable,
+                            )?,
+                    );
+                }
+            }
+        }
+
+        let keep_frontier = |entry: &ActiveElectricalFrontierEntry| {
+            if retired_recurrent.contains(&entry.receiver()) {
+                return false;
+            }
+            let Some(sender) = entry.sender() else {
+                return true;
+            };
+            !retired_recurrent.contains(&sender)
+                && !contaminated_pairs.contains(&canonical_lineage_pair(
+                    sender,
+                    entry.receiver(),
+                ))
+        };
+        let electrical_fabric = self
+            .electrical_fabric
+            .without_contact_pairs(&contaminated_pairs)
+            .map_err(FormationError::ResidentElectricalUnavailable)?
+            .without_lineages(
+                &retired_recurrent.iter().copied().collect::<Vec<_>>(),
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+        let mut successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            older_active_electrical_frontier: self
+                .older_active_electrical_frontier
+                .iter()
+                .copied()
+                .filter(&keep_frontier)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            mosaics: surviving_mosaics.into_boxed_slice(),
+            hippocampal: self.hippocampal,
+            topology_index: Arc::new(ResidentTopologyIndex::empty()),
+            formation_index: ResidentFormationIndex::default(),
+        };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
+        successor.validate_current_motor_effectors()?;
+        validate_lineage_state(&successor)?;
+        Ok(Some(successor))
+    }
+
     fn validate_current_motor_effectors(&self) -> Result<(), FormationError> {
         let mut terminals = BTreeSet::<BodyEffectorTerminal>::new();
         for mount in self.cohorts.iter().flat_map(|cohort| cohort.anatomy.mounts()) {
@@ -7258,7 +7486,7 @@ impl ResidentCognitiveFormationState {
             current_noncontinuation_seed_lineages.insert(*lineage);
         }
         let mut internal_frontier_lineages = current_noncontinuation_seed_lineages.clone();
-        let mut locally_settled_lineages = externally_reached_neuron_lineages
+        let mut locally_settled_lineages = externally_energized_neuron_lineages
             .iter()
             .copied()
             .collect::<BTreeSet<_>>();

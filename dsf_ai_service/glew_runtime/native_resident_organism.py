@@ -3759,6 +3759,50 @@ def migrate_native_resident_organism_exact_energy(
     return migrated
 
 
+def correct_native_resident_organism_growth_contamination(
+    *,
+    current_envelope: bytes,
+    expected_predecessor_sha256: str,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> bytes:
+    """Remove only the rejected recurrent and broad-fanout anatomy once."""
+
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("growth correction requires GLORUN bytes")
+    predecessor = _canonical_sha256(
+        expected_predecessor_sha256, "growth-correction predecessor receipt"
+    )
+    if hashlib.sha256(current_envelope).hexdigest() != predecessor:
+        raise RuntimeError("growth-correction predecessor changed")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    correct = getattr(
+        _native_core(),
+        "correct_native_resident_organism_growth_contamination",
+        None,
+    )
+    if not callable(correct):
+        raise RuntimeError("guala_core does not expose growth correction")
+    corrected = bytes(correct(current_envelope, envelope, fabric, logical))
+    if not corrected.startswith(b"GLORUN01") or len(corrected) > envelope:
+        raise RuntimeError("growth correction produced an invalid body")
+    restore_native_resident_organism(
+        current_envelope=corrected,
+        max_envelope_bytes=envelope,
+        max_fabric_bytes=fabric,
+        max_logical_peak_bytes=logical,
+    )
+    return corrected
+
+
 def _validated_growth_dna(
     growth_dna: object,
     episode_type: type,
@@ -3927,5 +3971,6 @@ __all__ = (
     "exact_articulatory_interval_trajectory",
     "exact_native_yaw_trajectory",
     "restore_native_resident_organism",
+    "correct_native_resident_organism_growth_contamination",
     "migrate_native_resident_organism_exact_energy",
 )

@@ -5021,6 +5021,91 @@ fn migrate_native_resident_organism_exact_energy(
     .map_err(|error| PyValueError::new_err(error.to_string()))
 }
 
+fn correct_resident_organism_growth_contamination_envelope(
+    current_envelope: Vec<u8>,
+    budget: RuntimeBudget,
+) -> Result<Vec<u8>, RuntimeError> {
+    let (
+        identity,
+        organism_tick,
+        fabric_generation,
+        joint,
+        corrected_cognitive,
+        vestibular,
+        articulated_body,
+    ) = {
+        let parsed = parse_current_envelope(&current_envelope, budget)?;
+        let cognitive = parsed
+            .cognitive_bytes
+            .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
+        let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
+        let resident = ResidentCognitiveFormationState::decode(cognitive, cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let Some(corrected) = resident
+            .retire_recursive_growth_contamination()
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?
+        else {
+            return Ok(current_envelope);
+        };
+        let corrected_cognitive = corrected
+            .encode(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        (
+            parsed.identity,
+            parsed.organism_tick,
+            parsed.fabric_generation,
+            parsed.joint_bytes.to_vec(),
+            corrected_cognitive,
+            parsed.vestibular.ok_or(RuntimeError::MigrationInvariantChanged)?,
+            parsed
+                .articulated_body
+                .ok_or(RuntimeError::MigrationInvariantChanged)?,
+        )
+    };
+    let fabric = encode_fabric(
+        fabric_generation,
+        &joint,
+        &corrected_cognitive,
+        &vestibular,
+        &articulated_body,
+        budget,
+    )?;
+    let corrected_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
+    let restored = ResidentOrganismRuntime::restore_envelope(
+        corrected_envelope.clone(),
+        budget,
+    )?;
+    if restored.observation().identity != identity
+        || restored.observation().organism_tick != organism_tick
+        || restored.observation().fabric_generation != fabric_generation
+    {
+        return Err(RuntimeError::MigrationInvariantChanged);
+    }
+    Ok(corrected_envelope)
+}
+
+#[pyfunction]
+#[pyo3(signature = (
+    current_envelope,
+    max_envelope_bytes=67_108_864,
+    max_fabric_bytes=67_108_000,
+    max_logical_peak_bytes=536_870_912
+))]
+fn correct_native_resident_organism_growth_contamination(
+    py: Python<'_>,
+    current_envelope: Vec<u8>,
+    max_envelope_bytes: usize,
+    max_fabric_bytes: usize,
+    max_logical_peak_bytes: usize,
+) -> PyResult<Vec<u8>> {
+    py.allow_threads(move || {
+        let budget =
+            RuntimeBudget::new(max_envelope_bytes, max_fabric_bytes, max_logical_peak_bytes)?;
+        correct_resident_organism_growth_contamination_envelope(current_envelope, budget)
+    })
+    .map_err(|error| PyValueError::new_err(error.to_string()))
+}
+
 #[pyfunction]
 #[pyo3(signature = (
     organism_identity,
@@ -5447,6 +5532,10 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(
         migrate_native_resident_organism_exact_energy,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        correct_native_resident_organism_growth_contamination,
         module
     )?)?;
     module.add_function(wrap_pyfunction!(
