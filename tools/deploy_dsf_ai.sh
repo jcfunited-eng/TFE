@@ -9,7 +9,7 @@
 # creates an owner, lock, database, deployment seal, compatibility brain, or
 # generation-store fallback.
 #
-# Usage: ./tools/deploy_dsf_ai.sh [--rehearse-only|--recover-drained]
+# Usage: ./tools/deploy_dsf_ai.sh [--hot|--rehearse-only|--recover-drained]
 
 set -euo pipefail
 
@@ -34,6 +34,7 @@ DEPLOY_CONFIGURATION="maximumPercent=100,minimumHealthyPercent=0,deploymentCircu
 REPEAT_CUTOVER=1
 REHEARSE_ONLY=0
 RECOVER_DRAINED=0
+HOT_DEPLOY=0
 # How long a readiness call may WAIT -- not how long the organism may take to
 # be correct.  ``/ready/guala`` acquires the transition lock on purpose, so it
 # reports only persisted state, and that lock is held for a whole lesson.  The
@@ -56,6 +57,10 @@ while [ "$#" -gt 0 ]; do
             RECOVER_DRAINED=1
             shift
             ;;
+        --hot)
+            HOT_DEPLOY=1
+            shift
+            ;;
         *)
             echo "ERROR: unknown argument: $1" >&2
             exit 2
@@ -70,6 +75,9 @@ fail() {
 
 if [ "${REHEARSE_ONLY}" = "1" ] && [ "${RECOVER_DRAINED}" = "1" ]; then
     fail "a drained recovery cannot be a disposable rehearsal"
+fi
+if [ "${REHEARSE_ONLY}" = "1" ] && [ "${HOT_DEPLOY}" = "1" ]; then
+    fail "a hot deployment cannot be a disposable rehearsal"
 fi
 
 case "${SERVICE_STABLE_MAX_SECONDS}" in
@@ -153,7 +161,7 @@ SERVICE_JSON=$(aws ecs describe-services \
     --query 'services[0]' \
     --output json)
 SOURCE_TASK_DEFINITION=$(printf '%s' "${SERVICE_JSON}" | \
-    RECOVER_DRAINED="${RECOVER_DRAINED}" python3 -c '
+    RECOVER_DRAINED="${RECOVER_DRAINED}" HOT_DEPLOY="${HOT_DEPLOY}" python3 -c '
 import json, os, sys
 service = json.load(sys.stdin)
 if service.get("serviceName") != "dsf-ai-service-lb":
@@ -170,7 +178,11 @@ if counts != expected:
     raise SystemExit(f"production process count differs from declared mode: {counts}")
 deployments = service.get("deployments", [])
 primary = [item for item in deployments if item.get("status") == "PRIMARY"]
-if len(deployments) != 1 or len(primary) != 1 or primary[0].get("rolloutState") != "COMPLETED":
+if len(primary) != 1:
+    raise SystemExit("production has no single primary deployment authority")
+if os.environ["HOT_DEPLOY"] != "1" and (
+    len(deployments) != 1 or primary[0].get("rolloutState") != "COMPLETED"
+):
     raise SystemExit("production has overlapping or incomplete deployment authority")
 task_definition = service.get("taskDefinition")
 if not isinstance(task_definition, str) or "/dsf-ai-task:" not in task_definition:
@@ -186,7 +198,9 @@ RUNNING_TASKS=$(aws ecs list-tasks \
     --query 'taskArns' \
     --output text)
 EXPECTED_RUNNING_TASKS=1
-if [ "${RECOVER_DRAINED}" = "1" ]; then
+if [ "${HOT_DEPLOY}" = "1" ]; then
+    echo "      hot deployment: long preflight and readiness observation omitted"
+elif [ "${RECOVER_DRAINED}" = "1" ]; then
     EXPECTED_RUNNING_TASKS=0
 fi
 RUNNING_TASK_COUNT=0
@@ -877,6 +891,63 @@ print(json.dumps({
         exit 0
     done
 else
+    if [ "${HOT_DEPLOY}" = "1" ]; then
+        echo "[5/7] Hot-cutting directly to the candidate."
+        aws ecs update-service \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --desired-count 0 \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" \
+            >/dev/null
+        hot_deadline=$(($(date +%s) + 300))
+        while true; do
+            hot_counts=$(aws ecs describe-services \
+                --region "${AWS_REGION}" \
+                --cluster "${ECS_CLUSTER}" \
+                --services "${ECS_SERVICE}" \
+                --query 'services[0].[runningCount,pendingCount]' \
+                --output text)
+            [ "${hot_counts}" = $'0\t0' ] && break
+            [ "$(date +%s)" -lt "${hot_deadline}" ] \
+                || fail "hot deployment could not drain the prior writer"
+            sleep 2
+        done
+        aws ecs update-service \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${CANDIDATE_TASK_DEFINITION}" \
+            --desired-count 1 \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" \
+            --force-new-deployment >/dev/null
+        while true; do
+            hot_counts=$(aws ecs describe-services \
+                --region "${AWS_REGION}" \
+                --cluster "${ECS_CLUSTER}" \
+                --services "${ECS_SERVICE}" \
+                --query 'services[0].[runningCount,pendingCount]' \
+                --output text)
+            [ "${hot_counts}" = $'1\t0' ] && break
+            [ "$(date +%s)" -lt "${hot_deadline}" ] \
+                || fail "hot candidate did not enter RUNNING"
+            sleep 2
+        done
+        CURRENT_RUNNING_TASK=$(aws ecs list-tasks \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --service-name "${ECS_SERVICE}" \
+            --desired-status RUNNING \
+            --query 'taskArns[0]' --output text)
+        hot_task_definition=$(aws ecs describe-tasks \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --tasks "${CURRENT_RUNNING_TASK}" \
+            --query 'tasks[0].taskDefinitionArn' --output text)
+        [ "${hot_task_definition}" = "${CANDIDATE_TASK_DEFINITION}" ] \
+            || fail "hot candidate task identity differs"
+        echo "      hot cutover: candidate is the sole RUNNING task"
+    else
     echo "[5/7] Starting and verifying the candidate once."
     PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
     for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
@@ -910,6 +981,7 @@ else
         PREVIOUS_RUNNING_TASK="${CURRENT_RUNNING_TASK}"
         echo "      cutover ${cutover_number}/${REPEAT_CUTOVER}: verified"
     done
+    fi
 fi
 
 echo "[6/7] Pinning only the live-verified artifact as production-current."

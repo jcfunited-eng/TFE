@@ -3035,27 +3035,34 @@ impl ResidentOrganismRuntime {
         RuntimeError,
     > {
         let derived_budget = self.budget.derive()?;
-        // Proprioception is a continuously present organ, not a one-time
-        // genesis observation.  Every lived trajectory therefore begins
-        // with one exact observation of the current fixed-capacity body.
-        // This neither invents motion nor scans the neuron population: it
-        // reaches the same 74 declared antagonist terminals once, allowing
-        // retained body regulation and ordering to develop and recruit their
-        // explicit efferent terminals without the circular requirement that
-        // an unmounted motor move the body first.
-        let current_body_source = admit_complete_articulated_body_state_source(
-            predecessor.organism_tick,
-            &initial_articulated_body,
-        )
-        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+        // The complete fixed-capacity body source establishes proprioception
+        // exactly once.  After that boundary, only sparse consequences from
+        // axes that physically moved may re-enter cognition. Re-injecting all
+        // 74 unchanged terminals on every trajectory was an artificial
+        // heartbeat: it continuously pumped their neurons, woke the connected
+        // fabric, and prevented the local passive-return law from reaching
+        // rest.
+        let initial_body_source = if initial_articulated_body.proprioception_initialized() {
+            None
+        } else {
+            Some(
+                admit_complete_articulated_body_state_source(
+                    predecessor.organism_tick,
+                    &initial_articulated_body,
+                )
+                .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
+            )
+        };
         let current_body_intervals = vec![(1_i64, 1_000_i64); BODY_AXES.len()];
         let mut causal_sources = Vec::with_capacity(
             episodes
                 .len()
-                .checked_add(1)
+                .checked_add(usize::from(initial_body_source.is_some()))
                 .ok_or(RuntimeError::OrganismTickOverflow)?,
         );
-        causal_sources.push((&current_body_source, current_body_intervals.as_slice()));
+        if let Some(source) = initial_body_source.as_ref() {
+            causal_sources.push((source, current_body_intervals.as_slice()));
+        }
         causal_sources.extend(
             episodes
                 .iter()
