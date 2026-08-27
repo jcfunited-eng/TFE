@@ -31,26 +31,28 @@ fixture alone. If it cannot be checked, the candidate remains open.
 | F-007 | Persistence encoding/copying is outside the ordinary cognitive settlement critical section. | Whole-body seal or cloud copy pausing every physical interval. | Per-interval timing must show custody outside settlement and one bounded custodian. | Task-1248 lineage and later releases; A-006 runtime evidence. |
 | F-008 | Observers are read-only and have no authority to admit, discard, choose, pause, or mutate cognition. | Observer labels, polling windows, or proof caches controlling organism transitions. | Review every changed observation callsite for immutable access only; live ticks must not depend on observer availability. | A-009/A-011 observer corrections and live continuity evidence. |
 | F-009 | Native motor output is the neuron's exact local membrane whole-carrier discharge; contact transfer is preparation evidence only. | Relabeling incoming or net inter-neuron contact flow as efferent motor discharge. | Preserve positive/zero/negative/no-preparation falsifiers and inspect the runtime action payload source. | Commit `40a0222c`, focused proof passed, live task 1280. |
+| F-010 | Root-yaw proprioception uses compact disjoint layer-6/layer-8 anatomy; malformed historical root paths are retired one way. | Recursive Cantor projection into a 93,824,443 pF regulation cell, restoration of its contacts, or a second root route beside the corrected route. | Prove V32 retirement is one-way; after one real root movement require exactly receptor -> compact integration -> compact regulation -> paired motor, with the malformed regulation isolated. | Commit `c8f84bd1`, live task 1281. V32 left malformed lineage `...02ecfd` isolated and mounted compact regulation `...000ecf` at 37,393 pF between layer-6 `...002ae9` and paired motor `...00009b`. |
 
-## Current candidate
+## Current open correction
 
 | ID | Correction in progress | Regression scope |
 |---|---|---|
-| C-001 | Give the two root-yaw directional endings compact, disjoint layer-6 and layer-8 projection slots instead of recursively Cantor-projecting them into a 93,824,443 pF regulation membrane; retire every contact incident to the malformed historical paths at the V32 one-way boundary. | Source-complete. Must preserve F-001 through F-009. It changes only root-yaw anatomical address derivation and cold contact retirement; no DSF field, observer, action label, event law, or motor-output law changes. Focused proofs: `body_terminal_integration_places_follow_the_existing_sensory_geography`, `moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex`, and `v32_retires_misprojected_root_yaw_paths_once` all pass. Live cutover evidence remains pending. |
+| O-001 | The corrected root route is live, but no unattended root motor discharge has yet occurred. Determine whether its exact resident excitation/recovery timing is lawful or still contains a local coupling defect; do not alter DSF or fabricate an action. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |
 
-## Candidate C-001 preservation check
+## Release 1281 cumulative preservation check
 
-| Prior fix | Result before commit |
+| Prior fix | Source and live result |
 |---|---|
-| F-001 one organism | Preserved: V32 is a one-way rewrite of the same resident state; no new organism owner or restore path. |
-| F-002 unattended life | Preserved: no loop, request, or observer code changed. |
-| F-003 connected-path settlement | Preserved: no solver or DSF equation changed. |
-| F-004 fan-out cleanup | Preserved: the shared retirement helper keeps V31's exact contaminated-pool removal and the existing motor authorship law. |
-| F-005 event frontier | Preserved: no event selection or scheduling code changed; retired-path frontier entries are removed with their retired bonds. |
-| F-006 passive return | Preserved: no membrane return, pump, carrier, energy, work, or heat law changed. |
-| F-007 custody outside cognition | Preserved: no runtime, custodian, seal cadence, or cloud path changed. |
-| F-008 read-only observers | Preserved: no observation surface changed. |
-| F-009 membrane-owned motor output | Preserved by the paired-reflex proof: preparation remains an exact contact transfer and output remains exact positive local membrane discharge. |
+| F-001 one organism | Task 1281 is the sole writer and reports the same identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` from one raw `CURRENT` lineage. |
+| F-002 unattended life | Tick advanced unattended from 207797 through at least 208070 while public reads remained non-authoritative. |
+| F-003 connected-path settlement | No solver or DSF equation changed; live contact-frontier settlement continued on the mounted connected-path law. |
+| F-004 fan-out cleanup | Live layer-pair census contains no layer-11/layer-12 contacts; the contaminated ordering-to-motor pool did not return. |
+| F-005 event frontier | Live event census remained mounted (`due_now_contacts`, `future_contacts`, and exact selected frontier); no full-sweep authority was restored. |
+| F-006 passive return | No return/pump law changed; live census continued to publish separate return events and causal seeds. |
+| F-007 custody outside cognition | Live transition stopwatch kept ordinary `seal_ms=0`; the candidate introduced no custody path. |
+| F-008 read-only observers | Public contract reports `cognition_authority=false` and `read_advances_organism=false`; reads did not stop unattended advancement. |
+| F-009 membrane-owned motor output | The runtime payload source and all four falsifiers are unchanged from `40a0222c`; the new root route prepares the existing motor but no output is claimed before local discharge. |
+| F-010 compact root anatomy | V32 removed every contact incident to malformed regulation `...02ecfd`. A real one-millidegree world movement mounted exactly `layer-5 ...00090e -> layer-6 ...002ae9 -> layer-8 ...000ecf (37,393 pF) -> layer-12 ...00009b`; no parallel malformed route exists. |
 
 ## Historical reconciliation backlog
 
