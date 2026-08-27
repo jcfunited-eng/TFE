@@ -280,3 +280,24 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   the predecessor hop and exact acceptance with the consecutive physical path.
   Live acceptance remains open until CURRENT retains the new motor and an
   unattended discharge changes heading with returned sensory consequences.
+
+## Causal orientation correction — 2026-08-27
+
+- Commit `0d40506f89b7f216cca52943334e0b71b9848d66` deployed as sole
+  task `dsf-ai-task:1274`, continuity verified at or beyond tick `201446`.
+  A fresh tutor-caused root turn settled at tick `201570`; by tick `201671`,
+  CURRENT still held only the 74 articulated layer-12 motors.
+- Read-only CURRENT neuron evidence identified the two retained root chains.
+  Their moved receptor membranes were negative (`-2140`, `-3588` elementary
+  charges), their layer-6 integrations were `-544` and `-494`, and their
+  layer-8 regulations were positive (`12`, `18`). Thus whole carriers lawfully
+  flowed toward the more-negative receptor while the receptor's potential
+  perturbation causally advanced away from it.
+- The second correction wrongly equated carrier sender/receiver with causal
+  frontier direction. The existing `frontier_lineage` field already preserves
+  the advancing endpoint separately for exactly this case.
+- **Exact correction:** require the predecessor entry's advancing frontier to
+  be the mounted layer-6 integration, verify its other physical endpoint is the
+  typed root receptor, then accept a nonzero current layer-6/layer-8 transfer
+  in either carrier direction only when the layer-8 regulation is the newly
+  causal endpoint. No causal direction is inferred from current sign.

@@ -13756,11 +13756,12 @@ enum DevelopedMotorTerminal {
 
 /// Preserve the exact two-contact arrival law for root proprioception. A
 /// directional receptor reaches its layer-6 integration cell in one physical
-/// interval; only a later integration -> regulation transfer can reach layer
-/// 8. Requiring the source motion and the regulation arrival in one interval
-/// made root motor development impossible. This joins only those two adjacent,
-/// directed, carrier-moving intervals and derives terminal identity from the
-/// mounted source receptor itself.
+/// interval; only a later integration <-> regulation transfer can reach layer
+/// 8. Carrier direction is not causal direction: a receptor made more negative
+/// draws carriers toward itself while its potential perturbation advances to
+/// the adjacent cell. This therefore joins the explicit advancing frontier
+/// endpoint across two adjacent, carrier-moving intervals and derives terminal
+/// identity from the mounted source receptor itself.
 fn exact_root_yaw_causal_continuations(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -13778,18 +13779,32 @@ fn exact_root_yaw_causal_continuations(
     };
     let mut continuations = BTreeMap::<[u8; 16], Vec<RootYawEffectorTerminal>>::new();
     for current in settled_directed_transfers {
-        if current.transferred_whole_carriers == 0
-            || topology_index.layer_of(current.sender) != Some(6)
-            || topology_index.layer_of(current.receiver) != Some(8)
-            || !physically_transitioned_lineages.contains(&current.receiver)
-        {
+        if current.transferred_whole_carriers == 0 {
+            continue;
+        }
+        let (integration, regulation) = match (
+            topology_index.layer_of(current.sender),
+            topology_index.layer_of(current.receiver),
+        ) {
+            (Some(6), Some(8)) => (current.sender, current.receiver),
+            (Some(8), Some(6)) => (current.receiver, current.sender),
+            _ => continue,
+        };
+        if !physically_transitioned_lineages.contains(&regulation) {
             continue;
         }
         for predecessor in predecessor_frontier {
-            if predecessor.receiver() != current.sender {
+            if predecessor.frontier_lineage() != integration {
                 continue;
             }
-            let Some(receptor_lineage) = predecessor.sender() else {
+            let receptor_lineage = if predecessor.receiver() == integration {
+                predecessor.sender()
+            } else if predecessor.sender() == Some(integration) {
+                Some(predecessor.receiver())
+            } else {
+                None
+            };
+            let Some(receptor_lineage) = receptor_lineage else {
                 continue;
             };
             let Some(terminal) = mount_for(receptor_lineage)?
@@ -13800,7 +13815,7 @@ fn exact_root_yaw_causal_continuations(
                 continue;
             };
             continuations
-                .entry(current.receiver)
+                .entry(regulation)
                 .or_default()
                 .push(terminal);
         }
@@ -23394,7 +23409,8 @@ mod tests {
             panic!("root receptor must have one mounted local integration cell")
         };
         let integration = *integration;
-        let predecessor = ActiveElectricalFrontierEntry::caused(
+        let predecessor = ActiveElectricalFrontierEntry::caused_with_frontier(
+            integration,
             receptor,
             integration,
             StablePhysicalBondReference::new(receptor, integration, 0).unwrap(),
@@ -23402,8 +23418,8 @@ mod tests {
         )
         .unwrap();
         let current = DirectedPhysicalTransferObservation {
-            sender: integration,
-            receiver: regulation,
+            sender: regulation,
+            receiver: integration,
             bond: StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
             transferred_whole_carriers: 1,
         };
