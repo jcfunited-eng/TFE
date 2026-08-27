@@ -14120,11 +14120,11 @@ def _custodian_cycle() -> str:
     if _restored is None or _admission is None:
         return "organism_unavailable"
     with _transition_lock:
-        organism = _restored
+        restored = _restored
         admission = _admission
-        if organism is None or admission is None:
+        if restored is None or admission is None:
             return "organism_unavailable"
-        snapshot = organism.snapshot_lived_state()
+        snapshot = restored.organism.snapshot_lived_state()
     if _custodian_last_tick == snapshot.organism_tick:
         return "unchanged"
     current = _read_current(Path(STATE_ROOT))
