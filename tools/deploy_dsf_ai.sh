@@ -607,7 +607,9 @@ DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
 if [ "${GUALA_GENESIS_CUTOVER:-0}" != "0" ]; then
     fail "this deployment preserves the current organism; genesis is refused"
 fi
-if [ "${RECOVER_DRAINED}" = "1" ]; then
+if [ "${HOT_DEPLOY}" = "1" ]; then
+    echo "      hot deployment: source and task identity resolved; full preflight omitted"
+elif [ "${RECOVER_DRAINED}" = "1" ]; then
     echo "      recovery preflight: service is exactly drained; no stale HTTP predecessor is accepted"
 else
     python3 tools/preflight_guala_production.py \
