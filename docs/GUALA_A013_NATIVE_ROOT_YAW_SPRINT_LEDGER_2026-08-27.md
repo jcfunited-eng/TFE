@@ -352,3 +352,37 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   bounded local generation set before the read-only inspection, so its exact
   transient root frontier could not be recovered after the fact. No further
   causal condition is being inferred from the later CURRENT head.
+
+## Exact frozen-body frontier result and direct anatomy correction — 2026-08-27
+
+- Commit `968c1a47bd32753fcc5dd456ba33b49cd782cdd8` deployed as sole
+  production task `dsf-ai-task:1277`, image
+  `sha256:0edcb9dadf6b72a65a74ea0f98588a3d5355ddaa2afb687f643ddbeaa36e2234`.
+  Independent ECS and `/ready/guala` reads proved one healthy task, the exact
+  commit and digest, the same organism identity, and continuity beyond tick
+  `204958`.
+- One tutor-authored one-millidegree turn settled heading `341571 -> 341572`,
+  returned HTTP 200, delivered all six mounted sense families through seven
+  hops, and published exact generation `c74621fb...b7abe0` at tick `205082`.
+  A read-only cold inventory of that exact CURRENT still contained 74 layer-12
+  neurons: no root motor was retained, so the candidate was live-rejected.
+- The exact 76,203,478-byte generation was recovered from immutable custody
+  and decoded locally. Its older, preceding, and active electrical frontiers
+  contained 958, 1,713, and 958 entries respectively, but **zero** entries
+  involved either root receptor, integration, or regulation chain. Therefore
+  the two-interval frontier certificate required evidence production never
+  emitted; extending that certificate again is prohibited.
+- The governing A-013 contract already supplies the direct physical authority:
+  a typed directional root proprioceptor whose value actually changed and its
+  topology-paired reached regulation. The replacement derives only that exact
+  receptor -> local integration -> regulation anatomy, validates both contacts,
+  and mounts the paired root motor after settlement. Anatomy alone, a changed
+  receptor without its reached regulation, an opposite terminal, labels,
+  observers, scores, timers, or Python cannot authorize the motor.
+- Focused release proof
+  `moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex` passed `1/1`.
+  It explicitly refuses anatomy without a changed receptor, refuses a changed
+  receptor without its reached regulation, mounts exactly the paired terminal
+  when both physical facts exist, and continues to refuse the opposite
+  antagonist during later motor preparation. Full joint seven-field DSF and
+  every charge/work/heat settlement remain unchanged.

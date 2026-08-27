@@ -7807,11 +7807,11 @@ impl ResidentCognitiveFormationState {
             }
             moved
         };
-        let root_yaw_continuations = exact_root_yaw_causal_continuations(
+        let root_yaw_continuations = exact_reached_root_yaw_regulations(
             &cohorts,
             &topology_index,
-            &internal_contact.settled_directed_transfers,
-            &predecessor_active_electrical_frontier,
+            &externally_energized_neuron_lineages,
+            &reached_body_regulation_lineages,
         )?;
         mount_reached_motor_effector_with_root(
             &mut cohorts,
@@ -13731,44 +13731,35 @@ fn mount_reached_ordering_reach(
     Ok(())
 }
 
-/// Materialize one motor/effector route per exact reached body terminal,
-/// authored only along the proven CONSECUTIVE directed causal chain. A
-/// permanent ordering-to-motor contact requires two hops in consecutive
-/// physical windows: in the preceding interval the ordering (layer 11)
-/// cell moved whole carriers into an affective (layer 10) cell — carried
-/// as a directed entry of the retained causal frontier — and in the
-/// current interval that same affective cell moved whole carriers into
-/// the transitioned body-regulation (layer 8) cell whose transition IS
-/// the body's returned consequence. Two same-interval transfers are
-/// synchronous and can never prove a causal double-hop; same-interval
-/// coincidence authors nothing. Neither hop may touch a layer-12 cell,
-/// so existing motor contacts can never help prove new motor contacts.
-/// The new layer-12 cell is mounted after settlement, so it cannot move
-/// the body during the interval that creates it. No action name, target
-/// pose, score, readiness projection, or scripted command enters the
-/// neuron.
+/// Materialize one motor/effector route per exact reached body terminal.
+/// Articulated motor development retains its proven consecutive directed
+/// ordering -> affective -> returned-regulation chain. Root-yaw development
+/// instead follows the body's fixed proprioceptive anatomy: a directional
+/// root receptor whose value physically changed, its local integration, and
+/// the exact regulation reached in that same occurrence. A synchronous
+/// contact solve is never relabeled as a sequential two-contact cascade.
+/// The new layer-12 cell is mounted after settlement, so it cannot move the
+/// body during the interval that creates it. No action name, target pose,
+/// score, readiness projection, or scripted command enters the neuron.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 enum DevelopedMotorTerminal {
     Articulated(BodyEffectorTerminal),
     RootYaw(RootYawEffectorTerminal),
 }
 
-/// Preserve the exact two-contact arrival law for root proprioception. A
-/// directional receptor reaches its layer-6 integration cell in one physical
-/// interval; only a later integration <-> regulation transfer can reach layer
-/// 8. Carrier direction is not causal direction: a receptor made more negative
-/// draws carriers toward itself while its potential perturbation advances to
-/// the adjacent cell. This therefore joins the predecessor's explicit
-/// receptor-to-integration frontier to the next interval's exact settled
-/// integration/regulation contact. The current contact need not create a new
-/// frontier entry: on a mature body both endpoints can already be causal seeds,
-/// while their physical transfer remains real. Terminal identity is derived
-/// from the mounted source receptor itself.
-fn exact_root_yaw_causal_continuations(
+/// Resolve the exact reached root-yaw regulation for each directional
+/// proprioceptor whose mounted physical value changed in this occurrence.
+/// The route is the already-mounted receptor -> local integration -> body
+/// regulation anatomy. The source terminal supplies direction; the two exact
+/// contacts and the reached regulation supply locality. No retained frontier
+/// certificate is required: root proprioception mounts its regulation in this
+/// same physical occurrence, and the synchronous contact solver intentionally
+/// does not claim a sequential two-contact cascade within one interval.
+fn exact_reached_root_yaw_regulations(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
-    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
-    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    externally_energized_lineages: &[[u8; 16]],
+    reached_body_regulation_lineages: &[[u8; 16]],
 ) -> Result<BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>, FormationError> {
     let mount_for = |lineage: [u8; 16]| {
         let flat = topology_index.flat_for_lineage(lineage)?;
@@ -13778,45 +13769,63 @@ fn exact_root_yaw_causal_continuations(
             .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)
     };
-    let mut continuations = BTreeMap::<[u8; 16], Vec<RootYawEffectorTerminal>>::new();
-    for current in settled_directed_transfers {
-        if current.transferred_whole_carriers == 0 {
+    let mut regulation_by_place = BTreeMap::new();
+    for regulation in reached_body_regulation_lineages.iter().copied() {
+        let mount = mount_for(regulation)?;
+        if mount.source_site().is_some() || mount.place().layer() != 8 {
             continue;
         }
-        let (integration, regulation) = match (
-            topology_index.layer_of(current.sender),
-            topology_index.layer_of(current.receiver),
-        ) {
-            (Some(6), Some(8)) => (current.sender, current.receiver),
-            (Some(8), Some(6)) => (current.receiver, current.sender),
-            _ => continue,
-        };
-        for predecessor in predecessor_frontier {
-            if predecessor.frontier_lineage() != integration {
-                continue;
-            }
-            let receptor_lineage = if predecessor.receiver() == integration {
-                predecessor.sender()
-            } else if predecessor.sender() == Some(integration) {
-                Some(predecessor.receiver())
-            } else {
-                None
-            };
-            let Some(receptor_lineage) = receptor_lineage else {
-                continue;
-            };
-            let Some(terminal) = mount_for(receptor_lineage)?
-                .source_site()
-                .and_then(NeuronSourceSite::root_yaw_proprioceptor_terminal)
-                .map(RootYawProprioceptorTerminal::paired_effector)
-            else {
-                continue;
-            };
-            continuations
-                .entry(regulation)
-                .or_default()
-                .push(terminal);
+        let place = (mount.place().layer(), mount.place().topology_index());
+        if regulation_by_place.insert(place, regulation).is_some() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
         }
+    }
+    let mut continuations = BTreeMap::<[u8; 16], Vec<RootYawEffectorTerminal>>::new();
+    for receptor in externally_energized_lineages.iter().copied() {
+        let receptor_mount = mount_for(receptor)?;
+        let Some(terminal) = receptor_mount
+            .source_site()
+            .and_then(NeuronSourceSite::root_yaw_proprioceptor_terminal)
+            .map(RootYawProprioceptorTerminal::paired_effector)
+        else {
+            continue;
+        };
+        let integration_place = local_integration_place(receptor_mount.place())?;
+        let regulation_place = body_regulation_place(
+            receptor_mount.place(),
+            integration_place,
+        )?;
+        let regulation_place_key = (
+            regulation_place.layer(),
+            regulation_place.topology_index(),
+        );
+        let Some(regulation) = regulation_by_place.get(&regulation_place_key).copied() else {
+            continue;
+        };
+        let receptor_flat = topology_index.flat_for_lineage(receptor)?;
+        let integrations = topology_index.neighbours_by_flat[receptor_flat]
+            .iter()
+            .map(|flat| topology_index.flat_locations[*flat].2)
+            .filter(|lineage| {
+                topology_index.layer_of(*lineage) == Some(6)
+                    && mount_for(*lineage)
+                        .is_ok_and(|mount| mount.place() == integration_place)
+            })
+            .collect::<Vec<_>>();
+        let [integration] = integrations.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let integration_flat = topology_index.flat_for_lineage(*integration)?;
+        if !topology_index.neighbours_by_flat[integration_flat]
+            .iter()
+            .any(|flat| topology_index.flat_locations[*flat].2 == regulation)
+        {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        }
+        continuations
+            .entry(regulation)
+            .or_default()
+            .push(terminal);
     }
     for terminals in continuations.values_mut() {
         terminals.sort_unstable();
@@ -23407,51 +23416,31 @@ mod tests {
         );
         let contacts_before = fabric.contact_count();
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
-        let receptor_flat = topology.flat_for_lineage(receptor).unwrap();
-        let integrations = topology.neighbours_by_flat[receptor_flat]
-            .iter()
-            .map(|flat| topology.flat_locations[*flat].2)
-            .filter(|lineage| topology.layer_of(*lineage) == Some(6))
-            .collect::<Vec<_>>();
-        let [integration] = integrations.as_slice() else {
-            panic!("root receptor must have one mounted local integration cell")
-        };
-        let integration = *integration;
-        let predecessor = ActiveElectricalFrontierEntry::caused_with_frontier(
-            integration,
-            receptor,
-            integration,
-            StablePhysicalBondReference::new(receptor, integration, 0).unwrap(),
-            1,
-        )
-        .unwrap();
-        let current = DirectedPhysicalTransferObservation {
-            sender: regulation,
-            receiver: integration,
-            bond: StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
-            transferred_whole_carriers: 1,
-        };
-        // A current transfer alone is ambient conduction, not a causal
-        // continuation. The exact predecessor receptor -> integration hop is
-        // still mandatory.
-        assert!(exact_root_yaw_causal_continuations(
+        // Merely having the anatomy is not authority: the directional
+        // proprioceptor must have physically changed in this occurrence.
+        assert!(exact_reached_root_yaw_regulations(
             &cohorts,
             &topology,
-            &[current],
+            &[],
+            &[regulation],
+        )
+        .unwrap()
+        .is_empty());
+        // A changed receptor without its exact reached regulation is likewise
+        // incomplete and cannot author a motor.
+        assert!(exact_reached_root_yaw_regulations(
+            &cohorts,
+            &topology,
+            &[receptor],
             &[],
         )
         .unwrap()
         .is_empty());
-        // On a mature reached frontier both integration and regulation can
-        // already be causal seeds. Their exact contact still settles, but no
-        // new-frontier entry is emitted because neither endpoint is newly
-        // reached. The consecutive predecessor hop plus this physical
-        // transfer is the complete two-contact causal path.
-        let continuations = exact_root_yaw_causal_continuations(
+        let continuations = exact_reached_root_yaw_regulations(
             &cohorts,
             &topology,
-            &[current],
-            &[predecessor],
+            &[receptor],
+            &[regulation],
         )
         .unwrap();
         assert_eq!(continuations.get(&regulation), Some(&vec![terminal]));
@@ -23462,8 +23451,8 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &[],
-            &[current],
-            &[predecessor],
+            &[],
+            &[],
             &[],
             &continuations,
         )
