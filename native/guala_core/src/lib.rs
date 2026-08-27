@@ -67,6 +67,7 @@ mod positional_krimelack_boundary;
 mod reached_neuron_cohort;
 mod reached_vestibular_bundle_path;
 mod receptor_quantum_delivery;
+mod root_yaw_joint_source_builder;
 mod recovery_fluid_contact;
 mod resident_cognitive_formation;
 mod resident_electrical_fabric;

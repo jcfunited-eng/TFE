@@ -39,6 +39,7 @@ use crate::mounted_joint_fractal::{
 use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
+use crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source;
 use crate::resident_cognitive_formation::{
     coalesce_emitted_neuron_fractals, has_reached_and_foregone_frontier_routes,
     AffectiveBalanceTrajectoryObservation, ArticulatoryUnitRecruitment, AuthoredDeclaredContact,
@@ -49,7 +50,7 @@ use crate::resident_cognitive_formation::{
     LocalizedFluidChemistryObservation, LocalizedMetabolicStrainObservation, MotorUnitRecruitment,
     OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
     PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
-    ResidentCognitiveFormationState,
+    ResidentCognitiveFormationState, RootYawUnitRecruitment,
 };
 use crate::resident_receptor_transition::{
     observe_canonical_receptor_ingress, prepare_resident_vestibular_ingress,
@@ -66,6 +67,7 @@ use crate::virtual_articulated_body::{
     ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
 };
+use crate::virtual_body_yaw_motion::RootYawDirection;
 use crate::virtual_articulatory_body::{
     settle_articulatory_interval_discharges, ARTICULATORY_SAMPLE_RATE_HZ,
 };
@@ -144,6 +146,7 @@ type MotorUnitRecruitmentProjection = (
     Vec<(String, u32, String, u32, u32, u128)>,
     Vec<(String, String, String, u8, u32, String, String)>,
 );
+type RootYawUnitRecruitmentProjection = (String, u32, u128, String);
 type ArticulatoryUnitRecruitmentProjection = (
     String,
     u32,
@@ -239,6 +242,7 @@ type CausalIntervalEvidenceProjection = (
     Vec<InternallyReassembledFormationCueProjection>,
     Vec<ExternallyReassembledFormationFrontierProjection>,
     Vec<MotorUnitRecruitmentProjection>,
+    Vec<RootYawUnitRecruitmentProjection>,
     Vec<ArticulatoryUnitRecruitmentProjection>,
     Vec<String>,
     Vec<ChangedContactChannelStateProjection>,
@@ -725,6 +729,7 @@ struct ResidentPrepareReceipt {
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
     articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
@@ -755,6 +760,7 @@ struct CausalIntervalEvidence {
     externally_reassembled_formation_frontiers:
         Vec<ExternallyReassembledFormationFrontierObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_lineages: Vec<[u8; 16]>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
@@ -871,6 +877,7 @@ pub struct NativeResidentOrganismPrepare {
     phase_counts: MountedTransitionPhaseCounts,
     receptor_ingress: ResidentReceptorIngressObservation,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
+    root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
     articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
@@ -1520,6 +1527,27 @@ impl NativeResidentOrganismPrepare {
         project_motor_unit_recruitments(&self.motor_unit_recruitments)
     }
 
+    /// Native root-turn discharges. Python receives only the typed terminal
+    /// and exact whole-carrier magnitude; it does not choose either one.
+    #[getter]
+    fn root_yaw_unit_recruitments(&self) -> Vec<RootYawUnitRecruitmentProjection> {
+        self.root_yaw_unit_recruitments
+            .iter()
+            .map(|recruitment| {
+                (
+                    hex_bytes(&recruitment.neuron_lineage),
+                    recruitment.topology_index,
+                    recruitment.outward_elementary_carriers,
+                    match recruitment.terminal.direction() {
+                        RootYawDirection::Negative => "negative",
+                        RootYawDirection::Positive => "positive",
+                    }
+                    .to_owned(),
+                )
+            })
+            .collect()
+    }
+
     /// Exact typed motor-to-terminal bindings retained on the motor mounts.
     /// Afferent receptor ancestry and topology never select a terminal.
     #[getter]
@@ -1620,6 +1648,9 @@ impl NativeResidentOrganismPrepare {
                         &interval.externally_reassembled_formation_frontiers,
                     ),
                     project_motor_unit_recruitments(&interval.motor_unit_recruitments),
+                    project_root_yaw_unit_recruitments(
+                        &interval.root_yaw_unit_recruitments,
+                    ),
                     project_articulatory_unit_recruitments(
                         &interval.articulatory_unit_recruitments,
                     ),
@@ -2532,6 +2563,9 @@ fn retain_cognitive_trajectory_observation(
         .motor_unit_recruitments
         .extend(observation.motor_unit_recruitments.iter().cloned());
     total
+        .root_yaw_unit_recruitments
+        .extend(observation.root_yaw_unit_recruitments.iter().cloned());
+    total
         .articulatory_unit_recruitments
         .extend(observation.articulatory_unit_recruitments.iter().cloned());
     if observation.physical_frontier_routes != total.physical_frontier_routes {
@@ -3168,6 +3202,7 @@ impl ResidentOrganismRuntime {
                     .externally_reassembled_formation_frontiers
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                root_yaw_unit_recruitments: observation.root_yaw_unit_recruitments.clone(),
                 articulatory_unit_recruitments: observation
                     .articulatory_unit_recruitments
                     .clone(),
@@ -3307,6 +3342,7 @@ impl ResidentOrganismRuntime {
             },
             receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
+            root_yaw_unit_recruitments: cognitive_observation.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: cognitive_observation.articulatory_unit_recruitments,
             causal_interval_evidence,
             articulated_body_consequences,
@@ -3522,6 +3558,7 @@ impl ResidentOrganismRuntime {
                     .externally_reassembled_formation_frontiers
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
+                root_yaw_unit_recruitments: observation.root_yaw_unit_recruitments.clone(),
                 articulatory_unit_recruitments: observation
                     .articulatory_unit_recruitments
                     .clone(),
@@ -3654,6 +3691,7 @@ impl ResidentOrganismRuntime {
             },
             receptor_ingress,
             motor_unit_recruitments: cognitive_observation.motor_unit_recruitments,
+            root_yaw_unit_recruitments: cognitive_observation.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: cognitive_observation.articulatory_unit_recruitments,
             causal_interval_evidence,
             articulated_body_consequences: Vec::new(),
@@ -3739,6 +3777,8 @@ impl ResidentOrganismRuntime {
             .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
         let cognitive_observation = cognitive.observation().clone();
         let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
+        let root_yaw_unit_recruitments =
+            cognitive_observation.root_yaw_unit_recruitments.clone();
         let articulated_body_transition = settle_motor_recruitments_into_articulated_body(
             &self.active.articulated_body,
             &motor_unit_recruitments,
@@ -3844,6 +3884,7 @@ impl ResidentOrganismRuntime {
             phase_counts,
             receptor_ingress,
             motor_unit_recruitments,
+            root_yaw_unit_recruitments,
             articulatory_unit_recruitments,
             causal_interval_evidence: Vec::new(),
             articulated_body_consequences,
@@ -4014,6 +4055,7 @@ impl ResidentOrganismRuntime {
             phase_counts: MountedTransitionPhaseCounts::default(),
             receptor_ingress: ResidentReceptorIngressObservation::default(),
             motor_unit_recruitments: Vec::new(),
+            root_yaw_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             causal_interval_evidence: Vec::new(),
             articulated_body_consequences: Vec::new(),
@@ -4301,6 +4343,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4325,6 +4368,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4356,6 +4400,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4384,6 +4429,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4423,6 +4469,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4460,6 +4507,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4571,6 +4619,7 @@ impl NativeResidentOrganismRuntime {
             phase_counts: prepared.phase_counts,
             receptor_ingress: prepared.receptor_ingress,
             motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -4873,6 +4922,15 @@ fn exact_virtual_yaw_trajectory(
         settled.successor.heading_millidegrees(),
         settled.trajectory.as_slice().to_vec(),
     ))
+}
+
+#[pyfunction]
+fn exact_root_yaw_proprioceptive_source(
+    source_tick: u64,
+    signed_displacement_millidegrees: i32,
+) -> PyResult<NativeJointSourceEpisode> {
+    admit_root_yaw_proprioceptive_source(source_tick, signed_displacement_millidegrees)
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))
 }
 
 #[pyfunction]
@@ -5547,6 +5605,10 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(restore_native_organism_runtime, module)?)?;
     module.add_function(wrap_pyfunction!(exact_virtual_yaw_trajectory, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        exact_root_yaw_proprioceptive_source,
+        module
+    )?)?;
     module.add_function(wrap_pyfunction!(
         exact_neutral_articulated_body_state,
         module
@@ -6566,6 +6628,26 @@ fn project_motor_unit_recruitments(
                         )
                     })
                     .collect(),
+            )
+        })
+        .collect()
+}
+
+fn project_root_yaw_unit_recruitments(
+    events: &[RootYawUnitRecruitment],
+) -> Vec<RootYawUnitRecruitmentProjection> {
+    events
+        .iter()
+        .map(|event| {
+            (
+                hex_bytes(&event.neuron_lineage),
+                event.topology_index,
+                event.outward_elementary_carriers,
+                match event.terminal.direction() {
+                    RootYawDirection::Negative => "negative",
+                    RootYawDirection::Positive => "positive",
+                }
+                .to_owned(),
             )
         })
         .collect()

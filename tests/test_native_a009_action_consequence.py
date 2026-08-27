@@ -17,7 +17,7 @@ def test_native_body_feedback_joins_the_next_world_consequence(
 ) -> None:
     from dsf_ai_service.substrate.embodiment_world import PreparedActionExecution
 
-    execution = object()
+    execution = SimpleNamespace(before=object(), after=object())
     prepared = PreparedActionExecution(
         execution_receipt=execution,
         _prior_state=object(),
@@ -48,6 +48,7 @@ def test_native_body_feedback_joins_the_next_world_consequence(
         "_action_consequence_episode",
         lambda *_args, **_kwargs: ("world-source", [(1, 1_000)], {"world": True}),
     )
+    monkeypatch.setattr(production, "_world_displacement", lambda *_args: (0, 0, 0, 0))
     monkeypatch.setattr(
         production,
         "restore_native_joint_source_episode",
@@ -61,21 +62,119 @@ def test_native_body_feedback_joins_the_next_world_consequence(
         predecessor_body_axes=((0, "neck_yaw", 0, 0),),
         successor_body_axes=((0, "neck_yaw", 0, 0),),
         motor_unit_recruitments=(("motor",),),
+        root_yaw_unit_recruitments=(),
         body_effector_bindings=(("effector",),),
         articulated_body_consequences=(("consequence",),),
         body_proprioceptive_sources=((b"native-body-source", (8, 3, 6, 2, 6)),),
+        root_yaw_source_tick=8,
     )
 
     assert result is not None
-    authority, held, episode, admissions, lane_truth, vestibular = result
+    authority, held, episode, admissions, lane_truth, vestibular, signed_root_yaw = result
     assert authority is world
     assert held is prepared
     assert episode == ("world-source", body_source)
     assert admissions == ([(1, 1_000)], [(1, 1_000), (1, 1_000)])
     assert lane_truth == {"world": True}
     assert vestibular is None
+    assert signed_root_yaw == 0
     assert restore_calls == [(b"native-body-source", 3, 6, 2, 6)]
     assert world.discarded is False
+
+
+def test_native_root_discharge_turns_world_and_returns_typed_direction(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service.substrate.embodiment_world import (
+        PoseMM,
+        PositionMM,
+        PreparedActionExecution,
+    )
+
+    before_body = SimpleNamespace(
+        body_id="guala",
+        pose=PoseMM(PositionMM(10, 20, 0), 100),
+    )
+    after_body = SimpleNamespace(
+        body_id="guala",
+        pose=PoseMM(PositionMM(10, 20, 0), 107),
+    )
+    before = SimpleNamespace(
+        revision=7,
+        state_sha256="10" * 32,
+        self_body_id="guala",
+        bodies=(before_body,),
+    )
+    after = SimpleNamespace(self_body_id="guala", bodies=(after_body,))
+    prepared = PreparedActionExecution(
+        execution_receipt=SimpleNamespace(before=before, after=after),
+        _prior_state=object(),
+        _candidate_state=object(),
+        _construction_authority=object(),
+    )
+
+    class World:
+        @staticmethod
+        def observation_snapshot() -> SimpleNamespace:
+            return before
+
+        @staticmethod
+        def prepare_port_command(**_kwargs) -> PreparedActionExecution:
+            return prepared
+
+        @staticmethod
+        def discard_prepared_action(_prepared) -> None:
+            raise AssertionError("lawful root action was discarded")
+
+    root_source = SimpleNamespace(occurrence_count=1)
+    monkeypatch.setattr(production, "_world", lambda: World())
+    monkeypatch.setattr(production, "_world_displacement", lambda *_args: (0, 0, 0, 7))
+    monkeypatch.setattr(
+        production,
+        "_action_consequence_episode",
+        lambda *_args, **_kwargs: ("world-source", [(1, 1_000)], {"world": True}),
+    )
+    monkeypatch.setattr(
+        production,
+        "exact_native_yaw_trajectory",
+        lambda *, predecessor_heading_millidegrees,
+        signed_displacement_millidegrees,
+        duration_microseconds: (
+            (predecessor_heading_millidegrees + signed_displacement_millidegrees)
+            % 360_000,
+            (signed_displacement_millidegrees,),
+        ),
+    )
+    built_sources = []
+    monkeypatch.setattr(
+        production,
+        "exact_native_root_yaw_proprioceptive_source",
+        lambda **kwargs: (built_sources.append(kwargs), root_source)[1],
+    )
+
+    result = production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="20" * 32,
+        causal_transition_sha256="30" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(),
+        root_yaw_unit_recruitments=(("40" * 16, 3, 7, "positive"),),
+        body_effector_bindings=(),
+        articulated_body_consequences=(),
+        body_proprioceptive_sources=(),
+        root_yaw_source_tick=8,
+    )
+
+    assert result is not None
+    _, _, episode, admissions, _, vestibular, signed_root_yaw = result
+    assert episode == ("world-source", root_source)
+    assert admissions == ([(1, 1_000)], [(1, 1_000)])
+    assert vestibular == (100, (7,))
+    assert signed_root_yaw == 7
+    assert built_sources == [
+        {"source_tick": 8, "signed_displacement_millidegrees": 7}
+    ]
 
 
 def test_one_millisecond_action_builds_one_truthful_joint_consequence(

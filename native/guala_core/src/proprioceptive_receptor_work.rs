@@ -19,6 +19,7 @@ use crate::receptor_quantum_delivery::{
     exact_rational_to_big, quantize_receptor_delivery, QuantizedReceptorDelivery,
     ReceptorDeliveryError, ReceptorResidueValue,
 };
+use crate::virtual_body_yaw_motion::RootYawDirection;
 
 pub(crate) const ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY: &str =
     "antagonist-proprioceptor-length-fraction";
@@ -28,6 +29,12 @@ pub(crate) const EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY: &str =
     "reacted-effector-carrier-fraction";
 pub(crate) const DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT: &str =
     "fraction-of-discharged-effector-carriers";
+pub(crate) const ROOT_YAW_DIRECTIONAL_MOTION_QUANTITY: &str =
+    "root-yaw-directional-motion-presence";
+pub(crate) const ROOT_YAW_DIRECTIONAL_MOTION_UNIT: &str = "dimensionless";
+const ROOT_YAW_EVIDENCE_MAGIC: &[u8; 8] = b"GLRYEV01";
+const ROOT_YAW_EVIDENCE_BYTES: usize = 29;
+const ROOT_YAW_TICKS_PER_SECOND: u64 = 1_000;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ProprioceptiveReceptorAnatomy {
@@ -175,16 +182,27 @@ fn settle_port_range(
     first_sample: usize,
     last_sample: usize,
 ) -> Result<ProprioceptiveReceptorWorkSettlement, ProprioceptiveReceptorWorkError> {
-    if port.sense != PhysicalSourceSense::Body.declared_layer()
-        || port.body_proprioceptor_terminal.is_none()
-    {
+    if port.sense != PhysicalSourceSense::Body.declared_layer() {
         return Err(ProprioceptiveReceptorWorkError::NotBodyProprioceptor);
     }
-    if port.physical_quantity != ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY {
+    let local_position_ending = port.body_proprioceptor_terminal.is_some()
+        && port.root_yaw_proprioceptor_terminal.is_none()
+        && port.physical_quantity == ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
+        && port.physical_unit == ARTICULATED_AXIS_SPAN_FRACTION_UNIT;
+    let root_direction_ending = port.root_yaw_proprioceptor_terminal.is_some()
+        && port.body_proprioceptor_terminal.is_none()
+        && port.physical_quantity == ROOT_YAW_DIRECTIONAL_MOTION_QUANTITY
+        && port.physical_unit == ROOT_YAW_DIRECTIONAL_MOTION_UNIT;
+    if !local_position_ending && !root_direction_ending {
+        if port.body_proprioceptor_terminal.is_none()
+            && port.root_yaw_proprioceptor_terminal.is_none()
+        {
+            return Err(ProprioceptiveReceptorWorkError::NotBodyProprioceptor);
+        }
         return Err(ProprioceptiveReceptorWorkError::PhysicalQuantityMismatch);
     }
-    if port.physical_unit != ARTICULATED_AXIS_SPAN_FRACTION_UNIT {
-        return Err(ProprioceptiveReceptorWorkError::PhysicalUnitMismatch);
+    if root_direction_ending {
+        validate_root_yaw_directional_evidence(port)?;
     }
     if port.source_times.len() < 2 {
         return Err(ProprioceptiveReceptorWorkError::TooFewSamples);
@@ -220,6 +238,76 @@ fn settle_port_range(
     Ok(ProprioceptiveReceptorWorkSettlement {
         transduced_energy_zeptojoules: absorbed * &anatomy.conformational_coupling,
     })
+}
+
+fn validate_root_yaw_directional_evidence(
+    port: &JointSourcePortView,
+) -> Result<(), ProprioceptiveReceptorWorkError> {
+    let terminal = port
+        .root_yaw_proprioceptor_terminal
+        .ok_or(ProprioceptiveReceptorWorkError::NotBodyProprioceptor)?;
+    let evidence = port.input_map_profile.as_slice();
+    if evidence.len() != ROOT_YAW_EVIDENCE_BYTES
+        || evidence.get(..ROOT_YAW_EVIDENCE_MAGIC.len()) != Some(ROOT_YAW_EVIDENCE_MAGIC)
+        || port.source_times.len() != 2
+        || port.exact_normalized_sources.len() != 2
+    {
+        return Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence);
+    }
+    let source_tick = u64::from_le_bytes(
+        evidence[8..16]
+            .try_into()
+            .map_err(|_| ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence)?,
+    );
+    let successor_tick = u64::from_le_bytes(
+        evidence[16..24]
+            .try_into()
+            .map_err(|_| ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence)?,
+    );
+    let signed_displacement = i32::from_le_bytes(
+        evidence[24..28]
+            .try_into()
+            .map_err(|_| ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence)?,
+    );
+    let evidence_direction = match evidence[28] {
+        0 => RootYawDirection::Negative,
+        1 => RootYawDirection::Positive,
+        _ => return Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence),
+    };
+    let moved_direction = if signed_displacement < 0 {
+        RootYawDirection::Negative
+    } else if signed_displacement > 0 {
+        RootYawDirection::Positive
+    } else {
+        return Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence);
+    };
+    let expected_successor_tick = source_tick
+        .checked_add(1)
+        .ok_or(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence)?;
+    let expected_times = [
+        BigRational::new(
+            BigInt::from(source_tick),
+            BigInt::from(ROOT_YAW_TICKS_PER_SECOND),
+        ),
+        BigRational::new(
+            BigInt::from(successor_tick),
+            BigInt::from(ROOT_YAW_TICKS_PER_SECOND),
+        ),
+    ];
+    let expected_successor = if terminal.direction() == moved_direction {
+        BigRational::one()
+    } else {
+        BigRational::zero()
+    };
+    if successor_tick != expected_successor_tick
+        || terminal.direction() != evidence_direction
+        || port.source_times != expected_times
+        || port.exact_normalized_sources[0] != BigRational::zero()
+        || port.exact_normalized_sources[1] != expected_successor
+    {
+        return Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence);
+    }
+    Ok(())
 }
 
 pub(crate) fn derive_proprioceptive_receptor_sample_range_work(
@@ -428,6 +516,7 @@ mod tests {
     use crate::joint_uf_neuron_boundary::{
         bind_neuron_perspective, prepare_complete_joint_field_admitted_fixture,
     };
+    use crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source;
     use crate::virtual_articulated_body::{
         settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState, BodyAxis,
         BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
@@ -571,5 +660,62 @@ mod tests {
         .unwrap();
         assert_eq!(third.delivered_quanta, 23);
         assert!(exact_rational_to_big(third.successor_residue) < lattice);
+    }
+
+    #[test]
+    fn signed_root_turn_reaches_only_its_exact_directional_ending() {
+        let source = admit_root_yaw_proprioceptive_source(41, -7).unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&source, 0).unwrap();
+        let anatomy =
+            ProprioceptiveReceptorAnatomy::new(exact(4, 1), exact(1, 1), exact(1, 2), exact(1, 1))
+                .unwrap();
+        let negative = derive_proprioceptive_receptor_sample_range_work(
+            &source,
+            bind_neuron_perspective(&shared, 0, 0).unwrap(),
+            &anatomy,
+            0,
+            1,
+        )
+        .unwrap();
+        let positive = derive_proprioceptive_receptor_sample_range_work(
+            &source,
+            bind_neuron_perspective(&shared, 1, 0).unwrap(),
+            &anatomy,
+            0,
+            1,
+        )
+        .unwrap();
+        assert!(negative.transduced_energy_zeptojoules > BigRational::zero());
+        assert_eq!(positive.transduced_energy_zeptojoules, BigRational::zero());
+    }
+
+    #[test]
+    fn root_turn_evidence_with_a_tampered_sign_is_refused() {
+        let source = admit_root_yaw_proprioceptive_source(41, -7).unwrap();
+        let mut encoded = source.joint_source_body().to_vec();
+        let evidence_start = encoded
+            .windows(ROOT_YAW_EVIDENCE_MAGIC.len())
+            .position(|window| window == ROOT_YAW_EVIDENCE_MAGIC)
+            .unwrap();
+        encoded[evidence_start + 24..evidence_start + 28]
+            .copy_from_slice(&7_i32.to_le_bytes());
+        let tampered = crate::joint_source_episode::decode_native_joint_source_episode(
+            &encoded, 2, 4, 1, 2,
+        )
+        .unwrap();
+        let shared = prepare_complete_joint_field_admitted_fixture(&tampered, 0).unwrap();
+        let anatomy =
+            ProprioceptiveReceptorAnatomy::new(exact(4, 1), exact(1, 1), exact(1, 2), exact(1, 1))
+                .unwrap();
+        assert!(matches!(
+            derive_proprioceptive_receptor_sample_range_work(
+                &tampered,
+                bind_neuron_perspective(&shared, 0, 0).unwrap(),
+                &anatomy,
+                0,
+                1,
+            ),
+            Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence)
+        ));
     }
 }

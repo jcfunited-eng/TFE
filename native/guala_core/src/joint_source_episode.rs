@@ -22,6 +22,9 @@ use crate::virtual_articulated_body::{
     BodyProprioceptorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
     BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
 };
+use crate::virtual_body_yaw_motion::{
+    RootYawProprioceptorTerminal, ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+};
 
 const MAGIC: &[u8; 8] = b"GLJSRC02";
 const VERSION: u16 = 2;
@@ -29,6 +32,8 @@ const BODY_MAGIC: &[u8; 8] = b"GLJSRC03";
 const BODY_VERSION: u16 = 3;
 const BODY_LOAD_MAGIC: &[u8; 8] = b"GLJSRC04";
 const BODY_LOAD_VERSION: u16 = 4;
+const ROOT_YAW_MAGIC: &[u8; 8] = b"GLJSRC05";
+const ROOT_YAW_VERSION: u16 = 5;
 const SENSE_COUNT: usize = 6;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -46,6 +51,9 @@ pub(crate) struct JointSourcePortView {
     /// topology, coordinates, quantity strings, or labels, and it is never an
     /// efferent motor mount.
     pub(crate) body_proprioceptor_terminal: Option<BodyProprioceptorTerminal>,
+    /// Fixed directional ending for the persistent world's root-yaw canal.
+    /// This is separate from local articulated-body proprioception.
+    pub(crate) root_yaw_proprioceptor_terminal: Option<RootYawProprioceptorTerminal>,
     pub(crate) sensor_id: String,
     pub(crate) substream_id: String,
     pub(crate) coordinates: Vec<JointSourceCoordinate>,
@@ -109,6 +117,7 @@ impl NativeJointSourceEpisode {
     #[getter]
     fn schema(&self) -> &'static str {
         match self.storage.version {
+            ROOT_YAW_VERSION => "guala.native.exact_joint_source_episode.v5",
             BODY_LOAD_VERSION => "guala.native.exact_joint_source_episode.v4",
             BODY_VERSION => "guala.native.exact_joint_source_episode.v3",
             _ => "guala.native.exact_joint_source_episode.v2",
@@ -268,12 +277,29 @@ fn compact_lesson_episode_from_anatomy(
     let body_version = ports
         .iter()
         .any(|port| port.body_proprioceptor_terminal.is_some());
-    let mut output = if body_version {
+    let root_yaw_version = ports
+        .iter()
+        .any(|port| port.root_yaw_proprioceptor_terminal.is_some());
+    if body_version && root_yaw_version {
+        return Err("compact lesson anatomy mixes local and root proprioceptors".into());
+    }
+    let mut output = if root_yaw_version {
+        ROOT_YAW_MAGIC.to_vec()
+    } else if body_version {
         BODY_MAGIC.to_vec()
     } else {
         MAGIC.to_vec()
     };
-    output.extend_from_slice(&(if body_version { BODY_VERSION } else { VERSION }).to_le_bytes());
+    output.extend_from_slice(
+        &(if root_yaw_version {
+            ROOT_YAW_VERSION
+        } else if body_version {
+            BODY_VERSION
+        } else {
+            VERSION
+        })
+        .to_le_bytes(),
+    );
     compact_text(&mut output, assembly_id, "assembly identity")?;
     output.extend_from_slice(&anatomy.storage.sense_states);
     compact_u32(&mut output, ports.len(), "port count")?;
@@ -299,6 +325,14 @@ fn compact_lesson_episode_from_anatomy(
                         u8::try_from(terminal.axis().index())
                             .map_err(|_| "body axis exceeds u8")?,
                     );
+                    output.push(terminal.direction() as u8);
+                }
+                None => output.push(0),
+            }
+        } else if root_yaw_version {
+            match port.root_yaw_proprioceptor_terminal {
+                Some(terminal) => {
+                    output.push(1);
                     output.push(terminal.direction() as u8);
                 }
                 None => output.push(0),
@@ -532,7 +566,8 @@ impl<'a> Parser<'a> {
         let version = self.u16()?;
         if !((magic == MAGIC && version == VERSION)
             || (magic == BODY_MAGIC && version == BODY_VERSION)
-            || (magic == BODY_LOAD_MAGIC && version == BODY_LOAD_VERSION))
+            || (magic == BODY_LOAD_MAGIC && version == BODY_LOAD_VERSION)
+            || (magic == ROOT_YAW_MAGIC && version == ROOT_YAW_VERSION))
         {
             return Err("unsupported joint-source episode version".into());
         }
@@ -556,6 +591,7 @@ impl<'a> Parser<'a> {
         let mut keys = BTreeSet::new();
         let mut topology_indices: [Vec<u32>; SENSE_COUNT] = Default::default();
         let mut body_proprioceptor_terminals = BTreeSet::new();
+        let mut root_yaw_proprioceptor_terminals = BTreeSet::new();
         let mut sample_count = 0usize;
         for _ in 0..port_count {
             let port = self.port(version)?;
@@ -596,6 +632,22 @@ impl<'a> Parser<'a> {
                     return Err("body source repeats one physical terminal ending".into());
                 }
             }
+            if version == ROOT_YAW_VERSION && port.sense == 5 {
+                let terminal = port.root_yaw_proprioceptor_terminal.ok_or_else(|| {
+                    "root-yaw receptor lacks an explicit directional terminal".to_string()
+                })?;
+                let expected = ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+                    .checked_add(terminal.ordinal());
+                if usize::try_from(port.topology_index).ok() != expected {
+                    return Err(
+                        "root-yaw receptor topology differs from its fixed terminal territory"
+                            .into(),
+                    );
+                }
+                if !root_yaw_proprioceptor_terminals.insert(terminal) {
+                    return Err("root-yaw source repeats one directional ending".into());
+                }
+            }
             topology_indices[port.sense as usize].push(port.topology_index);
             ports.push(port);
         }
@@ -607,7 +659,8 @@ impl<'a> Parser<'a> {
             if sense_states[sense] == 0 && topology_indices[sense].is_empty() {
                 return Err("observed sense has no physical receptor".into());
             }
-            if !(matches!(version, BODY_VERSION | BODY_LOAD_VERSION) && sense == 5)
+            if !(matches!(version, BODY_VERSION | BODY_LOAD_VERSION | ROOT_YAW_VERSION)
+                && sense == 5)
                 && topology_indices[sense]
                     .iter()
                     .copied()
@@ -820,11 +873,24 @@ impl<'a> Parser<'a> {
         } else {
             None
         };
+        let root_yaw_proprioceptor_terminal = if version == ROOT_YAW_VERSION {
+            match self.u8()? {
+                0 => None,
+                1 => RootYawProprioceptorTerminal::from_ordinal(self.u8()?),
+                _ => return Err("joint-source root-yaw terminal presence is not canonical".into()),
+            }
+        } else {
+            None
+        };
         if matches!(version, BODY_VERSION | BODY_LOAD_VERSION)
             && sense == 5
             && body_proprioceptor_terminal.is_none()
         {
             return Err("body receptor lacks an explicit proprioceptor terminal".into());
+        }
+        if version == ROOT_YAW_VERSION && (sense != 5 || root_yaw_proprioceptor_terminal.is_none())
+        {
+            return Err("root-yaw source lacks one typed body receptor ending".into());
         }
         let sensor_id = self.identifier("sensor_id")?;
         let substream_id = self.identifier("substream_id")?;
@@ -952,6 +1018,7 @@ impl<'a> Parser<'a> {
             sense,
             topology_index,
             body_proprioceptor_terminal,
+            root_yaw_proprioceptor_terminal,
             sensor_id,
             substream_id,
             coordinates,

@@ -419,6 +419,7 @@ class ResidentCausalIntervalEvidence:
         ],
         ...,
     ]
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...]
     articulatory_unit_recruitments: tuple[
         tuple[
             str,
@@ -505,6 +506,7 @@ class ResidentPrepareEvidence:
         ],
         ...,
     ] = ()
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...] = ()
     body_effector_bindings: tuple[tuple[str, str, str, int], ...] = ()
     articulated_body_consequences: tuple[
         tuple[int, str, str, int, int, int, int, int, int, int, int], ...
@@ -960,6 +962,25 @@ def _motor_unit_recruitment_evidence(
     return tuple(observed)
 
 
+def _root_yaw_unit_recruitment_evidence(
+    value: object,
+) -> tuple[tuple[str, int, int, str], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("root-yaw recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 4:
+            raise RuntimeError("root-yaw recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "root-yaw motor lineage")
+        topology_index = _nonnegative_integer(raw[1], "root-yaw topology index")
+        carriers = _positive_integer(raw[2], "root-yaw outward carriers")
+        direction = raw[3]
+        if direction not in {"negative", "positive"}:
+            raise RuntimeError("root-yaw recruitment lacks typed direction")
+        observed.append((lineage, topology_index, carriers, direction))
+    return tuple(observed)
+
+
 def _articulatory_unit_recruitment_evidence(
     value: object,
 ) -> tuple[
@@ -1049,7 +1070,7 @@ def _causal_interval_evidence(
         raise RuntimeError("causal interval evidence changed format")
     intervals = []
     for index, raw in enumerate(value):
-        if not isinstance(raw, tuple) or len(raw) != 11:
+        if not isinstance(raw, tuple) or len(raw) != 12:
             raise RuntimeError("causal interval evidence changed format")
         (
             raw_duration_samples,
@@ -1057,6 +1078,7 @@ def _causal_interval_evidence(
             raw_cues,
             raw_external_frontiers,
             raw_motors,
+            raw_root_yaw,
             raw_articulatory,
             raw_emitted,
             raw_changes,
@@ -1124,6 +1146,9 @@ def _causal_interval_evidence(
                     )
                 ),
                 motor_unit_recruitments=_motor_unit_recruitment_evidence(raw_motors),
+                root_yaw_unit_recruitments=(
+                    _root_yaw_unit_recruitment_evidence(raw_root_yaw)
+                ),
                 articulatory_unit_recruitments=(
                     _articulatory_unit_recruitment_evidence(raw_articulatory)
                 ),
@@ -2948,6 +2973,9 @@ class NativeResidentOrganism:
         motor_unit_recruitments = _motor_unit_recruitment_evidence(
             candidate.motor_unit_recruitments
         )
+        root_yaw_unit_recruitments = _root_yaw_unit_recruitment_evidence(
+            candidate.root_yaw_unit_recruitments
+        )
         raw_body_effector_bindings = candidate.body_effector_bindings
         if not isinstance(raw_body_effector_bindings, list):
             raise RuntimeError("body effector bindings changed format")
@@ -3298,6 +3326,7 @@ class NativeResidentOrganism:
             receptor_ingress_changing_count=receptor_ingress_changing_count,
             receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
+            root_yaw_unit_recruitments=tuple(root_yaw_unit_recruitments),
             body_effector_bindings=tuple(body_effector_bindings),
             articulated_body_consequences=tuple(
                 articulated_body_consequences
@@ -3679,6 +3708,23 @@ def exact_native_yaw_trajectory(
         duration_microseconds,
     )
     return int(successor), tuple(int(step) for step in steps)
+
+
+def exact_native_root_yaw_proprioceptive_source(
+    *,
+    source_tick: int,
+    signed_displacement_millidegrees: int,
+) -> NativeJointSourceView:
+    """Build the two fixed directional endings for one settled root turn."""
+
+    builder = getattr(
+        _native_core(), "exact_root_yaw_proprioceptive_source", None
+    )
+    if not callable(builder):
+        raise RuntimeError(
+            "guala_core does not expose exact root-yaw proprioception"
+        )
+    return builder(source_tick, signed_displacement_millidegrees)
 
 
 def exact_articulatory_interval_trajectory(

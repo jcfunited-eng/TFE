@@ -239,6 +239,7 @@ mod tests {
             sense: PhysicalSourceSense::Body.declared_layer(),
             topology_index: 4,
             body_proprioceptor_terminal: None,
+            root_yaw_proprioceptor_terminal: None,
             sensor_id: "articulatory-mechanoreceptors".into(),
             substream_id: "perioral-skin".into(),
             coordinates: vec![JointSourceCoordinate {

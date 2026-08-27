@@ -214,6 +214,7 @@ mod tests {
             sense: PhysicalSourceSense::Body.declared_layer(),
             topology_index: 0,
             body_proprioceptor_terminal: None,
+            root_yaw_proprioceptor_terminal: None,
             sensor_id: "body-thermoreceptors".into(),
             substream_id: "cutaneous-temperature".into(),
             coordinates: vec![JointSourceCoordinate {

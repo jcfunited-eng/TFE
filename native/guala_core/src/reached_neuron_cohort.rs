@@ -54,6 +54,7 @@ use crate::sparse_electrical_contact::{
     SparseElectricalTransferSettlement,
 };
 use crate::virtual_articulated_body::BodyEffectorTerminal;
+use crate::virtual_body_yaw_motion::RootYawEffectorTerminal;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
@@ -138,6 +139,7 @@ pub(crate) enum ReachedNeuronMount {
     Intrinsic {
         place: DeclaredNeuronPlace,
         body_effector_terminal: Option<BodyEffectorTerminal>,
+        root_yaw_effector_terminal: Option<RootYawEffectorTerminal>,
     },
 }
 
@@ -160,6 +162,7 @@ impl ReachedNeuronMount {
         Self::Intrinsic {
             place,
             body_effector_terminal: None,
+            root_yaw_effector_terminal: None,
         }
     }
 
@@ -169,6 +172,16 @@ impl ReachedNeuronMount {
                 body_effector_terminal,
                 ..
             } => *body_effector_terminal,
+            Self::Receptor(_) => None,
+        }
+    }
+
+    pub(crate) fn root_yaw_effector_terminal(&self) -> Option<RootYawEffectorTerminal> {
+        match self {
+            Self::Intrinsic {
+                root_yaw_effector_terminal,
+                ..
+            } => *root_yaw_effector_terminal,
             Self::Receptor(_) => None,
         }
     }
@@ -282,14 +295,50 @@ impl ReachedCohortAnatomy {
             Some(ReachedNeuronMount::Intrinsic {
                 place,
                 body_effector_terminal,
+                root_yaw_effector_terminal,
             }) if place.layer() == 12 => match *body_effector_terminal {
                 None => {
+                    if root_yaw_effector_terminal.is_some() {
+                        return Err(ReachedCohortError::SourceAnatomyMismatch);
+                    }
                     *body_effector_terminal = Some(terminal);
                     Ok(())
                 }
                 Some(existing) if existing == terminal => Ok(()),
                 Some(_) => Err(ReachedCohortError::SourceAnatomyMismatch),
             },
+            _ => Err(ReachedCohortError::SourceAnatomyMismatch),
+        }
+    }
+
+    pub(crate) fn specialize_root_yaw_effector(
+        &mut self,
+        neuron_lineage: [u8; 16],
+        terminal: RootYawEffectorTerminal,
+    ) -> Result<(), ReachedCohortError> {
+        let index = self
+            .neuron_lineages
+            .iter()
+            .position(|lineage| *lineage == neuron_lineage)
+            .ok_or(ReachedCohortError::InvalidNeuronLineage)?;
+        match self.mounts.get_mut(index) {
+            Some(ReachedNeuronMount::Intrinsic {
+                place,
+                body_effector_terminal,
+                root_yaw_effector_terminal,
+            }) if place.layer() == 12 => {
+                if body_effector_terminal.is_some() {
+                    return Err(ReachedCohortError::SourceAnatomyMismatch);
+                }
+                match *root_yaw_effector_terminal {
+                    None => {
+                        *root_yaw_effector_terminal = Some(terminal);
+                        Ok(())
+                    }
+                    Some(existing) if existing == terminal => Ok(()),
+                    Some(_) => Err(ReachedCohortError::SourceAnatomyMismatch),
+                }
+            }
             _ => Err(ReachedCohortError::SourceAnatomyMismatch),
         }
     }
@@ -922,6 +971,7 @@ const REACHED_COHORT_CELL_CODEC_V6_MAGIC: &[u8; 8] = b"GLRCC06\0";
 const REACHED_COHORT_CELL_CODEC_V7_MAGIC: &[u8; 8] = b"GLRCC07\0";
 const REACHED_COHORT_CELL_CODEC_V8_MAGIC: &[u8; 8] = b"GLRCC08\0";
 const REACHED_COHORT_CELL_CODEC_V9_MAGIC: &[u8; 8] = b"GLRCC09\0";
+const REACHED_COHORT_CELL_CODEC_V10_MAGIC: &[u8; 8] = b"GLRCC10\0";
 const REACHED_COHORT_STATE_DELTA_MAGIC: &[u8; 8] = b"GLRSD01\0";
 const REACHED_COHORT_STATE_DELTA_V2_MAGIC: &[u8; 8] = b"GLRSD02\0";
 const REACHED_COHORT_STATE_DELTA_V3_MAGIC: &[u8; 8] = b"GLRSD03\0";
@@ -1524,6 +1574,7 @@ fn encode_reached_cohort_cell_content_addressed(
                 ReachedNeuronMount::Intrinsic {
                     place,
                     body_effector_terminal,
+                    root_yaw_effector_terminal: _,
                 } => {
                     encoded.push(1);
                     encoded.extend_from_slice(&place.layer().to_le_bytes());
@@ -1624,8 +1675,16 @@ pub(crate) fn encode_reached_cohort_cell_v9_global_with_energy(
             .saturating_add(neuron_energy.separated_elementary_charges);
     }
 
+    let carries_root_yaw_effectors = anatomy
+        .mounts
+        .iter()
+        .any(|mount| mount.root_yaw_effector_terminal().is_some());
     let mut encoded = Vec::new();
-    encoded.extend_from_slice(REACHED_COHORT_CELL_CODEC_V9_MAGIC);
+    encoded.extend_from_slice(if carries_root_yaw_effectors {
+        REACHED_COHORT_CELL_CODEC_V10_MAGIC
+    } else {
+        REACHED_COHORT_CELL_CODEC_V9_MAGIC
+    });
     push_cohort_usize(&mut encoded, anatomy.neurons.len())?;
     state_table.encode_into(&mut encoded)?;
     for (((lineage, mount), neuron_anatomy), state_reference) in anatomy
@@ -1646,6 +1705,7 @@ pub(crate) fn encode_reached_cohort_cell_v9_global_with_energy(
             ReachedNeuronMount::Intrinsic {
                 place,
                 body_effector_terminal,
+                root_yaw_effector_terminal,
             } => {
                 encoded.push(1);
                 encoded.extend_from_slice(&place.layer().to_le_bytes());
@@ -1660,6 +1720,15 @@ pub(crate) fn encode_reached_cohort_cell_v9_global_with_energy(
                         encoded.push(terminal.direction() as u8);
                     }
                     None => encoded.push(0),
+                }
+                if carries_root_yaw_effectors {
+                    match root_yaw_effector_terminal {
+                        Some(terminal) => {
+                            encoded.push(1);
+                            encoded.push(terminal.direction() as u8);
+                        }
+                        None => encoded.push(0),
+                    }
                 }
             }
         }
@@ -1696,11 +1765,14 @@ pub(crate) fn decode_reached_cohort_cell_v9_global(
     global_anatomies: &mut DecodedGlobalNeuronAnatomyTable,
 ) -> Result<(ReachedCohortAnatomy, ReachedCohortState), ReachedCohortError> {
     let mut reader = CohortStateReader::new(encoded);
-    if reader.take(REACHED_COHORT_CELL_CODEC_V9_MAGIC.len())?
-        != REACHED_COHORT_CELL_CODEC_V9_MAGIC
-    {
+    let magic = reader.take(REACHED_COHORT_CELL_CODEC_V9_MAGIC.len())?;
+    let carries_root_yaw_effectors = if magic == REACHED_COHORT_CELL_CODEC_V10_MAGIC {
+        true
+    } else if magic == REACHED_COHORT_CELL_CODEC_V9_MAGIC {
+        false
+    } else {
         return Err(ReachedCohortError::InvalidStateEncoding);
-    }
+    };
     let neuron_count = reader.usize()?;
     if neuron_count == 0 {
         return Err(ReachedCohortError::AnatomyStateWidth);
@@ -1748,12 +1820,30 @@ pub(crate) fn decode_reached_cohort_cell_v9_global(
                     ),
                     _ => return Err(ReachedCohortError::InvalidStateEncoding),
                 };
-                if body_effector_terminal.is_some() && place.layer() != 12 {
+                let root_yaw_effector_terminal = if carries_root_yaw_effectors {
+                    match reader.u8()? {
+                        0 => None,
+                        1 => Some(
+                            RootYawEffectorTerminal::from_ordinal(reader.u8()?)
+                                .ok_or(ReachedCohortError::InvalidStateEncoding)?,
+                        ),
+                        _ => return Err(ReachedCohortError::InvalidStateEncoding),
+                    }
+                } else {
+                    None
+                };
+                if (body_effector_terminal.is_some() || root_yaw_effector_terminal.is_some())
+                    && place.layer() != 12
+                {
+                    return Err(ReachedCohortError::InvalidStateEncoding);
+                }
+                if body_effector_terminal.is_some() && root_yaw_effector_terminal.is_some() {
                     return Err(ReachedCohortError::InvalidStateEncoding);
                 }
                 ReachedNeuronMount::Intrinsic {
                     place,
                     body_effector_terminal,
+                    root_yaw_effector_terminal,
                 }
             }
             _ => return Err(ReachedCohortError::InvalidStateEncoding),
@@ -1908,6 +1998,7 @@ fn decode_reached_cohort_cell_content_addressed(
                     ReachedNeuronMount::Intrinsic {
                         place,
                         body_effector_terminal,
+                        root_yaw_effector_terminal: None,
                     }
                 }
                 _ => return Err(ReachedCohortError::InvalidStateEncoding),
