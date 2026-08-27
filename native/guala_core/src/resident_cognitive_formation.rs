@@ -3131,6 +3131,31 @@ fn external_reassembly_reaches_recurrent_frontier(
     })
 }
 
+/// Whether an externally observed recurrence from the immediately preceding
+/// physical interval has now arrived at its retained layer-9 endpoint.
+///
+/// Receptor settlement and contact arrival occupy consecutive organism
+/// intervals. Requiring both in one interval loses the lawful recurrence even
+/// though the retained mosaic already records the external cue. The retained
+/// origin supplies the first boundary; the predecessor cue frontier and the
+/// current cue-to-recurrent transfer supply the exact causal join. Nothing is
+/// inferred from a label, receipt, or observer state.
+fn preceding_external_reassembly_reaches_recurrent_frontier(
+    cue: &[[u8; 16]],
+    recurrent_lineage: [u8; 16],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+) -> bool {
+    predecessor_frontier
+        .iter()
+        .any(|entry| cue.contains(&entry.frontier_lineage()))
+        && external_reassembly_reaches_recurrent_frontier(
+            cue,
+            recurrent_lineage,
+            current_frontier,
+        )
+}
+
 fn canonicalize_formation_cue(cue: &mut Vec<[u8; 16]>) {
     cue.sort_unstable();
     cue.dedup();
@@ -3596,6 +3621,51 @@ fn settle_organism_mosaic_boundary(
                     .member_lineages()
                     .iter()
                     .any(|lineage| component_by_lineage.contains_key(lineage));
+            // A physical source perturbs the retained cue in interval n; the
+            // exact contact arrival at its recurrent layer-9 cell occurs in
+            // interval n+1. Preserve that consecutive causal boundary rather
+            // than demanding the biologically impossible same-interval join.
+            // This emits observation only: it does not settle, select, or
+            // alter cognition, and it does not count the prior recurrence a
+            // second time.
+            if retained.mosaic.recurrence_origin()
+                == Some(PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
+            {
+                if let Some(recurrent_lineage) = retained.recurrent_lineage {
+                    let cue = retained.mosaic.partial_cue_lineages();
+                    if !cue.is_empty()
+                        && preceding_external_reassembly_reaches_recurrent_frontier(
+                            cue,
+                            recurrent_lineage,
+                            predecessor_frontier,
+                            current_frontier,
+                        )
+                    {
+                        let encoded = encode_resident_admitted_physical_mosaic(
+                            &retained.mosaic,
+                            max_encoded_bytes,
+                        )
+                        .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
+                        return Ok((
+                            *retained_index,
+                            PreparedRetainedMosaicBoundary {
+                                current_frontier: current_frontier_member,
+                                reassembled: false,
+                                replacement: None,
+                                replacement_receipt: None,
+                                internal_observation: None,
+                                external_observation: Some(
+                                    ExternallyReassembledFormationFrontierObservation {
+                                        formation_receipt: sha256(&encoded),
+                                        cue_lineages: cue.to_vec(),
+                                        recurrent_lineage,
+                                    },
+                                ),
+                            },
+                        ));
+                    }
+                }
+            }
             let mut external_cue = externally_reached_lineages
                 .iter()
                 .copied()
@@ -3749,6 +3819,9 @@ fn settle_organism_mosaic_boundary(
         if prepared.current_frontier || prepared.reassembled {
             current_frontier_indices.push(retained_index);
         }
+        if let Some(observation) = prepared.external_observation {
+            externally_reassembled_formation_frontiers.push(observation);
+        }
         if !prepared.reassembled {
             continue;
         }
@@ -3778,9 +3851,6 @@ fn settle_organism_mosaic_boundary(
         }
         if let Some(observation) = prepared.internal_observation {
             internally_reassembled_formation_cues.push(observation);
-        }
-        if let Some(observation) = prepared.external_observation {
-            externally_reassembled_formation_frontiers.push(observation);
         }
     }
     let apply_wall = boundary_stopwatch.elapsed();
@@ -20891,6 +20961,51 @@ mod tests {
             &[cue],
             recurrent,
             &[unrelated_reached],
+        ));
+    }
+
+    #[test]
+    fn external_reassembly_may_arrive_at_its_recurrent_cell_one_interval_later() {
+        let cue = [1_u8; 16];
+        let recurrent = [9_u8; 16];
+        let unrelated = [7_u8; 16];
+        let predecessor_bond =
+            StablePhysicalBondReference::new(unrelated, cue, 0).unwrap();
+        let predecessor = ActiveElectricalFrontierEntry::caused_with_frontier(
+            unrelated,
+            cue,
+            cue,
+            predecessor_bond,
+            3,
+        )
+        .unwrap();
+        let arrival_bond = StablePhysicalBondReference::new(cue, recurrent, 0).unwrap();
+        let arrival = ActiveElectricalFrontierEntry::caused_with_frontier(
+            cue,
+            recurrent,
+            recurrent,
+            arrival_bond,
+            5,
+        )
+        .unwrap();
+
+        assert!(preceding_external_reassembly_reaches_recurrent_frontier(
+            &[cue],
+            recurrent,
+            &[predecessor],
+            &[arrival],
+        ));
+        assert!(!preceding_external_reassembly_reaches_recurrent_frontier(
+            &[cue],
+            recurrent,
+            &[],
+            &[arrival],
+        ));
+        assert!(!preceding_external_reassembly_reaches_recurrent_frontier(
+            &[cue],
+            recurrent,
+            &[predecessor],
+            &[],
         ));
     }
 
