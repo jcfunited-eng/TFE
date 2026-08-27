@@ -361,6 +361,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
     motor = "03" * 16
     articulation = "04" * 16
     receipt = "11" * 32
+    cue_to_recurrent = (cue, recurrent, 0, 9)
     recurrent_to_motor = (recurrent, motor, 0, 7)
     motor_to_articulation = (motor, articulation, 0, 5)
     observer = _FrontierObserver()
@@ -377,12 +378,22 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
     assert completed == {}
     active = production._retain_cross_intake_causal_motor_traces(active)
 
-    observer.transfers = ((*recurrent_to_motor, motor),)
+    observer.transfers = ((*cue_to_recurrent, recurrent),)
     active, completed = production._advance_causal_motor_traces(
         observer,
         active,
         completed,
         _hop(61),
+    )
+    assert completed == {}
+    active = production._retain_cross_intake_causal_motor_traces(active)
+
+    observer.transfers = ((*recurrent_to_motor, motor),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(62),
     )
     assert completed == {}
     active = production._retain_cross_intake_causal_motor_traces(active)
@@ -393,7 +404,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         active,
         completed,
         _hop(
-            62,
+            63,
             articulations=(
                 (
                     articulation,
@@ -412,8 +423,9 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
     assert proof["external_cue_lineages"] == (cue,)
     assert proof["recurrent_lineage"] == recurrent
     assert proof["reassembly_organism_tick"] == 61
-    assert proof["articulation_organism_tick"] == 63
+    assert proof["articulation_organism_tick"] == 64
     assert proof["directed_physical_transfers"] == (
+        cue_to_recurrent,
         recurrent_to_motor,
         motor_to_articulation,
     )
@@ -434,6 +446,8 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
     receipt_b = "22" * 32
     receipt_b_alternate = "33" * 32
     observer = _FrontierObserver()
+    cue_to_recurrent_a = (cue_a, recurrent_a, 0, 5)
+    cue_to_recurrent_b = (cue_b, recurrent_b, 0, 6)
 
     active, completed = production._advance_causal_motor_traces(
         observer,
@@ -449,6 +463,17 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         ),
     )
     observer.transfers = (
+        (*cue_to_recurrent_a, recurrent_a),
+        (*cue_to_recurrent_b, recurrent_b),
+    )
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(81),
+    )
+
+    observer.transfers = (
         (recurrent_a, association_a, 0, 7, association_a),
         (recurrent_b, association_b, 0, 9, association_b),
     )
@@ -456,7 +481,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         observer,
         active,
         completed,
-        _hop(81),
+        _hop(82),
     )
 
     observer.transfers = (
@@ -467,7 +492,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         active,
         completed,
         _hop(
-            82,
+            83,
             motors=(
                 (
                     motor_a,
@@ -490,7 +515,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         active,
         completed,
         _hop(
-            83,
+            84,
             motors=(
                 (
                     motor_b,
@@ -510,7 +535,7 @@ def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> No
         recurrent_a,
         recurrent_b,
     )
-    assert tuple(path["motor_organism_tick"] for path in all_paths) == (83, 84)
+    assert tuple(path["motor_organism_tick"] for path in all_paths) == (84, 85)
     assert active == {}
 
 

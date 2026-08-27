@@ -8981,6 +8981,7 @@ def _advance_causal_motor_traces(
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ] = {}
     for key, paths_by_lineage in next_active.items():
+        origin_kind, _origin_receipt, origin_lineages, _origin_tick = key
         next_paths: dict[str, tuple[tuple[str, str, int, int], ...]] = {}
         for observed in transfers:
             sender, receiver, ordinal, carriers, frontier = observed
@@ -8996,6 +8997,20 @@ def _advance_causal_motor_traces(
                 existing,
             ):
                 next_paths[frontier] = candidate
+        # External recognition begins at the exact externally perturbed cue,
+        # not at a recurrent cell the cue has not yet reached. Once one path
+        # physically arrives at that formation's retained recurrent endpoint,
+        # collapse to that exact path; all later motor or articulation proof
+        # must carry the recurrence crossing in its transfer chain.
+        if (
+            origin_kind == "externally_reassembled_retained_formation"
+            and origin_lineages
+        ):
+            recurrent_lineage = origin_lineages[0]
+            if recurrent_lineage in next_paths:
+                next_paths = {
+                    recurrent_lineage: next_paths[recurrent_lineage]
+                }
         if next_paths:
             advanced[key] = next_paths
     if "retained_formation" not in completed:
@@ -9099,6 +9114,15 @@ def _advance_causal_motor_traces(
                     continue
                 prior_path = paths_by_lineage.get(predecessor)
                 if prior_path is None:
+                    continue
+                if (
+                    origin_kind
+                    == "externally_reassembled_retained_formation"
+                    and not any(
+                        origin_lineages[0] in transfer[:2]
+                        for transfer in prior_path
+                    )
+                ):
                     continue
                 motor_transfer = (sender, receiver, ordinal, carriers)
                 if motor_transfer in prior_path:
@@ -9248,6 +9272,15 @@ def _advance_causal_motor_traces(
                     prior_path = paths_by_lineage.get(predecessor)
                     if prior_path is None:
                         continue
+                    if (
+                        origin_kind
+                        == "externally_reassembled_retained_formation"
+                        and not any(
+                            origin_lineages[0] in transfer[:2]
+                            for transfer in prior_path
+                        )
+                    ):
+                        continue
                     articulatory_transfer = (
                         sender,
                         receiver,
@@ -9371,7 +9404,7 @@ def _advance_causal_motor_traces(
             (recurrent_lineage, *cues),
             organism_tick,
         )
-        advanced.setdefault(key, {recurrent_lineage: ()})
+        advanced.setdefault(key, {cue: () for cue in cues})
     if "new_neuronal_fractal" not in next_completed:
         emitted = tuple(
             sorted(
