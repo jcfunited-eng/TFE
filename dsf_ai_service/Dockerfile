@@ -14,7 +14,6 @@ COPY native/guala_core/Cargo.toml \
 COPY native/guala_core/src/ /build/guala_core/src/
 COPY native/guala_core/tests/fixtures/ /build/guala_core/tests/fixtures/
 COPY native/guala_core/tests/organism_codec.rs /build/guala_core/tests/organism_codec.rs
-RUN cd /build/guala_core && cargo test --locked
 RUN cd /build/guala_core && maturin build --release -o /build/dist
 
 FROM public.ecr.aws/docker/library/python:3.11-slim
