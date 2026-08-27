@@ -7825,8 +7825,6 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
-            &predecessor_older_active_electrical_frontier,
-            &predecessor_preceding_active_electrical_frontier,
             &predecessor_active_electrical_frontier,
             &moved_axes,
             &moved_root_yaw_terminals,
@@ -13778,8 +13776,6 @@ fn mount_reached_motor_effector(
         electrical_fabric,
         physically_transitioned_lineages,
         settled_directed_transfers,
-        &[],
-        &[],
         predecessor_frontier,
         moved_axes,
         &[],
@@ -13793,8 +13789,6 @@ fn mount_reached_motor_effector_with_root(
     electrical_fabric: &mut ResidentElectricalFabric,
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
-    older_frontier: &[ActiveElectricalFrontierEntry],
-    preceding_frontier: &[ActiveElectricalFrontierEntry],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     moved_root_yaw_terminals: &[RootYawEffectorTerminal],
@@ -13870,31 +13864,9 @@ fn mount_reached_motor_effector_with_root(
             _ => {}
         }
     }
-    // A root consequence returns after the world boundary, so the ordering
-    // sender that caused it need not transition again in this final feedback
-    // hop.  Admit only layer-11 senders carried by the same bounded retained
-    // causal window used below to prove the directed 11 -> 10 -> 8 chain.
-    // Articulated-body development keeps its original current-transition
-    // requirement.
-    if !moved_root_yaw_terminals.is_empty() {
-        for frontier in [
-            older_frontier,
-            preceding_frontier,
-            predecessor_frontier,
-        ] {
-            for entry in frontier {
-                let Some(sender) = entry.sender() else {
-                    continue;
-                };
-                if layer_by_lineage.get(&sender).copied() == Some(11)
-                    && !ordering.contains(&sender)
-                {
-                    ordering.push(sender);
-                }
-            }
-        }
-    }
-    if body_regulation.is_empty() || ordering.is_empty() {
+    if body_regulation.is_empty()
+        || (ordering.is_empty() && moved_root_yaw_terminals.is_empty())
+    {
         return Ok(());
     }
     body_regulation.sort_unstable();
@@ -13979,68 +13951,32 @@ fn mount_reached_motor_effector_with_root(
         if layer_by_lineage.get(&regulation).copied() != Some(8) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
-        let affective_lineages = regulation_neighbours
+        let proven_affective = regulation_neighbours
             .iter()
             .copied()
-            .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(10))
+            .filter(|lineage| {
+                layer_by_lineage.get(lineage).copied() == Some(10)
+                    && directed_pairs.contains(&(*lineage, regulation))
+            })
             .collect::<BTreeSet<_>>();
-        let retained_window_contains =
-            |frontier: &[ActiveElectricalFrontierEntry],
-             sender: [u8; 16],
-             receivers: &BTreeSet<[u8; 16]>| {
-                frontier.iter().any(|entry| {
-                    entry.sender() == Some(sender) && receivers.contains(&entry.receiver())
-                })
-            };
-        let retained_affective_into_regulation =
-            |frontier: &[ActiveElectricalFrontierEntry]| {
-                frontier.iter().filter_map(|entry| {
-                    (entry.receiver() == regulation)
-                        .then(|| entry.sender())
-                        .flatten()
-                        .filter(|sender| affective_lineages.contains(sender))
-                })
-                .collect::<BTreeSet<_>>()
-            };
-        let current_affective_into_regulation = affective_lineages
-            .iter()
-            .copied()
-            .filter(|lineage| directed_pairs.contains(&(*lineage, regulation)))
-            .collect::<BTreeSet<_>>();
-        // Articulated terminals retain the original consecutive-window law.
-        // A root turn, however, crosses the world boundary before its exact
-        // proprioceptive consequence returns. Its same directed 11 -> 10 -> 8
-        // proof may therefore occupy any adjacent pair in the already-retained
-        // three-frontier window. No coincidence, score, label, or undirected
-        // activity can satisfy this test, and nothing older is considered.
         let proven_ordering = ordering
             .iter()
             .copied()
             .filter(|lineage| {
-                let immediate = retained_window_contains(
-                    predecessor_frontier,
-                    *lineage,
-                    &current_affective_into_regulation,
-                );
-                if immediate || !matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_)) {
-                    return immediate;
-                }
-                let predecessor_affective =
-                    retained_affective_into_regulation(predecessor_frontier);
-                let preceding_affective =
-                    retained_affective_into_regulation(preceding_frontier);
-                retained_window_contains(
-                    preceding_frontier,
-                    *lineage,
-                    &predecessor_affective,
-                ) || retained_window_contains(
-                    older_frontier,
-                    *lineage,
-                    &preceding_affective,
-                )
+                predecessor_frontier.iter().any(|entry| {
+                    entry.sender() == Some(*lineage)
+                        && proven_affective.contains(&entry.receiver())
+                })
             })
             .collect::<Vec<_>>();
-        if proven_ordering.is_empty() {
+        // Root-yaw directional receptors and effectors are a fixed physical
+        // antagonist pair. Exact movement therefore mounts only that paired
+        // regulation-to-motor reflex; higher ordering contacts remain learned
+        // and are never inferred from guided motion. Articulated terminals
+        // retain the stricter learned causal-chain rule above.
+        if proven_ordering.is_empty()
+            && !matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_))
+        {
             continue;
         }
         let mut participants = Vec::with_capacity(proven_ordering.len() + 1);
@@ -23316,6 +23252,69 @@ mod tests {
         .unwrap();
         assert!(!fabric.contains_contact(coincident[0], motor));
         assert_eq!(fabric.contact_count(), contacts_before + 2);
+    }
+
+    #[test]
+    fn moved_root_terminal_mounts_only_its_paired_sensorimotor_reflex() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let source = crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source(
+            0, 1_000,
+        )
+        .unwrap();
+        let moved_port = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.root_yaw_proprioceptor_terminal.is_some()
+                    && port.exact_normalized_sources.windows(2).any(|pair| pair[0] != pair[1])
+            })
+            .unwrap();
+        let terminal = moved_port
+            .root_yaw_proprioceptor_terminal
+            .unwrap()
+            .paired_effector();
+        let receptor_site = NeuronSourceSite::from_source_port(moved_port).unwrap();
+        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site,
+        );
+        let contacts_before = fabric.contact_count();
+
+        mount_reached_motor_effector_with_root(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[regulation],
+            &[],
+            &[],
+            &[],
+            &[terminal],
+        )
+        .unwrap();
+
+        let motors = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.root_yaw_effector_terminal() == Some(terminal)).then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(motors.len(), 1);
+        assert!(fabric.contains_contact(regulation, motors[0]));
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
     }
 
     #[test]
