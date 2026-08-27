@@ -247,3 +247,36 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
 - **Separate later defect:** direct grounded-world audio requests timed out and
   left no new native transition evidence even for a 250 ms sample. It does not
   block the frozen root-yaw correction and is not being folded into this edit.
+
+## First cutover result and causal-arrival correction — 2026-08-27
+
+- Commit `a5a82cb62c196c6ab5a1db67322087f8d2ffe0b6` deployed as the sole
+  live task `dsf-ai-task:1273`; identity and state continuity verified at or
+  beyond tick `200268`. The corrected zero-writer registration removed task
+  `1272` before starting `1273`, so no rejected deployment remained eligible.
+- The first correction was necessary but insufficient. Unattended samples at
+  ticks `200640` and `200702` still reported zero root recruitments and heading
+  `341565`. A read-only cold view of CURRENT at tick `200919` proved exactly
+  74 layer-12 intrinsic motors—the articulated-body terminal count—and no
+  additional retained root motor.
+- One tutor-caused physical turn (`chose_to_go=false`) then settled heading
+  `341565 -> 341566`, world revision `15072`, 13 causal hops and successor tick
+  `201043`. Its sensory delivery was accepted, but CURRENT still contained
+  exactly 74 layer-12 motors. Therefore the earlier guided turn was not merely
+  lost during a prior restart: the mounted root-motor boundary was impossible.
+- **Exact second defect:** directional root evidence and layer-8 arrival were
+  required in the same interval even though the ratified electrical frontier
+  advances one contact per physical interval. The root receptor -> layer-6
+  integration transfer and the later integration -> layer-8 regulation
+  transfer can never occupy the same causal window.
+- **Exact correction:** terminal identity now comes from the mounted root
+  receptor on an exact two-interval directed path: predecessor frontier
+  receptor -> integration, then current whole-carrier integration ->
+  physically transitioned regulation. Same-interval coincidence is refused;
+  no current-source label, timer, score, command or widened motor authority is
+  admitted. The existing paired regulation -> motor reflex remains the only
+  developed contact.
+- Release-mode focused proof passed `1/1`, including explicit refusal without
+  the predecessor hop and exact acceptance with the consecutive physical path.
+  Live acceptance remains open until CURRENT retains the new motor and an
+  unattended discharge changes heading with returned sensory consequences.

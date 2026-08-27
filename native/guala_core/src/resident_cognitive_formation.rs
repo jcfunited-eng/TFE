@@ -7807,17 +7807,13 @@ impl ResidentCognitiveFormationState {
             }
             moved
         };
-        let moved_root_yaw_terminals = source
-            .joint_source_ports()
-            .iter()
-            .filter_map(|port| {
-                let terminal = port.root_yaw_proprioceptor_terminal?;
-                port.exact_normalized_sources
-                    .windows(2)
-                    .any(|pair| pair[0] != pair[1])
-                    .then_some(terminal.paired_effector())
-            })
-            .collect::<Vec<_>>();
+        let root_yaw_continuations = exact_root_yaw_causal_continuations(
+            &cohorts,
+            &topology_index,
+            &internal_contact.causally_transitioned_lineages,
+            &internal_contact.settled_directed_transfers,
+            &predecessor_active_electrical_frontier,
+        )?;
         mount_reached_motor_effector_with_root(
             &mut cohorts,
             &mut resting_population,
@@ -7827,7 +7823,7 @@ impl ResidentCognitiveFormationState {
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
             &moved_axes,
-            &moved_root_yaw_terminals,
+            &root_yaw_continuations,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -13758,6 +13754,64 @@ enum DevelopedMotorTerminal {
     RootYaw(RootYawEffectorTerminal),
 }
 
+/// Preserve the exact two-contact arrival law for root proprioception. A
+/// directional receptor reaches its layer-6 integration cell in one physical
+/// interval; only a later integration -> regulation transfer can reach layer
+/// 8. Requiring the source motion and the regulation arrival in one interval
+/// made root motor development impossible. This joins only those two adjacent,
+/// directed, carrier-moving intervals and derives terminal identity from the
+/// mounted source receptor itself.
+fn exact_root_yaw_causal_continuations(
+    cohorts: &[ResidentReachedCohort],
+    topology_index: &ResidentTopologyIndex,
+    physically_transitioned_lineages: &[[u8; 16]],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+) -> Result<BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>, FormationError> {
+    let mount_for = |lineage: [u8; 16]| {
+        let flat = topology_index.flat_for_lineage(lineage)?;
+        let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
+        cohorts
+            .get(cohort_index)
+            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+    };
+    let mut continuations = BTreeMap::<[u8; 16], Vec<RootYawEffectorTerminal>>::new();
+    for current in settled_directed_transfers {
+        if current.transferred_whole_carriers == 0
+            || topology_index.layer_of(current.sender) != Some(6)
+            || topology_index.layer_of(current.receiver) != Some(8)
+            || !physically_transitioned_lineages.contains(&current.receiver)
+        {
+            continue;
+        }
+        for predecessor in predecessor_frontier {
+            if predecessor.receiver() != current.sender {
+                continue;
+            }
+            let Some(receptor_lineage) = predecessor.sender() else {
+                continue;
+            };
+            let Some(terminal) = mount_for(receptor_lineage)?
+                .source_site()
+                .and_then(NeuronSourceSite::root_yaw_proprioceptor_terminal)
+                .map(RootYawProprioceptorTerminal::paired_effector)
+            else {
+                continue;
+            };
+            continuations
+                .entry(current.receiver)
+                .or_default()
+                .push(terminal);
+        }
+    }
+    for terminals in continuations.values_mut() {
+        terminals.sort_unstable();
+        terminals.dedup();
+    }
+    Ok(continuations)
+}
+
 #[cfg(test)]
 fn mount_reached_motor_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
@@ -13778,7 +13832,7 @@ fn mount_reached_motor_effector(
         settled_directed_transfers,
         predecessor_frontier,
         moved_axes,
-        &[],
+        &BTreeMap::new(),
     )
 }
 
@@ -13791,7 +13845,7 @@ fn mount_reached_motor_effector_with_root(
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     moved_axes: &[crate::virtual_articulated_body::BodyAxis],
-    moved_root_yaw_terminals: &[RootYawEffectorTerminal],
+    root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
 ) -> Result<(), FormationError> {
     // On a saturated fabric, directed transfers exist between almost every
     // adjacent pair every interval, so window evidence alone cannot
@@ -13800,7 +13854,7 @@ fn mount_reached_motor_effector_with_root(
     // only be authored in an interval whose own source evidence shows the
     // terminal's axis physically MOVED (its proprioceptor length samples
     // changed). Stillness and darkness author nothing.
-    if moved_axes.is_empty() && moved_root_yaw_terminals.is_empty() {
+    if moved_axes.is_empty() && root_yaw_continuations.is_empty() {
         return Ok(());
     }
     let mounted = cohorts
@@ -13865,7 +13919,7 @@ fn mount_reached_motor_effector_with_root(
         }
     }
     if body_regulation.is_empty()
-        || (ordering.is_empty() && moved_root_yaw_terminals.is_empty())
+        || (ordering.is_empty() && root_yaw_continuations.is_empty())
     {
         return Ok(());
     }
@@ -13942,7 +13996,9 @@ fn mount_reached_motor_effector_with_root(
                 moved_axes.contains(&terminal.axis())
             }
             DevelopedMotorTerminal::RootYaw(terminal) => {
-                moved_root_yaw_terminals.contains(&terminal)
+                root_yaw_continuations
+                    .get(&regulation)
+                    .is_some_and(|terminals| terminals.contains(&terminal))
             }
         };
         if !consequence_moved {
@@ -23319,7 +23375,7 @@ mod tests {
             .unwrap()
             .paired_effector();
         let receptor_site = NeuronSourceSite::from_source_port(moved_port).unwrap();
-        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+        let (regulation, receptor, _) = mount_body_regulation_from_site_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -23327,6 +23383,48 @@ mod tests {
             receptor_site,
         );
         let contacts_before = fabric.contact_count();
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let receptor_flat = topology.flat_for_lineage(receptor).unwrap();
+        let integrations = topology.neighbours_by_flat[receptor_flat]
+            .iter()
+            .map(|flat| topology.flat_locations[*flat].2)
+            .filter(|lineage| topology.layer_of(*lineage) == Some(6))
+            .collect::<Vec<_>>();
+        let [integration] = integrations.as_slice() else {
+            panic!("root receptor must have one mounted local integration cell")
+        };
+        let integration = *integration;
+        let predecessor = ActiveElectricalFrontierEntry::caused(
+            receptor,
+            integration,
+            StablePhysicalBondReference::new(receptor, integration, 0).unwrap(),
+            1,
+        )
+        .unwrap();
+        let current = DirectedPhysicalTransferObservation {
+            sender: integration,
+            receiver: regulation,
+            bond: StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
+            transferred_whole_carriers: 1,
+        };
+        assert!(exact_root_yaw_causal_continuations(
+            &cohorts,
+            &topology,
+            &[regulation],
+            &[current],
+            &[],
+        )
+        .unwrap()
+        .is_empty());
+        let continuations = exact_root_yaw_causal_continuations(
+            &cohorts,
+            &topology,
+            &[regulation],
+            &[current],
+            &[predecessor],
+        )
+        .unwrap();
+        assert_eq!(continuations.get(&regulation), Some(&vec![terminal]));
 
         mount_reached_motor_effector_with_root(
             &mut cohorts,
@@ -23334,10 +23432,10 @@ mod tests {
             &mut next_lineage,
             &mut fabric,
             &[regulation],
+            &[current],
+            &[predecessor],
             &[],
-            &[],
-            &[],
-            &[terminal],
+            &continuations,
         )
         .unwrap();
 
