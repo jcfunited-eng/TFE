@@ -126,3 +126,33 @@ No deployment or completion claim exists yet.
 These are candidate proofs only. A-013 remains open until the deployed resident
 organism develops the route from one tutor-authored physical turn and later
 produces a distinct unattended root action with returned consequences.
+
+## Deployment recurrence table
+
+Only checks that can affect this root-action release are carried here. A pass
+means the named boundary was directly observed; `pending` forbids packaging or
+cutover until it becomes an exact result.
+
+| ID | Applicability and earliest check | Observed evidence |
+|---|---|---|
+| RF-001/002 | Exact worktree and live task environment precede every Python import. | Production task/environment census passed; candidate-native provenance remains pending. |
+| RF-003/036 | Build and force-install one fresh candidate wheel, then print its path and root-yaw symbol. | Pending before end-to-end replay. |
+| RF-004 | Run the root source-to-consequence path on pristine state and the authenticated production predecessor. | Pristine focused proof passed; production-predecessor replay pending. |
+| RF-005/018/028/038/046/050 | Trace root evidence through every ordinary and specialized-hop aggregation boundary. | Focused Python aggregate proof passed; immutable mixed-hop replay pending. |
+| RF-006 | Reuse the exact 4-vCPU/16-GiB task envelope and validate all strict resource relations before restore. | Live task definition `1266` re-read as 4096 CPU/16384 MiB; restored probe pending. |
+| RF-007/023/033 | Resolve controller, interpreter, account, region, cluster, service, task, and image from observed inventory. | Preflight passed for account `418384447921`, `us-east-1`, `tfe-web-cluster`, `dsf-ai-service-lb`, task `1266`. |
+| RF-010/022/056 | Cold-restore old bytes, persist the root-capable successor, re-read `CURRENT`, then start one further interval under the same identity/tick lineage. | Pending. |
+| RF-012/020/021 | Require the real resident source to create root discharge and observe the exact resulting world/body successor; counters or injection do not pass. | Backend conversion proved only; live source-to-consequence remains the A-013 acceptance gate. |
+| RF-016 | Bind the release to A-013 and retain A-009 as its live-closed predecessor. | Reconciled in this ledger; candidate diff contains only root source/mount/handoff plus release evidence. |
+| RF-017/030/037 | Census constructors, wrappers, aggregators, equality projections, and boundary-handle methods for each changed native type. | Rust crate and focused Python consumers compile/pass; exact candidate boundary replay pending. |
+| RF-024/031/032 | Resolve test paths/names and working directories; require nonzero executed tests. | Root Rust proof executed 2 tests; Python proof executed 26 tests. |
+| RF-025/029 | Derive the live tutor action from the current predecessor in one operator session; inspect successor before any retry. | Pending live cutover action. |
+| RF-035/042/054 | Use a production-sized signed yaw, prove positive/negative/zero semantics, and tolerate consistent stalled rows while retaining actual displacement. | Signed native source proves positive and negative direction plus tamper refusal; production-sized replay pending. |
+| RF-048 | Cold-restore the exact production world under candidate limits and exercise the live read-only world path. | Pending before immutable build. |
+| RF-056 | Authenticate identity/tick before draining and require the candidate to restore the same identity at or beyond that tick. | Baseline identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; cutover proof pending. |
+
+The production preflight at candidate commit `4e3b1bdb` observed one healthy
+owner on task definition `1266`, image digest
+`sha256:c68fa7b99dc61b027b29539baf95316164c3bf05a1346b023c22c53e6aa0b3a4`,
+and HTTP 200 from both public pages. Those facts establish the target only;
+they are not A-013 behavior evidence.
