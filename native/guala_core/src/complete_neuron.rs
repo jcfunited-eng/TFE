@@ -4783,6 +4783,12 @@ pub(crate) struct PostExperienceSettlement {
 pub(crate) struct ExtendedIntervalSettlement {
     pub(crate) successor: NeuronPhysicalState,
     pub(crate) exported_heat_zeptojoules: Exact,
+    /// Exact transient whole-carrier transport through this neuron's own
+    /// membrane conductance path.  This is distinct from inter-neuron contact
+    /// transport: the latter can prepare an effector, but only this local
+    /// membrane discharge can be the efferent event.  It is never persisted
+    /// and is never a neuronal fractal.
+    pub(crate) local_outward_elementary_charges: i128,
     /// Exact transient electrical emission from this interval: the number of
     /// physical gate channels that changed from closed to open. The gate
     /// population remains the sole authority; this value is never persisted
@@ -4833,6 +4839,10 @@ pub(crate) fn settle_extended_interval_with_contact(
         .any(|current| current.parts().0 != 0)
         || physical.successor.membrane != predecessor.membrane;
     let exported_heat_zeptojoules = physical.gate_membrane.exported_heat_zeptojoules.clone();
+    let local_outward_elementary_charges = physical
+        .gate_membrane
+        .membrane
+        .outward_elementary_charges_by_path[0];
     let mut successor = physical.successor;
     // The retained sub-quantum residue is a receptor accumulator, not a
     // settled physical coordinate: it does not enter the quiescence
@@ -4856,6 +4866,7 @@ pub(crate) fn settle_extended_interval_with_contact(
     Ok(ExtendedIntervalSettlement {
         successor,
         exported_heat_zeptojoules,
+        local_outward_elementary_charges,
         newly_opened_gate_channels,
         quiescent: !psi_changed
             && !gate_changed

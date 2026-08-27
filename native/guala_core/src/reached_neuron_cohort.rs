@@ -3023,6 +3023,10 @@ pub(crate) struct ReachedCohortIntervalSettlement {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct SparseReachedCohortIntervalSettlement {
     pub(crate) contact_transitions: Box<[ElectricalContactTransition]>,
+    /// Sparse reached `(resident neuron index, local membrane discharge)`.
+    /// Contact transport is intentionally excluded: it may prepare a motor,
+    /// but it is not that neuron's efferent membrane event.
+    pub(crate) local_outward_elementary_charges: Box<[(usize, i128)]>,
     pub(crate) newly_opened_gate_channels: Box<[(usize, u128)]>,
     pub(crate) locally_quiescent: Box<[(usize, bool)]>,
     pub(crate) electrically_active: bool,
@@ -3978,6 +3982,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
             "reached interval successor allocation failed",
         ))?;
     let mut newly_opened_gate_channels = Vec::new();
+    let mut local_outward_elementary_charges = Vec::new();
     let mut locally_quiescent = Vec::new();
     for (input_index, mut neuron_input) in input.neurons.into_vec().into_iter().enumerate() {
         let resident_index = resident_indices[input_index];
@@ -4017,6 +4022,10 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         if settled.newly_opened_gate_channels != 0 {
             newly_opened_gate_channels
                 .push((resident_index, settled.newly_opened_gate_channels));
+        }
+        if settled.local_outward_elementary_charges != 0 {
+            local_outward_elementary_charges
+                .push((resident_index, settled.local_outward_elementary_charges));
         }
         locally_quiescent.push((resident_index, settled.quiescent));
         successors.push((resident_index, settled.successor));
@@ -4069,6 +4078,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     state.recovery_fluid = reservoir;
     Ok(SparseReachedCohortIntervalSettlement {
         contact_transitions,
+        local_outward_elementary_charges: local_outward_elementary_charges.into_boxed_slice(),
         newly_opened_gate_channels: newly_opened_gate_channels.into_boxed_slice(),
         locally_quiescent: locally_quiescent.into_boxed_slice(),
         electrically_active,

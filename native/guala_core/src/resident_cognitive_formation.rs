@@ -15294,6 +15294,17 @@ fn exact_motor_preparation_transfers(
     preparation_transfers
 }
 
+/// A prepared effector emits only through the neuron's own positive local
+/// membrane discharge.  Inter-neuron contact transport remains causal
+/// preparation evidence and is never relabelled as actuator output.
+fn exact_prepared_efferent_carriers(
+    local_outward_elementary_charges: i128,
+    preparation_count: usize,
+) -> Option<u128> {
+    (local_outward_elementary_charges > 0 && preparation_count != 0)
+        .then_some(local_outward_elementary_charges.unsigned_abs())
+}
+
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -16693,102 +16704,6 @@ fn settle_internal_contact_interval(
                 prepared_psi: Some(prepared_psi),
             });
         }
-        // A layer-12 motor cell emits through its exact outward membrane
-        // carrier discharge. Gate conformation is upstream channel anatomy;
-        // requiring a newly opened local gate made an already-conducting
-        // motor cell physically move charge while emitting no efferent event.
-        // Only positive whole-carrier discharge reaches the actuator. Reverse
-        // flow is membrane recovery, and sub-carrier phase remains retained in
-        // the contact rather than being promoted into a body command.
-        let motor_unit_recruitments = selected_members
-            .iter()
-            .zip(combined_outward.iter().copied())
-            .filter_map(|((_, neuron_index), outward)| {
-                let mount = &cohort.anatomy.mounts()[*neuron_index];
-                let body_effector_terminal = mount.body_effector_terminal()?;
-                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let preparation_transfers = exact_motor_preparation_transfers(
-                    motor_lineage,
-                    &settled_directed_transfers,
-                    reacted_load_regulations_by_motor
-                        .get(&motor_lineage)
-                        .map(Vec::as_slice)
-                        .unwrap_or(&[]),
-                    &layer_of,
-                );
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 12
-                    && outward > 0
-                    && !preparation_transfers.is_empty())
-                    .then_some(MotorUnitRecruitment {
-                        neuron_lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
-                        topology_index: mount.place().topology_index(),
-                        outward_elementary_carriers: outward.unsigned_abs(),
-                        body_effector_terminal,
-                        body_afferent_paths: Vec::new(),
-                        preparation_transfers,
-                    })
-            })
-            .collect::<Vec<_>>();
-        let root_yaw_unit_recruitments = selected_members
-            .iter()
-            .zip(combined_outward.iter().copied())
-            .filter_map(|((_, neuron_index), outward)| {
-                let mount = &cohort.anatomy.mounts()[*neuron_index];
-                let terminal = mount.root_yaw_effector_terminal()?;
-                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let preparation_transfers = exact_motor_preparation_transfers(
-                    motor_lineage,
-                    &settled_directed_transfers,
-                    root_yaw_regulations_by_motor
-                        .get(&motor_lineage)
-                        .map(Vec::as_slice)
-                        .unwrap_or(&[]),
-                    &layer_of,
-                );
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 12
-                    && outward > 0
-                    && !preparation_transfers.is_empty())
-                    .then_some(RootYawUnitRecruitment {
-                        neuron_lineage: motor_lineage,
-                        topology_index: mount.place().topology_index(),
-                        outward_elementary_carriers: outward.unsigned_abs(),
-                        terminal,
-                        preparation_transfers,
-                    })
-            })
-            .collect::<Vec<_>>();
-        let articulatory_unit_recruitments = selected_members
-            .iter()
-            .zip(combined_outward.iter().copied())
-            .filter_map(|((_, neuron_index), outward)| {
-                let mount = &cohort.anatomy.mounts()[*neuron_index];
-                let articulatory_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let mut motor_transfers = settled_directed_transfers
-                    .iter()
-                    .copied()
-                    .filter(|transfer| {
-                        (transfer.receiver == articulatory_lineage
-                            && layer_of(transfer.sender) == Some(12))
-                            || (transfer.sender == articulatory_lineage
-                                && layer_of(transfer.receiver) == Some(12))
-                    })
-                    .collect::<Vec<_>>();
-                motor_transfers.sort_unstable();
-                motor_transfers.dedup();
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 13
-                    && outward > 0
-                    && !motor_transfers.is_empty())
-                    .then_some(ArticulatoryUnitRecruitment {
-                        neuron_lineage: articulatory_lineage,
-                        topology_index: mount.place().topology_index(),
-                        outward_elementary_carriers: outward.unsigned_abs(),
-                        motor_transfers,
-                    })
-            })
-            .collect::<Vec<_>>();
         let (local_successors, local_transitions) = local_contact_result
             .ok_or(FormationError::NoncanonicalState)?;
         let local_successor = SparseElectricalState::from_contact_states(
@@ -16824,6 +16739,112 @@ fn settle_internal_contact_interval(
                     input,
                 )
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        // Preparation arrived through an inter-neuron contact before this
+        // neuron-local interval.  The efferent event is the exact positive
+        // whole-carrier discharge through the neuron's own membrane path,
+        // which the reached settlement now carries separately.  This avoids
+        // the former contradiction where an incoming preparation had to be
+        // simultaneously counted as outward contact flow from the motor.
+        let local_outward_for = |neuron_index: usize| {
+            settlement
+                .local_outward_elementary_charges
+                .binary_search_by_key(&neuron_index, |(resident_index, _)| *resident_index)
+                .ok()
+                .map(|index| settlement.local_outward_elementary_charges[index].1)
+                .unwrap_or(0)
+        };
+        let motor_unit_recruitments = selected_members
+            .iter()
+            .filter_map(|(_, neuron_index)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let body_effector_terminal = mount.body_effector_terminal()?;
+                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let preparation_transfers = exact_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    reacted_load_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &layer_of,
+                );
+                let outward_elementary_carriers = exact_prepared_efferent_carriers(
+                    local_outward_for(*neuron_index),
+                    preparation_transfers.len(),
+                )?;
+                (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
+                    MotorUnitRecruitment {
+                        neuron_lineage: motor_lineage,
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers,
+                        body_effector_terminal,
+                        body_afferent_paths: Vec::new(),
+                        preparation_transfers,
+                    },
+                )
+            })
+            .collect::<Vec<_>>();
+        let root_yaw_unit_recruitments = selected_members
+            .iter()
+            .filter_map(|(_, neuron_index)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let terminal = mount.root_yaw_effector_terminal()?;
+                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let preparation_transfers = exact_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    root_yaw_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &layer_of,
+                );
+                let outward_elementary_carriers = exact_prepared_efferent_carriers(
+                    local_outward_for(*neuron_index),
+                    preparation_transfers.len(),
+                )?;
+                (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
+                    RootYawUnitRecruitment {
+                        neuron_lineage: motor_lineage,
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers,
+                        terminal,
+                        preparation_transfers,
+                    },
+                )
+            })
+            .collect::<Vec<_>>();
+        let articulatory_unit_recruitments = selected_members
+            .iter()
+            .filter_map(|(_, neuron_index)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let articulatory_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let mut motor_transfers = settled_directed_transfers
+                    .iter()
+                    .copied()
+                    .filter(|transfer| {
+                        (transfer.receiver == articulatory_lineage
+                            && layer_of(transfer.sender) == Some(12))
+                            || (transfer.sender == articulatory_lineage
+                                && layer_of(transfer.receiver) == Some(12))
+                    })
+                    .collect::<Vec<_>>();
+                motor_transfers.sort_unstable();
+                motor_transfers.dedup();
+                let outward_elementary_carriers = exact_prepared_efferent_carriers(
+                    local_outward_for(*neuron_index),
+                    motor_transfers.len(),
+                )?;
+                (mount.source_site().is_none() && mount.place().layer() == 13).then_some(
+                    ArticulatoryUnitRecruitment {
+                        neuron_lineage: articulatory_lineage,
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers,
+                        motor_transfers,
+                    },
+                )
+            })
+            .collect::<Vec<_>>();
         let settlement_successor = cohort.state.clone();
         let mut retained_interval_deltas = Vec::new();
         for (neuron_index, _, predecessor) in &comparison_predecessors {
@@ -23544,12 +23565,22 @@ mod tests {
             })
             .map(|(mount, lineage)| (*lineage, mount.place().layer()))
             .collect::<BTreeMap<_, _>>();
-        assert_eq!(
+        let preparation =
             exact_motor_preparation_transfers(motor, &settled, &permitted, |lineage| {
                 layers.get(&lineage).copied()
-            }),
-            vec![settled[0]],
+            });
+        assert_eq!(preparation, vec![settled[0]]);
+        // The arriving regulation transfer prepares this one-contact root
+        // motor; the distinct positive local membrane discharge emits it.
+        // Reversing or omitting that local discharge, or omitting preparation,
+        // must remain physically silent.
+        assert_eq!(
+            exact_prepared_efferent_carriers(3, preparation.len()),
+            Some(3)
         );
+        assert_eq!(exact_prepared_efferent_carriers(0, preparation.len()), None);
+        assert_eq!(exact_prepared_efferent_carriers(-3, preparation.len()), None);
+        assert_eq!(exact_prepared_efferent_carriers(3, 0), None);
     }
 
     #[test]

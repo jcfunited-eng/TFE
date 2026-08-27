@@ -401,3 +401,34 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   authority. The same exact sequence now seals at 1,374 neurons; focused root
   development proof remains `1/1`. Live task-1278 is not credited with the
   correction; a new cutover and live retained-root witness are still required.
+
+## Retained root motor and membrane-discharge correction — 2026-08-27
+
+- Commit `a2424e23643a8999753cdf50947bd59039c55fd6` is live as sole task
+  `dsf-ai-task:1279`, image
+  `sha256:320f42ac179e736ffd5e60faca4ae9400db975e47922ded5f7a41d4dec92672d`.
+  One tutor-authored one-millidegree turn returned HTTP 200, moved heading
+  `341573 -> 341574`, delivered all six mounted sense families through seven
+  hops, and retained 1,374 neurons. Exact CURRENT cold restore proved 75
+  layer-12 neurons, so the typed root motor now survives seal and restart.
+- A second tutor turn moved heading `341574 -> 341575` and again returned the
+  complete sensory occurrence. Later unattended transitions emitted local
+  articulated actions but no root action; the world heading remained
+  `341575`.
+- **Exact remaining physics defect:** motor preparation requires contact
+  transport arriving at the motor. Recruitment nevertheless reused that same
+  contact's net outward transport as the motor's supposed membrane discharge.
+  A root motor has one regulation contact, so incoming preparation necessarily
+  made its contact-net outward value negative while recruitment required it to
+  be positive. The retained root motor could therefore never emit.
+- **Frozen correction:** `complete_neuron.rs` now carries the already-settled
+  local membrane whole-carrier transport as a transient interval fact;
+  `reached_neuron_cohort.rs` carries it only for reached resident neurons; and
+  `resident_cognitive_formation.rs` uses a positive local membrane discharge
+  plus the independently exact incoming preparation transfer for articulated,
+  root-yaw, and articulatory effectors. Contact transport is no longer
+  relabelled as efferent output. No carrier, energy, state, DSF field, owner,
+  observer, selector, threshold, timer, or persistent byte is added.
+- The exact membrane fact requires adding `native/guala_core/src/complete_neuron.rs`
+  to this sprint's source boundary; it is the existing physical settlement
+  owner and no duplicate membrane calculation is introduced elsewhere.
