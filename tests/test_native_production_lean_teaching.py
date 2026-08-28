@@ -218,8 +218,9 @@ async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
     for episode, intervals in episodes:
         assert episode.port_count == LESSON_PORTS
         assert episode.occurrence_count == production.LESSON_OCCURRENCE_COUNT
-        # One caller-authored maximum causal interval per occurrence.
-        assert intervals == [(production.AMBIENT_INTAKE_MAX_SECONDS, 1)]
+        # One caller-authored maximum causal interval per occurrence: the
+        # exact half-second recording, not the 30-second refusal ceiling.
+        assert intervals == [(1, 2)]
         # Every declared port carries one true sample per retained frame:
         # total samples are the whole sensorium, not an ear-only stream.
         frame_count = episode.occurrence_frame_count

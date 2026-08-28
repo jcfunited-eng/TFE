@@ -13229,6 +13229,7 @@ def _mono_pcm_hop_episodes(
         raise ValueError(
             "mono PCM intake exceeds the declared ambient intake window"
         )
+    capture_duration = Fraction(len(samples), sample_rate_hz)
     hops = _pcm_hops(samples, sample_rate_hz)
     cochlear_hops = (
         _cochlear_hops(samples, sample_rate_hz) if COCHLEAR_EARS_AUTHORIZED else []
@@ -13261,10 +13262,21 @@ def _mono_pcm_hop_episodes(
                 else None
             ),
         )
-        # The maximum causal interval is this app's declared ambient intake
-        # window: transport contract authority, never derived from the
-        # occurrence; one interval per declared occurrence.
-        episodes.append((episode, [(AMBIENT_INTAKE_MAX_SECONDS, 1)] * LESSON_OCCURRENCE_COUNT))
+        # The caller owns the complete capture and therefore authors its exact
+        # duration as the causal bound.  The 30-second constant is only the
+        # refusal ceiling; treating that ceiling as every recording's physical
+        # duration needlessly widens the exact joint field and can overflow a
+        # lawful shorter sound.  Every 250 ms hop retains the same capture-wide
+        # bound, so chunking does not change the field normalization.
+        episodes.append(
+            (
+                episode,
+                [
+                    (capture_duration.numerator, capture_duration.denominator)
+                ]
+                * LESSON_OCCURRENCE_COUNT,
+            )
+        )
     return episodes
 
 
