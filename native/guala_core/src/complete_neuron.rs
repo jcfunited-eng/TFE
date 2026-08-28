@@ -6257,32 +6257,39 @@ pub(crate) fn settle_membrane_pump_transport(
 }
 
 /// Settle one prepared efferent terminal discharge from retained motor-cell
-/// voltage. The preparing contact current is not reused as output: it must
-/// first leave a positive membrane displacement in this neuron. The mounted
-/// terminal may then move at most the whole carriers that actually arrived,
-/// never past zero displacement and only when the neuron's exact retained
-/// membrane-plus-gradient work strictly descends.
+/// voltage. The preparing contact current is not reused as output: whole
+/// carriers must first arrive through an exact permitted contact. A living
+/// motor cell may lawfully rest at a negative membrane potential, so absolute
+/// positivity is not an action threshold. The mounted terminal returns at
+/// most those newly arrived carriers through its own outward path, and only
+/// when the neuron's exact retained membrane-plus-gradient work strictly
+/// descends.
 pub(crate) fn settle_efferent_terminal_transport(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
     prepared_elementary_carriers: u128,
     interval_microseconds: u32,
 ) -> Result<Option<(NeuronPhysicalState, u128, BigRational)>, NeuronPhysicalError> {
-    let displacement = predecessor.membrane.membrane().separated_elementary_charges();
-    if displacement <= 0 || prepared_elementary_carriers == 0 {
+    if prepared_elementary_carriers == 0 {
         return Ok(None);
     }
-    let magnitude = prepared_elementary_carriers.min(displacement.unsigned_abs());
-    let outward = i128::try_from(magnitude)
+    let requested_outward = i128::try_from(prepared_elementary_carriers)
         .map_err(|_| GateSettlementError::ArithmeticWidth)?;
     let successor = settle_membrane_pump_transport(
         anatomy,
         predecessor,
-        outward,
+        requested_outward,
         None,
         interval_microseconds,
     )?;
     if successor == *predecessor {
+        return Ok(None);
+    }
+    let outward = predecessor
+        .separated_elementary_charges()
+        .checked_sub(successor.separated_elementary_charges())
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    if outward <= 0 {
         return Ok(None);
     }
     let predecessor_work =
@@ -6294,7 +6301,7 @@ pub(crate) fn settle_efferent_terminal_transport(
     }
     Ok(Some((
         successor,
-        magnitude,
+        outward.unsigned_abs(),
         predecessor_work - successor_work,
     )))
 }
@@ -7372,14 +7379,18 @@ mod tests {
 
         let mut inward = fixture.state.clone();
         inward.membrane = LocalMembraneConductanceState::genesis(-3);
-        assert!(settle_efferent_terminal_transport(
+        let (inward_successor, inward_outward, inward_released) =
+            settle_efferent_terminal_transport(
             &fixture.anatomy,
             &inward,
             2,
             1_000,
         )
         .unwrap()
-        .is_none());
+        .expect("prepared carriers discharge from the lawful negative resting side");
+        assert_eq!(inward_outward, 2);
+        assert_eq!(inward_successor.separated_elementary_charges(), -5);
+        assert!(inward_released > BigRational::zero());
         assert!(settle_efferent_terminal_transport(
             &fixture.anatomy,
             &prepared,

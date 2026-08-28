@@ -5056,6 +5056,8 @@ fn migrate_resident_organism_exact_energy_envelope(
         // identity records that the body correction has already happened so
         // a later restart can never repeat it.
         let correct_articulated_body_pose =
+            !ResidentCognitiveFormationState::encoded_has_corrected_articulated_pose(cognitive);
+        let require_current_proprioceptive_observation =
             !ResidentCognitiveFormationState::encoded_is_current(cognitive);
         let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
         let migrated =
@@ -5072,6 +5074,11 @@ fn migrate_resident_organism_exact_energy_envelope(
                 .unwrap_or(ResidentVestibularBody::phase_one_genesis()?),
             if correct_articulated_body_pose {
                 ArticulatedBodyState::at_neutral()
+            } else if require_current_proprioceptive_observation {
+                parsed
+                    .articulated_body
+                    .unwrap_or_else(ArticulatedBodyState::at_neutral)
+                    .requiring_proprioceptive_observation()
             } else {
                 parsed
                     .articulated_body
@@ -7126,7 +7133,10 @@ mod tests {
         assert_eq!(after.joint_bytes, joint);
         let mut runtime =
             ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget).unwrap();
-        runtime.prepare_articulated_body_observation().unwrap();
+        let prepared = runtime.prepare_articulated_body_observation().unwrap();
+        assert!(!prepared.motor_unit_recruitments.is_empty());
+        assert!(!prepared.articulatory_unit_recruitments.is_empty());
+        assert!(!prepared.articulated_body_consequences.is_empty());
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget).unwrap(),
             migrated,
@@ -7406,11 +7416,63 @@ mod tests {
         assert_eq!(parsed.vestibular, predecessor.vestibular);
         assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
         let corrected_cognitive = parsed.cognitive_bytes.unwrap();
-        assert_eq!(&corrected_cognitive[..8], b"GLCOG035");
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG036");
         assert_eq!(&corrected_cognitive[8..], &v34_cognitive[8..]);
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(corrected.clone(), budget()).unwrap(),
             corrected,
+        );
+    }
+
+    #[test]
+    fn v35_preserves_corrected_pose_and_reissues_proprioception_once() {
+        let runtime = resident(93, 19);
+        let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+        let mut v35_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
+        v35_cognitive[..8].copy_from_slice(b"GLCOG035");
+
+        let mut axes = *ArticulatedBodyState::at_neutral().axes();
+        axes[crate::virtual_articulated_body::BodyAxis::NeckYaw.index()] = 1_234;
+        let lived_body = ArticulatedBodyState::from_physical_state(
+            axes,
+            crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES,
+            crate::virtual_articulated_body::NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES,
+            true,
+        )
+        .unwrap();
+        let fabric = encode_fabric(
+            predecessor.fabric_generation,
+            predecessor.joint_bytes,
+            &v35_cognitive,
+            predecessor.vestibular.as_ref().unwrap(),
+            &lived_body,
+            budget(),
+        )
+        .unwrap();
+        let envelope = encode_envelope(
+            predecessor.identity,
+            predecessor.organism_tick,
+            &fabric,
+            budget(),
+        )
+        .unwrap();
+
+        let migrated = migrate_resident_organism_exact_energy_envelope(envelope, budget()).unwrap();
+        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
+        let observed_body = parsed.articulated_body.unwrap();
+        assert_eq!(observed_body.axes(), lived_body.axes());
+        assert_eq!(observed_body.lung_air_microlitres(), lived_body.lung_air_microlitres());
+        assert_eq!(
+            observed_body.vocal_tract_areas_square_millimetres(),
+            lived_body.vocal_tract_areas_square_millimetres(),
+        );
+        assert!(!observed_body.proprioception_initialized());
+        let migrated_cognitive = parsed.cognitive_bytes.unwrap();
+        assert_eq!(&migrated_cognitive[..8], b"GLCOG036");
+        assert_eq!(&migrated_cognitive[8..], &v35_cognitive[8..]);
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
+            migrated,
         );
     }
 

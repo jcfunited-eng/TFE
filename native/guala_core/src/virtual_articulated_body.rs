@@ -799,6 +799,15 @@ impl ArticulatedBodyState {
         self.proprioception_initialized = true;
     }
 
+    /// Preserve the exact physical body while requiring its complete current
+    /// configuration to enter proprioception on the next lived interval.
+    /// Used only by an explicit one-way migration when newly mounted innate
+    /// sensorimotor anatomy must receive the body it now serves.
+    pub(crate) fn requiring_proprioceptive_observation(mut self) -> Self {
+        self.proprioception_initialized = false;
+        self
+    }
+
     pub(crate) fn resident_bytes() -> usize {
         ARTICULATED_BODY_STATE_BYTES
     }

@@ -244,6 +244,13 @@ const MAGIC_V34: &[u8; 8] = b"GLCOG034";
 /// the V34 layout and physics; this identity prevents a later restart from
 /// applying the body correction again.
 const MAGIC_V35: &[u8; 8] = b"GLCOG035";
+/// V36 mounts exact terminal-paired proprioceptive preparation for each
+/// articulated antagonist motor. It neither adds a contact nor changes
+/// learned cognitive state; the outer body migration preserves the corrected
+/// pose and admits that current pose through the newly served local reflex
+/// once. Later unchanged pose is not re-admitted, so it cannot become tonic
+/// motor drive.
+const MAGIC_V36: &[u8; 8] = b"GLCOG036";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -4342,7 +4349,12 @@ fn validate_fixed_vocal_articulatory_route(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35)
+        bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36)
+    }
+
+    pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
+        bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36)
+            || bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35)
     }
 
     /// Retire the task-955 local-integration projection that equated
@@ -8854,7 +8866,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V35);
+        output.extend_from_slice(MAGIC_V36);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -9676,7 +9688,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V35.len()) != Some(MAGIC_V35) {
+        if bytes.get(..MAGIC_V36.len()) != Some(MAGIC_V36) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -9703,8 +9715,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v35 =
-            bytes.len() >= MAGIC_V35.len() && &bytes[..MAGIC_V35.len()] == MAGIC_V35;
+        let current_v36 =
+            bytes.len() >= MAGIC_V36.len() && &bytes[..MAGIC_V36.len()] == MAGIC_V36;
+        let current_v35 = current_v36
+            || (bytes.len() >= MAGIC_V35.len() && &bytes[..MAGIC_V35.len()] == MAGIC_V35);
         let current_v34 = current_v35
             || (bytes.len() >= MAGIC_V34.len() && &bytes[..MAGIC_V34.len()] == MAGIC_V34);
         let current_v33 = current_v34
@@ -10290,7 +10304,8 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v35 = bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35);
+        let current_v36 = bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36);
+        let current_v35 = current_v36 || bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35);
         let current_v34 = current_v35 || bytes.get(..MAGIC_V34.len()) == Some(MAGIC_V34);
         let current_v33 = current_v34 || bytes.get(..MAGIC_V33.len()) == Some(MAGIC_V33);
         let current_v32 =
@@ -10319,7 +10334,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V32.len()] == MAGIC_V32
                 || &bytes[..MAGIC_V33.len()] == MAGIC_V33
                 || &bytes[..MAGIC_V34.len()] == MAGIC_V34
-                || &bytes[..MAGIC_V35.len()] == MAGIC_V35);
+                || &bytes[..MAGIC_V35.len()] == MAGIC_V35
+                || &bytes[..MAGIC_V36.len()] == MAGIC_V36);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -16183,7 +16199,8 @@ fn local_gradient_direction(
 fn exact_motor_preparation_transfers(
     motor_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
-    reacted_load_regulation_lineages: &[[u8; 16]],
+    permitted_regulation_lineages: &[[u8; 16]],
+    causal_seed_lineages: &BTreeSet<[u8; 16]>,
     layer_of: impl Fn([u8; 16]) -> Option<u32>,
 ) -> Vec<DirectedPhysicalTransferObservation> {
     let mut preparation_transfers = settled_directed_transfers
@@ -16196,14 +16213,40 @@ fn exact_motor_preparation_transfers(
             let adjacent_layer = layer_of(transfer.sender);
             matches!(adjacent_layer, Some(11))
                 || matches!(adjacent_layer, Some(8))
-                    && reacted_load_regulation_lineages
+                    && permitted_regulation_lineages
                         .binary_search(&transfer.sender)
                         .is_ok()
+                    && causal_seed_lineages.contains(&transfer.sender)
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
     preparation_transfers.dedup();
     preparation_transfers
+}
+
+/// Resolve the one layer-8 regulation line whose typed articulated-body
+/// receptor is physically paired with this exact motor terminal.  Merely
+/// sharing layer 8 or changing at the same time is insufficient; the caller
+/// additionally requires this regulation lineage to be a causal seed of the
+/// current interval, so resident unchanged pose cannot become tonic drive.
+fn exact_articulated_body_preparation_regulations(
+    motor_terminal: BodyEffectorTerminal,
+    paths: &[MotorBodyAfferentPath],
+) -> Vec<[u8; 16]> {
+    let mut regulations = paths
+        .iter()
+        .filter_map(|path| {
+            (path
+                .receptor_site
+                .body_proprioceptor_terminal()
+                .map(|terminal| terminal.paired_effector())
+                == Some(motor_terminal))
+            .then_some(path.body_regulation_lineage)
+        })
+        .collect::<Vec<_>>();
+    regulations.sort_unstable();
+    regulations.dedup();
+    regulations
 }
 
 /// Return only whole-carrier transfers that physically arrive at one mounted
@@ -17476,7 +17519,7 @@ fn settle_internal_contact_interval(
     // mutation begins. Tonic antagonist-length receptors share layer 8, but
     // they are position sense—not a stop/load reflex—and must not recruit the
     // whole motor population merely because the body is present.
-    let mut reacted_load_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
+    let mut body_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     let mut root_yaw_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     for (motor_flat, (_, _, motor_lineage)) in flat_locations.iter().copied().enumerate() {
         if layer_of(motor_lineage) != Some(12) {
@@ -17488,21 +17531,15 @@ fn settle_internal_contact_interval(
             cohorts,
             &topology_index.neighbours_by_flat,
         )?;
-        let mut regulations = paths
-            .iter()
-            .filter_map(|path| {
-                (path.receptor_site.physical_quantity()
-                    == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
-                    .then_some(path.body_regulation_lineage)
-            })
-            .collect::<Vec<_>>();
-        regulations.sort_unstable();
-        regulations.dedup();
-        if !regulations.is_empty() {
-            reacted_load_regulations_by_motor.insert(motor_lineage, regulations);
-        }
         let (cohort_index, neuron_index, _) = flat_locations[motor_flat];
         let motor_mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+        if let Some(motor_terminal) = motor_mount.body_effector_terminal() {
+            let regulations =
+                exact_articulated_body_preparation_regulations(motor_terminal, &paths);
+            if !regulations.is_empty() {
+                body_regulations_by_motor.insert(motor_lineage, regulations);
+            }
+        }
         if let Some(motor_terminal) = motor_mount.root_yaw_effector_terminal() {
             if motor_mount.source_site().is_some() {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
@@ -17796,10 +17833,11 @@ fn settle_internal_contact_interval(
                 exact_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
-                    reacted_load_regulations_by_motor
+                    body_regulations_by_motor
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
+                    &causal_seed_lineages,
                     &layer_of,
                 )
             } else {
@@ -17906,10 +17944,11 @@ fn settle_internal_contact_interval(
                 let preparation_transfers = exact_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
-                    reacted_load_regulations_by_motor
+                    body_regulations_by_motor
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
+                    &causal_seed_lineages,
                     &layer_of,
                 );
                 let outward_elementary_carriers = exact_prepared_efferent_carriers(
@@ -22008,7 +22047,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -23514,7 +23553,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -24024,9 +24063,27 @@ mod tests {
             .find_map(|(candidate, layer)| (candidate == lineage).then_some(layer))
         };
 
+        let causal_seeds = BTreeSet::from([regulation]);
         assert_eq!(
-            exact_motor_preparation_transfers(motor, &settled, &[regulation], layer_of),
+            exact_motor_preparation_transfers(
+                motor,
+                &settled,
+                &[regulation],
+                &causal_seeds,
+                layer_of,
+            ),
             vec![settled[0], settled[3]],
+        );
+        assert_eq!(
+            exact_motor_preparation_transfers(
+                motor,
+                &settled,
+                &[regulation],
+                &BTreeSet::new(),
+                layer_of,
+            ),
+            vec![settled[3]],
+            "an unchanged body regulation cannot become tonic motor drive",
         );
     }
 
@@ -24378,7 +24435,7 @@ mod tests {
         validate_lineage_state(&state).unwrap();
         state.validate_current_motor_effectors().unwrap();
         let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
 
         // Simulate the deployed predecessor: identical layout under V32.
         let mut legacy = current.clone();
@@ -24415,7 +24472,7 @@ mod tests {
 
         // One-way and restart-proof: the migrated body is current and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -25237,7 +25294,7 @@ mod tests {
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&v32, MAX_BYTES)
                 .unwrap();
-        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(!restored.electrical_fabric.contains_contact(acoustic, articulatory));
         assert!(!restored.electrical_fabric.contains_contact(regulation, articulatory));
@@ -25375,7 +25432,7 @@ mod tests {
             .electrical_fabric
             .contains_contact(non_vocal_motor, articulatory[0]));
         assert_eq!(restored.electrical_fabric.contact_count(), 10);
-        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -25513,7 +25570,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(restored.electrical_fabric.contains_contact(receptor, {
             restored
@@ -25791,7 +25848,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -26971,7 +27028,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
+        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());
