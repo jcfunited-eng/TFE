@@ -498,3 +498,15 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a system is i
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'each layer keeps its promises and hides its workin' toward medicine body:
   maybe: the dose makes the poison — every substance has an amount that helps, one that does nothin
   with: infection is fermentation with a hostile tenant — a tiny living thing finds the body's war
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'any computer can imitate any other, given time and' toward sports games:
+  maybe: any computer can imitate any other, given time and memory — computation is one thing weari
+  with: one machine imitates all — a device that reads rules as data becomes any other machine by 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a message carries information only where it could ' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'enough redundancy lets a message survive damage — ' toward medicine body:
+  maybe: enough redundancy lets a message survive damage — say it three ways and one wound leaves t
+  with: error correction is redundancy spent wisely — channels lie and copies drift, so durable me

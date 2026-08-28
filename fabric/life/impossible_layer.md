@@ -65,3 +65,9 @@ WANT: why does hot water sometimes freeze faster than cold
   closed 11 — requirement unmet — no fire without ignition. (chemistry)
   closed 9 — requirement unmet — no rise without a net — overworked or netless batter lets the gas walk out. (cooking)
   closed 8 — requirement unmet — no reading one without knowing where the light stood. (light seeing)
+
+WANT: keep food cold without electricity
+  closed 105 — requirement unmet — no storm without a temperature difference to spend; (oceans weather)
+  closed 93 — requirement unmet — no wind without a difference; (oceans weather)
+  closed 15 — forbidden together — no pressure from an offer truly open forever — the pitch installs a clock or count ("3 left", "today only"); (deep money everyday)
+  closed 6 — forbidden together — no power from a floating base — thrown from mid-air or a slipping foot, a blow has only the arm's own small mass to spend. (martial arts movement)
