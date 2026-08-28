@@ -1,28 +1,40 @@
-# 90 MINTED BY WALKING — floors the fabric discovered itself
+# 90 MINTED BY WALKING — empty, and lawfully so
 
-No author wrote these as knowledge. Each was ARRIVED AT: a walk's
-receipt showed a pattern, a licensing floor closed it, and the
-result was minted here as a floor like any other — askable,
-joinable, signing certificates. Provenance is stated in full,
-including whose hand did what, because a minted floor that hides
-its hands is a costume.
+This file exists to hold floors the fabric DISCOVERS. It holds
+none. Its first entry was struck the day it was made, and the
+striking bought the law below.
 
-ESSENCE: a pile built only of five-bundles lands only on 0 or 5 —
-  quarters, dimes, and nickels, in any count whatsoever, make a
-  total whose ones place reads 0 or 5 and nothing else, forever.
-ROOT: mathematics / bundles + the domino law.
-CANNOT: no such pile counts to 87, or to any total ending in
-  1, 2, 3, 4, 6, 7, 8, or 9. Not unlikely — dead.
-THREAD: the white's 87-cents entry (this floor is its WHY, now
-  proven), money (why tills carry pennies at all), music (beats
-  built of one bar-length land only on the bar).
-ASKED-AS: nickels dimes quarters exact change ones digit ends total pile coins five
-PROVENANCE: walked, not authored. THE STEP (current ones place in
-  {0,5}, one more coin of ones place 0 or 5) was walked to
-  exhaustion by the one walking rule: 4 survivors of 126
-  candidates, every survivor landing on 0 or 5 — column-count law
-  did all killing. Base: the empty pile reads 0. The domino floor
-  (mathematics) converts base + closed step into forever. Hands:
-  the walker killed; the domino floor licensed; the step's
-  candidate space was laid BY HAND — the imagining element's job,
-  unbuilt, named. New to this fabric, not to the world.
+THE MINTING LAW (bought by the failure recorded beneath):
+A walk's result mints as discovery only when ALL three hold:
+1. UN-AIMED — the machine proposed it from its own life
+   (wonderings, warmth, receipts), before any hand that knew or
+   suspected the answer shaped the walk. A hand-laid space can
+   only confirm or refute its layer's expectation; discovery
+   cannot enter through it.
+2. VERIFIED AFTER — checked against the world only after the
+   proposal exists, never before, never instead.
+3. WORTH SOMETHING TO SOMEONE — recorded knowledge is neither
+   right nor wrong; it carries a degree of application and
+   utility to an observer. A mint must carry utility to an
+   observer who did not already hold it. Confirming what every
+   hand present already knew carries none.
+
+## THE STRUCK ENTRY — kept as the failure that bought the law
+
+The fives claim (piles of quarters, dimes, nickels land only on
+0 or 5) was walked, closed by the domino floor, and minted here
+as "discovered." It was not a discovery. The claim was already
+written in the white as the reader's own note BEFORE the walk;
+the step-space was laid by the same hand to confirm it; the walk
+found what its layer expected because the layer's expectation
+built the instrument. Verification, honest as verification —
+worth zero as a find, because no observer present lacked it.
+The claim itself remains true and remains stated in the white's
+87-cents entry, labeled as what it is: a verified note, not a
+found floor.
+
+What this sharpens about the unbuilt IMAGINING element: its job
+was never merely laying candidate spaces — it is laying spaces
+whose outcome no present hand holds. Proposal from the machine's
+own life first; the world's judgment after; the observer's delta
+as the measure.

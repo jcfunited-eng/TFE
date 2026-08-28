@@ -103,8 +103,9 @@ ENTRY: pay 87 cents using only quarters, dimes, and nickels
   count-must-balance law, which descends from physics/conservation
   through money's bookkeeping and mathematics/counting. No
   survivor exists. Reader's note on WHY, second signature: every
-  coin offered is a bundle of five, and 87 is not — NOW PROVEN
-  BY THE FABRIC ITSELF: see the minted floor (90, minted by
-  walking), where the step was walked to exhaustion and the
-  domino law closed it forever.
+  coin offered is a bundle of five, and 87 is not. A later walk
+  verified this note exhaustively — laid by the same hand that
+  wrote it, so it is a VERIFIED NOTE, not a found floor; the
+  failure of calling it a discovery is recorded in 90 and bought
+  the minting law.
   STATUS: STANDING (white) — walker fabric_do + reader signatures

@@ -794,3 +794,24 @@ why multiplication works but cannot walk 1289x3 to 3,867; no
 bolted-on calculator, the element must be conceived. (2) MEANING
 past letter-company — the house rule catches coincidence between
 floors, not within one; the translator still hears letters.
+
+## O22 — Joe's verdict on the first "minted" floor
+Verbatim: "it is not finding solutions or new knowledge - and for
+the recorded knowledge is neither right or wrong it just
+possesses a degree of application and utility to the observer....
+so no what you seem to be lauding as a success is a complete and
+utter failure from my perspective - because it found what you
+expected it to find."
+Anatomy of the failure, owned in full: the answer was written in
+the white as my reader's note BEFORE the walk; the step-space was
+laid by the same hand to confirm it; the walk could only confirm
+or refute its layer's expectation. Verification wore discovery's
+clothes. His middle sentence is now ratified as the measure:
+knowledge is neither right nor wrong — its worth is its delta of
+application and utility to an observer; a find is only a find to
+an observer who did not hold it. THE MINTING LAW (90) born from
+this: un-aimed proposal from the machine's own life first, world
+verification after, observer's delta as worth. Floor 90 stands
+EMPTY of discoveries until one arrives lawfully. The imagining
+element's brief is sharpened, not merely "lay candidate spaces"
+but "lay spaces whose outcome no present hand holds."
