@@ -42,6 +42,19 @@ THREAD: farming (rows times plants), money (price times count),
   building (area is times made visible).
 ASKED-AS: multiply times product double triple groups rows total each per lots
 
+ESSENCE: the domino law — what is true at the start and survives
+  every single step is true forever; one finite walk of THE STEP
+  closes a room with no far wall.
+ROOT: mathematics / counting — the numbers are built by steps,
+  so truths climb the same stairs the numbers did.
+CANNOT: no infinite room closes by visiting members — checked a
+  million proves nothing about the million-and-first. Without the
+  step-proof, exhaustion ends exactly where counting doesn't.
+THREAD: proof (this is the ladder proofs use to reach forever),
+  the doing element (a finite receipt plus this law equals an
+  infinite theorem), computing (loops trusted by this law alone).
+ASKED-AS: induction every always forever all numbers infinite proof step base case
+
 ESSENCE: proof is chained certainty — start from stated premises,
   take only steps no one can refuse, and the end is exactly as
   sure as the start; truth transported without leakage.

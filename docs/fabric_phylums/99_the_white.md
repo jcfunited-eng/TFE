@@ -35,7 +35,7 @@ ENTRY: why does hot water sometimes freeze faster than cold
 
 ENTRY: why do we cry emotional tears
   ASKED-SIG: emotional tear
-  FLOORS: 01ffa3be8272
+  FLOORS: 43855e502ca4
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
@@ -65,19 +65,19 @@ ENTRY: why do we shake hands
 
 ENTRY: why does a kite need a tail
   ASKED-SIG: kite need tail
-  FLOORS: 01ffa3be8272
+  FLOORS: 43855e502ca4
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why do onions make you cry
   ASKED-SIG: make onion
-  FLOORS: 01ffa3be8272
+  FLOORS: 43855e502ca4
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why does the moon look bigger near the horizon
   ASKED-SIG: bigg horizon look moon near
-  FLOORS: 01ffa3be8272
+  FLOORS: 43855e502ca4
   VERDICT: the walker offered a join and the reader overturns half
   of it. The eye floor is the right neighborhood — seeing is judged
   in the brain, not measured like a ruler. But its partner was the
@@ -91,7 +91,7 @@ ENTRY: why does the moon look bigger near the horizon
 
 ENTRY: Where is denver
   ASKED-SIG: denv where
-  FLOORS: 01ffa3be8272
+  FLOORS: 43855e502ca4
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
@@ -103,5 +103,8 @@ ENTRY: pay 87 cents using only quarters, dimes, and nickels
   count-must-balance law, which descends from physics/conservation
   through money's bookkeeping and mathematics/counting. No
   survivor exists. Reader's note on WHY, second signature: every
-  coin offered is a bundle of five, and 87 is not.
+  coin offered is a bundle of five, and 87 is not — NOW PROVEN
+  BY THE FABRIC ITSELF: see the minted floor (90, minted by
+  walking), where the step was walked to exhaustion and the
+  domino law closed it forever.
   STATUS: STANDING (white) — walker fabric_do + reader signatures
