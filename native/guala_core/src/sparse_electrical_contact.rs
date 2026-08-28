@@ -25,8 +25,8 @@ use crate::elementary_charge_membrane::{
     MembraneChargeError,
 };
 use crate::elementary_charge_transfer::{
-    current_limited_by_available_carriers, exact_current_for_whole_carrier_transfer,
-    settle_elementary_charge_transfer, ChargeCarrierPhase, ChargeTransferError,
+    current_limited_by_available_carriers, settle_elementary_charge_transfer,
+    ChargeCarrierPhase, ChargeTransferError,
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use num_bigint::BigInt;
@@ -1159,57 +1159,61 @@ fn settle_energy_component(
     if descent >= curvature {
         return Ok(());
     }
+    // Choose the largest exact unit fraction that is no greater than the
+    // component's physical line-minimum fraction.  Both the contact current
+    // and its resident carrier phase have fixed-width exact rational
+    // custody; the full component ratio can have a population-width
+    // denominator that cannot lawfully enter either owner.  This derived
+    // fraction is conservative (therefore still strictly energy-descending),
+    // has no tuned constant, and—unlike flooring each whole-carrier result—
+    // lets every lawful branch retain its sub-carrier progress.
+    let scale_denominator = &curvature / &descent;
+    let scale_remainder = &curvature % &descent;
+    let scale_denominator = if scale_remainder.is_zero() {
+        scale_denominator
+    } else {
+        scale_denominator + BigInt::from(1_u8)
+    };
+    let scale = ExactRational::new(
+        1,
+        scale_denominator
+            .to_u128()
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+    )?;
     for contact_index in component_contacts {
         let contact = anatomy.contacts[*contact_index];
         let predecessor = predecessor_contacts.contacts[*contact_index].clone();
         let transition = &transitions[*contact_index];
-            let magnitude = (BigInt::from(
-                transition
-                    .outward_elementary_charges_from_left
-                    .unsigned_abs(),
-            ) * &descent)
-                / &curvature;
-            let magnitude = magnitude
-                .to_u128()
-                .ok_or(SparseElectricalError::ArithmeticWidth)?;
-            let magnitude = i128::try_from(magnitude)
-                .map_err(|_| SparseElectricalError::ArithmeticWidth)?;
-            let carriers = if transition.outward_elementary_charges_from_left < 0 {
-                -magnitude
-            } else {
-                magnitude
-            };
-            if carriers == 0 {
-                transitions[*contact_index] = quiescent_contact(predecessor);
-                continue;
-            }
-            let left = ContactEndpoint::new(
-                predecessor_membranes[contact.left_neuron]
-                    .potential_millivolts(capacitances[contact.left_neuron])?,
-                predecessor_membranes[contact.left_neuron],
-                capacitances[contact.left_neuron],
-                available_carriers[contact.left_neuron],
-            );
-            let right = ContactEndpoint::new(
-                predecessor_membranes[contact.right_neuron]
-                    .potential_millivolts(capacitances[contact.right_neuron])?,
-                predecessor_membranes[contact.right_neuron],
-                capacitances[contact.right_neuron],
-                available_carriers[contact.right_neuron],
-            );
-            if !stored_energy_strictly_decreases(left, right, carriers)? {
-                transitions[*contact_index] = quiescent_contact(predecessor);
-                continue;
-            }
-            transitions[*contact_index] = ElectricalContactTransition {
-                successor: predecessor,
-                outward_current_from_left_picoamperes:
-                    exact_current_for_whole_carrier_transfer(carriers, interval_microseconds)?,
-                outward_elementary_charges_from_left: carriers,
-                released_work_zeptojoules: BigRational::zero(),
-                exported_heat_zeptojoules: BigRational::zero(),
-                conductance_changed: false,
-            };
+        let left = ContactEndpoint::new(
+            predecessor_membranes[contact.left_neuron]
+                .potential_millivolts(capacitances[contact.left_neuron])?,
+            predecessor_membranes[contact.left_neuron],
+            capacitances[contact.left_neuron],
+            available_carriers[contact.left_neuron],
+        );
+        let right = ContactEndpoint::new(
+            predecessor_membranes[contact.right_neuron]
+                .potential_millivolts(capacitances[contact.right_neuron])?,
+            predecessor_membranes[contact.right_neuron],
+            capacitances[contact.right_neuron],
+            available_carriers[contact.right_neuron],
+        );
+        // Scale the exact current, not its already-quantized whole-carrier
+        // count.  The old integer floor discarded every sub-carrier share and
+        // retained the predecessor phase, permanently starving small lawful
+        // branches inside a large connected component.  Reintegrating the
+        // scaled current preserves that fractional motion in the contact's
+        // resident phase so it crosses on a later interval.
+        let scaled_current = transition
+            .outward_current_from_left_picoamperes
+            .checked_mul(scale)?;
+        transitions[*contact_index] = settle_contact_at_current(
+            predecessor,
+            left,
+            right,
+            scaled_current,
+            interval_microseconds,
+        )?;
     }
     let (scaled_component_neurons, scaled_outward) =
         outward_by_contact_indices(anatomy, transitions, component_contacts)?;
@@ -2712,7 +2716,11 @@ mod tests {
         let provisional = vec![
             ElectricalContactTransition {
                 successor: predecessor.contacts[0].clone(),
-                outward_current_from_left_picoamperes: ExactRational::integer(100),
+                outward_current_from_left_picoamperes:
+                    crate::elementary_charge_transfer::exact_current_for_whole_carrier_transfer(
+                        100, 1_000,
+                    )
+                    .unwrap(),
                 outward_elementary_charges_from_left: 100,
                 released_work_zeptojoules: BigRational::zero(),
                 exported_heat_zeptojoules: BigRational::zero(),
@@ -2720,7 +2728,11 @@ mod tests {
             },
             ElectricalContactTransition {
                 successor: predecessor.contacts[1].clone(),
-                outward_current_from_left_picoamperes: ExactRational::integer(1),
+                outward_current_from_left_picoamperes:
+                    crate::elementary_charge_transfer::exact_current_for_whole_carrier_transfer(
+                        1, 1_000,
+                    )
+                    .unwrap(),
                 outward_elementary_charges_from_left: 1,
                 released_work_zeptojoules: BigRational::zero(),
                 exported_heat_zeptojoules: BigRational::zero(),
@@ -2772,7 +2784,11 @@ mod tests {
         let transition = |contact_index: usize, carriers: i128| {
             ElectricalContactTransition {
                 successor: predecessor.contacts[contact_index].clone(),
-                outward_current_from_left_picoamperes: ExactRational::integer(carriers),
+                outward_current_from_left_picoamperes:
+                    crate::elementary_charge_transfer::exact_current_for_whole_carrier_transfer(
+                        carriers, 1_000,
+                    )
+                    .unwrap(),
                 outward_elementary_charges_from_left: carriers,
                 released_work_zeptojoules: BigRational::zero(),
                 exported_heat_zeptojoules: BigRational::zero(),
@@ -2793,6 +2809,62 @@ mod tests {
         assert_eq!(settled[0].outward_elementary_charges_from_left, 50);
         assert_eq!(settled[1].outward_elementary_charges_from_left, 0);
         assert_eq!(settled[2].outward_elementary_charges_from_left, 1);
+    }
+
+    #[test]
+    fn connected_component_scaling_retains_subcarrier_branch_progress() {
+        let anatomy = SparseElectricalAnatomy::new(
+            3,
+            vec![
+                ElectricalContactAnatomy::new(0, 1, ExactRational::integer(1), 3)
+                    .unwrap(),
+                ElectricalContactAnatomy::new(1, 2, ExactRational::integer(1), 3)
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let mut predecessor = SparseElectricalState::genesis(&anatomy);
+        predecessor.contacts[1] = predecessor.contacts[1]
+            .clone()
+            .with_caught_up_carrier_phase(ChargeCarrierPhase::new(3, 4).unwrap());
+        let membranes = [
+            ElementaryChargeMembraneState::genesis(101),
+            ElementaryChargeMembraneState::genesis(0),
+            ElementaryChargeMembraneState::genesis(10),
+        ];
+        let transition = |contact_index: usize, carriers: i128| {
+            ElectricalContactTransition {
+                successor: predecessor.contacts[contact_index].clone(),
+                outward_current_from_left_picoamperes:
+                    crate::elementary_charge_transfer::exact_current_for_whole_carrier_transfer(
+                        carriers, 1_000,
+                    )
+                    .unwrap(),
+                outward_elementary_charges_from_left: carriers,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            }
+        };
+
+        let settled = component_energy_descending_transitions(
+            &anatomy,
+            &predecessor,
+            &capacitances(3),
+            &membranes,
+            &[u128::MAX; 3],
+            1_000,
+            vec![transition(0, 100), transition(1, -1)],
+        )
+        .unwrap();
+
+        assert_eq!(settled[0].outward_elementary_charges_from_left, 50);
+        assert_eq!(settled[1].outward_elementary_charges_from_left, 0);
+        assert_eq!(
+            settled[1].successor.carrier_phase(),
+            ChargeCarrierPhase::new(1, 4).unwrap(),
+            "a sub-carrier branch must retain its exact scaled progress",
+        );
     }
 
     fn total_charge(memebranes: &[ElementaryChargeMembraneState]) -> i128 {
