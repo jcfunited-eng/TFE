@@ -64,6 +64,10 @@ def _transition() -> dict[str, object]:
         "causal_cross_context_use": {
             "origin_kind": "retained_formation",
             "formation_receipt_sha256": DESTINATION_FORMATION_RECEIPT,
+            "directed_physical_transfers": (
+                (RECURRENT, FORMATION, 0, 3),
+                (ORDERING, FLEXOR_MOTOR, 0, 3),
+            ),
             "motor_unit_recruitment": {"motor_lineage": FLEXOR_MOTOR},
         },
         "causal_interval_evidence": (
@@ -199,6 +203,16 @@ def test_thought_must_reassemble_the_motor_causing_formation() -> None:
     thought[1] = "13" * 32
     interval["causal_thought_transitions"] = (tuple(thought),)
     transition["causal_interval_evidence"] = (interval,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_thought_transfer_must_be_on_the_exact_motor_causal_path() -> None:
+    transition = deepcopy(_transition())
+    transition["causal_cross_context_use"]["directed_physical_transfers"] = (
+        ("14" * 16, FORMATION, 0, 3),
+        (ORDERING, FLEXOR_MOTOR, 0, 3),
+    )
 
     assert production._physical_choice_evidence_from_transition(transition) is None
 

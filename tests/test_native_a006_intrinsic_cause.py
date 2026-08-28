@@ -45,6 +45,9 @@ def _hop(
     *,
     emitted: tuple[str, ...] = (),
     cues: tuple[tuple[str, tuple[str, ...], str | None], ...] = (),
+    thoughts: tuple[
+        tuple[str, str, str, str, tuple[str, str, int, int]], ...
+    ] = (),
     motors: tuple[
         tuple[str, int, int, tuple[object, ...], tuple[object, ...]], ...
     ] = (),
@@ -56,6 +59,7 @@ def _hop(
             {"neuron_lineage": lineage} for lineage in emitted
         ),
         "internally_reassembled_formation_cues": cues,
+        "causal_thought_transitions": thoughts,
         "motor_unit_recruitments": motors,
     }
 
@@ -135,6 +139,85 @@ def test_new_and_recurrent_roots_share_one_frontier_query_per_hop() -> None:
         active,
         completed,
         _hop(21, cues=(("11" * 32, (cue,), cue),)),
+    )
+
+
+def test_thought_arrival_continues_from_destination_member_to_motor() -> None:
+    source_recurrent = "01" * 16
+    destination_cue = "02" * 16
+    destination_recurrent = "03" * 16
+    ordering = "04" * 16
+    motor = "05" * 16
+    source_receipt = "10" * 32
+    destination_receipt = "11" * 32
+    thought_transfer = (source_recurrent, destination_cue, 0, 13)
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(
+            20,
+            cues=(
+                (
+                    destination_receipt,
+                    (destination_cue,),
+                    destination_recurrent,
+                ),
+            ),
+            thoughts=(
+                (
+                    source_receipt,
+                    destination_receipt,
+                    source_recurrent,
+                    destination_cue,
+                    thought_transfer,
+                ),
+            ),
+        ),
+    )
+    key = next(key for key in active if key[0] == "retained_formation")
+    assert active[key] == {destination_cue: (thought_transfer,)}
+    assert destination_recurrent not in active[key]
+    assert completed == {}
+
+    member_transfer = (destination_cue, ordering, 0, 7)
+    observer.transfers = ((*member_transfer, ordering),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(21),
+    )
+    assert completed == {}
+
+    motor_transfer = (ordering, motor, 0, 5)
+    observer.transfers = ()
+    _active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            22,
+            motors=(
+                (
+                    motor,
+                    4,
+                    5,
+                    ((ordering, 11, motor, 12, 0, 5),),
+                    (),
+                ),
+            ),
+        ),
+    )
+
+    proof = completed["retained_formation"]
+    assert proof["formation_receipt_sha256"] == destination_receipt
+    assert proof["directed_physical_transfers"] == (
+        thought_transfer,
+        member_transfer,
+        motor_transfer,
     )
 
 

@@ -3006,10 +3006,12 @@ def _physical_choice_evidence_from_transition(
         for transition in interval.get("causal_thought_transitions", ())
         if isinstance(transition, tuple) and len(transition) == 5
     )
+    causal_path = tuple(causal.get("directed_physical_transfers", ()))
     causal_thought_transitions = tuple(
         transition
         for transition in thought_transitions
         if transition[1] == causal_formation_receipt
+        and transition[4] in causal_path
     )
     if not causal_thought_transitions:
         return None
@@ -9143,15 +9145,40 @@ def _advance_causal_motor_traces(
             and key[0] not in completed
         )
     }
+    new_thought_origins: dict[
+        tuple[str, str, tuple[str, ...], int],
+        dict[str, tuple[tuple[str, str, int, int], ...]],
+    ] = {}
     if "retained_formation" not in completed:
         for receipt, cue_lineages, recurrent_lineage in hop[
             "internally_reassembled_formation_cues"
         ]:
-            if recurrent_lineage is None:
-                continue
             cues = tuple(cue_lineages)
             key = ("retained_formation", receipt, cues, organism_tick)
-            next_active.setdefault(key, {recurrent_lineage: ()})
+            thought_arrivals = tuple(
+                transition
+                for transition in hop.get("causal_thought_transitions", ())
+                if transition[1] == receipt and transition[3] in cues
+            )
+            if thought_arrivals:
+                # A formation-to-formation thought physically arrives at the
+                # destination member, not at the destination's recurrent
+                # cell. Continue the committed carrier wave from that exact
+                # member and retain its already-observed incoming transfer as
+                # the first causal edge. Restarting at `recurrent_lineage`
+                # would discard the thought and silently wait for a different
+                # cause. This is observation after commit; it moves no charge
+                # and grants no action authority.
+                paths = next_active.setdefault(key, {})
+                for transition in thought_arrivals:
+                    cue_lineage = transition[3]
+                    candidate = (transition[4],)
+                    existing = paths.get(cue_lineage)
+                    if existing is None or candidate < existing:
+                        paths[cue_lineage] = candidate
+                new_thought_origins[key] = dict(paths)
+            elif recurrent_lineage is not None:
+                next_active.setdefault(key, {recurrent_lineage: ()})
     if next_active:
         reached_lineages = tuple(
             sorted(
@@ -9245,6 +9272,12 @@ def _advance_causal_motor_traces(
                 recurrent_lineage,
                 (min(recurrent_returns),),
             )
+    for key, paths in new_thought_origins.items():
+        # New causes are retained for the adjacent interval just like emitted
+        # fractals and external receptor arrivals below. They have already
+        # occurred in this interval; absence of a second edge in the same
+        # clock is not authority to erase their physical arrival.
+        advanced.setdefault(key, paths)
     articulation_completed_origins = set(
         completed.get(_COMPLETED_ARTICULATION_ORIGINS, ())
     )
