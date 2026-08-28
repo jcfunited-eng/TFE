@@ -17,6 +17,7 @@ import os, re, sys, itertools
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 import fabric_ask as fa
+OFFER_CAP = 16
 
 def content(text):
     return fa.words(text)
@@ -96,7 +97,7 @@ def make(want, size=3, show=3, data=False):
               if (want_words & ew(e)) and
               all(sense_ok(w, e) for w in (qkey & ew(e)))]
     offers.sort(key=lambda e: -len(want_words & ew(e)))
-    offers = offers[:16]
+    offers = offers[:OFFER_CAP]
     staged = killed = 0
     survivors, deaths, closed = [], [], {}
     for n in range(1, size + 1):
