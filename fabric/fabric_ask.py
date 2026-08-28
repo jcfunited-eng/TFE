@@ -21,7 +21,8 @@ def fingerprint():
         h.update(open(f,"rb").read())
     h.update(open(__file__,"rb").read())   # the walker signs too
     here=os.path.dirname(os.path.abspath(__file__))
-    for extra in ("fabric_do.py","lawbook.md"):   # doing signs too
+    for extra in ("fabric_do.py","lawbook.md",
+                  "follower.py"):                 # doing signs too
         p=os.path.join(here,extra)
         if os.path.exists(p): h.update(open(p,"rb").read())
     return h.hexdigest()[:12]
@@ -37,7 +38,8 @@ def load():
                 return re.sub(r"\s+"," ",m.group(1)).strip() if m else ""
             es.append(dict(field=name,essence=part("ESSENCE"),
                            cannot=part("CANNOT"),
-                           ask=part("ASKED-AS")))
+                           ask=part("ASKED-AS"),
+                           rule=part("RULE")))
     return es
 def walk(qs, es):
     def wt(e): return words(e["essence"]+" "+e["cannot"]+" "+e["ask"])
@@ -87,14 +89,14 @@ def ask(question):
     digits=re.findall(r"\d+",question)
     if digits:
         sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
-        import fabric_do
-        arr=fabric_do.try_numbers(question)
+        import follower
+        arr=follower.try_numbers(question)
         if arr:
             print(arr); return
         print(f"(I can see numbers here — {', '.join(digits[:4])} — "
-              f"but the doings my lawbook holds so far are adding "
-              f"and times, and this asking's want is not one I can "
-              f"walk yet. Anything below is what my floors KNOW.)")
+              f"but no entry in my knowledge tells me how to do "
+              f"what this asking wants. Anything below is what my "
+              f"floors KNOW.)")
     if not qs:
         print("TRANSLATOR'S SILENCE — after dropping small words "
               "and numbers, nothing of this asking remains that my "

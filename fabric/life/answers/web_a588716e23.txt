@@ -1,0 +1,4 @@
+ASKING: What is 1289 X 3
+
+1289 x 3 = 3,867
+  The method came from my knowledge entries, not from code: "multiplying is counting by copies — three times 1,289 i" and "written numbers are bundles — each place holds up to ni". My built-in hands did only the counting.

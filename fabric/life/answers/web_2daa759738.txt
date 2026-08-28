@@ -1,0 +1,4 @@
+ASKING: what is 452 minus 78
+
+452 - 78 = 374
+  The method came from my knowledge entries, not from code: "taking away is counting down — what remains when one pi". My built-in hands did only the counting.

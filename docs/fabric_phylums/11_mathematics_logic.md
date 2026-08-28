@@ -28,7 +28,13 @@ CANNOT: no place holds ten. A tenth in any place MUST become a
 THREAD: money (dimes are bundled pennies, dollars bundled dimes),
   computing (the same bundling by twos), measuring (metric is
   bundling by tens all the way down).
-ASKED-AS: digits place value carry tens hundreds column arithmetic sum adding decimal number
+RULE: to add piles written as digits — work the places right to
+  left; at each place count together the digits standing there
+  and anything carried in; set aside every full ten in that count
+  and write what remains; every ten set aside is carried one
+  place to the left; when the places run out, write the carry as
+  the next place.
+ASKED-AS: digits place value carry tens hundreds column arithmetic sum adding decimal number plus
 
 ESSENCE: multiplying is counting by copies — three times 1,289 is
   1,289 laid down three times and counted as one pile; times is
@@ -40,6 +46,12 @@ CANNOT: no product escapes its addition — an answer that
   wrong, whatever table it came from.
 THREAD: farming (rows times plants), money (price times count),
   building (area is times made visible).
+RULE: to times two numbers — lay the larger number down as many
+  times as the smaller number says, then add that pile as the
+  adding rule says; when the smaller number is itself many
+  places, lay the pile place by place — each place's digit says
+  how many copies to lay, and each step left moves the whole
+  pile one place to the left.
 ASKED-AS: multiply times product double triple groups rows total each per lots
 
 ESSENCE: the domino law — what is true at the start and survives
@@ -177,3 +189,19 @@ THREAD: money (insurance: nobody knows whose house burns; the pool
   medicine (a treatment works as a proportion; the patient in the
   chair is a single case).
 ASKED-AS: odds gambling casino lottery streak luck betting averages random cards roulette forecast
+
+ESSENCE: taking away is counting down — what remains when one
+  pile is removed from another; the reverse walk of adding.
+ROOT: mathematics / counting.
+CANNOT: no taking a larger pile from a smaller one — the pile
+  itself cannot go below nothing; only a ledger of owing can.
+THREAD: money (making change is taking away), time (how long
+  until is a taking away), checking (adding back must restore
+  exactly what was there).
+RULE: to take one number away from another — work the places
+  right to left; at each place take the lower digit from the
+  upper digit by counting down; when the upper digit is too
+  small, break one bundle from the next place left into ten
+  ones here, then take; when the places run out the remains
+  are the answer.
+ASKED-AS: minus subtract take away difference remains left over change fewer less gone
