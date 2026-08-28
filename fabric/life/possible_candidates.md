@@ -418,3 +418,83 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'compound inte
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'sales manufacture urgency because a vanishing chan' toward persuasion negotiation:
   maybe: sales manufacture urgency because a vanishing chance is booked as a loss, and losses press
   with: two borrowed compasses steer most choices — what runs out must be valuable, and what every
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'corners meeting at a point must count to a full tu' toward living world:
+  maybe: corners meeting at a point must count to a full turn — the whole law of tiling. Hexagons b
+  with: hexagons tile a floor with no gap and least wall — bees build them; spheres can never fill
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'some infinities are bigger — the fractions, dense ' toward physics:
+  maybe: some infinities are bigger — the fractions, dense as they are, list off against the whole 
+  with: infinity is a process, not a place — "the counting never ends" is a fact about the road, n
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'recursion is a rule fed its own output — each rung' toward living world:
+  maybe: a rulebook rich enough for numbers can be turned to talk about itself — and there its reac
+  with: Gödel — any honest rulebook rich enough for arithmetic contains true statements it can nev
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'order is part of the procedure — the same steps in' toward cooking:
+  maybe: bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrysta
+  with: the room's air holds one level of dampness and every open food walks toward it from its ow
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'repetition needs a stopping test — do the step, as' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a procedure once assembled and checked is written ' toward cooking:
+  maybe: a procedure once assembled and checked is written down and kept — created procedures are k
+  with: the ledger is trade's memory, and honest ledgers write everything twice — what arrived and
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a program is instructions for a perfectly obedient' toward cooking:
+  maybe: a program is instructions for a perfectly obedient, perfectly literal servant — tireless, 
+  with: computation is rule-following made physical — a procedure spelled out completely needs no 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a bug is the distance between intent and instructi' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'what is wanted must be stated before what is built' toward cooking:
+  maybe: what is wanted must be stated before what is built can be judged — a program is only right
+  with: a program is instructions for a perfectly obedient, perfectly literal servant — tireless, 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a working program is many small parts with one job' toward medicine body:
+  maybe: a cheap tool hides its true price — it dies sooner (buy twice) and damages the work before
+  with: a tool is intention given a shape — the screwdriver's tip, the wrench's jaw deliver a hand
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a passing test proves the presence of one behavior' toward cooking:
+  maybe: bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrysta
+  with: the room's air holds one level of dampness and every open food walks toward it from its ow
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'to find a fault, cut the suspect ground in half an' toward deep body everyday:
+  maybe: a fluid pushes on everything it touches, from all sides at once, and harder with depth — p
+  with: to find a fault, cut the suspect ground in half and ask which half holds it — repeated hal
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'every change is kept with its history, so any mist' toward sports games:
+  maybe: every change is kept with its history, so any mistake can be walked back — work without hi
+  with: any computer can imitate any other, given time and memory — computation is one thing weari
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a program stands on other programs written by stra' toward medicine body:
+  maybe: ambiguity is a permanent resident — most sentences carry more than one legal reading, and 
+  with: ambiguity is normal, not broken — one handle doing many jobs is cheap, and the listener se
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'code is writing for humans first — the machine rea' toward cooking:
+  maybe: a working program is many small parts with one job each — a part that does two jobs breaks
+  with: code is writing for humans first — the machine reads anything, however tangled; the next p
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a wrong choice is cheap today and ruinous after ev' toward right wrong:
+  maybe: a skipped repair is a loan from the machine at ruinous interest — the leak rots the beam, 
+  with: a wrong choice is cheap today and ruinous after everything is built on it — the cost of ch
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an algorithm is a recipe independent of its cook —' toward cooking:
+  maybe: bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrysta
+  with: the room's air holds one level of dampness and every open food walks toward it from its ow
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'how facts are arranged decides how fast they are f' toward medicine body:
+  maybe: the index makes the library — a million books without a catalog is a warehouse of paper; u
+  with: how facts are arranged decides how fast they are found — a heap of papers and a labeled ca
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a system is its current state plus rules for movin' toward sports games:
+  maybe: information is surprise — a message carries exactly what its receiver could not already pr
+  with: a message carries information only where it could have been otherwise — the predictable pa
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'each layer keeps its promises and hides its workin' toward medicine body:
+  maybe: the dose makes the poison — every substance has an amount that helps, one that does nothin
+  with: infection is fermentation with a hostile tenant — a tiny living thing finds the body's war

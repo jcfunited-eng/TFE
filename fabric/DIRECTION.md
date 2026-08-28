@@ -19,16 +19,20 @@ Joe, 2026-08-28: "I care about the direction."
    proposes new areas when its records keep pointing at territory
    not yet written.
 
-6. THE OBSERVER IS THE FOURTH PART, AND IT IS CURRENTLY A PERSON.
-   The two sheets are inert; laws and possibilities only sit
-   there. The ribbon — the observer — is the only thing that acts,
-   and what it does is see applicability and utility. The machine
-   holds laws, stages possibilities, and invents bearers. It does
-   NOT judge worth, and no version of it should pretend to. Joe's
-   own description of how we work is the architecture: one side
-   invents without regard for sanity, the other sees what has use
-   and applies it toward the outcome. Build for that pairing;
-   do not try to replace it quietly.
+6. RIBBON = OBSERVER = QUESTION. One thing, three names (Joe,
+   exact words: "the observers are the questions", "and the
+   questions are the ribbons"). Not a
+   person watching, not the machine judging — a question IS an
+   observer. It has length, varying width, and its own patches of
+   possible and closed. The two sheets are inert; the question is
+   the only thing that acts, and what it does is see applicability.
+   So worth is never absolute and never the machine's to assign:
+   a finding has utility WHEN SOME QUESTION REACHES IT. A finding
+   no question reaches is unattached, not worthless — it waits for
+   an observer wide enough to cover it. The fabric therefore
+   supplies its own observers, because it asks its own questions.
+   A person supplies more questions and invents bearers; that is
+   the pairing, and one side of it is not a hole to be patched.
 
 Working proof of the principle, both in this repository's history:
 the taught-families world (a landscape and city composed from a
