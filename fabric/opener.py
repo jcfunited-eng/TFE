@@ -49,7 +49,7 @@ def openings(law_text, kind, need, blocked, es, show=2):
     return out
 
 def why_closed(want, show=3):
-    txt, closed, req, forb, es = maker.make(want, data=True)
+    txt, closed, req, forb, es, _n = maker.make(want, data=True)
     lines = [txt, "",
              "WHAT WOULD OPEN THIS — an impossibility stands on a "
              "reason; resolve the reason and the want opens while "

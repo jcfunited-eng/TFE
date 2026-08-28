@@ -414,3 +414,7 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'prices end in
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'compound interest grows the pile by a fraction of ' toward cooking:
   maybe: interest is the price of time — money now beats the same money later (it can work meanwhil
   with: compound interest grows the pile by a fraction of the pile, so growth itself grows — divid
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'sales manufacture urgency because a vanishing chan' toward persuasion negotiation:
+  maybe: sales manufacture urgency because a vanishing chance is booked as a loss, and losses press
+  with: two borrowed compasses steer most choices — what runs out must be valuable, and what every

@@ -180,7 +180,8 @@ def make(want, size=3, show=3, data=False):
                         f.write(f"  closed {n} — {law}\n")
         except OSError: pass
     if data:
-        return "\n".join(out), closed, req, forb, es
+        return ("\n".join(out), closed, req, forb, es,
+                len(survivors))
     return "\n".join(out)
 
 if __name__ == "__main__":

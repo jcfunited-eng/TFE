@@ -21,3 +21,15 @@ WANT: a way for a man to fly
   closed 1 — forbidden together — No wing works in vacuum. (flight fluids)
   closed 106 — requirement unmet — no surprise without a promise first — syncopation over no beat is just noise; (music)
   closed 105 — requirement unmet — And no referee for the referee without end: somewhere the chain rests on trust, and that rest is every game's soft spot. (sports games)
+
+WANT: a way to keep food cold without electricity
+  closed 1 — requirement unmet — no repair without prepayment — a message at maximum compression has no spare cloth to patch with; (computing information)
+  closed 1 — requirement unmet — no sense without company — a word alone on a card is a menu of possibilities; (words and meaning)
+
+WANT: a way to keep food cold without electricity
+  closed 15 — requirement unmet — no repair without prepayment — a message at maximum compression has no spare cloth to patch with; (computing information)
+  closed 14 — requirement unmet — no sense without company — a word alone on a card is a menu of possibilities; (words and meaning)
+
+WANT: a way to keep food cold without electricity
+  closed 106 — requirement unmet — no repair without prepayment — a message at maximum compression has no spare cloth to patch with; (computing information)
+  closed 93 — requirement unmet — no sense without company — a word alone on a card is a menu of possibilities; (words and meaning)
