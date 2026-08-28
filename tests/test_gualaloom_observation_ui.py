@@ -130,9 +130,15 @@ def test_typed_text_is_rendered_as_pixels_not_submitted_as_semantics() -> None:
 
 def test_material_and_curriculum_controls_are_capability_gated() -> None:
     source = GUALA.read_text(encoding="utf-8")
-    for kind in ("picture", "pdf", "book", "audio", "song"):
+    for kind in ("picture", "pdf", "book", "audio", "song", "video"):
         assert f'id="{kind}-file"' in source
         assert f'capability("{kind}")' in source or f'["{kind}","{kind}"]' in source
+    assert 'schema:"guala.native.browser_material.v2"' in source
+    assert 'id="material-attribution"' in source
+    assert 'id="material-rights"' in source
+    assert 'id="material-rights-statement"' in source
+    assert "origin_locator:file.name" in source
+    assert "source_media?.receipt_sha256" in source
     for shelf in (
         "Project Gutenberg",
         "YouTube",

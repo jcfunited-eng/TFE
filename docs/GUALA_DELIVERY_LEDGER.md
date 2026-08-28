@@ -690,8 +690,15 @@ or beyond tick `228842`.
   seven self-hearing hops. A later unattended recurrence emitted 24,000 samples
   through the same learned route with a different pressure receipt. This proves
   an utterance and learned reuse, not a word or meaning.
-- [ ] **L-007** Connect live camera, microphone, and text input so the organism
-  can learn from what actually reached sight/hearing/language-related structure.
+- [ ] **L-007 — PARTIAL 2026-08-28:** Connect live camera, microphone, and text
+  input so the organism can learn from what actually reached
+  sight/hearing/language-related structure. Task 1299 and the matching live Loom
+  artifact removed the camera prerequisite from microphone pressure, live-proved
+  independent pressure in the same identity at tick 231115→231116, and mounted
+  rendered glyph pixels without submitting their string. Current-artifact real
+  camera hardware proof remains open; one rendered-light live request timed out
+  and has no request-specific receipt, so it is indeterminate rather than
+  counted as committed.
 - [ ] **L-008** Connect local books, PDFs, pictures, sounds, songs, and video as
   bounded sensory experiences while preserving provenance and source media.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.

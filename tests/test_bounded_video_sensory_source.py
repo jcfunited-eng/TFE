@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from fractions import Fraction
 import subprocess
 import struct
 
@@ -63,8 +64,15 @@ def test_silent_video_carries_true_silence_not_invented_sound(tmp_path) -> None:
 
 
 def test_preserved_video_fits_existing_joint_sensorium_without_new_path(
+    monkeypatch,
     tmp_path,
 ) -> None:
+    monkeypatch.setattr(production, "_current_retinal_body_axes", lambda: ())
+    monkeypatch.setattr(
+        production,
+        "_eyelid_transmission_from_axes",
+        lambda _axes: Fraction(1),
+    )
     source = _fixture(tmp_path, sound=True)
     store = BoundedSourceMediaStore(tmp_path / "source-media")
     record = store.admit(

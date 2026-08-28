@@ -1033,12 +1033,11 @@ def test_completed_sensorimotor_play_reaches_public_observation_and_capital(
     assert ("Play and exploration", "autonomous_use") in cells
     assert ("Play and exploration", "transfer") in cells
 
-    # Auditory intake and the curriculum's card surface are genuinely
-    # mounted now; every other modality must still refuse honestly.
-    for modality in ("auditory", "visual"):
+    # Auditory intake, rendered glyph light, and the curriculum's card surface
+    # are genuinely mounted now; every other modality in this fixture refuses.
+    for modality in ("auditory", "text", "visual"):
         assert value["sensory"][modality]["available"] is True
     for modality in (
-        "text",
         "touch",
         "temperature",
         "smell",

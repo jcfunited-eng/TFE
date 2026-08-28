@@ -31,9 +31,10 @@ other sense and actuator keeps its honest ``not_mounted`` refusal:
   true 0.0 silence at both ears (a lawful state; audio is never
   fabricated) and honest caller-declared live-camera provenance.
 - ``POST /api/v1/sensory/audiovisual`` accepts an AUTHORIZED cochlear roster's
-  live microphone pressure only alongside co-captured live camera frames.
-  Each frame pairs with exactly one 250 ms PCM hop in the same native
-  whole-sensorium occurrence; neither signal is interpolated or invented.
+  live microphone pressure alongside co-captured live camera frames.  Without
+  a camera, ``POST /api/v1/curriculum/guided-world-voice`` carries the same
+  pressure beside the exact current world/body sensorium.  Each paired frame
+  has exactly one 250 ms PCM hop; neither signal is interpolated or invented.
   The older ``/sound_frame`` and mono ``/api/v1/auditory/pcm`` route names
   remain honest refusals and retain no sessions. A prior camera receipt is
   bookkeeping, not present light, and can never unlock audio-only intake.
@@ -128,6 +129,11 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
     NativeResidentResourceAdmission,
     derive_native_resident_resource_admission,
 )
+from dsf_ai_service.bounded_source_media_store import (
+    BoundedSourceMediaStore,
+    BoundedSourceMediaStoreError,
+)
+from dsf_ai_service.bounded_video_sensory_source import decode_bounded_video
 
 
 APP_SCHEMA = "guala.native_production_http.v1"
@@ -216,6 +222,8 @@ GUIDED_WORLD_VOICE_SCHEMA = "guala.guided_world_voice.v2"
 STATE_ROOT = Path(
     os.environ.get("GUALA_NATIVE_ORGANISM_ROOT", "/app/guala/native-organism")
 )
+SOURCE_MEDIA_ROOT = STATE_ROOT / "source-media"
+_source_media_store = BoundedSourceMediaStore(SOURCE_MEDIA_ROOT)
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
 CURRICULUM_ROOT = Path(__file__).resolve().parents[1] / "guala_curriculum"
 CARD_ROOT = CURRICULUM_ROOT / "cards"
@@ -6396,28 +6404,33 @@ def _build_public_observation_from_snapshot(
             "picture": _offered_material_capability(
                 "picture",
                 True,
-                "one offered picture is area-averaged onto the same 27 "
+                "the exact offered source is retained once under fixed byte "
+                "and count ceilings, then one picture is area-averaged onto "
+                "the same 27 "
                 "retinal receptor sites the approved cards reach, presented "
                 "for its own hop and then genuinely ended",
             ),
             "pdf": _offered_material_capability(
                 "pdf",
                 True,
-                f"up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
+                "the exact source is retained once under fixed ceilings; "
+                f"then up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
                 "and presented in their own order on the retinal roster; a "
                 "page is a picture, never words",
             ),
             "book": _offered_material_capability(
                 "book",
                 True,
-                f"up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
+                "the exact source is retained once under fixed ceilings; "
+                f"then up to {OFFERED_PAGE_MAX_COUNT} pages are rendered to light "
                 "and presented in their own order on the retinal roster; a "
                 "page is a picture, never words",
             ),
             "audio": _offered_material_capability(
                 "audio",
                 COCHLEAR_EARS_AUTHORIZED,
-                "offered sound is decoded to the exact pcm_s16le mono 16 kHz "
+                "the exact offered source is retained once under fixed "
+                "ceilings, then sound is decoded to pcm_s16le mono 16 kHz "
                 "her cochleae are declared for and transduces on the same "
                 "band decomposition her tutor's voice does"
                 if COCHLEAR_EARS_AUTHORIZED
@@ -6427,12 +6440,26 @@ def _build_public_observation_from_snapshot(
             "song": _offered_material_capability(
                 "song",
                 COCHLEAR_EARS_AUTHORIZED,
-                "an offered song is pressure like any other: decoded to the "
+                "the exact offered source is retained once under fixed "
+                "ceilings; a song is then pressure like any other, decoded to the "
                 "exact format her cochleae are declared for, with no "
                 "transcript, title, or meaning entering cognition"
                 if COCHLEAR_EARS_AUTHORIZED
                 else "offered song is not mounted: without the cochlear ear "
                 "anatomy pressure amplitude has no physical effect",
+            ),
+            "video": _offered_material_capability(
+                "video",
+                COCHLEAR_EARS_AUTHORIZED,
+                "the exact offered source is retained once under fixed "
+                "ceilings, then at most 24 successive quarter-second frames "
+                "and their exact mono pressure reach the mounted retinal and "
+                "cochlear paths on one shared clock; captions, filenames, "
+                "objects, and meanings never enter cognition"
+                if COCHLEAR_EARS_AUTHORIZED
+                else "offered video is not mounted: its light exists, but "
+                "without authorized cochlear anatomy its physical soundtrack "
+                "cannot enter the same audiovisual occurrence",
             ),
             "world": {
                 "available": WORLD_AUTHORIZED and VESTIBULAR_AUTHORIZED,
@@ -14199,6 +14226,7 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
             "hippocampal-cold",
             CARD_LESSON_RECEIPT_FILE,
             SONG_LESSON_RECEIPT_FILE,
+            SOURCE_MEDIA_ROOT.name,
         )
         if (root / name).exists()
     )
@@ -14306,6 +14334,11 @@ def _startup() -> None:
                 )
         observation = restored.organism.readiness()
         _lesson_anatomy()
+        # This is the one explicit cold audit of retained source bytes.  No
+        # ordinary interval or public observation scans or hashes the media
+        # store, and a damaged source refuses restore instead of silently
+        # becoming a different experience.
+        _source_media_store.inventory(verify_source_bytes=True)
         if observation.python_callback_count != 0:
             raise RuntimeError("native organism reports a Python cognition callback")
         step_claims = (
@@ -14740,9 +14773,10 @@ def _gutenberg_pages(text: str) -> list[bytes]:
 
 
 OFFERED_MATERIAL_ENDPOINT = "/api/v1/material/offered"
+SOURCE_MEDIA_CUSTODY_ENDPOINT = "/api/v1/material/custody"
 RENDERED_LIGHT_ENDPOINT = "/api/v1/material/rendered-light"
 RENDERED_LIGHT_SCHEMA = "guala.native.browser_visual_material.v1"
-OFFERED_MATERIAL_SCHEMA = "guala.native.browser_material.v1"
+OFFERED_MATERIAL_SCHEMA = "guala.native.browser_material.v2"
 # Bounds are declared, not discovered (lean-substrate doctrine): the page
 # reads max_bytes off the capability and refuses oversized material before it
 # ever leaves the browser.
@@ -14751,6 +14785,33 @@ OFFERED_VISUAL_MAX_HOPS = 24
 OFFERED_PAGE_MAX_COUNT = 12
 VISUAL_MATERIAL_KINDS = ("picture", "pdf", "book")
 AUDIBLE_MATERIAL_KINDS = ("audio", "song")
+VIDEO_MATERIAL_KINDS = ("video",)
+LOCAL_MATERIAL_KINDS = (
+    VISUAL_MATERIAL_KINDS + AUDIBLE_MATERIAL_KINDS + VIDEO_MATERIAL_KINDS
+)
+
+
+def _validate_offered_media_type(material_kind: str, media_type: object) -> str:
+    if (
+        not isinstance(media_type, str)
+        or not media_type
+        or media_type != media_type.strip()
+    ):
+        raise ValueError("offered material requires its exact media type")
+    accepted = (
+        material_kind == "picture" and media_type.startswith("image/")
+        or material_kind == "pdf" and media_type == "application/pdf"
+        or material_kind == "book"
+        and media_type in {"text/plain", "application/epub+zip"}
+        or material_kind in AUDIBLE_MATERIAL_KINDS
+        and media_type.startswith("audio/")
+        or material_kind == "video" and media_type.startswith("video/")
+    )
+    if not accepted:
+        raise ValueError(
+            f"offered {material_kind} media type {media_type!r} is not admitted"
+        )
+    return media_type
 
 
 def _offered_visual_episodes(
@@ -14792,6 +14853,7 @@ def _offered_visual_episodes(
 def _decode_offered_rasters(
     material_kind: str,
     raw: bytes,
+    media_type: str = "image/png",
 ) -> list[tuple[float, ...]]:
     """Reduce offered visual material to retinal rosters, one per presented page.
 
@@ -14805,9 +14867,17 @@ def _decode_offered_rasters(
     if material_kind == "picture":
         with Image.open(io.BytesIO(raw)) as image:
             return [_raster_luminance(image)]
+    if material_kind == "book" and media_type == "text/plain":
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError("offered plain-text book is not UTF-8") from error
+        pages = _gutenberg_pages(text)
+        return [_live_frame_luminance(page) for page in pages]
     import fitz
 
-    with fitz.open(stream=raw, filetype="pdf") as document:
+    filetype = "epub" if material_kind == "book" else "pdf"
+    with fitz.open(stream=raw, filetype=filetype) as document:
         page_count = min(document.page_count, OFFERED_PAGE_MAX_COUNT)
         if page_count <= 0:
             raise ValueError("offered paged material declares no pages")
@@ -14856,10 +14926,15 @@ def _decode_offered_audio(raw: bytes) -> tuple[int, tuple[int, ...]]:
 def _offered_material_capability(kind: str, available: bool, reason: str) -> dict[str, object]:
     return {
         "available": available,
+        "custody_endpoint": SOURCE_MEDIA_CUSTODY_ENDPOINT,
         "endpoint": OFFERED_MATERIAL_ENDPOINT if available else None,
         "material_kind": kind,
         "max_bytes": OFFERED_MATERIAL_MAX_BYTES,
+        "max_source_count": _source_media_store.max_source_count,
+        "max_total_source_bytes": _source_media_store.max_total_bytes,
+        "provenance_required": True,
         "reason": reason,
+        "source_bytes_preserved_before_decode": True,
         "status": "mounted" if available else "not_mounted",
     }
 
@@ -15813,58 +15888,224 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     )
 
 
+@app.get(SOURCE_MEDIA_CUSTODY_ENDPOINT)
+def source_media_custody() -> JSONResponse:
+    """Bounded on-demand provenance inventory; never polled by cognition."""
+
+    try:
+        records = _source_media_store.inventory(verify_source_bytes=False)
+    except BoundedSourceMediaStoreError as error:
+        return _refusal(503, f"source-media custody refused: {error}")
+    return JSONResponse(
+        status_code=200,
+        content={
+            "cognition_authority": False,
+            "max_source_bytes": _source_media_store.max_source_bytes,
+            "max_source_count": _source_media_store.max_source_count,
+            "max_total_bytes": _source_media_store.max_total_bytes,
+            "record_count": len(records),
+            "records": [
+                {
+                    "material_kind": record.material_kind,
+                    "receipt_sha256": record.receipt_sha256,
+                    "source_byte_count": record.source_byte_count,
+                    "source_bytes_sha256": record.source_bytes_sha256,
+                }
+                for record in records
+            ],
+            "schema": "guala.bounded_source_media_inventory.v1",
+            "semantic_authority": False,
+            "total_source_bytes": sum(
+                record.source_byte_count for record in records
+            ),
+        },
+    )
+
+
+@app.get(SOURCE_MEDIA_CUSTODY_ENDPOINT + "/{receipt_sha256}")
+def source_media_custody_record(receipt_sha256: str) -> JSONResponse:
+    """Explicitly rehash one retained source and return only its receipt."""
+
+    if not re.fullmatch(r"[0-9a-f]{64}", receipt_sha256):
+        return _refusal(422, "source-media receipt changed")
+    try:
+        records = _source_media_store.inventory(verify_source_bytes=False)
+        record = next(
+            item for item in records if item.receipt_sha256 == receipt_sha256
+        )
+        source = _source_media_store.source_bytes(receipt_sha256)
+    except StopIteration:
+        return _refusal(404, "source-media receipt is absent")
+    except (BoundedSourceMediaStoreError, OSError, ValueError) as error:
+        return _refusal(503, f"source-media verification refused: {error}")
+    return JSONResponse(
+        status_code=200,
+        content={
+            **record.public_projection(),
+            "restored_source_bytes_sha256": hashlib.sha256(source).hexdigest(),
+            "source_bytes_restored_and_verified": True,
+        },
+    )
+
+
 @app.post(
     OFFERED_MATERIAL_ENDPOINT,
     dependencies=[Depends(_external_intake_admission)],
 )
 def offered_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """One offered picture, page set, or sound, as one admitted experience."""
+    """Preserve, invite, then physically present one bounded local source."""
+
+    global _curriculum_invitation, _live_hearing_evidence
 
     if not isinstance(payload, dict) or payload.get("schema") != OFFERED_MATERIAL_SCHEMA:
         return _refusal(422, f"offered material requires schema {OFFERED_MATERIAL_SCHEMA}")
+    expected_fields = {
+        "attribution",
+        "bytes_b64",
+        "material_kind",
+        "media_type",
+        "origin_locator",
+        "rights_basis",
+        "rights_statement",
+        "schema",
+    }
+    if set(payload) != expected_fields:
+        return _refusal(
+            422,
+            "offered material requires exact source bytes and immutable local "
+            "provenance; no title, transcript, label, or meaning field is admitted",
+        )
     kind = payload.get("material_kind")
-    if kind not in VISUAL_MATERIAL_KINDS + AUDIBLE_MATERIAL_KINDS:
+    if kind not in LOCAL_MATERIAL_KINDS:
         return _refusal(
             422,
             "offered material_kind must be one of "
-            + ", ".join(VISUAL_MATERIAL_KINDS + AUDIBLE_MATERIAL_KINDS),
+            + ", ".join(LOCAL_MATERIAL_KINDS),
         )
-    if kind in AUDIBLE_MATERIAL_KINDS and not COCHLEAR_EARS_AUTHORIZED:
+    if (
+        kind in AUDIBLE_MATERIAL_KINDS + VIDEO_MATERIAL_KINDS
+        and not COCHLEAR_EARS_AUTHORIZED
+    ):
         return _refusal(503, _SOUND_SUSPENSION_REASON)
     try:
         raw = _decode_material_body(payload, "bytes_b64")
+        media_type = _validate_offered_media_type(kind, payload.get("media_type"))
+        source_record = _source_media_store.admit(
+            attribution=payload.get("attribution"),
+            material_kind=kind,
+            media_type=media_type,
+            origin_kind="local_offer",
+            origin_locator=payload.get("origin_locator"),
+            rights_basis=payload.get("rights_basis"),
+            rights_statement=payload.get("rights_statement"),
+            source_bytes=raw,
+        )
+        # Decode only the exact bytes just committed to bounded custody.  The
+        # source record is outside cognition; no provenance field is copied
+        # into a receptor occurrence.
+        preserved_raw = _source_media_store.source_bytes(
+            source_record.receipt_sha256
+        )
         if kind in VISUAL_MATERIAL_KINDS:
-            rosters = _decode_offered_rasters(kind, raw)
+            rosters = _decode_offered_rasters(kind, preserved_raw, media_type)
             episodes = _offered_visual_episodes(f"offered-{kind}-{uuid.uuid4()}", rosters)
             presented = {"presented_raster_count": len(rosters)}
-        else:
-            sample_rate, samples = _decode_offered_audio(raw)
+        elif kind in AUDIBLE_MATERIAL_KINDS:
+            sample_rate, samples = _decode_offered_audio(preserved_raw)
             episodes = _mono_pcm_hop_episodes(
                 assembly_prefix=f"offered-{kind}-{uuid.uuid4()}",
                 samples=samples,
                 sample_rate_hz=sample_rate,
             )
             presented = {"presented_sample_count": len(samples)}
-    except (OSError, ValueError) as error:
+        else:
+            video = decode_bounded_video(preserved_raw)
+            rosters = [
+                _live_frame_luminance(frame) for frame in video.frame_png_bytes
+            ]
+            samples = struct.unpack(
+                f"<{len(video.pcm_s16le) // 2}h",
+                video.pcm_s16le,
+            )
+            episodes = _live_audiovisual_hop_episodes(
+                f"offered-video-{uuid.uuid4()}",
+                rosters,
+                samples,
+                video.sample_rate_hz,
+            )
+            presented = {
+                "presented_raster_count": len(rosters),
+                "presented_sample_count": len(samples),
+                "sensory_projection": video.public_projection(),
+            }
+    except (BoundedSourceMediaStoreError, OSError, TypeError, ValueError) as error:
         return _refusal(422, f"offered {kind} refused: {error}")
+    invitation_response = _embodied_curriculum_invitation(
+        experience_kind="material",
+        experience_id=source_record.receipt_sha256,
+        media_receipts={
+            "source_bytes_sha256": source_record.source_bytes_sha256,
+            "source_media_receipt_sha256": source_record.receipt_sha256,
+        },
+    )
+    if invitation_response.status_code != 200:
+        return invitation_response
+    invitation_body = json.loads(invitation_response.body)
+    invitation = invitation_body.get("invitation")
+    invitation_receipt = (
+        invitation.get("invitation_receipt_sha256")
+        if isinstance(invitation, dict)
+        else None
+    )
     try:
-        result = _perform_admitted_intake(episodes, f"offered-{kind}")
+        with _transition_lock:
+            prepared = _validated_curriculum_experience_invitation(
+                "material",
+                source_record.receipt_sha256,
+                invitation_receipt,
+            )
+            _curriculum_invitation = {
+                **prepared,
+                "outcome": "presentation_attempted",
+                "presentation_eligible": False,
+                "reason": "one preserved local source is entering its physical sensory paths",
+                "status": "local_material_presentation_in_progress",
+            }
+            result = _perform_admitted_intake_locked(
+                episodes,
+                f"offered-{kind}",
+            )
+            _curriculum_invitation = {
+                **_curriculum_invitation,
+                "outcome": "presented",
+                "presented_successor_organism_tick": result["persisted"][
+                    "organism_tick"
+                ],
+                "presented_successor_state_sha256": result["persisted"][
+                    "state_sha256"
+                ],
+                "presentation_eligible": False,
+                "reason": "the preserved source committed once through physical receptors",
+                "status": "local_material_presentation_committed",
+            }
+            if kind in AUDIBLE_MATERIAL_KINDS + VIDEO_MATERIAL_KINDS:
+                _live_hearing_evidence = {
+                    "intake": f"offered-{kind}",
+                    "generation": result.get("generation"),
+                }
+            _refresh_public_observation_cache()
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"admitted material transition refused: {error}")
-    if kind in AUDIBLE_MATERIAL_KINDS:
-        global _live_hearing_evidence
-        with _transition_lock:
-            _live_hearing_evidence = {
-                "intake": f"offered-{kind}",
-                "generation": result.get("generation"),
-            }
-            _refresh_public_observation_cache()
     return JSONResponse(
         status_code=200,
         content={
             "material_kind": kind,
+            "source_media": source_record.public_projection(),
+            "transport_metadata_only": True,
             **presented,
             **_public_admitted_intake_result(result),
         },
