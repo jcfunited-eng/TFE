@@ -8009,6 +8009,7 @@ impl ResidentCognitiveFormationState {
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
+            &predecessor_preceding_active_electrical_frontier,
             &[],
             &root_yaw_continuations,
         )?;
@@ -14556,6 +14557,7 @@ fn mount_reached_motor_effector(
         physically_transitioned_lineages,
         settled_directed_transfers,
         predecessor_frontier,
+        &[],
         _moved_axes,
         &BTreeMap::new(),
     )
@@ -14569,15 +14571,18 @@ fn mount_reached_motor_effector_with_root(
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_predecessor_frontier: &[ActiveElectricalFrontierEntry],
     _moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
 ) -> Result<(), FormationError> {
     // Articulated motor terminals are fixed body anatomy mounted with their
     // typed regulation routes. Learned growth here is only an exact sparse
-    // ordering contact proved by the two-interval ordering -> affective ->
-    // regulation carrier chain. Root yaw follows the same authorship law;
-    // guided movement alone, coincident activity, stillness, and an unjoined
-    // frontier author nothing.
+    // ordering contact proved either by the direct two-interval ordering ->
+    // affective -> regulation carrier chain or by that same causal path
+    // traversing the ordering route's founding association over the two
+    // retained predecessor frontiers. Root yaw follows the same authorship
+    // law; guided movement alone, coincident activity, stillness, and an
+    // unjoined frontier author nothing.
     let mounted = cohorts
         .iter()
         .flat_map(|cohort| {
@@ -14642,7 +14647,10 @@ fn mount_reached_motor_effector_with_root(
     // same ordering neuron to transition again in the current consequence
     // interval collapses a two-interval causal path into coincidence and
     // makes lawful first learning practically unreachable.
-    for entry in predecessor_frontier {
+    for entry in predecessor_frontier
+        .iter()
+        .chain(preceding_predecessor_frontier)
+    {
         for lineage in [entry.sender(), Some(entry.receiver())]
             .into_iter()
             .flatten()
@@ -14797,7 +14805,7 @@ fn mount_reached_motor_effector_with_root(
             .iter()
             .copied()
             .filter(|lineage| {
-                predecessor_frontier.iter().any(|entry| {
+                let direct = predecessor_frontier.iter().any(|entry| {
                     let frontier = entry.frontier_lineage();
                     if !proven_affective.contains(&frontier) {
                         return false;
@@ -14806,11 +14814,40 @@ fn mount_reached_motor_effector_with_root(
                     let receiver = entry.receiver();
                     (sender == Some(*lineage) && receiver == frontier)
                         || (sender == Some(frontier) && receiver == *lineage)
-                })
+                });
+                direct
+                    || predecessor_frontier.iter().any(|affective_entry| {
+                        let affective = affective_entry.frontier_lineage();
+                        if !proven_affective.contains(&affective) {
+                            return false;
+                        }
+                        let association = match (
+                            affective_entry.sender(),
+                            affective_entry.receiver(),
+                        ) {
+                            (Some(sender), receiver) if receiver == affective => sender,
+                            (Some(sender), receiver) if sender == affective => receiver,
+                            _ => return false,
+                        };
+                        if layer_by_lineage.get(&association).copied() != Some(7) {
+                            return false;
+                        }
+                        preceding_predecessor_frontier.iter().any(|ordering_entry| {
+                            if ordering_entry.frontier_lineage() != association {
+                                return false;
+                            }
+                            let sender = ordering_entry.sender();
+                            let receiver = ordering_entry.receiver();
+                            (sender == Some(*lineage) && receiver == association)
+                                || (sender == Some(association) && receiver == *lineage)
+                        })
+                    })
             })
             .collect::<Vec<_>>();
         // Every learned motor contact, including root yaw, requires the same
-        // exact two-interval ordering -> affective -> regulation chain.
+        // exact ordered path into the returned regulation. The three-contact
+        // form is ordering -> its founding association -> affective in the
+        // two retained windows, followed by affective -> regulation now.
         // Guided movement alone has no contact-authorship authority.
         if proven_ordering.is_empty() {
             continue;
@@ -24771,6 +24808,7 @@ mod tests {
             &[],
             &[],
             &[],
+            &[],
             &continuations,
         )
         .unwrap();
@@ -24838,6 +24876,7 @@ mod tests {
             &[],
             &[],
             &prior_ordering,
+            &[],
             &[],
             &continuations,
         )
@@ -25969,6 +26008,13 @@ mod tests {
             DeclaredNeuronPlace::new(10, 0),
         )
         .unwrap();
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
         fabric = fabric
             .append_contacts(&[
                 (
@@ -25979,6 +26025,16 @@ mod tests {
                 (
                     affective,
                     ordering,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    ordering,
+                    association,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    association,
+                    affective,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 ),
             ])
@@ -26013,12 +26069,25 @@ mod tests {
         .unwrap();
         let contacts_before = fabric.contact_count();
         let current_consequence = directed_chain(&cohorts, &fabric, &[regulation, affective]);
-        let mut preceding_action = frontier_hop(&cohorts, &fabric, ordering, affective);
+        let preceding_ordering = frontier_hop_with_frontier(
+            &cohorts,
+            &fabric,
+            ordering,
+            association,
+            association,
+        );
+        let mut preceding_action = frontier_hop_with_frontier(
+            &cohorts,
+            &fabric,
+            affective,
+            association,
+            affective,
+        );
         preceding_action.extend(frontier_hop(&cohorts, &fabric, motor, articulatory));
         preceding_action.sort_unstable();
 
         // Body feedback without self-hearing cannot teach a vocal route.
-        mount_reached_motor_effector(
+        mount_reached_motor_effector_with_root(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -26026,15 +26095,17 @@ mod tests {
             &[regulation],
             &current_consequence,
             &preceding_action,
+            &preceding_ordering,
             &[],
+            &BTreeMap::new(),
         )
         .unwrap();
         assert!(!fabric.contains_contact(ordering, motor));
         assert_eq!(fabric.contact_count(), contacts_before);
 
-        // The exact preceding motor discharge, its returned mechanics, and
-        // self-hearing now retain only ordering -> that fired motor.
-        mount_reached_motor_effector(
+        // Self-hearing cannot substitute for the earlier causal arrival from
+        // ordering into its founding association.
+        mount_reached_motor_effector_with_root(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -26043,6 +26114,27 @@ mod tests {
             &current_consequence,
             &preceding_action,
             &[],
+            &[],
+            &BTreeMap::new(),
+        )
+        .unwrap();
+        assert!(!fabric.contains_contact(ordering, motor));
+        assert_eq!(fabric.contact_count(), contacts_before);
+
+        // The exact ordered association path, preceding motor discharge,
+        // returned mechanics, and self-hearing retain only ordering -> that
+        // fired motor.
+        mount_reached_motor_effector_with_root(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[acoustic, regulation],
+            &current_consequence,
+            &preceding_action,
+            &preceding_ordering,
+            &[],
+            &BTreeMap::new(),
         )
         .unwrap();
         assert!(fabric.contains_contact(ordering, motor));
@@ -26052,7 +26144,7 @@ mod tests {
         assert!(!fabric.contains_contact(ordering, articulatory));
 
         // Repeating the same exact evidence is idempotent.
-        mount_reached_motor_effector(
+        mount_reached_motor_effector_with_root(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -26060,7 +26152,9 @@ mod tests {
             &[acoustic, regulation],
             &current_consequence,
             &preceding_action,
+            &preceding_ordering,
             &[],
+            &BTreeMap::new(),
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before + 1);
