@@ -334,6 +334,7 @@ mod tests {
             topology_index: 0,
             body_proprioceptor_terminal: None,
             root_yaw_proprioceptor_terminal: None,
+            root_translation_proprioceptor_terminal: None,
             sensor_id: "card-contact-sheet".into(),
             substream_id: "contact-row0-col0".into(),
             coordinates: vec![JointSourceCoordinate {

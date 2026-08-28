@@ -306,6 +306,7 @@ fn cochlear_port(channel_index: usize, values: &[f64], hop_seconds: BigRational)
         topology_index: channel_index as u32,
         body_proprioceptor_terminal: None,
         root_yaw_proprioceptor_terminal: None,
+        root_translation_proprioceptor_terminal: None,
         sensor_id: "organism-ear-pressure".into(),
         substream_id: format!("cochlea-0-band-{channel_index:02}"),
         coordinates: vec![JointSourceCoordinate {

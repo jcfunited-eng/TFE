@@ -80,6 +80,8 @@
         "native/guala_core/src/resident_receptor_transition.rs",
         "native/guala_core/src/root_yaw_joint_source_builder.rs",
         "native/guala_core/src/root_yaw_terminal.rs",
+        "native/guala_core/src/root_translation_joint_source_builder.rs",
+        "native/guala_core/src/root_translation_terminal.rs",
         "native/guala_core/src/scratch_auditory_ear_proofs.rs",
         "native/guala_core/src/scratch_auditory_probe.rs",
         "native/guala_core/src/sha256.rs",

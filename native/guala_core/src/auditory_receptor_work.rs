@@ -330,6 +330,7 @@ mod tests {
             topology_index: 0,
             body_proprioceptor_terminal: None,
             root_yaw_proprioceptor_terminal: None,
+            root_translation_proprioceptor_terminal: None,
             sensor_id: "W1-cochlea".into(),
             substream_id: "cochlear-ear-0-band-0".into(),
             coordinates: vec![JointSourceCoordinate {

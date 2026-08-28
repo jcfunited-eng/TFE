@@ -93,6 +93,7 @@ use crate::proprioceptive_receptor_work::{
     ProprioceptiveReceptorAnatomy, ProprioceptiveReceptorWorkError,
     ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
     DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT, EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
+    ROOT_TRANSLATION_DIRECTIONAL_MOTION_QUANTITY, ROOT_TRANSLATION_DIRECTIONAL_MOTION_UNIT,
     ROOT_YAW_DIRECTIONAL_MOTION_QUANTITY, ROOT_YAW_DIRECTIONAL_MOTION_UNIT,
 };
 use crate::reached_neuron_cohort::{
@@ -161,6 +162,10 @@ use crate::virtual_articulated_body::{
 use crate::root_yaw_terminal::{
     RootYawEffectorTerminal, RootYawProprioceptorTerminal,
     ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET, ROOT_YAW_TERMINAL_COUNT,
+};
+use crate::root_translation_terminal::{
+    RootTranslationEffectorTerminal, RootTranslationProprioceptorTerminal,
+    ROOT_TRANSLATION_PROPRIOCEPTOR_TOPOLOGY_OFFSET, ROOT_TRANSLATION_TERMINAL_COUNT,
 };
 use crate::virtual_vestibular_canal::WORLD_MECHANICAL_TICK_MICROSECONDS;
 use num_bigint::BigInt;
@@ -272,6 +277,8 @@ const BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
     BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_YAW_LAYER6_TOPOLOGY_OFFSET: u32 =
     BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+const ROOT_TRANSLATION_LAYER6_TOPOLOGY_OFFSET: u32 =
+    ROOT_YAW_LAYER6_TOPOLOGY_OFFSET + ROOT_YAW_TERMINAL_COUNT as u32;
 /// Body regulation is its own layer-8 geography. Before proprioception, its
 /// widest body receptor is layer 5, topology 9, whose local projection is 114.
 /// The fixed antagonist terminals therefore occupy the next disjoint layer-8
@@ -287,6 +294,8 @@ const BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
     BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_YAW_LAYER8_TOPOLOGY_OFFSET: u32 =
     BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+const ROOT_TRANSLATION_LAYER8_TOPOLOGY_OFFSET: u32 =
+    ROOT_YAW_LAYER8_TOPOLOGY_OFFSET + ROOT_YAW_TERMINAL_COUNT as u32;
 const HIPPOCAMPAL_CHECKPOINT_BYTES: usize = 8 + 33 + 33;
 const FIXED_BYTES: usize = MAGIC.len()
     + std::mem::size_of::<u16>()
@@ -1114,6 +1123,7 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
     pub(crate) motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     pub(crate) root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
+    pub(crate) root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
     pub(crate) articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
@@ -1432,6 +1442,18 @@ pub(crate) struct RootYawUnitRecruitment {
     pub(crate) topology_index: u32,
     pub(crate) outward_elementary_carriers: u128,
     pub(crate) terminal: RootYawEffectorTerminal,
+    pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
+}
+
+/// One transient discharge through a retained root-translation effector.
+/// Axis and direction are fixed body anatomy; the whole-carrier discharge is
+/// the movement magnitude. This contains no destination or semantic command.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct RootTranslationUnitRecruitment {
+    pub(crate) neuron_lineage: [u8; 16],
+    pub(crate) topology_index: u32,
+    pub(crate) outward_elementary_carriers: u128,
+    pub(crate) terminal: RootTranslationEffectorTerminal,
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
 }
 
@@ -4465,6 +4487,7 @@ fn validate_motor_effector_mounts(
 ) -> Result<(), FormationError> {
     let mut body_terminals = BTreeSet::<BodyEffectorTerminal>::new();
     let mut root_yaw_terminals = BTreeSet::<RootYawEffectorTerminal>::new();
+    let mut root_translation_terminals = BTreeSet::<RootTranslationEffectorTerminal>::new();
     for mount in cohorts.iter().flat_map(|cohort| cohort.anatomy.mounts()) {
         if mount.place().layer() != 12 {
             continue;
@@ -4472,9 +4495,11 @@ fn validate_motor_effector_mounts(
         match (
             mount.body_effector_terminal(),
             mount.root_yaw_effector_terminal(),
+            mount.root_translation_effector_terminal(),
         ) {
-            (Some(terminal), None) if body_terminals.insert(terminal) => {}
-            (None, Some(terminal)) if root_yaw_terminals.insert(terminal) => {}
+            (Some(terminal), None, None) if body_terminals.insert(terminal) => {}
+            (None, Some(terminal), None) if root_yaw_terminals.insert(terminal) => {}
+            (None, None, Some(terminal)) if root_translation_terminals.insert(terminal) => {}
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         }
     }
@@ -8201,6 +8226,12 @@ impl ResidentCognitiveFormationState {
             &externally_energized_neuron_lineages,
             &reached_body_regulation_lineages,
         )?;
+        let root_translation_continuations = exact_reached_root_translation_regulations(
+            &cohorts,
+            &topology_index,
+            &externally_energized_neuron_lineages,
+            &reached_body_regulation_lineages,
+        )?;
         mount_reached_motor_effector_with_root(
             &mut cohorts,
             &mut resting_population,
@@ -8212,6 +8243,7 @@ impl ResidentCognitiveFormationState {
             &predecessor_preceding_active_electrical_frontier,
             &[],
             &root_yaw_continuations,
+            &root_translation_continuations,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -8448,6 +8480,8 @@ impl ResidentCognitiveFormationState {
                 organic_mosaic_relations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 root_yaw_unit_recruitments: internal_contact.root_yaw_unit_recruitments,
+                root_translation_unit_recruitments:
+                    internal_contact.root_translation_unit_recruitments,
                 articulatory_unit_recruitments: internal_contact.articulatory_unit_recruitments,
                 partial_cue_reassembly_count,
                 endogenous_partial_cue_reassembly_count,
@@ -8970,6 +9004,7 @@ impl ResidentCognitiveFormationState {
                 organic_mosaic_relations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 root_yaw_unit_recruitments: Vec::new(),
+                root_translation_unit_recruitments: Vec::new(),
                 articulatory_unit_recruitments: Vec::new(),
                 partial_cue_reassembly_count: 0,
                 endogenous_partial_cue_reassembly_count: 0,
@@ -13457,6 +13492,30 @@ fn local_integration_place(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
+    let root_translation_start =
+        u32::try_from(ROOT_TRANSLATION_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let root_translation_end = root_translation_start
+        .checked_add(
+            u32::try_from(ROOT_TRANSLATION_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (root_translation_start..root_translation_end)
+            .contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(root_translation_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            ROOT_TRANSLATION_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     let paired = declared_neuron_territory(receptor_place)
         .map_err(|_| FormationError::ArithmeticOverflow)?
         .checked_sub(1)
@@ -13531,6 +13590,30 @@ fn body_regulation_place(
         return Ok(DeclaredNeuronPlace::new(
             8,
             ROOT_YAW_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let root_translation_start =
+        u32::try_from(ROOT_TRANSLATION_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let root_translation_end = root_translation_start
+        .checked_add(
+            u32::try_from(ROOT_TRANSLATION_TERMINAL_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (root_translation_start..root_translation_end)
+            .contains(&receptor_place.topology_index())
+    {
+        let terminal_ordinal = receptor_place
+            .topology_index()
+            .checked_sub(root_translation_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            ROOT_TRANSLATION_LAYER8_TOPOLOGY_OFFSET
                 .checked_add(terminal_ordinal)
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
@@ -13900,6 +13983,12 @@ fn mount_reached_body_regulation(
                             .root_yaw_proprioceptor_terminal()
                             .map(RootYawProprioceptorTerminal::paired_effector)
                             .map(DevelopedMotorTerminal::RootYaw)
+                            .or_else(|| {
+                                source_site
+                                    .root_translation_proprioceptor_terminal()
+                                    .map(RootTranslationProprioceptorTerminal::paired_effector)
+                                    .map(DevelopedMotorTerminal::RootTranslation)
+                            })
                     });
                     (*lineage, mount.place(), effector)
                 })
@@ -13952,6 +14041,16 @@ fn mount_reached_body_regulation(
                 }
                 DevelopedMotorTerminal::RootYaw(terminal) => {
                     mount_fixed_root_yaw_motor_terminal(
+                        cohorts,
+                        resting_population,
+                        next_lineage_ordinal,
+                        electrical_fabric,
+                        regulation_lineage,
+                        terminal,
+                    )?;
+                }
+                DevelopedMotorTerminal::RootTranslation(terminal) => {
+                    mount_fixed_root_translation_motor_terminal(
                         cohorts,
                         resting_population,
                         next_lineage_ordinal,
@@ -14217,6 +14316,68 @@ fn mount_fixed_root_yaw_motor_terminal(
             motor_cohort
                 .anatomy
                 .specialize_root_yaw_effector(lineage, terminal)
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            lineage
+        }
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    if !electrical_fabric.contains_contact(regulation_lineage, motor_lineage) {
+        *electrical_fabric = electrical_fabric
+            .append_contact(
+                regulation_lineage,
+                motor_lineage,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    Ok(motor_lineage)
+}
+
+/// Mount one fixed x/y root-translation terminal and its exact regulation
+/// contact. The terminal is body anatomy; experience may only add sparse
+/// ordering input to it later.
+fn mount_fixed_root_translation_motor_terminal(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    regulation_lineage: [u8; 16],
+    terminal: RootTranslationEffectorTerminal,
+) -> Result<[u8; 16], FormationError> {
+    let mut matching = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter_map(|(mount, lineage)| {
+            (mount.source_site().is_none()
+                && mount.place().layer() == 12
+                && mount.root_translation_effector_terminal() == Some(terminal))
+            .then_some(*lineage)
+        })
+        .collect::<Vec<_>>();
+    matching.sort_unstable();
+    matching.dedup();
+    let motor_lineage = match matching.as_slice() {
+        [lineage] => *lineage,
+        [] => {
+            let lineage = mount_next_intrinsic_in_layer(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                12,
+            )?;
+            let motor_cohort = cohorts
+                .iter_mut()
+                .find(|cohort| cohort.anatomy.neuron_lineages().contains(&lineage))
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            motor_cohort
+                .anatomy
+                .specialize_root_translation_effector(lineage, terminal)
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
             lineage
         }
@@ -14655,6 +14816,7 @@ fn mount_reached_ordering_reach(
 enum DevelopedMotorTerminal {
     Articulated(BodyEffectorTerminal),
     RootYaw(RootYawEffectorTerminal),
+    RootTranslation(RootTranslationEffectorTerminal),
 }
 
 /// Resolve the exact reached root-yaw regulation for each directional
@@ -14744,6 +14906,83 @@ fn exact_reached_root_yaw_regulations(
     Ok(continuations)
 }
 
+/// Resolve the exact reached root-translation regulation for each directional
+/// x/y proprioceptor whose physical value changed in this occurrence. This is
+/// the translation analogue of root yaw and uses the same receptor -> local
+/// integration -> body regulation anatomy without introducing a destination.
+fn exact_reached_root_translation_regulations(
+    cohorts: &[ResidentReachedCohort],
+    topology_index: &ResidentTopologyIndex,
+    externally_energized_lineages: &[[u8; 16]],
+    reached_body_regulation_lineages: &[[u8; 16]],
+) -> Result<BTreeMap<[u8; 16], Vec<RootTranslationEffectorTerminal>>, FormationError> {
+    let mount_for = |lineage: [u8; 16]| {
+        let flat = topology_index.flat_for_lineage(lineage)?;
+        let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
+        cohorts
+            .get(cohort_index)
+            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+    };
+    let mut regulation_by_place = BTreeMap::new();
+    for regulation in reached_body_regulation_lineages.iter().copied() {
+        let mount = mount_for(regulation)?;
+        if mount.source_site().is_some() || mount.place().layer() != 8 {
+            continue;
+        }
+        let place = (mount.place().layer(), mount.place().topology_index());
+        if regulation_by_place.insert(place, regulation).is_some() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+    }
+    let mut continuations =
+        BTreeMap::<[u8; 16], Vec<RootTranslationEffectorTerminal>>::new();
+    for receptor in externally_energized_lineages.iter().copied() {
+        let receptor_mount = mount_for(receptor)?;
+        let Some(terminal) = receptor_mount
+            .source_site()
+            .and_then(NeuronSourceSite::root_translation_proprioceptor_terminal)
+            .map(RootTranslationProprioceptorTerminal::paired_effector)
+        else {
+            continue;
+        };
+        let integration_place = local_integration_place(receptor_mount.place())?;
+        let regulation_place = body_regulation_place(receptor_mount.place(), integration_place)?;
+        let Some(regulation) = regulation_by_place
+            .get(&(regulation_place.layer(), regulation_place.topology_index()))
+            .copied()
+        else {
+            continue;
+        };
+        let receptor_flat = topology_index.flat_for_lineage(receptor)?;
+        let integrations = topology_index.neighbours_by_flat[receptor_flat]
+            .iter()
+            .map(|flat| topology_index.flat_locations[*flat].2)
+            .filter(|lineage| {
+                topology_index.layer_of(*lineage) == Some(6)
+                    && mount_for(*lineage)
+                        .is_ok_and(|mount| mount.place() == integration_place)
+            })
+            .collect::<Vec<_>>();
+        let [integration] = integrations.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let integration_flat = topology_index.flat_for_lineage(*integration)?;
+        if !topology_index.neighbours_by_flat[integration_flat]
+            .iter()
+            .any(|flat| topology_index.flat_locations[*flat].2 == regulation)
+        {
+            return Err(FormationError::NeuronLineageAuthorityAbsent);
+        }
+        continuations.entry(regulation).or_default().push(terminal);
+    }
+    for terminals in continuations.values_mut() {
+        terminals.sort_unstable();
+        terminals.dedup();
+    }
+    Ok(continuations)
+}
+
 #[cfg(test)]
 fn mount_reached_motor_effector(
     cohorts: &mut Vec<ResidentReachedCohort>,
@@ -14766,6 +15005,7 @@ fn mount_reached_motor_effector(
         &[],
         _moved_axes,
         &BTreeMap::new(),
+        &BTreeMap::new(),
     )
 }
 
@@ -14780,6 +15020,8 @@ fn mount_reached_motor_effector_with_root(
     preceding_predecessor_frontier: &[ActiveElectricalFrontierEntry],
     _moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
+    root_translation_continuations:
+        &BTreeMap<[u8; 16], Vec<RootTranslationEffectorTerminal>>,
 ) -> Result<(), FormationError> {
     // Articulated motor terminals are fixed body anatomy mounted with their
     // typed regulation routes. Learned growth here is only an exact sparse
@@ -14878,8 +15120,15 @@ fn mount_reached_motor_effector_with_root(
             body_regulation.push(regulation);
         }
     }
+    for regulation in root_translation_continuations.keys().copied() {
+        if !body_regulation.contains(&regulation) {
+            body_regulation.push(regulation);
+        }
+    }
     if body_regulation.is_empty()
-        || (ordering.is_empty() && root_yaw_continuations.is_empty())
+        || (ordering.is_empty()
+            && root_yaw_continuations.is_empty()
+            && root_translation_continuations.is_empty())
     {
         return Ok(());
     }
@@ -14923,11 +15172,13 @@ fn mount_reached_motor_effector_with_root(
         let terminal = match (
             mount.body_effector_terminal(),
             mount.root_yaw_effector_terminal(),
+            mount.root_translation_effector_terminal(),
         ) {
-            (Some(terminal), None) => DevelopedMotorTerminal::Articulated(terminal),
-            (None, Some(terminal)) => DevelopedMotorTerminal::RootYaw(terminal),
-            (None, None) => continue,
-            (Some(_), Some(_)) => return Err(FormationError::NeuronLineageAuthorityChanged),
+            (Some(terminal), None, None) => DevelopedMotorTerminal::Articulated(terminal),
+            (None, Some(terminal), None) => DevelopedMotorTerminal::RootYaw(terminal),
+            (None, None, Some(terminal)) => DevelopedMotorTerminal::RootTranslation(terminal),
+            (None, None, None) => continue,
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         matching_by_terminal
             .entry(terminal)
@@ -14968,6 +15219,12 @@ fn mount_reached_motor_effector_with_root(
                     .root_yaw_proprioceptor_terminal()
                     .map(RootYawProprioceptorTerminal::paired_effector)
                     .map(DevelopedMotorTerminal::RootYaw)
+                    .or_else(|| {
+                        source_site
+                            .root_translation_proprioceptor_terminal()
+                            .map(RootTranslationProprioceptorTerminal::paired_effector)
+                            .map(DevelopedMotorTerminal::RootTranslation)
+                    })
             })
             .collect::<Vec<_>>();
         terminals.sort_unstable();
@@ -14981,6 +15238,7 @@ fn mount_reached_motor_effector_with_root(
                 source_site.sense() == PhysicalSourceSense::Body
                     && source_site.body_proprioceptor_terminal().is_none()
                     && source_site.root_yaw_proprioceptor_terminal().is_none()
+                    && source_site.root_translation_proprioceptor_terminal().is_none()
                     && matches!(
                         source_site.physical_quantity(),
                         RESPIRATORY_VOLUME_VELOCITY_QUANTITY
@@ -15090,6 +15348,11 @@ fn mount_reached_motor_effector_with_root(
             DevelopedMotorTerminal::RootYaw(terminal) => root_yaw_continuations
                 .get(&regulation)
                 .is_some_and(|terminals| terminals.contains(&terminal)),
+            DevelopedMotorTerminal::RootTranslation(terminal) => {
+                root_translation_continuations
+                    .get(&regulation)
+                    .is_some_and(|terminals| terminals.contains(&terminal))
+            }
         };
         if !consequence_moved {
             continue;
@@ -15106,7 +15369,10 @@ fn mount_reached_motor_effector_with_root(
             .unwrap_or_default();
         let motor_lineage = match matching.as_slice() {
             [lineage] => *lineage,
-            [] if matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_)) => {
+            [] if matches!(
+                effector_terminal,
+                DevelopedMotorTerminal::RootYaw(_) | DevelopedMotorTerminal::RootTranslation(_)
+            ) => {
                 let lineage = mount_next_intrinsic_in_layer(
                     cohorts,
                     resting_population,
@@ -15131,6 +15397,7 @@ fn mount_reached_motor_effector_with_root(
                     )?
                 }
                 DevelopedMotorTerminal::RootYaw(_) => unreachable!(),
+                DevelopedMotorTerminal::RootTranslation(_) => unreachable!(),
             },
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
@@ -15145,6 +15412,9 @@ fn mount_reached_motor_effector_with_root(
             DevelopedMotorTerminal::RootYaw(terminal) => motor_cohort
                 .anatomy
                 .specialize_root_yaw_effector(motor_lineage, terminal),
+            DevelopedMotorTerminal::RootTranslation(terminal) => motor_cohort
+                .anatomy
+                .specialize_root_translation_effector(motor_lineage, terminal),
         }
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
         if electrical_fabric.contains_contact(regulation, motor_lineage) {
@@ -15996,7 +16266,8 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
                 )
             });
         let neuron = held_neuron.as_ref().unwrap_or(current_neuron);
-        let mounted_terminal_ready = mount.root_yaw_effector_terminal().is_some()
+        let mounted_terminal_ready = (mount.root_yaw_effector_terminal().is_some()
+            || mount.root_translation_effector_terminal().is_some())
             && neuron.separated_elementary_charges() > 0;
         let due = if mounted_terminal_ready {
             Some(
@@ -16231,6 +16502,7 @@ struct InternalContactSettlementObservation {
     localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
+    root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
     transition_predecessors: BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
@@ -16586,6 +16858,28 @@ fn exact_root_yaw_preparation_regulations(
     regulations
 }
 
+/// Resolve only the layer-8 regulation line paired with this exact x/y root
+/// translation terminal.
+fn exact_root_translation_preparation_regulations(
+    motor_terminal: RootTranslationEffectorTerminal,
+    paths: &[MotorBodyAfferentPath],
+) -> Vec<[u8; 16]> {
+    let mut regulations = paths
+        .iter()
+        .filter_map(|path| {
+            (path
+                .receptor_site
+                .root_translation_proprioceptor_terminal()
+                .map(RootTranslationProprioceptorTerminal::paired_effector)
+                == Some(motor_terminal))
+            .then_some(path.body_regulation_lineage)
+        })
+        .collect::<Vec<_>>();
+    regulations.sort_unstable();
+    regulations.dedup();
+    regulations
+}
+
 /// Settle the bounded contact-connected frontier reached by this external
 /// occurrence, form one native membrane-potential occurrence from its exact
 /// predecessor/successor states, evaluate unchanged full DSF once, and let
@@ -16644,6 +16938,7 @@ fn settle_internal_contact_interval(
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
+            root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: BTreeMap::new(),
@@ -16888,6 +17183,7 @@ fn settle_internal_contact_interval(
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
+            root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: BTreeMap::new(),
@@ -17224,6 +17520,7 @@ fn settle_internal_contact_interval(
             localized_fluid_chemistry: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
+            root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
             transition_predecessors: BTreeMap::new(),
@@ -17619,6 +17916,8 @@ fn settle_internal_contact_interval(
     // whole motor population merely because the body is present.
     let mut body_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     let mut root_yaw_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
+    let mut root_translation_regulations_by_motor =
+        BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     for (motor_flat, (_, _, motor_lineage)) in flat_locations.iter().copied().enumerate() {
         if layer_of(motor_lineage) != Some(12) {
             continue;
@@ -17648,6 +17947,16 @@ fn settle_internal_contact_interval(
                 root_yaw_regulations_by_motor.insert(motor_lineage, root_yaw_regulations);
             }
         }
+        if let Some(motor_terminal) = motor_mount.root_translation_effector_terminal() {
+            if motor_mount.source_site().is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            let regulations =
+                exact_root_translation_preparation_regulations(motor_terminal, &paths);
+            if !regulations.is_empty() {
+                root_translation_regulations_by_motor.insert(motor_lineage, regulations);
+            }
+        }
     }
     // The shared contact field and carrier transfers above are settled once.
     // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
@@ -17666,6 +17975,7 @@ fn settle_internal_contact_interval(
                 Vec<TransitionNeuronPredecessor>,
                 Vec<MotorUnitRecruitment>,
                 Vec<RootYawUnitRecruitment>,
+                Vec<RootTranslationUnitRecruitment>,
                 Vec<ArticulatoryUnitRecruitment>,
                 Vec<EmittedNeuronFractal>,
                 Vec<PendingLayerTenPlasticitySettlement>,
@@ -17927,6 +18237,17 @@ fn settle_internal_contact_interval(
                     &causal_seed_lineages,
                     &layer_of,
                 )
+            } else if mount.root_translation_effector_terminal().is_some() {
+                exact_root_yaw_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    root_translation_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &causal_seed_lineages,
+                    &layer_of,
+                )
             } else if mount.body_effector_terminal().is_some() {
                 exact_motor_preparation_transfers(
                     motor_lineage,
@@ -17957,7 +18278,9 @@ fn settle_internal_contact_interval(
             // earlier intervals. Its retained positive displacement is that
             // physical memory and may discharge without demanding that the
             // incoming contact cross again in this same interval.
-            let discharge_limit = if mount.root_yaw_effector_terminal().is_some() {
+            let discharge_limit = if mount.root_yaw_effector_terminal().is_some()
+                || mount.root_translation_effector_terminal().is_some()
+            {
                 prepared_carriers.max(retained_positive_displacement)
             } else {
                 prepared_carriers
@@ -18101,6 +18424,42 @@ fn settle_internal_contact_interval(
                 )
             })
             .collect::<Vec<_>>();
+        let root_translation_unit_recruitments = selected_members
+            .iter()
+            .filter_map(|(_, neuron_index)| {
+                let mount = &cohort.anatomy.mounts()[*neuron_index];
+                let terminal = mount.root_translation_effector_terminal()?;
+                let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
+                let preparation_transfers = exact_root_yaw_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    root_translation_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &causal_seed_lineages,
+                    &layer_of,
+                );
+                let outward_elementary_carriers = prepared_terminal_discharges
+                    .get(neuron_index)
+                    .map(|outward| outward.unsigned_abs())
+                    .or_else(|| {
+                        exact_prepared_efferent_carriers(
+                            local_outward_for(*neuron_index),
+                            preparation_transfers.len(),
+                        )
+                    })?;
+                (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
+                    RootTranslationUnitRecruitment {
+                        neuron_lineage: motor_lineage,
+                        topology_index: mount.place().topology_index(),
+                        outward_elementary_carriers,
+                        terminal,
+                        preparation_transfers,
+                    },
+                )
+            })
+            .collect::<Vec<_>>();
         let articulatory_unit_recruitments = selected_members
             .iter()
             .filter_map(|(_, neuron_index)| {
@@ -18215,6 +18574,7 @@ fn settle_internal_contact_interval(
             changed_predecessors,
             motor_unit_recruitments,
             root_yaw_unit_recruitments,
+            root_translation_unit_recruitments,
             articulatory_unit_recruitments,
             cohort_fractals,
             pending_layer_ten_plasticity,
@@ -18224,6 +18584,7 @@ fn settle_internal_contact_interval(
     .collect::<Vec<_>>();
     let mut motor_unit_recruitments = Vec::new();
     let mut root_yaw_unit_recruitments = Vec::new();
+    let mut root_translation_unit_recruitments = Vec::new();
     let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
     let mut transition_predecessors = BTreeMap::new();
@@ -18233,6 +18594,7 @@ fn settle_internal_contact_interval(
             changed_predecessors,
             cohort_motor_recruitments,
             cohort_root_yaw_recruitments,
+            cohort_root_translation_recruitments,
             cohort_articulatory_recruitments,
             cohort_fractals,
             cohort_layer_ten_plasticity,
@@ -18245,6 +18607,7 @@ fn settle_internal_contact_interval(
             }
             motor_unit_recruitments.extend(cohort_motor_recruitments);
             root_yaw_unit_recruitments.extend(cohort_root_yaw_recruitments);
+            root_translation_unit_recruitments.extend(cohort_root_translation_recruitments);
             articulatory_unit_recruitments.extend(cohort_articulatory_recruitments);
             emitted_neuron_fractals.extend(cohort_fractals);
             layer_ten_plasticity_settlements.extend(cohort_layer_ten_plasticity);
@@ -18993,7 +19356,8 @@ fn settle_internal_contact_interval(
             }
             let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
             let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
-            let mounted_terminal_ready = mount.root_yaw_effector_terminal().is_some()
+            let mounted_terminal_ready = (mount.root_yaw_effector_terminal().is_some()
+                || mount.root_translation_effector_terminal().is_some())
                 && neuron.separated_elementary_charges() > 0;
             let due = if mounted_terminal_ready {
                 Some(
@@ -19052,6 +19416,7 @@ fn settle_internal_contact_interval(
         localized_fluid_chemistry,
         motor_unit_recruitments,
         root_yaw_unit_recruitments,
+        root_translation_unit_recruitments,
         articulatory_unit_recruitments,
         emitted_neuron_fractals,
         transition_predecessors,
@@ -19640,6 +20005,11 @@ fn receptor_law_for_ports(
             && port.root_yaw_proprioceptor_terminal.is_some()
             && port.physical_quantity == ROOT_YAW_DIRECTIONAL_MOTION_QUANTITY
             && port.physical_unit == ROOT_YAW_DIRECTIONAL_MOTION_UNIT
+    }) || all_ports(|port| {
+        port.sense == PhysicalSourceSense::Body.declared_layer()
+            && port.root_translation_proprioceptor_terminal.is_some()
+            && port.physical_quantity == ROOT_TRANSLATION_DIRECTIONAL_MOTION_QUANTITY
+            && port.physical_unit == ROOT_TRANSLATION_DIRECTIONAL_MOTION_UNIT
     }) {
         return Some(ReceptorLaw::ProprioceptiveBody);
     }
@@ -25178,6 +25548,7 @@ mod tests {
             &[],
             &[],
             &continuations,
+            &BTreeMap::new(),
         )
         .unwrap();
 
@@ -25247,6 +25618,7 @@ mod tests {
             &[],
             &[],
             &continuations,
+            &BTreeMap::new(),
         )
         .unwrap();
         assert!(!fabric.contains_contact(ordering, motor));
@@ -25357,6 +25729,82 @@ mod tests {
         assert_eq!(exact_prepared_efferent_carriers(0, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(-3, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(3, 0), None);
+    }
+
+    #[test]
+    fn moved_root_translation_terminal_mounts_its_exact_reflex() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let source =
+            crate::root_translation_joint_source_builder::admit_root_translation_proprioceptive_source(
+                0, 1, 0,
+            )
+            .unwrap();
+        let moved_port = source
+            .joint_source_ports()
+            .iter()
+            .find(|port| {
+                port.root_translation_proprioceptor_terminal.is_some()
+                    && port
+                        .exact_normalized_sources
+                        .windows(2)
+                        .any(|pair| pair[0] != pair[1])
+            })
+            .unwrap();
+        let terminal = moved_port
+            .root_translation_proprioceptor_terminal
+            .unwrap()
+            .paired_effector();
+        let receptor_site = NeuronSourceSite::from_source_port(moved_port).unwrap();
+        let (regulation, receptor, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            receptor_site,
+        );
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let continuations = exact_reached_root_translation_regulations(
+            &cohorts,
+            &topology,
+            &[receptor],
+            &[regulation],
+        )
+        .unwrap();
+        assert_eq!(continuations.get(&regulation), Some(&vec![terminal]));
+        mount_reached_motor_effector_with_root(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[],
+            &[],
+            &[],
+            &[],
+            &[],
+            &BTreeMap::new(),
+            &continuations,
+        )
+        .unwrap();
+        let motors = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.root_translation_effector_terminal() == Some(terminal))
+                    .then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(motors.len(), 1);
+        assert!(fabric.contains_contact(regulation, motors[0]));
+        validate_motor_effector_mounts(&cohorts).unwrap();
     }
 
     #[test]
@@ -26308,6 +26756,7 @@ mod tests {
             topology_index: 0,
             body_proprioceptor_terminal: None,
             root_yaw_proprioceptor_terminal: None,
+            root_translation_proprioceptor_terminal: None,
             sensor_id: "articulatory-mechanoreceptors".into(),
             substream_id: "oral-aperture".into(),
             coordinates: vec![crate::joint_source_episode::JointSourceCoordinate {
@@ -26466,6 +26915,7 @@ mod tests {
             &preceding_ordering,
             &[],
             &BTreeMap::new(),
+            &BTreeMap::new(),
         )
         .unwrap();
         assert!(!fabric.contains_contact(ordering, motor));
@@ -26483,6 +26933,7 @@ mod tests {
             &preceding_action,
             &[],
             &[],
+            &BTreeMap::new(),
             &BTreeMap::new(),
         )
         .unwrap();
@@ -26503,6 +26954,7 @@ mod tests {
             &preceding_ordering,
             &[],
             &BTreeMap::new(),
+            &BTreeMap::new(),
         )
         .unwrap();
         assert!(fabric.contains_contact(ordering, motor));
@@ -26522,6 +26974,7 @@ mod tests {
             &preceding_action,
             &preceding_ordering,
             &[],
+            &BTreeMap::new(),
             &BTreeMap::new(),
         )
         .unwrap();

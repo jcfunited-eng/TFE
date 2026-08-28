@@ -103,6 +103,7 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
     create_native_resident_organism,
     exact_articulatory_interval_trajectory,
     exact_native_root_yaw_proprioceptive_source,
+    exact_native_root_translation_proprioceptive_source,
     exact_native_yaw_trajectory,
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
@@ -8280,6 +8281,9 @@ def _causal_interval_hops(
             ),
             "motor_unit_recruitments": interval.motor_unit_recruitments,
             "root_yaw_unit_recruitments": interval.root_yaw_unit_recruitments,
+            "root_translation_unit_recruitments": (
+                interval.root_translation_unit_recruitments
+            ),
             "articulatory_unit_recruitments": (
                 interval.articulatory_unit_recruitments
             ),
@@ -8412,6 +8416,9 @@ def _commit_admitted_hop(
         ),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "root_yaw_unit_recruitments": evidence.root_yaw_unit_recruitments,
+        "root_translation_unit_recruitments": (
+            evidence.root_translation_unit_recruitments
+        ),
         "body_effector_bindings": evidence.body_effector_bindings,
         "articulated_body_consequences": (
             evidence.articulated_body_consequences
@@ -8532,6 +8539,9 @@ def _commit_vestibular_trajectory(
         "causal_interval_evidence": _causal_interval_hops(evidence),
         "motor_unit_recruitments": evidence.motor_unit_recruitments,
         "root_yaw_unit_recruitments": evidence.root_yaw_unit_recruitments,
+        "root_translation_unit_recruitments": (
+            evidence.root_translation_unit_recruitments
+        ),
         "body_effector_bindings": evidence.body_effector_bindings,
         "articulated_body_consequences": (
             evidence.articulated_body_consequences
@@ -10042,13 +10052,16 @@ def _prepare_continuous_native_action_consequence(
     successor_body_axes: tuple[Any, ...],
     motor_unit_recruitments: tuple[Any, ...],
     root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...],
+    root_translation_unit_recruitments: tuple[
+        tuple[str, int, int, str, str], ...
+    ],
     body_effector_bindings: tuple[Any, ...],
     articulated_body_consequences: tuple[Any, ...],
     body_proprioceptive_sources: tuple[
         tuple[bytes, tuple[int, int, int, int, int]], ...
     ],
     root_yaw_source_tick: int,
-) -> tuple[Any, Any, Any, Any, dict[str, Any], Any, int] | None:
+) -> tuple[Any, Any, Any, Any, dict[str, Any], Any, int, int, int] | None:
     """Prepare one immediate world/sensor interval for a native body action.
 
     Cognition is not suspended and no organism-state transaction is created.
@@ -10063,6 +10076,7 @@ def _prepare_continuous_native_action_consequence(
         ENVIRONMENT_PORT_ID,
         MoveCommand,
         PORT_ID,
+        PositionMM,
         PoseMM,
         PreparedActionExecution,
         encode_command,
@@ -10084,9 +10098,36 @@ def _prepare_continuous_native_action_consequence(
     ):
         raise RuntimeError("native root-yaw discharge lost typed direction")
     signed_root_yaw = positive_root_carriers - negative_root_carriers
+    signed_root_x = sum(
+        int(carriers) if direction == "positive" else -int(carriers)
+        for _lineage, _topology, carriers, axis, direction
+        in root_translation_unit_recruitments
+        if axis == "x"
+    )
+    signed_root_y = sum(
+        int(carriers) if direction == "positive" else -int(carriers)
+        for _lineage, _topology, carriers, axis, direction
+        in root_translation_unit_recruitments
+        if axis == "y"
+    )
+    if any(
+        axis not in {"x", "y"} or direction not in {"negative", "positive"}
+        for _lineage, _topology, _carriers, axis, direction
+        in root_translation_unit_recruitments
+    ):
+        raise RuntimeError("native root-translation discharge lost typed anatomy")
     if not -(1 << 31) <= signed_root_yaw < (1 << 31):
         raise RuntimeError("native root-yaw discharge exceeds exact body width")
-    if not articulated_body_consequences and signed_root_yaw == 0:
+    if not (-(1 << 31) <= signed_root_x < (1 << 31)) or not (
+        -(1 << 31) <= signed_root_y < (1 << 31)
+    ):
+        raise RuntimeError("native root-translation discharge exceeds exact body width")
+    if (
+        not articulated_body_consequences
+        and signed_root_yaw == 0
+        and signed_root_x == 0
+        and signed_root_y == 0
+    ):
         return None
     if articulated_body_consequences and not motor_unit_recruitments:
         raise RuntimeError("native body consequence has no causal motor discharge")
@@ -10100,7 +10141,10 @@ def _prepare_continuous_native_action_consequence(
             "duration_microseconds": WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             "motor_unit_recruitments": motor_unit_recruitments,
             "root_yaw_unit_recruitments": root_yaw_unit_recruitments,
+            "root_translation_unit_recruitments": root_translation_unit_recruitments,
             "signed_root_yaw_millidegrees": signed_root_yaw,
+            "signed_root_x_millimetres": signed_root_x,
+            "signed_root_y_millimetres": signed_root_y,
             "organism_identity": organism_identity,
             "predecessor_state_sha256": predecessor_state_sha256,
             "schema": "guala.native_action_world_interval_intent.v3",
@@ -10109,7 +10153,7 @@ def _prepare_continuous_native_action_consequence(
             "world_state_before_sha256": before.state_sha256,
         }
     )
-    if signed_root_yaw:
+    if signed_root_yaw or signed_root_x or signed_root_y:
         before_body = next(
             body for body in before.bodies if body.body_id == before.self_body_id
         )
@@ -10119,7 +10163,14 @@ def _prepare_continuous_native_action_consequence(
             duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
         )
         command = MoveCommand(
-            target_pose=PoseMM(before_body.pose.position, successor_heading),
+            target_pose=PoseMM(
+                PositionMM(
+                    before_body.pose.position.x + signed_root_x,
+                    before_body.pose.position.y + signed_root_y,
+                    before_body.pose.position.z,
+                ),
+                successor_heading,
+            ),
             duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
         )
         port_id = PORT_ID
@@ -10135,8 +10186,19 @@ def _prepare_continuous_native_action_consequence(
         expected_revision=before.revision,
     )
     if isinstance(prepared, ActionExecutionReceipt):
-        raise RuntimeError(
-            "native action world interval was refused: " + prepared.reason
+        # The motor discharge still happened in the organism when the world
+        # blocked translation. Advance the same physical interval with zero
+        # root displacement so unchanged vision/body consequence returns to
+        # cognition instead of aborting the organism's lived trajectory.
+        prepared = authority.prepare_port_command(
+            port_id=ENVIRONMENT_PORT_ID,
+            command_payload=encode_command(
+                AdvancePhysicalTimeCommand(
+                    duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000
+                )
+            ),
+            causal_intent_receipt_sha256=intent,
+            expected_revision=before.revision,
         )
     if not isinstance(prepared, PreparedActionExecution):
         raise RuntimeError("native action world interval lost prepared custody")
@@ -10175,9 +10237,35 @@ def _prepare_continuous_native_action_consequence(
             if signed_root_yaw
             else None
         )
+        if signed_root_x or signed_root_y:
+            before_root = next(
+                body
+                for body in execution.before.bodies
+                if body.body_id == execution.before.self_body_id
+            )
+            after_root = next(
+                body
+                for body in execution.after.bodies
+                if body.body_id == execution.after.self_body_id
+            )
+            actual_root_x = after_root.pose.position.x - before_root.pose.position.x
+            actual_root_y = after_root.pose.position.y - before_root.pose.position.y
+        else:
+            actual_root_x = 0
+            actual_root_y = 0
+        root_translation_source = (
+            exact_native_root_translation_proprioceptive_source(
+                source_tick=root_yaw_source_tick,
+                signed_x_millimetres=actual_root_x,
+                signed_y_millimetres=actual_root_y,
+            )
+            if actual_root_x or actual_root_y
+            else None
+        )
         consequence_sources = (
             *restored_body_sources,
             *((root_yaw_source,) if root_yaw_source is not None else ()),
+            *((root_translation_source,) if root_translation_source is not None else ()),
         )
         if consequence_sources:
             episode = (world_episode, *consequence_sources)
@@ -10241,6 +10329,8 @@ def _prepare_continuous_native_action_consequence(
         lane_truth,
         vestibular_yaw,
         signed_root_yaw,
+        actual_root_x,
+        actual_root_y,
     )
 
 
@@ -10317,6 +10407,9 @@ def _perform_admitted_intake_locked(
         ]
     ] = []
     root_yaw_unit_recruitments: list[tuple[str, int, int, str]] = []
+    root_translation_unit_recruitments: list[
+        tuple[str, int, int, str, str]
+    ] = []
     articulatory_unit_recruitments: list[
         tuple[
             str,
@@ -10479,6 +10572,9 @@ def _perform_admitted_intake_locked(
             root_yaw_unit_recruitments.extend(
                 last_hop["root_yaw_unit_recruitments"]
             )
+            root_translation_unit_recruitments.extend(
+                last_hop["root_translation_unit_recruitments"]
+            )
             retain_articulated_body_evidence(last_hop)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
@@ -10559,6 +10655,9 @@ def _perform_admitted_intake_locked(
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             root_yaw_unit_recruitments.extend(
                 last_hop["root_yaw_unit_recruitments"]
+            )
+            root_translation_unit_recruitments.extend(
+                last_hop["root_translation_unit_recruitments"]
             )
             articulatory_unit_recruitments.extend(
                 last_hop["articulatory_unit_recruitments"]
@@ -10674,6 +10773,9 @@ def _perform_admitted_intake_locked(
                 root_yaw_unit_recruitments.extend(
                     last_hop["root_yaw_unit_recruitments"]
                 )
+                root_translation_unit_recruitments.extend(
+                    last_hop["root_translation_unit_recruitments"]
+                )
                 retain_articulated_body_evidence(last_hop)
                 emitted_neuron_fractals.extend(
                     last_hop["emitted_neuron_fractals"]
@@ -10755,6 +10857,8 @@ def _perform_admitted_intake_locked(
         raise RuntimeError("admitted intake carried no hop episodes")
     action_body_axes = organism.live_articulated_body_axes()
     signed_root_yaw = 0
+    signed_root_x = 0
+    signed_root_y = 0
     try:
         prepared_action = _prepare_continuous_native_action_consequence(
             organism_identity=predecessor.identity,
@@ -10764,6 +10868,9 @@ def _perform_admitted_intake_locked(
             successor_body_axes=action_body_axes,
             motor_unit_recruitments=tuple(motor_unit_recruitments),
             root_yaw_unit_recruitments=tuple(root_yaw_unit_recruitments),
+            root_translation_unit_recruitments=tuple(
+                root_translation_unit_recruitments
+            ),
             body_effector_bindings=tuple(sorted(set(body_effector_bindings))),
             articulated_body_consequences=tuple(articulated_body_consequences),
             body_proprioceptive_sources=tuple(body_proprioceptive_sources),
@@ -10825,6 +10932,8 @@ def _perform_admitted_intake_locked(
             consequence_lane_truth,
             consequence_vestibular_yaw,
             signed_root_yaw,
+            signed_root_x,
+            signed_root_y,
         ) = prepared_action
         world_committed = False
         world_persisted = False
@@ -11029,7 +11138,7 @@ def _perform_admitted_intake_locked(
         successor_body_observation.articulated_body_state_sha256
     )
     motor_action: dict[str, Any] | None = None
-    if articulated_body_consequences or signed_root_yaw:
+    if articulated_body_consequences or signed_root_yaw or signed_root_x or signed_root_y:
         canonical_bindings = tuple(sorted(set(body_effector_bindings)))
         receipt_material = bytearray(b"guala.native-articulated-body.v1\0")
         receipt_material.extend(bytes.fromhex(predecessor.state_sha256))
@@ -11050,6 +11159,12 @@ def _perform_admitted_intake_locked(
             receipt_material.extend(int(topology).to_bytes(4, "little"))
             receipt_material.extend(int(carriers).to_bytes(16, "little"))
             receipt_material.extend(direction.encode("ascii"))
+        for lineage, topology, carriers, axis, direction in root_translation_unit_recruitments:
+            receipt_material.extend(bytes.fromhex(lineage))
+            receipt_material.extend(int(topology).to_bytes(4, "little"))
+            receipt_material.extend(int(carriers).to_bytes(16, "little"))
+            receipt_material.extend(axis.encode("ascii"))
+            receipt_material.extend(direction.encode("ascii"))
         body_transition_receipt = hashlib.sha256(receipt_material).hexdigest()
         motor_action = {
             "schema": "guala.native.articulated_body_action.v1",
@@ -11060,13 +11175,16 @@ def _perform_admitted_intake_locked(
             ),
             "body_transition_receipt_sha256": body_transition_receipt,
             "disposition": "applied",
-            "moved": signed_root_yaw != 0 or any(
+            "moved": signed_root_yaw != 0 or signed_root_x != 0 or signed_root_y != 0 or any(
                 consequence[5] != 0
                 for consequence in articulated_body_consequences
             ),
-            "root_motion": signed_root_yaw != 0,
+            "root_motion": bool(signed_root_yaw or signed_root_x or signed_root_y),
             "signed_root_yaw_millidegrees": signed_root_yaw,
+            "signed_root_x_millimetres": signed_root_x,
+            "signed_root_y_millimetres": signed_root_y,
             "root_yaw_unit_recruitments": root_yaw_unit_recruitments,
+            "root_translation_unit_recruitments": root_translation_unit_recruitments,
             "continuous_cognition": True,
             "body_state_before_sha256": predecessor_body_state_sha256,
             "body_state_after_sha256": successor_body_state_sha256,
@@ -15938,6 +16056,23 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
             _last_displacement = moved
             try:
+                after_body = next(
+                    body
+                    for body in execution.after.bodies
+                    if body.body_id == execution.after.self_body_id
+                )
+                actual_dx = after_body.pose.position.x - before_body.pose.position.x
+                actual_dy = after_body.pose.position.y - before_body.pose.position.y
+                root_translation_source = (
+                    exact_native_root_translation_proprioceptive_source(
+                        source_tick=root_yaw_source_tick,
+                        signed_x_millimetres=actual_dx,
+                        signed_y_millimetres=actual_dy,
+                    )
+                    if actual_dx or actual_dy
+                    else None
+                )
+                admitted_episodes = [(consequence, admissions)]
                 if signed_yaw:
                     root_yaw_source = (
                         exact_native_root_yaw_proprioceptive_source(
@@ -15945,15 +16080,20 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                             signed_displacement_millidegrees=signed_yaw,
                         )
                     )
-                    admitted_episodes = [
-                        (consequence, admissions),
+                    admitted_episodes.append(
                         (
                             root_yaw_source,
                             [(1, 1_000)] * root_yaw_source.occurrence_count,
-                        ),
-                    ]
-                else:
-                    admitted_episodes = [(consequence, admissions)]
+                        )
+                    )
+                if root_translation_source is not None:
+                    admitted_episodes.append(
+                        (
+                            root_translation_source,
+                            [(1, 1_000)]
+                            * root_translation_source.occurrence_count,
+                        )
+                    )
                 result = _perform_admitted_intake_locked(
                     admitted_episodes,
                     f"world-move:{intent}",

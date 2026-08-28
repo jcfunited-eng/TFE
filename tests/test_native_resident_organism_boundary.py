@@ -21,6 +21,7 @@ class _NativeCausalIntervalEvidence:
     externally_reassembled_formation_frontiers: list[tuple[object, ...]]
     motor_unit_recruitments: list[tuple[object, ...]]
     root_yaw_unit_recruitments: list[tuple[object, ...]]
+    root_translation_unit_recruitments: list[tuple[object, ...]]
     articulatory_unit_recruitments: list[tuple[object, ...]]
     emitted_neuron_lineages: list[str]
     changed_contact_channel_states: list[tuple[object, ...]]
@@ -1233,6 +1234,7 @@ def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> N
         externally_reassembled_formation_frontiers=[],
         motor_unit_recruitments=[],
         root_yaw_unit_recruitments=[],
+        root_translation_unit_recruitments=[],
         articulatory_unit_recruitments=[],
         emitted_neuron_lineages=[],
         changed_contact_channel_states=[],

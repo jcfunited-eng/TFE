@@ -240,6 +240,7 @@ mod tests {
             topology_index: 4,
             body_proprioceptor_terminal: None,
             root_yaw_proprioceptor_terminal: None,
+            root_translation_proprioceptor_terminal: None,
             sensor_id: "articulatory-mechanoreceptors".into(),
             substream_id: "perioral-skin".into(),
             coordinates: vec![JointSourceCoordinate {

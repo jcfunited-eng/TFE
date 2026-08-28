@@ -244,6 +244,7 @@ mod tests {
             topology_index: 0,
             body_proprioceptor_terminal: None,
             root_yaw_proprioceptor_terminal: None,
+            root_translation_proprioceptor_terminal: None,
             sensor_id: "chemical-receptor-field".into(),
             substream_id: "chemical-receptor-00".into(),
             coordinates: vec![JointSourceCoordinate {
