@@ -193,25 +193,21 @@ def exercise_knowledge(st, floors):
     if toys:
         s, a, b = toys[0]
         _grow(CANDIDATES,
-              f"
-CANDIDATE (self-asked, un-aimed, ungraded) — "
-              f"from the thread of "{e['essence'][:50]}" toward "
-              f"{target}:
-  maybe: {a['essence'][:90]}
-  with: "
-              f"{b['essence'][:90]}
-", "possible")
+              "\nCANDIDATE (self-asked, un-aimed, ungraded) — "
+              "from the thread of '" + e["essence"][:50] +
+              "' toward " + target + ":\n  maybe: " +
+              a["essence"][:90] + "\n  with: " +
+              b["essence"][:90] + "\n", "possible")
         log(f"beat {st['beats']}: exercised its knowledge — a "
             f"candidate possibility recorded "
             f"({e['field']} toward {target})")
     else:
         _grow(BRIDGES,
-              f"
-MISSING BRIDGE — the entry "{e['essence'][:60]}""
-              f" promises a thread toward {target}, but exercising "
-              f"it found nothing that connects. The bridge is "
-              f"knowledge not yet written.
-", "missing-bridge")
+              "\nMISSING BRIDGE — the entry '" +
+              e["essence"][:60] + "' promises a thread toward " +
+              target + ", but exercising it found nothing that "
+              "connects. The bridge is knowledge not yet "
+              "written.\n", "missing-bridge")
         log(f"beat {st['beats']}: exercised its knowledge — found "
             f"a missing bridge ({e['field']} toward {target})")
         _bridge_misses[target] = _bridge_misses.get(target, 0) + 1
