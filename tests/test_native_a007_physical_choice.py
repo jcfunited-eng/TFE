@@ -196,6 +196,48 @@ def test_missing_native_thought_cannot_witness_choice() -> None:
     assert production._physical_choice_evidence_from_transition(transition) is None
 
 
+def test_earlier_exact_thought_arrival_survives_a_later_consequence_hop() -> None:
+    transition = deepcopy(_transition())
+    thought = transition["causal_interval_evidence"][0][
+        "causal_thought_transitions"
+    ]
+    transition["causal_cross_context_use"]["causal_thought_transitions"] = thought
+    transition["causal_interval_evidence"] = (
+        {"causal_thought_transitions": ()},
+    )
+
+    assert production._physical_choice_evidence_from_transition(transition) is not None
+
+
+def test_completed_motor_path_carries_only_its_exact_earlier_thought() -> None:
+    transition = _transition()
+    thought = transition["causal_interval_evidence"][0][
+        "causal_thought_transitions"
+    ][0]
+    unrelated = (
+        "20" * 32,
+        "21" * 32,
+        RECURRENT,
+        FORMATION,
+        thought[4],
+    )
+    hops = (
+        (
+            {
+                "causal_interval_evidence": (
+                    {"causal_thought_transitions": (thought, unrelated)},
+                )
+            },
+            (),
+        ),
+        ({"causal_interval_evidence": ()}, ()),
+    )
+
+    assert production._thought_transitions_on_completed_motor_path(
+        transition["causal_cross_context_use"], hops
+    ) == (thought,)
+
+
 def test_thought_must_reassemble_the_motor_causing_formation() -> None:
     transition = deepcopy(_transition())
     interval = dict(transition["causal_interval_evidence"][0])

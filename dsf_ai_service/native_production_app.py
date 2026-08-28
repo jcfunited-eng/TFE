@@ -2999,13 +2999,18 @@ def _physical_choice_evidence_from_transition(
         or len(causal_formation_receipt) != 64
     ):
         return None
-    thought_transitions = tuple(
-        transition
-        for interval in evidence.get("causal_interval_evidence", ())
-        if isinstance(interval, dict)
-        for transition in interval.get("causal_thought_transitions", ())
-        if isinstance(transition, tuple) and len(transition) == 5
-    )
+    thought_transitions = tuple(causal.get("causal_thought_transitions", ()))
+    if not thought_transitions:
+        # Compatibility for one-hop callers whose thought and body evidence
+        # still coexist in the same aggregate. Production trajectories carry
+        # the exact matched transition on the completed causal proof below.
+        thought_transitions = tuple(
+            transition
+            for interval in evidence.get("causal_interval_evidence", ())
+            if isinstance(interval, dict)
+            for transition in interval.get("causal_thought_transitions", ())
+            if isinstance(transition, tuple) and len(transition) == 5
+        )
     causal_path = tuple(causal.get("directed_physical_transfers", ()))
     causal_thought_transitions = tuple(
         transition
@@ -9048,6 +9053,47 @@ def _compact_retained_motor_path(proof: dict[str, Any]) -> dict[str, Any]:
     return projected
 
 
+def _thought_transitions_on_completed_motor_path(
+    proof: dict[str, Any] | None,
+    hops: tuple[tuple[dict[str, Any], tuple[tuple[Any, ...], ...]], ...],
+) -> tuple[tuple[Any, ...], ...]:
+    """Retain only native thought arrivals used by one completed motor path.
+
+    The motor proof can complete several causal intervals after its thought
+    arrival. The latest consequence hop therefore cannot be the authority for
+    whether that earlier arrival occurred. This projection reads the already
+    committed transient interval observations and carries only transitions
+    whose destination formation and exact carrier transfer are on the completed
+    path. It neither reads resident cognition nor creates a causal edge.
+    """
+
+    if proof is None:
+        return ()
+    receipt = proof.get("formation_receipt_sha256")
+    if not isinstance(receipt, str):
+        return ()
+    path_transfers = {
+        tuple(transfer)
+        for transfer in proof.get("directed_physical_transfers", ())
+        if isinstance(transfer, (list, tuple)) and len(transfer) == 4
+    }
+    matched: set[tuple[Any, ...]] = set()
+    for hop, _affective in hops:
+        for interval in hop.get("causal_interval_evidence", ()):
+            if not isinstance(interval, dict):
+                raise RuntimeError("causal interval observation changed format")
+            for transition in interval.get("causal_thought_transitions", ()):
+                if not isinstance(transition, (list, tuple)) or len(transition) != 5:
+                    raise RuntimeError("causal thought observation changed format")
+                transfer = transition[4]
+                if not isinstance(transfer, (list, tuple)) or len(transfer) != 4:
+                    raise RuntimeError("causal thought transfer changed format")
+                canonical = (*transition[:4], tuple(transfer))
+                if canonical[1] == receipt and canonical[4] in path_transfers:
+                    matched.add(canonical)
+    return tuple(sorted(matched))
+
+
 def _advance_causal_motor_traces(
     committed_frontier: tuple[tuple[str, str, int, int, str], ...] | None,
     active: dict[
@@ -11192,6 +11238,12 @@ def _perform_admitted_intake_locked(
     internally_reassembled_motor_path = completed_causal_motor_traces.get(
         "retained_formation"
     )
+    internally_reassembled_thought_transitions = (
+        _thought_transitions_on_completed_motor_path(
+            internally_reassembled_motor_path,
+            tuple(causal_observation_hops),
+        )
+    )
     externally_reassembled_motor_path = completed_causal_motor_traces.get(
         "externally_reassembled_retained_formation"
     )
@@ -11257,6 +11309,9 @@ def _perform_admitted_intake_locked(
     if motor_action is not None and internally_reassembled_motor_path is not None:
         causal_cross_context_use = {
             **internally_reassembled_motor_path,
+            "causal_thought_transitions": (
+                internally_reassembled_thought_transitions
+            ),
             "action": dict(motor_action_projection),
             "sensed_consequence": dict(motor_sensed_consequence),
         }
