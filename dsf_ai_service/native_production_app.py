@@ -9683,6 +9683,74 @@ def _perform_admitted_intake(
         _end_external_intake()
 
 
+def _public_admitted_intake_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Return the bounded JSON receipt for one already-committed intake.
+
+    The internal observation deliberately retains exact binary body states for
+    causal validation and possible self-hearing. Those bytes are organism
+    evidence, not an HTTP payload. Returning the internal dictionary directly
+    made a lawful articulation commit and then fail while JSON encoded its
+    receipt. Keep the internal evidence untouched and publish only the exact
+    scalar identities, bounded counts, and digests an external caller needs to
+    know what committed.
+    """
+
+    observation = result.get("observation")
+    if not isinstance(observation, dict):
+        observation = {}
+    public_observation = {
+        key: observation[key]
+        for key in (
+            "predecessor_organism_tick",
+            "organism_tick",
+            "predecessor_state_sha256",
+            "state_sha256",
+            "causal_transition_sha256",
+            "energy_exhausted",
+            "intake",
+        )
+        if key in observation
+    }
+    articulation = observation.get("articulation")
+    if isinstance(articulation, dict):
+        public_observation["articulation"] = {
+            key: articulation[key]
+            for key in (
+                "layer_13_recruitment_count",
+                "sample_rate_hz",
+                "pressure_sample_count",
+                "pressure_sha256",
+                "applied_motor_quanta",
+                "stalled_motor_quanta",
+                "articulatory_body_port_count",
+                "articulatory_body_nonquiescent_port_count",
+                "articulatory_body_receptor_ingress_count",
+                "articulatory_body_perturbed_neuron_count",
+                "self_hearing_hop_count",
+                "self_hearing_transitioned_neuron_count",
+                "self_hearing_fractal_count",
+            )
+            if key in articulation
+        }
+    public_result = {
+        key: result[key]
+        for key in (
+            "accepted",
+            "ok",
+            "hop_count",
+            "vestibular_tick_count",
+            "persisted",
+            "schema",
+            "receptor_ingress",
+            "totals",
+            "durable_receipt",
+        )
+        if key in result
+    }
+    public_result["observation"] = public_observation
+    return public_result
+
+
 def _prepare_continuous_native_action_consequence(
     *,
     organism_identity: str,
@@ -14370,7 +14438,11 @@ def teach_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         return _refusal(422, f"admitted lesson transition refused: {error}")
     return JSONResponse(
         status_code=200,
-        content={"card_id": card_id, "presentation": presentation, **result},
+        content={
+            "card_id": card_id,
+            "presentation": presentation,
+            **_public_admitted_intake_result(result),
+        },
     )
 
 
@@ -14432,7 +14504,7 @@ def teach_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         content={
             "song_id": song_id,
             "visual_alignment_claim": alignment_claim,
-            **result,
+            **_public_admitted_intake_result(result),
         },
     )
 
@@ -14761,7 +14833,11 @@ def rendered_light_material(payload: dict[str, Any] = Body(...)) -> JSONResponse
         return _refusal(422, f"admitted visual transition refused: {error}")
     return JSONResponse(
         status_code=200,
-        content={"material_kind": "text_visual", "presented_raster_count": len(rosters), **result},
+        content={
+            "material_kind": "text_visual",
+            "presented_raster_count": len(rosters),
+            **_public_admitted_intake_result(result),
+        },
     )
 
 
@@ -15820,7 +15896,7 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "gutenberg_id": book_id,
             "presented_page_count": len(rosters),
             "meaning_entered": False,
-            **result,
+            **_public_admitted_intake_result(result),
         },
     )
 
@@ -15875,7 +15951,11 @@ def offered_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             _refresh_public_observation_cache()
     return JSONResponse(
         status_code=200,
-        content={"material_kind": kind, **presented, **result},
+        content={
+            "material_kind": kind,
+            **presented,
+            **_public_admitted_intake_result(result),
+        },
     )
 
 
@@ -15978,7 +16058,7 @@ def teach_card_spoken(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "presentation": "full",
             "voice": "live_human_speaker",
             "spoken_sample_count": len(samples),
-            **result,
+            **_public_admitted_intake_result(result),
         },
     )
 
@@ -16188,7 +16268,7 @@ def live_audiovisual_capture(payload: dict[str, Any] = Body(...)) -> JSONRespons
         )
     return JSONResponse(
         status_code=200,
-        content={"capture": provenance, **result},
+        content={"capture": provenance, **_public_admitted_intake_result(result)},
     )
 
 
@@ -16221,7 +16301,7 @@ def live_sight_frames(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         return _refusal(422, f"admitted live sight transition refused: {error}")
     return JSONResponse(
         status_code=200,
-        content={"capture": provenance, **result},
+        content={"capture": provenance, **_public_admitted_intake_result(result)},
     )
 
 
