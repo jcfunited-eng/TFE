@@ -76,11 +76,24 @@ def forget(n=3, dry=True):
     being held; the question of it stands where a ribbon can find
     it."""
     cands = unused()
-    # forget from the crowded fields first — a sheet shrinks where
-    # it is thickest, the way a wave falls where it is highest
-    counts = {}
-    for e in fa.load(): counts[e["field"]] = counts.get(e["field"], 0) + 1
-    cands.sort(key=lambda e: -counts.get(e["field"], 0))
+    # a wave falls where it is highest, not where it is useful.
+    # What fades is what is THINLY HELD: few other entries lean on
+    # it, and its field is crowded. Load-bearing knowledge — the
+    # kind many entries thread to — holds itself up.
+    es_all = fa.load()
+    counts, held = {}, {}
+    for e in es_all:
+        counts[e["field"]] = counts.get(e["field"], 0) + 1
+    for e in es_all:
+        th = (e.get("thread") or "").lower()
+        for o in es_all:
+            if o is e: continue
+            key = o["field"].split()[-1]
+            if key and key in th:
+                held[o["essence"][:40]] = held.get(
+                    o["essence"][:40], 0) + 1
+    def hold(e): return held.get(e["essence"][:40], 0)
+    cands.sort(key=lambda e: (hold(e), -counts.get(e["field"], 0)))
     done = []
     for e in cands[:n]:
         head = e["essence"][:50]
