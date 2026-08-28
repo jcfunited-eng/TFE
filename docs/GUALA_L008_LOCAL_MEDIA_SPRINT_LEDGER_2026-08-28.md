@@ -87,3 +87,15 @@ physical ingress only, never recognition, understanding, or learning.
   health or image build; no blind retry of timed-out state mutation; autonomous
   predecessor drift expected and authenticated at cutover; identity/tick may
   not regress; source custody verified separately from cognition/learning.
+
+## First hot-deploy attempt stopped before mutation
+
+- The controller stopped during deterministic packaging, before an image build,
+  task registration, or production mutation. Production remained on healthy
+  task `dsf-ai-task:1299`.
+- The manifest closure correctly refused because the newly mounted runtime
+  imports `bounded_source_media_store.py` and
+  `bounded_video_sensory_source.py` were absent from `runtime_python`.
+- The correction adds exactly those two statically reached files to the
+  reviewed manifest. It changes packaging custody only; it does not change the
+  L-008 mechanism, organism state, or live production.

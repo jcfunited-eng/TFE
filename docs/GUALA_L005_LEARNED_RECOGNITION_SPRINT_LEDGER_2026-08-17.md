@@ -2,12 +2,16 @@
 
 Date: 2026-08-17
 
-Status: reopened on 2026-08-28. The 2026-08-25 bear-hidden recognition record
+Status: Reconciled Partial on 2026-08-28. Task 1298 freshly proved changed-cue
+retained-formation causal use on the corrected organism, but its decisive
+pressure record does not identify or independently establish a lexical word.
+No first recognized word is therefore claimed. The 2026-08-25 bear-hidden
+recognition record
 remains historical evidence, but its action continuation depended on
 coincidence-grown motor anatomy removed by the V33 one-way correction. L-005
-now requires a fresh changed-cue reassembly and causal-use witness through the
-corrected live organism. L-006 has independently closed as a learned utterance
-and self-hearing result; no emitted waveform is claimed to mean `bear`.
+still requires genuine lexical recognition from novel sensory evidence. L-006
+has independently closed as a learned utterance and self-hearing result; no
+emitted waveform is claimed to mean `bear` or any other word.
 
 ## Corrected-body apple grounding on task 1290
 

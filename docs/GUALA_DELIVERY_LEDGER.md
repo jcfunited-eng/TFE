@@ -677,12 +677,14 @@ or beyond tick `228842`.
   song-recognition, or speech claim is made. The next ordinary interval after
   the post-lesson consolidation burst added only 12,034 bytes and no retained
   impression or mosaic. See the L-004 synchronized-song sprint ledger.
-- [x] **L-005 — LIVE-CLOSED 2026-08-28:** Demonstrate first genuine learned word recognition from novel
+- [ ] **L-005 — RECONCILED PARTIAL 2026-08-28:** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
   Task 1298 supplied fresh visual-partial and pressure-only changed-cue
   reassembly, causal body/articulatory use, sensed consequence, and exact
-  current-state persistence on the corrected post-V33 organism. This is
-  learned causal recognition, not yet dictionary semantics or conversation.
+  current-state persistence on the corrected post-V33 organism. This proves
+  learned causal recognition, but the decisive pressure record does not name
+  or independently establish a lexical word. No first recognized word can
+  therefore be claimed from this evidence.
 - [x] **L-006 — LIVE-CLOSED 2026-08-28:** Demonstrate a physically caused first
   utterance and self-heard consequence, then repeated learned use in a different
   context. Task 1290 observed the learned route reach vocal motor `...0d91`,
