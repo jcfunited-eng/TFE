@@ -149,6 +149,12 @@ and self-hearing result; no emitted waveform is claimed to mean `bear`.
   contacts gain no frontier authority. Full L0-L4, all seven DSF fields, contact
   settlement, conservation, retained formation state, and observer behavior are
   unchanged.
+- Candidate commit `9228fa8193954e947a74128d7882cb517e0af517` passes the
+  exact nonzero focused frontier-direction test and a release build. The full
+  native library gate reports 509 passed, nine failed, and ten ignored; the
+  accepted task-1292 source at `6d14fdb0` reports the identical nine failing
+  test names and counts. The candidate therefore adds no native-suite failure;
+  the inherited failures remain recorded rather than being relabeled green.
 
 ## 2026-08-22 resumed first-word work
 
