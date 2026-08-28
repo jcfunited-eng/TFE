@@ -99,3 +99,38 @@ actual browser device.
   environment has no `playwright` package. No page loaded and no browser claim
   is made from that command. Disposition: retain the browser contract test and
   verify the published page through the available live delivery path.
+
+## Production preflight and recurrence controls
+
+- Candidate source identity: `44c03b3f94fff1ace383e3acc202ffa4e940b46a`.
+- AWS account/region target: `418384447921`, `us-east-1`.
+- ECS target: cluster `tfe-web-cluster`, service `dsf-ai-service-lb`.
+- Predecessor: one healthy running task, task definition `dsf-ai-task:1298`,
+  image digest
+  `sha256:3f18336221bb8fff99458e8b6e9930728ac0dd617ae3b89dd9c6aaf4d6e57660`.
+- Predecessor receptor roster: cochlear, touch, interoception,
+  chemoreception, vestibular, and world all enabled; current-format migration
+  disabled. The candidate must preserve that exact roster.
+- Read-only production preflight found desired/running/pending `1/1/0`, one
+  healthy task, healthy `/health`, and HTTP 200 for both live Loom pages.
+
+Applicable recurrence register:
+
+| ID | This cutover's prevention |
+|---|---|
+| RF-001 | Focused Python proof was rerun with exact project `PYTHONPATH=.`. |
+| RF-002 | The live receptor roster was read from the predecessor and is passed explicitly to deployment. |
+| RF-005 | Evidence is read from the current production service and committed successor, never a stale local artifact. |
+| RF-007 | Use the executable repository controller with its explicit `--hot` argument. |
+| RF-012 | HTTP health alone is insufficient; verify committed retinal/cochlear ingress and organism continuity. |
+| RF-016 | Candidate commit, predecessor task, image digest, identity, and diff are fixed above. |
+| RF-023 | AWS inspection selected only the seven non-secret receptor/migration variables. |
+| RF-025 | State-changing live probes are never blindly retried after a timeout; read the successor first. |
+| RF-029 | Autonomous predecessor advancement is expected; the controller authenticates the current predecessor at cutover. |
+| RF-033 | Account, region, cluster, service, and public origin are explicit above. |
+| RF-049 | Observer wording is repaired independently; it is not treated as evidence that native readiness or learning exists. |
+| RF-056 | Hot cutover must retain identity and may not regress the predecessor tick/generation. |
+
+The production mutation is not started until this record is committed and the
+worktree is clean. The first cutover attempt and its outcome will be appended
+only after the controller returns; no success is inferred from image creation.
