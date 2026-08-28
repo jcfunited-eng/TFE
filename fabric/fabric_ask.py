@@ -173,9 +173,31 @@ def ask(question):
                 seen.add(id(e))
                 print(f"  ({e['field']}) {e['essence']}")
         return
-    print("I have no knowledge that reaches this question. "
-          "Recording it as an open question — when knowledge that "
-          "answers it is added, it will answer.")
+    print("I have no certified answer — this is recorded as an "
+          "open question. But a question asks what is possible, "
+          "so here is me looking across everything I know and "
+          "playing with the unknown:")
+    import assembler
+    df={}
+    for e in es:
+        for x in words(e["essence"]+" "+e["cannot"]+" "+e["ask"]):
+            df[x]=df.get(x,0)+1
+    lanes=assembler.play(question,es,df)
+    if not lanes:
+        print("  Nothing in my knowledge even touches this — the "
+              "missing knowledge is the whole answer.")
+    for n,(known,failed,toys) in enumerate(lanes,1):
+        if len(lanes)>1:
+            print(f"  Territory {n} your words touch:")
+        for e in known:
+            print(f"    known: ({e['field']}) {e['essence']}")
+        for e in failed:
+            print(f"    known to fail: {e['cannot']}")
+        for s,a,b in toys:
+            print(f"    unproven play: maybe "
+                  f"{a['essence'].split(chr(8212))[0].strip()} "
+                  f"TOGETHER WITH "
+                  f"{b['essence'].split(chr(8212))[0].strip()}")
     if not m:
         with open(WHITE,"a") as f:
             f.write(f"\nENTRY: {question.strip()}\n"
