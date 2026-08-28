@@ -236,6 +236,14 @@ const MAGIC_V33: &[u8; 8] = b"GLCOG033";
 /// first utterance; learned formations still reach it only through sparse
 /// layer-11 -> exact layer-12 motor contacts. The byte layout remains V30--V33.
 const MAGIC_V34: &[u8; 8] = b"GLCOG034";
+/// V35 is the irreversible articulated-body pose-correction boundary.  The
+/// rejected broad effector fan-out was removed in V33, but the joint positions
+/// it had already driven to their mechanical stops remained resident.  The
+/// outer organism migration returns that invalid historical pose to the
+/// body's declared neutral configuration exactly once.  Cognitive bytes keep
+/// the V34 layout and physics; this identity prevents a later restart from
+/// applying the body correction again.
+const MAGIC_V35: &[u8; 8] = b"GLCOG035";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -4334,7 +4342,7 @@ fn validate_fixed_vocal_articulatory_route(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V34.len()) == Some(MAGIC_V34)
+        bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35)
     }
 
     /// Retire the task-955 local-integration projection that equated
@@ -8846,7 +8854,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V34);
+        output.extend_from_slice(MAGIC_V35);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -9668,7 +9676,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V34.len()) != Some(MAGIC_V34) {
+        if bytes.get(..MAGIC_V35.len()) != Some(MAGIC_V35) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -9695,8 +9703,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v34 =
-            bytes.len() >= MAGIC_V34.len() && &bytes[..MAGIC_V34.len()] == MAGIC_V34;
+        let current_v35 =
+            bytes.len() >= MAGIC_V35.len() && &bytes[..MAGIC_V35.len()] == MAGIC_V35;
+        let current_v34 = current_v35
+            || (bytes.len() >= MAGIC_V34.len() && &bytes[..MAGIC_V34.len()] == MAGIC_V34);
         let current_v33 = current_v34
             || (bytes.len() >= MAGIC_V33.len() && &bytes[..MAGIC_V33.len()] == MAGIC_V33);
         let current_v32 = current_v33
@@ -10280,7 +10290,8 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v34 = bytes.get(..MAGIC_V34.len()) == Some(MAGIC_V34);
+        let current_v35 = bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35);
+        let current_v34 = current_v35 || bytes.get(..MAGIC_V34.len()) == Some(MAGIC_V34);
         let current_v33 = current_v34 || bytes.get(..MAGIC_V33.len()) == Some(MAGIC_V33);
         let current_v32 =
             current_v33 || bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32);
@@ -10307,7 +10318,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V31.len()] == MAGIC_V31
                 || &bytes[..MAGIC_V32.len()] == MAGIC_V32
                 || &bytes[..MAGIC_V33.len()] == MAGIC_V33
-                || &bytes[..MAGIC_V34.len()] == MAGIC_V34);
+                || &bytes[..MAGIC_V34.len()] == MAGIC_V34
+                || &bytes[..MAGIC_V35.len()] == MAGIC_V35);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -10396,12 +10408,26 @@ impl ResidentCognitiveFormationState {
         } else {
             state.into_fixed_vocal_articulatory_route()?
         };
-        let state = state.into_current_retained_formation_authority()?;
+        // V34 has already crossed the retained-formation authority boundary.
+        // V35 changes only the outer articulated-body pose; reapplying an
+        // older cognitive cleanup here would silently alter learned state.
+        let state = if current_v34 {
+            state
+        } else {
+            state.into_current_retained_formation_authority()?
+        };
         let state = if already_geometry_provisioned {
             state
         } else {
             state.into_geometry_provisioned_carrier_material()?
         };
+        // A V34 body is already a complete cognitive body.  V35 is only the
+        // outer articulated-pose correction marker, so do not admit resting
+        // population or perform any other cognitive migration while crossing
+        // this boundary.
+        if current_v34 {
+            return state.encode(max_encoded_bytes);
+        }
         if state.resting_population.is_some() {
             return state.encode(max_encoded_bytes);
         }
@@ -21982,7 +22008,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -23488,7 +23514,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -24352,7 +24378,7 @@ mod tests {
         validate_lineage_state(&state).unwrap();
         state.validate_current_motor_effectors().unwrap();
         let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
 
         // Simulate the deployed predecessor: identical layout under V32.
         let mut legacy = current.clone();
@@ -24387,9 +24413,9 @@ mod tests {
         );
         assert!(restored.preceding_active_electrical_frontier.is_empty());
 
-        // One-way and restart-proof: the migrated body is V34 and crossing
+        // One-way and restart-proof: the migrated body is current and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -25211,7 +25237,7 @@ mod tests {
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&v32, MAX_BYTES)
                 .unwrap();
-        assert_eq!(&migrated[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(!restored.electrical_fabric.contains_contact(acoustic, articulatory));
         assert!(!restored.electrical_fabric.contains_contact(regulation, articulatory));
@@ -25349,7 +25375,7 @@ mod tests {
             .electrical_fabric
             .contains_contact(non_vocal_motor, articulatory[0]));
         assert_eq!(restored.electrical_fabric.contact_count(), 10);
-        assert_eq!(&migrated[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -25487,7 +25513,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&migrated[..MAGIC_V35.len()], MAGIC_V35);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(restored.electrical_fabric.contains_contact(receptor, {
             restored
@@ -25765,7 +25791,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -26945,7 +26971,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V34.len()], MAGIC_V34);
+        assert_eq!(&current[..MAGIC_V35.len()], MAGIC_V35);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());

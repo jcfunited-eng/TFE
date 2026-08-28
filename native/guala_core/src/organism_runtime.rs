@@ -5050,6 +5050,13 @@ fn migrate_resident_organism_exact_energy_envelope(
         let cognitive = parsed
             .cognitive_bytes
             .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
+        // V35 is also the one-way correction boundary for the invalid local
+        // joint pose left behind by the rejected broad effector fan-out.  The
+        // cognitive migration changes no lived neuronal state here; its new
+        // identity records that the body correction has already happened so
+        // a later restart can never repeat it.
+        let correct_articulated_body_pose =
+            !ResidentCognitiveFormationState::encoded_is_current(cognitive);
         let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(cognitive, cognitive_budget)
@@ -5063,9 +5070,13 @@ fn migrate_resident_organism_exact_energy_envelope(
             parsed
                 .vestibular
                 .unwrap_or(ResidentVestibularBody::phase_one_genesis()?),
-            parsed
-                .articulated_body
-                .unwrap_or_else(ArticulatedBodyState::at_neutral),
+            if correct_articulated_body_pose {
+                ArticulatedBodyState::at_neutral()
+            } else {
+                parsed
+                    .articulated_body
+                    .unwrap_or_else(ArticulatedBodyState::at_neutral)
+            },
         )
     };
     let fabric = encode_fabric(
@@ -7346,6 +7357,60 @@ mod tests {
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
             migrated,
+        );
+    }
+
+    #[test]
+    fn v34_hard_stop_body_pose_returns_to_neutral_once_without_changing_cognition() {
+        let runtime = resident(91, 17);
+        let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+        let mut v34_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
+        v34_cognitive[..8].copy_from_slice(b"GLCOG034");
+
+        let mut stopped_axes = [0_i32; crate::virtual_articulated_body::BODY_AXIS_COUNT];
+        for axis in BODY_AXES {
+            stopped_axes[axis.index()] = axis.anatomy().maximum;
+        }
+        let stopped_body = ArticulatedBodyState::from_physical_state(
+            stopped_axes,
+            crate::virtual_articulated_body::MAX_LUNG_AIR_MICROLITRES,
+            [crate::virtual_articulated_body::MAX_TRACT_AREA_SQUARE_MILLIMETRES;
+                crate::virtual_articulated_body::VOCAL_TRACT_SECTION_COUNT],
+            true,
+        )
+        .unwrap();
+        let contaminated_fabric = encode_fabric(
+            predecessor.fabric_generation,
+            predecessor.joint_bytes,
+            &v34_cognitive,
+            predecessor.vestibular.as_ref().unwrap(),
+            &stopped_body,
+            budget(),
+        )
+        .unwrap();
+        let contaminated = encode_envelope(
+            predecessor.identity,
+            predecessor.organism_tick,
+            &contaminated_fabric,
+            budget(),
+        )
+        .unwrap();
+
+        let corrected =
+            migrate_resident_organism_exact_energy_envelope(contaminated, budget()).unwrap();
+        let parsed = parse_current_envelope(&corrected, budget()).unwrap();
+        assert_eq!(parsed.identity, predecessor.identity);
+        assert_eq!(parsed.organism_tick, predecessor.organism_tick);
+        assert_eq!(parsed.fabric_generation, predecessor.fabric_generation);
+        assert_eq!(parsed.joint_bytes, predecessor.joint_bytes);
+        assert_eq!(parsed.vestibular, predecessor.vestibular);
+        assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
+        let corrected_cognitive = parsed.cognitive_bytes.unwrap();
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG035");
+        assert_eq!(&corrected_cognitive[8..], &v34_cognitive[8..]);
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(corrected.clone(), budget()).unwrap(),
+            corrected,
         );
     }
 
