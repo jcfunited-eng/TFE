@@ -53,14 +53,14 @@ def judge(pool, req, forb, touch=None):
         # the forbidden thing must be present, and enough of the
         # condition it is forbidden in
         if a <= pool and len(b & pool) >= min(2, len(b)):
-            return f"forbidden together — {txt} ({e['field']})"
+            return (f"forbidden together — {txt} ({e['field']})", e)
     for a, b, e, txt in req:
         if not grips(e): continue
         if a <= pool and not (b & pool):
-            return f"requirement unmet — {txt} ({e['field']})"
+            return (f"requirement unmet — {txt} ({e['field']})", e)
     return None
 
-def make(want, size=3, show=3):
+def make(want, size=3, show=3, data=False):
     es = fa.load()
     req, forb = constraints(es)
     # the command word is how you asked, not part of what you want
@@ -108,10 +108,13 @@ def make(want, size=3, show=3):
             dead = judge(pool, req, forb, rare_touch)
             if dead:
                 killed += 1
-                # the impossible layer is kept, not discarded: it
-                # is what gives the possible its shape
-                closed[dead] = closed.get(dead, 0) + 1
-                if len(deaths) < 3: deaths.append((combo, dead))
+                law, parent = dead
+                # a closure belongs to THIS want's other layer only
+                # if the law it came from touches the want at all
+                near = bool(want_words & content(
+                    parent["essence"] + " " + parent["cannot"]))
+                c, was = closed.get(law, (0, False))
+                closed[law] = (c + 1, was or near)
                 continue
             # each part must keep company with another part:
             # sharing an uncommon word beyond the want's own.
@@ -143,7 +146,9 @@ def make(want, size=3, show=3):
     if closed:
         out.append("  THE IMPOSSIBLE — this want's other layer, "
                    "equal in standing to what survives:")
-        for law, n in sorted(closed.items(), key=lambda x: -x[1])[:4]:
+        rank = sorted(closed.items(),
+                      key=lambda x: (-int(x[1][1]), -x[1][0]))
+        for law, (n, near) in rank[:4]:
             out.append(f"    closed {n} makings — {law}")
     if survivors:
         out.append("  THE POSSIBLE — what survives, the made "
@@ -168,10 +173,14 @@ def make(want, size=3, show=3):
             if not os.path.exists(rec) or os.path.getsize(rec) < 65536:
                 with open(rec, "a") as f:
                     f.write(f"\nWANT: {want}\n")
-                    for law, n in sorted(closed.items(),
-                                         key=lambda x: -x[1])[:5]:
+                    for law, (n, near) in sorted(
+                            closed.items(),
+                            key=lambda x: (-int(x[1][1]),
+                                           -x[1][0]))[:5]:
                         f.write(f"  closed {n} — {law}\n")
         except OSError: pass
+    if data:
+        return "\n".join(out), closed, req, forb, es
     return "\n".join(out)
 
 if __name__ == "__main__":

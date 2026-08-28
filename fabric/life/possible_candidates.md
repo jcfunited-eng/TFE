@@ -370,3 +370,47 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an invariant 
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the moves that leave a thing looking untouched for' toward music:
   maybe: the moves that leave a thing looking untouched form a closed family — do one, then another
   with: a shape's symmetries are the moves that leave it looking untouched — turn a square a quart
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'strip a map to dots and links — a walk crossing ev' toward medicine body:
+  maybe: the dose makes the poison — every substance has an amount that helps, one that does nothin
+  with: every remedy ships with a do-not-give list — the pill that saves one body kills another (a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the middleman deletes connections — a hundred grow' toward medicine body:
+  maybe: death is certain and load-bearing — every body stops, and the stopping makes room; generat
+  with: the middleman deletes connections — a hundred growers and a hundred shops need ten thousan
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'bulk is cheaper because every sale drags costs tha' toward cooking:
+  maybe: bulk is cheaper because every sale drags costs that ignore size — wrapper, label, shelf sl
+  with: the last mile costs most — the ocean moves a shirt for pennies because ten thousand shirts
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'tipping persists because everyone is locked in by ' toward the mind:
+  maybe: repetition compiles — acts done many times move from effortful steering to automatic runni
+  with: practice buys automation, and automation frees attention — the stroke rehearsed to self-ru
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'righty-tighty is an agreement hardened into hardwa' toward engineering machines:
+  maybe: no part is made exact — every dimension is a target plus a permitted miss, and machines wo
+  with: fit before force — parts made right join with a push and a click; if it needs hammering, s
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a screw is a wound spring parked on a ramp and hel' toward engineering machines:
+  maybe: no part is made exact — every dimension is a target plus a permitted miss, and machines wo
+  with: a screw is a wound spring parked on a ramp and held by friction — every vibration is a spl
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'penetrating oil is a crowbar one molecule wide — a' toward cooking:
+  maybe: fat goes rancid because oxygen gnaws at its loose joints and snaps it into small smelly fr
+  with: penetrating oil is a crowbar one molecule wide — an oil thin enough to be pulled in by nar
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'duct tape is a liquid handshake with a cloth spine' toward living world:
+  maybe: duct tape is a liquid handshake with a cloth spine — its glue is a near-liquid that flows 
+  with: glue holds by touch and by teeth — flowed close enough to grip the surface molecule agains
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a wet finger finds the draft because evaporation i' toward medicine body:
+  maybe: the dose makes the poison — every substance has an amount that helps, one that does nothin
+  with: every remedy ships with a do-not-give list — the pill that saves one body kills another (a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'prices end in .99 because the eye weighs the left ' toward persuasion negotiation:
+  maybe: prices end in .99 because the eye weighs the left digit heaviest — $2.99 files as "two and
+  with: bulk is cheaper because every sale drags costs that ignore size — wrapper, label, shelf sl
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'compound interest grows the pile by a fraction of ' toward cooking:
+  maybe: interest is the price of time — money now beats the same money later (it can work meanwhil
+  with: compound interest grows the pile by a fraction of the pile, so growth itself grows — divid

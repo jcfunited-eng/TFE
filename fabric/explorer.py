@@ -33,8 +33,10 @@ def _known(concl, req, forb, kind):
     return False
 
 def _link_ok(link, e1, e2):
-    """The word that joins two laws must carry the same sense in
-    both, or the chain is a pun, not a derivation."""
+    """Does the joining word carry the same sense in both laws?
+    Same sense makes a tight derivation. A different sense makes
+    an echo across domains — metaphor, which is how vocabulary
+    grows. Neither is discarded and neither is graded here."""
     try:
         import senses as S
     except Exception:
@@ -49,20 +51,22 @@ def _link_ok(link, e1, e2):
 def explore(limit=6):
     es = fa.load()
     req, forb = maker.constraints(es)
-    poss, imposs = [], []
+    poss, imposs, echoes = [], [], []
     for a1, b1, e1, t1 in req:
         for a2, b2, e2, t2 in req:
             if e2 is e1: continue
             if a2 <= b1 and not (b2 <= b1) and not (b2 & a1):
                 if _known((a1, b2), req, forb, "requires"): continue
-                if not _link_ok(a2, e1, e2): continue
-                poss.append((a1, b2, e1, t1, e2, t2))
+                tight = _link_ok(a2, e1, e2)
+                (poss if tight else echoes).append(
+                    (a1, b2, e1, t1, e2, t2))
         for a2, b2, e2, t2 in forb:
             if e2 is e1: continue
             if a2 <= b1 and not (b2 & a1) and not (b2 & b1):
                 if _known((a1, b2), req, forb, "forbids"): continue
-                if not _link_ok(a2, e1, e2): continue
-                imposs.append((a1, b2, e1, t1, e2, t2))
+                tight = _link_ok(a2, e1, e2)
+                (imposs if tight else echoes).append(
+                    (a1, b2, e1, t1, e2, t2))
     def say(ws): return " ".join(sorted(ws))
     lines = []
     lines.append("THE POSSIBLE FRONTIER — requirements nobody "
@@ -81,10 +85,20 @@ def explore(limit=6):
         lines.append(f"    because: {t1} ({e1['field']})")
         lines.append(f"    and:     {t2} ({e2['field']})")
     lines.append("")
-    lines.append(f"({len(poss)} unwritten requirements and "
-                 f"{len(imposs)} unwritten closures stand derived; "
-                 f"none is graded here — worth is the reader's, by "
-                 f"usefulness to them.)")
+    lines.append("ECHOES ACROSS DOMAINS — the joining word carries "
+                 "a different sense in each law. These are "
+                 "metaphors, and metaphor is how vocabulary grows. "
+                 "Kept, not graded:")
+    for a, c, e1, t1, e2, t2 in echoes[:limit]:
+        lines.append(f"  [{say(a)}] reaches [{say(c)}]")
+        lines.append(f"    from: {t1} ({e1['field']})")
+        lines.append(f"    to:   {t2} ({e2['field']})")
+    lines.append("")
+    lines.append(f"({len(echoes)} echoes kept alongside "
+                 f"{len(poss)} unwritten requirements and "
+                 f"{len(imposs)} unwritten closures. None is "
+                 f"graded here — worth is the reader's, by what it "
+                 f"is useful for.)")
     text = "\n".join(lines)
     try:
         if not os.path.exists(REC) or os.path.getsize(REC) < 65536:

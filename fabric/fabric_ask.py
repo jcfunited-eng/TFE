@@ -11,9 +11,9 @@ def stem(w):
         if w.endswith(s) and len(w)-len(s)>=3: return w[:len(w)-len(s)]
     return w
 def words(s):
-    STOP=set("the a an is are of in on at to for with by from and or not no it its this that what why how when does do same other own there they if then than as but so out up down off over more most less very much many few all any some none each every no one two three".split())
+    STOP=set("the a an is are of in on at to for with by from and or not no it its this that what why how when does do same other own there they if then than as but so out up down off over more most less very much many few all any some none each every no one two three way ways get got can could would should will shall may might must have has had been was were being you your our his her him she he them their are its into onto upon about just also even still yet too now here also make made makes".split())
     return set(stem(w) for w in re.findall(r"[a-z]+",s.lower())
-               if w not in STOP and len(w)>3)
+               if w not in STOP and len(w)>2)
 def fingerprint():
     h=hashlib.sha256()
     for f in sorted(glob.glob(os.path.join(DIR,"[0-9][0-9]_*.md"))):
@@ -40,7 +40,8 @@ def load():
                            cannot=part("CANNOT"),
                            ask=part("ASKED-AS"),
                            rule=part("RULE"),
-                           thread=part("THREAD")))
+                           thread=part("THREAD"),
+                           root=part("ROOT")))
     return es
 def walk(qs, es):
     def wt(e): return words(e["essence"]+" "+e["cannot"]+" "+e["ask"])
