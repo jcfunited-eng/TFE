@@ -139,3 +139,19 @@ THREAD: money+law (songs needed new law where bread never did —
   quantum states refuse cloning — nature's sole ban on the perfect
   copy).
 ASKED-AS: piracy downloading movies leaked photos internet spreading screenshots forwarding deleting
+
+ESSENCE: computers bundle by twos, not by tens — each place holds
+  nothing but nought or one, and a full two in any place becomes
+  one carried into the place to its left.
+ROOT: computing / two states are the cheapest thing to build and
+  the hardest to mistake.
+CANNOT: no place holding two in this counting. No third digit.
+THREAD: mathematics (the same bundling law, a different size),
+  electricity (on and off), music (a bar of two beats).
+RULE: to add piles written in twos — work the places right to
+  left; at each place count together the digits standing there
+  and anything carried in; set aside every full two in that count
+  and keep what remains as this place's digit; move on to the
+  next place, and when the places run out write the carry as the
+  last place.
+ASKED-AS: binary bits twos base two computer digits nought one carry place bundling

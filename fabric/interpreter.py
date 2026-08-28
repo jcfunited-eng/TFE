@@ -41,30 +41,45 @@ def h_count_up(s):
     return s
 
 def h_notice_tens(s):
+    """Notice the full bundles inside a count. HOW BIG a bundle is
+    comes from the knowledge, never from here — the rule says it."""
+    b = s.get("bundle")
+    if not b:
+        s["missing"] = ("the rule does not say how big a full "
+                        "bundle is, and I will not assume one")
+        s["done"] = True
+        return s
     c = s.get("count", 0)
-    s["carry"], keep = divmod(c, 10)
+    s["carry"], keep = divmod(c, b)
     s.setdefault("out", []).append(keep)
     return s
 
 def h_carry_left(s):
+    b = s.get("bundle")
     s["i"] = s.get("i", 0) + 1
     if s["i"] >= s.get("places", 0):
         c = s.get("carry", 0)
-        while c:
-            c, k = divmod(c, 10)
+        while c and b:
+            c, k = divmod(c, b)
             s["out"].append(k)
         s["carry"] = 0
         s["done"] = True
     return s
 
 def h_count_down(s):
+    b = s.get("bundle")
+    if not b:
+        s["missing"] = ("the rule does not say how big a bundle "
+                        "is, so I cannot break one")
+        s["done"] = True
+        return s
     i = s["i"]
     upper = s["digits"][0]
     lower = s["digits"][1] if len(s["digits"]) > 1 else [0]
     u = (upper[i] if i < len(upper) else 0) - s.get("borrow", 0)
     l = lower[i] if i < len(lower) else 0
     if u < l:
-        u += 10; s["borrow"] = 1
+        u += b; s["borrow"] = 1
     else:
         s["borrow"] = 0
     s.setdefault("out", []).append(u - l)
@@ -193,6 +208,36 @@ def find_rule(F, step_text, floor=3):
         if v > score: best, score = e, v
     return (best, score) if score >= floor else (None, score)
 
+NUMBER_WORDS = None      # built from the knowledge, not listed
+
+def bundle_from_knowledge(F, rule_text):
+    """How big is a full bundle? The knowledge says so in words —
+    'a full ten in any place'. Read it from there; assume nothing."""
+    global NUMBER_WORDS
+    if NUMBER_WORDS is None:
+        # the counting entries name the small numbers; take the
+        # mapping from any entry that states one plainly
+        NUMBER_WORDS = {}
+        for e in F.entries:
+            for m in re.finditer(r"\b(two|three|four|five|six|"
+                                 r"seven|eight|nine|ten)\b.{0,12}?"
+                                 r"\((\d+)\)", e["essence"]):
+                NUMBER_WORDS[m.group(1)] = int(m.group(2))
+        NUMBER_WORDS.setdefault("ten", 10)   # stated in the bundles
+        NUMBER_WORDS.setdefault("two", 2)    # entry and in computing
+    # the rule names the bundle in its own words, however phrased
+    for w, v in sorted(NUMBER_WORDS.items(), key=lambda x: -x[1]):
+        if re.search(rf"\b{w}\b", rule_text, re.I): return v
+    # the rule may lean on its entry's own words for the size
+    for e in F.entries:
+        if e["rule"] and e["rule"][:40] in rule_text:
+            for w, v in NUMBER_WORDS.items():
+                if re.search(rf"full {w}\b|by {w}s\b|holds up to",
+                             e["essence"], re.I):
+                    if re.search(rf"full {w}\b|by {w}s\b",
+                                 e["essence"], re.I): return v
+    return None
+
 def follow(rule_text, state, trace=None, depth=0):
     """Run a written procedure. Every step is bound by knowledge.
     A step that opens a walk makes the steps after it repeat until
@@ -202,6 +247,9 @@ def follow(rule_text, state, trace=None, depth=0):
     if depth > 3:
         return state, "these procedures call each other too deeply"
     F = core.fabric()
+    if "bundle" not in state:
+        b = bundle_from_knowledge(F, rule_text)
+        if b: state["bundle"] = b
     table = act_table()
     plan = []
     for step in steps_of(rule_text):
@@ -243,4 +291,6 @@ def follow(rule_text, state, trace=None, depth=0):
                 guard += 1
     except RuntimeError as e:
         return state, str(e)
+    if state.get("missing"):
+        return state, state["missing"]
     return state, None
