@@ -15834,7 +15834,7 @@ fn settle_internal_contact_interval(
             continue;
         };
         Arc::make_mut(&mut cohorts[cohort_index].state)
-            .apply_passive_membrane_return(
+            .apply_local_membrane_transport(
                 neuron_index,
                 successor_neuron,
                 successor_reservoir,
@@ -16894,12 +16894,124 @@ fn settle_internal_contact_interval(
         // the same pending local physical experience and may emit only after
         // a later exact neuron-local quiescent interval. Cross-cohort current
         // therefore cannot bypass the post-quiescence fractal law.
-                let settlement = settle_reached_cohort_interval_precomputed_in_place(
+        let settlement = settle_reached_cohort_interval_precomputed_in_place(
                     &cohort.anatomy,
                     Arc::make_mut(&mut cohort.state),
                     input,
                 )
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        // A mounted motor terminal is a second, neuron-local physical path.
+        // Incoming contact carriers only prepare it by leaving retained
+        // membrane displacement; they are never relabelled as the action.
+        // When the ordinary gate path did not already discharge, the terminal
+        // moves at most the exact preparing carriers back toward zero and
+        // deposits the released local work into this cohort's thermal store.
+        let mut prepared_terminal_discharges = BTreeMap::<usize, i128>::new();
+        for (_, neuron_index) in selected_members.iter().copied() {
+            let mount = &cohort.anatomy.mounts()[neuron_index];
+            if mount.source_site().is_some() || mount.place().layer() != 12 {
+                continue;
+            }
+            let motor_lineage = cohort.anatomy.neuron_lineages()[neuron_index];
+            let preparation_transfers = if mount.root_yaw_effector_terminal().is_some() {
+                exact_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    root_yaw_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &layer_of,
+                )
+            } else if mount.body_effector_terminal().is_some() {
+                exact_motor_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    reacted_load_regulations_by_motor
+                        .get(&motor_lineage)
+                        .map(Vec::as_slice)
+                        .unwrap_or(&[]),
+                    &layer_of,
+                )
+            } else {
+                continue;
+            };
+            let prepared_carriers = preparation_transfers.iter().try_fold(
+                0_u128,
+                |total, transfer| {
+                    total
+                        .checked_add(transfer.transferred_whole_carriers)
+                        .ok_or(FormationError::ArithmeticOverflow)
+                },
+            )?;
+            let retained_positive_displacement = cohort.state.neurons()[neuron_index]
+                .separated_elementary_charges()
+                .max(0)
+                .unsigned_abs();
+            // A root-yaw motor may integrate its causal preparation over
+            // earlier intervals. Its retained positive displacement is that
+            // physical memory and may discharge without demanding that the
+            // incoming contact cross again in this same interval.
+            let discharge_limit = if mount.root_yaw_effector_terminal().is_some() {
+                prepared_carriers.max(retained_positive_displacement)
+            } else {
+                prepared_carriers
+            };
+            if settlement
+                .local_outward_elementary_charges
+                .binary_search_by_key(&neuron_index, |(resident_index, _)| *resident_index)
+                .ok()
+                .is_some_and(|index| {
+                    settlement.local_outward_elementary_charges[index].1 > 0
+                })
+            {
+                continue;
+            }
+            let Some((successor_neuron, outward_carriers, released_work)) =
+                crate::complete_neuron::settle_efferent_terminal_transport(
+                    &cohort.anatomy.neuron_anatomies()[neuron_index],
+                    &cohort.state.neurons()[neuron_index],
+                    discharge_limit,
+                    interval_microseconds,
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })?
+            else {
+                continue;
+            };
+            let released_exact = ExactRational::new(
+                i128::try_from(released_work.numer().clone())
+                    .map_err(|_| FormationError::ArithmeticOverflow)?,
+                u128::try_from(released_work.denom().clone())
+                    .map_err(|_| FormationError::ArithmeticOverflow)?,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+            let Some(successor_reservoir) = crate::metabolic_feeding::deposit_passive_return_work(
+                cohort.anatomy.recovery_fluid_reservoir_anatomy(),
+                cohort.state.recovery_fluid(),
+                released_exact,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?
+            else {
+                continue;
+            };
+            Arc::make_mut(&mut cohort.state)
+                .apply_local_membrane_transport(
+                    neuron_index,
+                    successor_neuron,
+                    successor_reservoir,
+                )
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            prepared_terminal_discharges.insert(
+                neuron_index,
+                i128::try_from(outward_carriers)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?,
+            );
+        }
         // Preparation arrived through an inter-neuron contact before this
         // neuron-local interval.  The efferent event is the exact positive
         // whole-carrier discharge through the neuron's own membrane path,
@@ -16907,6 +17019,9 @@ fn settle_internal_contact_interval(
         // the former contradiction where an incoming preparation had to be
         // simultaneously counted as outward contact flow from the motor.
         let local_outward_for = |neuron_index: usize| {
+            if let Some(outward) = prepared_terminal_discharges.get(&neuron_index) {
+                return *outward;
+            }
             settlement
                 .local_outward_elementary_charges
                 .binary_search_by_key(&neuron_index, |(resident_index, _)| *resident_index)
@@ -16960,10 +17075,15 @@ fn settle_internal_contact_interval(
                         .unwrap_or(&[]),
                     &layer_of,
                 );
-                let outward_elementary_carriers = exact_prepared_efferent_carriers(
-                    local_outward_for(*neuron_index),
-                    preparation_transfers.len(),
-                )?;
+                let outward_elementary_carriers = prepared_terminal_discharges
+                    .get(neuron_index)
+                    .map(|outward| outward.unsigned_abs())
+                    .or_else(|| {
+                        exact_prepared_efferent_carriers(
+                            local_outward_for(*neuron_index),
+                            preparation_transfers.len(),
+                        )
+                    })?;
                 (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
                     RootYawUnitRecruitment {
                         neuron_lineage: motor_lineage,

@@ -37,18 +37,26 @@ fixture alone. If it cannot be checked, the candidate remains open.
 
 | ID | Correction in progress | Regression scope |
 |---|---|---|
-| O-001 | The corrected root route is live, but no unattended root motor discharge has yet occurred. Determine whether its exact resident excitation/recovery timing is lawful or still contains a local coupling defect; do not alter DSF or fabricate an action. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |
+| O-001 | The corrected root route is live. A copied authenticated body now produces the motor's own seven-carrier terminal discharge; live world application, returned consequences, and continued unattended life remain to be cut over and witnessed. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |
 
 ### O-001 current causal boundary — 2026-08-28
 
 - Corrected in the local candidate: signed contact evidence now follows the
   electrical anatomy's physical endpoint order rather than canonical bond
   identity order. The copied live body proves regulation-to-motor arrival.
-- Still open: the motor retains arriving charge but its ordinary quiescent
-  gate cannot open because its mounted anatomy contains no voltage, chemical,
-  or Psi opening drive. No action is claimed from arrival alone.
-- Next acceptance: an explicitly physical efferent specialization must produce
-  the motor's own local whole-carrier discharge; then the live world must move,
+- Corrected in the local candidate: the explicitly mounted terminal is a
+  distinct local carrier path. Incoming contact current may only leave
+  retained positive membrane displacement; the terminal then moves the
+  motor's own carriers outward, never past zero, only under exact stored-work
+  descent, and deposits released work in the cohort thermal reservoir.
+- Copied-body evidence: restored production lineage `...00009b` held seven
+  separated charges and, on its next reached interval, emitted exactly seven
+  local carriers through its positive root-yaw terminal. No contact current
+  was relabelled and no observer or action command participated.
+- Rejected during development: using the passive-return event as the terminal
+  discharge. Its exact crossing on this motor was 20,143 intervals away, so
+  that candidate was removed rather than mislabeled as a useful action path.
+- Next acceptance: the live world must apply that native discharge, then move,
   return every applicable consequence to identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and unattended ticks must continue.
 

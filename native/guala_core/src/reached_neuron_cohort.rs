@@ -462,11 +462,10 @@ impl ReachedCohortState {
             .replace_contact_states(vec![(contact_index, successor)])
     }
 
-    /// Exact single-neuron replacement plus reservoir update for a settled
-    /// passive membrane return: the one lawful mutation path of the return
-    /// event, conserving carriers on the neuron and depositing released
-    /// work into this cohort's own reservoir thermal state.
-    pub(crate) fn apply_passive_membrane_return(
+    /// Exact single-neuron replacement plus reservoir update for one settled
+    /// local membrane transport: the one indexed mutation path shared by
+    /// passive return and mounted efferent discharge.
+    pub(crate) fn apply_local_membrane_transport(
         &mut self,
         neuron_index: usize,
         successor: NeuronPhysicalState,

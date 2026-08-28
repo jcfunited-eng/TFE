@@ -6256,6 +6256,49 @@ pub(crate) fn settle_membrane_pump_transport(
     Ok(successor)
 }
 
+/// Settle one prepared efferent terminal discharge from retained motor-cell
+/// voltage. The preparing contact current is not reused as output: it must
+/// first leave a positive membrane displacement in this neuron. The mounted
+/// terminal may then move at most the whole carriers that actually arrived,
+/// never past zero displacement and only when the neuron's exact retained
+/// membrane-plus-gradient work strictly descends.
+pub(crate) fn settle_efferent_terminal_transport(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    prepared_elementary_carriers: u128,
+    interval_microseconds: u32,
+) -> Result<Option<(NeuronPhysicalState, u128, BigRational)>, NeuronPhysicalError> {
+    let displacement = predecessor.membrane.membrane().separated_elementary_charges();
+    if displacement <= 0 || prepared_elementary_carriers == 0 {
+        return Ok(None);
+    }
+    let magnitude = prepared_elementary_carriers.min(displacement.unsigned_abs());
+    let outward = i128::try_from(magnitude)
+        .map_err(|_| GateSettlementError::ArithmeticWidth)?;
+    let successor = settle_membrane_pump_transport(
+        anatomy,
+        predecessor,
+        outward,
+        None,
+        interval_microseconds,
+    )?;
+    if successor == *predecessor {
+        return Ok(None);
+    }
+    let predecessor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)?;
+    let successor_work =
+        membrane_and_gradient_work_zeptojoules_wide(anatomy, &successor)?;
+    if successor_work >= predecessor_work {
+        return Ok(None);
+    }
+    Ok(Some((
+        successor,
+        magnitude,
+        predecessor_work - successor_work,
+    )))
+}
+
 // Measurement-only test accessors (no production logic): expose otherwise
 // private conserved quantities so probe tests can report them exactly.
 #[cfg(test)]
@@ -7300,6 +7343,51 @@ mod tests {
                 .is_none(), "zero displacement schedules no event");
             }
         }
+    }
+
+    #[test]
+    fn prepared_efferent_transport_is_a_distinct_local_outward_discharge() {
+        let fixture = physical_fixture();
+        let mut prepared = fixture.state.clone();
+        prepared.membrane = LocalMembraneConductanceState::genesis(3);
+        let before_total = prepared.carriers.intracellular + prepared.carriers.extracellular;
+        let (successor, outward, released) = settle_efferent_terminal_transport(
+            &fixture.anatomy,
+            &prepared,
+            2,
+            1_000,
+        )
+        .unwrap()
+        .expect("positive retained displacement must discharge");
+        assert_eq!(outward, 2);
+        assert_eq!(
+            successor.membrane.membrane().separated_elementary_charges(),
+            1
+        );
+        assert_eq!(
+            successor.carriers.intracellular + successor.carriers.extracellular,
+            before_total
+        );
+        assert!(released > BigRational::zero());
+
+        let mut inward = fixture.state.clone();
+        inward.membrane = LocalMembraneConductanceState::genesis(-3);
+        assert!(settle_efferent_terminal_transport(
+            &fixture.anatomy,
+            &inward,
+            2,
+            1_000,
+        )
+        .unwrap()
+        .is_none());
+        assert!(settle_efferent_terminal_transport(
+            &fixture.anatomy,
+            &prepared,
+            0,
+            1_000,
+        )
+        .unwrap()
+        .is_none());
     }
 
     /// PERSISTED-STATE QUARANTINE: a body whose retired membrane-return residue

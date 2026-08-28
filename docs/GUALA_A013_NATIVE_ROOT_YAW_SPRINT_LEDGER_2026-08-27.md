@@ -498,3 +498,36 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   but did not install a physical efferent channel. A-013 remains open until
   that missing specialization produces a native discharge and the live world
   returns its consequences to the same organism.
+
+## Distinct retained motor-terminal discharge — 2026-08-28
+
+- The first local candidate tried to use the already-ratified passive membrane
+  return as motor output. A copied production body measured the root motor's
+  next exact return crossing at 20,143 intervals; 256 replayed intervals
+  produced no root action. That candidate was removed completely.
+- The accepted source candidate instead gives an explicitly mounted effector
+  terminal its own neuron-local whole-carrier path. Contact transport remains
+  preparation only: it must first become positive retained membrane
+  displacement in the motor. The terminal then moves at most that retained
+  displacement outward, never crosses zero, conserves the neuron's carrier
+  total, requires strict exact membrane-plus-gradient work descent, and
+  deposits the released work in the cohort's finite thermal reservoir.
+- Same-interval contact arrival is not required after the motor has integrated
+  charge. The retained displacement is the physical preparation, exactly as a
+  neuron may integrate before it fires; zero or negative displacement remains
+  silent. No score, threshold, timer, command, observer, reduced DSF field, or
+  new persistent state was added.
+- Focused local proof
+  `prepared_efferent_transport_is_a_distinct_local_outward_discharge` passes:
+  a two-carrier terminal discharge reduces positive displacement `3 -> 1`,
+  conserves carrier material, releases positive exact work, and refuses zero
+  preparation capacity and negative displacement.
+- Copied authenticated production proof restored the 76,547,613-byte body at
+  tick 208543. On its next reached interval, root motor lineage
+  `474c4e4c494e4531000000000000009b` emitted exactly seven of its own carriers
+  through mounted terminal `positive`. The native observation contained one
+  real root-yaw recruitment and no fabricated body consequence.
+- Live production remains task 1281 and is untouched by this candidate.
+  A-013/O-001 remains open until cutover proves world movement, exact returned
+  sensory/body consequences in the same identity, and later unattended tick
+  advancement.
