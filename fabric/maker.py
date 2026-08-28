@@ -70,10 +70,26 @@ def make(want, size=3, show=3):
                          + e["ask"]):
             df[w] = df.get(w, 0) + 1
     qkey = {w for w in qs if df.get(w, 99) <= 25} or qs
+    # the words layer: each want word carries a sense, and its
+    # near-words come with it. Letters stop deciding matches.
+    try:
+        import senses as S
+        fam = {}
+        for w in qkey:
+            fam[w] = {content(x).pop() if content(x) else x
+                      for x in S.family(w, qs) if content(x)}
+        want_words = set(qkey) | set().union(*fam.values())
+        def sense_ok(w, e):
+            return S.same_sense(w, qs, content(e["essence"]))
+    except Exception:
+        want_words = set(qkey)
+        def sense_ok(w, e): return True
     # the mechanisms the knowledge offers toward this want
     def ew(e): return content(e["essence"] + " " + e["ask"])
-    offers = [e for e in es if qkey & ew(e)]
-    offers.sort(key=lambda e: -len(qkey & ew(e)))
+    offers = [e for e in es
+              if (want_words & ew(e)) and
+              all(sense_ok(w, e) for w in (qkey & ew(e)))]
+    offers.sort(key=lambda e: -len(want_words & ew(e)))
     offers = offers[:16]
     staged = killed = 0
     survivors, deaths = [], []

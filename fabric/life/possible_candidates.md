@@ -342,3 +342,31 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the middleman
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'bulk is cheaper because every sale drags costs tha' toward cooking:
   maybe: bulk is cheaper because every sale drags costs that ignore size — wrapper, label, shelf sl
   with: the last mile costs most — the ocean moves a shirt for pennies because ten thousand shirts
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a bubble is obvious only afterward because while i' toward chance risk:
+  maybe: probability is ignorance made precise — single outcomes stay unknowable while their long-r
+  with: chance has laws — no one can call one fair coin flip, and anyone can call a million of the
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'numbers wrap on a dial — keep only the remainder b' toward music:
+  maybe: numbers wrap on a dial — keep only the remainder by twelve and 13 o'clock is 1; a number's
+  with: a number and its digit sum leave the same remainder by nine — ten leaves one, so each bund
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'every whole number has a heartbeat, even or odd, a' toward sports games:
+  maybe: home teams win more, everywhere ever measured (roughly 54-60% across sports) — the home si
+  with: every whole number has a heartbeat, even or odd, and addition adds heartbeats: odd plus od
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'primes are the atoms of number — every whole numbe' toward chemistry:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'more pigeons than holes forces sharing — ten lette' toward medicine body:
+  maybe: death is certain and load-bearing — every body stops, and the stopping makes room; generat
+  with: play is practice wearing a mask of pointlessness — the young of every clever species rehea
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an invariant is a quantity the moves cannot touch ' toward physics:
+  maybe: an invariant is a quantity the moves cannot touch — every reachable state agrees with the 
+  with: a contract binds only what was agreed and only who agreed — consent is the source of the b
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the moves that leave a thing looking untouched for' toward music:
+  maybe: the moves that leave a thing looking untouched form a closed family — do one, then another
+  with: a shape's symmetries are the moves that leave it looking untouched — turn a square a quart
