@@ -13,40 +13,30 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1232`, commit
-`0d8f392611eaed9baaf72f1b370342e65d708ae7`, immutable image
-`sha256:46ea2a9da593f5b09b35da00bddb4e86eb26d612ffd797fc205f0a54d6e45c9a`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The exact learned
-recognition successor is CURRENT at tick 172663/state
-`daebf329033be470804daebcb064934a0f6f29bed9534c229dafdc45063ef740`;
-task 1232 bounded only passive causal observation and sent no duplicate lesson.
+Current production baseline: task definition `dsf-ai-task:1290`, commit
+`54df84598d61586248bcf49d741d2fb19973a786`, immutable image
+`sha256:eafcb68f0ff28ae758e079964535ef796441d5ec2b847745e074a7681fed7cb0`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. A read-only live
+observation on 2026-08-28 found the same identity advancing at tick `216935`,
+state `172d3b0572ff78e52a8c092b9ded25562ca59a26cd8928762fe238b9d52e8305`,
+with zero Python cognition callbacks.
 
-### L-006 current production-custody correction — 2026-08-27
+### L-005/L-006 reconciliation after one-way anatomy cleanup — 2026-08-28
 
-- **Active item:** L-006 remains open; L-005 remains live-closed.
-- **Observed production baseline:** task `1260`, commit `a47c9944`, identity
-  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored at tick `186364`.
-- **Exact blocker:** the background custodian independently published an
-  unsealed snapshot to `CURRENT` without advancing the resident runtime's
-  predecessor pointer. The next ordinary fourth-interval seal then refused its
-  stale predecessor and made the public surface unavailable. The shutdown
-  chain seal was also inert because a synchronous function was decorated as an
-  async context manager and called without entering it.
-- **Frozen correction:** delete the custodian writer and its raw-state staging
-  API; retain the organism's existing fourth-interval atomic publication as the
-  sole `CURRENT` and immutable-custody path; make shutdown execute that same
-  chain seal. No neuron, DSF, body, learning, or observer law changes.
-- **Live exit:** one task restores the same identity, advances and publishes at
-  least two checkpoint cadences without predecessor conflict or public 503,
-  and cold-restores the resulting `CURRENT`. L-006 itself remains open until a
-  physical utterance, self-hearing, and different-context learned reuse are
-  directly observed.
-- **First cutover result:** task `1261` deployed the sole-writer correction and
-  restored the same identity, but the exact discarded-current replay exposed a
-  separate translation refusal after all eight native hops: Rust/PyO3 emits the
-  fixed 195-byte body as Python `bytes`, while the new wrapper required a
-  Python integer list. The correction requires the exact native `bytes` body;
-  it does not accept both formats or add a compatibility branch.
+- **Active item:** L-005 is reopened; L-006 is complete.
+- **Why L-005 reopened:** the earlier bear-hidden action proof depended on
+  coincidence-grown motor anatomy. The V33 one-way cleanup correctly removed
+  that anatomy, so the historical receipt no longer proves recognition through
+  the current lawful organism.
+- **Why L-006 is complete:** task 1290 preserved the same identity and live-
+  proved one retained-formation route reaching vocal motor `...0d91`, layer-13
+  cell `...0072`, emitted pressure, and cochlear self-hearing. A later
+  unattended interval reused the learned route and emitted a different pressure
+  body. This is an utterance result, not a learned-word or meaning claim.
+- **Single next acceptance:** present one changed physical cue to the corrected
+  live organism and require a previously grounded formation to reassemble,
+  cause a physical continuation, receive its sensed consequence, and survive
+  current-state persistence without labels, metadata, or observer authority.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
@@ -59,8 +49,8 @@ task 1232 bounded only passive causal observation and sent no duplicate lesson.
 | 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
 | 4 | A-013 | Live-closed 2026-08-24 on task 1222 | Preserve the bounded Phase-1 articulated body, world/vestibular state, and exact core/cutaneous neuronal thermal participation; final gait, dexterity, and hardware morphology remain later scope. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
-| 6 | L-005 | Live-closed 2026-08-25 on tasks 1231/1232 | Preserve the exact bear-hidden acoustic reassembly of cross-sensory recurrent route `...08da`, its layer-12 action, and same-organism sensed return; no label or observer may become authority. |
-| 7 | L-006 | Open | Directly prove one physically caused first utterance, self-hearing, and learned reuse in a different context. |
+| 6 | L-005 | Reopened 2026-08-28 after V33 cleanup invalidated the old action route | Prove one changed physical cue reassembles grounded structure and causally changes the corrected live organism; no label or observer may become authority. |
+| 7 | L-006 | Live-closed 2026-08-28 on task 1290 | Preserve learned formation-caused vocal action, emitted pressure, self-hearing, and later unattended reuse; do not relabel the utterance as a word. |
 | 8 | Remaining curriculum/UI/final proof | Open | Continue L-007 onward, U-001 onward, and final P acceptance in dependency order; S-010 and C-013 remain explicit open requirements and cannot be lost. |
 
 ## Neuron and sensory specialization
@@ -661,15 +651,19 @@ task 1232 bounded only passive causal observation and sent no duplicate lesson.
   song-recognition, or speech claim is made. The next ordinary interval after
   the post-lesson consolidation burst added only 12,034 bytes and no retained
   impression or mosaic. See the L-004 synchronized-song sprint ledger.
-- [x] **L-005** Demonstrate first genuine learned word recognition from novel
+- [ ] **L-005 — REOPENED 2026-08-28:** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
-  **Live-closed 2026-08-25:** one grounded sight+sound+layer-7 formation retained
-  unique recurrent route `...08da`; later bear-hidden physical PCM reassembled
-  that route, reached layer-12 action, and returned exact proprioceptive/load
-  consequence in the same production organism. Task 1232 bounded the passive
-  proof to one witness per recurrent formation without changing cognition.
-- [ ] **L-006** Demonstrate a physically caused first utterance and self-heard
-  consequence, then repeated learned use in a different context.
+  The 2026-08-25 bear-hidden receipt is historical evidence only: V33 removed
+  the coincidence-grown motor anatomy on which its action continuation relied.
+  The current corrected organism still needs a fresh changed-cue reassembly,
+  causal use, sensed consequence, and persistence witness.
+- [x] **L-006 — LIVE-CLOSED 2026-08-28:** Demonstrate a physically caused first
+  utterance and self-heard consequence, then repeated learned use in a different
+  context. Task 1290 observed the learned route reach vocal motor `...0d91`,
+  layer-13 cell `...0072`, emit 28,000 pressure samples, and return through
+  seven self-hearing hops. A later unattended recurrence emitted 24,000 samples
+  through the same learned route with a different pressure receipt. This proves
+  an utterance and learned reuse, not a word or meaning.
 - [ ] **L-007** Connect live camera, microphone, and text input so the organism
   can learn from what actually reached sight/hearing/language-related structure.
 - [ ] **L-008** Connect local books, PDFs, pictures, sounds, songs, and video as

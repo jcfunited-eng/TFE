@@ -2,8 +2,9 @@
 
 Date: 2026-08-28
 
-Status: active. This document records evidence; it is not cognition and is not
-a completion claim.
+Status: Complete on 2026-08-28 by direct task-1290 live evidence. This document
+records evidence; it is not cognition and does not claim a learned word or
+meaning.
 
 ## Regression-history gate
 

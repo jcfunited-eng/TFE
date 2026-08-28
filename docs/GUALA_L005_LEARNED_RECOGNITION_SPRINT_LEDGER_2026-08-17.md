@@ -2,11 +2,12 @@
 
 Date: 2026-08-17
 
-Status: Live-Closed for L-005 on 2026-08-25. The same production organism
-physically retained a grounded sight+sound+association formation, later
-reassembled its unique recurrent route from bear-hidden acoustic evidence,
-caused a native body action, and sensed the consequence. L-006 first learned
-utterance remains open; no emitted waveform is yet claimed to mean `bear`.
+Status: reopened on 2026-08-28. The 2026-08-25 bear-hidden recognition record
+remains historical evidence, but its action continuation depended on
+coincidence-grown motor anatomy removed by the V33 one-way correction. L-005
+now requires a fresh changed-cue reassembly and causal-use witness through the
+corrected live organism. L-006 has independently closed as a learned utterance
+and self-hearing result; no emitted waveform is claimed to mean `bear`.
 
 ## 2026-08-22 resumed first-word work
 
