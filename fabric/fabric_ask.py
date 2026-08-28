@@ -96,6 +96,8 @@ def _mark_answered(s):
               r"\1ANSWERED — knowledge that answers it was added "
               r"later", t)
     if t2!=t: open(WHITE,"w").write(t2)
+BUILD_WORDS=re.compile(r"\b(system|program|software|applicat|"
+                       r"tool|rules? engine|checker|audit)\b",re.I)
 MAKE_WORDS=re.compile(r"^\s*(make|build|design|create|invent|"
                       r"give me a way|a way to|how (do|can) (i|we)|"
                       r"how to)\b",re.I)
@@ -104,6 +106,47 @@ def ask(question):
     # stages possibilities and its own laws kill what they forbid
     if MAKE_WORDS.match(question):
         sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+        # a want for a SYSTEM is not answered with talk: the fabric
+        # writes the program and hands back the file
+        if BUILD_WORDS.search(question):
+            import emit, maker, re as _re
+            # the laws that GRIP this want are the laws the built
+            # thing must obey — take the fields they came from,
+            # not whatever shares a word with the question
+            _t,closed,_r,_f,_es,_n = maker.make(question, data=True)
+            fields=[]
+            for law,(cnt,near) in sorted(closed.items(),
+                    key=lambda x:(-int(x[1][1]),-x[1][0])):
+                m=_re.search(r"\(([^)]+)\)\s*$", law.strip())
+                if m and m.group(1) not in fields:
+                    fields.append(m.group(1))
+            fields=fields[:5] or ["accounting"]
+            name=_re.sub(r"[^a-z0-9]+","_",
+                         question.lower())[:40].strip("_")
+            here=os.path.dirname(os.path.abspath(__file__))
+            out=os.path.join(here,"emitted",f"{name}.py")
+            os.makedirs(os.path.dirname(out),exist_ok=True)
+            n,path=emit.emit(fields,out,
+                             f"RULES FOR: {question.strip()}")
+            print(f"I wrote the program.\n"
+                  f"  file: fabric/emitted/{os.path.basename(path)}\n"
+                  f"  {n} enforceable rules, drawn from my knowledge "
+                  f"of: {', '.join(fields)}\n"
+                  f"  each rule quotes the law it enforces and names "
+                  f"where that law came from, and it carries a "
+                  f"running audit over records.\n"
+                  f"  what it does NOT do: reach the internet, draw "
+                  f"a screen, hold identities, or file anything. "
+                  f"Those need hands; the rules are what the hands "
+                  f"may not violate.")
+            import subprocess
+            laws=open(path).read().count("'law':")
+            print(f"\n  the first laws it will enforce:")
+            for m in _re.finditer(r"'law': \"?'?([^'\"]{10,90})",
+                                  open(path).read()):
+                print(f"    {m.group(1)}")
+                if m.end()>4000: break
+            return
         import maker
         print(maker.make(question)); return
     qs=words(question)

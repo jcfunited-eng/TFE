@@ -1,0 +1,25 @@
+ASKING: create an accounting system with audit trail and reconciliation
+
+I wrote the program.
+  file: fabric/emitted/create_an_accounting_system_with_audit_t.py
+  31 enforceable rules, drawn from my knowledge of: sports games, farming living systems, money trade, light seeing, survival wilderness, software development
+  each rule quotes the law it enforces and names where that law came from, and it carries a running audit over records.
+  what it does NOT do: reach the internet, draw a screen, hold identities, or file anything. Those need hands; the rules are what the hands may not violate.
+
+  the first laws it will enforce:
+    no game without forbidden moves — deleting every rule does not free the game, it deletes i
+    And no referee for the referee without end: somewhere the chain rests on trust, and that r
+    no standings without endings — a game that cannot conclude cannot be won, and winning it w
+    no steering without variation — a line bred identical has nothing left to choose from, and
+    no growth without the return — a field that exports every stalk and gives nothing back is 
+    no voluntary exchange without a gap to share.
+    no complex economy on suspicion — without trust or its paid substitutes (contracts, collat
+    no seeing around a corner without a bend or a bounce.
+    No lens that focuses without slowing light somewhere — the slowing IS the lens.
+    no shadow without a denied straight path;
+    no reading one without knowing where the light stood.
+    No blue sky without air — the moon
+    No distance without dimming — and no hiding range: dimness betrays how far.
+    no fire without fuel, air, and heat together — remove any one and it dies.
+    no walking out by feel — without references the body veers in arcs it cannot feel, and the
+    no crossing ground without writing on it — weight cannot be withheld, only placed where th

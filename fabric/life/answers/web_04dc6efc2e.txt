@@ -1,0 +1,25 @@
+ASKING: create an accounting system with audit trail and reconciliation
+
+I wrote the program.
+  file: fabric/emitted/create_an_accounting_system_with_audit_t.py
+  34 enforceable rules, drawn from my knowledge of: accounting control, grammar and sentences, power governance
+  each rule quotes the law it enforces and names where that law came from, and it carries a running audit over records.
+  what it does NOT do: reach the internet, draw a screen, hold identities, or file anything. Those need hands; the rules are what the hands may not violate.
+
+  the first laws it will enforce:
+    no ruling by force alone for long — coercion costs more than it extracts, and the guards n
+    no state without revenue.
+    no sentence without a verb — a heap of names lists the world and asserts nothing, so nothi
+    no story without a settled time frame the listener can stand in — hop between yesterday an
+    no relation without a marker — drop the little words and the big ones lie side by side say
+    no pronoun without an antecedent the listener can recover — 
+    no writing without grouping — the reader will group the words somehow, and with no marks t
+    no content without clothing — no register-free way to say a thing exists, and wrong clothe
+    no clarity without a place to stand — open with what the reader does not yet know and the 
+    no entry without an equal and opposite entry.
+    no revenue in a period without performance in that period.
+    No expense in a period without the benefit consumed in that period.
+    no revenue without a satisfied obligation.
+    no control without separation.
+    no audit without a trail.
+    No adjustment without a stated reason and an author.

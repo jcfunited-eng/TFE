@@ -153,3 +153,27 @@ WANT: why does bread go stale
 
 WANT: why does bread go stale
   closed 15 — requirement unmet — no storm without a temperature difference to spend; (oceans weather)
+
+WANT: post revenue on an unsigned order and let the approver also make the payment
+  closed 482 — requirement unmet — no revenue without a satisfied obligation. (accounting control)
+  closed 121 — forbidden together — no who-did-what in a bag of English words — shuffle them and the roles die; (grammar and sentences)
+  closed 92 — requirement unmet — And no referee for the referee without end: somewhere the chain rests on trust, and that rest is every game's soft spot. (sports games)
+  closed 1 — forbidden together — no value in a private standard — the rule pays because nobody has to check; (deep fixing things)
+
+WANT: reconcile a bank account and trust the cash balance
+  closed 91 — requirement unmet — No deal without a meeting of minds: two people agreeing to different things have agreed to nothing. (law agreements)
+  closed 15 — forbidden together — no power from a floating base — thrown from mid-air or a slipping foot, a blow has only the arm's own small mass to spend. (martial arts movement)
+  closed 4 — forbidden together — no pressure from an offer truly open forever — the pitch installs a clock or count ("3 left", "today only"); (deep money everyday)
+
+WANT: design an accounting system with risk based rules, audit trail, reconciliation and state filings
+  closed 223 — requirement unmet — no state without revenue. (power governance)
+  closed 158 — requirement unmet — no reconciliation without an independent second source. (accounting control)
+  closed 33 — requirement unmet — no estimate without a stated basis. (accounting control)
+  closed 90 — requirement unmet — no sentence without a verb — a heap of names lists the world and asserts nothing, so nothing in it can be true or false. (grammar and sentences)
+  closed 29 — requirement unmet — no seeing without interpreting. (the mind)
+
+WANT: create an accounting system with audit trail and reconciliation
+  closed 378 — requirement unmet — no reconciliation without an independent second source. (accounting control)
+  closed 48 — requirement unmet — no estimate without a stated basis. (accounting control)
+  closed 91 — requirement unmet — no sentence without a verb — a heap of names lists the world and asserts nothing, so nothing in it can be true or false. (grammar and sentences)
+  closed 29 — requirement unmet — no state without revenue. (power governance)

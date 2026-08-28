@@ -586,3 +586,43 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'ambiguity is 
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a dictionary is a map of agreements — it reports h' toward astronomy navigation:
   maybe: starlight carries fingerprints — each element blots out its own exact colors — and every s
   with: light is fast but not instant, so every look outward is a look backward — sunlight arrives
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'in English, position says who did what to whom — "' toward cooking:
+  maybe: order carries meaning — the same words rearranged say different things ("dog bites man" / 
+  with: in English, position says who did what to whom — "the dog bit the man" and "the man bit th
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'doer and doing must match in number and person — o' toward development methods:
+  maybe: the instructions are a recipe, not a blueprint — no gene maps to a body part as a drawing 
+  with: every trait is nature and nurture both, always — the recipe sets ranges, the world picks t
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'register is the clothing on the same content — "we' toward meaning ritual:
+  maybe: register is the clothing on the same content — "we regret to inform you", "sorry", and "to
+  with: ambiguity is a permanent resident — most sentences carry more than one legal reading, and 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'three rules carry most of clarity — one idea per s' toward development methods:
+  maybe: the instructions are a recipe, not a blueprint — no gene maps to a body part as a drawing 
+  with: every trait is nature and nurture both, always — the recipe sets ranges, the world picks t
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'speech is built from a small kit of sound-atoms, e' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'English words carry a beat — REcord the thing, reC' toward martial arts movement:
+  maybe: English words carry a beat — REcord the thing, reCORD the act; every word of two syllables
+  with: a lyric fits a tune when the word's loud syllable lands on the tune's strong beat; set the
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'rhyme is matched endings — from the last stressed ' toward right wrong:
+  maybe: English words carry a beat — REcord the thing, reCORD the act; every word of two syllables
+  with: speech is built from a small kit of sound-atoms, each one a shape the mouth makes — lips s
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'meter is a repeated beat under the words — te-TUM ' toward sports games:
+  maybe: rhythm is expectation and its games — a beat teaches the body when the next hit lands, the
+  with: meter is a repeated beat under the words — te-TUM te-TUM te-TUM; poetry and song ride a pu
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'punctuation is written breath and grouping — it do' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'rhyme is matched endings — from the last stressed ' toward right wrong:
+  maybe: English words carry a beat — REcord the thing, reCORD the act; every word of two syllables
+  with: speech is built from a small kit of sound-atoms, each one a shape the mouth makes — lips s
