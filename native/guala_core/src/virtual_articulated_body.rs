@@ -305,6 +305,21 @@ impl BodyAxis {
         BODY_AXIS_ANATOMY[self.index()]
     }
 
+    /// True only for axes that physically shape or gate the vocal tract.
+    /// This is fixed body anatomy, not a phoneme, word, action label, or
+    /// learned meaning.  Facial expression and every non-vocal limb axis are
+    /// deliberately excluded.
+    pub(crate) fn is_vocal_articulator(self) -> bool {
+        matches!(
+            self,
+            Self::JawOpening
+                | Self::LipAperture
+                | Self::LipWidth
+                | Self::PerioralDisplacement
+                | Self::GlottalAperture
+        )
+    }
+
     pub(crate) fn anatomical_name(self) -> &'static str {
         match self {
             Self::TorsoPitch => "torso_pitch",

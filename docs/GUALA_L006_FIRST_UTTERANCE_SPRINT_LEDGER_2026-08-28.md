@@ -75,8 +75,11 @@ must remain green after learning and cold restart.
 
 ### First utterance remains open
 
-- Cause currently isolated: no clean learned action route has yet reached the
-  existing layer-12-to-layer-13 preparation and vocal-body boundary.
+- Cause isolated on 2026-08-28: V33 correctly removed the contaminated
+  layer-13 coincidence pool, but the only production creator of a new
+  layer-13 route required an utterance, self-hearing and moved articulatory
+  body axes first. The organism therefore had to utter before it possessed
+  the physical anatomy required for its first utterance.
 - Permanent invariant: the same resident formation must cause body action,
   articulation, pressure, self-hearing and later different-context reuse.
 - Falsifier: generic recurrence counts, mounted anatomy, observer text or a
@@ -213,3 +216,28 @@ timer, second scheduler, or retained speech program.
 - This closes the V33 fan-out correction and the current F-004 recurrence. It
   does **not** close L-006: no live learned utterance, self-hearing, and varied
   later reuse has yet been witnessed.
+
+## V34 first-utterance anatomy candidate — 2026-08-28
+
+- The body authority identifies exactly five vocal axes: jaw opening, lip
+  aperture, lip width, perioral displacement and glottal aperture. Their two
+  antagonist directions produce ten fixed layer-12 motor terminals.
+- V34 mounts those ten terminals onto one reusable layer-13 respiratory/vocal
+  excitation cell. It adds no phoneme, word, target pressure, formation ID,
+  action label, observer authority or semantic output.
+- Learned cognition remains upstream: a retained formation must still create
+  an exact sparse layer-11-to-layer-12 motor path; layer 12 must physically
+  transfer carriers to layer 13; layer 13 must discharge through its own local
+  membrane before any pressure can be emitted.
+- Non-vocal axes cannot enter the fixed bridge. Returned vocal consequences
+  may later add sparse acoustic/body/ordering associations only after an exact
+  prior vocal-motor event; same-interval coincidence still authors nothing.
+- The focused migration proof constructs an exact V33 body with ten mounted
+  vocal terminals and no layer-13 route. V34 adds one layer-13 cell and exactly
+  ten contacts, leaves a non-vocal elbow motor disconnected, cold-restores,
+  and is byte-identical on a second migration.
+- The focused articulatory set passes 10/10. The full 525-test crate reports
+  512 pass, 10 ignored and three failures; all three failures reproduce
+  unchanged on commit `39a302064a7a40a3babd228e41c383f76edb2115` and are therefore not introduced
+  by V34. L-006 remains open until the live causal chain emits, self-hears and
+  later reuses a learned utterance in a physically different context.
