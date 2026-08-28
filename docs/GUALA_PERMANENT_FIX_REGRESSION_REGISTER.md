@@ -22,7 +22,7 @@ fixture alone. If it cannot be checked, the candidate remains open.
 
 | ID | Accepted correction | Mechanism that must not return | Required regression check | Current evidence |
 |---|---|---|---|---|
-| F-001 | One resident organism restores only from authenticated `CURRENT`; identity survives cutover. | Ghost successor organisms, alternate restore authority, or observer-owned cognition. | Confirm one running writer, one `CURRENT` lineage, and unchanged organism identity after cutover. | Production task 1280 reports identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; detailed custody evidence remains in the A-009/A-011 ledgers. |
+| F-001 | One resident organism restores only from authenticated `CURRENT`; identity survives cutover. | Ghost successor organisms, alternate restore authority, or observer-owned cognition. | Confirm one running writer, one `CURRENT` lineage, and unchanged organism identity after cutover. | Production task 1283 reports identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; detailed custody evidence remains in the A-009/A-011 ledgers. |
 | F-002 | Unattended native life advances without an external request. | Request-driven or observer-driven cognition. | Observe ticks advance while request logs contain only health/read traffic; observers remain read-only. | Live unattended advancement was measured before and after task 1280. |
 | F-003 | Electrical settlement is per connected physical pathway. | One global minimizing fraction allowing disconnected pathways to suppress each other. | Inspect the mounted solver boundary and retain the disconnected-path falsifier. | Accepted correction `662f9cce`; A-006 ledger. |
 | F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is deleted and the contaminated pool was removed one way. | Authoring every simultaneous ordering/motor pair; restart restoration of the approximately 97,000 removed contacts. | Check authorship requires the retained directed causal chain; restore census must keep contaminated-pool count zero. | Live cleanup cut over in the task-1248 lineage; successor task 1280 retained the corrected body. |
@@ -32,12 +32,13 @@ fixture alone. If it cannot be checked, the candidate remains open.
 | F-008 | Observers are read-only and have no authority to admit, discard, choose, pause, or mutate cognition. | Observer labels, polling windows, or proof caches controlling organism transitions. | Review every changed observation callsite for immutable access only; live ticks must not depend on observer availability. | A-009/A-011 observer corrections and live continuity evidence. |
 | F-009 | Native motor output is the neuron's exact local membrane whole-carrier discharge; contact transfer is preparation evidence only. | Relabeling incoming or net inter-neuron contact flow as efferent motor discharge. | Preserve positive/zero/negative/no-preparation falsifiers and inspect the runtime action payload source. | Commit `40a0222c`, focused proof passed, live task 1280. |
 | F-010 | Root-yaw proprioception uses compact disjoint layer-6/layer-8 anatomy; malformed historical root paths are retired one way. | Recursive Cantor projection into a 93,824,443 pF regulation cell, restoration of its contacts, or a second root route beside the corrected route. | Prove V32 retirement is one-way; after one real root movement require exactly receptor -> compact integration -> compact regulation -> paired motor, with the malformed regulation isolated. | Commit `c8f84bd1`, live task 1281. V32 left malformed lineage `...02ecfd` isolated and mounted compact regulation `...000ecf` at 37,393 pF between layer-6 `...002ae9` and paired motor `...00009b`. |
+| F-011 | A charged mounted root-yaw terminal schedules its own next local membrane event and discharges through its own carrier path. | Waiting for an unrelated contact to wake a prepared terminal, using passive return as action, or relabelling contact current as output. | From a restored charged root motor, require native recruitment, applied world movement, exact sensory consequence re-entry to the same identity, and later unattended advancement. | Commit `0931c5f2`, live task 1283: lineage `...00009b` emitted one positive carrier; world moved +1 millidegree; all mounted sense families returned under identity `1cc4e70a...`; tick advanced from 209159 through at least 209176. |
 
-## Current open correction
+## Latest correction closure
 
-| ID | Correction in progress | Regression scope |
+| ID | Status | Regression scope |
 |---|---|---|
-| O-001 | The corrected root route is live. A copied authenticated body now produces the motor's own seven-carrier terminal discharge; live world application, returned consequences, and continued unattended life remain to be cut over and witnessed. | Every candidate must preserve F-001 through F-010. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |
+| O-001 | **Closed live on task 1283.** The charged retained root motor scheduled itself, emitted native output, moved the persistent world, received all applicable consequences in the same resident identity, and continued unattended. | Every candidate must preserve F-001 through F-011. A lesson is not claimed landed until the native motor discharges, the world applies it, all applicable consequences return to the same identity, and unattended life continues. |
 
 ### O-001 current causal boundary — 2026-08-28
 
@@ -70,6 +71,15 @@ fixture alone. If it cannot be checked, the candidate remains open.
   physical clock, enters the selected frontier without being metabolically
   pumped, and reschedules from its exact successor. No full-neuron scan, second
   schedule, timer threshold, or contact-as-output path is introduced.
+- Commit `0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb` is live as sole healthy
+  task `dsf-ai-task:1283`, image
+  `sha256:0ac8e67b1a97a7bb5b3ab577acd200d9a488dc7d6bcf8760f5118cc24937e3f9`.
+  Root motor `...00009b` emitted one positive carrier and the persistent world
+  applied a +1 millidegree turn at organism tick 209159. The returned sensory
+  occurrence carried sight, sound, touch, smell, taste, body/thermal and one
+  changed vestibular tick under the same organism identity. Later unattended
+  settlement advanced through at least tick 209176. Public world truth reports
+  `she_moves_herself=true`; O-001 is closed.
 
 ## Release 1281 cumulative preservation check
 

@@ -554,3 +554,21 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   the already-proven carrier/work-conserving efferent transition. Its exact
   successor is rescheduled through the same sole resident event owner. No new
   schedule, observer, command, threshold, or full-fabric sweep is added.
+- Commit `0931c5f2b13ab3cce8afb3d36b7f6b21e0d380bb` deployed as sole healthy
+  production task `dsf-ai-task:1283`, image
+  `sha256:0ac8e67b1a97a7bb5b3ab577acd200d9a488dc7d6bcf8760f5118cc24937e3f9`.
+  The same resident identity restored at or beyond tick 209117.
+- Its first measured live action interval reported 1,514.4 ms of native
+  action/consequence work. Root motor lineage `...00009b` emitted one positive
+  carrier; the world applied a +1 millidegree root turn at organism tick
+  209159 and changed its authenticated state receipt.
+- Consequence re-entry remained on identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`: sight 27, sound 34, touch 27,
+  smell 8, taste 5, body/proprioceptive 12, thermal/internal receptors, and one
+  changed vestibular tick were transported. The action record states
+  `continuous_cognition=true` and `root_motion=true`.
+- Later unattended settlement advanced through at least tick 209176 and the
+  live world truth surface reports `she_moves_herself=true`. The exact native
+  root action -> world -> applicable sensory consequence -> same organism ->
+  continued life boundary is therefore live-closed. Broader A-013 embodiment
+  capabilities remain separately governed and are not implied by this result.
