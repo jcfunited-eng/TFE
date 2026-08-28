@@ -639,6 +639,26 @@ fn frontier_crossing_advances(
     freshly_seeded || !incoming.contains(&(seed_lineage, bond))
 }
 
+/// A scheduled whole-carrier crossing is itself a physical arrival.
+///
+/// The scheduler wakes this contact only when its retained sub-carrier phase
+/// reaches one complete carrier.  When neither endpoint is already the active
+/// causal frontier, carrier direction supplies the exact continuation: the
+/// receiver is the newly reached endpoint.  Dropping this entry used to let
+/// the electricity settle while preventing the arrival from continuing into
+/// the receiver's incident anatomy on the next interval.
+fn scheduled_contact_arrival_frontier(
+    transfer: DirectedPhysicalTransferObservation,
+) -> Result<ActiveElectricalFrontierEntry, FormationError> {
+    ActiveElectricalFrontierEntry::caused_with_frontier(
+        transfer.sender,
+        transfer.receiver,
+        transfer.receiver,
+        transfer.bond,
+        transfer.transferred_whole_carriers,
+    )
+}
+
 fn encoded_directed_frontier_len(frontier: &[ActiveElectricalFrontierEntry]) -> Option<usize> {
     frontier.iter().try_fold(8usize, |total, entry| {
         total.checked_add(entry.encoded_v20_len())
@@ -16646,6 +16666,8 @@ fn settle_internal_contact_interval(
     events
         .contact_schedule
         .drain_due_at(clock, &mut compact_contact_indices);
+    let mut due_contact_indices = compact_contact_indices.clone();
+    due_contact_indices.sort_unstable();
     let due_now_contact_count = compact_contact_indices.len();
     let return_due_count = due_return_flats.len();
     for flat in seed_flats.iter().copied() {
@@ -18311,14 +18333,17 @@ fn settle_internal_contact_interval(
     // seed while the seed's changed potential causally reaches the supplying
     // neighbour. Carrying both endpoints would turn the already-reached
     // interior into a permanent seed and eventually poll the complete fabric.
-    // Contacts with both or neither endpoint seeded therefore do not advance
-    // this boundary; they remain ordinary local electrical settlement.
+    // Contacts with both endpoints seeded do not advance this boundary.
+    // Contacts with neither endpoint seeded advance only when the event
+    // schedule selected their retained phase crossing and a whole carrier
+    // actually arrives below; ordinary local settlement remains noncausal.
     let mut next_active_frontier = Vec::new();
-    for ((transition, bond), (left_flat, right_flat)) in settled
+    for (position, ((transition, bond), (left_flat, right_flat))) in settled
         .transitions
         .iter()
         .zip(&compact_bonds)
         .zip(compact_edge_flat_endpoints.iter().copied())
+        .enumerate()
     {
         let Some(transfer) = directed_physical_transfer(
             transition.outward_elementary_charges_from_left,
@@ -18328,8 +18353,10 @@ fn settle_internal_contact_interval(
         ) else {
             continue;
         };
-        if is_causal_seed(left_flat) != is_causal_seed(right_flat) {
-            let (seed_flat, frontier_lineage) = if is_causal_seed(left_flat) {
+        let left_is_seed = is_causal_seed(left_flat);
+        let right_is_seed = is_causal_seed(right_flat);
+        if left_is_seed != right_is_seed {
+            let (seed_flat, frontier_lineage) = if left_is_seed {
                 (left_flat, flat_locations[right_flat].2)
             } else {
                 (right_flat, flat_locations[left_flat].2)
@@ -18349,6 +18376,12 @@ fn settle_internal_contact_interval(
                 *bond,
                 transfer.transferred_whole_carriers,
             )?);
+        } else if !left_is_seed
+            && due_contact_indices
+                .binary_search(&compact_original_indices[position])
+                .is_ok()
+        {
+            next_active_frontier.push(scheduled_contact_arrival_frontier(transfer)?);
         }
     }
     next_active_frontier.sort_unstable();
@@ -26830,6 +26863,17 @@ mod tests {
 
         let legacy = ActiveElectricalFrontierEntry::legacy_receiver(receiver);
         assert_eq!(legacy.affected_lineages(), [Some(receiver), None]);
+
+        // A later scheduled crossing has no same-clock external seed. Its
+        // exact carrier direction must still make the receiver the next
+        // physical frontier; otherwise retained sub-carrier progress can
+        // cross electrically and disappear causally.
+        let scheduled = scheduled_contact_arrival_frontier(
+            transfer.directed_transfer().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(scheduled.affected_lineages(), [Some(receiver), None]);
+        assert_eq!(scheduled.directed_transfer(), transfer.directed_transfer());
     }
 
     #[test]

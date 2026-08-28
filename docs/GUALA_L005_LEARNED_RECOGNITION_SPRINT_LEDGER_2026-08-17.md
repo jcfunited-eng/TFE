@@ -136,6 +136,19 @@ and self-hearing result; no emitted waveform is claimed to mean `bear`.
   at the target recurrent-to-effector continuation. Another lesson, association
   rewrite, label, observer change, or blind repetition is not authorized as a
   substitute.
+- Exact continuation diagnosis: the retained fractional contact phase can now
+  reach a later whole-carrier crossing, but a contact selected solely because
+  that crossing became due had neither endpoint in the same-clock external
+  seed set. Its electricity settled while `next_active_frontier` discarded the
+  physical arrival. The receiver therefore did not become reached on the next
+  interval and the learned route could stop after genuine reassembly.
+- The bounded correction treats a due nonzero whole-carrier crossing as its own
+  physical arrival. Exact carrier direction names the receiver; only that
+  receiver enters the next frontier. Contacts without a due crossing, phase-only
+  movement, contacts with both endpoints already reached, and ordinary unrelated
+  contacts gain no frontier authority. Full L0-L4, all seven DSF fields, contact
+  settlement, conservation, retained formation state, and observer behavior are
+  unchanged.
 
 ## 2026-08-22 resumed first-word work
 
