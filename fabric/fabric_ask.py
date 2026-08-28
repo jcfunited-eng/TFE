@@ -20,6 +20,10 @@ def fingerprint():
         if f.endswith("99_the_white.md"): continue
         h.update(open(f,"rb").read())
     h.update(open(__file__,"rb").read())   # the walker signs too
+    here=os.path.dirname(os.path.abspath(__file__))
+    for extra in ("fabric_do.py","lawbook.md"):   # doing signs too
+        p=os.path.join(here,extra)
+        if os.path.exists(p): h.update(open(p,"rb").read())
     return h.hexdigest()[:12]
 def load():
     es=[]
@@ -82,10 +86,15 @@ def ask(question):
     qs=words(question)
     digits=re.findall(r"\d+",question)
     if digits:
+        sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+        import fabric_do
+        arr=fabric_do.try_numbers(question)
+        if arr:
+            print(arr); return
         print(f"(I can see numbers here — {', '.join(digits[:4])} — "
-              f"but DOING arithmetic is an element I do not have "
-              f"yet. Anything below is what my floors KNOW, never "
-              f"a computation.)")
+              f"but the doings my lawbook holds so far are adding "
+              f"and times, and this asking's want is not one I can "
+              f"walk yet. Anything below is what my floors KNOW.)")
     if not qs:
         print("TRANSLATOR'S SILENCE — after dropping small words "
               "and numbers, nothing of this asking remains that my "

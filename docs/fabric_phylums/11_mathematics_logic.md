@@ -16,6 +16,32 @@ THREAD: money (bookkeeping is pebble-matching grown up), music
   digital is two pebbles, endlessly).
 ASKED-AS: numbers tally fingers kids learning adding score keeping track dozen abacus quantity
 
+ESSENCE: written numbers are bundles — each place holds up to
+  nine, and a full ten in any place becomes one carried into the
+  place to its left; the same mark means three, thirty, or three
+  hundred by where it stands.
+ROOT: mathematics / counting is the first abstraction — bundling
+  is counting the counts.
+CANNOT: no place holds ten. A tenth in any place MUST become a
+  carry; and no column's sum may disagree with counting the pile
+  one by one — the recount law reaches into every column.
+THREAD: money (dimes are bundled pennies, dollars bundled dimes),
+  computing (the same bundling by twos), measuring (metric is
+  bundling by tens all the way down).
+ASKED-AS: digits place value carry tens hundreds column arithmetic sum adding decimal number
+
+ESSENCE: multiplying is counting by copies — three times 1,289 is
+  1,289 laid down three times and counted as one pile; times is
+  adding that learned to bundle.
+ROOT: mathematics / counting — the same threeness, applied to
+  piles instead of pebbles.
+CANNOT: no product escapes its addition — an answer that
+  disagrees with the copies laid down and counted is simply
+  wrong, whatever table it came from.
+THREAD: farming (rows times plants), money (price times count),
+  building (area is times made visible).
+ASKED-AS: multiply times product double triple groups rows total each per lots
+
 ESSENCE: proof is chained certainty — start from stated premises,
   take only steps no one can refuse, and the end is exactly as
   sure as the start; truth transported without leakage.
