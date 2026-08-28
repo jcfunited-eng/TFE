@@ -145,6 +145,32 @@ def serve_one(path, st, floors, wts, byid):
     st["served"] += 1
     log(f"beat {st['beats']}: answered ({tier}): {q}")
 
+GRIND_EVERY = 240
+_ground = set()
+def grind_open_question(st, floors):
+    """In quiet time, work one recorded open question: try to
+    assemble an answer from scattered pieces. Log only what
+    scores well and was not shown before."""
+    import assembler
+    import re as _re
+    wtxt = open(fa.WHITE).read() if os.path.exists(fa.WHITE) else ""
+    qs = _re.findall(r"ENTRY: ([^\n]+)\n(?:[^\n]|\n(?!\n))*?"
+                     r"STATUS: STANDING", wtxt)
+    if not qs: return
+    q = qs[st["beats"] // GRIND_EVERY % len(qs)]
+    df = {}
+    for e in floors:
+        for x in fa.words(e["essence"] + " " + e["cannot"] + " "
+                          + e["ask"]):
+            df[x] = df.get(x, 0) + 1
+    for s, e1, e2, g in assembler.run(q, floors, df):
+        k = (q, e1["essence"][:40], e2["essence"][:40])
+        if s >= 8 and k not in _ground:
+            _ground.add(k)
+            log(f"beat {st['beats']}: working the open question "
+                f"'{q}' — a possible assembly (score {s}): "
+                f"{e1['essence'][:70]} | {e2['essence'][:70]}")
+
 def wonder_one(st, wts, byid):
     warm = sorted([i for i, v in st["warmth"].items()
                    if v >= WONDER_MIN_WARMTH and i in byid],
@@ -348,6 +374,8 @@ def main():
             acted = True
         if not acted and not over_ceiling:
             acted = wonder_one(st, wts, byid)
+            if not acted and st["beats"] % GRIND_EVERY == 0:
+                grind_open_question(st, floors)
         if not acted:
             quiet += 1
         elif quiet:
