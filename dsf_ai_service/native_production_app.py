@@ -5353,6 +5353,87 @@ def _last_transition_record() -> dict[str, object]:
                 if key in consequence
             }
         evidence["motor_action"] = bounded_action
+    external_use = source.get("externally_reassembled_formation_causal_use")
+    if isinstance(external_use, dict):
+        cue_lineages = external_use.get("external_cue_lineages")
+        directed_transfers = external_use.get("directed_physical_transfers")
+        action = external_use.get("action")
+        sensed_consequence = external_use.get("sensed_consequence")
+        changed_contact = external_use.get("changed_contact_channel_state")
+        bounded_external_use: dict[str, object] = {
+            key: external_use[key]
+            for key in (
+                "formation_receipt_sha256",
+                "recurrent_lineage",
+                "reassembly_organism_tick",
+                "motor_organism_tick",
+            )
+            if key in external_use
+        }
+        bounded_external_use.update(
+            {
+                "external_cue_lineage_count": (
+                    sum(
+                        1
+                        for lineage in cue_lineages
+                        if isinstance(lineage, str)
+                    )
+                    if isinstance(cue_lineages, (list, tuple))
+                    else 0
+                ),
+                "directed_physical_transfer_count": (
+                    len(directed_transfers)
+                    if isinstance(directed_transfers, (list, tuple))
+                    else 0
+                ),
+                "observer_authority": False,
+            }
+        )
+        if isinstance(action, dict):
+            bounded_external_use["action"] = {
+                key: action[key]
+                for key in (
+                    "causal_intent_receipt_sha256",
+                    "body_state_before_sha256",
+                    "body_state_after_sha256",
+                    "body_effector_binding_count",
+                    "root_motion",
+                    "signed_root_yaw_millidegrees",
+                )
+                if key in action
+            }
+        if isinstance(sensed_consequence, dict):
+            bounded_external_use["sensed_consequence"] = {
+                key: sensed_consequence[key]
+                for key in (
+                    "body_proprioceptive_source_count",
+                    "externally_perturbed_body_receptor_count",
+                    "successor_organism_tick",
+                    "successor_state_sha256",
+                )
+                if key in sensed_consequence
+            }
+        if isinstance(changed_contact, dict):
+            predecessor_state = changed_contact.get("predecessor_state")
+            successor_state = changed_contact.get("successor_state")
+            bounded_external_use["changed_contact_channel_state"] = {
+                **{
+                    key: changed_contact[key]
+                    for key in (
+                        "change_organism_tick",
+                        "contact_cognitive_ordinal",
+                        "left_lineage",
+                        "right_lineage",
+                        "parallel_ordinal",
+                    )
+                    if key in changed_contact
+                },
+                "exact_state_changed": predecessor_state != successor_state,
+                "exact_state_coordinates_transported": False,
+            }
+        evidence["externally_reassembled_formation_causal_use"] = (
+            bounded_external_use
+        )
     return _section(
         True,
         "committed_admitted_transition",

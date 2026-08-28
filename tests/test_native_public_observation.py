@@ -537,6 +537,75 @@ def test_public_observation_counts_every_fractal_emitted_by_the_experience(
     assert "formed_evidence_in_last_experience" not in fractals
 
 
+def test_last_transition_keeps_one_bounded_external_recognition_causal_use(
+    monkeypatch,
+) -> None:
+    _mount(monkeypatch)
+    cue = ("01" * 16, "02" * 16)
+    predecessor_contact = (1, 2, 3)
+    successor_contact = (1, 2, 4)
+    monkeypatch.setattr(
+        serving,
+        "_last_transition_evidence",
+        {
+            "hop_count": 3,
+            "intake": "curriculum-card:word-apple:partial",
+            "externally_reassembled_formation_causal_use": {
+                "formation_receipt_sha256": "a" * 64,
+                "recurrent_lineage": "03" * 16,
+                "external_cue_lineages": cue,
+                "reassembly_organism_tick": 40,
+                "motor_organism_tick": 41,
+                "directed_physical_transfers": (
+                    (cue[0], "03" * 16, 0, 2),
+                    ("03" * 16, "04" * 16, 0, 1),
+                ),
+                "changed_contact_channel_state": {
+                    "change_organism_tick": 41,
+                    "contact_cognitive_ordinal": 7,
+                    "left_lineage": "03" * 16,
+                    "right_lineage": "04" * 16,
+                    "parallel_ordinal": 0,
+                    "predecessor_state": predecessor_contact,
+                    "successor_state": successor_contact,
+                },
+                "action": {
+                    "causal_intent_receipt_sha256": "b" * 64,
+                    "body_state_before_sha256": "c" * 64,
+                    "body_state_after_sha256": "d" * 64,
+                    "body_effector_binding_count": 2,
+                    "root_motion": False,
+                    "signed_root_yaw_millidegrees": 0,
+                },
+                "sensed_consequence": {
+                    "body_proprioceptive_source_count": 2,
+                    "externally_perturbed_body_receptor_count": 1,
+                    "successor_organism_tick": 42,
+                    "successor_state_sha256": "e" * 64,
+                },
+            },
+        },
+    )
+
+    serving._refresh_public_observation_cache()
+    use = json.loads(serving.native_observation().body)["last_transition"][
+        "externally_reassembled_formation_causal_use"
+    ]
+
+    assert use["formation_receipt_sha256"] == "a" * 64
+    assert use["recurrent_lineage"] == "03" * 16
+    assert use["external_cue_lineage_count"] == len(cue)
+    assert use["directed_physical_transfer_count"] == 2
+    assert use["observer_authority"] is False
+    assert use["changed_contact_channel_state"]["exact_state_changed"] is True
+    assert use["changed_contact_channel_state"][
+        "exact_state_coordinates_transported"
+    ] is False
+    assert "directed_physical_transfers" not in use
+    assert "predecessor_state" not in use["changed_contact_channel_state"]
+    assert "successor_state" not in use["changed_contact_channel_state"]
+
+
 def test_public_observation_reports_exact_sparse_attention_without_a_score(
     monkeypatch,
 ) -> None:
