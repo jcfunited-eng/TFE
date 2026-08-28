@@ -115,3 +115,36 @@ ENTRY: why is the square root of a polynomial
   FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: ANSWERED — knowledge that answers it was added later
+
+ENTRY: build a completely new world from phyics and provide me a ling
+  ASKED-SIG: 9
+  FLOORS: 02ab6bf93d89
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)
+
+ENTRY: what is the physics equivalent of a sunrise
+  ASKED-SIG: 5
+  FLOORS: 02ab6bf93d89
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)
+
+ENTRY: can you learn to fix yourself
+  ASKED-SIG: 5
+  FLOORS: 02ab6bf93d89
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about numbers tally fingers kids learning adding score keeping tra
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: counting is the first abstraction — three stones, three days, three sons share a threeness
+  STATUS: LEARNED AGAIN — a ribbon reached it
+
+ENTRY: what was once held about digits place value carry tens hundreds column arithmetic sum
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: written numbers are bundles — each place holds up to nine, and a full ten in any place bec
+  STATUS: LEARNED AGAIN — a ribbon reached it
+
+ENTRY: what was once held about multiply times product double triple groups rows total each 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: multiplying is counting by copies — three times 1,289 is 1,289 laid down three times and c
+  STATUS: LEARNED AGAIN — a ribbon reached it

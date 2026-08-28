@@ -510,3 +510,79 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a message car
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'enough redundancy lets a message survive damage — ' toward medicine body:
   maybe: enough redundancy lets a message survive damage — say it three ways and one wound leaves t
   with: error correction is redundancy spent wisely — channels lie and copies drift, so durable me
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'keeping an answer costs space, re-deriving it cost' toward cooking:
+  maybe: bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrysta
+  with: keeping an answer costs space, re-deriving it costs time — every system trades one for the
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an equation is a balance — both sides weigh the sa' toward physics:
+  maybe: reactions rearrange, never create — every atom entering a reaction leaves it; mass in equa
+  with: burning, rusting, and breathing are one reaction at three speeds — a fuel handing electron
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a polynomial is a sum of powers of the unknown, ea' toward physics:
+  maybe: a polynomial is a sum of powers of the unknown, each with its own count, written highest p
+  with: dividing polynomials mirrors long division of numbers place by place, powers standing in f
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a root is a value that makes the balance true — fi' toward physics:
+  maybe: grief is love's bill — the pain after loss is not a malfunction but the cost of having bon
+  with: mourning rites give grief a shape and a schedule — a body to sit with, days counted, tasks
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'x² = -1 has no answer among ordinary numbers — squ' toward physics:
+  maybe: x² = -1 has no answer among ordinary numbers — squares refuse to go below nothing. The his
+  with: a square root is a question — what, multiplied by itself, gives this? For numbers zero and
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a fraction is a division paused — three-quarters I' toward cooking:
+  maybe: a fraction is a division paused — three-quarters IS three divided by four, held mid-air; t
+  with: fractions add only when the pieces match — a half plus a third refuses until both become s
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of '"of" is times — a half OF a half is a quarter; mul' toward cooking:
+  maybe: every part of one bracket meets every part of the other — (a+b)(c+d) is four meetings, ac 
+  with: multiplying is counting by copies — three times 1,289 is 1,289 laid down three times and c
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a ratio compares without measuring — two parts flo' toward cooking:
+  maybe: bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrysta
+  with: the room's air holds one level of dampness and every open food walks toward it from its ow
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'percent is a ratio in uniform — 35% is 35 per hund' toward oceans weather:
+  maybe: the earth's shell is broken into rafts drifting at fingernail speed (centimeters a year); 
+  with: the planet runs on its own furnace — birth-heat plus steady radioactive decay keeps the in
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a rate is a ratio with a clock in it — speed, wage' toward astronomy navigation:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a measurement carries only the sureness it was tak' toward computer science:
+  maybe: a program is instructions for a perfectly obedient, perfectly literal servant — tireless, 
+  with: computation is rule-following made physical — a procedure spelled out completely needs no 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an angle counts turning — a full spin is the whole' toward astronomy navigation:
+  maybe: corners meeting at a point must count to a full turn — the whole law of tiling. Hexagons b
+  with: hexagons tile a floor with no gap and least wall — bees build them; spheres can never fill
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'on a flat sheet nothing beats the straight line be' toward astronomy navigation:
+  maybe: the octave is the same note wearing a higher hat — double any vibration and every ear file
+  with: on a flat sheet nothing beats the straight line between two points — a tight string finds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'each independent direction of travel is one dimens' toward medicine body:
+  maybe: a fluid pushes up on anything in it with a force equal to the weight of fluid displaced — 
+  with: every remedy ships with a do-not-give list — the pill that saves one body kills another (a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'words come in families — kinds (a robin is a bird ' toward living world:
+  maybe: words come in families — kinds (a robin is a bird is an animal), parts (a wing is part of 
+  with: matter comes in discrete pieces — atoms — and the pieces come in ~90 natural kinds; everyt
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'near-words are not one word — cold, cool, chilly, ' toward evidence measurement:
+  maybe: a bubble is obvious only afterward because while it inflates the best evidence — price — k
+  with: a bubble is price detached from thing — when the reason to buy becomes "others will buy," 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'naming carves the world — where one tongue sees sn' toward living world:
+  maybe: naming carves the world — where one tongue sees snow, another keeps three snows apart; whe
+  with: every remedy ships with a do-not-give list — the pill that saves one body kills another (a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'ambiguity is normal, not broken — one handle doing' toward beauty play humor:
+  maybe: ambiguity is a permanent resident — most sentences carry more than one legal reading, and 
+  with: ambiguity is normal, not broken — one handle doing many jobs is cheap, and the listener se
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a dictionary is a map of agreements — it reports h' toward astronomy navigation:
+  maybe: starlight carries fingerprints — each element blots out its own exact colors — and every s
+  with: light is fast but not instant, so every look outward is a look backward — sunlight arrives

@@ -33,6 +33,9 @@ def load():
         name=re.sub(r"^\d+_|\.md$","",os.path.basename(f)).replace("_"," ")
         for b in re.split(r"\n(?=ESSENCE:)",open(f).read()):
             if not b.startswith("ESSENCE:"): continue
+            # a faded entry has undulated back into the white as an
+            # unknown — it is no longer held on the colored sheet
+            if "STATE: FADED" in b: continue
             def part(t):
                 m=re.search(rf"{t}:(.*?)(?=\n[A-Z-]+:|\Z)",b,re.S)
                 return re.sub(r"\s+"," ",m.group(1)).strip() if m else ""

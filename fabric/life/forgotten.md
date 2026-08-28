@@ -1,0 +1,6 @@
+
+FORGOTTEN from (mathematics logic): counting is the first abstraction — three stones, three days, three sons share a threeness
+
+FORGOTTEN from (mathematics logic): written numbers are bundles — each place holds up to nine, and a full ten in any place bec
+
+FORGOTTEN from (mathematics logic): multiplying is counting by copies — three times 1,289 is 1,289 laid down three times and c
