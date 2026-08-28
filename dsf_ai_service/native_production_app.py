@@ -2536,23 +2536,23 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
         "auditory": _section(
             True,
             (
-                "standalone_hearing_committed_this_process"
+                "live_pressure_committed_this_process"
                 if _live_hearing_evidence is not None
-                else "lesson_audio_only_standalone_hearing_refused"
+                else "cochlear_pressure_transition_mounted"
             ),
             (
-                "standalone sound has COMMITTED as admitted whole-"
+                "live acoustic pressure has COMMITTED as admitted whole-"
                 "sensorium episodes in this process "
                 f"({_live_hearing_evidence['intake']}); tutor audio inside "
                 "card lessons also transduces under the mounted auditory "
                 "receptor law; the binaural transition is not mounted"
                 if COCHLEAR_EARS_AUTHORIZED and _live_hearing_evidence is not None
-                else "tutor audio inside card lessons reaches the resident "
-                "organism as admitted cochlear band-pressure occurrences "
-                "and TRANSDUCES under the mounted auditory receptor law; "
-                "standalone hearing stays refused under the two-real-signal "
-                "doctrine until live sight is proven; the binaural "
-                "transition is not mounted"
+                else "live microphone pressure and tutor audio reach the "
+                "resident organism as admitted cochlear band-pressure "
+                "occurrences under the mounted auditory receptor law; an "
+                "open camera adds co-clocked retinal light but is not a "
+                "precondition for hearing; the binaural transition is not "
+                "mounted"
                 if COCHLEAR_EARS_AUTHORIZED
                 else "tutor audio inside card lessons reaches the resident "
                 "organism as admitted pressure occurrences; standalone "
@@ -2564,7 +2564,16 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
             ),
             **_cochlear_authorization_record(),
         ),
-        "text": _unmounted("native rendered-light receptor transition is not mounted"),
+        "text": _section(
+            True,
+            "rendered_glyph_light_mounted",
+            "typed characters become browser-rendered glyph pixels and enter "
+            "only through the mounted retinal transition; the string and its "
+            "meaning are never submitted to cognition",
+            endpoint=RENDERED_LIGHT_ENDPOINT,
+            sensory_lane="visual",
+            internal_meaning_authority=False,
+        ),
         "touch": _touch_record(),
         "temperature": _temperature_record(native),
         "smell": _chemoreceptive_record(
@@ -6254,36 +6263,42 @@ def _build_public_observation_from_snapshot(
             # impressions 41->9.  Sound is no longer transport wearing a
             # costume, so the capability may honestly say so.
             #
-            # The two-real-signal precondition is NOT dropped — it is
-            # enforced where it belongs, at the intake route, and reported
-            # here as its own field so the page can show the real reason
-            # instead of inventing one.  Gating `available` on it is what
-            # chained the microphone to the deadlocked camera.
+            # A real camera is not a biological prerequisite for hearing.
+            # Pressure without a camera enters beside the organism's actual
+            # current world/body sensorium; when the camera is open, the
+            # stricter co-captured audiovisual endpoint remains available.
             "microphone": {
-                "available": COCHLEAR_EARS_AUTHORIZED,
+                "available": COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED,
                 "committed_in_process": _live_hearing_evidence is not None,
                 "endpoint": (
+                    GUIDED_WORLD_VOICE_ENDPOINT
+                    if COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED
+                    else None
+                ),
+                "audiovisual_endpoint": (
                     LIVE_AUDIOVISUAL_INTAKE_ENDPOINT
                     if COCHLEAR_EARS_AUTHORIZED
                     else None
                 ),
-                "requires_concurrent_camera": True,
+                "requires_concurrent_camera": False,
                 "reason": (
                     (
                         "the cochlear roster physically transduces pressure "
                         "(measured by severing: 529->305 transitioned "
                         "neurons, 41->9 new impressions on one identical "
-                        "lesson); the mounted intake accepts only camera "
-                        "frames co-captured with the PCM in the same bounded "
-                        "whole-sensorium occurrences"
+                        "lesson); microphone pressure enters with the actual "
+                        "current world/body sensorium, while an open camera "
+                        "uses the co-captured audiovisual path"
                         + (
-                            "; a co-captured audiovisual window has committed "
-                            "in this process "
+                            "; live pressure has committed in this process "
                             f"({_live_hearing_evidence['intake']})"
                             if _live_hearing_evidence is not None
                             else ""
                         )
                     )
+                    if COCHLEAR_EARS_AUTHORIZED and WORLD_AUTHORIZED
+                    else "microphone pressure requires both the mounted "
+                    "cochlear roster and persistent current world"
                     if COCHLEAR_EARS_AUTHORIZED
                     else "standalone hearing is not mounted: the cochlear ear "
                     "anatomy is not authorized in this process, so pressure "
@@ -6293,8 +6308,8 @@ def _build_public_observation_from_snapshot(
                 ),
                 "status": (
                     "not_mounted"
-                    if not COCHLEAR_EARS_AUTHORIZED
-                    else "mounted_audiovisual"
+                    if not COCHLEAR_EARS_AUTHORIZED or not WORLD_AUTHORIZED
+                    else "mounted_current_world_with_optional_audiovisual"
                 ),
             },
             "curriculum": {
@@ -15973,6 +15988,8 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     lock, so this one request binds the exact then-current organism internally.
     """
 
+    global _live_hearing_evidence
+
     refusal = _spoken_voice_refusal()
     if refusal is not None:
         return refusal
@@ -16020,6 +16037,11 @@ def guided_world_voice(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 episodes,
                 f"guided-world-voice:{audio_sha256}",
             )
+            _live_hearing_evidence = {
+                "intake": f"guided-world-voice:{audio_sha256}",
+                "generation": result.get("generation"),
+            }
+            _refresh_public_observation_cache()
     except HTTPException:
         raise
     except (OSError, RuntimeError, TypeError, ValueError) as error:

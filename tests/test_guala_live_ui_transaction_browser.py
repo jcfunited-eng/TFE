@@ -60,6 +60,11 @@ def _snapshot(*available_capabilities: str) -> dict[str, object]:
         )
         for name in names
     }
+    if "microphone" in available_capabilities:
+        capabilities["microphone"]["audiovisual_endpoint"] = (
+            "/ingress/audiovisual"
+        )
+        capabilities["microphone"]["requires_concurrent_camera"] = False
     unavailable = _section()
     return {
         "schema": "guala.native.public_observation.v1",
@@ -246,11 +251,28 @@ def test_rapid_camera_and_microphone_toggles_leave_off_as_final_owner() -> None:
             assert page.locator(selector).get_attribute("aria-pressed") == "false"
 
         assert page.evaluate("cameraStream===null&&cameraTimer===null&&cameraAbort===null") is True
-        assert page.evaluate("microphoneStream===null&&microphoneRecorder===null&&microphoneAbort===null") is True
+        assert page.evaluate(
+            "microphoneStream===null&&micCtx===null&&micNode===null&&microphoneAbort===null"
+        ) is True
         assert page.locator("#ledger-camera-subject").inner_text().startswith("Off")
         assert page.locator("#ledger-microphone-subject").inner_text().startswith("Off")
         assert all(method != "POST" for method, _path in events)
         assert page.evaluate("window.__stoppedTracks") == 4
+
+    _with_browser(run)
+
+
+def test_microphone_control_is_available_without_a_camera() -> None:
+    def run(browser: Browser) -> None:
+        page = browser.new_page()
+        _mount(page, "gualaloom.html", _snapshot("microphone"), [])
+
+        assert page.locator("#camera-toggle").is_disabled() is True
+        assert page.locator("#microphone-toggle").is_disabled() is False
+        assert page.evaluate("cameraStream===null&&micGate().ok===true") is True
+        assert "current world" in page.locator(
+            "#microphone-toggle small"
+        ).inner_text()
 
     _with_browser(run)
 

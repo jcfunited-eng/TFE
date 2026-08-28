@@ -106,6 +106,10 @@ def test_controls_have_monotonic_epoch_and_abort_boundaries() -> None:
     assert "if(acquired)acquired.getTracks().forEach(track=>track.stop())" in source
     assert "if(stream)stream.getTracks().forEach(track=>track.stop())" in source
     assert 'stopMicrophone("Microphone stopped · native acceptance failed:' in source
+    stop_camera = source[source.index("function stopCamera(") :]
+    stop_camera = stop_camera[: stop_camera.index("function captureCameraFrame")]
+    assert "stopMicrophone(" not in stop_camera
+    assert "microphone continues in her current world" in stop_camera
     assert "stopCamera(\"Camera stopped while page is hidden\")" in source
     assert "stopMicrophone(\"Microphone stopped while page is hidden\")" in source
 

@@ -65,10 +65,14 @@ def test_capture_builder_places_light_and_pressure_in_the_same_hops(
     calls: list[tuple] = []
     monkeypatch.setattr(production, "_pcm_hops", lambda *_args: pressure_hops)
     monkeypatch.setattr(production, "_cochlear_hops", lambda *_args: cochlear_hops)
+    monkeypatch.setattr(production, "_current_retinal_body_axes", lambda: ())
+    monkeypatch.setattr(
+        production, "_eyelid_transmission_from_axes", lambda _axes: Fraction(1)
+    )
     monkeypatch.setattr(
         production,
         "_whole_roster_hop_episode",
-        lambda *args: calls.append(args) or args[0],
+        lambda *args, **_kwargs: calls.append(args) or args[0],
     )
     rosters = [tuple([float(index)] * production.CARD_SURFACE_PORT_COUNT) for index in range(4)]
 
@@ -136,15 +140,19 @@ def test_standalone_audio_never_borrows_an_earlier_camera_receipt(
     assert b"prior camera receipt does not prove present sight" in refusal.body
 
 
-def test_browser_uses_one_bounded_audiovisual_request() -> None:
+def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     page = PAGE.read_text(encoding="utf-8")
 
     assert 'schema:"guala.live_audiovisual_capture.v1"' in page
+    assert 'schema:"guala.guided_world_voice.v2"' in page
     assert 'source:"live-camera-microphone"' in page
     assert "hopCount*MIC_SAMPLES_PER_HOP" in page
     assert "pcmS16leBytes(pcm)" in page
     assert "micSamples-=take" in page
     assert "micChunks=[];micFrames=[];micSamples=0;const controller" not in page
     assert "/api/v1/auditory/pcm/" not in page
-    assert "if(!cameraStream)return" in page
+    assert 'if(!cameraStream)return{ok:false,reason:"Open Camera first' not in page
+    assert 'paired?cap.record?.audiovisual_endpoint:cap.endpoint' in page
+    assert 'micFrames=cameraStream?[captureCameraFrame()]:[]' in page
+    assert 'microphone continues in her current world' in page
     assert "if(cameraInFlightEpoch!==null)return" not in page

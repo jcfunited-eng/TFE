@@ -16,14 +16,14 @@ def _payload() -> dict[str, object]:
     }
 
 
-def _mount_transport(monkeypatch) -> list[tuple[object, str]]:
+def _mount_transport(
+    monkeypatch,
+) -> tuple[list[tuple[object, str]], list[bool]]:
     monkeypatch.setattr(production, "_spoken_voice_refusal", lambda: None)
+    refreshed: list[bool] = []
+    monkeypatch.setattr(production, "_live_hearing_evidence", None)
     monkeypatch.setattr(
-        production,
-        "_refresh_public_observation_cache",
-        lambda: (_ for _ in ()).throw(
-            AssertionError("observer must not run after the committed lesson")
-        ),
+        production, "_refresh_public_observation_cache", lambda: refreshed.append(True)
     )
     monkeypatch.setattr(
         production,
@@ -62,7 +62,7 @@ def _mount_transport(monkeypatch) -> list[tuple[object, str]]:
         }
 
     monkeypatch.setattr(production, "_perform_admitted_intake_locked", perform)
-    return calls
+    return calls, refreshed
 
 
 def test_grounded_world_voice_refuses_semantic_or_object_fields(monkeypatch) -> None:
@@ -77,7 +77,7 @@ def test_grounded_world_voice_refuses_semantic_or_object_fields(monkeypatch) -> 
 
 
 def test_grounded_world_voice_refuses_a_caller_predecessor_gate(monkeypatch) -> None:
-    calls = _mount_transport(monkeypatch)
+    calls, refreshed = _mount_transport(monkeypatch)
     payload = _payload()
     payload["expected_predecessor_state_sha256"] = "4" * 64
 
@@ -85,10 +85,11 @@ def test_grounded_world_voice_refuses_a_caller_predecessor_gate(monkeypatch) -> 
 
     assert response.status_code == 422
     assert calls == []
+    assert refreshed == []
 
 
 def test_grounded_world_voice_commits_one_physical_world_trajectory(monkeypatch) -> None:
-    calls = _mount_transport(monkeypatch)
+    calls, refreshed = _mount_transport(monkeypatch)
 
     response = production.guided_world_voice(_payload())
 
@@ -105,3 +106,8 @@ def test_grounded_world_voice_commits_one_physical_world_trajectory(monkeypatch)
     assert "observation" not in body
     assert calls[0][0] == [("physical-world-episode", [(1, 1)])]
     assert calls[0][1].startswith("guided-world-voice:")
+    assert production._live_hearing_evidence == {
+        "intake": calls[0][1],
+        "generation": 4,
+    }
+    assert refreshed == [True]

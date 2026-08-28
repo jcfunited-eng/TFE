@@ -1200,6 +1200,30 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
         assert record["reason"]
 
 
+def test_live_microphone_and_rendered_text_report_their_mounted_physical_paths(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(serving, "COCHLEAR_EARS_AUTHORIZED", True)
+    monkeypatch.setattr(serving, "WORLD_AUTHORIZED", True)
+    _mount(monkeypatch)
+
+    value = json.loads(serving.native_observation().body)
+    microphone = value["capabilities"]["microphone"]
+    rendered_text = value["sensory"]["text"]
+
+    assert microphone["available"] is True
+    assert microphone["endpoint"] == serving.GUIDED_WORLD_VOICE_ENDPOINT
+    assert (
+        microphone["audiovisual_endpoint"]
+        == serving.LIVE_AUDIOVISUAL_INTAKE_ENDPOINT
+    )
+    assert microphone["requires_concurrent_camera"] is False
+    assert rendered_text["available"] is True
+    assert rendered_text["status"] == "rendered_glyph_light_mounted"
+    assert rendered_text["sensory_lane"] == "visual"
+    assert rendered_text["internal_meaning_authority"] is False
+
+
 def test_native_public_surface_contains_no_owner_or_legacy_observation_route(
     monkeypatch,
 ) -> None:
