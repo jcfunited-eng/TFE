@@ -30,6 +30,17 @@ def _hard(e):
     r = (e.get("root") or "").lower()
     return any(h in r for h in HARD)
 
+def invent(need, blocked, kind):
+    """When nothing written can bear the requirement, keep the law
+    and name what WOULD have to exist to satisfy it. Marked as
+    imagined, never as found. This is the move behind ice mites
+    that eat heat: the law stands, the bearer is invented."""
+    ws = sorted(need if kind == "requires" else blocked)
+    if not ws: return None
+    return ("something not in my knowledge that supplies ["
+            + " ".join(ws[:8]) + "] — imagined, not found. The law "
+            "is untouched; only the bearer is new.")
+
 def openings(law_text, kind, need, blocked, es, show=2):
     """What, in the knowledge, could open this closure."""
     out = []
@@ -73,9 +84,13 @@ def why_closed(want, show=3):
                          "craft, not on physics — those dissolve "
                          "when tested. Paint needed a brush until "
                          "it did not.")
-        for how, e in openings(law, kind, need, blocked, es):
+        found = openings(law, kind, need, blocked, es)
+        for how, e in found:
             lines.append(f"    {how}: ({e['field']}) "
                          f"{e['essence'][:95]}")
+        if not found:
+            inv = invent(need, blocked, kind)
+            if inv: lines.append(f"    invented bearer: {inv}")
         if parent is not None and _hard(parent):
             lines.append("    the law itself does not bend: what "
                          "changes is who satisfies it.")
