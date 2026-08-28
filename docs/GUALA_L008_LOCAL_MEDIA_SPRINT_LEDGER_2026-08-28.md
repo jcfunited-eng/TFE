@@ -122,3 +122,32 @@ physical ingress only, never recognition, understanding, or learning.
 - Status remains Partial until each media kind physically commits once, source
   custody survives restart, an exact duplicate remains idempotent, and fixed
   count/byte ceilings refuse without changing the organism.
+
+## First live physical sources and receipt correction
+
+- One local sun picture committed through the retinal path at tick `231874`.
+  Exact source SHA-256
+  `46a3a18f37267416f8c1c2779f003fac0886c21425b41df5bd9ca740124d538a`,
+  custody receipt
+  `968b5a8ff60446f3f63cfc1062da10950ea6bba64f9cef3d3892c7962b4d58b8`,
+  retained bytes `3350`. No recognition or word claim follows.
+- The separately authored morning-garden story then entered as one rendered
+  page. The native transition record proves `37` quarter-second moments through
+  tick `231920`, `585` full-field deliveries, `45` new neuronal fractals, and
+  no energy exhaustion. Exact source SHA-256
+  `7d5ef36f4e44e5dd3b6938baff7a463fed14d7adb890f5ffdb6b2492f3ca2961`,
+  custody receipt
+  `ad7a71fab0d83dc1585d1ae04e5825ad78a1457028782dff2def8cf8aaf438b3`,
+  retained bytes `1273`. CURRENT subsequently sealed tick `231948`, containing
+  the complete story interval.
+- The story HTTP receipt exposed an observation defect: deferred persistence
+  correctly kept settlement off the seal path, but the invitation called the
+  older durable tick `231874` the newly presented successor. No further source
+  was presented. The candidate now reports the actual settled tick and current
+  durability separately; the public invitation becomes `committed` only when
+  CURRENT has reached or passed that settled tick. This changes no cognition,
+  physics, checkpoint cadence, or organism owner.
+- Focused evidence: all four offered-material tests pass, including a falsifier
+  in which settled tick `9` remains truthfully pending while CURRENT is at `8`
+  and becomes durable only when CURRENT reaches `10`. Python compilation and
+  `git diff --check` pass.

@@ -63,7 +63,11 @@ def _mount_invitation_and_settlement(monkeypatch) -> list[object]:
                 "organism_tick": 8,
                 "state_sha256": "b" * 64,
             },
-            "observation": {"organism_tick": 8, "state_sha256": "b" * 64},
+            "observation": {
+                "organism_tick": 9,
+                "sealed": False,
+                "state_sha256": None,
+            },
             "receptor_ingress": {},
             "totals": {},
         }
@@ -107,6 +111,10 @@ def test_picture_is_in_bounded_custody_before_decode_and_invited_once(
     assert [event[0] for event in events] == ["decode", "invite", "settle"]
     assert production._curriculum_invitation["presentation_eligible"] is False
     assert production._curriculum_invitation["outcome"] == "presented"
+    assert production._curriculum_invitation["presented_organism_tick"] == 9
+    assert production._curriculum_invitation["status"] == (
+        "local_material_presentation_settled"
+    )
 
     inventory = json.loads(production.source_media_custody().body)
     assert inventory["record_count"] == 1
@@ -117,6 +125,44 @@ def test_picture_is_in_bounded_custody_before_decode_and_invited_once(
     assert restored["restored_source_bytes_sha256"] == body["source_media"][
         "source_bytes_sha256"
     ]
+
+
+def test_material_invitation_reports_settlement_and_durability_separately(
+    monkeypatch,
+) -> None:
+    production._curriculum_invitation = {
+        "outcome": "presented",
+        "presentation_eligible": False,
+        "presented_organism_tick": 9,
+        "reason": "settled",
+        "status": "local_material_presentation_settled",
+    }
+    monkeypatch.setattr(
+        production,
+        "_restored",
+        SimpleNamespace(
+            pointer=SimpleNamespace(
+                organism_tick=8,
+                state_sha256="a" * 64,
+            )
+        ),
+    )
+
+    pending = production._curriculum_invitation_record()
+
+    assert pending["status"] == "local_material_presentation_settled"
+    assert pending["presented_organism_tick"] == 9
+    assert pending["durable_through_organism_tick"] == 8
+    assert pending["presentation_durable"] is False
+
+    production._restored.pointer.organism_tick = 10
+    production._restored.pointer.state_sha256 = "b" * 64
+    durable = production._curriculum_invitation_record()
+
+    assert durable["status"] == "local_material_presentation_committed"
+    assert durable["durable_through_organism_tick"] == 10
+    assert durable["durable_state_sha256"] == "b" * 64
+    assert durable["presentation_durable"] is True
 
 
 def test_video_uses_preserved_bytes_and_one_co_clocked_audiovisual_path(

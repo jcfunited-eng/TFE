@@ -2448,10 +2448,32 @@ def _curriculum_invitation_record() -> dict[str, object]:
         for key, value in _curriculum_invitation.items()
         if key not in {"available", "reason", "status"}
     }
+    status = str(_curriculum_invitation["status"])
+    reason = str(_curriculum_invitation["reason"])
+    settled_tick = facts.get("presented_organism_tick")
+    if isinstance(settled_tick, int) and not isinstance(settled_tick, bool):
+        durable_pointer = None if _restored is None else _restored.pointer
+        durable_tick = (
+            None if durable_pointer is None else durable_pointer.organism_tick
+        )
+        facts["durable_through_organism_tick"] = durable_tick
+        facts["durable_state_sha256"] = (
+            None if durable_pointer is None else durable_pointer.state_sha256
+        )
+        presentation_durable = (
+            isinstance(durable_tick, int) and durable_tick >= settled_tick
+        )
+        facts["presentation_durable"] = presentation_durable
+        if presentation_durable and status == "local_material_presentation_settled":
+            status = "local_material_presentation_committed"
+            reason = (
+                "the preserved source settled through physical receptors and "
+                "the resulting organism interval is now inside CURRENT"
+            )
     return _section(
         True,
-        str(_curriculum_invitation["status"]),
-        str(_curriculum_invitation["reason"]),
+        status,
+        reason,
         **facts,
         python_attention_authority=False,
         scripted_acceptance_authority=False,
@@ -16075,18 +16097,25 @@ def offered_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 episodes,
                 f"offered-{kind}",
             )
+            settled_tick = result["observation"].get("organism_tick")
+            if (
+                isinstance(settled_tick, bool)
+                or not isinstance(settled_tick, int)
+                or settled_tick <= 0
+            ):
+                raise RuntimeError(
+                    "admitted material transition lost its settled organism tick"
+                )
             _curriculum_invitation = {
                 **_curriculum_invitation,
                 "outcome": "presented",
-                "presented_successor_organism_tick": result["persisted"][
-                    "organism_tick"
-                ],
-                "presented_successor_state_sha256": result["persisted"][
-                    "state_sha256"
-                ],
+                "presented_organism_tick": settled_tick,
                 "presentation_eligible": False,
-                "reason": "the preserved source committed once through physical receptors",
-                "status": "local_material_presentation_committed",
+                "reason": (
+                    "the preserved source settled once through physical "
+                    "receptors; CURRENT durability is reported separately"
+                ),
+                "status": "local_material_presentation_settled",
             }
             if kind in AUDIBLE_MATERIAL_KINDS + VIDEO_MATERIAL_KINDS:
                 _live_hearing_evidence = {
