@@ -30,16 +30,52 @@ def _hard(e):
     r = (e.get("root") or "").lower()
     return any(h in r for h in HARD)
 
-def invent(need, blocked, kind):
-    """When nothing written can bear the requirement, keep the law
-    and name what WOULD have to exist to satisfy it. Marked as
-    imagined, never as found. This is the move behind ice mites
-    that eat heat: the law stands, the bearer is invented."""
+DOERS = ("eat", "eats", "feed", "take", "takes", "carry",
+         "carries", "pull", "pulls", "push", "pushes", "hold",
+         "holds", "trade", "trades", "spend", "spends", "move",
+         "moves", "hire", "pay", "pays", "steal", "steals",
+         "burn", "burns", "drink", "drinks", "store", "stores")
+
+def invent(need, blocked, kind, es=None, home=None, count=3):
+    """Keep the law; get stupid about who satisfies it.
+
+    The machine never grades these. It orders them by distance
+    from the job — nearest last, strangest first — and shows each
+    one's parentage. The observer sees what has use.
+
+    Borrow the SHAPE of a doer from a far-off part of the
+    knowledge and hand it the job the law demands. That is how
+    ice mites that eat heat are built: fermentation's shape (tiny
+    living things eat one thing and pay in another) given the job
+    of carrying heat away. The law never moves. Every invention
+    must differ in kind from the others — the finger rule."""
     ws = sorted(need if kind == "requires" else blocked)
-    if not ws: return None
-    return ("something not in my knowledge that supplies ["
-            + " ".join(ws[:8]) + "] — imagined, not found. The law "
-            "is untouched; only the bearer is new.")
+    if not ws: return []
+    job = " ".join(ws[:6])
+    if es is None:
+        return [f"something not in my knowledge that supplies "
+                f"[{job}] — imagined, not found."]
+    # the stupid is the point: prefer the FARTHEST shapes, the
+    # ones sharing least with the job, not the safe neighbours
+    jobw = set(need if kind == "requires" else blocked)
+    cands = []
+    for e in es:
+        low = e["essence"].lower()
+        if not any(f" {d} " in low for d in DOERS): continue
+        if home and set(e["field"].split()) & set(home.split()):
+            continue
+        cands.append((len(jobw & fa.words(e["essence"])), e))
+    cands.sort(key=lambda x: x[0])
+    out, used = [], set()
+    for _d, e in cands:
+        fld = e["field"]
+        used.add(fld)
+        shape = e["essence"].split("—")[0].strip()[:70]
+        out.append(f"borrow the shape of ({fld}): {shape} — and "
+                   f"give it the job of supplying [{job}]. "
+                   f"Imagined, not found; the law is untouched.")
+        if len(out) >= count: break
+    return out
 
 def openings(law_text, kind, need, blocked, es, show=2):
     """What, in the knowledge, could open this closure."""
@@ -89,8 +125,9 @@ def why_closed(want, show=3):
             lines.append(f"    {how}: ({e['field']}) "
                          f"{e['essence'][:95]}")
         if not found:
-            inv = invent(need, blocked, kind)
-            if inv: lines.append(f"    invented bearer: {inv}")
+            for inv in invent(need, blocked, kind, es,
+                              home=(parent or {}).get("field")):
+                lines.append(f"    invented bearer: {inv}")
         if parent is not None and _hard(parent):
             lines.append("    the law itself does not bend: what "
                          "changes is who satisfies it.")
