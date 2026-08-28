@@ -654,3 +654,75 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'repetition wi
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'rests are played, not skipped — the pause before t' toward image design:
   maybe: a picture is a guided walk — the eye enters, lands, and moves in jumps along lines, lights
   with: the eye is a camera — lens, pupil for aperture, a screen of detectors — but what you exper
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'every entry has two sides — what a thing cost and ' toward physics:
+  maybe: the ledger is trade's memory, and honest ledgers write everything twice — what arrived and
+  with: every entry has two sides — what a thing cost and where the value went; the books balance 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'revenue is earned when the promise is kept, not wh' toward money trade:
+  maybe: interest is the price of time — money now beats the same money later (it can work meanwhil
+  with: compound interest grows the pile by a fraction of the pile, so growth itself grows — divid
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a balance is only believed when a second, independ' toward astronomy navigation:
+  maybe: to measure is to compare against an agreed stick — meter, gram, second are treaties, not d
+  with: a rate is a ratio with a clock in it — speed, wages, interest: an amount per unit of somet
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'an estimate is a claim about the future written in' toward oceans weather:
+  maybe: water resists changing temperature more than almost anything — the sea banks summer and pa
+  with: the ocean is the planet's plumbing — wind drives the surface loops, and cold salty water, 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'money owed to a government is held in trust, not o' toward money trade:
+  maybe: interest is the price of time — money now beats the same money later (it can work meanwhil
+  with: compound interest grows the pile by a fraction of the pile, so growth itself grows — divid
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a system of record is one place — when two systems' toward astronomy navigation:
+  maybe: Gödel — any honest rulebook rich enough for arithmetic contains true statements it can nev
+  with: a rulebook rich enough for numbers can be turned to talk about itself — and there its reac
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'access is a promise about who may act, and it must' toward medicine body:
+  maybe: the dose makes the poison — every substance has an amount that helps, one that does nothin
+  with: every remedy ships with a do-not-give list — the pill that saves one body kills another (a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'energy is never created or destroyed, only moved o' toward cooking:
+  maybe: a coin has no memory — past flips leave nothing on the next one, so "due" is a fiction; fi
+  with: probability is ignorance made precise — single outcomes stay unknowable while their long-r
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'disorder wins on its own. Heat flows hot to cold, ' toward cooking:
+  maybe: burning, rusting, and breathing are one reaction at three speeds — a fuel handing electron
+  with: a cut apple browns because the knife breaks its cells and lets a caged enzyme, its fuel, a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'everything pulls on everything, weakly, by mass al' toward deep mathematics structure:
+  maybe: ambiguity is a permanent resident — most sentences carry more than one legal reading, and 
+  with: ambiguity is normal, not broken — one handle doing many jobs is cheap, and the listener se
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'waves add. Two waves in the same place sum — crest' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'like charges push, opposites pull, and a moving ch' toward chemistry:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'matter comes in discrete pieces — atoms — and the ' toward cooking:
+  maybe: chance has laws — no one can call one fair coin flip, and anyone can call a million of the
+  with: probability is ignorance made precise — single outcomes stay unknowable while their long-r
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'no two matter-particles of the same kind may occup' toward chemistry:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'nothing carrying mass or news outruns light in vac' toward engineering machines:
+  maybe: moving fluid is moving mass and hates sudden stops — slam a valve and the halted column sp
+  with: pipes bang because moving water is a ram — the column in a pipe carries real momentum, and
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'heat always moves from the hotter thing to the coo' toward medicine body:
+  maybe: heat always moves from the hotter thing to the cooler thing, three ways — touch, flow, and
+  with: hot water stirs itself — warm water is lighter, so heat below sends currents upward and th
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'cooking proteins is one-way — heat unravels their ' toward medicine body:
+  maybe: cooking proteins is one-way — heat unravels their folded shapes and the shapes never refol
+  with: the body is a thousand thermostats — warmth (37°C), salt, sugar, acid, each held at a set 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the very small runs on chance constrained by law —' toward chemistry:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a

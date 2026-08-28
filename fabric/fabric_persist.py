@@ -145,6 +145,81 @@ def serve_one(path, st, floors, wts, byid):
     st["served"] += 1
     log(f"beat {st['beats']}: answered ({tier}): {q}")
 
+# ---- the living fabric, wired into the beat ----
+import core as _core
+import living as _living
+LIFE_OBJ = None
+_SEEN_EVENTS = set()
+STANDING_EVERY = 90      # look for questions already standing
+MINT_EVERY = 300         # try to write knowledge, under the law
+UNDULATE_EVERY = 600     # let the sheets breathe
+RIBBON_WORK = 5          # ribbons stepped per beat
+
+def live_beat(st):
+    """One beat of the living fabric: ribbons move, meet, settle;
+    questions are found; knowledge is minted; the sheets breathe.
+    All bounded work, no model anywhere."""
+    global LIFE_OBJ
+    F = _core.fabric()
+    if LIFE_OBJ is None:
+        LIFE_OBJ = _living.Life()
+    L = LIFE_OBJ
+    b = st["beats"]
+    # 1. the questions that are already standing become ribbons
+    if b % STANDING_EVERY == 0:
+        try:
+            import standing, white_kinds
+            _F, kinds, _c = white_kinds.derive()
+            qs = standing.all_standing(F, kinds)
+            added = 0
+            for q in qs:
+                text = (q["text"] or "")[:120]
+                if len(text) < 8: continue
+                if L.add(text): added += 1
+                if added >= 4: break
+            if added:
+                log(f"beat {b}: {added} questions already standing "
+                    f"were taken up as ribbons "
+                    f"({len(L.ribbons)} living)")
+        except Exception as e:
+            log(f"beat {b}: standing-question walk failed: {e}")
+    # 2. the ribbons move and meet
+    try:
+        events, gone = L.beat_once(F, work=RIBBON_WORK)
+        for kind, qa, qb, ground in events[:4]:
+            key = (kind, qa, qb)
+            if key in _SEEN_EVENTS: continue     # say it once
+            _SEEN_EVENTS.add(key)
+            words = " ".join(F.words_of(ground)[:5])
+            log(f"beat {b}: ribbons met — {kind}: "
+                f"'{qa[:40]}' and '{qb[:40]}' on [{words}]")
+        for r, where in gone:
+            log(f"beat {b}: a ribbon settled into the {where} "
+                f"sheet after {r.age} beats: {r.q[:60]}")
+        if b % 30 == 0: L.save()
+    except Exception as e:
+        log(f"beat {b}: ribbon step failed: {e}")
+    # 3. minting, under the law
+    if b % MINT_EVERY == 0:
+        try:
+            import minting
+            made = minting.mint(limit=2)
+            for m in made:
+                log(f"beat {b}: MINTED a wall nobody wrote — "
+                    f"{m['claim'][:80]}")
+        except Exception as e:
+            log(f"beat {b}: minting failed: {e}")
+    # 4. the sheets breathe
+    if b % UNDULATE_EVERY == 0:
+        try:
+            import undulate
+            faded = undulate.forget(1, dry=False)
+            for fld, ess in faded:
+                log(f"beat {b}: the coloured sheet let go of "
+                    f"({fld}) {ess[:60]}")
+        except Exception as e:
+            log(f"beat {b}: undulation failed: {e}")
+
 GRIND_EVERY = 240
 EXERCISE_EVERY = 45
 CANDIDATES = os.path.join(LIFE, "possible_candidates.md")
@@ -446,6 +521,7 @@ def main():
         for p in pending:
             serve_one(p, st, floors, wts, byid)
             acted = True
+        live_beat(st)
         if not acted and not over_ceiling:
             acted = wonder_one(st, wts, byid)
             if not acted and st["beats"] % GRIND_EVERY == 0:
