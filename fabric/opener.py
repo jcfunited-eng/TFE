@@ -30,11 +30,10 @@ def _hard(e):
     r = (e.get("root") or "").lower()
     return any(h in r for h in HARD)
 
-DOERS = ("eat", "eats", "feed", "take", "takes", "carry",
-         "carries", "pull", "pulls", "push", "pushes", "hold",
-         "holds", "trade", "trades", "spend", "spends", "move",
-         "moves", "hire", "pay", "pays", "steal", "steals",
-         "burn", "burns", "drink", "drinks", "store", "stores")
+# A hand-written list of "doing" verbs stood here. It was my
+# vocabulary, not the fabric's, so it is gone. A shape is now
+# borrowed purely by distance from the job — the strangest first —
+# and the knowledge itself decides what is far.
 
 def invent(need, blocked, kind, es=None, home=None, count=3):
     """Keep the law; get stupid about who satisfies it.
@@ -60,8 +59,6 @@ def invent(need, blocked, kind, es=None, home=None, count=3):
     jobw = set(need if kind == "requires" else blocked)
     cands = []
     for e in es:
-        low = e["essence"].lower()
-        if not any(f" {d} " in low for d in DOERS): continue
         if home and set(e["field"].split()) & set(home.split()):
             continue
         cands.append((len(jobw & fa.words(e["essence"])), e))

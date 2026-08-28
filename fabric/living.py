@@ -99,6 +99,66 @@ def step(F, r):
     if stood and r.reach_n < 14: r.reach_n += 1
     return r
 
+def stood_entries(F, r):
+    """Which knowledge stands under this ribbon right now — the
+    entries its reach admits and no law closes. This is what the
+    ribbon is able to say."""
+    qm, es = F.reach(r.q, limit=max(6, r.reach_n))
+    out = []
+    for e in es:
+        if F.judge(qm | e["color"] | r.color) is None:
+            out.append(e)
+    return out
+
+def speak(F, life, utterance, beats=3):
+    """A person speaking is a ribbon entering the living set. The
+    fabric builds and keeps it like any other ribbon, and what it
+    says back is read off the shapes — never off a rule written
+    in code.
+
+      an OPENING  — knowledge standing under this ribbon that
+                    touches white carried by another living
+                    ribbon: it opens what that one holds closed.
+                    That is the whole point of speaking.
+      a WIDENING  — failing an opening, the knowledge that most
+                    widens this ribbon itself.
+      SILENCE     — if the shapes move for nothing, say so. It is
+                    a lawful outcome, not an error.
+    """
+    r = None
+    for x in life.ribbons:
+        if x.q == utterance: r = x
+    if r is None:
+        life.add(utterance)
+        r = life.ribbons[-1] if life.ribbons else None
+    if r is None:
+        return [], "no room in the living set", None
+    before = r.width
+    for _ in range(beats):
+        step(F, r)
+    others = [x for x in life.ribbons if x is not r]
+    stand = stood_entries(F, r)
+    openings = []
+    for e in stand:
+        for o in others:
+            shared = e["color"] & o.white
+            if bin(shared).count("1") >= 2:
+                openings.append((bin(shared).count("1"), e, o))
+    openings.sort(key=lambda x: -x[0])
+    if openings:
+        picked = [e for _n, e, _o in openings[:2]]
+        why = (f"it opens ground held closed by another living "
+               f"question ({openings[0][2].q[:40]})")
+        return picked, why, r
+    if stand:
+        stand.sort(key=lambda e: -bin(e["color"] & r.color).count("1"))
+        widest = stand[:2]
+        why = (f"nothing here opens another question; these widen "
+               f"this one most (width {before} -> {r.width})")
+        return widest, why, r
+    return [], ("everything my knowledge offers here is closed; the "
+                "ribbon has narrowed to nothing"), r
+
 def touch(a, b):
     """Where two ribbons meet. Returns an event or None."""
     if a.color & b.white:

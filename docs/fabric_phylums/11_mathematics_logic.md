@@ -31,9 +31,9 @@ THREAD: money (dimes are bundled pennies, dollars bundled dimes),
 RULE: to add piles written as digits — work the places right to
   left; at each place count together the digits standing there
   and anything carried in; set aside every full ten in that count
-  and write what remains; every ten set aside is carried one
-  place to the left; when the places run out, write the carry as
-  the next place.
+  and keep what remains as this place's digit; move on to the
+  next place, and when the places run out write the carry as the
+  last place.
 ASKED-AS: digits place value carry tens hundreds column arithmetic sum adding decimal number plus
 
 ESSENCE: multiplying is counting by copies — three times 1,289 is
@@ -200,8 +200,7 @@ THREAD: money (making change is taking away), time (how long
   exactly what was there).
 RULE: to take one number away from another — work the places
   right to left; at each place take the lower digit from the
-  upper digit by counting down; when the upper digit is too
-  small, break one bundle from the next place left into ten
-  ones here, then take; when the places run out the remains
-  are the answer.
+  upper by counting down, and when the upper is too small break
+  one bundle from the next place left into ten ones here before
+  taking.
 ASKED-AS: minus subtract take away difference remains left over change fewer less gone

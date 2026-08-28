@@ -148,3 +148,34 @@ ENTRY: what was once held about multiply times product double triple groups rows
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: multiplying is counting by copies — three times 1,289 is 1,289 laid down three times and c
   STATUS: LEARNED AGAIN — a ribbon reached it
+
+ENTRY: what was once held about what is x letter variable stands for unknown symbol algebra 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+  STATUS: STANDING (white)
+
+ENTRY: I would like to be able to chat via text with you
+  ASKED-SIG: 15
+  FLOORS: 9b20d8134ad6
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about what is x letter variable stands for unknown symbol algebra 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about what is x letter variable stands for unknown symbol algebra 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about what is x letter variable stands for unknown symbol algebra 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about what is x letter variable stands for unknown symbol algebra 
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+  STATUS: STANDING (white)

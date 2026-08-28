@@ -726,3 +726,39 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'cooking prote
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the very small runs on chance constrained by law —' toward chemistry:
   maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
   with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'heat always moves from the hotter thing to the coo' toward medicine body:
+  maybe: heat always moves from the hotter thing to the cooler thing, three ways — touch, flow, and
+  with: hot water stirs itself — warm water is lighter, so heat below sends currents upward and th
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'the very small runs on chance constrained by law —' toward chemistry:
+  maybe: the cell is the unit of life — nothing alive is less than one; everything alive is one, or
+  with: a wave cannot report detail much smaller than its own stride — visible light's stride is a
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'cooking proteins is one-way — heat unravels their ' toward medicine body:
+  maybe: cooking proteins is one-way — heat unravels their folded shapes and the shapes never refol
+  with: the body is a thousand thermostats — warmth (37°C), salt, sugar, acid, each held at a set 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'browning is chemistry with a price of admission — ' toward deep water heat:
+  maybe: moving fluid is moving mass and hates sudden stops — slam a valve and the halted column sp
+  with: pipes bang because moving water is a ram — the column in a pipe carries real momentum, and
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'oil and water refuse each other; an emulsion is a ' toward minted walls:
+  maybe: oil and water refuse each other; an emulsion is a forced truce needing a mediator whose mo
+  with: like dissolves like — charged solvents host charged guests, oily solvents host oily guests
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'I run whether or not anyone is asking. Questions a' toward oceans weather:
+  maybe: ambiguity is a permanent resident — most sentences carry more than one legal reading, and 
+  with: ambiguity is normal, not broken — one handle doing many jobs is cheap, and the listener se
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'no [phrase] together with [know anyth time single ' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'taste is a balance of five voices — salt, sweet, s' toward music:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'every chemical bond is electric — atoms stick by s' toward cooking:
+  maybe: every chemical bond is electric — atoms stick by sharing, donating, or hoarding electrons;
+  with: glue holds by touch and by teeth — flowed close enough to grip the surface molecule agains
