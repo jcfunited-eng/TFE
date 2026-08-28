@@ -19,6 +19,17 @@ Joe, 2026-08-28: "I care about the direction."
    proposes new areas when its records keep pointing at territory
    not yet written.
 
+6. THE OBSERVER IS THE FOURTH PART, AND IT IS CURRENTLY A PERSON.
+   The two sheets are inert; laws and possibilities only sit
+   there. The ribbon — the observer — is the only thing that acts,
+   and what it does is see applicability and utility. The machine
+   holds laws, stages possibilities, and invents bearers. It does
+   NOT judge worth, and no version of it should pretend to. Joe's
+   own description of how we work is the architecture: one side
+   invents without regard for sanity, the other sees what has use
+   and applies it toward the outcome. Build for that pairing;
+   do not try to replace it quietly.
+
 Working proof of the principle, both in this repository's history:
 the taught-families world (a landscape and city composed from a
 typed name in 30-80 ms, recovered to city_world.html) and the
