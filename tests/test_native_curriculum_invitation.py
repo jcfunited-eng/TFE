@@ -3,153 +3,12 @@
 from __future__ import annotations
 
 import json
-import math
-from dataclasses import replace
-
 from fastapi.responses import JSONResponse
-import pytest
 
 from dsf_ai_service import native_production_app as production
 
 
-def test_live_boundary_pose_gets_one_collision_free_retinal_approach(
-    monkeypatch, tmp_path
-) -> None:
-    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
-    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
-    monkeypatch.setattr(production, "_world_authority", None)
-    authority = production._world()
-    snapshot = authority.observation_snapshot()
-    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
-    other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
-    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
-
-    her = replace(
-        her,
-        pose=PoseMM(PositionMM(2_300, 4_500, 0), 323_874),
-    )
-    other = replace(
-        other,
-        pose=PoseMM(PositionMM(3_386, 4_250, 0), 167_036),
-    )
-    live_snapshot = replace(snapshot, bodies=(her, other))
-
-    class LivePoseWorld:
-        actor_ports = authority.actor_ports
-
-        @staticmethod
-        def observation_snapshot():
-            return live_snapshot
-
-    monkeypatch.setattr(production, "_world", lambda: LivePoseWorld())
-
-    target = production._curriculum_participant_approach_payload()
-    after = math.isqrt(
-        (target["x_mm"] - her.pose.position.x) ** 2
-        + (target["y_mm"] - her.pose.position.y) ** 2
-    )
-
-    assert after > her.radius_mm + other.radius_mm
-    from dsf_ai_service.substrate.w1_physical_receptors import _retinal_projection
-
-    moved_other = replace(
-        other,
-        pose=PoseMM(
-            PositionMM(target["x_mm"], target["y_mm"], 0),
-            target["heading_millidegrees"],
-        ),
-    )
-    candidate = replace(snapshot, bodies=(her, moved_other))
-    assert _retinal_projection(candidate) != _retinal_projection(live_snapshot)
-
-
-def test_visible_side_step_refuses_a_path_blocked_by_a_placed_object(
-    monkeypatch, tmp_path
-) -> None:
-    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
-    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
-    monkeypatch.setattr(production, "_world_authority", None)
-    authority = production._world()
-    snapshot = authority.observation_snapshot()
-    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
-    other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
-    from dsf_ai_service.substrate.embodiment_world import (
-        EmbodiedObject,
-        PoseMM,
-        PositionMM,
-    )
-
-    her = replace(her, pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872))
-    other = replace(other, pose=PoseMM(PositionMM(2_300, 5_002, 0), 270_000))
-    blocker = EmbodiedObject(
-        object_id="path-blocker",
-        radius_mm=100,
-        mass_grams=1_000,
-        position=PositionMM(2_551, 5_002, 0),
-    )
-    blocked_snapshot = replace(
-        snapshot,
-        bodies=(her, other),
-        objects=snapshot.objects + (blocker,),
-    )
-
-    class BlockedWorld:
-        actor_ports = authority.actor_ports
-
-        @staticmethod
-        def observation_snapshot():
-            return blocked_snapshot
-
-    monkeypatch.setattr(production, "_world", lambda: BlockedWorld())
-
-    with pytest.raises(
-        production._CurriculumInvitationRefusal,
-        match="no one-step collision-free in-room approach",
-    ):
-        production._curriculum_participant_approach_payload()
-
-
-def test_boundary_approach_produces_an_exact_retinal_change(
-    monkeypatch, tmp_path
-) -> None:
-    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
-    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
-    monkeypatch.setattr(production, "_world_authority", None)
-    authority = production._world()
-    snapshot = authority.observation_snapshot()
-    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
-    other = next(body for body in snapshot.bodies if body.body_id == "person-body-1")
-    from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
-
-    her = replace(her, pose=PoseMM(PositionMM(2_300, 4_500, 0), 322_872))
-    other = replace(other, pose=PoseMM(PositionMM(3_710, 4_775, 0), 191_036))
-    live_snapshot = replace(snapshot, bodies=(her, other))
-
-    class BoundaryWorld:
-        actor_ports = authority.actor_ports
-
-        @staticmethod
-        def observation_snapshot():
-            return live_snapshot
-
-    monkeypatch.setattr(production, "_world", lambda: BoundaryWorld())
-
-    target = production._curriculum_participant_approach_payload()
-    from dsf_ai_service.substrate.w1_physical_receptors import _retinal_projection
-
-    moved_other = replace(
-        other,
-        pose=PoseMM(
-            PositionMM(target["x_mm"], target["y_mm"], 0),
-            target["heading_millidegrees"],
-        ),
-    )
-    candidate = replace(snapshot, bodies=(her, moved_other))
-
-    assert _retinal_projection(candidate) != _retinal_projection(live_snapshot)
-
-
-def test_direct_card_button_cannot_admit_without_embodied_invitation(
+def test_direct_card_button_cannot_admit_without_prepared_occurrence(
     monkeypatch,
 ) -> None:
     production._curriculum_invitation = None
@@ -171,7 +30,7 @@ def test_direct_card_button_cannot_admit_without_embodied_invitation(
 
     assert response.status_code == 422
     assert body["accepted"] is False
-    assert "embodied invitation receipt" in body["reason"]
+    assert "prepared physical-occurrence receipt" in body["reason"]
     assert built is False
 
 
@@ -263,74 +122,32 @@ def test_unrelated_sparse_attention_cannot_accept_participant_invitation() -> No
     ) is None
 
 
-@pytest.mark.parametrize(
-    ("reached_retina", "causal_path_completed", "expected_outcome"),
-    (
-        (True, True, "presentable"),
-        (True, False, "presentable"),
-        (False, False, "not_reached"),
-    ),
-)
-def test_invite_route_binds_card_to_physical_retinal_delivery_only(
+def test_invite_prepares_exact_media_without_claiming_attention_or_moving_body(
     monkeypatch,
-    reached_retina: bool,
-    causal_path_completed: bool,
-    expected_outcome: str,
 ) -> None:
-    action_receipt = "55" * 32
-    action = {
-        "causal_intent_receipt_sha256": action_receipt,
-        "evidence_receipt_sha256": "66" * 32,
-        "world_revision_before": 7,
-        "world_revision_after": 8,
-        "visual_changed_receptor_count": 1 if reached_retina else 0,
-        "x_mm": 2_300,
-        "y_mm": 5_001,
-    }
+    class Pointer:
+        organism_tick = 20
+        state_sha256 = "77" * 32
+
+    class Restored:
+        pointer = Pointer()
+
+    class Snapshot:
+        revision = 7
+
+    class World:
+        @staticmethod
+        def observation_snapshot():
+            return Snapshot()
+
     monkeypatch.setattr(
         production,
         "_read_manifest_card",
         lambda _card_id: {"surface": {"sha256": "99" * 32}},
     )
-    monkeypatch.setattr(
-        production,
-        "_curriculum_participant_approach_payload",
-        lambda: {
-            "x_mm": 2_300,
-            "y_mm": 5_001,
-            "heading_millidegrees": 270_000,
-            "signed_yaw_millidegrees": 100_000,
-        },
-    )
-    monkeypatch.setattr(
-        production,
-        "world_other_body_move",
-        lambda _payload: JSONResponse(
-            status_code=200,
-            content={
-                "accepted": True,
-                "ok": True,
-                "action": action,
-                "sensory_delivery": {
-                    "organism_tick": 20,
-                    "state_sha256": "77" * 32,
-                },
-            },
-        ),
-    )
+    monkeypatch.setattr(production, "_runtime", lambda: (Restored(), object()))
+    monkeypatch.setattr(production, "_world", lambda: World())
     monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
-    production._last_transition_evidence = (
-        {
-            "participant_sensory_attention": {
-                "participant_action_causal_intent_receipt_sha256": action_receipt,
-                "directed_physical_transfers": (
-                    ("retinal-lineage", "attention-route-lineage", 0, 2),
-                ),
-            }
-        }
-        if causal_path_completed
-        else None
-    )
 
     response = production.invite_card({"card_id": "alphabet-a"})
     body = json.loads(response.body)
@@ -338,14 +155,95 @@ def test_invite_route_binds_card_to_physical_retinal_delivery_only(
 
     assert response.status_code == 200
     assert body["accepted"] is True
-    assert invitation["outcome"] == expected_outcome
-    assert invitation["presentation_eligible"] is reached_retina
-    assert "causal_directed_transfer_count" not in invitation
-    assert invitation[
-        "participant_action_causal_intent_receipt_sha256"
-    ] == action_receipt
+    assert invitation["outcome"] == "presentable"
+    assert invitation["presentation_eligible"] is True
+    assert invitation["status"] == "tutor_physical_presentation_prepared"
+    assert invitation["observed_at_organism_tick"] == 20
+    assert invitation["observed_state_sha256"] == "77" * 32
+    assert invitation["world_revision_before"] == 7
+    assert invitation["world_revision_after"] == 7
+    assert "participant_action" not in body
+    assert "participant_action_causal_intent_receipt_sha256" not in invitation
+    assert invitation["python_attention_authority"] is False
+    assert invitation["scripted_acceptance_authority"] is False
     assert invitation["surface_sha256"] == "99" * 32
     assert invitation["transport_metadata_only"] is True
+
+
+def test_invite_with_presentation_consumes_preparation_once_without_participant(
+    monkeypatch,
+) -> None:
+    class Pointer:
+        organism_tick = 20
+        state_sha256 = "77" * 32
+
+    class Restored:
+        pointer = Pointer()
+
+    class Snapshot:
+        revision = 7
+
+    class World:
+        @staticmethod
+        def observation_snapshot():
+            return Snapshot()
+
+    experience = {"surface": {"sha256": "99" * 32}}
+    consumed: list[str] = []
+
+    def commit(
+        episodes,
+        intake,
+        card_id,
+        committed_experience,
+        presentation,
+        preparation_receipt,
+    ):
+        assert episodes == ["one-physical-episode"]
+        assert intake == "curriculum-card:alphabet-a:full"
+        assert card_id == "alphabet-a"
+        assert committed_experience is experience
+        assert presentation == "full"
+        assert preparation_receipt == production._curriculum_invitation[
+            "invitation_receipt_sha256"
+        ]
+        consumed.append(preparation_receipt)
+        return {
+            "hop_count": 1,
+            "persisted": {"organism_tick": 21, "state_sha256": "88" * 32},
+            "receptor_ingress": {"changing_count": 1},
+            "totals": {"physically_transitioned_neuron_count": 1},
+        }
+
+    monkeypatch.setattr(production, "_read_manifest_card", lambda _card_id: experience)
+    monkeypatch.setattr(production, "_runtime", lambda: (Restored(), object()))
+    monkeypatch.setattr(production, "_world", lambda: World())
+    monkeypatch.setattr(
+        production,
+        "_card_lesson_hop_episodes",
+        lambda *_args: ["one-physical-episode"],
+    )
+    monkeypatch.setattr(production, "_perform_card_lesson_intake", commit)
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production,
+        "_intrinsic_curiosity_record",
+        lambda: {
+            "status": "not_claimed_by_tutor_transport",
+            "social_experience_claimed": False,
+        },
+    )
+
+    response = production.invite_card(
+        {"card_id": "alphabet-a", "presentation": "full"}
+    )
+    body = json.loads(response.body)
+
+    assert response.status_code == 200
+    assert body["lesson"]["accepted"] is True
+    assert body["lesson"]["hop_count"] == 1
+    assert len(consumed) == 1
+    assert "participant_action" not in body
 
 
 def test_retinal_body_read_uses_the_transition_lock(monkeypatch) -> None:

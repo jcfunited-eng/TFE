@@ -11,16 +11,16 @@ outside cognition.
 Mounted native intake is limited to the admitted transitions below; every
 other sense and actuator keeps its honest ``not_mounted`` refusal:
 
-- ``POST /api/v1/curriculum/invite-card`` first moves the participant body in
-  Guala's persistent world.  ``POST /api/v1/curriculum/teach-card`` can then
-  deliver one matching approved card only when that exact approach's retinal
-  perturbation produced a later directed neuronal continuation.  The card's
-  letter or number identity remains transport metadata outside the organism;
-  only the physical surface, pressure, contact, chemistry, and body samples
-  are delivered.
-- ``POST /api/v1/curriculum/invite-song`` uses the same physical participant
-  and native-attention gate. ``POST /api/v1/curriculum/teach-song`` then
-  presents one matching signed song as synchronized retinal light, cochlear
+- ``POST /api/v1/curriculum/invite-card`` prepares one reviewed tutor sensory
+  occurrence at the current resident/world boundary.  ``POST
+  /api/v1/curriculum/teach-card`` consumes that exact preparation once.  No
+  participant silhouette, observer judgment, or claimed attention gates the
+  occurrence: the card's physical light, pressure, contact, chemistry, and
+  body samples enter, while Guala's neurons alone determine attention and
+  learning.  The card identity remains transport metadata outside cognition.
+- ``POST /api/v1/curriculum/invite-song`` prepares one reviewed synchronized
+  song occurrence under the same boundary; ``POST
+  /api/v1/curriculum/teach-song`` consumes it once as retinal light, cochlear
   pressure, and lawful body state on one shared clock. The alphabet song
   claims only its simultaneous 26-surface set; counting-song surface changes
   use the manifest's exact PCM sample intervals.
@@ -1705,10 +1705,10 @@ _active_cross_intake_causal_motor_traces: dict[
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ] = {}
-# One bounded process observation of the latest embodied tutoring invitation.
+# One bounded process observation of the latest prepared tutor occurrence.
 # It is transport evidence only: it does not survive restart, enter organism
-# state, select a card, or cause acceptance.  The participant action's own
-# exact receptor-to-motor path is the only presentation gate.
+# state, select a lesson, infer attention, or cause learning.  The approved
+# media and current resident/world boundary are its only preparation inputs.
 _curriculum_invitation: dict[str, Any] | None = None
 _last_card_lesson_receipt: dict[str, Any] | None = None
 _last_card_lesson_receipt_error: str | None = None
@@ -2426,9 +2426,9 @@ def _curriculum_invitation_record() -> dict[str, object]:
     if _curriculum_invitation is None:
         return _section(
             False,
-            "no_embodied_invitation_this_process",
-            "no participant body has physically invited Guala to a curriculum "
-            "presentation in this process",
+            "no_tutor_presentation_prepared_this_process",
+            "no reviewed tutor sensory presentation is currently prepared "
+            "for the resident organism",
             presentation_eligible=False,
             python_attention_authority=False,
             scripted_acceptance_authority=False,
@@ -2525,9 +2525,10 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
                 else "curriculum_card_surface_transition_mounted"
             ),
             "approved curriculum card surfaces can reach the resident organism "
-            "as admitted 27-receptor luminance occurrences only after an "
-            "embodied participant invitation produces an exact retinal-to-"
-            "motor causal path; the live camera transition is "
+            "as admitted 27-receptor luminance occurrences; a bounded tutor "
+            "preparation binds exact reviewed media but neither supplies nor "
+            "infers attention, recognition, or learning; the live camera "
+            "transition is "
             "reported mounted only from a real committed live-sight "
             "transition (see live_camera)",
             live_camera=live_sight,
@@ -13772,20 +13773,20 @@ def _validated_curriculum_experience_invitation(
     ):
         raise _CurriculumInvitationRefusal(
             422,
-            f"a {experience_kind} presentation requires its exact embodied "
-            "invitation receipt",
+            f"a {experience_kind} presentation requires its exact prepared "
+            "physical-occurrence receipt",
         )
     invitation = _curriculum_invitation
     if invitation is None:
         raise _CurriculumInvitationRefusal(
             409,
-            "no embodied invitation exists in this process; no curriculum "
+            "no tutor presentation is prepared in this process; no curriculum "
             "experience was admitted",
         )
     if invitation.get("invitation_receipt_sha256") != invitation_receipt_sha256:
         raise _CurriculumInvitationRefusal(
             409,
-            "the invitation receipt is not the current embodied invitation",
+            "the presentation receipt is not the current prepared occurrence",
         )
     invited_kind = invitation.get("experience_kind")
     invited_id = invitation.get("experience_id")
@@ -13795,7 +13796,7 @@ def _validated_curriculum_experience_invitation(
     if invited_kind != experience_kind or invited_id != experience_id:
         raise _CurriculumInvitationRefusal(
             409,
-            "the invited physical curriculum experience and requested "
+            "the prepared physical curriculum experience and requested "
             "experience differ",
         )
     if invitation.get("outcome") != "presentable" or not invitation.get(
@@ -13803,8 +13804,7 @@ def _validated_curriculum_experience_invitation(
     ):
         raise _CurriculumInvitationRefusal(
             409,
-            "the embodied invitation did not reach Guala's retina; no "
-            "curriculum experience may be presented",
+            "the tutor sensory occurrence is not eligible for presentation",
         )
     return invitation
 
@@ -13920,11 +13920,11 @@ def _perform_card_lesson_intake(
             ],
             "presentation_eligible": False,
             "reason": (
-                "one physical card presentation committed after its embodied "
-                "invitation reached Guala's retina; the receipt is consumed "
-                "and cannot admit a duplicate"
+                "one prepared physical card presentation committed through "
+                "Guala's sensory receptors; the receipt is consumed and "
+                "cannot admit a duplicate"
             ),
-            "status": "invited_card_presentation_committed",
+            "status": "tutor_card_presentation_committed",
         }
         _refresh_public_observation_cache()
         return result
@@ -14011,11 +14011,11 @@ def _perform_song_lesson_intake(
             ],
             "presentation_eligible": False,
             "reason": (
-                "one synchronized song presentation committed after its "
-                "embodied invitation reached Guala's retina; the receipt is "
-                "consumed and cannot admit a duplicate"
+                "one prepared synchronized song presentation committed "
+                "through Guala's sensory receptors; the receipt is consumed "
+                "and cannot admit a duplicate"
             ),
-            "status": "invited_song_presentation_committed",
+            "status": "tutor_song_presentation_committed",
         }
         _refresh_public_observation_cache()
         return result
@@ -14981,163 +14981,6 @@ def world_observation() -> JSONResponse:
     )
 
 
-def _curriculum_participant_approach_payload() -> dict[str, int]:
-    """One exact in-room approach that changes Guala's retinal field."""
-
-    from dsf_ai_service.substrate.embodiment_world import (
-        PoseMM,
-        SECOND_BODY_PORT_ID,
-        PositionMM,
-        _straight_path_intersects_disc,
-    )
-    from dsf_ai_service.substrate.exact_lattice_rotation import (
-        rotate_lattice_offset,
-    )
-    from dsf_ai_service.substrate.w1_physical_receptors import (
-        RETINA_HORIZONTAL_FOV_MILLIDEGREES,
-        _atan2_millidegrees,
-        _retinal_projection,
-        _wrap_heading_delta,
-    )
-
-    snapshot = _world().observation_snapshot()
-    her = next(item for item in snapshot.bodies if item.body_id == snapshot.self_body_id)
-    other_port = next(
-        item for item in _world().actor_ports if item.port_id == SECOND_BODY_PORT_ID
-    )
-    other = next(
-        item for item in snapshot.bodies if item.body_id == other_port.actor_body_id
-    )
-    separation = her.radius_mm + other.radius_mm + 2
-    relative_x = other.pose.position.x - her.pose.position.x
-    relative_y = other.pose.position.y - her.pose.position.y
-    if relative_x == 0 and relative_y == 0:
-        raise RuntimeError("participant and Guala body centres coincide")
-    participant_bearing = _atan2_millidegrees(relative_y, relative_x)
-    current_region = next(
-        (
-            region
-            for region in snapshot.regions
-            if region.bounds.contains_floor_disc(
-                other.pose.position,
-                other.radius_mm,
-            )
-        ),
-        None,
-    )
-    if current_region is None:
-        raise RuntimeError("participant body lost its physical room")
-
-    radial_x, radial_y = rotate_lattice_offset(
-        separation,
-        0,
-        participant_bearing % 360_000,
-    )
-    target_offsets = [(radial_x, radial_y)]
-    target_offsets.extend(
-        rotate_lattice_offset(
-            separation,
-            0,
-            (participant_bearing + turn) % 360_000,
-        )
-        for turn in (-90_000, 90_000)
-    )
-    current_retina = _retinal_projection(snapshot)
-    candidates: list[tuple[int, int, int]] = []
-    for candidate_index, (offset_x, offset_y) in enumerate(target_offsets):
-        anchor = her.pose.position if candidate_index == 0 else other.pose.position
-        target = PositionMM(
-            min(
-                max(
-                    anchor.x + offset_x,
-                    current_region.bounds.minimum.x + other.radius_mm,
-                ),
-                current_region.bounds.maximum.x - other.radius_mm,
-            ),
-            min(
-                max(
-                    anchor.y + offset_y,
-                    current_region.bounds.minimum.y + other.radius_mm,
-                ),
-                current_region.bounds.maximum.y - other.radius_mm,
-            ),
-            other.pose.position.z,
-        )
-        if target == other.pose.position:
-            continue
-        if _straight_path_intersects_disc(
-            other.pose.position,
-            target,
-            her.pose.position,
-            her.radius_mm + other.radius_mm,
-        ):
-            continue
-        if any(
-            item.position is not None
-            and current_region.bounds.contains_floor_disc(
-                item.position,
-                item.radius_mm,
-            )
-            and _straight_path_intersects_disc(
-                other.pose.position,
-                target,
-                item.position,
-                other.radius_mm + item.radius_mm,
-            )
-            for item in snapshot.objects
-        ):
-            continue
-        target_dx = target.x - her.pose.position.x
-        target_dy = target.y - her.pose.position.y
-        target_distance = max(math.isqrt(target_dx * target_dx + target_dy * target_dy), 1)
-        target_bearing = _atan2_millidegrees(target_dy, target_dx)
-        retinal_delta = _wrap_heading_delta(
-            target_bearing,
-            her.pose.heading_millidegrees,
-        )
-        angular_radius = abs(
-            _atan2_millidegrees(other.radius_mm, target_distance)
-        )
-        if abs(retinal_delta) - angular_radius > (
-            RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
-        ):
-            continue
-        hypothetical_other = replace(
-            other,
-            pose=PoseMM(target, other.pose.heading_millidegrees),
-        )
-        hypothetical = replace(
-            snapshot,
-            bodies=tuple(
-                hypothetical_other if body.body_id == other.body_id else body
-                for body in snapshot.bodies
-            ),
-        )
-        if _retinal_projection(hypothetical) == current_retina:
-            continue
-        candidates.append((abs(retinal_delta), target.x, target.y))
-    if not candidates:
-        raise _CurriculumInvitationRefusal(
-            409,
-            "the participant has no one-step collision-free in-room approach "
-            "that changes Guala's current retinal field",
-        )
-    _, target_x, target_y = min(candidates)
-    target_dx = her.pose.position.x - target_x
-    target_dy = her.pose.position.y - target_y
-    heading = _atan2_millidegrees(target_dy, target_dx) % 360_000
-    signed_yaw = _wrap_heading_delta(
-        heading,
-        other.pose.heading_millidegrees,
-    )
-    return {
-        "heading_millidegrees": heading,
-        "signed_yaw_millidegrees": signed_yaw,
-        "x_mm": target_x,
-        "y_mm": target_y,
-    }
-
-
 @app.post(WORLD_OTHER_BODY_MOVE_ENDPOINT)
 def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Let an external participant move only its own authenticated world body."""
@@ -15368,66 +15211,41 @@ def _embodied_curriculum_invitation(
     experience_id: str,
     media_receipts: dict[str, str],
 ) -> JSONResponse:
-    """Approach once and observe Guala's physical response without choosing it."""
+    """Prepare one exact tutor presentation without claiming attention.
+
+    The sensory occurrence itself is the tutor's physical action.  A separate
+    participant-silhouette movement is neither its cause nor permission for
+    it, and a coarse or vertically unresolved body image must never veto
+    lawful light, pressure, or touch.  This bounded record binds only the
+    reviewed media to the current resident/world boundary so one prepared
+    presentation can be consumed once.  It chooses nothing for Guala and
+    makes no attention, recognition, meaning, or learning claim.
+    """
 
     global _curriculum_invitation
     try:
         with _transition_lock:
-            approach = _curriculum_participant_approach_payload()
-            movement = world_other_body_move(approach)
-            movement_body = json.loads(movement.body)
-            if movement.status_code != 200 or movement_body.get("ok") is not True:
-                return movement
-            action = movement_body.get("action")
-            if not isinstance(action, dict):
-                return _refusal(503, "participant approach lost its action receipt")
-            action_receipt = action.get("causal_intent_receipt_sha256")
-            if not isinstance(action_receipt, str) or not re.fullmatch(
-                r"[0-9a-f]{64}", action_receipt
-            ):
-                return _refusal(503, "participant approach receipt is invalid")
-            reached_retina = int(action["visual_changed_receptor_count"]) > 0
-            if reached_retina:
-                outcome = "presentable"
-                status = "participant_invitation_reached_retina"
-                reason = (
-                    "the participant's physical approach changed Guala's "
-                    "retinal receptors; the invited experience may now be "
-                    "presented without claiming or inferring her attention"
-                )
-            else:
-                outcome = "not_reached"
-                status = "participant_did_not_reach_retina"
-                reason = (
-                    "the participant moved, but the movement changed no "
-                    "retinal receptor; no curriculum invitation or admission "
-                    "is claimed"
-                )
+            restored, _admission = _runtime()
+            world = _world().observation_snapshot()
             invitation = {
                 "schema": CURRICULUM_INVITATION_SCHEMA,
                 "experience_kind": experience_kind,
                 "experience_id": experience_id,
                 **media_receipts,
-                "participant_action_causal_intent_receipt_sha256": (
-                    action_receipt
+                "observed_at_organism_tick": restored.pointer.organism_tick,
+                "observed_state_sha256": restored.pointer.state_sha256,
+                "world_revision_before": world.revision,
+                "world_revision_after": world.revision,
+                "outcome": "presentable",
+                "presentation_eligible": True,
+                "reason": (
+                    "one reviewed tutor sensory occurrence is prepared at "
+                    "the current resident/world boundary; only its physical "
+                    "light, pressure, and declared contact may enter, and "
+                    "Guala's neurons remain the sole attention and learning "
+                    "authority"
                 ),
-                "participant_action_evidence_receipt_sha256": action[
-                    "evidence_receipt_sha256"
-                ],
-                "world_revision_before": action["world_revision_before"],
-                "world_revision_after": action["world_revision_after"],
-                "approach_x_mm": action["x_mm"],
-                "approach_y_mm": action["y_mm"],
-                "observed_at_organism_tick": movement_body[
-                    "sensory_delivery"
-                ]["organism_tick"],
-                "observed_state_sha256": movement_body[
-                    "sensory_delivery"
-                ]["state_sha256"],
-                "outcome": outcome,
-                "presentation_eligible": reached_retina,
-                "reason": reason,
-                "status": status,
+                "status": "tutor_physical_presentation_prepared",
             }
             invitation["invitation_receipt_sha256"] = _receipt(invitation)
             _curriculum_invitation = invitation
@@ -15439,14 +15257,12 @@ def _embodied_curriculum_invitation(
                     "ok": True,
                     "schema": CURRICULUM_INVITATION_SCHEMA,
                     "invitation": _curriculum_invitation_record(),
-                    "participant_action": action,
-                    "sensory_delivery": movement_body["sensory_delivery"],
                 },
             )
     except _CurriculumInvitationRefusal as error:
         return _refusal(error.status_code, str(error))
     except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"embodied curriculum invitation refused: {error}")
+        return _refusal(422, f"curriculum presentation preparation refused: {error}")
 
 
 @app.post(
@@ -15454,7 +15270,7 @@ def _embodied_curriculum_invitation(
     dependencies=[Depends(_external_intake_admission)],
 )
 def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Invite one approved card through the shared embodied attention gate."""
+    """Prepare, and optionally present, one approved physical card occurrence."""
 
     if not isinstance(payload, dict):
         return _refusal(422, "a curriculum invitation requires a JSON body")
@@ -15519,7 +15335,7 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     if not isinstance(invitation_receipt, str) or not re.fullmatch(
         r"[0-9a-f]{64}", invitation_receipt
     ):
-        return _refusal(503, "embodied invitation lost its exact receipt")
+        return _refusal(503, "prepared tutor occurrence lost its exact receipt")
     try:
         result = _perform_card_lesson_intake(
             episodes,
@@ -15534,7 +15350,7 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
-        return _refusal(422, f"invited lesson transition refused: {error}")
+        return _refusal(422, f"prepared lesson transition refused: {error}")
     curiosity = _intrinsic_curiosity_record()
     return JSONResponse(
         status_code=200,
@@ -15562,7 +15378,7 @@ def invite_card(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     dependencies=[Depends(_external_intake_admission)],
 )
 def invite_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Invite one signed song through the shared embodied attention gate."""
+    """Prepare one approved synchronized physical song occurrence."""
 
     if not isinstance(payload, dict):
         return _refusal(422, "a song invitation requires a JSON body")
