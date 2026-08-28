@@ -1,0 +1,4 @@
+ASKING: what is 1+1
+
+1 + 1 = 2
+  The method came from my knowledge entries, not from code: "written numbers are bundles — each place holds up to ni". My built-in hands did only the counting.

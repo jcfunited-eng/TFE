@@ -13,3 +13,8 @@ PROCEDURE: minus
   ASSEMBLED FROM: the entry beginning "taking away is counting down — what remains when one pile is"
   FIRST USED ON: what is 1289 minus 476
   KEPT: per the development-methods entry on keeping what was assembled.
+
+PROCEDURE: square root of a polynomial
+  ASSEMBLED FROM: the entry beginning "a polynomial has a polynomial square root ONLY when it is a "
+  FIRST USED ON: what is the square root of x^2 + 2x + 1
+  KEPT: per the development-methods entry on keeping what was assembled.

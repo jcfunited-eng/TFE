@@ -35,7 +35,7 @@ ENTRY: why does hot water sometimes freeze faster than cold
 
 ENTRY: why do we cry emotional tears
   ASKED-SIG: emotional tear
-  FLOORS: e62e2283fae6
+  FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
@@ -65,19 +65,19 @@ ENTRY: why do we shake hands
 
 ENTRY: why does a kite need a tail
   ASKED-SIG: kite need tail
-  FLOORS: e62e2283fae6
+  FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why do onions make you cry
   ASKED-SIG: make onion
-  FLOORS: e62e2283fae6
+  FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why does the moon look bigger near the horizon
   ASKED-SIG: bigg horizon look moon near
-  FLOORS: e62e2283fae6
+  FLOORS: certifiedunderearlierknowledge
   VERDICT: the walker offered a join and the reader overturns half
   of it. The eye floor is the right neighborhood — seeing is judged
   in the brain, not measured like a ruler. But its partner was the
@@ -91,7 +91,7 @@ ENTRY: why does the moon look bigger near the horizon
 
 ENTRY: Where is denver
   ASKED-SIG: denv where
-  FLOORS: e62e2283fae6
+  FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
@@ -109,3 +109,9 @@ ENTRY: pay 87 cents using only quarters, dimes, and nickels
   failure of calling it a discovery is recorded in 90 and bought
   the minting law.
   STATUS: STANDING (white) — walker fabric_do + reader signatures
+
+ENTRY: why is the square root of a polynomial
+  ASKED-SIG: polynomial root square
+  FLOORS: certifiedunderearlierknowledge
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)

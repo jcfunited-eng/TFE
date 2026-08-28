@@ -1,0 +1,4 @@
+ASKING: what is the square root of x^4 + 2x^3 + 3x^2 + 2x + 1
+
+the square root of x^4 + 2x^3 + 3x^2 + 2x + 1 is x^2 + x + 1.
+  Worked by the rule in the algebra entry — root the leading term, square and take away, double and match — and checked by the second route: squaring the answer back gives exactly what you asked about. The coefficient arithmetic ran through the adding, times, and taking-away entries, down to counting.
