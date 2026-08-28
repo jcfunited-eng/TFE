@@ -9,6 +9,80 @@ now requires a fresh changed-cue reassembly and causal-use witness through the
 corrected live organism. L-006 has independently closed as a learned utterance
 and self-hearing result; no emitted waveform is claimed to mean `bear`.
 
+## Corrected-body apple grounding on task 1290
+
+- Production task `dsf-ai-task:1290`, commit
+  `54df84598d61586248bcf49d741d2fb19973a786`, retained the same organism
+  identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. At world revision 16743,
+  Guala stood at `(6500,4500)` facing `61.703` degrees. The real apple at
+  `(7200,5800)` lay at `61.699` degrees and 1476 mm distance in the same
+  kitchen region. No authored movement or object label was required.
+- One new 1.067-second pronunciation of `apple`, exact signed-16 pressure
+  receipt `cd6d98fbbc7266fde235ef9d14bfbc723f28c1d2492c8a394f311f7231d40ada`,
+  entered through `guided-world-voice`. The request contained only the fixed
+  transport schema, 16-kHz sample rate, and PCM bytes. It committed once
+  through tick 217115 and state
+  `93171671e2daa488cefdf4000e7bbe1ae17048b6ff6c3f5164af52f506c701e3`.
+- The transition delivered 1,568 full seven-field DSF occurrences, changed 30
+  complete-neuron fractals, exhausted no interval, recruited four layer-13
+  articulatory discharges, emitted 28,000 organism-owned pressure samples, and
+  returned seven exact self-hearing hops.
+- Formation `4532d6e9b99e882a62fea58dd9bd2ae80e71636003fae18cfda8473bf49a21c7`
+  externally reassembled and caused articulation plus sensed consequence.
+  Exact cold comparison proves it already existed in the predecessor and has
+  only one layer-0 visual member plus two layer-10 affective members. It has no
+  auditory or layer-7 association member. This is therefore genuine visual
+  recurrence and causal use during a grounded apple experience, but it is not
+  an apple-word formation and cannot close L-005.
+- Unattended life subsequently advanced through tick 217130 with another 21
+  complete-neuron fractals and 339 physical reassemblies. The last sealed body
+  still contained 95 retained formations. The next evidence boundary is a
+  matured cross-sensory retained structure followed later by changed-cue use;
+  no immediate repeated drill or observer-selected answer is authorized.
+- Two full unattended intervals advanced through tick 217145 before the next
+  experience. Guala then moved 200 mm within the kitchen and turned 7.261
+  degrees, preserving the real apple at the centre of a changed retinal view.
+  The sensed movement committed through tick 217164 with 229 full-field DSF
+  deliveries, five neuronal fractals, and no exhaustion.
+- One different 0.807-second voice occurrence, pressure receipt
+  `e312f3863804326c31a1cb5a9761133540684fa7c0be04eb302b066da3769c7e`,
+  then entered that changed view. It committed through resident tick 217190
+  with 916 DSF deliveries, 23 neuronal fractals, body action and returned
+  proprioception, one layer-13 recruitment, and one self-hearing hop. A prior
+  retained formation caused body action, while a new exact neuronal impression
+  independently reached the same motor route. No external retained formation
+  reassembled, so this is a second varied grounding rather than recognition.
+  Further presentation is paused while ordinary unattended settlement and the
+  next canonical seal determine what cross-sensory structure was retained.
+- Exact cold-state comparison through tick 217884 found the decisive defect.
+  Four apple experiences—including a byte-identical replay at the original
+  world pose—created four different layer-7 association neurons while the
+  retained-formation count stayed fixed at 95. Layer-7 population rose from 80
+  to 84 and layer-6/7 contacts from 2288 to 2366. None of the four new
+  associations entered a retained formation. A hidden-apple pronunciation and
+  the exact original pressure replay both failed to reassemble an external
+  formation. L-005 therefore remains open; these records are negative evidence,
+  not recognition.
+- Source diagnosis: `mount_reached_cross_sensory_association` named an
+  occurrence from only the layer-6 cells that happened to change on that
+  encounter. Which cells cross the settlement boundary depends on their
+  evolving membrane state, so identical external receptor evidence could name
+  a new association every time. This was not semantic learning and was not
+  bounded reuse.
+- The narrow correction makes association identity the sorted set of layer-6
+  integrations whose own receptors received nonzero external energy in that
+  occurrence. Actual layer-6 settlement still strictly gates growth: at least
+  three integrations must change across at least two sensory/body layers.
+  Internal physics may permit or refuse growth but can no longer rename the
+  same external occurrence. No labels, similarity scores, semantic tables,
+  observer authority, reduced DSF, or population-wide matching were added.
+- Focused release proof passes: the same receptor occurrence first mounted one
+  association, then a later encounter with a different lawful settled subset
+  reused that association without increasing cohort or contact count. Result:
+  `1 passed; 0 failed`; 526 unit tests were filtered out. `git diff --check`
+  also passes. Live production has not yet received this correction, so no
+  learned-word claim follows from the source proof alone.
+
 ## 2026-08-22 resumed first-word work
 
 - Reconciled production baseline: task 1157, commit `4947977117685c02021135d745e36849068fc46f`, image

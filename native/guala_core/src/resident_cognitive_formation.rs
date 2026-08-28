@@ -13448,13 +13448,16 @@ impl ReachedAssociationsByOccurrence {
 }
 
 /// Grow or reuse one exact physical cross-sensory assembly per qualifying
-/// occurrence after layer-6 settlement. Membership comes only from layer-6
-/// cells that actually changed through the causal frontier and whose own
-/// receptors were energized in that same occurrence. At least three distinct
-/// integrations across at least two sensory/body layers are required. Labels,
-/// source order, unrelated reached cells, and separate occurrences have no
-/// authority. The retained sparse contacts are the assembly; a newly mounted
-/// resting cell is never seeded directly.
+/// occurrence after layer-6 settlement. Assembly identity comes from every
+/// integration whose own receptor received nonzero external energy in that
+/// exact occurrence; at least three of those integrations must also have
+/// actually changed through the causal frontier across at least two
+/// sensory/body layers before growth is authorized. Internal neuronal state
+/// may therefore permit or refuse growth, but it cannot make byte-identical
+/// external receptor evidence name a different assembly on every encounter.
+/// Labels, source order, unrelated reached cells, and separate occurrences
+/// have no authority. The retained sparse contacts are the assembly; a newly
+/// mounted resting cell is never seeded directly.
 fn mount_reached_cross_sensory_association(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -13520,24 +13523,27 @@ fn mount_reached_cross_sensory_association(
     let mut candidate_assemblies_by_occurrence =
         Vec::<Option<Vec<[u8; 16]>>>::with_capacity(externally_energized_by_occurrence.len());
     for occurrence in externally_energized_by_occurrence {
-        let mut reached_integrations = Vec::<([u8; 16], u32)>::new();
+        let mut energized_integrations = Vec::<([u8; 16], u32)>::new();
         for receptor_lineage in occurrence.iter().copied() {
             let Some((integration_lineage, sensory_layer)) =
                 integration_for_receptor(receptor_lineage)?
             else {
                 continue;
             };
-            if settled_layer_six_lineages.contains(&integration_lineage) {
-                reached_integrations.push((integration_lineage, sensory_layer));
-            }
+            energized_integrations.push((integration_lineage, sensory_layer));
         }
-        reached_integrations.sort_unstable();
-        reached_integrations.dedup();
-        if reached_integrations.len() < 3 {
+        energized_integrations.sort_unstable();
+        energized_integrations.dedup();
+        let settled_integrations = energized_integrations
+            .iter()
+            .copied()
+            .filter(|(lineage, _)| settled_layer_six_lineages.contains(lineage))
+            .collect::<Vec<_>>();
+        if settled_integrations.len() < 3 {
             candidate_assemblies_by_occurrence.push(None);
             continue;
         }
-        let sensory_layer_count = reached_integrations
+        let sensory_layer_count = settled_integrations
             .iter()
             .map(|(_, layer)| *layer)
             .collect::<BTreeSet<_>>()
@@ -13547,7 +13553,7 @@ fn mount_reached_cross_sensory_association(
             continue;
         }
         candidate_assemblies_by_occurrence.push(Some(
-            reached_integrations
+            energized_integrations
                 .into_iter()
                 .map(|(lineage, _)| lineage)
                 .collect(),
@@ -22637,6 +22643,44 @@ mod tests {
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
         assert_eq!(fabric.contact_count(), contact_count);
+
+        // Internal membrane state can make a different lawful subset of the
+        // same externally energized integrations cross the layer-6 boundary
+        // on a later encounter. That subset is the growth gate, not assembly
+        // identity: the exact same receptor occurrence must reuse one
+        // association rather than append a state-dependent duplicate.
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &topology,
+            &[receptor_lineages.to_vec()],
+            &settled_layer_six,
+        )
+        .unwrap();
+        let full_occurrence_cohort_count = cohorts.len();
+        let full_occurrence_contact_count = fabric.contact_count();
+        let mut changed_settled_subset = settled_layer_six.clone();
+        let removed = *changed_settled_subset
+            .iter()
+            .next_back()
+            .expect("the four-integration fixture has a final member");
+        assert!(changed_settled_subset.remove(&removed));
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        mount_reached_cross_sensory_association(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &topology,
+            &[receptor_lineages.to_vec()],
+            &changed_settled_subset,
+        )
+        .unwrap();
+        assert_eq!(cohorts.len(), full_occurrence_cohort_count);
+        assert_eq!(fabric.contact_count(), full_occurrence_contact_count);
 
         let topology = organism_mosaic_topology(&cohorts, &fabric).unwrap();
         let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
