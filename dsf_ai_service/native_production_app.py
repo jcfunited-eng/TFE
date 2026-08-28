@@ -12260,6 +12260,12 @@ def _attempt_unattended_interval() -> dict[str, Any]:
                 "outcome": "interval_refused",
                 "reason": f"HTTPException: {error.detail}",
             }
+            print(
+                "ERROR: guala unattended interval refused: "
+                f"{_last_unattended_pause['reason']}",
+                file=sys.stderr,
+                flush=True,
+            )
             return _last_unattended_pause
         except (RuntimeError, TypeError, ValueError) as error:
             _last_unattended_pause = {
@@ -12267,6 +12273,12 @@ def _attempt_unattended_interval() -> dict[str, Any]:
                 "outcome": "interval_refused",
                 "reason": f"{type(error).__name__}: {error}",
             }
+            print(
+                "ERROR: guala unattended interval refused: "
+                f"{_last_unattended_pause['reason']}",
+                file=sys.stderr,
+                flush=True,
+            )
             return _last_unattended_pause
         energy_coordinate_changes = {
             key: before[key] != after[key]
@@ -12410,6 +12422,12 @@ def _unattended_time_loop() -> None:
                 "outcome": "interval_error",
                 "reason": f"{type(error).__name__}: {error}",
             }
+            print(
+                "ERROR: guala unattended interval failed: "
+                f"{_last_unattended_pause['reason']}",
+                file=sys.stderr,
+                flush=True,
+            )
         # Native settlement may take longer than the represented world
         # interval.  Never treat that wall-clock overrun as a debt to replay:
         # doing so starts the next expensive settlement immediately and turns
