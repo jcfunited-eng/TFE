@@ -468,3 +468,33 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   exact membrane-owned output, malformed-path retirement, and second-migration
   identity. `git diff --check` passes. Live V32 cutover and native root action
   remain pending and A-013 remains open.
+
+## Physical contact-orientation correction and motor-output diagnosis — 2026-08-28
+
+- A copied authenticated production body proved the compact root route carries
+  whole charge into root motor lineage `474c4e4c494e4531000000000000009b`.
+  The retained motor membrane accumulated seven separated elementary charges,
+  but its one gate remained closed and it emitted zero local membrane charge.
+- The same replay exposed an independent evidence defect: contact settlement
+  reports signed transfer relative to the electrical anatomy's stored physical
+  left/right endpoints, while `StablePhysicalBondReference::endpoints()` is
+  canonical lineage order. The observation code used the canonical order as
+  physical order and therefore reversed the regulation-to-motor transfer.
+- **Source correction:** directed contact evidence now receives the actual
+  physical endpoints from the compact electrical edge and uses the stable bond
+  only as identity. Frontier propagation likewise names the actual newly
+  reached physical endpoint. No carrier, work, heat, state, topology, DSF
+  field, or observer authority changes.
+- **Focused evidence:** the endpoint-order falsifier passes for positive,
+  negative, and zero transfer when physical order is deliberately opposite to
+  canonical bond order. The existing paired-root falsifier also remains green.
+  On the copied body, the first later whole-carrier crossing is now observed as
+  regulation `...000ecf` -> motor `...00009b`, matching the physical anatomy.
+- **Remaining exact blocker:** a mounted intrinsic effector is still an
+  ordinary quiescent neuron whose gate has zero gating charge, zero chemical
+  drive, and no Psi contact. Its closed support is lower energy, so the gate
+  cannot open under any ordinary internal-contact interval. The prior
+  membrane-owned-output correction removed the false contact-current action
+  but did not install a physical efferent channel. A-013 remains open until
+  that missing specialization produces a native discharge and the live world
+  returns its consequences to the same organism.

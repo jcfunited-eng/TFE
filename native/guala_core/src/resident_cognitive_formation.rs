@@ -15429,8 +15429,37 @@ fn exact_motor_preparation_transfers(
     preparation_transfers
 }
 
+/// Describe an already-settled contact transfer in the contact's physical
+/// endpoint order.
+///
+/// `outward_elementary_charges_from_left` is defined by the electrical
+/// anatomy's stored left/right endpoints. A stable bond canonicalizes those
+/// lineages for identity, so its endpoint order must never be used to infer
+/// current direction.
+fn directed_physical_transfer(
+    outward_elementary_charges_from_left: i128,
+    physical_left: [u8; 16],
+    physical_right: [u8; 16],
+    bond: StablePhysicalBondReference,
+) -> Option<DirectedPhysicalTransferObservation> {
+    if outward_elementary_charges_from_left == 0 {
+        return None;
+    }
+    let (sender, receiver) = if outward_elementary_charges_from_left > 0 {
+        (physical_left, physical_right)
+    } else {
+        (physical_right, physical_left)
+    };
+    Some(DirectedPhysicalTransferObservation {
+        sender,
+        receiver,
+        bond,
+        transferred_whole_carriers: outward_elementary_charges_from_left.unsigned_abs(),
+    })
+}
+
 /// A prepared effector emits only through the neuron's own positive local
-/// membrane discharge.  Inter-neuron contact transport remains causal
+/// membrane discharge. Inter-neuron contact transport remains causal
 /// preparation evidence and is never relabelled as actuator output.
 fn exact_prepared_efferent_carriers(
     local_outward_elementary_charges: i128,
@@ -16534,23 +16563,20 @@ fn settle_internal_contact_interval(
     // layer-8 regulator. The two endpoint potentials jointly cause that
     // transfer; its observed direction is never rewritten.
     let mut settled_directed_transfers = Vec::new();
-    for (transition, bond) in settled.transitions.iter().zip(&compact_bonds) {
-        let signed_transfer = transition.outward_elementary_charges_from_left;
-        if signed_transfer == 0 {
-            continue;
+    for ((transition, bond), (left_flat, right_flat)) in settled
+        .transitions
+        .iter()
+        .zip(&compact_bonds)
+        .zip(compact_edge_flat_endpoints.iter().copied())
+    {
+        if let Some(transfer) = directed_physical_transfer(
+            transition.outward_elementary_charges_from_left,
+            flat_locations[left_flat].2,
+            flat_locations[right_flat].2,
+            *bond,
+        ) {
+            settled_directed_transfers.push(transfer);
         }
-        let (left, right) = bond.endpoints();
-        let (sender, receiver) = if signed_transfer > 0 {
-            (left, right)
-        } else {
-            (right, left)
-        };
-        settled_directed_transfers.push(DirectedPhysicalTransferObservation {
-            sender,
-            receiver,
-            bond: *bond,
-            transferred_whole_carriers: signed_transfer.unsigned_abs(),
-        });
     }
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
@@ -17350,28 +17376,26 @@ fn settle_internal_contact_interval(
         .zip(&compact_bonds)
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
-        let signed_transfer = transition.outward_elementary_charges_from_left;
-        if signed_transfer == 0 {
+        let Some(transfer) = directed_physical_transfer(
+            transition.outward_elementary_charges_from_left,
+            flat_locations[left_flat].2,
+            flat_locations[right_flat].2,
+            *bond,
+        ) else {
             continue;
-        }
-        let (left, right) = bond.endpoints();
-        let (sending_lineage, receiving_lineage) = if signed_transfer > 0 {
-            (left, right)
-        } else {
-            (right, left)
         };
         if is_causal_seed(left_flat) != is_causal_seed(right_flat) {
             let frontier_lineage = if is_causal_seed(left_flat) {
-                right
+                flat_locations[right_flat].2
             } else {
-                left
+                flat_locations[left_flat].2
             };
             next_active_frontier.push(ActiveElectricalFrontierEntry::caused_with_frontier(
-                sending_lineage,
-                receiving_lineage,
+                transfer.sender,
+                transfer.receiver,
                 frontier_lineage,
                 *bond,
-                signed_transfer.unsigned_abs(),
+                transfer.transferred_whole_carriers,
             )?);
         }
     }
@@ -23758,6 +23782,27 @@ mod tests {
         assert_eq!(exact_prepared_efferent_carriers(0, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(-3, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(3, 0), None);
+    }
+
+    #[test]
+    fn contact_transfer_direction_uses_physical_not_canonical_endpoint_order() {
+        let mut physical_left = [0_u8; 16];
+        physical_left[15] = 2;
+        let mut physical_right = [0_u8; 16];
+        physical_right[15] = 1;
+        let bond = StablePhysicalBondReference::new(physical_left, physical_right, 0).unwrap();
+        assert_eq!(bond.endpoints(), (physical_right, physical_left));
+
+        let positive = directed_physical_transfer(3, physical_left, physical_right, bond).unwrap();
+        assert_eq!(positive.sender, physical_left);
+        assert_eq!(positive.receiver, physical_right);
+        assert_eq!(positive.transferred_whole_carriers, 3);
+
+        let negative = directed_physical_transfer(-4, physical_left, physical_right, bond).unwrap();
+        assert_eq!(negative.sender, physical_right);
+        assert_eq!(negative.receiver, physical_left);
+        assert_eq!(negative.transferred_whole_carriers, 4);
+        assert_eq!(directed_physical_transfer(0, physical_left, physical_right, bond), None);
     }
 
     #[test]
