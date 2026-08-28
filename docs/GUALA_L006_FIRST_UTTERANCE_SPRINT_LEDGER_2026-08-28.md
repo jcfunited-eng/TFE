@@ -241,3 +241,27 @@ timer, second scheduler, or retained speech program.
   unchanged on commit `39a302064a7a40a3babd228e41c383f76edb2115` and are therefore not introduced
   by V34. L-006 remains open until the live causal chain emits, self-hears and
   later reuses a learned utterance in a physically different context.
+
+## V34 production cutover — 2026-08-28
+
+- Exact organism commit: `89fff22a562ed25a4849c11addab838a03e882de`;
+  task definition `dsf-ai-task:1285`; image digest
+  `sha256:2dc29c831099b104aefc1690bcddf6190e796818d337c3f90bc30e4b5eb9327f`.
+- Production has one healthy task and the unchanged resident identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The raw CURRENT body at tick 211800
+  contains `GLCOG034` exactly once and contains no `GLCOG033`.
+- Unattended cognition advanced from tick 211768 through at least 211840.
+  The scheduled contact population remained approximately 3,750 and the
+  deleted approximately 95,000-contact population did not return.
+- Sampled native intervals settled in 482--500 milliseconds. No panic,
+  rollback, soundness failure, second writer, or Python cognition callback was
+  observed.
+- The initial hot controller invocation falsely rejected the healthy candidate
+  because ECS deployment completion preceded task-health propagation. The
+  candidate logs proved HTTP 200 health and continuous advancement before it
+  was drained. The same digest was restored as exactly one writer without a
+  rebuild; controller commit `017a659b` now waits on the same exact task and
+  digest instead of treating propagation lag as permission to redeploy.
+- This closes the missing first-utterance anatomy defect only. L-006 remains
+  open until learned activity physically emits pressure, the same organism
+  self-hears it, and the learned use recurs in a different context.
