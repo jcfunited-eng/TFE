@@ -647,7 +647,7 @@ verify_live_organism() {
     local expected_task_definition="$1"
     local expected_minimum_tick="${2:-}"
     local expected_task_name="${expected_task_definition##*/}"
-    local task_arns task_json ready_body service_json
+    local task_arns task_json task_health_state task_health_deadline ready_body service_json
 
     service_json=$(aws ecs describe-services \
         --region "${AWS_REGION}" \
@@ -680,19 +680,40 @@ if service.get("taskDefinition") != os.environ["EXPECTED"]:
         --cluster "${ECS_CLUSTER}" \
         --tasks "${task_arns}" \
         --query 'tasks[0]' --output json) || return 1
-    printf '%s' "${task_json}" | \
-        EXPECTED_TASK="${expected_task_definition}" \
-        EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
+    # ECS can mark a zero-to-one deployment complete before the task-level
+    # health field has caught up with the already-registered target.  Keep
+    # checking this one exact task; never start a replacement merely because
+    # health propagation lagged behind deployment accounting.
+    task_health_deadline=$(($(date +%s) + 300))
+    while true; do
+        task_health_state=$(printf '%s' "${task_json}" | \
+            EXPECTED_TASK="${expected_task_definition}" \
+            EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
 import json, os, sys
 task = json.load(sys.stdin)
 containers = task.get("containers", [])
-if task.get("lastStatus") != "RUNNING" or task.get("healthStatus") != "HEALTHY":
-    raise SystemExit("candidate task is not running and healthy")
 if task.get("taskDefinitionArn") != os.environ["EXPECTED_TASK"]:
     raise SystemExit("running task definition differs from candidate")
 if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_DIGEST"]:
     raise SystemExit("running image digest differs from built artifact")
-' || return 1
+print(
+    "ready"
+    if task.get("lastStatus") == "RUNNING" and task.get("healthStatus") == "HEALTHY"
+    else "waiting"
+)
+') || return 1
+        [ "${task_health_state}" = "ready" ] && break
+        [ "$(date +%s)" -lt "${task_health_deadline}" ] || {
+            echo "candidate task health did not become ready" >&2
+            return 1
+        }
+        sleep 2
+        task_json=$(aws ecs describe-tasks \
+            --region "${AWS_REGION}" \
+            --cluster "${ECS_CLUSTER}" \
+            --tasks "${task_arns}" \
+            --query 'tasks[0]' --output json) || return 1
+    done
     curl -fsS \
         --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
         --connect-timeout 10 --max-time 30 \
