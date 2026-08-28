@@ -1,0 +1,18 @@
+ASKING: can you learn to fix yourself
+
+I have no certified answer — this is recorded as an open question. But a question asks what is possible, so here is me looking across everything I know and playing with the unknown:
+  Territory 1 your words touch:
+    known: (physics) a thing keeps doing what it is doing unless pushed. Change of motion needs a push, and the push works both ways — you cannot shove without being shoved back. (F = m·a; action = reaction)
+    known: (astronomy navigation) you find yourself by angles to things already known — a star's height above the horizon draws a line on the earth you must be standing on; two lines cross at you. GPS is the same trick with timed radio from orbit.
+    known to fail: no acceleration without force. No recoilless push. You cannot lift yourself by your own belt.
+    unproven play: maybe sleep files the day's learning TOGETHER WITH sleep is mandatory maintenance
+  Territory 2 your words touch:
+    known: (mathematics logic) counting is the first abstraction — three stones, three days, three sons share a threeness belonging to none of them; number is what remains when the things are thrown away.
+    known: (mathematics logic) multiplying is counting by copies — three times 1,289 is 1,289 laid down three times and counted as one pile; times is adding that learned to bundle.
+    known to fail: no honest recount disagrees — count the heap left to right, then right to left: the answer is forced on you.
+    unproven play: maybe multiplying is counting by copies TOGETHER WITH every part of one bracket meets every part of the other
+  Territory 3 your words touch:
+    known: (astronomy navigation) starlight carries fingerprints — each element blots out its own exact colors — and every star and galaxy shows the same ~90 elements under the same laws; helium was found in the sun's light before it was found on earth (1868).
+    known: (physics) matter comes in discrete pieces — atoms — and the pieces come in ~90 natural kinds; everything material is arrangements of them.
+    known to fail: no exotic star-stuff, no neighborhood with private physics; hydrogen cannot behave differently across the galaxy. This is astronomy's whole license: study here, learn there.
+    unproven play: maybe starlight carries fingerprints TOGETHER WITH light is fast but not instant, so every look outward is a look backward

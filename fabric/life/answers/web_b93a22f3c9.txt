@@ -1,0 +1,6 @@
+ASKING: hmm... you failed
+
+Nothing I hold answers this directly. The nearest knowledge, in case it helps:
+  (engineering machines) a system fails at its weakest point, and fails there totally while its strong parts stand idle — strength does not average; the chain IS its worst link.
+  (flight fluids) in smooth flow, faster means lower pressure — honestly: the fluid sped up because pressure behind exceeded pressure ahead, and the low reading is that spent difference. (Bernoulli)
+  (medicine body) the body's defense force runs on one question — me, or not-me? — checking every surface against a self-list drawn up early in life, destroying what fails.

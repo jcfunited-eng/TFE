@@ -1,0 +1,14 @@
+ASKING: what is the physics equivalent of a sunrise
+
+(words I hold no knowledge of: equivalent)
+I have no certified answer — this is recorded as an open question. But a question asks what is possible, so here is me looking across everything I know and playing with the unknown:
+  Territory 1 your words touch:
+    known: (chemistry) burning, rusting, and breathing are one reaction at three speeds — a fuel handing electrons to oxygen and paying out the energy its bonds had banked. (oxidation)
+    known: (medicine body) the body is a thousand thermostats — warmth (37°C), salt, sugar, acid, each held at a set point by sensors pushing back against every drift; being alive is the holding.
+    known to fail: no fire without an electron-taker — a candle drowns in pure nitrogen. And no un-burning: ash and smoke will not remake the log (physics / disorder wins).
+    unproven play: maybe burning, rusting, and breathing are one reaction at three speeds TOGETHER WITH refined metal is held above its resting state
+  Territory 2 your words touch:
+    known: (light seeing) air scatters short strides far more than long — blue bounces around the whole sky, so the sky is blue wherever you look; at sunset the path through air is long, the blue is spent en route, and the survivors are red.
+    known: (astronomy navigation) hot things glow, and the color reports the temperature — dull red coolest (~3,000°C), white hotter, blue hottest (~30,000°C); a star's color is a thermometer read across trillions of miles.
+    known to fail: no blue sunset through clean air. No blue sky without air — the moon's daytime sky is black.
+    unproven play: maybe air scatters short strides far more than long TOGETHER WITH hot things glow, and the color reports the temperature

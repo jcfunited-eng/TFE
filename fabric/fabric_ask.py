@@ -92,7 +92,16 @@ def _mark_answered(s):
               r"\1ANSWERED — knowledge that answers it was added "
               r"later", t)
     if t2!=t: open(WHITE,"w").write(t2)
+MAKE_WORDS=re.compile(r"^\s*(make|build|design|create|invent|"
+                      r"give me a way|a way to|how (do|can) (i|we)|"
+                      r"how to)\b",re.I)
 def ask(question):
+    # a want to MAKE something goes to the maker: the knowledge
+    # stages possibilities and its own laws kill what they forbid
+    if MAKE_WORDS.match(question):
+        sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+        import maker
+        print(maker.make(question)); return
     qs=words(question)
     digits=re.findall(r"\d+",question)
     if digits:
