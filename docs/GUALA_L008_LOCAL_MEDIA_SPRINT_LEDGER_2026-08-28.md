@@ -99,3 +99,26 @@ physical ingress only, never recognition, understanding, or learning.
 - The correction adds exactly those two statically reached files to the
   reviewed manifest. It changes packaging custody only; it does not change the
   L-008 mechanism, organism state, or live production.
+
+## Live mount — task 1300
+
+- Commit `0a00c5e96040d506f54692eb9493e07861f4c31f` deployed once as sole
+  production task `dsf-ai-task:1300`, immutable image
+  `sha256:859b27d2c222effc181f9abbd41cd57542259892d30b8bf56c28eec72dfe2fb4`.
+  The controller verified the native state at or beyond tick `231600`; the
+  resident identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- ECS reported desired/running/pending `1/1/0` and rollout `COMPLETED`.
+  Read-only observation at tick `231680` reported picture, PDF, book, audio,
+  song, and video mounted through `/api/v1/material/offered`, each with source
+  preservation and the declared fixed ceilings.
+- The live custody inventory returned schema
+  `guala.bounded_source_media_inventory.v1`, zero records, zero bytes, and
+  false cognition/semantic authority. This proves the store is mounted and no
+  lesson was smuggled into deployment; it does not prove a media transition.
+- The matching `gualaloom.html` was published to the static origin. Local and
+  retained-origin SHA-256 both equal
+  `fe22465fa3768ee193b35691b6fcb82c3c51860c1bdf065c7e3db4e5f849f495`;
+  CloudFront invalidation `IDOS0X4A5T44A097SO9SR07OY6` completed.
+- Status remains Partial until each media kind physically commits once, source
+  custody survives restart, an exact duplicate remains idempotent, and fixed
+  count/byte ceilings refuse without changing the organism.

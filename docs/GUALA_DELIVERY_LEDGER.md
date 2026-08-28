@@ -701,8 +701,13 @@ or beyond tick `228842`.
   camera hardware proof remains open; one rendered-light live request timed out
   and has no request-specific receipt, so it is indeterminate rather than
   counted as committed.
-- [ ] **L-008** Connect local books, PDFs, pictures, sounds, songs, and video as
-  bounded sensory experiences while preserving provenance and source media.
+- [ ] **L-008 — LIVE-MOUNTED PARTIAL 2026-08-28:** Connect local books, PDFs,
+  pictures, sounds, songs, and video as bounded sensory experiences while
+  preserving provenance and source media. Task 1300 exposes all six through
+  the same bounded physical-presentation route, with exact immutable source
+  custody capped at 24 MiB/source, 32 sources, and 256 MiB total. No source has
+  yet been presented through this release, so kind-by-kind transition,
+  duplicate, ceiling, and restart acceptance remain open.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
