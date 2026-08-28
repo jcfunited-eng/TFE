@@ -69,7 +69,10 @@ def ask(question):
     qs=words(question)
     s=sig(qs); fp=fingerprint()
     wtxt=open(WHITE).read() if os.path.exists(WHITE) else ""
-    m=re.search(rf"ASKED-SIG: {re.escape(s)}\n  FLOORS: (\w+)",wtxt)
+    m=re.search(rf"ASKED-SIG: {re.escape(s)}\n  FLOORS: (\w+)"
+                rf"[\s\S]*?STATUS: (\w+)",wtxt)
+    if m and m.group(2)=="DRAINED":
+        m=None   # a drained entry is history, not a silence
     if m:
         if m.group(1)==fp:
             print("ANSWER FROM THE WHITE: this asking is in my "
