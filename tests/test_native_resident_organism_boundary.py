@@ -12,6 +12,23 @@ def _state(label: str) -> bytes:
     return b"GLORUN01-" + label.encode("ascii")
 
 
+@dataclass(frozen=True)
+class _NativeCausalIntervalEvidence:
+    source_duration_samples_at_articulatory_rate: int
+    externally_perturbed_neuron_lineages: list[str]
+    internally_reassembled_formation_cues: list[tuple[object, ...]]
+    causal_thought_transitions: list[tuple[object, ...]]
+    externally_reassembled_formation_frontiers: list[tuple[object, ...]]
+    motor_unit_recruitments: list[tuple[object, ...]]
+    root_yaw_unit_recruitments: list[tuple[object, ...]]
+    articulatory_unit_recruitments: list[tuple[object, ...]]
+    emitted_neuron_lineages: list[str]
+    changed_contact_channel_states: list[tuple[object, ...]]
+    affective_balance_trajectories: list[tuple[object, ...]]
+    causal_frontier_advances: list[tuple[object, ...]]
+    articulated_body_state: bytes
+
+
 @dataclass
 class _NativeResidentOrganismObservation:
     state: bytes
@@ -177,7 +194,7 @@ class _NativeResidentOrganismPrepare:
     partial_cue_reassembly_count: int = 0
     endogenous_partial_cue_reassembly_count: int = 0
     internally_reassembled_formation_cues: list[
-        tuple[str, list[str], str | None, list[tuple[object, ...]]]
+        tuple[str, list[str], str | None]
     ] | None = None
     causal_thought_transitions: list[tuple[object, ...]] | None = None
     externally_reassembled_formation_frontiers: list[
@@ -1161,7 +1178,7 @@ def test_internal_reassembly_carries_its_exact_recurrent_lineage(
     runtime.prepare_result_override = replace(
         genuine,
         internally_reassembled_formation_cues=[
-            (receipt, [cue], recurrent, []),
+            (receipt, [cue], recurrent),
         ],
         endogenous_partial_cue_reassembly_count=1,
         partial_cue_reassembly_count=1,
@@ -1205,6 +1222,32 @@ def test_causal_thought_requires_an_exact_recurrent_carrier_bridge() -> None:
     )
     with pytest.raises(RuntimeError, match="lost carrier direction"):
         boundary._causal_thought_transition_evidence([reversed_transfer])
+
+
+def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> None:
+    raw = _NativeCausalIntervalEvidence(
+        source_duration_samples_at_articulatory_rate=1,
+        externally_perturbed_neuron_lineages=[],
+        internally_reassembled_formation_cues=[],
+        causal_thought_transitions=[],
+        externally_reassembled_formation_frontiers=[],
+        motor_unit_recruitments=[],
+        root_yaw_unit_recruitments=[],
+        articulatory_unit_recruitments=[],
+        emitted_neuron_lineages=[],
+        changed_contact_channel_states=[],
+        affective_balance_trajectories=[],
+        causal_frontier_advances=[],
+        articulated_body_state=b"\0" * 195,
+    )
+
+    parsed = boundary._causal_interval_evidence([raw], 41)
+
+    assert len(parsed) == 1
+    assert parsed[0].predecessor_organism_tick == 41
+    assert parsed[0].organism_tick == 42
+    with pytest.raises(RuntimeError, match="named schema"):
+        boundary._causal_interval_evidence([tuple(range(12))], 41)
 
 
 def test_internal_reassembly_refuses_the_retired_two_field_shape(

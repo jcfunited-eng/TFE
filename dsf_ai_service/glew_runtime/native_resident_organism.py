@@ -782,9 +782,9 @@ def _internally_reassembled_formation_cue_evidence(
         raise RuntimeError("internally reassembled formation cues changed format")
     observed: list[tuple[str, tuple[str, ...], str | None]] = []
     for raw_cue in value:
-        if not isinstance(raw_cue, tuple) or len(raw_cue) != 4:
+        if not isinstance(raw_cue, tuple) or len(raw_cue) != 3:
             raise RuntimeError("internally reassembled formation cue changed format")
-        raw_receipt, raw_cues, raw_recurrent_lineage, raw_thought_transitions = raw_cue
+        raw_receipt, raw_cues, raw_recurrent_lineage = raw_cue
         if not isinstance(raw_cues, list) or not raw_cues:
             raise RuntimeError("internally reassembled formation cue is empty")
         receipt = _canonical_sha256(
@@ -804,22 +804,6 @@ def _internally_reassembled_formation_cue_evidence(
                 "internally reassembled formation recurrent lineage",
             )
         )
-        thought_transitions = _causal_thought_transition_evidence(
-            raw_thought_transitions
-        )
-        if any(
-            destination_receipt != receipt or cue_lineage not in cues
-            for (
-                _source_receipt,
-                destination_receipt,
-                _source_recurrent,
-                cue_lineage,
-                _transfer,
-            ) in thought_transitions
-        ):
-            raise RuntimeError(
-                "causal thought transition left its destination formation cue"
-            )
         observed.append((receipt, cues, recurrent_lineage))
     result = tuple(observed)
     if len(set(result)) != len(result):
@@ -861,22 +845,6 @@ def _causal_thought_transition_evidence(
     result = tuple(sorted(observed))
     if len(set(result)) != len(result):
         raise RuntimeError("causal thought transition repeated")
-    return result
-
-
-def _causal_thought_transitions_from_internal_cues(
-    value: object,
-) -> tuple[tuple[str, str, str, str, tuple[str, str, int, int]], ...]:
-    if not isinstance(value, list):
-        raise RuntimeError("internally reassembled formation cues changed format")
-    transitions = tuple(
-        transition
-        for raw_cue in value
-        for transition in _causal_thought_transition_evidence(raw_cue[3])
-    )
-    result = tuple(sorted(transitions))
-    if len(set(result)) != len(result):
-        raise RuntimeError("causal thought transition repeated across cues")
     return result
 
 
@@ -1150,22 +1118,36 @@ def _causal_interval_evidence(
         raise RuntimeError("causal interval evidence changed format")
     intervals = []
     for index, raw in enumerate(value):
-        if not isinstance(raw, tuple) or len(raw) != 12:
-            raise RuntimeError("causal interval evidence changed format")
-        (
-            raw_duration_samples,
-            raw_external,
-            raw_cues,
-            raw_external_frontiers,
-            raw_motors,
-            raw_root_yaw,
-            raw_articulatory,
-            raw_emitted,
-            raw_changes,
-            raw_affect,
-            raw_frontier,
-            raw_articulated_body,
-        ) = raw
+        required_fields = (
+            "source_duration_samples_at_articulatory_rate",
+            "externally_perturbed_neuron_lineages",
+            "internally_reassembled_formation_cues",
+            "causal_thought_transitions",
+            "externally_reassembled_formation_frontiers",
+            "motor_unit_recruitments",
+            "root_yaw_unit_recruitments",
+            "articulatory_unit_recruitments",
+            "emitted_neuron_lineages",
+            "changed_contact_channel_states",
+            "affective_balance_trajectories",
+            "causal_frontier_advances",
+            "articulated_body_state",
+        )
+        if any(not hasattr(raw, field) for field in required_fields):
+            raise RuntimeError("causal interval evidence changed named schema")
+        raw_duration_samples = raw.source_duration_samples_at_articulatory_rate
+        raw_external = raw.externally_perturbed_neuron_lineages
+        raw_cues = raw.internally_reassembled_formation_cues
+        raw_thought_transitions = raw.causal_thought_transitions
+        raw_external_frontiers = raw.externally_reassembled_formation_frontiers
+        raw_motors = raw.motor_unit_recruitments
+        raw_root_yaw = raw.root_yaw_unit_recruitments
+        raw_articulatory = raw.articulatory_unit_recruitments
+        raw_emitted = raw.emitted_neuron_lineages
+        raw_changes = raw.changed_contact_channel_states
+        raw_affect = raw.affective_balance_trajectories
+        raw_frontier = raw.causal_frontier_advances
+        raw_articulated_body = raw.articulated_body_state
         if not isinstance(raw_articulated_body, bytes) or len(
             raw_articulated_body
         ) != 195:
@@ -1210,6 +1192,26 @@ def _causal_interval_evidence(
         canonical_frontier = tuple(frontier)
         if len(set(canonical_frontier)) != len(canonical_frontier):
             raise RuntimeError("causal interval frontier repeated a transfer")
+        internal_cues = _internally_reassembled_formation_cue_evidence(raw_cues)
+        thought_transitions = _causal_thought_transition_evidence(
+            raw_thought_transitions
+        )
+        if any(
+            not any(
+                destination_receipt == receipt and cue_lineage in cues
+                for receipt, cues, _recurrent in internal_cues
+            )
+            for (
+                _source_receipt,
+                destination_receipt,
+                _source_recurrent,
+                cue_lineage,
+                _transfer,
+            ) in thought_transitions
+        ):
+            raise RuntimeError(
+                "causal thought transition left its destination formation cue"
+            )
         predecessor_tick = predecessor_organism_tick + index
         intervals.append(
             ResidentCausalIntervalEvidence(
@@ -1217,12 +1219,8 @@ def _causal_interval_evidence(
                 organism_tick=predecessor_tick + 1,
                 source_duration_samples_at_articulatory_rate=duration_samples,
                 externally_perturbed_neuron_lineages=external,
-                internally_reassembled_formation_cues=(
-                    _internally_reassembled_formation_cue_evidence(raw_cues)
-                ),
-                causal_thought_transitions=(
-                    _causal_thought_transitions_from_internal_cues(raw_cues)
-                ),
+                internally_reassembled_formation_cues=internal_cues,
+                causal_thought_transitions=thought_transitions,
                 externally_reassembled_formation_frontiers=(
                     _externally_reassembled_formation_frontier_evidence(
                         raw_external_frontiers

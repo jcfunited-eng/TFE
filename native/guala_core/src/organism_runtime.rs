@@ -138,7 +138,6 @@ type InternallyReassembledFormationCueProjection = (
     String,
     Vec<String>,
     Option<String>,
-    Vec<CausalThoughtTransitionProjection>,
 );
 type CausalThoughtTransitionProjection = (
     String,
@@ -244,20 +243,6 @@ type AffectiveBalanceTrajectoryProjection = (
     Option<TimedDirectedPhysicalTransferProjection>,
     Option<LocalAffectiveGradientSettlementProjection>,
     Option<LocalAffectivePlasticitySettlementProjection>,
-);
-type CausalIntervalEvidenceProjection = (
-    usize,
-    Vec<String>,
-    Vec<InternallyReassembledFormationCueProjection>,
-    Vec<ExternallyReassembledFormationFrontierProjection>,
-    Vec<MotorUnitRecruitmentProjection>,
-    Vec<RootYawUnitRecruitmentProjection>,
-    Vec<ArticulatoryUnitRecruitmentProjection>,
-    Vec<String>,
-    Vec<ChangedContactChannelStateProjection>,
-    Vec<AffectiveBalanceTrajectoryProjection>,
-    Vec<CausalFrontierTransferProjection>,
-    Vec<u8>,
 );
 type LocalizedFluidChemistryProjection = (
     String,
@@ -776,6 +761,108 @@ struct CausalIntervalEvidence {
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     frontier_advances: Vec<CausalFrontierTransferObservation>,
     articulated_body: ArticulatedBodyState,
+}
+
+/// One bounded native physical interval exposed to Python by named fields.
+///
+/// This object permanently replaces the positional tuple boundary. PyO3's
+/// tuple conversion has a fixed arity ceiling; causal evidence does not. The
+/// resident interval remains the sole value owner and this frozen projection
+/// adds no organism state or observer authority.
+#[pyclass(frozen, module = "guala_core")]
+pub struct NativeCausalIntervalEvidence {
+    interval: CausalIntervalEvidence,
+}
+
+#[pymethods]
+impl NativeCausalIntervalEvidence {
+    #[getter]
+    fn source_duration_samples_at_articulatory_rate(&self) -> usize {
+        self.interval.source_duration_samples_at_articulatory_rate
+    }
+
+    #[getter]
+    fn externally_perturbed_neuron_lineages(&self) -> Vec<String> {
+        self.interval
+            .externally_perturbed_neuron_lineages
+            .iter()
+            .map(|lineage| hex_bytes(lineage))
+            .collect()
+    }
+
+    #[getter]
+    fn internally_reassembled_formation_cues(
+        &self,
+    ) -> Vec<InternallyReassembledFormationCueProjection> {
+        project_internally_reassembled_formation_cues(
+            &self.interval.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
+    fn causal_thought_transitions(&self) -> Vec<CausalThoughtTransitionProjection> {
+        project_causal_thought_transitions(
+            &self.interval.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
+    fn externally_reassembled_formation_frontiers(
+        &self,
+    ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
+        project_externally_reassembled_formation_frontiers(
+            &self.interval.externally_reassembled_formation_frontiers,
+        )
+    }
+
+    #[getter]
+    fn motor_unit_recruitments(&self) -> Vec<MotorUnitRecruitmentProjection> {
+        project_motor_unit_recruitments(&self.interval.motor_unit_recruitments)
+    }
+
+    #[getter]
+    fn root_yaw_unit_recruitments(&self) -> Vec<RootYawUnitRecruitmentProjection> {
+        project_root_yaw_unit_recruitments(&self.interval.root_yaw_unit_recruitments)
+    }
+
+    #[getter]
+    fn articulatory_unit_recruitments(&self) -> Vec<ArticulatoryUnitRecruitmentProjection> {
+        project_articulatory_unit_recruitments(&self.interval.articulatory_unit_recruitments)
+    }
+
+    #[getter]
+    fn emitted_neuron_lineages(&self) -> Vec<String> {
+        self.interval
+            .emitted_neuron_lineages
+            .iter()
+            .map(|lineage| hex_bytes(lineage))
+            .collect()
+    }
+
+    #[getter]
+    fn changed_contact_channel_states(&self) -> Vec<ChangedContactChannelStateProjection> {
+        project_changed_contact_channel_states(&self.interval.changed_contact_channel_states)
+    }
+
+    #[getter]
+    fn affective_balance_trajectories(&self) -> Vec<AffectiveBalanceTrajectoryProjection> {
+        project_affective_balance_trajectories(&self.interval.affective_balance_trajectories)
+    }
+
+    #[getter]
+    fn causal_frontier_advances(&self) -> Vec<CausalFrontierTransferProjection> {
+        project_causal_frontier_transfers(&self.interval.frontier_advances)
+    }
+
+    #[getter]
+    fn articulated_body_state<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        let encoded = self
+            .interval
+            .articulated_body
+            .encode()
+            .expect("resident causal interval body was already validated");
+        PyBytes::new(py, &encoded)
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -1646,49 +1733,11 @@ impl NativeResidentOrganismPrepare {
     /// bounded records preserve the intervening sparse frontiers so a later
     /// read-only observer does not flatten several physical intervals into one.
     #[getter]
-    fn causal_interval_evidence(&self) -> Vec<CausalIntervalEvidenceProjection> {
+    fn causal_interval_evidence(&self) -> Vec<NativeCausalIntervalEvidence> {
         self.causal_interval_evidence
             .iter()
-            .map(|interval| {
-                (
-                    interval.source_duration_samples_at_articulatory_rate,
-                    interval
-                        .externally_perturbed_neuron_lineages
-                        .iter()
-                        .map(|lineage| hex_bytes(lineage))
-                        .collect(),
-                    project_internally_reassembled_formation_cues(
-                        &interval.internally_reassembled_formation_cues,
-                    ),
-                    project_externally_reassembled_formation_frontiers(
-                        &interval.externally_reassembled_formation_frontiers,
-                    ),
-                    project_motor_unit_recruitments(&interval.motor_unit_recruitments),
-                    project_root_yaw_unit_recruitments(
-                        &interval.root_yaw_unit_recruitments,
-                    ),
-                    project_articulatory_unit_recruitments(
-                        &interval.articulatory_unit_recruitments,
-                    ),
-                    interval
-                        .emitted_neuron_lineages
-                        .iter()
-                        .map(|lineage| hex_bytes(lineage))
-                        .collect(),
-                    project_changed_contact_channel_states(
-                        &interval.changed_contact_channel_states,
-                    ),
-                    project_affective_balance_trajectories(
-                        &interval.affective_balance_trajectories,
-                    ),
-                    project_causal_frontier_transfers(&interval.frontier_advances),
-                    interval
-                        .articulated_body
-                        .encode()
-                        .expect("resident causal interval body was already validated")
-                        .to_vec(),
-                )
-            })
+            .cloned()
+            .map(|interval| NativeCausalIntervalEvidence { interval })
             .collect()
     }
 
@@ -5652,6 +5701,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeResidentOrganismObservation>()?;
     module.add_class::<NativeLivedStateSnapshot>()?;
     module.add_class::<NativeResidentOrganismPrepare>()?;
+    module.add_class::<NativeCausalIntervalEvidence>()?;
     module.add_function(wrap_pyfunction!(
         transition_native_organism_runtime,
         module
@@ -6467,11 +6517,6 @@ fn project_internally_reassembled_formation_cues(
                     .recurrent_lineage
                     .as_ref()
                     .map(|lineage| hex_bytes(lineage)),
-                observation
-                    .causal_predecessors
-                    .iter()
-                    .map(project_causal_thought_transition)
-                    .collect(),
             )
         })
         .collect()
