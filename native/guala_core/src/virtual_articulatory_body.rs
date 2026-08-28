@@ -20,9 +20,6 @@ pub(crate) const ARTICULATORY_SAMPLE_RATE_HZ: u32 = 16_000;
 const TRACT_SECTION_COUNT: usize = VOCAL_TRACT_SECTION_COUNT;
 #[cfg(test)]
 const ACTIVE_SAMPLE_COUNT: usize = ARTICULATORY_SAMPLE_RATE_HZ as usize;
-const MAX_ARTICULATORY_DURATION_SECONDS: usize = 5;
-const MAX_ACTIVE_SAMPLE_COUNT: usize =
-    ARTICULATORY_SAMPLE_RATE_HZ as usize * MAX_ARTICULATORY_DURATION_SECONDS;
 const MAX_RELAXATION_SAMPLES: usize = 16_384;
 const LARYNGEAL_CYCLE_SAMPLES: usize = 160;
 const NEUTRAL_GLOTTAL_OPEN_SAMPLES: i32 = 80;
@@ -37,6 +34,7 @@ const RADIATION_LOAD_AREA_SQUARE_MILLIMETRES: i32 = 265;
 pub(crate) enum ArticulatoryBodyError {
     NoRecruitment,
     ArithmeticWidth,
+    ResourceUnavailable,
     RelaxationDidNotQuiesce,
 }
 
@@ -89,22 +87,29 @@ pub(crate) fn settle_articulatory_interval_discharges(
     {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
-    let active_sample_count =
-        intervals
-            .iter()
-            .try_fold(0usize, |total, (samples, _, _)| {
-                total
-                    .checked_add(*samples)
-                    .filter(|candidate| *candidate <= MAX_ACTIVE_SAMPLE_COUNT)
-                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)
-            })?;
+    let active_sample_count = intervals
+        .iter()
+        .try_fold(0usize, |total, (samples, _, _)| {
+            total
+                .checked_add(*samples)
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)
+        })?;
+    let output_capacity = active_sample_count
+        .checked_add(MAX_RELAXATION_SAMPLES)
+        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
     let mut right = [0_i32; TRACT_SECTION_COUNT];
     let mut left = [0_i32; TRACT_SECTION_COUNT];
     let mut previous_flow = 0_i32;
-    let mut radiated = Vec::with_capacity(active_sample_count + MAX_RELAXATION_SAMPLES);
-    let mut body_mechanics: [Vec<i16>; 4] = std::array::from_fn(|_| {
-        Vec::with_capacity(active_sample_count + MAX_RELAXATION_SAMPLES)
-    });
+    let mut radiated = Vec::new();
+    radiated
+        .try_reserve_exact(output_capacity)
+        .map_err(|_| ArticulatoryBodyError::ResourceUnavailable)?;
+    let mut body_mechanics: [Vec<i16>; 4] = std::array::from_fn(|_| Vec::new());
+    for trajectory in &mut body_mechanics {
+        trajectory
+            .try_reserve_exact(output_capacity)
+            .map_err(|_| ArticulatoryBodyError::ResourceUnavailable)?;
+    }
     let mut applied_motor_quanta = 0_u128;
     let mut stalled_motor_quanta = 0_u128;
     let mut strongest_glottal_apex = NEUTRAL_GLOTTAL_OPEN_SAMPLES;
@@ -434,6 +439,27 @@ mod tests {
             12_000 + separated.relaxation_sample_count
         );
         assert_eq!(separated.applied_motor_quanta, 16);
+    }
+
+    #[test]
+    fn lawful_long_recording_is_not_an_arithmetic_width_error() {
+        let intervals = (0..46)
+            .map(|index| {
+                let recruitments = if matches!(index, 0 | 8 | 17 | 27 | 35 | 45) {
+                    vec![(0, 8)]
+                } else {
+                    Vec::new()
+                };
+                (4_000, recruitments, ArticulatedBodyState::at_neutral())
+            })
+            .collect::<Vec<_>>();
+        let settled = settle_articulatory_interval_discharges(&intervals).unwrap();
+
+        assert_eq!(settled.applied_motor_quanta, 48);
+        assert_eq!(
+            settled.radiated_pressure_pcm.len(),
+            184_000 + settled.relaxation_sample_count
+        );
     }
 
     #[test]
