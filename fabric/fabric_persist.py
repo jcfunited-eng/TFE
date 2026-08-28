@@ -146,7 +146,85 @@ def serve_one(path, st, floors, wts, byid):
     log(f"beat {st['beats']}: answered ({tier}): {q}")
 
 GRIND_EVERY = 240
+EXERCISE_EVERY = 45
+CANDIDATES = os.path.join(LIFE, "possible_candidates.md")
+BRIDGES = os.path.join(LIFE, "missing_bridges.md")
 _ground = set()
+_exercised = set()
+_bridge_misses = {}
+PROPOSED = os.path.join(LIFE, "proposed_new_areas.md")
+
+def _grow(path, text, what):
+    if os.path.exists(path) and os.path.getsize(path) > CEIL:
+        log(f"the {what} record reached its ceiling — growth "
+            f"paused there until it is read and cleared")
+        return
+    with open(path, "a") as f: f.write(text)
+
+def exercise_knowledge(st, floors):
+    """The fabric draws its own ribbons: take one entry in turn,
+    follow one connection its thread line promises, ask itself the
+    bridge question, and record what comes — a candidate
+    possibility (growing the possible) or a missing bridge
+    (growing the map of its own ignorance)."""
+    import assembler
+    e = floors[(st["beats"] // EXERCISE_EVERY) % len(floors)]
+    th = (e.get("thread") or "").lower()
+    if not th: return
+    target = None
+    for f2 in floors:
+        fld = f2["field"]
+        if fld != e["field"] and fld.split()[-1] in th:
+            target = fld; break
+    if not target: return
+    key = (e["essence"][:40], target)
+    if key in _exercised: return
+    _exercised.add(key)
+    df = {}
+    for x2 in floors:
+        for x in fa.words(x2["essence"] + " " + x2["cannot"] + " "
+                          + x2["ask"]):
+            df[x] = df.get(x, 0) + 1
+    seed = sorted(fa.words(e["essence"]),
+                  key=lambda x: df.get(x, 99))[:2]
+    q = f"{' '.join(seed)} {target}"
+    lanes = assembler.play(q, floors, df)
+    toys = [ts for _, _, t3 in lanes for ts in t3]
+    if toys:
+        s, a, b = toys[0]
+        _grow(CANDIDATES,
+              f"
+CANDIDATE (self-asked, un-aimed, ungraded) — "
+              f"from the thread of "{e['essence'][:50]}" toward "
+              f"{target}:
+  maybe: {a['essence'][:90]}
+  with: "
+              f"{b['essence'][:90]}
+", "possible")
+        log(f"beat {st['beats']}: exercised its knowledge — a "
+            f"candidate possibility recorded "
+            f"({e['field']} toward {target})")
+    else:
+        _grow(BRIDGES,
+              f"
+MISSING BRIDGE — the entry "{e['essence'][:60]}""
+              f" promises a thread toward {target}, but exercising "
+              f"it found nothing that connects. The bridge is "
+              f"knowledge not yet written.
+", "missing-bridge")
+        log(f"beat {st['beats']}: exercised its knowledge — found "
+            f"a missing bridge ({e['field']} toward {target})")
+        _bridge_misses[target] = _bridge_misses.get(target, 0) + 1
+        if _bridge_misses[target] == 2:
+            _grow(PROPOSED,
+                  f"\nPROPOSED NEW AREA — bridges toward "
+                  f"\"{target}\" keep failing from different "
+                  f"directions. The knowledge keeps pointing at a "
+                  f"subject not yet written. A new area may need "
+                  f"to exist.\n", "proposed-area")
+            log(f"beat {st['beats']}: proposed a NEW AREA of "
+                f"knowledge — {target} — its own records keep "
+                f"pointing there")
 def grind_open_question(st, floors):
     """In quiet time, work one recorded open question: try to
     assemble an answer from scattered pieces. Log only what
@@ -376,6 +454,8 @@ def main():
             acted = wonder_one(st, wts, byid)
             if not acted and st["beats"] % GRIND_EVERY == 0:
                 grind_open_question(st, floors)
+            elif not acted and st["beats"] % EXERCISE_EVERY == 0:
+                exercise_knowledge(st, floors)
         if not acted:
             quiet += 1
         elif quiet:

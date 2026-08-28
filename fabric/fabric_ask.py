@@ -39,7 +39,8 @@ def load():
             es.append(dict(field=name,essence=part("ESSENCE"),
                            cannot=part("CANNOT"),
                            ask=part("ASKED-AS"),
-                           rule=part("RULE")))
+                           rule=part("RULE"),
+                           thread=part("THREAD")))
     return es
 def walk(qs, es):
     def wt(e): return words(e["essence"]+" "+e["cannot"]+" "+e["ask"])
