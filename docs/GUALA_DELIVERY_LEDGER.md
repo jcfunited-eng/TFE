@@ -13,13 +13,39 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1290`, commit
-`54df84598d61586248bcf49d741d2fb19973a786`, immutable image
-`sha256:eafcb68f0ff28ae758e079964535ef796441d5ec2b847745e074a7681fed7cb0`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. A read-only live
-observation on 2026-08-28 found the same identity advancing at tick `216935`,
-state `172d3b0572ff78e52a8c092b9ded25562ca59a26cd8928762fe238b9d52e8305`,
-with zero Python cognition callbacks.
+Current production baseline: task definition `dsf-ai-task:1298`, commit
+`c9deed6098a4713ffe4d8d2fce7b4af477c42a23`, immutable image
+`sha256:3f18336221bb8fff99458e8b6e9930728ac0dd617ae3b89dd9c6aaf4d6e57660`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The hot cutover
+completed at 2026-08-28T17:56:20Z with one task and verified native CURRENT at
+or beyond tick `228842`.
+
+### L-005 changed-cue recognition reclosure — 2026-08-28
+
+- Task 1298 adds one constant-sized read-only projection of causal evidence
+  already produced by a committed transition. It does not scan retained
+  formations, enter cognition, select an action, or transport physical state.
+- Teaching was varied and spaced: a full apple experience was followed by a
+  B/bee experience, a number-three experience, and unattended life. A later
+  silent 12-site apple glimpse externally reassembled retained formation
+  `1563d0cc8bc909481d5e0613df19b3fcce22875fad705701f362f3ab95625ce8`,
+  crossed 20 directed physical transfers, changed an exact contact, caused a
+  body action, and returned proprioceptive consequences in persisted tick
+  `229038`.
+- The decisive cross-context event supplied only the approved 26,196-sample
+  pressure waveform plus Guala's actual current world. No card ID, word,
+  expected answer, object label, or observer instruction entered cognition.
+  External pressure reassembled retained formation
+  `146edeb02781b6bc725deaf1e621b45c42d9843ea391dde47f7101bd963d6d45`
+  at recurrent endpoint `474c4e4c494e45310000000000000664`. Its physical
+  continuation reached layer-13 articulation `...0072`, emitted 4,000 pressure
+  samples, and returned through one self-hearing hop containing 1,230 neuronal
+  transitions and seven new fractals. The same organism persisted tick
+  `229452`, state
+  `ff935f10a17bf4a0c2281227ce24053aefec481b0daffbf34d1b68faa8062fef`.
+- This closes the current changed-cue retained-formation causal-use boundary.
+  It does not claim dictionary semantics, sentences, or four-year-old language;
+  those remain later curriculum acceptance.
 
 ### L-005/L-006 reconciliation after one-way anatomy cleanup — 2026-08-28
 
@@ -651,12 +677,12 @@ with zero Python cognition callbacks.
   song-recognition, or speech claim is made. The next ordinary interval after
   the post-lesson consolidation burst added only 12,034 bytes and no retained
   impression or mosaic. See the L-004 synchronized-song sprint ledger.
-- [ ] **L-005 — REOPENED 2026-08-28:** Demonstrate first genuine learned word recognition from novel
+- [x] **L-005 — LIVE-CLOSED 2026-08-28:** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
-  The 2026-08-25 bear-hidden receipt is historical evidence only: V33 removed
-  the coincidence-grown motor anatomy on which its action continuation relied.
-  The current corrected organism still needs a fresh changed-cue reassembly,
-  causal use, sensed consequence, and persistence witness.
+  Task 1298 supplied fresh visual-partial and pressure-only changed-cue
+  reassembly, causal body/articulatory use, sensed consequence, and exact
+  current-state persistence on the corrected post-V33 organism. This is
+  learned causal recognition, not yet dictionary semantics or conversation.
 - [x] **L-006 — LIVE-CLOSED 2026-08-28:** Demonstrate a physically caused first
   utterance and self-heard consequence, then repeated learned use in a different
   context. Task 1290 observed the learned route reach vocal motor `...0d91`,
