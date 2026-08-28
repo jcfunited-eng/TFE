@@ -531,3 +531,26 @@ but it does not satisfy the A-013 autonomous-action acceptance condition.
   A-013/O-001 remains open until cutover proves world movement, exact returned
   sensory/body consequences in the same identity, and later unattended tick
   advancement.
+
+## Live terminal-event reachability correction — 2026-08-28
+
+- Commit `cb8d50193012b26bfddb417847fb2b4bee223649` deployed as sole healthy
+  production task `dsf-ai-task:1282`, image
+  `sha256:dc912fc52c494bdbbf5e0f2d260aa18f8e70ebbdd445485b92ca94135a183ae4`.
+  It restored the same identity at or beyond tick 208893 and advanced beyond
+  tick 208965, but more than twelve unattended intervals retained
+  `native_action_consequence=0.0`. A-013 therefore did not close.
+- The copied-body proof had reached every external receptor before contact
+  settlement. That made the charged root motor part of the selected electrical
+  frontier and proved its discharge law, but it did not prove that an
+  unattended charged terminal could wake itself.
+- Exact source defect: causal-event residency scheduled contact crossings and
+  passive membrane returns, but positive displacement on a mounted effector
+  was not itself a due local membrane event. The motor therefore waited for an
+  unrelated incident contact even though its own terminal held lawful work.
+- Exact correction: the existing per-neuron local membrane schedule now places
+  a positive charged root-yaw terminal at the next physical clock. A due
+  terminal enters the selected frontier without active pumping and then uses
+  the already-proven carrier/work-conserving efferent transition. Its exact
+  successor is rescheduled through the same sole resident event owner. No new
+  schedule, observer, command, threshold, or full-fabric sweep is added.

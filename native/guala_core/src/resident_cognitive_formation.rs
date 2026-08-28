@@ -15135,19 +15135,32 @@ pub(crate) fn rebuild_causal_event_residency(
     let mut recovery_schedule = CarrierCrossingSchedule::with_contact_count(neuron_count);
     for flat in 0..neuron_count {
         let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
-        let crossing = next_passive_membrane_return_crossing_clocks(
-            &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
-            &cohorts[cohort_index].state.neurons()[neuron_index],
-            ChargeCarrierPhase::zero(),
-            interval,
-        )
-        .map_err(|_| FormationError::ArithmeticOverflow)?;
-        if let Some(clocks_until) = crossing {
-            let due = persisted_organism_clock
-                .checked_add(clocks_until)
-                .ok_or(FormationError::ArithmeticOverflow)?;
-            recovery_schedule.reschedule(flat, Some(due));
-        }
+        let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+        let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
+        let mounted_terminal_ready = mount.root_yaw_effector_terminal().is_some()
+            && neuron.separated_elementary_charges() > 0;
+        let due = if mounted_terminal_ready {
+            Some(
+                persisted_organism_clock
+                    .checked_add(1)
+                    .ok_or(FormationError::ArithmeticOverflow)?,
+            )
+        } else {
+            next_passive_membrane_return_crossing_clocks(
+                &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+                neuron,
+                ChargeCarrierPhase::zero(),
+                interval,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?
+            .map(|clocks_until| {
+                persisted_organism_clock
+                    .checked_add(clocks_until)
+                    .ok_or(FormationError::ArithmeticOverflow)
+            })
+            .transpose()?
+        };
+        recovery_schedule.reschedule(flat, due);
     }
     Ok(CausalEventResidency {
         contact_last_integrated: vec![persisted_organism_clock; clocks.len()],
@@ -15775,8 +15788,23 @@ fn settle_internal_contact_interval(
     events
         .recovery_schedule
         .drain_due_at(clock, &mut due_return_flats);
+    let mut due_terminal_flats = Vec::new();
     for flat in due_return_flats.iter().copied() {
         let (cohort_index, neuron_index, _) = flat_locations[flat];
+        let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+        if mount.root_yaw_effector_terminal().is_some()
+            && cohorts[cohort_index].state.neurons()[neuron_index]
+                .separated_elementary_charges()
+                > 0
+        {
+            // A charged mounted terminal is its own local membrane event.
+            // Reach it without pumping it and let the ordinary efferent
+            // settlement below perform the exact carrier/work transition.
+            // It must not wait for an unrelated contact to become due.
+            events.recovery_last_integrated[flat] = clock;
+            due_terminal_flats.push(flat);
+            continue;
+        }
         let elapsed = clock
             .checked_sub(events.recovery_last_integrated[flat])
             .ok_or(FormationError::ArithmeticOverflow)?;
@@ -15865,6 +15893,7 @@ fn settle_internal_contact_interval(
         selected.push(entry.left);
         selected.push(entry.right);
     }
+    selected.extend(due_terminal_flats.iter().copied());
     selected.sort_unstable();
     selected.dedup();
     let mut causal_seed_flats = causal_seed_lineages
@@ -17949,10 +17978,20 @@ fn settle_internal_contact_interval(
                 }
                 events.recovery_last_integrated[flat] = clock;
             }
-            let crossing =
+            let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+            let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
+            let mounted_terminal_ready = mount.root_yaw_effector_terminal().is_some()
+                && neuron.separated_elementary_charges() > 0;
+            let due = if mounted_terminal_ready {
+                Some(
+                    clock
+                        .checked_add(1)
+                        .ok_or(FormationError::ArithmeticOverflow)?,
+                )
+            } else {
                 crate::complete_neuron::next_passive_membrane_return_crossing_clocks(
                     &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
-                    &cohorts[cohort_index].state.neurons()[neuron_index],
+                    neuron,
                     events.recovery_phase[flat],
                     interval,
                 )
@@ -17963,14 +18002,14 @@ fn settle_internal_contact_interval(
                             error,
                         },
                     )
-                })?;
-            let due = crossing
+                })?
                 .map(|clocks_until| {
                     clock
                         .checked_add(clocks_until)
                         .ok_or(FormationError::ArithmeticOverflow)
                 })
-                .transpose()?;
+                .transpose()?
+            };
             events.recovery_schedule.reschedule(flat, due);
         }
     }

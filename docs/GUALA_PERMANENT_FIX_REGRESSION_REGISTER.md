@@ -26,7 +26,7 @@ fixture alone. If it cannot be checked, the candidate remains open.
 | F-002 | Unattended native life advances without an external request. | Request-driven or observer-driven cognition. | Observe ticks advance while request logs contain only health/read traffic; observers remain read-only. | Live unattended advancement was measured before and after task 1280. |
 | F-003 | Electrical settlement is per connected physical pathway. | One global minimizing fraction allowing disconnected pathways to suppress each other. | Inspect the mounted solver boundary and retain the disconnected-path falsifier. | Accepted correction `662f9cce`; A-006 ledger. |
 | F-004 | Coincidence-based layer-11 to motor/articulatory fan-out is deleted and the contaminated pool was removed one way. | Authoring every simultaneous ordering/motor pair; restart restoration of the approximately 97,000 removed contacts. | Check authorship requires the retained directed causal chain; restore census must keep contaminated-pool count zero. | Live cleanup cut over in the task-1248 lineage; successor task 1280 retained the corrected body. |
-| F-005 | Contact settlement uses the mounted event frontier and the old unconditional full-contact sweep is deleted. | Production reachability of the old whole-fabric sweep or a second scheduler authority. | Inspect the production call graph and observe due/sleeping census from the sole resident frontier. | Task-1248 lineage and later releases; detailed scheduler evidence in A-006. |
+| F-005 | Contact settlement uses the mounted event frontier and the old unconditional full-contact sweep is deleted. | Production reachability of the old whole-fabric sweep, a second scheduler authority, or a charged root-yaw terminal that can discharge only when an unrelated contact happens to wake it. | Inspect the production call graph, observe due/sleeping census from the sole resident frontier, and prove a charged root-yaw terminal schedules its own next local membrane event. | Task-1248 lineage and later releases; detailed scheduler evidence in A-006. Task 1282 exposed the missing terminal-event case; the copied reached-interval proof alone is permanently insufficient. |
 | F-006 | Passive membrane return is a local neuron transition; the pump serves only the causal frontier. | Pump-as-rest, pumping every touched neuron, or outside-energy creation. | Preserve positive/negative return, zero-crossing, carrier conservation, and untouched-neuron falsifiers. | Deployed in `cd9ffa93`; A-006 ledger. |
 | F-007 | Persistence encoding/copying is outside the ordinary cognitive settlement critical section. | Whole-body seal or cloud copy pausing every physical interval. | Per-interval timing must show custody outside settlement and one bounded custodian. | Task-1248 lineage and later releases; A-006 runtime evidence. |
 | F-008 | Observers are read-only and have no authority to admit, discard, choose, pause, or mutate cognition. | Observer labels, polling windows, or proof caches controlling organism transitions. | Review every changed observation callsite for immutable access only; live ticks must not depend on observer availability. | A-009/A-011 observer corrections and live continuity evidence. |
@@ -59,6 +59,17 @@ fixture alone. If it cannot be checked, the candidate remains open.
 - Next acceptance: the live world must apply that native discharge, then move,
   return every applicable consequence to identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and unattended ticks must continue.
+- Live task 1282 restored the exact candidate and advanced unattended beyond
+  tick 208965, but more than twelve intervals reported
+  `native_action_consequence=0.0`. The carrier law was intact; the causal-event
+  residency scheduled contacts and passive returns but did not schedule a
+  charged mounted terminal as its own local event. The copied proof had reached
+  every external receptor and therefore masked that missing wake source.
+- The correction uses the existing local membrane-event schedule: a mounted
+  root-yaw terminal with positive retained displacement is due on the next
+  physical clock, enters the selected frontier without being metabolically
+  pumped, and reschedules from its exact successor. No full-neuron scan, second
+  schedule, timer threshold, or contact-as-output path is introduced.
 
 ## Release 1281 cumulative preservation check
 
