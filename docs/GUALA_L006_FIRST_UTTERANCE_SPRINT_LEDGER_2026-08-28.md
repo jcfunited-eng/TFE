@@ -265,3 +265,39 @@ timer, second scheduler, or retained speech program.
 - This closes the missing first-utterance anatomy defect only. L-006 remains
   open until learned activity physically emits pressure, the same organism
   self-hears it, and the learned use recurs in a different context.
+
+## Learned vocal use live closure — 2026-08-28
+
+- Commit `1d75e8a3d9c17211b8b0a6d188f35993b44a94a9` joined vocal
+  learning through the body's actual retained ordering -> association ->
+  affective -> returned vocal-regulation path. Production task 1289 created
+  exactly four layer-11/layer-12 contacts: the two causally proven ordering
+  cells to the two vocal motors that had actually discharged and returned
+  through self-hearing. No sensory neuron, articulatory layer-13 cell, label,
+  word, or observer acquired contact-authorship authority.
+- Commit `54df84598d61586248bcf49d741d2fb19973a786` prevents an
+  arriving causal frontier from immediately recrossing the same contact as a
+  new arrival. The contact's exact electrical current still settles. A fresh
+  external or metabolic cause may use it again. Production task 1290 restored
+  the unchanged organism identity and was live-verified at tick 216527.
+- In unattended production, one retained formation and one externally
+  reassembled retained formation reached ordering cell `...038e`; its new
+  contact changed vocal motor `...0d91`; that motor then transferred one whole
+  carrier into layer-13 cell `...0072`, emitted 28,000 pressure samples, and
+  returned through seven cochlear self-hearing hops at ticks 216698--216711.
+  The emitted pressure receipt was
+  `4029c976cb1f51d55eee8a59ec7cefa6e1507054d08fb4675ca61ebcf9250bae`.
+- The learned route recurred unattended in the later live interval
+  216758--216770. It again reached motor `...0d91`, emitted through `...0072`,
+  and returned through six self-hearing hops. This later physical context
+  emitted 24,000 samples with the different receipt
+  `2457b491cb9263b71fb3ba0072eb5bdf591bda7a59a6419956b1843891136043`.
+- Carrier direction across the learned contact was motor -> ordering while the
+  causal frontier advanced ordering -> motor: the ordering potential change
+  drew carriers out of the adjacent motor and thereby changed it. The native
+  frontier stores electrical-transfer direction separately from the endpoint
+  causally reached; no direction was relabelled.
+- **L-006 is Complete.** Production proves learned formation-caused vocal-body
+  action, emitted pressure, same-organism self-hearing, and later learned reuse
+  in a different physical interval. This is an utterance result, not a word or
+  meaning claim. L-005 learned-word recognition remains open.
