@@ -4253,7 +4253,12 @@ fn native_resident_observation(
     NativeResidentOrganismObservation {
         observation: runtime.observation(),
         cold_restore_work: runtime.cold_restore_work(),
-        articulated_body: runtime.active.articulated_body.clone(),
+        // The durable envelope remains the observation/custody authority
+        // until the explicit seal, but the body is already living in the
+        // unsealed trajectory. Returning the durable predecessor body here
+        // made the Python transport believe initial proprioception had not
+        // occurred and reject the next lawful intake as an invented source.
+        articulated_body: runtime.live_articulated_body().clone(),
     }
 }
 
@@ -7743,6 +7748,27 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn unsealed_readiness_reports_the_living_body_without_claiming_a_seal() {
+        let episode = source("unsealed-lived-body-readiness");
+        let intervals = vec![(5, 1); episode.joint_source_occurrences().len()];
+        let episodes = vec![(episode, intervals)];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        let durable_predecessor = runtime.observation();
+
+        assert!(!native_resident_observation(&runtime)
+            .articulated_body
+            .proprioception_initialized());
+        runtime
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+
+        let observed = native_resident_observation(&runtime);
+        assert!(observed.articulated_body.proprioception_initialized());
+        assert_eq!(observed.observation, durable_predecessor);
+        assert!(runtime.unsealed.is_some());
     }
 
     #[test]

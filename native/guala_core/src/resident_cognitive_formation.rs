@@ -220,6 +220,14 @@ const MAGIC_V31: &[u8; 8] = b"GLCOG031";
 /// layout remains V30/V31; the identity makes the one-way contact retirement
 /// restart-proof.
 const MAGIC_V32: &[u8; 8] = b"GLCOG032";
+/// V33 marks the one-way removal of both effector pools reintroduced after the
+/// V31 cleanup: the root-yaw bootstrap again admitted unrelated preceding
+/// layer-11 cells, and V32 could connect one layer-13 cell to every acoustic,
+/// regulation and motor cell active during one body movement. A V33 body has
+/// removed every layer-11->12 contact and every contact incident to those
+/// historically mounted layer-13 cells. Only the exact two-interval causal
+/// law may mount a new route afterward. The byte layout remains V30--V32.
+const MAGIC_V33: &[u8; 8] = b"GLCOG033";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -3471,8 +3479,6 @@ fn settle_organism_mosaic_boundary(
         Vec<InternallyReassembledFormationCueObservation>,
         Vec<ExternallyReassembledFormationFrontierObservation>,
         Vec<usize>,
-        Vec<[u8; 16]>,
-        Vec<StablePhysicalBondReference>,
     ),
     FormationError,
 > {
@@ -3482,8 +3488,6 @@ fn settle_organism_mosaic_boundary(
             None,
             0,
             0,
-            Vec::new(),
-            Vec::new(),
             Vec::new(),
             Vec::new(),
             Vec::new(),
@@ -3791,38 +3795,6 @@ fn settle_organism_mosaic_boundary(
         }
     }
     let apply_wall = boundary_stopwatch.elapsed();
-    // Only a formation that is physically current or reassembled in this
-    // interval may authorize new developmental affective anatomy. Return its
-    // exact retained members to the caller while those indices are already in
-    // hand; do not rescan the resident formation population later.
-    let developmental_authority_lineages = current_frontier_indices
-        .iter()
-        .chain(&reassembled_indices)
-        .filter_map(|index| mosaics.get(*index))
-        .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
-        .flat_map(|retained| retained.mosaic.member_lineages().iter().copied())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let active_bond_set = active_bonds.iter().copied().collect::<BTreeSet<_>>();
-    let developmental_authority_bonds = current_frontier_indices
-        .iter()
-        .chain(&reassembled_indices)
-        .filter_map(|index| mosaics.get(*index))
-        .filter(|retained| retained.mosaic.carries_only_retained_neuron_structure())
-        .flat_map(|retained| {
-            retained
-                .mosaic
-                .original_bonds()
-                .iter()
-                .chain(retained.mosaic.recurrence_bonds())
-                .copied()
-        })
-        .filter(|bond| active_bond_set.contains(bond))
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let authority_wall = boundary_stopwatch.elapsed();
     let organic_relations = if !observe_relations {
         Vec::new()
     } else {
@@ -3842,10 +3814,9 @@ fn settle_organism_mosaic_boundary(
     };
     let relations_wall = boundary_stopwatch.elapsed();
     eprintln!(
-        "guala-mosaic-aftermath apply_ms={} authority_ms={} relations_ms={} frontier_indices={} reassembled={}",
+        "guala-mosaic-aftermath apply_ms={} relations_ms={} frontier_indices={} reassembled={}",
         (apply_wall - formations_wall).as_millis(),
-        (authority_wall - apply_wall).as_millis(),
-        (relations_wall - authority_wall).as_millis(),
+        (relations_wall - apply_wall).as_millis(),
         current_frontier_indices.len(),
         reassembled_indices.len(),
     );
@@ -3986,21 +3957,7 @@ fn settle_organism_mosaic_boundary(
                 formations_share_reached_physical_path(&mosaics[*index].mosaic, &original)
             })
             .collect::<Vec<_>>();
-        let indexed_path_candidates = formation_index.candidate_indices(
-            original.member_lineages().iter().copied(),
-            original.original_bonds().iter().copied(),
-        );
-        let joins_pending_path = !continuing_pending_indices.is_empty()
-            || indexed_path_candidates.iter().copied().any(|index| {
-                let retained = &mosaics[index];
-                retained.mosaic.is_original_only()
-                    && pending_originals_share_physical_path(&retained.mosaic, &original)
-            })
-            || new_pending_originals.iter().any(|pending| {
-                pending_originals_share_physical_path(pending, &original)
-            });
-        if !joins_pending_path
-            && overlapping_reassemblies.iter().any(|index| {
+        if overlapping_reassemblies.iter().any(|index| {
                 retained_formation_contains_own_recurrent_projection(
                     &mosaics[*index],
                     &original,
@@ -4010,7 +3967,6 @@ fn settle_organism_mosaic_boundary(
             continue;
         }
         if !overlapping_reassemblies.is_empty()
-            && !joins_pending_path
             && !adds_unretained_cross_sensory_relation(
                 &original,
                 mosaics,
@@ -4099,8 +4055,6 @@ fn settle_organism_mosaic_boundary(
         internally_reassembled_formation_cues,
         externally_reassembled_formation_frontiers,
         newly_retained_mosaic_indices,
-        developmental_authority_lineages,
-        developmental_authority_bonds,
     ))
 }
 
@@ -4307,7 +4261,7 @@ fn validate_motor_effector_mounts(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32)
+        bytes.get(..MAGIC_V33.len()) == Some(MAGIC_V33)
     }
 
     /// Retire the task-955 local-integration projection that equated
@@ -5189,6 +5143,46 @@ impl ResidentCognitiveFormationState {
             }
         }
         self.retire_fabric_contact_pairs(&contaminated)
+    }
+
+    /// Remove the persisted layer-13 contact pool created by the rejected
+    /// co-activity rule. The articulatory neuron itself remains resident and
+    /// returns through its own membrane law; no charge, carrier, memory or
+    /// neuron is manufactured here. A later real articulation/self-hearing
+    /// consequence may reuse a quiescent disconnected cell or mount a fresh
+    /// one through the corrected exact-axis law.
+    fn retire_contaminated_articulatory_pool(
+        &self,
+    ) -> Result<Option<Self>, FormationError> {
+        let articulatory = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.source_site().is_none() && mount.place().layer() == 13)
+                    .then_some(*lineage)
+            })
+            .collect::<BTreeSet<_>>();
+        if articulatory.is_empty() {
+            return Ok(None);
+        }
+        let retired = self
+            .electrical_fabric
+            .contact_endpoints()
+            .filter_map(|(left, right)| {
+                let left = self.electrical_fabric.lineages()[left];
+                let right = self.electrical_fabric.lineages()[right];
+                (articulatory.contains(&left) || articulatory.contains(&right))
+                    .then_some(canonical_lineage_pair(left, right))
+            })
+            .collect::<BTreeSet<_>>();
+        self.retire_fabric_contact_pairs(&retired)
     }
 
     /// Remove exact cross-cohort contact pairs and every structural reference
@@ -7737,18 +7731,22 @@ impl ResidentCognitiveFormationState {
             &externally_reached_receptor_places,
         )?;
         let mut reached_body_regulation_lineages = Vec::new();
+        let mut reached_body_regulations_by_occurrence =
+            Vec::with_capacity(externally_energized_by_occurrence.len());
         for occurrence_lineages in &externally_energized_by_occurrence {
-            for lineage in mount_reached_body_regulation(
+            let occurrence_regulations = mount_reached_body_regulation(
                 &mut cohorts,
                 &mut resting_population,
                 &mut next_lineage_ordinal,
                 &mut electrical_fabric,
                 occurrence_lineages,
-            )? {
+            )?;
+            for lineage in occurrence_regulations.iter().copied() {
                 if !reached_body_regulation_lineages.contains(&lineage) {
                     reached_body_regulation_lineages.push(lineage);
                 }
             }
+            reached_body_regulations_by_occurrence.push(occurrence_regulations);
         }
         // A receptor exists in the continuous sensorium even when its exact
         // input performs no gate work. Mere source declaration is therefore
@@ -7809,6 +7807,7 @@ impl ResidentCognitiveFormationState {
             &mut cohorts,
             &mut electrical_fabric,
             &topology_index,
+            &active_electrical_frontier,
             &locally_settled_lineages,
             &internal_frontier_lineages,
             &mut physically_transitioned_neuron_lineages,
@@ -7867,7 +7866,7 @@ impl ResidentCognitiveFormationState {
         // cells actually settle through the causal electrical frontier. The
         // new resting layer-7 cell is not seeded into this interval; later
         // current must reach it through the retained assembly contacts.
-        let _ = mount_reached_cross_sensory_association(
+        let reached_associations_by_occurrence = mount_reached_cross_sensory_association(
             &mut cohorts,
             &mut resting_population,
             &mut next_lineage_ordinal,
@@ -7875,6 +7874,11 @@ impl ResidentCognitiveFormationState {
             &topology_index,
             &externally_energized_by_occurrence,
             &settled_layer_six_lineages,
+        )?;
+        let developmental_affective_pairs = exact_occurrence_affective_pairs(
+            &reached_associations_by_occurrence,
+            &reached_body_regulations_by_occurrence,
+            &internal_contact.settled_directed_transfers,
         )?;
         let moved_axes = {
             let mut moved = Vec::new();
@@ -7938,8 +7942,6 @@ impl ResidentCognitiveFormationState {
             internally_reassembled_formation_cues,
             externally_reassembled_formation_frontiers,
             organism_newly_retained_mosaic_indices,
-            developmental_authority_lineages,
-            developmental_authority_bonds,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -7972,21 +7974,18 @@ impl ResidentCognitiveFormationState {
         endogenous_partial_cue_reassembly_count = endogenous_partial_cue_reassembly_count
             .checked_add(organism_internal_reassemblies)
             .ok_or(FormationError::ArithmeticOverflow)?;
-        // New layer-10 anatomy is admitted only after this exact physical
-        // interval has proved retained formation authority. Transient
-        // electrical coincidence alone cannot become permanent anatomy.
-        let exact_developmental_authority_lineages = developmental_authority_lineages
-            .iter()
-            .copied()
-            .filter(|lineage| physically_transitioned_neuron_lineages.contains(lineage))
-            .collect::<Vec<_>>();
-        // Historical affective growth paired every coincident layer-7 and
-        // layer-8 transition, which recreates a Cartesian contact pool on a
-        // conducting body.  Until an exact directed association-to-body
-        // transfer is carried here, coincidence has no authority to author
-        // anatomy. Existing unauthenticated contacts leave at the explicit
-        // one-way correction boundary below.
-        let _ = exact_developmental_authority_lineages;
+        // Layer-10 anatomy grows only from the exact occurrence-local
+        // association/body pairs already proved above. Resident formation
+        // membership, unrelated active frontiers and whole-population
+        // coincidence have no authority here.
+        mount_reached_affective_reach_indexed(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &topology_index,
+            &developmental_affective_pairs,
+        )?;
         // Delayed ordering anatomy is likewise learned growth: only an exact
         // active bond carried by a current or reassembled retained formation
         // may author it. A large transient electrical frontier cannot mint a
@@ -7996,7 +7995,7 @@ impl ResidentCognitiveFormationState {
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
-            &developmental_authority_bonds,
+            &internal_contact.causal_active_bonds,
         )?;
         retain_internally_reassembled_recurrent_frontier(
             &mut active_electrical_frontier,
@@ -8748,7 +8747,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V32);
+        output.extend_from_slice(MAGIC_V33);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -9568,7 +9567,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V32.len()) != Some(MAGIC_V32) {
+        if bytes.get(..MAGIC_V33.len()) != Some(MAGIC_V33) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -9595,8 +9594,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v32 =
-            bytes.len() >= MAGIC_V32.len() && &bytes[..MAGIC_V32.len()] == MAGIC_V32;
+        let current_v33 =
+            bytes.len() >= MAGIC_V33.len() && &bytes[..MAGIC_V33.len()] == MAGIC_V33;
+        let current_v32 = current_v33
+            || (bytes.len() >= MAGIC_V32.len() && &bytes[..MAGIC_V32.len()] == MAGIC_V32);
         let current_v31 = current_v32
             || (bytes.len() >= MAGIC_V31.len() && &bytes[..MAGIC_V31.len()] == MAGIC_V31);
         let current_v30 = current_v31
@@ -10170,7 +10171,9 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v32 = bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32);
+        let current_v33 = bytes.get(..MAGIC_V33.len()) == Some(MAGIC_V33);
+        let current_v32 =
+            current_v33 || bytes.get(..MAGIC_V32.len()) == Some(MAGIC_V32);
         let current_v31 =
             current_v32 || bytes.get(..MAGIC_V31.len()) == Some(MAGIC_V31);
         let current_v30 = current_v31 || bytes.get(..MAGIC_V30.len()) == Some(MAGIC_V30);
@@ -10192,7 +10195,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V29.len()] == MAGIC_V29
                 || &bytes[..MAGIC_V30.len()] == MAGIC_V30
                 || &bytes[..MAGIC_V31.len()] == MAGIC_V31
-                || &bytes[..MAGIC_V32.len()] == MAGIC_V32);
+                || &bytes[..MAGIC_V32.len()] == MAGIC_V32
+                || &bytes[..MAGIC_V33.len()] == MAGIC_V33);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -10260,6 +10264,18 @@ impl ResidentCognitiveFormationState {
             state
         } else {
             match state.retire_misprojected_root_yaw_paths()? {
+                Some(corrected) => corrected,
+                None => state,
+            }
+        };
+        let state = if current_v33 {
+            state
+        } else {
+            let state = match state.retire_contaminated_effector_pools()? {
+                Some(corrected) => corrected,
+                None => state,
+            };
+            match state.retire_contaminated_articulatory_pool()? {
                 Some(corrected) => corrected,
                 None => state,
             }
@@ -13250,6 +13266,24 @@ fn mount_next_intrinsic_in_layer(
     Ok(lineage)
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ReachedAssociationsByOccurrence {
+    lineages: Vec<Vec<[u8; 16]>>,
+}
+
+impl ReachedAssociationsByOccurrence {
+    fn empty(occurrence_count: usize) -> Self {
+        Self {
+            lineages: vec![Vec::new(); occurrence_count],
+        }
+    }
+
+    #[cfg(test)]
+    fn is_empty(&self) -> bool {
+        self.lineages.iter().all(Vec::is_empty)
+    }
+}
+
 /// Grow or reuse one exact physical cross-sensory assembly per qualifying
 /// occurrence after layer-6 settlement. Membership comes only from layer-6
 /// cells that actually changed through the causal frontier and whose own
@@ -13266,7 +13300,7 @@ fn mount_reached_cross_sensory_association(
     topology: &ResidentTopologyIndex,
     externally_energized_by_occurrence: &[Vec<[u8; 16]>],
     settled_layer_six_lineages: &BTreeSet<[u8; 16]>,
-) -> Result<Vec<[u8; 16]>, FormationError> {
+) -> Result<ReachedAssociationsByOccurrence, FormationError> {
     let integration_for_receptor =
         |receptor_lineage: [u8; 16]| -> Result<Option<([u8; 16], u32)>, FormationError> {
             let receptor_flat = topology.flat_for_lineage(receptor_lineage)?;
@@ -13320,7 +13354,8 @@ fn mount_reached_cross_sensory_association(
             Ok(Some((*integration_lineage, receptor_place.layer())))
         };
 
-    let mut candidate_assemblies = BTreeSet::<Vec<[u8; 16]>>::new();
+    let mut candidate_assemblies_by_occurrence =
+        Vec::<Option<Vec<[u8; 16]>>>::with_capacity(externally_energized_by_occurrence.len());
     for occurrence in externally_energized_by_occurrence {
         let mut reached_integrations = Vec::<([u8; 16], u32)>::new();
         for receptor_lineage in occurrence.iter().copied() {
@@ -13336,6 +13371,7 @@ fn mount_reached_cross_sensory_association(
         reached_integrations.sort_unstable();
         reached_integrations.dedup();
         if reached_integrations.len() < 3 {
+            candidate_assemblies_by_occurrence.push(None);
             continue;
         }
         let sensory_layer_count = reached_integrations
@@ -13344,17 +13380,24 @@ fn mount_reached_cross_sensory_association(
             .collect::<BTreeSet<_>>()
             .len();
         if sensory_layer_count < 2 {
+            candidate_assemblies_by_occurrence.push(None);
             continue;
         }
-        candidate_assemblies.insert(
+        candidate_assemblies_by_occurrence.push(Some(
             reached_integrations
                 .into_iter()
                 .map(|(lineage, _)| lineage)
                 .collect(),
-        );
+        ));
     }
+    let candidate_assemblies = candidate_assemblies_by_occurrence
+        .iter()
+        .filter_map(|assembly| assembly.clone())
+        .collect::<BTreeSet<_>>();
     if candidate_assemblies.is_empty() {
-        return Ok(Vec::new());
+        return Ok(ReachedAssociationsByOccurrence::empty(
+            externally_energized_by_occurrence.len(),
+        ));
     }
 
     let existing_association_for =
@@ -13409,11 +13452,11 @@ fn mount_reached_cross_sensory_association(
             }
         };
 
-    let mut associations = Vec::new();
+    let mut association_by_assembly = BTreeMap::<Vec<[u8; 16]>, [u8; 16]>::new();
     let mut additions = Vec::new();
     for assembly in candidate_assemblies {
         if let Some(lineage) = existing_association_for(&assembly)? {
-            for integration in assembly {
+            for integration in assembly.iter().copied() {
                 if !electrical_fabric.contains_contact(integration, lineage) {
                     additions.push((
                         integration,
@@ -13422,28 +13465,40 @@ fn mount_reached_cross_sensory_association(
                     ));
                 }
             }
-            associations.push(lineage);
+            association_by_assembly.insert(assembly, lineage);
             continue;
         }
         let association =
             mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 7)?;
-        for integration in assembly {
+        for integration in assembly.iter().copied() {
             additions.push((
                 integration,
                 association,
                 ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
             ));
         }
-        associations.push(association);
+        association_by_assembly.insert(assembly, association);
     }
     if !additions.is_empty() {
         *electrical_fabric = electrical_fabric
             .append_contacts(&additions)
             .map_err(FormationError::ResidentElectricalUnavailable)?;
     }
-    associations.sort_unstable();
-    associations.dedup();
-    Ok(associations)
+    let lineages = candidate_assemblies_by_occurrence
+        .into_iter()
+        .map(|assembly| {
+            assembly
+                .map(|assembly| {
+                    association_by_assembly
+                        .get(&assembly)
+                        .copied()
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+                })
+                .transpose()
+                .map(|association| association.into_iter().collect())
+        })
+        .collect::<Result<Vec<Vec<[u8; 16]>>, FormationError>>()?;
+    Ok(ReachedAssociationsByOccurrence { lineages })
 }
 
 /// Couple each genuinely reached body-or-balance receptor to its own local
@@ -13480,12 +13535,33 @@ fn mount_reached_body_regulation(
                         && mount.source_site().is_some()
                         && mount.place().layer() == 5
                 })
-                .map(|(_, mount)| (*lineage, mount.place()))
+                .map(|(_, mount)| {
+                    let effector = mount.source_site().and_then(|source_site| {
+                        if let Some(terminal) = source_site.body_proprioceptor_terminal() {
+                            return match source_site.physical_quantity() {
+                                ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY => Some(
+                                    DevelopedMotorTerminal::Articulated(terminal.paired_effector()),
+                                ),
+                                EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY => Some(
+                                    DevelopedMotorTerminal::Articulated(
+                                        terminal.opposing_effector(),
+                                    ),
+                                ),
+                                _ => None,
+                            };
+                        }
+                        source_site
+                            .root_yaw_proprioceptor_terminal()
+                            .map(RootYawProprioceptorTerminal::paired_effector)
+                            .map(DevelopedMotorTerminal::RootYaw)
+                    });
+                    (*lineage, mount.place(), effector)
+                })
         })
         .collect::<Vec<_>>();
 
     let mut reached_regulation = Vec::new();
-    for (receptor_lineage, receptor_place) in reached_body_receptors {
+    for (receptor_lineage, receptor_place, effector_terminal) in reached_body_receptors {
         let integration_place = local_integration_place(receptor_place)?;
         let integration = mounted
             .iter()
@@ -13516,6 +13592,30 @@ fn mount_reached_body_regulation(
                 )
                 .map_err(FormationError::ResidentElectricalUnavailable)?;
         }
+        if let Some(terminal) = effector_terminal {
+            match terminal {
+                DevelopedMotorTerminal::Articulated(terminal) => {
+                    mount_fixed_articulated_motor_terminal(
+                        cohorts,
+                        resting_population,
+                        next_lineage_ordinal,
+                        electrical_fabric,
+                        regulation_lineage,
+                        terminal,
+                    )?;
+                }
+                DevelopedMotorTerminal::RootYaw(terminal) => {
+                    mount_fixed_root_yaw_motor_terminal(
+                        cohorts,
+                        resting_population,
+                        next_lineage_ordinal,
+                        electrical_fabric,
+                        regulation_lineage,
+                        terminal,
+                    )?;
+                }
+            }
+        }
         if !reached_regulation.contains(&regulation_lineage) {
             reached_regulation.push(regulation_lineage);
     }
@@ -13523,10 +13623,178 @@ fn mount_reached_body_regulation(
     Ok(reached_regulation)
 }
 
-/// Relate each reached association pathway to the body-regulation material
-/// that physically moved with it in this exact organism interval. Layer 10 is
+/// The articulated body's 74 antagonist effector addresses are fixed body
+/// anatomy. Mount exactly one neuronal terminal when its typed local
+/// receptor/regulation route first develops; experience may later add sparse
+/// ordering contacts to this terminal, but it does not create the terminal or
+/// assign its physical meaning. This is the motor analogue of mounting the
+/// receptor's fixed layer-6 integration and layer-8 regulation.
+fn mount_fixed_articulated_motor_terminal(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    regulation_lineage: [u8; 16],
+    terminal: BodyEffectorTerminal,
+) -> Result<[u8; 16], FormationError> {
+    let mut matching = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter_map(|(mount, lineage)| {
+            (mount.source_site().is_none()
+                && mount.place().layer() == 12
+                && mount.body_effector_terminal() == Some(terminal))
+            .then_some(*lineage)
+        })
+        .collect::<Vec<_>>();
+    matching.sort_unstable();
+    matching.dedup();
+    let motor_lineage = match matching.as_slice() {
+        [lineage] => *lineage,
+        [] => {
+            let lineage = mount_next_intrinsic_in_layer(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                12,
+            )?;
+            let motor_cohort = cohorts
+                .iter_mut()
+                .find(|cohort| cohort.anatomy.neuron_lineages().contains(&lineage))
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            motor_cohort
+                .anatomy
+                .specialize_motor_effector(lineage, terminal)
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            lineage
+        }
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    if !electrical_fabric.contains_contact(regulation_lineage, motor_lineage) {
+        *electrical_fabric = electrical_fabric
+            .append_contact(
+                regulation_lineage,
+                motor_lineage,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    Ok(motor_lineage)
+}
+
+/// Root-yaw antagonist terminals are the same fixed developmental body
+/// anatomy as articulated terminals. Mount the exact paired motor and its
+/// regulation contact before the interval's coupled electrical settlement so
+/// the physical movement that reached this receptor can prepare the motor in
+/// that same lived interval. Mounting it afterward creates a circular deadlock:
+/// movement waits for a motor whose first preparation has already passed.
+fn mount_fixed_root_yaw_motor_terminal(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    regulation_lineage: [u8; 16],
+    terminal: RootYawEffectorTerminal,
+) -> Result<[u8; 16], FormationError> {
+    let mut matching = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter_map(|(mount, lineage)| {
+            (mount.source_site().is_none()
+                && mount.place().layer() == 12
+                && mount.root_yaw_effector_terminal() == Some(terminal))
+            .then_some(*lineage)
+        })
+        .collect::<Vec<_>>();
+    matching.sort_unstable();
+    matching.dedup();
+    let motor_lineage = match matching.as_slice() {
+        [lineage] => *lineage,
+        [] => {
+            let lineage = mount_next_intrinsic_in_layer(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                12,
+            )?;
+            let motor_cohort = cohorts
+                .iter_mut()
+                .find(|cohort| cohort.anatomy.neuron_lineages().contains(&lineage))
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            motor_cohort
+                .anatomy
+                .specialize_root_yaw_effector(lineage, terminal)
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            lineage
+        }
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    };
+    if !electrical_fabric.contains_contact(regulation_lineage, motor_lineage) {
+        *electrical_fabric = electrical_fabric
+            .append_contact(
+                regulation_lineage,
+                motor_lineage,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    Ok(motor_lineage)
+}
+
+/// Return only the association/body-regulation pairs carried by one exact
+/// admitted physical occurrence. The association is the unique layer-7 cell
+/// derived from that occurrence's actually settled multisensory integrations;
+/// the body cells are the layer-8 regulators derived from that same
+/// occurrence's reached body receptors. Both endpoints must also have moved
+/// whole carriers in this settlement. Unrelated resident activity, retained
+/// history, and whole-frontier coincidence have no authority.
+fn exact_occurrence_affective_pairs(
+    associations: &ReachedAssociationsByOccurrence,
+    body_regulations: &[Vec<[u8; 16]>],
+    settled_transfers: &[DirectedPhysicalTransferObservation],
+) -> Result<Vec<([u8; 16], [u8; 16])>, FormationError> {
+    if associations.lineages.len() != body_regulations.len() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let physically_transferred = |lineage: [u8; 16]| {
+        settled_transfers
+            .iter()
+            .any(|transfer| transfer.sender == lineage || transfer.receiver == lineage)
+    };
+    let mut pairs = BTreeSet::new();
+    for (occurrence_associations, occurrence_regulations) in
+        associations.lineages.iter().zip(body_regulations)
+    {
+        for association in occurrence_associations.iter().copied() {
+            if !physically_transferred(association) {
+                continue;
+            }
+            for regulation in occurrence_regulations.iter().copied() {
+                if physically_transferred(regulation) {
+                    pairs.insert((association, regulation));
+                }
+            }
+        }
+    }
+    Ok(pairs.into_iter().collect())
+}
+
+/// Relate each retained association pathway only to the body-regulation
+/// material reached by the exact consecutive carrier path above. Layer 10 is
 /// developmental geography, not an episode record or emotion label. Its
-/// stable identity is its first persisted layer-7 contact; changing body
+/// stable identity is its first persisted layer-7 contact; later proved body
 /// inputs may widen that pathway's sparse contacts but must not manufacture
 /// another neuron.
 fn mount_reached_affective_reach_indexed(
@@ -13535,28 +13803,23 @@ fn mount_reached_affective_reach_indexed(
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
     topology_index: &ResidentTopologyIndex,
-    physically_transitioned_lineages: &[[u8; 16]],
+    proven_pairs: &[([u8; 16], [u8; 16])],
 ) -> Result<(), FormationError> {
-    let mut association = BTreeSet::new();
-    let mut body_regulation = BTreeSet::new();
-    for lineage in physically_transitioned_lineages {
-        match topology_index
-            .layer_of(*lineage)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+    let mut regulation_by_association = BTreeMap::<[u8; 16], BTreeSet<[u8; 16]>>::new();
+    for (association, regulation) in proven_pairs.iter().copied() {
+        if topology_index.layer_of(association) != Some(7)
+            || topology_index.layer_of(regulation) != Some(8)
         {
-            7 => {
-                association.insert(*lineage);
-            }
-            8 => {
-                body_regulation.insert(*lineage);
-            }
-            _ => {}
+            return Err(FormationError::NeuronLineageAuthorityChanged);
         }
+        regulation_by_association
+            .entry(association)
+            .or_default()
+            .insert(regulation);
     }
-    if association.is_empty() || body_regulation.is_empty() {
+    if regulation_by_association.is_empty() {
         return Ok(());
     }
-    let body_regulation = body_regulation.into_iter().collect::<Vec<_>>();
     let mut prepared_pairs = BTreeSet::new();
     let mut additions = Vec::new();
     let founding_association = |candidate_flat: usize| {
@@ -13590,7 +13853,7 @@ fn mount_reached_affective_reach_indexed(
         }
         Ok(None)
     };
-    for association in association {
+    for (association, body_regulation) in regulation_by_association {
         let association_flat = topology_index.flat_for_lineage(association)?;
         let mut matching = Vec::new();
         for contact_index in topology_index
@@ -13675,7 +13938,7 @@ fn mount_reached_affective_reach_indexed(
         }
         for participant in [association]
             .into_iter()
-            .chain(body_regulation.iter().copied())
+            .chain(body_regulation.into_iter())
         {
             let pair = canonical_lineage_pair(participant, affective_lineage);
             if !existing_neighbours.contains(&participant) && prepared_pairs.insert(pair) {
@@ -13704,13 +13967,32 @@ fn mount_reached_affective_reach(
     physically_transitioned_lineages: &[[u8; 16]],
 ) -> Result<(), FormationError> {
     let topology_index = ResidentTopologyIndex::build(cohorts, electrical_fabric)?;
+    let associations = physically_transitioned_lineages
+        .iter()
+        .copied()
+        .filter(|lineage| topology_index.layer_of(*lineage) == Some(7))
+        .collect::<Vec<_>>();
+    let regulations = physically_transitioned_lineages
+        .iter()
+        .copied()
+        .filter(|lineage| topology_index.layer_of(*lineage) == Some(8))
+        .collect::<Vec<_>>();
+    let proven_pairs = associations
+        .into_iter()
+        .flat_map(|association| {
+            regulations
+                .iter()
+                .copied()
+                .map(move |regulation| (association, regulation))
+        })
+        .collect::<Vec<_>>();
     mount_reached_affective_reach_indexed(
         cohorts,
         resting_population,
         next_lineage_ordinal,
         electrical_fabric,
         &topology_index,
-        physically_transitioned_lineages,
+        &proven_pairs,
     )
 }
 
@@ -13876,8 +14158,11 @@ fn mount_reached_ordering_reach(
 }
 
 /// Materialize one motor/effector route per exact reached body terminal.
-/// Articulated motor development retains its proven consecutive directed
-/// ordering -> affective -> returned-regulation chain. Root-yaw development
+/// Articulated motor development retains a prior directed ordering ->
+/// affective event joined to the exact current regulation/affective transfer.
+/// Carrier direction on the latter contact is not causal direction: ordinary
+/// body influence physically runs regulation -> affective, while the same
+/// typed regulation identifies the one fixed antagonist terminal. Root-yaw development
 /// instead follows the body's fixed proprioceptive anatomy: a directional
 /// root receptor whose value physically changed, its local integration, and
 /// the exact regulation reached in that same occurrence. A synchronous
@@ -14013,16 +14298,12 @@ fn mount_reached_motor_effector_with_root(
     moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
 ) -> Result<(), FormationError> {
-    // On a saturated fabric, directed transfers exist between almost every
-    // adjacent pair every interval, so window evidence alone cannot
-    // separate causation from ambient conduction. The body's returned
-    // consequence is the discriminator the law demands: a motor route may
-    // only be authored in an interval whose own source evidence shows the
-    // terminal's axis physically MOVED (its proprioceptor length samples
-    // changed). Stillness and darkness author nothing.
-    if moved_axes.is_empty() && root_yaw_continuations.is_empty() {
-        return Ok(());
-    }
+    // Articulated motor terminals are fixed body anatomy mounted with their
+    // typed regulation routes. Learned growth here is only an exact sparse
+    // ordering contact proved by the two-interval ordering -> affective ->
+    // regulation carrier chain. Root yaw follows the same authorship law;
+    // guided movement alone, coincident activity, stillness, and an unjoined
+    // frontier author nothing.
     let mounted = cohorts
         .iter()
         .flat_map(|cohort| {
@@ -14080,8 +14361,23 @@ fn mount_reached_motor_effector_with_root(
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
         match layer {
             8 if !body_regulation.contains(lineage) => body_regulation.push(*lineage),
-            11 if !ordering.contains(lineage) => ordering.push(*lineage),
             _ => {}
+        }
+    }
+    // Ordering belongs to the retained PRECEDING frontier. Requiring that
+    // same ordering neuron to transition again in the current consequence
+    // interval collapses a two-interval causal path into coincidence and
+    // makes lawful first learning practically unreachable.
+    for entry in predecessor_frontier {
+        for lineage in [entry.sender(), Some(entry.receiver())]
+            .into_iter()
+            .flatten()
+        {
+            if layer_by_lineage.get(&lineage).copied() == Some(11)
+                && !ordering.contains(&lineage)
+            {
+                ordering.push(lineage);
+            }
         }
     }
     // Root proprioception may drive carriers back toward its negative
@@ -14168,9 +14464,7 @@ fn mount_reached_motor_effector_with_root(
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         let consequence_moved = match effector_terminal {
-            DevelopedMotorTerminal::Articulated(terminal) => {
-                moved_axes.contains(&terminal.axis())
-            }
+            DevelopedMotorTerminal::Articulated(_) => true,
             DevelopedMotorTerminal::RootYaw(terminal) => {
                 root_yaw_continuations
                     .get(&regulation)
@@ -14188,7 +14482,8 @@ fn mount_reached_motor_effector_with_root(
             .copied()
             .filter(|lineage| {
                 layer_by_lineage.get(lineage).copied() == Some(10)
-                    && directed_pairs.contains(&(*lineage, regulation))
+                    && (directed_pairs.contains(&(*lineage, regulation))
+                        || directed_pairs.contains(&(regulation, *lineage)))
             })
             .collect::<BTreeSet<_>>();
         let proven_ordering = ordering
@@ -14196,19 +14491,21 @@ fn mount_reached_motor_effector_with_root(
             .copied()
             .filter(|lineage| {
                 predecessor_frontier.iter().any(|entry| {
-                    entry.sender() == Some(*lineage)
-                        && proven_affective.contains(&entry.receiver())
+                    let frontier = entry.frontier_lineage();
+                    if !proven_affective.contains(&frontier) {
+                        return false;
+                    }
+                    let sender = entry.sender();
+                    let receiver = entry.receiver();
+                    (sender == Some(*lineage) && receiver == frontier)
+                        || (sender == Some(frontier) && receiver == *lineage)
                 })
             })
             .collect::<Vec<_>>();
-        // Root-yaw directional receptors and effectors are a fixed physical
-        // antagonist pair. Exact movement therefore mounts only that paired
-        // regulation-to-motor reflex; higher ordering contacts remain learned
-        // and are never inferred from guided motion. Articulated terminals
-        // retain the stricter learned causal-chain rule above.
-        if proven_ordering.is_empty()
-            && !matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_))
-        {
+        // Every learned motor contact, including root yaw, requires the same
+        // exact two-interval ordering -> affective -> regulation chain.
+        // Guided movement alone has no contact-authorship authority.
+        if proven_ordering.is_empty() {
             continue;
         }
         let mut participants = Vec::with_capacity(proven_ordering.len() + 1);
@@ -14223,7 +14520,7 @@ fn mount_reached_motor_effector_with_root(
             .unwrap_or_default();
         let motor_lineage = match matching.as_slice() {
             [lineage] => *lineage,
-            [] => {
+            [] if matches!(effector_terminal, DevelopedMotorTerminal::RootYaw(_)) => {
                 let lineage = mount_next_intrinsic_in_layer(
                     cohorts,
                     resting_population,
@@ -14236,6 +14533,19 @@ fn mount_reached_motor_effector_with_root(
                     .push(lineage);
                 lineage
             }
+            [] => match effector_terminal {
+                DevelopedMotorTerminal::Articulated(terminal) => {
+                    mount_fixed_articulated_motor_terminal(
+                        cohorts,
+                        resting_population,
+                        next_lineage_ordinal,
+                        electrical_fabric,
+                        regulation,
+                        terminal,
+                    )?
+                }
+                DevelopedMotorTerminal::RootYaw(_) => unreachable!(),
+            },
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         let motor_cohort = cohorts
@@ -14251,6 +14561,9 @@ fn mount_reached_motor_effector_with_root(
                 .specialize_root_yaw_effector(motor_lineage, terminal),
         }
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        if electrical_fabric.contains_contact(regulation, motor_lineage) {
+            existing_contacts.insert(canonical_lineage_pair(regulation, motor_lineage));
+        }
         for participant in participants {
             let pair = canonical_lineage_pair(participant, motor_lineage);
             if existing_contacts.contains(&pair) {
@@ -14338,8 +14651,52 @@ fn mount_reached_articulatory_effector(
             .find(|(candidate, _)| *candidate == lineage)
             .map(|(_, mount)| mount.place().layer())
     };
+    let mount_of = |lineage: [u8; 16]| {
+        mounted
+            .iter()
+            .find(|(candidate, _)| *candidate == lineage)
+            .map(|(_, mount)| mount)
+    };
+    let mut neighbours = mounted
+        .iter()
+        .map(|(lineage, _)| (*lineage, Vec::<[u8; 16]>::new()))
+        .collect::<BTreeMap<_, _>>();
+    for (left, right) in electrical_fabric.contact_endpoints() {
+        let left = electrical_fabric.lineages()[left];
+        let right = electrical_fabric.lineages()[right];
+        neighbours
+            .get_mut(&left)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .push(right);
+        neighbours
+            .get_mut(&right)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .push(left);
+    }
+    // A layer-8 cell is an articulatory consequence only when its own local
+    // receptor ancestry names an axis that actually moved in this interval.
+    // Ambient regulation cells on the saturated fabric have no authorship.
+    body_regulation.retain(|regulation| {
+        neighbours.get(regulation).is_some_and(|regulation_neighbours| {
+            regulation_neighbours.iter().copied().any(|integration| {
+                layer_of(integration) == Some(6)
+                    && neighbours.get(&integration).is_some_and(|integration_neighbours| {
+                        integration_neighbours.iter().copied().any(|receptor| {
+                            mount_of(receptor)
+                                .and_then(ReachedNeuronMount::source_site)
+                                .and_then(NeuronSourceSite::body_proprioceptor_terminal)
+                                .is_some_and(|terminal| moved_axes.contains(&terminal.axis()))
+                        })
+                    })
+            })
+        })
+    });
+    if body_regulation.is_empty() {
+        return Ok(());
+    }
     // The articulation itself, from the preceding window: directed frontier
-    // entries of ordering cells driving motor cells.
+    // entries of ordering cells driving the exact motor axes whose returned
+    // body consequence was observed now.
     let mut ordering = Vec::new();
     let mut motor = Vec::new();
     for entry in predecessor_frontier {
@@ -14347,7 +14704,13 @@ fn mount_reached_articulatory_effector(
             continue;
         };
         let receiver = entry.receiver();
-        if layer_of(sender) == Some(11) && layer_of(receiver) == Some(12) {
+        let moved_motor = mount_of(receiver)
+            .and_then(ReachedNeuronMount::body_effector_terminal)
+            .is_some_and(|terminal| moved_axes.contains(&terminal.axis()));
+        if layer_of(sender) == Some(11)
+            && layer_of(receiver) == Some(12)
+            && moved_motor
+        {
             if !ordering.contains(&sender) {
                 ordering.push(sender);
             }
@@ -14366,12 +14729,43 @@ fn mount_reached_articulatory_effector(
     participants.sort_unstable();
     participants.dedup();
 
-    let existing = mounted
+    let contacted_lineages = electrical_fabric
+        .contact_endpoints()
+        .flat_map(|(left, right)| {
+            [
+                electrical_fabric.lineages()[left],
+                electrical_fabric.lineages()[right],
+            ]
+        })
+        .collect::<BTreeSet<_>>();
+    let existing_contacted = mounted
         .iter()
-        .filter(|(_, mount)| mount.source_site().is_none() && mount.place().layer() == 13)
+        .filter(|(lineage, mount)| {
+            mount.source_site().is_none()
+                && mount.place().layer() == 13
+                && contacted_lineages.contains(lineage)
+        })
         .min_by_key(|(_, mount)| mount.place().topology_index())
         .map(|(lineage, _)| *lineage);
-    let articulatory_lineage = match existing {
+    let existing_quiescent = cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+                .zip(cohort.state.neurons())
+        })
+        .filter(|((mount, lineage), neuron)| {
+            mount.source_site().is_none()
+                && mount.place().layer() == 13
+                && !contacted_lineages.contains(*lineage)
+                && neuron.separated_elementary_charges() == 0
+        })
+        .min_by_key(|((mount, _), _)| mount.place().topology_index())
+        .map(|((_, lineage), _)| *lineage);
+    let articulatory_lineage = match existing_contacted.or(existing_quiescent) {
         Some(lineage) => lineage,
         None => {
             mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 13)?
@@ -15028,6 +15422,42 @@ pub(crate) fn rebuild_carrier_schedule_on_restore(
     ),
     FormationError,
 > {
+    rebuild_carrier_schedule_from_endpoint_holds(
+        cohorts,
+        electrical_fabric,
+        topology_index,
+        persisted_organism_clock,
+        None,
+    )
+}
+
+/// Rebuild the derived schedule at a topology-growth boundary without
+/// integrating this clock's newly admitted source backward through the
+/// preceding sleeping span. Existing lineages use the membrane and carrier
+/// compartments that physically held at the start of the clock; newly
+/// mounted lineages have no predecessor and lawfully use their genesis state.
+fn rebuild_carrier_schedule_from_endpoint_holds(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
+    persisted_organism_clock: u64,
+    endpoint_holds: Option<
+        &BTreeMap<
+            [u8; 16],
+            (
+                crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                u128,
+                u128,
+            ),
+        >,
+    >,
+) -> Result<
+    (
+        crate::causal_event_scheduler::CarrierCrossingSchedule,
+        Vec<crate::causal_event_scheduler::ContactIntegrationClock>,
+    ),
+    FormationError,
+> {
     use crate::causal_event_scheduler::{
         CarrierCrossingSchedule, ContactIntegrationClock,
     };
@@ -15046,28 +15476,48 @@ pub(crate) fn rebuild_carrier_schedule_on_restore(
     for contact_index in 0..contact_count {
         let entry = topology_index.contacts[contact_index];
         let edge = materialize_resident_contact_edge(entry, cohorts, electrical_fabric)?;
-        let (left_cohort, left_neuron, _) = topology_index
+        let (left_cohort, left_neuron, left_lineage) = topology_index
             .flat_locations
             .get(edge.left)
             .copied()
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let (right_cohort, right_neuron, _) = topology_index
+        let (right_cohort, right_neuron, right_lineage) = topology_index
             .flat_locations
             .get(edge.right)
             .copied()
             .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
         let left_state = &cohorts[left_cohort].state.neurons()[left_neuron];
         let right_state = &cohorts[right_cohort].state.neurons()[right_neuron];
+        let (left_membrane, left_available) = endpoint_holds
+            .and_then(|holds| holds.get(&left_lineage))
+            .map_or_else(
+                || {
+                    (
+                        left_state.membrane_state(),
+                        left_state.carrier_reservoirs().intracellular(),
+                    )
+                },
+                |(membrane, intracellular, _)| (*membrane, *intracellular),
+            );
+        let (right_membrane, right_available) = endpoint_holds
+            .and_then(|holds| holds.get(&right_lineage))
+            .map_or_else(
+                || {
+                    (
+                        right_state.membrane_state(),
+                        right_state.carrier_reservoirs().intracellular(),
+                    )
+                },
+                |(membrane, intracellular, _)| (*membrane, *intracellular),
+            );
         let left_capacitance =
             cohorts[left_cohort].anatomy.neuron_anatomies()[left_neuron].capacitance();
         let right_capacitance =
             cohorts[right_cohort].anatomy.neuron_anatomies()[right_neuron].capacitance();
-        let left_potential = left_state
-            .membrane_state()
+        let left_potential = left_membrane
             .potential_millivolts(left_capacitance)
             .map_err(FormationError::InternalMembraneUnavailable)?;
-        let right_potential = right_state
-            .membrane_state()
+        let right_potential = right_membrane
             .potential_millivolts(right_capacitance)
             .map_err(FormationError::InternalMembraneUnavailable)?;
         // The settlement law itself decides whether this contact can ever
@@ -15080,13 +15530,13 @@ pub(crate) fn rebuild_carrier_schedule_on_restore(
             edge.anatomy,
             &edge.state,
             left_potential,
-            left_state.membrane_state().separated_elementary_charges(),
+            left_membrane.separated_elementary_charges(),
             left_capacitance,
-            left_state.carrier_reservoirs().intracellular(),
+            left_available,
             right_potential,
-            right_state.membrane_state().separated_elementary_charges(),
+            right_membrane.separated_elementary_charges(),
             right_capacitance,
-            right_state.carrier_reservoirs().intracellular(),
+            right_available,
         )
         .map_err(FormationError::ResidentElectricalUnavailable)?;
         let Some(standing_current) = standing_current else {
@@ -15119,24 +15569,61 @@ pub(crate) fn rebuild_causal_event_residency(
     topology_index: &ResidentTopologyIndex,
     persisted_organism_clock: u64,
 ) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
-    use crate::causal_event_scheduler::{CarrierCrossingSchedule, CausalEventResidency};
-    use crate::complete_neuron::next_passive_membrane_return_crossing_clocks;
-    use crate::elementary_charge_transfer::ChargeCarrierPhase;
-
-    let (schedule, clocks) = rebuild_carrier_schedule_on_restore(
+    rebuild_causal_event_residency_from_endpoint_holds(
         cohorts,
         electrical_fabric,
         topology_index,
         persisted_organism_clock,
+        None,
+    )
+}
+
+fn rebuild_causal_event_residency_from_endpoint_holds(
+    cohorts: &[ResidentReachedCohort],
+    electrical_fabric: &ResidentElectricalFabric,
+    topology_index: &ResidentTopologyIndex,
+    persisted_organism_clock: u64,
+    endpoint_holds: Option<
+        &BTreeMap<
+            [u8; 16],
+            (
+                crate::elementary_charge_membrane::ElementaryChargeMembraneState,
+                u128,
+                u128,
+            ),
+        >,
+    >,
+) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
+    use crate::causal_event_scheduler::{CarrierCrossingSchedule, CausalEventResidency};
+    use crate::complete_neuron::next_passive_membrane_return_crossing_clocks;
+    use crate::elementary_charge_transfer::ChargeCarrierPhase;
+
+    let (schedule, clocks) = rebuild_carrier_schedule_from_endpoint_holds(
+        cohorts,
+        electrical_fabric,
+        topology_index,
+        persisted_organism_clock,
+        endpoint_holds,
     )?;
     let interval = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     let neuron_count = topology_index.flat_locations.len();
     let mut recovery_schedule = CarrierCrossingSchedule::with_contact_count(neuron_count);
     for flat in 0..neuron_count {
-        let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
+        let (cohort_index, neuron_index, lineage) = topology_index.flat_locations[flat];
         let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
-        let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
+        let current_neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
+        let held_neuron = endpoint_holds
+            .and_then(|holds| holds.get(&lineage))
+            .map(|(membrane, intracellular, extracellular)| {
+                crate::complete_neuron::with_held_membrane_and_carriers(
+                    current_neuron,
+                    *membrane,
+                    *intracellular,
+                    *extracellular,
+                )
+            });
+        let neuron = held_neuron.as_ref().unwrap_or(current_neuron);
         let mounted_terminal_ready = mount.root_yaw_effector_terminal().is_some()
             && neuron.separated_elementary_charges() > 0;
         let due = if mounted_terminal_ready {
@@ -15442,6 +15929,36 @@ fn exact_motor_preparation_transfers(
     preparation_transfers
 }
 
+/// Return only whole-carrier transfers that physically arrive at one mounted
+/// root-yaw motor.  A learned layer-11 route may prepare that exact terminal;
+/// its paired layer-8 regulation may do so only while that regulation is a
+/// current causal seed.  Current leaving the motor is a consequence and can
+/// never be relabelled as preparation, regardless of the causal-frontier
+/// direction that originally taught the contact.
+fn exact_root_yaw_motor_preparation_transfers(
+    motor_lineage: [u8; 16],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    permitted_regulations: &[[u8; 16]],
+    causal_seed_lineages: &BTreeSet<[u8; 16]>,
+    layer_of: impl Fn([u8; 16]) -> Option<u32>,
+) -> Vec<DirectedPhysicalTransferObservation> {
+    let mut preparation_transfers = settled_directed_transfers
+        .iter()
+        .copied()
+        .filter(|transfer| {
+            if transfer.receiver != motor_lineage {
+                return false;
+            }
+            layer_of(transfer.sender) == Some(11)
+                || permitted_regulations.binary_search(&transfer.sender).is_ok()
+                    && causal_seed_lineages.contains(&transfer.sender)
+        })
+        .collect::<Vec<_>>();
+    preparation_transfers.sort_unstable();
+    preparation_transfers.dedup();
+    preparation_transfers
+}
+
 /// Describe an already-settled contact transfer in the contact's physical
 /// endpoint order.
 ///
@@ -15480,6 +15997,37 @@ fn exact_prepared_efferent_carriers(
 ) -> Option<u128> {
     (local_outward_elementary_charges > 0 && preparation_count != 0)
         .then_some(local_outward_elementary_charges.unsigned_abs())
+}
+
+/// Exact layer-12 preparation for one layer-13 articulatory discharge.
+///
+/// Contact transport and the prepared neuron's local membrane discharge are
+/// adjacent physical events, not one simultaneous event.  The active frontier
+/// is the resident, restart-safe record of the immediately preceding contact
+/// transfer.  It is physical cause carried by the organism itself; it is not
+/// an observer label, timer, turn boundary, or speech command.
+fn exact_articulatory_preparation_transfers(
+    articulatory_lineage: [u8; 16],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    layer_of: impl Fn([u8; 16]) -> Option<u32>,
+) -> Vec<DirectedPhysicalTransferObservation> {
+    let mut preparation_transfers = settled_directed_transfers
+        .iter()
+        .copied()
+        .chain(
+            predecessor_frontier
+                .iter()
+                .filter_map(|entry| entry.directed_transfer()),
+        )
+        .filter(|transfer| {
+            transfer.receiver == articulatory_lineage
+                && layer_of(transfer.sender) == Some(12)
+        })
+        .collect::<Vec<_>>();
+    preparation_transfers.sort_unstable();
+    preparation_transfers.dedup();
+    preparation_transfers
 }
 
 #[derive(Clone)]
@@ -15650,6 +16198,7 @@ fn settle_internal_contact_interval(
     cohorts: &mut [ResidentReachedCohort],
     electrical_fabric: &mut ResidentElectricalFabric,
     topology_index: &ResidentTopologyIndex,
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut BTreeSet<[u8; 16]>,
@@ -15737,11 +16286,12 @@ fn settle_internal_contact_interval(
             .map_or(cognitive_ordinal.saturating_sub(1), |events| {
                 events.organism_clock
             });
-        *residency = Some(rebuild_causal_event_residency(
+        *residency = Some(rebuild_causal_event_residency_from_endpoint_holds(
             cohorts,
             electrical_fabric,
             topology_index,
             base_clock,
+            Some(pre_source_membranes),
         )?);
     }
     let events = residency
@@ -15789,6 +16339,7 @@ fn settle_internal_contact_interval(
         .recovery_schedule
         .drain_due_at(clock, &mut due_return_flats);
     let mut due_terminal_flats = Vec::new();
+    let mut passive_return_changed_flats = Vec::new();
     for flat in due_return_flats.iter().copied() {
         let (cohort_index, neuron_index, _) = flat_locations[flat];
         let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
@@ -15797,10 +16348,6 @@ fn settle_internal_contact_interval(
                 .separated_elementary_charges()
                 > 0
         {
-            // A charged mounted terminal is its own local membrane event.
-            // Reach it without pumping it and let the ordinary efferent
-            // settlement below perform the exact carrier/work transition.
-            // It must not wait for an unrelated contact to become due.
             events.recovery_last_integrated[flat] = clock;
             due_terminal_flats.push(flat);
             continue;
@@ -15868,7 +16415,10 @@ fn settle_internal_contact_interval(
                 successor_reservoir,
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        passive_return_changed_flats.push(flat);
     }
+    passive_return_changed_flats.sort_unstable();
+    passive_return_changed_flats.dedup();
     let mut compact_contact_indices = Vec::new();
     events
         .contact_schedule
@@ -16618,6 +17168,10 @@ fn settle_internal_contact_interval(
         .iter()
         .map(|flat| flat_locations[*flat].2)
         .collect::<Vec<_>>();
+    let causal_seed_lineages = causally_active_lineages
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
     for (transition, (left_flat, right_flat)) in settled
         .transitions
         .iter()
@@ -16683,7 +17237,6 @@ fn settle_internal_contact_interval(
             }
         }
     }
-
     // The shared contact field and carrier transfers above are settled once.
     // Each cohort then owns a disjoint anatomy, state and recovery reservoir,
     // so those local consequences can settle concurrently without changing
@@ -16938,18 +17491,28 @@ fn settle_internal_contact_interval(
         let mut prepared_terminal_discharges = BTreeMap::<usize, i128>::new();
         for (_, neuron_index) in selected_members.iter().copied() {
             let mount = &cohort.anatomy.mounts()[neuron_index];
-            if mount.source_site().is_some() || mount.place().layer() != 12 {
+            if mount.source_site().is_some()
+                || !matches!(mount.place().layer(), 12 | 13)
+            {
                 continue;
             }
             let motor_lineage = cohort.anatomy.neuron_lineages()[neuron_index];
-            let preparation_transfers = if mount.root_yaw_effector_terminal().is_some() {
-                exact_motor_preparation_transfers(
+            let preparation_transfers = if mount.place().layer() == 13 {
+                exact_articulatory_preparation_transfers(
+                    motor_lineage,
+                    &settled_directed_transfers,
+                    predecessor_frontier,
+                    &layer_of,
+                )
+            } else if mount.root_yaw_effector_terminal().is_some() {
+                exact_root_yaw_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
                     root_yaw_regulations_by_motor
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
+                    &causal_seed_lineages,
                     &layer_of,
                 )
             } else if mount.body_effector_terminal().is_some() {
@@ -16996,8 +17559,7 @@ fn settle_internal_contact_interval(
             {
                 continue;
             }
-            let Some((successor_neuron, outward_carriers, released_work)) =
-                crate::complete_neuron::settle_efferent_terminal_transport(
+            let terminal_transport = crate::complete_neuron::settle_efferent_terminal_transport(
                     &cohort.anatomy.neuron_anatomies()[neuron_index],
                     &cohort.state.neurons()[neuron_index],
                     discharge_limit,
@@ -17008,8 +17570,8 @@ fn settle_internal_contact_interval(
                         neuron_index,
                         error,
                     })
-                })?
-            else {
+                })?;
+            let Some((successor_neuron, outward_carriers, released_work)) = terminal_transport else {
                 continue;
             };
             let released_exact = ExactRational::new(
@@ -17095,13 +17657,14 @@ fn settle_internal_contact_interval(
                 let mount = &cohort.anatomy.mounts()[*neuron_index];
                 let terminal = mount.root_yaw_effector_terminal()?;
                 let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let preparation_transfers = exact_motor_preparation_transfers(
+                let preparation_transfers = exact_root_yaw_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
                     root_yaw_regulations_by_motor
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
+                    &causal_seed_lineages,
                     &layer_of,
                 );
                 let outward_elementary_carriers = prepared_terminal_discharges
@@ -17129,18 +17692,12 @@ fn settle_internal_contact_interval(
             .filter_map(|(_, neuron_index)| {
                 let mount = &cohort.anatomy.mounts()[*neuron_index];
                 let articulatory_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let mut motor_transfers = settled_directed_transfers
-                    .iter()
-                    .copied()
-                    .filter(|transfer| {
-                        (transfer.receiver == articulatory_lineage
-                            && layer_of(transfer.sender) == Some(12))
-                            || (transfer.sender == articulatory_lineage
-                                && layer_of(transfer.receiver) == Some(12))
-                    })
-                    .collect::<Vec<_>>();
-                motor_transfers.sort_unstable();
-                motor_transfers.dedup();
+                let motor_transfers = exact_articulatory_preparation_transfers(
+                    articulatory_lineage,
+                    &settled_directed_transfers,
+                    predecessor_frontier,
+                    &layer_of,
+                );
                 let outward_elementary_carriers = exact_prepared_efferent_carriers(
                     local_outward_for(*neuron_index),
                     motor_transfers.len(),
@@ -17604,7 +18161,7 @@ fn settle_internal_contact_interval(
         for flat in 0..flat_locations.len() {
             let (cohort_index, neuron_index, lineage) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
-            let changed = pre_source_membranes
+            let source_changed = pre_source_membranes
                 .get(&lineage)
                 .map(|(held_membrane, held_intracellular, held_extracellular)| {
                     *held_membrane != state.membrane_state()
@@ -17613,8 +18170,19 @@ fn settle_internal_contact_interval(
                         || *held_extracellular
                             != state.carrier_reservoirs().extracellular()
                 })
-                .unwrap_or(true);
-            if changed {
+                .unwrap_or(false);
+            let selected_changed = selected_predecessor_neurons[cohort_index]
+                .as_ref()
+                .and_then(|predecessors| {
+                    predecessors
+                        .iter()
+                        .find(|(candidate, _)| *candidate == neuron_index)
+                })
+                .is_some_and(|(_, predecessor)| predecessor != state);
+            let passive_return_changed = passive_return_changed_flats
+                .binary_search(&flat)
+                .is_ok();
+            if source_changed || selected_changed || passive_return_changed {
                 changed_flats.push(flat);
             }
         }
@@ -17925,16 +18493,16 @@ fn settle_internal_contact_interval(
             // new rate. A crossing inside the caught-up span cannot occur:
             // its due would have fired.
             let last = events.recovery_last_integrated[flat];
-            let return_was_scheduled = events
+            let scheduled_return_due = events
                 .recovery_schedule
                 .scheduled_dues()
-                .any(|(scheduled_flat, _)| scheduled_flat == flat);
+                .find_map(|(scheduled_flat, due)| (scheduled_flat == flat).then_some(due));
             if last < clock {
                 // An unscheduled return means the descent law refused its
                 // current for the whole span: zero flow, frozen phase.
                 // Only a scheduled span integrates, at the exact held
                 // state's current — membrane and compartments together.
-                if !return_was_scheduled {
+                if scheduled_return_due.is_none() {
                     events.recovery_last_integrated[flat] = clock;
                 } else if let Some((held_membrane, held_intracellular, held_extracellular)) =
                     pre_source_membranes.get(&lineage)
@@ -17971,7 +18539,16 @@ fn settle_internal_contact_interval(
                         assert_eq!(
                             caught.outward_elementary_charges, 0,
                             "a sleeping membrane return crossed without its \
-                             scheduled event — the return schedule is unsound"
+                             scheduled event — the return schedule is unsound; \
+                             flat={flat} lineage={lineage:?} last={last} \
+                             clock={clock} due={scheduled_return_due:?} \
+                             phase={:?} current={:?} held_charges={} \
+                             held_intracellular={} held_extracellular={}",
+                            events.recovery_phase[flat].parts(),
+                            current.parts(),
+                            held_membrane.separated_elementary_charges(),
+                            held_intracellular,
+                            held_extracellular,
                         );
                         events.recovery_phase[flat] = caught.successor_phase;
                     }
@@ -19108,6 +19685,26 @@ mod tests {
             .find(|bond| bond.endpoints() == pair)
             .expect("hop must be a real physical bond");
         vec![ActiveElectricalFrontierEntry::caused(sender, receiver, bond, 1).unwrap()]
+    }
+
+    /// One exact PRIOR-window hop whose carrier direction and newly reached
+    /// causal endpoint are stated independently.
+    fn frontier_hop_with_frontier(
+        cohorts: &[ResidentReachedCohort],
+        electrical_fabric: &ResidentElectricalFabric,
+        sender: [u8; 16],
+        receiver: [u8; 16],
+        frontier: [u8; 16],
+    ) -> Vec<ActiveElectricalFrontierEntry> {
+        let pair = canonical_lineage_pair(sender, receiver);
+        let bond = all_physical_bonds(cohorts, electrical_fabric)
+            .into_iter()
+            .find(|bond| bond.endpoints() == pair)
+            .expect("hop must be a real physical bond");
+        vec![ActiveElectricalFrontierEntry::caused_with_frontier(
+            sender, receiver, frontier, bond, 1,
+        )
+        .unwrap()]
     }
 
     #[test]
@@ -21134,7 +21731,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&current[..MAGIC_V33.len()], MAGIC_V33);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -21879,8 +22476,6 @@ mod tests {
             internal_cues,
             external_frontiers,
             _,
-            developmental_authority,
-            developmental_authority_bonds,
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
@@ -21907,10 +22502,6 @@ mod tests {
         assert!(internal_cues.is_empty());
         assert!(external_frontiers.is_empty());
         assert!(relations.is_empty());
-        let mut expected_developmental_authority = original_members.clone();
-        expected_developmental_authority.sort_unstable();
-        assert_eq!(developmental_authority, expected_developmental_authority);
-        assert!(!developmental_authority_bonds.is_empty());
         assert_eq!(mosaics.len(), 1);
         assert_eq!(mosaics[0].reinforcement_count, 0);
         assert_eq!(mosaics[0].mosaic.member_lineages(), original_members);
@@ -22017,8 +22608,6 @@ mod tests {
             internal_cues,
             external_frontiers,
             _,
-            _,
-            _,
         ) =
             settle_organism_mosaic_boundary(
             &cohorts,
@@ -22063,8 +22652,6 @@ mod tests {
             recurring_relation,
             internal_cues,
             external_frontiers,
-            _,
-            _,
             _,
         ) =
             settle_organism_mosaic_boundary(
@@ -22119,8 +22706,6 @@ mod tests {
             _,
             internal_cues,
             external_frontiers,
-            _,
-            _,
             _,
         ) =
             settle_organism_mosaic_boundary(
@@ -22195,8 +22780,6 @@ mod tests {
             mixed_internal_cues,
             external_frontiers,
             _,
-            _,
-            _,
         ) =
             settle_organism_mosaic_boundary(
                 &cohorts,
@@ -22224,6 +22807,171 @@ mod tests {
         assert!(mixed_internal_cues
             .iter()
             .all(|observation| observation.cue_lineages == expected_internal_cue));
+    }
+
+    #[test]
+    fn affective_growth_is_occurrence_local_and_requires_both_physical_transfers() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        let integration = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(6, 0),
+        )
+        .unwrap();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let bystander_association = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 1),
+        )
+        .unwrap();
+        let bystander_integration = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(6, 1),
+        )
+        .unwrap();
+        let unrelated_integration = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(6, 2),
+        )
+        .unwrap();
+        let bystander_regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 1),
+        )
+        .unwrap();
+        let fabric = ResidentElectricalFabric::default()
+            .append_contacts(&[
+                (
+                    association,
+                    integration,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    integration,
+                    regulation,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    bystander_association,
+                    bystander_integration,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    unrelated_integration,
+                    bystander_regulation,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+            ])
+            .unwrap();
+        let first = vec![
+            ActiveElectricalFrontierEntry::caused(
+                association,
+                integration,
+                StablePhysicalBondReference::new(association, integration, 0).unwrap(),
+                1,
+            )
+            .unwrap(),
+            ActiveElectricalFrontierEntry::caused(
+                bystander_association,
+                bystander_integration,
+                StablePhysicalBondReference::new(
+                    bystander_association,
+                    bystander_integration,
+                    0,
+                )
+                .unwrap(),
+                1,
+            )
+            .unwrap(),
+        ];
+        let second = vec![
+            ActiveElectricalFrontierEntry::caused(
+                integration,
+                regulation,
+                StablePhysicalBondReference::new(integration, regulation, 0).unwrap(),
+                1,
+            )
+            .unwrap(),
+            ActiveElectricalFrontierEntry::caused(
+                unrelated_integration,
+                bystander_regulation,
+                StablePhysicalBondReference::new(
+                    unrelated_integration,
+                    bystander_regulation,
+                    0,
+                )
+                .unwrap(),
+                1,
+            )
+            .unwrap(),
+        ];
+
+        let associations = ReachedAssociationsByOccurrence {
+            lineages: vec![vec![association], vec![bystander_association]],
+        };
+        let regulations = vec![vec![regulation], vec![bystander_regulation]];
+        let transfers = first
+            .iter()
+            .chain(&second)
+            .filter_map(|entry| (*entry).directed_transfer())
+            .collect::<Vec<_>>();
+        let pairs = exact_occurrence_affective_pairs(
+            &associations,
+            &regulations,
+            &transfers,
+        )
+        .unwrap();
+        assert_eq!(
+            pairs,
+            vec![
+                (association, regulation),
+                (bystander_association, bystander_regulation),
+            ]
+        );
+        assert!(!pairs.contains(&(association, bystander_regulation)));
+        assert!(!pairs.contains(&(bystander_association, regulation)));
+
+        let first_occurrence_only = transfers
+            .iter()
+            .copied()
+            .filter(|transfer| {
+                transfer.sender != bystander_regulation
+                    && transfer.receiver != bystander_regulation
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            exact_occurrence_affective_pairs(
+                &associations,
+                &regulations,
+                &first_occurrence_only,
+            )
+            .unwrap(),
+            vec![(association, regulation)]
+        );
     }
 
     #[test]
@@ -22489,7 +23237,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&current[..MAGIC_V33.len()], MAGIC_V33);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -22591,6 +23339,7 @@ mod tests {
                 &mut cohorts,
                 &mut fabric,
                 &topology_index,
+                &[],
                 seeds,
                 seeds,
                 &mut transitioned,
@@ -23154,15 +23903,16 @@ mod tests {
         );
     }
 
-    /// The one-way V31 decontamination: every historical layer-11->12 and
-    /// layer-11->13 contact is removed at the migration boundary; neurons,
+    /// The one-way V33 decontamination: every layer-11->12 contact reintroduced
+    /// after V31 and every historical layer-11->13 contact is removed at the
+    /// migration boundary; neurons,
     /// terminals, unrelated contacts, and lawful frontier entries are
     /// preserved; frontier entries riding a removed contact drop with it;
-    /// the migrated body is V31 and re-migration is the identity, so a
-    /// restart can never restore the fan-out; pre-V31 bytes are refused by
+    /// the migrated body is V33 and re-migration is the identity, so a
+    /// restart can never restore the fan-out; V32 bytes are refused by
     /// ordinary decode and must cross this boundary.
     #[test]
-    fn v31_migration_removes_contaminated_effector_pools_one_way() {
+    fn v33_migration_removes_reintroduced_effector_pools_one_way() {
         const MAX_BYTES: usize = 1_600_000_000;
         let mut cohorts = Vec::new();
         let mut population =
@@ -23208,23 +23958,21 @@ mod tests {
             &mut fabric,
             receptor_site,
         );
-        let motor = mount_next_intrinsic_in_layer(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            12,
-        )
-        .unwrap();
-        cohorts
-            .iter_mut()
-            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&motor))
-            .unwrap()
-            .anatomy
-            .specialize_motor_effector(
-                motor,
-                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
-            )
-            .unwrap();
+        let expected_motor =
+            BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum);
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.body_effector_terminal() == Some(expected_motor)).then_some(*lineage)
+            })
+            .expect("body-regulation development must mount its exact opposing motor");
         let articulatory = mount_next_intrinsic_in_layer(
             &mut cohorts,
             &mut population,
@@ -23257,7 +24005,6 @@ mod tests {
             ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS);
         fabric = fabric
             .append_contacts(&[
-                (regulation, motor, conductance),
                 (ordering_a, affective, conductance),
                 (ordering_a, motor, conductance),
                 (ordering_b, motor, conductance),
@@ -23351,12 +24098,13 @@ mod tests {
             formation_index: ResidentFormationIndex::default(),
         };
         validate_lineage_state(&state).unwrap();
+        state.validate_current_motor_effectors().unwrap();
         let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&current[..MAGIC_V33.len()], MAGIC_V33);
 
-        // Simulate the legacy body: identical layout under the V30 magic.
+        // Simulate the deployed predecessor: identical layout under V32.
         let mut legacy = current.clone();
-        legacy[..MAGIC_V30.len()].copy_from_slice(MAGIC_V30);
+        legacy[..MAGIC_V32.len()].copy_from_slice(MAGIC_V32);
         assert!(ResidentCognitiveFormationState::decode(&legacy, MAX_BYTES).is_err());
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, MAX_BYTES)
@@ -23387,9 +24135,9 @@ mod tests {
         );
         assert!(restored.preceding_active_electrical_frontier.is_empty());
 
-        // One-way and restart-proof: the migrated body is V31 and crossing
+        // One-way and restart-proof: the migrated body is V33 and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&migrated[..MAGIC_V33.len()], MAGIC_V33);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -23477,6 +24225,7 @@ mod tests {
                 &mut cohorts,
                 &mut fabric,
                 &topology_index,
+                &[],
                 &[association, regulation],
                 &[association, regulation],
                 &mut transitioned,
@@ -23541,6 +24290,7 @@ mod tests {
                 &topology_index,
                 &[],
                 &[],
+                &[],
                 &mut transitioned,
                 next_ordinal,
                 0,
@@ -23562,7 +24312,8 @@ mod tests {
         );
     }
 
-    /// The correction's core proofs: a permanent motor contact requires
+    /// The correction's core proofs: fixed antagonist motor anatomy exists
+    /// with its typed regulation route, while a learned ordering contact requires
     /// the exact directed causal chain ordering -> affective -> consequence-
     /// returned regulation. Same-interval coincidence authors nothing, an
     /// unrelated ordering neuron can never connect, the contact count does
@@ -23633,6 +24384,25 @@ mod tests {
             coincident.push(bystander);
         }
         let contacts_before = fabric.contact_count();
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.body_effector_terminal()
+                    == Some(BodyEffectorTerminal::new(
+                        BodyAxis::LeftElbowFlexion,
+                        BodyEffectorDirection::TowardMaximum,
+                    )))
+                .then_some(*lineage)
+            })
+            .expect("typed body regulation must mount its fixed motor terminal");
+        assert!(fabric.contains_contact(regulation, motor));
 
         // Proof: an interval with NO directed transfers (unattended or
         // actionless) authors nothing, however many neurons transitioned.
@@ -23650,34 +24420,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before);
-        assert!(!cohorts.iter().any(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
-                .iter()
-                .any(|mount| mount.place().layer() == 12)
-        }));
-
-        // Falsifier per the movement gate: full consecutive evidence with
-        // NO actual body movement this interval authors nothing at all.
-        let still_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
-        let still_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
-        mount_reached_motor_effector(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            &mut fabric,
-            &transitioned,
-            &still_now,
-            &still_prior,
-            &[],
-        )
-        .unwrap();
-        assert_eq!(
-            fabric.contact_count(),
-            contacts_before,
-            "stillness must never author a motor route"
-        );
+        assert!(!fabric.contains_contact(routed_ordering, motor));
 
         // Falsifier per the consecutive law: BOTH hops delivered in the
         // same interval are synchronous and prove nothing, even though the
@@ -23701,34 +24444,31 @@ mod tests {
         assert_eq!(fabric.contact_count(), contacts_before);
 
         // Proof: the consecutive chain — ordering drove the affective cell
-        // in the PRECEDING window (exact frontier entry), the affective
-        // cell drove the consequence-returned regulation cell NOW —
-        // authors exactly one ordering->motor and one regulation->motor
-        // contact, with four coincident-active bystanders refused.
-        let hop_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
-        let hop_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
+        // in the PRECEDING window (exact frontier entry), the typed body
+        // regulation drove the affective cell NOW — authors exactly one
+        // ordering->motor contact. No prior movement is required to create
+        // the body anatomy that makes a first movement possible. Carrier
+        // direction may oppose causal-frontier direction: here carriers move
+        // affective->ordering while the causal wave reaches affective.
+        let hop_now = directed_chain(&cohorts, &fabric, &[regulation, affective]);
+        let hop_prior = frontier_hop_with_frontier(
+            &cohorts,
+            &fabric,
+            affective,
+            routed_ordering,
+            affective,
+        );
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &transitioned,
+            &[regulation],
             &hop_now,
             &hop_prior,
-            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+            &[],
         )
         .unwrap();
-        let motor = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .find_map(|(mount, lineage)| (mount.place().layer() == 12).then_some(*lineage))
-            .expect("directed chain must mount the motor cell");
         assert!(fabric.contains_contact(routed_ordering, motor));
         assert!(fabric.contains_contact(regulation, motor));
         for bystander in &coincident {
@@ -23737,24 +24477,25 @@ mod tests {
                 "coincident-active ordering neuron must never reach the motor"
             );
         }
-        // Exactly participants + motor mount: no ordering x motor scaling.
-        assert_eq!(fabric.contact_count(), contacts_before + 2);
+        // The fixed regulation contact already existed; only one learned
+        // ordering contact is added, with no ordering x motor scaling.
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
 
         // Proof: repeating the same consecutive evidence is idempotent.
-        let repeat_now = directed_chain(&cohorts, &fabric, &[affective, regulation]);
+        let repeat_now = directed_chain(&cohorts, &fabric, &[regulation, affective]);
         let repeat_prior = frontier_hop(&cohorts, &fabric, routed_ordering, affective);
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &transitioned,
+            &[regulation],
             &repeat_now,
             &repeat_prior,
             &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
         )
         .unwrap();
-        assert_eq!(fabric.contact_count(), contacts_before + 2);
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
 
         // Proof: a prior-window hop for a bystander WITHOUT the current
         // consequence hop into the regulation cell authors nothing.
@@ -23771,7 +24512,7 @@ mod tests {
         )
         .unwrap();
         assert!(!fabric.contains_contact(coincident[0], motor));
-        assert_eq!(fabric.contact_count(), contacts_before + 2);
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
     }
 
     #[test]
@@ -23805,6 +24546,21 @@ mod tests {
             receptor_site,
         );
         let contacts_before = fabric.contact_count();
+        let developmental_motors = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.root_yaw_effector_terminal() == Some(terminal)).then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(developmental_motors.len(), 1);
+        assert!(fabric.contains_contact(regulation, developmental_motors[0]));
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
         // Merely having the anatomy is not authority: the directional
         // proprioceptor must have physically changed in this occurrence.
@@ -23864,8 +24620,59 @@ mod tests {
         assert_eq!(motors.len(), 1);
         let motor = motors[0];
         assert!(fabric.contains_contact(regulation, motor));
-        assert_eq!(fabric.contact_count(), contacts_before + 1);
+        assert_eq!(
+            fabric.contact_count(),
+            contacts_before,
+            "settlement must reuse the fixed pre-interval root motor"
+        );
         validate_motor_effector_mounts(&cohorts).unwrap();
+
+        // A prior ordering frontier beside a guided movement is coincidence,
+        // not a directed two-interval causal chain.  It must not recreate the
+        // retired ordering-to-motor fan-out, even for a root terminal.
+        let ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        let ordering_support = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contact(
+                ordering_support,
+                ordering,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        let before_guided_learning = fabric.contact_count();
+        let prior_ordering = frontier_hop_with_frontier(
+            &cohorts,
+            &fabric,
+            ordering_support,
+            ordering,
+            ordering,
+        );
+        mount_reached_motor_effector_with_root(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[],
+            &[],
+            &prior_ordering,
+            &[],
+            &continuations,
+        )
+        .unwrap();
+        assert!(!fabric.contains_contact(ordering, motor));
+        assert_eq!(fabric.contact_count(), before_guided_learning);
 
         let opposite_port = source
             .joint_source_ports()
@@ -23907,29 +24714,60 @@ mod tests {
         let permitted = exact_root_yaw_preparation_regulations(terminal, &paths);
         assert_eq!(permitted, vec![regulation]);
 
-        let transfer = |sender| DirectedPhysicalTransferObservation {
+        let transfer = |sender, receiver| DirectedPhysicalTransferObservation {
             sender,
-            receiver: motor,
-            bond: StablePhysicalBondReference::new(sender, motor, 0).unwrap(),
+            receiver,
+            bond: StablePhysicalBondReference::new(sender, receiver, 0).unwrap(),
             transferred_whole_carriers: 1,
         };
-        let settled = [transfer(regulation), transfer(opposite_regulation)];
-        let layers = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .map(|(mount, lineage)| (*lineage, mount.place().layer()))
-            .collect::<BTreeMap<_, _>>();
-        let preparation =
-            exact_motor_preparation_transfers(motor, &settled, &permitted, |lineage| {
-                layers.get(&lineage).copied()
-            });
-        assert_eq!(preparation, vec![settled[0]]);
+        let causal_seeds = BTreeSet::from([regulation]);
+        let incoming = transfer(regulation, motor);
+        let preparation = exact_root_yaw_motor_preparation_transfers(
+            motor,
+            &[incoming],
+            &permitted,
+            &causal_seeds,
+            |lineage| topology.layer_of(lineage),
+        );
+        assert_eq!(preparation, vec![incoming]);
+        let outward = transfer(motor, regulation);
+        assert!(exact_root_yaw_motor_preparation_transfers(
+            motor,
+            &[outward],
+            &permitted,
+            &causal_seeds,
+            |lineage| topology.layer_of(lineage),
+        )
+        .is_empty());
+        let ordered = transfer(ordering, motor);
+        assert_eq!(
+            exact_root_yaw_motor_preparation_transfers(
+                motor,
+                &[ordered],
+                &permitted,
+                &BTreeSet::new(),
+                |lineage| topology.layer_of(lineage),
+            ),
+            vec![ordered],
+            "the learned ordering route must physically arrive at its exact motor"
+        );
+        let opposite = transfer(opposite_regulation, motor);
+        assert!(exact_root_yaw_motor_preparation_transfers(
+            motor,
+            &[opposite],
+            &permitted,
+            &BTreeSet::from([opposite_regulation]),
+            |lineage| topology.layer_of(lineage),
+        )
+        .is_empty());
+        assert!(exact_root_yaw_motor_preparation_transfers(
+            motor,
+            &[incoming],
+            &permitted,
+            &BTreeSet::new(),
+            |lineage| topology.layer_of(lineage),
+        )
+        .is_empty());
         // The arriving regulation transfer prepares this one-contact root
         // motor; the distinct positive local membrane discharge emits it.
         // Reversing or omitting that local discharge, or omitting preparation,
@@ -23962,6 +24800,181 @@ mod tests {
         assert_eq!(negative.receiver, physical_left);
         assert_eq!(negative.transferred_whole_carriers, 4);
         assert_eq!(directed_physical_transfer(0, physical_left, physical_right, bond), None);
+    }
+
+    #[test]
+    fn articulatory_preparation_is_exact_directed_layer_twelve_arrival() {
+        let motor = [12_u8; 16];
+        let articulatory = [13_u8; 16];
+        let unrelated = [11_u8; 16];
+        let motor_bond = StablePhysicalBondReference::new(motor, articulatory, 0).unwrap();
+        let unrelated_bond =
+            StablePhysicalBondReference::new(unrelated, articulatory, 0).unwrap();
+        let motor_transfer = DirectedPhysicalTransferObservation {
+            sender: motor,
+            receiver: articulatory,
+            bond: motor_bond,
+            transferred_whole_carriers: 5,
+        };
+        let layer_of = |lineage| match lineage {
+            value if value == motor => Some(12),
+            value if value == articulatory => Some(13),
+            value if value == unrelated => Some(11),
+            _ => None,
+        };
+
+        assert_eq!(
+            exact_articulatory_preparation_transfers(
+                articulatory,
+                &[motor_transfer],
+                &[],
+                layer_of,
+            ),
+            vec![motor_transfer],
+            "a current directed motor arrival must prepare articulation"
+        );
+
+        let predecessor = [ActiveElectricalFrontierEntry::caused(
+            motor,
+            articulatory,
+            motor_bond,
+            5,
+        )
+        .unwrap()];
+        assert_eq!(
+            exact_articulatory_preparation_transfers(
+                articulatory,
+                &[],
+                &predecessor,
+                layer_of,
+            ),
+            vec![motor_transfer],
+            "the immediately preceding physical arrival must survive for the local discharge"
+        );
+
+        let reverse = DirectedPhysicalTransferObservation {
+            sender: articulatory,
+            receiver: motor,
+            bond: motor_bond,
+            transferred_whole_carriers: 5,
+        };
+        let unrelated_transfer = DirectedPhysicalTransferObservation {
+            sender: unrelated,
+            receiver: articulatory,
+            bond: unrelated_bond,
+            transferred_whole_carriers: 5,
+        };
+        assert!(exact_articulatory_preparation_transfers(
+            articulatory,
+            &[reverse, unrelated_transfer],
+            &[],
+            layer_of,
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn v33_removes_broad_articulatory_pool_once_and_cannot_restore() {
+        const MAX_BYTES: usize = 1_600_000_000;
+        let mut cohorts = Vec::new();
+        let mut population = Some(
+            DevelopmentalRestingPopulation::admit(MAX_BYTES, 100_000, 100, &[]).unwrap(),
+        );
+        let mut next_lineage = 1;
+        let acoustic = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(1, 0),
+        )
+        .unwrap();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let motor = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(12, 0),
+        )
+        .unwrap();
+        cohorts
+            .iter_mut()
+            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&motor))
+            .unwrap()
+            .anatomy
+            .specialize_motor_effector(
+                motor,
+                BodyEffectorTerminal::new(
+                    BodyAxis::JawOpening,
+                    BodyEffectorDirection::TowardMaximum,
+                ),
+            )
+            .unwrap();
+        let articulatory = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(13, 0),
+        )
+        .unwrap();
+        let conductance =
+            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS);
+        let fabric = ResidentElectricalFabric::default()
+            .append_contacts(&[
+                (acoustic, articulatory, conductance),
+                (regulation, articulatory, conductance),
+                (motor, articulatory, conductance),
+                (acoustic, regulation, conductance),
+            ])
+            .unwrap();
+        let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let state = ResidentCognitiveFormationState {
+            generation: 7,
+            next_lineage_ordinal: population
+                .as_ref()
+                .unwrap()
+                .lineage_end_exclusive(),
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+            formation_index: ResidentFormationIndex::default(),
+        };
+        let mut v32 = state.encode(MAX_BYTES).unwrap();
+        v32[..MAGIC_V32.len()].copy_from_slice(MAGIC_V32);
+        assert!(ResidentCognitiveFormationState::decode(&v32, MAX_BYTES).is_err());
+
+        let migrated =
+            ResidentCognitiveFormationState::migrate_to_current_format(&v32, MAX_BYTES)
+                .unwrap();
+        assert_eq!(&migrated[..MAGIC_V33.len()], MAGIC_V33);
+        let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
+        assert!(!restored.electrical_fabric.contains_contact(acoustic, articulatory));
+        assert!(!restored.electrical_fabric.contains_contact(regulation, articulatory));
+        assert!(!restored.electrical_fabric.contains_contact(motor, articulatory));
+        assert!(restored.electrical_fabric.contains_contact(acoustic, regulation));
+        assert!(restored
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.neuron_lineages())
+            .any(|lineage| *lineage == articulatory));
+        assert_eq!(
+            ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
+                .unwrap(),
+            migrated
+        );
     }
 
     #[test]
@@ -24094,7 +25107,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&migrated[..MAGIC_V33.len()], MAGIC_V33);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(restored.electrical_fabric.contains_contact(receptor, {
             restored
@@ -24372,7 +25385,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&current[..MAGIC_V33.len()], MAGIC_V33);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -24591,13 +25604,15 @@ mod tests {
             DeclaredNeuronPlace::new(1, 0),
         )
         .unwrap();
-        let regulation = mount_intrinsic_neuron_at_place(
+        let mut fabric = ResidentElectricalFabric::default();
+        let (regulation, _, _) = mount_body_regulation_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
-            DeclaredNeuronPlace::new(8, 0),
-        )
-        .unwrap();
+            &mut fabric,
+            BodyAxis::LeftElbowFlexion,
+            BodyEffectorDirection::TowardMaximum,
+        );
         let ordering = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -24605,13 +25620,46 @@ mod tests {
             DeclaredNeuronPlace::new(11, 0),
         )
         .unwrap();
-        let motor = mount_intrinsic_neuron_at_place(
+        mount_local_motor_bridge_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
-            DeclaredNeuronPlace::new(12, 0),
+            &mut fabric,
+            regulation,
+            ordering,
+            0,
+        );
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+            &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion],
         )
         .unwrap();
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.body_effector_terminal()
+                    == Some(BodyEffectorTerminal::new(
+                        BodyAxis::LeftElbowFlexion,
+                        BodyEffectorDirection::TowardMaximum,
+                    )))
+                .then_some(*lineage)
+            })
+            .unwrap();
         let second_acoustic = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -24631,14 +25679,7 @@ mod tests {
             .map(|(mount, lineage)| (*lineage, mount.clone()))
             .collect::<Vec<_>>();
         let resting_before = population.as_ref().unwrap().resting_cell_count();
-        let mut fabric = ResidentElectricalFabric::default();
-        fabric = fabric
-            .append_contact(
-                ordering,
-                motor,
-                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-            )
-            .unwrap();
+        let contact_count_before_articulation = fabric.contact_count();
 
         // Four transitioned classes with NO prior-window articulation:
         // coincidence, authors nothing under the consecutive law.
@@ -24692,7 +25733,7 @@ mod tests {
         for participant in [acoustic, regulation, ordering, motor] {
             assert!(fabric.contains_contact(participant, articulatory[0]));
         }
-        assert_eq!(fabric.contact_count(), 5);
+        assert_eq!(fabric.contact_count(), contact_count_before_articulation + 4);
         let cohort_count = cohorts.len();
         let contact_count = fabric.contact_count();
         let remounted = cohorts
@@ -25524,7 +26565,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V32.len()], MAGIC_V32);
+        assert_eq!(&current[..MAGIC_V33.len()], MAGIC_V33);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());

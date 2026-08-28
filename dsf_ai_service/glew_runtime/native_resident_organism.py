@@ -3118,15 +3118,23 @@ class NativeResidentOrganism:
         # Their exact bytes and causal extents were validated above. Python
         # observes that native physical output; it has no authority to permit
         # or suppress it.
-        if (
-            causal_interval_count
-            != requested_causal_interval_count
-            + initial_body_source_count
-            or source_port_count
-            != requested_source_port_count
-            + initial_body_source_port_count
-        ):
-            raise RuntimeError("native prepare inserted an unauthorized causal source")
+        added_interval_count = causal_interval_count - requested_causal_interval_count
+        added_port_count = source_port_count - requested_source_port_count
+        allowed_initial_body_additions = {(0, 0)}
+        if initial_body_source_count:
+            allowed_initial_body_additions.add(
+                (initial_body_source_count, initial_body_source_port_count)
+            )
+        if (added_interval_count, added_port_count) not in allowed_initial_body_additions:
+            raise RuntimeError(
+                "native prepare inserted an unauthorized causal source "
+                f"(requested intervals={requested_causal_interval_count}, "
+                f"prepared intervals={causal_interval_count}, "
+                f"initial body intervals={initial_body_source_count}, "
+                f"requested ports={requested_source_port_count}, "
+                f"prepared ports={source_port_count}, "
+                f"initial body ports={initial_body_source_port_count})"
+            )
         raw_causal_interval_evidence = getattr(
             candidate, "causal_interval_evidence", None
         )
@@ -3524,7 +3532,10 @@ class NativeResidentOrganism:
                 self.__runtime.observe_reached_neuron_electrical_by_layer()
             )
         )
-        if len(observed) != before.complete_neuron_count:
+        reached_neuron_count = sum(
+            count for _, count in self.observe_reached_neuron_count_by_layer()
+        )
+        if len(observed) != reached_neuron_count:
             raise RuntimeError("reached neuron electrical projection changed width")
         if self.readiness().state_sha256 != before.state_sha256:
             raise RuntimeError("reached neuron electrical observation advanced the organism")
