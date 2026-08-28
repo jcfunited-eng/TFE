@@ -6503,7 +6503,7 @@ fn hex_digest(value: &[u8; 32]) -> String {
 fn project_internally_reassembled_formation_cues(
     observations: &[InternallyReassembledFormationCueObservation],
 ) -> Vec<InternallyReassembledFormationCueProjection> {
-    observations
+    let mut cues = observations
         .iter()
         .map(|observation| {
             (
@@ -6519,7 +6519,15 @@ fn project_internally_reassembled_formation_cues(
                     .map(|lineage| hex_bytes(lineage)),
             )
         })
-        .collect()
+        .collect::<Vec<_>>();
+    // Several exact recurrent causes may reassemble the same retained
+    // formation during one bounded interval. The destination cue is one
+    // physical fact; its distinct causes are preserved independently by
+    // `project_causal_thought_transitions`. Keep the cue projection canonical
+    // without flattening or discarding any carrier transition.
+    cues.sort_unstable();
+    cues.dedup();
+    cues
 }
 
 fn project_causal_thought_transitions(
@@ -7093,6 +7101,24 @@ mod tests {
     use crate::virtual_articulated_body::BODY_EFFECTOR_TERMINAL_COUNT;
     use std::fs;
     use std::path::PathBuf;
+
+    #[test]
+    fn repeated_destination_cue_projects_once_without_losing_thought_causes() {
+        let cue = InternallyReassembledFormationCueObservation {
+            formation_receipt: [1; 32],
+            cue_lineages: vec![[2; 16]],
+            recurrent_lineage: Some([3; 16]),
+            causal_predecessors: Vec::new(),
+        };
+
+        let projected =
+            project_internally_reassembled_formation_cues(&[cue.clone(), cue]);
+
+        assert_eq!(projected.len(), 1);
+        assert_eq!(projected[0].0, hex_digest(&[1; 32]));
+        assert_eq!(projected[0].1, vec![hex_bytes(&[2; 16])]);
+        assert_eq!(projected[0].2, Some(hex_bytes(&[3; 16])));
+    }
 
     #[test]
     fn motor_body_transition_uses_retained_effector_mount_not_afferent_ancestry() {
