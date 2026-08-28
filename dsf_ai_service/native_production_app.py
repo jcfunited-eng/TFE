@@ -2990,11 +2990,12 @@ def _physical_choice_evidence_from_transition(
 
     global _choice_attention_binding_miss_count
 
-    attention_motor_binding = evidence.get("attention_motor_binding")
+    attention_motor_bindings = evidence.get("attention_motor_bindings")
     causal = evidence.get("causal_cross_context_use")
     action = evidence.get("motor_action")
     if (
-        not isinstance(attention_motor_binding, dict)
+        not isinstance(attention_motor_bindings, tuple)
+        or not attention_motor_bindings
         or not isinstance(causal, dict)
         or not isinstance(action, dict)
     ):
@@ -3023,7 +3024,15 @@ def _physical_choice_evidence_from_transition(
             return None
     if not causal_motor_prepared:
         return None
-    if causal_motor_lineage not in attention_motor_binding["matched_motor_lineages"]:
+    for binding in attention_motor_bindings:
+        if not isinstance(binding, dict):
+            return None
+    causal_attention_bindings = tuple(
+        binding
+        for binding in attention_motor_bindings
+        if causal_motor_lineage in binding["matched_motor_lineages"]
+    )
+    if not causal_attention_bindings:
         _choice_attention_binding_miss_count += 1
         return None
 
@@ -3114,10 +3123,13 @@ def _physical_choice_evidence_from_transition(
         if not isinstance(causal_intent, str) or len(causal_intent) != 64:
             return None
         return {
-            "attention": attention_motor_binding["attention"],
-            "attention_motor_binding_organism_tick": attention_motor_binding[
-                "organism_tick"
-            ],
+            "attention": tuple(
+                binding["attention"] for binding in causal_attention_bindings
+            ),
+            "attention_motor_binding_organism_ticks": tuple(
+                binding["organism_tick"]
+                for binding in causal_attention_bindings
+            ),
             "applied_signed_displacement_quanta": signed_displacement,
             "axis": axis,
             "axis_unit": consequence.get("unit"),
@@ -3125,9 +3137,11 @@ def _physical_choice_evidence_from_transition(
             "consequence_source_tick": consequence.get("source_tick"),
             "formation_receipt_sha256": causal.get("formation_receipt_sha256"),
             "internal_cause_motor_lineage": causal_motor_lineage,
-            "matched_attention_route_count": attention_motor_binding[
-                "matched_attention_route_count"
-            ],
+            "matched_attention_binding_count": len(causal_attention_bindings),
+            "matched_attention_route_count": sum(
+                int(binding["matched_attention_route_count"])
+                for binding in causal_attention_bindings
+            ),
             "organism_tick": evidence.get("organism_tick"),
             "prepared_intent_count": 1,
             "settled_signed_intent_carriers": settled_signed_intent,
@@ -3195,23 +3209,26 @@ def _attention_motor_binding_from_hop(
     }
 
 
-def _advance_bounded_attention_motor_binding(
-    retained: dict[str, Any] | None,
+def _advance_bounded_attention_motor_bindings(
+    retained: tuple[dict[str, Any], ...],
     hop: dict[str, Any],
-) -> dict[str, Any] | None:
-    """Retain only the first exact attention-to-motor binding."""
+) -> tuple[dict[str, Any], ...]:
+    """Retain every distinct exact binding in this bounded trajectory."""
 
-    return retained or _attention_motor_binding_from_hop(hop)
+    candidate = _attention_motor_binding_from_hop(hop)
+    if candidate is None or candidate in retained:
+        return retained
+    return (*retained, candidate)
 
 
-def _completed_transaction_attention_motor_binding(
-    retained: dict[str, Any] | None,
+def _completed_transaction_attention_motor_bindings(
+    retained: tuple[dict[str, Any], ...],
     transition: dict[str, Any],
     motor_unit_recruitments: tuple[Any, ...],
-) -> dict[str, Any] | None:
+) -> tuple[dict[str, Any], ...]:
     """Bind completed route evidence to its transaction's preparations."""
 
-    return _advance_bounded_attention_motor_binding(
+    return _advance_bounded_attention_motor_bindings(
         retained,
         {
             **transition,
@@ -5138,7 +5155,7 @@ def _experience_stage_ledger_record() -> dict[str, object]:
     reassemblies = summed("partial_cue_reassembly_count")
     mosaics = evidence.get("cognitive_mosaic_count", 0)
     cohorts = summed("current_cohort_evaluation_count")
-    attention_motor_binding = evidence.get("attention_motor_binding")
+    attention_motor_bindings = evidence.get("attention_motor_bindings")
     motor_action = evidence.get("motor_action")
     applied_action = (
         motor_action
@@ -5159,11 +5176,15 @@ def _experience_stage_ledger_record() -> dict[str, object]:
         == applied_action.get("causal_intent_receipt_sha256")
         else None
     )
-    if isinstance(attention_motor_binding, dict):
-        matched_routes = attention_motor_binding.get("matched_attention_route_count")
-        matched_routes = matched_routes if isinstance(matched_routes, int) else 0
-    else:
-        matched_routes = 0
+    matched_routes = (
+        sum(
+            int(binding.get("matched_attention_route_count", 0))
+            for binding in attention_motor_bindings
+            if isinstance(binding, dict)
+        )
+        if isinstance(attention_motor_bindings, tuple)
+        else 0
+    )
     if matched_routes > 0:
         absent["intent"] = _stage(
             True,
@@ -10303,7 +10324,7 @@ def _perform_admitted_intake_locked(
     reached_and_foregone_physical_frontier_routes: tuple[
         tuple[Any, ...], ...
     ] = ()
-    attention_motor_binding: dict[str, Any] | None = None
+    attention_motor_bindings: tuple[dict[str, Any], ...] = ()
     working_causal_continuations: tuple[tuple[Any, ...], ...] = ()
     settled_working_frontier: tuple[tuple[Any, ...], ...] = ()
     physical_prediction_alternatives: tuple[tuple[Any, ...], ...] = ()
@@ -10346,8 +10367,8 @@ def _perform_admitted_intake_locked(
                 reached_and_foregone_physical_frontier_routes,
                 last_hop,
             )
-            attention_motor_binding = _advance_bounded_attention_motor_binding(
-                attention_motor_binding,
+            attention_motor_bindings = _advance_bounded_attention_motor_bindings(
+                attention_motor_bindings,
                 last_hop,
             )
             (
@@ -10425,8 +10446,8 @@ def _perform_admitted_intake_locked(
                 reached_and_foregone_physical_frontier_routes,
                 last_hop,
             )
-            attention_motor_binding = _advance_bounded_attention_motor_binding(
-                attention_motor_binding,
+            attention_motor_bindings = _advance_bounded_attention_motor_bindings(
+                attention_motor_bindings,
                 last_hop,
             )
             (
@@ -11345,7 +11366,7 @@ def _perform_admitted_intake_locked(
         "reached_and_foregone_physical_frontier_routes": (
             reached_and_foregone_physical_frontier_routes
         ),
-        "attention_motor_binding": attention_motor_binding,
+        "attention_motor_bindings": attention_motor_bindings,
         "working_causal_continuations": working_causal_continuations,
         "settled_working_frontier": settled_working_frontier,
         "physical_prediction_alternatives": physical_prediction_alternatives,
@@ -11368,13 +11389,13 @@ def _perform_admitted_intake_locked(
     # attention classification was not yet available inside that earlier hop.
     # This does not join unrelated contacts: the helper still requires the
     # same directed sender, receiver, parallel ordinal, and carrier magnitude.
-    attention_motor_binding = _completed_transaction_attention_motor_binding(
-        attention_motor_binding,
+    attention_motor_bindings = _completed_transaction_attention_motor_bindings(
+        attention_motor_bindings,
         _last_transition_evidence,
         tuple(motor_unit_recruitments),
     )
-    _last_transition_evidence["attention_motor_binding"] = (
-        attention_motor_binding
+    _last_transition_evidence["attention_motor_bindings"] = (
+        attention_motor_bindings
     )
     intrinsic_curiosity_evidence = _intrinsic_curiosity_evidence_from_transition(
         _last_transition_evidence

@@ -667,7 +667,9 @@ def test_experience_stage_ledger_reports_native_action_and_its_consequence(
             "complete_neuron_fractal_count": 0,
             "hop_count": 1,
             "intake": "continuous-environment:test",
-            "attention_motor_binding": {"matched_attention_route_count": 7},
+            "attention_motor_bindings": (
+                {"matched_attention_route_count": 7},
+            ),
             "motor_action": {
                 "causal_intent_receipt_sha256": receipt,
                 "disposition": "applied",
