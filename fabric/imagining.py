@@ -35,9 +35,11 @@ def spring_joins(top=8):
         for x in w(e["essence"] + " " + e["cannot"]):
             df[x] = df.get(x, 0) + 1
     out = []
+    def subject(e):
+        return set(e["field"].split()) - {"deep"}
     for B in es:
         for A in es:
-            if B is A or B["field"] == A["field"]: continue
+            if B is A or subject(B) & subject(A): continue
             hinge = w(B["essence"]) & w(A["cannot"])
             hinge = {h for h in hinge if df.get(h, 99) <= 12}
             if len(hinge) < 2: continue
