@@ -98,7 +98,7 @@ def make(want, size=3, show=3):
     offers.sort(key=lambda e: -len(want_words & ew(e)))
     offers = offers[:16]
     staged = killed = 0
-    survivors, deaths = [], []
+    survivors, deaths, closed = [], [], {}
     for n in range(1, size + 1):
         for combo in itertools.combinations(offers, n):
             staged += 1
@@ -108,6 +108,9 @@ def make(want, size=3, show=3):
             dead = judge(pool, req, forb, rare_touch)
             if dead:
                 killed += 1
+                # the impossible layer is kept, not discarded: it
+                # is what gives the possible its shape
+                closed[dead] = closed.get(dead, 0) + 1
                 if len(deaths) < 3: deaths.append((combo, dead))
                 continue
             # each part must keep company with another part:
@@ -134,26 +137,41 @@ def make(want, size=3, show=3):
     survivors.sort(key=lambda s: (-s[0], -s[1]))
     out = [f"WANT: {want}",
            f"  staged {staged} possible makings from "
-           f"{len(offers)} mechanisms the knowledge offers; "
-           f"{killed} were killed by its own laws."]
-    if deaths:
-        out.append("  killed, for example:")
-        for combo, why in deaths:
-            names = " + ".join(e["essence"].split("—")[0].strip()[:44]
-                               for e in combo)
-            out.append(f"    {names}")
-            out.append(f"      {why}")
+           f"{len(offers)} mechanisms; {killed} were closed by the "
+           f"laws I hold. Judged under those laws only — another "
+           f"set of laws gives another answer."]
+    if closed:
+        out.append("  THE IMPOSSIBLE — this want's other layer, "
+                   "equal in standing to what survives:")
+        for law, n in sorted(closed.items(), key=lambda x: -x[1])[:4]:
+            out.append(f"    closed {n} makings — {law}")
     if survivors:
-        out.append("  what survives — the made thing:")
+        out.append("  THE POSSIBLE — what survives, the made "
+                   "thing (useful to an observer holding these "
+                   "laws; not a verdict on true or false):")
         for sc, _n, combo in survivors[:show]:
             out.append("    · " + "\n      with ".join(
                 e["essence"][:110] for e in combo))
+            if any("UNSURE" in (e["essence"] + e["cannot"] +
+                                e.get("rule", "")) for e in combo):
+                out.append("      (one part of this is contested "
+                           "knowledge, flagged unsure by its "
+                           "writer)")
             out.append("")
     else:
-        out.append("  nothing survives: everything the knowledge "
-                   "offers for this want is killed by its own "
-                   "laws. That is an answer — it cannot be done "
-                   "this way.")
+        out.append("  THE POSSIBLE — empty. Under the laws I "
+                   "hold, this want lives entirely on the other "
+                   "layer. That is a finding, not a failure.")
+    if closed:
+        rec = os.path.join(BASE, "life", "impossible_layer.md")
+        try:
+            if not os.path.exists(rec) or os.path.getsize(rec) < 65536:
+                with open(rec, "a") as f:
+                    f.write(f"\nWANT: {want}\n")
+                    for law, n in sorted(closed.items(),
+                                         key=lambda x: -x[1])[:5]:
+                        f.write(f"  closed {n} — {law}\n")
+        except OSError: pass
     return "\n".join(out)
 
 if __name__ == "__main__":
