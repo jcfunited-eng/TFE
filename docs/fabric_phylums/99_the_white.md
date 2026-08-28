@@ -114,4 +114,4 @@ ENTRY: why is the square root of a polynomial
   ASKED-SIG: polynomial root square
   FLOORS: certifiedunderearlierknowledge
   VERDICT: no path — certified by deterministic walk. Auto-filed.
-  STATUS: STANDING (white)
+  STATUS: ANSWERED — knowledge that answers it was added later

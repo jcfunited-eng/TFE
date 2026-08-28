@@ -118,12 +118,14 @@ def serve_one(path, st, floors, wts, byid):
     with open(os.path.join(OUT, name), "w") as f:
         f.write(f"ASKING: {q}\n\n{txt}")
     os.remove(path)
-    if "TRANSLATOR'S SILENCE" in txt: tier = "translator's silence"
-    elif "TRUE SILENCE" in txt: tier = "true silence -> white"
-    elif "SPLIT" in txt: tier = "split — houses shown"
-    elif "SIDEWAYS" in txt: tier = "sideways"
-    elif "FROM THE WHITE" in txt: tier = "from the white"
-    else: tier = "answer"
+    if "limit of how I read" in txt: tier = "could not read it"
+    elif "Recording it as an open question" in txt: \
+        tier = "no knowledge yet — recorded"
+    elif "recorded as an open question" in txt: \
+        tier = "open question, still unanswered"
+    elif "different things" in txt: tier = "ambiguous words"
+    elif "nearest knowledge" in txt: tier = "near misses shown"
+    else: tier = "answered"
     # life bookkeeping on the cached floors (never changes the door)
     qs = fa.words(q)
     if qs:
@@ -133,7 +135,7 @@ def serve_one(path, st, floors, wts, byid):
             for sc, B, A, h in good[:3]:              # what they mean
                 used += [fid(B), fid(A)]
                 w = co_travel(st, fid(B), fid(A))
-                if w: log(f"beat {st['beats']}: wrinkle worn — {w}")
+                if w: log(f"beat {st['beats']}: a path is worn — {w}")
             for i in used:
                 st["warmth"][i] = st["warmth"].get(i, 0.0) + 1.0
             for e in rel:
@@ -158,14 +160,14 @@ def wonder_one(st, wts, byid):
             st["wondered"].add(k)
             w = co_travel(st, a, b)
             hs = " ".join(sorted(hinge)[:6])
-            log(f"beat {st['beats']}: wondered [{byid[a]['field']}] x "
-                f"[{byid[b]['field']}] — hinge: {hs}")
-            if w: log(f"beat {st['beats']}: wrinkle worn — {w}")
+            log(f"beat {st['beats']}: tried a connection — "
+                f"{byid[a]['field']} and {byid[b]['field']} "
+                f"(shared words: {hs})")
+            if w: log(f"beat {st['beats']}: a path is worn — {w}")
             if len(hinge) >= 3:
-                log(f"beat {st['beats']}: JOIN CANDIDATE for a "
-                    f"reader — [{byid[a]['field']}] "
-                    f"{byid[a]['essence'][:60]} | "
-                    f"[{byid[b]['field']}] {byid[b]['essence'][:60]}")
+                log(f"beat {st['beats']}: a connection worth a "
+                    f"look — {byid[a]['essence'][:60]} | "
+                    f"{byid[b]['essence'][:60]}")
             return True
     return False
 
@@ -210,9 +212,9 @@ a{color:var(--thread)}
 footer{margin-top:2em;font-size:.85em;color:var(--dim)}
 </style></head><body>
 <h1>The Compute Fabric</h1>
-<p class="tag">Ask it anything. It answers from its floors, offers
-sideways what only brushes your question, and keeps true silence
-in the white — its treasure. It never pretends.</p>
+<p class="tag">Ask it anything. It answers from what it knows,
+shows near misses honestly, and keeps what it cannot answer as
+open questions. It never pretends.</p>
 <div class="askrow">
 <input id="q" placeholder="why does…" autofocus>
 <button onclick="go()">ask</button>
@@ -220,9 +222,8 @@ in the white — its treasure. It never pretends.</p>
 <pre id="a">—</pre>
 <div class="pulse" id="pulse"></div>
 <p class="life" id="life"></p>
-<footer><a href="/white">read the white</a> — every asking no
-floor can reach, certified and kept, each one a purchase order
-for a floor not yet bought.</footer>
+<footer><a href="/white">the open questions</a> — everything no
+knowledge yet reaches, kept until the knowledge arrives.</footer>
 <script>
 async function go(){
  const q=document.getElementById('q').value.trim();
@@ -234,11 +235,12 @@ async function go(){
 async function pulse(){
  try{
   const p=await (await fetch('/pulse')).json();
-  const row=[['beats lived',p.beats],['askings served',p.served],
-   ['floors',p.floors],['warm',p.warm],['wrinkles',p.wrinkles],
-   ['wonderings',p.wondered],
-   ['white standing',p.white_standing],
-   ['white drained',p.white_drained]];
+  const row=[['heartbeats',p.beats],
+   ['questions answered',p.served],
+   ['knowledge entries',p.floors],['in recent use',p.warm],
+   ['worn paths',p.wrinkles],['connections tried',p.wondered],
+   ['open questions',p.white_standing],
+   ['answered later',p.white_drained]];
   document.getElementById('pulse').innerHTML=row.map(
    ([k,v])=>`<div><b>${v}</b><span>${k}</span></div>`).join('');
   document.getElementById('life').textContent=p.life;
@@ -285,7 +287,8 @@ class Door(BaseHTTPRequestHandler):
             wt = open(fa.WHITE).read() \
                 if os.path.exists(fa.WHITE) else ""
             p["white_standing"] = wt.count("STATUS: STANDING")
-            p["white_drained"] = wt.count("STATUS: DRAINED")
+            p["white_drained"] = (wt.count("STATUS: DRAINED") +
+                                  wt.count("STATUS: ANSWERED"))
             p["life"] = " · ".join(
                 open(LOG).read().splitlines()[-2:]
                 if os.path.exists(LOG) else [])
@@ -330,10 +333,9 @@ def main():
     byid = {fid(e): e for e in floors}
     over_ceiling = False
     log(f"beat {st['beats']}: " +
-        (f"RESUMED — same life continues (served {st['served']}, "
-         f"{len(st['warmth'])} floors warm, "
-         f"{len(st['wrinkles'])} wrinkles)" if resumed else
-         "FIRST BREATH — new life, floors learned"))
+        (f"RESUMED — same life continues ({st['served']} "
+         f"questions answered so far)" if resumed else
+         "FIRST BREATH — new life, knowledge learned"))
     quiet = 0
     while not STOP:
         st["beats"] += 1
@@ -361,16 +363,16 @@ def main():
                 wts = {fid(e): fa.words(e["essence"] + " " +
                        e["cannot"] + " " + e["ask"]) for e in floors}
                 byid = {fid(e): e for e in floors}
-                log(f"beat {st['beats']}: floors changed — relearned "
-                    f"(signature {fp})")
+                log(f"beat {st['beats']}: the knowledge changed — "
+                    f"relearned it")
         if st["beats"] % CHECKPOINT_EVERY == 0:
             over_ceiling = not save_state(st)
         if st["beats"] % HEARTBEAT_EVERY == 0:
-            log(f"beat {st['beats']}: alive — served {st['served']}, "
-                f"{len(st['warmth'])} floors warm, "
-                f"{len(st['wrinkles'])} wrinkles, "
-                f"{len(st['wondered'])} wonderings, "
-                f"quiet streak {quiet}")
+            log(f"beat {st['beats']}: alive — "
+                f"{st['served']} questions answered, "
+                f"{len(st['warmth'])} entries in recent use, "
+                f"{len(st['wondered'])} connections tried, "
+                f"quiet {quiet}")
         time.sleep(1)
     save_state(st)
     log(f"beat {st['beats']}: orderly stop — checkpoint saved, "

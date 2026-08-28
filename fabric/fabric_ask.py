@@ -84,6 +84,13 @@ def walk(qs, es):
           len(rare & p[3])>=1]
     return rel,direct,houses,good,rare,missing
 def sig(qs): return " ".join(sorted(qs))
+def _mark_answered(s):
+    t=open(WHITE).read()
+    t2=re.sub(rf"(ASKED-SIG: {re.escape(s)}\n  FLOORS: \w+"
+              rf"(?:[^\n]|\n(?!\n))*?STATUS: )STANDING[^\n]*",
+              r"\1ANSWERED — knowledge that answers it was added "
+              r"later", t)
+    if t2!=t: open(WHITE,"w").write(t2)
 def ask(question):
     qs=words(question)
     digits=re.findall(r"\d+",question)
@@ -98,40 +105,39 @@ def ask(question):
               f"what this asking wants. Anything below is what my "
               f"floors KNOW.)")
     if not qs:
-        print("TRANSLATOR'S SILENCE — after dropping small words "
-              "and numbers, nothing of this asking remains that my "
-              "floors could hear. This is my translator's limit, "
-              "not a certified impossibility; nothing is filed.")
+        print("After setting aside small words and numbers, "
+              "nothing remains of this question that I can match. "
+              "This is a limit of how I read questions, not a fact "
+              "about the answer. Nothing is recorded.")
         return
     s=sig(qs); fp=fingerprint()
     wtxt=open(WHITE).read() if os.path.exists(WHITE) else ""
     m=re.search(rf"ASKED-SIG: {re.escape(s)}\n  FLOORS: (\w+)"
                 rf"[\s\S]*?STATUS: (\w+)",wtxt)
-    if m and m.group(2)=="DRAINED":
-        m=None   # a drained entry is history, not a silence
+    if m and m.group(2) in ("DRAINED","ANSWERED"):
+        m=None   # a settled entry is history, not a silence
     if m:
         if m.group(1)==fp:
-            print("FROM THE WHITE: no floor of mine reaches this "
-                  "asking — walked, certified, and my floors have "
-                  "not changed since. It stands as a purchase order "
-                  "for a floor not yet bought. Not-held is not "
-                  "impossible.")
+            print("I have no knowledge that reaches this question. "
+                  "It is recorded as an open question — when "
+                  "knowledge that answers it is added, it will "
+                  "answer.")
             return
-        print("(filed in the white, but my floors HAVE changed — "
-              "re-walking…)")
+        # knowledge changed since it was recorded — re-check quietly
     es=load(); rel,direct,houses,good,rare,missing=walk(qs,es)
     if missing:
-        print(f"(words my floors have never heard: "
+        print(f"(words I hold no knowledge of: "
               f"{', '.join(sorted(missing)[:6])})")
     if len(houses)>1:
         def body(e): return words(e["essence"]+" "+e["cannot"])
-        print(f"SPLIT — your words live in {len(houses)} different "
-              f"houses of my knowledge, and I cannot tell which you "
-              f"mean. Say it with one house's company:")
+        print(f"Your words match knowledge about "
+              f"{len(houses)} different things, and I cannot tell "
+              f"which you mean. Ask again with a word from the one "
+              f"you meant:")
         for h in houses:
             com=sorted((body(h[0])-qs))[:5]
-            print(f"  [{h[0]['field']}] {h[0]['essence'][:80]}")
-            print(f"      (this house's company: {' '.join(com)})")
+            print(f"  ({h[0]['field']}) {h[0]['essence']}")
+            print(f"      (its other words: {' '.join(com)})")
         return
     # sideways answers: joins from relevant floors that the strict
     # bar refused — shown, never suppressed; the reader judges
@@ -141,31 +147,35 @@ def ask(question):
         for A in rel[i+1:]:
             if len(wt(B)&wt(A))>=2: side.append((B,A))
     if direct or good:
-        if direct:
-            print(f"ANSWER — {len(direct)} floor(s) hold this "
-                  f"directly:")
-            for e in direct[:3]:
-                print(f"  [{e['field']}] {e['essence'][:100]}")
-        if good:
-            print(f"ANSWER — {len(good)} strong joins from "
-                  f"{len(rel)} floors:")
-            for sc,B,A,h in good[:3]:
-                print(f"  [{B['field']}] {B['essence'][:80]}")
-                print(f"  x [{A['field']}] {A['essence'][:80]}")
-        if m: print("(this asking has DRAINED from the white — "
-                    "update its entry to DRAINED)")
+        print("Answer — from my knowledge:")
+        shown=[]
+        for e in direct[:3]:
+            print(f"  ({e['field']}) {e['essence']}")
+            shown.append(id(e))
+        for sc,B,A,h in good[:1]:
+            for e in (B,A):
+                if id(e) not in shown:
+                    print(f"  ({e['field']}) {e['essence']}")
+                    shown.append(id(e))
+        if m:
+            _mark_answered(s)
+            print("This stood as an open question until now — the "
+                  "knowledge that answers it arrived, and the "
+                  "record is updated.")
         return
     if side:
-        print("SIDEWAYS ANSWER — nothing meets your question head-on,"
-              " but these joins touch it at an angle. You judge:")
-        for B,A in side[:3]:
-            print(f"  [{B['field']}] {B['essence'][:80]}")
-            print(f"  x [{A['field']}] {A['essence'][:80]}")
+        print("Nothing I hold answers this directly. The nearest "
+              "knowledge, in case it helps:")
+        seen=set()
+        for B,A in side[:2]:
+            for e in (B,A):
+                if id(e) in seen: continue
+                seen.add(id(e))
+                print(f"  ({e['field']}) {e['essence']}")
         return
-    print("TRUE SILENCE — no floor of mine reaches this asking. "
-          "Filing it to the white as a purchase order for a floor "
-          "not yet bought (two signatures required to stand). "
-          "Not-held is not impossible.")
+    print("I have no knowledge that reaches this question. "
+          "Recording it as an open question — when knowledge that "
+          "answers it is added, it will answer.")
     if not m:
         with open(WHITE,"a") as f:
             f.write(f"\nENTRY: {question.strip()}\n"

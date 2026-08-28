@@ -1,0 +1,5 @@
+ASKING: what is the square root of a polynomial
+
+Answer — from my knowledge:
+  (deep algebra) a polynomial has a polynomial square root ONLY when it is a perfect square — its shape matching a squared sum; x²+2x+1 has root x+1; x²+2x+3 has no polynomial root, dead, not unlikely.
+  (deep algebra) a root is a value that makes the balance true — finding the roots IS solving; a polynomial of a given degree has at most that many.

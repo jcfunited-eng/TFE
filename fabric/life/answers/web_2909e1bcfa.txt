@@ -1,0 +1,9 @@
+ASKING: what is the square root of a polynomial
+
+(filed in the white, but my floors HAVE changed — re-walking…)
+ANSWER — 1 floor(s) hold this directly:
+  [deep algebra] a polynomial has a polynomial square root ONLY when it is a perfect square — its shape matching a sq
+ANSWER — 1 strong joins from 4 floors:
+  [deep algebra] a polynomial has a polynomial square root ONLY when it is a perfect square — its
+  x [deep algebra] a root is a value that makes the balance true — finding the roots IS solving; a 
+(this asking has DRAINED from the white — update its entry to DRAINED)
