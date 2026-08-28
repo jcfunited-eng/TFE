@@ -7995,25 +7995,6 @@ impl ResidentCognitiveFormationState {
             &reached_body_regulations_by_occurrence,
             &internal_contact.settled_directed_transfers,
         )?;
-        let moved_axes = {
-            let mut moved = Vec::new();
-            for port in source.joint_source_ports() {
-                let Some(terminal) = port.body_proprioceptor_terminal else {
-                    continue;
-                };
-                if port.physical_quantity != ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY {
-                    continue;
-                }
-                let changed = port
-                    .exact_normalized_sources
-                    .windows(2)
-                    .any(|pair| pair[0] != pair[1]);
-                if changed && !moved.contains(&terminal.axis()) {
-                    moved.push(terminal.axis());
-                }
-            }
-            moved
-        };
         let root_yaw_continuations = exact_reached_root_yaw_regulations(
             &cohorts,
             &topology_index,
@@ -8028,7 +8009,7 @@ impl ResidentCognitiveFormationState {
             &internal_contact.causally_transitioned_lineages,
             &internal_contact.settled_directed_transfers,
             &predecessor_active_electrical_frontier,
-            &moved_axes,
+            &[],
             &root_yaw_continuations,
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
@@ -14565,7 +14546,7 @@ fn mount_reached_motor_effector(
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    moved_axes: &[crate::virtual_articulated_body::BodyAxis],
+    _moved_axes: &[crate::virtual_articulated_body::BodyAxis],
 ) -> Result<(), FormationError> {
     mount_reached_motor_effector_with_root(
         cohorts,
@@ -14575,7 +14556,7 @@ fn mount_reached_motor_effector(
         physically_transitioned_lineages,
         settled_directed_transfers,
         predecessor_frontier,
-        moved_axes,
+        _moved_axes,
         &BTreeMap::new(),
     )
 }
@@ -14588,7 +14569,7 @@ fn mount_reached_motor_effector_with_root(
     physically_transitioned_lineages: &[[u8; 16]],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    moved_axes: &[crate::virtual_articulated_body::BodyAxis],
+    _moved_axes: &[crate::virtual_articulated_body::BodyAxis],
     root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
 ) -> Result<(), FormationError> {
     // Articulated motor terminals are fixed body anatomy mounted with their
@@ -14693,6 +14674,32 @@ fn mount_reached_motor_effector_with_root(
     ordering.sort_unstable();
     ordering.dedup();
 
+    // Vocal feedback names mechanics of the whole tract rather than one
+    // articulated joint.  Its exact motor identity therefore comes from the
+    // immediately preceding physical action: one of the fixed vocal layer-12
+    // terminals transferred carriers into the fixed layer-13 excitation
+    // cell.  Self-hearing and returned articulatory mechanics must both be
+    // present now; neither an acoustic input nor body activity alone can
+    // author a learned vocal route.
+    let self_hearing_reached = physically_transitioned_lineages.iter().any(|lineage| {
+        layer_by_lineage.get(lineage).copied() == Some(1)
+    });
+    let mut preceding_vocal_motors = predecessor_frontier
+        .iter()
+        .filter_map(|entry| entry.directed_transfer())
+        .filter_map(|transfer| {
+            let terminal = mounts_by_lineage
+                .get(&transfer.sender)?
+                .body_effector_terminal()?;
+            (layer_by_lineage.get(&transfer.sender).copied() == Some(12)
+                && layer_by_lineage.get(&transfer.receiver).copied() == Some(13)
+                && terminal.axis().is_vocal_articulator())
+            .then_some(transfer.sender)
+        })
+        .collect::<Vec<_>>();
+    preceding_vocal_motors.sort_unstable();
+    preceding_vocal_motors.dedup();
+
     let mut matching_by_terminal =
         BTreeMap::<DevelopedMotorTerminal, Vec<[u8; 16]>>::new();
     for (candidate, mount) in &mounted {
@@ -14751,22 +14758,29 @@ fn mount_reached_motor_effector_with_root(
             .collect::<Vec<_>>();
         terminals.sort_unstable();
         terminals.dedup();
-        let effector_terminal = match terminals.as_slice() {
-            [] => continue,
-            [terminal] => *terminal,
+        let articulatory_consequence = neighbours_by_lineage
+            .get(integration)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .iter()
+            .filter_map(|lineage| mounts_by_lineage.get(lineage)?.source_site())
+            .any(|source_site| {
+                source_site.sense() == PhysicalSourceSense::Body
+                    && source_site.body_proprioceptor_terminal().is_none()
+                    && source_site.root_yaw_proprioceptor_terminal().is_none()
+                    && matches!(
+                        source_site.physical_quantity(),
+                        RESPIRATORY_VOLUME_VELOCITY_QUANTITY
+                            | LARYNGEAL_GLOTTAL_OPENING_QUANTITY
+                            | ORAL_APERTURE_AREA_QUANTITY
+                            | PERIORAL_SKIN_DEFORMATION_QUANTITY
+                    )
+            });
+        let effector_terminal = match (terminals.as_slice(), articulatory_consequence) {
+            ([terminal], false) => Some(*terminal),
+            ([], true) => None,
+            ([], false) => continue,
             _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
-        let consequence_moved = match effector_terminal {
-            DevelopedMotorTerminal::Articulated(_) => true,
-            DevelopedMotorTerminal::RootYaw(terminal) => {
-                root_yaw_continuations
-                    .get(&regulation)
-                    .is_some_and(|terminals| terminals.contains(&terminal))
-            }
-        };
-        if !consequence_moved {
-            continue;
-        }
         if layer_by_lineage.get(&regulation).copied() != Some(8) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
@@ -14799,6 +14813,42 @@ fn mount_reached_motor_effector_with_root(
         // exact two-interval ordering -> affective -> regulation chain.
         // Guided movement alone has no contact-authorship authority.
         if proven_ordering.is_empty() {
+            continue;
+        }
+
+        if effector_terminal.is_none() {
+            if !self_hearing_reached || preceding_vocal_motors.is_empty() {
+                continue;
+            }
+            // Learned meaning remains upstream of voice.  The only new edge
+            // is from each exactly proved ordering cell to the exact vocal
+            // motor that physically discharged in the preceding interval.
+            // The innate layer-12 -> layer-13 route is never widened.
+            for ordering_lineage in proven_ordering {
+                for motor_lineage in preceding_vocal_motors.iter().copied() {
+                    let pair = canonical_lineage_pair(ordering_lineage, motor_lineage);
+                    if existing_contacts.insert(pair) {
+                        new_contacts.push((
+                            ordering_lineage,
+                            motor_lineage,
+                            ExactRational::integer(
+                                DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS,
+                            ),
+                        ));
+                    }
+                }
+            }
+            continue;
+        }
+
+        let effector_terminal = effector_terminal.expect("checked above");
+        let consequence_moved = match effector_terminal {
+            DevelopedMotorTerminal::Articulated(_) => true,
+            DevelopedMotorTerminal::RootYaw(terminal) => root_yaw_continuations
+                .get(&regulation)
+                .is_some_and(|terminals| terminals.contains(&terminal)),
+        };
+        if !consequence_moved {
             continue;
         }
         let mut participants = Vec::with_capacity(proven_ordering.len() + 1);
@@ -14873,220 +14923,6 @@ fn mount_reached_motor_effector_with_root(
     if !new_contacts.is_empty() {
         *electrical_fabric = electrical_fabric
             .append_contacts(&new_contacts)
-            .map_err(FormationError::ResidentElectricalUnavailable)?;
-    }
-    mount_reached_articulatory_effector(
-        cohorts,
-        resting_population,
-        next_lineage_ordinal,
-        electrical_fabric,
-        physically_transitioned_lineages,
-        &mounted,
-        predecessor_frontier,
-        moved_axes,
-    )?;
-    Ok(())
-}
-
-/// Retain sparse learned sensory/consequence contacts around the fixed vocal
-/// route only after an actual articulation
-/// followed by its returned consequences in the immediately following
-/// window: the preceding interval's retained causal frontier must carry a
-/// directed entry of an ordering (layer 11) cell moving whole carriers
-/// INTO a motor (layer 12) cell — the articulation — and the current
-/// interval must carry both the matching self-hearing (a transitioned
-/// acoustic layer-1 cell) and the articulatory-body consequence (a
-/// transitioned layer-8 regulation cell). Four cells merely transitioning
-/// in one interval is coincidence and authors nothing.
-fn mount_reached_articulatory_effector(
-    cohorts: &mut Vec<ResidentReachedCohort>,
-    resting_population: &mut Option<DevelopmentalRestingPopulation>,
-    next_lineage_ordinal: &mut u64,
-    electrical_fabric: &mut ResidentElectricalFabric,
-    physically_transitioned_lineages: &[[u8; 16]],
-    mounted: &[([u8; 16], ReachedNeuronMount)],
-    predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    moved_axes: &[crate::virtual_articulated_body::BodyAxis],
-) -> Result<(), FormationError> {
-    // Actual articulation moves articulators; an interval whose body
-    // evidence shows no vocal movement cannot author speech wiring. Limb,
-    // eye, and facial-expression motion is not silently relabelled as voice.
-    if !moved_axes.iter().any(|axis| axis.is_vocal_articulator()) {
-        return Ok(());
-    }
-    let mut acoustic = Vec::new();
-    let mut body_regulation = Vec::new();
-    for lineage in physically_transitioned_lineages {
-        let Some((_, mount)) = mounted.iter().find(|(candidate, _)| candidate == lineage) else {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
-        };
-        let target = match mount.place().layer() {
-            1 => &mut acoustic,
-            8 => &mut body_regulation,
-            _ => continue,
-        };
-        if !target.contains(lineage) {
-            target.push(*lineage);
-        }
-    }
-    if acoustic.is_empty() || body_regulation.is_empty() {
-        return Ok(());
-    }
-    let layer_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount.place().layer())
-    };
-    let mount_of = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount)
-    };
-    let mut neighbours = mounted
-        .iter()
-        .map(|(lineage, _)| (*lineage, Vec::<[u8; 16]>::new()))
-        .collect::<BTreeMap<_, _>>();
-    for (left, right) in electrical_fabric.contact_endpoints() {
-        let left = electrical_fabric.lineages()[left];
-        let right = electrical_fabric.lineages()[right];
-        neighbours
-            .get_mut(&left)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .push(right);
-        neighbours
-            .get_mut(&right)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .push(left);
-    }
-    // A layer-8 cell is an articulatory consequence only when its own local
-    // receptor ancestry names an axis that actually moved in this interval.
-    // Ambient regulation cells on the saturated fabric have no authorship.
-    body_regulation.retain(|regulation| {
-        neighbours.get(regulation).is_some_and(|regulation_neighbours| {
-            regulation_neighbours.iter().copied().any(|integration| {
-                layer_of(integration) == Some(6)
-                    && neighbours.get(&integration).is_some_and(|integration_neighbours| {
-                        integration_neighbours.iter().copied().any(|receptor| {
-                            mount_of(receptor)
-                                .and_then(ReachedNeuronMount::source_site)
-                                .and_then(NeuronSourceSite::body_proprioceptor_terminal)
-                                .is_some_and(|terminal| {
-                                    terminal.axis().is_vocal_articulator()
-                                        && moved_axes.contains(&terminal.axis())
-                                })
-                        })
-                    })
-            })
-        })
-    });
-    if body_regulation.is_empty() {
-        return Ok(());
-    }
-    // The articulation itself, from the preceding window: directed frontier
-    // entries of ordering cells driving the exact motor axes whose returned
-    // body consequence was observed now.
-    let mut ordering = Vec::new();
-    let mut motor = Vec::new();
-    for entry in predecessor_frontier {
-        let Some(sender) = entry.sender() else {
-            continue;
-        };
-        let receiver = entry.receiver();
-        let moved_motor = mount_of(receiver)
-            .and_then(ReachedNeuronMount::body_effector_terminal)
-            .is_some_and(|terminal| {
-                terminal.axis().is_vocal_articulator()
-                    && moved_axes.contains(&terminal.axis())
-            });
-        if layer_of(sender) == Some(11)
-            && layer_of(receiver) == Some(12)
-            && moved_motor
-        {
-            if !ordering.contains(&sender) {
-                ordering.push(sender);
-            }
-            if !motor.contains(&receiver) {
-                motor.push(receiver);
-            }
-        }
-    }
-    if ordering.is_empty() || motor.is_empty() {
-        return Ok(());
-    }
-    let mut participants = acoustic;
-    participants.extend(body_regulation);
-    participants.extend(ordering);
-    participants.extend(motor);
-    participants.sort_unstable();
-    participants.dedup();
-
-    let contacted_lineages = electrical_fabric
-        .contact_endpoints()
-        .flat_map(|(left, right)| {
-            [
-                electrical_fabric.lineages()[left],
-                electrical_fabric.lineages()[right],
-            ]
-        })
-        .collect::<BTreeSet<_>>();
-    let existing_contacted = mounted
-        .iter()
-        .filter(|(lineage, mount)| {
-            mount.source_site().is_none()
-                && mount.place().layer() == 13
-                && contacted_lineages.contains(lineage)
-        })
-        .min_by_key(|(_, mount)| mount.place().topology_index())
-        .map(|(lineage, _)| *lineage);
-    let existing_quiescent = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
-                .iter()
-                .zip(cohort.anatomy.neuron_lineages())
-                .zip(cohort.state.neurons())
-        })
-        .filter(|((mount, lineage), neuron)| {
-            mount.source_site().is_none()
-                && mount.place().layer() == 13
-                && !contacted_lineages.contains(*lineage)
-                && neuron.separated_elementary_charges() == 0
-        })
-        .min_by_key(|((mount, _), _)| mount.place().topology_index())
-        .map(|((_, lineage), _)| *lineage);
-    let articulatory_lineage = match existing_contacted.or(existing_quiescent) {
-        Some(lineage) => lineage,
-        None => {
-            mount_next_intrinsic_in_layer(cohorts, resting_population, next_lineage_ordinal, 13)?
-        }
-    };
-    let mut existing_contacts = electrical_fabric
-        .contact_endpoints()
-        .map(|(left, right)| {
-            canonical_lineage_pair(
-                electrical_fabric.lineages()[left],
-                electrical_fabric.lineages()[right],
-            )
-        })
-        .collect::<BTreeSet<_>>();
-    let mut additions = Vec::new();
-    for participant in participants {
-        let pair = canonical_lineage_pair(participant, articulatory_lineage);
-        if existing_contacts.insert(pair) {
-            additions.push((
-                participant,
-                articulatory_lineage,
-                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
-            ));
-        }
-    }
-    if !additions.is_empty() {
-        *electrical_fabric = electrical_fabric
-            .append_contacts(&additions)
             .map_err(FormationError::ResidentElectricalUnavailable)?;
     }
     Ok(())
@@ -26055,11 +25891,63 @@ mod tests {
     }
 
     #[test]
-    fn returned_vocal_consequence_widens_only_the_fixed_articulatory_route() {
+    fn returned_vocal_consequence_teaches_only_the_exact_fired_motor() {
         let mut cohorts = Vec::new();
         let mut population =
             Some(DevelopmentalRestingPopulation::admit(16_000_000, 100_000, 100, &[]).unwrap());
         let mut next_lineage = 1;
+        let articulatory_port = crate::joint_source_episode::JointSourcePortView {
+            sense: PhysicalSourceSense::Body.declared_layer(),
+            topology_index: 0,
+            body_proprioceptor_terminal: None,
+            root_yaw_proprioceptor_terminal: None,
+            sensor_id: "articulatory-mechanoreceptors".into(),
+            substream_id: "oral-aperture".into(),
+            coordinates: vec![crate::joint_source_episode::JointSourceCoordinate {
+                axis_id: "articulatory-site".into(),
+                coordinate_id: "oral-aperture".into(),
+            }],
+            physical_quantity: ORAL_APERTURE_AREA_QUANTITY.into(),
+            physical_unit: ARTICULATORY_MECHANICAL_FRACTION_UNIT.into(),
+            relevance_rule: "source-only".into(),
+            relevance_origin: None,
+            input_map_id: "articulatory-test-map".into(),
+            source_min: BigRational::from_integer(BigInt::from(-1)),
+            source_max: BigRational::from_integer(BigInt::from(1)),
+            field_offset: BigRational::from_integer(BigInt::from(0)),
+            field_scale: BigRational::from_integer(BigInt::from(1)),
+            input_map_profile: vec![1],
+            input_map_group_receipt: [0; 32],
+            source_times: vec![
+                BigRational::from_integer(BigInt::from(0)),
+                BigRational::from_integer(BigInt::from(1)),
+            ],
+            exact_normalized_sources: vec![
+                BigRational::from_integer(BigInt::from(0)),
+                BigRational::new(BigInt::from(1), BigInt::from(4)),
+            ],
+            reported_phase_turns: vec![
+                BigRational::from_integer(BigInt::from(0)),
+                BigRational::from_integer(BigInt::from(0)),
+            ],
+            source_relevances: vec![
+                BigRational::from_integer(BigInt::from(1)),
+                BigRational::from_integer(BigInt::from(1)),
+            ],
+            dimensionless_fields: vec![
+                BigRational::from_integer(BigInt::from(0)),
+                BigRational::from_integer(BigInt::from(0)),
+            ],
+        };
+        let articulatory_site = NeuronSourceSite::from_source_port(&articulatory_port).unwrap();
+        let mut fabric = ResidentElectricalFabric::default();
+        let (regulation, _, _) = mount_body_regulation_from_site_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            articulatory_site,
+        );
         let acoustic = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -26067,15 +25955,6 @@ mod tests {
             DeclaredNeuronPlace::new(1, 0),
         )
         .unwrap();
-        let mut fabric = ResidentElectricalFabric::default();
-        let (regulation, _, _) = mount_body_regulation_fixture(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            &mut fabric,
-            BodyAxis::JawOpening,
-            BodyEffectorDirection::TowardMaximum,
-        );
         let ordering = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -26083,190 +25962,108 @@ mod tests {
             DeclaredNeuronPlace::new(11, 0),
         )
         .unwrap();
-        mount_local_motor_bridge_fixture(
+        let affective = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(10, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contacts(&[
+                (
+                    regulation,
+                    affective,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
+                    affective,
+                    ordering,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+            ])
+            .unwrap();
+        let motor = mount_next_intrinsic_in_layer(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            12,
+        )
+        .unwrap();
+        cohorts
+            .iter_mut()
+            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&motor))
+            .unwrap()
+            .anatomy
+            .specialize_motor_effector(
+                motor,
+                BodyEffectorTerminal::new(
+                    BodyAxis::JawOpening,
+                    BodyEffectorDirection::TowardMaximum,
+                ),
+            )
+            .unwrap();
+        let articulatory = mount_fixed_vocal_articulatory_route(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            regulation,
-            ordering,
-            0,
-        );
-        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
-        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        )
+        .unwrap()
+        .unwrap();
+        let contacts_before = fabric.contact_count();
+        let current_consequence = directed_chain(&cohorts, &fabric, &[regulation, affective]);
+        let mut preceding_action = frontier_hop(&cohorts, &fabric, ordering, affective);
+        preceding_action.extend(frontier_hop(&cohorts, &fabric, motor, articulatory));
+        preceding_action.sort_unstable();
+
+        // Body feedback without self-hearing cannot teach a vocal route.
         mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[ordering, regulation],
-            &active_bonds,
-            &prior_frontier,
-            &[BodyAxis::JawOpening],
-        )
-        .unwrap();
-        let motor = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .find_map(|(mount, lineage)| {
-                (mount.body_effector_terminal()
-                    == Some(BodyEffectorTerminal::new(
-                        BodyAxis::JawOpening,
-                        BodyEffectorDirection::TowardMaximum,
-                    )))
-                .then_some(*lineage)
-            })
-            .unwrap();
-        let second_acoustic = mount_intrinsic_neuron_at_place(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            DeclaredNeuronPlace::new(1, 1),
-        )
-        .unwrap();
-        let mounted = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .map(|(mount, lineage)| (*lineage, mount.clone()))
-            .collect::<Vec<_>>();
-        let resting_before = population.as_ref().unwrap().resting_cell_count();
-        let contact_count_before_articulation = fabric.contact_count();
-
-        // Four transitioned classes with NO prior-window articulation:
-        // coincidence, authors nothing under the consecutive law.
-        mount_reached_articulatory_effector(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            &mut fabric,
-            &[acoustic, regulation, ordering, motor],
-            &mounted,
+            &[regulation],
+            &current_consequence,
+            &preceding_action,
             &[],
-            &[BodyAxis::JawOpening],
         )
         .unwrap();
-        assert_eq!(
-            population.as_ref().unwrap().resting_cell_count(),
-            resting_before
-        );
+        assert!(!fabric.contains_contact(ordering, motor));
+        assert_eq!(fabric.contact_count(), contacts_before);
 
-        // Actual articulation in the preceding window (ordering drove the
-        // motor cell), followed by self-hearing and body consequence now.
-        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
-        mount_reached_articulatory_effector(
+        // The exact preceding motor discharge, its returned mechanics, and
+        // self-hearing now retain only ordering -> that fired motor.
+        mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
             &[acoustic, regulation],
-            &mounted,
-            &articulation,
-            &[BodyAxis::JawOpening],
+            &current_consequence,
+            &preceding_action,
+            &[],
         )
         .unwrap();
-        let articulatory = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .filter(|(mount, _)| mount.place().layer() == 13)
-            .map(|(_, lineage)| *lineage)
-            .collect::<Vec<_>>();
-        assert_eq!(articulatory.len(), 1);
-        assert_eq!(
-            population.as_ref().unwrap().resting_cell_count(),
-            resting_before
-        );
-        for participant in [acoustic, regulation, ordering, motor] {
-            assert!(fabric.contains_contact(participant, articulatory[0]));
-        }
-        assert_eq!(fabric.contact_count(), contact_count_before_articulation + 3);
-        let cohort_count = cohorts.len();
-        let contact_count = fabric.contact_count();
-        let remounted = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .map(|(mount, lineage)| (*lineage, mount.clone()))
-            .collect::<Vec<_>>();
+        assert!(fabric.contains_contact(ordering, motor));
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
+        assert!(!fabric.contains_contact(acoustic, articulatory));
+        assert!(!fabric.contains_contact(regulation, articulatory));
+        assert!(!fabric.contains_contact(ordering, articulatory));
 
-        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
-        mount_reached_articulatory_effector(
+        // Repeating the same exact evidence is idempotent.
+        mount_reached_motor_effector(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[regulation, acoustic],
-            &remounted,
-            &articulation,
-            &[BodyAxis::JawOpening],
+            &[acoustic, regulation],
+            &current_consequence,
+            &preceding_action,
+            &[],
         )
         .unwrap();
-        assert_eq!(cohorts.len(), cohort_count);
-        assert_eq!(fabric.contact_count(), contact_count);
-        assert_eq!(
-            population.as_ref().unwrap().resting_cell_count(),
-            resting_before
-        );
-        let distinct_participant_count = fabric.contact_count();
-        let distinct_remounted = cohorts
-            .iter()
-            .flat_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-            })
-            .map(|(mount, lineage)| (*lineage, mount.clone()))
-            .collect::<Vec<_>>();
-        let articulation = frontier_hop(&cohorts, &fabric, ordering, motor);
-        mount_reached_articulatory_effector(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            &mut fabric,
-            &[second_acoustic, regulation],
-            &distinct_remounted,
-            &articulation,
-            &[BodyAxis::JawOpening],
-        )
-        .unwrap();
-        assert_eq!(
-            cohorts
-                .iter()
-                .flat_map(|cohort| cohort.anatomy.mounts())
-                .filter(|mount| mount.place().layer() == 13)
-                .count(),
-            1
-        );
-        assert_eq!(fabric.contact_count(), distinct_participant_count + 1);
-        assert!(fabric.contains_contact(second_acoustic, articulatory[0]));
-        assert_eq!(
-            population.as_ref().unwrap().resting_cell_count(),
-            resting_before
-        );
+        assert_eq!(fabric.contact_count(), contacts_before + 1);
     }
 
     #[test]
