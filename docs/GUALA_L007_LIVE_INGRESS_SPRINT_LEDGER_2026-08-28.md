@@ -134,3 +134,39 @@ Applicable recurrence register:
 The production mutation is not started until this record is committed and the
 worktree is clean. The first cutover attempt and its outcome will be appended
 only after the controller returns; no success is inferred from image creation.
+
+## Hot cutover and live evidence
+
+- One hot attempt started `2026-08-28T18:33:09Z` and completed
+  `2026-08-28T18:43:11Z` with status `deployed`; there was no retry or
+  rollback.
+- Live task definition: `dsf-ai-task:1299`; live source identity:
+  `ce964e6e788b2566824f3d7059f539871f0f8e5e`; live image digest:
+  `sha256:3530a762b9a243c580b4ba67fa657506ca1413524d69592af5b5598217d05d81`.
+- The controller verified the same organism identity and a successor at or
+  beyond tick `230890` before pinning the image as production-current.
+- The matching `gualaloom.html` was published to `dsf-ai-site`; CloudFront
+  invalidation `I20SK1N3TH29VIZGZ8WVCDGRZE` completed. Local and live page
+  SHA-256 are both
+  `75d96002c450ce689be7822be889d3afc2c09a2e95d7627279e3feb2ae5e4a8e`.
+- One bounded two-sample pressure probe used the camera-independent endpoint.
+  It committed in the same identity, advanced native tick `231115 -> 231116`,
+  and reported 170 sound-lane receptor inputs inside the full current-world
+  sensorium. The refreshed public observation immediately reported
+  `live_pressure_committed_this_process` and
+  `requires_concurrent_camera=false`.
+- One synthetic glyph-raster request returned HTTP 504 at the public gateway.
+  It was not retried because a state-changing timeout may conceal a committed
+  successor. The service remained healthy and autonomous generations advanced,
+  but the current public schema has no request-specific rendered-light receipt,
+  so this request cannot be classified as committed from observation alone.
+- No synthetic frame was sent to the live-camera endpoint: that endpoint treats
+  caller-declared `live-camera` provenance as real and would make the public
+  observer claim real-device evidence. Current-artifact real camera proof
+  therefore remains open until actual browser hardware supplies frames.
+
+Current truth: the live code and page now support independent microphone,
+optional co-captured audiovisual input, and glyph pixels without submitting a
+string. Independent microphone ingress is live-proven. Rendered-light source
+and transport are focused-proofed but its timed-out live request is
+indeterminate. Real-camera proof is not claimed from synthetic data.
