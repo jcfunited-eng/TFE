@@ -80,8 +80,62 @@ and self-hearing result; no emitted waveform is claimed to mean `bear`.
   association, then a later encounter with a different lawful settled subset
   reused that association without increasing cohort or contact count. Result:
   `1 passed; 0 failed`; 526 unit tests were filtered out. `git diff --check`
-  also passes. Live production has not yet received this correction, so no
-  learned-word claim follows from the source proof alone.
+  also passes.
+- Commit `204ed704dc4e9e22ac0fcd7bb93d3321c4267b77` deployed the bounded
+  association identity as sole production task `dsf-ai-task:1291`. Repeating
+  the exact grounded occurrence retained one new cross-sensory formation and
+  then held the resident formation count at 96 instead of appending another
+  association/formation on every encounter.
+- Exact live cold inspection identifies that new retained formation as receipt
+  `824fe717672f2fadd519baa8bfb0d854362aa6a24ad08b6c11f382cdeec0ebe9`.
+  It has ten retained members spanning visual layer 0, auditory layer 1, and
+  affective layer 10. Its recurrent structure includes layer-9 endpoint
+  `474c4e4c494e45310000000000000602`.
+
+## Fractional electrical continuation on task 1292
+
+- Exact live-sized diagnosis found a separate downstream defect after the
+  learned formation reassembled. Component-wide energy descent scaled each
+  contact's already-quantized whole-carrier count and floored small lawful
+  branches to zero. The zero branch then retained its predecessor phase, so it
+  could never accumulate toward a later carrier crossing while a large branch
+  dominated the same connected component.
+- Commit `6d14fdb0ab4ee48ae3b7ab7dad34c5b5ca67a191` scales each exact contact
+  current by the largest representable unit fraction no greater than the exact
+  component line-minimum, then settles that current through the contact's
+  resident carrier phase. Shared finite-carrier reconciliation and the final
+  strict component energy-descent check remain authoritative. No DSF field,
+  neuron, contact, formation, semantic label, observer authority, or input law
+  changed.
+- The focused regression proves that a small connected branch can move zero
+  whole carriers in one interval while its exact fractional phase advances;
+  the two adjacent component-settlement falsifiers and the release build pass.
+  On the exact restored production-sized body, lawful whole-carrier movement
+  rose from 2,624 to 3,648 and another 638 contacts retained nonzero fractional
+  progress instead of being reset.
+- The correction deployed by the hot continuity controller as sole production
+  task `dsf-ai-task:1292`, immutable image
+  `sha256:f0e6ec0ac22a4535a8e6d3e5c6c502dafbf569c54cf628b4ca969e1ba12f3212`.
+  The controller verified the same organism identity and a live tick at or
+  beyond 220737 before completing the cutover.
+- One varied approved tutor-pressure/world experience then committed through
+  tick 221039 with 1,298 full seven-field deliveries, 62 neuronal fractals,
+  398 physical reassemblies, several retained-formation-caused motor actions,
+  returned proprioception, one layer-13 discharge, 4,000 organism-owned
+  pressure samples, one self-hearing hop, and no exhausted interval. This
+  proves the corrected continuation is live; it is not by itself the target
+  learned-apple causal-use witness.
+- One exact learned pressure cue with the real apple returned to view then
+  committed through tick 221127. Exact cold inspection of the subsequent live
+  body proves target formation `824fe7...0ebe9` still has
+  `externally_observed` recurrence evidence from visual lineage
+  `474c4e4c494e45310000000000000001`. It therefore recognized the changed
+  physical cue. Its own recurrent route did not reach motor or articulation;
+  the one externally reassembled formation that caused sensed action in that
+  request was a different retained formation. L-005 remains open specifically
+  at the target recurrent-to-effector continuation. Another lesson, association
+  rewrite, label, observer change, or blind repetition is not authorized as a
+  substitute.
 
 ## 2026-08-22 resumed first-word work
 
