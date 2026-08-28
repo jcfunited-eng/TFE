@@ -447,11 +447,11 @@ impl ContactEndpoint {
 /// cannot change the sign: the exact rational bracket alone decides
 /// lawfulness.  No new constant, threshold, or damping factor is introduced —
 /// only the authored capacitances and the separated charges already in state.
-fn stored_energy_strictly_decreases(
+fn stored_energy_change_bracket(
     left: ContactEndpoint,
     right: ContactEndpoint,
     transferred_from_left: i128,
-) -> Result<bool, SparseElectricalError> {
+) -> BigRational {
     // This is a transient comparison, not resident state.  A mature membrane
     // may lawfully hold an i128 charge while the exact q² and 2nq terms need
     // more than i128 during the comparison.  Keeping those intermediate
@@ -465,11 +465,53 @@ fn stored_energy_strictly_decreases(
         - &doubled * BigInt::from(left.separated_elementary_charges);
     let right_numerator = squared
         + doubled * BigInt::from(right.separated_elementary_charges);
-    let bracket = BigRational::from_integer(left_numerator)
+    BigRational::from_integer(left_numerator)
         / wide_rational(left.capacitance.picofarads())
         + BigRational::from_integer(right_numerator)
-            / wide_rational(right.capacitance.picofarads());
-    Ok(bracket.is_negative())
+            / wide_rational(right.capacitance.picofarads())
+}
+
+fn stored_energy_strictly_decreases(
+    left: ContactEndpoint,
+    right: ContactEndpoint,
+    transferred_from_left: i128,
+) -> Result<bool, SparseElectricalError> {
+    Ok(stored_energy_change_bracket(left, right, transferred_from_left).is_negative())
+}
+
+/// Exact junctional work released by the whole elementary charges that
+/// physically crossed this contact.  The approved contact constitution uses
+/// the before/after electrostatic energy drop, not continuous `I * V * dt`
+/// accumulated for an unresolved sub-carrier phase.  In the existing units,
+/// `1 fC^2 / pF = 1000 zJ`; the common `e^2 / 2` factor therefore converts the
+/// exact negative energy-change bracket above into nonnegative zeptojoules.
+///
+/// Because each contact's two capacitances and the elementary-charge constant
+/// are fixed anatomy, every later work increment is commensurate with that
+/// contact's earlier increments.  The retained proper phase stays an exact,
+/// fixed-width state coordinate instead of acquiring a new denominator from
+/// every interval.
+fn released_electrostatic_work_zeptojoules(
+    left: ContactEndpoint,
+    right: ContactEndpoint,
+    transferred_from_left: i128,
+) -> Result<BigRational, SparseElectricalError> {
+    if transferred_from_left == 0 {
+        return Ok(BigRational::zero());
+    }
+    let change = stored_energy_change_bracket(left, right, transferred_from_left);
+    if !change.is_negative() {
+        return Err(SparseElectricalError::ArithmeticWidth);
+    }
+    let elementary_charge_squared_scale = BigRational::new(
+        BigInt::from(FAST_E_NUMERATOR)
+            * BigInt::from(FAST_E_NUMERATOR)
+            * BigInt::from(1_000_u16),
+        BigInt::from(FAST_E_DENOMINATOR)
+            * BigInt::from(FAST_E_DENOMINATOR)
+            * BigInt::from(2_u8),
+    );
+    Ok(-change * elementary_charge_squared_scale)
 }
 
 /// Largest whole-carrier transfer in the field-driven direction that remains
@@ -1980,57 +2022,17 @@ pub(crate) struct SparseElectricalTransferSettlement {
     pub(crate) outward_elementary_charges_by_neuron: Box<[i128]>,
 }
 
-/// Exact fixed-width form of ``current x potential difference x interval``:
-/// the released-work value with the same sign law as the arbitrary-precision
-/// expression. ``None`` on any width gate or on a negative product, which the
-/// caller's original path then reports exactly as before.
-fn fast_released_work_parts(
-    current: ExactRational,
-    left_potential: ExactRational,
-    right_potential: ExactRational,
-    interval_microseconds: u32,
-) -> Option<(u128, u128)> {
-    use crate::fast_charge_math::U256;
-    let (i_n, i_d) = current.parts();
-    let (vl_n, vl_d) = left_potential.parts();
-    let (vr_n, vr_d) = right_potential.parts();
-    let cross_left = U256::mul_u128(vl_n.unsigned_abs(), vr_d);
-    let cross_right = U256::mul_u128(vr_n.unsigned_abs(), vl_d);
-    let (difference_negative, difference) = match (vl_n < 0, vr_n < 0) {
-        (false, false) => match cross_left.cmp(&cross_right) {
-            core::cmp::Ordering::Less => (true, cross_right.checked_sub(cross_left)?),
-            _ => (false, cross_left.checked_sub(cross_right)?),
-        },
-        (true, true) => match cross_left.cmp(&cross_right) {
-            core::cmp::Ordering::Greater => (true, cross_left.checked_sub(cross_right)?),
-            _ => (false, cross_right.checked_sub(cross_left)?),
-        },
-        (false, true) => (false, cross_left.checked_add(cross_right)?),
-        (true, false) => (true, cross_left.checked_add(cross_right)?),
-    };
-    if (i_n < 0) != difference_negative {
-        // A negative product is the exact path's own refusal; let it speak.
-        return None;
-    }
-    let numerator = difference
-        .to_u128()
-        .map(|d| U256::mul_u128(i_n.unsigned_abs(), d))?
-        .checked_mul_small(u128::from(interval_microseconds))?;
-    let denominator = U256::mul_u128(i_d, vl_d).checked_mul_small(vr_d)?;
-    let reduction = numerator.gcd(denominator);
-    let (numerator, _) = numerator.div_rem(reduction)?;
-    let (denominator, _) = denominator.div_rem(reduction)?;
-    Some((numerator.to_u128()?, denominator.to_u128()?))
-}
-
 fn attach_contact_local_released_work(
     anatomy: &SparseElectricalAnatomy,
     potentials_millivolts: &[ExactRational],
-    interval_microseconds: u32,
+    capacitances: &[MembraneCapacitance],
+    predecessor_membranes: &[ElementaryChargeMembraneState],
     transitions: &mut [ElectricalContactTransition],
 ) -> Result<(), SparseElectricalError> {
     if anatomy.contacts.len() != transitions.len()
         || potentials_millivolts.len() != anatomy.neuron_count
+        || capacitances.len() != anatomy.neuron_count
+        || predecessor_membranes.len() != anatomy.neuron_count
     {
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
@@ -2039,39 +2041,32 @@ fn attach_contact_local_released_work(
         .par_iter()
         .zip(transitions.par_iter_mut())
         .try_for_each(|(contact, transition)| -> Result<(), SparseElectricalError> {
-        // Exact zero current releases exactly zero work and heat.  Returning
-        // here avoids constructing and multiplying arbitrary-precision
-        // rationals for every quiescent contact in a large reached frontier;
-        // it changes no physical value.
-        if transition
-            .outward_current_from_left_picoamperes
-            .parts()
-            .0
-            == 0
-        {
+        // An unresolved sub-carrier phase has not moved physical material and
+        // therefore has no before/after electrostatic energy drop.  Only an
+        // actual whole-carrier crossing releases junctional work.
+        let transferred = transition.outward_elementary_charges_from_left;
+        if transferred == 0 {
             transition.released_work_zeptojoules = BigRational::zero();
             transition.exported_heat_zeptojoules = BigRational::zero();
             return Ok(());
         }
-        if let Some((numerator, denominator)) = fast_released_work_parts(
-            transition.outward_current_from_left_picoamperes,
+        let left = ContactEndpoint::new(
             potentials_millivolts[contact.left_neuron],
+            predecessor_membranes[contact.left_neuron],
+            capacitances[contact.left_neuron],
+            u128::MAX,
+        );
+        let right = ContactEndpoint::new(
             potentials_millivolts[contact.right_neuron],
-            interval_microseconds,
-        ) {
-            let released = BigRational::new(BigInt::from(numerator), BigInt::from(denominator));
-            transition.released_work_zeptojoules = released.clone();
-            transition.exported_heat_zeptojoules = released;
-            return Ok(());
-        }
-        let potential_difference = wide_rational(potentials_millivolts[contact.left_neuron])
-            - wide_rational(potentials_millivolts[contact.right_neuron]);
-        let released = wide_rational(transition.outward_current_from_left_picoamperes)
-            * potential_difference
-            * BigInt::from(interval_microseconds);
-        if released.is_negative() {
-            return Err(SparseElectricalError::ArithmeticWidth);
-        }
+            predecessor_membranes[contact.right_neuron],
+            capacitances[contact.right_neuron],
+            u128::MAX,
+        );
+        let released = released_electrostatic_work_zeptojoules(
+            left,
+            right,
+            transferred,
+        )?;
         transition.released_work_zeptojoules = released.clone();
         transition.exported_heat_zeptojoules = released;
         Ok(())
@@ -2149,7 +2144,8 @@ pub(crate) fn settle_sparse_electrical_transfers(
     attach_contact_local_released_work(
         anatomy,
         &potentials,
-        interval_microseconds,
+        capacitances,
+        predecessor_membranes,
         &mut transitions,
     )?;
     let attach_wall = solver_stopwatch.elapsed();
@@ -2284,7 +2280,8 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
     attach_contact_local_released_work(
         anatomy,
         &potentials,
-        interval_microseconds,
+        capacitances,
+        predecessor_membranes,
         &mut transitions,
     )?;
     let outward_by_neuron = settled_outward_by_neuron(anatomy, &transitions)?;
@@ -3642,6 +3639,74 @@ mod tests {
         };
         assert!(stored_energy_strictly_decreases(charged_left, soft_right, 1).unwrap());
         assert!(!stored_energy_strictly_decreases(charged_left, soft_right, -1).unwrap());
+    }
+
+    #[test]
+    fn junction_work_is_the_exact_whole_carrier_energy_drop() {
+        let unit = MembraneCapacitance::new(ExactRational::integer(1)).unwrap();
+        let anatomy = SparseElectricalAnatomy::new(
+            2,
+            vec![ElectricalContactAnatomy::new(
+                0,
+                1,
+                ExactRational::integer(500),
+                2,
+            )
+            .unwrap()],
+        )
+        .unwrap();
+        let membranes = [
+            ElementaryChargeMembraneState::genesis(2),
+            ElementaryChargeMembraneState::genesis(0),
+        ];
+        let potentials = membranes
+            .iter()
+            .copied()
+            .map(|membrane| membrane.potential_millivolts(unit).unwrap())
+            .collect::<Vec<_>>();
+        let mut transitions = vec![ElectricalContactTransition {
+            successor: ElectricalContactState::genesis(anatomy.contacts[0]),
+            outward_current_from_left_picoamperes: ExactRational::integer(1),
+            outward_elementary_charges_from_left: 1,
+            released_work_zeptojoules: BigRational::zero(),
+            exported_heat_zeptojoules: BigRational::zero(),
+            conductance_changed: false,
+        }];
+
+        attach_contact_local_released_work(
+            &anatomy,
+            &potentials,
+            &[unit, unit],
+            &membranes,
+            &mut transitions,
+        )
+        .unwrap();
+
+        // (2, 0) -> (1, 1) lowers the dimensionless energy bracket by two;
+        // multiplying by e²/2 leaves exactly e² in fC²/pF, then 1000
+        // converts that unit to zeptojoules.
+        let expected = BigRational::new(
+            BigInt::from(FAST_E_NUMERATOR)
+                * BigInt::from(FAST_E_NUMERATOR)
+                * BigInt::from(1_000_u16),
+            BigInt::from(FAST_E_DENOMINATOR) * BigInt::from(FAST_E_DENOMINATOR),
+        );
+        assert_eq!(transitions[0].released_work_zeptojoules, expected);
+        assert_eq!(transitions[0].exported_heat_zeptojoules, expected);
+
+        // Nonzero continuous current with no completed carrier crossing has
+        // no before/after energy drop and cannot manufacture junction work.
+        transitions[0].outward_elementary_charges_from_left = 0;
+        attach_contact_local_released_work(
+            &anatomy,
+            &potentials,
+            &[unit, unit],
+            &membranes,
+            &mut transitions,
+        )
+        .unwrap();
+        assert_eq!(transitions[0].released_work_zeptojoules, BigRational::zero());
+        assert_eq!(transitions[0].exported_heat_zeptojoules, BigRational::zero());
     }
 
     #[test]

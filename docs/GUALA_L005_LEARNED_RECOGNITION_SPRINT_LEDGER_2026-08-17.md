@@ -1138,3 +1138,47 @@ loop is authorized merely to force closure.
   `sha256:46ea2a9da593f5b09b35da00bddb4e86eb26d612ffd797fc205f0a54d6e45c9a`.
   The controller verified the same organism identity and native CURRENT. No
   duplicate lesson or local organism was created during that deployment.
+
+### Task 1293 learned-cue refusal and exact junction-work correction
+
+- Commit `71da476b1aa8f55e668fff5bad9386d9832a1726` deployed as the sole
+  production task `dsf-ai-task:1293`, image
+  `sha256:21d64e2c717d46d2f62e69dda79d39d49b813fdc02858977080106b3282ca74d`.
+  It continued a scheduled whole-carrier arrival into the next causal frontier
+  without changing L0-L4, any DSF field, identity, or persistence.
+- The exact learned-apple cue was then presented once as `17,074` signed
+  16-kHz samples, PCM SHA-256
+  `cd6d98fbbc7266fde235ef9d14bfbc723f28c1d2492c8a394f311f7231d40ada`.
+  The request carried only the `guala.guided_world_voice.v2` schema, sample
+  rate, and PCM body. Preparation refused before commitment with
+  `ResidentElectricalUnavailable(ArithmeticWidth)`; it was not retried and
+  supplies no learning or recognition evidence.
+- The authenticated refusal predecessor is tick `222971`, raw state SHA-256
+  `83681fab963b7efac9a70d6de370afac7e5bfa5587440326a05d6d30ca4d51b9`.
+  An isolated replay of that exact 81,038,143-byte body and the exact cue
+  reproduces the refusal at the same final physical hop. The failing contact
+  held phase
+  `5836545100320520440215816851241520413 /
+  25880312615403953008378125000000000000`; the next phase required denominator
+  `517606252308079060167562500000000000000` (129 bits). Widening one integer
+  would only postpone the same denominator multiplication.
+- Source reconciliation found the cause: the approved A-011.6 design requires
+  exact contact work from the before/after electrostatic energy drop of whole
+  carriers that actually cross. Production instead accumulated continuous
+  `current * potential difference * interval`, including intervals in which no
+  whole carrier crossed. That implementation both manufactured junction work
+  from unresolved sub-carrier phase and admitted denominator growth with age.
+- The candidate now computes the exact nonnegative electrostatic energy drop
+  from the settled whole transfer, using the existing endpoint charges,
+  capacitances, and SI elementary-charge constant. A phase-only current
+  releases zero junction work. The approved transition quantum, finite channel
+  population, gradient direction, next-interval conductance, full DSF, and
+  every retained predecessor phase remain unchanged.
+- Focused proof passes for the exact work conversion and the phase-only
+  falsifier. More importantly, the authenticated mature-body replay now
+  completes all cue hops, seals tick `222989` as state
+  `0d5c7ca0090a51b4d362c740d139a3266991efb19f22da893d8db4580d80d158`
+  (`81,400,639` bytes), and cold-restores that successor byte-exact with the
+  same identity and tick. This is candidate evidence only. L-005 remains open
+  until the correction is live and the one cue proves target retained-formation
+  causal use plus action or articulation and its sensed return.
