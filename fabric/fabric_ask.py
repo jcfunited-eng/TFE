@@ -51,6 +51,19 @@ def walk(qs, es):
     known=qs-missing
     direct=[e for e in rel
             if known and known<=wt(e) and len(qs&wt(e))>=2]
+    # meaning check: floors that hold all the asking's words but
+    # share NO company beyond those words are letter-coincidence —
+    # the same word living in different houses. Company is judged
+    # on a floor's own body (essence+cannot), never its ask-words.
+    def body(e): return words(e["essence"]+" "+e["cannot"])
+    houses=[]
+    for e in direct:
+        for h in houses:
+            if any(len((body(e)&body(o))-qs)>=1 for o in h):
+                h.append(e); break
+        else:
+            houses.append([e])
+    houses.sort(key=len,reverse=True)
     pairs=[]
     for i,B in enumerate(rel):
         for A in rel[i+1:]:
@@ -63,10 +76,22 @@ def walk(qs, es):
     # not merely somewhere in either floor
     good=[p for p in pairs if p[0]>=min(6,3+len(qs)) and
           len(rare & p[3])>=1]
-    return rel,direct,good,rare,missing
+    return rel,direct,houses,good,rare,missing
 def sig(qs): return " ".join(sorted(qs))
 def ask(question):
     qs=words(question)
+    digits=re.findall(r"\d+",question)
+    if digits:
+        print(f"(I can see numbers here — {', '.join(digits[:4])} — "
+              f"but DOING arithmetic is an element I do not have "
+              f"yet. Anything below is what my floors KNOW, never "
+              f"a computation.)")
+    if not qs:
+        print("TRANSLATOR'S SILENCE — after dropping small words "
+              "and numbers, nothing of this asking remains that my "
+              "floors could hear. This is my translator's limit, "
+              "not a certified impossibility; nothing is filed.")
+        return
     s=sig(qs); fp=fingerprint()
     wtxt=open(WHITE).read() if os.path.exists(WHITE) else ""
     m=re.search(rf"ASKED-SIG: {re.escape(s)}\n  FLOORS: (\w+)"
@@ -75,16 +100,28 @@ def ask(question):
         m=None   # a drained entry is history, not a silence
     if m:
         if m.group(1)==fp:
-            print("ANSWER FROM THE WHITE: this asking is in my "
-                  "impossible — filed, certified, and my floors have "
-                  "not changed since. Nothing new to walk.")
+            print("FROM THE WHITE: no floor of mine reaches this "
+                  "asking — walked, certified, and my floors have "
+                  "not changed since. It stands as a purchase order "
+                  "for a floor not yet bought. Not-held is not "
+                  "impossible.")
             return
-        print("(filed as impossible, but my floors HAVE changed — "
+        print("(filed in the white, but my floors HAVE changed — "
               "re-walking…)")
-    es=load(); rel,direct,good,rare,missing=walk(qs,es)
+    es=load(); rel,direct,houses,good,rare,missing=walk(qs,es)
     if missing:
         print(f"(words my floors have never heard: "
               f"{', '.join(sorted(missing)[:6])})")
+    if len(houses)>1:
+        def body(e): return words(e["essence"]+" "+e["cannot"])
+        print(f"SPLIT — your words live in {len(houses)} different "
+              f"houses of my knowledge, and I cannot tell which you "
+              f"mean. Say it with one house's company:")
+        for h in houses:
+            com=sorted((body(h[0])-qs))[:5]
+            print(f"  [{h[0]['field']}] {h[0]['essence'][:80]}")
+            print(f"      (this house's company: {' '.join(com)})")
+        return
     # sideways answers: joins from relevant floors that the strict
     # bar refused — shown, never suppressed; the reader judges
     def wt(e): return words(e["essence"]+" "+e["cannot"]+" "+e["ask"])
@@ -114,8 +151,10 @@ def ask(question):
             print(f"  [{B['field']}] {B['essence'][:80]}")
             print(f"  x [{A['field']}] {A['essence'][:80]}")
         return
-    print("TRUE SILENCE — no joins at all from current floors. "
-          "Filing to the white (two signatures required to stand).")
+    print("TRUE SILENCE — no floor of mine reaches this asking. "
+          "Filing it to the white as a purchase order for a floor "
+          "not yet bought (two signatures required to stand). "
+          "Not-held is not impossible.")
     if not m:
         with open(WHITE,"a") as f:
             f.write(f"\nENTRY: {question.strip()}\n"

@@ -766,3 +766,31 @@ demands: invariants nobody stored falling out of recall; kinds
 keeping to themselves; answers precipitating from the asking. Those
 are evidence that physics of some class can behave this way — they
 prove nothing about THIS law and grant no vocabulary here.
+
+## O21 — Joe's meaning-wall test (four askings through the page)
+Verbatim verdict: "I would put this in the non intelligence arena
+or knownledge without meaning or purpose." He is right, and the
+four askings measure exactly where:
+- "What is 1289 X 3" — the translator dropped everything and the
+  door showed junk joins from an empty asking. DOING (performing
+  an operation, not retrieving knowledge) is an unbuilt element.
+- "what is faster than light" — the door offered a WEIGHT floor
+  ("lighter is weaker") as directly holding a LIGHT asking:
+  letter-coincidence posing as meaning.
+- "where is denver" — honest silence wearing a false label ("in
+  my impossible"); not-held and impossible were conflated.
+- "how do I travel faster than light" — the true limit floor
+  never spoke: its asking-words lacked "faster" and "travel"
+  (translator errata, fixed and disclosed).
+Built from this, same day, all glass: TRANSLATOR'S SILENCE (empty
+askings say so; numbers seen and named; nothing filed), the SPLIT
+tier (plural direct floors sharing no body-company beyond the
+asking's own words = the word lives in different houses; the
+fabric says it cannot tell which you mean and shows each house's
+company), and truthful white language ("purchase order for a
+floor not yet bought — not-held is not impossible").
+STANDING GAPS, named, not costumed: (1) DOING — the fabric holds
+why multiplication works but cannot walk 1289x3 to 3,867; no
+bolted-on calculator, the element must be conceived. (2) MEANING
+past letter-company — the house rule catches coincidence between
+floors, not within one; the translator still hears letters.

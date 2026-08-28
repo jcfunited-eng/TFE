@@ -109,7 +109,7 @@ CANNOT: no instant messages. No simultaneous "now" shared across
 THREAD: astronomy (telescopes are time machines), navigation and
   satellites (clocks must be corrected or maps drift), Joe's law
   that facts are moments for askers — relativity says the same.
-ASKED-AS: stars sunlight telescope lag delay phone gps space distance years universe
+ASKED-AS: stars sunlight telescope lag delay phone gps space distance years universe faster fastest speed outrun race warp travel traveling
 
 ESSENCE: the very small runs on chance constrained by law — until
   asked, a particle holds possibilities, not positions; the asking

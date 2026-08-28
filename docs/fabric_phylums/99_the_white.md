@@ -35,7 +35,7 @@ ENTRY: why does hot water sometimes freeze faster than cold
 
 ENTRY: why do we cry emotional tears
   ASKED-SIG: emotional tear
-  FLOORS: 0adac73bff0c
+  FLOORS: 2c6dbb3c0d2d
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
@@ -65,19 +65,19 @@ ENTRY: why do we shake hands
 
 ENTRY: why does a kite need a tail
   ASKED-SIG: kite need tail
-  FLOORS: 0adac73bff0c
+  FLOORS: 2c6dbb3c0d2d
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why do onions make you cry
   ASKED-SIG: make onion
-  FLOORS: 0adac73bff0c
+  FLOORS: 2c6dbb3c0d2d
   VERDICT: no path — certified by deterministic walk. Auto-filed.
   STATUS: STANDING (white)
 
 ENTRY: why does the moon look bigger near the horizon
   ASKED-SIG: bigg horizon look moon near
-  FLOORS: 0adac73bff0c
+  FLOORS: 2c6dbb3c0d2d
   VERDICT: the walker offered a join and the reader overturns half
   of it. The eye floor is the right neighborhood — seeing is judged
   in the brain, not measured like a ruler. But its partner was the
@@ -88,3 +88,9 @@ ENTRY: why does the moon look bigger near the horizon
   size of a thing by its neighbors; the horizon hands the moon
   neighbors, the high empty sky hands it none.
   STATUS: STANDING (white) — walker signed answer, reader overturned
+
+ENTRY: Where is denver
+  ASKED-SIG: denv where
+  FLOORS: 2c6dbb3c0d2d
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)

@@ -118,24 +118,28 @@ def serve_one(path, st, floors, wts, byid):
     with open(os.path.join(OUT, name), "w") as f:
         f.write(f"ASKING: {q}\n\n{txt}")
     os.remove(path)
-    if "TRUE SILENCE" in txt: tier = "true silence -> white"
+    if "TRANSLATOR'S SILENCE" in txt: tier = "translator's silence"
+    elif "TRUE SILENCE" in txt: tier = "true silence -> white"
+    elif "SPLIT" in txt: tier = "split — houses shown"
     elif "SIDEWAYS" in txt: tier = "sideways"
-    elif "ANSWER FROM THE WHITE" in txt: tier = "answer from the white"
+    elif "FROM THE WHITE" in txt: tier = "from the white"
     else: tier = "answer"
     # life bookkeeping on the cached floors (never changes the door)
     qs = fa.words(q)
-    rel, direct, good, rare, missing = fa.walk(qs, floors)
-    used = [fid(e) for e in direct[:3]]
-    for sc, B, A, h in good[:3]:
-        used += [fid(B), fid(A)]
-        w = co_travel(st, fid(B), fid(A))
-        if w: log(f"beat {st['beats']}: wrinkle worn — {w}")
-    for i in used:
-        st["warmth"][i] = st["warmth"].get(i, 0.0) + 1.0
-    for e in rel:
-        i = fid(e)
-        if i not in used:
-            st["warmth"][i] = st["warmth"].get(i, 0.0) + 0.2
+    if qs:
+        rel, direct, houses, good, rare, missing = fa.walk(qs, floors)
+        if len(houses) <= 1:   # a split warms nothing — the asker
+            used = [fid(e) for e in direct[:3]]       # hasn't said
+            for sc, B, A, h in good[:3]:              # what they mean
+                used += [fid(B), fid(A)]
+                w = co_travel(st, fid(B), fid(A))
+                if w: log(f"beat {st['beats']}: wrinkle worn — {w}")
+            for i in used:
+                st["warmth"][i] = st["warmth"].get(i, 0.0) + 1.0
+            for e in rel:
+                i = fid(e)
+                if i not in used:
+                    st["warmth"][i] = st["warmth"].get(i, 0.0) + 0.2
     st["served"] += 1
     log(f"beat {st['beats']}: answered ({tier}): {q}")
 

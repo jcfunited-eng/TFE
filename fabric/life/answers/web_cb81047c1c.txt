@@ -1,0 +1,8 @@
+ASKING: why does bread go stale
+
+ANSWER — 2 floor(s) hold this directly:
+  [deep kitchen chemistry] bread going stale is not drying — cooked starch, jumbled soft by the oven, slowly recrystallizes bac
+  [deep kitchen chemistry] the room's air holds one level of dampness and every open food walks toward it from its own side — a
+ANSWER — 1 strong joins from 2 floors:
+  [deep kitchen chemistry] bread going stale is not drying — cooked starch, jumbled soft by the oven, slowl
+  x [deep kitchen chemistry] the room's air holds one level of dampness and every open food walks toward it f
