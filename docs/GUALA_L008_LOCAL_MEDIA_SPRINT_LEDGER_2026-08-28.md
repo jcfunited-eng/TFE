@@ -68,3 +68,22 @@ local media kinds must commit once in production without repetition; source
 bytes must restore after restart; an exact duplicate must not increase count or
 bytes; count/byte ceilings must refuse cleanly. A successful presentation proves
 physical ingress only, never recognition, understanding, or learning.
+
+## Production preflight
+
+- Candidate source before the deployment record:
+  `53ba3fbf61a5870a0f2438f75a03c96a4f1af5bc`.
+- Exact target: AWS account `418384447921`, region `us-east-1`, cluster
+  `tfe-web-cluster`, service `dsf-ai-service-lb`.
+- Predecessor: one healthy task, desired/running/pending `1/1/0`, task
+  definition `dsf-ai-task:1299`, image
+  `sha256:3530a762b9a243c580b4ba67fa657506ca1413524d69592af5b5598217d05d81`.
+- Cochlear, touch, interoception, chemoreception, vestibular, and world are all
+  enabled; current-format migration is disabled. The hot candidate must retain
+  that exact roster.
+- Applicable recurrence controls: exact `PYTHONPATH`; exact target and active
+  predecessor; non-secret environment filtering; one clean candidate commit;
+  executable controller with explicit `--hot`; no success inference from HTTP
+  health or image build; no blind retry of timed-out state mutation; autonomous
+  predecessor drift expected and authenticated at cutover; identity/tick may
+  not regress; source custody verified separately from cognition/learning.
