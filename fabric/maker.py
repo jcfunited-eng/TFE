@@ -63,7 +63,11 @@ def judge(pool, req, forb, touch=None):
 def make(want, size=3, show=3):
     es = fa.load()
     req, forb = constraints(es)
-    qs = content(want)
+    # the command word is how you asked, not part of what you want
+    want_body = re.sub(r"^\s*(make|build|design|create|invent|"
+                       r"give me a way|a way to|how (do|can) (i|we)|"
+                       r"how to)\b", "", want, flags=re.I)
+    qs = content(want_body)
     df = {}
     for e in es:
         for w in content(e["essence"] + " " + e["cannot"] + " "
@@ -76,9 +80,11 @@ def make(want, size=3, show=3):
         import senses as S
         fam = {}
         for w in qkey:
-            fam[w] = {content(x).pop() if content(x) else x
-                      for x in S.family(w, qs) if content(x)}
-        want_words = set(qkey) | set().union(*fam.values())
+            if df.get(w, 99) > 8: continue   # only distinctive
+            near = sorted(S.family(w, qs))[:10]
+            fam[w] = {content(x).pop() for x in near if content(x)}
+        want_words = set(qkey) | (set().union(*fam.values())
+                                  if fam else set())
         def sense_ok(w, e):
             return S.same_sense(w, qs, content(e["essence"]))
     except Exception:
