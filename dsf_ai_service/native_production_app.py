@@ -1635,13 +1635,6 @@ _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
 _last_social_experience_evidence: dict[str, Any] | None = None
 _last_tested_physical_choice_evidence: dict[str, Any] | None = None
-# Transport observation only: counts transitions where an internally caused
-# retained-formation motor path and an applied opposed-antagonist settlement
-# were both present but the retained attention window did not contain the
-# causal motor lineage. A persistently climbing count is the live evidence
-# that the first-retained attention window shadows the causal binding; the
-# window law itself is deliberately unchanged until that evidence exists.
-_choice_attention_binding_miss_count: int = 0
 # Deferred-checkpoint chain: how many unattended intervals have advanced the
 # open unsealed trajectory since the last seal, and the published predecessor
 # sha the eventual seal must chain from. Persistence cadence is transport;
@@ -2971,7 +2964,7 @@ def _attention_stage() -> dict[str, object]:
 def _physical_choice_evidence_from_transition(
     evidence: dict[str, Any],
 ) -> dict[str, Any] | None:
-    """Bind sparse attention to exact opposed antagonist settlement without choosing.
+    """Bind native thought to exact opposed antagonist settlement without choosing.
 
     The witness reads the articulated body's own settlement law: on one joint
     axis the two opposed terminal populations discharge ``toward_minimum`` and
@@ -2988,15 +2981,10 @@ def _physical_choice_evidence_from_transition(
     this body actually keeps it.
     """
 
-    global _choice_attention_binding_miss_count
-
-    attention_motor_bindings = evidence.get("attention_motor_bindings")
     causal = evidence.get("causal_cross_context_use")
     action = evidence.get("motor_action")
     if (
-        not isinstance(attention_motor_bindings, tuple)
-        or not attention_motor_bindings
-        or not isinstance(causal, dict)
+        not isinstance(causal, dict)
         or not isinstance(action, dict)
     ):
         return None
@@ -3004,6 +2992,26 @@ def _physical_choice_evidence_from_transition(
         return None
     causal_motor = causal.get("motor_unit_recruitment")
     if not isinstance(causal_motor, dict):
+        return None
+    causal_formation_receipt = causal.get("formation_receipt_sha256")
+    if (
+        not isinstance(causal_formation_receipt, str)
+        or len(causal_formation_receipt) != 64
+    ):
+        return None
+    thought_transitions = tuple(
+        transition
+        for interval in evidence.get("causal_interval_evidence", ())
+        if isinstance(interval, dict)
+        for transition in interval.get("causal_thought_transitions", ())
+        if isinstance(transition, tuple) and len(transition) == 5
+    )
+    causal_thought_transitions = tuple(
+        transition
+        for transition in thought_transitions
+        if transition[1] == causal_formation_receipt
+    )
+    if not causal_thought_transitions:
         return None
     causal_motor_lineage = causal_motor.get("motor_lineage")
     recruitments = tuple(action.get("prepared_recruitments", ()))
@@ -3023,17 +3031,6 @@ def _physical_choice_evidence_from_transition(
         ):
             return None
     if not causal_motor_prepared:
-        return None
-    for binding in attention_motor_bindings:
-        if not isinstance(binding, dict):
-            return None
-    causal_attention_bindings = tuple(
-        binding
-        for binding in attention_motor_bindings
-        if causal_motor_lineage in binding["matched_motor_lineages"]
-    )
-    if not causal_attention_bindings:
-        _choice_attention_binding_miss_count += 1
         return None
 
     bindings = tuple(action.get("body_effector_bindings", ()))
@@ -3123,25 +3120,19 @@ def _physical_choice_evidence_from_transition(
         if not isinstance(causal_intent, str) or len(causal_intent) != 64:
             return None
         return {
-            "attention": tuple(
-                binding["attention"] for binding in causal_attention_bindings
-            ),
-            "attention_motor_binding_organism_ticks": tuple(
-                binding["organism_tick"]
-                for binding in causal_attention_bindings
-            ),
             "applied_signed_displacement_quanta": signed_displacement,
             "axis": axis,
             "axis_unit": consequence.get("unit"),
             "causal_intent_receipt_sha256": causal_intent,
-            "consequence_source_tick": consequence.get("source_tick"),
-            "formation_receipt_sha256": causal.get("formation_receipt_sha256"),
-            "internal_cause_motor_lineage": causal_motor_lineage,
-            "matched_attention_binding_count": len(causal_attention_bindings),
-            "matched_attention_route_count": sum(
-                int(binding["matched_attention_route_count"])
-                for binding in causal_attention_bindings
+            "causal_thought_transition_count": len(
+                causal_thought_transitions
             ),
+            "causal_thought_source_formation_receipts": tuple(
+                sorted({transition[0] for transition in causal_thought_transitions})
+            ),
+            "consequence_source_tick": consequence.get("source_tick"),
+            "formation_receipt_sha256": causal_formation_receipt,
+            "internal_cause_motor_lineage": causal_motor_lineage,
             "organism_tick": evidence.get("organism_tick"),
             "prepared_intent_count": 1,
             "settled_signed_intent_carriers": settled_signed_intent,
@@ -3250,21 +3241,20 @@ def _physical_choice_record() -> dict[str, object]:
         return _section(
             False,
             "physical_choice_mounted_awaiting_causal_witness",
-            "this process has not yet observed internally caused sparse attention "
-            "enter both opposed antagonist populations of one joint axis and "
-            "settle one nonzero applied intent",
-            attention_binding_miss_count=_choice_attention_binding_miss_count,
+            "this process has not yet observed a native thought reassemble the "
+            "retained formation that prepared both opposed antagonist populations "
+            "of one joint axis and settled one nonzero applied intent",
             **authority,
         )
     return _section(
         True,
-        "internally_caused_attention_settled_one_physical_continuation",
-        "transported routes from a changing reached/foregone attention frontier "
-        "entered exact motor preparation; both antagonist populations of one "
-        "joint axis discharged, their conserved signed difference settled one "
-        "nonzero intent, and the body applied it as its own clamped displacement",
+        "native_thought_settled_one_physical_continuation",
+        "one native formation-to-formation thought reassembled the retained "
+        "formation that entered exact motor preparation; both antagonist "
+        "populations of one joint axis discharged, their conserved signed "
+        "difference settled one nonzero intent, and the body applied it as its "
+        "own clamped displacement",
         evidence_scope="latest_tested_physical_choice_this_process",
-        attention_binding_miss_count=_choice_attention_binding_miss_count,
         **evidence,
         **authority,
     )

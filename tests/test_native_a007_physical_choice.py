@@ -10,6 +10,9 @@ ORDERING = "02" * 16
 FLEXOR_MOTOR = "03" * 16
 EXTENSOR_MOTOR = "04" * 16
 FOREGONE = "05" * 16
+RECURRENT = "06" * 16
+SOURCE_FORMATION_RECEIPT = "10" * 32
+DESTINATION_FORMATION_RECEIPT = "11" * 32
 AXIS = "right_elbow_flexion"
 
 
@@ -60,9 +63,22 @@ def _transition() -> dict[str, object]:
         ),
         "causal_cross_context_use": {
             "origin_kind": "retained_formation",
-            "formation_receipt_sha256": "11" * 32,
+            "formation_receipt_sha256": DESTINATION_FORMATION_RECEIPT,
             "motor_unit_recruitment": {"motor_lineage": FLEXOR_MOTOR},
         },
+        "causal_interval_evidence": (
+            {
+                "causal_thought_transitions": (
+                    (
+                        SOURCE_FORMATION_RECEIPT,
+                        DESTINATION_FORMATION_RECEIPT,
+                        RECURRENT,
+                        FORMATION,
+                        (RECURRENT, FORMATION, 0, 3),
+                    ),
+                ),
+            },
+        ),
         "motor_action": {
             "causal_intent_receipt_sha256": "12" * 32,
             "prepared_recruitments": (
@@ -122,11 +138,14 @@ def _transition() -> dict[str, object]:
     return transition
 
 
-def test_attention_enters_opposed_antagonist_settlement_and_applies_one_intent() -> None:
+def test_native_thought_enters_opposed_antagonist_settlement_and_applies_one_intent() -> None:
     evidence = production._physical_choice_evidence_from_transition(_transition())
 
     assert evidence is not None
-    assert evidence["matched_attention_route_count"] == 1
+    assert evidence["causal_thought_transition_count"] == 1
+    assert evidence["causal_thought_source_formation_receipts"] == (
+        SOURCE_FORMATION_RECEIPT,
+    )
     assert evidence["axis"] == AXIS
     assert evidence["toward_minimum_antagonist_carriers"] == 7
     assert evidence["toward_maximum_antagonist_carriers"] == 2
@@ -153,60 +172,7 @@ def test_retired_yaw_law_evidence_cannot_pass() -> None:
     assert production._physical_choice_evidence_from_transition(transition) is None
 
 
-def test_completed_transaction_supplies_the_later_route_comparison() -> None:
-    earlier_hop = _transition()
-    earlier_hop["preceding_distinct_physical_frontier_routes"] = ()
-    earlier_hop["attention_motor_bindings"] = ()
-
-    assert production._attention_motor_binding_from_hop(earlier_hop) is None
-
-    completed_transaction = deepcopy(earlier_hop)
-    completed_transaction["preceding_distinct_physical_frontier_routes"] = (
-        (FOREGONE, 12, 2, ORDERING, 11, 0, 0, 2),
-    )
-    completed_transaction["attention_motor_bindings"] = (
-        production._advance_bounded_attention_motor_bindings(
-            (),
-            completed_transaction,
-        )
-    )
-
-    evidence = production._physical_choice_evidence_from_transition(
-        completed_transaction
-    )
-
-    assert evidence is not None
-    assert evidence["matched_attention_route_count"] == 1
-
-
-def test_completed_transaction_preserves_earlier_motor_preparation() -> None:
-    earlier_hop = _transition()
-    motor_unit_recruitments = earlier_hop["motor_unit_recruitments"]
-    completed_transaction = deepcopy(earlier_hop)
-    completed_transaction["motor_unit_recruitments"] = ()
-    completed_transaction["attention_motor_bindings"] = ()
-
-    assert (
-        production._attention_motor_binding_from_hop(completed_transaction)
-        is None
-    )
-
-    completed_transaction["attention_motor_bindings"] = (
-        production._completed_transaction_attention_motor_bindings(
-            (),
-            completed_transaction,
-            motor_unit_recruitments,
-        )
-    )
-    evidence = production._physical_choice_evidence_from_transition(
-        completed_transaction
-    )
-
-    assert evidence is not None
-    assert evidence["matched_attention_route_count"] == 1
-
-
-def test_coexisting_attention_without_motor_contact_is_not_choice() -> None:
+def test_coexisting_attention_does_not_govern_native_thought_choice() -> None:
     transition = _transition()
     transition["reached_and_foregone_physical_frontier_routes"] = (
         (ORDERING, 11, 0, FOREGONE, 12, 2, 0, 3),
@@ -215,6 +181,24 @@ def test_coexisting_attention_without_motor_contact_is_not_choice() -> None:
     transition["attention_motor_bindings"] = (
         production._attention_motor_binding_from_hop(transition),
     )
+
+    assert production._physical_choice_evidence_from_transition(transition) is not None
+
+
+def test_missing_native_thought_cannot_witness_choice() -> None:
+    transition = deepcopy(_transition())
+    transition["causal_interval_evidence"] = ()
+
+    assert production._physical_choice_evidence_from_transition(transition) is None
+
+
+def test_thought_must_reassemble_the_motor_causing_formation() -> None:
+    transition = deepcopy(_transition())
+    interval = dict(transition["causal_interval_evidence"][0])
+    thought = list(interval["causal_thought_transitions"][0])
+    thought[1] = "13" * 32
+    interval["causal_thought_transitions"] = (tuple(thought),)
+    transition["causal_interval_evidence"] = (interval,)
 
     assert production._physical_choice_evidence_from_transition(transition) is None
 
@@ -505,8 +489,7 @@ def test_bindings_without_interval_evidence_are_refused() -> None:
         raise AssertionError("tickless bindings must refuse, never guess")
 
 
-def test_shadowed_attention_binding_is_counted_not_witnessed(monkeypatch) -> None:
-    monkeypatch.setattr(production, "_choice_attention_binding_miss_count", 0)
+def test_shadowed_attention_binding_cannot_veto_exact_thought_body_choice() -> None:
     transition = deepcopy(_transition())
     transition["attention_motor_bindings"] = (
         {
@@ -517,11 +500,10 @@ def test_shadowed_attention_binding_is_counted_not_witnessed(monkeypatch) -> Non
         },
     )
 
-    assert production._physical_choice_evidence_from_transition(transition) is None
-    assert production._choice_attention_binding_miss_count == 1
+    assert production._physical_choice_evidence_from_transition(transition) is not None
 
 
-def test_later_exact_causal_binding_is_not_shadowed_by_the_first() -> None:
+def test_attention_observation_remains_independent_of_choice() -> None:
     transition = deepcopy(_transition())
     causal_binding = transition["attention_motor_bindings"][0]
     shadow = {
@@ -535,7 +517,7 @@ def test_later_exact_causal_binding_is_not_shadowed_by_the_first() -> None:
     evidence = production._physical_choice_evidence_from_transition(transition)
 
     assert evidence is not None
-    assert evidence["matched_attention_binding_count"] == 1
+    assert "matched_attention_binding_count" not in evidence
     assert evidence["internal_cause_motor_lineage"] == FLEXOR_MOTOR
 
 
@@ -551,4 +533,5 @@ def test_choice_projection_has_no_selector_or_semantic_authority(monkeypatch) ->
     assert record["random_selector_authority"] is False
     assert record["score_selector_authority"] is False
     assert record["semantic_command_authority"] is False
-    assert isinstance(record["attention_binding_miss_count"], int)
+    assert record["status"] == "native_thought_settled_one_physical_continuation"
+    assert "attention_binding_miss_count" not in record
