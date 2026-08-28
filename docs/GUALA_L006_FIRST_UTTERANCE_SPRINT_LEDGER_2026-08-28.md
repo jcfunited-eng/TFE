@@ -184,3 +184,32 @@ timer, second scheduler, or retained speech program.
   Reintroducing an in-cognition seal to satisfy that assertion is rejected.
 - Production remains task 1283/V32 until the candidate receives one immutable
   commit and cutover. No replacement organism or alternate CURRENT is created.
+
+## V33 production cutover — 2026-08-28
+
+- Exact production commit:
+  `6e6d220b656bb36fa4fffbc5d0cf3f3e07818386`; task definition
+  `dsf-ai-task:1284`; image digest
+  `sha256:24f17bed57eb9be4b78ff547d9799b088fcd776a1b8165bb385a8805523f0c11`.
+- The service has one healthy running task and no pending or overlapping
+  deployment. The resident identity remains
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+- The authenticated predecessor lower bound was tick `211174`. The candidate
+  cold-restored the same body and advanced unattended from tick `211191`
+  through at least tick `211288` during the observation window.
+- The persisted raw CURRENT envelope contains `GLCOG033` once at the canonical
+  cognitive segment and contains no `GLCOG032`. This is a V33 successor, not a
+  compatibility claim over V32 bytes.
+- The event frontier selected approximately `3,141` to `3,151` contacts over
+  the window and remained stable after the first few lawful additions. The
+  former approximately `95,000`-contact per-clock population did not return.
+- Individual native physical intervals settled in approximately `468` to
+  `649` milliseconds. The wider ten-interval transport episode remains
+  seconds-class and is not relabelled as a millisecond whole episode.
+- Raw resident bytes decreased slightly from `76,451,006` to `76,450,661`
+  during the sampled window. The 16 GiB task stayed within its envelope; no
+  panic, rollback, soundness failure, second writer, or Python cognition
+  callback appeared.
+- This closes the V33 fan-out correction and the current F-004 recurrence. It
+  does **not** close L-006: no live learned utterance, self-hearing, and varied
+  later reuse has yet been witnessed.

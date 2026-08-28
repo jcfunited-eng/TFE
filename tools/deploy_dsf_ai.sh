@@ -653,7 +653,7 @@ verify_live_organism() {
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
         --services "${ECS_SERVICE}" \
-        --query 'services[0]' --output json)
+        --query 'services[0]' --output json) || return 1
     printf '%s' "${service_json}" | EXPECTED="${expected_task_definition}" python3 -c '
 import json, os, sys
 service = json.load(sys.stdin)
@@ -665,13 +665,13 @@ if len(deployments) != 1 or deployments[0].get("status") != "PRIMARY":
     raise SystemExit("service retains overlapping deployment authority")
 if service.get("taskDefinition") != os.environ["EXPECTED"]:
     raise SystemExit("service task definition differs from candidate")
-'
+' || return 1
     task_arns=$(aws ecs list-tasks \
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
         --service-name "${ECS_SERVICE}" \
         --desired-status RUNNING \
-        --query 'taskArns' --output text)
+        --query 'taskArns' --output text) || return 1
     if [ "$(printf '%s\n' "${task_arns}" | wc -w)" -ne 1 ]; then
         fail "cutover did not produce exactly one running process"
     fi
@@ -679,7 +679,7 @@ if service.get("taskDefinition") != os.environ["EXPECTED"]:
         --region "${AWS_REGION}" \
         --cluster "${ECS_CLUSTER}" \
         --tasks "${task_arns}" \
-        --query 'tasks[0]' --output json)
+        --query 'tasks[0]' --output json) || return 1
     printf '%s' "${task_json}" | \
         EXPECTED_TASK="${expected_task_definition}" \
         EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
@@ -692,19 +692,20 @@ if task.get("taskDefinitionArn") != os.environ["EXPECTED_TASK"]:
     raise SystemExit("running task definition differs from candidate")
 if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_DIGEST"]:
     raise SystemExit("running image digest differs from built artifact")
-'
+' || return 1
     curl -fsS \
         --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
         --connect-timeout 10 --max-time 30 \
         "${CONTROL_ORIGIN}/health" \
         | python3 -c \
-            'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"'
+            'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"' \
+        || return 1
     # ``/ready/guala`` takes the transition lock deliberately, so that it can
     # only ever report persisted state -- and that lock is held for a WHOLE
     # lesson.  A 30s cap therefore fails a perfectly healthy body that merely
     # happens to be mid-lesson, which is a false negative, not a safety check.
     # Waiting is the honest behaviour: every assertion below still has to pass.
-    ready_body=$(read_live_organism)
+    ready_body=$(read_live_organism) || return 1
     printf '%s' "${ready_body}" | \
         EXPECTED_TASK="${expected_task_name}" \
         EXPECTED_DIGEST="${IMAGE_DIGEST}" EXPECTED_SHA="${GIT_SHA}" \
@@ -762,7 +763,7 @@ if (
     or native.get("cognition_available") is not True
 ):
     raise SystemExit("candidate does not present a living cognitive body")
-'
+' || return 1
     printf '%s' "${task_arns}"
 }
 
