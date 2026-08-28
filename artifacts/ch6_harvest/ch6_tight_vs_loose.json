@@ -1,0 +1,71 @@
+{
+ "trades": 13285,
+ "TIGHT": {
+  "derive": {
+   "n": 1700,
+   "usd_per_2500": -9.81,
+   "win_rate": 0.643,
+   "exits": {
+    "BANK": 1020,
+    "CLOCK": 598,
+    "STOP": 82
+   }
+  },
+  "confirm": {
+   "n": 1712,
+   "usd_per_2500": -15.48,
+   "win_rate": 0.625,
+   "exits": {
+    "BANK": 988,
+    "CLOCK": 632,
+    "STOP": 92
+   }
+  }
+ },
+ "TIGHT_QC": {
+  "derive": {
+   "n": 1700,
+   "usd_per_2500": -7.91,
+   "win_rate": 0.503,
+   "exits": {
+    "BANK": 844,
+    "QUIET_CUT": 761,
+    "CLOCK": 70,
+    "STOP": 25
+   }
+  },
+  "confirm": {
+   "n": 1712,
+   "usd_per_2500": -12.49,
+   "win_rate": 0.495,
+   "exits": {
+    "BANK": 825,
+    "QUIET_CUT": 757,
+    "CLOCK": 91,
+    "STOP": 39
+   }
+  }
+ },
+ "LOOSE": {
+  "derive": {
+   "n": 3206,
+   "usd_per_2500": -5.96,
+   "win_rate": 0.6,
+   "exits": {
+    "BANK": 1629,
+    "CLOCK": 1520,
+    "STOP": 57
+   }
+  },
+  "confirm": {
+   "n": 3255,
+   "usd_per_2500": -6.19,
+   "win_rate": 0.624,
+   "exits": {
+    "BANK": 1827,
+    "CLOCK": 1356,
+    "STOP": 72
+   }
+  }
+ }
+}
