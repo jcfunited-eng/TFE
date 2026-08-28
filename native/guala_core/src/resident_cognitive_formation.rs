@@ -617,6 +617,28 @@ impl ActiveElectricalFrontierEntry {
     }
 }
 
+fn incoming_frontier_bonds(
+    frontier: &[ActiveElectricalFrontierEntry],
+) -> BTreeSet<([u8; 16], StablePhysicalBondReference)> {
+    frontier
+        .iter()
+        .filter_map(|entry| {
+            entry
+                .cause
+                .map(|cause| (entry.frontier_lineage(), cause.bond))
+        })
+        .collect()
+}
+
+fn frontier_crossing_advances(
+    incoming: &BTreeSet<([u8; 16], StablePhysicalBondReference)>,
+    seed_lineage: [u8; 16],
+    bond: StablePhysicalBondReference,
+    freshly_seeded: bool,
+) -> bool {
+    freshly_seeded || !incoming.contains(&(seed_lineage, bond))
+}
+
 fn encoded_directed_frontier_len(frontier: &[ActiveElectricalFrontierEntry]) -> Option<usize> {
     frontier.iter().try_fold(8usize, |total, entry| {
         total.checked_add(entry.encoded_v20_len())
@@ -7925,6 +7947,7 @@ impl ResidentCognitiveFormationState {
             &active_electrical_frontier,
             &locally_settled_lineages,
             &internal_frontier_lineages,
+            &current_noncontinuation_seed_lineages,
             &mut physically_transitioned_neuron_lineages,
             source_generation,
             resting_population
@@ -16394,6 +16417,7 @@ fn settle_internal_contact_interval(
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
+    fresh_seed_lineages: &[[u8; 16]],
     physically_transitioned_neuron_lineages: &mut BTreeSet<[u8; 16]>,
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
@@ -16647,6 +16671,22 @@ fn settle_internal_contact_interval(
     causal_seed_flats.sort_unstable();
     causal_seed_flats.dedup();
     let is_causal_seed = |flat: usize| causal_seed_flats.binary_search(&flat).is_ok();
+    let mut fresh_seed_flats = fresh_seed_lineages
+        .iter()
+        .copied()
+        .map(lineage_member)
+        .collect::<Result<Vec<_>, _>>()?;
+    fresh_seed_flats.sort_unstable();
+    fresh_seed_flats.dedup();
+    let incoming_frontier_bonds = incoming_frontier_bonds(predecessor_frontier);
+    let crosses_new_frontier_bond = |seed_flat: usize, bond| {
+        frontier_crossing_advances(
+            &incoming_frontier_bonds,
+            flat_locations[seed_flat].2,
+            bond,
+            fresh_seed_flats.binary_search(&seed_flat).is_ok(),
+        )
+    };
 
     if selected.is_empty() {
         return Ok(InternalContactSettlementObservation {
@@ -18236,6 +18276,9 @@ fn settle_internal_contact_interval(
                     .ok_or(FormationError::ArithmeticOverflow)?,
             )
         };
+        if !crosses_new_frontier_bond(seed_flat, bond) {
+            continue;
+        }
         let (seed_cohort, seed_neuron, seed_lineage) = flat_locations[seed_flat];
         let (adjacent_cohort, adjacent_neuron, adjacent_lineage) = flat_locations[adjacent_flat];
         frontier_routes.push(PhysicalFrontierRouteObservation {
@@ -18280,11 +18323,19 @@ fn settle_internal_contact_interval(
             continue;
         };
         if is_causal_seed(left_flat) != is_causal_seed(right_flat) {
-            let frontier_lineage = if is_causal_seed(left_flat) {
-                flat_locations[right_flat].2
+            let (seed_flat, frontier_lineage) = if is_causal_seed(left_flat) {
+                (left_flat, flat_locations[right_flat].2)
             } else {
-                flat_locations[left_flat].2
+                (right_flat, flat_locations[left_flat].2)
             };
+            // The incoming contact already delivered this causal wave. Its
+            // continuing electrical current remains fully settled above, but
+            // it cannot manufacture a new arrival by immediately sending the
+            // same wave back across the same bond. A genuinely fresh external
+            // or metabolic seed may lawfully use the bond again.
+            if !crosses_new_frontier_bond(seed_flat, *bond) {
+                continue;
+            }
             next_active_frontier.push(ActiveElectricalFrontierEntry::caused_with_frontier(
                 transfer.sender,
                 transfer.receiver,
@@ -23531,6 +23582,7 @@ mod tests {
                 &[],
                 seeds,
                 seeds,
+                seeds,
                 &mut transitioned,
                 ordinal,
                 0,
@@ -24436,6 +24488,7 @@ mod tests {
                 &[],
                 &[association, regulation],
                 &[association, regulation],
+                &[association, regulation],
                 &mut transitioned,
                 ordinal,
                 0,
@@ -24496,6 +24549,7 @@ mod tests {
                 &mut cohorts,
                 &mut fabric,
                 &topology_index,
+                &[],
                 &[],
                 &[],
                 &[],
@@ -26687,6 +26741,19 @@ mod tests {
         let transfer =
             ActiveElectricalFrontierEntry::caused(sender, receiver, bond, 7).unwrap();
         assert_eq!(transfer.affected_lineages(), [Some(receiver), None]);
+        let incoming = incoming_frontier_bonds(&[transfer]);
+        assert!(!frontier_crossing_advances(
+            &incoming,
+            receiver,
+            bond,
+            false,
+        ));
+        assert!(frontier_crossing_advances(
+            &incoming,
+            receiver,
+            bond,
+            true,
+        ));
         assert_eq!(
             transfer.directed_transfer(),
             Some(DirectedPhysicalTransferObservation {
