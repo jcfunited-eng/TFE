@@ -735,6 +735,21 @@ pub(crate) struct InternallyReassembledFormationCueObservation {
     /// of this formation. This is reconstructed from contact topology on cold
     /// restore and is never a separately encoded authority.
     pub(crate) recurrent_lineage: Option<[u8; 16]>,
+    /// Exact formation-to-formation causes completed by this reassembly. Each
+    /// entry begins at another retained formation's unique recurrent cell,
+    /// crosses a real contact with nonzero whole-carrier transfer, and ends at
+    /// one member of this formation. These values are transient observation;
+    /// the carrier movement and retained formations remain the only authority.
+    pub(crate) causal_predecessors: Vec<CausalThoughtTransitionObservation>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct CausalThoughtTransitionObservation {
+    pub(crate) source_formation_receipt: [u8; 32],
+    pub(crate) destination_formation_receipt: [u8; 32],
+    pub(crate) source_recurrent_lineage: [u8; 16],
+    pub(crate) cue_lineage: [u8; 16],
+    pub(crate) transfer: DirectedPhysicalTransferObservation,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -3518,6 +3533,86 @@ impl PreparedRetainedMosaicBoundary {
     }
 }
 
+/// One exact outgoing recurrent-cell transfer that can serve as the physical
+/// cue for a different retained formation in this interval.
+///
+/// The source formation is recovered without a population scan: the transfer
+/// receiver is one of its retained members, so the resident formation posting
+/// for that member yields the bounded candidate set. The unique recurrent
+/// lineage then identifies the one source formation exactly.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct RecurrentFormationCausalCue {
+    source_formation_index: usize,
+    source_recurrent_lineage: [u8; 16],
+    cue_lineage: [u8; 16],
+    transfer: DirectedPhysicalTransferObservation,
+}
+
+fn recurrent_formation_causal_cues(
+    mosaics: &[RetainedOrganismMosaic],
+    formation_index: &ResidentFormationIndex,
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    current_frontier: &[ActiveElectricalFrontierEntry],
+) -> Result<Vec<RecurrentFormationCausalCue>, FormationError> {
+    let predecessor_lineages = predecessor_frontier
+        .iter()
+        .map(|entry| entry.frontier_lineage())
+        .collect::<BTreeSet<_>>();
+    let mut cues = Vec::new();
+    for entry in current_frontier.iter().copied() {
+        let Some(transfer) = entry.directed_transfer() else {
+            continue;
+        };
+        // A thought cause is an outward arrival from a recurrent cell. The
+        // source cell must have been the preceding physical frontier, and the
+        // receiving member must be the endpoint advancing now. Carrier flow
+        // in the opposite direction is activation of the recurrent cell, not
+        // its output.
+        if entry.frontier_lineage() != transfer.receiver
+            || !predecessor_lineages.contains(&transfer.sender)
+        {
+            continue;
+        }
+        let source_candidates = formation_index.candidate_indices(
+            [transfer.receiver],
+            std::iter::empty(),
+        );
+        let mut source = None;
+        for source_index in source_candidates {
+            let retained = mosaics
+                .get(source_index)
+                .ok_or(FormationError::NoncanonicalState)?;
+            if retained.recurrent_lineage != Some(transfer.sender)
+                || retained.mosaic.is_original_only()
+                || retained
+                    .mosaic
+                    .member_lineages()
+                    .binary_search(&transfer.receiver)
+                    .is_err()
+            {
+                continue;
+            }
+            if source.replace(source_index).is_some() {
+                // One recurrent lineage belongs to exactly one retained
+                // formation. Ambiguity is corrupt state, never fan-out.
+                return Err(FormationError::NoncanonicalState);
+            }
+        }
+        let Some(source_formation_index) = source else {
+            continue;
+        };
+        cues.push(RecurrentFormationCausalCue {
+            source_formation_index,
+            source_recurrent_lineage: transfer.sender,
+            cue_lineage: transfer.receiver,
+            transfer,
+        });
+    }
+    cues.sort_unstable();
+    cues.dedup();
+    Ok(cues)
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -3640,6 +3735,12 @@ fn settle_organism_mosaic_boundary(
     let mut reassembled_indices = Vec::new();
     let mut newly_retained_mosaic_indices = Vec::new();
     let mut new_pending_originals = Vec::new();
+    let recurrent_causal_cues = recurrent_formation_causal_cues(
+        mosaics,
+        formation_index,
+        predecessor_frontier,
+        current_frontier,
+    )?;
     // Every retained formation reads the same immutable physical successor.
     // Prepare those independent recurrence responses concurrently, then apply
     // replacements and observations in resident index order. The preparation
@@ -3650,7 +3751,8 @@ fn settle_organism_mosaic_boundary(
             .iter()
             .copied()
             .chain(externally_reached_lineages.iter().copied())
-            .chain(metabolically_perturbed_lineages.iter().copied()),
+            .chain(metabolically_perturbed_lineages.iter().copied())
+            .chain(recurrent_causal_cues.iter().map(|cause| cause.cue_lineage)),
         std::iter::empty(),
     );
     let prepared_retained = retained_candidate_indices
@@ -3707,10 +3809,41 @@ fn settle_organism_mosaic_boundary(
                 })
                 .collect::<Vec<_>>();
             canonicalize_formation_cue(&mut internal_cue);
-            let (cue, origin) = if !external_cue.is_empty() {
-                (external_cue, PhysicalMosaicRecurrenceOrigin::ExternallyObserved)
+            let thought_causes = recurrent_causal_cues
+                .iter()
+                .copied()
+                .filter(|cause| cause.source_formation_index != *retained_index)
+                .filter(|cause| {
+                    retained
+                        .mosaic
+                        .member_lineages()
+                        .binary_search(&cause.cue_lineage)
+                        .is_ok()
+                })
+                .collect::<Vec<_>>();
+            let mut recurrent_cue = thought_causes
+                .iter()
+                .map(|cause| cause.cue_lineage)
+                .collect::<Vec<_>>();
+            canonicalize_formation_cue(&mut recurrent_cue);
+            let (cue, origin, thought_causes) = if !external_cue.is_empty() {
+                (
+                    external_cue,
+                    PhysicalMosaicRecurrenceOrigin::ExternallyObserved,
+                    Vec::new(),
+                )
+            } else if !recurrent_cue.is_empty() {
+                (
+                    recurrent_cue,
+                    PhysicalMosaicRecurrenceOrigin::InternallySimulated,
+                    thought_causes,
+                )
             } else if !internal_cue.is_empty() {
-                (internal_cue, PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+                (
+                    internal_cue,
+                    PhysicalMosaicRecurrenceOrigin::InternallySimulated,
+                    Vec::new(),
+                )
             } else {
                 return Ok((
                     *retained_index,
@@ -3780,14 +3913,38 @@ fn settle_organism_mosaic_boundary(
                 None
             };
             let internal_observation =
-                (origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated).then(|| {
-                    InternallyReassembledFormationCueObservation {
-                        formation_receipt: observed_receipt
-                            .expect("internal recurrence receipt was prepared"),
+                if origin == PhysicalMosaicRecurrenceOrigin::InternallySimulated {
+                    let destination_formation_receipt = observed_receipt
+                        .expect("internal recurrence receipt was prepared");
+                    let causal_predecessors = thought_causes
+                        .iter()
+                        .map(|cause| {
+                            let source = mosaics
+                                .get(cause.source_formation_index)
+                                .ok_or(FormationError::NoncanonicalState)?;
+                            let encoded = encode_resident_admitted_physical_mosaic(
+                                &source.mosaic,
+                                max_encoded_bytes,
+                            )
+                            .map_err(FormationError::PhysicalMosaicCodecUnavailable)?;
+                            Ok(CausalThoughtTransitionObservation {
+                                source_formation_receipt: sha256(&encoded),
+                                destination_formation_receipt,
+                                source_recurrent_lineage: cause.source_recurrent_lineage,
+                                cue_lineage: cause.cue_lineage,
+                                transfer: cause.transfer,
+                            })
+                        })
+                        .collect::<Result<Vec<_>, FormationError>>()?;
+                    Some(InternallyReassembledFormationCueObservation {
+                        formation_receipt: destination_formation_receipt,
                         cue_lineages: cue.clone(),
                         recurrent_lineage: retained.recurrent_lineage,
-                    }
-                });
+                        causal_predecessors,
+                    })
+                } else {
+                    None
+                };
             let external_observation = retained.recurrent_lineage.and_then(|recurrent_lineage| {
                 (origin == PhysicalMosaicRecurrenceOrigin::ExternallyObserved).then(|| {
                     ExternallyReassembledFormationFrontierObservation {
@@ -22329,6 +22486,7 @@ mod tests {
             formation_receipt: [4_u8; 32],
             cue_lineages: vec![cue],
             recurrent_lineage: Some(recurrent),
+            causal_predecessors: Vec::new(),
         };
 
         let mut retained = Vec::new();
@@ -22358,6 +22516,85 @@ mod tests {
         )
         .unwrap();
         assert!(absent.is_empty());
+    }
+
+    #[test]
+    fn recurrent_cell_output_is_the_only_formation_causal_cue() {
+        let member = structural_test_lineage(2);
+        let recurrent = structural_test_lineage(9);
+        let predecessor_sender = structural_test_lineage(8);
+        let mut source = RetainedOrganismMosaic::newly_admitted(
+            synthetic_admitted_mosaic(&[1, 2, 3], &[(1, 2), (2, 3)], 1),
+        );
+        source.recurrent_lineage = Some(recurrent);
+        let mosaics = [source];
+        let formation_index = ResidentFormationIndex::build(&mosaics).unwrap();
+        let predecessor_bond = StablePhysicalBondReference::new(
+            predecessor_sender,
+            recurrent,
+            0,
+        )
+        .unwrap();
+        let predecessor = ActiveElectricalFrontierEntry::caused_with_frontier(
+            predecessor_sender,
+            recurrent,
+            recurrent,
+            predecessor_bond,
+            3,
+        )
+        .unwrap();
+        let recurrent_bond =
+            StablePhysicalBondReference::new(recurrent, member, 0).unwrap();
+        let outward = ActiveElectricalFrontierEntry::caused_with_frontier(
+            recurrent,
+            member,
+            member,
+            recurrent_bond,
+            5,
+        )
+        .unwrap();
+
+        let cues = recurrent_formation_causal_cues(
+            &mosaics,
+            &formation_index,
+            &[predecessor],
+            &[outward],
+        )
+        .unwrap();
+        assert_eq!(cues.len(), 1);
+        assert_eq!(cues[0].source_formation_index, 0);
+        assert_eq!(cues[0].source_recurrent_lineage, recurrent);
+        assert_eq!(cues[0].cue_lineage, member);
+        assert_eq!(cues[0].transfer.sender, recurrent);
+        assert_eq!(cues[0].transfer.receiver, member);
+
+        // Current flowing into the recurrent cell is its activation, not its
+        // output. Likewise, an outward transfer without that recurrent cell
+        // in the preceding frontier cannot claim a formation cause.
+        let inward = ActiveElectricalFrontierEntry::caused_with_frontier(
+            member,
+            recurrent,
+            recurrent,
+            recurrent_bond,
+            5,
+        )
+        .unwrap();
+        assert!(recurrent_formation_causal_cues(
+            &mosaics,
+            &formation_index,
+            &[predecessor],
+            &[inward],
+        )
+        .unwrap()
+        .is_empty());
+        assert!(recurrent_formation_causal_cues(
+            &mosaics,
+            &formation_index,
+            &[],
+            &[outward],
+        )
+        .unwrap()
+        .is_empty());
     }
 
     #[test]

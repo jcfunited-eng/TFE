@@ -177,8 +177,9 @@ class _NativeResidentOrganismPrepare:
     partial_cue_reassembly_count: int = 0
     endogenous_partial_cue_reassembly_count: int = 0
     internally_reassembled_formation_cues: list[
-        tuple[str, list[str], str | None]
+        tuple[str, list[str], str | None, list[tuple[object, ...]]]
     ] | None = None
+    causal_thought_transitions: list[tuple[object, ...]] | None = None
     externally_reassembled_formation_frontiers: list[
         tuple[str, list[str], str]
     ] | None = None
@@ -301,6 +302,8 @@ class _NativeResidentOrganismPrepare:
             self.organic_mosaic_relations = []
         if self.internally_reassembled_formation_cues is None:
             self.internally_reassembled_formation_cues = []
+        if self.causal_thought_transitions is None:
+            self.causal_thought_transitions = []
         if self.externally_reassembled_formation_frontiers is None:
             self.externally_reassembled_formation_frontiers = []
         if self.externally_perturbed_neuron_lineages is None:
@@ -1158,7 +1161,7 @@ def test_internal_reassembly_carries_its_exact_recurrent_lineage(
     runtime.prepare_result_override = replace(
         genuine,
         internally_reassembled_formation_cues=[
-            (receipt, [cue], recurrent),
+            (receipt, [cue], recurrent, []),
         ],
         endogenous_partial_cue_reassembly_count=1,
         partial_cue_reassembly_count=1,
@@ -1169,6 +1172,39 @@ def test_internal_reassembly_carries_its_exact_recurrent_lineage(
     assert prepared.internally_reassembled_formation_cues == (
         (receipt, (cue,), recurrent),
     )
+
+
+def test_causal_thought_requires_an_exact_recurrent_carrier_bridge() -> None:
+    source_receipt = "44" * 32
+    destination_receipt = "11" * 32
+    recurrent = "33" * 16
+    cue = "22" * 16
+    raw_transition = (
+        source_receipt,
+        destination_receipt,
+        recurrent,
+        cue,
+        (recurrent, cue, 0, "5"),
+    )
+    parsed = boundary._causal_thought_transition_evidence([raw_transition])
+    assert parsed == (
+        (
+            source_receipt,
+            destination_receipt,
+            recurrent,
+            cue,
+            (recurrent, cue, 0, 5),
+        ),
+    )
+    reversed_transfer = (
+        source_receipt,
+        destination_receipt,
+        recurrent,
+        cue,
+        (cue, recurrent, 0, "5"),
+    )
+    with pytest.raises(RuntimeError, match="lost carrier direction"):
+        boundary._causal_thought_transition_evidence([reversed_transfer])
 
 
 def test_internal_reassembly_refuses_the_retired_two_field_shape(

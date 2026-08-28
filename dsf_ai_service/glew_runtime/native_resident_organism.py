@@ -338,6 +338,11 @@ class NativeResidentObservationView(Protocol):
     ) -> list[tuple[str, list[str], str | None]]: ...
 
     @property
+    def causal_thought_transitions(
+        self,
+    ) -> list[tuple[str, str, str, str, tuple[str, str, int, str]]]: ...
+
+    @property
     def externally_reassembled_formation_frontiers(
         self,
     ) -> list[tuple[str, list[str], str]]: ...
@@ -406,6 +411,9 @@ class ResidentCausalIntervalEvidence:
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...], str | None], ...
     ]
+    causal_thought_transitions: tuple[
+        tuple[str, str, str, str, tuple[str, str, int, int]], ...
+    ]
     externally_reassembled_formation_frontiers: tuple[
         tuple[str, tuple[str, ...], str], ...
     ]
@@ -472,6 +480,9 @@ class ResidentPrepareEvidence:
     endogenous_partial_cue_reassembly_count: int
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...], str | None], ...
+    ]
+    causal_thought_transitions: tuple[
+        tuple[str, str, str, str, tuple[str, str, int, int]], ...
     ]
     externally_reassembled_formation_frontiers: tuple[
         tuple[str, tuple[str, ...], str], ...
@@ -771,9 +782,9 @@ def _internally_reassembled_formation_cue_evidence(
         raise RuntimeError("internally reassembled formation cues changed format")
     observed: list[tuple[str, tuple[str, ...], str | None]] = []
     for raw_cue in value:
-        if not isinstance(raw_cue, tuple) or len(raw_cue) != 3:
+        if not isinstance(raw_cue, tuple) or len(raw_cue) != 4:
             raise RuntimeError("internally reassembled formation cue changed format")
-        raw_receipt, raw_cues, raw_recurrent_lineage = raw_cue
+        raw_receipt, raw_cues, raw_recurrent_lineage, raw_thought_transitions = raw_cue
         if not isinstance(raw_cues, list) or not raw_cues:
             raise RuntimeError("internally reassembled formation cue is empty")
         receipt = _canonical_sha256(
@@ -793,10 +804,79 @@ def _internally_reassembled_formation_cue_evidence(
                 "internally reassembled formation recurrent lineage",
             )
         )
+        thought_transitions = _causal_thought_transition_evidence(
+            raw_thought_transitions
+        )
+        if any(
+            destination_receipt != receipt or cue_lineage not in cues
+            for (
+                _source_receipt,
+                destination_receipt,
+                _source_recurrent,
+                cue_lineage,
+                _transfer,
+            ) in thought_transitions
+        ):
+            raise RuntimeError(
+                "causal thought transition left its destination formation cue"
+            )
         observed.append((receipt, cues, recurrent_lineage))
     result = tuple(observed)
     if len(set(result)) != len(result):
         raise RuntimeError("internally reassembled formation cue repeated")
+    return result
+
+
+def _causal_thought_transition_evidence(
+    value: object,
+) -> tuple[tuple[str, str, str, str, tuple[str, str, int, int]], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("causal thought transitions changed format")
+    observed = []
+    for raw_transition in value:
+        if not isinstance(raw_transition, tuple) or len(raw_transition) != 5:
+            raise RuntimeError("causal thought transition changed format")
+        source_receipt = _canonical_sha256(
+            raw_transition[0], "causal thought source formation receipt"
+        )
+        destination_receipt = _canonical_sha256(
+            raw_transition[1], "causal thought destination formation receipt"
+        )
+        recurrent = _canonical_lineage_hex(
+            raw_transition[2], "causal thought source recurrent lineage"
+        )
+        cue = _canonical_lineage_hex(
+            raw_transition[3], "causal thought destination cue lineage"
+        )
+        transfer = _directed_physical_transfer_evidence(
+            raw_transition[4], "causal thought transfer"
+        )
+        if source_receipt == destination_receipt:
+            raise RuntimeError("causal thought transition is a self-loop")
+        if transfer[0] != recurrent or transfer[1] != cue:
+            raise RuntimeError("causal thought transition lost carrier direction")
+        observed.append(
+            (source_receipt, destination_receipt, recurrent, cue, transfer)
+        )
+    result = tuple(sorted(observed))
+    if len(set(result)) != len(result):
+        raise RuntimeError("causal thought transition repeated")
+    return result
+
+
+def _causal_thought_transitions_from_internal_cues(
+    value: object,
+) -> tuple[tuple[str, str, str, str, tuple[str, str, int, int]], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("internally reassembled formation cues changed format")
+    transitions = tuple(
+        transition
+        for raw_cue in value
+        for transition in _causal_thought_transition_evidence(raw_cue[3])
+    )
+    result = tuple(sorted(transitions))
+    if len(set(result)) != len(result):
+        raise RuntimeError("causal thought transition repeated across cues")
     return result
 
 
@@ -1139,6 +1219,9 @@ def _causal_interval_evidence(
                 externally_perturbed_neuron_lineages=external,
                 internally_reassembled_formation_cues=(
                     _internally_reassembled_formation_cue_evidence(raw_cues)
+                ),
+                causal_thought_transitions=(
+                    _causal_thought_transitions_from_internal_cues(raw_cues)
                 ),
                 externally_reassembled_formation_frontiers=(
                     _externally_reassembled_formation_frontier_evidence(
@@ -2874,6 +2957,25 @@ class NativeResidentOrganism:
                 candidate.internally_reassembled_formation_cues
             )
         )
+        causal_thought_transitions = _causal_thought_transition_evidence(
+            candidate.causal_thought_transitions
+        )
+        if any(
+            not any(
+                destination_receipt == receipt and cue_lineage in cues
+                for receipt, cues, _recurrent in internally_reassembled_formation_cues
+            )
+            for (
+                _source_receipt,
+                destination_receipt,
+                _source_recurrent,
+                cue_lineage,
+                _transfer,
+            ) in causal_thought_transitions
+        ):
+            raise RuntimeError(
+                "causal thought transition left its destination formation cue"
+            )
         externally_reassembled_formation_frontiers = (
             _externally_reassembled_formation_frontier_evidence(
                 candidate.externally_reassembled_formation_frontiers
@@ -3307,6 +3409,7 @@ class NativeResidentOrganism:
             internally_reassembled_formation_cues=tuple(
                 internally_reassembled_formation_cues
             ),
+            causal_thought_transitions=tuple(causal_thought_transitions),
             externally_reassembled_formation_frontiers=tuple(
                 externally_reassembled_formation_frontiers
             ),

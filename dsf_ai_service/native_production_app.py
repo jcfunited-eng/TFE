@@ -2636,6 +2636,50 @@ def _bounded_motor_action_observation(action: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _causal_thought_record() -> dict[str, object]:
+    """Report native formation-to-formation carrier transitions only.
+
+    This surface never infers thought from recurrence counts or electrical
+    activity. The native organism must name both retained formations and the
+    exact recurrent-cell carrier transfer that caused the destination cue.
+    """
+
+    intervals = tuple(
+        (_last_transition_evidence or {}).get("causal_interval_evidence", ())
+    )
+    transitions = tuple(
+        transition
+        for interval in intervals
+        for transition in interval.get("causal_thought_transitions", ())
+    )
+    if not transitions:
+        return _section(
+            False,
+            "native_causal_thought_mounted_awaiting_witness",
+            "the native recurrent-cell carrier bridge is mounted, but the "
+            "latest observed trajectory did not contain a retained "
+            "formation causing a different retained formation",
+            observed_transition_count=0,
+            observer_authority=False,
+        )
+    latest = transitions[-1]
+    return _section(
+        True,
+        "native_causal_thought_observed",
+        "one retained formation's recurrent neuron sent whole carriers into "
+        "a member that physically reassembled a different retained formation",
+        observed_transition_count=len(transitions),
+        latest_transition={
+            "source_formation_receipt_sha256": latest[0],
+            "destination_formation_receipt_sha256": latest[1],
+            "source_recurrent_lineage": latest[2],
+            "destination_cue_lineage": latest[3],
+            "directed_physical_transfer": latest[4],
+        },
+        observer_authority=False,
+    )
+
+
 def _autonomy_record() -> dict[str, object]:
     """Truth-coupled observation of continuous native settlement.
 
@@ -2662,12 +2706,13 @@ def _autonomy_record() -> dict[str, object]:
         "pauses_when_energy_exhausted": False,
     }
     physical_choice = _physical_choice_record()
+    causal_thought = _causal_thought_record()
     not_mounted = {
         "action": _unmounted("no native action actuator is mounted"),
         "attention": _attention_record(),
         "choice": physical_choice,
         "consequence": _unmounted("no autonomous action consequence exists"),
-        "thought": _unmounted("no native causal thought loop is mounted"),
+        "thought": causal_thought,
     }
     if _last_unattended_evidence is None:
         return _section(
@@ -8211,6 +8256,7 @@ def _causal_interval_hops(
             "internally_reassembled_formation_cues": (
                 interval.internally_reassembled_formation_cues
             ),
+            "causal_thought_transitions": interval.causal_thought_transitions,
             "externally_reassembled_formation_frontiers": (
                 interval.externally_reassembled_formation_frontiers
             ),

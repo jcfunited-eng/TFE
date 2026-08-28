@@ -43,7 +43,8 @@ use crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source;
 use crate::resident_cognitive_formation::{
     coalesce_emitted_neuron_fractals, has_reached_and_foregone_frontier_routes,
     AffectiveBalanceTrajectoryObservation, ArticulatoryUnitRecruitment, AuthoredDeclaredContact,
-    CausalFrontierTransferObservation, ChangedContactChannelStateObservation,
+    CausalFrontierTransferObservation, CausalThoughtTransitionObservation,
+    ChangedContactChannelStateObservation,
     CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
     EmittedNeuronFractal, ExternallyReassembledFormationFrontierObservation,
     InternallyReassembledFormationCueObservation,
@@ -137,6 +138,14 @@ type InternallyReassembledFormationCueProjection = (
     String,
     Vec<String>,
     Option<String>,
+    Vec<CausalThoughtTransitionProjection>,
+);
+type CausalThoughtTransitionProjection = (
+    String,
+    String,
+    String,
+    String,
+    DirectedPhysicalTransferProjection,
 );
 type ExternallyReassembledFormationFrontierProjection = (String, Vec<String>, String);
 type MotorUnitRecruitmentProjection = (
@@ -1292,6 +1301,13 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn causal_thought_transitions(&self) -> Vec<CausalThoughtTransitionProjection> {
+        project_causal_thought_transitions(
+            &self.observation.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
     fn externally_reassembled_formation_frontiers(
         &self,
     ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
@@ -2003,6 +2019,13 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn causal_thought_transitions(&self) -> Vec<CausalThoughtTransitionProjection> {
+        project_causal_thought_transitions(
+            &self.observation.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
     fn externally_reassembled_formation_frontiers(
         &self,
     ) -> Vec<ExternallyReassembledFormationFrontierProjection> {
@@ -2330,6 +2353,13 @@ impl NativeOrganismRuntimeTransition {
         &self,
     ) -> Vec<InternallyReassembledFormationCueProjection> {
         project_internally_reassembled_formation_cues(
+            &self.observation.internally_reassembled_formation_cues,
+        )
+    }
+
+    #[getter]
+    fn causal_thought_transitions(&self) -> Vec<CausalThoughtTransitionProjection> {
+        project_causal_thought_transitions(
             &self.observation.internally_reassembled_formation_cues,
         )
     }
@@ -6437,9 +6467,45 @@ fn project_internally_reassembled_formation_cues(
                     .recurrent_lineage
                     .as_ref()
                     .map(|lineage| hex_bytes(lineage)),
+                observation
+                    .causal_predecessors
+                    .iter()
+                    .map(project_causal_thought_transition)
+                    .collect(),
             )
         })
         .collect()
+}
+
+fn project_causal_thought_transitions(
+    observations: &[InternallyReassembledFormationCueObservation],
+) -> Vec<CausalThoughtTransitionProjection> {
+    let mut transitions = observations
+        .iter()
+        .flat_map(|observation| observation.causal_predecessors.iter())
+        .map(project_causal_thought_transition)
+        .collect::<Vec<_>>();
+    transitions.sort_unstable();
+    transitions.dedup();
+    transitions
+}
+
+fn project_causal_thought_transition(
+    observation: &CausalThoughtTransitionObservation,
+) -> CausalThoughtTransitionProjection {
+    let transfer = observation.transfer;
+    (
+        hex_digest(&observation.source_formation_receipt),
+        hex_digest(&observation.destination_formation_receipt),
+        hex_bytes(&observation.source_recurrent_lineage),
+        hex_bytes(&observation.cue_lineage),
+        (
+            hex_bytes(&transfer.sender),
+            hex_bytes(&transfer.receiver),
+            transfer.bond.parallel_ordinal(),
+            transfer.transferred_whole_carriers.to_string(),
+        ),
+    )
 }
 
 fn project_externally_reassembled_formation_frontiers(
