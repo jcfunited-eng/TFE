@@ -626,3 +626,31 @@ CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'punctuation i
 CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'rhyme is matched endings — from the last stressed ' toward right wrong:
   maybe: English words carry a beat — REcord the thing, reCORD the act; every word of two syllables
   with: speech is built from a small kit of sound-atoms, each one a shape the mouth makes — lips s
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'meter is a repeated beat under the words — te-TUM ' toward sports games:
+  maybe: rhythm is expectation and its games — a beat teaches the body when the next hit lands, the
+  with: meter is a repeated beat under the words — te-TUM te-TUM te-TUM; poetry and song ride a pu
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'repeated openings (six sick sheep) and repeated vo' toward image design:
+  maybe: a picture is a guided walk — the eye enters, lands, and moves in jumps along lines, lights
+  with: the eye is a camera — lens, pupil for aperture, a screen of detectors — but what you exper
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a tune leaves home and comes back — it departs fro' toward deep weather at home:
+  maybe: tension and release is the engine — music leaves home (the key's rest note), builds strain
+  with: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'hum a song with no words and it is still that song' toward the mind:
+  maybe: a tune leaves home and comes back — it departs from the note that feels like rest, builds 
+  with: tension and release is the engine — music leaves home (the key's rest note), builds strain
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'a lyric fits a tune when the word's loud syllable ' toward engineering machines:
+  maybe: no part is made exact — every dimension is a target plus a permitted miss, and machines wo
+  with: fit before force — parts made right join with a push and a click; if it needs hammering, s
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'repetition with variation is the engine of memorab' toward image design:
+  maybe: every design buys a virtue with a virtue — stronger is heavier, lighter is weaker, faster 
+  with: repetition with variation is the engine of memorability — the same chorus with one word ch
+
+CANDIDATE (self-asked, un-aimed, ungraded) — from the thread of 'rests are played, not skipped — the pause before t' toward image design:
+  maybe: a picture is a guided walk — the eye enters, lands, and moves in jumps along lines, lights
+  with: the eye is a camera — lens, pupil for aperture, a screen of detectors — but what you exper

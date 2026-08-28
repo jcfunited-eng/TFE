@@ -177,3 +177,10 @@ WANT: create an accounting system with audit trail and reconciliation
   closed 48 — requirement unmet — no estimate without a stated basis. (accounting control)
   closed 91 — requirement unmet — no sentence without a verb — a heap of names lists the world and asserts nothing, so nothing in it can be true or false. (grammar and sentences)
   closed 29 — requirement unmet — no state without revenue. (power governance)
+
+WANT: create an accounting method for organizational finances that utilized risked bases accounting rules with LLM support for analysis, account creation, account management, and reconciliation with real time running audit reports and views - which means could it reach out to the internet for the data the
+  closed 206 — requirement unmet — no audit without a trail. (accounting control)
+  closed 121 — forbidden together — no news in the known — a message the receiver could have written transfers zero, whatever it cost to send. (computing information)
+  closed 85 — requirement unmet — no seeing without interpreting. (the mind)
+  closed 68 — forbidden together — no information from certainty — the already-sure message carries zero at any length; (computer science)
+  closed 66 — forbidden together — no message from a one-state signal — the lamp that is always on says nothing. (computing information)

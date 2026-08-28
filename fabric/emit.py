@@ -14,6 +14,42 @@ sys.path.insert(0, BASE)
 import fabric_ask as fa
 import maker
 
+def laws_about(want, top_fields=3, min_laws=2):
+    """The laws that GOVERN a want are the ones whose own words are
+    about its subject. A law from optics is not made relevant to a
+    ledger by the word 'view'."""
+    es_all = fa.load()
+    qs = fa.words(want)
+    df = {}
+    for e in es_all:
+        for w in fa.words(e["essence"] + " " + e["cannot"] + " "
+                          + e["ask"]):
+            df[w] = df.get(w, 0) + 1
+    key = {w for w in qs if df.get(w, 99) <= 30} or qs
+    score = {}
+    for e in es_all:
+        own = fa.words(e["essence"] + " " + e["cannot"])
+        hit = len(key & own)
+        if hit:
+            score[e["field"]] = score.get(e["field"], 0) + hit
+    if not score: return ["accounting control"]
+    home = max(score, key=score.get)
+    # the fabric declares its own neighbours in every entry's
+    # thread line — follow those instead of counting shared words,
+    # so a law from optics cannot wander into a ledger
+    named = set()
+    for e in es_all:
+        if e["field"] != home: continue
+        th = (e.get("thread") or "").lower()
+        for o in es_all:
+            tail = o["field"].split()[-1]
+            if tail and tail in th and o["field"] != home:
+                named.add(o["field"])
+    # a neighbour only governs if the want itself reaches it too
+    ranked = [f for f in sorted(named, key=lambda f: -score.get(f, 0))
+              if score.get(f, 0) >= max(2, score[home] // 6)]
+    return [home] + ranked[:top_fields - 1]
+
 def laws_for(fields):
     es = [e for e in fa.load()
           if any(f in e["field"] for f in fields)]
@@ -76,3 +112,12 @@ if __name__ == "__main__":
                 os.path.join(BASE, "emitted_accounting_rules.py"),
                 "ACCOUNTING RULES — emitted by the compute fabric")
     print(f"emitted {n} enforceable rules to {os.path.basename(p)}")
+
+# A hand-written SYSTEM_TEMPLATE stood here: an accounting module
+# I wrote myself, with the fabric's laws pasted in as quotes. It
+# ran, and it was a lie about provenance — the checks were mine,
+# derived by me reading the laws, not by the machine deriving them.
+# Removed. What stays is generation from the laws' own parsed form
+# ("no A without B" becomes a check for A present and B absent),
+# which is crude and honest. If a domain needs hand-written logic,
+# the hands write it separately and say so.

@@ -1,0 +1,26 @@
+ASKING: create an accounting method for organizational finances that utilized risked bases accounting rules with LLM support for analysis, account creation, account management, and reconciliation with real time running audit reports and views - which means could it reach out to the internet for the data the
+
+I wrote the program.
+  file: fabric/emitted/create_an_accounting_method_for_organiza.py
+  42 enforceable rules, drawn from my knowledge of: accounting control, computing information, the mind, computer science, light seeing
+  each rule quotes the law it enforces and names where that law came from, and it carries a running audit over records.
+  what it does NOT do: reach the internet, draw a screen, hold identities, or file anything. Those need hands; the rules are what the hands may not violate.
+
+  the first laws it will enforce:
+    no repair without prepayment — a message at maximum compression has no spare cloth to patc
+    no reading without the key, though the locked text crosses enemy hands in full view — poss
+    no seeing without interpreting.
+    And no choosing without feeling: minds with the verdict-circuits damaged cannot pick a lun
+    no seeing around a corner without a bend or a bounce.
+    No lens that focuses without slowing light somewhere — the slowing IS the lens.
+    no shadow without a denied straight path;
+    no reading one without knowing where the light stood.
+    No blue sky without air — the moon
+    No distance without dimming — and no hiding range: dimness betrays how far.
+    no move without a rule, and no memory outside the state — its past survives only as where 
+    no squeezing a message below its surprise without loss.
+    no safe sharing without turns.
+    no entry without an equal and opposite entry.
+    no revenue in a period without performance in that period.
+    No expense in a period without the benefit consumed in that period.
+    no revenue without a satisfied obligation.
