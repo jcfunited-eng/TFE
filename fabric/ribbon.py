@@ -140,6 +140,93 @@ class Ribbon:
         self.color |= gained
         return bin(gained).count("1")
 
+    # ---------- role: the walk. what else is this? ----------
+    def travel(self, steps=4, width=6, F=None):
+        """Stand on a coordinate and keep asking what else it is.
+
+        This is the finger. A thing is a finger, and one, and skin,
+        and a way to point, and a part of a body, and a surface water
+        runs off — all of it at once, and none of it stops being true
+        until something says not that. So nothing here looks anything
+        up. It starts where the asking lands, and at every coordinate
+        the question is only ever WHAT ELSE: the thing this stands on,
+        and the kin it reaches across to, both of which the entry
+        declared about itself.
+
+        The white does the stopping. A candidate that triggers a wall
+        is not followed and is recorded as closed — that is the "not
+        a giraffe, not steel" half, and it is the only half that has
+        to be kept, because the other half can always be walked again.
+        """
+        import eliminate, vectors
+        F = F or core.fabric()
+        V = vectors.vectors(F)
+        # Only walls of the forbidding kind may stop a walk. "No A
+        # without B" is a wall about MAKING — if you drag A in you
+        # must supply B — and it has no business judging what a thing
+        # also is: it closed "hold a finger up and blink each eye"
+        # because a brightness was not present. The finger's white is
+        # "not a giraffe, not steel" — two things that cannot stand
+        # together — and that is the forbidding kind, only.
+        laws = [L for L in eliminate.laws_of(None, F)
+                if L.kind == "forbids"]
+        qm = self.mask
+        start = []
+        i, m = 0, qm
+        while m:
+            if m & 1:
+                d = F.df.get(i, 0)
+                if d and d < len(F.entries) * 0.02:
+                    start.extend(F.index.get(i, ())[:width])
+            m >>= 1
+            i += 1
+        if not start:
+            return [], [], "the asking landed on no coordinate"
+        stood, closed, seen = [], [], set()
+        edge = list(dict.fromkeys(start))[:width]
+        carried = qm
+        for _step in range(steps):
+            nxt = []
+            for eid in edge:
+                if eid in seen:
+                    continue
+                seen.add(eid)
+                e = F.entries[eid]
+                # A wall may only close what it is ABOUT. Judging a
+                # candidate against everything the ribbon has picked
+                # up makes every requirement-wall in the fabric fire
+                # on ground that has nothing to do with this thing,
+                # and then nothing survives at all — measured: every
+                # single coordinate closed. The finger is not stopped
+                # by "no delivery without addressing"; it is stopped
+                # by giraffe and steel, which are about fingers.
+                pool = qm | e["color"]
+                own = e["color"]
+                wall = None
+                for L in laws:
+                    if bin(L.home & own).count("1") < 2:
+                        continue
+                    if L.closes(pool):
+                        wall = L
+                        break
+                if wall is not None:
+                    closed.append((e, wall))
+                    self.white |= e["color"]
+                    continue
+                stood.append(e)
+                self.color |= e["color"]
+                self.white |= e["white"]
+                carried |= e["color"]
+                # WHAT ELSE is this? what it stands on, and its kin
+                r = V["root"].get(eid)
+                if r is not None:
+                    nxt.append(r)
+                nxt.extend(V["thread"].get(eid, ())[:width])
+            edge = [x for x in dict.fromkeys(nxt) if x not in seen][:width]
+            if not edge:
+                break
+        return stood, closed, None
+
     # ---------- the thread that survives the turn ----------
     def note(self, what, stood=None, closed=None):
         self.turns.append(dict(t=int(time.time()), what=what,
