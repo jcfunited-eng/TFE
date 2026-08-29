@@ -4,6 +4,12 @@ Status: canonical. Ratified by Joseph Forrester on 2026-07-28, clarified with
 the ArcLoom quiescent-trit requirement on 2026-07-28, and reconciled with the
 multisensory mosaic and fluid-brain formation architecture on 2026-08-02.
 
+Current-reality notice, 2026-08-29: this continuity law remains canonical. Its
+opening implementation-status gate is historical; use
+`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md` for current source and live
+truth. Later direct whole-organism thought/action/consequence evidence does not
+weaken the law or prove every broader capability named here.
+
 Scope: Guala's complete active architecture above frozen canonical L0–L4. This
 law governs anatomy, transduction, body and fluid state, learning, recognition,
 memory, emotion, motivation, subconscious activity, thought, deliberation,

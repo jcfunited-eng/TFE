@@ -6,6 +6,13 @@ was previously referenced by the project skills but was not written to the
 repository. It specifies architecture; it does not by itself claim source,
 runtime, or production implementation.
 
+Current-reality notice, 2026-08-29: the cognitive-chain law below remains
+ratified. Its closing implementation ledger is historical and must be read
+through `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`, which records the
+current native formation, recurrence, thought, action, self-hearing, and
+remaining capability boundaries. Historical absence claims do not override
+later direct source and live evidence.
+
 ## Purpose and language boundary
 
 The **cognitive chain** is the continuous, causally ordered conservation,

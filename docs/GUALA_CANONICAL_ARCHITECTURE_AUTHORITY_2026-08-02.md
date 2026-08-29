@@ -2,6 +2,14 @@
 
 Date: 2026-08-02
 
+Current-reality notice, 2026-08-29: this document remains architectural
+authority, but its task-853 implementation and production statements are
+historical evidence. Current source, runtime, deployment, and capability truth
+is governed by `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md` and the
+current `GUALA_DELIVERY_LEDGER.md`. Do not use the historical D0-D2 status below
+to deny later directly observed native mechanisms or to claim their broader
+capabilities complete.
+
 ## D1 joint-field correction
 
 Joseph Forrester approved correcting the Guala kernel after the near-v1.3 audit

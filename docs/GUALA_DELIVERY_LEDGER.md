@@ -13,14 +13,15 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1298`, commit
-`c9deed6098a4713ffe4d8d2fce7b4af477c42a23`, immutable image
-`sha256:3f18336221bb8fff99458e8b6e9930728ac0dd617ae3b89dd9c6aaf4d6e57660`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The hot cutover
-completed at 2026-08-28T17:56:20Z with one task and verified native CURRENT at
-or beyond tick `228842`.
+Current production baseline: task definition `dsf-ai-task:1315`, commit
+`d0364541035da890f7ff65017bdd5327e97080cc`, immutable image
+`sha256:3ea7fae11f7d7dfaa83c2544961d55594f8f39d6300b2b418b115114466dcefd`,
+resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
+completed on 2026-08-29 with one task and verified native CURRENT beyond tick
+`252037`. The complete current source/runtime/capability reconciliation is
+`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
 
-### L-005 changed-cue recognition reclosure — 2026-08-28
+### L-005 changed-cue causal-recognition evidence — 2026-08-28
 
 - Task 1298 adds one constant-sized read-only projection of causal evidence
   already produced by a committed transition. It does not scan retained
@@ -43,26 +44,25 @@ or beyond tick `228842`.
   transitions and seven new fractals. The same organism persisted tick
   `229452`, state
   `ff935f10a17bf4a0c2281227ce24053aefec481b0daffbf34d1b68faa8062fef`.
-- This closes the current changed-cue retained-formation causal-use boundary.
-  It does not claim dictionary semantics, sentences, or four-year-old language;
-  those remain later curriculum acceptance.
+- This closes the changed-cue retained-formation causal-use increment. It does
+  not establish lexical identity for a word, dictionary semantics, sentences,
+  or four-year-old language. L-005 therefore remains partial rather than being
+  relabeled from this narrower evidence.
 
 ### L-005/L-006 reconciliation after one-way anatomy cleanup — 2026-08-28
 
-- **Active item:** L-005 is reopened; L-006 is complete.
-- **Why L-005 reopened:** the earlier bear-hidden action proof depended on
-  coincidence-grown motor anatomy. The V33 one-way cleanup correctly removed
-  that anatomy, so the historical receipt no longer proves recognition through
-  the current lawful organism.
-- **Why L-006 is complete:** task 1290 preserved the same identity and live-
-  proved one retained-formation route reaching vocal motor `...0d91`, layer-13
-  cell `...0072`, emitted pressure, and cochlear self-hearing. A later
+- **L-005 is partial:** the earlier bear-hidden action proof depended on
+  coincidence-grown motor anatomy and was invalidated by the V33 one-way
+  cleanup. Task 1298 later supplied a lawful changed-cue causal-recognition
+  witness, but did not prove lexical word identity.
+- **L-006 physical closure is accepted:** task 1290 preserved the same identity
+  and live-proved one retained-formation route reaching vocal motor `...0d91`,
+  layer-13 cell `...0072`, emitted pressure, and cochlear self-hearing. A later
   unattended interval reused the learned route and emitted a different pressure
   body. This is an utterance result, not a learned-word or meaning claim.
-- **Single next acceptance:** present one changed physical cue to the corrected
-  live organism and require a previously grounded formation to reassemble,
-  cause a physical continuation, receive its sensed consequence, and survive
-  current-state persistence without labels, metadata, or observer authority.
+- **Single next language acceptance:** prove that novel physical evidence
+  reassembles a learned lexical word identity, then causally reuse that word in
+  a different context without labels, metadata, or observer authority.
 
 | Order | Item | Current truth | Exact next acceptance boundary |
 |---:|---|---|---|
@@ -70,13 +70,13 @@ or beyond tick `228842`.
 | 0 | C-023 bounded mechanism | Direct causal-use witness live; complete top-level capability sentence remains partial | Use as a prerequisite witness only; do not reopen its retired broad mechanism. |
 | 0 | C-024 live record | Corrected translation and 83-cell direct live witness recorded; complete top-level capability sentence remains partial | Closed for the present increment; missing capability families are supplied only by their own later items. |
 | 0 | A-006 motor-growth prerequisite | Live-closed on task 1176 | The terminal-bound motor invariant is current-format enforced and continuous physical advancement is restored; do not reopen the participant-set motor identity. |
-| 1 | A-006 | Live-closed 2026-08-24 | Preserve the task-1198 novelty/social/body/possible-consequence causal proof; no observer label, score, reward, or scripted choice may replace it. |
-| 2 | A-011 | Live-closed 2026-08-24 on task 1222 | Preserve the same-retained-formation varied-action and exact sensed-return witness; no observer, score, or label may become authority. |
-| 3 | A-012 | Live-closed 2026-08-23 | Preserve the direct task-1193 one-life recovery → endogenous reassembly → distinct changed-world actions → sensed-consequence witness. |
-| 4 | A-013 | Live-closed 2026-08-24 on task 1222 | Preserve the bounded Phase-1 articulated body, world/vestibular state, and exact core/cutaneous neuronal thermal participation; final gait, dexterity, and hardware morphology remain later scope. |
+| 1 | A-006 | Accepted live closure retained | Preserve the task-1198 novelty/social/body/possible-consequence causal proof; absence of a fresh process-local observer witness after restart is not a regression. |
+| 2 | A-011 | Accepted narrow live closure retained | Preserve the same-retained-formation varied-action and exact sensed-return witness; play, fun, social joy, distress exclusion, and laughter were never included in this narrow acceptance. |
+| 3 | A-012 | `RECONCILED PARTIAL` 2026-08-29 | Preserve task-1193 recovery/reassembly/action evidence; internally simulated provenance is not a sleep boundary, dream, or wake proof. |
+| 4 | A-013 | Accepted Phase-1 closure retained; F-013 added 2026-08-29 | Preserve the 37-axis body, thermal participation, root yaw/translation, and consequence return; later purposeful navigation, object use, gait, and dexterity remain separate scope. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
-| 6 | L-005 | Reopened 2026-08-28 after V33 cleanup invalidated the old action route | Prove one changed physical cue reassembles grounded structure and causally changes the corrected live organism; no label or observer may become authority. |
-| 7 | L-006 | Live-closed 2026-08-28 on task 1290 | Preserve learned formation-caused vocal action, emitted pressure, self-hearing, and later unattended reuse; do not relabel the utterance as a word. |
+| 6 | L-005 | `RECONCILED PARTIAL` 2026-08-28 | Changed-cue causal recognition is proved; prove lexical word identity from novel physical evidence without a label or observer becoming authority. |
+| 7 | L-006 | Accepted physical-utterance closure on task 1290 | Preserve formation-caused vocal action, emitted pressure, self-hearing, and later unattended reuse; this closure does not claim the utterance was a learned word. |
 | 8 | Remaining curriculum/UI/final proof | Open | Continue L-007 onward, U-001 onward, and final P acceptance in dependency order; S-010 and C-013 remain explicit open requirements and cannot be lost. |
 
 ## Neuron and sensory specialization
@@ -505,7 +505,10 @@ or beyond tick `228842`.
   receptors while reached and foregone route sets changed. The read-only
   cognitive-capital grid credits five exact curiosity dimensions; score,
   reward, named-need, scripted-action, social-experience, and Python decision
-  authority remain false.
+  authority remain false. **2026-08-29 clarification:** the current process-
+  local observer is awaiting a new witness after restart; that bounded cache
+  reset does not invalidate the accepted task-1198 live evidence or reopen the
+  item.
   **Current live closure:** production task 1198 preserved the same resident
   identity and exposed a new retained sensory impression at tick 157683 that
   crossed exact carrier transfers into motor discharge at tick 157685 and
@@ -575,8 +578,11 @@ or beyond tick `228842`.
   Positive affect/body engagement, reciprocal social play/joy, and body-owned
   laughter remain separately open capabilities under the complete objective;
   they are not claimed by this A-011 witness. Observer labels are not evidence
-  and have no cognition or action authority.
-- [x] **A-012 — DIRECT LIVE-CLOSED 2026-08-23:** Prove self-selected rest,
+  and have no cognition or action authority. **2026-08-29 clarification:** the
+  narrow creator-accepted varied-action closure remains intact. Play, fun,
+  positive valence, reciprocal social joy, distress exclusion, and laughter
+  remain separate open capabilities; they do not reopen A-011.
+- [ ] **A-012 — RECONCILED PARTIAL 2026-08-29:** Prove self-selected rest,
   sleep, wake, exploration, learning, and interaction can occur while no human
   or development agent is present. Task 1193 directly observed one continuing
   unattended life recover 292 neurons, form 302 exact neuronal fractals,
@@ -584,7 +590,11 @@ or beyond tick `228842`.
   changed contact into native body action and sensory return, and then produce
   two distinct action receipts at world revisions 9357 and 9359. Identity was
   unchanged, Python cognition callbacks were zero, neuron count stayed 2,105,
-  and state bytes decreased across the final two generations.
+  and state bytes decreased across the final two generations. **Current
+  reconciliation:** recovery, endogenous reassembly, action, exploration, and
+  consequence return remain valid. Metabolically caused
+  `internally_simulated` reorganization is not a direct sleep boundary, dream,
+  and wake cycle; that portion remains open.
 - [x] **A-013 thermal amendment — DIRECT LIVE-CLOSED 2026-08-24:** the original bounded
   Phase-1 pose/gaze/eyes/blink/face/mouth/breath/voice/locomotion/manipulation
   evidence remains live, but its core/cutaneous thermal body was explicitly
@@ -603,7 +613,10 @@ or beyond tick `228842`.
   74-terminal, 195-byte body, exact proprioceptive return, cold persistence,
   one-process topology, and zero Python cognition callbacks. Detailed physical
   morphology, gait, and dexterity remain intentionally deferred until an
-  actual body platform is selected.
+  actual body platform is selected. Task 1314 additionally live-proved one
+  exact root-translation consequence return. Purposeful navigation, object
+  use, gait, and dexterity remain later explicit scope and do not invalidate
+  the accepted bounded Phase-1 closure.
 - [ ] **A-014 — RECONCILED PARTIAL 2026-08-17:** Make real-world camera/microphone/text/media ingress and the
   virtual world coexist as seamless windows into one causal life.
   **Live-closed 2026-08-16:** task 1098 retained one organism while a real

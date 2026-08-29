@@ -4,6 +4,14 @@ Date: 2026-08-02
 
 Status: operational cutover authority; implemented native verification is recorded exactly but is not deployment evidence
 
+Current-reality notice, 2026-08-29: this document remains the historical
+cutover and architecture authority for the boundaries it defines. Its task-853
+production statements and ordered acceptance list are no longer current.
+`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md` governs current source,
+runtime, production, and capability truth; do not resurrect the retired Python
+cognition described here or use historical absence claims against later direct
+native evidence.
+
 Parent authority:
 `docs/GUALA_NEURON_ARCHITECTURE_TRUTH_GATE_2026-08-02.md`.
 

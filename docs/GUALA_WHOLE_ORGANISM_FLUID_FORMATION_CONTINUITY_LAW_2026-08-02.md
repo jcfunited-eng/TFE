@@ -7,6 +7,12 @@ with Joseph Forrester. Exact chemical species, coefficients, nonlinear
 operators, and numerical golden cases remain gated until separately derived
 and ratified.
 
+Current-reality notice, 2026-08-29: the integration law remains canonical, but
+its opening source/production status is historical. Use
+`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md` for current native and live
+implementation truth, including the exact boundary between directly observed
+mechanisms and still-open broader capabilities.
+
 Scope: the relationship among Guala's neurons, neuronal fractals, multisensory
 mosaics, virtual body, fluid brain, cognitive mechanisms, action/consequence,
 and recursive cognitive formations above frozen L0–L4.

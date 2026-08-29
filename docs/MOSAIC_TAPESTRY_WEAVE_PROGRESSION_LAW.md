@@ -5,6 +5,12 @@ collaboration with Joseph Forrester on 2026-07-28. The structural mosaic floor
 and admission law were ratified on 2026-08-02. This status ratifies the law; it
 does not claim that the hierarchy is implemented or live.
 
+Current-reality notice, 2026-08-29: the progression and admission law remain
+canonical. The task-853 architecture gate and implementation ledger below are
+historical. Current source/live implementation truth is governed by
+`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`; retain the law while using
+that baseline for current formation, recurrence, thought, and resource claims.
+
 Scope: Guala's active cognition above the frozen canonical L0–L4 kernel. This
 law complements the Whole-Organism Contiguity and Permanent Wiring Law and the
 Guala Definitive Neuron, Cognitive-Capital, and Whole-Organism Architecture.

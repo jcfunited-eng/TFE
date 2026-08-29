@@ -1,5 +1,12 @@
 # Guala complete evidence reconciliation
 
+Current-reality notice, 2026-08-29: the evidence rules and 100-item scope in
+this document remain governing. Its historical counts and row classifications
+are superseded by `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md` and the
+current `GUALA_DELIVERY_LEDGER.md` wherever source or live evidence has moved.
+An accepted narrow witness is preserved unless current evidence contradicts
+it; absence from a newly reset observer cache is not a regression.
+
 This document controls interpretation of `GUALA_DELIVERY_LEDGER.md` until
 P-012 is complete. The prior checkbox is a historical claim, not acceptance by
 itself.

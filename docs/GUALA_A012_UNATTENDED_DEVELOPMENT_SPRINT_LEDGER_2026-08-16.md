@@ -2,11 +2,12 @@
 
 Date: 2026-08-16
 
-Status: Direct Live-Closed on 2026-08-23 on production task
-`dsf-ai-task:1193`. The former 2026-08-16 composition-only closure is retained
-below as historical evidence but no longer supplies the acceptance authority.
-Task 1193 directly observed the complete unattended behavior in one continuing
-resident life.
+Status: **RECONCILED PARTIAL on 2026-08-29.** Production task
+`dsf-ai-task:1193` remains direct evidence of unattended recovery, endogenous
+reassembly, learning, action, changed-world exploration, and sensed return in
+one continuing resident life. It is not direct evidence of a sleep boundary,
+dream, and later wake. The former closure is retained below as historical
+evidence but no longer supplies complete A-012 acceptance authority.
 
 ## Task identity
 
@@ -171,3 +172,33 @@ locomotion, manipulation, eyelids, pose, or every body effector; those remain
 A-013. It does not claim A-011 play/fun/social joy, curriculum completion,
 four-year-old conversation, complete Loom UI, or long-soak resource closure;
 those remain later explicit items.
+
+## 2026-08-29 truth reconciliation
+
+The prior closure treated a metabolically caused reorganization with
+`internally_simulated` provenance as sleep/internal replay. That inference is
+too broad. Internal physical provenance says where a perturbation came from;
+it does not prove that the organism crossed into sleep, dreamed, consolidated
+during that state, and later woke.
+
+After the F-013 production check, no lesson, action command, sleep command,
+timer, or forced-energy withdrawal was supplied. Across 58 unattended ticks,
+two sampled intervals contained both changing and quiescent receptor
+populations and the organism remained non-exhausted, but both reported zero
+`rest_recovered_neuron_count` and zero
+`rest_drained_dissipation_quanta`. Event logs continued to show thousands of
+immediately due contacts. The observation established lawful quiet conditions;
+it did not reproduce rest or sleep.
+
+Current acceptance is therefore:
+
+- unattended continuous life: direct live;
+- physical rest/recovery: historical direct witness, not reproduced in this
+  quiet window;
+- endogenous retained-formation reassembly, learning, action, exploration,
+  and consequence return: direct live mechanisms;
+- sleep/dream/wake as one causal cycle: **open**.
+
+No sleep Boolean, schedule, replay archive, or Python controller is authorized
+as the correction. Closure requires an organism-conditioned state boundary and
+direct physical evidence on the same continuing life.
