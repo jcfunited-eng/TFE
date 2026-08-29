@@ -113,5 +113,11 @@ def test_sleep_dream_wake_requires_ordered_native_physical_evidence(
 
     rest_interval["motor_unit_recruitments"] = ()
     rest_interval["externally_perturbed_neuron_lineages"] = ("external",)
+    senses_continued = production._sleep_dream_wake_record()
+    assert senses_continued["available"] is True
+    assert senses_continued["externally_perturbed_neuron_count"] == 1
+
+    rest_interval["internally_reassembled_formation_cues"] = ()
+    rest_interval["causal_thought_transitions"] = ()
     refused = production._sleep_dream_wake_record()
     assert refused["available"] is False

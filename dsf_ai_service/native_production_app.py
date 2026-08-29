@@ -2713,7 +2713,6 @@ def _sleep_dream_wake_record() -> dict[str, object]:
             not isinstance(rest_count, int)
             or isinstance(rest_count, bool)
             or rest_count <= 0
-            or externally_perturbed
             or not (internal_cues or thought_transitions)
             or any(rest_actions)
         ):
@@ -2741,14 +2740,16 @@ def _sleep_dream_wake_record() -> dict[str, object]:
                 True,
                 "native_recovery_internal_reentry_and_wake_observed",
                 "one native interval recovered resident neurons while exact "
-                "internal formations re-entered without external perturbation "
-                "or motor recruitment; a later interval recruited native "
+                "internal formations re-entered without motor recruitment; "
+                "external sensory transport remained allowed; a later "
+                "interval recruited native "
                 "effectors, moved the persistent body, and returned its "
                 "sensory consequence to the same organism",
                 recovery_organism_tick=rest_interval.get("organism_tick"),
                 recovered_neuron_count=rest_count,
                 internally_reassembled_formation_count=len(internal_cues),
                 causal_thought_transition_count=len(thought_transitions),
+                externally_perturbed_neuron_count=len(externally_perturbed),
                 wake_organism_tick=wake_interval.get("organism_tick"),
                 wake_recruitment_count=wake_recruitment_count,
                 consequence_organism_identity=consequence.get("organism_identity"),

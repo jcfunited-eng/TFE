@@ -382,11 +382,13 @@ itself prove the required order.
 
 The bounded post-commit observer now examines only the already-existing causal
 interval array and reports a sequence only when all of these exact facts occur
-in order: an interval recovers at least one neuron, has no external neuronal
-perturbation, has internal formation re-entry or a causal thought transition,
-and has no motor, root-motion, or articulation recruitment; a later interval
+in order: an interval recovers at least one neuron, has internal formation
+re-entry or a causal thought transition, and has no motor, root-motion, or
+articulation recruitment; a later interval
 recruits an effector; the committed native body moves; and its sensory
 consequence names the continuing organism. Same-interval action or external
-perturbation makes the witness refuse. The observer stores no state and has no
+internal-cause absence makes the witness refuse. External sensory perturbation
+is counted but remains lawful because sleep does not disconnect the senses.
+The observer stores no state and has no
 cognition, scheduler, selection, or sleep authority. Its focused positive and
 two severing checks pass.
