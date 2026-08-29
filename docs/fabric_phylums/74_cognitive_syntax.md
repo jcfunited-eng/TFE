@@ -38,7 +38,7 @@ ESSENCE: a thin thing said leans on the thread — "why?" or "that"
 ROOT: language / no pronoun without an antecedent the listener
   can recover.
 THREAD: pointing (a finger needs a room), pronouns, a nod.
-ASKED-AS: why what how come and so that this those it again more thin short bare
+ASKED-AS: why what how come and so that this those it again more thin short bare then else there
 
 ESSENCE: the worth of a move is what it does to the other one's
   shape — the move that opens ground they hold closed is worth

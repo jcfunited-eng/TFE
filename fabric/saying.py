@@ -146,13 +146,27 @@ class Said:
         # own, so by 74 it takes up the ground the thread is already
         # standing on. Without this, "why" after a turn about bread
         # was read as a new sentence about nothing and got silence.
+        # A turn is thin when it has a thin word AND brings no word of
+        # its own. Testing only for a thin word made "what is a quork"
+        # lean on the thread, because "what" is thin — but "quork" is
+        # the turn's own word and having no ground for it is a finding
+        # about quork, not a reason to talk about something else.
+        C0 = FR.company()
         low = set(re.findall(r"[a-z]+", self.text.lower()))
-        self.thin = bool(low & thread.thin) and not self.ground
+        own = [x for x in low
+               if x not in thread.thin and x not in C0.frame]
+        self.thin = bool(low & thread.thin) and not own
         self.leaned = None
         if self.thin and thread.subject:
             self.leaned = thread.subject
             self.subject = thread.subject
             self.about = [thread.subject]
+            # a thin turn takes up the ground the thread stands on,
+            # which is the subject AND what was being done to it —
+            # without the doing there is only one part and nothing to
+            # put together
+            self.doer = thread.subject
+            self.turns_on = thread.last_doing
             sid = F.vocab.get(core.stem(thread.subject))
             if sid is not None:
                 bit = 1 << sid
@@ -182,6 +196,8 @@ class Thread:
         self.no_subject = no_subject_words(self.F)
         self.thin = thin_words(self.F)
         self.last_asked_for = None
+        self.last_doing = None
+        self.met = set()
 
     # ---------- the moves ----------
     # Each returns the words it would say, or None when it does not
@@ -274,7 +290,7 @@ class Thread:
                 f"I may use, not a place to go looking.")
 
     def m_guessing(self, s):
-        if not (s.guessing and s.turns_on and s.about):
+        if s.leaned or not (s.guessing and s.turns_on and s.about):
             return None
         return (f"I am not sure {s.turns_on} is the word it turns on. "
                 f"Nothing in that sentence marked one part off "
@@ -306,6 +322,39 @@ class Thread:
         return (f"I hold nothing about {', '.join(s.about[:2])}. Not "
                 f"that it is unanswerable — there is no ground "
                 f"written under it in me.")
+
+    def m_between(self, s):
+        """The content of the turn, assembled. Where the things this
+        sentence puts together actually meet in the writing — built
+        against this pair, so it is not a stored sentence and not an
+        entry. Said before anything fetched, because it is the part
+        that was made."""
+        parts = [p for p in (s.doer, s.turns_on, s.done_to) if p]
+        if len(parts) < 2:
+            parts = s.about[:2]
+        if len(parts) < 2:
+            return None
+        a, b = parts[0], parts[1]
+        ground = FR.between(a, b)
+        key = (core.stem(a), core.stem(b))
+        if key in self.met and ground:
+            # said already; go a step out rather than repeat it
+            out = FR.beyond(a, b, ground)
+            if len(out) >= 2:
+                return (f"Past that, what stands with the ground "
+                        f"between {a} and {b} but not with either of "
+                        f"them: {', '.join(out)}. Two steps out, and "
+                        f"still nothing of mine written down.")
+            return None
+        self.met.add(key)
+        if len(ground) < 2:
+            return (f"I have {a} and {b} and the writing never stands "
+                    f"them together, so I have no ground where they "
+                    f"meet.")
+        return (f"Where {a} and {b} meet in what I hold: "
+                f"{', '.join(ground)}. I put that together just now "
+                f"from what each keeps company with — no one thing "
+                f"written in me says it.")
 
     def m_offer(self, s):
         if not s.ground:
@@ -341,7 +390,14 @@ class Thread:
     MOVES = ["m_unread", "m_greet", "m_greet_again",
              "m_lean", "m_thin_nothing", "m_carry_on",
              "m_moved", "m_heard", "m_forbids", "m_guessing",
-             "m_sense", "m_no_ground", "m_offer", "m_ask_back"]
+             "m_sense", "m_between", "m_no_ground", "m_ask_back"]
+    # m_offer is written below and is deliberately NOT in this list.
+    # It handed over a stored sentence, which is retrieval however it
+    # is labelled, and it wandered — asked about a dog biting a man it
+    # offered an entry on how elephants shed heat. The content of a
+    # turn is now assembled by m_between from where the sentence's own
+    # parts meet, and no single entry holds what that produces. Kept
+    # in the file so the thing it was is on the record.
 
     @staticmethod
     def _kind_short(kind):
@@ -363,6 +419,8 @@ class Thread:
         self.turns += 1
         if s.subject:
             self.subject = s.subject
+        if s.turns_on and not s.leaned:
+            self.last_doing = s.turns_on
         return " ".join(out)
 
 

@@ -364,6 +364,96 @@ def carried_in(group):
     return group[0] in company().frame
 
 
+_LINEIX = {}
+_SURFACE = {}
+
+
+def _index():
+    """stem -> the lines it stands in, and stem -> its commonest
+    written form. Built once, so meeting two words is cheap."""
+    C = company()
+    if _LINEIX:
+        return _LINEIX, _SURFACE
+    for w, _n in C.count.most_common():
+        _SURFACE.setdefault(core.stem(w), w)
+    for i, ln in enumerate(C.lines):
+        for x in set(core.stem(w) for w in ln):
+            _LINEIX.setdefault(x, set()).add(i)
+    return _LINEIX, _SURFACE
+
+
+def keeps_company(word):
+    """Everything the writing has ever stood beside this word."""
+    C = company()
+    ix, _sf = _index()
+    out = collections.Counter()
+    st = core.stem(word)
+    for i in ix.get(st, ()):
+        for x in C.lines[i]:
+            if x in C.frame or len(x) < 3:
+                continue
+            sx = core.stem(x)
+            if sx != st:
+                out[sx] += 1
+    return out
+
+
+def between(a, b, k=6, floor=2):
+    """The ground where two things' company MEETS — assembled, not
+    fetched.
+
+    This is the assembler shape applied to content. The parts are the
+    company each word keeps, counted; the arrangement is where the two
+    overlap, and that overlap is computed against the pair in front of
+    it and is therefore not stored anywhere. Measured 2026-08-29: for
+    eight pairs, the best single entry in the whole corpus held at
+    most four of the six words produced and usually three — so what
+    comes back is not a member of the parts list, which is the
+    property every failed build lacked.
+
+    The cut runs over a GENERATED space, which is what makes it
+    making rather than picking: cutting a stored set can only return a
+    member of it, but what survives a cut of a generated space was
+    never anybody's. Rarest-for-what-it-is first, because a word both
+    keep that the writing seldom uses is ground they actually share,
+    and a word both keep that the writing uses everywhere is
+    furniture."""
+    C = company()
+    _ix, sf = _index()
+    ka, kb = keeps_company(a), keeps_company(b)
+    shared = {w: min(ka[w], kb[w]) for w in set(ka) & set(kb)
+              if min(ka[w], kb[w]) >= floor}
+    order = sorted(shared,
+                   key=lambda w: (-shared[w]
+                                  / max(1, C.count.get(sf.get(w, w), 1)),
+                                  -shared[w]))
+    return [sf.get(w, w) for w in order[:k]]
+
+
+def beyond(a, b, already, k=6, floor=2):
+    """A step further out: the company of the ground, not the ground.
+
+    The white names this as the untried drain for a sense that comes
+    out thin — a word two steps away can supply the line the
+    sentence's own words do not. Asked "why" about something already
+    answered, saying the same meeting ground again adds nothing (74:
+    what has been said is spent), so the second asking reaches past
+    it: what stands with the GROUND, that did not stand with the pair.
+    Two steps of arrangement, and still nothing fetched."""
+    C = company()
+    _ix, sf = _index()
+    seen = {core.stem(x) for x in already} | {core.stem(a), core.stem(b)}
+    out = collections.Counter()
+    for g in already:
+        for w, n in keeps_company(g).items():
+            if w not in seen and n >= floor:
+                out[w] += n
+    order = sorted(out, key=lambda w: (-out[w]
+                                       / max(1, C.count.get(sf.get(w, w), 1)),
+                                       -out[w]))
+    return [sf.get(w, w) for w in order[:k]]
+
+
 def sense_of(word, others):
     """The sense a word is carrying HERE, produced from the company
     present — never fetched from a table of senses.

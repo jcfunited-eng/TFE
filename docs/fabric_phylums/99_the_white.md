@@ -561,7 +561,28 @@ ENTRY: handing over a stored sentence as the content of a turn
     said, not the entry. The moves already work that way and are the
     proof of the shape; what is missing is doing it with the subject
     matter instead of with the shape of the turn.
-  STATUS: STANDING (white)
+  DRAINED 2026-08-29: the content is assembled now. The parts are the
+    company each of the sentence's own words keeps, counted; the
+    arrangement is where two of them MEET, computed against the pair
+    in front of it. Measured against the only test that decides it —
+    was the output already written before the question — across eight
+    pairs the best single entry in the whole corpus held at most four
+    of the six words produced, and usually three. It is not a member
+    of the parts list. Asked a second time it goes a step out instead
+    of repeating: what stands with the ground but with neither of the
+    pair, which for melt and ice gave supercooled, thaws, unfrozen,
+    quenching, floats.
+    The move that handed over a stored sentence was taken out of the
+    turn entirely rather than left in labelled, because a labelled
+    near miss is still a near miss and it was reaching for elephants
+    when asked about a dog.
+  WHAT IS STILL SHORT: the ground is words, not a said thing. It
+    names where two things meet and does not yet say HOW they meet,
+    which is what a why actually asks for. The joint — one thing
+    bearing another — is the next arrangement and it is written in
+    174 already.
+  STATUS: DRAINED in the part that was asked, STANDING in the part
+    above
 
 ENTRY: a stemmer that does not put two forms of one word together
   ASKED-AS: stem word forms rise rises move moved water same word

@@ -257,13 +257,7 @@ class Door(BaseHTTPRequestHandler):
             out += ("\n\n" + "-" * 46 +
                     "\nWHAT IT UNDERSTOOD YOU TO HAVE SAID\n\n")
             out += _heard(q)
-            out += ("\n\n" + "-" * 46 +
-                    "\nBELOW THIS LINE IS THE OLD ANSWERING PATH, and"
-                    "\nit is retrieval: measured, five of five of its"
-                    "\nanswers were already written in the corpus"
-                    "\nbefore the question was asked. Shown so it is"
-                    "\nnot hidden, not because it is the work.\n\n")
-            out += _answer(q)
+
         except Exception:
             out = "  the door fell over:\n" + traceback.format_exc()
         self._send(out, "text/plain; charset=utf-8")
