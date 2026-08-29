@@ -110,6 +110,7 @@
       "archive_prefix": "runtime",
       "files": [
         "dsf_ai_service/__init__.py",
+        "dsf_ai_service/bounded_gutenberg_source.py",
         "dsf_ai_service/bounded_source_media_store.py",
         "dsf_ai_service/bounded_video_sensory_source.py",
         "dsf_ai_service/candidate_release_rehearsal.py",
