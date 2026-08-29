@@ -16850,7 +16850,9 @@ fn local_gradient_direction(
 /// reflex: reacted load or directional root receptor -> local integration ->
 /// body regulation -> motor.
 /// Both are real contact-local causes only when carrier transfer arrives at
-/// the motor. Motor-to-neighbour flow is a consequence, never preparation.
+/// the motor from a sender in this occurrence's causal seed. Settlement in a
+/// wider connected neighbourhood is not action authority. Motor-to-neighbour
+/// flow is a consequence, never preparation.
 /// Tonic position regulation and every other layer remain ineligible; no
 /// observation, score, or action label can prepare a motor through this
 /// boundary.
@@ -16869,12 +16871,12 @@ fn exact_motor_preparation_transfers(
                 return false;
             }
             let adjacent_layer = layer_of(transfer.sender);
-            matches!(adjacent_layer, Some(11))
-                || matches!(adjacent_layer, Some(8))
-                    && permitted_regulation_lineages
-                        .binary_search(&transfer.sender)
-                        .is_ok()
-                    && causal_seed_lineages.contains(&transfer.sender)
+            causal_seed_lineages.contains(&transfer.sender)
+                && (matches!(adjacent_layer, Some(11))
+                    || matches!(adjacent_layer, Some(8))
+                        && permitted_regulation_lineages
+                            .binary_search(&transfer.sender)
+                            .is_ok())
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
@@ -16908,9 +16910,9 @@ fn exact_articulated_body_preparation_regulations(
 }
 
 /// Return only whole-carrier transfers that physically arrive at one mounted
-/// root-yaw motor.  A learned layer-11 route may prepare that exact terminal;
-/// its paired layer-8 regulation may do so only while that regulation is a
-/// current causal seed.  Current leaving the motor is a consequence and can
+/// root-yaw motor. A learned layer-11 route or paired layer-8 regulation may
+/// prepare that exact terminal only while its sender is a current causal seed.
+/// Current leaving the motor is a consequence and can
 /// never be relabelled as preparation, regardless of the causal-frontier
 /// direction that originally taught the contact.
 fn exact_root_yaw_motor_preparation_transfers(
@@ -16927,9 +16929,9 @@ fn exact_root_yaw_motor_preparation_transfers(
             if transfer.receiver != motor_lineage {
                 return false;
             }
-            layer_of(transfer.sender) == Some(11)
-                || permitted_regulations.binary_search(&transfer.sender).is_ok()
-                    && causal_seed_lineages.contains(&transfer.sender)
+            causal_seed_lineages.contains(&transfer.sender)
+                && (layer_of(transfer.sender) == Some(11)
+                    || permitted_regulations.binary_search(&transfer.sender).is_ok())
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
@@ -16938,20 +16940,23 @@ fn exact_root_yaw_motor_preparation_transfers(
 }
 
 /// A root-translation consequence is body-position evidence, never another
-/// command to translate. Only an already-authored layer-11 ordering route may
-/// prepare the terminal. In particular, current arriving from the paired
+/// command to translate. Only an already-authored layer-11 ordering route that
+/// is a current causal seed may prepare the terminal. In particular, current arriving from the paired
 /// layer-8 proprioceptive regulation is excluded even though that contact is
 /// retained as the exact anatomical afferent path.
 fn exact_root_translation_motor_preparation_transfers(
     motor_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    causal_seed_lineages: &BTreeSet<[u8; 16]>,
     layer_of: impl Fn([u8; 16]) -> Option<u32>,
 ) -> Vec<DirectedPhysicalTransferObservation> {
     let mut preparation_transfers = settled_directed_transfers
         .iter()
         .copied()
         .filter(|transfer| {
-            transfer.receiver == motor_lineage && layer_of(transfer.sender) == Some(11)
+            transfer.receiver == motor_lineage
+                && layer_of(transfer.sender) == Some(11)
+                && causal_seed_lineages.contains(&transfer.sender)
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
@@ -18557,6 +18562,7 @@ fn settle_internal_contact_interval(
                 exact_root_translation_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
+                    &causal_seed_lineages,
                     &layer_of,
                 )
             } else if mount.body_effector_terminal().is_some() {
@@ -18744,6 +18750,7 @@ fn settle_internal_contact_interval(
                 let preparation_transfers = exact_root_translation_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
+                    &causal_seed_lineages,
                     &layer_of,
                 );
                 let outward_elementary_carriers = prepared_terminal_discharges
@@ -25065,7 +25072,7 @@ mod tests {
             .find_map(|(candidate, layer)| (candidate == lineage).then_some(layer))
         };
 
-        let causal_seeds = BTreeSet::from([regulation]);
+        let causal_seeds = BTreeSet::from([regulation, ordering]);
         assert_eq!(
             exact_motor_preparation_transfers(
                 motor,
@@ -25081,12 +25088,20 @@ mod tests {
                 motor,
                 &settled,
                 &[regulation],
-                &BTreeSet::new(),
+                &BTreeSet::from([regulation]),
                 layer_of,
             ),
-            vec![settled[3]],
-            "an unchanged body regulation cannot become tonic motor drive",
+            vec![settled[0]],
+            "only the exact currently causal regulation may prepare the motor",
         );
+        assert!(exact_motor_preparation_transfers(
+            motor,
+            &settled,
+            &[regulation],
+            &BTreeSet::new(),
+            layer_of,
+        )
+        .is_empty(), "background settlement cannot become motor preparation");
     }
 
     #[test]
@@ -26099,12 +26114,20 @@ mod tests {
                 motor,
                 &[ordered],
                 &permitted,
-                &BTreeSet::new(),
+                &BTreeSet::from([ordering]),
                 |lineage| topology.layer_of(lineage),
             ),
             vec![ordered],
             "the learned ordering route must physically arrive at its exact motor"
         );
+        assert!(exact_root_yaw_motor_preparation_transfers(
+            motor,
+            &[ordered],
+            &permitted,
+            &BTreeSet::new(),
+            |lineage| topology.layer_of(lineage),
+        )
+        .is_empty(), "background ordering settlement cannot prepare root yaw");
         let opposite = transfer(opposite_regulation, motor);
         assert!(exact_root_yaw_motor_preparation_transfers(
             motor,
@@ -26157,6 +26180,7 @@ mod tests {
         assert!(exact_root_translation_motor_preparation_transfers(
             motor,
             &[feedback],
+            &BTreeSet::from([regulation]),
             layer_of,
         )
         .is_empty());
@@ -26164,11 +26188,19 @@ mod tests {
             exact_root_translation_motor_preparation_transfers(
                 motor,
                 &[feedback, command],
+                &BTreeSet::from([ordering]),
                 layer_of,
             ),
             vec![command],
             "only a fresh ordering-layer cause may prepare root translation",
         );
+        assert!(exact_root_translation_motor_preparation_transfers(
+            motor,
+            &[command],
+            &BTreeSet::new(),
+            layer_of,
+        )
+        .is_empty(), "background ordering settlement cannot repeat translation");
     }
 
     #[test]

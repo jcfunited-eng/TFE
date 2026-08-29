@@ -392,3 +392,25 @@ is counted but remains lawful because sleep does not disconnect the senses.
 The observer stores no state and has no
 cognition, scheduler, selection, or sleep authority. Its focused positive and
 two severing checks pass.
+
+## 2026-08-29 recurrence 33: background settlement relabelled as motor preparation
+
+Tasks 1317 through 1320 consistently showed physical recovery and native
+formation recurrence, but no action-free interval. The observer was not the
+cause. Source reconciliation against the earlier C-021 ledger found the same
+rejected mechanism recorded in its second attempt: the wider electrical
+settlement neighbourhood was allowed to recruit a motor even when the transfer
+was not part of the current causal occurrence.
+
+The resurrected source boundary was exact. Ordinary body, root-yaw, and
+root-translation preparation accepted every layer-11 sender reaching the motor.
+The correction requires that sender to be present in the current causal seed
+set. The existing typed layer-8 reacted-load reflex remains constrained to its
+exact current causal regulation. Root yaw's already-prepared local terminal
+remains a separate physical memory and is not removed by this correction.
+
+This is recorded as recurrence R-002 in the permanent anti-resurrection
+register and explicitly counts the user's 33 observed recurrences. A-012 may
+close only from live temporal evidence: recovery in an action-free interval,
+internal recurrence without action, then a later physical action and returned
+consequence in the same organism.
