@@ -13,13 +13,34 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1315`, commit
-`d0364541035da890f7ff65017bdd5327e97080cc`, immutable image
-`sha256:3ea7fae11f7d7dfaa83c2544961d55594f8f39d6300b2b418b115114466dcefd`,
+Current production baseline: task definition `dsf-ai-task:1322`, commit
+`dc6673af2f2eb70215b1f7e8ac209997b2c74f05`, immutable image
+`sha256:26d7d838d4c14769a44e7d888f3c0e2005ed9e9000bf715f008aebad08b11c08`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
 completed on 2026-08-29 with one task and verified native CURRENT beyond tick
-`252037`. The complete current source/runtime/capability reconciliation is
+`259716`. The complete current source/runtime/capability reconciliation is
 `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
+
+### L-005 first learned-word recognition — 2026-08-29
+
+- **Live-Closed:** the first truthfully recognized learned word is `apple`.
+  Task 1322 remained the sole production task; no release or observer change
+  was required.
+- A 26,196-sample human `apple` pressure occurrence grounded the current
+  experience. A later different 12,923-sample pronunciation, SHA-256
+  `e312f3863804326c31a1cb5a9761133540684fa7c0be04eb302b066da3769c7e`,
+  externally reassembled a pre-existing retained formation from auditory
+  lineage `...0031` plus current vision. The retained route `...055a` caused
+  jaw action, six returned proprioceptive sources, one layer-13 recruitment,
+  4,000 emitted pressure samples, and one self-hearing hop in the same resident
+  organism through tick 259633.
+- A following human `bee` pressure control, SHA-256
+  `ee379f2b39bba8232fc62be4734efd5a80d6dc342b7f89995165eec8cd17238f`,
+  committed in the same persistent world with no authored scene change and
+  selected different retained route `...0514`. No word, object ID, expected
+  answer, filename, or semantic label entered cognition in either request.
+- This closes recognition of `apple`; it does not claim the organism's emitted
+  pressure says `apple`, prove sentence production, or broaden L-006.
 
 ### L-005 changed-cue causal-recognition evidence — 2026-08-28
 
@@ -75,7 +96,7 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
 | 3 | A-012 | `RECONCILED PARTIAL` 2026-08-29 | Preserve task-1193 recovery/reassembly/action evidence; internally simulated provenance is not a sleep boundary, dream, or wake proof. |
 | 4 | A-013 | Accepted Phase-1 closure retained; F-013 added 2026-08-29 | Preserve the 37-axis body, thermal participation, root yaw/translation, and consequence return; later purposeful navigation, object use, gait, and dexterity remain separate scope. |
 | 5 | A-014 | `RECONCILED PARTIAL` | Make camera, microphone, text, media, and the persistent virtual world truthful windows into the same causal life. |
-| 6 | L-005 | `RECONCILED PARTIAL` 2026-08-28 | Changed-cue causal recognition is proved; prove lexical word identity from novel physical evidence without a label or observer becoming authority. |
+| 6 | L-005 | `LIVE-CLOSED` 2026-08-29 | Preserve varied human-pressure recognition of `apple`, its native action/consequence use, and the different-word control; do not infer emitted-word identity or sentences. |
 | 7 | L-006 | Accepted physical-utterance closure on task 1290 | Preserve formation-caused vocal action, emitted pressure, self-hearing, and later unattended reuse; this closure does not claim the utterance was a learned word. |
 | 8 | Remaining curriculum/UI/final proof | Open | Continue L-007 onward, U-001 onward, and final P acceptance in dependency order; S-010 and C-013 remain explicit open requirements and cannot be lost. |
 
@@ -690,14 +711,16 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   song-recognition, or speech claim is made. The next ordinary interval after
   the post-lesson consolidation burst added only 12,034 bytes and no retained
   impression or mosaic. See the L-004 synchronized-song sprint ledger.
-- [ ] **L-005 — RECONCILED PARTIAL 2026-08-28:** Demonstrate first genuine learned word recognition from novel
+- [x] **L-005 — LIVE-CLOSED 2026-08-29:** Demonstrate first genuine learned word recognition from novel
   sensory evidence, not route metadata, filenames, labels, or scripted output.
-  Task 1298 supplied fresh visual-partial and pressure-only changed-cue
-  reassembly, causal body/articulatory use, sensed consequence, and exact
-  current-state persistence on the corrected post-V33 organism. This proves
-  learned causal recognition, but the decisive pressure record does not name
-  or independently establish a lexical word. No first recognized word can
-  therefore be claimed from this evidence.
+  Two different human `apple` pressure bodies reached the same task-1322
+  organism without lexical metadata. The later pronunciation reassembled a
+  pre-existing retained structure from auditory lineage `...0031`, caused jaw
+  action and returned proprioception, then emitted and self-heard pressure. A
+  following `bee` pressure control selected a different retained recurrent
+  route in the same persistent world without an authored scene change. The
+  first recognized learned word is `apple`; this does not claim the emitted
+  pressure itself says `apple`.
 - [x] **L-006 — LIVE-CLOSED 2026-08-28:** Demonstrate a physically caused first
   utterance and self-heard consequence, then repeated learned use in a different
   context. Task 1290 observed the learned route reach vocal motor `...0d91`,

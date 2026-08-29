@@ -2,16 +2,58 @@
 
 Date: 2026-08-17
 
-Status: Reconciled Partial on 2026-08-28. Task 1298 freshly proved changed-cue
-retained-formation causal use on the corrected organism, but its decisive
-pressure record does not identify or independently establish a lexical word.
-No first recognized word is therefore claimed. The 2026-08-25 bear-hidden
-recognition record
-remains historical evidence, but its action continuation depended on
-coincidence-grown motor anatomy removed by the V33 one-way correction. L-005
-still requires genuine lexical recognition from novel sensory evidence. L-006
-has independently closed as a learned utterance and self-hearing result; no
-emitted waveform is claimed to mean `bear` or any other word.
+Status: Live-Closed on 2026-08-29. The first truthfully recognized learned word
+is `apple`. Two distinct human pressure occurrences of that word entered the
+same task-1322 organism with no lexical label, expected answer, filename, or
+observer instruction. The later pronunciation reassembled a pre-existing
+retained multisensory formation through auditory lineage `...0031`, continued
+through native motor discharge, moved the body, returned proprioception,
+emitted organism-owned pressure, and self-heard it. A following `bee` pressure
+control in the same persistent world, with no authored scene change, selected a
+different retained recurrent route.
+This closes lexical recognition only; no claim is made that the emitted
+pressure itself says `apple` or that sentence language is complete.
+
+## Task 1322 first learned-word recognition — `apple`
+
+- Production remained one healthy task, `dsf-ai-task:1322`, running source
+  commit `dc6673af2f2eb70215b1f7e8ac209997b2c74f05`, with resident identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. No release or observer change was
+  required for this evidence.
+- The grounding occurrence was the approved human `apple` recording: 26,196
+  signed mono 16-kHz pressure samples, raw PCM SHA-256
+  `149bf6a15fc7c7cfcec48a79678cb12e0799ea092984dee22df704925138b588`.
+  The transport request contained only `guala.guided_world_voice.v2`, sample
+  rate, and pressure bytes. It changed auditory lineages including `...0020`,
+  `...002f`, `...0030`, and `...0031` in the same physical world.
+- After further ordinary life, a different human pronunciation of `apple`
+  entered as 12,923 samples with PCM SHA-256
+  `e312f3863804326c31a1cb5a9761133540684fa7c0be04eb302b066da3769c7e`.
+  At organism tick 259620, a retained formation at recurrent lineage
+  `474c4e4c494e4531000000000000055a` externally reassembled from the current
+  visual lineage `...0001` and auditory lineage `...0031`. Its exact native
+  continuation reached layer-12 motor `...02cb`, moved the jaw, and returned
+  six typed proprioceptive sources through successor tick 259633.
+- That same occurrence recruited one layer-13 articulatory cell, emitted 4,000
+  organism-owned pressure samples with SHA-256
+  `4f8fbfa29fba665a26d0477c88b256bceb5e5df12c351ea5fc1503543a6e19f7`,
+  and returned them through one self-hearing hop containing 1,231 transitioned
+  neurons and 16 new fractals. This is physical use of recognition; it is not
+  evidence that the emitted pressure encodes the word.
+- The falsifying control was the approved human `bee` pressure body: 29,709
+  samples, SHA-256
+  `ee379f2b39bba8232fc62be4734efd5a80d6dc342b7f89995165eec8cd17238f`.
+  It committed through tick 259716 in the same persistent world, after only
+  Guala's own intervening body activity and with no authored scene change. Its
+  canonical causal use selected a different retained recurrent route,
+  `...0514`, rather than the apple route `...055a`. Thus the recorded result is
+  not one observer route being assigned indiscriminately to every spoken input.
+- The exact predecessor at tick 259619 is preserved as authenticated state
+  `d9300c45b4e20077ce6a3cb037fb9f6be1b60861b47732f166001c80dd7fdf4c`.
+  Source law permits an external reassembly only from a retained formation
+  already present before that reassembly; the later utterance did not create
+  the structure it recognized. Full seven-field DSF settlement remained
+  unchanged, and the scheduler supplied no cognitive authority.
 
 ## Corrected-body apple grounding on task 1290
 
