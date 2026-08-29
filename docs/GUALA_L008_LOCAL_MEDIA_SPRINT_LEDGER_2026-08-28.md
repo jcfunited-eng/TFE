@@ -185,3 +185,29 @@ Status remains **Partial**. Picture, book, and ordinary audio have direct live
 transition evidence. PDF is present in custody but lacks direct retained
 transition evidence in this ledger; song and video have not yet committed.
 Duplicate, ceiling, and post-restart custody acceptance also remain open.
+
+## Task-1322 song live evidence — 2026-08-29
+
+- One 2.4-second mono 16 kHz phrase was derived from the rights-documented
+  count-down recording: 38,400 samples, 76,878 source bytes, SHA-256
+  `bd54f0b3ea7fd7b6527a9b7c104abceab19b8b5d211488e623b18919dbaf22cd`.
+  Its public-domain/CC BY-SA 3.0 voice attribution and project arrangement are
+  preserved outside cognition under exact custody receipt
+  `e53a9b8f67f1c8d31b55485021cc0adf34f1beecd13b4338b5a6e61eb108e665`.
+- The public request remained in flight beyond the first 30-second client
+  window. It was not retried. The one original process completed, and the
+  bounded live observer then reported a committed `offered-song` transition
+  at organism tick `260214` with successor state SHA-256
+  `cfdd772ed032f13d39fe4a5090aa9d0e4d052505e00acd692d9b707da5ad27aa`.
+- Across 49 whole-sensorium hops, the occurrence carried 612 sound-source
+  inputs, 40,724 physically transitioned neurons, 141 complete-neuron-fractal
+  occurrences, and 2,080 partial-cue reassemblies without energy exhaustion.
+  A native action moved the body and returned 14 typed proprioceptive sources;
+  that is an organism consequence, not evidence that Guala recognized or
+  understood the song.
+- The custody inventory now contains five exact sources totaling 4,842,566
+  bytes with false semantic and cognition authority.
+
+Status remains **Partial**. Picture, book, ordinary audio, and song now have
+direct live transition evidence. PDF remains custody-only in this ledger;
+video, duplicate, ceiling, and post-restart custody acceptance remain open.

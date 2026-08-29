@@ -746,11 +746,12 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   the same bounded physical-presentation route, with exact immutable source
   custody capped at 24 MiB/source, 32 sources, and 256 MiB total. No source has
   been inferred as learning from custody alone. Direct live transitions now
-  exist for picture, book, and ordinary audio; the task-1322 audio occurrence
+  exist for picture, book, ordinary audio, and song; the task-1322 audio occurrence
   carried 19,200 pressure samples through 22 hops at tick 260138 and retained
-  its exact 38,478 source bytes. PDF custody exists without direct transition
-  evidence in the current ledger; song, video, duplicate, ceiling, and restart
-  acceptance remain open.
+  its exact 38,478 source bytes. A separate licensed song phrase committed 49
+  hops at tick 260214 and retained its exact 76,878 source bytes. PDF custody
+  exists without direct transition evidence in the current ledger; video,
+  duplicate, ceiling, and restart acceptance remain open.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
