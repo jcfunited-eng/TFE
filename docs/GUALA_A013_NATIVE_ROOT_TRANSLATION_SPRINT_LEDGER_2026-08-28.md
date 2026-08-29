@@ -70,9 +70,22 @@ fixed terminal, and rebuilds the existing indexes. A corrected body is the
 identity on the next restore, preventing an older CURRENT or predecessor from
 resurrecting the malformed anatomy.
 
-Focused proof: six root-translation tests pass, including no action from
-quiescent input, exact signed sensory direction, compatible mounting,
-idempotent malformed-body repair, and a translated consequence that prepares
-and discharges its native terminal. The copied live body also migrated twice to
-the same bytes; its corrected regulation-to-motor contact has 37,942,000 pS,
+The first live cutover falsified one acceptance statement above. The repaired
+contact conducted, but the returned translation proprioception was incorrectly
+accepted as another command for the same terminal. A guided X-positive move
+therefore moved the body and returned its exact consequence, then began a
+positive translation-feedback chain that was eventually refused with
+`resident neuron lineage authority changed`. The sensory return was real; its
+reuse as efferent preparation was not lawful.
+
+The discharge boundary now separates cause from consequence. A fixed root
+translation terminal can be prepared only by a fresh settled transfer from its
+already-authored layer-11 ordering route. The paired layer-8 proprioceptive
+regulation remains the physical afferent path but cannot prepare or discharge
+the motor, and retained translation-motor displacement cannot repeat an action
+without a fresh ordering transfer. Seven focused root-translation tests pass,
+including explicit severing proofs that layer-8 feedback is refused while a
+layer-11 cause is accepted, and an end-to-end proof that returned translation
+feedback does not repeat the action. The copied live body also migrated twice
+to the same bytes; its corrected regulation-to-motor contact has 37,942,000 pS,
 lawful standing current, and a one-clock next crossing.

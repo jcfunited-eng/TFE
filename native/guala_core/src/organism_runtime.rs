@@ -7831,7 +7831,7 @@ mod tests {
     }
 
     #[test]
-    fn settled_root_translation_prepares_and_discharges_its_compatible_native_terminal() {
+    fn settled_root_translation_returns_feedback_without_repeating_the_action() {
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         runtime.active.articulated_body.initialize_proprioception();
         let source = admit_root_translation_proprioceptive_source(
@@ -7844,14 +7844,8 @@ mod tests {
             .commit_admitted_trajectory_direct(&[(source, vec![(1, 1_000)])])
             .unwrap();
         assert!(
-            translated
-                .root_translation_unit_recruitments
-                .iter()
-                .any(|recruitment| {
-                recruitment.terminal.axis() == RootTranslationAxis::X
-                    && recruitment.terminal.direction() == RootTranslationDirection::Positive
-                }),
-            "one exact +x body consequence must lawfully prepare and discharge its compatible fixed translation terminal",
+            translated.root_translation_unit_recruitments.is_empty(),
+            "returned +x position evidence must not become another +x command",
         );
     }
 

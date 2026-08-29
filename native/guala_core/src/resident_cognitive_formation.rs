@@ -16931,6 +16931,28 @@ fn exact_root_yaw_motor_preparation_transfers(
     preparation_transfers
 }
 
+/// A root-translation consequence is body-position evidence, never another
+/// command to translate. Only an already-authored layer-11 ordering route may
+/// prepare the terminal. In particular, current arriving from the paired
+/// layer-8 proprioceptive regulation is excluded even though that contact is
+/// retained as the exact anatomical afferent path.
+fn exact_root_translation_motor_preparation_transfers(
+    motor_lineage: [u8; 16],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    layer_of: impl Fn([u8; 16]) -> Option<u32>,
+) -> Vec<DirectedPhysicalTransferObservation> {
+    let mut preparation_transfers = settled_directed_transfers
+        .iter()
+        .copied()
+        .filter(|transfer| {
+            transfer.receiver == motor_lineage && layer_of(transfer.sender) == Some(11)
+        })
+        .collect::<Vec<_>>();
+    preparation_transfers.sort_unstable();
+    preparation_transfers.dedup();
+    preparation_transfers
+}
+
 /// Describe an already-settled contact transfer in the contact's physical
 /// endpoint order.
 ///
@@ -17150,28 +17172,6 @@ fn exact_root_yaw_preparation_regulations(
                 .receptor_site
                 .root_yaw_proprioceptor_terminal()
                 .map(RootYawProprioceptorTerminal::paired_effector)
-                == Some(motor_terminal))
-            .then_some(path.body_regulation_lineage)
-        })
-        .collect::<Vec<_>>();
-    regulations.sort_unstable();
-    regulations.dedup();
-    regulations
-}
-
-/// Resolve only the layer-8 regulation line paired with this exact x/y root
-/// translation terminal.
-fn exact_root_translation_preparation_regulations(
-    motor_terminal: RootTranslationEffectorTerminal,
-    paths: &[MotorBodyAfferentPath],
-) -> Vec<[u8; 16]> {
-    let mut regulations = paths
-        .iter()
-        .filter_map(|path| {
-            (path
-                .receptor_site
-                .root_translation_proprioceptor_terminal()
-                .map(RootTranslationProprioceptorTerminal::paired_effector)
                 == Some(motor_terminal))
             .then_some(path.body_regulation_lineage)
         })
@@ -18217,8 +18217,6 @@ fn settle_internal_contact_interval(
     // whole motor population merely because the body is present.
     let mut body_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     let mut root_yaw_regulations_by_motor = BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
-    let mut root_translation_regulations_by_motor =
-        BTreeMap::<[u8; 16], Vec<[u8; 16]>>::new();
     for (motor_flat, (_, _, motor_lineage)) in flat_locations.iter().copied().enumerate() {
         if layer_of(motor_lineage) != Some(12) {
             continue;
@@ -18248,14 +18246,9 @@ fn settle_internal_contact_interval(
                 root_yaw_regulations_by_motor.insert(motor_lineage, root_yaw_regulations);
             }
         }
-        if let Some(motor_terminal) = motor_mount.root_translation_effector_terminal() {
+        if motor_mount.root_translation_effector_terminal().is_some() {
             if motor_mount.source_site().is_some() {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
-            }
-            let regulations =
-                exact_root_translation_preparation_regulations(motor_terminal, &paths);
-            if !regulations.is_empty() {
-                root_translation_regulations_by_motor.insert(motor_lineage, regulations);
             }
         }
     }
@@ -18539,14 +18532,9 @@ fn settle_internal_contact_interval(
                     &layer_of,
                 )
             } else if mount.root_translation_effector_terminal().is_some() {
-                exact_root_yaw_motor_preparation_transfers(
+                exact_root_translation_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
-                    root_translation_regulations_by_motor
-                        .get(&motor_lineage)
-                        .map(Vec::as_slice)
-                        .unwrap_or(&[]),
-                    &causal_seed_lineages,
                     &layer_of,
                 )
             } else if mount.body_effector_terminal().is_some() {
@@ -18578,10 +18566,10 @@ fn settle_internal_contact_interval(
             // A root-yaw motor may integrate its causal preparation over
             // earlier intervals. Its retained positive displacement is that
             // physical memory and may discharge without demanding that the
-            // incoming contact cross again in this same interval.
-            let discharge_limit = if mount.root_yaw_effector_terminal().is_some()
-                || mount.root_translation_effector_terminal().is_some()
-            {
+            // incoming contact cross again in this same interval. Translation
+            // deliberately does not: returned position feedback must never
+            // repeat the movement without a fresh layer-11 preparation.
+            let discharge_limit = if mount.root_yaw_effector_terminal().is_some() {
                 prepared_carriers.max(retained_positive_displacement)
             } else {
                 prepared_carriers
@@ -18731,14 +18719,9 @@ fn settle_internal_contact_interval(
                 let mount = &cohort.anatomy.mounts()[*neuron_index];
                 let terminal = mount.root_translation_effector_terminal()?;
                 let motor_lineage = cohort.anatomy.neuron_lineages()[*neuron_index];
-                let preparation_transfers = exact_root_yaw_motor_preparation_transfers(
+                let preparation_transfers = exact_root_translation_motor_preparation_transfers(
                     motor_lineage,
                     &settled_directed_transfers,
-                    root_translation_regulations_by_motor
-                        .get(&motor_lineage)
-                        .map(Vec::as_slice)
-                        .unwrap_or(&[]),
-                    &causal_seed_lineages,
                     &layer_of,
                 );
                 let outward_elementary_carriers = prepared_terminal_discharges
@@ -26033,7 +26016,43 @@ mod tests {
     }
 
     #[test]
-    fn moved_root_translation_terminal_mounts_its_exact_reflex() {
+    fn root_translation_feedback_cannot_repeat_the_action() {
+        let regulation = [8_u8; 16];
+        let ordering = [11_u8; 16];
+        let motor = [12_u8; 16];
+        let transfer = |sender, carriers| DirectedPhysicalTransferObservation {
+            sender,
+            receiver: motor,
+            bond: StablePhysicalBondReference::new(sender, motor, 0).unwrap(),
+            transferred_whole_carriers: carriers,
+        };
+        let feedback = transfer(regulation, 7);
+        let command = transfer(ordering, 5);
+        let layer_of = |lineage| {
+            [(regulation, 8), (ordering, 11), (motor, 12)]
+                .into_iter()
+                .find_map(|(candidate, layer)| (candidate == lineage).then_some(layer))
+        };
+
+        assert!(exact_root_translation_motor_preparation_transfers(
+            motor,
+            &[feedback],
+            layer_of,
+        )
+        .is_empty());
+        assert_eq!(
+            exact_root_translation_motor_preparation_transfers(
+                motor,
+                &[feedback, command],
+                layer_of,
+            ),
+            vec![command],
+            "only a fresh ordering-layer cause may prepare root translation",
+        );
+    }
+
+    #[test]
+    fn moved_root_translation_terminal_mounts_its_exact_feedback_anatomy() {
         let mut cohorts = Vec::new();
         let mut population = None;
         let mut next_lineage = 1;
