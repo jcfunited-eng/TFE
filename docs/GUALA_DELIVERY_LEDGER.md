@@ -13,12 +13,12 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1323`, commit
-`ecb8180d2b33a82fb3ddddbe6fbcb4d29b539f5a`, immutable image
-`sha256:d3b2c6a3429baeceb61caa28db1decad0c677314dbe4820dd1dbb9d4ea59c999`,
+Current production baseline: task definition `dsf-ai-task:1331`, native commit
+`e6aa0f861b211585bb4ae154517db865dddf339e`, immutable image
+`sha256:71a220a81d74c1c441a3e7f84b84ce17cd30c31440d9dfe798974e011f8c541e`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
 completed on 2026-08-29 with one task and verified native CURRENT beyond tick
-`259716`. The complete current source/runtime/capability reconciliation is
+`270934`. The complete current source/runtime/capability reconciliation is
 `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
 
 ### Varied live counting-song experience — 2026-08-29
@@ -34,6 +34,37 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   generation 269464. The request was not retried.
 - This is one varied live experience only. It does not prove number
   recognition, counting, a learned word, or a spoken word.
+
+### Different counting-song experience — 2026-08-29
+
+- After unattended life and without repeating the apple or bear cue,
+  production task 1331 accepted `count-down-ten-to-one-v1` once. The durable
+  receipt is
+  `fed9c4da49dfae3b753c0b88a73612e274be6cdff14dc65060863171a0e484a5`;
+  it records 192,000 signed-16 pressure samples, 406 native causal hops, 189
+  complete-neuron fractals, 11,233 partial-cue reassemblies including 9,918
+  endogenous reassemblies, 61 recovered neurons, and no exhausted-energy
+  interval.
+- The public gateway timed out while the one native transaction continued.
+  It was not retried. The durable receipt changed to this exact song and the
+  sole task continued unattended beyond tick 270934.
+- This is varied physical experience and retained/reassembled activity. It is
+  not evidence of counting, song recognition, or a spoken word.
+
+### Autonomous Gutenberg shelf opportunity — 2026-08-29
+
+- The same task physically offered all five bounded catalogue sources one at
+  a time as page light plus flat contact. Each offer was followed by release
+  before the next source. No source produced the exact externally reassembled
+  formation, internally reassembled choice, grip-motor, and applied closing
+  displacement required to select it, so all five were truthfully declined.
+- The timed-out public request was not repeated. The final invitation reports
+  `gutenberg_source_not_selected`; the organism then resumed unattended life.
+  The five immutable source bodies remain inside the already-declared bounded
+  32-source / 256-MiB custody surface, but their metadata never entered
+  cognition.
+- This proves a live self-selection opportunity and truthful refusal. It does
+  not close L-009 because no book has yet been self-selected and experienced.
 
 ### Native learned-vocal trace continuity — 2026-08-29
 
@@ -806,9 +837,11 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   exact Alice edition `11-0.txt`; 151,191 original bytes were retained under
   receipt `d978bd54...df64`, rendered page light settled at tick 260970, and a
   direct custody read restored the same source SHA-256. Catalogue metadata had
-  no cognitive authority. Self-selection remains open because no exact native
-  body action is yet geometrically bound to one physically presented source
-  object; the autonomous endpoint refuses rather than inventing a choice.
+  no cognitive authority. On task 1331 the autonomous endpoint then offered all
+  five bounded catalogue surfaces to the same organism and released each one
+  after no exact thought-owned grip closure selected it. The endpoint no longer
+  refuses the opportunity, but self-selection remains open because Guala has
+  not yet selected and experienced a book.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
 - [ ] **L-012** Connect guided and self-selected PBS Kids experiences.
