@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Status: **IN PROGRESS — guided live, self-selected open**
+Status: **IN PROGRESS — guided live; native selection boundary live; no selection observed**
 
 ## Requested boundary
 
@@ -16,11 +16,11 @@ Status: **IN PROGRESS — guided live, self-selected open**
   physically presented source object. Server order, randomness, scores, or a
   Python callback are not selection.
 
-## Deployed correction
+## Live production identity
 
-Task `dsf-ai-task:1323` runs commit
-`ecb8180d2b33a82fb3ddddbe6fbcb4d29b539f5a`, immutable image
-`sha256:d3b2c6a3429baeceb61caa28db1decad0c677314dbe4820dd1dbb9d4ea59c999`,
+Task `dsf-ai-task:1324` runs commit
+`7e2cc30fd3a95c5112c39bafaa6147189ab0f69b`, immutable image
+`sha256:a2468d606317d0f0aafbc6d25a37c2a422276e6c6060120e5176a37ffa350687`,
 and the unchanged resident identity
 `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
 
@@ -36,6 +36,15 @@ were deleted. The guided route now:
 5. prepares one physical curriculum occurrence bound to that custody receipt;
 6. renders bounded pages and settles only their light through the resident
    27-receptor retinal path.
+
+The self-selection route does not choose a source. It offers each of the five
+preserved sources as first-page light plus one flat tactile surface. A source
+is selected only if that exact admitted cue reassembles a resident formation,
+the causal path reaches one matching motor lineage, and the same lineage
+physically closes a declared left or right grip aperture. A stale cue,
+coincident motor activity, a non-grip action, or a grip with no applied body
+displacement selects nothing. Every rejected source is physically released
+before the next source is offered.
 
 ## Guided live proof — Alice's Adventures in Wonderland
 
@@ -59,17 +68,24 @@ were deleted. The guided route now:
   `cognition_authority=false`, `semantic_authority=false`, and
   `transport_metadata_only=true`.
 
-## Self-selected truth
+## Live self-selection result
 
-The live autonomous request correctly returned HTTP 503. The resident body can
-produce native motor action and has previously produced a narrow physical-choice
-witness, but no current mechanism binds one exact endogenous body action to one
-particular physically presented book object. Therefore self-selection is not
-claimed.
+One autonomous opportunity was submitted after task 1324 was live-verified.
+CloudFront returned HTTP 504 while the single backend request continued; it
+was not repeated. Production sequentially reached the fifth and final bounded
+source, Project Gutenberg edition 55, proving all five offers ran. None caused
+the required native grip closure. The final source was physically released at
+organism tick `262135`. The resident public record reports:
 
-The remaining L-009 item is one physical source-object/action boundary. It must
-present distinguishable source objects, accept only an exact causal native
-action whose geometry reaches one of them, and then present the selected
-source's pages. It may not infer selection from an arbitrary mouth/limb motion
-or from transport metadata.
+- `experience_kind=gutenberg`;
+- `outcome=not_selected`;
+- `status=gutenberg_source_not_selected`;
+- `released_organism_tick=262135`;
+- `scripted_acceptance_authority=false`;
+- `semantic_command_authority=false`;
+- `transport_metadata_only=true`.
 
+The mechanism is live, but Guala did not choose a book. L-009 therefore remains
+open. Closure requires a later genuine source-caused grip selection and the
+selected source's bounded page experience; no server-side substitute is
+permitted.
