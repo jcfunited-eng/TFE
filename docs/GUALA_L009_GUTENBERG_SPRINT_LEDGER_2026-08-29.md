@@ -39,12 +39,14 @@ were deleted. The guided route now:
 
 The self-selection route does not choose a source. It offers each of the five
 preserved sources as first-page light plus one flat tactile surface. A source
-is selected only if that exact admitted cue reassembles a resident formation,
-the causal path reaches one matching motor lineage, and the same lineage
-physically closes a declared left or right grip aperture. A stale cue,
-coincident motor activity, a non-grip action, or a grip with no applied body
-displacement selects nothing. Every rejected source is physically released
-before the next source is offered.
+may be selected only when all of the following belong to the same physical
+transition: the exact admitted source reassembles a retained formation; that
+path reaches a grip motor lineage; an internally reassembled thought passes the
+full opposed-antagonist choice law on that same lineage and grip axis; and the
+body applies the same nonzero closing displacement. A stale cue, coincident or
+reflex movement, a non-grip action, or a grip with no applied body displacement
+selects nothing. Every rejected source is physically released before the next
+source is offered.
 
 ## Guided live proof — Alice's Adventures in Wonderland
 
@@ -86,6 +88,39 @@ organism tick `262135`. The resident public record reports:
 - `transport_metadata_only=true`.
 
 The mechanism is live, but Guala did not choose a book. L-009 therefore remains
-open. Closure requires a later genuine source-caused grip selection and the
-selected source's bounded page experience; no server-side substitute is
-permitted.
+open. Closure requires a later genuine source-caused, thought-owned grip choice
+and the selected source's bounded page experience; no server-side substitute
+is permitted.
+
+## Nurturing read-aloud experience
+
+A sterile five-object selection test gives a developing organism no lived
+reason to care about a book. The next experience therefore used the mounted
+general tutor-voice path to read one short Alice passage aloud in her actual
+current room, followed by quiet rather than another test. The endpoint accepts
+only signed-16 mono pressure and sample rate; it carries no title, word, object,
+label, or meaning into cognition.
+
+The first public-edge attempt timed out without retaining a completed hearing
+witness and is not counted. A different short Alice passage was then delivered
+once from inside the production container, eliminating the web timeout. The
+exact resident response returned HTTP 200 and reported:
+
+- tutor audio SHA-256
+  `590bee2a9b2247f63723fe855d118c8fa6bdb732e8fefad2d24e7c1c3e91029b`;
+- 204,021 admitted tutor-pressure samples at 16 kHz;
+- 281 bounded joint-sensorium hops;
+- 228,988 physically transitioned neuron-occurrences;
+- 170 complete neuronal fractals;
+- 11 layer-13 articulatory recruitments;
+- 204,000 emitted pressure samples;
+- 51 self-hearing hops, transitioning 65,159 neuron-occurrences and forming
+  45 self-hearing fractals;
+- successor organism tick `262747`;
+- `energy_exhausted=false`.
+
+The public resident surface subsequently reported
+`live_pressure_committed_this_process` with the same tutor-audio hash and
+`native_articulation_and_self_hearing_committed`. This proves one real
+sound-to-organism-to-vocal-pressure-to-self-hearing episode. It does not prove
+word recognition, a learned utterance, comprehension, or preference.
