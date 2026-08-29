@@ -170,3 +170,48 @@ optional co-captured audiovisual input, and glyph pixels without submitting a
 string. Independent microphone ingress is live-proven. Rendered-light source
 and transport are focused-proofed but its timed-out live request is
 indeterminate. Real-camera proof is not claimed from synthetic data.
+
+## Task-1322 live closure — 2026-08-29
+
+This section supersedes only the two indeterminate live-evidence statements
+immediately above. It does not reinterpret the earlier timed-out request as a
+success.
+
+- Live production remained one organism, identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, on task definition
+  `dsf-ai-task:1322`, source
+  `dc6673af2f2eb70215b1f7e8ac209997b2c74f05`, and image digest
+  `sha256:26d7d838d4c14769a44e7d888f3c0e2005ed9e9000bf715f008aebad08b11c08`.
+- A headless Chromium instance rendered one capital `A` as a 768x432 PNG. The
+  resulting 4,751 pixel bytes had SHA-256
+  `34eca5654086e9068b6d35261129a3ab6fbfa4eba6d38a8f79bfe9a2917b5b40`.
+  The request submitted only those base64-encoded pixel bytes plus the mounted
+  visual-material schema and encoding; it did not submit the character, a
+  transcript, a word identity, or meaning.
+- That one rendered-light request returned HTTP 200 in 29.895 seconds with
+  `accepted=true`. It committed 13 whole-sensorium hops at organism tick
+  `259926`, including 108 sight-source inputs, 8,805 physically transitioned
+  neurons, 60 complete-neuron-fractal occurrences, and 397 partial-cue
+  reassemblies. Its causal-transition receipt is
+  `790a899ddee422434a0a712290572594b4ac956bdc6f3d3bb7dac15fa7ffe417`.
+  These are physical retinal and organism consequences; they do not prove the
+  organism recognized the glyph as the letter `A`.
+- Joseph then opened the published Loom camera from a real browser and real
+  camera device. The browser visibly reported its bounded four-frame capture
+  progressing; production subsequently committed intake
+  `live-sight:9bcb882a-5448-4d88-b8aa-d114a5d1303a` at organism tick `259936`.
+  The bounded observer reported `committed_in_process=true`,
+  `status=live_frames_committed`, 53 frames across three committed batches,
+  and a latest four-frame batch sampled at 250 ms through the 27-receptor
+  retinal occurrence. No synthetic caller claimed camera provenance.
+- Independent live microphone pressure remains proved in this same process by
+  exact pressure SHA-256
+  `ee379f2b39bba8232fc62be4734efd5a80d6dc342b7f89995165eec8cd17238f`
+  and the observer's `committed_in_process=true` record.
+
+**L-007 is live-closed at its stated ingress boundary.** Real camera light,
+real microphone pressure, and browser-rendered glyph light have each committed
+through the mounted physical sensory lanes of the same resident organism. The
+transport supplied no lexical meaning, recognition label, attention, choice,
+or scripted cognition. Learned reading, autonomous media selection, and
+language use remain later curriculum outcomes rather than hidden claims here.

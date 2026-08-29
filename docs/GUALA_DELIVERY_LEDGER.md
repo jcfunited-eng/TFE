@@ -728,15 +728,18 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   seven self-hearing hops. A later unattended recurrence emitted 24,000 samples
   through the same learned route with a different pressure receipt. This proves
   an utterance and learned reuse, not a word or meaning.
-- [ ] **L-007 — PARTIAL 2026-08-28:** Connect live camera, microphone, and text
-  input so the organism can learn from what actually reached
-  sight/hearing/language-related structure. Task 1299 and the matching live Loom
-  artifact removed the camera prerequisite from microphone pressure, live-proved
-  independent pressure in the same identity at tick 231115→231116, and mounted
-  rendered glyph pixels without submitting their string. Current-artifact real
-  camera hardware proof remains open; one rendered-light live request timed out
-  and has no request-specific receipt, so it is indeterminate rather than
-  counted as committed.
+- [x] **L-007 — LIVE-CLOSED 2026-08-29:** Connect live camera, microphone, and
+  rendered text input so the organism can learn only from what reaches its
+  physical sensory structure. On task 1322, a Chromium-rendered capital `A`
+  entered only as pixel bytes and committed 108 sight inputs across 13 hops,
+  8,805 neuron transitions, and 60 complete-neuron-fractal occurrences at tick
+  259926; no character string or meaning entered cognition. Joseph's real
+  browser camera then committed intake
+  `live-sight:9bcb882a-5448-4d88-b8aa-d114a5d1303a` at tick 259936; the bounded
+  observer reported three real-device batches and 53 frames through the
+  27-receptor retinal occurrence. Independent real microphone pressure remains
+  committed in the same process. This closes physical ingress, not learned
+  reading, autonomous source selection, or word meaning.
 - [ ] **L-008 — LIVE-MOUNTED PARTIAL 2026-08-28:** Connect local books, PDFs,
   pictures, sounds, songs, and video as bounded sensory experiences while
   preserving provenance and source media. Task 1300 exposes all six through
