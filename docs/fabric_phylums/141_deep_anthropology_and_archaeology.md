@@ -368,11 +368,9 @@ THREAD: evidence, deep earth, astronomy (light that left long before it
 ASKED-AS: carbon dating accurate how do they know years range old wood error margin dates
 
 ESSENCE: speech remembers well when it is shaped to be remembered —
-  verse, rhythm, formula, and a public performance where anybody may
-  correct you. Loose recollection of last century does not survive a
-  lifetime; a chanted line of ancestors can run for many generations,
-  and will still be edited whenever the present needs a different
-  grandfather.
+  verse, rhythm, formula, an audience that may correct you. Loose
+  recollection drifts within a lifetime; a chanted line of ancestors
+  runs for generations, edited whenever the present needs a new one.
 ROOT: keeping knowledge / a store with no outside copy is maintained by
   repetition, and repetition is a live process open to the living.
 CANNOT: no long oral memory without a fixed form and an audience
