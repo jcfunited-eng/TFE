@@ -576,11 +576,21 @@ ENTRY: handing over a stored sentence as the content of a turn
     turn entirely rather than left in labelled, because a labelled
     near miss is still a near miss and it was reaching for elephants
     when asked about a dog.
-  WHAT IS STILL SHORT: the ground is words, not a said thing. It
-    names where two things meet and does not yet say HOW they meet,
-    which is what a why actually asks for. The joint — one thing
-    bearing another — is the next arrangement and it is written in
-    174 already.
+  THE SAID THING, built 2026-08-29: the ground was a list of words
+    and now the turn says HOW two things sit — 174 held the three
+    kinds a joint may be and never held how to tell them apart, and
+    now it does: whose company sits inside whose. One bears the other
+    when its share of the shared company runs more than two times the
+    share the other way. Measured: dog against animal is fifty-seven
+    against seven and animal bears dog; gravity against physics the
+    same; melt against ice is forty-seven against forty-one and they
+    stand together. "Is a dog an animal" is answered by an
+    arrangement of two counts, and no entry in the corpus says it.
+  WHAT IS STILL SHORT: the joint says THAT one bears the other, not
+    WHY, and a why-asking wants the mechanism. Also the bearing is
+    told from company alone, so two things that merely get written
+    about together will read as bearing — nothing has yet tested that
+    against a pair which shares company for a bad reason.
   STATUS: DRAINED in the part that was asked, STANDING in the part
     above
 

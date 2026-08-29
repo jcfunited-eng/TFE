@@ -225,6 +225,16 @@ ESSENCE: a joint is what is built fresh between two chunks carried
 ROOT: this file / ready-made chunks are carried and only the joints
   are built fresh, because there is no time to construct every phrase
   at speaking speed.
+HOLDS: which of the three a joint is, is told by whose company sits
+  inside whose. Take the share of one thing's company that the other
+  also keeps, both ways round: one BEARS the other when its share is
+  more than two times the share the other way, and the one with the
+  larger share is the one sitting inside. When neither share runs
+  away from the other they STAND TOGETHER on the company they share,
+  which is a claim neither makes alone. Measured: dog against animal
+  gives fifty-seven against seven, and animal bears dog; gravity
+  against physics the same; melt against ice gives forty-seven
+  against forty-one and they stand together.
 THREAD: carpentry (the boards are milled, the joint is cut on site),
   music (the phrases are practised, the transitions are not), welding
   (the pieces are stock, the weld is the work).

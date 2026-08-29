@@ -335,7 +335,8 @@ class Thread:
         if len(parts) < 2:
             return None
         a, b = parts[0], parts[1]
-        ground = FR.between(a, b)
+        j = FR.joint(a, b)
+        ground = (j or {}).get("ground") or []
         key = (core.stem(a), core.stem(b))
         if key in self.met and ground:
             # said already; go a step out rather than repeat it
@@ -347,14 +348,31 @@ class Thread:
                         f"still nothing of mine written down.")
             return None
         self.met.add(key)
-        if len(ground) < 2:
+        if not j or j["kind"] == "apart":
             return (f"I have {a} and {b} and the writing never stands "
                     f"them together, so I have no ground where they "
                     f"meet.")
-        return (f"Where {a} and {b} meet in what I hold: "
-                f"{', '.join(ground)}. I put that together just now "
-                f"from what each keeps company with — no one thing "
-                f"written in me says it.")
+        made = (f" I put that together just now from what each keeps "
+                f"company with — no one thing written in me says it.")
+        # the bearing is a finding on its own. Withholding it because
+        # the shared words are few threw away the answer to "is a dog
+        # an animal" in every case where the two are rarely written
+        # in one line, which is most of the interesting ones.
+        where = (f" They meet on {', '.join(ground)}."
+                 if len(ground) >= 2
+                 else " They share too little written down for me to "
+                      "say where.")
+        if j["kind"] == "bears":
+            return (f"{j['outer']} bears {j['inner']}: near enough "
+                    f"everything {j['inner']} keeps company with, "
+                    f"{j['outer']} keeps too, and not the other way "
+                    f"round.{where}{made}")
+        if len(ground) < 2:
+            return (f"{a} and {b} stand level — neither sits inside "
+                    f"the other — and they share too little written "
+                    f"down for me to say where they meet.")
+        return (f"{a} and {b} stand together — neither sits inside "
+                f"the other — on {', '.join(ground)}.{made}")
 
     def m_offer(self, s):
         if not s.ground:

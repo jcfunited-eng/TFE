@@ -71,7 +71,11 @@ class Settings:
         numbers and only one of them is the setting."""
         last = probe[-1]
         for e in self.entries:
-            text = (e["essence"] + " " + e["cannot"]).lower()
+            # HOLDS is knowledge like any other line and was not
+            # being read, so a rule written there was invisible and
+            # the setting came back missing.
+            text = (e["essence"] + " " + e["cannot"] + " "
+                    + e["holds"]).lower()
             if not all(re.search(rf"\b{p}", text) for p in probe):
                 continue
             m = re.search(rf"\b{last}\b", text)
@@ -112,9 +116,15 @@ class Company:
         self.pointer_share = S.get("how often a pointer is followed "
                                    "by a content word",
                                    "pointer", "more than")
+        # probe on the pointer entry's own wording, not on the word
+        # "pointer", which since HOLDS became readable also appears in
+        # the group entry and was quietly answering with its number
         self.pointer_seen = S.get("sightings before a frame word may "
                                   "be counted a pointer",
-                                  "pointer", "fewer than")
+                                  "frame word seen", "fewer than")
+        self.bearing = S.get("how lopsided two companies must be for "
+                             "one to bear the other",
+                             "bears", "more than")
         # how much may be held at once. This is knowledge too: it is
         # the attention wall, and it is what stops a long sentence
         # wedging a life that has other things to do.
@@ -452,6 +462,32 @@ def beyond(a, b, already, k=6, floor=2):
                                        / max(1, C.count.get(sf.get(w, w), 1)),
                                        -out[w]))
     return [sf.get(w, w) for w in order[:k]]
+
+
+def joint(a, b):
+    """How two things SIT with each other — a said thing, not a list.
+
+    174 holds the three kinds a joint may be and now holds how to tell
+    them apart: whose company sits inside whose. This is the smallest
+    real assembly in the fabric — two parts, one arrangement — and the
+    arrangement is not either part."""
+    C = company()
+    ka, kb = keeps_company(a), keeps_company(b)
+    if not ka or not kb:
+        return None
+    sh = set(ka) & set(kb)
+    if not sh:
+        return dict(kind="apart", a=a, b=b, ground=[])
+    ra, rb = len(sh) / len(ka), len(sh) / len(kb)
+    ground = between(a, b)
+    if ra > rb * C.bearing:
+        return dict(kind="bears", inner=a, outer=b, ground=ground,
+                    ra=ra, rb=rb)
+    if rb > ra * C.bearing:
+        return dict(kind="bears", inner=b, outer=a, ground=ground,
+                    ra=rb, rb=ra)
+    return dict(kind="together", a=a, b=b, ground=ground,
+                ra=ra, rb=rb)
 
 
 def sense_of(word, others):
