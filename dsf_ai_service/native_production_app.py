@@ -15128,10 +15128,11 @@ def teach_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 #                      There is nothing to fetch, so there is nothing to
 #                      mount, and the refusal names the missing credential.
 #
-# AUTONOMOUS SELECTION is refused on every shelf, including Gutenberg: it
-# would mean SHE chose, and no native choice operation exists.  A server
-# picking on her behalf and calling it autonomous is exactly the kind of
-# claim this project keeps having to undo.
+# A SELF-SELECTION OPPORTUNITY never lets this server pick. Each preserved
+# Gutenberg source is offered as its own page-light plus one flat contact
+# surface. Only an exact causal native grip-closing action under that source
+# can identify it. Catalogue order, a random number, metadata, and observer
+# scores have no selection authority.
 SHELF_SELECTION_SCHEMA = "guala.native.external_material_selection.v1"
 GUTENBERG_ENDPOINT = "/api/v1/material/gutenberg"
 GUTENBERG_PAGE_LINES = 28
@@ -15203,7 +15204,7 @@ def _shelf_capability(name: str) -> dict[str, object]:
     if name == "gutenberg":
         return {
             "available": True,
-            "autonomous_selection": False,
+            "autonomous_selection": True,
             "catalogue": [dict(entry) for entry in GUTENBERG_CATALOGUE],
             "endpoint": GUTENBERG_ENDPOINT,
             "reason": (
@@ -15211,10 +15212,11 @@ def _shelf_capability(name: str) -> dict[str, object]:
                 "its source bytes are preserved before its pages are rendered "
                 "to the same 27 retinal receptor sites used by other physical "
                 "visual material. No catalogue field, text, title, author, or "
-                "meaning enters cognition. Autonomous selection remains refused "
-                "until her native physical choice identifies one source object"
+                "meaning enters cognition. In self-selection mode, each source "
+                "is physically offered as page light and flat contact; only "
+                "that cue's exact native path into a closing grip identifies it"
             ),
-            "status": "mounted_guided_only",
+            "status": "mounted_guided_and_native_grip_selection",
         }
     credential = CREDENTIAL_BLOCKED_SHELVES[name]
     return {
@@ -15310,6 +15312,9 @@ def _validate_offered_media_type(material_kind: str, media_type: object) -> str:
 def _offered_visual_episodes(
     assembly_prefix: str,
     rosters: list[tuple[float, ...]],
+    *,
+    contact: tuple[float, ...] | None = None,
+    release_after: bool = True,
 ) -> list[tuple[Any, list[tuple[int, int]]]]:
     """Present offered light for one hop per raster, then let it end.
 
@@ -15324,7 +15329,9 @@ def _offered_visual_episodes(
     presented = list(rosters[:OFFERED_VISUAL_MAX_HOPS])
     if not presented:
         raise ValueError("offered material carried no presentable raster")
-    frames = presented + [dark] * LESSON_ENDED_HOP_COUNT
+    frames = [(roster, contact) for roster in presented]
+    if release_after:
+        frames.extend((dark, None) for _ in range(LESSON_ENDED_HOP_COUNT))
     retinal_transmission = _eyelid_transmission_from_axes(
         _current_retinal_body_axes()
     )
@@ -15335,12 +15342,100 @@ def _offered_visual_episodes(
                 times,
                 roster,
                 silence,
+                contact=held_contact,
                 retinal_transmission=retinal_transmission,
             ),
             [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
-        for hop_index, roster in enumerate(frames)
+        for hop_index, (roster, held_contact) in enumerate(frames)
     ]
+
+
+def _gutenberg_grip_selection_from_transition(
+    observation: dict[str, Any],
+    *,
+    predecessor_tick: int,
+) -> dict[str, Any] | None:
+    """Return one source-caused native grip closure, never choose one.
+
+    This is an actuator boundary, not an observer score. The selected source's
+    admitted sensory cue must have reassembled a retained formation in this
+    exact presentation, that causal path must end at the same motor lineage
+    whose prepared discharge closed one declared grip aperture, and the body
+    must have applied nonzero closing displacement at that exact tick.
+    """
+
+    causal = observation.get("externally_reassembled_formation_causal_use")
+    action = observation.get("motor_action")
+    if not isinstance(causal, dict) or not isinstance(action, dict):
+        return None
+    if causal.get("origin_kind") != "externally_reassembled_retained_formation":
+        return None
+    origin_tick = causal.get("reassembly_organism_tick")
+    if (
+        isinstance(origin_tick, bool)
+        or not isinstance(origin_tick, int)
+        or origin_tick <= predecessor_tick
+    ):
+        return None
+    recruitment = causal.get("motor_unit_recruitment")
+    if not isinstance(recruitment, dict):
+        return None
+    motor_lineage = recruitment.get("motor_lineage")
+    motor_tick = causal.get("motor_organism_tick")
+    if (
+        not isinstance(motor_lineage, str)
+        or not re.fullmatch(r"[0-9a-f]{32}", motor_lineage)
+        or isinstance(motor_tick, bool)
+        or not isinstance(motor_tick, int)
+        or motor_tick < origin_tick
+    ):
+        return None
+    bindings = tuple(action.get("body_effector_bindings", ()))
+    consequences = tuple(action.get("articulated_body_consequences", ()))
+    if not bindings or not consequences:
+        return None
+    grip_axes = {"left_grip_aperture", "right_grip_aperture"}
+    for consequence in consequences:
+        if not isinstance(consequence, dict):
+            return None
+        axis = consequence.get("axis")
+        source_tick = consequence.get("source_tick")
+        displacement = consequence.get("signed_displacement")
+        if (
+            axis not in grip_axes
+            or source_tick != motor_tick
+            or isinstance(displacement, bool)
+            or not isinstance(displacement, int)
+            or displacement >= 0
+        ):
+            continue
+        matching = tuple(
+            binding
+            for binding in bindings
+            if isinstance(binding, dict)
+            and binding.get("motor_lineage") == motor_lineage
+            and binding.get("axis") == axis
+            and binding.get("direction") == "toward_minimum"
+            and binding.get("source_tick") == source_tick
+            and isinstance(binding.get("outward_elementary_carriers"), int)
+            and not isinstance(binding.get("outward_elementary_carriers"), bool)
+            and binding["outward_elementary_carriers"] > 0
+        )
+        if not matching:
+            continue
+        return {
+            "axis": axis,
+            "causal_motor_lineage": motor_lineage,
+            "formation_receipt_sha256": causal.get(
+                "formation_receipt_sha256"
+            ),
+            "grip_closing_displacement": displacement,
+            "motor_organism_tick": motor_tick,
+            "reassembly_organism_tick": origin_tick,
+            "selection_authority": "source-caused-native-grip-closure",
+        }
+    return None
 
 
 def _decode_offered_rasters(
@@ -16349,7 +16444,7 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     dependencies=[Depends(_external_intake_admission)],
 )
 def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Preserve and physically present one exact guide-named Gutenberg text."""
+    """Present a guide-named text or one source selected by Guala's grip."""
 
     global _curriculum_invitation
     if not isinstance(payload, dict) or payload.get("schema") != SHELF_SELECTION_SCHEMA:
@@ -16358,12 +16453,213 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     if mode not in ("guided", "autonomous"):
         return _refusal(422, "shelf selection mode must be 'guided' or 'autonomous'")
     if mode == "autonomous":
-        return _refusal(
-            503,
-            "autonomous selection is refused: it would mean SHE chose, and "
-            "no native choice operation is mounted. A server picking on her "
-            "behalf and calling it autonomous would be a false claim about "
-            "the substrate",
+        if set(payload) != {"mode", "schema"}:
+            return _refusal(
+                422,
+                "a self-selection opportunity names no book; only Guala's "
+                "own source-caused physical grip may identify one",
+            )
+        attempts: list[dict[str, Any]] = []
+        flat_book_contact = tuple(
+            float(value) for value in _declared_footprint_occupancy(768, 432)
+        )
+        for catalogue_entry in GUTENBERG_CATALOGUE:
+            book_id = catalogue_entry["gutenberg_id"]
+            try:
+                source_record = acquire_project_gutenberg_source(
+                    _source_media_store,
+                    source_url=catalogue_entry["source_url"],
+                    language_tag=catalogue_entry["language_tag"],
+                )
+                preserved_raw = _source_media_store.source_bytes(
+                    source_record.receipt_sha256
+                )
+                text = preserved_raw.decode("utf-8")
+                pages = _gutenberg_pages(text)
+                rosters = [_live_frame_luminance(page) for page in pages]
+                preview = _offered_visual_episodes(
+                    f"gutenberg-choice-{book_id}-{uuid.uuid4()}",
+                    rosters[:1],
+                    contact=flat_book_contact,
+                    release_after=False,
+                )
+            except (
+                BoundedSourceMediaStoreError,
+                OSError,
+                UnicodeDecodeError,
+                ValueError,
+            ) as error:
+                return _refusal(
+                    422,
+                    f"Gutenberg self-selection surface refused: {error}",
+                )
+            invitation_response = _embodied_curriculum_invitation(
+                experience_kind="gutenberg",
+                experience_id=source_record.receipt_sha256,
+                media_receipts={
+                    "source_bytes_sha256": source_record.source_bytes_sha256,
+                    "source_media_receipt_sha256": source_record.receipt_sha256,
+                },
+            )
+            if invitation_response.status_code != 200:
+                return invitation_response
+            invitation_body = json.loads(invitation_response.body)
+            invitation = invitation_body.get("invitation")
+            invitation_receipt = (
+                invitation.get("invitation_receipt_sha256")
+                if isinstance(invitation, dict)
+                else None
+            )
+            try:
+                with _transition_lock:
+                    prepared = _validated_curriculum_experience_invitation(
+                        "gutenberg",
+                        source_record.receipt_sha256,
+                        invitation_receipt,
+                    )
+                    # The sealed pointer may lawfully trail the continuously
+                    # resident organism by the bounded checkpoint cadence.
+                    # Source causality must begin after the live predecessor,
+                    # never merely after its last copied checkpoint.
+                    predecessor_tick = int(
+                        _runtime()[0].organism.readiness().organism_tick
+                    )
+                    _curriculum_invitation = {
+                        **prepared,
+                        "outcome": "self_selection_surface_presented",
+                        "presentation_eligible": False,
+                        "reason": (
+                            "one preserved Gutenberg source is physically "
+                            "present as page light and flat book contact; only "
+                            "its exact causal path into a closing native grip "
+                            "can select it"
+                        ),
+                        "status": "gutenberg_self_selection_in_progress",
+                    }
+                    preview_result = _perform_admitted_intake_locked(
+                        preview,
+                        f"gutenberg-choice:{book_id}",
+                    )
+                    selection = _gutenberg_grip_selection_from_transition(
+                        preview_result["observation"],
+                        predecessor_tick=predecessor_tick,
+                    )
+                    attempts.append(
+                        {
+                            "gutenberg_id": book_id,
+                            "selected": selection is not None,
+                            "settled_organism_tick": preview_result[
+                                "observation"
+                            ]["organism_tick"],
+                        }
+                    )
+                    if selection is None:
+                        dark_roster = (0.0,) * CARD_SURFACE_PORT_COUNT
+                        release_result = _perform_admitted_intake_locked(
+                            _offered_visual_episodes(
+                                f"gutenberg-choice-release-{book_id}-{uuid.uuid4()}",
+                                [dark_roster],
+                                contact=None,
+                                release_after=False,
+                            ),
+                            f"gutenberg-choice-release:{book_id}",
+                        )
+                        _curriculum_invitation = {
+                            **_curriculum_invitation,
+                            "outcome": "not_selected",
+                            "released_organism_tick": release_result[
+                                "observation"
+                            ]["organism_tick"],
+                            "reason": (
+                                "this source settled through light and contact, "
+                                "did not cause a native grip closure, and was "
+                                "physically released before the next offer"
+                            ),
+                            "status": "gutenberg_source_not_selected",
+                        }
+                        _refresh_public_observation_cache()
+                        continue
+                    _curriculum_invitation = {
+                        **_curriculum_invitation,
+                        "native_selection": selection,
+                        "outcome": "selected_by_native_grip",
+                        "reason": (
+                            "this exact source cue reassembled a retained "
+                            "formation whose motor path closed Guala's grip"
+                        ),
+                        "status": "gutenberg_source_selected",
+                    }
+                    full_experience = _offered_visual_episodes(
+                        f"gutenberg-selected-{book_id}-{uuid.uuid4()}",
+                        rosters,
+                        contact=flat_book_contact,
+                        release_after=True,
+                    )
+                    result = _perform_admitted_intake_locked(
+                        full_experience,
+                        f"gutenberg-self-selected:{book_id}",
+                    )
+                    settled_tick = result["observation"].get("organism_tick")
+                    if (
+                        isinstance(settled_tick, bool)
+                        or not isinstance(settled_tick, int)
+                        or settled_tick <= 0
+                    ):
+                        raise RuntimeError(
+                            "self-selected Gutenberg transition lost its tick"
+                        )
+                    _curriculum_invitation = {
+                        **_curriculum_invitation,
+                        "outcome": "self_selected_and_presented",
+                        "presented_organism_tick": settled_tick,
+                        "reason": (
+                            "Guala's source-caused grip selected this preserved "
+                            "book, whose pages then settled through her physical "
+                            "retinal and contact receptors"
+                        ),
+                        "status": "gutenberg_self_selected_presentation_settled",
+                    }
+                    _refresh_public_observation_cache()
+                return JSONResponse(
+                    status_code=200,
+                    content={
+                        "shelf": "gutenberg",
+                        "mode": "autonomous",
+                        "selected": True,
+                        "selection": selection,
+                        "selection_attempts": attempts,
+                        "gutenberg_id": book_id,
+                        "presented_page_count": len(rosters),
+                        "source_media": source_record.public_projection(),
+                        "transport_metadata_only": True,
+                        "meaning_entered": False,
+                        **_public_admitted_intake_result(result),
+                    },
+                )
+            except _CurriculumInvitationRefusal as error:
+                return _refusal(error.status_code, str(error))
+            except HTTPException:
+                raise
+            except (RuntimeError, TypeError, ValueError) as error:
+                return _refusal(
+                    422,
+                    f"Gutenberg self-selection transition refused: {error}",
+                )
+        return JSONResponse(
+            status_code=200,
+            content={
+                "accepted": True,
+                "ok": True,
+                "schema": "guala.native.gutenberg_self_selection.v1",
+                "shelf": "gutenberg",
+                "mode": "autonomous",
+                "selected": False,
+                "selection_attempts": attempts,
+                "reason": (
+                    "all bounded source surfaces were experienced; none caused "
+                    "a native grip closure, so no book was selected"
+                ),
+            },
         )
     expected_fields = {
         "attribution",
