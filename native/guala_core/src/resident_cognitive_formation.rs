@@ -16854,11 +16854,12 @@ fn exact_motor_preparation_transfers(
     preparation_transfers
 }
 
-/// Resolve the one layer-8 regulation line whose typed articulated-body
-/// receptor is physically paired with this exact motor terminal.  Merely
-/// sharing layer 8 or changing at the same time is insufficient; the caller
-/// additionally requires this regulation lineage to be a causal seed of the
-/// current interval, so resident unchanged pose cannot become tonic drive.
+/// Resolve the one layer-8 reacted-load regulation line whose typed
+/// articulated-body receptor opposes this exact motor terminal. A motor that
+/// reaches a joint stop raises load at that motor's proprioceptor; the lawful
+/// release is therefore the antagonist effector, never the effector that is
+/// already pushing into the stop. Tonic antagonist-length receptors are
+/// excluded: unchanged pose cannot become motor drive.
 fn exact_articulated_body_preparation_regulations(
     motor_terminal: BodyEffectorTerminal,
     paths: &[MotorBodyAfferentPath],
@@ -16866,12 +16867,11 @@ fn exact_articulated_body_preparation_regulations(
     let mut regulations = paths
         .iter()
         .filter_map(|path| {
-            (path
-                .receptor_site
-                .body_proprioceptor_terminal()
-                .map(|terminal| terminal.paired_effector())
-                == Some(motor_terminal))
-            .then_some(path.body_regulation_lineage)
+            let receptor_site = &path.receptor_site;
+            let load_terminal = receptor_site.body_proprioceptor_terminal()?;
+            (receptor_site.physical_quantity() == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+                && load_terminal.opposing_effector() == motor_terminal)
+                .then_some(path.body_regulation_lineage)
         })
         .collect::<Vec<_>>();
     regulations.sort_unstable();
@@ -24903,6 +24903,92 @@ mod tests {
     }
 
     #[test]
+    fn live_reacted_load_prepares_only_the_motor_that_releases_the_joint_stop() {
+        let axis = BodyAxis::LeftGripAperture;
+        let loaded_terminal = BodyProprioceptorTerminal::new(
+            axis,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let position_source = admit_complete_articulated_body_state_source(
+            0,
+            &ArticulatedBodyState::at_neutral(),
+        )
+        .unwrap();
+        let anatomy = axis.anatomy();
+        let load_source = admit_articulated_body_consequence_source(
+            1,
+            &[BodyProprioceptiveConsequence {
+                axis,
+                unit: anatomy.unit,
+                predecessor_position: anatomy.maximum,
+                successor_position: anatomy.maximum,
+                signed_displacement: 0,
+                toward_minimum_carriers: 0,
+                toward_maximum_carriers: 1,
+                opposed_carriers_per_terminal: 0,
+                applied_displacement_quanta: 0,
+                stalled_carriers: 1,
+            }],
+        )
+        .unwrap();
+        let source_site = |source: &NativeJointSourceEpisode, physical_quantity| {
+            source
+                .joint_source_ports()
+                .iter()
+                .find(|port| {
+                    port.body_proprioceptor_terminal == Some(loaded_terminal)
+                        && port.physical_quantity == physical_quantity
+                })
+                .map(NeuronSourceSite::from_source_port)
+                .unwrap()
+                .unwrap()
+        };
+        let load_regulation = [1_u8; 16];
+        let tonic_length_regulation = [2_u8; 16];
+        let paths = [
+            MotorBodyAfferentPath {
+                body_regulation_lineage: load_regulation,
+                integration_lineage: [3_u8; 16],
+                receptor_lineage: [4_u8; 16],
+                receptor_site: source_site(
+                    &load_source,
+                    EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
+                ),
+            },
+            MotorBodyAfferentPath {
+                body_regulation_lineage: tonic_length_regulation,
+                integration_lineage: [5_u8; 16],
+                receptor_lineage: [6_u8; 16],
+                receptor_site: source_site(
+                    &position_source,
+                    ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY,
+                ),
+            },
+        ];
+
+        assert_eq!(
+            exact_articulated_body_preparation_regulations(
+                loaded_terminal.opposing_effector(),
+                &paths,
+            ),
+            vec![load_regulation],
+        );
+        assert!(exact_articulated_body_preparation_regulations(
+            loaded_terminal.paired_effector(),
+            &paths,
+        )
+        .is_empty());
+        assert!(exact_articulated_body_preparation_regulations(
+            BodyEffectorTerminal::new(
+                BodyAxis::RightGripAperture,
+                BodyEffectorDirection::TowardMinimum,
+            ),
+            &paths,
+        )
+        .is_empty());
+    }
+
+    #[test]
     fn only_incoming_ordering_or_body_regulation_transfer_prepares_motor() {
         let regulation = [8_u8; 16];
         let tonic_position_regulation = [9_u8; 16];
@@ -25011,33 +25097,44 @@ mod tests {
             12,
         )
         .unwrap();
-        let correct_motor = mount_next_intrinsic_in_layer(
+        cohorts
+            .iter_mut()
+            .find(|cohort| cohort.anatomy.neuron_lineages().contains(&wrong_motor))
+            .unwrap()
+            .anatomy
+            .specialize_motor_effector(
+                wrong_motor,
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum),
+            )
+            .unwrap();
+        let correct_terminal =
+            BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum);
+        let correct_motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.body_effector_terminal() == Some(correct_terminal)).then_some(*lineage)
+            })
+            .expect("body-regulation fixture must already mount the opposing motor");
+        let unrelated = mount_next_intrinsic_in_layer(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
-            12,
-        )
-        .unwrap();
-        for (lineage, direction) in [
-            (wrong_motor, BodyEffectorDirection::TowardMaximum),
-            (correct_motor, BodyEffectorDirection::TowardMinimum),
-        ] {
-            cohorts
-                .iter_mut()
-                .find(|cohort| cohort.anatomy.neuron_lineages().contains(&lineage))
-                .unwrap()
-                .anatomy
-                .specialize_motor_effector(lineage, BodyEffectorTerminal::new(axis, direction))
-                .unwrap();
-        }
-        let unrelated = mount_intrinsic_neuron_at_place(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            DeclaredNeuronPlace::new(11, 0),
+            11,
         )
         .unwrap();
         fabric = fabric
+            .without_contact_pairs(&BTreeSet::from([canonical_lineage_pair(
+                regulation,
+                correct_motor,
+            )]))
+            .unwrap()
             .append_contacts(&[
                 (
                     regulation,

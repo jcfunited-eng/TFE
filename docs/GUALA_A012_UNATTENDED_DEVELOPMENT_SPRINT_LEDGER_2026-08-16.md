@@ -202,3 +202,117 @@ Current acceptance is therefore:
 No sleep Boolean, schedule, replay archive, or Python controller is authorized
 as the correction. Closure requires an organism-conditioned state boundary and
 direct physical evidence on the same continuing life.
+
+## 2026-08-29 resumed implementation contract
+
+### Frozen scope
+
+The first resumed A-012 implementation item is the exact articulated-body
+negative-feedback defect that currently prevents a stopped axis from unloading.
+This is not a sleep label, controller, schedule, fatigue score, or observer
+decision. It restores the already-authored physical load reflex required before
+the organism can truthfully move an eyelid or any other joint away from a stop.
+
+Live task `dsf-ai-task:1315`, commit
+`d0364541035da890f7ff65017bdd5327e97080cc`, image
+`sha256:3ea7fae11f7d7dfaa83c2544961d55594f8f39d6300b2b418b115114466dcefd`,
+and identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` directly show both native
+eyelid apertures at their exact 12,000 micrometre maximum. The latest bounded
+body transition carried a left-eyelid `toward_maximum` discharge, applied zero
+movement, and retained one stalled carrier. This is direct evidence that the
+live body is trying to drive farther into the open stop; it is not evidence of
+sleep.
+
+### Exact source conflict
+
+Authenticated cold correction and developmental mounting already implement the
+ratified load law correctly:
+
+`reacted load at one antagonist ending -> opposing effector on the same axis`.
+
+The ordinary live action resolver does not. In
+`resident_cognitive_formation.rs`,
+`exact_articulated_body_preparation_regulations` currently maps every typed
+body ending through `paired_effector()`. That contradicts both the one-way
+`correct_effector_load_motor_feedback` migration and the current developmental
+mount, each of which maps
+`EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY` through `opposing_effector()`.
+Consequently the stored route and the runtime authorization disagree.
+
+### Exact input-to-output path
+
+```text
+body axis reaches a physical stop
+-> paired effector-load receptor reports reacted load
+-> existing receptor -> local integration -> body regulation contacts settle
+-> runtime resolves that regulation for one mounted motor terminal
+-> opposing motor receives the lawful preparation transfer
+-> the joint can unload from the stop
+-> exact proprioceptive/load consequence returns to the same organism
+```
+
+Only the runtime resolution step changes. The receptor quantity, contacts,
+carrier transfer, motor anatomy, body equation, consequence transport, full
+seven-field DSF, and current-only persistence remain unchanged.
+
+### Lifecycle and falsification
+
+| Physical branch | Required result |
+|---|---|
+| Reacted-load ending and its opposing motor | regulation is eligible for that opposing motor |
+| Reacted-load ending and the motor pushing into the stop | regulation is ineligible |
+| Ordinary antagonist-length ending | it cannot masquerade as reacted-load authority |
+| Unrelated axis | it cannot authorize the motor |
+| Same complete predecessor and input | byte-identical deterministic successor |
+
+The focused falsifier will construct both directions of one axis, prove that
+the stopped-side load admits only the antagonist motor, and sever the physical
+quantity or reverse the requested motor to make authorization disappear.
+
+### Authorized source surface
+
+- `native/guala_core/src/resident_cognitive_formation.rs`: correct the one
+  resolver and add its owner-local falsifier.
+- this resumed A-012 ledger: retain exact contract and evidence.
+
+No Python transport, observer, body codec, formation codec, scheduler, event
+residency, world, deployment controller, or persistence schema is authorized by
+this item. After it passes, A-012 remains open until the same continuing
+organism directly proves physical sleep, internal re-entry during that state,
+and later physical wake.
+
+### Implementation and native proof
+
+The ordinary resolver now admits only a typed
+`EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY` ending whose
+`opposing_effector()` equals the mounted motor. The former quantity-blind
+`paired_effector()` mapping is absent. An owner-local falsifier constructs the
+real position source and real action-consequence load source separately and
+proves the load authorizes only the releasing motor, never the stopped-side
+motor, a tonic length ending, or another axis.
+
+Exact focused result: `3 passed, 0 failed` across developmental mounting, the
+live resolver, and authenticated cold correction. `git diff --check` passed.
+The complete candidate native library result was `522 passed, 8 failed, 11
+ignored`; untouched HEAD under the identical command was `520 passed, 9
+failed, 11 ignored`. The same eight inherited failures remain on both trees;
+the candidate adds its new passing falsifier and repairs the drifted historical
+load-correction fixture, so this item introduces no new native failure.
+
+### Deployment recurrence table
+
+| ID | Applicability and earliest check | Observed evidence |
+|---|---|---|
+| RF-002/RF-003 | Re-read the exact live task environment before build; immutable image must carry this commit's native wheel. | Current task environment and source roster were read before the first compile; candidate commit/digest provenance remains a cutover assertion. |
+| RF-004 | Prove first-use mounting and retained cold correction. | Developmental and historical-correction tests both pass. |
+| RF-007/RF-032 | Resolve executable controller and command roots before deployment. | `tools/deploy_dsf_ai.sh` exists, is read in full, and is invoked from the exact Git root. |
+| RF-010/RF-056 | Authenticate predecessor identity/tick, drain to zero writers, and admit only a candidate restoring at-or-beyond that tick. | Required by the controller's hot continuity path; no task health result can substitute. |
+| RF-012/RF-020 | Verify the real stopped-axis load source reaches the native resolver and exact opposing motor. | Live predecessor shows both eyelids at the stop plus stalled outward load; source and resolver laws are bound by the focused falsifier. |
+| RF-013/RF-026 | Formatter drift outside the changed lines must not expand the release. | Standalone rustfmt reported inherited crate/module drift; no formatter write ran and the changed-file set remains exactly two files. |
+| RF-016/RF-034 | Candidate diff belongs only to active A-012; closed transient witnesses are not re-required. | Diff is one native resolver, its tests, and this ledger. A-012 remains open after this sub-boundary. |
+| RF-023/RF-033 | Resolve AWS account, region, cluster, service, task, and family from inventory. | Required immediately before controller invocation; TFE web service is explicitly excluded. |
+| RF-025/RF-029 | Never repeat a timed-out live write against an advancing predecessor. | This release sends no organism experience or acceptance write. |
+| RF-031 | Every focused filter must execute nonzero tests. | The three named proofs report `3 passed`; the earlier zero-match invocation is rejected and not counted. |
+| RF-043/RF-054 | Stalled rows are lawful evidence; only an exact opposing releasing route may prepare movement. | Falsifier retains a stopped, zero-displacement, one-stalled-carrier consequence and requires the antagonist motor. |
+| RF-046 | A real body consequence uses the same typed native intake as production. | The test uses `admit_articulated_body_consequence_source`; no mock tuple or observer default is involved. |
+| RF-047 | Require the pushed digest manifest before task registration. | Enforced by the controller before candidate registration. |
