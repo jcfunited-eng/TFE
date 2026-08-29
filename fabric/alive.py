@@ -238,7 +238,29 @@ def beat(F, s, pool, live):
         except Exception as e:
             log(f"beat {b}: reading its own question failed ({e})")
 
-    # 3. let the ribbons meet. 74 sets the bar, not a number I chose:
+    # 3. walk one ribbon and mint what the walk found standing.
+    #    The fabric grew its own impossible and could not grow its
+    #    own possible; this is the other face, under the same law —
+    #    un-aimed, verified after, and reached by a question already
+    #    standing. Bounded: one walk, at most one claim per beat.
+    if read_this_beat is not None and not clock.spent():
+        try:
+            import minting
+            stood, _closed, err = read_this_beat.travel(
+                steps=2, width=5, F=F)
+            if stood and not clock.spent():
+                made, _ref = minting.mint_claims(
+                    stood, questions=None, limit=1)
+                for m in made:
+                    s["minted"] = s.get("minted", 0) + 1
+                    log(f"beat {b}: MINTED a claim nobody wrote — "
+                        f"two things stand together on "
+                        f"[{m['ground']}], reached by "
+                        f"'{m['asked'][:40]}'")
+        except Exception as e:
+            log(f"beat {b}: minting a claim failed ({e})")
+
+    # 4. let the ribbons meet. 74 sets the bar, not a number I chose:
     #    no worth in a move that changes neither shape, and no
     #    measuring worth on your own side alone — so both sides must
     #    open or it is not an opening.
@@ -261,7 +283,7 @@ def beat(F, s, pool, live):
     if found:
         log(f"beat {b}: {found} opening(s) between ribbons")
 
-    # 4. a ribbon that has been read and has met the others has done
+    # 5. a ribbon that has been read and has met the others has done
     #    what it came to do, so it settles out and the living set
     #    turns over. Without this it re-reads the same handful for
     #    ever and the life only looks busy.
@@ -343,7 +365,9 @@ def run():
             log(f"beat {s['beats']}: alive — {s['laid']} ribbons "
                 f"laid, {s['read']} questions read, "
                 f"{s['closed']} readings closed, "
-                f"{s['openings']} openings, {len(live)} living")
+                f"{s['openings']} openings, "
+                f"{s.get('minted', 0)} claims minted, "
+                f"{len(live)} living")
         for _ in range(int(REST * 10)):
             if STOP:
                 break

@@ -141,3 +141,150 @@ if __name__ == "__main__":
         print(f"  · {m['claim'][:100]}")
         print(f"      reached by [{m['question']['kind']}] "
               f"{m['question']['text'][:60]}")
+
+
+# ---------------------------------------------------------------
+# THE OTHER FACE — minting a claim, not a wall
+# ---------------------------------------------------------------
+# The fabric grew its own impossible and could not grow its own
+# possible. Everything it could rule out, it could find; everything
+# it could say was handed to it. That asymmetry is not a property of
+# the world, it was a property of this file only having one half.
+#
+# A claim is minted under the SAME law as a wall, because the law is
+# what makes minting honest rather than invention:
+#
+#   UN-AIMED        the pair comes from where a walk arrived, never
+#                   from asking for a particular answer.
+#   VERIFIED AFTER  both parents alive; the ground they share is
+#                   uncommon and more than a single word; no wall
+#                   closes either parent; and no wall closes the two
+#                   of them standing together.
+#   REACHED         a question already standing has to reach it.
+#
+# What is written is the JOINT, which is the only thing here that
+# was ever built rather than found: these two stand together, on
+# this ground. Both parents are named so it can be argued with at
+# the source, and so it falls if they do.
+
+CLAIMS = os.path.join(core.DIR, "93_minted_claims.md")
+CLAIMS_HEADER = """# 93 MINTED CLAIMS — joints the fabric built itself
+
+Every claim here is a JOINT: two written pieces of knowledge that
+share uncommon ground and that nothing closes when they stand
+together. The two pieces are quoted as they were written and are
+not paraphrased; the joining is the only part the machine made.
+None was authored by a hand. Each names both parents so it can be
+argued with at the source, and if a parent falls its children
+should fall with it.
+
+These are weaker than written knowledge and are marked so. A joint
+says that two things sit together, not that either is true.
+"""
+
+
+def claim_candidates(F, entries, limit=24):
+    """Pairs that stand together on uncommon ground.
+
+    Nothing is aimed here: the pairs are whatever the caller's walk
+    arrived at, taken two at a time in the order they were reached.
+    """
+    import eliminate
+    laws = eliminate.forbidding(F)
+    common = len(F.entries) // 50
+    out, seen = [], set()
+    for i, a in enumerate(entries):
+        for b in entries[i + 1:]:
+            if a["id"] == b["id"]:
+                continue
+            key = tuple(sorted((a["id"], b["id"])))
+            if key in seen:
+                continue
+            seen.add(key)
+            shared, k, m = 0, 0, a["color"] & b["color"]
+            while m:
+                if m & 1 and F.df.get(k, 0) <= common:
+                    shared |= 1 << k
+                m >>= 1
+                k += 1
+            if bin(shared).count("1") < 1:
+                # The fence is "not a single COMMON word", and this
+                # ground is already uncommon-only. One uncommon word
+                # is a real hold — two things both about fingers
+                # share "finger" and little else.
+                continue
+            if eliminate.closes(a["color"], a["color"], F, laws):
+                continue                    # a parent already closed
+            if eliminate.closes(b["color"], b["color"], F, laws):
+                continue
+            pair = a["color"] | b["color"]
+            if eliminate.closes(pair, pair, F, laws):
+                continue                    # they do not stand together
+            out.append(dict(a=a, b=b, ground=shared))
+            if len(out) >= limit:
+                return out
+    return out
+
+
+def mint_claims(entries, questions=None, limit=3):
+    """Write the joints that survive the law. Returns what was
+    written, and says what it refused and why."""
+    F = core.fabric()
+    if questions is None:
+        try:
+            import standing, white_kinds
+            _F, kinds, _c = white_kinds.derive()
+            questions = standing.all_standing(F, kinds)
+        except Exception:
+            questions = []
+    made, refused = [], []
+    try:
+        already = open(CLAIMS).read() if os.path.exists(CLAIMS) else ""
+    except OSError:
+        already = ""
+    for c in claim_candidates(F, entries):
+        a, b = c["a"], c["b"]
+        ground = " ".join(F.words_of(c["ground"])[:6])
+        # reached by a question already standing, or it is unattached
+        q, score = reached_by(F, dict(a=c["ground"], b=c["ground"]),
+                              questions) if questions else (None, 0)
+        if questions and q is None:
+            refused.append((a, b, "no standing question reaches it — "
+                                  "unattached, kept rather than minted"))
+            continue
+        key = f"{a['essence'][:60]}||{b['essence'][:60]}"
+        if key in already:
+            refused.append((a, b, "already minted"))
+            continue
+        made.append(dict(a=a, b=b, ground=ground,
+                         asked=(q or {}).get("text", "")))
+        if len(made) >= limit:
+            break
+    if made:
+        try:
+            new = not os.path.exists(CLAIMS)
+            with open(CLAIMS, "a") as f:
+                if new:
+                    f.write(CLAIMS_HEADER)
+                for m in made:
+                    a, b = m["a"], m["b"]
+                    f.write(
+                        f"\nESSENCE: these two stand together on "
+                        f"[{m['ground']}] — \"{a['essence'][:150]}\" "
+                        f"and \"{b['essence'][:150]}\". MINTED, not "
+                        f"written by a hand; a joint says the two sit "
+                        f"together, not that either is true.\n"
+                        f"ROOT: minted claims / two pieces sharing "
+                        f"uncommon ground that nothing closes when "
+                        f"they stand together.\n"
+                        f"CANNOT: no standing-together on ground that "
+                        f"is a single common word. If either parent "
+                        f"falls this falls with it.\n"
+                        f"PARENTS: {a['field']} — {a['essence'][:70]} "
+                        f"|| {b['field']} — {b['essence'][:70]}\n"
+                        f"REACHED-BY: {m['asked'][:80] or 'unattached'}\n"
+                        f"STATE: MINTED\n"
+                        f"ASKED-AS: {m['ground']}\n")
+        except OSError as e:
+            return [], [(None, None, f"could not write: {e}")]
+    return made, refused
