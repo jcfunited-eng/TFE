@@ -7372,8 +7372,20 @@ mod tests {
             ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget).unwrap();
         let prepared = runtime.prepare_articulated_body_observation().unwrap();
         assert!(!prepared.motor_unit_recruitments.is_empty());
-        assert!(!prepared.articulatory_unit_recruitments.is_empty());
         assert!(!prepared.articulated_body_consequences.is_empty());
+        let moved_tract_sections = prepared
+            .articulated_body_consequences
+            .iter()
+            .filter(|timed| {
+                timed.consequence.axis.is_vocal_tract_section()
+                    && timed.consequence.signed_displacement != 0
+            })
+            .map(|timed| timed.consequence.axis)
+            .collect::<Vec<_>>();
+        assert!(
+            !moved_tract_sections.is_empty(),
+            "first complete V3 body admission must physically calibrate at least one airway section"
+        );
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget).unwrap(),
             migrated,

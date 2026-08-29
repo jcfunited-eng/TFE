@@ -11,7 +11,8 @@ use core::mem::size_of;
 
 const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
 const LEGACY_BODY_VERSION: u16 = 1;
-const BODY_VERSION: u16 = 2;
+const PREVIOUS_BODY_VERSION: u16 = 2;
+const BODY_VERSION: u16 = 3;
 pub(crate) const LEGACY_BODY_AXIS_COUNT: usize = 37;
 pub(crate) const BODY_AXIS_COUNT: usize = 45;
 pub(crate) const LEGACY_BODY_EFFECTOR_TERMINAL_COUNT: usize = LEGACY_BODY_AXIS_COUNT * 2;
@@ -365,6 +366,23 @@ impl BodyAxis {
                 | Self::PerioralDisplacement
                 | Self::GlottalAperture
                 | Self::VocalTractSection0Area
+                | Self::VocalTractSection1Area
+                | Self::VocalTractSection2Area
+                | Self::VocalTractSection3Area
+                | Self::VocalTractSection4Area
+                | Self::VocalTractSection5Area
+                | Self::VocalTractSection6Area
+                | Self::VocalTractSection7Area
+        )
+    }
+
+    /// True only for the eight independently movable airway sections added
+    /// after the original articulated-body axes. This is anatomical identity,
+    /// not a sound, phoneme, word, or learned target.
+    pub(crate) fn is_vocal_tract_section(self) -> bool {
+        matches!(
+            self,
+            Self::VocalTractSection0Area
                 | Self::VocalTractSection1Area
                 | Self::VocalTractSection2Area
                 | Self::VocalTractSection3Area
@@ -972,7 +990,7 @@ impl ArticulatedBodyState {
         let mut axes = [0_i32; BODY_AXIS_COUNT];
         let encoded_axis_count = match version {
             LEGACY_BODY_VERSION => LEGACY_BODY_AXIS_COUNT,
-            BODY_VERSION => BODY_AXIS_COUNT,
+            PREVIOUS_BODY_VERSION | BODY_VERSION => BODY_AXIS_COUNT,
             _ => return Err(ArticulatedBodyError::UnsupportedVersion(version)),
         };
         for value in axes.iter_mut().take(encoded_axis_count) {
@@ -1015,6 +1033,10 @@ impl ArticulatedBodyState {
         Self::from_physical_state(
             axes,
             lung_air_microlitres,
+            // V3 adds no state bytes. It re-opens the existing one-shot
+            // proprioceptive boundary exactly once so the newly embodied
+            // airway-section motors can calibrate through their own afferent
+            // anatomy. A V3 successor never repeats that admission.
             version == BODY_VERSION && persisted_proprioception_initialized,
         )
     }
@@ -1100,6 +1122,26 @@ mod tests {
         assert_eq!(
             u16::from_be_bytes(current[BODY_MAGIC.len()..HEADER_BYTES].try_into().unwrap()),
             BODY_VERSION
+        );
+    }
+
+    #[test]
+    fn previous_body_reopens_proprioception_once_and_current_body_does_not() {
+        let mut previous = ArticulatedBodyState::at_neutral();
+        previous.initialize_proprioception();
+        let mut encoded = previous.encode().unwrap();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_BODY_VERSION.to_be_bytes());
+
+        let reopened = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert!(!reopened.proprioception_initialized());
+
+        let mut current = reopened;
+        current.initialize_proprioception();
+        assert!(
+            ArticulatedBodyState::decode(&current.encode().unwrap())
+                .unwrap()
+                .proprioception_initialized()
         );
     }
 
