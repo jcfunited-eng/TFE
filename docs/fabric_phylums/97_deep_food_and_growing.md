@@ -3,6 +3,9 @@ Middle floors from the seed to the plate to the market: what the
 grower, the keeper, the cook and the ledger each know. Laws, not
 recipes — and every one of them forbids something.
 
+STATE: FADED
+STATE: FADED
+STATE: FADED
 ESSENCE: good soil is about half empty space — crumbs of mineral
   and rotted matter glued into clumps by fungal threads and
   microbial slime, with pores between them holding air, water and

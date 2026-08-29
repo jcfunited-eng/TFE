@@ -230,3 +230,18 @@ ENTRY: what was once held about work the places right to left one place at a tim
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: I can walk the places of a written number from the smallest to the largest, taking one pla
   STATUS: STANDING (white)
+
+ENTRY: what was once held about soil compacted hard clay digging crumbly worms roots drainag
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about soil compacted hard clay digging crumbly worms roots drainag
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about soil compacted hard clay digging crumbly worms roots drainag
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+  STATUS: STANDING (white)
