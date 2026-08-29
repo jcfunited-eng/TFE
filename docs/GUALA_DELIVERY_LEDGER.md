@@ -926,11 +926,15 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   direct custody read restored the same source SHA-256. Catalogue metadata had
   no cognitive authority. On task 1331 the autonomous endpoint then offered all
   five bounded catalogue surfaces to the same organism and released each one
-  after no exact thought-owned grip closure selected it. The endpoint no longer
-  refuses the opportunity, but self-selection remains open because Guala has
-  not yet selected and experienced a book. A later post-nurture opportunity on
-  the live V37 organism again offered and released all five sources, ending at
-  tick `275116`; the stricter gate remained honest and no book was selected.
+  after no exact thought-owned grip closure selected it. Later source inspection
+  proved this is a flat sensory presentation plus a Python evidence gate, not
+  manipulation of the real persistent-world book. Guala's native closing grip
+  is not connected to the world's existing pick law, and nonzero world touch is
+  refused at the current action-consequence boundary because its material
+  receptor output is not lawfully joined to the mounted 27-site touch sheet. A
+  later post-nurture opportunity ended at tick `275116`, but it was not five
+  real book choices. Guided Gutenberg is live; autonomous physical book
+  selection is unavailable.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
 - [ ] **L-012** Connect guided and self-selected PBS Kids experiences.

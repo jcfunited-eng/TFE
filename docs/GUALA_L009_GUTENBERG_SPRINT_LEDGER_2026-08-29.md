@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Status: **IN PROGRESS — guided live; native selection boundary live; no selection observed**
+Status: **IN PROGRESS — guided live; truthful native object-selection boundary unavailable**
 
 ## Requested boundary
 
@@ -145,3 +145,33 @@ the strict live gate operates after the nurturing experience; it does not close
 L-009. The remaining deficiency is upstream organism behavior: no internally
 reassembled thought prepared both grip antagonists and settled a nonzero grip
 displacement while a source was present.
+
+## Architecture correction discovered after the second opportunity
+
+The preceding self-selection description is not a complete physical-object
+boundary and must not be used as one. Source inspection found two separate
+mechanisms that were never joined:
+
+- the Gutenberg endpoint presents page light and a flat declared contact-sheet
+  occurrence, then Python inspects native causal evidence for a grip closure;
+- the persistent world independently owns a real `book` object and exact
+  `PickCommand` geometry, custody, collision, and reach laws, but that command
+  is exposed only to the external participant body.
+
+Guala's native action-consequence boundary currently emits only whole-body
+move, physical-time advance, and internal articulated-joint consequences. A
+closing native grip never reaches the world's real pick law. Moreover, the
+action-consequence path explicitly refuses nonzero W1 touch because the live
+27-site occupancy sheet and the world's material hand-surface quantities have
+not been lawfully joined. Therefore the five-source route cannot produce a
+held book or its tactile consequence, regardless of how long Guala lives.
+
+This is a conflict with the requested architecture, not evidence that Guala
+declined five real books. The Python evidence gate, sequential source offering,
+and flat-source contact presentation must not be extended or relaxed. L-009
+closure now requires one native action boundary in which a physically closing
+grip reaches the existing persistent-world object law, the world resolves the
+exact contacted object without a server selector, and the resulting visual,
+tactile, proprioceptive, chemical, and internal consequences re-enter the same
+resident organism. Until that boundary exists, self-selected Gutenberg use is
+unavailable rather than merely unwitnessed.
