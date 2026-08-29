@@ -129,6 +129,46 @@ def survive(staged, laws, F=None, touch=True):
     return survivors, deaths
 
 
+_FORBID = {}
+
+
+def forbidding(F=None):
+    """The walls of the forbidding kind only, kept between calls.
+
+    Two kinds of wall are written in this fabric and they do
+    different jobs. "No A without B" is about MAKING — if you drag A
+    in you must supply B — and it must not be used to judge what a
+    thing IS or what may be said, because it fires whenever B is
+    merely absent from the bag in hand. Measured, twice: it closed
+    every coordinate of every walk, and it failed all ten things the
+    turn procedure had in hand, so the fabric said nothing at all.
+
+    What may close a thing you are holding is the other kind: A and B
+    cannot stand together. That is the finger's white — not a
+    giraffe, not steel.
+    """
+    F = F or core.fabric()
+    got = _FORBID.get(F.sig)
+    if got is None:
+        got = [L for L in laws_of(None, F) if L.kind == "forbids"]
+        _FORBID.clear()
+        _FORBID[F.sig] = got
+    return got
+
+
+def closes(item_mask, pool_mask, F=None, laws=None):
+    """Which wall, if any, closes this thing? A wall may only close
+    what it is ABOUT: its own entry has to share real ground with the
+    thing, not merely with something else in the bag."""
+    F = F or core.fabric()
+    for L in (laws if laws is not None else forbidding(F)):
+        if bin(L.home & item_mask).count("1") < 2:
+            continue
+        if L.closes(pool_mask):
+            return L
+    return None
+
+
 def account(survivors, deaths):
     """What stood and what closed, in the shape the fabric reports
     everything: both layers, equal in standing."""

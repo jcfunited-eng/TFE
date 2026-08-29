@@ -69,6 +69,9 @@ class Ribbon:
         self.white = 0                # closed, as a word mask
         self.crossed = []             # the knowledge it went through
         self.handler = []             # the laws that crossing gave it
+        self.at = []                  # where the walk got to last turn
+        self.been = []                # everywhere it has already stood
+        self.carried_mask = 0         # the ground it is standing on
         self.turns = _thread_load(self.thread)
 
     # ---------- role: query ----------
@@ -141,7 +144,8 @@ class Ribbon:
         return bin(gained).count("1")
 
     # ---------- role: the walk. what else is this? ----------
-    def travel(self, steps=4, width=6, F=None):
+    def travel(self, steps=4, width=6, F=None, lean=False,
+               add=None):
         """Stand on a coordinate and keep asking what else it is.
 
         This is the finger. A thing is a finger, and one, and skin,
@@ -170,7 +174,7 @@ class Ribbon:
         # together — and that is the forbidding kind, only.
         laws = [L for L in eliminate.laws_of(None, F)
                 if L.kind == "forbids"]
-        qm = self.mask
+        qm = F.mask(add, learn=False) if add else self.mask
         start = []
         i, m = 0, qm
         while m:
@@ -180,10 +184,19 @@ class Ribbon:
                     start.extend(F.index.get(i, ())[:width])
             m >>= 1
             i += 1
+        # A thin thing said — "why", "it", "and?" — carries almost no
+        # ground of its own, so it takes up the ground the thread is
+        # already standing on. That is 74's wall, and it is the whole
+        # of why a second turn is not a standing start. Without it,
+        # "what else is it" walks from the word "else".
+        if lean and self.at:
+            start = list(self.at) + start
+            qm |= self.carried_mask
         if not start:
             return [], [], "the asking landed on no coordinate"
-        stood, closed, seen = [], [], set()
-        edge = list(dict.fromkeys(start))[:width]
+        stood, closed, seen = [], [], set(self.been)
+        edge = [x for x in dict.fromkeys(start) if x not in seen]
+        edge = edge[:width] or list(dict.fromkeys(start))[:width]
         carried = qm
         for _step in range(steps):
             nxt = []
@@ -225,6 +238,10 @@ class Ribbon:
             edge = [x for x in dict.fromkeys(nxt) if x not in seen][:width]
             if not edge:
                 break
+        # where it got to, so the next turn is not a standing start
+        self.at = [e["id"] for e in stood[-width:]] or list(self.at)
+        self.been = list(seen | set(self.been))[-400:]
+        self.carried_mask |= carried
         return stood, closed, None
 
     # ---------- the thread that survives the turn ----------

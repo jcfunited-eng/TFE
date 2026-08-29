@@ -98,8 +98,31 @@ def h_shift_left(s):
     return s
 
 def h_reach(s):
+    """Reach for what the other one is reaching for, leaning on the
+    thread when what was said is thin.
+
+    The leaning is the second half of the step as it is written, and
+    no act had ever done it. A thin thing said — "why", "it", "and?"
+    — carries almost no ground of its own, so it takes up the ground
+    the thread is already standing on. Without this, a follow-up
+    walks from the word "else" and every turn is a standing start,
+    which the wall forbids outright."""
     F = core.fabric()
-    qm, es = F.reach(s.get("words", ""), limit=s.get("limit", 10))
+    words = s.get("words", "")
+    qm = F.mask(words, learn=False)
+    rare = 0
+    i, m = 0, qm
+    while m:
+        if m & 1:
+            d = F.df.get(i, 0)
+            if d and d < len(F.entries) * 0.02:
+                rare += 1
+        m >>= 1
+        i += 1
+    if rare == 0 and s.get("thread_words"):
+        words = s["thread_words"] + " " + words
+        s["leaned"] = True
+    qm, es = F.reach(words, limit=s.get("limit", 10))
     s["mask"], s["near"] = qm, es
     return s
 
@@ -108,11 +131,21 @@ def h_judge(s):
     pass or fail on each. Keeps nothing, drops nothing, chooses
     nothing."""
     F = core.fabric()
+    import eliminate
     items = s.get("items")
     if items is None:
-        s["closed"] = F.judge(s.get("pool", s.get("mask", 0)))
+        s["closed"] = eliminate.closes(s.get("mask", 0),
+                                       s.get("pool",
+                                             s.get("mask", 0)), F)
         return s
-    s["pass"] = [F.judge(s.get("mask", 0) | e["color"]) is None
+    # Only a wall of the forbidding kind, and only one that is about
+    # the thing itself, may close what is in hand. Judging with the
+    # requirement walls failed all ten things the turn had hold of
+    # and the fabric went silent every time. See eliminate.closes.
+    laws = eliminate.forbidding(F)
+    s["pass"] = [eliminate.closes(e["color"],
+                                  s.get("mask", 0) | e["color"],
+                                  F, laws) is None
                  for e in items]
     return s
 
