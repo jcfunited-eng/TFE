@@ -194,7 +194,10 @@ async def test_standalone_sound_intake_is_suspended_by_doctrine(
 
 
 @pytest.mark.asyncio
-async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
+async def test_sound_intake_carries_the_whole_sensorium(
+    lean_app,
+    monkeypatch,
+) -> None:
     """Ratified doctrine (2026-08-05): NO single-sense experiences.
 
     Every sound-intake hop episode must declare the full mounted sensorium
@@ -203,6 +206,15 @@ async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
     joint occurrence. The declared receptor groups preserve anatomy without
     repeating unchanged L0-L4 once per sense.
     """
+
+    monkeypatch.setattr(
+        production,
+        "_current_retinal_body_axes",
+        lambda: (
+            (0, "left_eyelid_aperture", "micrometre", 1, 0, 0, 1),
+            (1, "right_eyelid_aperture", "micrometre", 1, 0, 0, 1),
+        ),
+    )
 
     # The built episodes declare the current full mounted sensorium, never an
     # ear-only projection, and exactly one joint occurrence per hop.
@@ -225,6 +237,18 @@ async def test_sound_intake_carries_the_whole_sensorium(lean_app) -> None:
         # total samples are the whole sensorium, not an ear-only stream.
         frame_count = episode.occurrence_frame_count
         assert episode.source_sample_count == LESSON_PORTS * frame_count
+
+    # A short pressure event still occupies one complete 250 ms physical hop:
+    # after its last pressure sample the ears receive true silence. Its causal
+    # admission must cover that retained silent tail instead of falsely
+    # claiming that the padded source ended with the pressure capture.
+    short = production._mono_pcm_hop_episodes(
+        assembly_prefix="short-whole-sensorium-proof",
+        samples=(1,) * 32,
+        sample_rate_hz=16_000,
+    )
+    assert len(short) == 1
+    assert short[0][1] == [(1, 4)]
 
     # The live route refuses by doctrine (standalone hearing suspended)
     # and the organism stays untouched; the whole-sensorium construction
