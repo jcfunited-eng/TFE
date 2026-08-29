@@ -432,6 +432,83 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
     assert active == {}
 
 
+def test_completed_external_motor_path_remains_exactly_until_later_articulation() -> None:
+    cue = "01" * 16
+    recurrent = "02" * 16
+    motor = "03" * 16
+    articulation = "04" * 16
+    receipt = "11" * 32
+    cue_to_recurrent = (cue, recurrent, 0, 9)
+    recurrent_to_motor = (recurrent, motor, 0, 7)
+    motor_to_articulation = (motor, articulation, 0, 5)
+    observer = _FrontierObserver()
+
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        {},
+        {},
+        _hop(60, external_reassemblies=((receipt, (cue,), recurrent),)),
+    )
+    observer.transfers = ((*cue_to_recurrent, recurrent),)
+    active, completed = production._advance_causal_motor_traces(
+        observer, active, completed, _hop(61)
+    )
+    observer.transfers = ((*recurrent_to_motor, motor),)
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            62,
+            motors=(
+                (
+                    motor,
+                    5,
+                    7,
+                    ((recurrent, 11, motor, 12, 0, 7),),
+                    (),
+                ),
+            ),
+        ),
+    )
+    assert completed[
+        "externally_reassembled_retained_formation"
+    ]["recurrent_lineage"] == recurrent
+    assert tuple(active.values())[0][motor] == (
+        cue_to_recurrent,
+        recurrent_to_motor,
+    )
+
+    observer.transfers = ()
+    active, completed = production._advance_causal_motor_traces(
+        observer,
+        active,
+        completed,
+        _hop(
+            63,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    5,
+                    ((motor, 12, articulation, 13, 0, 5),),
+                ),
+            ),
+        ),
+    )
+
+    proof = completed[
+        "externally_reassembled_retained_formation_articulation"
+    ]
+    assert proof["recurrent_lineage"] == recurrent
+    assert proof["directed_physical_transfers"] == (
+        cue_to_recurrent,
+        recurrent_to_motor,
+        motor_to_articulation,
+    )
+    assert active == {}
+
+
 def test_one_completed_formation_does_not_hide_a_second_later_motor_path() -> None:
     cue_a = "01" * 16
     cue_b = "02" * 16

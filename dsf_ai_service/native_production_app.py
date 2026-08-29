@@ -9377,17 +9377,21 @@ def _advance_causal_motor_traces(
     external_motor_paths_by_recurrent = dict(
         completed.get(_COMPLETED_EXTERNAL_MOTOR_PATHS_BY_RECURRENT, {})
     )
+    articulation_completed_origins = set(
+        completed.get(_COMPLETED_ARTICULATION_ORIGINS, ())
+    )
+    retained_articulation_kinds = {
+        "retained_formation",
+        "externally_reassembled_retained_formation",
+    }
     next_active = {
         key: paths
         for key, paths in active.items()
         if (
-            key[0] == "externally_reassembled_retained_formation"
-            and key[2][0] not in external_motor_paths_by_recurrent
+            key[0] in retained_articulation_kinds
+            and key not in articulation_completed_origins
         )
-        or (
-            key[0] != "externally_reassembled_retained_formation"
-            and key[0] not in completed
-        )
+        or (key[0] not in retained_articulation_kinds and key[0] not in completed)
     }
     new_thought_origins: dict[
         tuple[str, str, tuple[str, ...], int],
@@ -9522,9 +9526,6 @@ def _advance_causal_motor_traces(
         # occurred in this interval; absence of a second edge in the same
         # clock is not authority to erase their physical arrival.
         advanced.setdefault(key, paths)
-    articulation_completed_origins = set(
-        completed.get(_COMPLETED_ARTICULATION_ORIGINS, ())
-    )
     proofs: dict[
         str,
         list[
