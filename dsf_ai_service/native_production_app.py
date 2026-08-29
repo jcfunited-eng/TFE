@@ -1019,6 +1019,7 @@ def _world() -> Any:
                 stored_body, allow_legacy_thermal_genesis=True
             )
             authority.migrate_declared_body_receptor_geometry()
+            authority.migrate_declared_material_transport()
         except (ValueError, TypeError, RuntimeError) as error:
             # Her pose now changes through native motor discharge. A stored
             # world therefore contains causal organism history and may never

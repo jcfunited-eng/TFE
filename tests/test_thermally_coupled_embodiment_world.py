@@ -1,4 +1,5 @@
 from fractions import Fraction
+from dataclasses import replace
 
 import pytest
 
@@ -8,9 +9,11 @@ from dsf_ai_service.substrate.bounded_home_thermal_physics import (
     ThermalPowerSource,
 )
 from dsf_ai_service.substrate.embodiment_world import (
+    AirVolumeState,
     PORT_ID,
     AdvancePhysicalTimeCommand,
     EmbodiedBody,
+    ObjectMaterialState,
     PreparedActionExecution,
     encode_command,
 )
@@ -174,6 +177,70 @@ def test_receptor_anatomy_migration_rebinds_thermal_custody() -> None:
         restored.observation_snapshot().bodies[0].receptor_geometry
         == geometry
     )
+
+
+def test_material_transport_migration_rebinds_thermal_custody() -> None:
+    seed = _authority()
+    snapshot = seed.observation_snapshot()
+    regions = tuple(
+        replace(
+            item,
+            air=AirVolumeState(
+                volume_cubic_mm=(
+                    (item.bounds.maximum.x - item.bounds.minimum.x)
+                    * (item.bounds.maximum.y - item.bounds.minimum.y)
+                    * (item.bounds.maximum.z - item.bounds.minimum.z)
+                ),
+                odorant_mass_nanograms=(index + 1,) * 8,
+            ),
+        )
+        for index, item in enumerate(snapshot.regions)
+    )
+    portals = tuple(
+        replace(item, air_flow_cubic_mm_per_second=2_000_000)
+        for item in snapshot.portals
+    )
+    material = ObjectMaterialState(
+        odorant_reservoir_nanograms=(8_640_000,) * 8,
+        odorant_release_nanograms_per_second=(10,) * 8,
+        tastant_mass_micrograms=(1, 2, 3, 4, 5),
+        surface_temperature_millikelvin=292_000,
+        compliance_ppm=120_000,
+        roughness_micrometers=15,
+        moisture_ppm=850_000,
+    )
+    objects = tuple(
+        replace(item, material=material)
+        if index == 0 else item
+        for index, item in enumerate(snapshot.objects)
+    )
+    declared = ThermallyCoupledEmbodimentWorldAuthority(
+        authority_key="thermally-coupled-world-test-key",
+        thermal_anatomy=_anatomy(),
+        bodies=snapshot.bodies,
+        regions=regions,
+        portals=portals,
+        initial_objects=objects,
+    )
+    legacy = ThermallyCoupledEmbodimentWorldAuthority(
+        authority_key="thermally-coupled-world-test-key",
+        thermal_anatomy=_anatomy(),
+        bodies=snapshot.bodies,
+        regions=tuple(replace(item, air=None) for item in regions),
+        portals=tuple(
+            replace(item, air_flow_cubic_mm_per_second=None)
+            for item in portals
+        ),
+        initial_objects=tuple(
+            replace(item, material=None) for item in objects
+        ),
+    )
+    declared.restore_encoded(legacy.encoded_snapshot())
+    prior_revision = declared.thermal_observation().world_revision
+
+    assert declared.migrate_declared_material_transport() is True
+    assert declared.thermal_observation().world_revision == prior_revision + 1
+    assert declared.observation_snapshot().objects[0].material == material
 
 
 def test_bare_world_requires_explicit_one_time_thermal_genesis() -> None:

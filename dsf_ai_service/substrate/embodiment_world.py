@@ -2748,6 +2748,9 @@ class EmbodimentWorldAuthority:
         physical_regions = tuple(
             sorted(physical_regions, key=lambda item: item.region_id)
         )
+        self._declared_region_air = tuple(
+            (item.region_id, item.air) for item in physical_regions
+        )
         if portals is None:
             physical_portals = _default_portals()
         else:
@@ -2761,6 +2764,10 @@ class EmbodimentWorldAuthority:
             physical_portals = tuple(portals)
         physical_portals = tuple(
             sorted(physical_portals, key=lambda item: item.portal_id)
+        )
+        self._declared_portal_air_flow = tuple(
+            (item.portal_id, item.air_flow_cubic_mm_per_second)
+            for item in physical_portals
         )
         bounds = physical_regions[0].bounds
         canonical_self_body_id = _identifier(self_body_id, "self body id")
@@ -2845,6 +2852,9 @@ class EmbodimentWorldAuthority:
             if any(not isinstance(item, EmbodiedObject) for item in initial_objects):
                 raise ValueError("world object inventory contains an invalid object")
             objects = tuple(initial_objects)
+        self._declared_object_material = tuple(
+            (item.object_id, item.material) for item in objects
+        )
         world = _WorldState(
             revision=0,
             room_id=physical_regions[0].region_id,
@@ -3064,6 +3074,146 @@ class EmbodimentWorldAuthority:
                 manifest_sha256=self._physical_manifest_sha256(),
                 prior_topology_sha256=topology_sha256,
                 resulting_topology_sha256=topology_sha256,
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return True
+
+    def migrate_declared_material_transport(self) -> bool:
+        """Mount declared material/air state omitted by an older live body.
+
+        Material reservoirs and room air are physical state, so an existing
+        non-null value is preserved.  Only an absent value may be initialized
+        from the constructor declaration; immutable release, contact, volume,
+        and portal-flow anatomy must still agree exactly.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "material transport cannot migrate during an action"
+                )
+            prior = self._state
+            declared_air = dict(self._declared_region_air)
+            declared_flow = dict(self._declared_portal_air_flow)
+            declared_material = dict(self._declared_object_material)
+            if set(declared_air) != {
+                item.region_id for item in prior.world.regions
+            }:
+                raise ValueError("declared material region topology changed")
+            if set(declared_flow) != {
+                item.portal_id for item in prior.world.portals
+            }:
+                raise ValueError("declared material portal topology changed")
+            if set(declared_material) != {
+                item.object_id for item in prior.world.objects
+            }:
+                raise ValueError("declared material object topology changed")
+
+            changed = False
+            regions: list[PhysicalRegion] = []
+            for region in prior.world.regions:
+                mounted = declared_air[region.region_id]
+                if region.air is None:
+                    if mounted is not None:
+                        region = replace(region, air=mounted)
+                        changed = True
+                elif mounted is None:
+                    raise ValueError(
+                        "persisted region air is absent from the declared mount"
+                    )
+                elif region.air.volume_cubic_mm != mounted.volume_cubic_mm:
+                    raise ValueError(
+                        "persisted region air volume differs from geometry"
+                    )
+                regions.append(region)
+
+            portals: list[PhysicalPortal] = []
+            for portal in prior.world.portals:
+                mounted = declared_flow[portal.portal_id]
+                if portal.air_flow_cubic_mm_per_second is None:
+                    if mounted is not None:
+                        portal = replace(
+                            portal,
+                            air_flow_cubic_mm_per_second=mounted,
+                        )
+                        changed = True
+                elif portal.air_flow_cubic_mm_per_second != mounted:
+                    raise ValueError(
+                        "persisted portal air flow differs from the declared mount"
+                    )
+                portals.append(portal)
+
+            objects: list[EmbodiedObject] = []
+            for item in prior.world.objects:
+                mounted = declared_material[item.object_id]
+                if item.material is None:
+                    if mounted is not None:
+                        item = replace(item, material=mounted)
+                        changed = True
+                elif mounted is None:
+                    raise ValueError(
+                        "persisted object material is absent from the declared mount"
+                    )
+                elif item.material != replace(
+                    mounted,
+                    odorant_reservoir_nanograms=(
+                        item.material.odorant_reservoir_nanograms
+                    ),
+                ):
+                    raise ValueError(
+                        "persisted object material anatomy differs from the "
+                        "declared mount"
+                    )
+                objects.append(item)
+
+            if not changed:
+                return False
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("material transport exhausted world revision")
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                regions=tuple(regions),
+                portals=tuple(portals),
+                objects=tuple(objects),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=self._topology_sha256(
+                    prior.world.regions,
+                    prior.world.portals,
+                ),
+                resulting_topology_sha256=self._topology_sha256(
+                    migrated_world.regions,
+                    migrated_world.portals,
+                ),
             )
             candidate = _AuthorityState(
                 world=migrated_world,

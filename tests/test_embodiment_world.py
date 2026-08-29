@@ -12,6 +12,7 @@ import pytest
 
 from dsf_ai_service.substrate.embodiment_world import (
     AdvanceContactOpticalSurfaceCommand,
+    AirVolumeState,
     ContactOpticalSurfaceSequence,
     ENVELOPE_SCHEMA,
     DEFAULT_MAX_ENCODED_STATE_BYTES,
@@ -293,6 +294,78 @@ def test_restore_migrates_only_missing_declared_body_receptor_anatomy() -> None:
     assert _body(after).pose == _body(before).pose
     assert _body(after).receptor_geometry == legacy_geometry
     assert restored.migrate_declared_body_receptor_geometry() is False
+
+
+def test_restore_migrates_only_missing_declared_material_transport() -> None:
+    key = "embodiment-material-transport-migration-key"
+    seed = EmbodimentWorldAuthority(authority_key=key)
+    snapshot = seed.observation_snapshot()
+    regions = tuple(
+        replace(
+            item,
+            air=AirVolumeState(
+                volume_cubic_mm=(
+                    (item.bounds.maximum.x - item.bounds.minimum.x)
+                    * (item.bounds.maximum.y - item.bounds.minimum.y)
+                    * (item.bounds.maximum.z - item.bounds.minimum.z)
+                ),
+                odorant_mass_nanograms=(index + 1,) * 8,
+            ),
+        )
+        for index, item in enumerate(snapshot.regions)
+    )
+    portals = tuple(
+        replace(item, air_flow_cubic_mm_per_second=2_000_000)
+        for item in snapshot.portals
+    )
+    material = ObjectMaterialState(
+        odorant_reservoir_nanograms=(8_640_000,) * 8,
+        odorant_release_nanograms_per_second=(10,) * 8,
+        tastant_mass_micrograms=(1, 2, 3, 4, 5),
+        surface_temperature_millikelvin=292_000,
+        compliance_ppm=120_000,
+        roughness_micrometers=15,
+        moisture_ppm=850_000,
+    )
+    objects = tuple(
+        replace(item, material=material)
+        if index == 0 else item
+        for index, item in enumerate(snapshot.objects)
+    )
+    declared = EmbodimentWorldAuthority(
+        authority_key=key,
+        bodies=snapshot.bodies,
+        regions=regions,
+        portals=portals,
+        initial_objects=objects,
+    )
+    legacy = EmbodimentWorldAuthority(
+        authority_key=key,
+        bodies=snapshot.bodies,
+        regions=tuple(replace(item, air=None) for item in regions),
+        portals=tuple(
+            replace(item, air_flow_cubic_mm_per_second=None)
+            for item in portals
+        ),
+        initial_objects=tuple(
+            replace(item, material=None) for item in objects
+        ),
+    )
+    declared.restore_encoded(legacy.encoded_snapshot())
+    before = declared.observation_snapshot()
+
+    assert declared.migrate_declared_material_transport() is True
+    after = declared.observation_snapshot()
+    assert after.revision == before.revision + 1
+    assert after.bodies == before.bodies
+    assert tuple(item.air for item in after.regions) == tuple(
+        item.air for item in regions
+    )
+    assert tuple(
+        item.air_flow_cubic_mm_per_second for item in after.portals
+    ) == (2_000_000,) * len(portals)
+    assert after.objects[0].material == material
+    assert declared.migrate_declared_material_transport() is False
 
 
 def test_grasp_contact_refuses_absent_or_ambiguous_touch_geometry() -> None:
