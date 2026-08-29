@@ -14,6 +14,40 @@ different retained recurrent route.
 This closes lexical recognition only; no claim is made that the emitted
 pressure itself says `apple` or that sentence language is complete.
 
+## Varied live apple experience on task 1340
+
+- Production task `dsf-ai-task:1340`, source commit
+  `e667af7ab814274357e27d301d85a36edaddd1a9`, retained organism identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The one-way restore correction
+  recovered the already-declared apple material, room-air chemistry, and
+  portal airflow without replacing the organism or changing L0-L4 or the
+  seven-field DSF law.
+- The participant body picked up the persistent world object `apple`, carried
+  it through the connected home, and placed that same object at `(5555,4170)`
+  in the kitchen, about 1.2 metres along Guala's gaze. Placement changed two
+  retinal receptors. The live read at world revision 23210 still shows that
+  apple at the same position in front of Guala at `(6708,4500)`, heading
+  `195.962` degrees.
+- One bounded voice occurrence, “This is an apple.”, entered as 21,108 signed
+  mono 16-kHz pressure samples with raw PCM SHA-256
+  `2f1240464d7e3c7d6e34e416e58baec2a0615555a0318ebb738356ab0b4126ca`.
+  Its committed whole-sensorium record at world revision 23198 reports
+  retinal luminance present, smell present, taste absent, and the same audio
+  receipt. The transition admitted 297 sight, 374 sound, and 88 smell source
+  occurrences into the one resident organism, delivered 1,500 full-field DSF
+  occurrences, and transitioned 27,617 neurons.
+- The same occurrence recruited one layer-13 articulatory discharge, emitted
+  4,021 organism-owned pressure samples with SHA-256
+  `69935f6ed390c9c0700cf276317af62c91c736ededd617de7e69fba8079bfc1f`,
+  and returned two self-hearing hops containing 2,787 transitioned neurons and
+  19 neuronal fractals. Current production observation at generation 284989
+  retains the exact guided-world-voice receipt while the same identity keeps
+  advancing.
+- This is a real varied visual-auditory-olfactory apple experience, not a
+  claim of literal ingestion. It reinforces the already-proven word `apple`;
+  its empty causal-use surface does not prove a second learned word or a new
+  cross-context recognition event.
+
 ## Task 1322 first learned-word recognition — `apple`
 
 - Production remained one healthy task, `dsf-ai-task:1322`, running source
