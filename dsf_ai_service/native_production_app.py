@@ -1600,6 +1600,7 @@ LIVE_SIGHT_INTAKE_ENDPOINT = "/api/v1/visual/live-frames"
 LIVE_AUDIOVISUAL_SOURCE = "live-camera-microphone"
 LIVE_AUDIOVISUAL_SCHEMA = "guala.live_audiovisual_capture.v1"
 LIVE_AUDIOVISUAL_INTAKE_ENDPOINT = "/api/v1/sensory/audiovisual"
+NATIVE_PRESSURE_AUDIO_ENDPOINT = "/api/v1/guala/native-pressure.wav"
 
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
@@ -1637,6 +1638,10 @@ _last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_tested_affective_balance_evidence: dict[str, Any] | None = None
 _last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
 _last_tested_articulation_evidence: dict[str, Any] | None = None
+# The latest bounded emitted pressure is a read-only, process-local outward
+# surface. It is assigned only after the resident transition succeeds, never
+# restored as organism state, and never read by settlement or cognition.
+_latest_native_pressure_audio: dict[str, Any] | None = None
 # Bounded read-only witnesses. They never enter organism state or settlement.
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
@@ -5688,6 +5693,49 @@ def _articulation_record() -> dict[str, object]:
             "no native layer-13 discharge has yet caused a persisted "
             "articulatory body and self-hearing transition in this process"
         )
+    pressure_sha256 = articulation.get("pressure_sha256")
+    playback = _latest_native_pressure_audio
+    playback_record = _section(
+        bool(
+            isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+        ),
+        (
+            "latest_native_pressure_available"
+            if isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+            else "native_pressure_bytes_not_retained_in_this_process"
+        ),
+        (
+            "the browser may fetch the exact bounded PCM pressure emitted by "
+            "this committed articulation; playback is user-controlled and "
+            "has no path back into cognition"
+            if isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+            else "the articulation evidence is present, but its transient "
+            "pressure bytes are not available in this process"
+        ),
+        endpoint=(
+            NATIVE_PRESSURE_AUDIO_ENDPOINT
+            if isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+            else None
+        ),
+        format="pcm_s16le_mono_wav",
+        pressure_sha256=pressure_sha256,
+        sample_count=(
+            playback.get("sample_count")
+            if isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+            else None
+        ),
+        sample_rate_hz=(
+            playback.get("sample_rate_hz")
+            if isinstance(playback, dict)
+            and playback.get("pressure_sha256") == pressure_sha256
+            else None
+        ),
+    )
     return _section(
         True,
         "native_articulation_and_self_hearing_committed",
@@ -5695,6 +5743,7 @@ def _articulation_record() -> dict[str, object]:
         "breath, glottis, vocal tract, mouth, and perioral body; its emitted "
         "pressure then returned through the ordinary cochlear receptor path "
         "before the one successor organism was persisted",
+        native_pressure_playback=playback_record,
         **articulation,
     )
 
@@ -10484,6 +10533,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
+    global _latest_native_pressure_audio
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_social_experience_evidence
@@ -10610,6 +10660,7 @@ def _perform_admitted_intake_locked(
             )
 
     articulation: dict[str, Any] | None = None
+    native_pressure_s16le: bytes | None = None
     emitted_neuron_fractals: list[dict[str, Any]] = []
     organic_mosaic_relations: list[dict[str, Any]] = []
     physical_frontier_routes: tuple[tuple[Any, ...], ...] = ()
@@ -10928,6 +10979,9 @@ def _perform_admitted_intake_locked(
                 receptor_ingress_quiescent_count += last_hop[
                     "receptor_ingress_quiescent_count"
                 ]
+            native_pressure_s16le = struct.pack(
+                f"<{len(pressure_pcm)}h", *pressure_pcm
+            )
             articulation = {
                 "layer_13_recruitment_count": len(
                     articulatory_unit_recruitments
@@ -10936,7 +10990,7 @@ def _perform_admitted_intake_locked(
                 "sample_rate_hz": sample_rate_hz,
                 "pressure_sample_count": len(pressure_pcm),
                 "pressure_sha256": hashlib.sha256(
-                    struct.pack(f"<{len(pressure_pcm)}h", *pressure_pcm)
+                    native_pressure_s16le
                 ).hexdigest(),
                 "peak_breath_flow_pcm": peak_breath_flow_pcm,
                 "glottal_open_samples_at_apex": (
@@ -11791,6 +11845,16 @@ def _perform_admitted_intake_locked(
             "intake": intake,
             "organism_tick": _sealed_pointer.organism_tick,
             "state_sha256": _sealed_pointer.state_sha256,
+        }
+        if native_pressure_s16le is None:
+            raise RuntimeError("native articulation lost its emitted pressure")
+        _latest_native_pressure_audio = {
+            "intake": intake,
+            "organism_tick": _sealed_pointer.organism_tick,
+            "pcm_s16le": native_pressure_s16le,
+            "pressure_sha256": articulation["pressure_sha256"],
+            "sample_count": articulation["pressure_sample_count"],
+            "sample_rate_hz": articulation["sample_rate_hz"],
         }
     if (
         len(physical_prediction_alternatives) == 2
@@ -14685,6 +14749,7 @@ def _startup() -> None:
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
+    global _latest_native_pressure_audio
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_social_experience_evidence
@@ -14698,6 +14763,7 @@ def _startup() -> None:
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
     _last_tested_articulation_evidence = None
+    _latest_native_pressure_audio = None
     _last_causal_cross_context_use_evidence = None
     _last_intrinsic_curiosity_evidence = None
     _last_social_experience_evidence = None
@@ -14939,6 +15005,47 @@ def native_observation(
         content=_public_observation_body,
         headers=headers,
         media_type="application/json",
+    )
+
+
+@app.get(NATIVE_PRESSURE_AUDIO_ENDPOINT)
+def native_pressure_audio() -> Response:
+    """Return the latest exact committed native pressure for human hearing."""
+
+    audio = _latest_native_pressure_audio
+    if not isinstance(audio, dict):
+        raise HTTPException(
+            status_code=404,
+            detail="no native pressure is available in this process",
+        )
+    pcm_s16le = audio.get("pcm_s16le")
+    pressure_sha256 = audio.get("pressure_sha256")
+    sample_rate_hz = audio.get("sample_rate_hz")
+    if (
+        not isinstance(pcm_s16le, bytes)
+        or not isinstance(pressure_sha256, str)
+        or isinstance(sample_rate_hz, bool)
+        or not isinstance(sample_rate_hz, int)
+        or sample_rate_hz <= 0
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="native pressure observation lost its exact body",
+        )
+    wav_body = io.BytesIO()
+    with wave.open(wav_body, "wb") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate_hz)
+        wav_file.writeframes(pcm_s16le)
+    return Response(
+        content=wav_body.getvalue(),
+        headers={
+            "Cache-Control": "private, no-store",
+            "ETag": f'"{pressure_sha256}"',
+            "X-Guala-Pressure-SHA256": pressure_sha256,
+        },
+        media_type="audio/wav",
     )
 
 
