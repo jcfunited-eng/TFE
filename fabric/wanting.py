@@ -99,8 +99,11 @@ def want(sentence, F=None):
             continue
         if w != turns_on and w not in about:
             about.append(w)
+    nest = FR.nesting(gs) if gs else dict(doing=None, doer=None,
+                                          done_to=None, rest=[])
     return dict(kind=kind, asked_with=asked_with, about=about,
                 settled_by=settled_by,
+                doer=nest["doer"], done_to=nest["done_to"],
                 forbidden=[core.stem(w) for w in
                            re.findall(r"[a-z]+", forbidden.lower())
                            if len(w) > 2],
@@ -119,6 +122,9 @@ def show(sentence, F=None):
     out.append(f"  it turns on:   {w['turns_on'] or 'nothing I could find'}")
     if w.get("settled_by"):
         out.append(f"    settled by:  {w['settled_by']}")
+    if w.get("doer") or w.get("done_to"):
+        out.append(f"  who does it:   {w.get('doer') or 'nothing before it'}")
+        out.append(f"  what it hits:  {w.get('done_to') or 'nothing after it — it reaches nothing'}")
     out.append(f"  it is about:   {', '.join(w['about']) or 'nothing I could name'}")
     if w["asked_with"]:
         out.append(f"  it asks for:   {w['kind']}  (from '{w['asked_with']}')")

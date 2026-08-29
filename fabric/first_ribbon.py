@@ -311,6 +311,31 @@ def carried_in(group):
     return group[0] in company().frame
 
 
+def nesting(gs):
+    """The finished nesting: which group is the doing, and what role
+    each of the others hangs under it in.
+
+    174 says the roles and this reads them: the group arriving before
+    the doing is the doer, the group arriving after it is the done-to.
+    Groups further out are named as the reading having more in it than
+    the roles account for, rather than being quietly dropped.
+
+    Without this, "the dog bit the man" and "the man bit the dog" came
+    out identical — same doing, same subjects, in the same order in
+    the list. A reading that cannot tell those apart has not read
+    either of them."""
+    d = doing_of(gs)
+    if d is None:
+        return dict(doing=None, doer=None, done_to=None, rest=[])
+    before = [i for i in range(len(gs)) if i < d]
+    after = [i for i in range(len(gs)) if i > d]
+    doer = head(gs[before[-1]]) if before else None
+    done_to = head(gs[after[0]]) if after else None
+    rest = [head(gs[i]) for i in before[:-1] + after[1:]]
+    return dict(doing=head(gs[d]), doer=doer, done_to=done_to,
+                rest=rest)
+
+
 def doing_of(gs, why=False):
     """Which group the sentence turns on. 174: the doing is the group
     that arrived alone, and where the sentence gives no contrast — all

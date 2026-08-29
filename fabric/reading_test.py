@@ -65,11 +65,41 @@ HELD_OUT = [
 ]
 
 
+# ROLES. Pairs whose words, groups and counts are identical and whose
+# only difference is which side of the doing each group sits on. If a
+# reading cannot tell these apart it has not read either of them.
+ROLES = [
+    ("the dog bit the man",        "dog",    "man"),
+    ("the man bit the dog",        "man",    "dog"),
+    ("the fire heated the water",  "fire",   "water"),
+    ("the water heated the fire",  "water",  "fire"),
+    ("the hammer struck the nail", "hammer", "nail"),
+    ("salt melts ice",             "salt",   "ice"),
+    ("why does bread rise",        "bread",  None),
+]
+
+
+def grade_roles(F=None):
+    F = F or core.fabric()
+    rows, good = [], 0
+    for sent, doer, done_to in ROLES:
+        w = wanting.want(sent, F)
+        gd, gt = w.get("doer"), w.get("done_to")
+        ok = (same_word(gd or "", doer or "") if doer else not gd) and \
+             (same_word(gt or "", done_to or "") if done_to else not gt)
+        good += ok
+        rows.append((sent, f"{gd} -> {gt}", ok))
+    return rows, good
+
+
 def same_word(a, b):
     """The stemmer clips hard — water becomes wat, moved becomes mov.
     That is a real defect and it is filed separately; it must not be
     allowed to score a correct reading as wrong here."""
     a, b = core.stem(a.lower()), core.stem(b.lower())
+    if not a or not b:
+        return False        # an empty string is a prefix of everything,
+                            # and scored a missing doer as a pass
     return a.startswith(b) or b.startswith(a)
 
 
@@ -112,3 +142,8 @@ if __name__ == "__main__":
             if why:
                 print(f"          {why}")
         print(f"  {good}/{len(cases)} read correctly")
+    rows, good = grade_roles(F)
+    print("\nWHO DID WHAT TO WHOM")
+    for sent, got, ok in rows:
+        print(f"  {'ok  ' if ok else 'FAIL'}  {sent:<50} {got}")
+    print(f"  {good}/{len(ROLES)} roles read correctly")

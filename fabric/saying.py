@@ -69,6 +69,23 @@ def no_subject_words(F):
     return out
 
 
+def thin_words(F):
+    """The words the knowledge says carry no ground of their own.
+
+    74 holds it already and nothing used it: "a thin thing said leans
+    on the thread — why? or that or and? carry almost no ground of
+    their own, so they take up the ground the thread is already
+    standing on." The entry names those words on its own ASKED-AS
+    line, so they are read out of it rather than listed here. Same
+    move as the greeting: the entry that says how to handle a thing
+    becomes the handler for it."""
+    for e in F.entries:
+        if "leans on the thread" in e["essence"].lower():
+            return {w for w in re.findall(r"[a-z]+", e["ask"].lower())
+                    if len(w) > 1}
+    return set()
+
+
 class Said:
     """What one turn understood, and what the thread was standing on
     before it. Everything a move may test lives here — a move never
@@ -122,6 +139,23 @@ class Said:
                 # the nearest thing returned an onion entry for a
                 # question about knives. Holding nothing is a lawful
                 # answer and a true one.
+        # A THIN TURN. It has a thin word in it and no ground of its
+        # own, so by 74 it takes up the ground the thread is already
+        # standing on. Without this, "why" after a turn about bread
+        # was read as a new sentence about nothing and got silence.
+        low = set(re.findall(r"[a-z]+", self.text.lower()))
+        self.thin = bool(low & thread.thin) and not self.ground
+        self.leaned = None
+        if self.thin and thread.subject:
+            self.leaned = thread.subject
+            self.subject = thread.subject
+            self.about = [thread.subject]
+            sid = F.vocab.get(core.stem(thread.subject))
+            if sid is not None:
+                bit = 1 << sid
+                _qm, hits = F.reach(thread.subject, limit=12)
+                self.ground = [e for e in hits
+                               if (e["askm"] & bit) and (e["color"] & bit)]
         self.thread = thread
         self.same_subject = bool(
             thread.subject and self.subject
@@ -143,6 +177,7 @@ class Thread:
         self.greeted = False
         self.greeted_on = None
         self.no_subject = no_subject_words(self.F)
+        self.thin = thin_words(self.F)
         self.last_asked_for = None
 
     # ---------- the moves ----------
@@ -180,12 +215,28 @@ class Thread:
             return None
         return f"I could not read that. {s.unread[0]}"
 
+    def m_lean(self, s):
+        if not s.leaned:
+            return None
+        asked = (f", and you are asking {s.asked_with}"
+                 if s.asked_with else "")
+        return f"Still on {s.leaned}{asked}."
+
+    def m_thin_nothing(self, s):
+        if not (s.thin and not s.leaned):
+            return None
+        return ("There is not enough in that on its own, and the "
+                "thread is not standing on anything yet for it to "
+                "lean on.")
+
     def m_carry_on(self, s):
-        if not (s.same_subject and self.turns):
+        if s.leaned or not (s.same_subject and self.turns):
             return None
         return f"Still on {s.subject}."
 
     def m_moved(self, s):
+        if s.leaned:
+            return None
         if not (self.subject and s.new_subject):
             return None
         if self.subject in self.no_subject:
@@ -193,7 +244,7 @@ class Thread:
         return f"We were on {self.subject}; you have moved to {s.subject}."
 
     def m_heard(self, s):
-        if not s.about or s.unread:
+        if not s.about or s.unread or s.leaned:
             return None
         what = ", ".join(s.about[:3])
         if s.kind and s.turns_on:
@@ -258,7 +309,8 @@ class Thread:
     def m_nothing(self, s):
         return None
 
-    MOVES = ["m_unread", "m_greet", "m_greet_again", "m_carry_on",
+    MOVES = ["m_unread", "m_greet", "m_greet_again",
+             "m_lean", "m_thin_nothing", "m_carry_on",
              "m_moved", "m_heard", "m_forbids", "m_guessing",
              "m_no_ground", "m_offer", "m_ask_back"]
 

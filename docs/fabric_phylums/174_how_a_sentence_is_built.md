@@ -158,6 +158,35 @@ THREAD: law (a charge must state what was done), physics (a
   with no transaction is not an entry).
 ASKED-AS: doing verb action main word what happened turns on head
 
+ESSENCE: a nesting is not finished when it says which group is the
+  doing. Every other group hangs under the doing in a ROLE, and the
+  roles are what the sentence is actually saying: the DOER is the
+  group the doing goes out from, and the DONE-TO is the group it
+  arrives at. Without them a reading cannot tell "the dog bit the
+  man" from "the man bit the dog" — same words, same groups, same
+  counts, and the only thing that differs between them is which side
+  of the doing each group sits on. So in this writing the group
+  arriving before the doing is the doer and the group arriving after
+  it is the done-to. This is knowledge about THIS language and not a
+  fact about language: written down here so it can be argued with and
+  so a fabric written in a language that runs the other way changes
+  this sentence and nothing else. It does not contradict the wall
+  against reading structure off word order, because the nesting's
+  SHAPE is still settled by what survives — order is doing one job
+  here, naming the roles, and it is the only carrier the difference
+  has.
+ROOT: grammar (67) / a sentence needs a doer and a doing, and a
+  doing that reaches something needs the thing it reaches.
+HOLDS: a doer holds when its group arrives before the doing. A
+  done-to holds when its group arrives after the doing. A doing with
+  nothing after it reaches nothing, and that is a reading, not a gap.
+THREAD: accounts (every entry has a from and a to, and reversing
+  them is the whole of a fraud), law (who struck whom is the case),
+  plumbing (a pipe has a direction and the same pipe backwards is a
+  different system).
+ASKED-AS: doer done to role who did what to whom subject object
+  which one acted receiver direction of the doing
+
 ESSENCE: a sense is produced from the company present and never
   fetched from a list — the senses of a common word have no end and
   new ones are made when needed, so a table of them is out of date
