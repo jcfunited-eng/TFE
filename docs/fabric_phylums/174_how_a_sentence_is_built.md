@@ -69,6 +69,10 @@ ESSENCE: a nesting hangs every group under one other group, and the
   stops everything else is not a reading, it is a stall.
 ROOT: language (09) / finite pieces make infinite sentences, and only
   nesting explains how, since a flat line cannot contain itself.
+HOLDS: a nesting holds when its links do not cross, when no group
+  hangs under itself, when no loop of groups hangs under each other,
+  when exactly one group is the root, and when that root is the
+  doing. A reading holds when it has a doing.
 TRIED-AND-CLOSED: "no group hanging under one the writing never sets
   beside it" was written here as a wall and taken straight back out.
   It looks right and it is measurable, and it killed every reading of
@@ -93,6 +97,10 @@ ESSENCE: the doing is the group the sentence turns on, and it is
   subject in front of it and the wall then grips on itself.
 ROOT: grammar (67) / a sentence needs a doer and a doing, and the
   doing is the one that cannot be removed.
+HOLDS: a doing holds when its group has been placed after a pointer
+  somewhere in the writing, and when its group carries no asking
+  word — the asking words say what kind of answer counts and never
+  name what happened.
 THREAD: law (a charge must state what was done), physics (a
   description with no verb describes no event), accounts (an entry
   with no transaction is not an entry).

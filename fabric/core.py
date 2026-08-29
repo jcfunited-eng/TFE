@@ -129,6 +129,7 @@ class Fabric:
                 e = dict(field=field, file=path,
                          essence=part("ESSENCE"),
                          cannot=part("CANNOT"),
+                         holds=part("HOLDS"),
                          ask=part("ASKED-AS"),
                          rule=part("RULE"),
                          thread=part("THREAD"),

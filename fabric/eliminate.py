@@ -98,11 +98,38 @@ def laws_of(where=None, F=None):
     for e in F.entries:
         if where and where not in e["field"]:
             continue
-        for piece in re.split(r"(?<=[.;])\s+", e["cannot"]):
+        # The denial lines are gone from the corpus. What a thing
+        # HOLDS is written as a claim now, and the negative form is
+        # read off it: "a nesting holds when its links do not cross"
+        # says a crossed nesting does not hold, without anyone
+        # writing a second sentence to say so.
+        source = e.get("holds") or ""
+        for piece in re.split(r",\s+(?=when\b)|\.\s+", source):
             p = piece.strip()
             if not p:
                 continue
             low = p.lower()
+            # A claim about what HOLDS carries its own negative: "a
+            # nesting holds when its links do not cross" says a
+            # crossed nesting does not hold. The condition is read
+            # and the forbidden case falls out of it, with nobody
+            # writing a denial.
+            m = re.search(r"when (?:its |it |the )?(.+?)"
+                          r"\s+(?:do not|does not|is not|are not|"
+                          r"never)\s+(.+)", low)
+            if m:
+                a = F.mask(m.group(1) + " " + m.group(2), learn=False)
+                b = F.mask(e["essence"][:60], learn=False)
+                if a and b and _has_uncommon(a, F):
+                    out.append(Law("forbids", a, b, e, p, e["field"]))
+                continue
+            m = re.search(r"when no (.+?)(?:,|$)", low)
+            if m:
+                a = F.mask(m.group(1), learn=False)
+                b = F.mask(e["essence"][:60], learn=False)
+                if a and b and _has_uncommon(a, F):
+                    out.append(Law("forbids", a, b, e, p, e["field"]))
+                continue
             m = re.search(r"\bno(?:thing)? (.+?) without (.+)", low)
             if m:
                 a, b = F.mask(m.group(1), learn=False), \
