@@ -186,15 +186,15 @@ def test_body_surface_contact_reaches_exact_skin_site_and_retains_all_heat() -> 
         bodies=(
             EmbodiedBody(
                 "guala-body-1",
-                PoseMM(PositionMM(1_000, 1_800, 0), 0),
+                PoseMM(PositionMM(1_000, 1_800, 0), 195_962),
                 radius_mm=250,
                 reach_mm=800,
             ),
             EmbodiedBody(
                 "w1-body-2",
-                PoseMM(PositionMM(1_500, 1_800, 0), 180_000),
+                PoseMM(PositionMM(1_500, 1_800, 0), 30_000),
                 radius_mm=250,
-                reach_mm=800,
+                reach_mm=1_200,
             ),
         ),
         body_surface_sites=(

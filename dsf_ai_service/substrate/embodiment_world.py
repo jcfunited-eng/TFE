@@ -2175,57 +2175,41 @@ def _receptor_position(
     )
 
 
-def _rotate_body_surface_vector(
-    vector: ExactVector3,
-    heading_millidegrees: int,
-) -> ExactVector3:
-    """Rotate one exact surface basis on the current cardinal body lattice."""
-
-    if heading_millidegrees % 90_000:
-        raise ValueError(
-            "body-surface contact requires a cardinal exact surface basis"
-        )
-    quarter_turns = (heading_millidegrees // 90_000) % 4
-    if quarter_turns == 0:
-        return vector
-    if quarter_turns == 1:
-        return ExactVector3(-vector.y, vector.x, vector.z)
-    if quarter_turns == 2:
-        return ExactVector3(-vector.x, -vector.y, vector.z)
-    return ExactVector3(vector.y, -vector.x, vector.z)
-
-
 def _world_body_surface_geometry(
     body: EmbodiedBody,
     site: MountedBodySurfaceSite,
 ) -> tuple[ExactVector3, ExactVector3, ExactVector3, ExactVector3]:
-    """Project one mounted local surface into exact world micrometres."""
+    """Project one site centre onto the world micrometre lattice.
+
+    Contact forces settle in the recipient site's exact local orthonormal
+    frame.  That frame belongs to an articulated surface, not to a hand
+    welded to the body's root heading.  The root pose still determines the
+    site's exact world position and therefore whether the actor can reach it.
+    """
 
     if site.body_id != body.body_id:
         raise ValueError("body surface site changed physical owner")
-    local = _rotate_body_surface_vector(
-        site.local_centre_micrometres,
+    if (
+        site.local_centre_micrometres.x.denominator != 1
+        or site.local_centre_micrometres.y.denominator != 1
+    ):
+        raise ValueError("body surface centre left the micrometre lattice")
+    rotated_x, rotated_y = rotate_lattice_offset(
+        site.local_centre_micrometres.x.numerator,
+        site.local_centre_micrometres.y.numerator,
         body.pose.heading_millidegrees,
     )
     centre = ExactVector3(
-        Fraction(body.pose.position.x * 1_000) + local.x,
-        Fraction(body.pose.position.y * 1_000) + local.y,
-        Fraction(body.pose.position.z * 1_000) + local.z,
+        Fraction(body.pose.position.x * 1_000 + rotated_x),
+        Fraction(body.pose.position.y * 1_000 + rotated_y),
+        Fraction(body.pose.position.z * 1_000)
+        + site.local_centre_micrometres.z,
     )
     return (
         centre,
-        _rotate_body_surface_vector(
-            site.outward_normal,
-            body.pose.heading_millidegrees,
-        ),
-        _rotate_body_surface_vector(
-            site.tangent_u,
-            body.pose.heading_millidegrees,
-        ),
-        _rotate_body_surface_vector(
-            site.tangent_v,
-            body.pose.heading_millidegrees,
-        ),
+        site.outward_normal,
+        site.tangent_u,
+        site.tangent_v,
     )
 
 
@@ -4420,12 +4404,10 @@ class EmbodimentWorldAuthority:
             recipient_sites_seen.add(
                 (recipient.body_id, actuation.recipient_site_id)
             )
-            (
-                actor_rest_centre,
-                actor_normal,
-                actor_tangent_u,
-                actor_tangent_v,
-            ) = _world_body_surface_geometry(actor, actor_site)
+            actor_rest_centre, _, _, _ = _world_body_surface_geometry(
+                actor,
+                actor_site,
+            )
             (
                 recipient_centre,
                 recipient_normal,
@@ -4436,13 +4418,6 @@ class EmbodimentWorldAuthority:
             maximum_travel = actor.reach_mm * 1_000
             if travel.dot(travel) > maximum_travel * maximum_travel:
                 raise ValueError("body-surface contact lies outside actor reach")
-            if actor_normal != recipient_normal.scaled(Fraction(-1)):
-                raise ValueError("body-surface normals are not physically opposed")
-            if (
-                actor_tangent_u != recipient_tangent_u
-                or actor_tangent_v != recipient_tangent_v
-            ):
-                raise ValueError("body-surface tangent frames are not aligned")
             recipient_temperature = self._body_surface_temperature_millikelvin(
                 recipient.body_id,
                 recipient_site,
@@ -4479,9 +4454,9 @@ class EmbodimentWorldAuthority:
                 tangent_v=recipient_tangent_v,
             )
             actor_contact_site = actor_site.contact_site(
-                outward_normal=actor_normal,
-                tangent_u=actor_tangent_u,
-                tangent_v=actor_tangent_v,
+                outward_normal=recipient_normal.scaled(Fraction(-1)),
+                tangent_u=recipient_tangent_u,
+                tangent_v=recipient_tangent_v,
             )
             recipient_state = BodySurfaceState(
                 centre_micrometres=recipient_centre,
