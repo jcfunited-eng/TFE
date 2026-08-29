@@ -148,7 +148,7 @@ class _NativeResidentOrganismObservation:
     ) -> list[tuple[int, str, str, int, int, int, int]]:
         return [
             (ordinal, f"axis_{ordinal}", "millidegree", 0, -1, 0, 1)
-            for ordinal in range(37)
+            for ordinal in range(45)
         ]
 
     @property

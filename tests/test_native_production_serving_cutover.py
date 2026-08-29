@@ -69,7 +69,7 @@ class _Observation:
     ) -> list[tuple[int, str, str, int, int, int, int]]:
         return [
             (ordinal, f"axis_{ordinal}", "millidegree", 0, -1, 0, 1)
-            for ordinal in range(37)
+            for ordinal in range(45)
         ]
 
     @property
@@ -358,8 +358,8 @@ def test_cold_probe_uses_only_binary_current(monkeypatch, capsys) -> None:
             "a013_articulated_body_successor_state_sha256": "c" * 64,
             "a013_articulated_body_predecessor_tick": 23_723_846,
             "a013_articulated_body_successor_tick": 23_723_847,
-            "a013_articulated_body_axis_count": 37,
-            "a013_articulated_body_terminal_count": 74,
+            "a013_articulated_body_axis_count": 45,
+            "a013_articulated_body_terminal_count": 90,
             "a013_articulated_body_state_bytes": 195,
             "a013_articulated_body_state_sha256": "d" * 64,
             "a013_articulated_body_proprioception_initialized": True,

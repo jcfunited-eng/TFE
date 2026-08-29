@@ -94,7 +94,7 @@ def test_partial_presentation_after_learning_reports_only_admitted_physics(
 
     # Two full presentations physically perturb and recover the resident
     # body without exhaustion.  A newborn's first lesson also contains its
-    # one-time 74-axis proprioceptive initialization, so only lower bounds
+    # one-time 90-terminal proprioceptive initialization, so only lower bounds
     # and authored surface cardinalities are architectural facts here.
     first_status, first = _teach(CARD_ID)
     second_status, second = _teach(CARD_ID)

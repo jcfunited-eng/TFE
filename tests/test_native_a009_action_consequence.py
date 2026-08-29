@@ -401,11 +401,11 @@ print(json.dumps({
     assert len(evidence["causal_transition_sha256"]) == 64
     assert evidence["unsealed_state_sha256"] is None
     assert len(evidence["sealed_state_sha256"]) == 64
-    # A newborn native test body first admits its complete 74-axis
+    # A newborn native test body first admits its complete 90-terminal
     # proprioceptive state, then this one external joint occurrence.  No
     # motor feedback occurrence was authored by Python or required here.
     assert evidence["body_feedback_extents"] == []
-    initial_body_port_count = 74
+    initial_body_port_count = 90
     assert evidence["ingress"] == {
         "body": 10 + initial_body_port_count,
         "sight": 27,
@@ -419,10 +419,10 @@ print(json.dumps({
     assert len(set(evidence["external_lineages"])) == len(
         evidence["external_lineages"]
     )
-    # Metabolic settlement remains on the exact causal body frontier: the 64
+    # Metabolic settlement remains on the exact causal body frontier: the 80
     # regulation lineages plus the two physically changed body receptors.
     # Unchanged joint terminals are mounted but are not artificially pumped.
-    assert evidence["internal_body"] == 66
+    assert evidence["internal_body"] == 82
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
     assert evidence["chemical"] == {
@@ -497,8 +497,8 @@ def test_public_action_consequence_does_not_export_preparation_graphs(
         "motor_unit_recruitment_count": 2,
         "prepared_recruitments": ({"large": "internal"},) * 2,
         "body_effector_bindings": ({"axis": "torso_pitch"},) * 2,
-        "articulated_body_consequences": ({"large": "body"},) * 74,
-        "body_proprioceptive_sources": ({"large": "source"},) * 74,
+        "articulated_body_consequences": ({"large": "body"},) * 90,
+        "body_proprioceptive_sources": ({"large": "source"},) * 90,
         "motor_body_afferent_paths": ({"large": "path"},) * 148,
         "sensory_consequence": {"action_receipt_sha256": "22" * 32},
     }
@@ -524,8 +524,8 @@ def test_public_action_consequence_does_not_export_preparation_graphs(
     assert "articulated_body_consequences" not in observed["motor_action"]
     assert observed["motor_action"]["motor_unit_recruitment_count"] == 2
     assert observed["motor_action"]["body_effector_binding_count"] == 2
-    assert observed["motor_action"]["articulated_body_consequence_count"] == 74
-    assert observed["motor_action"]["body_proprioceptive_source_count"] == 74
+    assert observed["motor_action"]["articulated_body_consequence_count"] == 90
+    assert observed["motor_action"]["body_proprioceptive_source_count"] == 90
     assert observed["motor_action"]["motor_body_afferent_path_count"] == 148
     assert observed["motor_unit_recruitment_count"] == 2
     assert observed["articulatory_unit_recruitment_count"] == 1

@@ -5,14 +5,14 @@
 //! dependency.
 
 use crate::virtual_articulated_body::{
-    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET, BODY_EFFECTOR_TERMINAL_COUNT,
+    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET, LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
 };
 
 /// Root-yaw directional endings occupy their own body territory after the
 /// articulated position and load endings. They can therefore never alias a
 /// local joint receptor merely because both are body sense.
 pub(crate) const ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET: usize =
-    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT;
+    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT;
 pub(crate) const ROOT_YAW_TERMINAL_COUNT: usize = 2;
 
 /// The two fixed antagonist directions of the world's root-yaw actuator.

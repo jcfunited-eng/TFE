@@ -1887,7 +1887,7 @@ class NativeResidentOrganism:
         _canonical_sha256(candidate.state_sha256, "state receipt")
         _canonical_sha256(candidate.fabric_sha256, "fabric receipt")
         body_axes = candidate.articulated_body_axes
-        if not isinstance(body_axes, list) or len(body_axes) != 37:
+        if not isinstance(body_axes, list) or len(body_axes) != 45:
             raise RuntimeError("resident articulated body axis count changed")
         seen_body_axes: set[int] = set()
         for raw_axis in body_axes:
@@ -2266,7 +2266,7 @@ class NativeResidentOrganism:
 
         active_before = self.readiness()
         candidate = self.__runtime.prepare_articulated_body_observation()
-        return self._validated_prepare_evidence(candidate, 74, active_before)
+        return self._validated_prepare_evidence(candidate, 90, active_before)
 
     def commit_admitted_trajectory_direct(
         self,
@@ -2430,7 +2430,7 @@ class NativeResidentOrganism:
         """Read the exact current body during an open lived intake."""
 
         axes = self.__runtime.live_articulated_body_axes()
-        if not isinstance(axes, list) or len(axes) != 37:
+        if not isinstance(axes, list) or len(axes) != 45:
             raise RuntimeError("resident live articulated body axis count changed")
         return tuple(axes)
 

@@ -156,8 +156,10 @@ use crate::virtual_material_neuron_genesis::{
     reach_quiescent_virtual_material_neuron, VirtualMaterialGenesisError,
 };
 use crate::virtual_articulated_body::{
-    BodyEffectorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET, BODY_EFFECTOR_TERMINAL_COUNT,
-    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyEffectorTerminal, ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
+    ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
+    BODY_EFFECTOR_TERMINAL_COUNT, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
 };
 use crate::root_yaw_terminal::{
     RootYawEffectorTerminal, RootYawProprioceptorTerminal,
@@ -274,11 +276,16 @@ const BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 = {
     eccentricity * (eccentricity + 1) / 2 + PRE_PROPRIOCEPTIVE_WIDEST_TOPOLOGY_INDEX + 1
 };
 const BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
-    BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+    BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_YAW_LAYER6_TOPOLOGY_OFFSET: u32 =
-    BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+    BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_TRANSLATION_LAYER6_TOPOLOGY_OFFSET: u32 =
     ROOT_YAW_LAYER6_TOPOLOGY_OFFSET + ROOT_YAW_TERMINAL_COUNT as u32;
+const ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 =
+    ROOT_TRANSLATION_LAYER6_TOPOLOGY_OFFSET + ROOT_TRANSLATION_TERMINAL_COUNT as u32;
+const ADDED_BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
+    ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET
+        + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
 /// Body regulation is its own layer-8 geography. Before proprioception, its
 /// widest body receptor is layer 5, topology 9, whose local projection is 114.
 /// The fixed antagonist terminals therefore occupy the next disjoint layer-8
@@ -291,11 +298,16 @@ const BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 = {
     eccentricity * (eccentricity + 1) / 2 + PRE_PROPRIOCEPTIVE_WIDEST_BODY_TOPOLOGY_INDEX + 1
 };
 const BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
-    BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+    BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_YAW_LAYER8_TOPOLOGY_OFFSET: u32 =
-    BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT as u32;
+    BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT as u32;
 const ROOT_TRANSLATION_LAYER8_TOPOLOGY_OFFSET: u32 =
     ROOT_YAW_LAYER8_TOPOLOGY_OFFSET + ROOT_YAW_TERMINAL_COUNT as u32;
+const ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 =
+    ROOT_TRANSLATION_LAYER8_TOPOLOGY_OFFSET + ROOT_TRANSLATION_TERMINAL_COUNT as u32;
+const ADDED_BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
+    ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET
+        + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
 /// A fixed translation motor shares its terminal ordinal with the compact
 /// layer-8 regulator that prepares it. Layer 12 at the same ordinal has a
 /// strictly larger declared membrane territory, so one carrier leaving the
@@ -13701,7 +13713,7 @@ fn local_integration_place(
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     let proprioceptor_end = proprioceptor_start
         .checked_add(
-            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+            u32::try_from(LEGACY_BODY_EFFECTOR_TERMINAL_COUNT)
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
         )
         .ok_or(FormationError::ArithmeticOverflow)?;
@@ -13721,7 +13733,7 @@ fn local_integration_place(
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     let load_end = load_start
         .checked_add(
-            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+            u32::try_from(LEGACY_BODY_EFFECTOR_TERMINAL_COUNT)
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
         )
         .ok_or(FormationError::ArithmeticOverflow)?;
@@ -13785,6 +13797,50 @@ fn local_integration_place(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
+    let added_proprioceptor_start =
+        u32::try_from(ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_terminal_count = u32::try_from(
+        BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
+    )
+    .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_proprioceptor_end = added_proprioceptor_start
+        .checked_add(added_terminal_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (added_proprioceptor_start..added_proprioceptor_end)
+            .contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(added_proprioceptor_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(relative)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let added_load_start = u32::try_from(ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_load_end = added_load_start
+        .checked_add(added_terminal_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (added_load_start..added_load_end).contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(added_load_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            ADDED_BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(relative)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     let paired = declared_neuron_territory(receptor_place)
         .map_err(|_| FormationError::ArithmeticOverflow)?
         .checked_sub(1)
@@ -13801,7 +13857,7 @@ fn body_regulation_place(
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     let proprioceptor_end = proprioceptor_start
         .checked_add(
-            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+            u32::try_from(LEGACY_BODY_EFFECTOR_TERMINAL_COUNT)
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
         )
         .ok_or(FormationError::ArithmeticOverflow)?;
@@ -13823,7 +13879,7 @@ fn body_regulation_place(
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     let load_end = load_start
         .checked_add(
-            u32::try_from(BODY_EFFECTOR_TERMINAL_COUNT)
+            u32::try_from(LEGACY_BODY_EFFECTOR_TERMINAL_COUNT)
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
         )
         .ok_or(FormationError::ArithmeticOverflow)?;
@@ -13884,6 +13940,50 @@ fn body_regulation_place(
             8,
             ROOT_TRANSLATION_LAYER8_TOPOLOGY_OFFSET
                 .checked_add(terminal_ordinal)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let added_proprioceptor_start =
+        u32::try_from(ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET)
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_terminal_count = u32::try_from(
+        BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
+    )
+    .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_proprioceptor_end = added_proprioceptor_start
+        .checked_add(added_terminal_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (added_proprioceptor_start..added_proprioceptor_end)
+            .contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(added_proprioceptor_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(relative)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
+    let added_load_start = u32::try_from(ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let added_load_end = added_load_start
+        .checked_add(added_terminal_count)
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (added_load_start..added_load_end).contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(added_load_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            ADDED_BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(relative)
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
@@ -14335,7 +14435,7 @@ fn mount_reached_body_regulation(
     Ok(reached_regulation)
 }
 
-/// The articulated body's 74 antagonist effector addresses are fixed body
+/// The articulated body's 90 antagonist effector identities are fixed body
 /// anatomy. Mount exactly one neuronal terminal when its typed local
 /// receptor/regulation route first develops; experience may later add sparse
 /// ordering contacts to this terminal, but it does not create the terminal or
@@ -14370,6 +14470,11 @@ fn mount_fixed_articulated_motor_terminal(
     let motor_lineage = match matching.as_slice() {
         [lineage] => *lineage,
         [] => {
+            // Layer-12 motor places are resident intrinsic anatomy rather than
+            // receptor addresses. Claim the next lawful dormant place for new
+            // tract terminals exactly as for every existing body terminal;
+            // assigning an arbitrary fixed topology here could collide with a
+            // motor that the living organism already developed.
             let lineage = mount_next_intrinsic_in_layer(
                 cohorts,
                 resting_population,
@@ -14410,7 +14515,7 @@ fn mount_fixed_articulated_motor_terminal(
 
 /// Mount the organism's fixed vocal excitation anatomy.
 ///
-/// The five vocal axes and their antagonist directions are body facts. Their
+/// The thirteen vocal axes and their antagonist directions are body facts. Their
 /// layer-12 terminals converge on one layer-13 excitation cell exactly as
 /// limb terminals converge on their named body axes. This route contains no
 /// sound, phoneme, word, formation, or action label. Learned cognition must
@@ -20880,8 +20985,14 @@ mod tests {
                     .any(|value| !value.is_zero())
             })
             .count();
-        assert_eq!(counts.iter().find(|(layer, _)| *layer == 5), Some(&(5, 74)));
-        assert_eq!(counts.iter().find(|(layer, _)| *layer == 6), Some(&(6, 74)));
+        assert_eq!(
+            counts.iter().find(|(layer, _)| *layer == 5),
+            Some(&(5, BODY_EFFECTOR_TERMINAL_COUNT))
+        );
+        assert_eq!(
+            counts.iter().find(|(layer, _)| *layer == 6),
+            Some(&(6, BODY_EFFECTOR_TERMINAL_COUNT))
+        );
         assert_eq!(
             counts.iter().find(|(layer, _)| *layer == 8),
             Some(&(8, energized_terminal_count))
@@ -20904,7 +21015,10 @@ mod tests {
                     .map(|_| anatomy.gate_population())
             })
             .collect::<Vec<_>>();
-        assert_eq!(terminal_gate_populations, vec![1; 74]);
+        assert_eq!(
+            terminal_gate_populations,
+            vec![1; BODY_EFFECTOR_TERMINAL_COUNT]
+        );
         assert_eq!(first.observation.externally_perturbed_body_receptor_count, 0);
 
         let first_lineages = first.successor.retained_neuron_lineages();
@@ -23056,7 +23170,11 @@ mod tests {
         .unwrap();
         let last = local_integration_place(DeclaredNeuronPlace::new(
             PhysicalSourceSense::Body.declared_layer().into(),
-            u32::try_from(BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + BODY_EFFECTOR_TERMINAL_COUNT - 1)
+            u32::try_from(
+                BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
+                    + LEGACY_BODY_EFFECTOR_TERMINAL_COUNT
+                    - 1,
+            )
                 .unwrap(),
         ))
         .unwrap();
@@ -23074,6 +23192,33 @@ mod tests {
         .unwrap();
         assert_eq!(first_regulation, DeclaredNeuronPlace::new(8, 115));
         assert_eq!(last_regulation, DeclaredNeuronPlace::new(8, 188));
+        let first_tract_proprioceptor = DeclaredNeuronPlace::new(
+            PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+            u32::try_from(ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET).unwrap(),
+        );
+        let first_tract_integration =
+            local_integration_place(first_tract_proprioceptor).unwrap();
+        assert_eq!(
+            first_tract_integration,
+            DeclaredNeuronPlace::new(6, ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET)
+        );
+        assert_eq!(
+            body_regulation_place(first_tract_proprioceptor, first_tract_integration).unwrap(),
+            DeclaredNeuronPlace::new(8, ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET)
+        );
+        let first_tract_load = DeclaredNeuronPlace::new(
+            PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
+            u32::try_from(ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET).unwrap(),
+        );
+        let first_tract_load_integration = local_integration_place(first_tract_load).unwrap();
+        assert_eq!(
+            first_tract_load_integration,
+            DeclaredNeuronPlace::new(6, ADDED_BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET)
+        );
+        assert_eq!(
+            body_regulation_place(first_tract_load, first_tract_load_integration).unwrap(),
+            DeclaredNeuronPlace::new(8, ADDED_BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET)
+        );
         let first_root = local_integration_place(DeclaredNeuronPlace::new(
             PRE_PROPRIOCEPTIVE_BODY_SENSE_LAYER,
             u32::try_from(ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET).unwrap(),

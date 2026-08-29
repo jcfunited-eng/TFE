@@ -19,8 +19,7 @@ use pyo3::types::PyBytes;
 use crate::full_field_bank::rational_to_f64_bits;
 use crate::sha256::sha256;
 use crate::virtual_articulated_body::{
-    BodyProprioceptorTerminal, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
-    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyProprioceptorTerminal,
 };
 use crate::root_yaw_terminal::{
     RootYawProprioceptorTerminal, ROOT_YAW_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
@@ -651,12 +650,10 @@ impl<'a> Parser<'a> {
                     "body receptor lacks an explicit proprioceptor terminal".to_string()
                 })?;
                 let topology = usize::try_from(port.topology_index).ok();
-                let length_topology =
-                    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET.checked_add(terminal.ordinal());
-                let load_topology =
-                    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET.checked_add(terminal.ordinal());
-                if topology != length_topology
-                    && !(version == BODY_LOAD_VERSION && topology == load_topology)
+                let length_topology = terminal.proprioceptor_topology_index();
+                let load_topology = terminal.load_topology_index();
+                if topology != Some(length_topology)
+                    && !(version == BODY_LOAD_VERSION && topology == Some(load_topology))
                 {
                     return Err(
                         "body receptor topology differs from its fixed terminal territory"
@@ -1376,7 +1373,9 @@ mod tests {
         output[port_start] = 5;
         output.splice(port_start + 5..port_start + 5, [1, 2, 1]);
         let topology_index = u32::try_from(
-            BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + 2_usize * 2 + 1,
+            BodyProprioceptorTerminal::from_ordinals(2, 1)
+                .unwrap()
+                .proprioceptor_topology_index(),
         )
         .unwrap();
         output[port_start + 1..port_start + 5]

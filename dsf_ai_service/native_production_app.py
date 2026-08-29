@@ -5823,8 +5823,8 @@ def _body_record(native: dict[str, Any]) -> dict[str, object]:
             if articulated["proprioception_initialized"]
             else "persistent_articulated_body_awaiting_first_proprioceptive_interval"
         ),
-        "the native CURRENT body persistently carries one fixed 37-axis local "
-        "configuration and its 74 explicit antagonist terminals; this is "
+        "the native CURRENT body persistently carries one fixed 45-axis local "
+        "configuration and its 90 explicit antagonist terminals; this is "
         "truthful local embodiment state, while root locomotion, manipulation, "
         "mechanical load/work and complete consequence re-entry remain open "
         "A-013 work",

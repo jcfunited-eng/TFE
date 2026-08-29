@@ -328,3 +328,30 @@ timer, second scheduler, or retained speech program.
   24,000 samples, and the decoded PCM hashed to the identical receipt.
 - This makes already-proven native utterances human-audible. It does not turn
   an utterance into a learned word and does not change the L-005 open status.
+
+## Native tract-control candidate — 2026-08-29
+
+- The deployed body stores eight loss-tube section areas, but only jaw, lips,
+  perioral tissue and glottis are motor axes. Six tube sections therefore
+  cannot change through native body action. This is the exact remaining
+  mechanics defect between a generic utterance and reproducible learned word
+  shaping; no label or observer correction can repair it.
+- The candidate makes those same eight persisted values eight appended body
+  axes with two antagonist terminals each. It does not add a second tract
+  state: the axis array becomes the sole owner. The body checkpoint remains
+  exactly 195 bytes.
+- V1 cold restore reads the old 37 axes, lung and eight tract values, maps the
+  tract values into the appended axes, and requires one exact proprioceptive
+  admission. The original 74 proprioceptive/load addresses and all six root
+  motion addresses retain their exact topology; the 16 new endings append
+  after them.
+- A production-shaped migration specimen with all old terminals already
+  mounted added exactly 64 native neurons (16 each at receptor, integration,
+  regulation and motor) and 2,711,168 encoded bytes. It did not rebuild or
+  duplicate the old body. A tract-only motor drive changes one persisted
+  square-millimetre axis, returns exact proprioception, and changes the emitted
+  pressure under the same layer-13 discharge.
+- The candidate release wheel compiled. The four new native proofs pass, the
+  three body/migration integration proofs pass, and the complete Rust library
+  reports 526 pass, 11 ignored and the same eight failures reproduced on
+  untouched commit `8f5443c9`. Production remains task 1328 until cutover.

@@ -1213,7 +1213,8 @@ impl NativeResidentOrganismObservation {
     fn articulated_body_vocal_tract_areas_square_millimetres(&self) -> Vec<i32> {
         self.articulated_body
             .vocal_tract_areas_square_millimetres()
-            .to_vec()
+            .into_iter()
+            .collect()
     }
 
     #[getter]
@@ -7289,7 +7290,14 @@ mod tests {
         let prepared = runtime.prepare_articulated_body_observation().unwrap();
         assert_eq!(
             prepared.receptor_ingress.sense_counts(),
-            [0, 0, 0, 0, 0, 74]
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                crate::virtual_articulated_body::BODY_EFFECTOR_TERMINAL_COUNT,
+            ]
         );
         assert_eq!(prepared.observation.organism_tick, 1);
         assert_eq!(prepared.articulated_body_consequences.len(), 0);
@@ -7314,7 +7322,10 @@ mod tests {
             .unwrap();
         assert_eq!(first.observation.organism_tick, 2);
         assert_eq!(first.causal_interval_evidence.len(), 2);
-        assert_eq!(first.receptor_ingress.sense_counts()[5], 74);
+        assert_eq!(
+            first.receptor_ingress.sense_counts()[5],
+            crate::virtual_articulated_body::BODY_EFFECTOR_TERMINAL_COUNT
+        );
         assert!(runtime.active.articulated_body.proprioception_initialized());
         runtime.acknowledge_direct_commit(first.token).unwrap();
 
@@ -7610,8 +7621,6 @@ mod tests {
         let stopped_body = ArticulatedBodyState::from_physical_state(
             stopped_axes,
             crate::virtual_articulated_body::MAX_LUNG_AIR_MICROLITRES,
-            [crate::virtual_articulated_body::MAX_TRACT_AREA_SQUARE_MILLIMETRES;
-                crate::virtual_articulated_body::VOCAL_TRACT_SECTION_COUNT],
             true,
         )
         .unwrap();
@@ -7662,7 +7671,6 @@ mod tests {
         let lived_body = ArticulatedBodyState::from_physical_state(
             axes,
             crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES,
-            crate::virtual_articulated_body::NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES,
             true,
         )
         .unwrap();

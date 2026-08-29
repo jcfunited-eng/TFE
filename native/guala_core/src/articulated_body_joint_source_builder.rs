@@ -18,8 +18,7 @@ use crate::proprioceptive_receptor_work::{
 };
 use crate::virtual_articulated_body::{
     ArticulatedBodyState, BodyEffectorDirection, BodyProprioceptiveConsequence,
-    BodyProprioceptorTerminal, BODY_AXES, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
-    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BodyProprioceptorTerminal, BODY_AXES,
 };
 
 const VERSION: u16 = 3;
@@ -101,9 +100,7 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
             output.push(5);
             u32_value(
                 &mut output,
-                BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
-                    .checked_add(terminal.ordinal())
-                    .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?,
+                terminal.proprioceptor_topology_index(),
             )?;
             output.push(1);
             output.push(
@@ -247,16 +244,13 @@ pub(crate) fn admit_articulated_body_consequence_source(
             ] {
                 let terminal = BodyProprioceptorTerminal::new(consequence.axis, direction);
                 output.push(5);
-                let topology_offset = if load_ending {
-                    BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET
-                } else {
-                    BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
-                };
                 u32_value(
                     &mut output,
-                    topology_offset
-                        .checked_add(terminal.ordinal())
-                        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?,
+                    if load_ending {
+                        terminal.load_topology_index()
+                    } else {
+                        terminal.proprioceptor_topology_index()
+                    },
                 )?;
                 output.push(1);
                 output.push(
@@ -611,7 +605,11 @@ mod tests {
         );
         assert_eq!(
             toward_maximum_load.topology_index,
-            u32::try_from(BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET + terminal.ordinal()).unwrap()
+            u32::try_from(
+                BodyProprioceptorTerminal::new(terminal.axis(), terminal.direction())
+                    .load_topology_index(),
+            )
+            .unwrap()
         );
         assert_eq!(
             toward_minimum_load.exact_normalized_sources,
@@ -639,11 +637,12 @@ mod tests {
         assert_eq!(episode.joint_source_ports().len(), BODY_AXES.len() * 2);
         assert_eq!(episode.joint_source_occurrences().len(), BODY_AXES.len());
         for (ordinal, port) in episode.joint_source_ports().iter().enumerate() {
+            let terminal = port.body_proprioceptor_terminal.unwrap();
             assert_eq!(
                 port.topology_index,
-                (BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET + ordinal) as u32
+                u32::try_from(terminal.proprioceptor_topology_index()).unwrap()
             );
-            assert_eq!(port.body_proprioceptor_terminal.unwrap().ordinal(), ordinal);
+            assert_eq!(terminal.ordinal(), ordinal);
         }
         let torso_minimum = &episode.joint_source_ports()[0].exact_normalized_sources;
         let torso_maximum = &episode.joint_source_ports()[1].exact_normalized_sources;

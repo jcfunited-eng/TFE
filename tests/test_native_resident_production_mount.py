@@ -144,7 +144,7 @@ class _Observation:
     def articulated_body_axes(self):
         return [
             (index, f"axis_{index}", "millidegree", 0, -1, 0, 1)
-            for index in range(37)
+            for index in range(45)
         ]
 
     @property

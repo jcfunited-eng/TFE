@@ -816,8 +816,8 @@ def _validate_proof(
         != actual_state_sha256
         and proof.get("a013_articulated_body_predecessor_tick") == actual_tick
         and proof.get("a013_articulated_body_successor_tick") == actual_tick + 1
-        and proof.get("a013_articulated_body_axis_count") == 37
-        and proof.get("a013_articulated_body_terminal_count") == 74
+        and proof.get("a013_articulated_body_axis_count") == 45
+        and proof.get("a013_articulated_body_terminal_count") == 90
         and proof.get("a013_articulated_body_state_bytes") == 195
         and isinstance(proof.get("a013_articulated_body_state_sha256"), str)
         and _SHA.fullmatch(proof["a013_articulated_body_state_sha256"])
@@ -866,7 +866,7 @@ def _validate_proof(
         and proof["a011_successor_tick"] > actual_tick
         and proof.get("a011_body_moved") is True
         and proof.get("a011_continuous_cognition") is True
-        and proof.get("a011_articulated_body_receptor_count") == 74
+        and proof.get("a011_articulated_body_receptor_count") == 90
         and isinstance(proof.get("a011_retained_formation_reassembly_count"), int)
         and proof["a011_retained_formation_reassembly_count"] > 0
         and isinstance(proof.get("a011_successor_state_sha256"), str)

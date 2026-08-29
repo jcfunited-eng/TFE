@@ -276,7 +276,7 @@ fn glottal_open_samples(
 fn articulated_vocal_tract_areas(
     body: &ArticulatedBodyState,
 ) -> Result<[i32; TRACT_SECTION_COUNT], ArticulatoryBodyError> {
-    let mut areas = *body.vocal_tract_areas_square_millimetres();
+    let mut areas = body.vocal_tract_areas_square_millimetres();
     let lip_width = i64::from(body.axis(BodyAxis::LipWidth));
     let lip_aperture = i64::from(body.axis(BodyAxis::LipAperture));
     let jaw_opening = i64::from(body.axis(BodyAxis::JawOpening));
@@ -471,7 +471,6 @@ mod tests {
         let open = ArticulatedBodyState::from_physical_state(
             axes,
             neutral.lung_air_microlitres(),
-            *neutral.vocal_tract_areas_square_millimetres(),
             neutral.proprioception_initialized(),
         )
         .unwrap();
@@ -492,5 +491,32 @@ mod tests {
             neutral_sound.mouth_area_square_millimetres_at_apex,
             open_sound.mouth_area_square_millimetres_at_apex
         );
+    }
+
+    #[test]
+    fn the_same_discharge_changes_when_one_resident_tract_section_moves() {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut axes = *neutral.axes();
+        axes[BodyAxis::VocalTractSection3Area.index()] += 7;
+        let shaped = ArticulatedBodyState::from_physical_state(
+            axes,
+            neutral.lung_air_microlitres(),
+            neutral.proprioception_initialized(),
+        )
+        .unwrap();
+        let neutral_sound = settle_articulatory_interval_discharges(&[(
+            4_000,
+            vec![(0, 8)],
+            neutral,
+        )])
+        .unwrap();
+        let shaped_sound = settle_articulatory_interval_discharges(&[(
+            4_000,
+            vec![(0, 8)],
+            shaped,
+        )])
+        .unwrap();
+
+        assert_ne!(neutral_sound.radiated_pressure_pcm, shaped_sound.radiated_pressure_pcm);
     }
 }

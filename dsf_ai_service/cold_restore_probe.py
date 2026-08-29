@@ -35,7 +35,7 @@ _COMMIT = re.compile(r"[0-9a-f]{40}")
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
-# The complete production receptor roster plus 74 articulated-body terminals
+# The complete production receptor roster plus 90 articulated-body terminals
 # requires 72,666,394 successor bytes.  The fresh A-013 rehearsal admits the
 # smallest whole-MiB tier above that measured exact boundary.  These constants
 # do not govern the resident organism, whose bounds remain cgroup-derived.
@@ -1149,7 +1149,7 @@ def _rehearse_a013_articulated_body(
 
     before = organism.readiness()
     before_axes = tuple(before.articulated_body_axes)
-    if len(before_axes) != 37 or before.articulated_body_state_bytes != 195:
+    if len(before_axes) != 45 or before.articulated_body_state_bytes != 195:
         raise RuntimeError("A-013 restored body anatomy changed")
 
     prepared = organism.commit_admitted_trajectory_direct((), ())
@@ -1158,7 +1158,7 @@ def _rehearse_a013_articulated_body(
         prepared.predecessor_state_sha256 != before.state_sha256
         or prepared.predecessor_organism_tick != before.organism_tick
         or prepared.organism_tick != before.organism_tick + 1
-        or prepared.receptor_ingress_sense_counts != (0, 0, 0, 0, 0, 74)
+        or prepared.receptor_ingress_sense_counts != (0, 0, 0, 0, 0, 90)
         or prepared.python_callback_count != 0
         or prepared.successor_seal_count != 1
         or prepared.motor_unit_recruitments
@@ -1173,7 +1173,7 @@ def _rehearse_a013_articulated_body(
         or hot.organism_tick != before.organism_tick + 1
         or hot.state_sha256 != prepared.prepared_state_sha256
         or tuple(hot.articulated_body_axes) != before_axes
-        or len(hot.articulated_body_axes) != 37
+        or len(hot.articulated_body_axes) != 45
         or hot.articulated_body_state_bytes != 195
         or hot.articulated_body_proprioception_initialized is not True
     ):
@@ -1185,7 +1185,7 @@ def _rehearse_a013_articulated_body(
         "a013_articulated_body_predecessor_tick": before.organism_tick,
         "a013_articulated_body_successor_tick": hot.organism_tick,
         "a013_articulated_body_axis_count": len(hot.articulated_body_axes),
-        "a013_articulated_body_terminal_count": 74,
+        "a013_articulated_body_terminal_count": 90,
         "a013_articulated_body_state_bytes": hot.articulated_body_state_bytes,
         "a013_articulated_body_state_sha256": (
             hot.articulated_body_state_sha256
@@ -1824,7 +1824,7 @@ def _rehearse_a011_ordinary_interval(
         or action.get("continuous_cognition") is not True
         or not isinstance(consequence, dict)
         or not isinstance(articulated, dict)
-        or articulated.get("transported") != 74
+        or articulated.get("transported") != 90
         or not isinstance(measured, dict)
         or int(measured.get("partial_cue_reassembly_count", 0)) <= 0
         or after["organism_tick"] <= before["organism_tick"]

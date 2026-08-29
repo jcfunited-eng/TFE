@@ -960,7 +960,7 @@ if (
     or proof["a011_successor_tick"] <= proof.get("tick")
     or proof.get("a011_body_moved") is not True
     or proof.get("a011_continuous_cognition") is not True
-    or proof.get("a011_articulated_body_receptor_count") != 74
+    or proof.get("a011_articulated_body_receptor_count") != 90
     or not re.fullmatch(
         r"[0-9a-f]{64}",
         proof.get("a011_successor_state_sha256", ""),

@@ -25,7 +25,7 @@ def test_one_native_body_candidate_commits_at_most_once() -> None:
 
     assert prepared.predecessor_state_sha256 == before.state_sha256
     assert prepared.prepared_state_sha256 != before.state_sha256
-    assert prepared.receptor_ingress_sense_counts == (0, 0, 0, 0, 0, 74)
+    assert prepared.receptor_ingress_sense_counts == (0, 0, 0, 0, 0, 90)
     assert organism.readiness().state_sha256 == before.state_sha256
 
     committed = organism.commit(prepared.token)
@@ -37,7 +37,7 @@ def test_one_native_body_candidate_commits_at_most_once() -> None:
     assert organism.readiness().state_sha256 == committed.state_sha256
 
 
-def test_every_lived_trajectory_contains_one_current_body_observation() -> None:
+def test_first_lived_trajectory_initializes_the_current_body_once() -> None:
     source, _ = _growth_dna_fixture()
     organism = create_native_resident_organism(
         organism_identity=IDENTITY,
@@ -53,9 +53,9 @@ def test_every_lived_trajectory_contains_one_current_body_observation() -> None:
     second = organism.commit_admitted_trajectory_direct((source,), admissions)
 
     assert (first.predecessor_organism_tick, first.organism_tick) == (0, 2)
-    assert (second.predecessor_organism_tick, second.organism_tick) == (2, 4)
+    assert (second.predecessor_organism_tick, second.organism_tick) == (2, 3)
     assert len(first.causal_interval_evidence) == 2
-    assert len(second.causal_interval_evidence) == 2
-    assert first.receptor_ingress_sense_counts[5] == 74
-    assert second.receptor_ingress_sense_counts[5] == 74
+    assert len(second.causal_interval_evidence) == 1
+    assert first.receptor_ingress_sense_counts[5] == 90
+    assert second.receptor_ingress_sense_counts[5] == 0
     assert organism.readiness().articulated_body_proprioception_initialized
