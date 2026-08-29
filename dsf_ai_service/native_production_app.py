@@ -15447,7 +15447,7 @@ def _shelf_capability(name: str) -> dict[str, object]:
     if name == "gutenberg":
         return {
             "available": True,
-            "autonomous_selection": True,
+            "autonomous_selection": False,
             "catalogue": [dict(entry) for entry in GUTENBERG_CATALOGUE],
             "endpoint": GUTENBERG_ENDPOINT,
             "reason": (
@@ -15455,11 +15455,11 @@ def _shelf_capability(name: str) -> dict[str, object]:
                 "its source bytes are preserved before its pages are rendered "
                 "to the same 27 retinal receptor sites used by other physical "
                 "visual material. No catalogue field, text, title, author, or "
-                "meaning enters cognition. In self-selection mode, each source "
-                "is physically offered as page light and flat contact; only "
-                "that cue's exact native path into a closing grip identifies it"
+                "meaning enters cognition. Native grip-to-world-object action "
+                "and palmar consequence are mounted, but no real book grasp "
+                "has yet selected a preserved edition and opened its pages"
             ),
-            "status": "mounted_guided_and_native_grip_selection",
+            "status": "mounted_guided_native_selection_awaiting_witness",
         }
     credential = CREDENTIAL_BLOCKED_SHELVES[name]
     return {
@@ -16760,6 +16760,14 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     mode = payload.get("mode")
     if mode not in ("guided", "autonomous"):
         return _refusal(422, "shelf selection mode must be 'guided' or 'autonomous'")
+    if mode == "autonomous":
+        return _refusal(
+            409,
+            "autonomous Gutenberg selection is not yet available: the native "
+            "grip-to-world-object and palmar-consequence boundary is mounted, "
+            "but no persistent-world book is yet bound to one preserved "
+            "edition and page experience",
+        )
     if mode == "autonomous":
         if set(payload) != {"mode", "schema"}:
             return _refusal(

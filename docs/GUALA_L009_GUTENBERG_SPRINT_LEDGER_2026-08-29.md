@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Status: **IN PROGRESS — guided live; truthful native object-selection boundary unavailable**
+Status: **IN PROGRESS — guided live; native grasp boundary live, selection unwitnessed**
 
 ## Requested boundary
 
@@ -175,3 +175,31 @@ exact contacted object without a server selector, and the resulting visual,
 tactile, proprioceptive, chemical, and internal consequences re-enter the same
 resident organism. Until that boundary exists, self-selected Gutenberg use is
 unavailable rather than merely unwitnessed.
+
+## Native world-grasp boundary deployed
+
+Commit `bfe6d405d422f7a904bf1783774485d89ccbe0ac` deployed as task
+1334 with image digest
+`sha256:dc854eb7ccd701837f60049a876d69ea2bdc54c7073bc7e6ef13ec65138da9bb`.
+It changes the missing physical boundary without extending the rejected Python
+selector:
+
+- a native negative displacement of either grip aperture prepares a world
+  `grasp_contact` action only when whole-body translation and yaw are absent;
+- the command carries no object identity;
+- the world resolves exactly one object inside the body's signed touch geometry
+  and refuses absent or ambiguous contact before applying its existing pick,
+  reach, collision, custody, and time laws;
+- the returned held-contact transition enters the same resident organism at one
+  distinct tail-appended palmar receptor while the retained 27-site lesson
+  contact sheet remains unchanged;
+- mass, temperature, compliance, roughness, and moisture are not inferred and
+  remain explicitly unmounted at this boundary.
+
+The exact candidate passed 34 focused action/world tests, including absent,
+ambiguous, and unique-contact falsifiers, and its Rust source proved 89 distinct
+declared sight/sound/touch territories. Production restored the same organism
+identity, advanced unattended from tick `276929` through at least `277000`, and
+reports all 28 touch sites. No native grip has yet grasped the persistent-world
+book, so L-009 remains open and the legacy flat-source Python evidence result is
+not accepted as physical selection.

@@ -928,13 +928,16 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   five bounded catalogue surfaces to the same organism and released each one
   after no exact thought-owned grip closure selected it. Later source inspection
   proved this is a flat sensory presentation plus a Python evidence gate, not
-  manipulation of the real persistent-world book. Guala's native closing grip
-  is not connected to the world's existing pick law, and nonzero world touch is
-  refused at the current action-consequence boundary because its material
-  receptor output is not lawfully joined to the mounted 27-site touch sheet. A
-  later post-nurture opportunity ended at tick `275116`, but it was not five
-  real book choices. Guided Gutenberg is live; autonomous physical book
-  selection is unavailable.
+  manipulation of the real persistent-world book. Commit `bfe6d405` deployed
+  as task 1334 and replaced that missing actuator boundary: a stationary native
+  grip closure now asks the world to grasp the unique object already inside the
+  signed touch geometry, carries no object identity, reuses the existing pick
+  law, and returns exact held contact through a new tail-appended palmar touch
+  site without changing the retained 27-site lesson sheet. Production restored
+  the same identity at tick `276929`, declared 28 touch sites, and advanced to
+  tick `277000`; no real book grasp has yet occurred. Guided Gutenberg is live;
+  autonomous physical selection remains open awaiting an actual world-book
+  grasp and the selected edition's page experience.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
 - [ ] **L-012** Connect guided and self-selected PBS Kids experiences.
