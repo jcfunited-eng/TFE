@@ -65,15 +65,27 @@ def load_state():
               wondered=set())
     if not os.path.exists(STATE):
         return st, False
+    torn = 0
     for line in open(STATE):
         p = line.split()
         if not p: continue
-        if p[0] == "BEATS": st["beats"] = int(p[1])
-        elif p[0] == "SERVED": st["served"] = int(p[1])
-        elif p[0] == "WARM": st["warmth"][p[1]] = float(p[2])
-        elif p[0] == "CO": st["co"][p[1]] = int(p[2])
-        elif p[0] == "WRINKLE": st["wrinkles"].add(p[1])
-        elif p[0] == "WONDERED": st["wondered"].add(p[1])
+        # A checkpoint can be torn: the atomic swap is not always
+        # available on this filesystem (see save_state), so the last
+        # line of a state file may be half written. A torn line costs
+        # one warmth reading; a torn line that raises costs the whole
+        # life, because it would fail identically on every resume.
+        try:
+            if p[0] == "BEATS": st["beats"] = int(p[1])
+            elif p[0] == "SERVED": st["served"] = int(p[1])
+            elif p[0] == "WARM": st["warmth"][p[1]] = float(p[2])
+            elif p[0] == "CO": st["co"][p[1]] = int(p[2])
+            elif p[0] == "WRINKLE": st["wrinkles"].add(p[1])
+            elif p[0] == "WONDERED": st["wondered"].add(p[1])
+        except (IndexError, ValueError):
+            torn += 1
+    if torn:
+        log(f"resumed over {torn} torn line(s) in the checkpoint — "
+            f"said out loud, not hidden")
     return st, True
 
 def save_state(st):
@@ -88,8 +100,44 @@ def save_state(st):
         lines.append(f"WONDERED {k}")
     body = "\n".join(lines) + "\n"
     tmp = STATE + ".tmp"
-    open(tmp, "w").write(body)
-    os.replace(tmp, STATE)
+    with open(tmp, "w") as f:
+        f.write(body)
+        f.flush()
+        os.fsync(f.fileno())     # the swap is worthless if tmp is short
+    # This tree sits on a 9p/drvfs mount from a Windows drive, where
+    # renaming over an existing file intermittently fails with
+    # "permission denied" even as root with the directory writable —
+    # it is the host holding the target open, not a real permission.
+    # A life that is supposed to run for ever must not be killed by a
+    # transient rename, so the swap is retried and then done the
+    # plain way. Checked, not assumed: this exact error ended the
+    # previous life at beat 68670.
+    swapped, why = False, None
+    for wait in (0, 0.2, 0.5, 1.0):
+        if wait:
+            time.sleep(wait)
+        try:
+            os.replace(tmp, STATE)
+            swapped = True
+            break
+        except OSError as e:
+            why = e
+    if not swapped:
+        try:
+            with open(STATE, "w") as f:      # not atomic; still alive
+                f.write(body)
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            log(f"checkpoint: atomic swap refused by the filesystem "
+                f"({why}); wrote the state directly instead and kept "
+                f"going")
+        except OSError as e:
+            log(f"checkpoint FAILED and the state is unchanged on "
+                f"disk ({e}) — still alive, will try again next "
+                f"checkpoint")
+            return True
     if len(body) > CEIL:
         log(f"CEILING ERROR: state {len(body)} bytes is past the "
             f"64 KB ceiling — wondering halts until cooling shrinks "
@@ -155,6 +203,46 @@ MINT_EVERY = 300         # try to write knowledge, under the law
 UNDULATE_EVERY = 600     # let the sheets breathe
 RIBBON_WORK = 5          # ribbons stepped per beat
 
+def _read_own_question(b, L):
+    """Take one living ribbon's asking through the first ribbon.
+
+    This is the internal side of the language program: the fabric
+    parsing a question it laid on itself. What gets logged is the
+    grouping, what stood, and what it beat — never just the winner,
+    because a reading reported with none of its closed alternatives
+    cannot be told from a guess.
+    """
+    if not L.ribbons:
+        return
+    try:
+        import first_ribbon
+    except Exception as e:
+        log(f"beat {b}: the language program would not load ({e})")
+        return
+    r = max(L.ribbons, key=lambda x: x.heat)
+    try:
+        res = first_ribbon.read(r.q)
+    except Exception as e:
+        log(f"beat {b}: reading its own question failed ({e})")
+        return
+    if res["missing"]:
+        log(f"beat {b}: cannot read its own question — "
+            f"{res['missing'][0]}")
+        return
+    groups = " | ".join(" ".join(g) for g in res["groups"])
+    if res["stood"]:
+        _s, parents, doing = res["stood"][0]
+        gs = res["groups"]
+        lead = first_ribbon.head(gs[doing])
+        log(f"beat {b}: read its own question [{groups}] — doing "
+            f"'{lead}', {len(res['stood'])} readings stood, "
+            f"{res['beat']} closed")
+    else:
+        log(f"beat {b}: read its own question [{groups}] — every "
+            f"one of {res['beat']} readings closed; it stands as a "
+            f"question, not an answer")
+
+
 def live_beat(st):
     """One beat of the living fabric: ribbons move, meet, settle;
     questions are found; knowledge is minted; the sheets breathe.
@@ -181,6 +269,10 @@ def live_beat(st):
                 log(f"beat {b}: {added} questions already standing "
                     f"were taken up as ribbons "
                     f"({len(L.ribbons)} living)")
+            # The fabric reads its own standing question with the
+            # same language program a person's sentence gets. One
+            # engine, not one for outside and one for inside.
+            _read_own_question(b, L)
         except Exception as e:
             log(f"beat {b}: standing-question walk failed: {e}")
     # 2. the ribbons move and meet
@@ -560,5 +652,36 @@ def main():
     log(f"beat {st['beats']}: orderly stop — checkpoint saved, "
         f"life will resume from here")
 
+def supervise():
+    """A life that is meant to run when nobody is typing has to
+    survive a bad beat. The state is already written to disk and
+    load_state resumes from it, so coming back is the same life
+    continuing, not a new one — which is why this is a resume and
+    not a restart. Every fall is logged, never swallowed."""
+    falls = 0
+    while not STOP:
+        try:
+            main()
+            return
+        except KeyboardInterrupt:
+            raise
+        except Exception as e:
+            falls += 1
+            try:
+                log(f"the life fell over ({type(e).__name__}: {e}) "
+                    f"— resuming from the last checkpoint "
+                    f"[fall {falls}]")
+            except Exception:
+                pass
+            if falls >= 20:
+                try:
+                    log("fell over 20 times; stopping rather than "
+                        "spinning. Said out loud, not hidden.")
+                except Exception:
+                    pass
+                return
+            time.sleep(min(30, 2 ** min(falls, 5)))
+
+
 if __name__ == "__main__":
-    main()
+    supervise()

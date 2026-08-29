@@ -23,14 +23,161 @@ Applicability is defined here, and it replaces every word like
 junk: a finding is APPLICABLE if some ribbon's patches reach it.
 A finding no ribbon reaches is not worthless — it is unattached,
 waiting for an observer whose width covers it.
+
+A ribbon is several things at once and they are not separate
+features of it. It is a QUERY, because an asking is what makes an
+observer present. It is a PROGRAM, because crossing the knowledge is
+what assembles the handler for this particular asking — nothing is
+written in advance for it. It is a CARRIER, because the data rides
+in on it, is used or added to, and leaves again, which is the only
+reason the fabric stays small. And it is an EXCHANGER of possible
+and impossible, because a ribbon's colour meeting another's white is
+the whole of what an opening is.
+
+Ribbons come from two places and are the same object either way.
+Some come from outside, from a person. Some are the fabric's own
+musings, laid down by the fabric on itself, and those are meant to
+keep running when nobody is typing — that is where new knowledge is
+supposed to come from.
 """
-import os, sys
+import os, re, sys, json, time
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 import fabric_ask as fa
-import maker
+import core, eliminate, maker
 
 REC = os.path.join(BASE, "life", "ribbons.md")
+THREADS = os.path.join(BASE, "life", "threads")
+
+
+class Ribbon:
+    """One asking, with all of its roles on the one object.
+
+    Nothing here decides anything about a subject. The ribbon's
+    colour and white are whatever the knowledge it crossed gave it,
+    and what it does when it meets another ribbon is arithmetic on
+    those two sets.
+    """
+
+    def __init__(self, asking, origin="outside", carrying=None,
+                 thread=None):
+        self.asking = asking
+        self.origin = origin          # outside (a person) or inside
+        self.carrying = dict(carrying or {})   # rides, never stored
+        self.thread = thread or _new_thread_id(asking)
+        self.color = 0                # possible, as a word mask
+        self.white = 0                # closed, as a word mask
+        self.crossed = []             # the knowledge it went through
+        self.handler = []             # the laws that crossing gave it
+        self.turns = _thread_load(self.thread)
+
+    # ---------- role: query ----------
+    @property
+    def mask(self):
+        return core.fabric().mask(self.asking, learn=False)
+
+    @property
+    def width(self):
+        """How much ground this observer covers right now."""
+        return bin(self.color).count("1")
+
+    @property
+    def length(self):
+        """A thread that survives the turn. Never restarted."""
+        return len(self.turns)
+
+    # ---------- role: program ----------
+    def cross(self, where=None):
+        """Go through the knowledge and come back holding the
+        machinery for this asking. The handler is not written for
+        the ribbon anywhere — it is what the crossing picked up."""
+        F = core.fabric()
+        qm = self.mask
+        self.handler = [L for L in eliminate.laws_of(where, F)
+                        if L.grips(qm) or where]
+        touched = {}
+        for L in self.handler:
+            touched[L.src["id"]] = L.src
+        self.crossed = list(touched.values())
+        for e in self.crossed:
+            self.color |= e["color"]
+            self.white |= e["white"]
+        return self
+
+    # ---------- role: carrier ----------
+    def load(self, **data):
+        """Data rides. It is never written into the sheets — the
+        fabric stays small precisely because of this line."""
+        self.carrying.update(data)
+        return self
+
+    def unload(self):
+        out, self.carrying = self.carrying, {}
+        return out
+
+    # ---------- role: exchanger of possible and impossible ----------
+    def meet(self, other):
+        """What each ribbon opens in the other. An opening is one
+        ribbon's colour standing on ground the other holds closed;
+        a move that changes neither shape is worth nothing, and
+        worth is never measured on one side alone."""
+        F = core.fabric()
+        i_open = self.color & other.white
+        it_opens = other.color & self.white
+        shared = self.color & other.color
+        return dict(
+            i_open=F.words_of(i_open),
+            opens_me=F.words_of(it_opens),
+            shared=bin(shared).count("1"),
+            worth=bin(i_open).count("1") + bin(it_opens).count("1"))
+
+    def take(self, other):
+        """Accept what the other opened: their colour drains my
+        white. This is the exchange actually happening, not a
+        report of it."""
+        gained = other.color & self.white
+        self.white &= ~gained
+        self.color |= gained
+        return bin(gained).count("1")
+
+    # ---------- the thread that survives the turn ----------
+    def note(self, what, stood=None, closed=None):
+        self.turns.append(dict(t=int(time.time()), what=what,
+                               stood=stood, closed=closed))
+        _thread_save(self.thread, self.asking, self.origin,
+                     self.turns)
+        return self
+
+    def __repr__(self):
+        return (f"<ribbon {self.origin} len={self.length} "
+                f"width={self.width} {self.asking[:40]!r}>")
+
+
+def _new_thread_id(asking):
+    import hashlib
+    return hashlib.sha256(asking.lower().encode()).hexdigest()[:12]
+
+
+def _thread_path(tid):
+    return os.path.join(THREADS, tid + ".json")
+
+
+def _thread_load(tid):
+    try:
+        with open(_thread_path(tid)) as f:
+            return json.load(f).get("turns", [])
+    except (OSError, ValueError):
+        return []
+
+
+def _thread_save(tid, asking, origin, turns):
+    try:
+        os.makedirs(THREADS, exist_ok=True)
+        with open(_thread_path(tid), "w") as f:
+            json.dump(dict(asking=asking, origin=origin,
+                           turns=turns[-64:]), f)
+    except OSError:
+        pass
 
 def ribbon(want, depth=3):
     prof = []
