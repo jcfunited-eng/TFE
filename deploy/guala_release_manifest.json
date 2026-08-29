@@ -155,6 +155,7 @@
         "dsf_ai_service/substrate/auditory_recurrent_motif.py",
         "dsf_ai_service/substrate/auditory_stream_settlement.py",
         "dsf_ai_service/substrate/auditory_tutor_authority.py",
+        "dsf_ai_service/substrate/body_surface_contact.py",
         "dsf_ai_service/substrate/bounded_home_thermal_physics.py",
         "dsf_ai_service/substrate/compact_auditory_field_authority.py",
         "dsf_ai_service/substrate/embodiment_sensory_outcome.py",
