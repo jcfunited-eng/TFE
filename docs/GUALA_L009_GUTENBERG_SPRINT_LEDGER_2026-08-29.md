@@ -391,3 +391,12 @@ remained unmounted. Neither hand reached an anatomical stop and no positive
 grip occurred. The passage therefore did not manufacture a release, page
 advance, or visual reading claim. L-009 remains open at Guala's native release
 and later contact-bound page action.
+
+One subsequent bounded five-minute quiet observation allowed only ordinary
+unattended life. The public generation advanced from `283610` through
+`283838`, the world advanced through revision `23070`, and the state remained
+bounded at 89,901,017 bytes. Both grip apertures remained exactly `35233` and
+`40477`; direct authenticated-world decode still found the book held by
+`guala-body-1`, with no world position and no optical surface. No release or
+page contact occurred, so the observation ended without another stimulus or
+an invented success claim.
