@@ -254,8 +254,8 @@ CANNOT: no subject in a greeting — treat it as a question and any
   answer given is an answer to nothing that was asked. No greeting
   answered by explaining what a greeting is — that is handing over
   the instruction instead of following it.
-RULE: to answer a greeting — carry back a ready-made chunk, name no
-  subject, and hold the channel open for what comes next.
+RULE: to answer a greeting — carry back a ready-made chunk; hold the
+  channel open for what comes next.
 CHUNKS: hello | morning | hi | good to see you | I am here | go on
 THREAD: language (09: phatic speech carries contact, not content),
   ritual (26: openings are the smallest ceremonies).
