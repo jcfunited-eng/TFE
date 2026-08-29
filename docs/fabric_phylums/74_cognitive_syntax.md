@@ -145,7 +145,10 @@ RULE: to take a turn in a conversation — reach for what the
   of what was said; keep the ones that passed; test each for
   whether it has already been said in this thread; keep the ones
   that passed; count what each opens for the other one; keep the
-  greatest; say it in its own words; mark it as said.
+  greatest; say it in its own words; mark it as said; build the joint
+  between what was kept and the next thing in hand, and say that
+  joint too.
+
 THREAD: any written method, the adding rule, a doctor's
   consultation.
 ASKED-AS: take a turn reply respond how do you answer conversation procedure steps method

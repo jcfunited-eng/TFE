@@ -97,6 +97,7 @@ class Talk:
                        f"{self.standing})")
         else:
             self.standing = text
+        joint = st.get("joint")
         said = st.get("said") or []
         fresh = [l for l in said if l not in self.said]
         if not fresh:
@@ -107,6 +108,10 @@ class Talk:
         for line in fresh:
             out.append(f"  {line[:300]}")
             self.said.append(line)
+        if joint:
+            out.append(f"  JOINED (built, not fetched): {joint[:300]}")
+        elif st.get("no_joint"):
+            out.append(f"  no joint — {st['no_joint']}")
         self.marked |= set(st.get("marked") or ())
         self.thread_words = " ".join(
             ([self.thread_words] if self.thread_words else [])

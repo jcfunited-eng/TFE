@@ -122,6 +122,47 @@ def h_reach(s):
     if rare == 0 and s.get("thread_words"):
         words = s["thread_words"] + " " + words
         s["leaned"] = True
+    # Settle which sense is meant from the company present, before
+    # reaching anything. The company is the whole thread, not just
+    # this turn — which is the point of a thread surviving the turn.
+    # Without this the reach is a bag of letters: "discovery" went to
+    # compelled disclosure in litigation while a conversation about
+    # finding things out was standing open, and onions went to
+    # mourning. A sense is PRODUCED from the company at hand and
+    # never fetched, so what is stored is each sense's company and
+    # the company present is what picks.
+    company = (s.get("thread_words", "") + " " + words).lower()
+    present = set(re.findall(r"[a-z]{3,}", company))
+    chosen = []
+    for e in F.entries:
+        sp = e.get("splits") or ""
+        if not sp:
+            continue
+        groups = []
+        for part in sp.split("|"):
+            if ":" not in part:
+                continue
+            nm, comp = part.split(":", 1)
+            cw = set(re.findall(r"[a-z]{3,}", comp.lower()))
+            if not cw:
+                continue
+            groups.append((nm.strip(), cw))
+        if len(groups) < 2:
+            continue
+        # the ambiguous word itself has to be in front of us
+        head = set.intersection(*[g[1] for g in groups]) or set()
+        if not (head & present):
+            continue
+        best, score = None, 1      # one word of company can be
+        for nm, cw in groups:      # borrowed; two together are not
+            v = len((cw - head) & present)
+            if v > score:
+                best, score = cw, v
+        if best:
+            chosen.append(" ".join(sorted(best)))
+    if chosen:
+        s["sense"] = chosen
+        words = words + " " + " ".join(chosen)
     qm, es = F.reach(words, limit=s.get("limit", 10))
     s["mask"], s["near"] = qm, es
     return s
@@ -213,8 +254,13 @@ def h_keep_greatest(s):
     nums = s.get("num") or []
     if not items: return s
     if not nums: nums = [0] * len(items)
-    best = max(range(len(items)), key=lambda i: nums[i])
+    order = sorted(range(len(items)), key=lambda i: -nums[i])
+    best = order[0]
     s["items"] = [items[best]]
+    # what was NOT kept is still in hand for the joining step — the
+    # rule says join what was kept and the next thing in hand, and
+    # without keeping the next thing there is nothing to join to.
+    s["rest"] = [items[i] for i in order[1:]]
     s["line"] = items[best]["essence"]
     return s
 
@@ -411,3 +457,73 @@ def follow(rule_text, state, trace=None, depth=0):
     if state.get("missing"):
         return state, state["missing"]
     return state, None
+
+
+def h_join(s):
+    """Build a joint between two things in hand and SAY it.
+
+    This is the one act that makes a sentence instead of fetching
+    one. Every other act here reaches, judges, keeps or drops, and
+    everything the fabric has ever said came out whole from a file.
+    A joint is built fresh: it says how two chunks sit with each
+    other, and that claim is in no file anywhere.
+
+    The knowledge decides what a joint may be. 174 says a joint needs
+    shared ground for both ends to hold, that a joint between a thing
+    and itself is not one, and that two things closed by a wall
+    cannot both hold and the wall must be named — an unexplained
+    contradiction being an assertion rather than a finding.
+    """
+    import eliminate
+    F = core.fabric()
+    items = (s.get("items") or []) + (s.get("rest") or [])
+    if len(items) < 2:
+        s["no_joint"] = "fewer than two things in hand"
+        return s
+    laws = eliminate.forbidding(F)
+    a = items[0]
+    best, made = None, None
+    for b in items[1:]:
+        if b is a or b["id"] == a["id"]:
+            continue                      # no joint to itself
+        shared = a["color"] & b["color"]
+        n = bin(shared).count("1")
+        if n < 2:
+            continue                      # no joint without ground
+        pair = a["color"] | b["color"]
+        wall = eliminate.closes(pair, pair, F, laws)
+        if wall is not None:
+            # A contradiction is a wall that lets each stand ALONE
+            # and stops them standing together. A wall that already
+            # closes one of them by itself says nothing about the
+            # pair, and calling that a contradiction was declaring
+            # exploding stars and the hot hand incompatible.
+            alone_a = eliminate.closes(a["color"], a["color"],
+                                       F, laws)
+            alone_b = eliminate.closes(b["color"], b["color"],
+                                       F, laws)
+            if alone_a is not None or alone_b is not None:
+                wall = None
+                continue
+        ground = ", ".join(F.words_of(shared)[:4])
+        if wall is not None:
+            made = (f"these two cannot both hold — "
+                    f"\"{a['essence'][:70]}\" and "
+                    f"\"{b['essence'][:70]}\" — closed by: "
+                    f"{wall.text[:90]}")
+        else:
+            made = (f"these two stand together on [{ground}] — "
+                    f"\"{a['essence'][:80]}\" and "
+                    f"\"{b['essence'][:80]}\"")
+        best = b
+        break
+    if made is None:
+        s["no_joint"] = ("nothing in hand shares ground with "
+                         "anything else in hand")
+        return s
+    s["joint"] = made
+    s.setdefault("joints", []).append(made)
+    return s
+
+
+HANDS["join"] = h_join

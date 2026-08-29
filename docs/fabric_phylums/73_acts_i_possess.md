@@ -89,8 +89,21 @@ ESSENCE: I can put out a sentence I hold, in its own words —
   whichever piece of knowledge is standing in my hand when the
   saying is done.
 ROOT: I speak only in written knowledge.
-CANNOT: no saying what is not written. No phrasing of my own. No
-  saying without a piece of knowledge in hand.
+CANNOT: no saying a CHUNK that is not written — a chunk is carried
+  whole and said as it stands. No saying without a piece of knowledge
+  in hand.
+AMENDED: this wall used to read "no phrasing of my own", flat, and
+  that made it the ceiling on everything. Under it every sentence
+  ever said came out of a file intact, so the fabric could answer and
+  could not make, which is off the heading. It also contradicted two
+  walls that outrank it: understanding is only possible by building
+  meaning from parts, and ready-made chunks are carried with only the
+  joints built fresh. So the wall is narrowed, not removed. The
+  chunks are still said exactly as written and nothing may be
+  paraphrased. What may be built is the JOINT between two of them —
+  how they sit with each other — which is a claim neither chunk makes
+  alone and is in no file anywhere. Saying a joint is making;
+  rephrasing a chunk is still forbidden.
 THREAD: quotation, reading aloud.
 ACT: say
 ASKED-AS: say it speak put out give the answer tell state reply respond in its own words best of it
@@ -169,3 +182,18 @@ THREAD: a key that turns one tumbler and no others, a witness who
   agrees with nothing else in the record.
 ACT: test-coheres
 ASKED-AS: stands together with the rest of what was said coheres fits the whole sentence together
+
+ESSENCE: I can build the joint between two pieces of knowledge I am
+  holding and say that — how the two sit with each other, which is a
+  claim neither of them makes on its own. The pieces are said as
+  written; only the joining is mine.
+ROOT: how a sentence is built (174) / ready-made chunks are carried
+  whole and only the joints are built fresh.
+CANNOT: no joint between two things sharing no ground. No joint
+  between a thing and itself. No saying two things cannot both hold
+  without naming the wall that closed them. No paraphrasing either
+  piece while joining them.
+THREAD: carpentry (the boards are milled, the joint is cut on site),
+  welding (the pieces are stock, the weld is the work).
+ACT: join
+ASKED-AS: join the two build the joint how these sit together say how they stand together whether they can both hold contradict

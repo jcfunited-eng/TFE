@@ -157,3 +157,39 @@ CANNOT: a reading reported with none of its closed alternatives
 THREAD: elections (a winner is a margin), evidence (a result with no
   control is not a result), trade (a price is what the next bid was).
 ASKED-AS: contrast beat alternative rival reading margin why this reading closed
+
+ESSENCE: a joint is what is built fresh between two chunks carried
+  whole. The chunks are already written and are said as they stand;
+  the joint never is, and saying only chunks is the difference
+  between fetching a sentence and making one. A joint says how two
+  things sit with each other and nothing more — that they stand
+  together, that one bears the other, or that they cannot both hold.
+ROOT: this file / ready-made chunks are carried and only the joints
+  are built fresh, because there is no time to construct every phrase
+  at speaking speed.
+CANNOT: no joint between two things that share no ground — a joint
+  needs something for both ends to hold. No joint stated as a chunk:
+  a joint found already written somewhere is not a joint, it is
+  another chunk. No joint between a thing and itself.
+THREAD: carpentry (the boards are milled, the joint is cut on site),
+  music (the phrases are practised, the transitions are not), welding
+  (the pieces are stock, the weld is the work).
+ASKED-AS: joint join between relation how these sit together made sentence compose new
+
+ESSENCE: two things that share ground and are closed by no wall stand
+  together, and saying so is a claim neither of them makes alone.
+  Two things closed by a wall that grips them both cannot both hold,
+  and saying which wall closed them is the whole of the answer.
+ROOT: this file / what survives the walls is the answer, so what the
+  walls do to a pair is a finding about the pair.
+CANNOT: no standing-together without shared ground. No cannot-both-
+  hold without naming the wall that closed them — an unexplained
+  contradiction is an assertion, not a finding. No cannot-both-hold
+  from a wall that already closes one of them on its own: then it is
+  that one thing that is closed and the pair has nothing to do with
+  it. A contradiction is a wall that lets each stand alone and stops
+  them standing together, and nothing else earns the name.
+THREAD: law (two clauses that cannot both be honoured, and which one
+  gives), accounts (two entries that will not reconcile), medicine
+  (two drugs that must not be given together).
+ASKED-AS: stand together contradict cannot both hold agree conflict inconsistent which wall
