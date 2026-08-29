@@ -989,3 +989,27 @@ one guided request presents exactly one page of retinal light. It adds no
 semantic page selector and does not alter the existing contact-and-grip
 authority for later page transitions. The focused one-page and capability
 proofs report `2 passed`; Python compilation and `git diff --check` pass.
+
+## First bounded Gutenberg page — live production
+
+Commit `265cfe2f9d45e5f8192269678d6f5726a3d8a499` deployed as task
+definition `dsf-ai-task:1347` and immutable image
+`sha256:622cbadb41552cddccb72ae93459dd13f6ea4b79cc6302a628203fa61fd5e7fc`.
+The controller preserved the resident identity and verified continuity at or
+beyond tick `297090`.
+
+One guided Alice source offering then reported exactly one presented page and
+twelve mounted physical source pages. The immutable source retained 151,191
+bytes at SHA-256
+`a3a27f8edbf7fcd9b8ba8435494440e24952deaa3e2f2d65192d4cb7ca403754`;
+the response marked both cognition and semantic authority false. The page
+settled through 22 native hops, 527 full DSF deliveries, 9,731 physically
+transitioned neurons, 90 complete neuronal fractals, and two recovery
+occurrences. The organism advanced from tick `297234` to `297238` and sealed
+state changed from
+`48c9cba9f555d12850f6f630a1bcb534b96780f34414aebcf896a4df8956c8cb`
+to `c338b956ce425640b20110f7788e7164a161ef40354df051f524eb57f9956b2c`.
+
+The first later observation still found both grip apertures unchanged and the
+book unheld. This is one genuine guided book experience, not autonomous source
+use or learned-word recognition; those acceptance facts remain open.
