@@ -43,3 +43,26 @@ impossibility.
 The detour to avoid repeating: word-matching retrieval over the
 entries, and per-task code. Entries are inert until they act as
 constraints.
+
+WHOSE WORDS ARE WHOSE (recorded 2026-08-29, after Joe said "WALL is
+your construct — I have no idea what it is")
+
+HIS: the white. The finger lesson. "The observers are the questions,
+  and the questions are the ribbons." Knowledge as a coordinate and a
+  vector. Ribbons as programs, queries, data carriers and exchangers
+  of possible and impossible. That it must MAKE, and that the point
+  is a small autonomous thing that can create, on almost no power.
+
+MINE, ON TRIAL: "wall" — my shorthand for the machine-usable half of
+  an entry's CANNOT line, the part a program can actually test. It is
+  a piece of the white, not a thing of its own, and Joe had never
+  heard the word. Also mine: coordinate/vector as implemented,
+  "floors", "the joint", "ground", "chunk", "grip". All are mine
+  until he says otherwise.
+
+WHY IT MATTERS: I spent a day writing "the walls say" and "the fabric
+  forbids", which made my own choices sound like the fabric ruling on
+  them. That is borrowed authority. A construct of mine gets my name
+  on it until it earns another. Joe's answer was "if they work for
+  you, have at it" — permission, not ratification, and the two are
+  not the same thing.
