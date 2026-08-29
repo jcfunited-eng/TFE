@@ -106,6 +106,22 @@ a plateau and not a fitted edge.
 8. Run reading_test.py before and after any language change. A bench
    that is not run is not a bench.
 
+## A RULE I WROTE AND HAD TO RETRACT — read this one
+
+I reasoned my way to a rule for telling how two things sit together —
+one bears the other when its share of the shared company runs more
+than twice the other way — wrote it into 174 as an unmarked HOLDS
+line, and shipped it. It lasted one commit. Falsified: animal/dog
+scores 0.57 against 0.07 and music/salt scores 0.57 against 0.23, a
+true kind-relation and an unrelated pair with the same number. It was
+reading which of the two words is commoner.
+
+Writing my own constructs into the knowledge is PERMITTED — the
+standing word is "if they work for you, have at it". Permission is not
+ratification. The failure was not the writing, it was the missing
+name: unmarked in 174 it reads as the fabric's rule instead of mine.
+Mark them, and try to break them the same day.
+
 ## RANKING IS THE TELL
 
 If the work is improving which entry comes back, it is retrieval.
@@ -129,24 +145,49 @@ stored, always larger than the parts.
 The reading is the specification an assembler would take. It is now
 correct on ordinary sentences, and it returns no entry.
 
+## THE RIBBON IS BUILT — all six pieces
+
+FIRST_RIBBON.md named the shape: group the sentence, build a nesting,
+take word behaviour from distribution, produce the sense from the
+company at hand, carry chunks, keep the contrast. All six run.
+
+- GROUPING works. A group is frame words carrying one content word.
+- NESTING carries ROLES now — the group before the doing is the doer,
+  the one after is the done-to. Written in 174 as knowledge about
+  THIS language, not as a fact about language. Without it "the dog
+  bit the man" and "the man bit the dog" were the same reading.
+- CONTRAST finds the doing: the group that arrived alone. 20 of 20
+  where a contrast exists.
+- SENSE is produced from company, never fetched. light with star and
+  sky gives stars, cloud, gas, gravity, black; with weight and heavy
+  it gives energy, rock, wheels, steel.
+- CHUNKS are carried whole: public health, martial arts, blood sugar.
+- CONTENT is assembled. Where two of the sentence's own words meet,
+  computed against the pair in hand. Across eight pairs the best
+  single entry in the corpus held at most 4 of the 6 words produced,
+  usually 3 — it is not a member of the parts list. Asked twice it
+  goes a step out: what stands with the ground but with neither of
+  the pair.
+
+Bench: fabric/reading_test.py — 15/15 settled, 13/15 held out, 6/7
+roles. RUN IT BEFORE AND AFTER ANY LANGUAGE CHANGE. It caught three
+regressions this session, including one that took the whole reading to
+0/15.
+
 ## Next
 
-Two things, in this order.
-
-1. **The reading still guesses when the sentence gives no contrast.**
-   "sand scratches glass" has no pointer in it, so every group
-   arrived the same way and the fallback rate decides — and it picks
-   "sand". Filed to the white with what would drain it and with the
-   route that was already measured and does not (doing-endings: salt
-   wears -ing and -ed, so does ice). This is the honest edge of the
-   reading and it says so out loud.
-2. **The nesting is under-determined.** 48 readings still stand for a
-   three-group sentence after elimination. The doing is settled; how
-   the groups hang under each other is not. That is the next piece of
-   syntax, and it is still communication, not assembly.
-
-Do not swing at the assembler before these. It will have nothing to
-work from.
+1. **The no-contrast doing.** When every group arrives the same way
+   the rate decides and reads 9 of 10. THREE routes are now closed
+   and filed: doing-endings, the rate over the whole frame, and the
+   written form's own inflection (which reads 9 of 10 too, and not
+   the same 9).
+2. **Kind-relations.** "Is a dog an animal" cannot be answered and
+   three routes are closed. The likeliest reading, filed as reasoning
+   and not as finding, is that this fabric holds none — it is written
+   as essences about how things work, not as a taxonomy.
+3. **The turn's words are still mine.** Every sentence saying.py says
+   was hand-written by me. The parts are the fabric's and the English
+   is not, and that is the honest boundary of what is built.
 
 ## The state of the corpus
 
