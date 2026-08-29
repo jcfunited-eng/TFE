@@ -66,10 +66,13 @@ footer{margin-top:2em;font-size:.85em;color:var(--dim);
 border-top:1px solid var(--line);padding-top:1em}
 </style></head><body>
 <h1>The Compute Fabric</h1>
-<p class="tag">Ask it anything. It reads the question with its own
-written procedure, answers from what it knows, builds the joint
-between two things where it can, and says plainly what it refused
-and what it lacks. It never pretends.</p>
+<p class="tag">Say something to it. What comes back first is what it
+understood you to have said &mdash; what the sentence turns on, what
+it is about, what would count as an answer, what it rules out &mdash;
+and how it settled each of those, including when it was guessing.
+Nothing in that part is fetched: no entry of its own is returned by
+any of it. Understanding comes before making, so this is the part
+that is being built.</p>
 <div class="askrow">
 <textarea id="q" rows="3" placeholder="why does bread rise"
  autofocus></textarea>
@@ -119,9 +122,33 @@ TALK = None
 LOCK = threading.Lock()
 
 
+def _heard(q):
+    """What it understood was said. This comes first and it is the
+    part that is actually built: the sentence read into a structure —
+    what it turns on, what it is about, what kind of answer would
+    count, what it forbids — and no entry is returned by any of it.
+
+    It is first on the page on purpose. Communication before assembly:
+    a thing that cannot say what it heard cannot be told what to make,
+    and a page that leads with an answer hides which of the two it
+    is doing."""
+    import wanting
+    try:
+        return wanting.show(q, core.fabric())
+    except Exception as e:
+        return (f"I could not read that: {type(e).__name__}: {e}\n"
+                f"Said rather than hidden.")
+
+
 def _answer(q):
     """One turn, through the written procedure — the same one the
-    conversation uses. Not a search."""
+    conversation uses.
+
+    Measured 2026-08-29 and not repaired since: five of five answers
+    this returned were already written in the corpus before the
+    question was asked, so it is retrieval however it is dressed. It
+    is kept, below the reading and labelled, because deleting it would
+    hide the finding rather than record it."""
     global TALK
     import talk
     with LOCK:
@@ -207,7 +234,14 @@ class Door(BaseHTTPRequestHandler):
             self._send("  nothing asked.", "text/plain; charset=utf-8")
             return
         try:
-            out = _answer(q)
+            out = _heard(q)
+            out += ("\n\n" + "-" * 46 +
+                    "\nBELOW THIS LINE IS THE OLD ANSWERING PATH, and"
+                    "\nit is retrieval: measured, five of five of its"
+                    "\nanswers were already written in the corpus"
+                    "\nbefore the question was asked. Shown so it is"
+                    "\nnot hidden, not because it is the work.\n\n")
+            out += _answer(q)
         except Exception:
             out = "  the door fell over:\n" + traceback.format_exc()
         self._send(out, "text/plain; charset=utf-8")

@@ -61,9 +61,9 @@ def want(sentence, F=None):
     if res["missing"]:
         return dict(unread=res["missing"])
     gs = res["groups"]
-    turns_on = None
-    if res["stood"]:
-        _s, _p, d = res["stood"][0]
+    turns_on, settled_by = None, None
+    if gs:
+        d, settled_by = FR.doing_of(gs, why=True)
         turns_on = FR.head(gs[d])
     kind, asked_with = None, None
     for g in gs:
@@ -73,20 +73,34 @@ def want(sentence, F=None):
                 break
         if kind:
             break
-    # What it is about is the content word of each group — the one
-    # from outside the frame. Discarding a whole group because an
-    # asking word sits in it threw away the subject: "why does bread
-    # rise" groups as "why does bread | rise", so dropping the first
-    # group dropped bread and it was about nothing.
+    # What it is about is the HEAD of each group — the word carrying
+    # most, which is what 174 already means by a group's head.
+    #
+    # Taking instead every word that is not in the frame lost any
+    # subject common enough to have entered the frame, and in a fabric
+    # written about physics and cooking "water" is in the commonest
+    # hundred, so "the fire heated the water" came back as not being
+    # about water. The head is the rarest word in its group, so it is
+    # the content word whether or not the frame happens to hold it.
+    #
+    # Discarding a whole group because an asking word sits in it threw
+    # away the subject too: "why does bread rise" groups as "why does
+    # bread | rise", so dropping the first group dropped bread.
+    #
+    # The groups are taken UNCAPPED here. The cap in 174 is on staging
+    # nestings, where the count climbs steeply; naming what a sentence
+    # is about costs nothing per group, and capping it lost the
+    # horizon from a question about the horizon.
     C = FR.company()
     about = []
-    for g in gs:
-        for w in g:
-            if w in asks or w in C.frame:
-                continue
-            if w != turns_on and w not in about:
-                about.append(w)
+    for g in FR.groups(head):
+        w = FR.head(g)
+        if w in asks or w in C.asking:
+            continue
+        if w != turns_on and w not in about:
+            about.append(w)
     return dict(kind=kind, asked_with=asked_with, about=about,
+                settled_by=settled_by,
                 forbidden=[core.stem(w) for w in
                            re.findall(r"[a-z]+", forbidden.lower())
                            if len(w) > 2],
@@ -103,6 +117,8 @@ def show(sentence, F=None):
         return "\n".join(out)
     out.append(f"  it groups as:  {' | '.join(w['groups'])}")
     out.append(f"  it turns on:   {w['turns_on'] or 'nothing I could find'}")
+    if w.get("settled_by"):
+        out.append(f"    settled by:  {w['settled_by']}")
     out.append(f"  it is about:   {', '.join(w['about']) or 'nothing I could name'}")
     if w["asked_with"]:
         out.append(f"  it asks for:   {w['kind']}  (from '{w['asked_with']}')")

@@ -422,6 +422,85 @@ ENTRY: what marks the doing of a sentence
   WHAT WOULD DRAIN IT: something that separates the word a sentence
     is ABOUT from the word that merely sits where the doing usually
     sits. Position has now been counted and it is not enough.
+  STATUS: DRAINED 2026-08-29 — and the drain was that the count was
+    the right fact read backwards. A pointer arrives FOR a content
+    word, so ranking by what sits after a pointer ranks the THINGS
+    first and the doing last; the doing is what no pointer arrived
+    for. Turned round, it is a contrast and not a count: a group is a
+    run of frame words carrying one content word, so a group of one
+    word arrived alone, and the doing is the group that arrived
+    alone. Measured on thirty sentences (fabric/reading_test.py, and
+    fifteen of them written after the rule was settled and never
+    looked at while settling it): the old rule read five of the first
+    fifteen; the contrast reads twenty of the twenty where a contrast
+    exists, without exception.
+  WHAT REMAINS: the contrast is silent when every group arrives the
+    same way — "sand scratches glass" has no pointer in it at all.
+    The fallback there is the rate at which the writing opens each
+    word with a pointer, and it reads nine of ten. Filed separately
+    below; the reading now says out loud which of the two settled it.
+
+ENTRY: a rate taken over too few sightings
+  ASKED-AS: rate habit few sightings rare word unreliable fallback
+    doing decided by the writing
+  VERDICT: the fallback rate is not a habit when the word is rare.
+    "sand scratches glass" gives no contrast — no group is opened by
+    a pointer — so the doing falls to how often the writing opens
+    each word with a pointer, and it picks "sand". The rates are
+    sand 0.111, glass 0.250, scratches 0.500, and "scratches" has
+    been seen eight times, so its 0.5 is four sightings. 174 already
+    holds the principle for other counts — fewer than four sightings
+    is an accident, a frame word under fifty is not a pointer — and
+    the fallback was not made to obey it.
+  WHAT WOULD DRAIN IT: either a second contrast that works when the
+    sentence has no pointer in it at all, or a way to read a doing
+    from the two words either side of it rather than from the word's
+    own history. Note what is NOT the drain: the doing-endings. Which
+    endings the writing has been seen putting on a word was counted
+    and does not separate — salt wears -ing and -ed (salting,
+    salted), ice wears both, "we" wears -ed, and among the sentences
+    with no contrast it read two of five, worse than the rate it
+    would replace.
+  STATUS: STANDING (white)
+
+ENTRY: a subject common enough to enter the frame
+  ASKED-AS: frame swallows content word group never closes common
+    subject water grouping fails
+  VERDICT: the grouping cannot close a group on a content word that
+    the corpus has made one of its commonest hundred. "boil the water
+    first" groups as "boil | the water first" — one group of three,
+    because "water" and "first" are both in the frame, so the run
+    never met a word from outside it and never ended. The doing is
+    still read correctly; what is lost is what the sentence is ABOUT,
+    which comes back as "first". This is not a corpus accident to be
+    waited out: a fabric written about physics and cooking will
+    always have water near the top, and the better the corpus covers
+    a subject the more certainly that subject stops being readable.
+  WHAT WOULD DRAIN IT: something that separates a word that is common
+    because it is structural from a word that is common because this
+    fabric happens to be about it. Frequency alone cannot do it, by
+    construction — both are frequent. Note this is the same shape as
+    "what separates a contentful word from a merely rare one", filed
+    above, and may be one question rather than two.
+  STATUS: STANDING (white)
+
+ENTRY: the rate of being opened, taken over the whole frame
+  ASKED-AS: opened by a pointer rate frame hundred commonest noise
+    which words open a group fallback
+  VERDICT: the rate must be counted over the pointers, not over the
+    frame. Measured 2026-08-29 on the same thirty sentences: taking
+    the rate over all hundred frame words reads three of fifteen,
+    which is worse than the falsified rule it was meant to replace.
+    The frame's commonest sit before everything, so a rate over them
+    is close to a measure of how common the word is. Inside a
+    sentence the whole frame is right, because any frame word
+    arriving with a content word marks it; across the writing only
+    the pointers are. The two halves count different sets on purpose:
+    frame inside and pointers across reads twenty-nine of thirty,
+    pointers on both sides twenty-seven, frame on both sides three.
+  WHAT WOULD DRAIN IT: nothing — this one is settled. It is filed
+    because the two halves look like they should be the same set and
+    are not, and the next reader will try to unify them.
   STATUS: STANDING (white)
 
 ENTRY: changing the grouping without re-running what already worked
@@ -436,4 +515,12 @@ ENTRY: changing the grouping without re-running what already worked
   WHAT WOULD DRAIN IT: nothing — this is discipline, not knowledge.
     It is filed here because it cost a working case and would have
     shipped unnoticed.
+  DRAINED IN PART 2026-08-29: there was no written-down set of
+    sentences that had to keep reading correctly, which is why the
+    break could only be found by accident. There is one now —
+    fabric/reading_test.py, thirty sentences with what each must turn
+    on and what it must be about, written before the change that was
+    graded against them. Run it before and after anything on the
+    language side. The discipline half of this entry does not drain:
+    a bench that is not run is not a bench.
   STATUS: STANDING (white)

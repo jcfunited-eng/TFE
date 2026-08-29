@@ -1,192 +1,189 @@
 # HANDOFF — read this, then DIRECTION.md, then FIRST_RIBBON.md
 
-Written 2026-08-29. Every number here was re-run, not inherited.
-The previous version of this file had three claims that did not
-hold, which is why nothing below should be taken on trust either.
+Written 2026-08-29, later than the version it replaces. Every number
+below was re-run in the session that wrote it. The version before
+this one carried numbers that were wrong — corpus size, corpus bytes,
+two of the three vector counts, and one claim about what the parser
+does. Those are corrected here, and the same warning applies to this
+file: re-run it.
 
-## Where it stands
+## Numbers, re-run
 
-5,382 written entries in docs/fabric_phylums/, 5.0 MB of plain
-text, 160 subjects, 12,866 words. No model is consulted anywhere
-beneath any of it.
+- 5,427 entries in docs/fabric_phylums/, 166 files, 3.7 MB of plain
+  text, 19,472 distinct words. (Was written as 5,382 / 160 / 5.0 MB /
+  12,866. All four were wrong.)
+- core.py loads and indexes it in 8.0s.
+- vectors: 2,050 down, 2,247 across, 1,558 floors, built in 10.4s.
+  (Was written as 1,989 / 2,808 / 1,552. "Across" was out by 561.)
+- core.laws parses **0** laws. All 5,427 denial lines were removed on
+  purpose and nothing has been written to replace that parse path, so
+  core.judge() cannot fire. Anything relying on it is inert.
 
-WORKS — re-run, not taken from a handoff:
-- core.py loads the corpus indexed and bitwise in 8.8s.
-- vectors.py resolves what each entry DECLARES it stands on into
-  a specific other entry: 1,989 edges down, 2,808 across, and
-  1,552 floors — entries that stand on nothing, which is not a gap
-  but the ground.
-- ribbon.travel() walks: stand on a coordinate, ask only what else
-  this is, follow the declared links, and the closed side stops it.
-- talk.py holds a conversation by FOLLOWING a procedure written in
-  74 — twelve steps, every act already existing. Thin turns lean on
-  the thread. Three turns on onions stay on onions.
-- first_ribbon.py parses by elimination against 174.
-- minting.py writes both faces now: denials it derives, and CLAIMS
-  where two things stand together and their roots actually meet.
-- alive.py runs unattended, bounded, resumes as the same life.
+## What was done this session — the reading
+
+The job is communication: cognition and syntax before any assembly.
+Nothing can be told what to build until it can say what it was told.
+
+**A bench now exists: `fabric/reading_test.py`.** Thirty sentences,
+each with what it must turn on and what it must be about, written
+down before the change that was graded against them. Fifteen were
+written after the rule was settled and were never looked at while
+settling it. Run it before and after anything on the language side.
+This is the thing whose absence let a grouping change silently break
+"the dog bit the man".
+
+**Baseline when the session opened: 5 of 15.** "how do I sharpen a
+knife" turned on "I". "the dog bit the man" turned on "man". "salt
+melts ice" turned on "salt".
+
+**Now: 15/15 on the settled set, 13/15 held out.**
+
+The cause was in the knowledge, not the code. 174 said the doing is
+"the group whose words most often sit straight after the frame's
+pointers", and the code was faithfully running it. That is the
+contrast upside down: a pointer arrives FOR a content word, so
+counting what sits after a pointer ranks the THINGS first and the
+doing last. Turned round it is not a count at all:
+
+  a group is a run of frame words carrying one content word, so a
+  group of one word arrived alone, and **the doing is the group that
+  arrived alone**.
+
+Split by which half decided, because they are not the same strength:
+
+  settled by contrast (a group arrived alone)   20 of 20 correct
+  settled by the fallback rate                   9 of 10 correct
+
+The reading now says which of the two settled it, and says when the
+deciding rate rests on too few sightings to be a habit. A reading
+that hides that is claiming the stronger of the two.
+
+Also corrected: what a sentence is ABOUT is now each group's head,
+not every word outside the frame. The old rule lost any subject
+common enough to have entered the frame — in a fabric written about
+physics and cooking, "the fire heated the water" came back as not
+being about water.
+
+The pointers are counted, never listed: a frame word is a pointer
+when what follows it comes from outside the frame more than three
+quarters of the time. That derivation puts an, a, the, every, its,
+same, no, two at the top and nothing was hand-picked. Measured
+sensitivity: any cut from 0.70 to 0.80 gives the same score, so it is
+a plateau and not a fitted edge.
+
+## Corrections to what the last handoff said
+
+- "first_ribbon.py parses by elimination against 174" — half true and
+  the half that failed is the important one. The NESTING is genuinely
+  eliminated: "the dog bit the man" stages 192 readings and 144 are
+  closed by 174's HOLDS lines (self-hanging, loops). The DOING was
+  never eliminated at all — it was picked by a ranking, and the
+  ranking was the falsified rule. Elimination decided the shape and a
+  false count decided the subject.
+- "wanting.py is the only thing whose output is not in the corpus" —
+  still true, and it is the right shape, but two of its four sample
+  sentences read wrong when the session opened. Being the right shape
+  and being correct are different claims.
 
 ## The rules — do not break them
 
-1. Knowledge is the processor. CORRECTED by Joe: the test is not
-   that no domain word may appear in code — that test is wrong and
-   makes contorted code. The test is PERMISSION. If the knowledge
-   permits a move, the move is allowable. The defect is deciding
-   something the knowledge has not sanctioned, or overriding it.
+1. Knowledge is the processor. The test is PERMISSION: if the
+   knowledge permits a move, the move is allowable. The defect is
+   deciding something the knowledge has not sanctioned, or overriding
+   it. Corollary learned this session: when the reading is wrong,
+   look in the knowledge first. The doing rule was wrong in 174 and
+   the code was innocent.
 2. A ribbon is a PROGRAM, a QUERY, a CARRIER OF DATA, and an
-   EXCHANGER OF POSSIBLE AND IMPOSSIBLE, all at once. From outside
-   (a person) and from inside (its own musings), and the inside
-   ones are meant to keep running.
-3. The point: when this is done it should be able to CREATE
-   ANYTHING, at a tiny fraction of the energy. Parsing is a means.
-   A build that answers instead of makes is off the heading.
-4. Knowledge is a coordinate and a vector. The links are the
-   vector. Collapsing them to a subject keeps the position and
-   throws the direction away, and a thing with no direction does
-   not travel, it diffuses.
+   EXCHANGER OF POSSIBLE AND IMPOSSIBLE, all at once.
+3. The point: it should be able to CREATE ANYTHING at a tiny fraction
+   of the energy. A build that answers instead of makes is off the
+   heading.
+4. Knowledge is a coordinate and a vector. The links are the vector.
 5. THE FINGER. A thing is a finger, and one, and skin, and a way to
-   point, and a surface water runs off — all true at once, and none
-   of it stops being true until something says not that. The open
-   side is generated by asking what else; the closed side is what
-   gets stored. Limits are set by imagination, not memory.
+   point, all at once, until something says not that.
 6. Plain speech to Joe. No invented vocabulary, no metaphor.
-7. Never report a passing test as a working system. Ask: does it
-   run when nobody is typing?
+7. Never report a passing test as a working system.
+8. Run reading_test.py before and after any language change. A bench
+   that is not run is not a bench.
 
-## Mistakes made today — do not repeat them
+## RANKING IS THE TELL
 
-- JUDGING A THING AGAINST A BAG BIGGER THAN THE THING. Made three
-  times in three places in one day. Fold the question into the
-  judgement and the question supplies half of what a denial needs,
-  so it fires on something it is not about.
-- USING THE WRONG KIND OF DENIAL. "No A without B" is about MAKING
-  — supply what you drag in. It must never judge what a thing IS or
-  what may be said; it closed every coordinate of every walk and
-  silenced the whole turn procedure.
-- A DENIAL MADE OF COMMON WORDS IS NOT A DENIAL. What it forbids is
-  matched whole, so one common word inside drags the whole thing
-  down to whatever that word touches. Of 2,938 forbidding denials,
-  only 1,629 name anything. The rest were closing at random.
-- UNCOMMON IS NOT CONTENTFUL. "connect" and "exclude" are uncommon
-  enough to pass as shared ground and carry no subject at all.
-- WRITING A SELECTION AS A DENIAL. Contrast says which surviving
-  reading leads; a denial says which die. Written as a denial it
-  kills every reading including the one it prefers.
-- A DENIAL MUST BE WRITTEN BARE. An explanation inside it puts its
-  own subject in front of it and it grips on itself.
-- MATCHING RAW STRINGS. "onions" never matched "onion", so the
-  sense had never once settled and everything downstream was
-  working correctly on a choice that was never made.
-- UNBOUNDED WORK INSIDE A BEAT. It wedged the life: processor
-  burning, no beats, deaf to its own stop signal.
-- STARVING THE STEP THAT ADDS. Minting was last in the beat, so
-  reading always spent the budget and it never ran once.
-- A LAW THAT ONLY APPLIES GOING FORWARD is a policy change. Re-run
-  everything already written through the stronger version.
+If the work is improving which entry comes back, it is retrieval.
+Measured: five of five answers the old answering path gave were
+already written in the corpus before the question was asked. Cutting
+a stored set can only return a member of it — arithmetic, not a
+quality problem.
 
-## Does not work
+The page now leads with what it HEARD, and the old answering path is
+below a line that says what it is. It was not deleted, because
+deleting it hides the finding instead of recording it.
 
-- It makes joints and nothing larger. Every sentence it says is
-  written knowledge said as it stands; only the joining is new.
-- It has no account of itself. Nothing in the corpus is about its
-  own turns or claims, so it cannot notice it has contradicted
-  itself, and it did, twice, without seeing it.
-- It cannot hold a position under challenge.
-- The life cycles a small handful of questions once its pool
-  empties, and waits 120 beats before walking for more.
+## THE WORD IS ASSEMBLER, NOT COMPUTE (Joe)
+
+An assembler takes parts and a specification and puts the parts
+TOGETHER. An arrangement is never a member of the parts list. That is
+the property every failed build lacked. Candidates are not things to
+be found — they are ARRANGEMENTS, generated by combination, never
+stored, always larger than the parts.
+
+The reading is the specification an assembler would take. It is now
+correct on ordinary sentences, and it returns no entry.
 
 ## Next
 
-Making something larger than a joint. It has the words, the chunks
-and the eliminator; what it does not have is any step that builds
-something bigger than a relation between two things.
+Two things, in this order.
 
-Data never enters the knowledge. It rides in on the ribbon —
-including anything fetched from the internet — is used or added to,
-and leaves. That is why the fabric stays small.
+1. **The reading still guesses when the sentence gives no contrast.**
+   "sand scratches glass" has no pointer in it, so every group
+   arrived the same way and the fallback rate decides — and it picks
+   "sand". Filed to the white with what would drain it and with the
+   route that was already measured and does not (doing-endings: salt
+   wears -ing and -ed, so does ice). This is the honest edge of the
+   reading and it says so out loud.
+2. **The nesting is under-determined.** 48 readings still stand for a
+   three-group sentence after elimination. The doing is settled; how
+   the groups hang under each other is not. That is the next piece of
+   syntax, and it is still communication, not assembly.
 
-## THE CORRECTION THAT MATTERS MOST (Joe, 2026-08-29)
+Do not swing at the assembler before these. It will have nothing to
+work from.
+
+## The state of the corpus
+
+All 5,427 denial lines were removed on purpose. They were a
+hand-written second copy of what each claim already says, and every
+failure came from computing on the copy. What a thing holds is
+written as a claim (HOLDS lines) and the negative is read off it. Do
+not put them back. Note that the nesting elimination runs off HOLDS
+lines and works; core.laws is the dead path.
+
+## THE CORRECTION THAT MATTERS MOST (Joe)
 
 "You know knowledge but do you know how to use knowledge."
 
 He typed "hello" into the page. The fabric found its entry on
-greetings — which says a greeting carries no subject, and hunting
-for one finds whatever is nearest and is wrong every time — and it
-PRINTED THAT SENTENCE AT HIM. It had the knowledge of how to greet
-him and it used it as an answer about greeting.
+greetings — which says a greeting carries no subject — and PRINTED
+THAT SENTENCE AT HIM. It had the knowledge of how to greet him and
+used it as an answer about greeting. That is what a retrieval tool
+does.
 
-That is the whole failure, and it is not a bug. It is what a
-retrieval tool does. Everything I built for a day was a better
-lookup: take the words, find the nearest entries, rank them, hand
-the best one back, then improve the ranking. RANKING IS THE TELL.
-If you are improving which entry comes back, you are retrieving.
+His own words for why it matters: he collected ten degrees and
+watched people who knew less do better, and the epiphany was that it
+does not matter what you know, only what you do with it. Knowledge
+sitting in a brain is worthless. That is the acceptance test.
 
-Using knowledge means the entry that says how to handle a thing
-becomes the HANDLER for that thing. One rule in this fabric is
-actually executed — the procedure for taking a turn. Every other
-entry that says how to do something is being displayed.
+## FAILURES ARE THE PRODUCT
 
-Started and NOT finished: interpreter.rule_for() finds the written
-procedure for what came in, and talk.py follows it instead of
-answering. The greeting entry now carries a RULE and a CHUNKS line,
-and two acts were written down for it (carry-chunk, hold). It binds
-and runs, but only the "hold" step binds — so it says nothing
-instead of greeting. One step short. The step-to-act reaching is
-what to look at.
+Every measured failure goes to the white (99) with what would drain
+it. When the possible side is generated rather than stored, the
+accumulated closures are the only thing that shapes an answer.
 
-Joe's own words for why this matters: he collected ten degrees and
-watched people who knew less do better, and the epiphany was that
-it does not matter what you know, only what you do with it.
-Knowledge sitting in a brain is worthless. That is the bar for this
-thing, and it is not a metaphor — it is the acceptance test.
+Filed this session: the doing entry DRAINED, with how; a rate taken
+over too few sightings; a subject common enough to enter the frame;
+the rate taken over the whole frame instead of the pointers. The last
+one reads three of fifteen — worse than the error it replaced, which
+is exactly the kind of thing that gets rebuilt if it is not written
+down.
 
-
-## THE WORD IS ASSEMBLER, NOT COMPUTE (Joe, 2026-08-29, end of day)
-
-"Compute" steered every build into a wall. It carries the shape of
-input-goes-in-output-comes-out, so every design ended with "return
-the best thing" — and evaluation over a set is selection, and
-selection is retrieval. Six machines were built tonight and all six
-were selectors.
-
-An assembler does not select. It takes parts and a specification and
-puts the parts TOGETHER. An arrangement is never a member of the
-parts list, which is exactly the property that was missing.
-
-It answers the question that blocked the whole day — where do
-candidates come from if not from words. They are not things to be
-found. They are ARRANGEMENTS. The space of arrangements is generated
-by combination, never stored, always larger than the parts, and it
-is the thing reduction is supposed to be cutting. Reduction had been
-pointed at the parts bin.
-
-The joint is the only assembly built so far: two parts, one
-arrangement. It was treated as a curiosity. It is the entire point.
-
-### THE ORDER OF WORK — Joe was explicit
-
-Communication FIRST. Cognition and syntax understanding before any
-assembly. Without it there is no way to tell the fabric what is
-wanted, and it has no understanding of what to assemble. Do not
-swing at the assembler first, however tempting, because it will have
-nothing to work from.
-
-So the next swing is the language side: reading a sentence into a
-STRUCTURE of what is wanted — what is wanted, what it is about, what
-is forbidden, what kind of answer would count — rather than reading
-it into an answer. That structure is the specification an assembler
-would later take.
-
-The one thing that worked tonight points the way: comparing two
-sentences structurally, and finding they put the same pair of things
-in opposite order, killed a candidate with no rule and no denial.
-That is meaning being operated on, not matched. Build from there.
-
-### THE STATE THE CORPUS IS IN
-
-All 5,427 denial lines have been removed. 5,426 claims remain and
-zero laws parse. Everything that judged by matching denial strings
-is inert, deliberately. Do not put them back — they were a
-hand-written second copy of what each claim already says, and every
-failure tonight came from computing on that copy instead of on the
-knowledge.
+Watch for a method that half-works because a known signal was
+smuggled into it.

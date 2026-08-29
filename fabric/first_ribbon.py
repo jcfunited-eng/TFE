@@ -43,6 +43,14 @@ NUMBER = dict(one=1, two=2, three=3, four=4, five=5, six=6, seven=7,
               fifty=50, hundred=100, thousand=1000,
               half=0.5, third=1 / 3, quarter=0.25)
 
+# A count of parts is a number too: "three quarters" is what those two
+# words already mean together. Reading it is reading, not deciding —
+# the alternative is that a setting between a half and a whole cannot
+# be written in prose at all, and then the number gets chosen in here,
+# which is the one thing this file may not do.
+PART = dict(half=0.5, halves=0.5, third=1 / 3, thirds=1 / 3,
+            quarter=0.25, quarters=0.25, fifth=0.2, fifths=0.2)
+
 
 class Settings:
     """The numbers this reading runs on, taken from the knowledge.
@@ -67,8 +75,12 @@ class Settings:
             if not all(re.search(rf"\b{p}", text) for p in probe):
                 continue
             m = re.search(rf"\b{last}\b", text)
-            for w in re.findall(r"[a-z]+", text[m.end():]):
+            rest = re.findall(r"[a-z]+", text[m.end():])
+            for i, w in enumerate(rest):
                 if w in NUMBER:
+                    nxt = rest[i + 1] if i + 1 < len(rest) else ""
+                    if nxt in PART:          # "three quarters"
+                        return NUMBER[w] * PART[nxt], e
                     return NUMBER[w], e
         return None, None
 
@@ -97,6 +109,12 @@ class Company:
                                 "frame", "commonest")
         self.pair_habit = S.get("sightings that make a pair a habit",
                                 "group", "fewer than")
+        self.pointer_share = S.get("how often a pointer is followed "
+                                   "by a content word",
+                                   "pointer", "more than")
+        self.pointer_seen = S.get("sightings before a frame word may "
+                                  "be counted a pointer",
+                                  "pointer", "fewer than")
         # how much may be held at once. This is knowledge too: it is
         # the attention wall, and it is what stops a long sentence
         # wedging a life that has other things to do.
@@ -132,6 +150,25 @@ class Company:
                         self.after_frame[w] += 1
                 if j + 1 < len(s):
                     self.after[w][s[j + 1]] += 1
+
+        # THE POINTERS. Counted, never listed — 174 says a pointer is a
+        # frame word that arrives for a content word, so it is found by
+        # what class of word follows it. Note this is NOT the question
+        # the white closed: that one asked what marks a pointer among
+        # words in general, by how often one word sits before or after
+        # another, and the counts came out symmetric. This asks a
+        # narrower thing of a set already fixed by frequency, and asks
+        # about the KIND of the neighbour rather than the count.
+        self.pointers = set()
+        for w in self.frame:
+            nxt = self.after[w]
+            tot = sum(nxt.values())
+            if tot < self.pointer_seen:
+                continue
+            outside = sum(n for x, n in nxt.items()
+                          if x not in self.frame)
+            if outside / tot > self.pointer_share:
+                self.pointers.add(w)
 
         # which words carry the question. Not listed here: read from
         # the file that already holds them, which 174's wall names.
@@ -201,9 +238,18 @@ class Company:
 
     def placed_after_pointer(self, w):
         """How often the writing puts this word straight after one of
-        the frame's words. This is the contrast the doing is found
-        by — never a list of verbs."""
+        the frame's words. Kept because render() names it; it is NOT
+        how the doing is found — that use was measured and is false,
+        and both 174 and the white record the measurement."""
         return self.after_frame.get(w, 0)
+
+    def opened(self, w):
+        """How often the writing opens this word with a pointer, as a
+        share of every time it has been seen. A thing is habitually
+        opened; a doing habitually is not. A rate and not a count,
+        because a count ranks whatever is commonest."""
+        n = sum(self.before[w].get(p, 0) for p in self.pointers)
+        return n / max(1, self.count.get(w, 0))
 
 
 COMPANY = None
@@ -254,6 +300,55 @@ def head(group):
     """A group's head is the word carrying most — the rarest one."""
     C = company()
     return min(group, key=lambda w: C.count.get(w, 0))
+
+
+def carried_in(group):
+    """Did frame words arrive with this group's content word? A group
+    is a run of frame words carrying one word from outside the frame,
+    so a group whose first word is already from outside came alone.
+    Measured against the pointers instead of the whole frame this
+    reads two sentences worse; 174 carries the count."""
+    return group[0] in company().frame
+
+
+def doing_of(gs, why=False):
+    """Which group the sentence turns on. 174: the doing is the group
+    that arrived alone, and where the sentence gives no contrast — all
+    alone, or all carried in — the writing decides among whatever is
+    left, by which of them it least often opens with a pointer.
+
+    This is the whole of the reading that was wrong. The old rule
+    ranked by how often a word sat AFTER a pointer, which ranks the
+    things a pointer arrived for, so it returned a thing every time."""
+    C = company()
+    plain = [i for i, g in enumerate(gs) if not carried_in(g)]
+    # a marked member needs a plain one to be marked against: if
+    # nothing was opened, or everything was, there is no contrast here
+    contrast = 0 < len(plain) < len(gs)
+    cand = plain if contrast else list(range(len(gs)))
+    # asking words never name what happened, so they cannot be the
+    # doing while anything else is standing
+    not_asking = [i for i in cand if not set(gs[i]) & C.asking]
+    cand = not_asking or cand
+    pick = min(cand, key=lambda i: (C.opened(head(gs[i])),
+                                    -C.count.get(head(gs[i]), 0)))
+    # How it was settled, said out loud. Measured over thirty
+    # sentences: the contrast reads twenty of twenty, the rate nine of
+    # ten. They are not the same strength and a reading that hides
+    # which one it used is claiming the stronger of the two.
+    if contrast and len(cand) == 1:
+        how = "contrast — one group arrived alone"
+    elif contrast:
+        how = (f"contrast narrowed it to {len(cand)}, then the rate")
+    else:
+        how = ("no contrast — every group arrived the same way, so "
+               "the writing decided, which is the weaker half")
+    seen = C.count.get(head(gs[pick]), 0)
+    if not contrast or len(cand) > 1:
+        if seen < C.pointer_seen:
+            how += (f"; and '{head(gs[pick])}' has been seen {seen} "
+                    f"times, too few for its rate to be a habit")
+    return (pick, how) if why else pick
 
 
 # ---------------------------------------------------------------
@@ -328,9 +423,10 @@ def render(gs, parents, doing, live=None):
     # for. It may still be honest as a ranking, never as a wall.
     h = head(gs[doing])
     said.append(f"the doing is {h}")
-    if not C.placed_after_pointer(h):
-        said.append("the doing is a group never placed after "
-                    "a pointer")
+    if not carried_in(gs[doing]):
+        said.append("the doing is a group that arrived alone")
+    if any(carried_in(g) for i, g in enumerate(gs) if i != doing):
+        said.append("the doing stands against a group carried in")
     if set(gs[doing]) & C.asking:
         said.append("the doing is a group carrying the question")
     # Contrast is deliberately not said here. It ranks what stands;
@@ -380,12 +476,17 @@ def read(sentence):
         if len(survivors) == len(alive) or not survivors:
             break
         alive = [t for t, _s in survivors]
-    # a reading's worth is what it beat, so both sides are carried
+    # a reading's worth is what it beat, so both sides are carried.
+    # Which group is the doing is settled by the contrast in 174, not
+    # by whichever staged reading happens to sort first.
+    want_doing = doing_of(gs)
     scored = []
     for (parents, doing), said in survivors:
         h = head(gs[doing])
-        scored.append((C.placed_after_pointer(h), parents, doing))
-    scored.sort(key=lambda x: -x[0])
+        scored.append(((doing == want_doing), -C.opened(h),
+                       parents, doing))
+    scored.sort(key=lambda x: (not x[0], x[1]))
+    scored = [(0, p, d) for _m, _o, p, d in scored]
     r.load(sentence=sentence, groups=[" ".join(g) for g in gs])
     r.note(f"read a sentence of {len(gs)} groups",
            stood=len(survivors), closed=len(deaths))

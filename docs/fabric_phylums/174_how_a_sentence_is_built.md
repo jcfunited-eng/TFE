@@ -94,20 +94,65 @@ THREAD: mathematics (brackets, and the same reason), law (a clause
   (a load path reaches the ground once).
 ASKED-AS: nesting structure tree hangs under attaches parse brackets nested inside
 
+ESSENCE: a pointer is a frame word that arrives for a content word:
+  what follows it comes from outside the frame more than three
+  quarters of the time. This is counted, never listed — the writing
+  says which of its own commonest words behave that way, and a fabric
+  written about other things grows different pointers. A frame word
+  seen fewer than fifty times is not counted, because a handful of
+  sightings is an accident and not a habit.
+ROOT: this file / a group is a run of frame words carrying one word
+  from outside the frame, so the frame words that arrive for that
+  content word are exactly the ones that open a group.
+HOLDS: a pointer holds when what comes after it is a content word
+  more than three quarters of the time. What MARKS a pointer among
+  words in general, as against which frame words behave as one here,
+  is filed in the white (99) and is not settled.
+THREAD: shops (a sign over a door is not the goods, it says goods
+  follow), music (an upbeat exists to be followed), law (a recital
+  clause carries nothing and introduces what does).
+ASKED-AS: pointer determiner opens a group arrives for the a an which
+  words open marks a group start
+
 ESSENCE: the doing is the group the sentence turns on, and it is
-  found by contrast rather than by meaning — the group whose words
-  most often sit straight after the frame's pointers, and every other
-  group is named against it. The asking words are never it: they say
-  what kind of answer will count and almost never name what happened,
-  and file 171 already holds which words those are. A wall below is
-  written bare on purpose — an explanation inside a wall puts its own
-  subject in front of it and the wall then grips on itself.
+  found by contrast — a thing has frame words arrive with it and the
+  doing arrives alone, so the doing is the group no frame word opened.
+  This is the grouping rule read for its contrast and nothing more: a
+  group is a run of frame words carrying one content word, so a group
+  of one word is a group that came on its own. The contrast is the
+  whole of it, and without a carried-in group there is nothing for a
+  lone one to be marked against — a sentence whose groups all arrived
+  alone gives no contrast at all. Where the sentence itself does not
+  decide, the writing does: of the groups still standing, the doing is
+  the one the writing least often opens WITH A POINTER. The two halves
+  count different things on purpose and the difference is measured,
+  not guessed: inside the sentence the whole frame marks, because any
+  frame word arriving with a content word marks it; across the
+  writing only the pointers count, because the frame's hundred
+  commonest sit before everything and a rate taken over them is
+  noise. Counted both ways on thirty sentences: frame inside and
+  pointers across reads twenty-nine, pointers on both sides reads
+  twenty-seven, and the frame on both sides reads three.
+  The asking words are never it: they say what kind of
+  answer will count and almost never name what happened, and file 171
+  already holds which words those are.
 ROOT: grammar (67) / a sentence needs a doer and a doing, and the
   doing is the one that cannot be removed.
-HOLDS: a doing holds when its group has been placed after a pointer
-  somewhere in the writing, and when its group carries no asking
-  word — the asking words say what kind of answer counts and never
-  name what happened.
+HOLDS: a doing holds when its group arrived alone and some other
+  group was carried in, and when its group carries no asking word — the
+  asking words say what kind of answer counts and never name what
+  happened.
+TRIED-AND-CLOSED: "the doing is the group whose words most often sit
+  straight after the frame's pointers" stood in this entry and was
+  false. It is the contrast upside down: a word placed after a
+  pointer is the thing the pointer arrived for, so the count ranks
+  the THINGS highest and the doing last. Measured on fifteen ordinary
+  sentences it read five. It made "how do I sharpen a knife" turn on
+  "I" and "the dog bit the man" turn on "man". Run the other way — the
+  group no pointer opens — the same fifteen read fifteen. Counting
+  after the frame's hundred commonest instead of after the pointers
+  reads three, which is worse than the error it replaces. Do not
+  spend a night re-proving any of this; it is filed in the white (99).
 THREAD: law (a charge must state what was done), physics (a
   description with no verb describes no event), accounts (an entry
   with no transaction is not an entry).
