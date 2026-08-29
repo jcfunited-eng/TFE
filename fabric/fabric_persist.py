@@ -361,10 +361,12 @@ border-bottom:2px solid var(--thread);display:inline-block;
 padding-bottom:.15em}
 .tag{color:var(--dim);margin:.7em 0 1.6em;font-size:.95em}
 .askrow{display:flex;gap:.6em}
-input{flex:1;font-size:1.05em;padding:.6em .7em;
-border:1px solid var(--line);border-radius:2px;
-background:var(--card);font-family:inherit;color:var(--ink)}
-input:focus{outline:2px solid var(--thread);outline-offset:1px}
+.askrow{align-items:flex-start}
+textarea#q{flex:1;font-size:1.05em;padding:.6em .7em;
+border:1px solid var(--line);border-radius:2px;line-height:1.5;
+background:var(--card);font-family:inherit;color:var(--ink);
+min-height:7.2em;resize:vertical}
+textarea#q:focus{outline:2px solid var(--thread);outline-offset:1px}
 button{font-size:1em;padding:.55em 1.5em;font-family:inherit;
 background:var(--thread);color:var(--cloth);border:none;
 border-radius:2px;cursor:pointer}
@@ -391,7 +393,7 @@ footer{margin-top:2em;font-size:.85em;color:var(--dim)}
 shows near misses honestly, and keeps what it cannot answer as
 open questions. It never pretends.</p>
 <div class="askrow">
-<input id="q" placeholder="why does…" autofocus>
+<textarea id="q" rows="4" placeholder="why does…" autofocus></textarea>
 <button onclick="go()">ask</button>
 </div>
 <pre id="a">—</pre>
@@ -423,7 +425,7 @@ async function pulse(){
   document.getElementById('life').textContent=
    'the fabric is not breathing — its process is down';}}
 document.getElementById('q').addEventListener('keydown',
- e=>{if(e.key==='Enter')go()});
+ e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}});
 pulse();setInterval(pulse,8000);
 </script></body></html>"""
 

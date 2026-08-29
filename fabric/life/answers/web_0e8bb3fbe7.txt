@@ -1,0 +1,18 @@
+ASKING: I'm thinking of making an apple pie what would be a good way of doing it
+
+I have no certified answer — this is recorded as an open question. But a question asks what is possible, so here is me looking across everything I know and playing with the unknown:
+  Territory 1 your words touch:
+    known: (teaching learning) skill climbs in stages — rules first (slow, spoken, one step at a time), then feel (the rules melt together), then flow (the doing runs wordless); no stage can be skipped.
+    known: (physics) a thing keeps doing what it is doing unless pushed. Change of motion needs a push, and the push works both ways — you cannot shove without being shoved back. (F = m·a; action = reaction)
+    known to fail: no starting at flow — talent buys a faster climb, never a skipped rung. And flow cannot explain itself (the curse above), while hard thinking mid-performance breaks it: the champion who starts steering the swing is briefly a beginner again.
+    unproven play: maybe computation is rule-following made physical TOGETHER WITH a program is instructions for a perfectly obedient, perfectly literal servant
+  Territory 2 your words touch:
+    known: (cooking) browning is chemistry with a price of admission — the flavor-making reaction between proteins and sugars starts only above ~140°C and only where the surface is dry.
+    known: (flight fluids) fluid moves only because pressure differs — every wind, current, breath, and heartbeat is fluid falling downhill from high squeeze to low.
+    known to fail: no browning in boiling water (capped at 100°C). No crust on a wet surface — the water must leave first, at 100°C, before the surface can climb to 140.
+    unproven play: maybe ambiguity is normal, not broken TOGETHER WITH ambiguity is a permanent resident
+  Territory 3 your words touch:
+    known: (teaching learning) skill climbs in stages — rules first (slow, spoken, one step at a time), then feel (the rules melt together), then flow (the doing runs wordless); no stage can be skipped.
+    known: (sports games) practice buys automation, and automation frees attention — the stroke rehearsed to self-running costs no thought, and the freed thought is what plays strategy; amateurs think about their feet, masters about the opponent.
+    known to fail: no starting at flow — talent buys a faster climb, never a skipped rung. And flow cannot explain itself (the curse above), while hard thinking mid-performance breaks it: the champion who starts steering the swing is briefly a beginner again.
+    unproven play: maybe practice buys automation, and automation frees attention TOGETHER WITH skill climbs in stages

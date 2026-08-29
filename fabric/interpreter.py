@@ -148,6 +148,16 @@ def h_walk_each(s):
         s["items"] = list(s.get("near") or [])
     return s
 
+def h_test_coheres(s):
+    """Test each thing in hand: does it meet more than one of the
+    words said, or only one and nothing else. Leaves a pass or a
+    fail; keeps nothing, drops nothing, chooses nothing."""
+    qm = s.get("mask", 0)
+    s["pass"] = [bin(e["color"] & qm).count("1") +
+                 bin(e["askm"] & qm).count("1") >= 2
+                 for e in (s.get("items") or [])]
+    return s
+
 def h_keep_passing(s):
     """Keep only the things whose last test passed."""
     items = s.get("items") or []
@@ -184,6 +194,7 @@ HANDS = {
     "walk-each": h_walk_each,
     "test-said": h_test_said,
     "keep-passing": h_keep_passing,
+    "test-coheres": h_test_coheres,
     "count-shared": h_count_shared,
     "keep-greatest": h_keep_greatest,
     "count-up": h_count_up,

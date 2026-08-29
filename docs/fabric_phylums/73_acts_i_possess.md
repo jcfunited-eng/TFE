@@ -6,6 +6,8 @@ counting-down of every method. Each names itself in the words a
 written procedure would use, so a rule can find its act without
 anyone wiring the two together by hand.
 
+STATE: FADED
+STATE: FADED
 ESSENCE: I can walk the places of a written number from the
   smallest to the largest, taking one place at a time.
 ROOT: mathematics / bundles — the places exist to be walked.
@@ -150,3 +152,16 @@ CANNOT: no greatest without numbers on the things. No greatest
 THREAD: an auction, picking the ripest, a race's finish.
 ACT: keep-greatest
 ASKED-AS: keep the greatest largest best of it highest most the winner pick greatest
+
+ESSENCE: I can test each thing in hand for whether it stands
+  together with the rest of what was said — whether it shares
+  ground with the other words, or only touches one of them and
+  nothing else.
+ROOT: context / nothing is understood alone; a reading that
+  answers one word and none of the others is not a reading.
+CANNOT: no standing together without more than one word met. No
+  coherence from a single word matched.
+THREAD: a key that turns one tumbler and no others, a witness who
+  agrees with nothing else in the record.
+ACT: test-coheres
+ASKED-AS: stands together with the rest of what was said coheres fits the whole sentence together

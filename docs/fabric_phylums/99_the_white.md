@@ -194,3 +194,19 @@ ENTRY: what was once held about conversation thread talk exchange chat dialogue 
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: a conversation is one thread that persists between turns — the same question laid across t
   STATUS: STANDING (white)
+
+ENTRY: I'm thinking of making an apple pie what would be a good way of doing it
+  ASKED-SIG: 7
+  FLOORS: e732500d228b
+  VERDICT: no path — certified by deterministic walk. Auto-filed.
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about work the places right to left one place at a time each colum
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: I can walk the places of a written number from the smallest to the largest, taking one pla
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about work the places right to left one place at a time each colum
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: I can walk the places of a written number from the smallest to the largest, taking one pla
+  STATUS: STANDING (white)

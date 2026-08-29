@@ -98,10 +98,27 @@ def _mark_answered(s):
     if t2!=t: open(WHITE,"w").write(t2)
 BUILD_WORDS=re.compile(r"\b(system|program|software|applicat|"
                        r"tool|rules? engine|checker|audit)\b",re.I)
+MAKE_ONLY=re.compile(r"^\s*(make|build|design|create|invent)\b",
+                     re.I)
 MAKE_WORDS=re.compile(r"^\s*(make|build|design|create|invent|"
                       r"give me a way|a way to|how (do|can) (i|we)|"
                       r"how to)\b",re.I)
 def ask(question):
+    # every asking is a turn in a conversation: the fabric follows
+    # its own written turn procedure, using the thread it keeps
+    if not MAKE_ONLY.match(question):
+        try:
+            import turnkeeper
+            said, note = turnkeeper.take_turn(question)
+            if said:
+                print(said)
+                if note: print(f"({note})")
+                return
+            print(note or "I have nothing standing that I have not "
+                          "already said. Saying nothing.")
+            return
+        except Exception as e:
+            print(f"(my turn-taking failed: {e})")
     # a want to MAKE something goes to the maker: the knowledge
     # stages possibilities and its own laws kill what they forbid
     if MAKE_WORDS.match(question):
