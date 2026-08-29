@@ -76,7 +76,6 @@ import struct
 import sys
 import tempfile
 import time
-import urllib.request
 import threading
 from typing import Any, Iterable, NamedTuple
 import uuid
@@ -134,6 +133,11 @@ from dsf_ai_service.substrate.native_resident_resource_admission import (
 from dsf_ai_service.bounded_source_media_store import (
     BoundedSourceMediaStore,
     BoundedSourceMediaStoreError,
+)
+from dsf_ai_service.bounded_gutenberg_source import (
+    GUTENBERG_ATTRIBUTION,
+    GUTENBERG_RIGHTS_STATEMENT,
+    acquire_project_gutenberg_source,
 )
 from dsf_ai_service.bounded_video_sensory_source import decode_bounded_video
 
@@ -15130,18 +15134,62 @@ def teach_song(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 # claim this project keeps having to undo.
 SHELF_SELECTION_SCHEMA = "guala.native.external_material_selection.v1"
 GUTENBERG_ENDPOINT = "/api/v1/material/gutenberg"
-GUTENBERG_MAX_BYTES = 2 * 1024 * 1024
 GUTENBERG_PAGE_LINES = 28
 GUTENBERG_LINE_CHARS = 52
-# A DECLARED catalogue, not a search: five public-domain texts, in order.
-# Presenting the next one is an ordered presentation, exactly as the card
-# button walks the approved deck — never a choice about meaning.
+# A declared guide-facing catalogue, not a selector. Every immutable field is
+# supplied back by the guide and cross-checked before acquisition. None of
+# these fields enters cognition; only rendered page light does.
 GUTENBERG_CATALOGUE = (
-    ("11", "https://www.gutenberg.org/files/11/11-0.txt"),
-    ("1342", "https://www.gutenberg.org/files/1342/1342-0.txt"),
-    ("74", "https://www.gutenberg.org/files/74/74-0.txt"),
-    ("16", "https://www.gutenberg.org/files/16/16-0.txt"),
-    ("55", "https://www.gutenberg.org/files/55/55-0.txt"),
+    {
+        "gutenberg_id": "11",
+        "display_title": "Alice's Adventures in Wonderland",
+        "source_url": "https://www.gutenberg.org/files/11/11-0.txt",
+        "edition": "11-0.txt",
+        "language_tag": "en",
+        "attribution": GUTENBERG_ATTRIBUTION,
+        "rights_basis": "public_domain",
+        "rights_statement": GUTENBERG_RIGHTS_STATEMENT,
+    },
+    {
+        "gutenberg_id": "1342",
+        "display_title": "Pride and Prejudice",
+        "source_url": "https://www.gutenberg.org/files/1342/1342-0.txt",
+        "edition": "1342-0.txt",
+        "language_tag": "en",
+        "attribution": GUTENBERG_ATTRIBUTION,
+        "rights_basis": "public_domain",
+        "rights_statement": GUTENBERG_RIGHTS_STATEMENT,
+    },
+    {
+        "gutenberg_id": "74",
+        "display_title": "The Adventures of Tom Sawyer",
+        "source_url": "https://www.gutenberg.org/files/74/74-0.txt",
+        "edition": "74-0.txt",
+        "language_tag": "en",
+        "attribution": GUTENBERG_ATTRIBUTION,
+        "rights_basis": "public_domain",
+        "rights_statement": GUTENBERG_RIGHTS_STATEMENT,
+    },
+    {
+        "gutenberg_id": "16",
+        "display_title": "Peter Pan",
+        "source_url": "https://www.gutenberg.org/files/16/16-0.txt",
+        "edition": "16-0.txt",
+        "language_tag": "en",
+        "attribution": GUTENBERG_ATTRIBUTION,
+        "rights_basis": "public_domain",
+        "rights_statement": GUTENBERG_RIGHTS_STATEMENT,
+    },
+    {
+        "gutenberg_id": "55",
+        "display_title": "The Wonderful Wizard of Oz",
+        "source_url": "https://www.gutenberg.org/files/55/55-0.txt",
+        "edition": "55-0.txt",
+        "language_tag": "en",
+        "attribution": GUTENBERG_ATTRIBUTION,
+        "rights_basis": "public_domain",
+        "rights_statement": GUTENBERG_RIGHTS_STATEMENT,
+    },
 )
 CREDENTIAL_BLOCKED_SHELVES = {
     "youtube": "YOUTUBE_API_KEY",
@@ -15149,9 +15197,6 @@ CREDENTIAL_BLOCKED_SHELVES = {
     "pbs_kids": "PBS_KIDS_API_KEY",
     "spotify": "SPOTIFY_CLIENT_ID",
 }
-_gutenberg_presented = 0
-
-
 def _shelf_capability(name: str) -> dict[str, object]:
     """What each shelf can honestly do right now."""
 
@@ -15159,13 +15204,15 @@ def _shelf_capability(name: str) -> dict[str, object]:
         return {
             "available": True,
             "autonomous_selection": False,
+            "catalogue": [dict(entry) for entry in GUTENBERG_CATALOGUE],
             "endpoint": GUTENBERG_ENDPOINT,
             "reason": (
-                "public-domain pages are fetched, rendered to light, and "
-                "presented on the same 27 retinal receptor sites a card "
-                "reaches; no text, title, author or meaning enters "
-                "cognition. AUTONOMOUS selection is refused: that would "
-                "mean she chose, and no native choice operation exists"
+                "a guide must name one exact approved public-domain edition; "
+                "its source bytes are preserved before its pages are rendered "
+                "to the same 27 retinal receptor sites used by other physical "
+                "visual material. No catalogue field, text, title, author, or "
+                "meaning enters cognition. Autonomous selection remains refused "
+                "until her native physical choice identifies one source object"
             ),
             "status": "mounted_guided_only",
         }
@@ -16297,11 +16344,14 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         _end_external_intake()
 
 
-@app.post(GUTENBERG_ENDPOINT)
+@app.post(
+    GUTENBERG_ENDPOINT,
+    dependencies=[Depends(_external_intake_admission)],
+)
 def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """One bounded run of a public-domain book, as pages of light."""
+    """Preserve and physically present one exact guide-named Gutenberg text."""
 
-    global _gutenberg_presented
+    global _curriculum_invitation
     if not isinstance(payload, dict) or payload.get("schema") != SHELF_SELECTION_SCHEMA:
         return _refusal(422, f"shelf selection requires schema {SHELF_SELECTION_SCHEMA}")
     mode = payload.get("mode")
@@ -16315,34 +16365,128 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "behalf and calling it autonomous would be a false claim about "
             "the substrate",
         )
-    index = _gutenberg_presented % len(GUTENBERG_CATALOGUE)
-    book_id, url = GUTENBERG_CATALOGUE[index]
-    try:
-        request = urllib.request.Request(
-            url, headers={"User-Agent": "guala-native-organism/1"}
-        )
-        with urllib.request.urlopen(request, timeout=25) as response:
-            raw = response.read(GUTENBERG_MAX_BYTES)
-    except Exception as error:  # noqa: BLE001 - any transport failure is one refusal
+    expected_fields = {
+        "attribution",
+        "edition",
+        "gutenberg_id",
+        "language_tag",
+        "mode",
+        "rights_basis",
+        "rights_statement",
+        "schema",
+        "source_url",
+    }
+    if set(payload) != expected_fields:
         return _refusal(
-            503,
-            f"the public-domain text could not be fetched: "
-            f"{type(error).__name__}: {str(error)[:120]}",
+            422,
+            "a guided Gutenberg presentation requires one exact approved "
+            "catalogue entry with edition, language, attribution, public-domain "
+            "basis, source URL, and rights statement",
+        )
+    book_id = payload.get("gutenberg_id")
+    catalogue_entry = next(
+        (
+            entry
+            for entry in GUTENBERG_CATALOGUE
+            if entry["gutenberg_id"] == book_id
+        ),
+        None,
+    )
+    if catalogue_entry is None or any(
+        payload.get(field) != catalogue_entry[field]
+        for field in expected_fields - {"schema", "mode"}
+    ):
+        return _refusal(
+            422,
+            "the named Gutenberg source does not exactly match one approved "
+            "catalogue entry",
         )
     try:
-        text = raw.decode("utf-8", "replace")
+        source_record = acquire_project_gutenberg_source(
+            _source_media_store,
+            source_url=catalogue_entry["source_url"],
+            language_tag=catalogue_entry["language_tag"],
+        )
+        preserved_raw = _source_media_store.source_bytes(
+            source_record.receipt_sha256
+        )
+        text = preserved_raw.decode("utf-8")
         pages = _gutenberg_pages(text)
         rosters = [_live_frame_luminance(page) for page in pages]
         episodes = _offered_visual_episodes(f"gutenberg-{book_id}-{uuid.uuid4()}", rosters)
-    except (OSError, ValueError) as error:
+    except (
+        BoundedSourceMediaStoreError,
+        OSError,
+        UnicodeDecodeError,
+        ValueError,
+    ) as error:
         return _refusal(422, f"gutenberg presentation refused: {error}")
+    invitation_response = _embodied_curriculum_invitation(
+        experience_kind="gutenberg",
+        experience_id=source_record.receipt_sha256,
+        media_receipts={
+            "source_bytes_sha256": source_record.source_bytes_sha256,
+            "source_media_receipt_sha256": source_record.receipt_sha256,
+        },
+    )
+    if invitation_response.status_code != 200:
+        return invitation_response
+    invitation_body = json.loads(invitation_response.body)
+    invitation = invitation_body.get("invitation")
+    invitation_receipt = (
+        invitation.get("invitation_receipt_sha256")
+        if isinstance(invitation, dict)
+        else None
+    )
     try:
-        result = _perform_admitted_intake(episodes, f"gutenberg:{book_id}")
+        with _transition_lock:
+            prepared = _validated_curriculum_experience_invitation(
+                "gutenberg",
+                source_record.receipt_sha256,
+                invitation_receipt,
+            )
+            _curriculum_invitation = {
+                **prepared,
+                "outcome": "presentation_attempted",
+                "presentation_eligible": False,
+                "reason": (
+                    "one preserved Project Gutenberg source is entering its "
+                    "physical page-light path"
+                ),
+                "status": "gutenberg_presentation_in_progress",
+            }
+            result = _perform_admitted_intake_locked(
+                episodes,
+                f"gutenberg:{book_id}",
+            )
+            settled_tick = result["observation"].get("organism_tick")
+            if (
+                isinstance(settled_tick, bool)
+                or not isinstance(settled_tick, int)
+                or settled_tick <= 0
+            ):
+                raise RuntimeError(
+                    "admitted Gutenberg transition lost its settled organism tick"
+                )
+            _curriculum_invitation = {
+                **_curriculum_invitation,
+                "outcome": "presented",
+                "presented_organism_tick": settled_tick,
+                "presentation_eligible": False,
+                "reason": (
+                    "the preserved Project Gutenberg source settled once "
+                    "through physical retinal receptors; CURRENT durability "
+                    "is reported separately"
+                ),
+                "status": "gutenberg_presentation_settled",
+            }
+            _refresh_public_observation_cache()
+    except _CurriculumInvitationRefusal as error:
+        return _refusal(error.status_code, str(error))
     except HTTPException:
         raise
     except (RuntimeError, TypeError, ValueError) as error:
         return _refusal(422, f"admitted visual transition refused: {error}")
-    _gutenberg_presented += 1
     return JSONResponse(
         status_code=200,
         content={
@@ -16350,6 +16494,8 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "mode": "guided",
             "gutenberg_id": book_id,
             "presented_page_count": len(rosters),
+            "source_media": source_record.public_projection(),
+            "transport_metadata_only": True,
             "meaning_entered": False,
             **_public_admitted_intake_result(result),
         },
