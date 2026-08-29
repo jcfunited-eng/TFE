@@ -460,6 +460,16 @@ ENTRY: a rate taken over too few sightings
     Requiring the doing to carry a word from outside the frame was
     tried and does not touch it, because "after" is not in this
     corpus's commonest hundred.
+  THIRD ROUTE CLOSED — the written form's own inflection. Asking
+    whether the word AS WRITTEN is an inflected form of a bare word
+    the writing also has ("scratches" from "scratch") is morphology by
+    rule on the surface rather than on the stem's family, so it is not
+    the doing-endings test that already failed. Measured on the ten
+    no-contrast cases: it reads nine, which is exactly what the rate
+    reads, and it does not read the same nine. It fixes "sand
+    scratches glass" and breaks "why do we shake hands", because
+    "hands" is an inflected form and "shake" is not. A lateral move is
+    not an improvement and it was not shipped.
   WHAT WOULD DRAIN IT: either a second contrast that works when the
     sentence has no pointer in it at all, or a way to read a doing
     from the two words either side of it rather than from the word's
@@ -611,6 +621,25 @@ ENTRY: handing over a stored sentence as the content of a turn
     word-to-word kinds has NOT been tested; it is a lead, not a
     finding, and it is written here as a lead so the next reader does
     not mistake it for one.
+  THE LEAD IS CLOSED, tested the same hour it was written. Climbing
+    the declared ROOT edges up to four steps from every entry naming
+    one word to any entry naming the other: dog to animal 0 of 15,
+    copper to metal 0 of 14, chess to game 0 of 3, gravity to physics
+    0 of 13 — zero for every true pair — while medicine to law, which
+    is false, gets 4. The declared hierarchy runs between ENTRIES and
+    does not carry kinds between WORDS.
+  THREE ROUTES NOW CLOSED, which is what makes the shape of the
+    missing thing sharper: it is not in what company two words keep
+    (reads frequency), not in their overlap against chance (worse,
+    and ranks a one-story coincidence highest), and not in the
+    declared hierarchy (zero). The likeliest reading of all three is
+    that this fabric HOLDS no kind-relations. It is written as
+    essences about how things work, not as a taxonomy, and nothing in
+    it ever says a dog is an animal. If that is right then the honest
+    answer to "is a dog an animal" is that it holds nothing which
+    says so, and every mechanism that produced an answer was
+    manufacturing one. Test before believing it: that sentence is
+    itself reasoning, which is how the last one got in.
   STATUS: DRAINED in the part that was asked, STANDING in the part
     above
 
