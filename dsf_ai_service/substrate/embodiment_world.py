@@ -2770,6 +2770,10 @@ class EmbodimentWorldAuthority:
         embodied_bodies = tuple(
             sorted(embodied_bodies, key=lambda item: item.body_id)
         )
+        self._declared_body_receptor_geometry = tuple(
+            (item.body_id, item.receptor_geometry)
+            for item in embodied_bodies
+        )
         if actor_ports is None:
             other_ids = tuple(
                 item.body_id
@@ -2955,6 +2959,91 @@ class EmbodimentWorldAuthority:
         """Return the immutable authenticated vocal-anatomy body edge."""
 
         return self._physical_vocal_anatomy_receipt
+
+    def migrate_declared_body_receptor_geometry(self) -> bool:
+        """Restore declared immutable receptor anatomy without resetting life.
+
+        Early persistent home bodies encoded ``None`` before the body's fixed
+        receptor geometry was mounted.  Authentication proves those bytes;
+        this explicit one-way migration then preserves every lived physical
+        value and mounts only the constructor-declared immutable anatomy.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "body receptor anatomy cannot migrate during an action"
+                )
+            declared = dict(self._declared_body_receptor_geometry)
+            if set(declared) != {
+                item.body_id for item in self._state.world.bodies
+            }:
+                raise ValueError("declared body receptor topology changed")
+            bodies: list[EmbodiedBody] = []
+            changed = False
+            for body in self._state.world.bodies:
+                mounted = declared[body.body_id]
+                if body.receptor_geometry is not None:
+                    if body.receptor_geometry != mounted:
+                        raise ValueError(
+                            "persisted body receptor anatomy differs from "
+                            "the declared mount"
+                        )
+                    bodies.append(body)
+                    continue
+                if mounted is None:
+                    bodies.append(body)
+                    continue
+                bodies.append(replace(body, receptor_geometry=mounted))
+                changed = True
+            if not changed:
+                return False
+            prior = self._state
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("body receptor anatomy exhausted world revision")
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                bodies=tuple(bodies),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            topology_sha256 = self._topology_sha256(
+                migrated_world.regions,
+                migrated_world.portals,
+            )
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=topology_sha256,
+                resulting_topology_sha256=topology_sha256,
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return True
 
     def _require_public_visibility_locked(self) -> None:
         if self._visibility_prepared_action is not None:
@@ -3921,36 +4010,46 @@ class EmbodimentWorldAuthority:
             )
 
         if isinstance(command, AdvanceContactOpticalSurfaceCommand):
+            patch: int | None = None
             if body.held_object_id is not None:
-                return None, "contact_surface_body_already_holding"
-            geometry = body.receptor_geometry
-            if geometry is None:
-                return None, "contact_surface_geometry_unavailable"
-            receptor_position = _receptor_position(
-                body,
-                geometry.touch_offset_mm,
-            )
-            if receptor_position is None:
-                return None, "contact_surface_heading_geometry_unresolved"
-            contacted = tuple(
-                (index, item, patch)
-                for index, item in enumerate(objects)
-                if item.position is not None
-                and (
-                    patch := _derived_contact_patch_square_mm(
-                        receptor_position=receptor_position,
-                        receptor_radius_mm=geometry.touch_radius_mm,
-                        object_position=item.position,
-                        object_radius_mm=item.radius_mm,
-                    )
+                held = by_id.get(body.held_object_id)
+                if held is None:
+                    raise RuntimeError("held contact surface object disappeared")
+                object_index, item = held
+                if (
+                    item.position is not None
+                    or item.held_by_body_id != body.body_id
+                ):
+                    raise RuntimeError("held contact surface custody changed")
+            else:
+                geometry = body.receptor_geometry
+                if geometry is None:
+                    return None, "contact_surface_geometry_unavailable"
+                receptor_position = _receptor_position(
+                    body,
+                    geometry.touch_offset_mm,
                 )
-                is not None
-            )
-            if not contacted:
-                return None, "contact_surface_absent"
-            if len(contacted) != 1:
-                return None, "contact_surface_ambiguous"
-            object_index, item, patch = contacted[0]
+                if receptor_position is None:
+                    return None, "contact_surface_heading_geometry_unresolved"
+                contacted = tuple(
+                    (index, item, contact_patch)
+                    for index, item in enumerate(objects)
+                    if item.position is not None
+                    and (
+                        contact_patch := _derived_contact_patch_square_mm(
+                            receptor_position=receptor_position,
+                            receptor_radius_mm=geometry.touch_radius_mm,
+                            object_position=item.position,
+                            object_radius_mm=item.radius_mm,
+                        )
+                    )
+                    is not None
+                )
+                if not contacted:
+                    return None, "contact_surface_absent"
+                if len(contacted) != 1:
+                    return None, "contact_surface_ambiguous"
+                object_index, item, patch = contacted[0]
             sequence = self._contact_optical_surface_sequences.get(
                 item.object_id
             )
@@ -3973,15 +4072,16 @@ class EmbodimentWorldAuthority:
                 item,
                 optical_surface=sequence.surfaces[successor_index],
             )
-            bodies[body_index] = replace(
-                body,
-                active_contact=BodyContactState(
-                    kind="touch",
-                    object_id=item.object_id,
-                    contact_patch_square_mm=patch,
-                    duration_microseconds=command.duration_microseconds,
-                ),
-            )
+            if patch is not None:
+                bodies[body_index] = replace(
+                    body,
+                    active_contact=BodyContactState(
+                        kind="touch",
+                        object_id=item.object_id,
+                        contact_patch_square_mm=patch,
+                        duration_microseconds=command.duration_microseconds,
+                    ),
+                )
             return self._advance_material_time(
                 replace(
                     world,

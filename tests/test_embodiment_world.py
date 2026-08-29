@@ -6,7 +6,7 @@ import hmac
 import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 
 import pytest
 
@@ -265,6 +265,35 @@ def test_grasp_contact_resolves_one_touched_object_without_an_object_identity() 
     assert grasped.after.objects[0].held_by_body_id == "guala-body-1"
 
 
+def test_restore_migrates_only_missing_declared_body_receptor_anatomy() -> None:
+    key = "embodiment-receptor-anatomy-migration-key"
+    declared = EmbodimentWorldAuthority(authority_key=key)
+    legacy_body = declared.observation_snapshot().bodies[0]
+    legacy_geometry = legacy_body.receptor_geometry
+    assert legacy_geometry is not None
+    legacy = EmbodimentWorldAuthority(
+        authority_key=key,
+        bodies=tuple(
+            replace(item, receptor_geometry=None)
+            if item.body_id == legacy_body.body_id
+            else item
+            for item in declared.observation_snapshot().bodies
+        ),
+    )
+    encoded = legacy.encoded_snapshot()
+
+    restored = EmbodimentWorldAuthority(authority_key=key)
+    restored.restore_encoded(encoded)
+    before = restored.observation_snapshot()
+
+    assert restored.migrate_declared_body_receptor_geometry() is True
+    after = restored.observation_snapshot()
+    assert after.revision == before.revision + 1
+    assert _body(after).pose == _body(before).pose
+    assert _body(after).receptor_geometry == legacy_geometry
+    assert restored.migrate_declared_body_receptor_geometry() is False
+
+
 def test_grasp_contact_refuses_absent_or_ambiguous_touch_geometry() -> None:
     absent = EmbodimentWorldAuthority(
         authority_key="embodiment-grasp-absent-key",
@@ -386,6 +415,51 @@ def test_contact_surface_advances_one_bound_leaf_and_survives_restore() -> None:
     assert complete.disposition == "rejected"
     assert complete.reason == "contact_surface_sequence_complete"
     assert restored.encoded_snapshot() == complete_body
+
+
+def test_held_source_bound_book_advances_without_releasing_custody() -> None:
+    surface = ObjectOpticalSurface(
+        columns=2,
+        rows=1,
+        palette_reflectance_ppm=((100_000,) * 6, (900_000,) * 6),
+        cell_palette_indices=(0, 1),
+    )
+    item = EmbodiedObject(
+        object_id="held-book",
+        radius_mm=50,
+        mass_grams=100,
+        position=PositionMM(1300, 1000, 0),
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="held-contact-surface-key",
+        initial_objects=(item,),
+        contact_optical_surface_sequences=(
+            ContactOpticalSurfaceSequence(
+                object_id="held-book",
+                source_receipt_sha256="ef" * 32,
+                surfaces=(surface,),
+            ),
+        ),
+    )
+    grasped = _execute(
+        authority,
+        GraspContactCommand(duration_microseconds=200_000),
+        intent_number=13,
+    )
+    assert grasped.disposition == "applied"
+
+    advanced = _execute(
+        authority,
+        AdvanceContactOpticalSurfaceCommand(
+            duration_microseconds=200_000
+        ),
+        intent_number=14,
+    )
+
+    assert advanced.disposition == "applied"
+    assert _body(advanced.after).held_object_id == "held-book"
+    assert advanced.after.objects[0].held_by_body_id == "guala-body-1"
+    assert advanced.after.objects[0].optical_surface == surface
 
 
 def test_contact_surface_refuses_absent_ambiguous_or_unbound_geometry() -> None:

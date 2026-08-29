@@ -688,6 +688,24 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 self._latest_thermal_transition,
             )
 
+    def migrate_declared_body_receptor_geometry(self) -> bool:
+        """Atomically bind a restored world to its declared body anatomy."""
+
+        with self._thermal_lock:
+            changed = super().migrate_declared_body_receptor_geometry()
+            if not changed:
+                return False
+            observation = super().observation_snapshot()
+            self._thermal_world_revision = observation.revision
+            self._thermal_world_observation_receipt_sha256 = (
+                observation.authority_receipt_sha256
+            )
+            self._latest_thermal_transition = None
+            self._pending_thermal = None
+            self._committed_thermal_tail = None
+            self.encoded_snapshot()
+            return True
+
     def encoded_committed_prepared_action(
         self, prepared: PreparedActionExecution
     ) -> bytes:

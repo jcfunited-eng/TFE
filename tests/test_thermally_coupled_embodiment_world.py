@@ -10,6 +10,7 @@ from dsf_ai_service.substrate.bounded_home_thermal_physics import (
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     AdvancePhysicalTimeCommand,
+    EmbodiedBody,
     PreparedActionExecution,
     encode_command,
 )
@@ -137,6 +138,42 @@ def test_one_authenticated_cold_body_restores_latest_thermal_tail() -> None:
 
     assert restored.encoded_snapshot() == encoded
     assert restored.thermal_observation() == expected
+
+
+def test_receptor_anatomy_migration_rebinds_thermal_custody() -> None:
+    source = _authority()
+    geometry = source.observation_snapshot().bodies[0].receptor_geometry
+    assert geometry is not None
+
+    bare = ThermallyCoupledEmbodimentWorldAuthority(
+        authority_key="thermally-coupled-world-test-key",
+        thermal_anatomy=_anatomy(),
+        bodies=tuple(
+            EmbodiedBody(
+                body_id=item.body_id,
+                pose=item.pose,
+                radius_mm=item.radius_mm,
+                reach_mm=item.reach_mm,
+                receptor_geometry=(
+                    None
+                    if item.body_id == "guala-body-1"
+                    else item.receptor_geometry
+                ),
+            )
+            for item in source.observation_snapshot().bodies
+        ),
+    )
+    bare_encoded = bare.encoded_snapshot()
+
+    restored = _authority()
+    restored.restore_encoded(bare_encoded)
+    prior_revision = restored.thermal_observation().world_revision
+    assert restored.migrate_declared_body_receptor_geometry() is True
+    assert restored.thermal_observation().world_revision == prior_revision + 1
+    assert (
+        restored.observation_snapshot().bodies[0].receptor_geometry
+        == geometry
+    )
 
 
 def test_bare_world_requires_explicit_one_time_thermal_genesis() -> None:
