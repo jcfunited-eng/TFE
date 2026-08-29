@@ -854,3 +854,85 @@ no left- or right-grip displacement appeared, the book remained unheld at the
 offered coordinate, and its reflectance remained unchanged. The persistent
 physical opportunity is therefore live, but autonomous selection and page
 advance remain unwitnessed. L-009 remains open.
+
+## Placed-object palmar continuity correction — candidate
+
+The live offer exposed one exact embodiment omission rather than an absent
+choice. The world grip law could geometrically resolve the offered book, but
+the existing palmar receptor reported only reciprocal held-object custody.
+`PlaceCommand` did not retain a recipient's exact material contact, and the
+ordinary unattended and guided-pressure transports replaced that palmar lane
+with zero. Consequently the book could be inside Guala's mounted hand geometry
+while her resident organism received no pre-grip tactile evidence.
+
+Commit `04ec72c8f0e39a16e8aab098f56c74f6f4c115cc` corrects only that physical
+continuity boundary:
+
+- placing a material object derives the existing exact receptor/object contact
+  patch for every eligible body, refuses an ambiguous material contact, and
+  retains the unique contact in the world's existing `active_contact` owner;
+- picking that object clears every signed contact to it;
+- the existing physical receptor reads reciprocal hold or signed palmar
+  contact without adding another tactile anatomy; and
+- unattended and guided-pressure episodes transport the current exact binary
+  palmar value instead of authoring zero.
+
+No grip, attention, reward, object identity, page identity, source identity,
+word, meaning, or expected response enters cognition. L0--L4, all seven DSF
+fields, native neuron/formation physics, organism persistence, and the world
+codec are unchanged.
+
+### Acceptance-evidence map
+
+| Fact | Producer | Retained state | Transport | Decisive observation |
+|---|---|---|---|---|
+| book touches the mounted hand | exact receptor/object geometry during `PlaceCommand` | existing `EmbodiedBody.active_contact` | `physical_receptor_substreams` palmar channel -> ordinary whole-roster episode | participant placement reports one changed tactile receptor |
+| contact survives quiet life | authenticated current world | same signed contact after cold restore | `_unattended_interval_episodes` carries the current binary value | later ordinary interval retains palmar contact without another action |
+| removal is physical | `PickCommand` reciprocal custody transition | signed contact cleared | palmar channel `1 -> 0` | exact changed tactile receptor on removal |
+| any grip is Guala's | resident native motor/body path | unchanged native organism state | existing grip action-consequence boundary | only a later native grip displacement may grasp or advance the book |
+
+### Production-parity and recurrence preflight
+
+The exact target was enumerated rather than inferred: AWS account
+`418384447921`, region `us-east-1`, cluster `tfe-web-cluster`, service
+`dsf-ai-service-lb`, task definition `dsf-ai-task:1344`, one desired/running
+task and zero pending tasks. The live task is healthy on commit
+`9cba6a85e90581b841e32b8b0a96fa716860a1cf`, image
+`sha256:659c8fb674b6590f241384f39629704ffecb94832e1f4cdd047f3d4cd0d8cc45`,
+with all six mounted sensory/world switches equal to one, current-format
+migration equal to one, 4 vCPU, and 16 GiB. The unchanged identity is
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+| ID | Earliest deterministic check | Candidate evidence |
+|---|---|---|
+| RF-001 | exact root and `PYTHONPATH` before imports | root check reports this clean worktree and `04ec72c8`; focused tests used `PYTHONPATH="$PWD"` |
+| RF-002 | live task environment before process-fixed imports | exact task-1344 roster and resource values recorded above |
+| RF-004 | pristine and restored branches | focused second-body first-contact test plus authenticated production-world cold restore |
+| RF-010 | world successor equals persisted/cold successor | candidate successor re-encoded and cold-restored byte-exactly |
+| RF-012 | live exact behavior, not HTTP health | cutover acceptance requires tactile changed count one and later ordinary palmar continuity |
+| RF-016 | one active ledger item and matching diff | only L-009 is active; production diff is this contact path, one focused test, and this ledger |
+| RF-019/RF-034 | active assertion, not a historical transient witness | release does not require an old grip/choice event; live acceptance is placed contact and ordinary sensory continuity |
+| RF-025/RF-029 | no blind retry against advancing state | any live place uses a freshly read world revision and one read-only successor check before retry |
+| RF-028 | every constructor/aggregate carries the field | action consequence, unattended interval, and guided pressure all carry the same palmar channel |
+| RF-031 | nonzero focused tests | 35 embodiment-world tests and 15 directly affected transport/rest tests executed and passed |
+| RF-033 | enumerate AWS target | account, cluster, service, task, image, and resources were read directly |
+| RF-045 | do not duplicate sensor clocks | the current binary contact is carried on the already-declared hop clock; no new samples are created |
+| RF-048 | cold-restore the exact production world | immutable production snapshot was `429031` bytes at SHA-256 `be932ac782e95bdfc4d0d549b81b514961c94ec2bc261626b08965d1cf4a6892` and restored under candidate source |
+
+The exact production-world copy initially attempted while the live file was
+advancing was rejected as a mixed observation. A fixed read-only snapshot was
+then taken inside the sole task, copied in length-checked chunks, and matched
+the source size and SHA-256 exactly. On that snapshot at revision `24344`, the
+candidate's participant pick and replacement at the same lawful offer
+coordinate produced palmar `0/1 -> 1/1`, a `9216` square-millimetre contact
+patch, and revision `24346`. Its `542487`-byte successor at SHA-256
+`593303bd85dbab895c3f5b3caca051244abde9b492a0253662cda7999262e548`
+cold-restored byte-exactly with `guala-body-1.active_contact=book`, the book
+unheld, and its physical position unchanged.
+
+Focused source evidence is 35/35 embodiment-world tests plus 15/15 directly
+affected grounded-world, unattended-time, and rest/wake tests. One wider local
+test still encounters the documented pre-existing installed-native axis-count
+mismatch before this Python path; the immutable candidate rebuild must prove
+native provenance. `git diff --check` passes. This remains local candidate
+evidence until one immutable cutover and direct production observation succeed.
