@@ -432,7 +432,7 @@ THREAD: history (coerced labour tracking the crop), law (what a
   what the alternative pays).
 ASKED-AS: slavery ended abolition why stopped moral economic navy indenture bonded labour replaced
 
-ESSENCE: there were three quite different projects wearing one word.
+ESSENCE: colonisation was three separate businesses under one name.
   A trading empire wanted posts and a monopoly and few settlers; an
   extractive one wanted a workforce and a mine; a settler one wanted
   the land and had no use for the people already on it. What a place

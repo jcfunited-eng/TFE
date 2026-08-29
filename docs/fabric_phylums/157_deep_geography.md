@@ -228,23 +228,24 @@ THREAD: logistics (cost driven by the number of joins), power (a
   infrastructure).
 ASKED-AS: landlocked country no coast trade harder neighbours ports transit borders exports access
 
-ESSENCE: the best soils are recent accidents — rock ground up by
-  glaciers, dust blown into deep beds, ash from volcanoes, silt
-  dropped by floods. Old undisturbed land has had its nutrients
-  rained out of it for millions of years, which is why some of the
-  greenest country on earth sits on some of the poorest ground.
-ROOT: chemistry / rain washes soluble nutrients downward without
-  stopping, so fertility is a stock being drained, and only fresh
-  mineral arriving refills it.
-CANNOT: no rich soil where nothing has renewed the mineral for ages,
-  however warm and wet the place is — so no reading fertility off
-  the vegetation. And no lasting farm on such ground: clear the
-  forest and the nutrients that were living in the trees are gone
-  within a few harvests.
-THREAD: farming (the soil bank, rented rather than restored), deep
-  earth (glaciers and ash as a fertiliser delivery), history (why
-  grain empires sit on some plains and not others).
-ASKED-AS: soil fertile poor rainforest farming volcanic ash glacier plains nutrients washed ground
+ESSENCE: good farmland needs several unrelated things in the same
+  place — workable soil, dependable rain during the growing season,
+  ground level enough to plough, and a long enough warm spell. Each
+  is common by itself. All four together cover a small fraction of
+  the land, gathered into a handful of belts.
+ROOT: farming / a crop grows only as far as whatever it has least
+  of, so the useful ground is the overlap of every requirement
+  rather than the sum of them.
+CANNOT: no growing the world's staple crops wherever there happens
+  to be soil — most of it is too dry, too cold, too steep or too
+  short in season, and none of those is a matter of effort. And no
+  trading one condition for another: water will not move a frost
+  date, and fertiliser will not flatten a hillside.
+THREAD: farming (irrigation as the purchase of exactly one missing
+  condition), trade (a world fed out of a few regions and the
+  shipping that follows from it), chance (a combination that is rare
+  because its parts are unrelated).
+ASKED-AS: farmland good land where crops grown rain soil flat warm rare belts world
 
 ESSENCE: warmth without a winter lets parasites work all year and
   lets their carriers breed without a pause. So the same effort at
