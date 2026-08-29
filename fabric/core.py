@@ -132,7 +132,9 @@ class Fabric:
                          ask=part("ASKED-AS"),
                          rule=part("RULE"),
                          thread=part("THREAD"),
-                         root=part("ROOT"))
+                         root=part("ROOT"),
+                         same=part("MEANS-SAME"),
+                         splits=part("SPLITS-INTO"))
                 e["id"] = len(self.entries)
                 e["color"] = self.mask(e["essence"])      # possible face
                 e["white"] = self.mask(e["cannot"])       # impossible face

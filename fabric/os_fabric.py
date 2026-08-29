@@ -63,6 +63,37 @@ class Wiring:
         self.df = F.df
         self.built_for = F.sig
 
+        self.build_senses()
+
+    def build_senses(self):
+        """What the knowledge says about words with two meanings:
+        each sense and the company it keeps. Read from the files,
+        not decided here."""
+        F = self.F
+        self.senses = {}
+        for e in F.entries:
+            sp = e.get("splits") or ""
+            if not sp: continue
+            groups = []
+            for part in sp.split("|"):
+                if ":" not in part: continue
+                name, company = part.split(":", 1)
+                cm = F.mask(company, learn=False)
+                if cm: groups.append((name.strip(), cm))
+            if len(groups) < 2: continue
+            head = re.match(r"([a-z]+)", e["essence"].strip().lower())
+            for w in re.findall(r"[a-z]{3,}", e["ask"].lower())[:3]:
+                if w in F.vocab and w not in self.senses:
+                    self.senses[w] = groups
+        self.near = {}
+        for e in F.entries:
+            sm = e.get("same") or ""
+            for group in sm.split("|"):
+                ws = [w for w in re.findall(r"[a-z]{3,}", group.lower())
+                      if w in F.vocab]
+                for w in ws:
+                    self.near.setdefault(w, set()).update(ws)
+
     def fresh(self):
         if core.fabric().sig != self.built_for: self.build()
         return self
@@ -83,6 +114,17 @@ def deliver(question, rounds=3, spread=0.35, floor=0.02):
     W = wiring(); F = W.F
     qm = F.mask(question, learn=False)
     # where it lands: rare words carry, common words do not
+    # a word with two meanings does not land in both: the company
+    # the question keeps says which sense is meant, and the
+    # knowledge says what each sense's company is
+    for w, groups in W.senses.items():
+        wid = F.vocab.get(w)
+        if wid is None or not (qm >> wid) & 1: continue
+        best, score = None, 0
+        for name, company in groups:
+            v = bin(company & qm).count("1")
+            if v > score: best, score = company, v
+        if best: qm |= best          # the meant sense joins the data
     mail = collections.defaultdict(float)
     i, m = 0, qm
     while m:
