@@ -13,9 +13,9 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1322`, commit
-`dc6673af2f2eb70215b1f7e8ac209997b2c74f05`, immutable image
-`sha256:26d7d838d4c14769a44e7d888f3c0e2005ed9e9000bf715f008aebad08b11c08`,
+Current production baseline: task definition `dsf-ai-task:1323`, commit
+`ecb8180d2b33a82fb3ddddbe6fbcb4d29b539f5a`, immutable image
+`sha256:d3b2c6a3429baeceb61caa28db1decad0c677314dbe4820dd1dbb9d4ea59c999`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
 completed on 2026-08-29 with one task and verified native CURRENT beyond tick
 `259716`. The complete current source/runtime/capability reconciliation is
@@ -759,7 +759,15 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   total bounds from the byte-identical store whose refusal falsifiers pass.
   This closes bounded physical media ingress, not recognition, understanding,
   or autonomous media selection.
-- [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
+- [ ] **L-009 — IN PROGRESS, GUIDED LIVE 2026-08-29:** Connect guided and
+  self-selected Project Gutenberg experiences. Task 1323 deleted the
+  restart-reset next-book counter and direct fetch/discard path. A guide named
+  exact Alice edition `11-0.txt`; 151,191 original bytes were retained under
+  receipt `d978bd54...df64`, rendered page light settled at tick 260970, and a
+  direct custody read restored the same source SHA-256. Catalogue metadata had
+  no cognitive authority. Self-selection remains open because no exact native
+  body action is yet geometrically bound to one physically presented source
+  object; the autonomous endpoint refuses rather than inventing a choice.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
 - [ ] **L-012** Connect guided and self-selected PBS Kids experiences.
