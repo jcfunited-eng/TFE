@@ -6634,9 +6634,25 @@ class EmbodimentWorldAuthority:
         prior_observation_domain: bytes,
         parent_migration_receipt_sha256: str | None,
         preserve_material: bool = False,
+        preserve_current_world: bool = False,
+        prior_regions: tuple[PhysicalRegion, ...] | None = None,
+        prior_portals: tuple[PhysicalPortal, ...] | None = None,
     ) -> None:
-        regions = _default_regions()
-        portals = _default_portals()
+        if preserve_current_world:
+            if prior_regions is None or prior_portals is None:
+                raise ValueError(
+                    "manifest-only migration requires the authenticated physical topology"
+                )
+            regions = prior_regions
+            portals = prior_portals
+            objects = prior_objects
+        else:
+            regions = _default_regions()
+            portals = _default_portals()
+            objects = self._migrated_objects(
+                prior_objects,
+                preserve_material=preserve_material,
+            )
         self_body_id = self._state.world.self_body_id
         bodies = prior_bodies
         if {item.body_id for item in bodies} != {
@@ -6659,10 +6675,7 @@ class EmbodimentWorldAuthority:
             portals=portals,
             self_body_id=self_body_id,
             bodies=tuple(sorted(bodies, key=lambda item: item.body_id)),
-            objects=self._migrated_objects(
-                prior_objects,
-                preserve_material=preserve_material,
-            ),
+            objects=objects,
         )
         try:
             self._validate_world(migrated_world)
@@ -6690,11 +6703,15 @@ class EmbodimentWorldAuthority:
             resulting_revision=migrated_world.revision,
             parent_migration_receipt_sha256=parent_migration_receipt_sha256,
             manifest_sha256=self._physical_manifest_sha256(),
-            prior_topology_sha256=_digest(
-                {
-                    "room_bounds": prior_room_bounds.as_record(),
-                    "room_id": prior_room_id,
-                }
+            prior_topology_sha256=(
+                self._topology_sha256(regions, portals)
+                if preserve_current_world
+                else _digest(
+                    {
+                        "room_bounds": prior_room_bounds.as_record(),
+                        "room_id": prior_room_id,
+                    }
+                )
             ),
             resulting_topology_sha256=self._topology_sha256(regions, portals),
         )
@@ -7574,6 +7591,9 @@ class EmbodimentWorldAuthority:
                     migration.authority_receipt_sha256
                 ),
                 preserve_material=True,
+                preserve_current_world=True,
+                prior_regions=world.regions,
+                prior_portals=world.portals,
             )
             return
         with self._lock:
