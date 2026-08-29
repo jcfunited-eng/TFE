@@ -816,3 +816,41 @@ truthful changed-context availability/cue episode, but it does not pass
 learned-word recognition, comprehension, choice, preference, or autonomous
 world use. The cue must not be repeated immediately; later evidence must come
 from a materially different context and Guala's own causal response.
+
+## Persistent physical book offer — autonomous witness still open
+
+The later live geometry showed why the book at `(6100, 4700)` was not yet a
+grasp opportunity. Guala remained at `(6708, 4500)` with heading `195962`
+millidegrees. Her exact rotated hand-receptor centre was `(6516, 4445, 150)`;
+the book was 510 millimetres from that centre, outside the combined 440
+millimetre contact radius by 70 millimetres. Gross arm reach was therefore not
+misreported as physical contact.
+
+The participant first placed the already-held apple once at `(5650, 4500)`,
+under causal intent
+`9ee8b5bb9e78b31403aa497cd0a6ee56a2bb841a7dbf5f88329f02a7ecc28fa3`,
+then picked up the existing physical book once under causal intent
+`fdfb308884b148832aa50bdf9d17d26bddb06de4f3268bd66c4a42dd8c84c8e0`.
+One proposed offer coordinate was refused before mutation because it
+intersected the participant's own body. Exact two-body, object, path, and
+three-dimensional receptor geometry was then resolved rather than retried
+blindly.
+
+The participant placed and released the same book once at `(6337, 4698)`.
+The book was 420 millimetres from each body's floor centre and 344
+millimetres from Guala's three-dimensional hand-receptor centre: inside the
+440 millimetre contact boundary while retaining a 30 millimetre non-overlap
+margin from each body. World revision `24256` advanced once to `24257`; the
+causal intent was
+`ee62ba94b7231da9fa2a05ced406d143da0363a89c600702f71e8f3dd1f3003f`
+and the physical evidence receipt was
+`bba5a6dfed517ba73c1e3af45e307c1eef7323d964fad3f6887cecb681114a94`.
+No server grip, page advance, attention instruction, semantic label, or
+choice was supplied.
+
+Across the first three successfully read unattended samples, with intervening
+read timeouts treated as no evidence, Guala's root pose remained unchanged,
+no left- or right-grip displacement appeared, the book remained unheld at the
+offered coordinate, and its reflectance remained unchanged. The persistent
+physical opportunity is therefore live, but autonomous selection and page
+advance remain unwitnessed. L-009 remains open.
