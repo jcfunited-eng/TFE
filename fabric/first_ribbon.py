@@ -523,14 +523,20 @@ def sense_of(word, others):
     says so. That is a reading too: this writing has not put these
     words together, so it has no sense for the word here."""
     C = company()
+    ix, _sf = _index()
     st = core.stem(word)
-    mine = [ln for ln in C.lines if any(core.stem(x) == st for x in ln)]
+    # the index already knows which lines a stem stands in; scanning
+    # every line for it made one reading take half a second, nearly
+    # all of it here, and put the corpus out of reach of its own ribbon
+    mine = [C.lines[i] for i in ix.get(st, ())]
     if not mine:
         return dict(word=word, near=0, seen=0, marks=[],
                     why="the writing has never used this word")
     keep = {core.stem(o) for o in others if core.stem(o) != st}
-    near = [ln for ln in mine
-            if keep & {core.stem(x) for x in ln}]
+    want = set()
+    for k in keep:
+        want |= ix.get(k, set())
+    near = [C.lines[i] for i in (ix.get(st, set()) & want)]
     if not near:
         return dict(word=word, near=0, seen=len(mine), marks=[],
                     why="the writing never puts this word with that "

@@ -779,3 +779,38 @@ ENTRY: carrying chunks to speak with
     down small words, which the built sentence has none of.
   STATUS: STANDING (white) — a sentence of three bare words is not
     prose and this is not solved
+
+ENTRY: the reading against real writing, not against my sentences
+  ASKED-AS: bench real prose corpus own writing reading correct
+    coverage sentences I did not choose
+  VERDICT: the reading scores 63 of 70 on sentences I constructed and
+    3 of 20 on sentences taken at random from the fabric's own
+    writing. Judged by hand 2026-08-29 on twenty pulled by seed from
+    3,212, none of them chosen: "Eyes painted on a wall raise
+    honesty-box takings" turns on "painted" and should turn on
+    "raise"; "congestion is not caused by too many vehicles" gives
+    doer "by" and doing "too"; "a dose is really a spread" turns on
+    "really". Three were right and all three had the same shape —
+    a doer, a plain doing, a done-to — which is the shape of every
+    sentence I put in the bench.
+  THE CAUSE IS ONE THING: the ribbon has no reading for a sentence
+    that says what something IS. "is" and "are" are frame words, so
+    they can never be the doing, and the reading goes hunting for a
+    doing that is not there and settles on whatever is nearest. 1,411
+    of the 3,212 sentences in this fabric — 44 per cent — carry is,
+    are, was or were. The writing is almost entirely definitional
+    because that is what an essence is, and the ribbon was built for
+    sentences where something acts on something.
+  WHY IT WAS NOT SEEN: every sentence in the bench was written by me
+    and every one of them had a doer acting on a done-to, because
+    that is the shape I was testing. Holding a set back did not help
+    and neither did generating forms by rule, because the rule only
+    reshaped sentences that already had that shape.
+  WHAT WOULD DRAIN IT: a reading for the is-sentence — what it says
+    stands, what it is said to be, and that nothing is done to
+    anything. It is not a doing with a doer and a done-to and forcing
+    it into that frame is what produces "doer=by, doing=too". Note
+    that this also explains why "is a dog an animal" could not be
+    answered by any of the four mechanisms tried: the fabric has no
+    reading for an is-question either.
+  STATUS: STANDING (white) — and it is the largest thing standing
