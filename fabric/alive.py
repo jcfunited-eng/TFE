@@ -44,7 +44,7 @@ OPENINGS = os.path.join(LIFE, "alive_openings.md")
 BEAT_BUDGET = 2.0      # seconds one beat may take before it yields
 REST = 1.0             # seconds between beats
 RESTOCK_EVERY = 400    # beats between walks for new standing questions
-WALK_FLOOR = 120       # beats that must pass before ANY second walk;
+WALK_FLOOR = 60        # beats that must pass before ANY second walk;
                        # the walk costs ~20s and without this floor
                        # the life spent all of it walking
 LIVING = 8             # ribbons held at once
@@ -302,7 +302,11 @@ def beat(F, s, pool, live, qcache=None):
     #    what it came to do, so it settles out and the living set
     #    turns over. Without this it re-reads the same handful for
     #    ever and the life only looks busy.
-    if read_this_beat is not None and len(live) > 2:
+    # Retire only when there is something to put in its place.
+    # Retiring regardless drained the living set to two and left it
+    # there, re-reading the same pair for a hundred beats until the
+    # next walk — busy, and covering nothing.
+    if read_this_beat is not None and len(live) > 2 and pool:
         live.remove(read_this_beat)
 
     if b % CHECKPOINT_EVERY == 0:
