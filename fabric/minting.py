@@ -254,10 +254,23 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
         except Exception:
             questions = []
     made, refused = [], []
+    # What has already been minted, read as PAIRS out of the file's
+    # own PARENTS lines. The previous check built a key of
+    # "essence_a||essence_b" and asked whether that string appeared
+    # in the file — but the file never contains that format, so the
+    # check could never once have matched. It looked like a dedupe
+    # and was a no-op, and the same claim went in four times.
+    already = set()
     try:
-        already = open(CLAIMS).read() if os.path.exists(CLAIMS) else ""
+        if os.path.exists(CLAIMS):
+            for line in open(CLAIMS):
+                if line.startswith("PARENTS:"):
+                    parts = line[8:].split("||")
+                    if len(parts) == 2:
+                        already.add(tuple(sorted(
+                            x.strip()[:60] for x in parts)))
     except OSError:
-        already = ""
+        pass
     for c in claim_candidates(F, entries):
         a, b = c["a"], c["b"]
         ground = " ".join(F.words_of(c["ground"])[:6])
@@ -281,8 +294,11 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
         # A pair is the same pair whichever way round it arrives.
         # Keyed in arrival order, the same two entries reached from
         # two different questions wrote themselves three times.
-        key = "||".join(sorted((a["essence"][:60],
-                                b["essence"][:60])))
+        # The PARENTS line is written as "field — essence", so the
+        # key has to be built the same way it will be read back.
+        key = tuple(sorted(
+            (f"{a['field']} — {a['essence'][:70]}"[:60],
+             f"{b['field']} — {b['essence'][:70]}"[:60])))
         if key in already:
             refused.append((a, b, "already minted"))
             continue
@@ -301,6 +317,7 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
                                   "ground underneath — kept as a "
                                   "candidate, not minted"))
             continue
+        already.add(key)          # within this call, too
         made.append(dict(a=a, b=b, ground=ground, conv=conv,
                          asked=(q or {}).get("text", "")))
         if len(made) >= limit:

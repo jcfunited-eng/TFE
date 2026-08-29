@@ -37,3 +37,12 @@ REACHED-BY: what bears force
 STATE: MINTED
 ASKED-AS: tax wheel
 JOINT-KIND: structural — their roots meet at physics
+
+ESSENCE: these two stand together on [oil emulsion mediator] — "oil and water refuse each other; an emulsion is a forced truce needing a mediator whose molecule loves both sides (egg yolk, mustard)." and "an emulsion is millions of droplets held apart, and it fails when droplets meet and merge. Anything that helps them meet breaks it — too much oil for ". MINTED, not written by a hand; a joint says the two sit together, not that either is true.
+ROOT: minted claims / two pieces sharing uncommon ground that nothing closes when they stand together.
+CANNOT: no standing-together on ground that is a single common word. If either parent falls this falls with it.
+PARENTS: cooking — oil and water refuse each other; an emulsion is a forced truce needing || deep cooking technique — an emulsion is millions of droplets held apart, and it fails when drop
+REACHED-BY: what bears mediator
+JOINT-KIND: structural — their roots meet at physics: like charges push, opposites pull, and a moving charge makes magnetism
+STATE: MINTED
+ASKED-AS: oil emulsion mediator
