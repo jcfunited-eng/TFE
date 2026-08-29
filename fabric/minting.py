@@ -430,3 +430,91 @@ def convergence(F, a, b):
     if shared:
         return dict(kind="same ground", at=sorted(shared)[0], said="")
     return dict(kind="lexical", at="", said="")
+
+
+# ---------------------------------------------------------------
+# PROPOSING AN AREA — what its own records keep pointing at
+# ---------------------------------------------------------------
+# The direction says it should propose new areas when its records
+# keep pointing at territory not yet written. This is the state that
+# calls for it: after three hours the yield fell to two claims an
+# hour, not because anything was broken but because the pairs its
+# current knowledge supports have been mined.
+#
+# The proposal is not composed. It is read out of the refusals: when
+# joint after joint is turned down on the SAME ground, that ground is
+# a place where things keep almost connecting and nothing underneath
+# is written. That is a hole with a shape, and the shape is what gets
+# proposed. Nothing here decides what should be written — it says
+# where the machine's own record keeps pointing.
+
+PROPOSALS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "life", "areas_to_write.md")
+
+
+def proposals(least=3):
+    """Ground that keeps turning up in refused joints. `least` is how
+    many separate refusals it takes before a repeat is a pattern
+    rather than a coincidence."""
+    counts, examples = collections.Counter(), {}
+    try:
+        if not os.path.exists(UNATTACHED):
+            return []
+        cur_ground, cur = None, []
+        for line in open(UNATTACHED):
+            m = re.match(r"ON \[(.*?)\]", line)
+            if m:
+                cur_ground, cur = m.group(1), []
+            elif line.startswith("  ") and line.strip() and cur_ground:
+                cur.append(line.strip())
+                if len(cur) == 2:
+                    for w in cur_ground.split():
+                        counts[w] += 1
+                        examples.setdefault(w, cur[:])
+    except OSError:
+        return []
+    return [(w, n, examples.get(w, []))
+            for w, n in counts.most_common() if n >= least]
+
+
+def propose(least=3, limit=5):
+    """File where the record keeps pointing. Written outside the
+    knowledge: a proposal is not something the fabric holds, it is
+    something it is asking for."""
+    out = proposals(least)
+    if not out:
+        return []
+    try:
+        seen = open(PROPOSALS).read() if os.path.exists(PROPOSALS) else ""
+    except OSError:
+        seen = ""
+    made = []
+    for w, n, ex in out[:limit]:
+        if f"AREA: {w}\n" in seen:
+            continue
+        made.append((w, n, ex))
+    if made:
+        try:
+            with open(PROPOSALS, "a") as f:
+                if not seen:
+                    f.write("# AREAS TO WRITE — where the record "
+                            "keeps pointing\n\nEach of these is a "
+                            "ground on which joints keep being "
+                            "refused: things almost connect there "
+                            "and nothing underneath is written. Read "
+                            "out of the refusals, not composed. A "
+                            "proposal is not knowledge and is kept "
+                            "outside it.\n")
+                for w, n, ex in made:
+                    f.write(f"\nAREA: {w}\n"
+                            f"  {n} joints refused on this ground — "
+                            f"they share the word and nothing "
+                            f"underneath connects them.\n")
+                    for line in ex[:2]:
+                        f.write(f"    {line[:96]}\n")
+                    f.write(f"  WHAT WOULD DRAIN IT: something "
+                            f"written about {w} that the entries "
+                            f"above could both stand on.\n")
+        except OSError:
+            return []
+    return made

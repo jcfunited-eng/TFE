@@ -51,6 +51,7 @@ LIVING = 8             # ribbons held at once
 MEET_PAIRS = 6         # meetings looked at per beat
 MINT_EVERY = 5         # beats between attempts to write a new claim
 MINT_BUDGET = 8.0      # a minting beat gets room to finish
+PROPOSE_EVERY = 200    # beats between asking for what is not written
 CHECKPOINT_EVERY = 20
 
 STOP = False
@@ -299,6 +300,24 @@ def beat(F, s, pool, live, qcache=None):
     if found:
         log(f"beat {b}: {found} opening(s) between ribbons")
 
+    # 4b. when the record keeps pointing at the same ground, say so.
+    #     The direction asks it to propose new areas when its own
+    #     records point at territory not yet written, and after three
+    #     hours the yield fell to two claims an hour — not because
+    #     anything broke, but because the pairs its knowledge
+    #     supports have been mined. A ground that keeps refusing
+    #     joints is a hole with a shape.
+    if b % PROPOSE_EVERY == 0:
+        try:
+            import minting
+            for w, n, _ex in minting.propose():
+                log(f"beat {b}: ASKS FOR an area nobody wrote — "
+                    f"'{w}': {n} joints keep failing on it, and "
+                    f"nothing underneath is written")
+                s["asked_for"] = s.get("asked_for", 0) + 1
+        except Exception as e:
+            log(f"beat {b}: proposing an area failed ({e})")
+
     # 5. a ribbon that has been read and has met the others has done
     #    what it came to do, so it settles out and the living set
     #    turns over. Without this it re-reads the same handful for
@@ -408,6 +427,7 @@ def run():
                 f"{s['openings']} openings, "
                 f"{len(set(s.get('recent', [])))} distinct questions "
                 f"in the last {len(s.get('recent', []))} reads, "
+                f"{s.get('asked_for', 0)} areas asked for, "
                 f"{s.get('minted', 0)} claims minted "
                 f"({s.get('refused', 0)} refused by the law), "
                 f"{len(live)} living")
