@@ -268,3 +268,38 @@ All six requested local media kinds now have direct live physical-transition
 evidence. L-008 remains **Partial** only for exact duplicate idempotence and the
 configured ceiling-refusal acceptance. Exact post-restart source restoration
 is already proved above.
+
+## Duplicate and ceiling closure — 2026-08-29
+
+- After the camera, rendered glyph, PDF, song, and video experiences had
+  intervened, the exact ordinary-audio source was offered once more as a
+  developmentally spaced recurrence. It returned the original source receipt
+  `e45703942b4e201700b7d27eead18ac6623e463bbb03e388b5baf79626145da3`
+  and committed a new physical hearing occurrence at tick `260507`.
+- Before and after that duplicate, the custody inventory remained exactly
+  seven records and 4,930,212 total bytes. Only one audio record exists, with
+  the same 38,478 bytes and source SHA-256
+  `c0d7cd1ef830ee5f2296af7ddb94c051c395a8f4fb14c3d48bc4c8731c28e968`.
+  The duplicate therefore exercised real idempotence without pretending that
+  a repeated physical experience should be suppressed.
+- The duplicate sensory occurrence itself returned HTTP 200 in 50.268 seconds
+  and carried 19,200 pressure samples across 18 whole-sensorium hops, 14,000
+  physically transitioned neurons, 89 complete-neuron-fractal occurrences,
+  and 680 partial-cue reassemblies. Causal-transition receipt:
+  `7a53b094381b92b8e1a738fb9ba61d415e4dc08e34fc07d5a7f7e9d14959c55d`.
+- Production reports the mounted bounds as 24 MiB per source, 32 sources, and
+  256 MiB total. `bounded_source_media_store.py` in task-1322 source has exact
+  SHA-256
+  `694687a2d3d029421491d2d8122719ee0eac17a76551e896d544930d026c9831`,
+  byte-identical to the task-1300 reviewed source. Its focused falsifiers prove
+  count and total-byte exhaustion refuse before writing and leave no stage;
+  the per-source boundary refuses before receipt construction. Production was
+  not deliberately filled with 25 junk records or hundreds of megabytes merely
+  to exhaust those same fixed branches.
+
+**L-008 is live-closed.** Picture, PDF, book, ordinary audio, song, and video
+each committed through their actual visual/auditory physical paths; exact
+source custody, restart verification, duplicate idempotence, and fixed resource
+bounds are proved at their appropriate live/source-falsifier levels. This does
+not claim recognition, understanding, autonomous media selection, or complete
+curriculum learning.

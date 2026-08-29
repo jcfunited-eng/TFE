@@ -740,7 +740,7 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   27-receptor retinal occurrence. Independent real microphone pressure remains
   committed in the same process. This closes physical ingress, not learned
   reading, autonomous source selection, or word meaning.
-- [ ] **L-008 — LIVE-MOUNTED PARTIAL 2026-08-28:** Connect local books, PDFs,
+- [x] **L-008 — LIVE-CLOSED 2026-08-29:** Connect local books, PDFs,
   pictures, sounds, songs, and video as bounded sensory experiences while
   preserving provenance and source media. Task 1300 exposes all six through
   the same bounded physical-presentation route, with exact immutable source
@@ -753,9 +753,12 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   geometric PDF then committed 108 sight inputs at tick 260292; the separately
   retained elephant PDF rehashed exactly after restart. A two-second abstract
   video then committed synchronized light and pressure at tick 260406 and was
-  durable through CURRENT tick 260439. All six media kinds now have direct live
-  physical-transition evidence; duplicate idempotence and ceiling refusal
-  remain open.
+  durable through CURRENT tick 260439. A spaced exact-audio re-encounter then
+  returned the same receipt while inventory remained seven records / 4,930,212
+  bytes. Production exposes the fixed 24 MiB/source, 32-source, and 256 MiB
+  total bounds from the byte-identical store whose refusal falsifiers pass.
+  This closes bounded physical media ingress, not recognition, understanding,
+  or autonomous media selection.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
