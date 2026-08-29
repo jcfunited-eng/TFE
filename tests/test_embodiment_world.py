@@ -11,6 +11,8 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 from dsf_ai_service.substrate.embodiment_world import (
+    AdvanceContactOpticalSurfaceCommand,
+    ContactOpticalSurfaceSequence,
     ENVELOPE_SCHEMA,
     DEFAULT_MAX_ENCODED_STATE_BYTES,
     PORT_ID,
@@ -21,6 +23,8 @@ from dsf_ai_service.substrate.embodiment_world import (
     EmbodimentWorldAuthority,
     GraspContactCommand,
     MoveCommand,
+    ObjectMaterialState,
+    ObjectOpticalSurface,
     PickCommand,
     PlaceCommand,
     PoseMM,
@@ -313,6 +317,152 @@ def test_grasp_contact_refuses_absent_or_ambiguous_touch_geometry() -> None:
     assert ambiguous_result.disposition == "rejected"
     assert ambiguous_result.reason == "grasp_contact_ambiguous"
     assert ambiguous.encoded_snapshot() == ambiguous_before
+
+
+def test_contact_surface_advances_one_bound_leaf_and_survives_restore() -> None:
+    first = ObjectOpticalSurface(
+        columns=2,
+        rows=1,
+        palette_reflectance_ppm=((100_000,) * 6, (900_000,) * 6),
+        cell_palette_indices=(0, 1),
+    )
+    second = ObjectOpticalSurface(
+        columns=2,
+        rows=1,
+        palette_reflectance_ppm=((200_000,) * 6, (800_000,) * 6),
+        cell_palette_indices=(1, 0),
+    )
+    material = ObjectMaterialState(
+        odorant_reservoir_nanograms=(0,) * 8,
+        odorant_release_nanograms_per_second=(0,) * 8,
+        tastant_mass_micrograms=(0,) * 5,
+        surface_temperature_millikelvin=294_000,
+        compliance_ppm=60_000,
+        roughness_micrometers=60,
+        moisture_ppm=18_000,
+    )
+    item = EmbodiedObject(
+        object_id="bound-book",
+        radius_mm=50,
+        mass_grams=100,
+        position=PositionMM(1300, 1000, 0),
+        material=material,
+    )
+    sequence = ContactOpticalSurfaceSequence(
+        object_id="bound-book",
+        source_receipt_sha256="ab" * 32,
+        surfaces=(first, second),
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="embodiment-contact-surface-key",
+        initial_objects=(item,),
+        contact_optical_surface_sequences=(sequence,),
+    )
+    command = AdvanceContactOpticalSurfaceCommand(
+        duration_microseconds=200_000
+    )
+
+    assert decode_command(encode_command(command)) == command
+    first_page = _execute(authority, command, intent_number=7)
+
+    assert first_page.disposition == "applied"
+    assert first_page.after.objects[0].optical_surface == first
+    assert _body(first_page.after).held_object_id is None
+    assert _body(first_page.after).active_contact.object_id == "bound-book"
+
+    encoded = authority.encoded_snapshot()
+    restored = EmbodimentWorldAuthority(
+        authority_key="embodiment-contact-surface-key",
+        initial_objects=(item,),
+        contact_optical_surface_sequences=(sequence,),
+    )
+    restored.restore_encoded(encoded)
+    second_page = _execute(restored, command, intent_number=8)
+
+    assert second_page.disposition == "applied"
+    assert second_page.after.objects[0].optical_surface == second
+    complete_body = restored.encoded_snapshot()
+    complete = _execute(restored, command, intent_number=9)
+    assert complete.disposition == "rejected"
+    assert complete.reason == "contact_surface_sequence_complete"
+    assert restored.encoded_snapshot() == complete_body
+
+
+def test_contact_surface_refuses_absent_ambiguous_or_unbound_geometry() -> None:
+    surface = ObjectOpticalSurface(
+        columns=2,
+        rows=1,
+        palette_reflectance_ppm=(
+            (300_000,) * 6,
+            (700_000,) * 6,
+        ),
+        cell_palette_indices=(0, 1),
+    )
+    command = AdvanceContactOpticalSurfaceCommand(
+        duration_microseconds=200_000
+    )
+
+    distant = EmbodiedObject(
+        object_id="distant-book",
+        radius_mm=50,
+        mass_grams=100,
+        position=PositionMM(1800, 1000, 0),
+    )
+    absent = EmbodimentWorldAuthority(
+        authority_key="contact-surface-absent-key",
+        initial_objects=(distant,),
+        contact_optical_surface_sequences=(
+            ContactOpticalSurfaceSequence(
+                object_id="distant-book",
+                source_receipt_sha256="cd" * 32,
+                surfaces=(surface,),
+            ),
+        ),
+    )
+    absent_body = absent.encoded_snapshot()
+    absent_result = _execute(absent, command, intent_number=10)
+    assert absent_result.disposition == "rejected"
+    assert absent_result.reason == "contact_surface_absent"
+    assert absent.encoded_snapshot() == absent_body
+
+    east = EmbodiedObject(
+        object_id="east-book",
+        radius_mm=50,
+        mass_grams=100,
+        position=PositionMM(1300, 1000, 0),
+    )
+    north = EmbodiedObject(
+        object_id="north-book",
+        radius_mm=50,
+        mass_grams=100,
+        position=PositionMM(1000, 1300, 0),
+    )
+    ambiguous = EmbodimentWorldAuthority(
+        authority_key="contact-surface-ambiguous-key",
+        initial_objects=(east, north),
+        contact_optical_surface_sequences=(
+            ContactOpticalSurfaceSequence(
+                object_id="east-book",
+                source_receipt_sha256="de" * 32,
+                surfaces=(surface,),
+            ),
+        ),
+    )
+    ambiguous_body = ambiguous.encoded_snapshot()
+    ambiguous_result = _execute(ambiguous, command, intent_number=11)
+    assert ambiguous_result.disposition == "rejected"
+    assert ambiguous_result.reason == "contact_surface_ambiguous"
+    assert ambiguous.encoded_snapshot() == ambiguous_body
+
+    unbound = EmbodimentWorldAuthority(
+        authority_key="contact-surface-unbound-key",
+        initial_objects=(east,),
+    )
+    unbound_body = unbound.encoded_snapshot()
+    unbound_result = _execute(unbound, command, intent_number=12)
+    assert unbound_result.disposition == "rejected"
+    assert unbound_result.reason == "contact_surface_unbound"
+    assert unbound.encoded_snapshot() == unbound_body
 
 
 @pytest.mark.parametrize(

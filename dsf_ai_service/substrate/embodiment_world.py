@@ -118,6 +118,7 @@ MAX_PHYSICAL_PPM = 1_000_000
 MAX_OPTICAL_SURFACE_COLUMNS = 128
 MAX_OPTICAL_SURFACE_ROWS = 160
 MAX_OPTICAL_SURFACE_PALETTE_ENTRIES = 256
+MAX_CONTACT_OPTICAL_SURFACES = 32
 ODORANT_CHANNELS = 8
 TASTANT_CHANNELS = 5
 MIN_MATERIAL_ACTION_DURATION_US = 1_000
@@ -1105,6 +1106,45 @@ class GraspContactCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class AdvanceContactOpticalSurfaceCommand:
+    """Advance the uniquely contacted bound surface by one physical leaf.
+
+    The command deliberately carries no object, source, page, title, or text
+    identity. The world resolves contact geometrically and its mounted
+    immutable surface sequence is transport provenance, never cognition.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class ContactOpticalSurfaceSequence:
+    """One bounded immutable material surface sequence outside cognition."""
+
+    object_id: str
+    source_receipt_sha256: str
+    surfaces: tuple[ObjectOpticalSurface, ...]
+
+    def verify(self) -> None:
+        _identifier(self.object_id, "contact optical surface object")
+        _sha256_identity(
+            self.source_receipt_sha256,
+            "contact optical surface source receipt",
+        )
+        if (
+            not isinstance(self.surfaces, tuple)
+            or not 1 <= len(self.surfaces) <= MAX_CONTACT_OPTICAL_SURFACES
+        ):
+            raise ValueError("contact optical surface sequence exceeds capacity")
+        for surface in self.surfaces:
+            if not isinstance(surface, ObjectOpticalSurface):
+                raise ValueError("contact optical surface sequence changed type")
+            surface.verify()
+        if len(set(self.surfaces)) != len(self.surfaces):
+            raise ValueError("contact optical surface sequence repeats a leaf")
+
+
+@dataclass(frozen=True, slots=True)
 class PlaceCommand:
     object_id: str
     target_position: PositionMM
@@ -1143,6 +1183,7 @@ EmbodimentCommand = (
     MoveCommand
     | PickCommand
     | GraspContactCommand
+    | AdvanceContactOpticalSurfaceCommand
     | PlaceCommand
     | VocalizeCommand
     | TouchContactCommand
@@ -1186,6 +1227,17 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
                 maximum=MAX_MATERIAL_ACTION_DURATION_US,
             ),
             "operation": "grasp_contact",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, AdvanceContactOpticalSurfaceCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "advance_contact_optical_surface",
             "schema": COMMAND_SCHEMA,
         }
     if isinstance(command, PlaceCommand):
@@ -1282,6 +1334,7 @@ def _command_elapsed_nanoseconds(
             MoveCommand,
             PickCommand,
             GraspContactCommand,
+            AdvanceContactOpticalSurfaceCommand,
             PlaceCommand,
             TouchContactCommand,
             OralContactCommand,
@@ -1361,6 +1414,17 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
         "duration_microseconds", "operation", "schema"
     }:
         result = GraspContactCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "advance_contact_optical_surface" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = AdvanceContactOpticalSurfaceCommand(
             _bounded_integer(
                 decoded.get("duration_microseconds"),
                 "physical action duration",
@@ -2585,6 +2649,9 @@ class EmbodimentWorldAuthority:
         receipt_capacity: int = DEFAULT_RECEIPT_CAPACITY,
         max_command_bytes: int = DEFAULT_MAX_COMMAND_BYTES,
         max_encoded_state_bytes: int = DEFAULT_MAX_ENCODED_STATE_BYTES,
+        contact_optical_surface_sequences: Sequence[
+            ContactOpticalSurfaceSequence
+        ] = (),
     ) -> None:
         self._key = _authority_key(authority_key)
         self._max_regions = _bounded_integer(
@@ -2620,6 +2687,23 @@ class EmbodimentWorldAuthority:
             minimum=4096,
             maximum=DEFAULT_MAX_ENCODED_STATE_BYTES,
         )
+        if (
+            not isinstance(contact_optical_surface_sequences, Sequence)
+            or isinstance(
+                contact_optical_surface_sequences,
+                (str, bytes, bytearray),
+            )
+        ):
+            raise ValueError("contact optical surface sequences changed type")
+        mounted_sequences: dict[str, ContactOpticalSurfaceSequence] = {}
+        for sequence in contact_optical_surface_sequences:
+            if not isinstance(sequence, ContactOpticalSurfaceSequence):
+                raise ValueError("contact optical surface sequence is not typed")
+            sequence.verify()
+            if sequence.object_id in mounted_sequences:
+                raise ValueError("contact optical surface object repeats")
+            mounted_sequences[sequence.object_id] = sequence
+        self._contact_optical_surface_sequences = mounted_sequences
         if regions is None:
             physical_regions = _default_regions()
         else:
@@ -2774,6 +2858,60 @@ class EmbodimentWorldAuthority:
         ) = None
         self._lock = threading.RLock()
         self._encoded_state_for(self._state)
+
+    def _validate_contact_optical_surface_sequences(
+        self,
+        world: _WorldState,
+    ) -> None:
+        objects = {item.object_id: item for item in world.objects}
+        for object_id, sequence in self._contact_optical_surface_sequences.items():
+            item = objects.get(object_id)
+            if item is None:
+                raise ValueError(
+                    "contact optical surface object is absent from the world"
+                )
+            if (
+                item.optical_surface is not None
+                and item.optical_surface not in sequence.surfaces
+            ):
+                raise ValueError(
+                    "contact optical surface object carries an unknown leaf"
+                )
+
+    def mount_contact_optical_surface_sequence(
+        self,
+        sequence: ContactOpticalSurfaceSequence,
+    ) -> None:
+        """Mount immutable source transport without changing physical state."""
+
+        if not isinstance(sequence, ContactOpticalSurfaceSequence):
+            raise ValueError("contact optical surface sequence is not typed")
+        sequence.verify()
+        with self._lock:
+            self._require_public_visibility_locked()
+            prior = self._contact_optical_surface_sequences.get(
+                sequence.object_id
+            )
+            if prior is not None:
+                if prior != sequence:
+                    raise ValueError(
+                        "contact optical surface sequence cannot be rebound"
+                    )
+                return
+            candidate = dict(self._contact_optical_surface_sequences)
+            candidate[sequence.object_id] = sequence
+            self._contact_optical_surface_sequences = candidate
+            try:
+                self._validate_contact_optical_surface_sequences(
+                    self._state.world
+                )
+            except BaseException:
+                self._contact_optical_surface_sequences = {
+                    key: value
+                    for key, value in candidate.items()
+                    if key != sequence.object_id
+                }
+                raise
 
     def _derive_physical_body_mount_observation_receipt(
         self,
@@ -3347,6 +3485,7 @@ class EmbodimentWorldAuthority:
                     )
                 ):
                     raise ValueError("placed objects intersect each other")
+        self._validate_contact_optical_surface_sequences(world)
 
     def _observation_for(self, world: _WorldState) -> ObservationSnapshot:
         state_record = world._canonical_record()
@@ -3780,6 +3919,77 @@ class EmbodimentWorldAuthority:
                     duration_microseconds=command.duration_microseconds,
                 ),
             )
+
+        if isinstance(command, AdvanceContactOpticalSurfaceCommand):
+            if body.held_object_id is not None:
+                return None, "contact_surface_body_already_holding"
+            geometry = body.receptor_geometry
+            if geometry is None:
+                return None, "contact_surface_geometry_unavailable"
+            receptor_position = _receptor_position(
+                body,
+                geometry.touch_offset_mm,
+            )
+            if receptor_position is None:
+                return None, "contact_surface_heading_geometry_unresolved"
+            contacted = tuple(
+                (index, item, patch)
+                for index, item in enumerate(objects)
+                if item.position is not None
+                and (
+                    patch := _derived_contact_patch_square_mm(
+                        receptor_position=receptor_position,
+                        receptor_radius_mm=geometry.touch_radius_mm,
+                        object_position=item.position,
+                        object_radius_mm=item.radius_mm,
+                    )
+                )
+                is not None
+            )
+            if not contacted:
+                return None, "contact_surface_absent"
+            if len(contacted) != 1:
+                return None, "contact_surface_ambiguous"
+            object_index, item, patch = contacted[0]
+            sequence = self._contact_optical_surface_sequences.get(
+                item.object_id
+            )
+            if sequence is None:
+                return None, "contact_surface_unbound"
+            if item.optical_surface is None:
+                successor_index = 0
+            else:
+                try:
+                    successor_index = (
+                        sequence.surfaces.index(item.optical_surface) + 1
+                    )
+                except ValueError as error:
+                    raise RuntimeError(
+                        "contact surface left its mounted source sequence"
+                    ) from error
+            if successor_index >= len(sequence.surfaces):
+                return None, "contact_surface_sequence_complete"
+            objects[object_index] = replace(
+                item,
+                optical_surface=sequence.surfaces[successor_index],
+            )
+            bodies[body_index] = replace(
+                body,
+                active_contact=BodyContactState(
+                    kind="touch",
+                    object_id=item.object_id,
+                    contact_patch_square_mm=patch,
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
 
         if isinstance(command, PlaceCommand):
             found = by_id.get(command.object_id)
@@ -6274,10 +6484,12 @@ class EmbodimentWorldAuthority:
 
 __all__ = [
     "ActionExecutionReceipt",
+    "AdvanceContactOpticalSurfaceCommand",
     "AdvancePhysicalTimeCommand",
     "AirVolumeState",
     "BodyContactState",
     "BodyReceptorGeometry",
+    "ContactOpticalSurfaceSequence",
     "EmbodiedBody",
     "EmbodiedObject",
     "EmbodimentPort",

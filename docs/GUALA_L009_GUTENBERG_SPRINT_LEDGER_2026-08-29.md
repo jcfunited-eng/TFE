@@ -4,6 +4,42 @@ Date: 2026-08-29
 
 Status: **IN PROGRESS — guided live; native grasp boundary live, selection unwitnessed**
 
+## Current one-item implementation contract
+
+The next production slice is one physical cause chain, not another selection
+endpoint:
+
+1. the already-preserved Alice edition is mounted as an immutable ordered
+   sequence of physical optical surfaces on the persistent-world `book`;
+2. a positive displacement of exactly one native grip aperture, while the
+   hand contacts that placed book and no root motion occurs, issues one generic
+   `advance_contact_surface` action carrying no object, title, page, or source
+   identity;
+3. the world resolves the uniquely contacted object from receptor/object
+   geometry, advances only a source-bound optical surface by one page, and
+   persists that surface in the existing world state;
+4. the resulting geometrically applicable before/after page light, contact,
+   proprioception, chemistry, and internal consequences return through the
+   existing action-consequence episode to the same resident organism; an
+   out-of-view page remains physically present but is not fabricated as sight;
+5. absent contact, ambiguous contact, an unbound object, two opening hands,
+   root motion, or a non-opening grip changes no page.
+
+The immutable source sequence is transport provenance outside cognition. Its
+catalogue record, decoded text, receipt, title, and page ordinal never enter a
+receptor or become a motor command. The current optical surface already has a
+canonical persisted representation, so this item adds no organism copy, page
+database, selection ledger, or state schema. The rejected sequential Python
+source-offering branch is deleted in the same slice and cannot be restored by
+an endpoint call.
+
+Recurrence review for this slice: RF-001/002/003 apply to source and byte
+custody; RF-010 applies to the coupled world/organism commit and rollback;
+RF-013/014/015 apply to action, visual consequence, and contact consequence;
+RF-028 applies to the retained optical surface; RF-048 applies to restart;
+RF-055 applies to bounded page count and source bytes. L0-L4, the seven DSF
+fields, native neuron physics, and existing learned state are unchanged.
+
 ## Requested boundary
 
 - A guide may name one exact approved Project Gutenberg edition.
@@ -203,3 +239,37 @@ identity, advanced unattended from tick `276929` through at least `277000`, and
 reports all 28 touch sites. No native grip has yet grasped the persistent-world
 book, so L-009 remains open and the legacy flat-source Python evidence result is
 not accepted as physical selection.
+
+## Contact-bound page action candidate
+
+The next candidate removes the legacy autonomous endpoint selector and joins
+the persistent book to one exact bounded Alice source already held in immutable
+custody. The source renders at most twelve optical surfaces outside cognition;
+the book's current surface remains in the existing authenticated world state.
+No title, text, page number, source identity, or object identity enters a motor
+command. A native positive displacement of exactly one grip aperture can only
+request that the world advance the uniquely contacted bound surface by one
+leaf. Absence, ambiguity, an unbound object, a completed sequence, or a body
+already holding an object refuses without changing the world. The following
+page survives ordinary world encode/restore and remains tied to the same source
+receipt.
+
+Local evidence before cutover:
+
+- source fingerprint
+  `9341457c4920876ff743c5e37966badae3ec9e25d474bce3cfd666249f06b333`
+  was verified before the focused proof run;
+- Python compilation passed for the world and production application;
+- six exact contact/action proofs passed, covering advance, restore, completion,
+  absence, ambiguity, unbound material, existing closing-grip behavior, and the
+  native opening-grip command boundary;
+- the two directly affected test files produced 36 passes and one unchanged
+  local native-extension mismatch: the installed compiled core exposes an older
+  articulated-body axis count. The failing pre-existing test and Rust core are
+  untouched by this candidate;
+- `git diff --check` passed.
+
+This is not yet production evidence and does not close L-009. Production must
+first restore the same resident organism with this source path mounted, then
+either witness a real contacted opening action and its preserved page surface
+or report the exact missing physical cause without manufacturing one.

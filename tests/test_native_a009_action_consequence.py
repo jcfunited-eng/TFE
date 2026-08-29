@@ -116,6 +116,99 @@ def test_native_body_feedback_joins_the_next_world_consequence(
     assert isinstance(world.prepared_command, GraspContactCommand)
 
 
+def test_one_native_opening_grip_advances_only_the_contacted_surface(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service.substrate.embodiment_world import (
+        AdvanceContactOpticalSurfaceCommand,
+        PreparedActionExecution,
+        decode_command,
+    )
+
+    prepared = PreparedActionExecution(
+        execution_receipt=SimpleNamespace(before=object(), after=object()),
+        _prior_state=object(),
+        _candidate_state=object(),
+        _construction_authority=object(),
+    )
+
+    class World:
+        prepared_command = None
+
+        @staticmethod
+        def observation_snapshot() -> SimpleNamespace:
+            return SimpleNamespace(revision=9, state_sha256="10" * 32)
+
+        @classmethod
+        def prepare_port_command(cls, **kwargs) -> PreparedActionExecution:
+            cls.prepared_command = decode_command(kwargs["command_payload"])
+            return prepared
+
+        @staticmethod
+        def discard_prepared_action(_prepared) -> None:
+            raise AssertionError("lawful page action was discarded")
+
+    world = World()
+    body_source = SimpleNamespace(occurrence_count=1)
+    monkeypatch.setattr(production, "_world", lambda: world)
+    monkeypatch.setattr(
+        production,
+        "_action_consequence_episode",
+        lambda *_args, **_kwargs: (
+            "world-source",
+            [(1, 1_000)],
+            {"world": True},
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_world_displacement",
+        lambda *_args: (0, 0, 0, 0),
+    )
+    monkeypatch.setattr(
+        production,
+        "restore_native_joint_source_episode",
+        lambda *_args: body_source,
+    )
+
+    result = production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="20" * 32,
+        causal_transition_sha256="30" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(("motor",),),
+        root_yaw_unit_recruitments=(),
+        root_translation_unit_recruitments=(),
+        body_effector_bindings=(("effector",),),
+        articulated_body_consequences=(
+            (
+                10,
+                "right_grip_aperture",
+                "micrometre",
+                0,
+                1,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+            ),
+        ),
+        body_proprioceptive_sources=(
+            (b"native-body-source", (10, 3, 6, 1, 6)),
+        ),
+        root_yaw_source_tick=10,
+    )
+
+    assert result is not None
+    assert isinstance(
+        world.prepared_command,
+        AdvanceContactOpticalSurfaceCommand,
+    )
+
+
 def test_native_root_discharge_turns_world_and_returns_typed_direction(
     monkeypatch,
 ) -> None:
