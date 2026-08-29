@@ -518,6 +518,7 @@ WORLD_ENV = "GUALA_WORLD"
 WORLD_STATE_FILE = "world.glworld"
 WORLD_MOVE_ENDPOINT = "/api/v1/world/move"
 WORLD_OTHER_BODY_MOVE_ENDPOINT = "/api/v1/world/other-body/move"
+WORLD_OTHER_BODY_ACTION_ENDPOINT = "/api/v1/world/other-body/action"
 WORLD_OBSERVATION_ENDPOINT = "/api/v1/world/observation"
 # The declared span a displacement is reported as a fraction of.  A body that
 # crosses more than this in one move is refused rather than saturated.
@@ -15760,40 +15761,64 @@ def world_observation() -> JSONResponse:
     )
 
 
+@app.post(WORLD_OTHER_BODY_ACTION_ENDPOINT)
 @app.post(WORLD_OTHER_BODY_MOVE_ENDPOINT)
 def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
-    """Let an external participant move only its own authenticated world body."""
+    """Let an external participant act only through its authenticated body."""
 
     global _reciprocal_social_play_candidate
     global _active_cross_intake_causal_motor_traces
     if not WORLD_AUTHORIZED:
         return _refusal(503, "no persistent world is mounted")
     if not isinstance(payload, dict):
-        return _refusal(422, "an other-body move requires a JSON body")
-    try:
-        x = int(payload["x_mm"])
-        y = int(payload["y_mm"])
-        heading = int(payload["heading_millidegrees"])
-        signed_yaw = int(payload.get("signed_yaw_millidegrees", 0))
-    except (KeyError, TypeError, ValueError):
+        return _refusal(422, "an other-body action requires a JSON body")
+    operation = payload.get("operation", "move")
+    if operation not in {"move", "pick"}:
         return _refusal(
             422,
-            "an other-body move requires integer x_mm, y_mm, "
-            "heading_millidegrees, and signed_yaw_millidegrees",
+            "an other-body action operation must be 'move' or 'pick'",
         )
-    if any(isinstance(payload.get(name), bool) for name in (
-        "x_mm",
-        "y_mm",
-        "heading_millidegrees",
-        "signed_yaw_millidegrees",
-    )):
-        return _refusal(422, "other-body coordinates and yaw must be integers")
-    if not -(1 << 31) <= signed_yaw < (1 << 31):
-        return _refusal(422, "signed_yaw_millidegrees exceeds signed 32-bit range")
+    x = y = heading = signed_yaw = None
+    object_id = None
+    if operation == "move":
+        try:
+            x = int(payload["x_mm"])
+            y = int(payload["y_mm"])
+            heading = int(payload["heading_millidegrees"])
+            signed_yaw = int(payload.get("signed_yaw_millidegrees", 0))
+        except (KeyError, TypeError, ValueError):
+            return _refusal(
+                422,
+                "an other-body move requires integer x_mm, y_mm, "
+                "heading_millidegrees, and signed_yaw_millidegrees",
+            )
+        if any(isinstance(payload.get(name), bool) for name in (
+            "x_mm",
+            "y_mm",
+            "heading_millidegrees",
+            "signed_yaw_millidegrees",
+        )):
+            return _refusal(
+                422,
+                "other-body coordinates and yaw must be integers",
+            )
+        if not -(1 << 31) <= signed_yaw < (1 << 31):
+            return _refusal(
+                422,
+                "signed_yaw_millidegrees exceeds signed 32-bit range",
+            )
+    else:
+        object_id = payload.get("object_id")
+        if not isinstance(object_id, str) or not object_id:
+            return _refusal(
+                422,
+                "an other-body pick requires a nonempty object_id",
+            )
 
     from dsf_ai_service.substrate.embodiment_world import (
         ActionExecutionReceipt,
         MoveCommand,
+        PickCommand,
         PoseMM,
         PositionMM,
         PreparedActionExecution,
@@ -15812,36 +15837,59 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             item for item in before.bodies
             if item.body_id == other_port.actor_body_id
         )
-        successor_heading, _trajectory = exact_native_yaw_trajectory(
-            predecessor_heading_millidegrees=other.pose.heading_millidegrees,
-            signed_displacement_millidegrees=signed_yaw,
-            duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
-        )
-        if successor_heading != heading:
-            return _refusal(
-                422,
-                "signed_yaw_millidegrees does not settle at the requested "
-                "other-body heading",
+        if operation == "move":
+            assert x is not None
+            assert y is not None
+            assert heading is not None
+            assert signed_yaw is not None
+            successor_heading, _trajectory = exact_native_yaw_trajectory(
+                predecessor_heading_millidegrees=other.pose.heading_millidegrees,
+                signed_displacement_millidegrees=signed_yaw,
+                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
             )
-        intent = _receipt(
-            {
+            if successor_heading != heading:
+                return _refusal(
+                    422,
+                    "signed_yaw_millidegrees does not settle at the requested "
+                    "other-body heading",
+                )
+            intent_body = {
                 "actor_body_id": other.body_id,
                 "expected_world_revision": before.revision,
+                "operation": operation,
                 "signed_yaw_millidegrees": signed_yaw,
                 "target_heading_millidegrees": heading,
                 "target_x_mm": x,
                 "target_y_mm": y,
             }
-        )
+            command = MoveCommand(
+                target_pose=PoseMM(PositionMM(x, y, 0), heading),
+                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+            )
+            action_detail = {
+                "heading_millidegrees": heading,
+                "signed_yaw_millidegrees": signed_yaw,
+                "x_mm": x,
+                "y_mm": y,
+            }
+        else:
+            assert object_id is not None
+            intent_body = {
+                "actor_body_id": other.body_id,
+                "expected_world_revision": before.revision,
+                "object_id": object_id,
+                "operation": operation,
+            }
+            command = PickCommand(
+                object_id=object_id,
+                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+            )
+            action_detail = {"object_id": object_id}
+        intent = _receipt(intent_body)
         try:
             prepared = authority.prepare_port_command(
                 port_id=SECOND_BODY_PORT_ID,
-                command_payload=encode_command(
-                    MoveCommand(
-                        target_pose=PoseMM(PositionMM(x, y, 0), heading),
-                        duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
-                    )
-                ),
+                command_payload=encode_command(command),
                 causal_intent_receipt_sha256=intent,
                 expected_revision=before.revision,
             )
@@ -15904,16 +15952,14 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "actor_body_id": execution.actor_body_id,
             "authority_receipt_sha256": execution.authority_receipt_sha256,
             "causal_intent_receipt_sha256": intent,
-            "heading_millidegrees": heading,
+            "operation": operation,
             "port_id": execution.port_id,
-            "signed_yaw_millidegrees": signed_yaw,
             "visual_changed_receptor_count": visual_changed,
             "world_revision_after": execution.after.revision,
             "world_revision_before": execution.before.revision,
             "world_state_after_sha256": execution.after.state_sha256,
             "world_state_before_sha256": execution.before.state_sha256,
-            "x_mm": x,
-            "y_mm": y,
+            **action_detail,
         }
         action["evidence_receipt_sha256"] = _receipt(action)
         prior_social_candidate = _reciprocal_social_play_candidate
@@ -15956,7 +16002,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     "action": action,
                     "ok": False,
                     "reason": (
-                        "the other body moved and persisted, but its exact "
+                        "the other body acted and persisted, but its exact "
                         "sensory transition was refused; do not repeat the "
                         f"action ({type(error).__name__}: {error})"
                     ),

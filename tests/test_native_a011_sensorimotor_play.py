@@ -8,6 +8,8 @@ from dsf_ai_service import native_production_app as production
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     SECOND_BODY_PORT_ID,
+    EmbodiedObject,
+    EmbodimentWorldAuthority,
     MoveCommand,
     PoseMM,
     PositionMM,
@@ -616,6 +618,61 @@ def test_other_participant_moves_only_its_authenticated_world_body(
     assert value["action"]["world_state_before_sha256"] != value["action"][
         "world_state_after_sha256"
     ]
+    assert (tmp_path / production.WORLD_STATE_FILE).is_file()
+
+
+def test_other_participant_can_pick_a_reached_object_through_the_same_world_path(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    authority = EmbodimentWorldAuthority(
+        authority_key="other-body-pick-test-key",
+        initial_objects=(
+            EmbodiedObject(
+                "toy-bear",
+                180,
+                400,
+                PositionMM(4_300, 4_750, 0),
+            ),
+        ),
+    )
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", authority)
+    monkeypatch.setattr(
+        production,
+        "_reciprocal_social_play_candidate",
+        None,
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        _accepted_external_intake,
+    )
+    monkeypatch.setattr(
+        production,
+        "_current_retinal_body_axes",
+        lambda: RETINAL_BODY_AXES,
+    )
+
+    response = production.world_other_body_move(
+        {"operation": "pick", "object_id": "toy-bear"}
+    )
+    value = json.loads(response.body)
+    after = authority.observation_snapshot()
+    participant = next(
+        body for body in after.bodies
+        if body.body_id != after.self_body_id
+    )
+    bear = next(item for item in after.objects if item.object_id == "toy-bear")
+
+    assert response.status_code == 200
+    assert value["action"]["operation"] == "pick"
+    assert value["action"]["object_id"] == "toy-bear"
+    assert participant.held_object_id == "toy-bear"
+    assert bear.position is None
+    assert bear.held_by_body_id == participant.body_id
     assert (tmp_path / production.WORLD_STATE_FILE).is_file()
 
 
