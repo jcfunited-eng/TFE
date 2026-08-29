@@ -621,7 +621,7 @@ def test_other_participant_moves_only_its_authenticated_world_body(
     assert (tmp_path / production.WORLD_STATE_FILE).is_file()
 
 
-def test_other_participant_can_pick_a_reached_object_through_the_same_world_path(
+def test_other_participant_can_pick_and_place_through_the_same_world_path(
     monkeypatch,
     tmp_path,
 ) -> None:
@@ -673,6 +673,32 @@ def test_other_participant_can_pick_a_reached_object_through_the_same_world_path
     assert participant.held_object_id == "toy-bear"
     assert bear.position is None
     assert bear.held_by_body_id == participant.body_id
+
+    placed_response = production.world_other_body_move(
+        {
+            "operation": "place",
+            "object_id": "toy-bear",
+            "x_mm": 4_300,
+            "y_mm": 4_250,
+        }
+    )
+    placed_value = json.loads(placed_response.body)
+    placed_world = authority.observation_snapshot()
+    participant = next(
+        body for body in placed_world.bodies
+        if body.body_id != placed_world.self_body_id
+    )
+    bear = next(
+        item for item in placed_world.objects
+        if item.object_id == "toy-bear"
+    )
+
+    assert placed_response.status_code == 200
+    assert placed_value["action"]["operation"] == "place"
+    assert placed_value["action"]["object_id"] == "toy-bear"
+    assert participant.held_object_id is None
+    assert bear.position == PositionMM(4_300, 4_250, 0)
+    assert bear.held_by_body_id is None
     assert (tmp_path / production.WORLD_STATE_FILE).is_file()
 
 

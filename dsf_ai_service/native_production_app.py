@@ -16008,10 +16008,11 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     if not isinstance(payload, dict):
         return _refusal(422, "an other-body action requires a JSON body")
     operation = payload.get("operation", "move")
-    if operation not in {"move", "pick"}:
+    if operation not in {"move", "pick", "place"}:
         return _refusal(
             422,
-            "an other-body action operation must be 'move' or 'pick'",
+            "an other-body action operation must be 'move', 'pick', or "
+            "'place'",
         )
     x = y = heading = signed_yaw = None
     object_id = None
@@ -16042,18 +16043,41 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 422,
                 "signed_yaw_millidegrees exceeds signed 32-bit range",
             )
-    else:
+    elif operation == "pick":
         object_id = payload.get("object_id")
         if not isinstance(object_id, str) or not object_id:
             return _refusal(
                 422,
                 "an other-body pick requires a nonempty object_id",
             )
+    else:
+        object_id = payload.get("object_id")
+        try:
+            x = int(payload["x_mm"])
+            y = int(payload["y_mm"])
+        except (KeyError, TypeError, ValueError):
+            return _refusal(
+                422,
+                "an other-body place requires a nonempty object_id and "
+                "integer x_mm and y_mm",
+            )
+        if (
+            not isinstance(object_id, str)
+            or not object_id
+            or isinstance(payload.get("x_mm"), bool)
+            or isinstance(payload.get("y_mm"), bool)
+        ):
+            return _refusal(
+                422,
+                "an other-body place requires a nonempty object_id and "
+                "integer x_mm and y_mm",
+            )
 
     from dsf_ai_service.substrate.embodiment_world import (
         ActionExecutionReceipt,
         MoveCommand,
         PickCommand,
+        PlaceCommand,
         PoseMM,
         PositionMM,
         PreparedActionExecution,
@@ -16107,7 +16131,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 "x_mm": x,
                 "y_mm": y,
             }
-        else:
+        elif operation == "pick":
             assert object_id is not None
             intent_body = {
                 "actor_body_id": other.body_id,
@@ -16120,6 +16144,28 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
             )
             action_detail = {"object_id": object_id}
+        else:
+            assert object_id is not None
+            assert x is not None
+            assert y is not None
+            intent_body = {
+                "actor_body_id": other.body_id,
+                "expected_world_revision": before.revision,
+                "object_id": object_id,
+                "operation": operation,
+                "target_x_mm": x,
+                "target_y_mm": y,
+            }
+            command = PlaceCommand(
+                object_id=object_id,
+                target_position=PositionMM(x, y, 0),
+                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+            )
+            action_detail = {
+                "object_id": object_id,
+                "x_mm": x,
+                "y_mm": y,
+            }
         intent = _receipt(intent_body)
         try:
             prepared = authority.prepare_port_command(
