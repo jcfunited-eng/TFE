@@ -15,7 +15,11 @@ from dsf_ai_service import native_production_app as production
 def test_native_body_feedback_joins_the_next_world_consequence(
     monkeypatch,
 ) -> None:
-    from dsf_ai_service.substrate.embodiment_world import PreparedActionExecution
+    from dsf_ai_service.substrate.embodiment_world import (
+        GraspContactCommand,
+        PreparedActionExecution,
+        decode_command,
+    )
 
     execution = SimpleNamespace(before=object(), after=object())
     prepared = PreparedActionExecution(
@@ -27,13 +31,15 @@ def test_native_body_feedback_joins_the_next_world_consequence(
 
     class World:
         discarded = False
+        prepared_command = None
 
         @staticmethod
         def observation_snapshot() -> SimpleNamespace:
             return SimpleNamespace(revision=7, state_sha256="10" * 32)
 
-        @staticmethod
-        def prepare_port_command(**_kwargs) -> PreparedActionExecution:
+        @classmethod
+        def prepare_port_command(cls, **kwargs) -> PreparedActionExecution:
+            cls.prepared_command = decode_command(kwargs["command_payload"])
             return prepared
 
         def discard_prepared_action(self, _prepared) -> None:
@@ -65,7 +71,21 @@ def test_native_body_feedback_joins_the_next_world_consequence(
         root_yaw_unit_recruitments=(),
         root_translation_unit_recruitments=(),
         body_effector_bindings=(("effector",),),
-        articulated_body_consequences=(("consequence",),),
+        articulated_body_consequences=(
+            (
+                8,
+                "left_grip_aperture",
+                "micrometre",
+                1,
+                0,
+                -1,
+                1,
+                0,
+                0,
+                1,
+                0,
+            ),
+        ),
         body_proprioceptive_sources=((b"native-body-source", (8, 3, 6, 2, 6)),),
         root_yaw_source_tick=8,
     )
@@ -93,6 +113,7 @@ def test_native_body_feedback_joins_the_next_world_consequence(
     assert signed_root_y == 0
     assert restore_calls == [(b"native-body-source", 3, 6, 2, 6)]
     assert world.discarded is False
+    assert isinstance(world.prepared_command, GraspContactCommand)
 
 
 def test_native_root_discharge_turns_world_and_returns_typed_direction(
@@ -394,8 +415,8 @@ print(json.dumps({
     assert evidence["duration"] == 1_000
     assert evidence["admissions"] == [[1, 1_000]]
     assert evidence["episode_occurrences"] == 1
-    assert evidence["episode_ports"] == 111
-    assert evidence["episode_samples"] == 222
+    assert evidence["episode_ports"] == 112
+    assert evidence["episode_samples"] == 224
     assert evidence["organism_tick"] == 2
     assert evidence["causal_interval_count"] == 2
     assert len(evidence["causal_transition_sha256"]) == 64
@@ -412,7 +433,7 @@ print(json.dumps({
         "smell": 8,
         "sound": 34,
         "taste": 5,
-        "touch": 27,
+        "touch": 28,
     }
     assert evidence["external_body"] == 2
     assert 0 < len(evidence["external_lineages"]) <= 29
@@ -437,7 +458,11 @@ print(json.dumps({
         "transported": 4,
     }
     assert evidence["sound"] == {"changed": 0, "transported": 34}
-    assert evidence["touch"] == {"changed": 0, "transported": 27}
+    assert evidence["touch"] == {
+        "changed": 0,
+        "material_channels_unmounted": 5,
+        "transported": 28,
+    }
     assert evidence["thermal"] == {
         "changed": 1,
         "sensor_id": "organism-core-and-cutaneous-thermoreceptors",

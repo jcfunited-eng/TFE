@@ -19,6 +19,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     EmbodiedBody,
     EmbodiedObject,
     EmbodimentWorldAuthority,
+    GraspContactCommand,
     MoveCommand,
     PickCommand,
     PlaceCommand,
@@ -228,6 +229,90 @@ def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
         moved.authority_receipt_sha256,
         placed.authority_receipt_sha256,
     }) == 3
+
+
+def test_grasp_contact_resolves_one_touched_object_without_an_object_identity() -> None:
+    authority = EmbodimentWorldAuthority(
+        authority_key="embodiment-grasp-contact-key",
+        initial_objects=(
+            EmbodiedObject(
+                object_id="touched-object",
+                radius_mm=50,
+                mass_grams=100,
+                position=PositionMM(1300, 1000, 0),
+            ),
+        ),
+    )
+    command = GraspContactCommand(duration_microseconds=200_000)
+    encoded = encode_command(command)
+
+    assert decode_command(encoded) == command
+    assert json.loads(encoded) == {
+        "duration_microseconds": 200_000,
+        "operation": "grasp_contact",
+        "schema": "guala.embodiment.command.v6",
+    }
+
+    grasped = _execute(authority, command, intent_number=4)
+
+    assert grasped.disposition == "applied"
+    assert _body(grasped.after).held_object_id == "touched-object"
+    assert grasped.after.objects[0].position is None
+    assert grasped.after.objects[0].held_by_body_id == "guala-body-1"
+
+
+def test_grasp_contact_refuses_absent_or_ambiguous_touch_geometry() -> None:
+    absent = EmbodimentWorldAuthority(
+        authority_key="embodiment-grasp-absent-key",
+        initial_objects=(
+            EmbodiedObject(
+                object_id="distant-object",
+                radius_mm=50,
+                mass_grams=100,
+                position=PositionMM(1800, 1000, 0),
+            ),
+        ),
+    )
+    absent_before = absent.encoded_snapshot()
+
+    absent_result = _execute(
+        absent,
+        GraspContactCommand(duration_microseconds=200_000),
+        intent_number=5,
+    )
+
+    assert absent_result.disposition == "rejected"
+    assert absent_result.reason == "grasp_contact_absent"
+    assert absent.encoded_snapshot() == absent_before
+
+    ambiguous = EmbodimentWorldAuthority(
+        authority_key="embodiment-grasp-ambiguous-key",
+        initial_objects=(
+            EmbodiedObject(
+                object_id="east-object",
+                radius_mm=50,
+                mass_grams=100,
+                position=PositionMM(1300, 1000, 0),
+            ),
+            EmbodiedObject(
+                object_id="north-object",
+                radius_mm=50,
+                mass_grams=100,
+                position=PositionMM(1000, 1300, 0),
+            ),
+        ),
+    )
+    ambiguous_before = ambiguous.encoded_snapshot()
+
+    ambiguous_result = _execute(
+        ambiguous,
+        GraspContactCommand(duration_microseconds=200_000),
+        intent_number=6,
+    )
+
+    assert ambiguous_result.disposition == "rejected"
+    assert ambiguous_result.reason == "grasp_contact_ambiguous"
+    assert ambiguous.encoded_snapshot() == ambiguous_before
 
 
 @pytest.mark.parametrize(

@@ -407,7 +407,12 @@ TOUCH_RECEPTORS_AUTHORIZED = _touch_receptors_authorized()
 CONTACT_SHEET_ROWS = CARD_SURFACE_ROWS
 CONTACT_SHEET_COLUMNS = CARD_SURFACE_COLUMNS
 CONTACT_SHEET_SITE_COUNT = CONTACT_SHEET_ROWS * CONTACT_SHEET_COLUMNS
-TOUCH_PORT_COUNT = CONTACT_SHEET_SITE_COUNT if TOUCH_RECEPTORS_AUTHORIZED else 0
+PALMAR_CONTACT_TOPOLOGY_INDEX = CONTACT_SHEET_SITE_COUNT
+PALMAR_CONTACT_SENSOR_ID = "native-palmar-contact"
+PALMAR_CONTACT_SUBSTREAM_ID = "held-contact"
+TOUCH_PORT_COUNT = (
+    CONTACT_SHEET_SITE_COUNT + 1 if TOUCH_RECEPTORS_AUTHORIZED else 0
+)
 CONTACT_SHEET_SENSOR_ID = "organism-contact-sheet"
 
 # ---------------------------------------------------------------------------
@@ -1999,6 +2004,10 @@ def _touch_authorization_record() -> dict[str, object]:
         "touch_receptors_authorized": TOUCH_RECEPTORS_AUTHORIZED,
         "touch_receptors_authorization_env": TOUCH_RECEPTORS_ENV,
         "declared_contact_port_count": TOUCH_PORT_COUNT,
+        "declared_contact_sheet_site_count": CONTACT_SHEET_SITE_COUNT,
+        "declared_palmar_contact_site_count": int(
+            TOUCH_RECEPTORS_AUTHORIZED
+        ),
         "declared_contact_port_quantity": (
             CONTACT_QUANTITY if TOUCH_RECEPTORS_AUTHORIZED else None
         ),
@@ -2032,26 +2041,44 @@ def _touch_record() -> dict[str, object]:
             f"the contact-sheet anatomy is authorized by {TOUCH_RECEPTORS_ENV}",
             **_touch_authorization_record(),
         )
+    action_tactile = (
+        (_last_self_moved or {})
+        .get("sensory_consequence", {})
+        .get("tactile", {})
+    )
+    if (
+        isinstance(action_tactile, dict)
+        and action_tactile.get("changed") == 1
+    ):
+        return _section(
+            True,
+            "palmar_contact_transition_committed",
+            "a native closing grip changed the distinct palmar contact "
+            "receptor through the persistent world's exact held-object "
+            "geometry; unmounted material qualities are not inferred",
+            **_touch_authorization_record(),
+            **action_tactile,
+        )
     if _touch_evidence is None:
         return _section(
             False,
             "no_contact_transition_this_process",
             "the contact sheet is declared on "
             f"{CONTACT_SHEET_ROWS}x{CONTACT_SHEET_COLUMNS} contact sites and "
-            "the tactile receptor law is mounted, but nothing has been touched "
-            "in this process, so no contact transition has committed; mounted "
-            "is claimed only from a real committed transition",
+            "one distinct palmar held-contact site is appended; neither has "
+            "changed in this process, so no contact transition is claimed",
             **_touch_authorization_record(),
         )
     return _section(
         True,
         "contact_transition_committed",
         "the taught card's DECLARED FOOTPRINT (authored from its raster "
-        "geometry — no physical object and no contact sensor exists yet) "
+        "geometry, not inferred from a physical-world grasp) "
         "rested against the declared contact sheet and its per-site "
         "occupancy TRANSDUCED under the mounted tactile receptor law "
         "(contact-site-occupancy on the same quantum lattice as light and "
-        "sound); the committed successor body was persisted",
+        "sound); the distinct palmar receptor reports real-world held contact "
+        "separately; the committed successor body was persisted",
         **_touch_authorization_record(),
         **_touch_evidence,
     )
@@ -7345,6 +7372,29 @@ def _contact_site_substream(
     )
 
 
+def _palmar_contact_substream(
+    source_times: tuple[Fraction, ...],
+    contact: tuple[float, ...] | tuple[Fraction, ...],
+) -> NativeSensorySubstreamInput:
+    """One distinct physical held-contact site appended beside the sheet."""
+
+    return NativeSensorySubstreamInput(
+        sense=PhysicalSense.TOUCH,
+        sensor_id=PALMAR_CONTACT_SENSOR_ID,
+        substream_id=PALMAR_CONTACT_SUBSTREAM_ID,
+        topology_index=PALMAR_CONTACT_TOPOLOGY_INDEX,
+        coordinates=(
+            NativeAxisCoordinate("body-surface", "palmar"),
+            NativeAxisCoordinate("contact-axis", "held-contact"),
+        ),
+        physical_quantity=CONTACT_QUANTITY,
+        physical_unit=CONTACT_UNIT,
+        source_times=source_times,
+        normalized_signal=contact,
+        phase_turns=(Fraction(0),) * len(contact),
+    )
+
+
 def _segment_overlap(low: Fraction, high: Fraction, index: int) -> Fraction:
     """Exact length of ``[low, high]`` inside the unit patch ``[index, index+1]``."""
 
@@ -7460,12 +7510,14 @@ def _released_contact(frame_count: int) -> tuple[tuple[float, ...], ...]:
 def _touch_ports(
     source_times: tuple[Fraction, ...],
     occupancy: tuple[float, ...] | None,
+    palmar_contact: tuple[float, ...] | tuple[Fraction, ...] | None = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     """The mounted tactile roster for one hop, under the declared anatomy.
 
-    ``occupancy`` is that hop's per-site contact fraction, or ``None`` for a
-    released sheet (nothing is being touched).  UNAUTHORIZED the roster is
-    empty and this body declares no touch at all — which is the truth today.
+    ``occupancy`` is that hop's per-site lesson-sheet contact fraction, or
+    ``None`` for a released sheet.  ``palmar_contact`` is the distinct exact
+    held-object contact trajectory returned by the persistent world.  When
+    touch is unauthorized the roster is empty and the body declares no touch.
     """
 
     if not TOUCH_RECEPTORS_AUTHORIZED:
@@ -7474,7 +7526,7 @@ def _touch_ports(
     if len(held) != CONTACT_SHEET_SITE_COUNT:
         raise ValueError("contact occupancy count differs from the declared anatomy")
     frame_count = len(source_times)
-    return tuple(
+    sheet = tuple(
         _contact_site_substream(
             row,
             column,
@@ -7484,10 +7536,18 @@ def _touch_ports(
         for row in range(CONTACT_SHEET_ROWS)
         for column in range(CONTACT_SHEET_COLUMNS)
     )
+    palmar = (
+        (Fraction(0),) * frame_count
+        if palmar_contact is None
+        else tuple(palmar_contact)
+    )
+    if len(palmar) != frame_count:
+        raise ValueError("palmar contact trajectory changed the shared clock")
+    return (*sheet, _palmar_contact_substream(source_times, palmar))
 
 
-def _touch_occurrence_port_indices() -> tuple[int, ...]:
-    """The lesson-roster port indices of the whole contact sheet.
+def _touch_sheet_occurrence_port_indices() -> tuple[int, ...]:
+    """The lesson-roster port indices of the retained contact sheet.
 
     Appended AFTER every port currently declared — the sight sites, then the
     retained legacy ear places and any cochlea — so a living body grows the
@@ -7496,6 +7556,13 @@ def _touch_occurrence_port_indices() -> tuple[int, ...]:
 
     start = CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT
     return tuple(range(start, start + CONTACT_SHEET_SITE_COUNT))
+
+
+def _touch_occurrence_port_indices() -> tuple[int, ...]:
+    """The lesson-roster indices of every mounted tactile receptor."""
+
+    start = CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT
+    return tuple(range(start, start + TOUCH_PORT_COUNT))
 
 
 def _displacement_ports(
@@ -8330,7 +8397,7 @@ def _authored_growth_dna() -> tuple[Any, list[tuple[list[int], list[tuple[int, i
         # conductance, exactly as the retinal and cochlear chains are.
         seed_groups.append(
             (
-                list(_touch_occurrence_port_indices()),
+                list(_touch_sheet_occurrence_port_indices()),
                 [
                     (index - 1, index, AUTHORED_SEED_CONDUCTANCE_PICOSIEMENS)
                     for index in range(1, CONTACT_SHEET_SITE_COUNT)
@@ -10264,6 +10331,7 @@ def _prepare_continuous_native_action_consequence(
         ActionExecutionReceipt,
         AdvancePhysicalTimeCommand,
         ENVIRONMENT_PORT_ID,
+        GraspContactCommand,
         MoveCommand,
         PORT_ID,
         PositionMM,
@@ -10321,6 +10389,17 @@ def _prepare_continuous_native_action_consequence(
         return None
     if articulated_body_consequences and not motor_unit_recruitments:
         raise RuntimeError("native body consequence has no causal motor discharge")
+    if any(len(consequence) != 11 for consequence in articulated_body_consequences):
+        raise RuntimeError("native body consequence changed its exact shape")
+    grip_closing_axes = tuple(sorted({
+        consequence[1]
+        for consequence in articulated_body_consequences
+        if consequence[1] in {
+            "left_grip_aperture",
+            "right_grip_aperture",
+        }
+        and consequence[5] < 0
+    }))
 
     authority = _world()
     before = authority.observation_snapshot()
@@ -10330,6 +10409,7 @@ def _prepare_continuous_native_action_consequence(
             "body_effector_bindings": body_effector_bindings,
             "duration_microseconds": WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             "motor_unit_recruitments": motor_unit_recruitments,
+            "grip_closing_axes": grip_closing_axes,
             "root_yaw_unit_recruitments": root_yaw_unit_recruitments,
             "root_translation_unit_recruitments": root_translation_unit_recruitments,
             "signed_root_yaw_millidegrees": signed_root_yaw,
@@ -10362,6 +10442,11 @@ def _prepare_continuous_native_action_consequence(
                 successor_heading,
             ),
             duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+        )
+        port_id = PORT_ID
+    elif grip_closing_axes:
+        command = GraspContactCommand(
+            duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000
         )
         port_id = PORT_ID
     else:
@@ -12350,16 +12435,23 @@ def _action_consequence_episode(
     before_smell, after_smell = smell_endpoints
 
     touch_streams = world_streams.get(PhysicalSense.TOUCH, ())
-    touch_values = tuple(
-        Fraction(value).limit_denominator(1_000_000)
+    palmar_streams = tuple(
+        stream
         for stream in touch_streams
-        for value in stream.normalized_signal
+        if stream.sensor_id == "W1-body-surface-receptors"
+        and stream.substream_id == "palmar-contact"
     )
-    if any(touch_values):
-        raise RuntimeError(
-            "the action reached nonzero W1 contact geometry that has no "
-            "lawful retinotopic contact-sheet placement"
-        )
+    if len(palmar_streams) != 1:
+        raise RuntimeError("the world lost its unique palmar contact channel")
+    palmar_contact_trajectory = tuple(
+        Fraction(value).limit_denominator(1_000_000)
+        for value in palmar_streams[0].normalized_signal
+    )
+    if (
+        len(palmar_contact_trajectory) != len(times)
+        or any(value not in {Fraction(0), Fraction(1)} for value in palmar_contact_trajectory)
+    ):
+        raise RuntimeError("palmar contact left its exact binary boundary")
 
     surface_trajectories = tuple(
         (before, after)
@@ -12407,6 +12499,7 @@ def _action_consequence_episode(
         tasted=after_taste,
         smelled=after_smell,
         moved=body_displacement,
+        palmar_contact_trajectory=palmar_contact_trajectory,
         surface_trajectories=surface_trajectories,
         taste_trajectories=taste_trajectories,
         smell_trajectories=smell_trajectories,
@@ -12465,7 +12558,14 @@ def _action_consequence_episode(
             "sensor_id": THERMAL_SENSOR_ID,
             "transported": THERMAL_PORT_COUNT,
         },
-        "tactile": {"changed": 0, "transported": TOUCH_PORT_COUNT},
+        "tactile": {
+            "changed": int(
+                palmar_contact_trajectory[0]
+                != palmar_contact_trajectory[-1]
+            ),
+            "material_channels_unmounted": 5,
+            "transported": TOUCH_PORT_COUNT,
+        },
         "visual": {
             "changed": visual_changed,
             "transported": CARD_SURFACE_PORT_COUNT,
@@ -13212,6 +13312,9 @@ def _whole_roster_hop_episode(
     cochlear: tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]] | None = None,
     contact: tuple[float, ...] | None = None,
     *,
+    palmar_contact_trajectory: (
+        tuple[float, ...] | tuple[Fraction, ...] | None
+    ) = None,
     retinal_transmission: Fraction | tuple[Fraction, ...],
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
@@ -13273,7 +13376,11 @@ def _whole_roster_hop_episode(
         ),
         PhysicalSense.SOUND: _sound_ports(times, ear_signal, cochlear),
     }
-    touch_ports = _touch_ports(times, contact)
+    touch_ports = _touch_ports(
+        times,
+        contact,
+        palmar_contact_trajectory,
+    )
     if touch_ports:
         observed[PhysicalSense.TOUCH] = touch_ports
     # NOTHING IS BEING EATEN unless something is: every channel carries its
@@ -13379,6 +13486,7 @@ def _compact_whole_roster_signal_body(
             CONTACT_SHEET_SITE_COUNT,
             "contact sheet",
         )
+        constant_ports((0.0,), 1, "palmar contact")
     # SENSE_ORDER is sight, sound, touch, smell, taste, body.  The compact
     # body follows that physical order exactly; it does not follow the order
     # in which the card material helper happens to return taste and smell.

@@ -1093,6 +1093,18 @@ class PickCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class GraspContactCommand:
+    """Close a hand on the unique object already inside its contact field.
+
+    The command deliberately carries no object identity.  The body's signed
+    receptor geometry and the world's current object geometry are the only
+    authority that may resolve what is grasped.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
 class PlaceCommand:
     object_id: str
     target_position: PositionMM
@@ -1130,6 +1142,7 @@ class AdvancePhysicalTimeCommand:
 EmbodimentCommand = (
     MoveCommand
     | PickCommand
+    | GraspContactCommand
     | PlaceCommand
     | VocalizeCommand
     | TouchContactCommand
@@ -1162,6 +1175,17 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
             ),
             "object_id": _identifier(command.object_id, "pick object id"),
             "operation": "pick",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, GraspContactCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "grasp_contact",
             "schema": COMMAND_SCHEMA,
         }
     if isinstance(command, PlaceCommand):
@@ -1257,6 +1281,7 @@ def _command_elapsed_nanoseconds(
         (
             MoveCommand,
             PickCommand,
+            GraspContactCommand,
             PlaceCommand,
             TouchContactCommand,
             OralContactCommand,
@@ -1331,6 +1356,17 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
                 minimum=MIN_MATERIAL_ACTION_DURATION_US,
                 maximum=MAX_MATERIAL_ACTION_DURATION_US,
             ),
+        )
+    elif operation == "grasp_contact" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = GraspContactCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
         )
     elif operation == "place" and set(decoded) == {
         "duration_microseconds", "object_id", "operation", "schema",
@@ -3709,6 +3745,41 @@ class EmbodimentWorldAuthority:
                 ),
                 command.duration_microseconds * 1_000,
             ), "applied"
+
+        if isinstance(command, GraspContactCommand):
+            geometry = body.receptor_geometry
+            if geometry is None:
+                return None, "grasp_contact_geometry_unavailable"
+            receptor_position = _receptor_position(
+                body,
+                geometry.touch_offset_mm,
+            )
+            if receptor_position is None:
+                return None, "grasp_contact_heading_geometry_unresolved"
+            contacted = tuple(
+                item
+                for item in objects
+                if item.position is not None
+                and _derived_contact_patch_square_mm(
+                    receptor_position=receptor_position,
+                    receptor_radius_mm=geometry.touch_radius_mm,
+                    object_position=item.position,
+                    object_radius_mm=item.radius_mm,
+                )
+                is not None
+            )
+            if not contacted:
+                return None, "grasp_contact_absent"
+            if len(contacted) != 1:
+                return None, "grasp_contact_ambiguous"
+            return self._transition(
+                world,
+                actor_body_id,
+                PickCommand(
+                    object_id=contacted[0].object_id,
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
 
         if isinstance(command, PlaceCommand):
             found = by_id.get(command.object_id)
@@ -6212,6 +6283,7 @@ __all__ = [
     "EmbodimentPort",
     "EmbodimentWorldAuthority",
     "ENVIRONMENT_PORT_ID",
+    "GraspContactCommand",
     "MoveCommand",
     "ObjectMaterialState",
     "ObjectOpticalSurface",

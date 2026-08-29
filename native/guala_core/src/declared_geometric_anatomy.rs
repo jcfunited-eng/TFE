@@ -305,7 +305,8 @@ mod tests {
     /// The roster measured here is the served one: sight layer 0 places
     /// 0..26 (3x9 retina), sound layer 1 places 0..33 (two retained legacy ear
     /// places plus two 16-place cochleae), touch layer 2 places 0..26 (the 3x9
-    /// contact sheet).  Printed with `--nocapture` this is the T2 dump.
+    /// contact sheet) plus place 27 (the distinct palmar held-contact site).
+    /// Printed with `--nocapture` this is the T2 dump.
     #[test]
     fn every_declared_contact_site_has_its_own_territory_and_capacitance() {
         let mut seen: std::collections::BTreeMap<u128, (u8, u32)> =
@@ -313,7 +314,7 @@ mod tests {
         let roster = [
             (PhysicalSourceSense::Sight, 27_u32),
             (PhysicalSourceSense::Sound, 34_u32),
-            (PhysicalSourceSense::Touch, 27_u32),
+            (PhysicalSourceSense::Touch, 28_u32),
         ];
         for (sense, count) in roster {
             for topology_index in 0..count {
@@ -339,8 +340,8 @@ mod tests {
                 );
             }
         }
-        // 27 sight + 34 sound + 27 touch declared places, no two alike.
-        assert_eq!(seen.len(), 88);
+        // 27 sight + 34 sound + 28 touch declared places, no two alike.
+        assert_eq!(seen.len(), 89);
     }
 
     #[test]
