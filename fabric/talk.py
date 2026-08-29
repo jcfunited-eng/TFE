@@ -66,6 +66,7 @@ class Talk:
         self.standing = None      # the question in the air
         self.said, self.marked = [], set()
         self.thread_words = ""
+        self.settled = ""
         self.rule = None
         for e in F.entries:
             if "cognitive syntax" in e["field"] and e.get("rule") \
@@ -86,7 +87,8 @@ class Talk:
                     "guessed around.")
         st = dict(words=text, limit=40,
                   thread=self.said, marked=self.marked,
-                  thread_words=self.thread_words)
+                  thread_words=(self.standing or "") + " " + self.settled,
+                  settled=self.settled)
         trace = []
         st, err = I.follow(self.rule, st, trace)
         if err:
@@ -112,6 +114,29 @@ class Talk:
             out.append(f"  JOINED (built, not fetched): {joint[:300]}")
         elif st.get("no_joint"):
             out.append(f"  no joint — {st['no_joint']}")
+        # A thread carries what has STOOD, so that is what a thin
+        # turn leans on — not the raw words that were said. Leaning
+        # on raw words drags every closed sense back in: a thread
+        # standing on onion chemistry still had the word "cry" in it
+        # and kept falling into infancy. What it stood on has no
+        # ambiguity left in it, because it is an answer, not a
+        # question.
+        # The ground a thin turn leans on: the standing question's
+        # own subject, plus only the UNCOMMON words of what has
+        # stood. The whole answer is too much — leaning on all of it
+        # sent a thread about onions to vaccines and crystals. The
+        # rare words are what the answer was about; the rest is
+        # every answer's furniture.
+        if fresh:
+            rare = []
+            for w in re.findall(r"[a-z]{3,}", fresh[-1].lower()):
+                i = F.vocab.get(core.stem(w))
+                if i is not None and F.df.get(i, 0) <= len(F.entries) // 50:
+                    rare.append(core.stem(w))
+            self.settled = " ".join(dict.fromkeys(rare))[:200]
+        if st.get("settled_now"):
+            self.settled = (self.settled + " "
+                            + st["settled_now"])[:300]
         self.marked |= set(st.get("marked") or ())
         self.thread_words = " ".join(
             ([self.thread_words] if self.thread_words else [])

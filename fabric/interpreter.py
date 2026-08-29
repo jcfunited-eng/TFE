@@ -120,7 +120,13 @@ def h_reach(s):
         m >>= 1
         i += 1
     if rare == 0 and s.get("thread_words"):
-        words = s["thread_words"] + " " + words
+        # Lean on the thread — but on what the thread SETTLED, not on
+        # its raw words. Leaning on raw words re-opens every sense the
+        # thread already closed: after "why do onions make you cry"
+        # was settled onto the onion, a bare "what else" dragged the
+        # word "cry" back in and landed in infancy. What the thread
+        # stands on is what it leans on.
+        words = (s.get("settled") or s["thread_words"]) + " " + words
         s["leaned"] = True
     # Settle which sense is meant from the company present, before
     # reaching anything. The company is the whole thread, not just
@@ -132,7 +138,12 @@ def h_reach(s):
     # never fetched, so what is stored is each sense's company and
     # the company present is what picks.
     company = (s.get("thread_words", "") + " " + words).lower()
-    present = set(re.findall(r"[a-z]{3,}", company))
+    # Stem both sides. The question says "onions" and the company
+    # says "onion", and matching raw strings meant the sense never
+    # settled at all — everything downstream was working correctly on
+    # a sense that had never been chosen.
+    present = {core.stem(w)
+               for w in re.findall(r"[a-z]{3,}", company)}
     chosen = []
     for e in F.entries:
         sp = e.get("splits") or ""
@@ -143,7 +154,8 @@ def h_reach(s):
             if ":" not in part:
                 continue
             nm, comp = part.split(":", 1)
-            cw = set(re.findall(r"[a-z]{3,}", comp.lower()))
+            cw = {core.stem(w)
+                  for w in re.findall(r"[a-z]{3,}", comp.lower())}
             if not cw:
                 continue
             groups.append((nm.strip(), cw))
@@ -159,10 +171,16 @@ def h_reach(s):
             if v > score:
                 best, score = cw, v
         if best:
-            chosen.append(" ".join(sorted(best)))
+            # Carry the company that SETTLED the sense, not the
+            # ambiguous word itself. "cry" and "tears" are in every
+            # sense of cry, so sending them along re-opens the very
+            # ambiguity that was just closed — which is how a thread
+            # settled on onions still drifted into infancy.
+            chosen.append(" ".join(sorted(best - head)))
     if chosen:
         s["sense"] = chosen
         words = words + " " + " ".join(chosen)
+        s["settled_now"] = " ".join(chosen)
     # READ what was said, rather than treating it as a bag of
     # letters. The language program groups the sentence, builds a
     # nesting and finds the doing by contrast; the asking words say
