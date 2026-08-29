@@ -50,7 +50,7 @@ THREAD: law (a court eventually accepts the record, the oath and
   the calendar without proving them), building (every structure
   ends on ground nobody engineered), teaching (the child's fourth
   "but why" is the honest one).
-ASKED-AS: why but why again reasons proof basic assumption bottom circular endless kids
+ASKED-AS: why because reasons again proof basic assumption bottom circular endless kids asking
 
 ESSENCE: belief is not a switch. You can hold a thing at
   nearly-certain, at leaning, at faint suspicion. Actions are
@@ -416,7 +416,7 @@ CANNOT: no independence between sources that share an origin —
 THREAD: law (hearsay rules — an attempt to write this down), news,
   people together (a rumour that gains detail as it travels, which
   is the signature of a bad chain).
-ASKED-AS: everyone saying heard from source rumor spread news repeated original where from
+ASKED-AS: everyone saying heard from source rumor spread news repeated original independent outlets
 
 ESSENCE: an expert's say-so is real evidence, and it is evidence of
   a particular kind: it stands in for reasoning you cannot check

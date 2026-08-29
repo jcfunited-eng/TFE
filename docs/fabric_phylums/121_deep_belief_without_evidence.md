@@ -58,7 +58,7 @@ CANNOT: no test of a system from readings the subject rates
 THREAD: persuasion (the pitch that seems to argue against itself),
   the mind (self-serving evaluation), teaching (praise accepted and
   correction contested).
-ASKED-AS: too generous work too hard honest reading harsh flattering accurate criticism believable
+ASKED-AS: too generous work very hard honest reading harsh flattering accurate criticism believable
 
 ESSENCE: misses are not remembered because nothing happened when
   they missed. A prediction with no stake attached leaves no mark —
@@ -264,7 +264,7 @@ CANNOT: no counting a reading's accuracy from what participants
 THREAD: law (a witness whose statement firms up across
   retellings), the mind (memory rewritten each time it is used),
   evidence + measurement.
-ASKED-AS: does that mean anything oh yes that must be figured out later remembered
+ASKED-AS: does that mean anything oh yes must be figured out later remembered connection
 
 ESSENCE: many practitioners are entirely sincere. The skill trains
   without the person knowing what is being trained — you say things
@@ -426,7 +426,7 @@ CANNOT: no belief revised without a trial, and no trial where the
   the entire remedy.
 THREAD: money (a rule kept because nobody dares test it), medicine
   (a practice continued for decades untested), engineering.
-ASKED-AS: never risk it why chance it just in case break superstition scared test
+ASKED-AS: never risk it why chance just in case break superstition scared test anyway
 
 ESSENCE: "it can't hurt" is the sentence that keeps most of these
   alive, and it is sometimes true. A charm in a pocket costs a
@@ -461,7 +461,7 @@ CANNOT: no effect of speech on an unconnected event. Refuted at the
   the taboo would exist even if nobody believed the first part.
 THREAD: people together (the cost of claiming a win too early),
   sports (a commentary box that will not say it), language.
-ASKED-AS: dont jinx it touch wood spoke too soon knock on wood cursed said
+ASKED-AS: dont jinx it touch wood spoke too soon knock table cursed said aloud
 
 ESSENCE: an amulet is anxiety put into an object. Worry that has
   nowhere to go is exhausting, and an item you can carry, touch and
@@ -479,7 +479,7 @@ CANNOT: no property of an object that acts on distant events —
 THREAD: the mind (worry without an action, and what it costs),
   meaning + ritual (objects marked and handled differently),
   medicine.
-ASKED-AS: lucky charm carry it always necklace ring protects feel better without it
+ASKED-AS: lucky charm carry it always necklace ring protects feel better missing pocket
 
 ESSENCE: belief can hurt as well as help. Told that a treatment
   will cause nausea, people get nauseous; told a thing is
@@ -590,7 +590,7 @@ CANNOT: no requirement that causes match their effects in size —
 THREAD: history (wars from an incident), the deep earth (a small
   slip releasing a century of strain), physics (sensitivity to
   small differences).
-ASKED-AS: cant be that simple lone gunman big event must be more behind
+ASKED-AS: cant be that simple lone gunman big event must have more behind
 
 ESSENCE: an intentional explanation is preferred to an accidental
   one, and comes faster. Somebody did this, somebody knew, somebody
@@ -791,7 +791,7 @@ CANNOT: no effect on the underlying disease from any of that where
 THREAD: medicine (consultation length and its measured effects),
   people together (being received, which is often the main want),
   teaching.
-ASKED-AS: listened to me hour long appointment took me seriously doctor rushed cared
+ASKED-AS: listened to me hour long appointment took seriously doctor rushed cared unhurried
 
 ESSENCE: the placebo is real, and its reach is specific. It
   reliably moves things that are reported and felt — pain, nausea,
@@ -883,7 +883,7 @@ CANNOT: no property transferred by resemblance — a substance's
 THREAD: chemistry (a countable number of molecules in any
   quantity), cooking (a food resembling an organ and treating it —
   a doctrine found on every continent), the mind.
-ASKED-AS: like cures like dilution stronger sympathetic remedy resembles hair sample essence traces
+ASKED-AS: homeopathy dilution stronger remedy resembles ailment sympathetic hair sample essence traces cures
 
 ESSENCE: people who reject a belief still act on its intuitions. A
   perfectly clean bedpan is refused as a soup bowl. A sweater is
@@ -902,7 +902,7 @@ CANNOT: no argument that removes the reaction — knowing the bowl is
 THREAD: medicine (hospital design working around this rather than
   against it), cooking (food refused after a story about it),
   people together.
-ASKED-AS: wouldnt eat it knew it was clean disgusting used bowl someone else wore
+ASKED-AS: wouldnt eat it knew was clean disgusting used bowl someone else wore sweater
 
 ESSENCE: an anecdote beats a rate, and it is worth knowing why.
   A story arrives with a person, a scene, a cause and an ending —
@@ -920,7 +920,7 @@ CANNOT: no rate inferred from a case, however vivid — one recovery
   the grain of the person counting.
 THREAD: evidence + measurement (the vivid case beating the true
   rate), story (fiction manufacturing presence), medicine.
-ASKED-AS: my cousin cured worked for my friend statistics dont care person story numbers
+ASKED-AS: my cousin cured worked for a friend statistics dont care person story numbers
 
 ESSENCE: testimonials come only from the people still available to
   give them. The ones the treatment failed have moved on, given up,

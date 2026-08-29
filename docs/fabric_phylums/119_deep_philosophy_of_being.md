@@ -18,7 +18,7 @@ CANNOT: no thing whose identity is its matter — your body replaces
 THREAD: the body (bones rebuilt over years, the person unbroken),
   rivers (the same river, none of the same water), organisations
   (a club with no original member).
-ASKED-AS: same ship planks replaced still the same thing changed parts new all of it
+ASKED-AS: same ship planks replaced still identical thing changed parts new all of it
 
 ESSENCE: now suppose someone kept the old planks and rebuilt them.
   Two ships, each with a real claim, and no further fact anywhere
@@ -1037,4 +1037,4 @@ CANNOT: no explanation from a summary of what happens, however
 THREAD: medicine (a syndrome named against a disease understood),
   money (a chart pattern against a reason people are selling),
   evidence + measurement.
-ASKED-AS: describe explain why happens pattern reason mechanism because knowing what versus why
+ASKED-AS: describe explain why happens pattern reason mechanism because knowing what versus how
