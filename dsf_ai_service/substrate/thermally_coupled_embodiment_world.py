@@ -21,7 +21,7 @@ import json
 import threading
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from fractions import Fraction
 
 from dsf_ai_service.substrate.bounded_home_thermal_physics import (
@@ -36,14 +36,19 @@ from dsf_ai_service.substrate.bounded_home_thermal_physics import (
 from dsf_ai_service.substrate.embodiment_world import (
     ActionExecutionReceipt,
     EmbodimentWorldAuthority,
+    MountedBodySurfaceSite,
     PreparedActionExecution,
 )
 
 
-COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v1"
-COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v1\0"
-TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v1"
-TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v1\0"
+LEGACY_COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v1"
+COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v2"
+LEGACY_COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v1\0"
+COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v2\0"
+LEGACY_TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v1"
+TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v2"
+LEGACY_TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v1\0"
+TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v2\0"
 MAX_COUPLED_STATE_BYTES = 4 * 1024 * 1024
 MAX_IDENTIFIER_BYTES = 256
 
@@ -100,6 +105,26 @@ def _sha(value: object, label: str) -> str:
     ):
         raise ValueError(f"{label} is not a lowercase SHA-256 digest")
     return value
+
+
+def _fraction_record(value: Fraction) -> list[int]:
+    if not isinstance(value, Fraction):
+        raise TypeError("thermal residue must be exact")
+    return [value.numerator, value.denominator]
+
+
+def _fraction_from_record(value: object, label: str) -> Fraction:
+    if (
+        not isinstance(value, list)
+        or len(value) != 2
+        or any(isinstance(item, bool) or not isinstance(item, int) for item in value)
+        or value[1] <= 0
+    ):
+        raise ValueError(f"{label} is not an exact fraction")
+    result = Fraction(value[0], value[1])
+    if _fraction_record(result) != value or abs(result) >= 1_000:
+        raise ValueError(f"{label} escaped its nanjoule residue boundary")
+    return result
 
 
 def _state_record(state: BoundedThermalState) -> dict[str, object]:
@@ -319,6 +344,7 @@ class CoupledThermalAnatomy:
 
 @dataclass(frozen=True, slots=True)
 class ThermalTransitionReceipt:
+    schema: str
     world_execution_receipt_sha256: str
     world_revision_before: int
     world_revision_after: int
@@ -329,12 +355,13 @@ class ThermalTransitionReceipt:
     conductive_transfers_microjoules: tuple[int, ...]
     bath_transfers_into_nodes_microjoules: tuple[int, ...]
     powered_into_nodes_microjoules: tuple[int, ...]
+    body_surface_heat_into_skin_microjoules: int
     external_energy_into_nodes_microjoules: int
     authority_hmac_sha256: str
     authority_receipt_sha256: str
 
     def payload(self) -> dict[str, object]:
-        return {
+        result = {
             "bath_transfers_into_nodes_microjoules": list(
                 self.bath_transfers_into_nodes_microjoules
             ),
@@ -349,7 +376,7 @@ class ThermalTransitionReceipt:
             "powered_into_nodes_microjoules": list(
                 self.powered_into_nodes_microjoules
             ),
-            "schema": TRANSITION_SCHEMA,
+            "schema": self.schema,
             "thermal_state_after_sha256": self.thermal_state_after_sha256,
             "thermal_state_before_sha256": self.thermal_state_before_sha256,
             "world_execution_receipt_sha256": (
@@ -358,6 +385,11 @@ class ThermalTransitionReceipt:
             "world_revision_after": self.world_revision_after,
             "world_revision_before": self.world_revision_before,
         }
+        if self.schema == TRANSITION_SCHEMA:
+            result["body_surface_heat_into_skin_microjoules"] = (
+                self.body_surface_heat_into_skin_microjoules
+            )
+        return result
 
     def record(self) -> dict[str, object]:
         return {
@@ -391,6 +423,8 @@ class _PendingThermal:
     prepared_world: PreparedActionExecution
     prior_state: BoundedThermalState
     candidate_state: BoundedThermalState
+    prior_body_surface_heat_residue_nanojoules: Fraction
+    candidate_body_surface_heat_residue_nanojoules: Fraction
     candidate_world_revision: int
     candidate_world_observation_receipt_sha256: str
     receipt: ThermalTransitionReceipt
@@ -413,6 +447,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         self._thermal_lock = threading.RLock()
         self._thermal_anatomy = thermal_anatomy
         self._thermal_state = thermal_anatomy.genesis_state()
+        self._body_surface_heat_residue_nanojoules = Fraction(0)
         self._thermal_world_revision = 0
         self._thermal_world_observation_receipt_sha256 = ""
         self._latest_thermal_transition: ThermalTransitionReceipt | None = None
@@ -436,10 +471,14 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         execution: ActionExecutionReceipt,
         room_id: str,
         transition: ThermalTransition,
+        body_surface_heat_into_skin_microjoules: int,
     ) -> ThermalTransitionReceipt:
         payload = {
             "bath_transfers_into_nodes_microjoules": list(
                 transition.bath_transfers_into_nodes_microjoules
+            ),
+            "body_surface_heat_into_skin_microjoules": (
+                body_surface_heat_into_skin_microjoules
             ),
             "conductive_transfers_microjoules": list(
                 transition.conductive_transfers_microjoules
@@ -447,6 +486,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "duration_microseconds": execution.elapsed_nanoseconds // 1_000,
             "external_energy_into_nodes_microjoules": (
                 transition.external_energy_into_nodes_microjoules
+                + body_surface_heat_into_skin_microjoules
             ),
             "local_region_id": room_id,
             "powered_into_nodes_microjoules": list(
@@ -472,6 +512,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         ).hexdigest()
         receipt = _digest({"authority_hmac_sha256": signature, "payload": payload})
         return ThermalTransitionReceipt(
+            schema=TRANSITION_SCHEMA,
             world_execution_receipt_sha256=execution.authority_receipt_sha256,
             world_revision_before=execution.before.revision,
             world_revision_after=execution.after.revision,
@@ -488,12 +529,85 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             powered_into_nodes_microjoules=tuple(
                 transition.powered_into_nodes_microjoules
             ),
+            body_surface_heat_into_skin_microjoules=(
+                body_surface_heat_into_skin_microjoules
+            ),
             external_energy_into_nodes_microjoules=(
                 transition.external_energy_into_nodes_microjoules
+                + body_surface_heat_into_skin_microjoules
             ),
             authority_hmac_sha256=signature,
             authority_receipt_sha256=receipt,
         )
+
+    def _body_surface_temperature_millikelvin(
+        self,
+        body_id: str,
+        site: MountedBodySurfaceSite,
+    ) -> Fraction:
+        if body_id != self._state.world.self_body_id:
+            return super()._body_surface_temperature_millikelvin(
+                body_id,
+                site,
+            )
+        return self._thermal_state.nodes[
+            self._thermal_anatomy.skin_node_index
+        ].temperature_millikelvin
+
+    def _apply_prepared_body_surface_heat(
+        self,
+        prepared: PreparedActionExecution,
+        transition: ThermalTransition,
+    ) -> tuple[ThermalTransition, int, Fraction]:
+        """Add exact reached contact heat to the one cutaneous heat owner.
+
+        The contact law settles in nanojoules while the bounded body stores
+        integer microjoules.  The uncommitted sub-microjoule remainder is one
+        exact scalar owned by this thermal authority; it is neither rounded
+        away nor exposed as a behavioral signal.
+        """
+
+        self_body_id = prepared.execution_receipt.before.self_body_id
+        contact_heat_nanojoules = Fraction(0)
+        for contact in prepared.body_surface_contacts:
+            for physical in contact.physical_phases:
+                if physical.body_a_id == self_body_id:
+                    contact_heat_nanojoules += (
+                        physical.conductive_heat_to_a_nanojoules
+                    )
+                elif physical.body_b_id == self_body_id:
+                    contact_heat_nanojoules += (
+                        physical.conductive_heat_to_b_nanojoules
+                    )
+        accumulated = (
+            self._body_surface_heat_residue_nanojoules
+            + contact_heat_nanojoules
+        )
+        whole_microjoules = int(accumulated / 1_000)
+        residue = accumulated - whole_microjoules * 1_000
+        if abs(residue) >= 1_000:
+            raise RuntimeError("body-surface heat residue escaped its exact unit")
+        if whole_microjoules == 0:
+            return transition, 0, residue
+        skin_index = self._thermal_anatomy.skin_node_index
+        nodes = list(transition.successor.nodes)
+        skin = nodes[skin_index]
+        successor_energy = skin.energy_microjoules + whole_microjoules
+        if successor_energy < 0:
+            raise ValueError("body-surface heat transfer exhausted the skin node")
+        nodes[skin_index] = replace(
+            skin,
+            energy_microjoules=successor_energy,
+        )
+        successor = replace(transition.successor, nodes=tuple(nodes))
+        successor.verify(
+            self._thermal_anatomy.conductive_edges(
+                prepared.execution_receipt.after.room_id
+            ),
+            self._thermal_anatomy.bath_edges,
+            self._thermal_anatomy.power_sources,
+        )
+        return replace(transition, successor=successor), whole_microjoules, residue
 
     def prepare_port_command(self, **parameters: object):
         with self._thermal_lock:
@@ -522,7 +636,20 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     power_sources=self._thermal_anatomy.power_sources,
                     duration_microseconds=execution.elapsed_nanoseconds // 1_000,
                 )
-                receipt = self._seal_transition(execution, room_id, transition)
+                (
+                    transition,
+                    body_surface_heat_into_skin_microjoules,
+                    candidate_body_surface_heat_residue_nanojoules,
+                ) = self._apply_prepared_body_surface_heat(
+                    prepared,
+                    transition,
+                )
+                receipt = self._seal_transition(
+                    execution,
+                    room_id,
+                    transition,
+                    body_surface_heat_into_skin_microjoules,
+                )
             except BaseException:
                 super().discard_prepared_action(prepared)
                 raise
@@ -530,6 +657,12 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 prepared_world=prepared,
                 prior_state=self._thermal_state,
                 candidate_state=transition.successor,
+                prior_body_surface_heat_residue_nanojoules=(
+                    self._body_surface_heat_residue_nanojoules
+                ),
+                candidate_body_surface_heat_residue_nanojoules=(
+                    candidate_body_surface_heat_residue_nanojoules
+                ),
                 candidate_world_revision=execution.after.revision,
                 candidate_world_observation_receipt_sha256=(
                     execution.after.authority_receipt_sha256
@@ -602,6 +735,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             pending = self._require_pending(prepared)
             execution = super().commit_prepared_action(prepared)
             self._thermal_state = pending.candidate_state
+            self._body_surface_heat_residue_nanojoules = (
+                pending.candidate_body_surface_heat_residue_nanojoules
+            )
             self._thermal_world_revision = pending.candidate_world_revision
             self._thermal_world_observation_receipt_sha256 = (
                 pending.candidate_world_observation_receipt_sha256
@@ -629,6 +765,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                         raise RuntimeError("thermal action was already rolled back")
                     rollback_world()
                     self._thermal_state = tail.prior_state
+                    self._body_surface_heat_residue_nanojoules = (
+                        tail.prior_body_surface_heat_residue_nanojoules
+                    )
                     self._thermal_world_revision = (
                         tail.receipt.world_revision_before
                     )
@@ -645,12 +784,16 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         self,
         world_encoded: bytes,
         state: BoundedThermalState,
+        body_surface_heat_residue_nanojoules: Fraction,
         world_revision: int,
         world_observation_receipt_sha256: str,
         latest: ThermalTransitionReceipt | None,
     ) -> bytes:
         payload = {
             "anatomy_receipt_sha256": self._thermal_anatomy.receipt_sha256,
+            "body_surface_heat_residue_nanojoules": _fraction_record(
+                body_surface_heat_residue_nanojoules
+            ),
             "latest_thermal_transition": (
                 latest.record() if latest is not None else None
             ),
@@ -683,6 +826,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             return self._coupled_encoded(
                 world,
                 self._thermal_state,
+                self._body_surface_heat_residue_nanojoules,
                 self._thermal_world_revision,
                 self._thermal_world_observation_receipt_sha256,
                 self._latest_thermal_transition,
@@ -735,6 +879,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             return self._coupled_encoded(
                 world,
                 tail.candidate_state,
+                tail.candidate_body_surface_heat_residue_nanojoules,
                 tail.candidate_world_revision,
                 tail.candidate_world_observation_receipt_sha256,
                 tail.receipt,
@@ -828,7 +973,10 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             envelope = json.loads(encoded.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             raise ValueError("coupled thermal world is not canonical JSON") from error
-        if not isinstance(envelope, Mapping) or envelope.get("schema") != COUPLED_SCHEMA:
+        envelope_schema = (
+            envelope.get("schema") if isinstance(envelope, Mapping) else None
+        )
+        if envelope_schema not in {COUPLED_SCHEMA, LEGACY_COUPLED_SCHEMA}:
             if not allow_legacy_thermal_genesis:
                 raise ValueError("bare world requires explicit thermal genesis migration")
             prior_world = super().encoded_snapshot()
@@ -847,6 +995,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 super().restore_encoded(prior_world)
                 raise
             self._thermal_state = self._thermal_anatomy.genesis_state()
+            self._body_surface_heat_residue_nanojoules = Fraction(0)
             self._thermal_world_revision = observation.revision
             self._thermal_world_observation_receipt_sha256 = (
                 observation.authority_receipt_sha256
@@ -866,7 +1015,12 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             raise ValueError("coupled thermal payload is not canonical")
         expected_signature = hmac.new(
             self._thermal_key,
-            COUPLED_DOMAIN + body,
+            (
+                COUPLED_DOMAIN
+                if envelope_schema == COUPLED_SCHEMA
+                else LEGACY_COUPLED_DOMAIN
+            )
+            + body,
             hashlib.sha256,
         ).hexdigest()
         if not hmac.compare_digest(
@@ -882,8 +1036,12 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision",
             "world_state_base64",
         }
+        if envelope_schema == COUPLED_SCHEMA:
+            expected.add("body_surface_heat_residue_nanojoules")
         if not isinstance(payload, Mapping) or set(payload) != expected:
             raise ValueError("coupled thermal payload fields changed")
+        if payload.get("schema") != envelope_schema:
+            raise ValueError("coupled thermal schemas disagree")
         if payload.get("anatomy_receipt_sha256") != self._thermal_anatomy.receipt_sha256:
             raise ValueError("coupled thermal anatomy changed")
         try:
@@ -893,6 +1051,14 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         except (TypeError, ValueError) as error:
             raise ValueError("coupled world body is invalid") from error
         state = _state_from_record(payload.get("thermal_state"))
+        body_surface_heat_residue_nanojoules = (
+            _fraction_from_record(
+                payload.get("body_surface_heat_residue_nanojoules"),
+                "body-surface heat residue",
+            )
+            if envelope_schema == COUPLED_SCHEMA
+            else Fraction(0)
+        )
         revision = _integer(payload.get("world_revision"), "thermal world revision")
         receipt = _sha(
             payload.get("world_observation_receipt_sha256"),
@@ -903,6 +1069,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         )
         prior_world = super().encoded_snapshot()
         prior_state = self._thermal_state
+        prior_body_surface_heat_residue_nanojoules = (
+            self._body_surface_heat_residue_nanojoules
+        )
         prior_revision = self._thermal_world_revision
         prior_receipt = self._thermal_world_observation_receipt_sha256
         try:
@@ -921,7 +1090,22 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 self._thermal_anatomy.bath_edges,
                 self._thermal_anatomy.power_sources,
             )
-            if revision != observation.revision or receipt != observation.authority_receipt_sha256:
+            if (
+                allow_authenticated_physical_manifest_migration
+                and observation.revision == revision + 1
+            ):
+                # The authenticated one-way world migration changes only its
+                # declared immutable physical manifest.  It has no elapsed
+                # time and therefore preserves the exact thermal stock and
+                # fractional contact-heat residue while retiring the prior
+                # latest-transition tail at the new world revision.
+                revision = observation.revision
+                receipt = observation.authority_receipt_sha256
+                latest = None
+            if (
+                revision != observation.revision
+                or receipt != observation.authority_receipt_sha256
+            ):
                 raise ValueError("thermal state does not bind the restored world")
             if latest is not None and (
                 latest.world_revision_after != revision
@@ -931,10 +1115,16 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         except BaseException:
             super().restore_encoded(prior_world)
             self._thermal_state = prior_state
+            self._body_surface_heat_residue_nanojoules = (
+                prior_body_surface_heat_residue_nanojoules
+            )
             self._thermal_world_revision = prior_revision
             self._thermal_world_observation_receipt_sha256 = prior_receipt
             raise
         self._thermal_state = state
+        self._body_surface_heat_residue_nanojoules = (
+            body_surface_heat_residue_nanojoules
+        )
         self._thermal_world_revision = revision
         self._thermal_world_observation_receipt_sha256 = receipt
         self._latest_thermal_transition = latest
@@ -946,6 +1136,14 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
     ) -> ThermalTransitionReceipt | None:
         if value is None:
             return None
+        if not isinstance(value, Mapping):
+            raise ValueError("thermal transition fields changed")
+        transition_schema = value.get("schema")
+        if transition_schema not in {
+            TRANSITION_SCHEMA,
+            LEGACY_TRANSITION_SCHEMA,
+        }:
+            raise ValueError("thermal transition schema changed")
         expected = {
             "authority_hmac_sha256",
             "authority_receipt_sha256",
@@ -962,11 +1160,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision_after",
             "world_revision_before",
         }
-        if (
-            not isinstance(value, Mapping)
-            or set(value) != expected
-            or value.get("schema") != TRANSITION_SCHEMA
-        ):
+        if transition_schema == TRANSITION_SCHEMA:
+            expected.add("body_surface_heat_into_skin_microjoules")
+        if set(value) != expected:
             raise ValueError("thermal transition fields changed")
 
         def signed_vector(name: str) -> tuple[int, ...]:
@@ -976,6 +1172,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             return tuple(_signed_integer(item, name) for item in raw)
 
         receipt = ThermalTransitionReceipt(
+            schema=transition_schema,
             world_execution_receipt_sha256=_sha(
                 value.get("world_execution_receipt_sha256"),
                 "thermal transition world execution",
@@ -1013,6 +1210,14 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             powered_into_nodes_microjoules=signed_vector(
                 "powered_into_nodes_microjoules"
             ),
+            body_surface_heat_into_skin_microjoules=(
+                _signed_integer(
+                    value.get("body_surface_heat_into_skin_microjoules"),
+                    "body-surface heat into skin",
+                )
+                if transition_schema == TRANSITION_SCHEMA
+                else 0
+            ),
             external_energy_into_nodes_microjoules=_signed_integer(
                 value.get("external_energy_into_nodes_microjoules"),
                 "thermal external energy",
@@ -1031,11 +1236,17 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             or receipt.external_energy_into_nodes_microjoules
             != sum(receipt.bath_transfers_into_nodes_microjoules)
             + sum(receipt.powered_into_nodes_microjoules)
+            + receipt.body_surface_heat_into_skin_microjoules
         ):
             raise ValueError("thermal transition conservation or revision changed")
         expected_signature = hmac.new(
             self._thermal_key,
-            TRANSITION_DOMAIN + _canonical(receipt.payload()),
+            (
+                TRANSITION_DOMAIN
+                if transition_schema == TRANSITION_SCHEMA
+                else LEGACY_TRANSITION_DOMAIN
+            )
+            + _canonical(receipt.payload()),
             hashlib.sha256,
         ).hexdigest()
         expected_receipt = _digest({

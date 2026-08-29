@@ -25,8 +25,19 @@ import threading
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
+from fractions import Fraction
 from math import isqrt
 
+from dsf_ai_service.substrate.body_surface_contact import (
+    BodySurfaceMaterial,
+    BodySurfaceState,
+    BodySurfaceTrajectory,
+    ExactVector3,
+    ReciprocalBodySurfaceContact,
+    RectangularBodySurfaceSite,
+    admit_body_surface_pair,
+    settle_admitted_body_surface_contact,
+)
 from dsf_ai_service.substrate.exact_lattice_rotation import (
     rotate_lattice_offset,
 )
@@ -119,6 +130,8 @@ MAX_OPTICAL_SURFACE_COLUMNS = 128
 MAX_OPTICAL_SURFACE_ROWS = 160
 MAX_OPTICAL_SURFACE_PALETTE_ENTRIES = 256
 MAX_CONTACT_OPTICAL_SURFACES = 32
+MAX_BODY_SURFACE_SITES = 32
+MAX_BODY_SURFACE_CONTACTS_PER_ACTION = 4
 ODORANT_CHANNELS = 8
 TASTANT_CHANNELS = 5
 MIN_MATERIAL_ACTION_DURATION_US = 1_000
@@ -810,6 +823,224 @@ class BodyReceptorGeometry:
 
 
 @dataclass(frozen=True, slots=True)
+class MountedBodySurfaceSite:
+    """One immutable local body surface and its cutaneous receptor address.
+
+    The site name is morphology outside cognition.  Contact commands address
+    this physical owner directly; no gesture name, social label, or reward
+    value participates in settlement.
+    """
+
+    body_id: str
+    site_id: str
+    local_centre_micrometres: ExactVector3
+    outward_normal: ExactVector3
+    tangent_u: ExactVector3
+    tangent_v: ExactVector3
+    half_extent_u_micrometres: Fraction
+    half_extent_v_micrometres: Fraction
+    material: BodySurfaceMaterial
+    reference_temperature_millikelvin: int
+    cutaneous_topology_index: int | None
+
+    def verify(self) -> None:
+        _identifier(self.body_id, "body surface body")
+        _identifier(self.site_id, "body surface site")
+        for name, vector in (
+            ("local centre", self.local_centre_micrometres),
+            ("outward normal", self.outward_normal),
+            ("tangent u", self.tangent_u),
+            ("tangent v", self.tangent_v),
+        ):
+            if not isinstance(vector, ExactVector3):
+                raise TypeError(f"body surface {name} is not an exact vector")
+            for component in (vector.x, vector.y, vector.z):
+                if not isinstance(component, Fraction):
+                    raise TypeError(f"body surface {name} is not exact")
+                if name == "local centre" and component.denominator != 1:
+                    raise ValueError(
+                        "body surface centre must occupy the micrometre lattice"
+                    )
+        if (
+            self.outward_normal.dot(self.outward_normal) != 1
+            or self.tangent_u.dot(self.tangent_u) != 1
+            or self.tangent_v.dot(self.tangent_v) != 1
+            or self.outward_normal.dot(self.tangent_u) != 0
+            or self.outward_normal.dot(self.tangent_v) != 0
+            or self.tangent_u.dot(self.tangent_v) != 0
+        ):
+            raise ValueError("body surface basis is not exactly orthonormal")
+        for name, value in (
+            ("half extent u", self.half_extent_u_micrometres),
+            ("half extent v", self.half_extent_v_micrometres),
+        ):
+            if not isinstance(value, Fraction) or value <= 0:
+                raise ValueError(f"body surface {name} must be positive and exact")
+        if not isinstance(self.material, BodySurfaceMaterial):
+            raise TypeError("body surface material is not typed")
+        for name, value, positive in (
+            (
+                "normal stiffness",
+                self.material.normal_stiffness_millinewtons_per_micrometre_per_square_micrometre,
+                True,
+            ),
+            (
+                "tangential damping",
+                self.material.tangential_damping_millinewton_microseconds_per_micrometre_per_square_micrometre,
+                False,
+            ),
+            (
+                "thermal conductance",
+                self.material.thermal_conductance_nanowatts_per_square_micrometre_millikelvin,
+                False,
+            ),
+        ):
+            if (
+                not isinstance(value, Fraction)
+                or (value <= 0 if positive else value < 0)
+            ):
+                raise ValueError(f"body surface {name} is invalid")
+        _bounded_integer(
+            self.reference_temperature_millikelvin,
+            "body surface reference temperature",
+            minimum=1,
+            maximum=1_000_000,
+        )
+        if self.cutaneous_topology_index is not None:
+            _bounded_integer(
+                self.cutaneous_topology_index,
+                "body surface cutaneous topology index",
+                minimum=0,
+                maximum=(1 << 31) - 1,
+            )
+
+    def contact_site(
+        self,
+        *,
+        outward_normal: ExactVector3,
+        tangent_u: ExactVector3,
+        tangent_v: ExactVector3,
+    ) -> RectangularBodySurfaceSite:
+        self.verify()
+        return RectangularBodySurfaceSite(
+            body_id=self.body_id,
+            site_id=self.site_id,
+            outward_normal=outward_normal,
+            tangent_u=tangent_u,
+            tangent_v=tangent_v,
+            half_extent_u_micrometres=self.half_extent_u_micrometres,
+            half_extent_v_micrometres=self.half_extent_v_micrometres,
+            material=self.material,
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+
+        def rational(value: Fraction) -> list[int]:
+            return [value.numerator, value.denominator]
+
+        def vector(value: ExactVector3) -> dict[str, list[int]]:
+            return {
+                "x": rational(value.x),
+                "y": rational(value.y),
+                "z": rational(value.z),
+            }
+
+        return {
+            "body_id": self.body_id,
+            "cutaneous_topology_index": self.cutaneous_topology_index,
+            "half_extent_u_micrometres": rational(
+                self.half_extent_u_micrometres
+            ),
+            "half_extent_v_micrometres": rational(
+                self.half_extent_v_micrometres
+            ),
+            "local_centre_micrometres": vector(
+                self.local_centre_micrometres
+            ),
+            "material": {
+                "normal_stiffness": rational(
+                    self.material.normal_stiffness_millinewtons_per_micrometre_per_square_micrometre
+                ),
+                "tangential_damping": rational(
+                    self.material.tangential_damping_millinewton_microseconds_per_micrometre_per_square_micrometre
+                ),
+                "thermal_conductance": rational(
+                    self.material.thermal_conductance_nanowatts_per_square_micrometre_millikelvin
+                ),
+            },
+            "outward_normal": vector(self.outward_normal),
+            "reference_temperature_millikelvin": (
+                self.reference_temperature_millikelvin
+            ),
+            "site_id": self.site_id,
+            "tangent_u": vector(self.tangent_u),
+            "tangent_v": vector(self.tangent_v),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class BodySurfaceActuation:
+    """One explicit reached surface pair, expressed only in physical units."""
+
+    actor_site_id: str
+    recipient_body_id: str
+    recipient_site_id: str
+    compression_micrometres: int
+    tangential_u_micrometres: int
+    tangential_v_micrometres: int
+
+    def verify(self) -> None:
+        _identifier(self.actor_site_id, "actor body surface site")
+        _identifier(self.recipient_body_id, "recipient body")
+        _identifier(self.recipient_site_id, "recipient body surface site")
+        _bounded_integer(
+            self.compression_micrometres,
+            "body surface compression",
+            minimum=1,
+            maximum=100_000,
+        )
+        for name, value in (
+            ("tangential u displacement", self.tangential_u_micrometres),
+            ("tangential v displacement", self.tangential_v_micrometres),
+        ):
+            _bounded_integer(
+                value,
+                f"body surface {name}",
+                minimum=-1_000_000,
+                maximum=1_000_000,
+            )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "actor_site_id": self.actor_site_id,
+            "compression_micrometres": self.compression_micrometres,
+            "recipient_body_id": self.recipient_body_id,
+            "recipient_site_id": self.recipient_site_id,
+            "tangential_u_micrometres": self.tangential_u_micrometres,
+            "tangential_v_micrometres": self.tangential_v_micrometres,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedBodySurfaceContact:
+    """One admitted reciprocal contact retained only with its prepared action."""
+
+    physical_phases: tuple[ReciprocalBodySurfaceContact, ...]
+    recipient_cutaneous_topology_index: int
+    recipient_site_area_square_micrometres: Fraction
+
+    @property
+    def physical(self) -> ReciprocalBodySurfaceContact:
+        """The peak-contact phase; retained for sparse receptor addressing."""
+
+        if len(self.physical_phases) != 3:
+            raise RuntimeError("body-surface contact phase anatomy changed")
+        return self.physical_phases[0]
+
+
+@dataclass(frozen=True, slots=True)
 class BodyContactState:
     kind: str
     object_id: str
@@ -1194,6 +1425,14 @@ class OralContactCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class BodySurfaceContactCommand:
+    """One bounded set of simultaneous, explicit body-surface actuations."""
+
+    actuations: tuple[BodySurfaceActuation, ...]
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
 class AdvancePhysicalTimeCommand:
     duration_microseconds: int
 
@@ -1209,6 +1448,7 @@ EmbodimentCommand = (
     | VocalizeCommand
     | TouchContactCommand
     | OralContactCommand
+    | BodySurfaceContactCommand
     | AdvancePhysicalTimeCommand
 )
 
@@ -1348,6 +1588,34 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
             ),
             "schema": COMMAND_SCHEMA,
         }
+    if isinstance(command, BodySurfaceContactCommand):
+        if (
+            not isinstance(command.actuations, tuple)
+            or not 1 <= len(command.actuations) <= MAX_BODY_SURFACE_CONTACTS_PER_ACTION
+        ):
+            raise ValueError("body-surface actuation count exceeds its bound")
+        records = tuple(actuation.as_record() for actuation in command.actuations)
+        addressed = tuple(
+            (
+                actuation.actor_site_id,
+                actuation.recipient_body_id,
+                actuation.recipient_site_id,
+            )
+            for actuation in command.actuations
+        )
+        if len(set(addressed)) != len(addressed):
+            raise ValueError("body-surface actuation repeats one surface pair")
+        return {
+            "actuations": list(records),
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "body-surface action duration",
+                minimum=3 * MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "body_surface_contact",
+            "schema": COMMAND_SCHEMA,
+        }
     if isinstance(command, AdvancePhysicalTimeCommand):
         return {
             "duration_microseconds": _bounded_integer(
@@ -1382,6 +1650,7 @@ def _command_elapsed_nanoseconds(
             PlaceCommand,
             TouchContactCommand,
             OralContactCommand,
+            BodySurfaceContactCommand,
             AdvancePhysicalTimeCommand,
         ),
     ):
@@ -1572,6 +1841,72 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
             OralContactCommand(object_id, duration)
             if operation == "oral_contact"
             else TouchContactCommand(object_id, duration)
+        )
+    elif operation == "body_surface_contact" and set(decoded) == {
+        "actuations",
+        "duration_microseconds",
+        "operation",
+        "schema",
+    }:
+        raw_actuations = decoded.get("actuations")
+        if (
+            not isinstance(raw_actuations, list)
+            or not 1 <= len(raw_actuations) <= MAX_BODY_SURFACE_CONTACTS_PER_ACTION
+        ):
+            raise ValueError("body-surface actuation count exceeds its bound")
+        actuations = []
+        for raw in raw_actuations:
+            if not isinstance(raw, Mapping) or set(raw) != {
+                "actor_site_id",
+                "compression_micrometres",
+                "recipient_body_id",
+                "recipient_site_id",
+                "tangential_u_micrometres",
+                "tangential_v_micrometres",
+            }:
+                raise ValueError("body-surface actuation fields changed")
+            actuation = BodySurfaceActuation(
+                actor_site_id=_identifier(
+                    raw.get("actor_site_id"),
+                    "actor body surface site",
+                ),
+                recipient_body_id=_identifier(
+                    raw.get("recipient_body_id"),
+                    "recipient body",
+                ),
+                recipient_site_id=_identifier(
+                    raw.get("recipient_site_id"),
+                    "recipient body surface site",
+                ),
+                compression_micrometres=_bounded_integer(
+                    raw.get("compression_micrometres"),
+                    "body surface compression",
+                    minimum=1,
+                    maximum=100_000,
+                ),
+                tangential_u_micrometres=_bounded_integer(
+                    raw.get("tangential_u_micrometres"),
+                    "body surface tangential u displacement",
+                    minimum=-1_000_000,
+                    maximum=1_000_000,
+                ),
+                tangential_v_micrometres=_bounded_integer(
+                    raw.get("tangential_v_micrometres"),
+                    "body surface tangential v displacement",
+                    minimum=-1_000_000,
+                    maximum=1_000_000,
+                ),
+            )
+            actuation.verify()
+            actuations.append(actuation)
+        result = BodySurfaceContactCommand(
+            actuations=tuple(actuations),
+            duration_microseconds=_bounded_integer(
+                decoded.get("duration_microseconds"),
+                "body-surface action duration",
+                minimum=3 * MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
         )
     elif operation == "advance_physical_time" and set(decoded) == {
         "duration_microseconds",
@@ -1775,6 +2110,7 @@ class PreparedActionExecution:
     _prior_state: _AuthorityState = field(repr=False)
     _candidate_state: _AuthorityState = field(repr=False)
     _construction_authority: object = field(repr=False)
+    body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1836,6 +2172,60 @@ def _receptor_position(
         body.pose.position.x + dx,
         body.pose.position.y + dy,
         body.pose.position.z + offset.z,
+    )
+
+
+def _rotate_body_surface_vector(
+    vector: ExactVector3,
+    heading_millidegrees: int,
+) -> ExactVector3:
+    """Rotate one exact surface basis on the current cardinal body lattice."""
+
+    if heading_millidegrees % 90_000:
+        raise ValueError(
+            "body-surface contact requires a cardinal exact surface basis"
+        )
+    quarter_turns = (heading_millidegrees // 90_000) % 4
+    if quarter_turns == 0:
+        return vector
+    if quarter_turns == 1:
+        return ExactVector3(-vector.y, vector.x, vector.z)
+    if quarter_turns == 2:
+        return ExactVector3(-vector.x, -vector.y, vector.z)
+    return ExactVector3(vector.y, -vector.x, vector.z)
+
+
+def _world_body_surface_geometry(
+    body: EmbodiedBody,
+    site: MountedBodySurfaceSite,
+) -> tuple[ExactVector3, ExactVector3, ExactVector3, ExactVector3]:
+    """Project one mounted local surface into exact world micrometres."""
+
+    if site.body_id != body.body_id:
+        raise ValueError("body surface site changed physical owner")
+    local = _rotate_body_surface_vector(
+        site.local_centre_micrometres,
+        body.pose.heading_millidegrees,
+    )
+    centre = ExactVector3(
+        Fraction(body.pose.position.x * 1_000) + local.x,
+        Fraction(body.pose.position.y * 1_000) + local.y,
+        Fraction(body.pose.position.z * 1_000) + local.z,
+    )
+    return (
+        centre,
+        _rotate_body_surface_vector(
+            site.outward_normal,
+            body.pose.heading_millidegrees,
+        ),
+        _rotate_body_surface_vector(
+            site.tangent_u,
+            body.pose.heading_millidegrees,
+        ),
+        _rotate_body_surface_vector(
+            site.tangent_v,
+            body.pose.heading_millidegrees,
+        ),
     )
 
 
@@ -2718,6 +3108,7 @@ class EmbodimentWorldAuthority:
         contact_optical_surface_sequences: Sequence[
             ContactOpticalSurfaceSequence
         ] = (),
+        body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
     ) -> None:
         self._key = _authority_key(authority_key)
         self._max_regions = _bounded_integer(
@@ -2770,6 +3161,22 @@ class EmbodimentWorldAuthority:
                 raise ValueError("contact optical surface object repeats")
             mounted_sequences[sequence.object_id] = sequence
         self._contact_optical_surface_sequences = mounted_sequences
+        if (
+            not isinstance(body_surface_sites, Sequence)
+            or isinstance(body_surface_sites, (str, bytes, bytearray))
+            or len(body_surface_sites) > MAX_BODY_SURFACE_SITES
+        ):
+            raise ValueError("body surface morphology exceeds its exact capacity")
+        mounted_surface_sites: dict[tuple[str, str], MountedBodySurfaceSite] = {}
+        for site in body_surface_sites:
+            if not isinstance(site, MountedBodySurfaceSite):
+                raise TypeError("body surface morphology contains an invalid site")
+            site.verify()
+            address = (site.body_id, site.site_id)
+            if address in mounted_surface_sites:
+                raise ValueError("body surface morphology repeats one site")
+            mounted_surface_sites[address] = site
+        self._body_surface_sites = dict(sorted(mounted_surface_sites.items()))
         if regions is None:
             physical_regions = _default_regions()
         else:
@@ -2843,6 +3250,19 @@ class EmbodimentWorldAuthority:
         embodied_bodies = tuple(
             sorted(embodied_bodies, key=lambda item: item.body_id)
         )
+        body_ids = {item.body_id for item in embodied_bodies}
+        if any(
+            body_id not in body_ids
+            for body_id, _site_id in self._body_surface_sites
+        ):
+            raise ValueError("body surface morphology references an absent body")
+        cutaneous_addresses = tuple(
+            (site.body_id, site.cutaneous_topology_index)
+            for site in self._body_surface_sites.values()
+            if site.cutaneous_topology_index is not None
+        )
+        if len(set(cutaneous_addresses)) != len(cutaneous_addresses):
+            raise ValueError("body surface morphology repeats a cutaneous address")
         self._declared_body_receptor_geometry = tuple(
             (item.body_id, item.receptor_geometry)
             for item in embodied_bodies
@@ -3015,6 +3435,11 @@ class EmbodimentWorldAuthority:
             **world_record,
             "objects": mounted_objects,
         }
+        if self._body_surface_sites:
+            anatomical_world["body_surface_morphology"] = [
+                site.as_record()
+                for site in self._body_surface_sites.values()
+            ]
         unsigned = {
             **anatomical_world,
             "schema": V5_OBSERVATION_SCHEMA,
@@ -3939,6 +4364,185 @@ class EmbodimentWorldAuthority:
             after=before,
         )
 
+    def _body_surface_temperature_millikelvin(
+        self,
+        body_id: str,
+        site: MountedBodySurfaceSite,
+    ) -> Fraction:
+        """Return the exact current surface temperature for this authority.
+
+        The base world has no thermal owner and therefore uses its explicit
+        immutable morphology temperature.  The thermally coupled production
+        authority overrides this with the current cutaneous energy state.
+        """
+
+        if site.body_id != body_id:
+            raise ValueError("body surface temperature changed owner")
+        return Fraction(site.reference_temperature_millikelvin)
+
+    def _settle_body_surface_command(
+        self,
+        world: _WorldState,
+        actor_body_id: str | None,
+        command: BodySurfaceContactCommand,
+    ) -> tuple[PreparedBodySurfaceContact, ...]:
+        if actor_body_id is None:
+            raise ValueError("body-surface contact requires an actor body")
+        command_record(command)
+        bodies = {body.body_id: body for body in world.bodies}
+        actor = bodies.get(actor_body_id)
+        if actor is None:
+            raise ValueError("body-surface actor is absent")
+        actor_sites_seen: set[str] = set()
+        recipient_sites_seen: set[tuple[str, str]] = set()
+        prepared: list[PreparedBodySurfaceContact] = []
+        for actuation in command.actuations:
+            recipient = bodies.get(actuation.recipient_body_id)
+            if recipient is None or recipient.body_id == actor.body_id:
+                raise ValueError("body-surface recipient is absent or identical")
+            actor_site = self._body_surface_sites.get(
+                (actor.body_id, actuation.actor_site_id)
+            )
+            recipient_site = self._body_surface_sites.get(
+                (recipient.body_id, actuation.recipient_site_id)
+            )
+            if actor_site is None or recipient_site is None:
+                raise ValueError("body-surface actuation references unmounted morphology")
+            if recipient_site.cutaneous_topology_index is None:
+                raise ValueError("body-surface recipient has no cutaneous receptor")
+            if (
+                actuation.actor_site_id in actor_sites_seen
+                or (recipient.body_id, actuation.recipient_site_id)
+                in recipient_sites_seen
+            ):
+                raise ValueError("one surface cannot occupy two simultaneous contacts")
+            actor_sites_seen.add(actuation.actor_site_id)
+            recipient_sites_seen.add(
+                (recipient.body_id, actuation.recipient_site_id)
+            )
+            (
+                actor_rest_centre,
+                actor_normal,
+                actor_tangent_u,
+                actor_tangent_v,
+            ) = _world_body_surface_geometry(actor, actor_site)
+            (
+                recipient_centre,
+                recipient_normal,
+                recipient_tangent_u,
+                recipient_tangent_v,
+            ) = _world_body_surface_geometry(recipient, recipient_site)
+            travel = recipient_centre - actor_rest_centre
+            maximum_travel = actor.reach_mm * 1_000
+            if travel.dot(travel) > maximum_travel * maximum_travel:
+                raise ValueError("body-surface contact lies outside actor reach")
+            if actor_normal != recipient_normal.scaled(Fraction(-1)):
+                raise ValueError("body-surface normals are not physically opposed")
+            if (
+                actor_tangent_u != recipient_tangent_u
+                or actor_tangent_v != recipient_tangent_v
+            ):
+                raise ValueError("body-surface tangent frames are not aligned")
+            recipient_temperature = self._body_surface_temperature_millikelvin(
+                recipient.body_id,
+                recipient_site,
+            )
+            actor_temperature = self._body_surface_temperature_millikelvin(
+                actor.body_id,
+                actor_site,
+            )
+            boundary = recipient_centre
+            compressed = (
+                boundary
+                + recipient_normal.scaled(
+                    Fraction(-actuation.compression_micrometres)
+                )
+                + recipient_tangent_u.scaled(
+                    Fraction(actuation.tangential_u_micrometres)
+                )
+                + recipient_tangent_v.scaled(
+                    Fraction(actuation.tangential_v_micrometres)
+                )
+            )
+            released = (
+                boundary
+                + recipient_tangent_u.scaled(
+                    Fraction(actuation.tangential_u_micrometres)
+                )
+                + recipient_tangent_v.scaled(
+                    Fraction(actuation.tangential_v_micrometres)
+                )
+            )
+            recipient_contact_site = recipient_site.contact_site(
+                outward_normal=recipient_normal,
+                tangent_u=recipient_tangent_u,
+                tangent_v=recipient_tangent_v,
+            )
+            actor_contact_site = actor_site.contact_site(
+                outward_normal=actor_normal,
+                tangent_u=actor_tangent_u,
+                tangent_v=actor_tangent_v,
+            )
+            recipient_state = BodySurfaceState(
+                centre_micrometres=recipient_centre,
+                temperature_millikelvin=recipient_temperature,
+            )
+
+            def settle_phase(
+                actor_predecessor: ExactVector3,
+                actor_successor: ExactVector3,
+                duration_microseconds: int,
+            ) -> ReciprocalBodySurfaceContact:
+                physical = settle_admitted_body_surface_contact(
+                    admit_body_surface_pair(
+                        BodySurfaceTrajectory(
+                            site=recipient_contact_site,
+                            predecessor=recipient_state,
+                            successor=recipient_state,
+                        ),
+                        BodySurfaceTrajectory(
+                            site=actor_contact_site,
+                            predecessor=BodySurfaceState(
+                                centre_micrometres=actor_predecessor,
+                                temperature_millikelvin=actor_temperature,
+                            ),
+                            successor=BodySurfaceState(
+                                centre_micrometres=actor_successor,
+                                temperature_millikelvin=actor_temperature,
+                            ),
+                        ),
+                        duration_microseconds=Fraction(duration_microseconds),
+                    )
+                )
+                if physical.disposition.value != "contact":
+                    raise ValueError(
+                        "body-surface actuation phase did not produce contact"
+                    )
+                return physical
+
+            edge_duration = MIN_MATERIAL_ACTION_DURATION_US
+            dwell_duration = command.duration_microseconds - 2 * edge_duration
+            physical_phases = (
+                settle_phase(boundary, compressed, edge_duration),
+                settle_phase(compressed, compressed, dwell_duration),
+                settle_phase(compressed, released, edge_duration),
+            )
+            site_area = (
+                4
+                * recipient_site.half_extent_u_micrometres
+                * recipient_site.half_extent_v_micrometres
+            )
+            prepared.append(
+                PreparedBodySurfaceContact(
+                    physical_phases=physical_phases,
+                    recipient_cutaneous_topology_index=(
+                        recipient_site.cutaneous_topology_index
+                    ),
+                    recipient_site_area_square_micrometres=site_area,
+                )
+            )
+        return tuple(prepared)
+
     def _transition(
         self,
         world: _WorldState,
@@ -3970,6 +4574,12 @@ class EmbodimentWorldAuthority:
             if value.held_object_id is None:
                 return value.radius_mm
             return max(value.radius_mm, by_id[value.held_object_id][1].radius_mm)
+
+        if isinstance(command, BodySurfaceContactCommand):
+            return self._advance_material_time(
+                replace(world, bodies=tuple(bodies)),
+                command.duration_microseconds * 1_000,
+            ), "applied"
 
         if isinstance(
             command,
@@ -4656,6 +5266,25 @@ class EmbodimentWorldAuthority:
                     before=before,
                 )
             lifecycle += ("command_decoded",)
+            body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
+            if isinstance(command, BodySurfaceContactCommand):
+                try:
+                    body_surface_contacts = self._settle_body_surface_command(
+                        before_state.world,
+                        actor_body_id,
+                        command,
+                    )
+                except (TypeError, ValueError):
+                    return self._reject(
+                        port_id=port,
+                        actor_body_id=actor_body_id,
+                        causal_intent_receipt_sha256=intent,
+                        command_sha256=command_sha,
+                        expected_revision=revision,
+                        reason="body_surface_contact_geometry_rejected",
+                        lifecycle=lifecycle + ("geometry_rejected",),
+                        before=before,
+                    )
             transitioned, reason = self._transition(
                 before_state.world, actor_body_id, command
             )
@@ -4680,6 +5309,8 @@ class EmbodimentWorldAuthority:
                 consequence_lifecycle = (
                     "material_contact_geometry_validated"
                 )
+            elif isinstance(command, BodySurfaceContactCommand):
+                consequence_lifecycle = "body_surface_contact_validated"
             elif isinstance(command, AdvancePhysicalTimeCommand):
                 consequence_lifecycle = (
                     "physical_time_transport_validated"
@@ -4741,6 +5372,7 @@ class EmbodimentWorldAuthority:
                 _construction_authority=(
                     _PREPARED_ACTION_EXECUTION_AUTHORITY
                 ),
+                body_surface_contacts=body_surface_contacts,
             )
             self._require_prepared_action_execution_locked(
                 prepared,
@@ -4768,6 +5400,25 @@ class EmbodimentWorldAuthority:
                 "prepared embodiment action execution changed custody"
             )
         receipt = prepared.execution_receipt
+        body_surface_lifecycle = (
+            receipt.lifecycle[-2:]
+            == ("body_surface_contact_validated", "applied")
+        )
+        if body_surface_lifecycle != bool(prepared.body_surface_contacts):
+            raise ValueError("prepared body-surface consequence changed custody")
+        for contact in prepared.body_surface_contacts:
+            if (
+                not isinstance(contact, PreparedBodySurfaceContact)
+                or not isinstance(
+                    contact.physical,
+                    ReciprocalBodySurfaceContact,
+                )
+                or contact.recipient_site_area_square_micrometres <= 0
+                or contact.physical.contact_area_square_micrometres <= 0
+                or contact.physical.contact_area_square_micrometres
+                > contact.recipient_site_area_square_micrometres
+            ):
+                raise ValueError("prepared body-surface consequence changed")
         environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
         receipt_custody_valid = (
             prepared._candidate_state.recent_applied_receipts
@@ -4805,6 +5456,16 @@ class EmbodimentWorldAuthority:
                 raise RuntimeError(
                     "prepared embodiment action world changed before commit"
                 )
+
+    def body_surface_contacts_for_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> tuple[PreparedBodySurfaceContact, ...]:
+        """Expose only the immutable consequences carried by one live prepare."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(prepared)
+            return current.body_surface_contacts
 
     @contextmanager
     def prepared_action_visibility_transaction(
@@ -5021,6 +5682,7 @@ class EmbodimentWorldAuthority:
             ("geometry_validated", "applied"),
             ("vocal_commitment_validated", "applied"),
             ("material_contact_geometry_validated", "applied"),
+            ("body_surface_contact_validated", "applied"),
             ("physical_time_transport_validated", "applied"),
         ):
             raise ValueError("retained execution lifecycle changed")
@@ -5034,6 +5696,7 @@ class EmbodimentWorldAuthority:
             ("geometry_validated", "applied"),
             ("vocal_commitment_validated", "applied"),
             ("material_contact_geometry_validated", "applied"),
+            ("body_surface_contact_validated", "applied"),
             ("physical_time_transport_validated", "applied"),
         }
         if (
@@ -5869,16 +6532,20 @@ class EmbodimentWorldAuthority:
         )
 
     def _physical_manifest_sha256(self) -> str:
-        return _digest(
-            {
-                "object_physics": [
-                    item.as_record()
-                    for item in _default_objects()
-                ],
-                "portals": [item.as_record() for item in _default_portals()],
-                "regions": [item.as_record() for item in _default_regions()],
-            }
-        )
+        manifest = {
+            "object_physics": [
+                item.as_record()
+                for item in _default_objects()
+            ],
+            "portals": [item.as_record() for item in _default_portals()],
+            "regions": [item.as_record() for item in _default_regions()],
+        }
+        if self._body_surface_sites:
+            manifest["body_surface_morphology"] = [
+                site.as_record()
+                for site in self._body_surface_sites.values()
+            ]
+        return _digest(manifest)
 
     def _decode_authenticated_envelope(
         self, encoded: bytes, *, envelope_schema: str, domain: bytes, limit: int
@@ -6963,6 +7630,8 @@ __all__ = [
     "AirVolumeState",
     "BodyContactState",
     "BodyReceptorGeometry",
+    "BodySurfaceActuation",
+    "BodySurfaceContactCommand",
     "ContactOpticalSurfaceSequence",
     "EmbodiedBody",
     "EmbodiedObject",
@@ -6973,6 +7642,7 @@ __all__ = [
     "ReleaseHeldObjectCommand",
     "TakeContactHeldObjectCommand",
     "MoveCommand",
+    "MountedBodySurfaceSite",
     "ObjectMaterialState",
     "ObjectOpticalSurface",
     "MAX_OPTICAL_SURFACE_COLUMNS",
@@ -6984,6 +7654,7 @@ __all__ = [
     "OralContactCommand",
     "PORT_ID",
     "PreparedActionExecution",
+    "PreparedBodySurfaceContact",
     "SECOND_BODY_PORT_ID",
     "PickCommand",
     "PlaceCommand",

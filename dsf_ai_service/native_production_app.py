@@ -916,6 +916,174 @@ def _home_book_optical_surface_sequence() -> Any | None:
     return _home_book_sequence_from_pages(record, pages)
 
 
+def _companion_body_surface_sites() -> tuple[Any, ...]:
+    """Declare the bounded skin sites used by exact reciprocal contact.
+
+    These are morphology, not gesture meanings.  Their material coefficients
+    are pinned by three explicit substrate-scale reference responses:
+
+    * a fully covered 60 x 80 mm palm compressed by 1 mm carries 9.6 N;
+    * the same palm sliding 10 mm over one second carries 0.96 N tangentially;
+    * the same palm held across a 1 K difference for one second transfers
+      0.48 J.
+
+    The coefficients are therefore derived once from those declarations and
+    are never tuned by a lesson, behavior, or observer.  Guala's temperature
+    is read from her live cutaneous thermal node; 310.15 K is the participant
+    surface's declared finite reservoir boundary until that body gains its own
+    thermal circulation.
+    """
+
+    if not TOUCH_RECEPTORS_AUTHORIZED:
+        return ()
+    from dsf_ai_service.substrate.body_surface_contact import (
+        BodySurfaceMaterial,
+        ExactVector3,
+    )
+    from dsf_ai_service.substrate.embodiment_world import (
+        MountedBodySurfaceSite,
+    )
+
+    exact = Fraction
+    x = ExactVector3(exact(1), exact(0), exact(0))
+    y = ExactVector3(exact(0), exact(1), exact(0))
+    z = ExactVector3(exact(0), exact(0), exact(1))
+    skin = BodySurfaceMaterial(
+        normal_stiffness_millinewtons_per_micrometre_per_square_micrometre=(
+            exact(1, 500_000_000)
+        ),
+        tangential_damping_millinewton_microseconds_per_micrometre_per_square_micrometre=(
+            exact(1, 50_000)
+        ),
+        thermal_conductance_nanowatts_per_square_micrometre_millikelvin=(
+            exact(1, 10_000)
+        ),
+    )
+
+    def site(
+        body_id: str,
+        site_id: str,
+        centre: tuple[int, int, int],
+        normal: Any,
+        tangent_u: Any,
+        tangent_v: Any,
+        half_extents: tuple[int, int],
+        cutaneous_topology_index: int | None,
+    ) -> Any:
+        return MountedBodySurfaceSite(
+            body_id=body_id,
+            site_id=site_id,
+            local_centre_micrometres=ExactVector3(
+                *(exact(value) for value in centre)
+            ),
+            outward_normal=normal,
+            tangent_u=tangent_u,
+            tangent_v=tangent_v,
+            half_extent_u_micrometres=exact(half_extents[0]),
+            half_extent_v_micrometres=exact(half_extents[1]),
+            material=skin,
+            reference_temperature_millikelvin=310_150,
+            cutaneous_topology_index=cutaneous_topology_index,
+        )
+
+    # The existing 3 x 9 contact sheet is Guala's declared body-surface
+    # lattice.  These sparse morphology sites bind seven previously unnamed
+    # locations without changing their native topology or receptor law.
+    guala = (
+        site("guala-body-1", "forehead", (230_000, 0, 1_100_000), x, y, z, (70_000, 55_000), 4),
+        site("guala-body-1", "crown", (0, 0, 1_250_000), z, x, y, (75_000, 65_000), 3),
+        site("guala-body-1", "left-shoulder", (180_000, 170_000, 900_000), x, y, z, (80_000, 75_000), 9),
+        site("guala-body-1", "front-torso", (240_000, 0, 700_000), x, y, z, (150_000, 190_000), 13),
+        site("guala-body-1", "right-shoulder", (180_000, -170_000, 900_000), x, y, z, (80_000, 75_000), 17),
+        site("guala-body-1", "left-palm", (300_000, 150_000, 500_000), x, y, z, (30_000, 40_000), 18),
+        site("guala-body-1", "right-palm", (300_000, -150_000, 500_000), x, y, z, (30_000, 40_000), 26),
+    )
+    # A facing participant has the opposite heading.  Its local lateral
+    # tangents are therefore reversed so the two world-space contact bases
+    # become exactly aligned when the surfaces oppose each other.
+    participant = (
+        site("person-body-1", "left-palm", (300_000, 200_000, 800_000), x, y.scaled(exact(-1)), z, (30_000, 40_000), None),
+        site("person-body-1", "right-palm", (300_000, -200_000, 800_000), x, y.scaled(exact(-1)), z, (30_000, 40_000), None),
+        site("person-body-1", "front-torso", (250_000, 0, 1_000_000), x, y.scaled(exact(-1)), z, (180_000, 260_000), None),
+        site("person-body-1", "perioral", (260_000, 0, 1_450_000), x, y.scaled(exact(-1)), z, (25_000, 20_000), None),
+        site("person-body-1", "downward-palm", (250_000, -180_000, 1_050_000), z.scaled(exact(-1)), x.scaled(exact(-1)), y.scaled(exact(-1)), (30_000, 40_000), None),
+    )
+    return guala + participant
+
+
+_COMPANION_CONTACT_OPERATIONS = {
+    "hold_hand",
+    "hug",
+    "forehead_kiss",
+    "head_pat",
+    "shoulder_touch",
+}
+
+
+def _companion_contact_profile(
+    operation: str,
+    recipient_body_id: str,
+) -> tuple[tuple[Any, ...], int]:
+    """Translate one human-facing care invitation into physical surfaces.
+
+    The returned command contains no gesture name, reward, affect, meaning, or
+    expected response.  Those remain consequences for the organism's own
+    receptors and chemistry to settle.
+    """
+
+    from dsf_ai_service.substrate.embodiment_world import BodySurfaceActuation
+
+    def contact(
+        actor_site: str,
+        recipient_site: str,
+        compression_micrometres: int,
+        tangential_u_micrometres: int = 0,
+        tangential_v_micrometres: int = 0,
+    ) -> Any:
+        return BodySurfaceActuation(
+            actor_site_id=actor_site,
+            recipient_body_id=recipient_body_id,
+            recipient_site_id=recipient_site,
+            compression_micrometres=compression_micrometres,
+            tangential_u_micrometres=tangential_u_micrometres,
+            tangential_v_micrometres=tangential_v_micrometres,
+        )
+
+    profiles = {
+        "hold_hand": (
+            (contact("right-palm", "left-palm", 1_000),),
+            2_000_000,
+        ),
+        "hug": (
+            (
+                contact("front-torso", "front-torso", 2_000),
+                contact("left-palm", "right-shoulder", 1_000),
+                contact("right-palm", "left-shoulder", 1_000),
+            ),
+            2_000_000,
+        ),
+        "forehead_kiss": (
+            (contact("perioral", "forehead", 500),),
+            500_000,
+        ),
+        "head_pat": (
+            (contact("downward-palm", "crown", 750, 12_000, 0),),
+            750_000,
+        ),
+        "shoulder_touch": (
+            (contact("right-palm", "left-shoulder", 1_000),),
+            1_000_000,
+        ),
+    }
+    try:
+        actuations, duration = profiles[operation]
+    except KeyError as error:
+        raise ValueError("unknown companion contact profile") from error
+    for actuation in actuations:
+        actuation.verify()
+    return actuations, duration
+
+
 def _world() -> Any:
     """Her place, restored from disk or built once and persisted."""
 
@@ -1008,6 +1176,7 @@ def _world() -> Any:
         contact_optical_surface_sequences=(
             () if home_book_sequence is None else (home_book_sequence,)
         ),
+        body_surface_sites=_companion_body_surface_sites(),
         max_regions=4,
     )
     path = STATE_ROOT / WORLD_STATE_FILE
@@ -1016,7 +1185,9 @@ def _world() -> Any:
         try:
             stored_body = path.read_bytes()
             authority.restore_encoded(
-                stored_body, allow_legacy_thermal_genesis=True
+                stored_body,
+                allow_authenticated_physical_manifest_migration=True,
+                allow_legacy_thermal_genesis=True,
             )
             authority.migrate_declared_body_receptor_geometry()
             authority.migrate_declared_material_transport()
@@ -7596,6 +7767,9 @@ def _touch_ports(
     source_times: tuple[Fraction, ...],
     occupancy: tuple[float, ...] | None,
     palmar_contact: tuple[float, ...] | tuple[Fraction, ...] | None = None,
+    body_surface_contact_trajectories: (
+        tuple[tuple[Fraction, ...], ...] | None
+    ) = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     """The mounted tactile roster for one hop, under the declared anatomy.
 
@@ -7611,12 +7785,22 @@ def _touch_ports(
     if len(held) != CONTACT_SHEET_SITE_COUNT:
         raise ValueError("contact occupancy count differs from the declared anatomy")
     frame_count = len(source_times)
+    contact_signals = body_surface_contact_trajectories or tuple(
+        (Fraction(held[index]).limit_denominator(1_000_000),) * frame_count
+        for index in range(CONTACT_SHEET_SITE_COUNT)
+    )
+    if len(contact_signals) != CONTACT_SHEET_SITE_COUNT or any(
+        len(signal) != frame_count
+        or any(value < 0 or value > 1 for value in signal)
+        for signal in contact_signals
+    ):
+        raise ValueError("body-surface contact trajectories changed anatomy or clock")
     sheet = tuple(
         _contact_site_substream(
             row,
             column,
             source_times,
-            (held[_contact_topology_index(row, column)],) * frame_count,
+            contact_signals[_contact_topology_index(row, column)],
         )
         for row in range(CONTACT_SHEET_ROWS)
         for column in range(CONTACT_SHEET_COLUMNS)
@@ -12497,6 +12681,7 @@ def _action_consequence_episode(
     body_displacement: tuple[Fraction, ...] | None = None,
     predecessor_retinal_body_axes: tuple[Any, ...] | list[Any] | None = None,
     retinal_body_axes: tuple[Any, ...] | list[Any] | None = None,
+    body_surface_contacts: tuple[Any, ...] = (),
 ) -> tuple[Any, list[tuple[int, int]], dict[str, Any]]:
     """One exact joint sensorium caused by one committed 1 ms body action.
 
@@ -12570,6 +12755,78 @@ def _action_consequence_episode(
     ):
         raise RuntimeError("palmar contact left its exact binary boundary")
 
+    body_surface_contact_trajectories = [
+        (Fraction(0),) * len(times)
+        for _ in range(CONTACT_SHEET_SITE_COUNT)
+    ]
+    body_surface_contact_records: list[dict[str, object]] = []
+    for contact in body_surface_contacts:
+        topology_index = contact.recipient_cutaneous_topology_index
+        if (
+            isinstance(topology_index, bool)
+            or not isinstance(topology_index, int)
+            or not 0 <= topology_index < CONTACT_SHEET_SITE_COUNT
+            or any(body_surface_contact_trajectories[topology_index])
+        ):
+            raise ValueError("body-surface contact changed cutaneous anatomy")
+        occupancy = (
+            contact.physical.contact_area_square_micrometres
+            / contact.recipient_site_area_square_micrometres
+        )
+        if occupancy <= 0 or occupancy > 1:
+            raise ValueError("body-surface contact occupancy left its exact site")
+        # The explicit surface pair is in contact for this bounded physical
+        # interval.  Its successor is not retained as an authored pose; the
+        # following world interval therefore carries the separate release.
+        body_surface_contact_trajectories[topology_index] = (
+            occupancy,
+        ) * len(times)
+        phases = contact.physical_phases
+        if len(phases) != 3:
+            raise ValueError("body-surface contact phase anatomy changed")
+        physical = contact.physical
+        heat_to_recipient = sum(
+            phase.conductive_heat_to_a_nanojoules
+            for phase in phases
+        )
+        normal_work = sum(
+            phase.normal_work_into_interface_nanojoules
+            for phase in phases
+        )
+        tangential_work = sum(
+            phase.tangential_dissipated_work_nanojoules
+            for phase in phases
+        )
+        peak_normal_load = max(
+            phase.successor_normal_load_millinewtons
+            for phase in phases
+        )
+        body_surface_contact_records.append(
+            {
+                "contact_area_square_micrometres": [
+                    physical.contact_area_square_micrometres.numerator,
+                    physical.contact_area_square_micrometres.denominator,
+                ],
+                "conductive_heat_to_recipient_nanojoules": [
+                    heat_to_recipient.numerator,
+                    heat_to_recipient.denominator,
+                ],
+                "normal_load_millinewtons": [
+                    peak_normal_load.numerator,
+                    peak_normal_load.denominator,
+                ],
+                "normal_work_nanojoules": [
+                    normal_work.numerator,
+                    normal_work.denominator,
+                ],
+                "tangential_work_nanojoules": [
+                    tangential_work.numerator,
+                    tangential_work.denominator,
+                ],
+                "topology_index": topology_index,
+            }
+        )
+
     surface_trajectories = tuple(
         (before, after)
         for before, after in zip(
@@ -12617,6 +12874,9 @@ def _action_consequence_episode(
         smelled=after_smell,
         moved=body_displacement,
         palmar_contact_trajectory=palmar_contact_trajectory,
+        body_surface_contact_trajectories=tuple(
+            body_surface_contact_trajectories
+        ),
         surface_trajectories=surface_trajectories,
         taste_trajectories=taste_trajectories,
         smell_trajectories=smell_trajectories,
@@ -12676,9 +12936,13 @@ def _action_consequence_episode(
             "transported": THERMAL_PORT_COUNT,
         },
         "tactile": {
-            "changed": int(
-                palmar_contact_trajectory[0]
-                != palmar_contact_trajectory[-1]
+            "body_surface_contacts": body_surface_contact_records,
+            "changed": (
+                int(
+                    palmar_contact_trajectory[0]
+                    != palmar_contact_trajectory[-1]
+                )
+                + len(body_surface_contact_records)
             ),
             "material_channels_unmounted": 5,
             "transported": TOUCH_PORT_COUNT,
@@ -13432,6 +13696,9 @@ def _whole_roster_hop_episode(
     palmar_contact_trajectory: (
         tuple[float, ...] | tuple[Fraction, ...] | None
     ) = None,
+    body_surface_contact_trajectories: (
+        tuple[tuple[Fraction, ...], ...] | None
+    ) = None,
     retinal_transmission: Fraction | tuple[Fraction, ...],
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
@@ -13497,6 +13764,7 @@ def _whole_roster_hop_episode(
         times,
         contact,
         palmar_contact_trajectory,
+        body_surface_contact_trajectories,
     )
     if touch_ports:
         observed[PhysicalSense.TOUCH] = touch_ports
@@ -16026,14 +16294,24 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     if not isinstance(payload, dict):
         return _refusal(422, "an other-body action requires a JSON body")
     operation = payload.get("operation", "move")
-    if operation not in {"move", "pick", "place", "take"}:
+    if operation not in {
+        "move",
+        "pick",
+        "place",
+        "take",
+        "surface_contact",
+        *_COMPANION_CONTACT_OPERATIONS,
+    }:
         return _refusal(
             422,
             "an other-body action operation must be 'move', 'pick', "
-            "'place', or 'take'",
+            "'place', 'take', 'surface_contact', or one declared companion "
+            "contact",
         )
     x = y = heading = signed_yaw = None
     object_id = None
+    surface_actuations: tuple[Any, ...] = ()
+    surface_duration_microseconds = INTAKE_HOP_MILLISECONDS * 1_000
     if operation == "move":
         try:
             x = int(payload["x_mm"])
@@ -16061,6 +16339,82 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 422,
                 "signed_yaw_millidegrees exceeds signed 32-bit range",
             )
+    elif operation in _COMPANION_CONTACT_OPERATIONS:
+        if set(payload) != {"operation"}:
+            return _refusal(
+                422,
+                "a named companion contact accepts no authored physical or reward fields",
+            )
+        surface_actuations, surface_duration_microseconds = (
+            _companion_contact_profile(operation, "guala-body-1")
+        )
+    elif operation == "surface_contact":
+        from dsf_ai_service.substrate.embodiment_world import (
+            BodySurfaceActuation,
+        )
+
+        raw_actuations = payload.get("actuations")
+        try:
+            surface_duration_microseconds = int(
+                payload.get(
+                    "duration_microseconds",
+                    INTAKE_HOP_MILLISECONDS * 1_000,
+                )
+            )
+        except (TypeError, ValueError):
+            return _refusal(
+                422,
+                "a surface contact duration must be an integer number of microseconds",
+            )
+        if (
+            isinstance(payload.get("duration_microseconds"), bool)
+            or not isinstance(raw_actuations, list)
+            or not raw_actuations
+        ):
+            return _refusal(
+                422,
+                "a surface contact requires one or more explicit physical actuations",
+            )
+        parsed = []
+        try:
+            for raw in raw_actuations:
+                if not isinstance(raw, dict) or set(raw) != {
+                    "actor_site_id",
+                    "compression_micrometres",
+                    "recipient_body_id",
+                    "recipient_site_id",
+                    "tangential_u_micrometres",
+                    "tangential_v_micrometres",
+                }:
+                    raise ValueError("surface actuation fields changed")
+                if any(
+                    isinstance(raw.get(name), bool)
+                    for name in (
+                        "compression_micrometres",
+                        "tangential_u_micrometres",
+                        "tangential_v_micrometres",
+                    )
+                ):
+                    raise ValueError("surface displacement must be integer")
+                actuation = BodySurfaceActuation(
+                    actor_site_id=raw["actor_site_id"],
+                    recipient_body_id=raw["recipient_body_id"],
+                    recipient_site_id=raw["recipient_site_id"],
+                    compression_micrometres=int(
+                        raw["compression_micrometres"]
+                    ),
+                    tangential_u_micrometres=int(
+                        raw["tangential_u_micrometres"]
+                    ),
+                    tangential_v_micrometres=int(
+                        raw["tangential_v_micrometres"]
+                    ),
+                )
+                actuation.verify()
+                parsed.append(actuation)
+        except (KeyError, TypeError, ValueError) as error:
+            return _refusal(422, f"surface contact is invalid: {error}")
+        surface_actuations = tuple(parsed)
     elif operation == "pick":
         object_id = payload.get("object_id")
         if not isinstance(object_id, str) or not object_id:
@@ -16100,6 +16454,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
 
     from dsf_ai_service.substrate.embodiment_world import (
         ActionExecutionReceipt,
+        BodySurfaceContactCommand,
         MoveCommand,
         PickCommand,
         PlaceCommand,
@@ -16156,6 +16511,25 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 "signed_yaw_millidegrees": signed_yaw,
                 "x_mm": x,
                 "y_mm": y,
+            }
+        elif operation == "surface_contact" or operation in _COMPANION_CONTACT_OPERATIONS:
+            intent_body = {
+                "actor_body_id": other.body_id,
+                "actuations": [
+                    actuation.as_record()
+                    for actuation in surface_actuations
+                ],
+                "duration_microseconds": surface_duration_microseconds,
+                "expected_world_revision": before.revision,
+                "operation": operation,
+            }
+            command = BodySurfaceContactCommand(
+                actuations=surface_actuations,
+                duration_microseconds=surface_duration_microseconds,
+            )
+            action_detail = {
+                "actuations": intent_body["actuations"],
+                "duration_microseconds": surface_duration_microseconds,
             }
         elif operation == "pick":
             assert object_id is not None
@@ -16220,6 +16594,14 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         if not isinstance(prepared, PreparedActionExecution):
             return _refusal(503, "the other-body action lost its prepared state")
         execution = prepared.execution_receipt
+        body_surface_contacts = (
+            authority.body_surface_contacts_for_prepared_action(prepared)
+            if (
+                operation == "surface_contact"
+                or operation in _COMPANION_CONTACT_OPERATIONS
+            )
+            else ()
+        )
         if operation == "take":
             resolved_body = next(
                 item
@@ -16242,7 +16624,18 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 consequence_lane_truth,
             ) = _action_consequence_episode(
                 execution,
-                action_duration=Fraction(INTAKE_HOP_MILLISECONDS, 1_000),
+                action_duration=Fraction(
+                    (
+                        surface_duration_microseconds
+                        if (
+                            operation == "surface_contact"
+                            or operation in _COMPANION_CONTACT_OPERATIONS
+                        )
+                        else INTAKE_HOP_MILLISECONDS * 1_000
+                    ),
+                    1_000_000,
+                ),
+                body_surface_contacts=body_surface_contacts,
             )
             visual_changed = int(consequence_lane_truth["visual"]["changed"])
             tactile_changed = int(
@@ -16252,7 +16645,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             authority.discard_prepared_action(prepared)
             return _refusal(
                 422,
-                f"the other-body action could not reach Guala's retina: {error}",
+                f"the other-body action could not reach Guala's sensorium: {error}",
             )
 
         predecessor_world = authority.encoded_snapshot()

@@ -8,12 +8,22 @@ from dsf_ai_service.substrate.bounded_home_thermal_physics import (
     ThermalBathEdge,
     ThermalPowerSource,
 )
+from dsf_ai_service.substrate.body_surface_contact import (
+    BodySurfaceMaterial,
+    ExactVector3,
+)
 from dsf_ai_service.substrate.embodiment_world import (
     AirVolumeState,
     PORT_ID,
+    SECOND_BODY_PORT_ID,
     AdvancePhysicalTimeCommand,
+    BodySurfaceActuation,
+    BodySurfaceContactCommand,
     EmbodiedBody,
+    MountedBodySurfaceSite,
     ObjectMaterialState,
+    PoseMM,
+    PositionMM,
     PreparedActionExecution,
     encode_command,
 )
@@ -141,6 +151,116 @@ def test_one_authenticated_cold_body_restores_latest_thermal_tail() -> None:
 
     assert restored.encoded_snapshot() == encoded
     assert restored.thermal_observation() == expected
+
+
+def test_body_surface_contact_reaches_exact_skin_site_and_retains_all_heat() -> None:
+    f = Fraction
+    x = ExactVector3(f(1), f(0), f(0))
+    y = ExactVector3(f(0), f(1), f(0))
+    z = ExactVector3(f(0), f(0), f(1))
+    material = BodySurfaceMaterial(f(2), f(2), f(2))
+
+    def site(
+        body_id: str,
+        normal: ExactVector3,
+        tangent_u: ExactVector3,
+        topology_index: int | None,
+    ) -> MountedBodySurfaceSite:
+        return MountedBodySurfaceSite(
+            body_id=body_id,
+            site_id="palm",
+            local_centre_micrometres=ExactVector3(f(250_000), f(0), f(0)),
+            outward_normal=normal,
+            tangent_u=tangent_u,
+            tangent_v=z,
+            half_extent_u_micrometres=f(10 if topology_index is not None else 5),
+            half_extent_v_micrometres=f(10 if topology_index is not None else 5),
+            material=material,
+            reference_temperature_millikelvin=310_150,
+            cutaneous_topology_index=topology_index,
+        )
+
+    authority = ThermallyCoupledEmbodimentWorldAuthority(
+        authority_key="thermally-coupled-world-test-key",
+        thermal_anatomy=_anatomy(),
+        bodies=(
+            EmbodiedBody(
+                "guala-body-1",
+                PoseMM(PositionMM(1_000, 1_800, 0), 0),
+                radius_mm=250,
+                reach_mm=800,
+            ),
+            EmbodiedBody(
+                "w1-body-2",
+                PoseMM(PositionMM(1_500, 1_800, 0), 180_000),
+                radius_mm=250,
+                reach_mm=800,
+            ),
+        ),
+        body_surface_sites=(
+            site("guala-body-1", x, y, 4),
+            site("w1-body-2", x, y.scaled(f(-1)), None),
+        ),
+    )
+    command = BodySurfaceContactCommand(
+        actuations=(
+            BodySurfaceActuation(
+                actor_site_id="palm",
+                recipient_body_id="guala-body-1",
+                recipient_site_id="palm",
+                compression_micrometres=1,
+                tangential_u_micrometres=1,
+                tangential_v_micrometres=0,
+            ),
+        ),
+        duration_microseconds=3_000,
+    )
+
+    for _ in range(2):
+        prior_residue = authority._body_surface_heat_residue_nanojoules
+        before = authority.observation_snapshot()
+        prepared = authority.prepare_port_command(
+            port_id=SECOND_BODY_PORT_ID,
+            command_payload=encode_command(command),
+            causal_intent_receipt_sha256="b" * 64,
+            expected_revision=before.revision,
+        )
+        assert isinstance(prepared, PreparedActionExecution)
+        contact = authority.body_surface_contacts_for_prepared_action(prepared)
+        assert len(contact) == 1
+        assert contact[0].recipient_cutaneous_topology_index == 4
+        admitted_heat = sum(
+            phase.conductive_heat_to_a_nanojoules
+            for phase in contact[0].physical_phases
+        )
+        assert admitted_heat > 0
+        expected_whole_heat = int((prior_residue + admitted_heat) / 1_000)
+        expected_residue = (
+            prior_residue + admitted_heat - expected_whole_heat * 1_000
+        )
+        authority.commit_prepared_action(prepared)
+        assert (
+            authority._latest_thermal_transition
+            .body_surface_heat_into_skin_microjoules
+            == expected_whole_heat
+        )
+        assert (
+            authority._body_surface_heat_residue_nanojoules
+            == expected_residue
+        )
+
+    encoded = authority.encoded_snapshot()
+    restored = ThermallyCoupledEmbodimentWorldAuthority(
+        authority_key="thermally-coupled-world-test-key",
+        thermal_anatomy=_anatomy(),
+        bodies=authority.observation_snapshot().bodies,
+        body_surface_sites=(
+            site("guala-body-1", x, y, 4),
+            site("w1-body-2", x, y.scaled(f(-1)), None),
+        ),
+    )
+    restored.restore_encoded(encoded)
+    assert restored.encoded_snapshot() == encoded
 
 
 def test_receptor_anatomy_migration_rebinds_thermal_custody() -> None:
