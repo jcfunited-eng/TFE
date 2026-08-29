@@ -1106,6 +1106,13 @@ class GraspContactCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class ReleaseHeldObjectCommand:
+    """Open a hand and release its one held object without naming it."""
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
 class AdvanceContactOpticalSurfaceCommand:
     """Advance the uniquely contacted bound surface by one physical leaf.
 
@@ -1183,6 +1190,7 @@ EmbodimentCommand = (
     MoveCommand
     | PickCommand
     | GraspContactCommand
+    | ReleaseHeldObjectCommand
     | AdvanceContactOpticalSurfaceCommand
     | PlaceCommand
     | VocalizeCommand
@@ -1227,6 +1235,17 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
                 maximum=MAX_MATERIAL_ACTION_DURATION_US,
             ),
             "operation": "grasp_contact",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, ReleaseHeldObjectCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "release_held_object",
             "schema": COMMAND_SCHEMA,
         }
     if isinstance(command, AdvanceContactOpticalSurfaceCommand):
@@ -1414,6 +1433,17 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
         "duration_microseconds", "operation", "schema"
     }:
         result = GraspContactCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "release_held_object" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = ReleaseHeldObjectCommand(
             _bounded_integer(
                 decoded.get("duration_microseconds"),
                 "physical action duration",
@@ -4009,47 +4039,69 @@ class EmbodimentWorldAuthority:
                 ),
             )
 
+        if isinstance(command, ReleaseHeldObjectCommand):
+            if body.held_object_id is None:
+                return None, "release_body_holds_nothing"
+            held = by_id.get(body.held_object_id)
+            if held is None:
+                raise RuntimeError("held release object disappeared")
+            _object_index, item = held
+            if (
+                item.position is not None
+                or item.held_by_body_id != body.body_id
+            ):
+                raise RuntimeError("held release custody changed")
+            separation_mm = body.radius_mm + item.radius_mm
+            dx, dy = rotate_lattice_offset(
+                separation_mm,
+                0,
+                body.pose.heading_millidegrees,
+            )
+            return self._transition(
+                world,
+                actor_body_id,
+                PlaceCommand(
+                    object_id=item.object_id,
+                    target_position=PositionMM(
+                        body.pose.position.x + dx,
+                        body.pose.position.y + dy,
+                        body.pose.position.z,
+                    ),
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
+
         if isinstance(command, AdvanceContactOpticalSurfaceCommand):
-            patch: int | None = None
             if body.held_object_id is not None:
-                held = by_id.get(body.held_object_id)
-                if held is None:
-                    raise RuntimeError("held contact surface object disappeared")
-                object_index, item = held
-                if (
-                    item.position is not None
-                    or item.held_by_body_id != body.body_id
-                ):
-                    raise RuntimeError("held contact surface custody changed")
-            else:
-                geometry = body.receptor_geometry
-                if geometry is None:
-                    return None, "contact_surface_geometry_unavailable"
-                receptor_position = _receptor_position(
-                    body,
-                    geometry.touch_offset_mm,
-                )
-                if receptor_position is None:
-                    return None, "contact_surface_heading_geometry_unresolved"
-                contacted = tuple(
-                    (index, item, contact_patch)
-                    for index, item in enumerate(objects)
-                    if item.position is not None
-                    and (
-                        contact_patch := _derived_contact_patch_square_mm(
-                            receptor_position=receptor_position,
-                            receptor_radius_mm=geometry.touch_radius_mm,
-                            object_position=item.position,
-                            object_radius_mm=item.radius_mm,
-                        )
+                return None, "contact_surface_body_already_holding"
+            geometry = body.receptor_geometry
+            if geometry is None:
+                return None, "contact_surface_geometry_unavailable"
+            receptor_position = _receptor_position(
+                body,
+                geometry.touch_offset_mm,
+            )
+            if receptor_position is None:
+                return None, "contact_surface_heading_geometry_unresolved"
+            contacted = tuple(
+                (index, item, patch)
+                for index, item in enumerate(objects)
+                if item.position is not None
+                and (
+                    patch := _derived_contact_patch_square_mm(
+                        receptor_position=receptor_position,
+                        receptor_radius_mm=geometry.touch_radius_mm,
+                        object_position=item.position,
+                        object_radius_mm=item.radius_mm,
                     )
-                    is not None
                 )
-                if not contacted:
-                    return None, "contact_surface_absent"
-                if len(contacted) != 1:
-                    return None, "contact_surface_ambiguous"
-                object_index, item, patch = contacted[0]
+                is not None
+            )
+            if not contacted:
+                return None, "contact_surface_absent"
+            if len(contacted) != 1:
+                return None, "contact_surface_ambiguous"
+            object_index, item, patch = contacted[0]
             sequence = self._contact_optical_surface_sequences.get(
                 item.object_id
             )
@@ -4072,16 +4124,15 @@ class EmbodimentWorldAuthority:
                 item,
                 optical_surface=sequence.surfaces[successor_index],
             )
-            if patch is not None:
-                bodies[body_index] = replace(
-                    body,
-                    active_contact=BodyContactState(
-                        kind="touch",
-                        object_id=item.object_id,
-                        contact_patch_square_mm=patch,
-                        duration_microseconds=command.duration_microseconds,
-                    ),
-                )
+            bodies[body_index] = replace(
+                body,
+                active_contact=BodyContactState(
+                    kind="touch",
+                    object_id=item.object_id,
+                    contact_patch_square_mm=patch,
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
             return self._advance_material_time(
                 replace(
                     world,
@@ -6596,6 +6647,7 @@ __all__ = [
     "EmbodimentWorldAuthority",
     "ENVIRONMENT_PORT_ID",
     "GraspContactCommand",
+    "ReleaseHeldObjectCommand",
     "MoveCommand",
     "ObjectMaterialState",
     "ObjectOpticalSurface",

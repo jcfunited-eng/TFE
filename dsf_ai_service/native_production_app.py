@@ -10422,6 +10422,7 @@ def _prepare_continuous_native_action_consequence(
         PositionMM,
         PoseMM,
         PreparedActionExecution,
+        ReleaseHeldObjectCommand,
         encode_command,
     )
 
@@ -10545,8 +10546,23 @@ def _prepare_continuous_native_action_consequence(
         )
         port_id = PORT_ID
     elif len(grip_opening_axes) == 1 and not grip_closing_axes:
-        command = AdvanceContactOpticalSurfaceCommand(
-            duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000
+        before_body = next(
+            body
+            for body in before.bodies
+            if body.body_id == before.self_body_id
+        )
+        command = (
+            ReleaseHeldObjectCommand(
+                duration_microseconds=(
+                    WORLD_BODY_ACTION_MILLISECONDS * 1_000
+                )
+            )
+            if before_body.held_object_id is not None
+            else AdvanceContactOpticalSurfaceCommand(
+                duration_microseconds=(
+                    WORLD_BODY_ACTION_MILLISECONDS * 1_000
+                )
+            )
         )
         port_id = PORT_ID
     else:

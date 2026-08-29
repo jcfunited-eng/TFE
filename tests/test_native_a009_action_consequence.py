@@ -122,6 +122,7 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
     from dsf_ai_service.substrate.embodiment_world import (
         AdvanceContactOpticalSurfaceCommand,
         PreparedActionExecution,
+        ReleaseHeldObjectCommand,
         decode_command,
     )
 
@@ -133,11 +134,22 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
     )
 
     class World:
+        held_object_id = None
         prepared_command = None
 
         @staticmethod
         def observation_snapshot() -> SimpleNamespace:
-            return SimpleNamespace(revision=9, state_sha256="10" * 32)
+            return SimpleNamespace(
+                revision=9,
+                state_sha256="10" * 32,
+                self_body_id="guala-body-1",
+                bodies=(
+                    SimpleNamespace(
+                        body_id="guala-body-1",
+                        held_object_id=World.held_object_id,
+                    ),
+                ),
+            )
 
         @classmethod
         def prepare_port_command(cls, **kwargs) -> PreparedActionExecution:
@@ -207,6 +219,39 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
         world.prepared_command,
         AdvanceContactOpticalSurfaceCommand,
     )
+
+    World.held_object_id = "book"
+    production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="21" * 32,
+        causal_transition_sha256="31" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(("motor",),),
+        root_yaw_unit_recruitments=(),
+        root_translation_unit_recruitments=(),
+        body_effector_bindings=(("effector",),),
+        articulated_body_consequences=(
+            (
+                11,
+                "right_grip_aperture",
+                "micrometre",
+                1,
+                2,
+                1,
+                1,
+                2,
+                0,
+                1,
+                0,
+            ),
+        ),
+        body_proprioceptive_sources=(
+            (b"native-body-source", (11, 3, 6, 1, 6)),
+        ),
+        root_yaw_source_tick=11,
+    )
+    assert isinstance(world.prepared_command, ReleaseHeldObjectCommand)
 
 
 def test_native_root_discharge_turns_world_and_returns_typed_direction(

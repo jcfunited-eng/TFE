@@ -29,6 +29,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     PlaceCommand,
     PoseMM,
     PositionMM,
+    ReleaseHeldObjectCommand,
     TouchContactCommand,
     VocalizeCommand,
     decode_command,
@@ -417,7 +418,7 @@ def test_contact_surface_advances_one_bound_leaf_and_survives_restore() -> None:
     assert restored.encoded_snapshot() == complete_body
 
 
-def test_held_source_bound_book_advances_without_releasing_custody() -> None:
+def test_opening_grip_releases_held_book_before_contact_page_advance() -> None:
     surface = ObjectOpticalSurface(
         columns=2,
         rows=1,
@@ -429,6 +430,15 @@ def test_held_source_bound_book_advances_without_releasing_custody() -> None:
         radius_mm=50,
         mass_grams=100,
         position=PositionMM(1300, 1000, 0),
+        material=ObjectMaterialState(
+            odorant_reservoir_nanograms=(0,) * 8,
+            odorant_release_nanograms_per_second=(0,) * 8,
+            tastant_mass_micrograms=(0,) * 5,
+            surface_temperature_millikelvin=294_000,
+            compliance_ppm=60_000,
+            roughness_micrometers=60,
+            moisture_ppm=18_000,
+        ),
     )
     authority = EmbodimentWorldAuthority(
         authority_key="held-contact-surface-key",
@@ -448,17 +458,24 @@ def test_held_source_bound_book_advances_without_releasing_custody() -> None:
     )
     assert grasped.disposition == "applied"
 
-    advanced = _execute(
+    released = _execute(
         authority,
-        AdvanceContactOpticalSurfaceCommand(
-            duration_microseconds=200_000
-        ),
+        ReleaseHeldObjectCommand(duration_microseconds=200_000),
         intent_number=14,
     )
 
+    assert released.disposition == "applied"
+    assert _body(released.after).held_object_id is None
+    assert released.after.objects[0].held_by_body_id is None
+    assert released.after.objects[0].position == PositionMM(1300, 1000, 0)
+    assert released.after.objects[0].optical_surface is None
+
+    advanced = _execute(
+        authority,
+        AdvanceContactOpticalSurfaceCommand(duration_microseconds=200_000),
+        intent_number=15,
+    )
     assert advanced.disposition == "applied"
-    assert _body(advanced.after).held_object_id == "held-book"
-    assert advanced.after.objects[0].held_by_body_id == "guala-body-1"
     assert advanced.after.objects[0].optical_surface == surface
 
 
