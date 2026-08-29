@@ -4,6 +4,7 @@ Not the grammar of sentences: the grammar of what may follow
 what. A conversation is made of moves, moves have kinds, and the
 kinds constrain each other the way a wall constrains a making.
 
+STATE: FADED
 ESSENCE: a conversation is one thread that persists between
   turns — the same question laid across the knowledge, carrying
   what has stood and what has closed, added to at every turn and

@@ -79,12 +79,15 @@ THREAD: a referee, a customs officer, a proof checker.
 ACT: judge
 ASKED-AS: does any law close this what closes it forbidden refused check against the laws
 
-ESSENCE: I can put out a sentence I hold, in its own words.
+ESSENCE: I can put out a sentence I hold, in its own words —
+  whichever piece of knowledge is standing in my hand when the
+  saying is done.
 ROOT: I speak only in written knowledge.
-CANNOT: no saying what is not written. No phrasing of my own.
+CANNOT: no saying what is not written. No phrasing of my own. No
+  saying without a piece of knowledge in hand.
 THREAD: quotation, reading aloud.
 ACT: say
-ASKED-AS: say it speak put out give the answer tell state reply respond
+ASKED-AS: say it speak put out give the answer tell state reply respond in its own words best of it
 
 ESSENCE: I can remember that something has been said or used in
   the thread I am in, so it is not repeated.

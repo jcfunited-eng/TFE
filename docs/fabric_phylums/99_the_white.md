@@ -189,3 +189,8 @@ ENTRY: what was once held about what is x letter variable stands for unknown sym
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: a letter is a name for a number not yet known — call it x and arithmetic carries on polite
   STATUS: STANDING (white)
+
+ENTRY: what was once held about conversation thread talk exchange chat dialogue turn carry o
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: a conversation is one thread that persists between turns — the same question laid across t
+  STATUS: STANDING (white)

@@ -67,6 +67,18 @@ def h_carry_left(s):
     return s
 
 def h_count_down(s):
+    """Count one down against the other. When what is being
+    compared is two pieces of knowledge rather than two written
+    numbers, the counting is of the ground each one opens."""
+    if s.get("candidates"):
+        best = None
+        for e, opened in s["candidates"]:
+            if best is None or opened > best[1]: best = (e, opened)
+        if best:
+            s["line"] = best[0]["essence"]
+            s["chosen_opens"] = best[1]
+        s["done"] = True
+        return s
     b = s.get("bundle")
     if not b:
         s["missing"] = ("the rule does not say how big a bundle "
@@ -104,16 +116,54 @@ def h_reach(s):
     return s
 
 def h_judge(s):
+    """Ask whether any law closes what is in front of me. Applied
+    to a set of reached knowledge, it keeps what stands and drops
+    what a law closes, naming the law."""
     F = core.fabric()
+    near = s.get("near")
+    if near:
+        standing, closed = [], []
+        for e in near:
+            L = F.judge(s.get("mask", 0) | e["color"])
+            (closed if L else standing).append(e if not L else (e, L))
+        s["standing"] = standing
+        s["closed_by"] = closed
+        return s
     s["closed"] = F.judge(s.get("pool", s.get("mask", 0)))
     return s
 
 def h_say(s):
-    s.setdefault("said", []).append(s.get("line", ""))
+    """Put out the piece of knowledge standing in hand. What is in
+    hand was decided above by the knowledge, never here — and with
+    nothing in hand, this act says nothing and reports why."""
+    line = s.get("line")
+    if not line:
+        near = s.get("near") or []
+        if near: line = near[0]["essence"]
+    if not line:
+        s.setdefault("said", []).append("")
+        s["nothing_in_hand"] = True
+        return s
+    s.setdefault("said", []).append(line)
+    s["line"] = line
     return s
 
 def h_mark_said(s):
-    s.setdefault("marked", set()).add(s.get("line", ""))
+    """Set aside what has already been said in this thread — and
+    when nothing is in hand yet, this is the setting-aside step,
+    which drops from what stands anything already spoken."""
+    line = s.get("line")
+    if line:
+        s.setdefault("marked", set()).add(line)
+        return s
+    marked = s.get("marked", set())
+    if s.get("standing") is not None:
+        s["standing"] = [e for e in s["standing"]
+                         if e["essence"] not in marked]
+        # what each standing piece opens for the other one
+        other = s.get("other_white", 0)
+        s["candidates"] = [(e, bin(e["color"] & other).count("1"))
+                           for e in s["standing"]]
     return s
 
 def h_check_twice(s):

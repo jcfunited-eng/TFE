@@ -18,3 +18,5 @@ FORGOTTEN from (deep algebra): a letter is a name for a number not yet known —
 FORGOTTEN from (deep algebra): a letter is a name for a number not yet known — call it x and arithmetic carries on polite
 
 FORGOTTEN from (deep algebra): a letter is a name for a number not yet known — call it x and arithmetic carries on polite
+
+FORGOTTEN from (cognitive syntax): a conversation is one thread that persists between turns — the same question laid across t
