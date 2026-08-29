@@ -56,7 +56,18 @@ ESSENCE: a group holds while the writing habitually puts each word
 ROOT: attention (78) / a few things can be held at once, so the parts
   have to be made bigger before a long sentence will fit.
 HOLDS: a group is a run of frame words carrying one word from
-  outside the frame, and it ends at that word. The frame is the
+  outside the frame, and it ends at that word.
+  TRIED-AND-CLOSED: "unless the frame word that carried it in was not
+  a pointer, in which case what follows belongs to the same thing".
+  It is right about statements and it destroys questions. "why does
+  bread" is carried in by "why", which is not a pointer, so the rule
+  swallows "rise" into it and the sentence loses its doing entirely;
+  the bench fell from 62 of 70 to 29. It was hand-judged on fifty
+  sentences drawn from this fabric's own writing, where it wins five
+  of the ten it changes and loses two — and that writing is all
+  statements, so the failure could not appear in it. Measuring on one
+  distribution and shipping against another is the same error as
+  scoring on sentences I chose. The frame is the
   commonest hundred, already counted, so nothing is listed by hand:
   the small words attach forward to the content word they arrived
   for, and the group closes when that word has been taken.

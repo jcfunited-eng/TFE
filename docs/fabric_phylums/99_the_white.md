@@ -825,3 +825,49 @@ ENTRY: the reading against real writing, not against my sentences
     answered by any of the four mechanisms tried: the fabric has no
     reading for an is-question either.
   STATUS: STANDING (white) — and it is the largest thing standing
+
+ENTRY: the group that ends at its first content word
+  ASKED-AS: grouping noun phrase two content words split bare word
+    looks like a doing is-sentence read as acting
+  VERDICT: this is the cause of the dominant reading error and it is
+    not fixed. 174 says a group is a run of frame words carrying ONE
+    word from outside the frame and ends at that word. A phrase with
+    two content words in it therefore breaks in half: "is not the
+    extra miles" becomes "is not the extra" and "miles", and the bare
+    "miles" has arrived alone, which is the mark of a doing. Measured
+    2026-08-29 on 400 sentences of the fabric's own writing: of the 96
+    that say what a thing IS and were read as doing something, 91 had
+    exactly that shape. One cause, 95 per cent of the error class.
+  FOUR ROUTES CLOSED ON IT:
+    1. Lower the sightings that make a pair a habit, so more runs are
+       carried as chunks. Reads 53 at one sighting and 58 at two,
+       against 62 at three — it merges "dog bit" as readily as
+       "extra miles".
+    2. Widen the frame so the small joining words are absorbed. 55 at
+       two hundred, 55 at three hundred, 59 at fifty, against 62 at a
+       hundred.
+    3. Two passes — find the doing, then merge the content runs that
+       do not hold it. Changes nothing: the wrongly-chosen doing is
+       inside the run and protects itself from being merged.
+    4. Merge only after a frame word that is not a pointer, so "is
+       not the extra" keeps "miles" but "the dog" does not keep
+       "bit". This one is RIGHT ABOUT STATEMENTS — hand-judged on
+       fifty sentences of the fabric's own writing it wins five of
+       the ten readings it changes and loses two — and it DESTROYS
+       QUESTIONS. "why does bread" is carried in by "why", which is
+       not a pointer, so the rule swallows "rise" and the sentence
+       has no doing at all. The bench falls from 62 of 70 to 29.
+  THE LESSON, and it is the same one twice in a day: the fabric's own
+    writing is all statements, so a rule measured only on it cannot
+    show what it does to a question. Measuring on one distribution
+    and shipping against another is the same error as scoring on
+    sentences I chose. Both hand-judging and the bench were needed to
+    see this, and either alone would have shipped it.
+  WHAT WOULD DRAIN IT: something that tells a modifier from a doer —
+    "extra miles" from "dog bit" — which is the part of speech
+    problem the whole ribbon is built to avoid. Note the shape of
+    what is left after four closures: it is not about frequency, not
+    about habit, not about pointers, and not resolvable by looking at
+    the answer first.
+  STATUS: STANDING (white) — the largest thing standing, and now
+    located exactly

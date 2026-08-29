@@ -356,6 +356,27 @@ def groups(sentence):
     return out
 
 
+def _finish(gs):
+    """174: a group carried in by a POINTER is finished when it has
+    its content word; carried in by any other frame word it is not,
+    and what follows belongs to the same thing. Run as a pass over
+    finished groups, which is how it was measured — folded into the
+    grouping loop instead it behaves differently and the bench falls
+    to 29 of 70."""
+    C = company()
+    if len(gs) < 2:
+        return gs
+    out = [list(gs[0])]
+    for g in gs[1:]:
+        prev = out[-1]
+        if (prev[0] in C.frame and prev[0] not in C.pointers
+                and g and g[0] not in C.frame):
+            out[-1] = prev + list(g)
+        else:
+            out.append(list(g))
+    return out
+
+
 def head(group):
     """A group's head is the word carrying most — the rarest one."""
     C = company()
