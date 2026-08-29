@@ -168,6 +168,22 @@ if __name__ == "__main__":
 # the source, and so it falls if they do.
 
 CLAIMS = os.path.join(core.DIR, "93_minted_claims.md")
+UNATTACHED = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "life", "unattached_joints.md")
+
+
+def _keep_unattached(a, b, ground, asked):
+    """Kept, not minted. A joint resting on a shared word may still
+    turn out to matter when the ground underneath is written, so it
+    is not thrown away — it is held outside the knowledge, where it
+    cannot be mistaken for something the fabric stands on."""
+    try:
+        with open(UNATTACHED, "a") as f:
+            f.write(f"\nON [{ground}] reached by '{asked[:60]}'\n"
+                    f"  {a['essence'][:100]}\n"
+                    f"  {b['essence'][:100]}\n")
+    except OSError:
+        pass
 CLAIMS_HEADER = """# 93 MINTED CLAIMS — joints the fabric built itself
 
 Every claim here is a JOINT: two written pieces of knowledge that
@@ -267,6 +283,20 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
             refused.append((a, b, "already minted"))
             continue
         conv = convergence(F, a, b)
+        # A claim is minted when something underneath actually
+        # connects the two. A joint resting only on a shared word is
+        # KEPT, not minted — the same distinction the law already
+        # makes for a finding no question reaches. Words like
+        # "connect" and "exclude" are uncommon enough to pass as
+        # ground and carry no subject, so left alone this fills the
+        # claims with coincidences: dairy cow genetics joined to
+        # backup strategy, because both say "connected".
+        if conv["kind"] == "lexical":
+            _keep_unattached(a, b, ground, (q or {}).get("text", ""))
+            refused.append((a, b, "rests on a shared word with no "
+                                  "ground underneath — kept as a "
+                                  "candidate, not minted"))
+            continue
         made.append(dict(a=a, b=b, ground=ground, conv=conv,
                          asked=(q or {}).get("text", "")))
         if len(made) >= limit:

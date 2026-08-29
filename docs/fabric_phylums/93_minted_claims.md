@@ -50,3 +50,11 @@ PARENTS: engineering machines — the wheel converts dragging into rolling — s
 REACHED-BY: what bears force
 STATE: MINTED
 ASKED-AS: tax wheel
+
+ESSENCE: these two stand together on [exclude] — "no two matter-particles of the same kind may occupy the same state — they exclude each other." and "a life without an end would not be a longer version of this one. Nothing would be urgent, no choice would exclude another, and everything could be don". MINTED, not written by a hand; a joint says the two sit together, not that either is true.
+ROOT: minted claims / two pieces sharing uncommon ground that nothing closes when they stand together.
+CANNOT: no standing-together on ground that is a single common word. If either parent falls this falls with it.
+PARENTS: physics — no two matter-particles of the same kind may occupy the same state — t || deep philosophy of being — a life without an end would not be a longer version of this one. Nothi
+REACHED-BY: what connects exclude
+STATE: MINTED
+ASKED-AS: exclude
