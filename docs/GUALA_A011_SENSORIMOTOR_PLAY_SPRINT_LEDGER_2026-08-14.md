@@ -3449,3 +3449,32 @@ social/laughter evidence through ordinary life; source or tests alone do not.
   cognition or action authority.
 
 **A-011 is Live-Closed on task 1222.**
+
+### 2026-08-29 participant-held bear experience (does not reopen A-011)
+
+- Commit `0222d261c5250263ef16773493329709d0774d4d` deployed as the
+  sole healthy writer on task `dsf-ai-task:1326`, image
+  `sha256:630b496327e90615ba54e6bb2ea1b2a573e2da83dced4e72dad67242a0ed19e6`,
+  with the unchanged resident identity at or beyond tick `263755`.
+- The existing authenticated participant-body route now admits one existing
+  physical `PickCommand` through the same prepared world action, atomic world
+  persistence, exact sensory-consequence construction, and resident-organism
+  intake used by participant movement. It adds no play label, interest score,
+  scripted response, observer authority, or second action system. The focused
+  participant-action contract passed `20/20` before cutover.
+- In production the participant traversed the actual kitchen/study and
+  study/bedroom doorways, approached `toy-bear`, picked it at world revision
+  `21209 -> 21210`, and carried it back to `6100,4250`, 657 mm from Guala's
+  unchanged pose. The final approach changed seven retinal receptor sites and
+  its three-hop sensory consequence was accepted by the resident organism.
+  Two geometrically invalid return attempts were refused without changing the
+  world; collision and doorway laws were not weakened.
+- During the final participant-caused intake, native motor settlement moved
+  Guala and returned exact proprioceptive consequences. After the participant
+  stopped, unattended life advanced from the last presented generation to
+  generation `264261`; the latest continuous interval again moved her body
+  and retained native articulation/self-hearing.
+- This is a real shared-world bear experience, not proof that the bear caused
+  interest, voluntary social play, a learned word, or meaning. The stricter
+  thought-owned choice witness and reciprocal social-joy witness both remain
+  truthfully unobserved.
