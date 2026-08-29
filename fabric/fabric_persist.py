@@ -219,7 +219,10 @@ def _read_own_question(b, L):
     except Exception as e:
         log(f"beat {b}: the language program would not load ({e})")
         return
-    r = max(L.ribbons, key=lambda x: x.heat)
+    # Rotate rather than always taking the hottest. Taking the
+    # hottest meant it read the same asking every single time and
+    # never once looked at the other three standing beside it.
+    r = L.ribbons[(b // STANDING_EVERY) % len(L.ribbons)]
     try:
         res = first_ribbon.read(r.q)
     except Exception as e:

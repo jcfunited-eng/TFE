@@ -88,9 +88,30 @@ Two proofs were run, both reproducible:
   lacks, instead of defaulting. Put it back and it returns.
 
 Still open on it: sentences whose word pairs are rare in the
-corpus group badly and leave hundreds of readings standing. The
-fix is more walls in 174, not more code — that is the whole point
-of where it was put.
+corpus group badly and leave dozens of readings standing. The fix
+is more walls in 174, not more code — that is the whole point of
+where it was put.
+
+Two things learned the hard way, both recorded in 174 so they are
+not re-tried:
+
+- A wall must be written BARE. An explanation inside a wall puts
+  the wall's own subject in front of it and it then grips on
+  itself. One wall silently never fired for this reason.
+- "No group hanging under one the writing never sets beside it"
+  looks right, is measurable, and killed every reading of every
+  sentence over two groups. It contradicts a wall that outranks
+  it: composition is compulsory, so a reading must be able to join
+  words the corpus never put in one line. Company decides a group;
+  it may not decide a join.
+
+And one about the life, not the language: reading its own question
+was unbounded work inside a beat that has to be bounded. It wedged
+the whole life — CPU burning, no beats, deaf to the stop signal,
+because STOP is only checked between beats. How much may be staged
+at once is now read from 174 as knowledge (four groups), and what
+could not be staged is named. Anything added to a beat must be
+bounded before it goes in.
 
 ## Next build
 The ribbon has to MAKE, not only read. Reading a sentence is the

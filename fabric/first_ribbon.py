@@ -97,6 +97,10 @@ class Company:
                                 "frame", "commonest")
         self.pair_habit = S.get("sightings that make a pair a habit",
                                 "group", "fewer than")
+        # how much may be held at once. This is knowledge too: it is
+        # the attention wall, and it is what stops a long sentence
+        # wedging a life that has other things to do.
+        self.most_groups = S.get("groups staged at once", "stages")
         self.missing = list(S.missing)
         if self.missing:
             return
@@ -118,6 +122,7 @@ class Company:
         self.after = collections.defaultdict(collections.Counter)
         self.after_frame = collections.Counter()
         self.pair = collections.Counter()
+        self._beside = {}
         for s in lines:
             for j, w in enumerate(s):
                 if j:
@@ -151,6 +156,24 @@ class Company:
         The number of sightings that counts as a habit is written in
         the knowledge, not here."""
         return self.pair.get((a, b), 0) >= self.pair_habit
+
+    def beside(self, a, b):
+        """Has the writing ever set these two in one line, in either
+        order? A join between two words the writing never puts in
+        the same breath is not a join. Built for the handful of words
+        actually in front of it, not for the whole vocabulary."""
+        if a == b:
+            return True
+        key = (a, b) if a < b else (b, a)
+        if key in self._beside:
+            return self._beside[key]
+        seen = False
+        for s in self.lines:
+            if a in s and b in s:
+                seen = True
+                break
+        self._beside[key] = seen
+        return seen
 
     def has_behaviour(self, w):
         return self.count.get(w, 0) >= self.min_sightings
@@ -223,7 +246,8 @@ def head(group):
 # ---------------------------------------------------------------
 # staging: every nesting, and every choice of which group is doing
 # ---------------------------------------------------------------
-CAP = 5          # groups staged exhaustively; longer is reported
+# How many groups may be staged at once is read from 174, not set
+# here — see Company.most_groups.
 
 
 ROOT = None      # hangs under nothing. Not the same as hanging
@@ -285,6 +309,10 @@ def render(gs, parents, doing, live=None):
         said.append("with a loop of groups hanging under each other")
     if len(roots) == 1 and roots[0] != doing:
         said.append("with a root that is not the doing")
+    # C.beside() is kept and deliberately not said here. 174 records
+    # why: as a wall it killed every reading of every sentence longer
+    # than two groups, because it forbids exactly what composition is
+    # for. It may still be honest as a ranking, never as a wall.
     h = head(gs[doing])
     said.append(f"the doing is {h}")
     if not C.placed_after_pointer(h):
@@ -317,11 +345,14 @@ def read(sentence):
                     groups=[], stood=[], beat=0)
     gs = groups(sentence)
     capped = None
-    if len(gs) > CAP:
-        capped = (f"{len(gs)} groups; staged the first {CAP} "
-                  f"exhaustively — the rest were not staged and "
-                  f"this reading is that much less than complete")
-        gs = gs[:CAP]
+    cap = int(C.most_groups)
+    if len(gs) > cap:
+        capped = (f"{len(gs)} groups; staged the first {cap} "
+                  f"exhaustively — the remaining "
+                  f"{' | '.join(' '.join(g) for g in gs[cap:])} "
+                  f"were not staged, and this reading is that much "
+                  f"less than complete")
+        gs = gs[:cap]
     # The exchange: a wall's verdict changes what the next wall is
     # comparing against, so this settles in rounds rather than one
     # pass. When a round kills nothing, it has settled.

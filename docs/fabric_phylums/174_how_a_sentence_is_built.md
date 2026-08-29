@@ -73,13 +73,26 @@ ASKED-AS: group chunk phrase clump run of words break boundary grouping split
 ESSENCE: a nesting hangs every group under one other group, and the
   whole reading hangs from a single group that hangs under nothing.
   The nesting is the reading — the same words nest two ways and say
-  two things, so the order alone was never going to be enough.
+  two things, so the order alone was never going to be enough. A
+  reading stages not more than four groups at once, and what it could
+  not stage is named rather than quietly dropped: the ways of hanging
+  climb steeply with the count, and a reading that takes so long it
+  stops everything else is not a reading, it is a stall.
 ROOT: language (09) / finite pieces make infinite sentences, and only
   nesting explains how, since a flat line cannot contain itself.
 CANNOT: no nesting with crossed links. No nesting with a group
   hanging under itself. No nesting with a loop of groups hanging
   under each other. No nesting with two roots. No nesting with a root
   that is not the doing. No reading without a doing.
+TRIED-AND-CLOSED: "no group hanging under one the writing never sets
+  beside it" was written here as a wall and taken straight back out.
+  It looks right and it is measurable, and it killed every reading of
+  every sentence longer than two groups. It contradicts a wall that
+  outranks it: understanding a new sentence is only possible by
+  building its meaning from its parts, so a reading MUST be able to
+  join two words the writing never happened to put in one line. That
+  is what composition is for. Company decides a group; it cannot be
+  allowed to decide a join. Do not spend a night re-proving this.
 THREAD: mathematics (brackets, and the same reason), law (a clause
   inside a clause, and the fights are always about which), building
   (a load path reaches the ground once).
