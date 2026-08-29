@@ -266,7 +266,8 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
         if key in already:
             refused.append((a, b, "already minted"))
             continue
-        made.append(dict(a=a, b=b, ground=ground,
+        conv = convergence(F, a, b)
+        made.append(dict(a=a, b=b, ground=ground, conv=conv,
                          asked=(q or {}).get("text", "")))
         if len(made) >= limit:
             break
@@ -293,8 +294,57 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
                         f"PARENTS: {a['field']} — {a['essence'][:70]} "
                         f"|| {b['field']} — {b['essence'][:70]}\n"
                         f"REACHED-BY: {m['asked'][:80] or 'unattached'}\n"
+                        f"JOINT-KIND: {m['conv']['kind']}"
+                        + (f" — their roots meet at "
+                           f"{m['conv']['at']}: "
+                           f"{m['conv']['said']}"
+                           if m['conv']['at'] else
+                           " — they share a word and no ground "
+                           "underneath it; the weakest kind of "
+                           "joint, said so rather than dressed up")
+                        + "\n"
                         f"STATE: MINTED\n"
                         f"ASKED-AS: {m['ground']}\n")
         except OSError as e:
             return [], [(None, None, f"could not write: {e}")]
     return made, refused
+
+
+def _root_chain(V, eid, limit=12):
+    """Where a coordinate stands, and where that stands, down to the
+    ground. The chain is the vector, followed."""
+    out, seen, cur = [], set(), eid
+    while cur is not None and cur not in seen and len(out) < limit:
+        seen.add(cur)
+        cur = V["root"].get(cur)
+        if cur is not None:
+            out.append(cur)
+    return out
+
+
+def convergence(F, a, b):
+    """Do these two stand on any common ground, following what each
+    declares it stands on, all the way down?
+
+    This separates a joint that is structural from one that is only
+    lexical. Two entries sharing a word may be a real echo or may be
+    the same letters doing two jobs; if their roots meet, something
+    underneath actually connects them. Reported, never used to
+    refuse — a lexical joint is still a joint, it is just a weaker
+    one, and which kind it is belongs on the record.
+    """
+    import vectors
+    V = vectors.vectors(F)
+    ca = [a["id"]] + _root_chain(V, a["id"])
+    cb = [b["id"]] + _root_chain(V, b["id"])
+    meet = set(ca) & set(cb)
+    if meet:
+        at = F.entries[sorted(meet)[0]]
+        return dict(kind="structural", at=at["field"],
+                    said=at["essence"][:70])
+    fa = {F.entries[i]["field"] for i in ca}
+    fb = {F.entries[i]["field"] for i in cb}
+    shared = fa & fb
+    if shared:
+        return dict(kind="same ground", at=sorted(shared)[0], said="")
+    return dict(kind="lexical", at="", said="")
