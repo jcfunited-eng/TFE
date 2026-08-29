@@ -363,8 +363,19 @@ ENTRY: what separates a contentful word from a merely rare one
     0.14 — and then failed on the words that matter most: wheel
     0.13 and friction 0.12 are as low as the relational words,
     because a thing can be contentful and general at the same time.
+  ALSO CLOSED: mutual reinforcement over co-occurrence — settling a
+    word's contentfulness as the average contentfulness of its
+    company, iterated. The company LOOKS like the signal (yeast
+    keeps company with dough, air, gas, heat; connect keeps company
+    with because, work, one, which) and it does not survive being
+    run: connect settles at 0.325, between onion at 0.340 and
+    friction at 0.320, and exclude comes out HIGHEST of everything
+    at 0.448. What separation appeared was a frequency penalty in
+    the method doing work already known to be doable by frequency.
+    Watch for that: a method that half-works because a known signal
+    was smuggled into it.
   WHAT WOULD DRAIN IT: something that separates "general" from
-    "empty", since the two failed tests both mistook one for the
+    "empty", since the three failed tests all mistook one for the
     other. A word like friction is about something and appears
     everywhere; a word like connect appears everywhere and is about
     nothing. Whatever tells those apart is not how widely a word is
