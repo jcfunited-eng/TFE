@@ -48,6 +48,20 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   reassemble the learned apple formation. It is therefore rejected as a
   spoken-word witness; no lexical utterance claim is made.
 
+### Human-audible native-pressure observation — 2026-08-29
+
+- Commit `c5509c29` adds a second, explicitly observer-only playback control
+  beside the exact raw-pressure control. It verifies the same pressure SHA-256,
+  decodes that exact WAV in the browser, measures its peak, and applies only
+  enough local speaker gain to bound the observed peak at 0.35.
+- The page states that amplification affects the human speaker only. It has no
+  route to native pressure evidence, self-hearing, cognition, learning, or
+  persistence; raw playback remains available separately.
+- `gualaloom.html` was published without restarting the organism. CloudFront
+  invalidation `IEA21QT93HP1I6RQHETUK01K1I` completed and the live bytes match
+  the committed local page at SHA-256
+  `c999b6d9e6779d5572695cf220a655386870b7408aff338a1aec95564c62212e`.
+
 ### L-005 first learned-word recognition — 2026-08-29
 
 - **Live-Closed:** the first truthfully recognized learned word is `apple`.
