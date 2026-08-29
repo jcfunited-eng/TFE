@@ -233,7 +233,7 @@ CANNOT: no fast burning at solar temperatures, so no star of this
   too slow to be useful anywhere except inside a star.
 THREAD: chance (an event so rare that it functions as a clock),
   chemistry (a whole process paced by one difficult step).
-ASKED-AS: sun fusion hydrogen helium reaction slow rate core temperature nuclear power fuel lasting
+ASKED-AS: why sun burns slowly rate reaction core not hot enough fusion reactor earth copy
 
 ESSENCE: mass decides everything about a star and cannot be read
   off an image or a spectrum. It is obtained by watching two stars

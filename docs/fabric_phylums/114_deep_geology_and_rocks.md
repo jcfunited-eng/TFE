@@ -345,7 +345,7 @@ CANNOT: no checking it by digging — the deepest hole ever drilled
   jump sharply, and a jump that abrupt cannot be a slow change.
 THREAD: medicine (an image from echoes that must keep matching
   what surgery finds), evidence (prediction as the only real test).
-ASKED-AS: inside earth layers core mantle how do they know drilling waves proof deepest hole
+ASKED-AS: how known inside planet never sampled deepest hole shallow model predicts stations timing
 
 ESSENCE: the mantle is hot enough to melt and mostly does not,
   because pressure holds it solid. So melting happens by taking

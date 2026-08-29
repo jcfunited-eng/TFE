@@ -133,7 +133,7 @@ CANNOT: no free nitrogen from the air even for the plants that can
   process it was planted to perform.
 THREAD: money (an in-house capability worth keeping only while
   buying is dear), farming (a rotation built on this exact switch).
-ASKED-AS: legumes beans clover nitrogen air bacteria nodules roots soil poor fertiliser cost energy
+ASKED-AS: nitrogen air plants cannot use bacteria nodules expensive sugar switched off rich soil
 
 ESSENCE: a plant runs two pipes in opposite directions. One
   carries water and minerals up from the roots, is built of dead
@@ -297,7 +297,7 @@ CANNOT: no clean ground after removing the visible plants — the
   barely dent a century of deposits.
 THREAD: money (a dormant liability on nobody's books), keeping
   knowledge (an archive outliving everyone who could read it).
-ASKED-AS: weeds appear digging bare soil seeds waiting years buried germinate disturbance clearing ground
+ASKED-AS: seeds buried waiting years decades bank underground flush appear after clearing woodland disturbed
 
 ESSENCE: every way of moving a seed buys a different landing. Wind
   is cheap, travels far and arrives at random. An animal's gut
@@ -594,7 +594,7 @@ CANNOT: no bushiness without giving up height, and no straight
   never a single tidy replacement.
 THREAD: power (a hierarchy where removing the head frees every
   rival at once), engineering (a governor whose loss frees all).
-ASKED-AS: pruning bushier cutting tip hedge trimming shoots side branches leader tree straight growth
+ASKED-AS: cut top shoots break tip removed leader straight bushy hedge signal suppressing below
 
 ESSENCE: an aspen stand can be one organism joined underground, a
   bamboo grove is often a single individual flowering on one clock
