@@ -357,6 +357,8 @@ environment = container.get("environment", [])
 if len({item.get("name") for item in environment}) != len(environment):
     raise SystemExit("task environment contains duplicate authorities")
 retired_names = {
+    "DECAY_PAUSED",
+    "EVENT_DRIVEN_SUBSTRATE",
     "FORCE_S3_RESTORE",
     "GUALA_EXACT_FIELD_EXECUTOR_REQUIRED",
     "GUALA_" + "GENERATION_STORE_ROOT",
@@ -366,7 +368,10 @@ retired_names = {
     "GUALA_EXACT_ENERGY_MIGRATION_PREDECESSOR_SHA256",
     "GUALA_CURRENT_FORMAT_MIGRATION",
     "GUALA_VOICE",
+    "HOMEOSTATIC_SCALING_ENABLED",
     "STATE_DIR",
+    "SUBSTRATE_HEARTBEAT",
+    "SUBSTRATE_MODE",
 }
 environment = [
     item for item in environment if item.get("name") not in retired_names

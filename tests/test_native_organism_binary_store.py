@@ -698,6 +698,40 @@ def test_discard_is_exactly_scoped_and_never_removes_neighbor(
     assert sentinel.exists()
 
 
+def test_cold_reconciliation_removes_only_orphan_stages_when_current_exists(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    remote = _ObjectStore()
+    _resident, published_stage = _stage(
+        tmp_path, _concrete_native_boundary, "current", 1
+    )
+    published = _publish(published_stage, remote)
+    _next, orphan = _stage(tmp_path, _concrete_native_boundary, "orphan", 2)
+    sentinel = tmp_path / "not-a-stage.glorun"
+    sentinel.write_bytes(b"retained")
+
+    retired = store.reconcile_orphaned_staged_native_organisms(tmp_path)
+
+    assert retired == (1, orphan.stored_bytes)
+    assert not orphan.path.exists()
+    assert sentinel.read_bytes() == b"retained"
+    assert store._read_current(tmp_path) == published.pointer
+    assert _restore(tmp_path).pointer == published.pointer
+
+
+def test_cold_reconciliation_preserves_stage_as_damage_evidence_without_current(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    _resident, staged = _stage(
+        tmp_path, _concrete_native_boundary, "unpublished-life", 1
+    )
+
+    assert store.reconcile_orphaned_staged_native_organisms(tmp_path) == (0, 0)
+    assert staged.path.exists()
+
+
 def test_module_has_no_forbidden_or_provisional_persistence_surface() -> None:
     source = Path(store.__file__).read_text(encoding="utf-8")
 

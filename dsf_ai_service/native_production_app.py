@@ -123,6 +123,7 @@ from dsf_ai_service.substrate.native_organism_binary_store import (
     _read_current,
     migrate_current_native_organism_current_format,
     publish_staged_native_organism,
+    reconcile_orphaned_staged_native_organisms,
     restore_current_native_organism,
     stage_active_native_organism,
 )
@@ -14580,6 +14581,16 @@ def _startup() -> None:
     _runtime_build_identity = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
+        retired_stage_count, retired_stage_bytes = (
+            reconcile_orphaned_staged_native_organisms(STATE_ROOT)
+        )
+        if retired_stage_count:
+            print(
+                "guala-cold-stage-reconciliation "
+                f"retired_count={retired_stage_count} "
+                f"retired_bytes={retired_stage_bytes}",
+                flush=True,
+            )
         migration_authorized = os.environ.get(
             "GUALA_CURRENT_FORMAT_MIGRATION", "0"
         )

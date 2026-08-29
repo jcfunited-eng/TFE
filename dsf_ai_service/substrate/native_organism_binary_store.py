@@ -714,6 +714,37 @@ def discard_staged_native_organism(staged: StagedNativeOrganism) -> None:
     _sync_directory(root)
 
 
+def reconcile_orphaned_staged_native_organisms(
+    store_root: str | os.PathLike[str],
+) -> tuple[int, int]:
+    """Remove crash-left private stages when a valid CURRENT already exists.
+
+    A stage has not been published and is not cognitive authority.  It is safe
+    to retire only at cold startup, before the sole resident writer begins,
+    and only when CURRENT proves that the root already has an authoritative
+    life.  With no CURRENT, stages remain damage evidence and must continue to
+    prevent accidental genesis over a lost body.
+    """
+
+    root = _store_root(store_root)
+    if _read_current(root) is None:
+        return (0, 0)
+    stages = sorted(root.glob(f".stage-*{STATE_SUFFIX}"))
+    retired_bytes = 0
+    for path in stages:
+        resolved = path.resolve()
+        if resolved.parent != root or path.is_symlink():
+            raise NativeOrganismBinaryStoreError(
+                "native organism orphan stage escaped its exact store root"
+            )
+        information = _regular_file(path, "orphan stage")
+        retired_bytes += information.st_size
+        path.unlink()
+    if stages:
+        _sync_directory(root)
+    return (len(stages), retired_bytes)
+
+
 def _verify_remote(
     object_store: StreamingObjectStore,
     key: str,
@@ -1349,6 +1380,7 @@ __all__ = (
     "migrate_current_native_organism_exact_energy",
     "migrate_current_native_organism_current_format",
     "publish_staged_native_organism",
+    "reconcile_orphaned_staged_native_organisms",
     "rehearse_current_native_organism_exact_energy",
     "rehearse_current_native_organism_current_format",
     "restore_current_native_organism",

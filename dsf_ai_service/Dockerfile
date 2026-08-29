@@ -55,7 +55,6 @@ COPY runtime/ /app/
 RUN mkdir -p /app/state/dreams
 
 ENV PYTHONPATH=/app
-ENV LATERAL_INHIBITION_ENABLED=1
 
 EXPOSE 8080
 
