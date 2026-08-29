@@ -56,6 +56,16 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   of that class, those 16 were learned only under the corrected returned-sound
   law. This proves new native acoustic-route formation; it does not yet prove
   that the pressure is a word or that the same route was reused later.
+- Later unattended articulation at tick `273164` emitted a distinct 20,000-
+  sample pressure body under SHA-256
+  `f55af8e1a8b41ef48f2a04ea6f6533be091a498a40832206f3c5385d19a13525`
+  and self-heard it through eight hops. The exact custodied successor retained
+  the same 16 learned vocal routes, with their contacts carrying charge in all
+  three immediate physical frontiers (`13` older, `3` preceding, `13` active).
+  A third independent unattended articulation was then observed at tick
+  `273394`. This closes new corrected acoustic-route formation and later
+  physical reuse. It still does not identify any emitted pressure as a lexical
+  word, so the learned-word extension of L-006 remains open.
 
 ### Varied live counting-song experience — 2026-08-29
 
