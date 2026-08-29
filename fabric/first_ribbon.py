@@ -311,6 +311,55 @@ def carried_in(group):
     return group[0] in company().frame
 
 
+def sense_of(word, others):
+    """The sense a word is carrying HERE, produced from the company
+    present — never fetched from a table of senses.
+
+    174 and the wall behind it: the senses of a common word have no
+    end and new ones are made when needed, so a list of them is out of
+    date the moment it is written. What is done instead: take every
+    line the writing has this word in, split them by whether the
+    company standing beside it HERE also stands in them, and say what
+    the near half has that the whole has not. Nothing is returned but
+    an arrangement of counted words. No entry comes back, and the
+    split is made by the sentence in hand, which was never stored — so
+    what comes out was not in the corpus before the question.
+
+    When the present company never stands with the word anywhere, it
+    says so. That is a reading too: this writing has not put these
+    words together, so it has no sense for the word here."""
+    C = company()
+    st = core.stem(word)
+    mine = [ln for ln in C.lines if any(core.stem(x) == st for x in ln)]
+    if not mine:
+        return dict(word=word, near=0, seen=0, marks=[],
+                    why="the writing has never used this word")
+    keep = {core.stem(o) for o in others if core.stem(o) != st}
+    near = [ln for ln in mine
+            if keep & {core.stem(x) for x in ln}]
+    if not near:
+        return dict(word=word, near=0, seen=len(mine), marks=[],
+                    why="the writing never puts this word with that "
+                        "company, so it holds no sense for it here")
+    allc = collections.Counter(x for ln in mine for x in set(ln))
+    nearc = collections.Counter(x for ln in near for x in set(ln))
+    marks = []
+    for v, n in nearc.items():
+        if v in C.frame or len(v) < 3 or core.stem(v) == st:
+            continue
+        if v in keep:
+            continue          # the company itself is not the sense
+        lift = n / len(near) - allc[v] / len(mine)
+        if n >= 2 and lift > 0:
+            marks.append((lift, v))
+    marks.sort(reverse=True)
+    return dict(word=word, near=len(near), seen=len(mine),
+                marks=[v for _l, v in marks[:6]],
+                why=(None if marks else
+                     "the company stands with it but marks nothing "
+                     "off — this writing draws no line here"))
+
+
 def nesting(gs):
     """The finished nesting: which group is the doing, and what role
     each of the others hangs under it in.

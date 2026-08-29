@@ -41,9 +41,28 @@ onto upon about just also even still yet too now here make made
 makes thing things""".split())
 
 def stem(w):
-    for s in ("ing", "ers", "er", "ed", "es", "s", "ly"):
-        if w.endswith(s) and len(w) - len(s) >= 3:
-            return w[:len(w) - len(s)]
+    """One written form reduced to the core the writing varies around.
+
+    The point is CONSISTENCY, not correctness as a dictionary would
+    have it: "rise" and "rises" must land on the same core or the two
+    are strangers, and they were. The old version stemmed "rises" to
+    "ris" and "rise" to "rise", so the writing appeared never to put
+    bread and rising in one line, and the sense produced from company
+    came back empty on the plainest sentence in the fabric. It also
+    turned "water" into "wat" and "moved" into "mov" while "move"
+    stayed whole.
+
+    So: strip one ending, then strip a trailing e from whatever is
+    left, and strip it from bare words too — that is what makes
+    move/moved and rise/rises meet. The length guards stop the greedy
+    cases: "water" keeps its -er because "wat" is too short to be a
+    core, and "ice" keeps its e for the same reason."""
+    for suf in ("ies", "ing", "ers", "er", "ed", "es", "s", "ly"):
+        if w.endswith(suf) and len(w) - len(suf) >= 3:
+            w = w[:len(w) - len(suf)]
+            break
+    if w.endswith("e") and len(w) - 1 >= 3:
+        w = w[:-1]
     return w
 
 class Fabric:

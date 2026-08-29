@@ -554,3 +554,51 @@ ENTRY: handing over a stored sentence as the content of a turn
     proof of the shape; what is missing is doing it with the subject
     matter instead of with the shape of the turn.
   STATUS: STANDING (white)
+
+ENTRY: a stemmer that does not put two forms of one word together
+  ASKED-AS: stem word forms rise rises move moved water same word
+    two spellings company never meets
+  VERDICT: the stemmer was inconsistent and it silently blocked the
+    sense. It reduced "rises" to "ris" and "rise" to "rise", so the
+    two were strangers, and the writing appeared never to put bread
+    and rising in one line — the sense produced from company came
+    back empty on the plainest sentence in the fabric. It also made
+    "water" into "wat" and "moved" into "mov" while "move" stayed
+    whole. This had been noticed earlier the same day and written off
+    as cosmetic, which was wrong: nothing that compares two words can
+    work on top of it.
+  DRAINED 2026-08-29: strip one ending, then strip a trailing e from
+    what is left, and from bare words too — that is what makes
+    move/moved and rise/rises meet — with a length guard so "water"
+    keeps its -er and "ice" keeps its e. Re-run through the whole
+    bench afterwards, not only forward: reading held at fifteen of
+    fifteen and thirteen of fifteen, roles at six of seven, and the
+    sense started finding company it had been blind to.
+  LESSON: a defect called cosmetic is a defect not yet measured
+    against the thing it blocks.
+  STATUS: DRAINED
+
+ENTRY: producing a sense from the company at hand
+  ASKED-AS: sense meaning ambiguous which meaning produced from
+    company not fetched from a table of senses
+  VERDICT: it works where the writing holds both senses and it is
+    thin where the writing is thin. Built 2026-08-29 and it fetches
+    nothing: every line the writing has the word in is split by
+    whether the company standing beside it HERE also stands in them,
+    and what comes back is what the near half has that the whole has
+    not — an arrangement of counted words, never an entry, and the
+    split is made by the sentence in hand, which was never stored.
+    Measured: "light" with star and sky produces stars, cloud, gas,
+    gravity, black; "light" with weight and heavy produces energy,
+    rock, wheels, steel. "current" with river and water gives flow,
+    narrow, fast; with wire and circuit, metal. Those word-sets were
+    not stored anywhere as sets.
+  WHAT IS THIN: where a sentence's words co-occur in only a handful
+    of lines the marks are weak and sometimes noise — "the dog bit
+    the man" produces "words", off a line that uses dog and man as
+    examples of words. It says how many places it drew from, so a
+    thin sense is visible rather than hidden.
+  WHAT WOULD DRAIN THAT: a sense produced from the company of the
+    company, so a word two steps away can supply the line that the
+    sentence's own words do not. Not tried.
+  STATUS: STANDING (white) — the mechanism holds, the depth does not

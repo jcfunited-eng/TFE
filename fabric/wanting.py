@@ -101,9 +101,22 @@ def want(sentence, F=None):
             about.append(w)
     nest = FR.nesting(gs) if gs else dict(doing=None, doer=None,
                                           done_to=None, rest=[])
+    # THE SENSE, produced not fetched. Each word that carries the
+    # sentence is read against the company standing with it HERE —
+    # the other content words of this sentence — and what comes back
+    # is what that company marks off, which is an arrangement of
+    # counted words and not an entry. A table of senses is forbidden:
+    # the senses of a common word have no end.
+    carriers = [w for w in ([turns_on] + about) if w]
+    senses = {}
+    for w in carriers[:4]:
+        others = [o for o in carriers if o != w]
+        if others:
+            senses[w] = FR.sense_of(w, others)
     return dict(kind=kind, asked_with=asked_with, about=about,
                 settled_by=settled_by,
                 doer=nest["doer"], done_to=nest["done_to"],
+                senses=senses,
                 forbidden=[core.stem(w) for w in
                            re.findall(r"[a-z]+", forbidden.lower())
                            if len(w) > 2],
@@ -131,6 +144,13 @@ def show(sentence, F=None):
     else:
         out.append(f"  it asks for:   nothing I recognise as an asking — "
                    f"so this is a want, not a question")
+    for word, sn in (w.get("senses") or {}).items():
+        if sn["marks"]:
+            out.append(f"  '{word}' here:   {', '.join(sn['marks'][:5])}"
+                       f"   (from {sn['near']} of {sn['seen']} places "
+                       f"it is used)")
+        elif sn["why"]:
+            out.append(f"  '{word}' here:   {sn['why']}")
     if w["forbidden"]:
         out.append(f"  it forbids:    {', '.join(w['forbidden'])}")
     if w["incomplete"]:
