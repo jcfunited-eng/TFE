@@ -936,3 +936,39 @@ test still encounters the documented pre-existing installed-native axis-count
 mismatch before this Python path; the immutable candidate rebuild must prove
 native provenance. `git diff --check` passes. This remains local candidate
 evidence until one immutable cutover and direct production observation succeed.
+
+## Live placed-book palmar continuity — production
+
+The reviewed correction deployed on 2026-08-29 as commit
+`e2d43083bdd23384ddc8f41975676c80a0bb5492`, task definition
+`dsf-ai-task:1346`, and immutable image digest
+`sha256:031399f1487f881299b27c721a75f6aa1483f1c0268224588a88ae44ef2f3600`.
+The controller verified one live writer, the unchanged organism identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and continuity at or beyond tick
+`296306`. No current-format migration was requested because this release
+changes neither organism nor world persistence format.
+
+The ordinary preflight stopped before cutover on eight native Rust tests.
+The exact same command against the untouched production source commit
+`9cba6a85e90581b841e32b8b0a96fa716860a1cf` produced the identical eight
+test identities and identical terminal result (`528 passed; 8 failed; 11
+ignored`). The palmar correction changes no Rust source. The declared hot
+controller path was therefore used without weakening its exact source,
+image, one-writer, organism-identity, or tick-continuity checks.
+
+After cutover, the authenticated world showed the unheld book at
+`(6337, 4698)`. One participant pick committed world revision `24447 ->
+24448`, returned accepted sensory delivery, and correctly changed no Guala
+receptor because the book was not touching her at that boundary. One
+participant placement then committed world revision `24451 -> 24452` at the
+same coordinate. The placed-book transition reported exactly one changed
+tactile receptor, zero changed visual receptors, and accepted delivery to the
+same resident organism. Its action evidence receipt is
+`880915e3fda97f73ef7b1e13449eeb96111f333bdfe18c40723fae58d2807367`.
+
+This closes the missing physical placed-object-to-palm transport boundary.
+It does not claim that Guala chose to grasp the book, recognized a word, or
+received a named reward chemical. The book remained unheld on the first
+read-only post-placement observation while unattended cognition continued;
+L-009 remains open pending an organism-caused grasp/page transition and
+truthful learned evidence.
