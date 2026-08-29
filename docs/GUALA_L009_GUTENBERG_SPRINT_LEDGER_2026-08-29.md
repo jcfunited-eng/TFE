@@ -1013,3 +1013,17 @@ to `c338b956ce425640b20110f7788e7164a161ef40354df051f524eb57f9956b2c`.
 The first later observation still found both grip apertures unchanged and the
 book unheld. This is one genuine guided book experience, not autonomous source
 use or learned-word recognition; those acceptance facts remain open.
+
+### Post-experience production health
+
+The sole task remained healthy on task definition `dsf-ai-task:1347`, with one
+desired/running writer, zero pending tasks, zero failed tasks, and completed
+rollout. Across 213 native physics steps, the scheduled contact population was
+stable (`7110 -> 7111`) and the selected frontier ended slightly smaller
+(`7068 -> 7064`). Native physical settlement was 894--1,423 ms with a 1,106 ms
+median. The latest complete transport interval was 25.15 seconds, of which
+23.30 seconds was native settlement. Recent service CPU averaged approximately
+38--47% and memory approximately 5.6--6.7%; no resource or contact-growth
+runaway was observed. The organism remained non-exhausted. This is a bounded
+post-release sample, not a claim that the still-open whole-experience timing
+work is complete.
