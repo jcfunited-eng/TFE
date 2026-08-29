@@ -15356,18 +15356,24 @@ def _gutenberg_grip_selection_from_transition(
     *,
     predecessor_tick: int,
 ) -> dict[str, Any] | None:
-    """Return one source-caused native grip closure, never choose one.
+    """Return one source-caused, thought-owned native grip choice.
 
     This is an actuator boundary, not an observer score. The selected source's
     admitted sensory cue must have reassembled a retained formation in this
     exact presentation, that causal path must end at the same motor lineage
-    whose prepared discharge closed one declared grip aperture, and the body
-    must have applied nonzero closing displacement at that exact tick.
+    whose prepared discharge closed one declared grip aperture, an internally
+    reassembled thought must independently pass the exact opposed-antagonist
+    choice law on that same lineage and axis, and the body must have applied
+    the same nonzero closing displacement at that exact tick. A source reflex
+    without that internal choice therefore cannot select a book.
     """
 
     causal = observation.get("externally_reassembled_formation_causal_use")
     action = observation.get("motor_action")
+    physical_choice = _physical_choice_evidence_from_transition(observation)
     if not isinstance(causal, dict) or not isinstance(action, dict):
+        return None
+    if not isinstance(physical_choice, dict):
         return None
     if causal.get("origin_kind") != "externally_reassembled_retained_formation":
         return None
@@ -15396,6 +15402,11 @@ def _gutenberg_grip_selection_from_transition(
     if not bindings or not consequences:
         return None
     grip_axes = {"left_grip_aperture", "right_grip_aperture"}
+    if (
+        physical_choice.get("axis") not in grip_axes
+        or physical_choice.get("internal_cause_motor_lineage") != motor_lineage
+    ):
+        return None
     for consequence in consequences:
         if not isinstance(consequence, dict):
             return None
@@ -15408,6 +15419,10 @@ def _gutenberg_grip_selection_from_transition(
             or isinstance(displacement, bool)
             or not isinstance(displacement, int)
             or displacement >= 0
+            or axis != physical_choice.get("axis")
+            or source_tick != physical_choice.get("consequence_source_tick")
+            or displacement
+            != physical_choice.get("applied_signed_displacement_quanta")
         ):
             continue
         matching = tuple(
@@ -15433,7 +15448,12 @@ def _gutenberg_grip_selection_from_transition(
             "grip_closing_displacement": displacement,
             "motor_organism_tick": motor_tick,
             "reassembly_organism_tick": origin_tick,
-            "selection_authority": "source-caused-native-grip-closure",
+            "selection_authority": (
+                "source-caused-thought-owned-native-grip-choice"
+            ),
+            "thought_source_formation_receipts": physical_choice[
+                "causal_thought_source_formation_receipts"
+            ],
         }
     return None
 
