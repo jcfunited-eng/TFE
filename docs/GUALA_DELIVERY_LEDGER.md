@@ -21,6 +21,33 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
 `259716`. The complete current source/runtime/capability reconciliation is
 `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
 
+### Varied live counting-song experience — 2026-08-29
+
+- Production task 1331 accepted `count-up-one-to-ten-v1` once as a bounded
+  twelve-second synchronized sensory experience. The durable receipt is
+  `270762436432673498585c7374df944ed253a82a550c587eeb5b8633172c896d`;
+  it records 192,000 signed-16 pressure samples, 398 native causal hops, 182
+  complete-neuron fractals, and no exhausted-energy interval through organism
+  tick 269239.
+- The public gateway timed out before returning the long request, but the
+  organism committed exactly one successor and later advanced unattended past
+  generation 269464. The request was not retried.
+- This is one varied live experience only. It does not prove number
+  recognition, counting, a learned word, or a spoken word.
+
+### Native learned-vocal trace continuity — 2026-08-29
+
+- Commit `e6aa0f861b211585bb4ae154517db865dddf339e` deployed as production task
+  1331. It changes only the bounded read-only causal trace: a retained-formation
+  origin now remains available across an exact motor completion until a later
+  layer-13 articulation completes, then it is discarded.
+- The trace cannot enter native preparation, settlement, action, persistence,
+  or learning. Production native intervals continued while the public
+  observation snapshot lagged, directly preserving observer independence.
+- A later apple-pressure experience produced native articulation but did not
+  reassemble the learned apple formation. It is therefore rejected as a
+  spoken-word witness; no lexical utterance claim is made.
+
 ### L-005 first learned-word recognition — 2026-08-29
 
 - **Live-Closed:** the first truthfully recognized learned word is `apple`.
