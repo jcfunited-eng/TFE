@@ -122,6 +122,25 @@ TALK = None
 LOCK = threading.Lock()
 
 
+SAY = None
+
+
+def _say(q):
+    """One turn of an actual conversation — the moves staged, the
+    reading killing the ones that do not apply, what survives said.
+    The thread is held across turns, so it knows what it is on."""
+    global SAY
+    import saying
+    with LOCK:
+        if SAY is None:
+            SAY = saying.Thread(core.fabric())
+        try:
+            return SAY.turn(q)
+        except Exception as e:
+            return (f"that fell over: {type(e).__name__}: {e}  "
+                    f"Said rather than hidden.")
+
+
 def _heard(q):
     """What it understood was said. This comes first and it is the
     part that is actually built: the sentence read into a structure —
@@ -234,7 +253,10 @@ class Door(BaseHTTPRequestHandler):
             self._send("  nothing asked.", "text/plain; charset=utf-8")
             return
         try:
-            out = _heard(q)
+            out = _say(q)
+            out += ("\n\n" + "-" * 46 +
+                    "\nWHAT IT UNDERSTOOD YOU TO HAVE SAID\n\n")
+            out += _heard(q)
             out += ("\n\n" + "-" * 46 +
                     "\nBELOW THIS LINE IS THE OLD ANSWERING PATH, and"
                     "\nit is retrieval: measured, five of five of its"
