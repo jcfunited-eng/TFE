@@ -349,7 +349,26 @@ ENTRY: a denial made of common words
     CONTENTFUL either. "connect" and "exclude" pass the uncommon
     test and carry no subject, and joints built on them are word
     coincidences. What separates a contentful word from a merely
-    rare one is not yet known and is the live part of this.
+    rare one is filed separately below.
+  STATUS: STANDING (white)
+
+ENTRY: what separates a contentful word from a merely rare one
+  ASKED-AS: contentful abstract relational word carries a subject
+    ground for a joint uncommon but empty connect exclude
+  VERDICT: not subject-spread, and not concentration. Both measured
+    2026-08-29. Spread per use does not separate them: onion 0.60,
+    knife 0.78, connect 0.79, exclude 0.80 — the contentful and the
+    relational sit on top of each other. Concentration in one
+    subject looked better — onion 0.33, knife 0.28 against connect
+    0.14 — and then failed on the words that matter most: wheel
+    0.13 and friction 0.12 are as low as the relational words,
+    because a thing can be contentful and general at the same time.
+  WHAT WOULD DRAIN IT: something that separates "general" from
+    "empty", since the two failed tests both mistook one for the
+    other. A word like friction is about something and appears
+    everywhere; a word like connect appears everywhere and is about
+    nothing. Whatever tells those apart is not how widely a word is
+    used, because that has now been counted twice.
   STATUS: STANDING (white)
 
 ENTRY: selection as a way of making
