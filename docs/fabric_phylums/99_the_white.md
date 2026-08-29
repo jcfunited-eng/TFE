@@ -751,3 +751,31 @@ ENTRY: a score taken on sentences I chose
     failure in disguise and it is lying. A run whose output was not
     read line by line has not been run.
   STATUS: STANDING (white) — this one is discipline and does not drain
+
+ENTRY: carrying chunks to speak with
+  ASKED-AS: chunk carried whole ready made phrase speak prose say
+    something joints built fresh
+  VERDICT: there is nothing to carry. 174 says a ready-made chunk is
+    carried whole and only its joints are built fresh, which is how a
+    thing speaks without constructing every phrase — but this writing
+    sets down 5,427 essences and almost never says the same phrase
+    twice. Measured 2026-08-29: three-word runs at or above the
+    sighting floor exist for "pressure" and "edge" and for no content
+    word tested — freezing, crystals, dough and gas each return none.
+    The chunks that do exist are field names repeated in THREAD lines,
+    like public health and martial arts, which is why chunk-carrying
+    works for the READING and not for the speaking.
+  WHAT WAS DONE INSTEAD: 174 describes how a sentence is built and
+    that description had only ever been run backwards, to take one
+    apart. Run forwards it sets parts down in the order it names —
+    doer, doing, done-to — and that is a sentence which is an
+    arrangement of the parts and is not any of them. It is the only
+    speaking in the fabric that is neither carried, fetched, nor
+    hand-written.
+  WHAT WOULD DRAIN IT PROPERLY: either a corpus that repeats itself,
+    which would be written for the machine rather than for the
+    knowledge, or the same forwards-running applied to more of 174
+    than the role order — the grouping and the pointers would set
+    down small words, which the built sentence has none of.
+  STATUS: STANDING (white) — a sentence of three bare words is not
+    prose and this is not solved

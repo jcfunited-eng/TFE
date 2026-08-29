@@ -291,6 +291,16 @@ class Thread:
         w, sn = best
         return self._t("sense", [w + ":"] + sn["marks"][:4])
 
+    def m_say(self, s):
+        """The reading said back as a sentence, built by 174's own
+        ordering rule run forwards. Not carried, not fetched, and not
+        mine — the rule that reads a sentence is the rule that sets
+        one down."""
+        built = FR.say(s.doer, s.turns_on, s.done_to)
+        if not built:
+            return None
+        return self._t("nesting", [built])
+
     def m_between(self, s):
         parts = [p for p in (s.doer, s.turns_on, s.done_to) if p]
         if len(parts) < 2:
@@ -313,9 +323,9 @@ class Thread:
             return None
         return self._t("pointer", ["none"])
 
-    MOVES = ["m_unread", "m_greet", "m_lean", "m_group", "m_doing",
-             "m_doer", "m_done_to", "m_guessing", "m_forbids",
-             "m_sense", "m_between"]
+    MOVES = ["m_unread", "m_greet", "m_lean", "m_group", "m_say",
+             "m_doing", "m_doer", "m_done_to", "m_guessing",
+             "m_forbids", "m_sense", "m_between"]
 
     # ---------- the turn ----------
     def turn(self, text):

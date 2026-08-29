@@ -485,6 +485,26 @@ def joint(a, b):
                 ra=ra, rb=rb)
 
 
+def say(doer, doing, done_to):
+    """Build a sentence from parts, using the SAME rule the reading
+    uses to take one apart.
+
+    174 says the group arriving before the doing is the doer and the
+    group after it is the done-to. That rule was only ever run
+    backwards, to read. Run forwards it puts parts in order and makes
+    a sentence, and the sentence is an arrangement of the parts and is
+    not any of them.
+
+    This is the only speaking in the fabric that is not hand-written.
+    Chunk-carrying cannot supply prose here and that is measured, not
+    assumed: the writing sets down 5,427 essences and almost never
+    repeats a phrase, so above the sighting floor there are no carried
+    runs for content words at all — freezing, crystals, dough and gas
+    each return none."""
+    parts = [p for p in (doer, doing, done_to) if p]
+    return " ".join(parts) if len(parts) >= 2 else None
+
+
 def sense_of(word, others):
     """The sense a word is carrying HERE, produced from the company
     present — never fetched from a table of senses.
