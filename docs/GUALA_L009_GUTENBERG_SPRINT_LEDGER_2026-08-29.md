@@ -400,3 +400,97 @@ bounded at 89,901,017 bytes. Both grip apertures remained exactly `35233` and
 `guala-body-1`, with no world position and no optical surface. No release or
 page contact occurred, so the observation ended without another stimulus or
 an invented success claim.
+
+## Natural social request and held-object transfer boundary
+
+The participant later approached Guala through the persistent room geometry
+and asked three distinct, ordinary spoken requests for the book. Each request
+entered only as exact PCM pressure through `guided-world-voice`; no word,
+meaning, obedience flag, object identity, or motor command entered cognition.
+The three pressure receipts were
+`f38b36748dbdb070dade89afdaf32f28a7ff4a99c9a314f31b905f32f0147ca0`,
+`01bbf9f4006070042c31673c7be567259e65032d9368cc0ce1443381148f143c`,
+and `66c3c0634ddaaedf7ac5bde14d6eceb7eec315fb38dde68a0fa3c922fbb76d78`.
+Two gateway waits ended before settlement, but their exact receipts later
+appeared in the resident auditory observation, so neither was repeated.
+Bounded quiet intervals after the requests contained no positive grip and no
+book release.
+
+The world previously had no physical way for one body to take the unique
+nearby object held by another body. The current local candidate adds exactly
+that irreducible embodiment action. `TakeContactHeldObjectCommand` carries no
+body or object identity. Preparation requires the acting body to hold nothing,
+resolves exactly one other body in the same region and within the actor's
+declared reach, verifies reciprocal object custody, and refuses absent or
+ambiguous contact. Commit transfers the one existing world object between the
+two bodies, clears only a contact on that transferred object, advances ordinary
+material time, and leaves cognition to receive the resulting normal world and
+body-sense consequences. The command codec, exact custody exchange, refusal,
+and cold restore are covered by focused proofs; this paragraph makes no live
+claim until cutover and direct production use.
+
+Applicable deployment recurrence table for this amendment:
+
+| ID | Earliest check | Current evidence |
+|---|---|---|
+| RF-001 | exact worktree first on `PYTHONPATH` | focused proofs invoked with `PYTHONPATH="$PWD"` |
+| RF-004 | first-use and restored custody | focused world proof encodes and cold-restores the transferred book |
+| RF-010 | committed world equals persisted `CURRENT` | required in rehearsal and live verification |
+| RF-012 | execute the exact live take and observe its causal successor | required after cutover; an HTTP/task health check is insufficient |
+| RF-016 | one active ledger item and matching diff | L-009 remains the sole active item; diff is only its social book boundary |
+| RF-025 | reconcile a timed-out state-changing request before retry | all three spoken-pressure fingerprints were checked; none was duplicated |
+| RF-029 | derive the live write from the immediately current world | take submission must be made once after a fresh world observation |
+| RF-033 | enumerate the exact AWS target | required before packaging; never infer it from TFE names |
+| RF-048 | restore the exact production world under candidate code | required before packaging because the release changes world behavior |
+| RF-056 | preserve resident identity and tick across cutover | required before pinning the candidate task |
+| RF-057 | carry every compound consequence as ordinary top-level episodes | unchanged action-consequence path must accept the live take successor |
+
+## Quiet-window teaching safety check
+
+No lesson, speech, picture, or participant action was supplied from
+18:38:38Z through 18:42:09Z. During that bounded quiet window the continuing
+resident organism advanced from tick 286871 to tick 287078. Each newly
+committed trajectory reported 8--12 physically recovered neurons and 557--656
+endogenous retained-formation reassemblies. Encoded resident state moved from
+92,544,466 bytes to 92,405,774 bytes after an intermediate fluctuation; it did
+not grow monotonically, and no exhaustion signal appeared.
+
+Every sampled trajectory still contained physical action, however, and the
+latest bounded observer did not witness a consecutive recovery, internal
+re-entry, and later wake sequence. The same organism therefore shows active
+recovery and no acute experiential-overload evidence, but this window does not
+prove adequate sustained sleep. The historical and current one-interval rest
+witnesses remain brief physical rest pulses, not a claim of human-duration
+sleep. No scheduler, sleep flag, tutor throttle inside cognition, or observer
+authority is introduced. Further experiences remain sparse and separated by
+ordinary quiet observation.
+
+## Exact-world restore correction and transfer rehearsal
+
+A read-only copy of the current production world at revision 23446 and SHA-256
+`2f32d55b2e9e62c35df3c91d97c0ed0d8ff069e49503131d7069e299e6706195`
+initially refused a fresh restore under both this candidate and the currently
+deployed source. The world remained authenticated; the migration receipt had
+incorrectly treated changing room-air odorant masses as immutable topology.
+After ordinary material time changed those masses, its historic topology hash
+could no longer equal the current air contents even though room geometry was
+unchanged.
+
+The corrected topology identity contains exact region geometry, illumination,
+reflectance, air volume, portals, and declared airflow anatomy, but not changing
+odorant contents. The current world envelope and its changing air remain fully
+authenticated. A historic receipt whose resulting revision is the current
+revision must still match the exact topology identity; an older authenticated
+receipt is accepted only after its HMAC and receipt identity pass and the
+current immutable topology equals the constructor-declared topology. No
+receipt check, world HMAC, material state, causal revision, or migration
+history is discarded.
+
+The exact production copy then restored under the candidate. It contained
+Guala at `(6708, 4500)` holding `book` and the participant at `(6200, 4300)`
+holding nothing. Preparing the unnamed contact take transferred custody to the
+participant and changed Guala's palmar-contact trajectory exactly from `1.0`
+to `0.0`; discarding the preparation restored the predecessor bytes exactly.
+The directly affected world, thermal-world, and participant-action suites
+report `64 passed`; Python compilation and `git diff --check` pass. Production
+is still unchanged and no new experience has been supplied.

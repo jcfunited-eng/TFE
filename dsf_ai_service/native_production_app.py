@@ -16026,11 +16026,11 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     if not isinstance(payload, dict):
         return _refusal(422, "an other-body action requires a JSON body")
     operation = payload.get("operation", "move")
-    if operation not in {"move", "pick", "place"}:
+    if operation not in {"move", "pick", "place", "take"}:
         return _refusal(
             422,
-            "an other-body action operation must be 'move', 'pick', or "
-            "'place'",
+            "an other-body action operation must be 'move', 'pick', "
+            "'place', or 'take'",
         )
     x = y = heading = signed_yaw = None
     object_id = None
@@ -16068,6 +16068,13 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 422,
                 "an other-body pick requires a nonempty object_id",
             )
+    elif operation == "take":
+        if set(payload) != {"operation"}:
+            return _refusal(
+                422,
+                "an other-body take is resolved only from current contact "
+                "geometry and accepts no object or body identity",
+            )
     else:
         object_id = payload.get("object_id")
         try:
@@ -16100,6 +16107,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         PositionMM,
         PreparedActionExecution,
         SECOND_BODY_PORT_ID,
+        TakeContactHeldObjectCommand,
         encode_command,
     )
     with _transition_lock:
@@ -16162,6 +16170,16 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
             )
             action_detail = {"object_id": object_id}
+        elif operation == "take":
+            intent_body = {
+                "actor_body_id": other.body_id,
+                "expected_world_revision": before.revision,
+                "operation": operation,
+            }
+            command = TakeContactHeldObjectCommand(
+                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+            )
+            action_detail = {}
         else:
             assert object_id is not None
             assert x is not None
@@ -16202,6 +16220,21 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         if not isinstance(prepared, PreparedActionExecution):
             return _refusal(503, "the other-body action lost its prepared state")
         execution = prepared.execution_receipt
+        if operation == "take":
+            resolved_body = next(
+                item
+                for item in execution.after.bodies
+                if item.body_id == other.body_id
+            )
+            if resolved_body.held_object_id is None:
+                authority.discard_prepared_action(prepared)
+                return _refusal(
+                    503,
+                    "the prepared other-body take lost its physical object",
+                )
+            action_detail = {
+                "resolved_object_id": resolved_body.held_object_id,
+            }
         try:
             (
                 consequence_episode,
@@ -16212,6 +16245,9 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 action_duration=Fraction(INTAKE_HOP_MILLISECONDS, 1_000),
             )
             visual_changed = int(consequence_lane_truth["visual"]["changed"])
+            tactile_changed = int(
+                consequence_lane_truth["tactile"]["changed"]
+            )
         except (RuntimeError, TypeError, ValueError) as error:
             authority.discard_prepared_action(prepared)
             return _refusal(
@@ -16253,6 +16289,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "causal_intent_receipt_sha256": intent,
             "operation": operation,
             "port_id": execution.port_id,
+            "tactile_changed_receptor_count": tactile_changed,
             "visual_changed_receptor_count": visual_changed,
             "world_revision_after": execution.after.revision,
             "world_revision_before": execution.before.revision,

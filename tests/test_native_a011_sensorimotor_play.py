@@ -8,9 +8,11 @@ from dsf_ai_service import native_production_app as production
 from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     SECOND_BODY_PORT_ID,
+    EmbodiedBody,
     EmbodiedObject,
     EmbodimentWorldAuthority,
     MoveCommand,
+    PickCommand,
     PoseMM,
     PositionMM,
     encode_command,
@@ -700,6 +702,79 @@ def test_other_participant_can_pick_and_place_through_the_same_world_path(
     assert bear.position == PositionMM(4_300, 4_250, 0)
     assert bear.held_by_body_id is None
     assert (tmp_path / production.WORLD_STATE_FILE).is_file()
+
+
+def test_other_participant_can_take_the_unique_nearby_held_object(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    bodies = (
+        EmbodiedBody(
+            "guala-body-1", PoseMM(PositionMM(1000, 1000, 0), 0), 250, 800
+        ),
+        EmbodiedBody(
+            "person-body-1",
+            PoseMM(PositionMM(1700, 1000, 0), 180_000),
+            250,
+            800,
+        ),
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="other-body-take-test-key",
+        bodies=bodies,
+        initial_objects=(
+            EmbodiedObject(
+                "held-book", 50, 100, PositionMM(1300, 1000, 0)
+            ),
+        ),
+    )
+    before = authority.observation_snapshot()
+    held = authority.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(PickCommand("held-book", 200_000)),
+        causal_intent_receipt_sha256="91" * 32,
+        expected_revision=before.revision,
+    )
+    assert held.disposition == "applied"
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
+    monkeypatch.setattr(production, "_world_authority", authority)
+    monkeypatch.setattr(production, "_reciprocal_social_play_candidate", None)
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        _accepted_external_intake,
+    )
+    monkeypatch.setattr(
+        production,
+        "_current_retinal_body_axes",
+        lambda: RETINAL_BODY_AXES,
+    )
+
+    response = production.world_other_body_move({"operation": "take"})
+    value = json.loads(response.body)
+    after = authority.observation_snapshot()
+    guala = next(
+        body for body in after.bodies if body.body_id == after.self_body_id
+    )
+    participant = next(
+        body for body in after.bodies if body.body_id == "person-body-1"
+    )
+
+    assert response.status_code == 200
+    assert value["action"]["operation"] == "take"
+    assert value["action"]["resolved_object_id"] == "held-book"
+    assert value["action"]["tactile_changed_receptor_count"] == 1
+    assert guala.held_object_id is None
+    assert participant.held_object_id == "held-book"
+    assert after.objects[0].held_by_body_id == "person-body-1"
+    assert (tmp_path / production.WORLD_STATE_FILE).is_file()
+
+    named = production.world_other_body_move(
+        {"operation": "take", "object_id": "held-book"}
+    )
+    assert named.status_code == 422
 
 
 def test_other_participant_action_physically_changes_gualas_retina(

@@ -1113,6 +1113,18 @@ class ReleaseHeldObjectCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class TakeContactHeldObjectCommand:
+    """Take the unique nearby object held by another embodied body.
+
+    The command carries neither an object identity nor a source-body identity.
+    Current body geometry and reciprocal world custody resolve the one physical
+    object that can be transferred.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
 class AdvanceContactOpticalSurfaceCommand:
     """Advance the uniquely contacted bound surface by one physical leaf.
 
@@ -1191,6 +1203,7 @@ EmbodimentCommand = (
     | PickCommand
     | GraspContactCommand
     | ReleaseHeldObjectCommand
+    | TakeContactHeldObjectCommand
     | AdvanceContactOpticalSurfaceCommand
     | PlaceCommand
     | VocalizeCommand
@@ -1246,6 +1259,17 @@ def command_record(command: EmbodimentCommand) -> dict[str, object]:
                 maximum=MAX_MATERIAL_ACTION_DURATION_US,
             ),
             "operation": "release_held_object",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, TakeContactHeldObjectCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "take_contact_held_object",
             "schema": COMMAND_SCHEMA,
         }
     if isinstance(command, AdvanceContactOpticalSurfaceCommand):
@@ -1353,6 +1377,7 @@ def _command_elapsed_nanoseconds(
             MoveCommand,
             PickCommand,
             GraspContactCommand,
+            TakeContactHeldObjectCommand,
             AdvanceContactOpticalSurfaceCommand,
             PlaceCommand,
             TouchContactCommand,
@@ -1444,6 +1469,17 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
         "duration_microseconds", "operation", "schema"
     }:
         result = ReleaseHeldObjectCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "take_contact_held_object" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = TakeContactHeldObjectCommand(
             _bounded_integer(
                 decoded.get("duration_microseconds"),
                 "physical action duration",
@@ -2865,6 +2901,10 @@ class EmbodimentWorldAuthority:
             bodies=embodied_bodies,
             objects=tuple(sorted(objects, key=lambda item: item.object_id)),
         )
+        self._declared_topology_sha256 = self._topology_sha256(
+            physical_regions,
+            physical_portals,
+        )
         self._validate_world(world)
         self._physical_body_mount_observation_receipt = (
             self._derive_physical_body_mount_observation_receipt(world)
@@ -4220,6 +4260,113 @@ class EmbodimentWorldAuthority:
                     duration_microseconds=command.duration_microseconds,
                 ),
             )
+
+        if isinstance(command, TakeContactHeldObjectCommand):
+            if body.held_object_id is not None:
+                return None, "take_body_already_holding"
+            body_region = self._region_containing(
+                world.regions,
+                body.pose.position,
+                body.radius_mm,
+            )
+            candidates: list[tuple[int, EmbodiedBody, int, EmbodiedObject]] = []
+            for holder_index, holder in enumerate(bodies):
+                if holder.body_id == body.body_id or holder.held_object_id is None:
+                    continue
+                held = by_id.get(holder.held_object_id)
+                if held is None:
+                    raise RuntimeError("take contact held object disappeared")
+                object_index, item = held
+                if (
+                    item.position is not None
+                    or item.held_by_body_id != holder.body_id
+                ):
+                    raise RuntimeError("take contact custody changed")
+                holder_region = self._region_containing(
+                    world.regions,
+                    holder.pose.position,
+                    occupied_radius(holder),
+                )
+                if (
+                    holder_region == body_region
+                    and _distance_squared(
+                        body.pose.position,
+                        holder.pose.position,
+                    )
+                    <= body.reach_mm**2
+                ):
+                    candidates.append(
+                        (holder_index, holder, object_index, item)
+                    )
+            if not candidates:
+                return None, "take_contact_absent"
+            if len(candidates) != 1:
+                return None, "take_contact_ambiguous"
+            holder_index, holder, object_index, item = candidates[0]
+            for other in bodies:
+                if other.body_id in {body.body_id, holder.body_id}:
+                    continue
+                if (
+                    self._region_containing(
+                        world.regions,
+                        other.pose.position,
+                        occupied_radius(other),
+                    )
+                    == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        holder.pose.position,
+                        other.pose.position,
+                        item.radius_mm + occupied_radius(other),
+                    )
+                ):
+                    return None, "take_path_intersects_body"
+            for other in objects:
+                if other.object_id == item.object_id or other.position is None:
+                    continue
+                if (
+                    self._region_containing(
+                        world.regions,
+                        other.position,
+                        other.radius_mm,
+                    )
+                    == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        holder.pose.position,
+                        other.position,
+                        item.radius_mm + other.radius_mm,
+                    )
+                ):
+                    return None, "take_path_intersects_object"
+            objects[object_index] = replace(
+                item,
+                held_by_body_id=body.body_id,
+            )
+            bodies[body_index] = replace(
+                body,
+                held_object_id=item.object_id,
+            )
+            bodies[holder_index] = replace(
+                holder,
+                held_object_id=None,
+                active_contact=(
+                    None
+                    if (
+                        holder.active_contact is not None
+                        and holder.active_contact.object_id == item.object_id
+                    )
+                    else holder.active_contact
+                ),
+            )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
 
         if isinstance(command, AdvanceContactOpticalSurfaceCommand):
             if body.held_object_id is not None:
@@ -5584,8 +5731,6 @@ class EmbodimentWorldAuthority:
                 and receipt.manifest_sha256
                 != self._physical_manifest_sha256()
             )
-            or receipt.resulting_topology_sha256
-            != self._topology_sha256(world.regions, world.portals)
         ):
             raise ValueError("world migration causal chain changed")
         unsigned = receipt.unsigned_record()
@@ -5598,6 +5743,18 @@ class EmbodimentWorldAuthority:
             {"authority_hmac_sha256": expected_hmac, "payload": unsigned}
         ):
             raise ValueError("world migration identity changed")
+        current_topology_sha256 = self._topology_sha256(
+            world.regions,
+            world.portals,
+        )
+        if current_topology_sha256 != self._declared_topology_sha256:
+            raise ValueError("world topology differs from its declared anatomy")
+        if (
+            receipt.resulting_topology_sha256
+            != current_topology_sha256
+            and receipt.resulting_revision == world.revision
+        ):
+            raise ValueError("world migration topology changed")
 
     def _migration_from_record(
         self,
@@ -5688,10 +5845,26 @@ class EmbodimentWorldAuthority:
         regions: tuple[PhysicalRegion, ...],
         portals: tuple[PhysicalPortal, ...],
     ) -> str:
+        """Identify immutable room anatomy, never changing air contents."""
+
         return _digest(
             {
                 "portals": [item.as_record() for item in portals],
-                "regions": [item.as_record() for item in regions],
+                "regions": [
+                    {
+                        "air_volume_cubic_mm": (
+                            None
+                            if item.air is None
+                            else item.air.volume_cubic_mm
+                        ),
+                        "bounds": item.bounds.as_record(),
+                        "ceiling_height_mm": item.ceiling_height_mm,
+                        "illumination_ppm": list(item.illumination_ppm),
+                        "reflectance_ppm": list(item.reflectance_ppm),
+                        "region_id": item.region_id,
+                    }
+                    for item in regions
+                ],
             }
         )
 
@@ -6798,6 +6971,7 @@ __all__ = [
     "ENVIRONMENT_PORT_ID",
     "GraspContactCommand",
     "ReleaseHeldObjectCommand",
+    "TakeContactHeldObjectCommand",
     "MoveCommand",
     "ObjectMaterialState",
     "ObjectOpticalSurface",

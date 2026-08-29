@@ -12,6 +12,7 @@ import pytest
 
 from dsf_ai_service.substrate.embodiment_world import (
     AdvanceContactOpticalSurfaceCommand,
+    AdvancePhysicalTimeCommand,
     AirVolumeState,
     ContactOpticalSurfaceSequence,
     ENVELOPE_SCHEMA,
@@ -31,6 +32,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     PoseMM,
     PositionMM,
     ReleaseHeldObjectCommand,
+    TakeContactHeldObjectCommand,
     TouchContactCommand,
     VocalizeCommand,
     decode_command,
@@ -366,6 +368,27 @@ def test_restore_migrates_only_missing_declared_material_transport() -> None:
     ) == (2_000_000,) * len(portals)
     assert after.objects[0].material == material
     assert declared.migrate_declared_material_transport() is False
+
+    advanced = _execute(
+        declared,
+        AdvancePhysicalTimeCommand(duration_microseconds=1_000_000),
+        intent_number=4_012,
+    )
+    assert advanced.disposition == "applied"
+    assert (
+        advanced.after.regions[0].air.odorant_mass_nanograms
+        != after.regions[0].air.odorant_mass_nanograms
+    )
+    encoded = declared.encoded_snapshot()
+    cold = EmbodimentWorldAuthority(
+        authority_key=key,
+        bodies=snapshot.bodies,
+        regions=regions,
+        portals=portals,
+        initial_objects=objects,
+    )
+    cold.restore_encoded(encoded)
+    assert cold.encoded_snapshot() == encoded
 
 
 def test_grasp_contact_refuses_absent_or_ambiguous_touch_geometry() -> None:
@@ -1324,6 +1347,67 @@ def test_multi_body_collision_and_holding_reciprocity_fail_closed() -> None:
     )
     assert blocked_place.reason == "place_intersects_body"
     assert blocked_place.before == blocked_place.after
+
+
+def test_nearby_body_can_take_one_held_object_without_naming_it() -> None:
+    bodies = (
+        EmbodiedBody(
+            "guala-body-1", PoseMM(PositionMM(1000, 1000, 0), 0), 250, 800
+        ),
+        EmbodiedBody(
+            "w1-body-2", PoseMM(PositionMM(1700, 1000, 0), 180_000), 250, 800
+        ),
+    )
+    book = EmbodiedObject(
+        "held-book", 50, 100, PositionMM(1300, 1000, 0)
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="held-transfer-key",
+        bodies=bodies,
+        initial_objects=(book,),
+    )
+    picked = _execute(
+        authority,
+        PickCommand("held-book", 200_000),
+        intent_number=914,
+    )
+    assert picked.disposition == "applied"
+    command = TakeContactHeldObjectCommand(duration_microseconds=200_000)
+    assert decode_command(encode_command(command)) == command
+
+    taken = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(command),
+        causal_intent_receipt_sha256=_intent(915),
+        expected_revision=picked.after.revision,
+    )
+
+    assert taken.disposition == "applied"
+    assert _body(taken.after).held_object_id is None
+    assert _body(taken.after, "w1-body-2").held_object_id == "held-book"
+    assert taken.after.objects[0].position is None
+    assert taken.after.objects[0].held_by_body_id == "w1-body-2"
+
+    encoded = authority.encoded_snapshot()
+    restored = EmbodimentWorldAuthority(
+        authority_key="held-transfer-key",
+        bodies=bodies,
+        initial_objects=(book,),
+    )
+    restored.restore_encoded(encoded)
+    assert restored.encoded_snapshot() == encoded
+    assert _body(
+        restored.observation_snapshot(), "w1-body-2"
+    ).held_object_id == "held-book"
+
+    already_holding = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(command),
+        causal_intent_receipt_sha256=_intent(916),
+        expected_revision=taken.after.revision,
+    )
+    assert already_holding.reason == "take_body_already_holding"
+    assert already_holding.before == already_holding.after
 
 
 def test_concurrent_actor_ports_share_one_exact_world_revision() -> None:
