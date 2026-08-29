@@ -414,3 +414,24 @@ register and explicitly counts the user's 33 observed recurrences. A-012 may
 close only from live temporal evidence: recovery in an action-free interval,
 internal recurrence without action, then a later physical action and returned
 consequence in the same organism.
+
+### Failed task 1321 and corrected upstream authority boundary
+
+Commit `1aebe5e0` required a motor-preparation sender to appear in the set named
+`causal_seed_lineages`. Its three owner-local falsifiers passed, but production
+task 1321 disproved the correction: the first sampled trajectory still carried
+127 motor recruitments, seven recovered neurons, and 1,670 endogenous
+reassemblies. The predicate received a contaminated authority set.
+
+The contamination was introduced by commit `9228fa81`: a contact selected only
+because its retained carrier phase was due was converted into an
+`ActiveElectricalFrontierEntry`, even when neither endpoint belonged to the
+causal occurrence. On the next interval that scheduled receiver became a
+causal seed and bypassed the downstream motor gate. This is the exact
+resurrection path.
+
+The corrected division is explicit. The event schedule settles retained
+physical charge. Any changed endpoint wakes its exact incident contacts through
+the already-mounted universal wake law. Only a contact crossing the actual
+causal boundary may enter `next_active_frontier` and authorize cognition,
+learning, or action. Scheduler state never becomes action authority.
