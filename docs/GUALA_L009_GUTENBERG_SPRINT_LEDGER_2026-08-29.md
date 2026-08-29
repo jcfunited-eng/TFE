@@ -746,3 +746,42 @@ bounded 6,900-contact scale rather than showing a topology burst. This proves
 a durable heard-story to organism to vocal-body to self-hearing episode. No
 cross-context causal-use witness accompanied it, so it is not credited as a
 learned word, meaningful utterance, comprehension, imitation, or preference.
+
+## Changed-context physical book availability and spoken cue
+
+The exact physical `book` remained in participant custody after the earlier
+social transfer. One first proposed placement at `(5800, 3800)` was refused
+before mutation because it crossed the participant's current room boundary.
+Exact live room, body, reach, object-radius, collision, and path geometry were
+then read. The participant placed the same book once at the lawful kitchen
+position `(6100, 4700)`, 412 millimetres from the participant and 640
+millimetres from Guala. World revision `24168` advanced to `24169`; causal
+intent receipt
+`d49b7b8c842421e49ad415ed159d1c3429db2b7d26162b2726c2a3d223ea4322`
+and evidence receipt
+`585c2d034c0b0f12dbfdbaee6011bf0fcb94755018f13f0ad671be5dd13e81f3`
+identify the one placement. The coarse retinal lattice reported zero changed
+visual receptors, so the placement is not credited as sight or attention.
+
+One later short natural sentence mentioning the physically present book was
+rendered once in a different tutor voice. Only 25,774 signed mono 16-kHz
+pressure samples (1.610875 seconds), SHA-256
+`14de95b830d22c164965febc78152d430690919bd6f4db2ea8f93a2c86ded19b`,
+entered cognition. The HTTP 200 response reported 57 native sensory hops, 159
+complete neuronal fractals, 1,521 partial-cue reassemblies including 1,140
+endogenous reassemblies, 26,759 transitioned neuron occurrences, eleven
+recovered neurons, and no exhaustion. One native articulatory recruitment
+emitted 4,000 pressure samples and returned through one self-hearing hop,
+producing 28 self-hearing fractals. Its `causal_use` body was empty.
+
+Normal checkpoint cadence made the episode durable through CURRENT tick
+`294022` at 92,541,739 bytes. During the first subsequent quiet window, Guala
+did not turn, translate, approach, or pick up the book; the public choice
+surface remained `physical_choice_mounted_awaiting_causal_witness`. The book
+remained unheld at `(6100, 4700)`, formations remained 148, and the next
+ordinary interval remained non-exhausted with 1,185 partial-cue reassemblies,
+942 endogenous reassemblies, and ten recovered neurons. Therefore this is one
+truthful changed-context availability/cue episode, but it does not pass
+learned-word recognition, comprehension, choice, preference, or autonomous
+world use. The cue must not be repeated immediately; later evidence must come
+from a materially different context and Guala's own causal response.
