@@ -683,6 +683,37 @@ complete and no restart. This proves that the contact produced a real bounded
 organism-owned response and did not stall or replace the resident organism. It
 does not prove affection, preference, learned language, or voluntary return.
 
+### Different-site falsifier — forehead contact
+
+The same task-1344 production body later received one participant
+`forehead_kiss` surface actuation. The request contained only the operation
+name; the mounted morphology translated it outside cognition into the
+participant perioral surface opposing Guala's forehead for 500,000
+microseconds at 500 micrometres compression. No reward, affect, chemical,
+meaning, or expected-behaviour field was accepted. World revision `24211`
+advanced once to `24212`; the physical evidence receipt was
+`1b1fa3dd4e5e5d38d9323db3e1be9b7eecb83f8e4fa3ccadc840785ea7850b7d`,
+and exactly one forehead tactile receptor changed.
+
+The matching admitted intake
+`external-participant-world-action:6ebd0088e7f03604dbdee2b7716258beb6244c3dd50ec66100d9d325dc129dfa`
+settled through five native hops from predecessor tick `294321` through tick
+`294323`. It produced 4,252 physically transitioned-neuron occurrences, 29
+complete emitted neuronal fractals, 206 partial-cue reassemblies including 170
+endogenous reassemblies, 89 affective-balance trajectories, one localized
+fluid-chemistry settlement, and two recovery occurrences without exhaustion.
+The contact-local evidence changed six reached neurons and zero unreached
+neurons; carrier material, reservoir energy, and locality reconciled exactly.
+This independently proves that the mounted response is not confined to the
+previous palm site.
+
+Unattended life then advanced through at least tick `294342` with unchanged
+identity and no energy exhaustion; ECS remained one desired, one running, zero
+pending. This is direct live evidence of localized tactile, thermal/body-fluid,
+neuronal, recovery, and affective-reach consequences. It is not evidence of a
+named dopamine or oxytocin response, pleasure, affection, preference, or a
+social reward: those named molecular/semantic authorities are not mounted.
+
 ## Varied guided Gutenberg experience — Peter Pan
 
 After the reciprocal contact and ordinary unattended life, the guide named one
