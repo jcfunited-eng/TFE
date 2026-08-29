@@ -13,13 +13,40 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1331`, native commit
-`e6aa0f861b211585bb4ae154517db865dddf339e`, immutable image
-`sha256:71a220a81d74c1c441a3e7f84b84ce17cd30c31440d9dfe798974e011f8c541e`,
+Current production baseline: task definition `dsf-ai-task:1332`, native commit
+`f4fe5dbd88407fcef2e1f6300d209e0bee783a69`, immutable image
+`sha256:defd67028420ae2eb3c5be7536055b299d02f6c9b281b033c8b488fc413795e3`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
-completed on 2026-08-29 with one task and verified native CURRENT beyond tick
-`270934`. The complete current source/runtime/capability reconciliation is
+completed on 2026-08-29 with one healthy task and verified native CURRENT beyond
+tick `272538`. The complete current source/runtime/capability reconciliation is
 `GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
+
+### Returned-acoustic-form vocal learning correction — 2026-08-29
+
+- Commit `f4fe5dbd88407fcef2e1f6300d209e0bee783a69` is live as sole production
+  task 1332. A layer-11 ordering cell can now learn a route to one vocal motor
+  only when real returned sound reaches a layer-1 receptor and its exact layer-6
+  integration inside that ordering cell's founding sensory assembly. Generic or
+  unrelated coincident sound has no authorship.
+- The one-way `GLCOG037` migration removed 84 invalid broad-law vocal-learning
+  contacts from the real restored organism: fabric contacts `5,895 -> 5,811` and
+  retained formations `131 -> 130`. It preserved the fixed layer-12-to-layer-13
+  vocal anatomy, non-vocal motor learning, neurons, reservoirs, and organism
+  identity. A second migration was byte-identical, so restart cannot restore the
+  removed routes.
+- Focused falsifiers prove that body feedback without self-hearing, self-hearing
+  without the ordering association, and unrelated returned sound all refuse
+  learning; the exact associated returned sound teaches only the motor that
+  actually discharged, and repetition is idempotent.
+- Live production remained healthy and advanced unattended beyond tick `272742`.
+  Sampled physical intervals were mostly `0.78-1.29 s`; no panic or duplicate
+  task appeared. Cloud custody object
+  `b82d2f1ef1c525f3cb1449a8726d3d31caf5d3ecf2c58401a5d82157258646a6.glorun`
+  reconstructed to its exact 89,174,138-byte raw body with matching SHA-256 and
+  `GLCOG037` as its only cognitive-format marker. This repairs the native
+  learning law and removes its stale routes. It does **not** claim that emitted
+  pressure is a learned word; that extension of L-006 remains open until a new
+  live acoustic-form witness exists.
 
 ### Varied live counting-song experience — 2026-08-29
 
