@@ -615,6 +615,66 @@ def nesting(gs):
                 rest=rest)
 
 
+_CLASSES = {}
+
+
+def classes():
+    """The two word-classes, learned by the ribbon from its own
+    confident readings.
+
+    174 holds the machinery — two words behave alike when more than
+    half of the company one keeps is company the other also keeps —
+    and nothing used it. Measured: doings are alike to doings at 0.91,
+    things to things at 1.00, and a doing to a thing at 0.25, so the
+    classes are there.
+
+    The seeds are not listed by hand. They are taken from the readings
+    the contrast settles on its own — exactly one group after the
+    first arrived alone, and some other group opened by a pointer —
+    which is the case the reading gets right 20 times out of 20. The
+    ribbon teaches itself the class from the sentences it can already
+    read, and then uses it on the ones it cannot."""
+    if _CLASSES:
+        return _CLASSES
+    C = company()
+    import collections as _c
+    doing, thing = _c.Counter(), _c.Counter()
+    for line in C.lines:
+        s = " ".join(line)
+        if not (4 <= len(line) <= 10):
+            continue
+        gs = groups(s)
+        if len(gs) < 3:
+            continue
+        alone = [i for i in range(1, len(gs)) if not carried_in(gs[i])]
+        ptr = [i for i, g in enumerate(gs) if g[0] in C.pointers]
+        if len(alone) != 1 or not ptr:
+            continue
+        doing[head(gs[alone[0]])] += 1
+        for i in ptr:
+            thing[head(gs[i])] += 1
+    D = [w for w, _n in doing.most_common(60)
+         if C.count.get(w, 0) >= 25 and w not in thing][:20]
+    T = [w for w, _n in thing.most_common(60)
+         if C.count.get(w, 0) >= 25 and w not in doing][:20]
+    _CLASSES["doing"], _CLASSES["thing"] = D, T
+    return _CLASSES
+
+
+def acts_like_doing(w):
+    """Which class this word behaves like, or None when the writing
+    has too little of it to say."""
+    C = company()
+    cl = classes()
+    if not cl["doing"] or not cl["thing"]:
+        return None
+    d = sum(C.alike(w, s) for s in cl["doing"]) / len(cl["doing"])
+    t = sum(C.alike(w, s) for s in cl["thing"]) / len(cl["thing"])
+    if d == t:
+        return None
+    return d > t
+
+
 def doing_of(gs, why=False):
     """Which group the sentence turns on. 174: the doing is the group
     that arrived alone, and where the sentence gives no contrast — all
@@ -665,6 +725,12 @@ def doing_of(gs, why=False):
     # it is looked for between them rather than at an end.
     ends = cand
     cand = [i for i in cand if 0 < i < len(gs) - 1] or cand
+    # The learned class is NOT used here. It changes one reading in
+    # twenty-five and one in seventy on the bench, which is noise by
+    # the same standard that refused a different +1 earlier today.
+    # classes() and acts_like_doing() are kept because the classes
+    # themselves are a finding — see 99 — not because they earned a
+    # place in the reading.
     pick = min(cand, key=lambda i: (C.opened(head(gs[i])),
                                     -C.count.get(head(gs[i]), 0)))
     # How it was settled, said out loud. Measured over thirty

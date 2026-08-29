@@ -871,3 +871,40 @@ ENTRY: the group that ends at its first content word
     the answer first.
   STATUS: STANDING (white) — the largest thing standing, and now
     located exactly
+
+ENTRY: word classes the ribbon taught itself
+  ASKED-AS: class doing thing alike company distribution part of
+    speech learned seeds bootstrap
+  VERDICT: THE CLASSES ARE REAL AND THE APPLICATION IS NOT. 174 has
+    held the machinery all along — two words behave alike when more
+    than half of the company one keeps is company the other also
+    keeps — and nothing had ever called it. Measured 2026-08-29 on
+    words with enough company: a doing is alike to a doing at 0.91, a
+    thing to a thing at 1.00, and a doing to a thing at 0.25. The
+    classes are there and they are four times apart.
+  AND THE SEEDS ARE NOT HAND-LISTED, which is the part worth keeping.
+    They are taken from the 625 readings the contrast settles on its
+    own — exactly one group after the first arrived alone, and some
+    other group opened by a pointer — which is the case the reading
+    gets right twenty times out of twenty. The ribbon learns the
+    class from the sentences it can already read and then has it for
+    the ones it cannot. It classes "miles" as a thing, "melts" and
+    "stops" as doings, "engine" and "default" and "state" as things —
+    exactly the words whose misreading causes the split-noun-phrase
+    error.
+  WHY IT IS NOT SHIPPED: it does not survive being used. On the
+    is-or-acting split it cuts the dominant error from 96 to 27 and
+    pushes the opposite error from 51 to 129, because a doing seen
+    rarely — "bit", "rise" — has too little company for alike to
+    judge and gets suppressed. Gating it on sightings does not
+    recover: at floors of 15, 25, 40, 80 and 150 the agreement is 60,
+    61, 61, 59 and 62 per cent against 63 without it. Used only to
+    choose among candidates it changes one reading in twenty-five and
+    none on the bench, which is noise by the same standard that
+    refused a different one-case gain earlier today.
+  WHAT WOULD DRAIN IT: a class judgement that degrades gracefully for
+    a word the writing has little of, rather than answering "thing"
+    by default. The seeds are sound and the comparison is sound; what
+    fails is asking a rare word a question its company cannot answer.
+  STATUS: STANDING (white) — the machinery is kept in first_ribbon.py
+    unused, and it is the most promising thing standing
