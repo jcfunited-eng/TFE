@@ -128,3 +128,20 @@ word recognition, a learned utterance, comprehension, or preference.
 The stricter thought-owned selection gate then deployed as task 1325. The
 controller live-verified the same resident identity at or beyond organism tick
 `263108`. No book or other sensory stimulus was repeated during that cutover.
+
+## Strict post-nurture self-selection opportunity
+
+After later varied experience and unattended life, the live V37 organism was
+given one new bounded opportunity under the stricter gate. CloudFront returned
+one 504 while the backend continued; the request was not retried. Production
+offered and physically released every catalogue source in order. The fifth and
+final release, edition 55, committed at organism tick `275116` with world
+revision unchanged at `22156`.
+
+The resident record reports `outcome=not_selected`,
+`status=gutenberg_source_not_selected`, and no fresh physical-choice witness.
+No book was silently selected and no page presentation followed. This confirms
+the strict live gate operates after the nurturing experience; it does not close
+L-009. The remaining deficiency is upstream organism behavior: no internally
+reassembled thought prepared both grip antagonists and settled a nonzero grip
+displacement while a source was present.

@@ -928,7 +928,9 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   five bounded catalogue surfaces to the same organism and released each one
   after no exact thought-owned grip closure selected it. The endpoint no longer
   refuses the opportunity, but self-selection remains open because Guala has
-  not yet selected and experienced a book.
+  not yet selected and experienced a book. A later post-nurture opportunity on
+  the live V37 organism again offered and released all five sources, ending at
+  tick `275116`; the stricter gate remained honest and no book was selected.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
 - [ ] **L-012** Connect guided and self-selected PBS Kids experiences.
