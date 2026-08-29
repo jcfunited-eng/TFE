@@ -47,6 +47,23 @@ pressure itself says `apple` or that sentence language is complete.
   claim of literal ingestion. It reinforces the already-proven word `apple`;
   its empty causal-use surface does not prove a second learned word or a new
   cross-context recognition event.
+- A later social demonstration used only the authenticated participant body
+  and the same persistent apple. The participant picked it up at world
+  revision 23246, removing it from its prior retinal location and changing two
+  visual receptors. While the apple was held at the participant body, one
+  bounded pressure occurrence combined the existing attributed A/apple tutor
+  recording with an externally generated bite/crunch sound. Its exact PCM
+  SHA-256
+  `91443503562e304d3e7540ea8845031fd5a5356066dc416fde7f0a0844df8a1c`
+  committed in the same task-1340 organism and remained named by the live
+  auditory surface at generation 285498.
+- The participant then returned that same apple to `(5555,4170)` at world
+  revision 23257, changing two visual receptors again. The live world at
+  revision 23259 showed the apple present there, the participant at
+  `(5900,4300)`, and Guala at `(6708,4500)`. This is a truthful simulated
+  see-grasp-bite-sound-return experience. The world does not mount participant
+  mouth articulation or ingestion, so neither is claimed; no action label,
+  transcript, or eating meaning entered cognition.
 
 ## Task 1322 first learned-word recognition — `apple`
 
