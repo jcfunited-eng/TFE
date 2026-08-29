@@ -906,5 +906,20 @@ ENTRY: word classes the ribbon taught itself
     a word the writing has little of, rather than answering "thing"
     by default. The seeds are sound and the comparison is sound; what
     fails is asking a rare word a question its company cannot answer.
-  STATUS: STANDING (white) — the machinery is kept in first_ribbon.py
-    unused, and it is the most promising thing standing
+  TRIED IN FIVE PLACES AND IT FAILS IN ALL FIVE. As a filter on every
+    candidate: 60 per cent against 63. Gated on sightings: 60, 61,
+    61, 59, 62 at floors of 15, 25, 40, 80, 150. As a tiebreak: one
+    reading in twenty-five, none on the bench. On carried groups
+    only: 44 of 60, exactly level. On bare groups only: 45 of 60,
+    one better — and the doing bench falls from 62 of 70 to 25,
+    because a bare group is where most real doings live and the class
+    answers "thing" for any of them the writing has little of.
+  THE SHAPE OF THE FAILURE IS CONSTANT: the class is right about
+    common words and answers "thing" for rare ones, so wherever it is
+    given authority it deletes exactly the doings that most need
+    finding. Its own correctness measure — 0.91, 1.00, 0.25 — was
+    taken on words with enough company, and that is the one place it
+    is never needed.
+  STATUS: STANDING (white) — kept unused in first_ribbon.py. It is
+    the most promising thing standing and it has now failed five
+    ways, which makes the promise itself worth doubting

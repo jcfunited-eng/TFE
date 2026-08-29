@@ -169,10 +169,41 @@ company at hand, carry chunks, keep the contrast. All six run.
   goes a step out: what stands with the ground but with neither of
   the pair.
 
-Bench: fabric/reading_test.py — 15/15 settled, 13/15 held out, 6/7
-roles. RUN IT BEFORE AND AFTER ANY LANGUAGE CHANGE. It caught three
-regressions this session, including one that took the whole reading to
-0/15.
+## THE NUMBERS, AND WHICH ONE TO QUOTE
+
+  reading, sentences I wrote          62/70
+  reading, real writing, hand-judged  ~10/25
+  is-or-acting, hand-labelled         44/60  (always-ACT scores 36)
+
+QUOTE THE LAST TWO. The first is measured on sentences I constructed
+and it is 90 per cent because I reached for shapes the reading
+handles. The same ribbon on the fabric's own writing was 3 of 20
+before the is-sentence work and is about 10 of 25 after it.
+
+Two benches, and both are needed — each caught something the other
+could not:
+  fabric/reading_test.py  70 doing cases, 40 of them reshaped BY RULE
+                          rather than chosen, plus 7 role cases
+  fabric/kind_test.py     60 sentences drawn by seed from the fabric's
+                          own writing and labelled by hand
+
+RUN BOTH BEFORE AND AFTER ANY LANGUAGE CHANGE. Between them they
+caught: a chunk rule that took roles 7 to 4, a retraction that took
+the reading to 0/70, a merge rule that read well on statements and
+took the reading to 29/70 on questions, and a word-class that gained
+one kind-case while costing 37 doing-cases.
+
+## THE MEASURING INSTRUMENT WAS THE PROBLEM FOR HALF A DAY
+
+Every number on the is-or-acting split was taken against a proxy —
+does the sentence contain is/are/was/were anywhere — which calls
+"while a thing IS changing state its temperature stops moving" a
+sentence about what something is. Two rules were nearly shipped on
+that proxy's word and one was nearly rejected on it. Sixty
+hand-labelled sentences settled all of it in one run.
+
+Build the instrument before optimising against it. A number from a
+proxy you know is wrong is not a measurement.
 
 ## Next
 
