@@ -745,8 +745,12 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   preserving provenance and source media. Task 1300 exposes all six through
   the same bounded physical-presentation route, with exact immutable source
   custody capped at 24 MiB/source, 32 sources, and 256 MiB total. No source has
-  yet been presented through this release, so kind-by-kind transition,
-  duplicate, ceiling, and restart acceptance remain open.
+  been inferred as learning from custody alone. Direct live transitions now
+  exist for picture, book, and ordinary audio; the task-1322 audio occurrence
+  carried 19,200 pressure samples through 22 hops at tick 260138 and retained
+  its exact 38,478 source bytes. PDF custody exists without direct transition
+  evidence in the current ledger; song, video, duplicate, ceiling, and restart
+  acceptance remain open.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.

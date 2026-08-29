@@ -151,3 +151,37 @@ physical ingress only, never recognition, understanding, or learning.
   in which settled tick `9` remains truthfully pending while CURRENT is at `8`
   and becomes durable only when CURRENT reaches `10`. Python compilation and
   `git diff --check` pass.
+
+## Task-1322 ordinary-audio live evidence — 2026-08-29
+
+- Before the intake, the current bounded custody inventory contained the prior
+  picture and book plus one PDF record. The PDF's custody alone does not prove
+  that its retinal presentation committed, so PDF remains open pending direct
+  transition evidence.
+- The first audio attempt used a descriptive sentence in `rights_basis`; the
+  immutable source boundary refused it with HTTP 422 before writing custody or
+  entering any receptor. The admitted rights enum was then read from the
+  mounted store law and the same source was submitted once with
+  `rights_basis=licensed`. No sensory mutation was retried.
+- The source was an exact 1.2-second, mono, 16 kHz PCM excerpt of the
+  rights-documented count-up recording: 19,200 samples, 38,478 source bytes,
+  SHA-256
+  `c0d7cd1ef830ee5f2296af7ddb94c051c395a8f4fb14c3d48bc4c8731c28e968`.
+  Its voice source, derivative arrangement, and CC BY-SA 3.0/public-domain
+  basis remain external provenance only.
+- The accepted request returned HTTP 200 in 26.527 seconds and committed as
+  `offered-audio` at organism tick `260138`. Across 22 whole-sensorium hops it
+  carried 238 sound-source inputs, 13,889 physically transitioned neurons, 97
+  complete-neuron-fractal occurrences, and 675 partial-cue reassemblies with
+  no energy exhaustion. A native articulation also emitted and self-heard one
+  separate 4,000-sample body-owned pressure consequence during the interval;
+  that consequence is not attributed to the offered recording.
+- Exact custody receipt:
+  `e45703942b4e201700b7d27eead18ac6623e463bbb03e388b5baf79626145da3`.
+  The post-intake inventory contains four sources and 4,765,688 total bytes,
+  with false semantic and cognition authority.
+
+Status remains **Partial**. Picture, book, and ordinary audio have direct live
+transition evidence. PDF is present in custody but lacks direct retained
+transition evidence in this ledger; song and video have not yet committed.
+Duplicate, ceiling, and post-restart custody acceptance also remain open.
