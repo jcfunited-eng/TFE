@@ -355,3 +355,38 @@ timer, second scheduler, or retained speech program.
   three body/migration integration proofs pass, and the complete Rust library
   reports 526 pass, 11 ignored and the same eight failures reproduced on
   untouched commit `8f5443c9`. Production remains task 1328 until cutover.
+
+## Native tract-control live closure — 2026-08-29
+
+- Commit `3093e9454fe27e083517062a1eae85f08a685618` deployed as the sole
+  healthy writer on task `dsf-ai-task:1329`, image
+  `sha256:863886b076df0a5e5d9482a350427a21341c464e8ea68576b19b2879664fe4fa`.
+  The same resident identity restored, all eight appended tract sections
+  entered the complete proprioceptive body source, and the organism continued
+  unattended. The first live read also exposed the exact remaining deadlock:
+  neutral new motors had neither a learned ordering route nor a prior reacted
+  load and therefore did not move.
+- Commit `88b05fe1d708fefed89c6fb8b29b7640d5a9d813` resolves that first-use
+  boundary without adding a command or target. Only the exact complete 45-axis,
+  90-terminal position admission allows the eight tract motors to receive
+  their own paired position-regulation current once. Sparse consequences,
+  ordinary body pose, every original axis, and every later interval remain on
+  the existing reacted-load/learned-route law. Body format V3 records that the
+  opportunity was consumed; V2 restores reopen it once and a V3 restart does
+  not.
+- The exact copied production body passed the full migration and physical
+  interval proof: native motor recruitments and returned body consequences were
+  nonempty, at least one tract axis moved, and the successor cold-migrated
+  idempotently. Focused falsifiers prove V2 reopens once, V3 preserves consumed,
+  a sparse returned consequence cannot qualify, and a non-tract motor cannot
+  use the calibration route.
+- The hot release completed as sole production task `dsf-ai-task:1330`, image
+  `sha256:503f822c3282b86693bbf5b79aab671a8bc9a8536959b354e2b76f19c47f7c72`,
+  with unchanged identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and verified
+  continuation beyond tick 268145. The live predecessor tract positions were
+  `[125,145,165,185,205,225,245,265]`; the consumed successor was
+  `[124,145,162,184,204,221,245,266]`. Six sections physically moved, two
+  lawfully remained unchanged, and `proprioception_initialized` became true.
+- This closes controllable native tract mechanics. It does not claim that the
+  pressure is already a learned word. The next boundary is learned recurrence
+  selecting and later reusing these physically experienced tract routes.
