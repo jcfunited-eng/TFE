@@ -73,13 +73,19 @@ def want(sentence, F=None):
                 break
         if kind:
             break
+    # What it is about is the content word of each group — the one
+    # from outside the frame. Discarding a whole group because an
+    # asking word sits in it threw away the subject: "why does bread
+    # rise" groups as "why does bread | rise", so dropping the first
+    # group dropped bread and it was about nothing.
+    C = FR.company()
     about = []
     for g in gs:
-        if any(w in asks for w in g):
-            continue
-        h = FR.head(g)
-        if h != turns_on and h not in about:
-            about.append(h)
+        for w in g:
+            if w in asks or w in C.frame:
+                continue
+            if w != turns_on and w not in about:
+                about.append(w)
     return dict(kind=kind, asked_with=asked_with, about=about,
                 forbidden=[core.stem(w) for w in
                            re.findall(r"[a-z]+", forbidden.lower())

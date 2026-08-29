@@ -55,15 +55,13 @@ ESSENCE: a group holds while the writing habitually puts each word
   of the pair is not a habit.
 ROOT: attention (78) / a few things can be held at once, so the parts
   have to be made bigger before a long sentence will fit.
-TRIED-AND-CLOSED: "a group begins at a pointer, and a pointer is a
-  word that precedes far more often than it follows" was written here
-  and measured false the same hour. "a" precedes 21,774 times and
-  follows 19,837 — no asymmetry. Worse, the asymmetry is LARGER in
-  content words: "knife" has 17 distinct followers to 5 preceders,
-  where "a" has 4,330 to 2,509. A test built on it would break groups
-  at the nouns, which is the opposite of what it was for. Whatever
-  marks a pointer, it is not adjacency asymmetry. Do not re-derive
-  this.
+HOLDS: a group is a run of frame words carrying one word from
+  outside the frame, and it ends at that word. The frame is the
+  commonest hundred, already counted, so nothing is listed by hand:
+  the small words attach forward to the content word they arrived
+  for, and the group closes when that word has been taken.
+  (what MARKS a pointer, as opposed to where a group ends, is filed
+  in the white — 99)
 THREAD: music (a phrase is heard, not the notes), reading (the eye
   takes clumps), packing (things go in boxes before they go in a van).
 ASKED-AS: group chunk phrase clump run of words break boundary grouping split

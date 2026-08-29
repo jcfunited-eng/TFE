@@ -295,3 +295,18 @@ ENTRY: what was once held about soil compacted hard clay digging crumbly worms r
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
   STATUS: STANDING (white)
+
+ENTRY: what marks a pointer — the words that open a group
+  ASKED-AS: pointer determiner group boundary opens a group which
+    words start a group a the this that grouping break
+  VERDICT: not adjacency asymmetry. Measured 2026-08-29, not
+    reasoned. "a" precedes 21,774 times and follows 19,837 — no
+    asymmetry to read. And the asymmetry that does exist runs the
+    wrong way: "knife" has 17 distinct followers to 5 preceders,
+    "a" has 4,330 to 2,509, so the signal is STRONGER in content
+    words and a test built on it breaks groups at the nouns.
+  WHAT WOULD DRAIN IT: any measurable property that separates the
+    small words which open a group from the content words that fill
+    it — but it will not be found in how often one word sits before
+    or after another, because that has been counted.
+  STATUS: STANDING (white)

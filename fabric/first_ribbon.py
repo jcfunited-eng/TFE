@@ -224,6 +224,19 @@ def groups(sentence):
     ws = re.findall(r"[a-z']+", sentence.lower())
     if not ws:
         return []
+    # A group is a run of frame words carrying one word from outside
+    # the frame, and it closes when that word has been taken. 174
+    # says so; the frame is already counted, so nothing is listed.
+    out, cur = [], []
+    for w in ws:
+        cur.append(w)
+        if w not in C.frame:
+            out.append(cur)
+            cur = []
+    if cur:
+        out.append(cur)
+    if out:
+        return out
     out, cur = [], [ws[0]]
     for a, b in zip(ws, ws[1:]):
         # the group holds while the writing habitually sets the pair
