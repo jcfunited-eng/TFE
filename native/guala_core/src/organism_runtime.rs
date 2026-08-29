@@ -7663,7 +7663,7 @@ mod tests {
         assert_eq!(parsed.vestibular, predecessor.vestibular);
         assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
         let corrected_cognitive = parsed.cognitive_bytes.unwrap();
-        assert_eq!(&corrected_cognitive[..8], b"GLCOG036");
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG037");
         assert_eq!(&corrected_cognitive[8..], &v34_cognitive[8..]);
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(corrected.clone(), budget()).unwrap(),
@@ -7714,7 +7714,7 @@ mod tests {
         );
         assert!(!observed_body.proprioception_initialized());
         let migrated_cognitive = parsed.cognitive_bytes.unwrap();
-        assert_eq!(&migrated_cognitive[..8], b"GLCOG036");
+        assert_eq!(&migrated_cognitive[..8], b"GLCOG037");
         assert_eq!(&migrated_cognitive[8..], &v35_cognitive[8..]);
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),

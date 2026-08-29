@@ -258,6 +258,13 @@ const MAGIC_V35: &[u8; 8] = b"GLCOG035";
 /// once. Later unchanged pose is not re-admitted, so it cannot become tonic
 /// motor drive.
 const MAGIC_V36: &[u8; 8] = b"GLCOG036";
+/// V37 removes only learned layer-11 contacts into fixed vocal layer-12
+/// terminals that were admitted under V36's broad "some sound returned"
+/// condition. Their acoustic-form provenance cannot be recovered. All fixed
+/// vocal anatomy and unrelated learned motor routes remain. New vocal routes
+/// require exact returned sound through the ordering route's own founding
+/// sensory assembly, so the removed pool cannot regrow under the old law.
+const MAGIC_V37: &[u8; 8] = b"GLCOG037";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -4594,11 +4601,12 @@ fn validate_fixed_vocal_articulatory_route(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36)
+        bytes.get(..MAGIC_V37.len()) == Some(MAGIC_V37)
     }
 
     pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36)
+        bytes.get(..MAGIC_V37.len()) == Some(MAGIC_V37)
+            || bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36)
             || bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35)
     }
 
@@ -5481,6 +5489,55 @@ impl ResidentCognitiveFormationState {
             }
         }
         self.retire_fabric_contact_pairs(&contaminated)
+    }
+
+    /// Remove only vocal routes learned under the retired V36 feedback law.
+    /// That law proved a vocal discharge and some returned layer-1 activity,
+    /// but did not prove the returned acoustic integration belonged to the
+    /// ordering route's own founding sensory assembly. The missing provenance
+    /// cannot be reconstructed after the fact, so every such learned contact
+    /// is retired once. Fixed layer-12 -> layer-13 vocal anatomy, non-vocal
+    /// motor learning, neurons, reservoirs, and unrelated formations remain.
+    fn retire_unproved_vocal_learning_contacts(
+        &self,
+    ) -> Result<Option<Self>, FormationError> {
+        let mounted = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount))
+            .collect::<BTreeMap<_, _>>();
+        let is_ordering = |lineage: [u8; 16]| {
+            mounted
+                .get(&lineage)
+                .is_some_and(|mount| mount.place().layer() == 11)
+        };
+        let is_vocal_motor = |lineage: [u8; 16]| {
+            mounted.get(&lineage).is_some_and(|mount| {
+                mount.place().layer() == 12
+                    && mount
+                        .body_effector_terminal()
+                        .is_some_and(|terminal| terminal.axis().is_vocal_articulator())
+            })
+        };
+        let retired = self
+            .electrical_fabric
+            .contact_endpoints()
+            .filter_map(|(left, right)| {
+                let left = self.electrical_fabric.lineages()[left];
+                let right = self.electrical_fabric.lineages()[right];
+                ((is_ordering(left) && is_vocal_motor(right))
+                    || (is_ordering(right) && is_vocal_motor(left)))
+                .then_some(canonical_lineage_pair(left, right))
+            })
+            .collect::<BTreeSet<_>>();
+        self.retire_fabric_contact_pairs(&retired)
     }
 
     /// Remove the persisted layer-13 contact pool created by the rejected
@@ -9360,7 +9417,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V36);
+        output.extend_from_slice(MAGIC_V37);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -10182,7 +10239,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V36.len()) != Some(MAGIC_V36) {
+        if bytes.get(..MAGIC_V37.len()) != Some(MAGIC_V37) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -10209,8 +10266,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v36 =
-            bytes.len() >= MAGIC_V36.len() && &bytes[..MAGIC_V36.len()] == MAGIC_V36;
+        let current_v37 =
+            bytes.len() >= MAGIC_V37.len() && &bytes[..MAGIC_V37.len()] == MAGIC_V37;
+        let current_v36 = current_v37
+            || (bytes.len() >= MAGIC_V36.len() && &bytes[..MAGIC_V36.len()] == MAGIC_V36);
         let current_v35 = current_v36
             || (bytes.len() >= MAGIC_V35.len() && &bytes[..MAGIC_V35.len()] == MAGIC_V35);
         let current_v34 = current_v35
@@ -10798,7 +10857,8 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v36 = bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36);
+        let current_v37 = bytes.get(..MAGIC_V37.len()) == Some(MAGIC_V37);
+        let current_v36 = current_v37 || bytes.get(..MAGIC_V36.len()) == Some(MAGIC_V36);
         let current_v35 = current_v36 || bytes.get(..MAGIC_V35.len()) == Some(MAGIC_V35);
         let current_v34 = current_v35 || bytes.get(..MAGIC_V34.len()) == Some(MAGIC_V34);
         let current_v33 = current_v34 || bytes.get(..MAGIC_V33.len()) == Some(MAGIC_V33);
@@ -10829,7 +10889,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V33.len()] == MAGIC_V33
                 || &bytes[..MAGIC_V34.len()] == MAGIC_V34
                 || &bytes[..MAGIC_V35.len()] == MAGIC_V35
-                || &bytes[..MAGIC_V36.len()] == MAGIC_V36);
+                || &bytes[..MAGIC_V36.len()] == MAGIC_V36
+                || &bytes[..MAGIC_V37.len()] == MAGIC_V37);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -10938,6 +10999,14 @@ impl ResidentCognitiveFormationState {
         // untouched incompatible terminal is replaced. Every restore runs
         // this check, so an older CURRENT/predecessor cannot resurrect it.
         let state = state.into_compatible_root_translation_motors()?;
+        let state = if current_v37 {
+            state
+        } else {
+            match state.retire_unproved_vocal_learning_contacts()? {
+                Some(corrected) => corrected,
+                None => state,
+            }
+        };
         // A V34 body is already a complete cognitive body.  V35 is only the
         // outer articulated-pose correction marker, so do not admit resting
         // population or perform any other cognitive migration while crossing
@@ -15531,15 +15600,41 @@ fn mount_reached_motor_effector_with_root(
     ordering.dedup();
 
     // Vocal feedback names mechanics of the whole tract rather than one
-    // articulated joint.  Its exact motor identity therefore comes from the
+    // articulated joint. Its exact motor identity therefore comes from the
     // immediately preceding physical action: one of the fixed vocal layer-12
     // terminals transferred carriers into the fixed layer-13 excitation
-    // cell.  Self-hearing and returned articulatory mechanics must both be
-    // present now; neither an acoustic input nor body activity alone can
-    // author a learned vocal route.
-    let self_hearing_reached = physically_transitioned_lineages.iter().any(|lineage| {
-        layer_by_lineage.get(lineage).copied() == Some(1)
-    });
+    // cell. Returned sound is not proved merely because some layer-1 cell
+    // changed. The sound receptor must have transferred whole carriers into
+    // its exact reached layer-6 integration during this interval. Below, that
+    // integration must also belong to the ordering route's founding layer-7
+    // assembly. Thus unrelated sound, body activity, and coincident activity
+    // have no vocal-contact authorship authority.
+    let physically_transitioned = physically_transitioned_lineages
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
+    let mut reached_sound_integrations = BTreeSet::new();
+    for transfer in settled_directed_transfers {
+        let sound_integration = [
+            (transfer.sender, transfer.receiver),
+            (transfer.receiver, transfer.sender),
+        ]
+        .into_iter()
+        .find_map(|(candidate_receptor, candidate_integration)| {
+            let receptor = mounts_by_lineage.get(&candidate_receptor)?;
+            (receptor
+                .source_site()
+                .is_some_and(|source| source.sense() == PhysicalSourceSense::Sound)
+                && layer_by_lineage.get(&candidate_receptor).copied() == Some(1)
+                && layer_by_lineage.get(&candidate_integration).copied() == Some(6)
+                && physically_transitioned.contains(&candidate_receptor)
+                && physically_transitioned.contains(&candidate_integration))
+            .then_some(candidate_integration)
+        });
+        if let Some(integration) = sound_integration {
+            reached_sound_integrations.insert(integration);
+        }
+    }
     let mut preceding_vocal_motors = predecessor_frontier
         .iter()
         .filter_map(|entry| entry.directed_transfer())
@@ -15711,14 +15806,36 @@ fn mount_reached_motor_effector_with_root(
         }
 
         if effector_terminal.is_none() {
-            if !self_hearing_reached || preceding_vocal_motors.is_empty() {
+            if reached_sound_integrations.is_empty() || preceding_vocal_motors.is_empty() {
                 continue;
             }
             // Learned meaning remains upstream of voice.  The only new edge
-            // is from each exactly proved ordering cell to the exact vocal
-            // motor that physically discharged in the preceding interval.
+            // is from an exactly proved ordering cell to the exact vocal
+            // motor that physically discharged in the preceding interval,
+            // and only when returned sound reached that ordering route's own
+            // founding sensory assembly.
             // The innate layer-12 -> layer-13 route is never widened.
             for ordering_lineage in proven_ordering {
+                let mut founding_associations = neighbours_by_lineage
+                    .get(&ordering_lineage)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .iter()
+                    .copied()
+                    .filter(|lineage| layer_by_lineage.get(lineage).copied() == Some(7))
+                    .collect::<Vec<_>>();
+                founding_associations.sort_unstable();
+                founding_associations.dedup();
+                let [founding_association] = founding_associations.as_slice() else {
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                };
+                let returned_form_reached = neighbours_by_lineage
+                    .get(founding_association)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                    .iter()
+                    .any(|lineage| reached_sound_integrations.contains(lineage));
+                if !returned_form_reached {
+                    continue;
+                }
                 for motor_lineage in preceding_vocal_motors.iter().copied() {
                     let pair = canonical_lineage_pair(ordering_lineage, motor_lineage);
                     if existing_contacts.insert(pair) {
@@ -20838,6 +20955,63 @@ mod tests {
         (regulation[0], receptor_lineage, receptor_site)
     }
 
+    fn mount_receptor_local_integration_fixture(
+        cohorts: &mut Vec<ResidentReachedCohort>,
+        resting_population: &mut Option<DevelopmentalRestingPopulation>,
+        next_lineage_ordinal: &mut u64,
+        electrical_fabric: &mut ResidentElectricalFabric,
+        receptor_site: NeuronSourceSite,
+    ) -> ([u8; 16], [u8; 16]) {
+        let receptor_place = DeclaredNeuronPlace::from_source_site(&receptor_site);
+        let receptor_neuron = create_quiescent_virtual_material_neuron(receptor_place).unwrap();
+        let receptor_lineage = allocate_local_lineage(next_lineage_ordinal).unwrap();
+        let local_anatomy = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+        let receptor_anatomy = ReachedCohortAnatomy::new_mounted(
+            vec![receptor_neuron.anatomy],
+            vec![receptor_lineage],
+            vec![ReachedNeuronMount::Receptor(receptor_site)],
+            local_anatomy.clone(),
+        )
+        .unwrap();
+        cohorts.push(ResidentReachedCohort {
+            state: ReachedCohortState::new(
+                &receptor_anatomy,
+                vec![receptor_neuron.state],
+                SparseElectricalState::genesis(&local_anatomy),
+            )
+            .unwrap()
+            .into(),
+            anatomy: receptor_anatomy,
+            pending_experience: None,
+            retained_experience: None,
+            pending_recurrence: None,
+        });
+        mount_reached_local_integration(
+            cohorts,
+            resting_population,
+            next_lineage_ordinal,
+            electrical_fabric,
+            &[(receptor_lineage, receptor_place)],
+        )
+        .unwrap();
+        let integration_place = local_integration_place(receptor_place).unwrap();
+        let integration_lineage = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.source_site().is_none() && mount.place() == integration_place)
+                    .then_some(*lineage)
+            })
+            .unwrap();
+        (receptor_lineage, integration_lineage)
+    }
+
     fn mount_local_motor_bridge_fixture(
         cohorts: &mut Vec<ResidentReachedCohort>,
         resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -23020,7 +23194,7 @@ mod tests {
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&current[..MAGIC_V37.len()], MAGIC_V37);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -24675,7 +24849,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&current[..MAGIC_V37.len()], MAGIC_V37);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -25731,7 +25905,7 @@ mod tests {
         validate_lineage_state(&state).unwrap();
         state.validate_current_motor_effectors().unwrap();
         let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&current[..MAGIC_V37.len()], MAGIC_V37);
 
         // Simulate the deployed predecessor: identical layout under V32.
         let mut legacy = current.clone();
@@ -25768,7 +25942,7 @@ mod tests {
 
         // One-way and restart-proof: the migrated body is current and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&migrated[..MAGIC_V37.len()], MAGIC_V37);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -26887,7 +27061,7 @@ mod tests {
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&v32, MAX_BYTES)
                 .unwrap();
-        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&migrated[..MAGIC_V37.len()], MAGIC_V37);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(!restored.electrical_fabric.contains_contact(acoustic, articulatory));
         assert!(!restored.electrical_fabric.contains_contact(regulation, articulatory));
@@ -27025,7 +27199,7 @@ mod tests {
             .electrical_fabric
             .contains_contact(non_vocal_motor, articulatory[0]));
         assert_eq!(restored.electrical_fabric.contact_count(), 10);
-        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&migrated[..MAGIC_V37.len()], MAGIC_V37);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -27163,7 +27337,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&migrated[..MAGIC_V37.len()], MAGIC_V37);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(restored.electrical_fabric.contains_contact(receptor, {
             restored
@@ -27441,7 +27615,7 @@ mod tests {
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&current[..MAGIC_V37.len()], MAGIC_V37);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -27706,13 +27880,21 @@ mod tests {
             &mut fabric,
             articulatory_site,
         );
-        let acoustic = mount_intrinsic_neuron_at_place(
+        let (sound_receptor, acoustic) = mount_receptor_local_integration_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
-            DeclaredNeuronPlace::new(1, 0),
-        )
-        .unwrap();
+            &mut fabric,
+            NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Sound, 0),
+        );
+        let (unrelated_sound_receptor, unrelated_acoustic) =
+            mount_receptor_local_integration_fixture(
+                &mut cohorts,
+                &mut population,
+                &mut next_lineage,
+                &mut fabric,
+                NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Sound, 1),
+            );
         let ordering = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
@@ -27752,6 +27934,11 @@ mod tests {
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 ),
                 (
+                    acoustic,
+                    association,
+                    ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                ),
+                (
                     association,
                     affective,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
@@ -27787,7 +27974,14 @@ mod tests {
         .unwrap()
         .unwrap();
         let contacts_before = fabric.contact_count();
-        let current_consequence = directed_chain(&cohorts, &fabric, &[regulation, affective]);
+        let mut current_consequence =
+            directed_chain(&cohorts, &fabric, &[regulation, affective]);
+        current_consequence.extend(directed_chain(
+            &cohorts,
+            &fabric,
+            &[sound_receptor, acoustic],
+        ));
+        current_consequence.sort_unstable();
         let preceding_ordering = frontier_hop_with_frontier(
             &cohorts,
             &fabric,
@@ -27830,10 +28024,37 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[acoustic, regulation],
+            &[sound_receptor, acoustic, regulation],
             &current_consequence,
             &preceding_action,
             &[],
+            &[],
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+        )
+        .unwrap();
+        assert!(!fabric.contains_contact(ordering, motor));
+        assert_eq!(fabric.contact_count(), contacts_before);
+
+        // A real returned sound on a different acoustic integration cannot
+        // teach this ordering route's vocal motor.
+        let mut unrelated_sound_consequence =
+            directed_chain(&cohorts, &fabric, &[regulation, affective]);
+        unrelated_sound_consequence.extend(directed_chain(
+            &cohorts,
+            &fabric,
+            &[unrelated_sound_receptor, unrelated_acoustic],
+        ));
+        unrelated_sound_consequence.sort_unstable();
+        mount_reached_motor_effector_with_root(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[unrelated_sound_receptor, unrelated_acoustic, regulation],
+            &unrelated_sound_consequence,
+            &preceding_action,
+            &preceding_ordering,
             &[],
             &BTreeMap::new(),
             &BTreeMap::new(),
@@ -27850,7 +28071,7 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[acoustic, regulation],
+            &[sound_receptor, acoustic, regulation],
             &current_consequence,
             &preceding_action,
             &preceding_ordering,
@@ -27871,7 +28092,7 @@ mod tests {
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            &[acoustic, regulation],
+            &[sound_receptor, acoustic, regulation],
             &current_consequence,
             &preceding_action,
             &preceding_ordering,
@@ -27881,6 +28102,48 @@ mod tests {
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contacts_before + 1);
+
+        // A V36 restart cannot resurrect the broader feedback-era contact.
+        // The fixed vocal motor -> articulatory anatomy remains exact.
+        let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let state = ResidentCognitiveFormationState {
+            generation: 7,
+            next_lineage_ordinal: population
+                .as_ref()
+                .unwrap()
+                .lineage_end_exclusive(),
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+            formation_index: ResidentFormationIndex::default(),
+        };
+        let mut v36 = state.encode(1_600_000_000).unwrap();
+        v36[..MAGIC_V36.len()].copy_from_slice(MAGIC_V36);
+        let migrated = ResidentCognitiveFormationState::migrate_to_current_format(
+            &v36,
+            1_600_000_000,
+        )
+        .unwrap();
+        assert_eq!(&migrated[..MAGIC_V37.len()], MAGIC_V37);
+        let restored = ResidentCognitiveFormationState::decode(&migrated, 1_600_000_000).unwrap();
+        assert!(!restored.electrical_fabric.contains_contact(ordering, motor));
+        assert!(restored.electrical_fabric.contains_contact(motor, articulatory));
+        assert_eq!(
+            ResidentCognitiveFormationState::migrate_to_current_format(
+                &migrated,
+                1_600_000_000,
+            )
+            .unwrap(),
+            migrated
+        );
     }
 
     #[test]
@@ -28663,7 +28926,7 @@ mod tests {
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V36.len()], MAGIC_V36);
+        assert_eq!(&current[..MAGIC_V37.len()], MAGIC_V37);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());
