@@ -139,3 +139,54 @@ watched people who knew less do better, and the epiphany was that
 it does not matter what you know, only what you do with it.
 Knowledge sitting in a brain is worthless. That is the bar for this
 thing, and it is not a metaphor — it is the acceptance test.
+
+
+## THE WORD IS ASSEMBLER, NOT COMPUTE (Joe, 2026-08-29, end of day)
+
+"Compute" steered every build into a wall. It carries the shape of
+input-goes-in-output-comes-out, so every design ended with "return
+the best thing" — and evaluation over a set is selection, and
+selection is retrieval. Six machines were built tonight and all six
+were selectors.
+
+An assembler does not select. It takes parts and a specification and
+puts the parts TOGETHER. An arrangement is never a member of the
+parts list, which is exactly the property that was missing.
+
+It answers the question that blocked the whole day — where do
+candidates come from if not from words. They are not things to be
+found. They are ARRANGEMENTS. The space of arrangements is generated
+by combination, never stored, always larger than the parts, and it
+is the thing reduction is supposed to be cutting. Reduction had been
+pointed at the parts bin.
+
+The joint is the only assembly built so far: two parts, one
+arrangement. It was treated as a curiosity. It is the entire point.
+
+### THE ORDER OF WORK — Joe was explicit
+
+Communication FIRST. Cognition and syntax understanding before any
+assembly. Without it there is no way to tell the fabric what is
+wanted, and it has no understanding of what to assemble. Do not
+swing at the assembler first, however tempting, because it will have
+nothing to work from.
+
+So the next swing is the language side: reading a sentence into a
+STRUCTURE of what is wanted — what is wanted, what it is about, what
+is forbidden, what kind of answer would count — rather than reading
+it into an answer. That structure is the specification an assembler
+would later take.
+
+The one thing that worked tonight points the way: comparing two
+sentences structurally, and finding they put the same pair of things
+in opposite order, killed a candidate with no rule and no denial.
+That is meaning being operated on, not matched. Build from there.
+
+### THE STATE THE CORPUS IS IN
+
+All 5,427 denial lines have been removed. 5,426 claims remain and
+zero laws parse. Everything that judged by matching denial strings
+is inert, deliberately. Do not put them back — they were a
+hand-written second copy of what each claim already says, and every
+failure tonight came from computing on that copy instead of on the
+knowledge.
