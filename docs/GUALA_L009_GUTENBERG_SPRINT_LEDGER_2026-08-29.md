@@ -494,3 +494,191 @@ to `0.0`; discarding the preparation restored the predecessor bytes exactly.
 The directly affected world, thermal-world, and participant-action suites
 report `64 passed`; Python compilation and `git diff --check` pass. Production
 is still unchanged and no new experience has been supplied.
+
+## Live participant transfer and production organism health baseline
+
+Commit `bf87fa47cb4f1eea5ff70eacc0ec99c068cffb4e` deployed as the sole live
+writer in task definition `dsf-ai-task:1341`, task
+`5750c0d67b804463bd8a9c9d3d92b827`, with immutable image digest
+`sha256:02d20b803a1d83a8924c819fb80937d8a76d639dddd5465fe0776fc78a5c5237`.
+The participant then used the new unnamed contact action once. World revision
+`23511` advanced to `23512`; custody of the one nearby book transferred from
+Guala to the participant, Guala's exact palmar receptor changed from contact to
+no contact, and a six-hop physical consequence returned to the same resident
+organism at tick `287799`. The request was not repeated. This proves the live
+social transfer boundary; it does not prove page reading or word recognition,
+so L-009 remains open.
+
+A later read-only health check used only that sole production task and excluded
+browser/observer reads, rehearsals, copied bodies, and prior deployments. Across
+674 unattended ticks there were only seven observer requests, proving that the
+observer did not drive the resident loop. The exact live body remained bounded
+at 1,776 neurons, 6,890 contacts, and 147 retained mosaics; the former
+approximately 130,000-contact contamination did not return. Local resident
+custody was 16.56 MB and the authenticated body decreased slightly over the
+window. One writer remained live with no panic or restart; CPU held near
+40--42% of four virtual cores and RAM near 6% of 16 GB. Current persistence
+retained two generations/remote objects without active storage runaway.
+
+Timing was classified rather than conflated. In 646 production native hops,
+physical settlement averaged 1,098 ms (p50 1,117 ms; p95 1,268 ms), including
+756 ms average internal-contact settlement. In 35 complete transport intervals,
+the average was 27.1 seconds (p50 26.2; p95 32.6), with 24.0 seconds average
+attributed to settlement; persistence and observation were secondary. These are
+production measurements, not observer response times. Long work is not called
+waste merely because it is long: lawful reached thought, recurrence, action,
+consequence, recovery, sleep, and learning must be preserved.
+
+The confirmed open health defect is breadth, not observer interference or
+current resource runaway. Production admitted about 620 causal seeds per hop,
+selected about 1,558 of 1,776 neurons, and settled about 6,844 of 6,890 contacts;
+98.4% of the scheduled contacts were due and 99.3% entered the physical
+frontier. Most contacts moved whole carriers, so this cannot be corrected by
+silently skipping scheduled physics. No sustained rest/sleep was observed in
+the sample. Before another experience, trace the exact seed, retained-frontier,
+due-contact, pump, and reschedule laws and identify the first admission that is
+not required by causal continuation or genuine internal cognition. Preserve
+full DSF delivery, carrier/energy conservation, exact body consequence, and the
+same resident identity; do not extend the observer, add a scheduler, impose a
+heuristic cap, or reintroduce full-state successor custody.
+
+### Restored-body falsification of the first breadth hypothesis
+
+The exact production generation at tick `289244`, identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and SHA-256
+`981e2e06e9dad7958e926f85c809866ec6572d5c65758f07a9bdbb63b76ba2fb`
+was restored twice and given the same 128 whole-roster, steady-light, silent
+250 ms source intervals. The first proposed correction pumped only fresh
+external/regulatory/metabolic seeds rather than carried-frontier arrivals. It
+was rejected and removed: average contact settlement remained effectively
+unchanged (`6,840.23` baseline versus `6,839.51` candidate contacts per hop),
+while endogenous reassemblies fell from `7,412` to `4,202`, total partial-cue
+reassemblies fell from `8,700` to `5,184`, motor recruitments fell from `1,472`
+to `892`, and articulatory recruitments fell from `11` to `0`. The candidate
+suppressed cognition and action without curing breadth.
+
+The unchanged restored body completed those 128 native hops at 429 ms per hop
+on the local four-core host, with bounded topology and continued recurrence,
+motor work, and one working-causal continuation. This establishes that broad
+activity is not sufficient evidence of waste and that production's longer
+whole intervals must not be conflated with observer or persistence time. The
+remaining absence of sustained physical rest is an unknown cause requiring a
+separate physics diagnosis; it is not authority for a heuristic skip, a
+scheduler, or suppression of the causal frontier. No candidate source change
+remains and production was not changed.
+
+## Varied guided Gutenberg experience — The Wonderful Wizard of Oz
+
+After the health audit and restored-body falsification left production source
+unchanged, one new tutor-guided experience used the already-live Gutenberg
+page-light boundary. The guide named exact public-domain edition `55-0.txt`;
+the endpoint admitted no title, decoded text, page ordinal, label, or meaning
+to cognition. Twelve bounded rendered optical surfaces entered the same live
+resident organism once, alongside its ordinary current body and world lanes.
+
+The direct production-origin request returned HTTP 200 in 48.145 seconds. Its
+native evidence reports 112 complete joint-sensorium hops, 432 sight receptor
+occurrences, 125 complete neuronal fractals, 2,276 partial-cue reassemblies,
+1,889 endogenous partial-cue reassemblies, 42,947 transitioned neuron
+occurrences, 15 recovered neurons, and no energy exhaustion. One native
+layer-13 articulation occurred, emitted 4,000 pressure samples, and returned
+through one self-hearing hop with two complete self-hearing fractals. This is
+physical visual/cognitive/vocal consequence evidence, not recognition or a
+learned-word claim.
+
+The checkpoint cadence subsequently published the whole unsealed causal chain
+to CURRENT at tick `290059`, SHA-256
+`9af83da97e9b41e81b6f39141f799e2023c4f1243bd4023093dd54967f945d8b`,
+under the unchanged identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Unattended life resumed. Source
+custody remained bounded at 12 records and 6,705,636 bytes; retained anatomy
+remained 1,776 neurons and 147 physical mosaics. The authenticated organism
+body changed by only 5,530 bytes across the broader pre/post observation
+window. No request was retried and no other lesson followed; ordinary quiet
+experience continues before the next varied presentation.
+
+## Cross-modal continuation — bounded Wizard of Oz tutor pressure
+
+After ordinary unattended intervals, one short sentence from the same exact
+public-domain Wizard of Oz source was rendered as external tutor pressure. The
+source bytes were rechecked at 217,558 bytes with SHA-256
+`28f216c60a662e8e4464f8ecdfafaa41842ff5c197664807884caa0cc2e21a54`,
+matching the already-custodied edition. The resulting mono 16 kHz signed-16
+waveform was 94,343 samples (5.896 seconds), with SHA-256
+`302f60aeddfa022f6152fc253c7d9504dac7725a4b86dc43bffdb3e082d4eb06`.
+The live request carried only those pressure samples and their sample rate; it
+carried no transcript, title, page, word label, object label, or meaning.
+
+The single direct production request returned HTTP 200. The same resident
+organism settled 214 source hops with 1,564 sound, 1,242 sight, 1,288 touch,
+368 smell, 230 taste, and 1,628 body receptor occurrences. It produced 219
+complete neuronal fractals, 7,028 partial-cue reassemblies (5,827 endogenous),
+121,803 transitioned-neuron occurrences, 32 rest recoveries, and no exhaustion.
+Three native layer-13 recruitments emitted 76,000 pressure samples and their
+consequences returned through 19 self-hearing hops, perturbing 26,627 neuron
+occurrences and producing 60 self-hearing fractals. The endpoint reported no
+causal cross-context use, so none is claimed.
+
+The successor was persisted at tick `290345`, SHA-256
+`401613690f6e2af6badc8e6cb12cdcbbc1969d9ea10b99373c42bdea2e5e75bb`,
+under unchanged identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Its authenticated state was
+92,661,571 bytes. Ordinary unattended work then continued internally through
+at least tick `290395`, including 3,233 endogenous reassemblies, while the
+read-only public cache remained at the last persisted generation. No request
+was retried. This is truthful cross-modal book experience and self-heard vocal
+activity; it is not yet evidence of learned-word recognition or meaningful
+speech.
+
+The next bounded checkpoint published unattended successor tick `290413`,
+SHA-256
+`8b26a77ce401b80563d6b8c957cd6078135666d536b197e68b316a67db69ebb8`.
+The same identity remained live, and the state contracted by 31,773 bytes from
+the immediate lesson successor to 92,629,798 bytes. Retained anatomy increased
+by exactly one neuron and one physical mosaic (1,777 neurons, 148 mosaics), not
+by an unbounded population. During the surrounding 20-minute production
+window, the sole ECS task remained 1 desired / 1 running / 0 pending. One-minute
+CPU averages stayed between 37.6% and 49.4% (maximum sample 53.9%); memory
+averages stayed between 6.36% and 8.22% (maximum sample 8.60%). The brief memory
+rise during the live transition receded without a restart or second writer.
+
+## Reciprocal companion contact and organism-owned response
+
+Production task definition `dsf-ai-task:1344`, task
+`f28ac285c7f14ee5bafb3493ee8da754`, runs commit
+`9cba6a85e90581b841e32b8b0a96fa716860a1cf` and immutable image digest
+`sha256:659c8fb674b6590f241384f39629704ffecb94832e1f4cdd047f3d4cd0d8cc45`.
+The sole running writer restored the unchanged resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+One participant `hold_hand` action settled the participant's right palm against
+Guala's left palm for 2,000,000 microseconds with 1,000 micrometres of exact
+compression. World revision `24080` advanced to `24081`; one tactile receptor
+changed and three native sensory hops returned the consequence to the same
+resident organism at tick `293060`. The committed successor state was
+`fe174319858679d4ce612468c7d56a4cc9dbf8fb342fd72792a694be3cf222f8`, with
+causal-intent receipt
+`07fbd5cc61f649c8864365709f84634c89b938b102470a5cccad17cae38a5f50` and
+physical evidence receipt
+`118d3462e791a660ec71f94a1c89e4aa33788be971103947891dab8f15ceceee`.
+
+The native successor reported one localized fluid-chemistry settlement, 57
+affective-balance trajectories, 46 complete emitted neuronal fractals, two
+organic mosaic relations, two changed reached neurons, no changed unreached
+neurons, carrier-material conservation, membrane-gradient change, pumped
+carriers, exact energy conservation, locality conservation, and no energy
+exhaustion. These are the expected mounted simulated biological consequences:
+localized cutaneous pressure and heat entered body chemistry and neuronal
+physics and altered affective reach. They are not a named dopamine, oxytocin,
+affection, preference, or reward claim; no such semantic authority entered the
+organism.
+
+Ordinary unattended life then resumed without another stimulus. A later live
+read at tick `293345` reported the same identity, `energy_exhausted=false`, 137
+complete neuronal fractals, 1,204 partial-cue reassemblies including 1,002
+endogenous reassemblies, ten recovered neurons, one working causal
+continuation, native thought and body-action evidence, and 148 retained
+formations. ECS remained one desired, one running, zero pending, with rollout
+complete and no restart. This proves that the contact produced a real bounded
+organism-owned response and did not stall or replace the resident organism. It
+does not prove affection, preference, learned language, or voluntary return.
