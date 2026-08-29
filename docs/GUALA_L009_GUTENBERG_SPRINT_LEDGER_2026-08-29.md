@@ -972,3 +972,20 @@ received a named reward chemical. The book remained unheld on the first
 read-only post-placement observation while unattended cognition continued;
 L-009 remains open pending an organism-caused grasp/page transition and
 truthful learned evidence.
+
+## Bounded guided page correction — candidate
+
+The live palmar offer was followed by one ordinary spoken world experience:
+55,437 pressure samples traversed the cochlear path over 114 native hops. The
+organism produced an articulatory discharge and self-hearing consequence, but
+neither grip aperture changed and the book remained unheld. No learned causal
+use, word recognition, or compliance is claimed.
+
+Source review then found that one guided Gutenberg request reduced and
+presented every page produced by the twelve-page source bound. That is a
+bounded byte count but not a bounded developmental moment. The candidate now
+mounts the full immutable page sequence on the persistent physical book while
+one guided request presents exactly one page of retinal light. It adds no
+semantic page selector and does not alter the existing contact-and-grip
+authority for later page transitions. The focused one-page and capability
+proofs report `2 passed`; Python compilation and `git diff --check` pass.

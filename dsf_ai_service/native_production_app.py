@@ -15802,6 +15802,11 @@ SHELF_SELECTION_SCHEMA = "guala.native.external_material_selection.v1"
 GUTENBERG_ENDPOINT = "/api/v1/material/gutenberg"
 GUTENBERG_PAGE_LINES = 28
 GUTENBERG_LINE_CHARS = 52
+# One guided offering is one physical page.  The complete bounded sequence is
+# still mounted on the persistent book, but tutoring must not flash every page
+# through the retina in one request.  Later pages require later physical
+# experiences (including the existing contact-and-grip page transition).
+GUTENBERG_GUIDED_PAGE_COUNT = 1
 # A declared guide-facing catalogue, not a selector. Every immutable field is
 # supplied back by the guide and cross-checked before acquisition. None of
 # these fields enters cognition; only rendered page light does.
@@ -15931,6 +15936,19 @@ def _gutenberg_pages(text: str) -> list[bytes]:
         image.save(buffer, format="PNG")
         pages.append(buffer.getvalue())
     return pages[:OFFERED_PAGE_MAX_COUNT]
+
+
+def _guided_gutenberg_rosters(
+    pages: list[bytes],
+) -> list[tuple[float, ...]]:
+    """Reduce exactly one current guided page to physical retinal light."""
+
+    if not pages:
+        raise ValueError("the guided Gutenberg source carried no page")
+    return [
+        _live_frame_luminance(page)
+        for page in pages[:GUTENBERG_GUIDED_PAGE_COUNT]
+    ]
 
 
 OFFERED_MATERIAL_ENDPOINT = "/api/v1/material/offered"
@@ -17347,7 +17365,7 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             _world().mount_contact_optical_surface_sequence(
                 home_book_sequence
             )
-        rosters = [_live_frame_luminance(page) for page in pages]
+        rosters = _guided_gutenberg_rosters(pages)
         episodes = _offered_visual_episodes(f"gutenberg-{book_id}-{uuid.uuid4()}", rosters)
     except (
         BoundedSourceMediaStoreError,
@@ -17429,6 +17447,7 @@ def gutenberg_material(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             "mode": "guided",
             "gutenberg_id": book_id,
             "presented_page_count": len(rosters),
+            "mounted_source_page_count": len(pages),
             "source_media": source_record.public_projection(),
             "transport_metadata_only": True,
             "meaning_entered": False,

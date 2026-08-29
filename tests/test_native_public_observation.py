@@ -1201,6 +1201,21 @@ def test_capabilities_are_truth_coupled_to_mounted_routes(monkeypatch) -> None:
         assert record["reason"]
 
 
+def test_guided_gutenberg_moment_presents_one_physical_page(monkeypatch) -> None:
+    reduced = []
+
+    def reduce_page(page: bytes) -> tuple[float, ...]:
+        reduced.append(page)
+        return (float(len(page)),)
+
+    monkeypatch.setattr(serving, "_live_frame_luminance", reduce_page)
+
+    assert serving._guided_gutenberg_rosters([b"page-1", b"page-2"]) == [
+        (6.0,),
+    ]
+    assert reduced == [b"page-1"]
+
+
 def test_live_microphone_and_rendered_text_report_their_mounted_physical_paths(
     monkeypatch,
 ) -> None:
