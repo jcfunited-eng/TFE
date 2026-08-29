@@ -47,6 +47,15 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   learning law and removes its stale routes. It does **not** claim that emitted
   pressure is a learned word; that extension of L-006 remains open until a new
   live acoustic-form witness exists.
+- The organism then articulated without a tutor request at tick `272986`, emitted
+  20,000 pressure samples under SHA-256
+  `5ecbd7b7a7b03f65ba91a6492906954e3c3b0c3b11807417b414b06d3367a166`,
+  and returned them through five self-hearing hops and 46 neuronal fractals.
+  An exact read-only decode of that newly custodied V37 body found 16
+  ordering-to-vocal-motor contacts. Because migration removed every old contact
+  of that class, those 16 were learned only under the corrected returned-sound
+  law. This proves new native acoustic-route formation; it does not yet prove
+  that the pressure is a word or that the same route was reused later.
 
 ### Varied live counting-song experience — 2026-08-29
 
