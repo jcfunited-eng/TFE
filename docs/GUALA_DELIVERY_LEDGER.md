@@ -751,8 +751,11 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   its exact 38,478 source bytes. A separate licensed song phrase committed 49
   hops at tick 260214 and retained its exact 76,878 source bytes. A one-page
   geometric PDF then committed 108 sight inputs at tick 260292; the separately
-  retained elephant PDF rehashed exactly after restart. Video, duplicate
-  idempotence, and ceiling refusal remain open.
+  retained elephant PDF rehashed exactly after restart. A two-second abstract
+  video then committed synchronized light and pressure at tick 260406 and was
+  durable through CURRENT tick 260439. All six media kinds now have direct live
+  physical-transition evidence; duplicate idempotence and ceiling refusal
+  remain open.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.

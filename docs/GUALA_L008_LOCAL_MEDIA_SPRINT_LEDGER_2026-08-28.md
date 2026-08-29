@@ -238,3 +238,33 @@ Status remains **Partial**. Picture, PDF, book, ordinary audio, and song now
 have direct live transition evidence, and one retained PDF source has passed
 exact post-restart rehash. Video, duplicate idempotence, and configured ceiling
 refusal remain open.
+
+## Task-1322 video live evidence — 2026-08-29
+
+- One original two-second abstract audiovisual source combined a changing
+  320x180, four-frame-per-second procedural light field with a mono 16 kHz
+  tone. It contained no title, transcript, caption, object label, or semantic
+  field. Exact source: 68,012 bytes, SHA-256
+  `760a771dec47c75f4ab88eab48f74da3c857df6848820610bb72d5e4cf25d693`;
+  custody receipt
+  `929aa6fc6b7a7b73a89a2a3db4e769b8b0ef08f1d3ca1cac5c49363c9ed18afc`.
+- The public connection returned HTTP 504 at its fixed 60-second gateway
+  boundary. It was not retried. Production then reported the original request
+  as `offered-video` at organism tick `260406`; the live hearing record changed
+  specifically to `offered-video`, proving its pressure lane, and the embodied
+  invitation reports `outcome=presented`,
+  `status=local_material_presentation_committed`, and exact world revision
+  continuity at `20906`.
+- CURRENT subsequently advanced through tick `260439` and reports the video
+  presentation durable under state SHA-256
+  `0166fc6040471640de6022e0a8bf403ad068b45d1a35c8fec3218889beb7e051`.
+  The observer moved on to an unattended interval before its detailed video
+  counts were retained, so no unsupported count is inferred.
+- The bounded custody inventory contains seven exact sources totaling
+  4,930,212 bytes. Source provenance remains transport-only with false
+  cognition and semantic authority.
+
+All six requested local media kinds now have direct live physical-transition
+evidence. L-008 remains **Partial** only for exact duplicate idempotence and the
+configured ceiling-refusal acceptance. Exact post-restart source restoration
+is already proved above.
