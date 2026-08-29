@@ -302,3 +302,29 @@ timer, second scheduler, or retained speech program.
   action, emitted pressure, same-organism self-hearing, and later learned reuse
   in a different physical interval. This is an utterance result, not a word or
   meaning claim. L-005 learned-word recognition remains open.
+
+## Exact outward pressure playback — 2026-08-29
+
+- Commit `1eb8598dbfb29552200d484324deeb3f7e745de0` deployed as the sole
+  healthy writer on task `dsf-ai-task:1328`, image
+  `sha256:e09c9dcbd090a9a483bf9c08827423c8ef8226c5ff11c9386bcc15044c817bbc`,
+  with the unchanged resident identity live-verified at or beyond tick
+  `265171`.
+- Native pressure had previously been consumed by the same organism's
+  self-hearing path and reduced on the public surface to count plus SHA-256;
+  the browser therefore could not let a person hear it. The process now keeps
+  only the four most recent bounded PCM bodies after their native transitions
+  succeed. This process-local read-only window is never restored, consulted by
+  settlement, or admitted back into cognition.
+- Guala Loom presents a user-controlled `Hear latest native pressure` button.
+  Its URL carries the exact pressure SHA-256 shown by the observation. The
+  endpoint returns only that matching recent body as mono signed-16 WAV; an
+  expired, malformed, or different identity refuses rather than playing a
+  substitute. There is no TTS, transcript, phoneme, word, or label authority.
+- Live production generation `265292` exposed a 24,000-sample, 16 kHz utterance
+  with pressure SHA-256
+  `5a664bca2009c7f11513a7dcdd9a668afc0f033540fe69daa9a256b68d7b48c3`.
+  The fetched WAV decoded to one channel, two-byte samples, 16 kHz, exactly
+  24,000 samples, and the decoded PCM hashed to the identical receipt.
+- This makes already-proven native utterances human-audible. It does not turn
+  an utterance into a learned word and does not change the L-005 open status.
