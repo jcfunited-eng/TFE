@@ -44,3 +44,35 @@ return. It is not a claim that production has autonomously chosen and completed
 a translation until a live unattended interval exhibits that event. Object
 manipulation and learned language remain separate capabilities.
 
+## Native terminal correction — 2026-08-29
+
+The first production cutover proved consequence ingress but not native
+translation discharge. Read-only inspection of the exact restored CURRENT body
+found the cause: the X-positive chain reached receptor `-1023`, integration
+`-51`, and regulation `+6`, but its motor remained `0`. The historical generic
+layer-12 motor had 178 pF of capacitance while its paired regulator had 37,942
+pF. Moving even one carrier into that motor would increase electrostatic
+energy, so the unchanged contact law correctly and permanently refused it.
+
+The correction makes each fixed translation terminal occupy the layer-12 place
+with its own terminal ordinal. That membrane is 39,048 pF for the measured
+X-positive chain, greater than the 37,942-pF regulator. Its dedicated
+preparation contact uses the exact area-derived conductance `1000*C` pS, which
+equals one elementary carrier per millisecond at a one-carrier membrane
+potential; ordinary energy descent and available carriers still decide whether
+transfer occurs. No threshold, heuristic, scripted action, or observer control
+was added.
+
+Every restore now performs one structural, idempotent correction of the old
+malformed singleton motor. It refuses charged or multiply connected terminals,
+removes only the invalid lineage and records that name it, mounts the exact
+fixed terminal, and rebuilds the existing indexes. A corrected body is the
+identity on the next restore, preventing an older CURRENT or predecessor from
+resurrecting the malformed anatomy.
+
+Focused proof: six root-translation tests pass, including no action from
+quiescent input, exact signed sensory direction, compatible mounting,
+idempotent malformed-body repair, and a translated consequence that prepares
+and discharges its native terminal. The copied live body also migrated twice to
+the same bytes; its corrected regulation-to-motor contact has 37,942,000 pS,
+lawful standing current, and a one-clock next crossing.

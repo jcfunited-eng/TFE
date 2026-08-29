@@ -7831,6 +7831,31 @@ mod tests {
     }
 
     #[test]
+    fn settled_root_translation_prepares_and_discharges_its_compatible_native_terminal() {
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let source = admit_root_translation_proprioceptive_source(
+            runtime.active.observation.organism_tick,
+            1,
+            0,
+        )
+        .unwrap();
+        let translated = runtime
+            .commit_admitted_trajectory_direct(&[(source, vec![(1, 1_000)])])
+            .unwrap();
+        assert!(
+            translated
+                .root_translation_unit_recruitments
+                .iter()
+                .any(|recruitment| {
+                recruitment.terminal.axis() == RootTranslationAxis::X
+                    && recruitment.terminal.direction() == RootTranslationDirection::Positive
+                }),
+            "one exact +x body consequence must lawfully prepare and discharge its compatible fixed translation terminal",
+        );
+    }
+
+    #[test]
     fn exact_quarter_turn_reuses_the_specialized_pair_across_every_millisecond() {
         let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         let before = runtime.observation();

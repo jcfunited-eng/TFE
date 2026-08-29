@@ -55,6 +55,10 @@ impl RootTranslationEffectorTerminal {
         self.direction
     }
 
+    pub(crate) fn ordinal(self) -> u32 {
+        self.axis as u32 * 2 + self.direction as u32
+    }
+
     pub(crate) fn from_ordinals(axis: u8, direction: u8) -> Option<Self> {
         Some(Self::new(decode_axis(axis)?, decode_direction(direction)?))
     }
