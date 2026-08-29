@@ -25,14 +25,20 @@ DIR = os.path.normpath(os.path.join(
     "..", "docs", "fabric_phylums"))
 WHITE_SHEET = os.path.join(DIR, "99_the_white.md")
 
+# Words dropped before anything is read. This list is my hand, so
+# it is kept to words that carry no subject of their own — never
+# to words a procedure might name a doing with. "up", "down",
+# "out", "one" and the small numbers were in here once, and the
+# counting-down act could not be reached because the very word
+# that names it was being thrown away.
 STOP = set("""the a an is are of in on at to for with by from and or
 not no it its this that what why how when does do same other own
-there they if then than as but so out up down off over more most
-less very much many few all any some none each every one two three
-way ways get got can could would should will shall may might must
-have has had been was were being you your our his her him she he
-them their into onto upon about just also even still yet too now
-here make made makes thing things""".split())
+there they if then than as but so off over more most less very
+much many few all any some none each every way ways get got can
+could would should will shall may might must have has had been
+was were being you your our his her him she he them their into
+onto upon about just also even still yet too now here make made
+makes thing things""".split())
 
 def stem(w):
     for s in ("ing", "ers", "er", "ed", "es", "s", "ly"):

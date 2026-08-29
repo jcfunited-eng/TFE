@@ -46,7 +46,7 @@ ROOT: mathematics / taking away is counting down.
 CANNOT: no taking a larger pile from a smaller one.
 THREAD: making change, measuring what is left.
 ACT: count-down
-ASKED-AS: take away counting down subtract borrow break one bundle from the next place ten ones
+ASKED-AS: take away counting down against one for one until empty subtract borrow break one bundle
 
 ESSENCE: I can lay a number down as many times as another says,
   making a pile of copies.
@@ -69,7 +69,7 @@ ROOT: my own reach index.
 CANNOT: no reaching without words to reach with.
 THREAD: an index, a fingertip finding an edge.
 ACT: reach
-ASKED-AS: find what the other one is reaching for what words touch look for knowledge about
+ASKED-AS: reach for what the other one is reaching for leaning on the thread find what words touch
 
 ESSENCE: I can ask whether any law I hold closes a thing, and
   name the law that does.

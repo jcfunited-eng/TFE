@@ -6,6 +6,8 @@ STATE: FADED
 STATE: FADED
 STATE: FADED
 STATE: FADED
+STATE: FADED
+STATE: FADED
 ESSENCE: a letter is a name for a number not yet known — call it
   x and arithmetic carries on politely with a stranger.
 ROOT: mathematics / counting — rules that hold for every number

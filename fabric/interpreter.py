@@ -172,16 +172,19 @@ def act_table():
             table[name] = core.fabric().mask(words, learn=False)
     return table
 
-def bind(step_text, table, floor=2):
+def bind(step_text, table, floor=1):
     """Which act is this step asking for? Decided by reaching, the
-    same way any question finds knowledge."""
+    same way any question finds knowledge — and it must reach one
+    act better than any other, or it has not reached at all."""
     F = core.fabric()
     sm = F.mask(step_text, learn=False)
-    best, score = None, 0
-    for name, mask in table.items():
-        v = bin(sm & mask).count("1")
-        if v > score: best, score = name, v
-    return (best, score) if score >= floor else (None, score)
+    scored = sorted(((bin(sm & m).count("1"), n)
+                     for n, m in table.items()), reverse=True)
+    if not scored: return (None, 0)
+    top, name = scored[0]
+    second = scored[1][0] if len(scored) > 1 else 0
+    if top >= floor and top > second: return (name, top)
+    return (None, top)
 
 def steps_of(rule_text):
     """A procedure is its steps, in order — split where the writer
@@ -195,18 +198,24 @@ def steps_of(rule_text):
 
 WALKERS = {"walk-places"}      # acts that open a walk
 
-def find_rule(F, step_text, floor=3):
+def find_rule(F, step_text, floor=1):
     """A step may name another written procedure rather than an
     act — by the law of procedures, a method already possessed
     counts as a doing. Found by reaching, not by a list."""
     sm = F.mask(step_text, learn=False)
-    best, score = None, 0
+    scored = []
     for e in F.entries:
         if not e["rule"]: continue
-        head = e["rule"].split("—")[0]
-        v = bin(sm & F.mask(head, learn=False)).count("1")
-        if v > score: best, score = e, v
-    return (best, score) if score >= floor else (None, score)
+        # a procedure is found the way anything is found — by the
+        # words it says it is asked for, not only by its title
+        head = e["rule"].split("—")[0] + " " + e["ask"]
+        scored.append((bin(sm & F.mask(head, learn=False)).count("1"), e))
+    scored.sort(key=lambda x: -x[0])
+    if not scored: return (None, 0)
+    top, e = scored[0]
+    second = scored[1][0] if len(scored) > 1 else 0
+    if top >= floor and top > second: return (e, top)
+    return (None, top)
 
 NUMBER_WORDS = None      # built from the knowledge, not listed
 
