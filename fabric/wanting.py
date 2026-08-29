@@ -64,7 +64,7 @@ def want(sentence, F=None):
     turns_on, settled_by = None, None
     if gs:
         d, settled_by = FR.doing_of(gs, why=True)
-        turns_on = FR.head(gs[d])
+        turns_on = FR.head(gs[d]) if d is not None else None
     kind, asked_with = None, None
     for g in gs:
         for w in g:

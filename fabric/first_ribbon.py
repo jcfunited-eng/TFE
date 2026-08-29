@@ -321,6 +321,14 @@ def doing_of(gs, why=False):
     ranked by how often a word sat AFTER a pointer, which ranks the
     things a pointer arrived for, so it returned a thing every time."""
     C = company()
+    # A doing is found by contrast BETWEEN groups. One group has
+    # nothing to be contrasted with, so a sentence of one group has no
+    # doing — its head is what the sentence is about. Saying "hello"
+    # turns on nothing; it is not a sentence that does something.
+    if len(gs) < 2:
+        how = ("one group — a doing is found by contrast between "
+               "groups and there is nothing here to contrast")
+        return (None, how) if why else None
     plain = [i for i, g in enumerate(gs) if not carried_in(g)]
     # a marked member needs a plain one to be marked against: if
     # nothing was opened, or everything was, there is no contrast here

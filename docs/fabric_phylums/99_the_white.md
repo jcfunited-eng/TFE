@@ -524,3 +524,33 @@ ENTRY: changing the grouping without re-running what already worked
     language side. The discipline half of this entry does not drain:
     a bench that is not run is not a bench.
   STATUS: STANDING (white)
+
+ENTRY: handing over a stored sentence as the content of a turn
+  ASKED-AS: offer answer content conversation turn what it holds
+    stored sentence retrieval reach entry about the subject
+  VERDICT: the speaking half of a turn can be made; the CONTENT half
+    is still retrieval and is poor. Built 2026-08-29: a turn is now an
+    arrangement of moves — greet, say what was heard, say what was
+    ruled out, say when it is guessing, say it holds nothing, ask
+    back — and none of those is an entry, so none of them was stored.
+    That half works. The move that hands over what the fabric holds
+    does not: asked about bread it offered an entry on blood sugar,
+    asked about knives it offered the onion entry. Both genuinely
+    name the subject in their ASKED-AS line, which is why they were
+    reached.
+  WHAT WAS TRIED AND IS NOT THE ANSWER: three cuts in a row —
+    any word overlap, then the subject in the entry's own words, then
+    the subject in the entry's ASKED-AS declaration. Each changed
+    which entry came back and none of them made the turn better,
+    because improving which entry comes back IS retrieval and the
+    ceiling is the corpus. A fourth cut was written and taken out: a
+    fallback that loosened the test when nothing declared the subject,
+    which is the same move again wearing a different word. Holding
+    nothing is now said instead, and that is true where the near miss
+    was not.
+  WHAT WOULD DRAIN IT: the content of a turn assembled from parts
+    rather than chosen from entries — the arrangement being the thing
+    said, not the entry. The moves already work that way and are the
+    proof of the shape; what is missing is doing it with the subject
+    matter instead of with the shape of the turn.
+  STATUS: STANDING (white)
