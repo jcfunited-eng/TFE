@@ -206,3 +206,21 @@ THREAD: law (two clauses that cannot both be honoured, and which one
   gives), accounts (two entries that will not reconcile), medicine
   (two drugs that must not be given together).
 ASKED-AS: stand together contradict cannot both hold agree conflict inconsistent which wall
+
+ESSENCE: a wall made of common words is not a wall. What a wall
+  forbids has to be named in words the writing does not use
+  everywhere, or it grips everything and closes at random — "no
+  breaking one from the belief end first" reads, once its words are
+  taken, as forbidding break-and-one in the company of cut-and-part,
+  and on those terms it closes an entry about cutting an onion. The
+  sentence is sound; what was taken from it is not.
+ROOT: this file / ground is counted in uncommon words only, and a
+  wall's grip is ground like any other.
+CANNOT: no wall from a forbidden part with no uncommon word in it —
+  it names nothing in particular, so it forbids nothing in
+  particular. No closing a thing on words the writing uses
+  everywhere.
+THREAD: law (a statute that forbids "conduct" forbids everything and
+  is struck down for it), medicine (a test that flags everyone
+  diagnoses nobody).
+ASKED-AS: wall grips everything common words closes at random spurious too broad vague

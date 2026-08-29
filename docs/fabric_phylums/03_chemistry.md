@@ -126,3 +126,21 @@ THREAD: the body (blood chemistry is held truces), oceans (CO₂
   exhaust), money (price sits where buying speed equals selling
   speed — the market is this law in a suit).
 ASKED-AS: soda fizz carbonation saturated stuck halfway seesaw stalemate leveling stirring sealed jar
+
+ESSENCE: a cut onion is a trap that arms itself only when broken. The
+  bulb keeps a harmless sulphur compound in one compartment and an
+  enzyme in another; the knife breaks both open, they meet, and the
+  reaction makes a small volatile that drifts up, meets the water on
+  the eye, and becomes a weak acid there. The tears are the eye
+  washing an acid off itself, not the body being sad.
+ROOT: chemistry / two things kept apart react when they are brought
+  together, and a cell wall is what was keeping them apart.
+CANNOT: no sting from an onion left whole — nothing is mixed until
+  something breaks the compartments. No stopping it by holding your
+  breath: it arrives at the eye through the air, not the nose. No
+  tears without water on the surface to make the acid in.
+THREAD: cooking (02: why a sharp knife and a cold onion sting less —
+  fewer cells torn, less vapour), living world (a plant defending
+  itself against being eaten), medicine body (the tear film is a wash
+  as much as a lubricant).
+ASKED-AS: onion onions cry crying tears eyes sting why do onions make you cry chopping knife burn

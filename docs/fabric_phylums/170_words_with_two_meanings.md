@@ -718,3 +718,48 @@ THREAD: teaching (30: training is practice under correction),
   logistics (39: a train is many loads pulled by one engine).
 SPLITS-INTO: railway: train station platform rail carriage track freight | teach: train coach practise drill instruct apprentice training | gown: train gown bridal trailing hem | chain: train events thought consequences sequence
 ASKED-AS: train meaning railway station carriage teach coach practise gown chain events
+
+ESSENCE: cry is three things wearing one word — the eyes running,
+  which is a body answering either grief or an irritant, and a shout,
+  which is a voice reaching for someone. The onion and the funeral
+  share a word and share nothing else.
+ROOT: this file / one sound was given more than one job and nobody
+  called it back.
+CANNOT: no grief sense with a kitchen word beside it — onion, chop,
+  knife or fume standing near turns the eyes' running into chemistry,
+  and no amount of letters says otherwise. No shout sense without
+  somebody to shout to.
+THREAD: medicine body (the tear film has two jobs and one duct),
+  cooking (02: what a cut onion releases), meaning ritual (26: grief
+  given a shape and a schedule).
+SPLITS-INTO: onion: cry tears eyes onion chop knife fume sting irritant sulphur kitchen | grief: cry tears weeping grief sorrow mourning loss funeral comfort | shout: cry call shout out loud voice alarm warning hail
+ASKED-AS: cry crying tears weep eyes running onion which sense why do onions
+
+ESSENCE: discovery is two things — finding out what was not known,
+  and the forced handing over of documents before a trial. The second
+  is a lawyer's word and takes the whole meaning when law is nearby.
+ROOT: this file / a trade took a common word and gave it a narrow
+  job.
+CANNOT: no finding-out sense with a court word beside it — trial,
+  document, disclosure or evidence standing near makes it the legal
+  one. No legal sense without a proceeding to be part of.
+THREAD: law and justice (most of what proves a case is held by the
+  other side), development methods (60: finding out what is there).
+SPLITS-INTO: finding: discovery find found unknown new learn science research curiosity surprise | legal: discovery document disclosure trial court evidence litigation party subpoena
+ASKED-AS: discovery discover found out which sense legal documents trial finding out
+
+ESSENCE: the entries in this file and its neighbours are about WORDS,
+  not about the world. They exist to settle which sense is meant and
+  then get out of the way. Asked why onions sting, the answer is the
+  chemistry; that "cry" has three senses is how the question was
+  understood, not what it was asking.
+ROOT: words and meaning (66) / the name is not the thing — a pointer
+  is not its target.
+CANNOT: no answering a question about a thing with an entry about a
+  word — the map is not the ground, and handing over the map when the
+  ground was asked for is a dodge wearing an answer's coat. No
+  settling a sense with an entry about the thing itself: the sense
+  has to be settled before the thing can be reached.
+THREAD: language (09: the name is not the thing), keeping knowledge
+  (a catalogue card is not the book).
+ASKED-AS: about words not things dictionary entry sense settling map not the ground meta

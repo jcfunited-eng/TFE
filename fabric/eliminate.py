@@ -70,6 +70,25 @@ class Law:
         return f"<{self.kind} {self.text[:56]}>"
 
 
+def _has_uncommon(mask, F):
+    """EVERY word of what a wall forbids must be uncommon, not just
+    one of them. A forbidden part is matched whole — the wall fires
+    only when all of it is present — so one common word inside it
+    does not dilute the wall, it drags the whole wall down to
+    whatever that word touches. "no breaking one" forbids break AND
+    one, and one is everywhere, so the wall reduced to "anything
+    that breaks", and it closed an entry about cutting an onion.
+    174 writes this as a wall about walls."""
+    common = len(F.entries) // 20
+    i, m = 0, mask
+    while m:
+        if m & 1 and F.df.get(i, 0) > common:
+            return False
+        m >>= 1
+        i += 1
+    return True
+
+
 def laws_of(where=None, F=None):
     """Every wall the fabric holds, or only those written in one
     subject. Passing a subject is not a filter on truth — it is the
@@ -95,7 +114,7 @@ def laws_of(where=None, F=None):
             if m:
                 a, b = F.mask(m.group(1), learn=False), \
                        F.mask(m.group(2), learn=False)
-                if a and b and not (a & b):
+                if a and b and not (a & b) and _has_uncommon(a, F):
                     out.append(Law("forbids", a, b, e, p, e["field"]))
     return out
 

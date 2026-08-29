@@ -159,3 +159,17 @@ CANNOT: no [start ris day permanent mountain demolition] together with [gravity]
 THREAD: parent one — no permanent mountain — demolition starts the day it rises, and without fresh up (deep earth); parent two — no motion through fluid is free, and speed has no flat rate — every doubling cos (flight fluids).
 ASKED-AS: start ris day permanent mountain demolition gravity
 REACHED-BY: [unborne law] flat end land fresh uplift
+
+ESSENCE: no [thick flesh] together with [arriv whatev day eaten front recent] — a wall nobody wrote, standing where two written walls meet.
+ROOT: derived / two written walls chained by the machine.
+CANNOT: no [thick flesh] together with [arriv whatev day eaten front recent] — a wall nobody wrote, standing where two written walls meet.
+THREAD: parent one — no thick flesh without plumbing — a lump of cells past a couple of millimeters m (medicine body); parent two — And no applying it upward: past a couple of minutes the rule inverts, and doing  (deep daily systems).
+ASKED-AS: thick flesh arriv whatev day eaten front recent
+REACHED-BY: [unborne law] past grow lump pip plumb cell
+
+ESSENCE: no [thick flesh] together with [far runn ahead whatev human adult] — a wall nobody wrote, standing where two written walls meet.
+ROOT: derived / two written walls chained by the machine.
+CANNOT: no [thick flesh] together with [far runn ahead whatev human adult] — a wall nobody wrote, standing where two written walls meet.
+THREAD: parent one — no thick flesh without plumbing — a lump of cells past a couple of millimeters m (medicine body); parent two — And no acting on the popular version: claims that exercise or diet grow new brai (deep neuroscience).
+ASKED-AS: thick flesh far runn ahead whatev human adult
+REACHED-BY: [unborne law] past grow lump pip plumb cell

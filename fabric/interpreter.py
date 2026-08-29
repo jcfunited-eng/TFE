@@ -163,7 +163,50 @@ def h_reach(s):
     if chosen:
         s["sense"] = chosen
         words = words + " " + " ".join(chosen)
+    # READ what was said, rather than treating it as a bag of
+    # letters. The language program groups the sentence, builds a
+    # nesting and finds the doing by contrast; the asking words say
+    # what KIND of answer will count and are not what the sentence is
+    # about, so they do not travel. Reaching from a word bag is what
+    # this whole file exists to stop being.
+    try:
+        import first_ribbon as FR
+        res = FR.read(s.get("words", ""))
+        if not res["missing"] and res["groups"]:
+            gs = res["groups"]
+            asking = FR.company().asking
+            heads = []
+            if res["stood"]:
+                _sc, _p, doing = res["stood"][0]
+                heads.append(FR.head(gs[doing]))
+                s["doing"] = heads[0]
+            for g in gs:
+                if set(g) & asking:
+                    continue          # says what kind, not what about
+                h = FR.head(g)
+                if h not in heads:
+                    heads.append(h)
+            if heads:
+                s["read_as"] = " | ".join(" ".join(g) for g in gs)
+                # the doing carries most, so it is said twice
+                words = (" ".join(heads) + " " + heads[0] + " "
+                         + words)
+    except Exception as e:
+        s["unread"] = f"{type(e).__name__}: {e}"
     qm, es = F.reach(words, limit=s.get("limit", 10))
+    # An entry about a WORD settles which sense is meant and then
+    # gets out of the way. Asked why onions sting, the answer is the
+    # chemistry — that "cry" has three senses is how the question was
+    # understood, not what it was asking. 170 writes this as a wall.
+    about_words = ("words with two meanings", "words that mean the same",
+                   "when words mislead", "what words go together")
+    asked_about_words = bool(re.search(
+        r"\b(word|words|sense|senses|meaning|means|mean)\b",
+        (s.get("words") or "").lower()))
+    if not asked_about_words:
+        kept = [e for e in es if e["field"] not in about_words]
+        if kept:
+            es = kept
     s["mask"], s["near"] = qm, es
     return s
 
@@ -183,11 +226,17 @@ def h_judge(s):
     # the thing itself, may close what is in hand. Judging with the
     # requirement walls failed all ten things the turn had hold of
     # and the fabric went silent every time. See eliminate.closes.
+    # Judge the thing on its OWN ground, never on the question's
+    # words as well. With the asking folded in, the question supplies
+    # half of what a wall needs and the wall fires on a thing it is
+    # not about: a wall about breaking a habit at the behaviour end
+    # closed the entry on cutting onions, because "break" and "cut"
+    # were in the bag. This is the third time the same mistake has
+    # been made here in one day — judging a thing against a bag
+    # bigger than the thing.
     laws = eliminate.forbidding(F)
-    s["pass"] = [eliminate.closes(e["color"],
-                                  s.get("mask", 0) | e["color"],
-                                  F, laws) is None
-                 for e in items]
+    s["pass"] = [eliminate.closes(e["color"], e["color"], F, laws)
+                 is None for e in items]
     return s
 
 def h_say(s):
