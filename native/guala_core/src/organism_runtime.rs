@@ -5162,23 +5162,12 @@ fn migrate_resident_organism_exact_energy_envelope(
     current_envelope: Vec<u8>,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
-    let already_current = {
-        let parsed = parse_current_envelope(&current_envelope, budget)?;
-        let cognitive = parsed
-            .cognitive_bytes
-            .ok_or_else(|| RuntimeError::CognitiveFormation("cognitive state is absent".into()))?;
-        // A current cognitive segment does not make an older fabric current.
-        // Pre-articulated envelopes can already carry V24 cognition but still
-        // require the one-way body/vestibular migration below.
-        let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
-        ResidentCognitiveFormationState::encoded_is_current(cognitive)
-            && ResidentCognitiveFormationState::decode(cognitive, cognitive_budget).is_ok()
-            && parsed.vestibular.is_some()
-            && parsed.articulated_body.is_some()
-    };
-    if already_current {
-        return Ok(current_envelope);
-    }
+    // An explicit current-format migration must traverse the current
+    // structural correction boundary even when the outer magic is already
+    // current. Returning here previously skipped the root-translation motor
+    // repair on Guala's live V36 body while its isolated unit fixture passed.
+    // Every correction below is idempotent; identity and lived tick remain
+    // validated after the re-encoding.
     let (
         identity,
         organism_tick,
@@ -7846,6 +7835,37 @@ mod tests {
         assert!(
             translated.root_translation_unit_recruitments.is_empty(),
             "returned +x position evidence must not become another +x command",
+        );
+    }
+
+    #[test]
+    #[ignore = "exact regression against an explicitly supplied copied production envelope"]
+    fn copied_live_root_translation_migrates_and_returns_consequence_once() {
+        let path = std::env::var("GUALA_COPIED_LIVE_ENVELOPE").unwrap();
+        let envelope = std::fs::read(path).unwrap();
+        let live_budget = RuntimeBudget::new(134_217_728, 134_217_676, 402_653_184).unwrap();
+        let migrated =
+            migrate_resident_organism_exact_energy_envelope(envelope, live_budget).unwrap();
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(migrated.clone(), live_budget)
+                .unwrap(),
+            migrated,
+            "the current-body correction must be one-way and restart-stable",
+        );
+        let mut runtime =
+            ResidentOrganismRuntime::restore_envelope(migrated, live_budget).unwrap();
+        let source = admit_root_translation_proprioceptive_source(
+            runtime.active.observation.organism_tick,
+            1,
+            0,
+        )
+        .unwrap();
+        let result = runtime
+            .commit_admitted_trajectory_direct(&[(source, vec![(1, 1_000)])])
+            .unwrap();
+        assert!(
+            result.root_translation_unit_recruitments.is_empty(),
+            "returned position evidence must settle without repeating translation",
         );
     }
 

@@ -46,46 +46,46 @@ manipulation and learned language remain separate capabilities.
 
 ## Native terminal correction — 2026-08-29
 
-The first production cutover proved consequence ingress but not native
-translation discharge. Read-only inspection of the exact restored CURRENT body
-found the cause: the X-positive chain reached receptor `-1023`, integration
-`-51`, and regulation `+6`, but its motor remained `0`. The historical generic
-layer-12 motor had 178 pF of capacitance while its paired regulator had 37,942
-pF. Moving even one carrier into that motor would increase electrostatic
-energy, so the unchanged contact law correctly and permanently refused it.
+This defect was rediscovered twice because two successive changes did not
+exercise the full deployed call path against the copied live body.
 
-The correction makes each fixed translation terminal occupy the layer-12 place
-with its own terminal ordinal. That membrane is 39,048 pF for the measured
-X-positive chain, greater than the 37,942-pF regulator. Its dedicated
-preparation contact uses the exact area-derived conductance `1000*C` pS, which
-equals one elementary carrier per millisecond at a one-carrier membrane
-potential; ordinary energy descent and available carriers still decide whether
-transfer occurs. No threshold, heuristic, scripted action, or observer control
-was added.
+1. Commit `de856a63` and production task 1311 correctly diagnosed the live
+   37,942-pF regulator beside a stale 178-pF translation motor. The helper that
+   replaces that motor passed its isolated fixture, but the outer explicit
+   migration returned immediately when it saw the already-current V36 magic.
+   Production therefore never called the helper. The fixture proved a function
+   the deploy path skipped.
+2. Commit `04429e17` and production task 1312 prevented layer-8 feedback from
+   being counted as a new motor command, but left the physical layer-8 ->
+   layer-12 contact and the stale place-6 motor resident. A live guided move
+   changed the world once, then the returned consequence failed again with the
+   identical `resident neuron lineage authority changed` refusal.
+3. The copied task-1312 CURRENT body reproduced that same refusal locally. A
+   temporary stage trace located it in `mount_reached_body_regulation`: the
+   positive-X motor remained at declared place `(12, 6)`, 178 pF, while its
+   regulation cell was at `(8, 266)`, 37,942 pF. This was not a new defect; it
+   was proof that both earlier attempts had failed to remove the original one.
 
-Every restore now performs one structural, idempotent correction of the old
-malformed singleton motor. It refuses charged or multiply connected terminals,
-removes only the invalid lineage and records that name it, mounts the exact
-fixed terminal, and rebuilds the existing indexes. A corrected body is the
-identity on the next restore, preventing an older CURRENT or predecessor from
-resurrecting the malformed anatomy.
+The final correction changes the complete causal boundary rather than another
+surface symptom:
 
-The first live cutover falsified one acceptance statement above. The repaired
-contact conducted, but the returned translation proprioception was incorrectly
-accepted as another command for the same terminal. A guided X-positive move
-therefore moved the body and returned its exact consequence, then began a
-positive translation-feedback chain that was eventually refused with
-`resident neuron lineage authority changed`. The sensory return was real; its
-reuse as efferent preparation was not lawful.
+- explicit current-format migration always traverses idempotent current-body
+  corrections; current magic can no longer bypass them;
+- the stale generic translation motor is replaced at its exact fixed declared
+  terminal place;
+- every historical direct layer-8 proprioception -> translation-motor contact
+  is retired one way, together with structural references that depended on
+  that invalid feedback edge;
+- returned root position remains sensory consequence only; only a proved
+  layer-11 causal route may energize a translation motor;
+- ordinary mounting validates the terminal's exact declared place and
+  geometry-derived capacitance, not a relationship to a mutable cognitive
+  regulator.
 
-The discharge boundary now separates cause from consequence. A fixed root
-translation terminal can be prepared only by a fresh settled transfer from its
-already-authored layer-11 ordering route. The paired layer-8 proprioceptive
-regulation remains the physical afferent path but cannot prepare or discharge
-the motor, and retained translation-motor displacement cannot repeat an action
-without a fresh ordering transfer. Seven focused root-translation tests pass,
-including explicit severing proofs that layer-8 feedback is refused while a
-layer-11 cause is accepted, and an end-to-end proof that returned translation
-feedback does not repeat the action. The copied live body also migrated twice
-to the same bytes; its corrected regulation-to-motor contact has 37,942,000 pS,
-lawful standing current, and a one-clock next crossing.
+The exact copied task-1312 body now migrates twice to identical bytes and then
+completes the full +X consequence trajectory: same identity, tick 246557 to
+246558, native settlement and successor seal successful, and zero repeated
+translation recruitment. The permanent regression gate is the ignored
+`copied_live_root_translation_migrates_and_returns_consequence_once` proof with
+an explicitly supplied copied CURRENT envelope. A synthetic helper fixture is
+never again sufficient evidence for this correction.

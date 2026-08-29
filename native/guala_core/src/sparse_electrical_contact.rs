@@ -36,21 +36,6 @@ use rayon::prelude::*;
 
 const PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE: u128 = 1_000;
 
-/// Exact conductance for a fixed membrane-to-membrane preparation contact.
-/// With one elementary charge on a membrane of capacitance `C`, its potential
-/// is `e/C` millivolts. A conductance of `1000*C` pS therefore carries
-/// `(1000*C)*(e/C)/1000 = e` picoampere-milliseconds in one millisecond: one
-/// elementary charge. The elementary-charge magnitude cancels; `1000` is the
-/// exact pS*mV/pA unit conversion above. Energy descent and sender material
-/// still bound/refuse the actual transfer in the ordinary contact law.
-pub(crate) fn one_carrier_per_millisecond_contact_conductance(
-    capacitance: MembraneCapacitance,
-) -> Result<ExactRational, SparseElectricalError> {
-    capacitance
-        .picofarads()
-        .checked_mul_unsigned(PICOSIEMENS_MILLIVOLTS_PER_PICOAMPERE)
-        .map_err(Into::into)
-}
 const JUNCTION_TOTAL_CHANNEL_POPULATION: u128 = 6_400;
 const JUNCTION_GENESIS_CONDUCTING_POPULATION: u128 = 50;
 const JUNCTION_TRANSITION_WORK_NUMERATOR: i128 = 16_822_854_657;

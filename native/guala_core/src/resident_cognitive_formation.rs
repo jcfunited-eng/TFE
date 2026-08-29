@@ -130,7 +130,6 @@ use crate::resident_electrical_fabric::ResidentElectricalFabric;
 use crate::resident_receptor_transition::ResidentVestibularIngress;
 use crate::sha256::sha256;
 use crate::sparse_electrical_contact::{
-    one_carrier_per_millisecond_contact_conductance,
     settle_contact_local_conductance, settle_sparse_electrical_transfers,
     ElectricalContactAnatomy, ElectricalContactState, ElectricalContactTransition,
     LocalGradientDirection, SparseElectricalAnatomy, SparseElectricalError,
@@ -5705,8 +5704,58 @@ impl ResidentCognitiveFormationState {
         struct Repair {
             old_lineage: [u8; 16],
             old_place: DeclaredNeuronPlace,
-            regulation_lineage: [u8; 16],
             terminal: RootTranslationEffectorTerminal,
+        }
+
+        // Root translation is voluntary world motion. Its returned
+        // proprioception is sensory consequence, not a spinal reflex back
+        // into the same motor. Retire the historical layer-8 -> layer-12
+        // feedback contacts before assessing terminal anatomy. Learned
+        // layer-11 -> layer-12 causal routes remain untouched.
+        let layer_by_lineage = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .map(|(mount, lineage)| (*lineage, mount.place().layer()))
+            .collect::<BTreeMap<_, _>>();
+        let translation_motors = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                mount
+                    .root_translation_effector_terminal()
+                    .is_some()
+                    .then_some(*lineage)
+            })
+            .collect::<BTreeSet<_>>();
+        let feedback_pairs = self
+            .electrical_fabric
+            .contact_endpoints()
+            .filter_map(|(left, right)| {
+                let left = self.electrical_fabric.lineages()[left];
+                let right = self.electrical_fabric.lineages()[right];
+                ((translation_motors.contains(&left)
+                    && layer_by_lineage.get(&right).copied() == Some(8))
+                    || (translation_motors.contains(&right)
+                        && layer_by_lineage.get(&left).copied() == Some(8)))
+                    .then_some(canonical_lineage_pair(left, right))
+            })
+            .collect::<BTreeSet<_>>();
+        if let Some(corrected) = self.retire_fabric_contact_pairs(&feedback_pairs)? {
+            self = corrected;
         }
 
         let mut repairs = Vec::<Repair>::new();
@@ -5747,46 +5796,13 @@ impl ResidentCognitiveFormationState {
             {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
-            let paths = exact_motor_body_afferent_paths(
-                motor_flat,
-                &self.topology_index.flat_locations,
-                &self.cohorts,
-                &self.topology_index.neighbours_by_flat,
-            )?;
-            let mut regulations = paths
-                .into_iter()
-                .filter_map(|path| {
-                    (path
-                        .receptor_site
-                        .root_translation_proprioceptor_terminal()
-                        .map(RootTranslationProprioceptorTerminal::paired_effector)
-                        == Some(terminal))
-                    .then_some(path.body_regulation_lineage)
-                })
-                .collect::<Vec<_>>();
-            regulations.sort_unstable();
-            regulations.dedup();
-            let [regulation_lineage] = regulations.as_slice() else {
-                return Err(FormationError::NeuronLineageAuthorityChanged);
-            };
             let incident = self.topology_index.incident_contacts_by_flat[motor_flat].as_ref();
-            let [contact_index] = incident else {
-                return Err(FormationError::NeuronLineageAuthorityChanged);
-            };
-            let contact = self.topology_index.contacts[*contact_index];
-            let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
-                return Err(FormationError::NeuronLineageAuthorityChanged);
-            };
-            let anatomy = self.electrical_fabric.anatomy().contact_anatomies()[contact_index];
-            if self.electrical_fabric.state().contact_states()[contact_index]
-                != ElectricalContactState::genesis(anatomy)
-            {
+            if !incident.is_empty() {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
             repairs.push(Repair {
                 old_lineage: motor_lineage,
                 old_place: mount.place(),
-                regulation_lineage: *regulation_lineage,
                 terminal,
             });
         }
@@ -5901,31 +5917,6 @@ impl ResidentCognitiveFormationState {
                 .anatomy
                 .specialize_root_translation_effector(motor_lineage, repair.terminal)
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
-            self.electrical_fabric = self
-                .electrical_fabric
-                .append_contact(
-                    repair.regulation_lineage,
-                    motor_lineage,
-                    one_carrier_per_millisecond_contact_conductance(
-                        cohorts
-                            .iter()
-                            .find_map(|cohort| {
-                                cohort
-                                    .anatomy
-                                    .neuron_lineages()
-                                    .iter()
-                                    .position(|lineage| {
-                                        *lineage == repair.regulation_lineage
-                                    })
-                                    .map(|index| {
-                                        cohort.anatomy.neuron_anatomies()[index].capacitance()
-                                    })
-                            })
-                            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?,
-                    )
-                    .map_err(FormationError::ResidentElectricalUnavailable)?,
-                )
-                .map_err(FormationError::ResidentElectricalUnavailable)?;
         }
         self.cohorts = cohorts.into_boxed_slice();
         self.topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -14326,8 +14317,6 @@ fn mount_reached_body_regulation(
                         cohorts,
                         resting_population,
                         next_lineage_ordinal,
-                        electrical_fabric,
-                        regulation_lineage,
                         terminal,
                     )?;
                 }
@@ -14605,17 +14594,21 @@ fn mount_fixed_root_yaw_motor_terminal(
     Ok(motor_lineage)
 }
 
-/// Mount one fixed x/y root-translation terminal and its exact regulation
-/// contact. The terminal is body anatomy; experience may only add sparse
-/// ordering input to it later.
+/// Mount one fixed x/y root-translation terminal. Returned proprioception is
+/// sensory consequence and therefore does not contact the motor directly;
+/// only a proved sparse ordering route may later energize it.
 fn mount_fixed_root_translation_motor_terminal(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
-    electrical_fabric: &mut ResidentElectricalFabric,
-    regulation_lineage: [u8; 16],
     terminal: RootTranslationEffectorTerminal,
 ) -> Result<[u8; 16], FormationError> {
+    let expected_place = DeclaredNeuronPlace::new(
+        12,
+        ROOT_TRANSLATION_LAYER12_TOPOLOGY_OFFSET
+            .checked_add(terminal.ordinal())
+            .ok_or(FormationError::ArithmeticOverflow)?,
+    );
     let mut matching = cohorts
         .iter()
         .flat_map(|cohort| {
@@ -14637,17 +14630,11 @@ fn mount_fixed_root_translation_motor_terminal(
     let motor_lineage = match matching.as_slice() {
         [lineage] => *lineage,
         [] => {
-            let place = DeclaredNeuronPlace::new(
-                12,
-                ROOT_TRANSLATION_LAYER12_TOPOLOGY_OFFSET
-                    .checked_add(terminal.ordinal())
-                    .ok_or(FormationError::ArithmeticOverflow)?,
-            );
             let lineage = mount_intrinsic_neuron_at_place(
                 cohorts,
                 resting_population,
                 next_lineage_ordinal,
-                place,
+                expected_place,
             )?;
             let motor_cohort = cohorts
                 .iter_mut()
@@ -14661,37 +14648,28 @@ fn mount_fixed_root_translation_motor_terminal(
         }
         _ => return Err(FormationError::NeuronLineageAuthorityChanged),
     };
-    let capacitance_for = |lineage: [u8; 16]| {
-        cohorts.iter().find_map(|cohort| {
+    let (motor_place, motor_capacitance) = cohorts
+        .iter()
+        .find_map(|cohort| {
             cohort
                 .anatomy
                 .neuron_lineages()
                 .iter()
-                .position(|candidate| *candidate == lineage)
-                .map(|index| cohort.anatomy.neuron_anatomies()[index].capacitance())
+                .position(|candidate| *candidate == motor_lineage)
+                .map(|index| {
+                    (
+                        cohort.anatomy.mounts()[index].place(),
+                        cohort.anatomy.neuron_anatomies()[index].capacitance(),
+                    )
+                })
         })
-    };
-    let regulation_capacitance = capacitance_for(regulation_lineage)
         .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-    let motor_capacitance = capacitance_for(motor_lineage)
-        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-    if motor_capacitance
-        .picofarads()
-        .checked_cmp(regulation_capacitance.picofarads())
-        .map_err(|_| FormationError::ArithmeticOverflow)?
-        != std::cmp::Ordering::Greater
-    {
+    let expected_capacitance = create_quiescent_virtual_material_neuron(expected_place)
+        .map_err(FormationError::PhysicalGenesisUnavailable)?
+        .anatomy
+        .capacitance();
+    if motor_place != expected_place || motor_capacitance != expected_capacitance {
         return Err(FormationError::NeuronLineageAuthorityChanged);
-    }
-    if !electrical_fabric.contains_contact(regulation_lineage, motor_lineage) {
-        *electrical_fabric = electrical_fabric
-            .append_contact(
-                regulation_lineage,
-                motor_lineage,
-                one_carrier_per_millisecond_contact_conductance(regulation_capacitance)
-                    .map_err(FormationError::ResidentElectricalUnavailable)?,
-            )
-            .map_err(FormationError::ResidentElectricalUnavailable)?;
     }
     Ok(motor_lineage)
 }
@@ -26123,7 +26101,7 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(motors.len(), 1);
-        assert!(fabric.contains_contact(regulation, motors[0]));
+        assert!(!fabric.contains_contact(regulation, motors[0]));
         validate_motor_effector_mounts(&cohorts).unwrap();
     }
 
@@ -26270,21 +26248,11 @@ mod tests {
                 .unwrap(),
             std::cmp::Ordering::Greater,
         );
-        let contact_index = corrected
-            .electrical_fabric
-            .contact_endpoints()
-            .position(|(left, right)| {
-                let left = corrected.electrical_fabric.lineages()[left];
-                let right = corrected.electrical_fabric.lineages()[right];
-                canonical_lineage_pair(left, right)
-                    == canonical_lineage_pair(regulation, motor_lineage)
-            })
-            .unwrap();
-        assert_eq!(
-            corrected.electrical_fabric.anatomy().contact_anatomies()[contact_index]
-                .conductance_picosiemens(),
-            one_carrier_per_millisecond_contact_conductance(regulation_capacitance)
-                .unwrap(),
+        assert!(
+            !corrected
+                .electrical_fabric
+                .contains_contact(regulation, motor_lineage),
+            "returned root translation must remain sensory and cannot feed the motor back",
         );
     }
 
