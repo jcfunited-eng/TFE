@@ -335,3 +335,30 @@ Therefore the native grasp half is now live and complete, but L-009 remains
 open for Guala's own opening grip, first source-bound surface transition, and
 the resulting exact visual consequence. No page is credited from the grasp or
 the read-aloud alone.
+
+## Held-object release correction
+
+The held-page form above was withdrawn before it could remain in production.
+The retinal projection law excludes objects held by the same body, so advancing
+the book while it remained held could have changed an optical surface that the
+organism could not see. Commit
+`8dce9b62e2c55b487442c7c2235aa998e7e6de15` instead gives a positive grip two
+native, state-dependent meanings without carrying an object identity: while an
+object is held it releases that exact custody-owned object at the nearest lawful
+tangent position in the body's current heading; while nothing is held it retains
+the unique-contact page-advance request. A closing grip remains the only grasp
+request. This makes the physical sequence grasp, release, contact, and advance,
+and prevents a silent held-page mutation.
+
+The focused release/contact boundary produced 46 passes. One broader affected
+test retained the known local installed-native-extension axis-count mismatch;
+the candidate did not edit that Rust body schema. `git diff --check` passed.
+The hot controller deployed the release law as task definition
+`dsf-ai-task:1339` with immutable image digest
+`sha256:68cbfc9981b2f9677988c37b7eadb669a2991f6888d64ac07ca5f9a5bd1e15cd`.
+Production restored the same organism identity, one running task, zero pending
+tasks, and no predecessor writer. At the first direct post-restart inspection,
+the declared receptor geometry remained mounted and the exact book remained in
+`guala-body-1` custody at world revision `22783`; its optical surface remained
+unmounted. A native positive grip has not yet occurred on this release, so no
+release or page advance is claimed and L-009 remains open.
