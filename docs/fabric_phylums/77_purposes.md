@@ -1,6 +1,6 @@
 # 77 PURPOSES — why anything is said or done
-Every sentence is somebody trying to get something done. These are
-the laws of that trying — what the jobs are and how they stack.
+Every sentence is somebody trying to get something done — these
+are the laws of that trying.
 
 ESSENCE: saying is doing — every sentence is a move that informs,
   asks, promises, warns, binds, tests or performs, and reading
@@ -72,7 +72,7 @@ ROOT: teaching + learning / the lesson discovered is the lesson
 CANNOT: no way carried by answers alone. No learner reaching an
   unseen case without the method that made the seen ones.
 THREAD: cooking (a recipe against knowing why it works), fishing
-  (the fish and the rod), maps (against reading country).
+  (the fish and the rod), maps (a map against reading country).
 ASKED-AS: teach learn explain understand memorize versus get it method examples show how why
 
 ESSENCE: once both sides have said aloud what they are doing
