@@ -15,6 +15,7 @@ def _state(label: str) -> bytes:
 @dataclass(frozen=True)
 class _NativeCausalIntervalEvidence:
     source_duration_samples_at_articulatory_rate: int
+    rest_recovered_neuron_count: int
     externally_perturbed_neuron_lineages: list[str]
     internally_reassembled_formation_cues: list[tuple[object, ...]]
     causal_thought_transitions: list[tuple[object, ...]]
@@ -1228,6 +1229,7 @@ def test_causal_thought_requires_an_exact_recurrent_carrier_bridge() -> None:
 def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> None:
     raw = _NativeCausalIntervalEvidence(
         source_duration_samples_at_articulatory_rate=1,
+        rest_recovered_neuron_count=3,
         externally_perturbed_neuron_lineages=[],
         internally_reassembled_formation_cues=[],
         causal_thought_transitions=[],
@@ -1248,6 +1250,7 @@ def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> N
     assert len(parsed) == 1
     assert parsed[0].predecessor_organism_tick == 41
     assert parsed[0].organism_tick == 42
+    assert parsed[0].rest_recovered_neuron_count == 3
     with pytest.raises(RuntimeError, match="named schema"):
         boundary._causal_interval_evidence([tuple(range(12))], 41)
 

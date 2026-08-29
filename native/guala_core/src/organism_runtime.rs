@@ -753,6 +753,7 @@ struct BodyProprioceptiveSourceReceipt {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct CausalIntervalEvidence {
     source_duration_samples_at_articulatory_rate: usize,
+    rest_recovered_neuron_count: usize,
     externally_perturbed_neuron_lineages: Vec<[u8; 16]>,
     internally_reassembled_formation_cues: Vec<InternallyReassembledFormationCueObservation>,
     externally_reassembled_formation_frontiers:
@@ -784,6 +785,11 @@ impl NativeCausalIntervalEvidence {
     #[getter]
     fn source_duration_samples_at_articulatory_rate(&self) -> usize {
         self.interval.source_duration_samples_at_articulatory_rate
+    }
+
+    #[getter]
+    fn rest_recovered_neuron_count(&self) -> usize {
+        self.interval.rest_recovered_neuron_count
     }
 
     #[getter]
@@ -3292,6 +3298,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate:
                     source_duration_samples_at_articulatory_rate(source)?,
+                rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
                     .clone(),
@@ -3653,6 +3660,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate:
                     source_duration_samples_at_articulatory_rate(source)?,
+                rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
                     .clone(),

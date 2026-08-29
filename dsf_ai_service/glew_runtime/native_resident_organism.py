@@ -407,6 +407,7 @@ class ResidentCausalIntervalEvidence:
     predecessor_organism_tick: int
     organism_tick: int
     source_duration_samples_at_articulatory_rate: int
+    rest_recovered_neuron_count: int
     externally_perturbed_neuron_lineages: tuple[str, ...]
     internally_reassembled_formation_cues: tuple[
         tuple[str, tuple[str, ...], str | None], ...
@@ -1148,6 +1149,7 @@ def _causal_interval_evidence(
     for index, raw in enumerate(value):
         required_fields = (
             "source_duration_samples_at_articulatory_rate",
+            "rest_recovered_neuron_count",
             "externally_perturbed_neuron_lineages",
             "internally_reassembled_formation_cues",
             "causal_thought_transitions",
@@ -1165,6 +1167,7 @@ def _causal_interval_evidence(
         if any(not hasattr(raw, field) for field in required_fields):
             raise RuntimeError("causal interval evidence changed named schema")
         raw_duration_samples = raw.source_duration_samples_at_articulatory_rate
+        raw_rest_recovered = raw.rest_recovered_neuron_count
         raw_external = raw.externally_perturbed_neuron_lineages
         raw_cues = raw.internally_reassembled_formation_cues
         raw_thought_transitions = raw.causal_thought_transitions
@@ -1187,6 +1190,10 @@ def _causal_interval_evidence(
         duration_samples = _positive_integer(
             raw_duration_samples,
             "causal interval articulatory-clock duration",
+        )
+        rest_recovered = _nonnegative_integer(
+            raw_rest_recovered,
+            "causal interval rest-recovered neuron count",
         )
         if not isinstance(raw_external, list):
             raise RuntimeError("causal interval external lineages changed format")
@@ -1248,6 +1255,7 @@ def _causal_interval_evidence(
                 predecessor_organism_tick=predecessor_tick,
                 organism_tick=predecessor_tick + 1,
                 source_duration_samples_at_articulatory_rate=duration_samples,
+                rest_recovered_neuron_count=rest_recovered,
                 externally_perturbed_neuron_lineages=external,
                 internally_reassembled_formation_cues=internal_cues,
                 causal_thought_transitions=thought_transitions,

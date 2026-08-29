@@ -8270,6 +8270,9 @@ def _causal_interval_hops(
             "source_duration_samples_at_articulatory_rate": (
                 interval.source_duration_samples_at_articulatory_rate
             ),
+            "rest_recovered_neuron_count": (
+                interval.rest_recovered_neuron_count
+            ),
             "externally_perturbed_neuron_lineages": (
                 interval.externally_perturbed_neuron_lineages
             ),

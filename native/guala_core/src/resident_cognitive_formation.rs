@@ -8419,6 +8419,8 @@ impl ResidentCognitiveFormationState {
             &pre_source_membranes,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
+        let passive_membrane_returned_neuron_count =
+            internal_contact.passive_membrane_returned_neuron_lineages.len();
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
         let (working_causal_continuations, settled_working_frontier) =
             working_causal_frontier_observation(
@@ -8744,7 +8746,10 @@ impl ResidentCognitiveFormationState {
                 internally_reassembled_formation_cues,
                 externally_reassembled_formation_frontiers,
                 mosaic_of_mosaics_count,
-                rest_recovered_neuron_count: metabolic.recovered_neuron_count,
+                rest_recovered_neuron_count: metabolic
+                    .recovered_neuron_count
+                    .checked_add(passive_membrane_returned_neuron_count)
+                    .ok_or(FormationError::ArithmeticOverflow)?,
                 rest_drained_dissipation_quanta: metabolic.drained_dissipation_quanta,
                 unmet_dissipation_quanta: metabolic.unmet_dissipation_quanta,
                 membrane_returned_elementary_charges: metabolic.returned_elementary_charges,
@@ -16499,6 +16504,17 @@ pub(crate) fn rebuild_causal_event_residency(
     )
 }
 
+/// Only root yaw owns a cross-interval prepared-action hold. Root
+/// translation requires a fresh ordering-layer cause for every action, so an
+/// otherwise charged translation terminal remains eligible for the ordinary
+/// passive membrane-return law.
+fn terminal_retains_prepared_action_charge(
+    mount: &ReachedNeuronMount,
+    separated_elementary_charges: i128,
+) -> bool {
+    mount.root_yaw_effector_terminal().is_some() && separated_elementary_charges > 0
+}
+
 fn rebuild_causal_event_residency_from_endpoint_holds(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
@@ -16545,9 +16561,16 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
                 )
             });
         let neuron = held_neuron.as_ref().unwrap_or(current_neuron);
-        let mounted_terminal_ready = (mount.root_yaw_effector_terminal().is_some()
-            || mount.root_translation_effector_terminal().is_some())
-            && neuron.separated_elementary_charges() > 0;
+        // Root yaw deliberately retains a prepared turn across intervals.
+        // Root translation does not: its returned position evidence was
+        // severed from motor preparation, so held translation charge without
+        // a fresh layer-11 cause must take the ordinary passive-return path.
+        // Treating both terminals as perpetually ready stranded translation
+        // charge forever and prevented genuine local rest.
+        let mounted_terminal_ready = terminal_retains_prepared_action_charge(
+            mount,
+            neuron.separated_elementary_charges(),
+        );
         let due = if mounted_terminal_ready {
             Some(
                 persisted_organism_clock
@@ -16784,6 +16807,11 @@ struct InternalContactSettlementObservation {
     root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
     emitted_neuron_fractals: Vec<EmittedNeuronFractal>,
+    /// Exact resident neurons whose mounted passive membrane-return path
+    /// moved one whole elementary charge toward local rest this interval.
+    /// These lineages are evidence of already-settled conserved physics; they
+    /// neither seed, schedule, nor select cognition.
+    passive_membrane_returned_neuron_lineages: Vec<[u8; 16]>,
     transition_predecessors: BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
 }
 
@@ -17220,6 +17248,7 @@ fn settle_internal_contact_interval(
             root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
+            passive_membrane_returned_neuron_lineages: Vec::new(),
             transition_predecessors: BTreeMap::new(),
         });
     }
@@ -17314,6 +17343,8 @@ fn settle_internal_contact_interval(
         .drain_due_at(clock, &mut due_return_flats);
     let mut due_terminal_flats = Vec::new();
     let mut passive_return_changed_flats = Vec::new();
+    let mut passive_membrane_returned_neuron_lineages = Vec::new();
+    let mut transition_predecessors = BTreeMap::new();
     for flat in due_return_flats.iter().copied() {
         let (cohort_index, neuron_index, _) = flat_locations[flat];
         let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
@@ -17382,6 +17413,12 @@ fn settle_internal_contact_interval(
             // not settle, and this neuron reschedules from its held state.
             continue;
         };
+        let lineage = flat_locations[flat].2;
+        let predecessor = TransitionNeuronPredecessor {
+            lineage,
+            anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].clone(),
+            state: cohorts[cohort_index].state.neurons()[neuron_index].clone(),
+        };
         Arc::make_mut(&mut cohorts[cohort_index].state)
             .apply_local_membrane_transport(
                 neuron_index,
@@ -17389,10 +17426,15 @@ fn settle_internal_contact_interval(
                 successor_reservoir,
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        physically_transitioned_neuron_lineages.insert(lineage);
+        retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
         passive_return_changed_flats.push(flat);
+        passive_membrane_returned_neuron_lineages.push(lineage);
     }
     passive_return_changed_flats.sort_unstable();
     passive_return_changed_flats.dedup();
+    passive_membrane_returned_neuron_lineages.sort_unstable();
+    passive_membrane_returned_neuron_lineages.dedup();
     let mut compact_contact_indices = Vec::new();
     events
         .contact_schedule
@@ -17465,6 +17507,7 @@ fn settle_internal_contact_interval(
             root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
+            passive_membrane_returned_neuron_lineages: Vec::new(),
             transition_predecessors: BTreeMap::new(),
         });
     }
@@ -17802,7 +17845,8 @@ fn settle_internal_contact_interval(
             root_translation_unit_recruitments: Vec::new(),
             articulatory_unit_recruitments: Vec::new(),
             emitted_neuron_fractals: Vec::new(),
-            transition_predecessors: BTreeMap::new(),
+            passive_membrane_returned_neuron_lineages,
+            transition_predecessors,
         });
     }
     let compact_anatomy = SparseElectricalAnatomy::new(selected.len(), compact_contacts)
@@ -18849,7 +18893,6 @@ fn settle_internal_contact_interval(
     let mut root_translation_unit_recruitments = Vec::new();
     let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
-    let mut transition_predecessors = BTreeMap::new();
     let mut layer_ten_plasticity_settlements = Vec::new();
     for result in cohort_results {
         if let Some((
@@ -19618,9 +19661,10 @@ fn settle_internal_contact_interval(
             }
             let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
             let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
-            let mounted_terminal_ready = (mount.root_yaw_effector_terminal().is_some()
-                || mount.root_translation_effector_terminal().is_some())
-                && neuron.separated_elementary_charges() > 0;
+            let mounted_terminal_ready = terminal_retains_prepared_action_charge(
+                mount,
+                neuron.separated_elementary_charges(),
+            );
             let due = if mounted_terminal_ready {
                 Some(
                     clock
@@ -19681,6 +19725,7 @@ fn settle_internal_contact_interval(
         root_translation_unit_recruitments,
         articulatory_unit_recruitments,
         emitted_neuron_fractals,
+        passive_membrane_returned_neuron_lineages,
         transition_predecessors,
     })
 }
@@ -26198,6 +26243,15 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(motors.len(), 1);
+        let translation_mount = cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .find(|mount| mount.root_translation_effector_terminal() == Some(terminal))
+            .unwrap();
+        assert!(
+            !terminal_retains_prepared_action_charge(translation_mount, 1),
+            "a translation terminal without a fresh ordering cause must remain eligible for passive return",
+        );
         assert!(!fabric.contains_contact(regulation, motors[0]));
         validate_motor_effector_mounts(&cohorts).unwrap();
     }

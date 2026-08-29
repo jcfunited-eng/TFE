@@ -316,3 +316,53 @@ load-correction fixture, so this item introduces no new native failure.
 | RF-043/RF-054 | Stalled rows are lawful evidence; only an exact opposing releasing route may prepare movement. | Falsifier retains a stopped, zero-displacement, one-stalled-carrier consequence and requires the antagonist motor. |
 | RF-046 | A real body consequence uses the same typed native intake as production. | The test uses `admit_articulated_body_consequence_source`; no mock tuple or observer default is involved. |
 | RF-047 | Require the pushed digest manifest before task registration. | Enforced by the controller before candidate registration. |
+
+## 2026-08-29 stopped-axis live result and next physical boundary
+
+Commit `6567b4c30dd4784a7782e79e7ec1072d08e05de0` is live on
+`dsf-ai-task:1316`, image
+`sha256:fd070a043c9da3c16418de1bb1d7e3370824125c576da03ad8efae545e579b88`,
+with the same resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The left eyelid moved away from its
+12,000-micrometre stop to 11,999 micrometres and the right later reached 11,994
+micrometres. This directly proves the ordinary reacted-load correction reached
+production and permits a stopped articulated axis to unload. It does not close
+A-012.
+
+The next live read found a separate exact rest obstruction. Production event
+residency continued to schedule a small set of membrane returns, while the
+public transition still reported zero recovered neurons. Source tracing showed
+that root translation and root yaw terminals were both classified as holding a
+prepared action whenever they retained positive separated charge. That is
+correct only for root yaw. Root translation now requires a fresh layer-11
+ordering transfer for every action; its returned body-position signal is
+explicitly forbidden from preparing another translation. The old shared
+classification therefore left unprepared root-translation charge permanently
+scheduled but neither actionable nor eligible for passive return.
+
+The correction preserves root-yaw action memory and sends an unprepared
+root-translation terminal through the existing passive membrane-return law.
+When that law moves a whole charge toward zero, the exact neuron predecessor is
+retained in the physical transition delta, its incident contacts remain subject
+to the existing universal wake law, and the causal interval carries the exact
+nonnegative recovery count. The evidence is read-only after settlement; it
+does not seed, select, schedule, or label cognition.
+
+Focused proof for this boundary:
+
+- root translation cannot repeat from returned body feedback and its terminal
+  is not treated as a retained prepared action: `1 passed`;
+- passive membrane return approaches zero exactly with conserved carrier and
+  energy accounting: `1 passed`;
+- physically changed endpoints still wake exactly their incident contacts:
+  `1 passed`;
+- the named native-to-Python causal-interval bridge carries the recovery count
+  without reviving the former fixed tuple ceiling: `1 passed`;
+- `git diff --check` passed.
+
+A-012 remains open until live production shows, in the same continuing resident
+organism: physical recovery/quiescence, endogenous internal re-entry while
+external action is reduced, and a later physically caused wake/action with its
+applicable sensory and body consequences returned. No timer, sleep flag,
+scheduled lesson, replay archive, semantic dream label, or observer authority
+is introduced.
