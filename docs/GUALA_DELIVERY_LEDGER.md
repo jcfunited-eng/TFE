@@ -103,6 +103,25 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
 - This is one varied live experience only. It does not prove number
   recognition, counting, a learned word, or a spoken word.
 
+### Varied public-domain story reading — 2026-08-29
+
+- A deterministic external voice read one 7.46-second sentence from the
+  public-domain opening of *Alice's Adventures in Wonderland* into the same
+  live world. Only 119,360 signed-16 pressure samples entered cognition, under
+  SHA-256
+  `547f843351dfb2e37a29954fa94b0e302b5126e2f4b5335c5024b369490120ce`;
+  the source text, title, expected meaning, and label did not.
+- CloudFront returned one 504 while the native transition continued. The
+  request was not retried. The durable public observation subsequently named
+  that exact pressure intake as committed and recorded 263 native moments,
+  8,855 full-field DSF deliveries, 169,071 physical neuron transitions, 178
+  new impressions, 8,078 partial-cue reassemblies including 7,164 endogenous,
+  54 recovered neurons, and zero exhausted-energy intervals.
+- The matching intake also carried 13 layer-13 recruitments, 124,000 emitted
+  pressure samples, and 31 self-hearing hops. This is one varied story-sound
+  experience with native response. It does not prove story comprehension,
+  reading, a learned sentence, or a spoken lexical form.
+
 ### Different counting-song experience — 2026-08-29
 
 - After unattended life and without repeating the apple or bear cue,
