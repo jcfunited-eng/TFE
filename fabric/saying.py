@@ -362,17 +362,21 @@ class Thread:
                  if len(ground) >= 2
                  else " They share too little written down for me to "
                       "say where.")
-        if j["kind"] == "bears":
-            return (f"{j['outer']} bears {j['inner']}: near enough "
-                    f"everything {j['inner']} keeps company with, "
-                    f"{j['outer']} keeps too, and not the other way "
-                    f"round.{where}{made}")
+        # NO BEARING CLAIM. It was reasoned rather than measured,
+        # scored an unrelated pair the same as a true one, and is
+        # retracted — 174 carries the falsification. What is left is
+        # the meeting ground, which is counted and is only ever
+        # claimed to be what it is: where the writing puts these two
+        # near each other.
         if len(ground) < 2:
-            return (f"{a} and {b} stand level — neither sits inside "
-                    f"the other — and they share too little written "
-                    f"down for me to say where they meet.")
-        return (f"{a} and {b} stand together — neither sits inside "
-                f"the other — on {', '.join(ground)}.{made}")
+            return (f"I have {a} and {b} and the writing puts too "
+                    f"little near both of them for me to say where "
+                    f"they meet.")
+        return (f"Where {a} and {b} meet in what I hold: "
+                f"{', '.join(ground)}.{made} What I cannot tell you "
+                f"is HOW they sit with each other — I had a way of "
+                f"telling that and it turned out to be measuring "
+                f"which word is commoner.")
 
     def m_offer(self, s):
         if not s.ground:

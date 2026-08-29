@@ -586,11 +586,31 @@ ENTRY: handing over a stored sentence as the content of a turn
     same; melt against ice is forty-seven against forty-one and they
     stand together. "Is a dog an animal" is answered by an
     arrangement of two counts, and no entry in the corpus says it.
-  WHAT IS STILL SHORT: the joint says THAT one bears the other, not
-    WHY, and a why-asking wants the mechanism. Also the bearing is
-    told from company alone, so two things that merely get written
-    about together will read as bearing — nothing has yet tested that
-    against a pair which shares company for a bad reason.
+  THE BEARING WAS FALSIFIED THE SAME DAY IT SHIPPED. It lasted one
+    commit. Tested against pairs chosen to break it: animal bears dog
+    at 0.57 against 0.07 and music bears salt at 0.57 against 0.23 —
+    a true kind-relation and an unrelated pair scoring the same.
+    Overlap measured against chance is no better and is worse: onion
+    and cry come out highest of eleven pairs at 9.33 and they meet in
+    one story, while medicine and law come out lowest and are also
+    false. What the measure reads is which of the two words is
+    commoner, because a narrow word's company sits inside a wide
+    word's company whatever the two are.
+  HOW IT GOT IN: it was reasoned rather than measured, and then
+    written into 174 as an unmarked HOLDS line, where it reads as the
+    fabric's rule and not as mine. Writing my own constructs into the
+    knowledge is permitted — the standing word is "if they work for
+    you, have at it" — but permission is not ratification and a
+    construct of mine keeps my name until it earns another. The
+    failure was the missing name, not the writing.
+  WHAT WOULD DRAIN IT: a signal for a KIND-relation that is not
+    company overlap, since overlap has now been counted two ways and
+    both read frequency. The corpus declares what stands on what on
+    its ROOT lines and 2,152 of those edges resolve — that is a
+    stated hierarchy the counting ignored. Whether it carries
+    word-to-word kinds has NOT been tested; it is a lead, not a
+    finding, and it is written here as a lead so the next reader does
+    not mistake it for one.
   STATUS: DRAINED in the part that was asked, STANDING in the part
     above
 

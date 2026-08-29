@@ -122,9 +122,6 @@ class Company:
         self.pointer_seen = S.get("sightings before a frame word may "
                                   "be counted a pointer",
                                   "frame word seen", "fewer than")
-        self.bearing = S.get("how lopsided two companies must be for "
-                             "one to bear the other",
-                             "bears", "more than")
         # how much may be held at once. This is knowledge too: it is
         # the attention wall, and it is what stops a long sentence
         # wedging a life that has other things to do.
@@ -479,14 +476,12 @@ def joint(a, b):
     if not sh:
         return dict(kind="apart", a=a, b=b, ground=[])
     ra, rb = len(sh) / len(ka), len(sh) / len(kb)
-    ground = between(a, b)
-    if ra > rb * C.bearing:
-        return dict(kind="bears", inner=a, outer=b, ground=ground,
-                    ra=ra, rb=rb)
-    if rb > ra * C.bearing:
-        return dict(kind="bears", inner=b, outer=a, ground=ground,
-                    ra=rb, rb=ra)
-    return dict(kind="together", a=a, b=b, ground=ground,
+    # No kind is returned. Telling the three kinds of joint apart from
+    # company was tried, shipped, and falsified the same day — it was
+    # reading which word is commoner. 174 carries the measurement.
+    # What is honest here is the meeting ground and the two shares,
+    # named as shares and not dressed as a relation.
+    return dict(kind="meet", a=a, b=b, ground=between(a, b),
                 ra=ra, rb=rb)
 
 

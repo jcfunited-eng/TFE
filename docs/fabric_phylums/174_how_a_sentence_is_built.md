@@ -225,16 +225,19 @@ ESSENCE: a joint is what is built fresh between two chunks carried
 ROOT: this file / ready-made chunks are carried and only the joints
   are built fresh, because there is no time to construct every phrase
   at speaking speed.
-HOLDS: which of the three a joint is, is told by whose company sits
-  inside whose. Take the share of one thing's company that the other
-  also keeps, both ways round: one BEARS the other when its share is
-  more than two times the share the other way, and the one with the
-  larger share is the one sitting inside. When neither share runs
-  away from the other they STAND TOGETHER on the company they share,
-  which is a claim neither makes alone. Measured: dog against animal
-  gives fifty-seven against seven, and animal bears dog; gravity
-  against physics the same; melt against ice gives forty-seven
-  against forty-one and they stand together.
+TRIED-AND-CLOSED: "one bears the other when its share of the shared
+  company runs more than two times the share the other way" stood
+  here for one commit and is false. It was reasoned, not measured,
+  and it was written into this file as though the fabric held it when
+  it was mine. Falsified the same day: animal bears dog scores 0.57
+  against 0.07 and music bears salt scores 0.57 against 0.23 — a true
+  kind-relation and an unrelated pair, the same number. Overlap
+  against chance does not save it either: onion and cry come out
+  highest of everything at 9.33 and they meet in one story. What the
+  measure was actually reading is which of the two words is commoner,
+  because a narrow word's company sits inside a wide word's company
+  whatever the two are. HOW to tell the three kinds of joint apart is
+  not known and must not be guessed at again in this file.
 THREAD: carpentry (the boards are milled, the joint is cut on site),
   music (the phrases are practised, the transitions are not), welding
   (the pieces are stock, the weld is the work).
