@@ -461,6 +461,14 @@ def doing_of(gs, why=False):
     # nothing was opened, or everything was, there is no contrast here
     contrast = 0 < len(plain) < len(gs)
     cand = plain if contrast else list(range(len(gs)))
+    # A group that carries no content word is not a finished group —
+    # 174 says a group is a run of frame words CARRYING one word from
+    # outside the frame, so a run that never met one is a leftover,
+    # not a candidate. Without this, "why does blood sugar rise after
+    # a meal" turned on "after".
+    carries = [i for i in cand
+               if any(w not in C.frame for w in gs[i])]
+    cand = carries or cand
     # asking words never name what happened, so they cannot be the
     # doing while anything else is standing
     not_asking = [i for i in cand if not set(gs[i]) & C.asking]

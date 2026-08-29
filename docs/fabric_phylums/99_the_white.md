@@ -452,6 +452,14 @@ ENTRY: a rate taken over too few sightings
     holds the principle for other counts — fewer than four sightings
     is an accident, a frame word under fifty is not a pointer — and
     the fallback was not made to obey it.
+  SECOND INSTANCE 2026-08-29: "why does blood sugar rise after a
+    meal" groups as "why does | blood sugar | rise | after", three of
+    which arrived alone, so the contrast narrows but does not settle
+    and the rate picks "after" over "rise". A joining word that is
+    rarely opened by a pointer beats the doing on the same measure.
+    Requiring the doing to carry a word from outside the frame was
+    tried and does not touch it, because "after" is not in this
+    corpus's commonest hundred.
   WHAT WOULD DRAIN IT: either a second contrast that works when the
     sentence has no pointer in it at all, or a way to read a doing
     from the two words either side of it rather than from the word's

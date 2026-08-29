@@ -112,6 +112,9 @@ class Said:
         self.asked_with = None if self.unread else self.w["asked_with"]
         self.forbidden = [] if self.unread else self.w["forbidden"]
         self.settled_by = None if self.unread else self.w.get("settled_by")
+        self.doer = None if self.unread else self.w.get("doer")
+        self.done_to = None if self.unread else self.w.get("done_to")
+        self.senses = {} if self.unread else (self.w.get("senses") or {})
         self.guessing = bool(self.settled_by
                              and "no contrast" in self.settled_by)
         # Does the writing reach this subject at all? Presence, not
@@ -247,6 +250,14 @@ class Thread:
         if not s.about or s.unread or s.leaned:
             return None
         what = ", ".join(s.about[:3])
+        # who did what to whom, when the reading has it. This is the
+        # nesting doing its job in the conversation rather than in a
+        # test: without it "the dog bit the man" and "the man bit the
+        # dog" came back as the same turn.
+        if s.doer and s.done_to and s.turns_on:
+            return (f"So {s.doer} is what does it, {s.turns_on} is "
+                    f"what happens, and {s.done_to} is what it "
+                    f"reaches.")
         if s.kind and s.turns_on:
             return (f"You want {self._kind_short(s.kind)}, about "
                     f"{what}, and the sentence turns on {s.turns_on}.")
@@ -270,6 +281,24 @@ class Thread:
                 f"against another, so I went on how the writing "
                 f"usually runs, which is the half of me that is "
                 f"weaker.")
+
+    def m_sense(self, s):
+        """What the word is carrying HERE, produced from the company
+        standing with it. Said only when the company actually marks
+        something off, and it says how thin the ground under it was."""
+        if s.leaned or not s.senses:
+            return None
+        best = None
+        for w, sn in s.senses.items():
+            if sn["marks"] and (best is None
+                                or sn["near"] > best[1]["near"]):
+                best = (w, sn)
+        if not best or best[1]["near"] < 3:
+            return None
+        w, sn = best
+        return (f"Taking '{w}' the way this company puts it — "
+                f"{', '.join(sn['marks'][:4])} — off {sn['near']} of "
+                f"the {sn['seen']} places I have it.")
 
     def m_no_ground(self, s):
         if not s.about or s.ground:
@@ -312,7 +341,7 @@ class Thread:
     MOVES = ["m_unread", "m_greet", "m_greet_again",
              "m_lean", "m_thin_nothing", "m_carry_on",
              "m_moved", "m_heard", "m_forbids", "m_guessing",
-             "m_no_ground", "m_offer", "m_ask_back"]
+             "m_sense", "m_no_ground", "m_offer", "m_ask_back"]
 
     @staticmethod
     def _kind_short(kind):
