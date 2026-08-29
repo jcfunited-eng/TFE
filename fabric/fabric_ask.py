@@ -16,7 +16,7 @@ def words(s):
                if w not in STOP and len(w)>2)
 def fingerprint():
     h=hashlib.sha256()
-    for f in sorted(glob.glob(os.path.join(DIR,"[0-9][0-9]_*.md"))):
+    for f in sorted(glob.glob(os.path.join(DIR,"[0-9][0-9]*_*.md"))):
         if f.endswith("99_the_white.md"): continue
         h.update(open(f,"rb").read())
     h.update(open(__file__,"rb").read())   # the walker signs too
@@ -28,7 +28,7 @@ def fingerprint():
     return h.hexdigest()[:12]
 def load():
     es=[]
-    for f in sorted(glob.glob(os.path.join(DIR,"[0-9][0-9]_*.md"))):
+    for f in sorted(glob.glob(os.path.join(DIR,"[0-9][0-9]*_*.md"))):
         if f.endswith("99_the_white.md"): continue
         name=re.sub(r"^\d+_|\.md$","",os.path.basename(f)).replace("_"," ")
         for b in re.split(r"\n(?=ESSENCE:)",open(f).read()):

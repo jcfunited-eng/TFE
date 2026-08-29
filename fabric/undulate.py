@@ -33,7 +33,7 @@ def sheets():
     wtxt = open(fa.WHITE).read() if os.path.exists(fa.WHITE) else ""
     unknowns = wtxt.count("STATUS: STANDING")
     faded = 0
-    for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]_*.md")):
+    for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]*_*.md")):
         faded += open(f).read().count("STATE: FADED")
     return colored, cannots, unknowns, faded
 
@@ -97,7 +97,7 @@ def forget(n=3, dry=True):
     done = []
     for e in cands[:n]:
         head = e["essence"][:50]
-        for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]_*.md")):
+        for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]*_*.md")):
             t = open(f).read()
             if head not in t: continue
             if not dry:
@@ -137,7 +137,7 @@ def relearn(question, need=2):
     Nothing is invented here; what returns is what was held."""
     qw = fa.words(question)
     back = []
-    for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]_*.md")):
+    for f in glob.glob(os.path.join(fa.DIR, "[0-9][0-9]*_*.md")):
         t = open(f).read()
         if "STATE: FADED" not in t: continue
         out, changed = [], False

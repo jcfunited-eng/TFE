@@ -24,3 +24,11 @@ FORGOTTEN from (cognitive syntax): a conversation is one thread that persists be
 FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
 
 FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
+
+FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
+
+FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
+
+FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
+
+FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla

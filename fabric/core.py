@@ -57,7 +57,7 @@ class Fabric:
     # ---------- signature: cheap, catches every edit ----------
     def signature(self):
         h = hashlib.sha256()
-        for f in sorted(glob.glob(os.path.join(DIR, "[0-9][0-9]_*.md"))):
+        for f in sorted(glob.glob(os.path.join(DIR, "[0-9][0-9]*_*.md"))):
             st = os.stat(f)
             h.update(f.encode())
             h.update(str(st.st_mtime_ns).encode())
@@ -113,7 +113,7 @@ class Fabric:
         self.entries = []
         self.fields = {}
         for path in sorted(glob.glob(os.path.join(DIR,
-                                                  "[0-9][0-9]_*.md"))):
+                                                  "[0-9][0-9]*_*.md"))):
             if path.endswith("99_the_white.md"): continue
             field = re.sub(r"^\d+_|\.md$", "",
                            os.path.basename(path)).replace("_", " ")

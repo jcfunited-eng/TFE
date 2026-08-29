@@ -184,3 +184,30 @@ WANT: create an accounting method for organizational finances that utilized risk
   closed 85 — requirement unmet — no seeing without interpreting. (the mind)
   closed 68 — forbidden together — no information from certainty — the already-sure message carries zero at any length; (computer science)
   closed 66 — forbidden together — no message from a one-state signal — the lamp that is always on says nothing. (computing information)
+
+WANT: create the capability for you to have conversations with me using text
+  closed 477 — requirement unmet — no conversation without a thread that survives the turn. (cognitive syntax)
+  closed 11 — requirement unmet — no exchange without breaks. (purposes)
+  closed 54 — requirement unmet — no content without clothing — no register-free way to say a thing exists, and wrong clothes cost trust faster than a wrong fact does. (grammar and sentences)
+  closed 29 — requirement unmet — no wind without a difference; (oceans weather)
+  closed 14 — forbidden together — no message from a one-state signal — the lamp that is always on says nothing. (computing information)
+
+WANT: create the capability for you to have conversations with me using text
+  closed 477 — requirement unmet — no conversation without a thread that survives the turn. (cognitive syntax)
+  closed 11 — requirement unmet — no exchange without breaks. (purposes)
+  closed 54 — requirement unmet — no content without clothing — no register-free way to say a thing exists, and wrong clothes cost trust faster than a wrong fact does. (grammar and sentences)
+  closed 29 — requirement unmet — no wind without a difference; (oceans weather)
+  closed 14 — forbidden together — no message from a one-state signal — the lamp that is always on says nothing. (computing information)
+
+WANT: create the capability for you to have conversations with me using text
+  closed 477 — requirement unmet — no conversation without a thread that survives the turn. (cognitive syntax)
+  closed 11 — requirement unmet — no exchange without breaks. (purposes)
+  closed 54 — requirement unmet — no content without clothing — no register-free way to say a thing exists, and wrong clothes cost trust faster than a wrong fact does. (grammar and sentences)
+  closed 29 — requirement unmet — no wind without a difference; (oceans weather)
+  closed 14 — forbidden together — no message from a one-state signal — the lamp that is always on says nothing. (computing information)
+
+WANT: create a world I can navigate in that obeys physics and allows me to look up and down and turn around - it should have grass lands, mountains, lakes, oceans, rivers  and more you choose the rest
+  closed 1 — requirement unmet — no keeping what passed without a test first. (acts i possess)
+  closed 196 — requirement unmet — no storm without a temperature difference to spend; (oceans weather)
+  closed 79 — requirement unmet — no wind without a difference; (oceans weather)
+  closed 2 — forbidden together — no fall canceled in the air — past the point of return the impact is already booked; (martial arts movement)

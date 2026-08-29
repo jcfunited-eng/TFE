@@ -98,7 +98,7 @@ def silent_kinds(F, kinds, limit=20):
 def faded(F, limit=20):
     import glob, re
     out = []
-    for path in glob.glob(os.path.join(core.DIR, "[0-9][0-9]_*.md")):
+    for path in glob.glob(os.path.join(core.DIR, "[0-9][0-9]*_*.md")):
         t = open(path).read()
         for m in re.finditer(r"STATE: FADED\nESSENCE: ([^\n]{0,80})", t):
             out.append(("what was held here?", m.group(1)))

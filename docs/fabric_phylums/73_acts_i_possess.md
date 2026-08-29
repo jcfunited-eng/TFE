@@ -8,6 +8,10 @@ anyone wiring the two together by hand.
 
 STATE: FADED
 STATE: FADED
+STATE: FADED
+STATE: FADED
+STATE: FADED
+STATE: FADED
 ESSENCE: I can walk the places of a written number from the
   smallest to the largest, taking one place at a time.
 ROOT: mathematics / bundles — the places exist to be walked.
