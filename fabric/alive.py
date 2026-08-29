@@ -359,6 +359,11 @@ def run():
          f"({s['read']} questions read so far)"
          if resumed else "FIRST BREATH"))
     F = core.fabric()
+    try:
+        import door
+        door.open_door(log)
+    except Exception as e:
+        log(f"the door would not open ({e}) — the life carries on")
     pool, qcache = restock(F)
     # Filter the pool the same way the later walks do. Filled
     # unfiltered at startup, every asking was skipped as already

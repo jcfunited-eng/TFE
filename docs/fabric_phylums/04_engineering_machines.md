@@ -52,7 +52,7 @@ CANNOT: rolling cannot be free — the discount is steep, never
 THREAD: the body (joints are bearings — cartilage the race, its
   fluid the oil), skates and skis (the other discount), every
   train, turbine, and hard road ever built.
-ASKED-AS: cart suitcase luggage skateboard casters dragging furniture moving dolly smoother squeaky hub
+ASKED-AS: wheel wheels rolling roll cart suitcase luggage skateboard casters dragging furniture moving dolly smoother squeaky hub axle
 
 ESSENCE: every design buys a virtue with a virtue — stronger is
   heavier, lighter is weaker, faster wears sooner, cheaper dies

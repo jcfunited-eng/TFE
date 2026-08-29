@@ -95,8 +95,7 @@ class Talk:
             return f"  the procedure stopped: {err}"
         out = []
         if st.get("leaned"):
-            out.append(f"  (thin, so it leaned on the thread: "
-                       f"{self.standing})")
+            out.append(f"  (carrying on from: {self.standing})")
         else:
             self.standing = text
         joint = st.get("joint")
@@ -111,9 +110,14 @@ class Talk:
             out.append(f"  {line[:300]}")
             self.said.append(line)
         if joint:
-            out.append(f"  JOINED (built, not fetched): {joint[:300]}")
-        elif st.get("no_joint"):
-            out.append(f"  no joint — {st['no_joint']}")
+            plain = joint.replace(
+                "these two cannot both hold",
+                "and these two cannot both be true")
+            plain = plain.replace(
+                "these two stand together on",
+                "and it worked this out itself — these two go "
+                "together, on")
+            out.append(f"\n  {plain[:340]}")
         # A thread carries what has STOOD, so that is what a thin
         # turn leans on — not the raw words that were said. Leaning
         # on raw words drags every closed sense back in: a thread
@@ -141,9 +145,10 @@ class Talk:
         self.thread_words = " ".join(
             ([self.thread_words] if self.thread_words else [])
             + [text])[-600:]
-        out.append(f"  [turn {len(self.said)}, steps run: "
-                   f"{len([a for _s, a, _v in trace])}, "
-                   f"standing: {self.standing}]")
+        if os.environ.get("FABRIC_SHOW_WORKINGS"):
+            out.append(f"  [turn {len(self.said)}, steps run: "
+                       f"{len([a for _s, a, _v in trace])}, "
+                       f"standing: {self.standing}]")
         return "\n".join(out)
 
 

@@ -41,21 +41,44 @@ def constraints(es):
                     forb.append((a, b, e, piece.strip()))
     return req, forb
 
-def judge(pool, req, forb, touch=None):
-    """Every law that grips this pool either passes or kills.
-    A law grips only what it touches: its own entry must share
-    ground with the making, or it has no business judging it."""
+def judge(pool, req, forb, touch=None, df=None, n=1):
+    """Every law that grips this making either passes or kills.
+
+    Rewritten to hold what the rest of the fabric learned in one
+    long night, because this file had its own private copy of the
+    judging and none of it had arrived here:
+
+    A WALL MADE OF COMMON WORDS IS NOT A WALL. What it forbids is
+    matched whole, so one everyday word inside drags the whole wall
+    down to whatever that word touches — which is how a want about
+    keeping food cold was closed by a wall about stars and another
+    about nutrition trials.
+
+    A WALL MUST BE ABOUT THE MAKING. Its own entry has to share
+    uncommon ground with what is being made, not merely brush it.
+
+    Requirements still apply here, and only here: this is the one
+    place that is genuinely MAKING something, and "no A without B"
+    means if you drag A in you must supply B. That is exactly the
+    wall a maker needs and exactly the wall a reader must not use.
+    """
+    common = (n // 20) or 1
+
+    def uncommon(words):
+        return {w for w in words if (df or {}).get(w, 0) <= common}
+
     def grips(e):
         if touch is None: return True
-        return bool(touch & content(e["essence"] + " "
-                                    + e["cannot"]))
+        return len(uncommon(touch & content(e["essence"] + " "
+                                            + e["cannot"]))) >= 1
+
     for a, b, e, txt in forb:
+        if not uncommon(a): continue      # names nothing in particular
         if not grips(e): continue
-        # the forbidden thing must be present, and enough of the
-        # condition it is forbidden in
         if a <= pool and len(b & pool) >= min(2, len(b)):
             return (f"forbidden together — {txt} ({e['field']})", e)
     for a, b, e, txt in req:
+        if not uncommon(a): continue
         if not grips(e): continue
         if a <= pool and not (b & pool):
             return (f"requirement unmet — {txt} ({e['field']})", e)
@@ -97,6 +120,47 @@ def make(want, size=3, show=3, data=False):
               if (want_words & ew(e)) and
               all(sense_ok(w, e) for w in (qkey & ew(e)))]
     offers.sort(key=lambda e: -len(want_words & ew(e)))
+    # Mechanisms found by shared letters are not mechanisms, they are
+    # coincidences: "keep" and "without" sit in this want, so the
+    # fabric offered "a thing keeps doing what it is doing unless
+    # pushed" as a way to keep food cold. So the want is also WALKED
+    # — out from where it lands, along the links the knowledge
+    # declares about itself — and what the walk reaches is offered
+    # too. That is the difference between asking which entries share
+    # a word with the want and asking what the want actually stands
+    # on.
+    try:
+        import ribbon as _R, core as _core
+        _F = _core.fabric()
+        # A want has two halves that pull opposite ways: what is
+        # wanted, and what may not be used to get it. "Keep food cold
+        # WITHOUT electricity" wants cold and forbids electricity —
+        # so walking the whole sentence walked straight to the
+        # electricity grid, the one place the making may not go. The
+        # forbidden half is a constraint the making must survive; it
+        # is never a destination.
+        parts = re.split(r"\b(?:without|avoiding|with no)\b",
+                         want_body, 1)
+        head = parts[0]
+        forbidden = content(parts[1]) if len(parts) > 1 else set()
+        r = _R.Ribbon(head)
+        stood, _closed, _err = r.travel(steps=3, width=8, F=_F)
+        byess = {e["essence"][:80]: e for e in es}
+        walked = [byess[w["essence"][:80]] for w in stood
+                  if w["essence"][:80] in byess]
+        # The walk leads. Appending it behind the word matches meant
+        # it was cut off by the cap and changed nothing at all.
+        seen, lead = set(), []
+        for w in walked:
+            if id(w) not in seen:
+                lead.append(w); seen.add(id(w))
+        offers = lead + [o for o in offers if id(o) not in seen]
+        if forbidden:
+            # a mechanism that IS the forbidden means is not an offer
+            offers = [o for o in offers
+                      if not (forbidden & content(o["essence"]))]
+    except Exception:
+        pass
     offers = offers[:OFFER_CAP]
     staged = killed = 0
     survivors, deaths, closed = [], [], {}
@@ -106,7 +170,8 @@ def make(want, size=3, show=3, data=False):
             pool = set(qs)
             for e in combo: pool |= content(e["essence"])
             rare_touch = {w for w in pool if df.get(w, 99) <= 14}
-            dead = judge(pool, req, forb, rare_touch)
+            dead = judge(pool, req, forb, rare_touch,
+                         df=df, n=len(es))
             if dead:
                 killed += 1
                 law, parent = dead

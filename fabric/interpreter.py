@@ -294,8 +294,16 @@ def h_test_coheres(s):
     words said, or only one and nothing else. Leaves a pass or a
     fail; keeps nothing, drops nothing, chooses nothing."""
     qm = s.get("mask", 0)
+    # "More than one of the words said, or only one and nothing
+    # else." When the asking HAS only one word, meeting that word is
+    # meeting all of it, and demanding two makes the test impossible
+    # to pass honestly — "what is a wheel" then threw away the entry
+    # about wheels and kept one about remainders, because that one
+    # happened to repeat the word in two places.
+    said = bin(qm).count("1")
+    need = min(2, said) or 1
     s["pass"] = [bin(e["color"] & qm).count("1") +
-                 bin(e["askm"] & qm).count("1") >= 2
+                 bin(e["askm"] & qm).count("1") >= need
                  for e in (s.get("items") or [])]
     return s
 
@@ -311,8 +319,40 @@ def h_count_shared(s):
     """Count what each thing in hand shares with the other one's
     ground. Leaves a number on each; ranks nothing."""
     other = s.get("other_white", 0)
-    s["num"] = [bin(e["color"] & other).count("1")
-                for e in (s.get("items") or [])]
+    if other:
+        s["num"] = [bin(e["color"] & other).count("1")
+                    for e in (s.get("items") or [])]
+        return s
+    # With nobody else on the other side, the other one IS the
+    # asker, and what a thing opens for them is how much of what
+    # they asked it actually covers — counted in uncommon words,
+    # since the common ones are covered by everything. Without this
+    # the count was zero for every candidate and "keep the greatest"
+    # kept whichever happened to be reached first, which is how
+    # "what is a wheel" answered with remainders.
+    F = core.fabric()
+    qm = s.get("mask", 0)
+    common = len(F.entries) // 50
+    out = []
+    for e in (s.get("items") or []):
+        n, i, m = 0, 0, (e["color"] | e["askm"]) & qm
+        while m:
+            if m & 1:
+                n += 3 if F.df.get(i, 0) <= common else 1
+            m >>= 1
+            i += 1
+        # what it is ASKED AS counts double: that line exists to say
+        # what this entry is the answer to
+        n += 2 * bin(e["askm"] & qm).count("1")
+        # and an entry that OPENS by naming the thing is about it.
+        # "the wheel converts dragging into rolling" is about wheels
+        # in a way that a sentence mentioning a wheel of remainders
+        # halfway through is not.
+        head = F.mask(" ".join(e["essence"].split()[:5]),
+                      learn=False)
+        n += 4 * bin(head & qm).count("1")
+        out.append(n)
+    s["num"] = out
     return s
 
 def h_keep_greatest(s):
