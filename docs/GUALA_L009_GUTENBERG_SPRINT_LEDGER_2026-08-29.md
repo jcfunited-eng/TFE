@@ -362,3 +362,32 @@ the declared receptor geometry remained mounted and the exact book remained in
 `guala-body-1` custody at world revision `22783`; its optical surface remained
 unmounted. A native positive grip has not yet occurred on this release, so no
 release or page advance is claimed and L-009 remains open.
+
+## Second nearby spoken passage and current custody
+
+After ordinary unattended life, one different sentence from the same Alice
+passage was spoken once through `guided-world-voice` while Guala still held
+the physical book:
+
+> Once or twice, she had peeped into the book her sister was reading, but it
+> had no pictures or conversations in it.
+
+The pressure body contained 145,191 signed mono 16-kHz samples (290,382 raw
+bytes), SHA-256
+`949016ef4fefdd4d165cccd35bf12b313b8c37f0b3e6c72e2c4b8038a10ef953`.
+The gateway timed out while the long native settlement was still in flight, so
+the request was not repeated. The public native observation later named that
+exact pressure receipt in both the microphone and auditory committed-receptor
+surfaces, and ordinary `continuous-environment` intake resumed by generation
+`283306`. This proves one committed physical auditory experience, not word or
+sentence recognition.
+
+A subsequent read-only cold inspection found the same resident organism at
+tick `283534` with 132 retained formations. A separate direct decode of the
+authenticated persistent world at revision `23030` found
+`guala-body-1.held_object_id=book` and `book.held_by_body_id=guala-body-1`;
+the book position remained custody-owned (`null`) and its optical surface
+remained unmounted. Neither hand reached an anatomical stop and no positive
+grip occurred. The passage therefore did not manufacture a release, page
+advance, or visual reading claim. L-009 remains open at Guala's native release
+and later contact-bound page action.
