@@ -229,6 +229,7 @@ def beat(F, s, pool, live, qcache=None):
                     f"{res['missing'][0]}")
             else:
                 s["read"] += 1
+                s["recent"] = (s.get("recent", []) + [r.asking])[-60:]
                 s["closed"] += res["beat"]
                 gs = " | ".join(" ".join(g) for g in res["groups"])
                 if res["stood"]:
@@ -380,11 +381,19 @@ def run():
                     f"floors that have moved since")
             pool = unseen
             last_restock = s["beats"]
+        # Report COVERAGE, not activity. Activity is what hid three
+        # separate bugs today — reading the hottest ribbon every
+        # beat, retiring ribbons faster than replacing them, and
+        # writing one finding three times. Every one of them looked
+        # perfectly healthy in a count of things done. What they
+        # could not survive is a count of DISTINCT things done.
         if s["beats"] % 60 == 0:
             log(f"beat {s['beats']}: alive — {s['laid']} ribbons "
                 f"laid, {s['read']} questions read, "
                 f"{s['closed']} readings closed, "
                 f"{s['openings']} openings, "
+                f"{len(set(s.get('recent', [])))} distinct questions "
+                f"in the last {len(s.get('recent', []))} reads, "
                 f"{s.get('minted', 0)} claims minted "
                 f"({s.get('refused', 0)} refused by the law), "
                 f"{len(live)} living")
