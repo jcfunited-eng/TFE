@@ -36,21 +36,24 @@ def test_latest_native_pressure_is_a_bounded_read_only_audio_surface(
     )
     monkeypatch.setattr(
         production,
-        "_latest_native_pressure_audio",
-        {
+        "_native_pressure_audio_cache",
+        ({
             "pcm_s16le": b"\x01\x00\xff\xff",
             "pressure_sha256": PRESSURE_SHA256,
             "sample_count": 2,
             "sample_rate_hz": 16_000,
-        },
+        },),
     )
 
     observation = production._articulation_record()
     playback = observation["native_pressure_playback"]
-    response = production.native_pressure_audio()
+    response = production.native_pressure_audio(PRESSURE_SHA256)
 
     assert playback["available"] is True
-    assert playback["endpoint"] == production.NATIVE_PRESSURE_AUDIO_ENDPOINT
+    assert playback["endpoint"] == (
+        production.NATIVE_PRESSURE_AUDIO_ENDPOINT
+        + f"?pressure_sha256={PRESSURE_SHA256}"
+    )
     assert playback["pressure_sha256"] == PRESSURE_SHA256
     assert response.body == wav_body
     assert response.media_type == "audio/wav"
@@ -71,13 +74,13 @@ def test_articulation_cannot_offer_pressure_from_a_different_event(
     )
     monkeypatch.setattr(
         production,
-        "_latest_native_pressure_audio",
-        {
+        "_native_pressure_audio_cache",
+        ({
             "pcm_s16le": b"\x01\x00\xff\xff",
             "pressure_sha256": "b" * 64,
             "sample_count": 2,
             "sample_rate_hz": 16_000,
-        },
+        },),
     )
 
     playback = production._articulation_record()["native_pressure_playback"]

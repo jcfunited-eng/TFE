@@ -1601,6 +1601,7 @@ LIVE_AUDIOVISUAL_SOURCE = "live-camera-microphone"
 LIVE_AUDIOVISUAL_SCHEMA = "guala.live_audiovisual_capture.v1"
 LIVE_AUDIOVISUAL_INTAKE_ENDPOINT = "/api/v1/sensory/audiovisual"
 NATIVE_PRESSURE_AUDIO_ENDPOINT = "/api/v1/guala/native-pressure.wav"
+NATIVE_PRESSURE_AUDIO_CACHE_COUNT = 4
 
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
@@ -1638,10 +1639,10 @@ _last_tested_prediction_evidence: dict[str, Any] | None = None
 _last_tested_affective_balance_evidence: dict[str, Any] | None = None
 _last_tested_localized_fluid_chemistry_evidence: dict[str, Any] | None = None
 _last_tested_articulation_evidence: dict[str, Any] | None = None
-# The latest bounded emitted pressure is a read-only, process-local outward
-# surface. It is assigned only after the resident transition succeeds, never
-# restored as organism state, and never read by settlement or cognition.
-_latest_native_pressure_audio: dict[str, Any] | None = None
+# The last four bounded emitted-pressure bodies are a read-only, process-local
+# outward surface. They are assigned only after resident transitions succeed,
+# never restored as organism state, and never read by settlement or cognition.
+_native_pressure_audio_cache: tuple[dict[str, Any], ...] = ()
 # Bounded read-only witnesses. They never enter organism state or settlement.
 _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
@@ -5694,7 +5695,11 @@ def _articulation_record() -> dict[str, object]:
             "articulatory body and self-hearing transition in this process"
         )
     pressure_sha256 = articulation.get("pressure_sha256")
-    playback = _latest_native_pressure_audio
+    playback = (
+        _native_pressure_audio_cache[-1]
+        if _native_pressure_audio_cache
+        else None
+    )
     playback_record = _section(
         bool(
             isinstance(playback, dict)
@@ -5717,6 +5722,7 @@ def _articulation_record() -> dict[str, object]:
         ),
         endpoint=(
             NATIVE_PRESSURE_AUDIO_ENDPOINT
+            + f"?pressure_sha256={pressure_sha256}"
             if isinstance(playback, dict)
             and playback.get("pressure_sha256") == pressure_sha256
             else None
@@ -10533,7 +10539,7 @@ def _perform_admitted_intake_locked(
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
-    global _latest_native_pressure_audio
+    global _native_pressure_audio_cache
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_social_experience_evidence
@@ -11848,7 +11854,7 @@ def _perform_admitted_intake_locked(
         }
         if native_pressure_s16le is None:
             raise RuntimeError("native articulation lost its emitted pressure")
-        _latest_native_pressure_audio = {
+        next_pressure_audio = {
             "intake": intake,
             "organism_tick": _sealed_pointer.organism_tick,
             "pcm_s16le": native_pressure_s16le,
@@ -11856,6 +11862,10 @@ def _perform_admitted_intake_locked(
             "sample_count": articulation["pressure_sample_count"],
             "sample_rate_hz": articulation["sample_rate_hz"],
         }
+        _native_pressure_audio_cache = (
+            *_native_pressure_audio_cache,
+            next_pressure_audio,
+        )[-NATIVE_PRESSURE_AUDIO_CACHE_COUNT:]
     if (
         len(physical_prediction_alternatives) == 2
         and body_consequence_transfers
@@ -14749,7 +14759,7 @@ def _startup() -> None:
     global _last_tested_prediction_evidence, _last_tested_affective_balance_evidence
     global _last_tested_localized_fluid_chemistry_evidence
     global _last_tested_articulation_evidence
-    global _latest_native_pressure_audio
+    global _native_pressure_audio_cache
     global _last_causal_cross_context_use_evidence
     global _last_intrinsic_curiosity_evidence
     global _last_social_experience_evidence
@@ -14763,7 +14773,7 @@ def _startup() -> None:
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
     _last_tested_articulation_evidence = None
-    _latest_native_pressure_audio = None
+    _native_pressure_audio_cache = ()
     _last_causal_cross_context_use_evidence = None
     _last_intrinsic_curiosity_evidence = None
     _last_social_experience_evidence = None
@@ -15009,14 +15019,29 @@ def native_observation(
 
 
 @app.get(NATIVE_PRESSURE_AUDIO_ENDPOINT)
-def native_pressure_audio() -> Response:
-    """Return the latest exact committed native pressure for human hearing."""
+def native_pressure_audio(pressure_sha256: str | None = None) -> Response:
+    """Return one recent exact committed native pressure for human hearing."""
 
-    audio = _latest_native_pressure_audio
-    if not isinstance(audio, dict):
+    if pressure_sha256 is not None and not re.fullmatch(
+        r"[0-9a-f]{64}", pressure_sha256
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="native pressure identity must be one lowercase SHA-256",
+        )
+    audio = next(
+        (
+            item
+            for item in reversed(_native_pressure_audio_cache)
+            if pressure_sha256 is None
+            or item.get("pressure_sha256") == pressure_sha256
+        ),
+        None,
+    )
+    if audio is None:
         raise HTTPException(
             status_code=404,
-            detail="no native pressure is available in this process",
+            detail="that bounded native pressure is unavailable in this process",
         )
     pcm_s16le = audio.get("pcm_s16le")
     pressure_sha256 = audio.get("pressure_sha256")
