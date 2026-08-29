@@ -341,6 +341,20 @@ def run():
          if resumed else "FIRST BREATH"))
     F = core.fabric()
     pool, qcache = restock(F)
+    # Filter the pool the same way the later walks do. Filled
+    # unfiltered at startup, every asking was skipped as already
+    # taken up — and skipping POPS it, so the whole pool drained in
+    # one beat and nothing was laid. The life then read the two
+    # ribbons it had resumed with, for ever, and every count in the
+    # heartbeat went up while it did.
+    seen_before = set(s.get("asked", []))
+    fresh_pool = [a for a in pool if a not in seen_before]
+    if not fresh_pool and pool:
+        s["asked"] = []
+        fresh_pool = pool
+        log("every question standing has been taken up once; "
+            "going round again on floors that have moved since")
+    pool = fresh_pool
     live = []
     for asking in s.get("living", [])[:LIVING]:
         try:
