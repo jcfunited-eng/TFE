@@ -278,7 +278,11 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
             refused.append((a, b, "no standing question reaches it — "
                                   "unattached, kept rather than minted"))
             continue
-        key = f"{a['essence'][:60]}||{b['essence'][:60]}"
+        # A pair is the same pair whichever way round it arrives.
+        # Keyed in arrival order, the same two entries reached from
+        # two different questions wrote themselves three times.
+        key = "||".join(sorted((a["essence"][:60],
+                                b["essence"][:60])))
         if key in already:
             refused.append((a, b, "already minted"))
             continue

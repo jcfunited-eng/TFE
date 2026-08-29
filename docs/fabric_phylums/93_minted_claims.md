@@ -29,15 +29,6 @@ STATE: MINTED
 ASKED-AS: reaction chemistry
 JOINT-KIND: structural — their roots meet at physics
 
-ESSENCE: these two stand together on [reaction admission] — "browning is chemistry with a price of admission — the flavor-making reaction between proteins and sugars starts only above ~140°C and only where the s" and "every reaction has a price of admission — even a downhill reaction needs a starting shove before it runs. (activation energy)". MINTED, not written by a hand; a joint says the two sit together, not that either is true.
-ROOT: minted claims / two pieces sharing uncommon ground that nothing closes when they stand together.
-CANNOT: no standing-together on ground that is a single common word. If either parent falls this falls with it.
-PARENTS: cooking — browning is chemistry with a price of admission — the flavor-making re || chemistry — every reaction has a price of admission — even a downhill reaction nee
-REACHED-BY: shove
-STATE: MINTED
-ASKED-AS: reaction admission
-JOINT-KIND: structural — their roots meet at physics
-
 ESSENCE: these two stand together on [tax wheel] — "the wheel converts dragging into rolling — sliding's heavy tax becomes rolling's light one — and a bearing is wheels inside the wheel, buying the same" and "friction is a tax and a grip — it bleeds every motion into heat, and it is also the only reason wheels bite, knots hold, brakes brake, and shoes push ". MINTED, not written by a hand; a joint says the two sit together, not that either is true.
 ROOT: minted claims / two pieces sharing uncommon ground that nothing closes when they stand together.
 CANNOT: no standing-together on ground that is a single common word. If either parent falls this falls with it.
