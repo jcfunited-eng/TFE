@@ -602,3 +602,27 @@ ENTRY: producing a sense from the company at hand
     company, so a word two steps away can supply the line that the
     sentence's own words do not. Not tried.
   STATUS: STANDING (white) — the mechanism holds, the depth does not
+
+ENTRY: a run of common words taken for a chunk
+  ASKED-AS: chunk carried whole ready made phrase habit run common
+    words frame word join
+  VERDICT: a chunk's joins may not run through a frame word. Measured
+    2026-08-29 by building it wrong first: counting a run as a chunk
+    when it merely carried two content words somewhere made "bit the
+    man" a chunk, because the pair (the, man) is seen fourteen times
+    and "the" sits before everything. The bench caught it — reading
+    fell from fifteen to thirteen and roles from seven to four — and
+    it would have shipped without one. This is the same defect as a
+    denial made of common words, filed above, arriving in a third
+    place: what is matched whole is dragged down to whatever its
+    commonest word touches.
+  DRAINED by 174's own distinction: a group is a run of frame words
+    carrying ONE content word, so a join through a frame word is what
+    a group is made of and cannot be what a chunk is made of. Every
+    word of a chunk must come from outside the frame. Reading and
+    roles returned to fifteen, thirteen and six, and the chunks it
+    carries are real — public health, martial arts, blood sugar.
+  LESSON: the third time this shape has been found. Expect a fourth.
+    Any test that matches a run whole must first ask what its
+    commonest member alone would match.
+  STATUS: DRAINED

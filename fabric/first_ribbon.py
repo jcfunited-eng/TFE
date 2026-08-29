@@ -151,6 +151,19 @@ class Company:
                 if j + 1 < len(s):
                     self.after[w][s[j + 1]] += 1
 
+        # THE CHUNKS the writing carries ready-made. 174: a chunk is
+        # carried whole and only its joints are built fresh, because
+        # there is no time to construct every phrase at speaking
+        # speed. What separates a chunk from a group is 174's own
+        # distinction — a group is frame words carrying ONE content
+        # word, so a run carrying two content words in a habitual
+        # order is not a group, it is a chunk. The number of sightings
+        # that makes a habit is the same one the grouping uses.
+        self.run = collections.Counter()
+        for ln in lines:
+            for j in range(len(ln) - 1):
+                self.run[(ln[j], ln[j + 1])] += 1
+
         # THE POINTERS. Counted, never listed — 174 says a pointer is a
         # frame word that arrives for a content word, so it is found by
         # what class of word follows it. Note this is NOT the question
@@ -187,6 +200,22 @@ class Company:
                              e["essence"].lower())
                 if m:
                     self.asking.add(m.group(1))
+
+    def is_chunk(self, run):
+        """A run the writing habitually sets in this order, carrying
+        more than one content word — so it is not a group."""
+        if len(run) < 2:
+            return False
+        # EVERY word must be from outside the frame. Counting merely
+        # two content words somewhere in the run made "bit the man" a
+        # chunk, because (the, man) is seen fourteen times and "the"
+        # is seen everywhere — the same defect as a denial made of
+        # common words, which is already filed in the white. A join
+        # running through a frame word is what a GROUP is made of.
+        if any(w in self.frame for w in run):
+            return False
+        return all(self.run.get((a, b), 0) >= self.pair_habit
+                   for a, b in zip(run, run[1:]))
 
     def habit(self, a, b):
         """Does the writing habitually set this pair in this order?
@@ -273,8 +302,32 @@ def groups(sentence):
     # A group is a run of frame words carrying one word from outside
     # the frame, and it closes when that word has been taken. 174
     # says so; the frame is already counted, so nothing is listed.
+    # Chunks are carried whole: a run the writing habitually sets in
+    # this order, carrying more than one content word, is one part and
+    # is not taken apart into groups. Longest run first, so "public
+    # health" is not split by the pair inside it.
+    atoms, i = [], 0
+    while i < len(ws):
+        took = None
+        for j in range(min(len(ws), i + 4), i + 1, -1):
+            if C.is_chunk(ws[i:j]):
+                took = ws[i:j]
+                break
+        if took:
+            atoms.append(("chunk", took))
+            i += len(took)
+        else:
+            atoms.append(("word", ws[i]))
+            i += 1
     out, cur = [], []
-    for w in ws:
+    for kind, a in atoms:
+        if kind == "chunk":
+            if cur:
+                out.append(cur)
+                cur = []
+            out.append(list(a))
+            continue
+        w = a
         cur.append(w)
         if w not in C.frame:
             out.append(cur)
