@@ -2693,13 +2693,6 @@ def _sleep_dream_wake_record() -> dict[str, object]:
         if not isinstance(rest_interval, dict):
             raise RuntimeError("causal interval changed named shape")
         rest_count = rest_interval.get("rest_recovered_neuron_count", 0)
-        externally_perturbed = rest_interval.get(
-            "externally_perturbed_neuron_lineages", ()
-        )
-        internal_cues = rest_interval.get(
-            "internally_reassembled_formation_cues", ()
-        )
-        thought_transitions = rest_interval.get("causal_thought_transitions", ())
         rest_actions = tuple(
             rest_interval.get(field, ())
             for field in (
@@ -2713,15 +2706,22 @@ def _sleep_dream_wake_record() -> dict[str, object]:
             not isinstance(rest_count, int)
             or isinstance(rest_count, bool)
             or rest_count <= 0
-            or not (internal_cues or thought_transitions)
             or any(rest_actions)
         ):
             continue
-        for wake_interval in intervals[rest_index + 1 :]:
-            if not isinstance(wake_interval, dict):
+        for dream_index, dream_interval in enumerate(
+            intervals[rest_index:], start=rest_index
+        ):
+            if not isinstance(dream_interval, dict):
                 raise RuntimeError("causal interval changed named shape")
-            wake_recruitment_count = sum(
-                len(wake_interval.get(field, ()))
+            internal_cues = dream_interval.get(
+                "internally_reassembled_formation_cues", ()
+            )
+            thought_transitions = dream_interval.get(
+                "causal_thought_transitions", ()
+            )
+            dream_actions = tuple(
+                dream_interval.get(field, ())
                 for field in (
                     "motor_unit_recruitments",
                     "root_yaw_unit_recruitments",
@@ -2729,35 +2729,60 @@ def _sleep_dream_wake_record() -> dict[str, object]:
                     "articulatory_unit_recruitments",
                 )
             )
-            if wake_recruitment_count <= 0:
+            if not (internal_cues or thought_transitions) or any(dream_actions):
                 continue
-            if not isinstance(motor_action, dict) or motor_action.get("moved") is not True:
-                continue
-            consequence = motor_action.get("sensory_consequence")
-            if not isinstance(consequence, dict):
-                continue
-            return _section(
-                True,
-                "native_recovery_internal_reentry_and_wake_observed",
-                "one native interval recovered resident neurons while exact "
-                "internal formations re-entered without motor recruitment; "
-                "external sensory transport remained allowed; a later "
-                "interval recruited native "
-                "effectors, moved the persistent body, and returned its "
-                "sensory consequence to the same organism",
-                recovery_organism_tick=rest_interval.get("organism_tick"),
-                recovered_neuron_count=rest_count,
-                internally_reassembled_formation_count=len(internal_cues),
-                causal_thought_transition_count=len(thought_transitions),
-                externally_perturbed_neuron_count=len(externally_perturbed),
-                wake_organism_tick=wake_interval.get("organism_tick"),
-                wake_recruitment_count=wake_recruitment_count,
-                consequence_organism_identity=consequence.get("organism_identity"),
-                consequence_organism_tick=consequence.get("organism_tick"),
-                observer_authority=False,
-                scheduler_authority=False,
-                sleep_state_owner=False,
+            externally_perturbed = dream_interval.get(
+                "externally_perturbed_neuron_lineages", ()
             )
+            for wake_interval in intervals[dream_index + 1 :]:
+                if not isinstance(wake_interval, dict):
+                    raise RuntimeError("causal interval changed named shape")
+                wake_recruitment_count = sum(
+                    len(wake_interval.get(field, ()))
+                    for field in (
+                        "motor_unit_recruitments",
+                        "root_yaw_unit_recruitments",
+                        "root_translation_unit_recruitments",
+                        "articulatory_unit_recruitments",
+                    )
+                )
+                if wake_recruitment_count <= 0:
+                    continue
+                if (
+                    not isinstance(motor_action, dict)
+                    or motor_action.get("moved") is not True
+                ):
+                    continue
+                consequence = motor_action.get("sensory_consequence")
+                if not isinstance(consequence, dict):
+                    continue
+                return _section(
+                    True,
+                    "native_recovery_internal_reentry_and_wake_observed",
+                    "one native interval recovered resident neurons without "
+                    "motor recruitment; a subsequent action-free interval "
+                    "internally re-entered exact formations while external "
+                    "sensory transport remained allowed; a later interval "
+                    "recruited native effectors, moved the persistent body, "
+                    "and returned its sensory consequence to the same organism",
+                    recovery_organism_tick=rest_interval.get("organism_tick"),
+                    recovered_neuron_count=rest_count,
+                    internal_reentry_organism_tick=dream_interval.get(
+                        "organism_tick"
+                    ),
+                    internally_reassembled_formation_count=len(internal_cues),
+                    causal_thought_transition_count=len(thought_transitions),
+                    externally_perturbed_neuron_count=len(externally_perturbed),
+                    wake_organism_tick=wake_interval.get("organism_tick"),
+                    wake_recruitment_count=wake_recruitment_count,
+                    consequence_organism_identity=consequence.get(
+                        "organism_identity"
+                    ),
+                    consequence_organism_tick=consequence.get("organism_tick"),
+                    observer_authority=False,
+                    scheduler_authority=False,
+                    sleep_state_owner=False,
+                )
     return _section(
         False,
         "native_sleep_dream_wake_sequence_awaiting_witness",

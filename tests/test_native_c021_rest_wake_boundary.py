@@ -70,6 +70,17 @@ def test_sleep_dream_wake_requires_ordered_native_physical_evidence(
         "organism_tick": 41,
         "rest_recovered_neuron_count": 2,
         "externally_perturbed_neuron_lineages": (),
+        "internally_reassembled_formation_cues": (),
+        "causal_thought_transitions": (),
+        "motor_unit_recruitments": (),
+        "root_yaw_unit_recruitments": (),
+        "root_translation_unit_recruitments": (),
+        "articulatory_unit_recruitments": (),
+    }
+    dream_interval = {
+        "organism_tick": 42,
+        "rest_recovered_neuron_count": 0,
+        "externally_perturbed_neuron_lineages": ("external",),
         "internally_reassembled_formation_cues": (("formation",),),
         "causal_thought_transitions": (("source", "destination"),),
         "motor_unit_recruitments": (),
@@ -78,7 +89,7 @@ def test_sleep_dream_wake_requires_ordered_native_physical_evidence(
         "articulatory_unit_recruitments": (),
     }
     wake_interval = {
-        "organism_tick": 42,
+        "organism_tick": 43,
         "rest_recovered_neuron_count": 0,
         "externally_perturbed_neuron_lineages": (),
         "internally_reassembled_formation_cues": (),
@@ -89,12 +100,12 @@ def test_sleep_dream_wake_requires_ordered_native_physical_evidence(
         "articulatory_unit_recruitments": (),
     }
     transition = {
-        "causal_interval_evidence": (rest_interval, wake_interval),
+        "causal_interval_evidence": (rest_interval, dream_interval, wake_interval),
         "motor_action": {
             "moved": True,
             "sensory_consequence": {
                 "organism_identity": "resident-identity",
-                "organism_tick": 42,
+                "organism_tick": 43,
             },
         },
     }
@@ -104,20 +115,17 @@ def test_sleep_dream_wake_requires_ordered_native_physical_evidence(
 
     assert observed["available"] is True
     assert observed["recovery_organism_tick"] == 41
-    assert observed["wake_organism_tick"] == 42
+    assert observed["internal_reentry_organism_tick"] == 42
+    assert observed["wake_organism_tick"] == 43
     assert observed["consequence_organism_identity"] == "resident-identity"
+    assert observed["externally_perturbed_neuron_count"] == 1
 
     rest_interval["motor_unit_recruitments"] = (("same-interval-action",),)
     refused = production._sleep_dream_wake_record()
     assert refused["available"] is False
 
     rest_interval["motor_unit_recruitments"] = ()
-    rest_interval["externally_perturbed_neuron_lineages"] = ("external",)
-    senses_continued = production._sleep_dream_wake_record()
-    assert senses_continued["available"] is True
-    assert senses_continued["externally_perturbed_neuron_count"] == 1
-
-    rest_interval["internally_reassembled_formation_cues"] = ()
-    rest_interval["causal_thought_transitions"] = ()
+    dream_interval["internally_reassembled_formation_cues"] = ()
+    dream_interval["causal_thought_transitions"] = ()
     refused = production._sleep_dream_wake_record()
     assert refused["available"] is False
