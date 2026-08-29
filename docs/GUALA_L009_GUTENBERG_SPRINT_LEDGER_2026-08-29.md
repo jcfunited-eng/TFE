@@ -18,9 +18,9 @@ Status: **IN PROGRESS — guided live; native selection boundary live; no select
 
 ## Live production identity
 
-Task `dsf-ai-task:1324` runs commit
-`7e2cc30fd3a95c5112c39bafaa6147189ab0f69b`, immutable image
-`sha256:a2468d606317d0f0aafbc6d25a37c2a422276e6c6060120e5176a37ffa350687`,
+Task `dsf-ai-task:1325` runs commit
+`1b72ee5d08324d22a7ce7b640b4ec42ff0acbdc2`, immutable image
+`sha256:73381208657584cdf7c5fa8eac992c9f0655a400d281e585cf5a1e560c550c1f`,
 and the unchanged resident identity
 `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
 
@@ -124,3 +124,7 @@ The public resident surface subsequently reported
 `native_articulation_and_self_hearing_committed`. This proves one real
 sound-to-organism-to-vocal-pressure-to-self-hearing episode. It does not prove
 word recognition, a learned utterance, comprehension, or preference.
+
+The stricter thought-owned selection gate then deployed as task 1325. The
+controller live-verified the same resident identity at or beyond organism tick
+`263108`. No book or other sensory stimulus was repeated during that cutover.
