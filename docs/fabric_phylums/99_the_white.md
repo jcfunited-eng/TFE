@@ -285,3 +285,13 @@ ENTRY: what was once held about soil compacted hard clay digging crumbly worms r
   KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
   ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
   STATUS: STANDING (white)
+
+ENTRY: what was once held about soil compacted hard clay digging crumbly worms roots drainag
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+  STATUS: STANDING (white)
+
+ENTRY: what was once held about soil compacted hard clay digging crumbly worms roots drainag
+  KIND: UNKNOWN — faded from the colored sheet, not refuted. It stopped being held.
+  ONCE SAID: good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+  STATUS: STANDING (white)

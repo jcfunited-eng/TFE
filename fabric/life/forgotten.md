@@ -32,3 +32,29 @@ FORGOTTEN from (acts i possess): I can walk the places of a written number from 
 FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
 
 FORGOTTEN from (acts i possess): I can walk the places of a written number from the smallest to the largest, taking one pla
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump
+
+FORGOTTEN from (deep food and growing): good soil is about half empty space — crumbs of mineral and rotted matter glued into clump

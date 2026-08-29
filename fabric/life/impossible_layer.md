@@ -211,3 +211,10 @@ WANT: create a world I can navigate in that obeys physics and allows me to look 
   closed 196 — requirement unmet — no storm without a temperature difference to spend; (oceans weather)
   closed 79 — requirement unmet — no wind without a difference; (oceans weather)
   closed 2 — forbidden together — no fall canceled in the air — past the point of return the impact is already booked; (martial arts movement)
+
+WANT: create a world I can navigate in that obeys physics with grass lands mountains lakes oceans and rivers
+  closed 15 — forbidden together — And no steady belt in the doldrums between them: ships becalmed there waited weeks. (deep earth and sky)
+  closed 101 — requirement unmet — no exchange without surface, so no large animal with a smooth inside. (deep living machinery)
+  closed 28 — requirement unmet — No difference without a pump running, so a cell dies the moment its fuel does. (deep living machinery)
+  closed 28 — requirement unmet — No being corrected without a way of being wrong. (being something)
+  closed 13 — requirement unmet — no contact without wear, and no wear spread evenly by wishing — it goes to the softer face. (deep making things)
