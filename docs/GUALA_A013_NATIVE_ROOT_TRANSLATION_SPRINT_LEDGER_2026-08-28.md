@@ -89,3 +89,15 @@ translation recruitment. The permanent regression gate is the ignored
 `copied_live_root_translation_migrates_and_returns_consequence_once` proof with
 an explicitly supplied copied CURRENT envelope. A synthetic helper fixture is
 never again sufficient evidence for this correction.
+
+## Live task-1313 result — not closed
+
+Commit `e50a67df` deployed as sole production task 1313 with current-body
+migration enabled. The one permitted live +X check moved and persisted the body
+from `(6705, 4500)` to `(6706, 4500)`. The repeated
+`resident neuron lineage authority changed` failure did not return. The exact
+sensory transition nevertheless refused with
+`complete joint field is unavailable: Source(Physics(Unavailable("gate exceeds declared maximum causal interval")))`.
+No retry was issued. Root translation consequence closure therefore remains
+open; task 1313 is evidence that the repeated motor/migration defect was
+removed, not evidence that the whole live action-consequence path is complete.
