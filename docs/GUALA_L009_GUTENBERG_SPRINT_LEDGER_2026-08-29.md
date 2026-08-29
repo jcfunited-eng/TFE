@@ -682,3 +682,35 @@ formations. ECS remained one desired, one running, zero pending, with rollout
 complete and no restart. This proves that the contact produced a real bounded
 organism-owned response and did not stall or replace the resident organism. It
 does not prove affection, preference, learned language, or voluntary return.
+
+## Varied guided Gutenberg experience — Peter Pan
+
+After the reciprocal contact and ordinary unattended life, the guide named one
+different approved public-domain edition, Project Gutenberg `16-0.txt`. The
+single edge request timed out after 55 seconds while native settlement
+continued; it was not retried. Production subsequently reported that the one
+preserved source settled through the physical retinal path at tick `293518`.
+No title, decoded text, word label, meaning, attention decision, or scripted
+acceptance entered cognition.
+
+Bounded source custody contains the exact 262,846-byte body under SHA-256
+`b7b2a3fef03a02ed6e5e3c61d92f8199e50fe810d992335f0b59df60acaddba7`
+and source-media receipt
+`666cb91ef463e7e38322dd45b7316d905445d5be6bcf47911e68c897b2c8adf0`.
+The invitation receipt is
+`c7350c69db0cc3e5151081186480ccd596c419c49c068a9194f9db5f80cbaaff`.
+The normal checkpoint cadence later made the presentation durable through
+CURRENT tick `293569`, state SHA-256
+`e5b7833d61db82f55cb14a2c93974ea706f2954c35ee168b0c90f7d24d554529`,
+under the unchanged resident identity.
+
+Ordinary unattended life continued through at least tick `293625`. The latest
+sample was non-exhausted and contained 119 complete neuronal fractals, 1,246
+partial-cue reassemblies including 1,012 endogenous reassemblies, and eleven
+recovered neurons. Retained formations remained 148 and CURRENT was bounded at
+92,675,005 bytes. In the surrounding production window, one-minute CPU
+averages were approximately 37--44% of the four-vCPU service and memory
+averages approximately 6--7% of its 16 GiB allocation. ECS remained one
+desired, one running, zero pending, with no restart. This proves one varied,
+durable visual story experience and healthy continuation; it does not prove
+reading, recognition, comprehension, preference, or learned language.
