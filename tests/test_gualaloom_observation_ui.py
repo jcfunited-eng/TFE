@@ -193,6 +193,17 @@ def test_gualaloom_exposes_every_required_truthful_observation() -> None:
     assert "meaning_authority:false" in source
 
 
+def test_native_pressure_has_raw_and_explicit_observer_amplified_playback() -> None:
+    source = GUALA.read_text(encoding="utf-8")
+    assert "Hear raw native pressure" in source
+    assert "Hear amplified observer playback" in source
+    assert "Amplification affects your speaker only" in source
+    assert 'response.headers.get("X-Guala-Pressure-SHA256")' in source
+    assert "nativePressureContext.createGain()" in source
+    assert "gain.gain.value=gainValue" in source
+    assert ".35/peak" in source
+
+
 def test_loomscan_exposes_the_reached_frontier_without_flattening() -> None:
     source = LOOM.read_text(encoding="utf-8")
     for record in (
