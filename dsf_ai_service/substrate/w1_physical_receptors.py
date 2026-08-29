@@ -9,9 +9,9 @@ Sight is a fixed retinotopic photon field.  Heading and a finite field of view
 determine which physical surfaces reach each receptor; the nearest surface in
 one receptor aperture occludes farther surfaces.  Body sensation exists only
 for an authenticated before/after execution and contains egocentric
-displacement.  Touch contains only contact and load geometry from the
-reciprocal hold relation.  The resulting native signals enter the existing
-unchanged L0--L4 full-field builder.
+displacement.  Touch contains only contact and load geometry from the signed
+palmar contact or reciprocal hold relation.  The resulting native signals
+enter the existing unchanged L0--L4 full-field builder.
 """
 
 from __future__ import annotations
@@ -778,7 +778,15 @@ def _touch_values(observation: ObservationSnapshot) -> tuple[Fraction, ...]:
     )
     if len(held) > 1:
         raise ValueError("physical hold geometry is not reciprocal")
-    item = held[0] if held else None
+    contacted = tuple(
+        item
+        for item in observation.objects
+        if body.active_contact is not None
+        and item.object_id == body.active_contact.object_id
+    )
+    if len(contacted) > 1:
+        raise ValueError("physical palmar contact identity is not unique")
+    item = held[0] if held else (contacted[0] if contacted else None)
     values = (
         Fraction(1 if item is not None else 0),
         Fraction(item.radius_mm, max(body.radius_mm, item.radius_mm))

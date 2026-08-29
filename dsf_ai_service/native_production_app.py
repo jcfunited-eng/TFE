@@ -1254,6 +1254,28 @@ def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
     return _world_retinal_luminance_endpoints(substreams)[1]
 
 
+def _world_palmar_contact_endpoints(
+    substreams: tuple[Any, ...],
+) -> tuple[Fraction, Fraction]:
+    """Read the existing exact palmar-contact receptor at both world edges."""
+
+    matches = tuple(
+        stream
+        for stream in substreams
+        if stream.sensor_id == "W1-body-surface-receptors"
+        and stream.substream_id == "palmar-contact"
+    )
+    if len(matches) != 1 or len(matches[0].normalized_signal) != 2:
+        raise RuntimeError("the world lost its unique palmar contact channel")
+    values = tuple(
+        Fraction(value).limit_denominator(1_000_000)
+        for value in matches[0].normalized_signal
+    )
+    if any(value not in {Fraction(0), Fraction(1)} for value in values):
+        raise RuntimeError("palmar contact left its exact binary boundary")
+    return values
+
+
 def _retinal_heading_offset_millidegrees_from_axes(
     axes: tuple[Any, ...] | list[Any],
 ) -> int:
@@ -12508,6 +12530,9 @@ def _unattended_interval_episodes(
     luminance = _world_retinal_luminance(
         world_streams.get(PhysicalSense.SIGHT, ())
     )
+    palmar_contact = _world_palmar_contact_endpoints(
+        world_streams.get(PhysicalSense.TOUCH, ())
+    )[1]
     tasted, smelled = _world_chemistry(snapshot, snapshot)
     times = _quiescent_hop_times()
     silence = (0.0,) * len(times)
@@ -12519,6 +12544,7 @@ def _unattended_interval_episodes(
                 luminance,
                 silence,
                 retinal_transmission=retinal_transmission,
+                palmar_contact_trajectory=(palmar_contact,) * len(times),
                 tasted=tasted,
                 smelled=smelled,
             ),
@@ -12592,6 +12618,9 @@ def _guided_world_voice_episodes(
     luminance = _world_retinal_luminance(
         world_streams.get(PhysicalSense.SIGHT, ())
     )
+    palmar_contact = _world_palmar_contact_endpoints(
+        world_streams.get(PhysicalSense.TOUCH, ())
+    )[1]
     tasted, smelled = _world_chemistry(
         snapshot,
         snapshot,
@@ -12627,6 +12656,7 @@ def _guided_world_voice_episodes(
                 tasted,
                 smelled,
                 retinal_transmission=retinal_transmission,
+                palmar_contact=palmar_contact,
             )
         )
         admissions.append(
@@ -12649,6 +12679,7 @@ def _guided_world_voice_episodes(
                 tasted,
                 smelled,
                 retinal_transmission=retinal_transmission,
+                palmar_contact=palmar_contact,
             )
         )
         admissions.append(
@@ -13816,6 +13847,7 @@ def _compact_whole_roster_signal_body(
     moved: tuple[Fraction, ...] | None = None,
     *,
     retinal_transmission: Fraction,
+    palmar_contact: Fraction | float = Fraction(0),
     surface_trajectories: tuple[tuple[float, ...], ...] | None = None,
 ) -> bytes:
     """One port-major binary64 sensorium with no per-sample Python objects."""
@@ -13871,7 +13903,12 @@ def _compact_whole_roster_signal_body(
             CONTACT_SHEET_SITE_COUNT,
             "contact sheet",
         )
-        constant_ports((0.0,), 1, "palmar contact")
+        exact_palmar_contact = Fraction(palmar_contact).limit_denominator(
+            1_000_000
+        )
+        if exact_palmar_contact not in {Fraction(0), Fraction(1)}:
+            raise ValueError("compact palmar contact left its binary boundary")
+        constant_ports((exact_palmar_contact,), 1, "palmar contact")
     # SENSE_ORDER is sight, sound, touch, smell, taste, body.  The compact
     # body follows that physical order exactly; it does not follow the order
     # in which the card material helper happens to return taste and smell.

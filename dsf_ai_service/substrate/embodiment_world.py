@@ -4767,6 +4767,12 @@ class EmbodimentWorldAuthority:
                 ):
                     return None, "pick_path_intersects_object"
             objects[index] = replace(item, position=None, held_by_body_id=body.body_id)
+            for other_index, other in enumerate(bodies):
+                if (
+                    other.active_contact is not None
+                    and other.active_contact.object_id == item.object_id
+                ):
+                    bodies[other_index] = replace(other, active_contact=None)
             bodies[body_index] = replace(
                 body, held_object_id=item.object_id
             )
@@ -5104,8 +5110,58 @@ class EmbodimentWorldAuthority:
                     )
                 ):
                     return None, "place_path_intersects_object"
-            objects[index] = replace(item, position=command.target_position, held_by_body_id=None)
+            placed_item = replace(
+                item,
+                position=command.target_position,
+                held_by_body_id=None,
+            )
+            objects[index] = placed_item
             bodies[body_index] = replace(body, held_object_id=None)
+            if placed_item.material is not None:
+                for recipient_index, recipient in enumerate(bodies):
+                    if recipient.held_object_id is not None:
+                        continue
+                    geometry = recipient.receptor_geometry
+                    if geometry is None:
+                        continue
+                    receptor_position = _receptor_position(
+                        recipient,
+                        geometry.touch_offset_mm,
+                    )
+                    contacted = tuple(
+                        (candidate, patch)
+                        for candidate in objects
+                        if candidate.position is not None
+                        and candidate.material is not None
+                        and (
+                            patch := _derived_contact_patch_square_mm(
+                                receptor_position=receptor_position,
+                                receptor_radius_mm=geometry.touch_radius_mm,
+                                object_position=candidate.position,
+                                object_radius_mm=candidate.radius_mm,
+                            )
+                        )
+                        is not None
+                    )
+                    placed_contact = tuple(
+                        (candidate, patch)
+                        for candidate, patch in contacted
+                        if candidate.object_id == placed_item.object_id
+                    )
+                    if not placed_contact:
+                        continue
+                    if len(contacted) != 1:
+                        return None, "place_recipient_contact_ambiguous"
+                    _candidate, patch = placed_contact[0]
+                    bodies[recipient_index] = replace(
+                        recipient,
+                        active_contact=BodyContactState(
+                            kind="touch",
+                            object_id=placed_item.object_id,
+                            contact_patch_square_mm=patch,
+                            duration_microseconds=command.duration_microseconds,
+                        ),
+                    )
             return self._advance_material_time(
                 replace(
                     world,

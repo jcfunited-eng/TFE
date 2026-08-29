@@ -7,6 +7,7 @@ import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import FrozenInstanceError, replace
+from fractions import Fraction
 
 import pytest
 
@@ -20,6 +21,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID,
     SECOND_BODY_PORT_ID,
     STATE_DOMAIN,
+    BodyReceptorGeometry,
     EmbodiedBody,
     EmbodiedObject,
     EmbodimentWorldAuthority,
@@ -37,6 +39,10 @@ from dsf_ai_service.substrate.embodiment_world import (
     VocalizeCommand,
     decode_command,
     encode_command,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
+from dsf_ai_service.substrate.w1_physical_receptors import (
+    physical_receptor_substreams,
 )
 
 
@@ -170,6 +176,128 @@ def test_another_body_action_preserves_self_contact() -> None:
     assert vocal.disposition == "applied"
     assert _body(vocal.after).active_contact == self_contact
     assert _body(vocal.after, "w1-body-2").active_contact is None
+
+
+def test_other_body_places_object_into_exact_self_palmar_contact() -> None:
+    geometry = BodyReceptorGeometry(
+        retinal_offset_mm=PositionMM(0, 0, 220),
+        left_ear_offset_mm=PositionMM(0, 85, 200),
+        right_ear_offset_mm=PositionMM(0, -85, 200),
+        touch_offset_mm=PositionMM(200, 0, 0),
+        touch_radius_mm=250,
+        oral_offset_mm=PositionMM(200, 0, 0),
+        oral_radius_mm=100,
+        olfactory_offset_mm=PositionMM(0, 0, 200),
+        odorant_saturation_nanograms_per_cubic_meter=(20_000,) * 8,
+        tastant_saturation_micrograms=(100_000,) * 5,
+        touch_mass_span_grams=10_000,
+        touch_temperature_min_millikelvin=250_000,
+        touch_temperature_max_millikelvin=350_000,
+        touch_roughness_span_micrometers=100_000,
+    )
+    material = ObjectMaterialState(
+        odorant_reservoir_nanograms=(0,) * 8,
+        odorant_release_nanograms_per_second=(0,) * 8,
+        tastant_mass_micrograms=(0,) * 5,
+        surface_temperature_millikelvin=294_000,
+        compliance_ppm=60_000,
+        roughness_micrometers=60,
+        moisture_ppm=18_000,
+    )
+    authority = EmbodimentWorldAuthority(
+        authority_key="embodiment-reciprocal-palmar-contact-key",
+        bodies=(
+            EmbodiedBody(
+                body_id="guala-body-1",
+                pose=PoseMM(PositionMM(1_000, 1_000, 0), 0),
+                radius_mm=250,
+                reach_mm=800,
+                receptor_geometry=geometry,
+            ),
+            EmbodiedBody(
+                body_id="w1-body-2",
+                pose=PoseMM(PositionMM(1_000, 1_600, 0), 180_000),
+                radius_mm=250,
+                reach_mm=800,
+            ),
+        ),
+        initial_objects=(
+            EmbodiedObject(
+                object_id="offered-object",
+                radius_mm=50,
+                mass_grams=100,
+                position=PositionMM(1_000, 1_300, 0),
+                material=material,
+            ),
+        ),
+    )
+    before_pick = authority.observation_snapshot()
+    picked = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            PickCommand("offered-object", 200_000)
+        ),
+        causal_intent_receipt_sha256=_intent(40),
+        expected_revision=before_pick.revision,
+    )
+    assert picked.disposition == "applied"
+    placed = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            PlaceCommand(
+                "offered-object",
+                PositionMM(1_350, 1_000, 0),
+                200_000,
+            )
+        ),
+        causal_intent_receipt_sha256=_intent(41),
+        expected_revision=picked.after.revision,
+    )
+
+    assert placed.disposition == "applied", placed.reason
+    contact = _body(placed.after).active_contact
+    assert contact is not None
+    assert contact.kind == "touch"
+    assert contact.object_id == "offered-object"
+    assert contact.contact_patch_square_mm > 0
+    touch = physical_receptor_substreams(
+        placed.before,
+        placed.after,
+        causal_transition=True,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(1, 5),
+    )[PhysicalSense.TOUCH]
+    palmar = next(
+        stream for stream in touch
+        if stream.substream_id == "palmar-contact"
+    )
+    assert tuple(palmar.normalized_signal) == (Fraction(0), Fraction(1))
+
+    removed = authority.execute_port_command(
+        port_id=SECOND_BODY_PORT_ID,
+        command_payload=encode_command(
+            PickCommand("offered-object", 200_000)
+        ),
+        causal_intent_receipt_sha256=_intent(42),
+        expected_revision=placed.after.revision,
+    )
+    assert removed.disposition == "applied", removed.reason
+    assert _body(removed.after).active_contact is None
+    removed_touch = physical_receptor_substreams(
+        removed.before,
+        removed.after,
+        causal_transition=True,
+        source_time_start=Fraction(0),
+        source_time_end=Fraction(1, 5),
+    )[PhysicalSense.TOUCH]
+    removed_palmar = next(
+        stream for stream in removed_touch
+        if stream.substream_id == "palmar-contact"
+    )
+    assert tuple(removed_palmar.normalized_signal) == (
+        Fraction(1),
+        Fraction(0),
+    )
 
 
 def test_valid_move_pick_place_are_exact_authenticated_transitions() -> None:
