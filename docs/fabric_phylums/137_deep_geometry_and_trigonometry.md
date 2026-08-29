@@ -305,6 +305,13 @@ CANNOT: no line determined by a slope alone — the slope fixes direction
   is always required and always sufficient.
 THREAD: engineering (a calibration written as an offset and a rate), money
   (a fixed fee plus a rate per unit), navigation (a bearing plus a fix).
+RULE: to write down a line's equation — if you have the slope and where it
+  crosses the upright axis, put both straight into the slope-and-intercept
+  form; if you have the slope and any point at all, use the point form and
+  expand only if you need to; if you have two points, get the slope from
+  the rise over the run first and then use either point; and if the two
+  points share an across-coordinate, the line is vertical and its equation
+  names that coordinate alone.
 ASKED-AS: equation of a line y equals mx plus c point slope form which
 
 ESSENCE: parallel lines share a slope. Perpendicular lines have slopes
@@ -505,6 +512,12 @@ CANNOT: no angle beyond a quarter turn inside a right triangle — the
 THREAD: physics (rotation described by a point going round), music (a
   vibration as a circle seen edge on), computing (angles handled
   uniformly, with no special cases at the quadrant boundaries).
+RULE: to find a sine or cosine outside the first quarter turn — take the
+  angle down to a remainder inside one full turn; find the acute angle
+  between that remainder and the horizontal axis, which is the reference
+  angle; look up or compute the ratio for the reference angle; then attach
+  the sign by asking which quarter the angle landed in, since the two
+  coordinates are positive or negative there by position alone.
 ASKED-AS: unit circle sine cosine coordinates angle beyond ninety negative degrees quadrants
 
 ESSENCE: because that point sits on a circle of radius one, its two
