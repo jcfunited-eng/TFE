@@ -366,3 +366,27 @@ external action is reduced, and a later physically caused wake/action with its
 applicable sensory and body consequences returned. No timer, sleep flag,
 scheduled lesson, replay archive, semantic dream label, or observer authority
 is introduced.
+
+### First live recovery and bounded sequence projection
+
+Task `dsf-ai-task:1317` deployed commit
+`6e6c262d2eeef06d23379ce787350681a94fe59c` and image
+`sha256:5694d4dde0a60dbaf5f6bcd17da1246c7bad86b8fde8c362aedc29ed8c01b760`
+without changing resident identity. The first read at tick 256279 reported eight
+physically recovered neurons where the predecessor repeatedly reported zero,
+1,756 endogenous partial-cue reassemblies, body movement, and returned typed
+sensory consequences. A later unattended transition reported seven recovered
+neurons and native causal thought. This proves the translation recovery
+deadlock is absent in live production; the aggregate transaction does not by
+itself prove the required order.
+
+The bounded post-commit observer now examines only the already-existing causal
+interval array and reports a sequence only when all of these exact facts occur
+in order: an interval recovers at least one neuron, has no external neuronal
+perturbation, has internal formation re-entry or a causal thought transition,
+and has no motor, root-motion, or articulation recruitment; a later interval
+recruits an effector; the committed native body moves; and its sensory
+consequence names the continuing organism. Same-interval action or external
+perturbation makes the witness refuse. The observer stores no state and has no
+cognition, scheduler, selection, or sleep authority. Its focused positive and
+two severing checks pass.

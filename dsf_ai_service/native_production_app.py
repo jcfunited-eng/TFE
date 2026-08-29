@@ -2675,6 +2675,101 @@ def _causal_thought_record() -> dict[str, object]:
     )
 
 
+def _sleep_dream_wake_record() -> dict[str, object]:
+    """Project one exact ordered native recovery/re-entry/action sequence.
+
+    This observer runs only after a committed trajectory. It neither creates
+    nor retains a sleep state, chooses an interval, or supplies any cause to
+    the organism. The bounded causal intervals are already native transition
+    evidence; this function only refuses or reports their physical ordering.
+    """
+
+    evidence = _last_transition_evidence or {}
+    intervals = evidence.get("causal_interval_evidence", ())
+    if not isinstance(intervals, (list, tuple)):
+        raise RuntimeError("causal interval evidence changed bounded shape")
+    motor_action = evidence.get("motor_action")
+    for rest_index, rest_interval in enumerate(intervals):
+        if not isinstance(rest_interval, dict):
+            raise RuntimeError("causal interval changed named shape")
+        rest_count = rest_interval.get("rest_recovered_neuron_count", 0)
+        externally_perturbed = rest_interval.get(
+            "externally_perturbed_neuron_lineages", ()
+        )
+        internal_cues = rest_interval.get(
+            "internally_reassembled_formation_cues", ()
+        )
+        thought_transitions = rest_interval.get("causal_thought_transitions", ())
+        rest_actions = tuple(
+            rest_interval.get(field, ())
+            for field in (
+                "motor_unit_recruitments",
+                "root_yaw_unit_recruitments",
+                "root_translation_unit_recruitments",
+                "articulatory_unit_recruitments",
+            )
+        )
+        if (
+            not isinstance(rest_count, int)
+            or isinstance(rest_count, bool)
+            or rest_count <= 0
+            or externally_perturbed
+            or not (internal_cues or thought_transitions)
+            or any(rest_actions)
+        ):
+            continue
+        for wake_interval in intervals[rest_index + 1 :]:
+            if not isinstance(wake_interval, dict):
+                raise RuntimeError("causal interval changed named shape")
+            wake_recruitment_count = sum(
+                len(wake_interval.get(field, ()))
+                for field in (
+                    "motor_unit_recruitments",
+                    "root_yaw_unit_recruitments",
+                    "root_translation_unit_recruitments",
+                    "articulatory_unit_recruitments",
+                )
+            )
+            if wake_recruitment_count <= 0:
+                continue
+            if not isinstance(motor_action, dict) or motor_action.get("moved") is not True:
+                continue
+            consequence = motor_action.get("sensory_consequence")
+            if not isinstance(consequence, dict):
+                continue
+            return _section(
+                True,
+                "native_recovery_internal_reentry_and_wake_observed",
+                "one native interval recovered resident neurons while exact "
+                "internal formations re-entered without external perturbation "
+                "or motor recruitment; a later interval recruited native "
+                "effectors, moved the persistent body, and returned its "
+                "sensory consequence to the same organism",
+                recovery_organism_tick=rest_interval.get("organism_tick"),
+                recovered_neuron_count=rest_count,
+                internally_reassembled_formation_count=len(internal_cues),
+                causal_thought_transition_count=len(thought_transitions),
+                wake_organism_tick=wake_interval.get("organism_tick"),
+                wake_recruitment_count=wake_recruitment_count,
+                consequence_organism_identity=consequence.get("organism_identity"),
+                consequence_organism_tick=consequence.get("organism_tick"),
+                observer_authority=False,
+                scheduler_authority=False,
+                sleep_state_owner=False,
+            )
+    return _section(
+        False,
+        "native_sleep_dream_wake_sequence_awaiting_witness",
+        "the physical producers are mounted, but the latest committed "
+        "trajectory does not contain the complete ordered recovery, internal "
+        "re-entry, later effector recruitment, body movement, and sensory "
+        "return sequence",
+        observer_authority=False,
+        scheduler_authority=False,
+        sleep_state_owner=False,
+    )
+
+
 def _autonomy_record() -> dict[str, object]:
     """Truth-coupled observation of continuous native settlement.
 
@@ -2702,11 +2797,13 @@ def _autonomy_record() -> dict[str, object]:
     }
     physical_choice = _physical_choice_record()
     causal_thought = _causal_thought_record()
+    sleep_dream_wake = _sleep_dream_wake_record()
     not_mounted = {
         "action": _unmounted("no native action actuator is mounted"),
         "attention": _attention_record(),
         "choice": physical_choice,
         "consequence": _unmounted("no autonomous action consequence exists"),
+        "sleep_dream_wake": sleep_dream_wake,
         "thought": causal_thought,
     }
     if _last_unattended_evidence is None:
@@ -2767,6 +2864,7 @@ def _autonomy_record() -> dict[str, object]:
                     "body-source receipts returned"
                 ),
             ),
+            sleep_dream_wake=sleep_dream_wake,
             thought=not_mounted["thought"],
             last_interval=last_interval,
             motor_action=_bounded_motor_action_observation(motor_action),
