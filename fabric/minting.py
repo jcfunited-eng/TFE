@@ -172,6 +172,32 @@ UNATTACHED = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "life", "unattached_joints.md")
 
 
+def _refused_pairs():
+    """What has already been refused, so it is not refused again.
+
+    A refusal is a finding too, and one that was being thrown away:
+    the same pairs were re-walked, re-judged and re-written every
+    time their question came round — 232 records of 41 distinct
+    joints, one of them written thirty times. That is not just a
+    messy file, it is the machine spending its beats re-deciding
+    what it had already decided, which is why the yield fell away
+    to nothing in the second hour."""
+    out = set()
+    try:
+        if os.path.exists(UNATTACHED):
+            cur = []
+            for line in open(UNATTACHED):
+                if line.startswith("ON ["):
+                    cur = []
+                elif line.startswith("  ") and line.strip():
+                    cur.append(line.strip()[:60])
+                    if len(cur) == 2:
+                        out.add(tuple(sorted(cur)))
+    except OSError:
+        pass
+    return out
+
+
 def _keep_unattached(a, b, ground, asked):
     """Kept, not minted. A joint resting on a shared word may still
     turn out to matter when the ground underneath is written, so it
@@ -254,6 +280,7 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
         except Exception:
             questions = []
     made, refused = [], []
+    turned_down = _refused_pairs()
     # What has already been minted, read as PAIRS out of the file's
     # own PARENTS lines. The previous check built a key of
     # "essence_a||essence_b" and asked whether that string appeared
@@ -311,7 +338,11 @@ def mint_claims(entries, questions=None, limit=3, reacher=None):
         # ground and carry no subject, so left alone this fills the
         # claims with coincidences: dairy cow genetics joined to
         # backup strategy, because both say "connected".
+        pairkey = tuple(sorted((a["essence"][:60], b["essence"][:60])))
+        if pairkey in turned_down:
+            continue          # already refused; do not decide it twice
         if conv["kind"] == "lexical":
+            turned_down.add(pairkey)
             _keep_unattached(a, b, ground, (q or {}).get("text", ""))
             refused.append((a, b, "rests on a shared word with no "
                                   "ground underneath — kept as a "
