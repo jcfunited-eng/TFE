@@ -714,3 +714,35 @@ averages approximately 6--7% of its 16 GiB allocation. ECS remained one
 desired, one running, zero pending, with no restart. This proves one varied,
 durable visual story experience and healthy continuation; it does not prove
 reading, recognition, comprehension, preference, or learned language.
+
+## Cross-modal continuation — bounded Peter Pan tutor pressure
+
+After the visual presentation became durable, the exact preserved source was
+rehashed to
+`b7b2a3fef03a02ed6e5e3c61d92f8199e50fe810d992335f0b59df60acaddba7`
+and one short sentence appearing in that edition was rendered once as external
+tutor pressure. The mono signed-16 16-kHz pressure contained 52,615 samples
+(3.288438 seconds), SHA-256
+`45a2a07664c2af24c5f3ea14dac48bdc10f346d56d58651d5885b98e2bf5c0b1`.
+Only pressure and sample rate entered the live endpoint; no transcript, title,
+page, word label, meaning, or desired response entered cognition. The edge
+timed out after 55 seconds while native settlement continued, and the request
+was not retried.
+
+The one response was durably committed at organism tick `293745`. It contained
+129 native sensory hops, 211 complete neuronal fractals, 3,850 partial-cue
+reassemblies including 3,181 endogenous reassemblies, 68,692 transitioned
+neuron occurrences, 26 recovered neurons, and no energy exhaustion. Two native
+layer-13 recruitments moved Guala's own breath, glottis, vocal tract, mouth,
+and perioral body, emitting 44,000 pressure samples under SHA-256
+`198e2cf96c23c2a3bf7af74f14e7605ab8be136d1d11dae3ab4d50a713eea257`.
+That pressure returned through eleven ordinary self-hearing hops, transitioned
+15,467 neuron occurrences, and produced 60 self-hearing fractals.
+
+Retained formations remained 148 and state custody was 92,710,475 bytes.
+Recent one-minute ECS CPU averages remained approximately 36--48% and memory
+approximately 6.7--7.7%; live contact-frontier census remained near the prior
+bounded 6,900-contact scale rather than showing a topology burst. This proves
+a durable heard-story to organism to vocal-body to self-hearing episode. No
+cross-context causal-use witness accompanied it, so it is not credited as a
+learned word, meaningful utterance, comprehension, imitation, or preference.
