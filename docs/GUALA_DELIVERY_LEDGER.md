@@ -66,6 +66,16 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   `273394`. This closes new corrected acoustic-route formation and later
   physical reuse. It still does not identify any emitted pressure as a lexical
   word, so the learned-word extension of L-006 remains open.
+- Exact topology decoding resolves the lexical association more narrowly: the
+  accepted apple auditory receptor has one mounted layer-6 integration, and
+  all 16 corrected learned vocal routes pass through a founding association
+  joined to that exact integration. The result was identical on the custodied
+  body before and after one later spaced apple-pressure presentation, so it was
+  learned by prior live action/self-hearing rather than created by the
+  observer. A later route-use decode proves these apple-associated contacts
+  carried charge during unattended articulation. This is a physically learned
+  apple-associated vocal form; human-audible intelligibility as the spoken word
+  `apple` remains the final unproven boundary.
 
 ### Varied live counting-song experience — 2026-08-29
 
