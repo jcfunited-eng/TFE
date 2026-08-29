@@ -385,7 +385,7 @@ CANNOT: no seeing your own work as a stranger sees it, by effort or
 THREAD: writing (reading aloud, or in a different typeface),
   proofreading (errors invisible to the author and obvious to
   anybody else), cleaning (you stop seeing your own hallway).
-ASKED-AS: cant see own work fresh eyes mirror upside down break week later obvious mistakes feedback
+ASKED-AS: see own work fresh eyes mirror upside down break week later obvious feedback
 
 ESSENCE: there is a point past which more work subtracts — a drawing
   worried until the life goes, a mix polished until it is flat, a
@@ -559,7 +559,7 @@ THREAD: history (buildings of stone survive, buildings of wood do
   not, so the past looks stony), medicine (a treatment judged by the
   patients who came back), business (studying only the firms that
   are still there).
-ASKED-AS: old masters everything was better past classics survived famous quality standards comparing modern age golden
+ASKED-AS: old masters everything better past classics survived famous quality comparing modern golden age
 
 ESSENCE: makers explain their own work badly and go on making it
   well — the doing lives in trained judgment, and the explanation is

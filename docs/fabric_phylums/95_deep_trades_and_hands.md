@@ -550,7 +550,7 @@ CANNOT: no adding a cable after the wall is closed without opening
 THREAD: software (a decision baked into a foundation everyone built
   on), surgery (the order of closure), publishing (a correction
   after the print run).
-ASKED-AS: first fix second fix order sequence trades plastering wiring plumbing before after schedule chasing
+ASKED-AS: order sequence trades plastering wiring plumbing before after schedule chasing walls buried
 
 ESSENCE: getting the body into a position where the hands can work
   is half the job — a painter on proper boards outworks one
