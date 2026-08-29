@@ -310,3 +310,72 @@ ENTRY: what marks a pointer — the words that open a group
     it — but it will not be found in how often one word sits before
     or after another, because that has been counted.
   STATUS: STANDING (white)
+
+ENTRY: judging a thing against more than the thing
+  ASKED-AS: judge close wall grips candidate pool bag question folded
+    in judging what a thing is
+  VERDICT: a thing may not be judged against a pool wider than
+    itself. Measured three separate times in one day: fold the
+    asking into the judgement and the asking supplies half of what
+    a wall needs, so the wall fires on something it is not about. A
+    wall about breaking a habit closed an entry about cutting an
+    onion this way.
+  WHAT WOULD DRAIN IT: nothing. This one is structural — it follows
+    from a wall being matched whole. It is not waiting on evidence.
+  STATUS: STANDING (white)
+
+ENTRY: what may close a thing that IS
+  ASKED-AS: requirement denial kind of wall no A without B closes
+    what a thing is what may be said
+  VERDICT: a requirement — "no A without B" — cannot judge what a
+    thing is or what may be said. It fires whenever B is merely
+    absent. Measured: it closed every coordinate of every walk, and
+    failed all ten things a turn had in hand, so the fabric went
+    silent every time. Requirements belong to MAKING, where you must
+    supply what you drag in.
+  WHAT WOULD DRAIN IT: nothing. The two kinds do different jobs.
+  STATUS: STANDING (white)
+
+ENTRY: a denial made of common words
+  ASKED-AS: wall grips everything spurious closes at random common
+    words too broad vague denial
+  VERDICT: every word of what a denial forbids must be uncommon. The
+    forbidden part is matched whole, so one everyday word inside
+    drags the whole denial down to whatever that word touches. "No
+    breaking one from the belief end" reduced to "anything that
+    breaks". Counted: of 2,938 denials of that kind, 1,629 named
+    anything at all.
+  WHAT WOULD DRAIN IT: nothing here — but note that UNCOMMON IS NOT
+    CONTENTFUL either. "connect" and "exclude" pass the uncommon
+    test and carry no subject, and joints built on them are word
+    coincidences. What separates a contentful word from a merely
+    rare one is not yet known and is the live part of this.
+  STATUS: STANDING (white)
+
+ENTRY: selection as a way of making
+  ASKED-AS: retrieval lookup ranking make answer choose best entry
+    reduction construction
+  VERDICT: cutting a stored set down can only return a member of
+    that set. Measured 2026-08-29: five of five answers the fabric
+    gave were already written in it before the question was asked.
+    Retrieval is the ceiling of the operation, not a quality of the
+    cutting — however good the cutting gets. RANKING IS THE TELL: if
+    the work is improving which entry comes back, it is retrieval.
+  WHAT WOULD DRAIN IT: reduction over a space that was never stored.
+    The same cut on a generated space leaves something nobody held.
+    That space is arrangements, not entries — an arrangement is
+    never a member of the parts list.
+  STATUS: STANDING (white)
+
+ENTRY: a stored procedure as the application of knowledge
+  ASKED-AS: rule handler procedure apply knowledge do it follow a
+    written rule
+  VERDICT: rules are not the application of knowledge. A written
+    procedure for every situation is a lookup table of instructions
+    rather than of facts — retrieval moved one level up. Reached by
+    building it: a greeting rule was hand-written, ran, and greeted
+    correctly, and generalised to nothing.
+  WHAT WOULD DRAIN IT: knowledge constraining an ACT rather than
+    prescribing one — candidate acts staged, and the claims killing
+    what they forbid.
+  STATUS: STANDING (white)
