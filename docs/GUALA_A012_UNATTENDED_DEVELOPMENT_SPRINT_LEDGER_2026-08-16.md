@@ -2,12 +2,12 @@
 
 Date: 2026-08-16
 
-Status: **RECONCILED PARTIAL on 2026-08-29.** Production task
+Status: **LIVE-CLOSED on 2026-08-29.** Production task
 `dsf-ai-task:1193` remains direct evidence of unattended recovery, endogenous
 reassembly, learning, action, changed-world exploration, and sensed return in
-one continuing resident life. It is not direct evidence of a sleep boundary,
-dream, and later wake. The former closure is retained below as historical
-evidence but no longer supplies complete A-012 acceptance authority.
+one continuing resident life. Production task `dsf-ai-task:1322` supplies the
+previously missing ordered physical sleep boundary, internal formation re-entry,
+later wake/action, and returned consequence under the same resident identity.
 
 ## Task identity
 
@@ -435,3 +435,25 @@ physical charge. Any changed endpoint wakes its exact incident contacts through
 the already-mounted universal wake law. Only a contact crossing the actual
 causal boundary may enter `next_active_frontier` and authorize cognition,
 learning, or action. Scheduler state never becomes action authority.
+
+### Live closure on task 1322
+
+Commit `dc6673af2f2eb70215b1f7e8ac209997b2c74f05` is live as the sole
+verified production task `dsf-ai-task:1322`, image
+`sha256:26d7d838d4c14769a44e7d888f3c0e2005ed9e9000bf715f008aebad08b11c08`.
+The organism identity remained
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and continued past cutover tick
+258642. Contaminated recruitment declined from task 1321's 127 motors to 96,
+then 53, then the bounded trajectory contained the required sequence:
+
+- tick 258821 recovered one resident neuron with no motor recruitment;
+- the same action-free interval internally reassembled 46 retained formations
+  and carried 318 native causal thought transitions;
+- tick 258822 recruited ten native effectors and woke into physical action;
+- the body consequence returned by tick 258828 to the same organism identity.
+
+External sensory transport remained lawful during the rest interval. The
+observer explicitly reports no cognition, scheduler, or sleep-state authority.
+Together with the unchanged task-1193 exploration/learning evidence, this
+closes A-012 without a timer, sleep flag, scheduled lesson, replay, or semantic
+dream label.
