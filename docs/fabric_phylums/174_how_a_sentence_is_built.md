@@ -231,10 +231,25 @@ ESSENCE: not every sentence does something. A sentence may instead
 ROOT: grammar (67) / a sentence needs a doer and a doing — and where
   it has neither it is not a smaller version of one, it is a
   different thing being said.
-HOLDS: a doing holds only when a group after the first arrived alone.
-  A standing holds when no group after the first arrived alone: the
-  first group is what stands and what follows is what it is said to
-  be.
+HOLDS: a doing holds only when a group after the first brings a
+  content word in with NO POINTER among the frame words that carried
+  it. A standing holds when no group after the first does: the first
+  group is what stands and what follows is what it is said to be.
+  This is sharper than "arrived alone" and the difference is exactly
+  the pointer. "is A tolerance", "is A matched", "is THE normal" all
+  carry a pointer and bring in a thing; "does not plant", "are
+  built", "is decided" carry none and bring in a doing. Nothing here
+  needs to know which frame word is which — only whether a pointer is
+  among them, and the pointers are already counted.
+  A content word arriving alone after a group that was itself brought
+  in by a non-pointer and then holds one belongs to that group: "is a
+  tolerance" takes "bought". Never into a group a pointer opened,
+  because "the dog" does not take "bit", and never into a group
+  carrying an asking word, because "how does a whip" would swallow
+  "crack" and leave the question with no doing at all.
+  Measured on sixty sentences of this fabric's own writing, drawn by
+  seed and labelled by hand: 44 against 40 for "arrived alone", with
+  no cost to the doing.
 MINE, ON TRIAL: the after-the-first test is my construct. What is not
   mine is the contrast it runs on, which this file already held.
 THREAD: law (a statute that defines a term does nothing and is not a

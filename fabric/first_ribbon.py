@@ -675,6 +675,50 @@ def acts_like_doing(w):
     return d > t
 
 
+def is_doing_group(g):
+    """A group that brings a content word in with no POINTER among the
+    frame words that carried it.
+
+    Measured against sixty sentences of the fabric's own writing,
+    labelled by hand because the proxy that counted is/are/was/were
+    lied: "is a tolerance", "is a matched", "is the normal" all carry
+    a pointer and bring in a THING, while "does not plant", "are
+    built", "is decided" carry none and bring in a DOING. That is the
+    whole difference and it is visible without knowing which frame
+    word is which."""
+    C = company()
+    return (any(w not in C.frame for w in g)
+            and not any(w in C.pointers for w in g))
+
+
+def regroup(gs):
+    """A content word arriving alone after a thing-group that is not
+    the first group belongs to that group: "is a tolerance" + "bought"
+    is one thing. Not applied to the first group, because "the dog" +
+    "bit" is two."""
+    C = company()
+    if len(gs) < 2:
+        return [list(g) for g in gs]
+    out = [list(gs[0])]
+    for g in gs[1:]:
+        prev = out[-1]
+        # only into a group that was itself brought in by a NON-pointer
+        # and then holds one: "is a tolerance" takes "bought". A group
+        # a pointer opened is finished — "the dog" does not take "bit".
+        # never into a group carrying an asking word: "how does a
+        # whip" opens with a non-pointer and holds one, and would
+        # swallow "crack" and leave the question with no doing at all
+        takes = (prev and prev[0] in C.frame
+                 and prev[0] not in C.pointers
+                 and any(w in C.pointers for w in prev)
+                 and not (set(prev) & C.asking))
+        if takes and g and g[0] not in C.frame:
+            out[-1] = prev + list(g)
+        else:
+            out.append(list(g))
+    return out
+
+
 def doing_of(gs, why=False):
     """Which group the sentence turns on. 174: the doing is the group
     that arrived alone, and where the sentence gives no contrast — all
@@ -698,10 +742,10 @@ def doing_of(gs, why=False):
     # alone. Where none did, the sentence says what a thing IS and has
     # no doing — forcing one is what made "congestion is not caused by
     # too many vehicles" turn on "too".
-    if not any(not carried_in(g) for g in gs[1:]):
-        how = ("no doing — nothing after the first group arrived "
-               "alone, so this says what a thing is rather than "
-               "doing something")
+    if not any(is_doing_group(g) for g in regroup(gs)[1:]):
+        how = ("no doing — no group after the first brings a content "
+               "word in without a pointer, so this says what a thing "
+               "is rather than doing something")
         return (None, how) if why else None
     plain = [i for i, g in enumerate(gs) if not carried_in(g)]
     # a marked member needs a plain one to be marked against: if
