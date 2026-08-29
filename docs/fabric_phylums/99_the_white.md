@@ -409,3 +409,31 @@ ENTRY: a stored procedure as the application of knowledge
     prescribing one — candidate acts staged, and the claims killing
     what they forbid.
   STATUS: STANDING (white)
+
+ENTRY: what marks the doing of a sentence
+  ASKED-AS: doing verb turns on what the sentence hinges on main
+    word head of the sentence
+  VERDICT: not placement after the frame, and not membership of the
+    frame. Measured 2026-08-29. Ranking by how often a word is
+    placed after a frame word makes "how do I sharpen a knife" turn
+    on "I". Excluding frame words from being the doing changes
+    nothing, because "I" is not in the commonest hundred of this
+    corpus — so the obvious repair does not touch it.
+  WHAT WOULD DRAIN IT: something that separates the word a sentence
+    is ABOUT from the word that merely sits where the doing usually
+    sits. Position has now been counted and it is not enough.
+  STATUS: STANDING (white)
+
+ENTRY: changing the grouping without re-running what already worked
+  ASKED-AS: regression grouping broke what worked check the old
+    cases fix one break another
+  VERDICT: a grouping change must be re-run against every sentence
+    that already read correctly. Measured: "a group ends at its
+    content word" fixed "a knife" and "why does bread rise" and
+    silently broke "the dog bit the man", which had turned on "bit"
+    and now turns on "man". Found only because an unrelated test
+    printed it.
+  WHAT WOULD DRAIN IT: nothing — this is discipline, not knowledge.
+    It is filed here because it cost a working case and would have
+    shipped unnoticed.
+  STATUS: STANDING (white)
