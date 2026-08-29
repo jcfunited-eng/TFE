@@ -2146,3 +2146,51 @@ SETTLED into the colored sheet after 9 beats: mediator
 
 SETTLED into the colored sheet after 9 beats: ignition
   final width 1, carried 11 coloured and 0 white marks
+
+SETTLED into the white sheet after 6 beats: gas out net walk overwork netles
+  final width 0, carried 0 coloured and 71 white marks
+
+SETTLED into the white sheet after 6 beats: electron deal
+  final width 0, carried 0 coloured and 48 white marks
+
+SETTLED into the white sheet after 7 beats: mediator
+  final width 0, carried 55 coloured and 10 white marks
+
+SETTLED into the colored sheet after 9 beats: ignition
+  final width 1, carried 11 coloured and 22 white marks
+
+SETTLED into the white sheet after 6 beats: gas out net walk overwork netles
+  final width 0, carried 0 coloured and 53 white marks
+
+SETTLED into the white sheet after 6 beats: electron deal
+  final width 0, carried 0 coloured and 46 white marks
+
+SETTLED into the colored sheet after 9 beats: mediator
+  final width 2, carried 24 coloured and 30 white marks
+
+SETTLED into the colored sheet after 9 beats: ignition
+  final width 1, carried 11 coloured and 22 white marks
+
+SETTLED into the white sheet after 6 beats: gas out net walk overwork netles
+  final width 0, carried 0 coloured and 53 white marks
+
+SETTLED into the white sheet after 6 beats: electron deal
+  final width 0, carried 0 coloured and 46 white marks
+
+SETTLED into the colored sheet after 9 beats: mediator
+  final width 2, carried 24 coloured and 30 white marks
+
+SETTLED into the colored sheet after 9 beats: ignition
+  final width 1, carried 11 coloured and 22 white marks
+
+SETTLED into the white sheet after 6 beats: gas out net walk overwork netles
+  final width 0, carried 0 coloured and 53 white marks
+
+SETTLED into the white sheet after 6 beats: electron deal
+  final width 0, carried 0 coloured and 46 white marks
+
+SETTLED into the colored sheet after 9 beats: mediator
+  final width 2, carried 24 coloured and 30 white marks
+
+SETTLED into the colored sheet after 9 beats: ignition
+  final width 1, carried 11 coloured and 22 white marks

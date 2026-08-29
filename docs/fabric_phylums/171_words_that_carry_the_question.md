@@ -251,7 +251,12 @@ ESSENCE: a greeting carries no subject at all. Hello, morning, hi,
 ROOT: people together (21) / most talk begins by establishing
   contact, not by transferring anything.
 CANNOT: no subject in a greeting — treat it as a question and any
-  answer given is an answer to nothing that was asked.
+  answer given is an answer to nothing that was asked. No greeting
+  answered by explaining what a greeting is — that is handing over
+  the instruction instead of following it.
+RULE: to answer a greeting — carry back a ready-made chunk, name no
+  subject, and hold the channel open for what comes next.
+CHUNKS: hello | morning | hi | good to see you | I am here | go on
 THREAD: language (09: phatic speech carries contact, not content),
   ritual (26: openings are the smallest ceremonies).
 MEANS-SAME: hello hi hey morning afternoon evening greetings welcome there again you

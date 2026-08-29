@@ -206,3 +206,59 @@ ON [birth] reached by 'where else does birth calv heif stand'
 ON [mas punch momentum conserv collision exception] reached by 'what connects conserv'
   moving mass keeps its punch: momentum (mass × speed) is conserved in every collision, no exceptions.
   these two stand together on [mas] — "plot stars by colour against true brightness and they do not sc
+
+ON [float] reached by 'what bears glas stone flight substance whatev smell'
+  a fluid pushes up on anything in it with a force equal to the weight of fluid displaced — weigh less
+  soft ground shakes harder and longer than rock, because waves slow as they enter it and pile their m
+
+ON [fuel] reached by 'what bears glas stone flight substance whatev smell'
+  fuels rank by how much energy they pack per kilogram and per litre, and that ranking, not preference
+  how far an aircraft can go is decided by how many units of lift it gets per unit of drag. That ratio
+
+ON [rent] reached by 'what bears gas out net walk overwork netles'
+  fermentation is hired labor — tiny living things eat sugar and pay rent in acid, gas, or alcohol (br
+  interest is the price of time — money now beats the same money later (it can work meanwhile, and lat
+
+ON [float] reached by 'what bears wet leav attach soap greasy passeng'
+  hands are the main vehicle. Twenty seconds with soap — which pries grease-coated germs off skin and 
+  soft ground shakes harder and longer than rock, because waves slow as they enter it and pile their m
+
+ON [rain] reached by 'what connects shov'
+  things that did not happen can be causes. The guard who did not come, the medicine not given, the ra
+  a front is the sloping wall where two air masses meet, and its rain is made by one being forced to c
+
+ON [shov] reached by 'what connects shov'
+  a front is the sloping wall where two air masses meet, and its rain is made by one being forced to c
+  penetrating oil is a crowbar one molecule wide — an oil thin enough to be pulled in by narrow gaps t
+
+ON [machinery] reached by 'what bears burn body machinery strip simp enzym'
+  most medical harm comes from ordinary slips — the wrong side, the missed allergy, the unwashed line 
+  every simplification holds in the middle and fails at the edges. Push on speed, size, timing, or fai
+
+ON [skin] reached by 'what bears burn body machinery strip simp enzym'
+  burning, rusting and breathing drop the same fuel to the same floor; what differs is the staircase —
+  a race of coolings is decided by paths, not just starting points — mass lost, self-stirring, gas car
+
+ON [machinery] reached by 'what bears burn body machinery strip simp enzym'
+  the machinery is almost always stronger than the person operating it, so an attacker walks around th
+  every simplification holds in the middle and fails at the edges. Push on speed, size, timing, or fai
+
+ON [gas] reached by 'what bears burn body machinery strip simp enzym'
+  fermentation is hired labor — tiny living things eat sugar and pay rent in acid, gas, or alcohol (br
+  a race of coolings is decided by paths, not just starting points — mass lost, self-stirring, gas car
+
+ON [chance] reached by 'what bears noth chance random near before mean'
+  the very small runs on chance constrained by law — until asked, a particle holds possibilities, not 
+  one game belongs to luck, a season belongs to skill — chance dominates short contests and washes out
+
+ON [chance] reached by 'what bears noth chance random near before mean'
+  the very small runs on chance constrained by law — until asked, a particle holds possibilities, not 
+  a test that is ninety-nine percent accurate, used on a disease one person in ten thousand has, throw
+
+ON [chance] reached by 'what bears noth chance random near before mean'
+  one game belongs to luck, a season belongs to skill — chance dominates short contests and washes out
+  a test that is ninety-nine percent accurate, used on a disease one person in ten thousand has, throw
+
+ON [book] reached by 'what bears noth chance random near before mean'
+  the ledger is trade's memory, and honest ledgers write everything twice — what arrived and where it 
+  the energy books always close at a thermometer — whatever anyone does with energy, the trail ends as

@@ -659,3 +659,60 @@ def h_join(s):
 
 
 HANDS["join"] = h_join
+
+
+def h_carry_chunk(s):
+    """Carry back a ready-made chunk, whole, as written.
+
+    Wall 7 of the language brief: there is not time to construct
+    every phrase at speaking speed, so chunks are carried and only
+    the joints are built. A greeting is the plainest chunk there is.
+    The chunks are written in the knowledge on a CHUNKS line; none
+    is listed here, and with none written this act says so rather
+    than inventing a phrase."""
+    chunks = s.get("chunks") or []
+    if not chunks:
+        s["missing"] = ("no ready-made chunk is written for this, "
+                        "and I will not invent a phrase")
+        s["done"] = True
+        return s
+    n = s.get("chunk_turn", 0)
+    s["line"] = chunks[n % len(chunks)]
+    s["chunk_turn"] = n + 1
+    s.setdefault("said", []).append(s["line"])
+    return s
+
+
+def h_hold(s):
+    """Say the channel is open and hold it — name nothing, wait."""
+    s["holding"] = True
+    s["done"] = True
+    return s
+
+
+HANDS["carry-chunk"] = h_carry_chunk
+HANDS["hold"] = h_hold
+
+
+def rule_for(text, F=None):
+    """Which written procedure, if any, is FOR handling this?
+
+    This is the piece that was missing, and it is the whole
+    difference between knowing and doing. A ribbon crossing an entry
+    that carries a rule for this kind of thing should FOLLOW that
+    rule. Before this, exactly one rule in the fabric was ever run —
+    the one for taking a turn — and every other entry that says how
+    to handle something was being printed at the person instead.
+    """
+    F = F or core.fabric()
+    qm = F.mask(text, learn=False)
+    if not qm:
+        return None
+    best, score = None, 0
+    for e in F.entries:
+        if not e.get("rule"):
+            continue
+        v = bin(e["askm"] & qm).count("1")
+        if v > score:
+            best, score = e, v
+    return best if score >= 1 else None

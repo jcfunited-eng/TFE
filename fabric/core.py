@@ -134,6 +134,7 @@ class Fabric:
                          thread=part("THREAD"),
                          root=part("ROOT"),
                          same=part("MEANS-SAME"),
+                         chunks=part("CHUNKS"),
                          splits=part("SPLITS-INTO"))
                 e["id"] = len(self.entries)
                 e["color"] = self.mask(e["essence"])      # possible face

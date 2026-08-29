@@ -104,3 +104,38 @@ something bigger than a relation between two things.
 Data never enters the knowledge. It rides in on the ribbon —
 including anything fetched from the internet — is used or added to,
 and leaves. That is why the fabric stays small.
+
+## THE CORRECTION THAT MATTERS MOST (Joe, 2026-08-29)
+
+"You know knowledge but do you know how to use knowledge."
+
+He typed "hello" into the page. The fabric found its entry on
+greetings — which says a greeting carries no subject, and hunting
+for one finds whatever is nearest and is wrong every time — and it
+PRINTED THAT SENTENCE AT HIM. It had the knowledge of how to greet
+him and it used it as an answer about greeting.
+
+That is the whole failure, and it is not a bug. It is what a
+retrieval tool does. Everything I built for a day was a better
+lookup: take the words, find the nearest entries, rank them, hand
+the best one back, then improve the ranking. RANKING IS THE TELL.
+If you are improving which entry comes back, you are retrieving.
+
+Using knowledge means the entry that says how to handle a thing
+becomes the HANDLER for that thing. One rule in this fabric is
+actually executed — the procedure for taking a turn. Every other
+entry that says how to do something is being displayed.
+
+Started and NOT finished: interpreter.rule_for() finds the written
+procedure for what came in, and talk.py follows it instead of
+answering. The greeting entry now carries a RULE and a CHUNKS line,
+and two acts were written down for it (carry-chunk, hold). It binds
+and runs, but only the "hold" step binds — so it says nothing
+instead of greeting. One step short. The step-to-act reaching is
+what to look at.
+
+Joe's own words for why this matters: he collected ten degrees and
+watched people who knew less do better, and the epiphany was that
+it does not matter what you know, only what you do with it.
+Knowledge sitting in a brain is worthless. That is the bar for this
+thing, and it is not a metaphor — it is the acceptance test.

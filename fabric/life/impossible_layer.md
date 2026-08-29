@@ -218,3 +218,45 @@ WANT: create a world I can navigate in that obeys physics with grass lands mount
   closed 28 — requirement unmet — No difference without a pump running, so a cell dies the moment its fuel does. (deep living machinery)
   closed 28 — requirement unmet — No being corrected without a way of being wrong. (being something)
   closed 13 — requirement unmet — no contact without wear, and no wear spread evenly by wishing — it goes to the softer face. (deep making things)
+
+WANT: a way to make a thing from a want
+  closed 91 — requirement unmet — no borrowing without leaving something behind — a table's leg never walks; (words and meaning)
+  closed 27 — requirement unmet — no metaphor without a shape both grounds share. (figurative speech)
+  closed 15 — requirement unmet — no life without it, so no recovery from its loss however intact the rest — which is why the legal definition of death is tested here and nowhere else. (deep neuroscience)
+  closed 1 — forbidden together — And no help from adding channels for their own sake: a narration duplicating text on the screen costs more than silence. (deep education)
+
+WANT: a way to keep food cold without electricity
+  closed 121 — forbidden together — no thermostat in a star held up this way — the support no longer cares about heat, so a burst of fusion cannot cool itself by expanding and runs away instead. (deep astronomy and cosmos)
+  closed 106 — forbidden together — And no honest test with a long list removed at once: everything changed together, so nothing can be attributed, which is how people end up eating six foods. (deep nutrition)
+  closed 13 — forbidden together — And no engine at all in surroundings as hot as its own fire. (deep heat light electricity)
+  closed 12 — requirement unmet — no fire without ignition. (chemistry)
+  closed 9 — requirement unmet — And no killing without collateral: the bleach and enzymes used inside the eating cell leak, and the local damage is part of the price. (deep immunity and infection)
+
+WANT: a way to keep food cold without electricity
+  closed 121 — forbidden together — no thermostat in a star held up this way — the support no longer cares about heat, so a burst of fusion cannot cool itself by expanding and runs away instead. (deep astronomy and cosmos)
+  closed 106 — forbidden together — And no honest test with a long list removed at once: everything changed together, so nothing can be attributed, which is how people end up eating six foods. (deep nutrition)
+  closed 13 — forbidden together — And no engine at all in surroundings as hot as its own fire. (deep heat light electricity)
+  closed 12 — requirement unmet — no fire without ignition. (chemistry)
+  closed 9 — requirement unmet — And no killing without collateral: the bleach and enzymes used inside the eating cell leak, and the local damage is part of the price. (deep immunity and infection)
+
+WANT: a way to keep food cold without electricity
+  closed 121 — forbidden together — no thermostat in a star held up this way — the support no longer cares about heat, so a burst of fusion cannot cool itself by expanding and runs away instead. (deep astronomy and cosmos)
+  closed 106 — forbidden together — And no honest test with a long list removed at once: everything changed together, so nothing can be attributed, which is how people end up eating six foods. (deep nutrition)
+  closed 13 — forbidden together — And no engine at all in surroundings as hot as its own fire. (deep heat light electricity)
+  closed 12 — requirement unmet — no fire without ignition. (chemistry)
+  closed 9 — requirement unmet — And no killing without collateral: the bleach and enzymes used inside the eating cell leak, and the local damage is part of the price. (deep immunity and infection)
+
+WANT: a way to keep food cold without electricity
+  closed 3 — forbidden together — no district heating in low-density housing — pipe cost and losses per customer lose to individual boilers every time. (deep cities and infrastructure)
+
+WANT: a way to keep food cold without electricity
+  closed 16 — forbidden together — And no honest test with a long list removed at once: everything changed together, so nothing can be attributed, which is how people end up eating six foods. (deep nutrition)
+  closed 1 — requirement unmet — no fire without ignition. (chemistry)
+  closed 1 — requirement unmet — And no killing without collateral: the bleach and enzymes used inside the eating cell leak, and the local damage is part of the price. (deep immunity and infection)
+  closed 1 — forbidden together — And no engine at all in surroundings as hot as its own fire. (deep heat light electricity)
+
+WANT: a way to keep food cold without electricity
+  closed 16 — forbidden together — And no honest test with a long list removed at once: everything changed together, so nothing can be attributed, which is how people end up eating six foods. (deep nutrition)
+  closed 1 — requirement unmet — no fire without ignition. (chemistry)
+  closed 1 — requirement unmet — And no killing without collateral: the bleach and enzymes used inside the eating cell leak, and the local damage is part of the price. (deep immunity and infection)
+  closed 1 — forbidden together — And no engine at all in surroundings as hot as its own fire. (deep heat light electricity)

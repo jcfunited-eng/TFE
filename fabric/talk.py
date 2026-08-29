@@ -85,6 +85,29 @@ class Talk:
             return ("  I hold no written procedure for taking a "
                     "turn, so I cannot take one. Named rather than "
                     "guessed around.")
+        # Does the knowledge carry a procedure FOR this kind of
+        # thing? If it does, follow it. This is the difference
+        # between knowing and doing: the entry on greetings says a
+        # greeting has no subject and must not be hunted for one —
+        # and the machine used to hand that sentence to the person
+        # instead of acting on it.
+        handler = I.rule_for(text, F)
+        if handler is not None and "take a turn" not in handler["rule"]:
+            hs = dict(words=text, limit=40, thread=self.said,
+                      marked=self.marked,
+                      chunks=[c.strip() for c in
+                              (handler.get("chunks") or "").split("|")
+                              if c.strip()],
+                      chunk_turn=len(self.said))
+            hs, herr = I.follow(handler["rule"], hs, [])
+            if not herr and hs.get("said"):
+                line = hs["said"][-1]
+                self.said.append(line)
+                self.standing = text
+                return f"  {line}"
+            if hs.get("missing"):
+                return f"  {hs['missing']}"
+
         st = dict(words=text, limit=40,
                   thread=self.said, marked=self.marked,
                   thread_words=(self.standing or "") + " " + self.settled,
