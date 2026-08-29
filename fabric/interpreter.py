@@ -67,18 +67,6 @@ def h_carry_left(s):
     return s
 
 def h_count_down(s):
-    """Count one down against the other. When what is being
-    compared is two pieces of knowledge rather than two written
-    numbers, the counting is of the ground each one opens."""
-    if s.get("candidates"):
-        best = None
-        for e, opened in s["candidates"]:
-            if best is None or opened > best[1]: best = (e, opened)
-        if best:
-            s["line"] = best[0]["essence"]
-            s["chosen_opens"] = best[1]
-        s["done"] = True
-        return s
     b = s.get("bundle")
     if not b:
         s["missing"] = ("the rule does not say how big a bundle "
@@ -116,54 +104,75 @@ def h_reach(s):
     return s
 
 def h_judge(s):
-    """Ask whether any law closes what is in front of me. Applied
-    to a set of reached knowledge, it keeps what stands and drops
-    what a law closes, naming the law."""
+    """Test each thing in hand: does any law close it. Leaves a
+    pass or fail on each. Keeps nothing, drops nothing, chooses
+    nothing."""
     F = core.fabric()
-    near = s.get("near")
-    if near:
-        standing, closed = [], []
-        for e in near:
-            L = F.judge(s.get("mask", 0) | e["color"])
-            (closed if L else standing).append(e if not L else (e, L))
-        s["standing"] = standing
-        s["closed_by"] = closed
+    items = s.get("items")
+    if items is None:
+        s["closed"] = F.judge(s.get("pool", s.get("mask", 0)))
         return s
-    s["closed"] = F.judge(s.get("pool", s.get("mask", 0)))
+    s["pass"] = [F.judge(s.get("mask", 0) | e["color"]) is None
+                 for e in items]
     return s
 
 def h_say(s):
-    """Put out the piece of knowledge standing in hand. What is in
-    hand was decided above by the knowledge, never here — and with
-    nothing in hand, this act says nothing and reports why."""
+    """Put out the sentence standing in hand. With nothing in hand
+    it says nothing — silence, which the knowledge calls a lawful
+    move."""
     line = s.get("line")
     if not line:
-        near = s.get("near") or []
-        if near: line = near[0]["essence"]
-    if not line:
-        s.setdefault("said", []).append("")
         s["nothing_in_hand"] = True
         return s
     s.setdefault("said", []).append(line)
-    s["line"] = line
     return s
 
 def h_mark_said(s):
-    """Set aside what has already been said in this thread — and
-    when nothing is in hand yet, this is the setting-aside step,
-    which drops from what stands anything already spoken."""
+    """Remember that the thing in hand was said."""
     line = s.get("line")
-    if line:
-        s.setdefault("marked", set()).add(line)
-        return s
+    if line: s.setdefault("marked", set()).add(line)
+    return s
+
+def h_test_said(s):
+    """Test each thing in hand: has it been said already. Leaves a
+    pass or fail on each."""
     marked = s.get("marked", set())
-    if s.get("standing") is not None:
-        s["standing"] = [e for e in s["standing"]
-                         if e["essence"] not in marked]
-        # what each standing piece opens for the other one
-        other = s.get("other_white", 0)
-        s["candidates"] = [(e, bin(e["color"] & other).count("1"))
-                           for e in s["standing"]]
+    items = s.get("items") or []
+    s["pass"] = [e["essence"] not in marked for e in items]
+    return s
+
+def h_walk_each(s):
+    """Take the things reached as the things in hand, to be worked
+    one for one."""
+    if s.get("items") is None:
+        s["items"] = list(s.get("near") or [])
+    return s
+
+def h_keep_passing(s):
+    """Keep only the things whose last test passed."""
+    items = s.get("items") or []
+    ok = s.get("pass") or [True] * len(items)
+    s["items"] = [e for e, p in zip(items, ok) if p]
+    s["pass"] = None
+    return s
+
+def h_count_shared(s):
+    """Count what each thing in hand shares with the other one's
+    ground. Leaves a number on each; ranks nothing."""
+    other = s.get("other_white", 0)
+    s["num"] = [bin(e["color"] & other).count("1")
+                for e in (s.get("items") or [])]
+    return s
+
+def h_keep_greatest(s):
+    """Keep the thing carrying the greatest number."""
+    items = s.get("items") or []
+    nums = s.get("num") or []
+    if not items: return s
+    if not nums: nums = [0] * len(items)
+    best = max(range(len(items)), key=lambda i: nums[i])
+    s["items"] = [items[best]]
+    s["line"] = items[best]["essence"]
     return s
 
 def h_check_twice(s):
@@ -172,6 +181,11 @@ def h_check_twice(s):
 
 HANDS = {
     "walk-places": h_walk_places,
+    "walk-each": h_walk_each,
+    "test-said": h_test_said,
+    "keep-passing": h_keep_passing,
+    "count-shared": h_count_shared,
+    "keep-greatest": h_keep_greatest,
     "count-up": h_count_up,
     "notice-tens": h_notice_tens,
     "carry-left": h_carry_left,

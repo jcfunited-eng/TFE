@@ -139,11 +139,12 @@ CANNOT: no turn without the acts it needs. No turn taken while
   the other one is still speaking.
 RULE: to take a turn in a conversation — reach for what the
   other one is reaching for, leaning on the thread when what was
-  said is thin; judge what stands there against the laws I hold;
-  set aside whatever has already been said in this thread;
-  compare the ones still standing by what each opens for the
-  other one; say the best of it in its own words; mark it as
-  said.
+  said is thin; take the things reached in hand, every one of
+  them; judge each against the laws I hold; keep the ones that
+  passed; test each for whether it has already been said in this
+  thread; keep the ones that passed; count what each opens for
+  the other one; keep the greatest; say it in its own words;
+  mark it as said.
 THREAD: any written method, the adding rule, a doctor's
   consultation.
 ASKED-AS: take a turn reply respond how do you answer conversation procedure steps method

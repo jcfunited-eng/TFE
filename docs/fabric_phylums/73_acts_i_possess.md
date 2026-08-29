@@ -105,3 +105,48 @@ CANNOT: no checking by the same route twice — a rerun repeats
 THREAD: measuring twice, reconciliation, proof-reading.
 ACT: check-twice
 ASKED-AS: check by a second route confirm agree verify square the answer back reverse
+
+ESSENCE: I can take the things I have reached and hold them as
+  the things in hand, to be worked one for one.
+ROOT: the law of procedures / a task is done to each of its parts.
+CANNOT: no working one for one without things in hand.
+THREAD: sorting post, checking a list, walking a row of plants.
+ACT: walk-each
+ASKED-AS: walk each one for one take the things reached in hand every one of them each thing
+
+ESSENCE: I can test each thing in hand for whether it has already
+  been said, leaving a pass or a fail on each and changing nothing
+  else.
+ROOT: the known before the new.
+CANNOT: no testing for what was said without a thread that
+  remembers.
+THREAD: a checklist, a guest list at a door.
+ACT: test-said
+ASKED-AS: already been said in this thread spoken before test each seen said previously
+
+ESSENCE: I can keep only the things whose last test passed, and
+  let the rest go.
+ROOT: choosing / keeping is the other face of dropping.
+CANNOT: no keeping what passed without a test first.
+THREAD: sieving, sorting fruit, a gate with a rule.
+ACT: keep-passing
+ASKED-AS: keep the ones that passed set aside the rest keeping only drop failed sieve
+
+ESSENCE: I can count, for each thing in hand, how much ground it
+  shares with another's — leaving a number on each and ranking
+  nothing.
+ROOT: mathematics / counting.
+CANNOT: no counting shared ground without another's ground to
+  share it with.
+THREAD: overlap of two maps, common friends, a shared vocabulary.
+ACT: count-shared
+ASKED-AS: count what each opens for the other one shared ground how much overlap common
+
+ESSENCE: I can keep the thing carrying the greatest number and
+  let the others go.
+ROOT: choosing / comparing by one measure.
+CANNOT: no greatest without numbers on the things. No greatest
+  from an empty hand.
+THREAD: an auction, picking the ripest, a race's finish.
+ACT: keep-greatest
+ASKED-AS: keep the greatest largest best of it highest most the winner pick greatest
