@@ -8,9 +8,6 @@ ESSENCE: a yawn spreads by sight, sound, even reading the word —
   (brain-cooling and state-shifting lead; UNSURE).
 ROOT: the living world / kept this long, it pays rent somehow —
   fish do it too.
-CANNOT: no rescuing the schoolbook answer — yawning is NOT low
-  oxygen: pure oxygen doesn't cut it, stale air doesn't raise it;
-  measured, dead.
 THREAD: sleep (it guards the borders, waking and tiring), the
   living world (dogs catch human yawns).
 ASKED-AS: yawning contagious tired boring meeting sleepy morning mouth stretch catching class
@@ -21,9 +18,6 @@ ESSENCE: bath wrinkles are commanded, not soaked — nerves order
   handle wet things better; purpose UNSURE).
 ROOT: the body / the brain runs small machinery unasked — a
   response with wiring, not water seeping in.
-CANNOT: no wrinkling on a finger whose nerve is cut — it soaks
-  all day smooth; that fact killed the sponge story and made a
-  bedside nerve test.
 THREAD: engineering (tire tread channels water the same way),
   survival (wet grip on rock and rope).
 ASKED-AS: pruney fingers toes bathtub pool swimming raisin wrinkly soak shower wet grip
@@ -33,8 +27,6 @@ ESSENCE: goosebumps are the fur-raising order sent to fur we no
   loft a coat against cold or bulk the body out against enemies.
 ROOT: the living world / bodies carry their ancestors' equipment,
   never canceled.
-CANNOT: no warmth from ours — with nothing to loft, the order
-  arrives and buys nothing; the shiver, not the bump, makes heat.
 THREAD: the living world (the puffed bird, the arched cat — done
   for real), music (the chill at a chord — threat wiring on awe;
   UNSURE why).
@@ -46,9 +38,6 @@ ESSENCE: spinning dizziness is an argument between instruments —
   turning, the eyes swear you are not.
 ROOT: physics / a thing keeps doing what it is doing unless
   pushed — the fluid obeys; only the skull stopped.
-CANNOT: no feeling a long steady spin — once the fluid catches
-  up the rings go silent; a pilot in cloud can bank hard and
-  feel level. The ear reads changes only.
 THREAD: flight (instruments outrank the lying ear), dance
   (spotting — snap the head to starve the swirl).
 ASKED-AS: dizzy spinning merry-go-round office chair stop room spins balance carousel twirl staggering
@@ -58,9 +47,6 @@ ESSENCE: brain freeze is the roof of the mouth chilled too fast —
   nerve trunk to be billed to the forehead — the wrong address.
 ROOT: the body / pain names the nerve line, not always the place
   — referred pain.
-CANNOT: no brain freeze from slow cold — the same ice cream in
-  slow bites never rings the bell; the trigger is the rate of
-  cooling, not the cold itself.
 THREAD: medicine (heart attacks billed to the left arm — the
   same wrong address), deep column 50 (cooling speed is rented
   by the gap).
@@ -72,8 +58,6 @@ ESSENCE: a paper cut is a small wound in the worst place — the
   every grip reopens the case.
 ROOT: the body / feeling is budgeted where the work is — pain
   maps wiring, not damage.
-CANNOT: no fair exchange rate from injury to hurt — the same cut
-  on the shoulder would barely file a report.
 THREAD: craft (braille lives under fingertips on the same
   budget), tools (paper cuts like a dull saw — tearing, not
   slicing).
@@ -85,9 +69,6 @@ ESSENCE: you cannot tickle yourself because the brain forecasts
   machine's delay between hand and skin makes it work).
 ROOT: the body / the brain feels the difference between expected
   and arrived, not the raw touch.
-CANNOT: no self-surprise — a signal cannot outrun the command
-  that launched it. The loophole is broken authorship, not
-  effort.
 THREAD: engineering (noise-cancelling headphones subtract a
   forecast the same way), sports (why you can't fake yourself
   out).
@@ -98,9 +79,6 @@ ESSENCE: a hiccup is a two-part reflex — the breathing muscle
   slam is the "hic") — circuit mapped, job unsettled; leading
   stories: a gill-breathing leftover or a nursing aid (UNSURE).
 ROOT: UNSURE — the wiring is known; the purpose is an open case.
-CANNOT: no half hiccup — the pair fires together or not at all;
-  and no talking a reflex down by will — every cure is a nerve
-  trick, none reliable in trials.
 THREAD: the living world (tadpoles pump water with the same
   circuit), infancy (babies hiccup in the womb, before air).
 ASKED-AS: hiccups cure scare sugar water holding breath soda stop diaphragm spasm
@@ -110,8 +88,6 @@ ESSENCE: a stubbed toe hurts in two waves because pain runs on
   slow line arrives a second or more behind and stays to burn.
 ROOT: the body / signals travel at the speed of their wiring —
   insulated lines race, bare lines crawl.
-CANNOT: no merging the report — big pain always arrives headline
-  first, story after; the gap is longest in the longest limbs.
 THREAD: engineering (every network splits fast alarms from slow
   detail), medicine (drugs that quiet one wire, not the other).
 ASKED-AS: stubbed toe bedframe corner delay wave throb hammer thumb barefoot furniture ouch
@@ -122,9 +98,6 @@ ESSENCE: morning stiffness is the chemistry of stillness — joint
   about a centimeter taller).
 ROOT: physics / some fluids thin under motion — the joint's oil
   is one; movement is its own lubricant.
-CANNOT: no storing suppleness by resting — the thinning happens
-  only in use, so the first stiff minutes must be paid again
-  every morning; rest is the cause, not the cure.
 THREAD: machines (engines run rough till the oil warms), medicine
   (arthritis is cruelest at waking — dawn is cortisone's low
   tide).

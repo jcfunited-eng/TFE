@@ -8,9 +8,6 @@ ESSENCE: the table is a map with directions, not a list — rightward
   swell and let go, so position alone gives an element's temper.
 ROOT: chemistry / the seating chart (03) — this floor reads the
   slopes running between the columns.
-CANNOT: no element off the map — Mendeleev left holes and wrote the
-  missing occupants' weights and reactions in advance; every hole
-  was later filled by exactly the predicted thing.
 THREAD: geography (a contour map: position gives slope), music (the
   circle of fifths), medicine (drug design reads position).
 ASKED-AS: chart element square row column metal gas predict unknown new discovered pattern
@@ -20,9 +17,6 @@ ESSENCE: a column is a ranked family, not a set of twins — the same
   the outer electrons farther from the nucleus's grip.
 ROOT: chemistry / the seating chart (03) — same outer count, held
   at different arm's length.
-CANNOT: no member acting against its family — the column fixes the
-  verb and only the volume knob is free, so caesium cannot be calm
-  in water and neon cannot be coaxed into burning.
 THREAD: families of people (the trait runs, the degree varies),
   language (one root, many forces), music (the same note louder).
 ASKED-AS: sodium potassium lithium salt water explode fizz family group violent mild same
@@ -33,9 +27,6 @@ ESSENCE: an ion is an atom that has paid or been paid an electron
   with their opposite face until it lets go.
 ROOT: chemistry / bonds are electric (03) — the pull that built the
   crystal is what the water outbids.
-CANNOT: no lone charge in a glass — a solution stays neutral
-  overall; you cannot pour in the positive halves alone, and every
-  attempt drags the negatives along.
 THREAD: the body (nerves fire by ions crossing walls), farming
   (roots drink only what is dissolved), cleaning (hard water).
 ASKED-AS: salt water dissolve stir sea sweat sports drink minerals tap crystals charge
@@ -46,9 +37,6 @@ ESSENCE: acid and base trade one thing — a bare hydrogen — and
   most and trades a few at a time.
 ROOT: chemistry / acid and base are one currency (03) — this floor
   separates how much from how willingly.
-CANNOT: no acid without a base to take from it — a proton cannot be
-  handed to nothing, so acidity is a relationship, never a property
-  held alone. And no strong acid made weak by watering.
 THREAD: money (a rich miser and a poor spender behave opposite), the
   body (stomach acid is thin and strong), farming (lime is patient).
 ASKED-AS: vinegar lemon battery acid drain cleaner burn stomach dilute strong weak safe
@@ -59,9 +47,6 @@ ESSENCE: pH counts zeros, not amounts — each step of one is a
   times apart.
 ROOT: mathematics / the logarithm — a small number standing in for
   a span too wide to write out.
-CANNOT: no averaging these numbers — pH 3 stirred into equal pH 5
-  is not pH 4; the strong one brings a hundred times more and wins.
-  A lake sliding 6.5 to 5.5 has lost nine tenths of its protection.
 THREAD: earthquakes and loudness (the same zero-counting), money
   (compounding), the body (blood held inside a tenth of a step).
 ASKED-AS: ph scale pool test strip soil acid neutral seven stomach shampoo lake fish
@@ -71,9 +56,6 @@ ESSENCE: a buffer is a pair kept side by side — a weak acid and its
   arriving base by the other, and the pH barely stirs.
 ROOT: chemistry / equilibrium (03) — every arrival is absorbed by
   shifting a standing truce a hair.
-CANNOT: no buffer without a reserve, and so no gentle ending — it
-  holds, holds, holds, then falls off a cliff the moment one half
-  of the pair is spent. The failure is sudden by design.
 THREAD: the body (blood, and the ocean doing the same for the
   planet), money (savings smooth shocks until they don't).
 ASKED-AS: pool chemicals stable steady swing sudden crash reserve soil lime blood aquarium
@@ -84,9 +66,6 @@ ESSENCE: oxidation is losing electrons and reduction is gaining
   the commonest taker; the family is named after a bystander.
 ROOT: chemistry / bonds are electric (03) — every reaction is
   electrons changing owner, and ownership must balance.
-CANNOT: no oxidation without a reduction — half a transaction is
-  not a slow reaction but no reaction, which is why a battery dies
-  the instant one of its halves finishes, however full the other.
 THREAD: money (no sale without a buyer), photography (silver taking
   electrons to darken), the body (iron handing oxygen along).
 ASKED-AS: rust battery bleach tarnish silver corrode electron give take dead flat charge
@@ -98,9 +77,6 @@ ESSENCE: burning, rusting and breathing drop the same fuel to the
   pockets a coin at each rung.
 ROOT: chemistry / one reaction at three speeds (03) — this floor
   asks what sets the speed and answers: the number of steps.
-CANNOT: no body extracting more than the fire could release — the
-  ladder changes what is captured, never the total. And no ladder
-  without machinery: strip the enzymes and a body simply burns.
 THREAD: money (a wage or a lottery lump), engineering (staged
   turbines), water (one waterfall or a mill race of small ones).
 ASKED-AS: fire rust breathing slow burn heat food calories energy steps warm body iron
@@ -111,9 +87,6 @@ ESSENCE: a catalyst works by holding both partners in one exact
   a trace does it.
 ROOT: chemistry / a catalyst offers a cheaper path (03) — the path
   is a physical seat, and a seat can be taken by the wrong guest.
-CANNOT: no catalyst speeding one direction only — it lowers the
-  same hill for traffic both ways in equal measure, which is
-  exactly why it can never move where the balance settles.
 THREAD: the body (a wrong molecule in an enzyme's seat is how most
   poisons work), cars (leaded petrol killed converters in a tank).
 ASKED-AS: enzyme catalytic converter poison unleaded ruined helper fits shape blocked stuck speed
@@ -124,9 +97,6 @@ ESSENCE: a settled reaction is busy, not stopped — traffic runs at
   never move.
 ROOT: chemistry / two rates matching (03) — this floor insists the
   rates are not zero, and that the difference is testable.
-CANNOT: no equilibrium in an open pot — anything with an exit never
-  settles, because one direction is quietly bleeding away; the same
-  reaction runs to the end in a pan and stops halfway in a jar.
 THREAD: a crowded room at constant headcount, the body (bone
   dissolved and rebuilt at a standstill), money (a stable price).
 ASKED-AS: sealed jar lid open pan halfway stuck steady still busy exchange swap balance
@@ -137,9 +107,6 @@ ESSENCE: push a settled reaction and it leans away from the push —
   reaction that would stop at a fifth runs to the end.
 ROOT: chemistry / a settled reaction is busy (this file) — a system
   robbed on one side never reaches its truce.
-CANNOT: no free yield from pushing — the system spends part of
-  every addition undoing your push, so doubling a reagent never
-  doubles the product; the returns bend down from the first spoon.
 THREAD: cooking (boiling a sauce down drives it), farming (harvest
   keeps a field growing), negotiation (pressure breeds resistance).
 ASKED-AS: squeeze pressure push more add extra yield diminishing boil remove drive returns
@@ -150,9 +117,6 @@ ESSENCE: reactions happen where particles meet, so the rate rides
   nine.
 ROOT: physics / the very small runs on chance — meetings are
   collisions, and collisions scale with how many are looking.
-CANNOT: no reaction reaching a truly empty remainder — the last
-  molecules are the loneliest and slowest, so completion is
-  approached and never touched.
 THREAD: cleaning (the last stain costs more than all the rest),
   medicine (finish the course, don't stop at "better").
 ASKED-AS: fizz slows fading weaker last bit stain traces cleanup rinse remaining almost gone
@@ -163,10 +127,6 @@ ESSENCE: heat does not push every molecule over the threshold, it
   climbs steeply rather than gently.
 ROOT: chemistry / every reaction has a price of admission (03) —
   what matters is the fraction that can pay, and that is a tail.
-CANNOT: no gentle runaway — once a reaction's own heat arrives
-  faster than the vessel sheds it, the loop closes and there is no
-  partial outcome: hay barns ignite, batteries vent, whole rooms
-  flash over, and a few degrees separate quiet from catastrophe.
 THREAD: the body (fever as a deliberate few degrees), crowds (a
   mood tipping when enough of the tail moves).
 ASKED-AS: hot faster warm speeds up compost hay fire spreads sudden runaway overheat degrees
@@ -177,9 +137,6 @@ ESSENCE: where two different states of matter react, only the
   sawdust explode where a loaf and a plank merely smoulder.
 ROOT: living world (31) / size sets the rules — cutting a thing in
   half adds new faces without adding any matter.
-CANNOT: no reaction inside a lump — the interior waits its turn and
-  cannot be hurried by any amount of oxygen or acid outside; a
-  solid burns from the skin inward, always.
 THREAD: the body (gut and lung are surfaces folded small), cooking
   (mince browns, a roast does not), medicine (a crushed tablet).
 ASKED-AS: powder dust explosion sawdust flour grind crush chopped whole lump faster surface
@@ -190,9 +147,6 @@ ESSENCE: every solvent has a ceiling for every guest at every
   at the bottom.
 ROOT: chemistry / a settled reaction is busy (this file) — the
   undissolved pile is one side of a standing trade.
-CANNOT: no stirring past the ceiling — a spoon shortens the trip to
-  the limit and cannot lift it by a grain; sugar that dissolves in
-  seconds instead of minutes is still the same last spoonful short.
 THREAD: cooking (a syrup that will take no more), the body (gout
   and kidney stones are ceilings quietly exceeded).
 ASKED-AS: sugar tea stir undissolved bottom saturated more wont dissolve limit syrup hot cold
@@ -203,9 +157,6 @@ ESSENCE: past the ceiling the extra must leave, and it leaves in
   growth purifies and fast growth traps whatever stands nearby.
 ROOT: chemistry / solubility has a ceiling (this file); deep water
   (50) / a crystal needs a starting corner before it needs room.
-CANNOT: no pure crystal grown in a hurry — purity is bought with
-  time, so the chemist cools slowly for a clean solid and the
-  confectioner cools fast for grit. One dial, turned two ways.
 THREAD: geology (big mineral crystals mean slow underground
   cooling), cooking (fudge, rock candy, honey going grainy).
 ASKED-AS: rock candy crystals sugar honey grainy fudge smooth slow cooling pure clear
@@ -217,9 +168,6 @@ ESSENCE: a mixture keeps its parts' tempers and can be sorted by
 ROOT: chemistry / bonds are electric (03) — a mixture shares a
   room, a compound shares electrons, and only the second is a
   change of identity.
-CANNOT: no sieve, magnet, filter or spin undoing a compound —
-  physical tricks separate roommates, never marriages. And no
-  reading a compound's behaviour off its ingredients'.
 THREAD: cooking (a salad can be picked apart, a cake cannot),
   people (a crowd versus an institution), music (two notes, a third
   quality).
@@ -231,10 +179,6 @@ ESSENCE: boiling separates by eagerness to leave — the vapour above
   that same pass stacked a hundred times.
 ROOT: chemistry / like dissolves like (03) — the parts still hold
   each other in the liquid, so each escape is a partial win.
-CANNOT: no pure spirit from a still — some pairs reach a ratio that
-  boils away unchanged and there distillation stops dead: alcohol
-  and water lock near 96%, and no column length passes it. The wall
-  lives in the pair, not the equipment.
 THREAD: refining (one crude, many products, one column), weather
   (rain is planet-scale distillation, salt left behind).
 ASKED-AS: whisky still moonshine alcohol proof petrol refinery boiling separate purify vodka water
@@ -245,9 +189,6 @@ ESSENCE: let a mixture race along a standing material while a
   weight here, only by loyalty.
 ROOT: chemistry / like dissolves like (03) — a preference between
   two hosts, cashed out as a delay.
-CANNOT: no separating two substances of identical loyalty — no
-  length of paper and no patience; true twins arrive together
-  forever. Where there is no preference there is no method.
 THREAD: money (a tiny per-trade edge compounding over a million
   repetitions), evidence (drug tests, forensics, food fraud).
 ASKED-AS: ink pen paper water spreading colours separate test lab drug dots stain race
@@ -258,9 +199,6 @@ ESSENCE: a polymer is one small unit repeated, and length alone —
   as plastic and rubber.
 ROOT: chemistry / carbon bonds to itself (this file) — endless
   repetition needs a unit that will join its own kind.
-CANNOT: no strength without tangle — below a certain length a
-  polymer is a grease however pure, because the strength is
-  friction between chains, not the strength of any bond in them.
 THREAD: rope (short fibres made strong by twisting), the body
   (proteins and starch are chains; length and folding decide all).
 ASKED-AS: plastic rubber wax candle nylon stretchy chain long short bag bottle tough
@@ -271,9 +209,6 @@ ESSENCE: plastic lasts not because its bonds are unbreakable but
   ancestors met.
 ROOT: living world (31) / everything eats something — decay is a
   food chain, not a property of matter.
-CANNOT: no decay without a decomposer. And no escape by sunlight
-  either: light snaps the chains and keeps the parts, so a bag
-  becomes smaller plastic, never other substance.
 THREAD: farming (a compost heap is livestock, not a bin), medicine
   (the body cannot clear what it has no tool for), law (rules
   written for things that rot fit things that don't badly).
@@ -285,10 +220,6 @@ ESSENCE: carbon makes four strong bonds and makes them to itself as
   temperature of a body.
 ROOT: physics / exclusion — four outer places, four partners, and
   an atom small enough to hold them close and firm.
-CANNOT: no long backbone from an element that will not grip its own
-  kind — silicon has the same four hands, a weak hold on itself,
-  and a burnt form that is sand rather than a gas, so a silicon
-  creature could not exhale. Life's chemistry was not a free choice.
 THREAD: heredity (the code is written on a carbon spine), building
   (a frame that carries any facade).
 ASKED-AS: carbon organic living diamond graphite oil sugar chains life alien silicon based
@@ -299,9 +230,6 @@ ESSENCE: a molecule's behaviour lives in the small clusters hung
   changes trade, keep it and the habits survive any size.
 ROOT: chemistry / bonds are electric (03) — reaction happens where
   charge sits unevenly, and the groups are where it is uneven.
-CANNOT: no reaction from a molecule with no group — plain
-  hydrocarbon chains are famously dull, burning and otherwise
-  ignoring the world, which makes them fine fuels and poor drugs.
 THREAD: language (roots carry topic, endings carry work), tools
   (one handle, many heads), medicine (one frame, varied ends).
 ASKED-AS: alcohol acid smell sugar soap oil molecule part end reacts group family drug
@@ -312,10 +240,6 @@ ESSENCE: two substances can hold the very same atoms in the very
   ingredients, never identity.
 ROOT: chemistry / bonds are electric — what other molecules meet is
   a shape, and meeting is all that chemistry has.
-CANNOT: no identifying anything by composition alone — a laboratory
-  reporting which atoms are present and not how they are joined has
-  weighed a substance without naming it, and the two answers can be
-  a sugar and a poison.
 THREAD: language (a word and its anagram), music (the same notes as
   a chord or a stumble), cooking (same things, different order).
 ASKED-AS: same ingredients different result formula molecule arrangement shape sugar swap order twins
@@ -326,11 +250,6 @@ ESSENCE: many molecules come in left- and right-handed versions,
   handed parts, so it grips one twin and ignores the other.
 ROOT: chemistry / arrangement is identity (this file) — handedness
   is arrangement that no turning can undo.
-CANNOT: no left hand fitting a right glove — one twin can be
-  medicine and its mirror useless or harmful, and no dose fixes
-  that. And no ordinary reaction making one hand alone: mirror
-  chemistry yields both equally, which is why life being all one
-  hand is a genuine unsolved puzzle.
 THREAD: smell (caraway and spearmint are one molecule mirrored),
   screw threads, gloves.
 ASKED-AS: left right hand mirror gloves screw thread twins medicine smell mint caraway
@@ -341,10 +260,6 @@ ESSENCE: soap's two-handed molecules do little alone — above a
   grease leaves inside the ball.
 ROOT: cleaning (18) / soap is the paid mediator — this floor adds
   that the mediator only works in a crowd.
-CANNOT: no cleaning below the crowding threshold — half the soap
-  does not clean half as well, it barely cleans at all. And no soap
-  surviving hard water: the rock's minerals seize soap's watery
-  hand and drop it as scum, which is why detergents were invented.
 THREAD: the body (bile does this to fat at every meal; cell walls
   run on the same two-handed logic), crowds (thresholds).
 ASKED-AS: soap dish washing suds grease bubbles hard water scum detergent enough rinse little
@@ -355,10 +270,6 @@ ESSENCE: dissolving is bookkeeping, not affection — a solvent must
   dear, so water refuses whatever cannot repay in kind.
 ROOT: chemistry / like dissolves like (03) — this floor gives the
   reason under the rule.
-CANNOT: no universal solvent — a liquid that dissolved everything
-  would dissolve its own bottle, its pipeline and the hand carrying
-  it, so the thing is not undiscovered but incoherent. Every
-  solvent is a specialist, and its refusals are its skills.
 THREAD: money (a deal closes only if both sides' costs are met),
   medicine (a drug must be soluble twice: in the pill, in the body).
 ASKED-AS: water alcohol acetone thinner grease dissolve wont mix refuses paint remover universal bottle
@@ -369,10 +280,6 @@ ESSENCE: a smell is not in the molecule — it is the report of which
   read from three cones rather than looked up in a table.
 ROOT: chemistry / arrangement is identity (this file) —
   recognition is one shape meeting another.
-CANNOT: no smell without flight — a substance with no vapour has no
-  smell whatever it would do to you, so glass and stone are
-  odourless; and the deadliest gases are often those that fly
-  freely and fit nothing. A nose detects shapes, not dangers.
 THREAD: colour (three sensors, millions of shades), memory (smell
   wired nearest the old rooms), cooking (a blocked nose flattens).
 ASKED-AS: smell nose perfume gas leak odourless carbon monoxide fragrance stink taste flowers
@@ -383,9 +290,6 @@ ESSENCE: chemistry happens by count and the bench works by weight,
   too small and far too many to be counted one by one.
 ROOT: physics / matter comes in discrete pieces — a count exists to
   be converted, even where no one can do the counting.
-CANNOT: no reaction reading grams — reactions pair particle with
-  particle, so equal weights of two substances are wildly unequal
-  crowds, and a recipe written in weights alone is a translation.
 THREAD: money (weighing coins for a count), farming (seed sold by
   weight and planted by count), baking (eggs by number, flour by
   scale — the same two languages in one recipe).
@@ -396,9 +300,6 @@ ESSENCE: a reaction stops when the first partner runs out, and not
   power; the yield is set by the scarcest ingredient alone.
 ROOT: chemistry / reactions rearrange, never create (03) — nothing
   can be built from a partner that is not there.
-CANNOT: no yield beyond the scarcest partner — doubling the
-  plentiful one adds nothing but waste and cleanup, which is why an
-  engine starved of air makes soot from fuel it cannot burn.
 THREAD: cooking (one egg short is one cake short, however much
   flour), the body (one missing vitamin halts a whole pathway),
   building (a project runs at the pace of its rarest part).
@@ -410,9 +311,6 @@ ESSENCE: breaking bonds costs and making them pays, so a reaction's
   pulling warmth in from the hand that holds them.
 ROOT: physics / energy is never created or destroyed — the heat you
   feel is a balance struck, not a substance released.
-CANNOT: no reaction both making stronger bonds and growing colder —
-  the ledger decides, and it cannot be argued with. And no free
-  heat: every warm reaction is spending a stock laid down earlier.
 THREAD: money (profit is the gap between two ledgers, not the size
   of either), the body (a cold pack and a hand warmer are the same
   arithmetic with the sign flipped).
@@ -424,9 +322,6 @@ ESSENCE: strong bonds hold a molecule's frame and weak ones do its
   must be reversible and a strong bond is a commitment.
 ROOT: chemistry / bonds are electric (03) — charge can be shared
   hard or merely leaned on, and the lean is what can be undone.
-CANNOT: no reversible grip from a strong bond — this is why the two
-  strands of heredity are laced by many weak holds rather than a
-  few strong ones: they must be opened daily and closed again.
 THREAD: heredity (zipping and unzipping), the body (every signal is
   a molecule that must let go again), agreements (a handshake and a
   mortgage differ exactly here).
@@ -439,9 +334,6 @@ ESSENCE: a gas has no shape and no size of its own — it takes the
   to go.
 ROOT: physics / temperature is molecular motion — a gas's push is
   simply its molecules drumming on the wall.
-CANNOT: no half-full gas container — a gas always fills whatever
-  holds it, so there is no such thing as a jar of gas with room to
-  spare. And no sealed heating without a rising push.
 THREAD: cooking (a pressure cooker is this law in a lid), weather
   (rising air cools by expanding), diving (the same law, run at
   depth, decides how long a lung may stay down).
@@ -453,10 +345,6 @@ ESSENCE: boiling is a contest with the air above — a liquid boils
   liquid alone.
 ROOT: chemistry / a gas pushes on its container (this file) — the
   atmosphere is the lid, and the lid can be raised or lowered.
-CANNOT: no cooking by boiling harder — at altitude the water boils
-  at 90°C and stays there, and food simply does not cook, because
-  the pot's ceiling is a temperature, not a flame. Turning the heat
-  up adds bubbles and not one degree.
 THREAD: cooking (pressure cookers raise the lid; mountains lower
   it), medicine (sterilising needs pressure, not just boiling),
   engineering (a boiler's rating is a pressure statement).
@@ -469,10 +357,6 @@ ESSENCE: anything dissolved gets in the way of freezing and clings
 ROOT: chemistry / a solution is a crowd (this file) — the guest
   molecules block the crystal's neat assembly and weigh on the
   liquid's escape.
-CANNOT: no pure-water freezing point in salty water — sea ice
-  forms at about -2°C and the salt is largely squeezed out as it
-  goes, so sea ice is nearly fresh. The freezing water rejects its
-  own guests.
 THREAD: roads (salt and grit), cooking (ice cream churned in
   brine), the body (blood and cells matched in saltiness or the
   cells burst or shrivel).
@@ -484,10 +368,6 @@ ESSENCE: left alone, molecules spread from crowded to empty by
   days.
 ROOT: physics / the very small runs on chance — a random walk
   covers ground slowly and evenly.
-CANNOT: no large living thing without plumbing — spreading alone
-  cannot feed anything thicker than about a millimetre, which is
-  why every big body has a heart, and why a still room needs a fan
-  to smell what is on the far side of it.
 THREAD: the body (lungs and blood exist because spreading fails at
   scale), cooking (a marinade takes days to reach a joint's middle),
   cities (the same law: local is fast, distant needs infrastructure).
@@ -499,10 +379,6 @@ ESSENCE: some reactions make their own successor — one reactive
   is stopped.
 ROOT: chemistry / reactions need a threshold — a chain pays that
   price once at the start and never again.
-CANNOT: no stopping a chain by removing fuel alone — the chain ends
-  when two fragments meet and cancel, or when a terminator eats one
-  and holds still, which is the whole job of an antioxidant and of
-  a fire retardant.
 THREAD: crowds (a rumour makes rumourers), disease (each case makes
   the next), the pantry (rancid fat spreading through a bottle from
   one bad start).
@@ -514,10 +390,6 @@ ESSENCE: fire stands on three legs — fuel, an electron-taker, and
   way to fight one.
 ROOT: chemistry / burning is oxidation with a threshold (03) — each
   leg is one requirement of that same sentence.
-CANNOT: no fire missing a leg, and no universal extinguisher —
-  water cuts the heat leg and is exactly wrong on burning oil,
-  where it flashes to steam beneath and throws the oil upward. The
-  right cure depends on which leg is cheapest to cut.
 THREAD: medicine (an outbreak needs germ, route and host — break
   any), crime (means, motive, opportunity), engineering (any chain
   of necessary conditions is a menu of cures).
@@ -529,9 +401,6 @@ ESSENCE: you cannot argue a metal out of wanting oxygen, so you
   any of it remains.
 ROOT: chemistry / oxidation is a transaction (this file) — the
   greedier giver is served first, and the queue is a real order.
-CANNOT: no protection outlasting the sacrifice — the zinc is
-  consumed by the job and must be replaced, so this defence has a
-  meter running on it, unlike a paint that merely hides.
 THREAD: the body (an antioxidant is a sacrificial molecule doing
   precisely this), leadership (a decoy that draws the blow), law
   (an indemnity is someone standing in the queue for you).
@@ -543,11 +412,6 @@ ESSENCE: everything on the chemistry floor is electrons trading —
   reaches down there.
 ROOT: physics / matter comes in discrete pieces — chemistry only
   ever rearranges the outsides of them.
-CANNOT: no neutralising radioactivity — you cannot burn it, dilute
-  its danger away, or react it into safety; the only two answers
-  are distance and time, and the time is fixed per atom by chance
-  alone, which is why a fierce waste is short-lived and a long-lived
-  one is faint.
 THREAD: energy (the whole nuclear waste question rests on this one
   cannot), medicine (a tracer stays a tracer whatever it is bound
   into), geology (clocks in rock, unstoppable and therefore honest).
@@ -559,10 +423,6 @@ ESSENCE: a pure metal is soft because its layers of atoms slide
   a metal hard.
 ROOT: chemistry / arrangement is identity (this file) — the useful
   property here lives in the packing, not in the elements.
-CANNOT: no hard pure metal, and no going back — pure copper cannot
-  hold an edge and pure iron bends; the hardness is bought with
-  impurity, so a stronger alloy is nearly always a less pure and
-  less recyclable one.
 THREAD: building (the whole bronze and steel story), society (a
   perfectly uniform group slides; friction comes from difference),
   cooking (sugar in a syrup stopping crystals from marching).
@@ -573,11 +433,6 @@ ESSENCE: glass is a liquid caught standing — cooled faster than its
   never made crystals at all.
 ROOT: chemistry / slow growth orders, fast growth traps (this file)
   — glass is that law taken to its extreme.
-CANNOT: no melting point for glass — it has no ordered structure to
-  come undone at one temperature, so it softens over a range
-  instead, which is why it can be blown and drawn. And no clean
-  splitting: with no grain to follow, it breaks by running a crack
-  wherever the stress leads.
 THREAD: geology (obsidian is lava chilled this way), cooking (a
   hard candy is glass made of sugar, and it goes sticky by slowly
   finding its crystals again), materials (metal glasses).
@@ -589,10 +444,6 @@ ESSENCE: between dissolved and settled there is a third state —
   blood.
 ROOT: chemistry / spreading is driven by chance (this file) — the
   same jostling that mixes also holds small particles aloft.
-CANNOT: no seeing through one — a true solution is clear because
-  its guests are smaller than light's stride, while these particles
-  are big enough to scatter it, so cloudiness is a size report, not
-  a dirtiness report. Clear does not mean clean.
 THREAD: weather (fog and cloud are this, in air), cooking (an
   emulsion is this and it separates when the particles find each
   other), medicine (blood's cells are carried, never dissolved).
@@ -604,11 +455,6 @@ ESSENCE: a substance's colour is a readout of its bonding — it
   molecule is put together.
 ROOT: light (34) / pigment owns no light, it refuses some back;
   this floor says which, and why.
-CANNOT: no colour change without a structural change — which is
-  what makes an indicator possible: litmus turns because losing a
-  proton rearranges its bonds and moves the gap. Colour is
-  therefore evidence, and a chemist who sees a change has already
-  been told something happened.
 THREAD: medicine (a test strip is this law sold in a bottle),
   cooking (a red cabbage juice as a home indicator), evidence (the
   cheapest instrument in any laboratory is a visible change).

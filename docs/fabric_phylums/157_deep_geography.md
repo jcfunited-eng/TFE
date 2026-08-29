@@ -12,11 +12,6 @@ ESSENCE: latitude is a ration of sunlight. Near the equator the sun
   that ration.
 ROOT: astronomy / a ball lit from one side spreads the same beam of
   light over more and more ground the further it is tilted away.
-CANNOT: no long growing season at high latitude, so no crop there
-  that needs more warm days than the summer contains — the limit is
-  the calendar and not the farmer. And no equatorial place with a
-  real winter to kill pests and force seed to rest: what the tropics
-  gain in warmth they pay for in never getting a break.
 THREAD: farming (planting windows written by the tilt), deep earth
   (the desert belts), the body (skin making a vitamin only from a
   steep enough sun).
@@ -30,11 +25,6 @@ ESSENCE: water forgives and land does not. A coast keeps a narrow,
 ROOT: physics / water stores far more heat per degree than rock or
   soil, and it stirs downward, so it smooths out what dry land
   amplifies.
-CANNOT: no maritime mildness far from a sea, whatever the latitude,
-  so no comparing two places by their latitude alone. And no
-  continental interior with a gentle year: the smoothing is a
-  property of the neighbour, and an interior has no such neighbour
-  to borrow from.
 THREAD: weather (the sea breeze is this in miniature), farming
   (frost dates set by the nearest water), building (a house designed
   for a swing rather than for a level).
@@ -46,11 +36,6 @@ ESSENCE: a mountain range wrings the air out. Wind pushed uphill
   a desert within sight of each other.
 ROOT: physics / rising air expands and cools, and cold air cannot
   hold the water that warm air was carrying.
-CANNOT: no wet far side unless the weather has a way round the
-  barrier, so no reading a desert as a failure of the sky — it is a
-  receipt from the ridge upwind. And no range that blocks weather
-  from both directions: whichever way the wind usually comes decides
-  which slope is the green one.
 THREAD: weather (why one valley farms and the next irrigates),
   rivers (nearly all the flow born on one face), the living world
   (species split apart by a wall of dryness).
@@ -64,10 +49,6 @@ ESSENCE: mountains do not stop people, they funnel them. A range is
 ROOT: movement / cost rises so steeply with slope that a longer flat
   route beats a short steep one nearly every time, which collapses
   all the traffic onto the same few lines.
-CANNOT: no army or trade route that can ignore the passes, so no
-  defending a range everywhere — you hold the gaps and let the rock
-  do the rest. And no cheap alternative once a pass is held: going
-  round is not a detour, it is usually a different country.
 THREAD: war (a chokepoint on land), trade (the toll town that
   outlives its toll), language (dialects kept apart by walls).
 ASKED-AS: mountain pass road crossing armies border valleys blocked route trade forts through
@@ -80,11 +61,6 @@ ESSENCE: a river has already cut the only gentle line through rough
 ROOT: water has spent millions of years surveying the flattest route
   to the sea, and anything that dislikes gradients inherits that
   survey for nothing.
-CANNOT: no independent routes through a gorge — the corridor
-  carrying everything can be cut at one point, which is why valleys
-  are both rich and dangerously concentrated. And no cheap way
-  round: the alternative was rejected by the river for the same
-  reasons the engineer will reject it.
 THREAD: transport (a survey nobody had to pay for), war (a defile is
   a valley read as a trap), infrastructure (every service in one
   trench).
@@ -97,11 +73,6 @@ ESSENCE: the first great states sat on rivers that flooded on a
   surplus you can build a kingdom around.
 ROOT: farming / soil is spent by cropping unless something replaces
   it, and a river carrying ground-up mountains replaces it free.
-CANNOT: no permanent farming on the same ground without a nutrient
-  delivery, so no thousand-year field without either a flood or a
-  manure system behind it. And no river state on an unpredictable
-  river: a flood that comes at random cannot be planned around, only
-  survived.
 THREAD: soil (fertility as a delivery rather than a property), power
   (a state built on a countable harvest), water (irrigation as the
   flood repeated by hand).
@@ -115,11 +86,6 @@ ESSENCE: before engines, water carried freight for almost nothing
 ROOT: physics / floating removes nearly all the friction, so the
   cost of shifting a ton drops enormously the moment it leaves the
   axle.
-CANNOT: no long-distance overland trade in bulky cheap goods —
-  grain, stone, coal and timber do not travel far by cart, so no
-  inland market for them without water. And no navigable river
-  without depth, a gentle fall and a mouth that stays open: most
-  rivers on a map are not routes.
 THREAD: money (transport cost as a wall around a market), cities
   (the head of navigation as a town-maker), engineering (canals as
   rivers built where none was).
@@ -132,10 +98,6 @@ ESSENCE: towns grow where a cargo has to change vehicles. Where the
   where a load had to be put down.
 ROOT: money / handling is the expensive part of moving anything, so
   wherever handling is forced, business collects around the stop.
-CANNOT: no such town where the journey runs straight through — cut a
-  canal past the rapids and the settlement that lived on the portage
-  has nothing left to sell. And no transfer point that stays
-  neutral: whoever controls the handover controls the trade.
 THREAD: trade (the toll follows the transfer), logistics (cost
   driven by the number of touches), history (a place outliving the
   reason it exists).
@@ -148,11 +110,6 @@ ESSENCE: a good harbour is a rare accident — deep water close in,
   coast can hold almost no ports.
 ROOT: several unrelated requirements must all hold at the same spot,
   and independent requirements multiply into rarity.
-CANNOT: no port without shelter — an exposed anchorage is unusable
-  on exactly the days ships most want to be inside it. And no
-  harbour worth anything without a hinterland: a perfect bay with
-  mountains behind it and nobody to trade with stays a fishing
-  village forever.
 THREAD: chance (rarity built from stacked conditions), trade (the
   sea as a road needing a doorway), building (breakwaters as
   harbours bought rather than found).
@@ -165,11 +122,6 @@ ESSENCE: for most of history the sea was the fast road and the land
   around a water, and why their maps look inside out to us.
 ROOT: transport / cost per distance, not distance, decides who is
   near whom, and water cost a fraction of what land cost.
-CANNOT: no reading old nearness off a modern road map — the
-  neighbours were across the water and the interior was the
-  frontier. And no sea-bound world without a closed season: winter
-  storms shut the road, so those worlds worked half the year and
-  waited out the other half.
 THREAD: trade (a route is a price, not a line), language (tongues
   spreading along shores rather than inland), war (sea power as the
   ability to be anywhere on one coast).
@@ -182,11 +134,6 @@ ESSENCE: an island gets less of everything — fewer species, fewer
   missing ordinary things at the same time.
 ROOT: the living world / arrival across a barrier is rare, and a
   small population then changes and loses things fast on its own.
-CANNOT: no island carrying the full range of a mainland — the water
-  filters the arrivals, so the list is always short and lopsided.
-  And no island that is safe both ways: the same isolation that kept
-  invaders and plagues out leaves everything there defenceless on
-  the day something finally gets across.
 THREAD: heredity (small populations drifting), medicine (an
   unexposed population meeting a common disease), power (a state
   that is an island only while it rules the water).
@@ -201,11 +148,6 @@ ESSENCE: some wealth sits in a spot and some is smeared over a
 ROOT: geography / where value is concentrated on the ground, the
   cost of capturing all of it is small, and anything cheap to
   capture is eventually captured.
-CANNOT: no long insurgency financed by a scattered crop — a
-  rebellion needs a revenue it can hold with the force it has, so
-  the fighting collects wherever the money is compact. And no
-  keeping the mine out of politics by good intentions: the geography
-  sets the size of the prize, and the prize picks the players.
 THREAD: war (a chokepoint is this same idea applied to a route),
   power (who can take a thing decided by where it physically sits),
   economy (an industry's shape following its geology).
@@ -219,10 +161,6 @@ ESSENCE: a landlocked country's trade is not its own. Every export
 ROOT: movement / every handover between authorities is a place where
   a shipment can be taxed, delayed or refused, and each such place
   multiplies the risk of the whole journey.
-CANNOT: no dependable trade through an undependable neighbour, so no
-  landlocked exporter of anything bulky or time-sensitive. And no
-  fixing it with roads alone: the paperwork and the goodwill are the
-  binding constraint, and neither is built out of concrete.
 THREAD: logistics (cost driven by the number of joins), power (a
   transit route as leverage), law (treaties of access as the real
   infrastructure).
@@ -236,11 +174,6 @@ ESSENCE: good farmland needs several unrelated things in the same
 ROOT: farming / a crop grows only as far as whatever it has least
   of, so the useful ground is the overlap of every requirement
   rather than the sum of them.
-CANNOT: no growing the world's staple crops wherever there happens
-  to be soil — most of it is too dry, too cold, too steep or too
-  short in season, and none of those is a matter of effort. And no
-  trading one condition for another: water will not move a frost
-  date, and fertiliser will not flatten a hillside.
 THREAD: farming (irrigation as the purchase of exactly one missing
   condition), trade (a world fed out of a few regions and the
   shipping that follows from it), chance (a combination that is rare
@@ -254,10 +187,6 @@ ESSENCE: warmth without a winter lets parasites work all year and
   out to things too small to see.
 ROOT: the living world / a cold or dry season halts or kills most
   carriers, and a place with neither gets no annual reset.
-CANNOT: no natural break in transmission where there is no winter
-  and no dry season, so no waiting an outbreak out there. And no
-  comparing two regions' output without this term: it appears in no
-  account anywhere and is present in every single year.
 THREAD: medicine (drainage and screens beating any cure), history
   (settlement stopped at a disease line rather than a mountain),
   money (a tax on everything, collected by insects).
@@ -271,11 +200,6 @@ ESSENCE: climbing is walking north. Every thousand metres up takes
   wanted was kept.
 ROOT: physics / air cools as it rises and thins, and it does so at a
   rate that dwarfs any change over the same distance sideways.
-CANNOT: no cool season in a tropical lowland, so no growing a
-  cold-climate crop there except by going upward. And no free
-  upgrade: high ground buys mildness and charges thin air, hard
-  night frosts, steep fields and a much shorter list of crops that
-  will set seed at all.
 THREAD: farming (crops sorted into bands up a hillside), the body
   (thin air and the lungs that adapt to it), weather (the same lapse
   rate that builds clouds).
@@ -290,11 +214,6 @@ ESSENCE: the world has only a handful of climates and they turn up
 ROOT: weather / the wind belts and ocean currents are arranged by
   the planet's spin and tilt, so their pattern repeats wherever
   there is land for it to land on.
-CANNOT: no climate unique to one country, so no crop that can only
-  be grown in one place for reasons of climate — a competitor exists
-  at the mirrored latitude somewhere. And no moving a crop between
-  mismatched climates by effort: the match is not part of the
-  requirement, it is the whole of it.
 THREAD: farming (a crop's range is a climate and not a country), the
   living world (introduced species that arrive and find home), trade
   (rivals in the other hemisphere harvesting six months out of
@@ -309,11 +228,6 @@ ESSENCE: dealings fall off with distance, steeply and reliably. Most
 ROOT: every crossing costs time, money and attention, and those
   costs are paid per journey — so the far option loses a thousand
   small decisions rather than one big one.
-CANNOT: no map of connections that is not mostly local, so no
-  reading a strong local pattern as evidence of anything except
-  distance. And no abolishing this with cheap communication: it
-  flattens for words and stays steep for everything that needs a
-  body in the room.
 THREAD: trade (a market shaped like the cost of reaching it), people
   together (friendship built out of repeated accident), transport
   (traffic predicted from sizes and separation alone).
@@ -327,11 +241,6 @@ ESSENCE: settlements sort themselves into sizes. Many villages with
 ROOT: money / a specialty needs a market big enough to keep it busy,
   and the market is whatever population lies inside a trip people
   will actually make.
-CANNOT: no rare service in a small place — the surgeon, the court
-  and the concert hall cannot be everywhere, so their spacing is
-  arithmetic and not neglect. And no even spread of settlement
-  sizes: the pattern is always a few big, some middling and many
-  small, in every country ever counted.
 THREAD: history (density as specialisation made physical), economy
   (scale deciding how many suppliers fit), transport (the tolerable
   journey as the real boundary).
@@ -345,11 +254,6 @@ ESSENCE: some countries have one city many times larger than the
 ROOT: power / when permissions are held in one building, distance
   from that building is a business cost, and firms will pay to avoid
   paying it.
-CANNOT: no correcting such a city by moving one ministry — the pull
-  is the whole bundle of decisions, and the bundle has to move. And
-  no concentration like it where authority and infrastructure were
-  genuinely spread: countries with several old rival centres do not
-  produce one.
 THREAD: government (the capital as a place and not only an office),
   economy (crowding paying for its own congestion), history (a port
   built to face outward rather than to serve inland).
@@ -363,11 +267,6 @@ ESSENCE: a place has two addresses. Its site is the ground itself —
 ROOT: value comes out of relations, and a relation can be altered by
   events a thousand miles away while the soil stays exactly where it
   has always been.
-CANNOT: no explaining a city's fortune from its site alone — the
-  same hill is a fortress, a slum and a viewpoint in three different
-  centuries. And no permanent situation: a new canal, a lost empire
-  or a closed border can move a place from the middle of the world
-  to the edge of it without anybody visiting.
 THREAD: money (an asset repriced by something it does not contain),
   history (empires ending where their routes end), war (a pass that
   matters only while somebody wants through it).
@@ -381,10 +280,6 @@ ESSENCE: the reason a city was founded almost never outlives it. The
 ROOT: people together / once the schools, roads, pipes, customers
   and neighbours exist, the cost of the place has been paid, and
   leaving means paying it again somewhere else.
-CANNOT: no city dying merely because its industry did — decline is
-  slow, ugly and partial, and it is not a closure. And no moving one
-  deliberately except at ruinous cost: buildings can be built
-  anywhere, and the accumulated relationships cannot.
 THREAD: history (early accidents locked in), economy (sunk cost
   working as a real force rather than a fallacy), infrastructure
   (pipes and lines nobody would lay again today).
@@ -398,11 +293,6 @@ ESSENCE: every centre has a catchment, and the boundary between two
 ROOT: distance decay / people use the nearest adequate option, so a
   centre's territory is decided jointly by its own pull and by its
   rivals'.
-CANNOT: no catchment boundary without a competitor — an edge exists
-  only because there is another centre on the far side, so an
-  isolated centre has no edge at all, only a fading. And no fixed
-  catchment: build a bypass and a market town's ground transfers to
-  a city overnight.
 THREAD: economy (a market's real extent), transport (a bypass moving
   trade rather than easing it), government (service boundaries drawn
   on a map fighting boundaries drawn by behaviour).
@@ -415,11 +305,6 @@ ESSENCE: a border drawn on a river looks obvious and works badly —
   nothing at all, and that is very often exactly why it was chosen.
 ROOT: a boundary is a promise about where authority stops, and the
   ground offers no line that is naturally a promise.
-CANNOT: no river boundary that stays put — the channel shifts, so
-  the treaty must say whether the line follows it, and the argument
-  is built in from the first day. And no border without a cost: a
-  line that follows the land splits a people, and a line that
-  follows a people splits the land.
 THREAD: law (a title needing a describable edge), war (the frontier
   as an expense), rivers (one water claimed by two authorities).
 ASKED-AS: border river changed course straight lines map ridge watershed why drawn there dispute
@@ -431,11 +316,6 @@ ESSENCE: an enclave is a piece of one country with another country
   the moment relations sour.
 ROOT: government / sovereignty claims a continuous inside, and a
   fragment has no inside for it to be continuous with.
-CANNOT: no self-sufficient enclave — the population is always too
-  small to hold a full set of services, so the dependence is
-  structural rather than a failure of policy. And no enclave secured
-  by law alone: the guarantee is worth exactly what the surrounding
-  state's goodwill is worth on the day.
 THREAD: government (sovereignty as a claim needing daily consent),
   logistics (a supply line running through a foreign authority),
   history (a leftover of an old settlement nobody can tidy).
@@ -449,11 +329,6 @@ ESSENCE: world trade squeezes through a handful of narrow places — a
 ROOT: transport / the cheapest path is the same cheapest path for
   everyone, so optimising concentrates traffic instead of spreading
   it.
-CANNOT: no cheap alternative when a chokepoint closes — the detour
-  exists and costs weeks and fuel, which is exactly why nobody was
-  using it before. And no chokepoint that stays out of politics: a
-  place where a small force can stop a large flow will be
-  garrisoned, taxed or fought over.
 THREAD: war (the same map read as a target list), logistics (single
   points of failure in a network), money (an insurance premium that
   prices a strait).
@@ -465,11 +340,6 @@ ESSENCE: the open ocean has roads on it. Ships follow a few worn
   areas of water carry nothing at all.
 ROOT: navigation / fuel and time are saved by riding the wind and
   the current, and everybody's arithmetic returns the same answer.
-CANNOT: no sea route that is genuinely open in all weathers and all
-  seasons — ice, storm belts and dangerous coasts close lanes for
-  months, so "the sea is free" is a legal statement rather than a
-  practical one. And no protecting shipping everywhere: navies
-  escort along the lanes because the lanes are where the ships are.
 THREAD: war (sea control means holding a few lines, not an ocean),
   weather (the trade winds as a timetable), trade (a route that is a
   habit as much as a geography).
@@ -482,11 +352,6 @@ ESSENCE: people move for a reason at both ends — something makes
   richer, not as it gets poorer.
 ROOT: a decision needs a motive and a means, and the means is the
   part that fails first.
-CANNOT: no large emigration out of the very poorest places —
-  leaving is expensive, so destitution pins people down. And no flow
-  without a channel: people go where somebody they know already is,
-  which is why the map of movement is mostly a map of earlier
-  movement.
 THREAD: money (a lump sum needed before an investment can be made),
   people together (a network doing the recruiting), history
   (migration as the normal condition of populations).
@@ -500,11 +365,6 @@ ESSENCE: a city makes its own weather. Dark surfaces soak up sun,
 ROOT: physics / heat leaves a surface by evaporating water and by
   radiating to the open sky, and a city has replaced the water with
   pavement and the sky with walls.
-CANNOT: no cooling a city by shading buildings alone — with no water
-  to evaporate and no sky to radiate to, the heat has nowhere to go.
-  And no comparing a city's temperature record to a rural one across
-  a century of growth: part of that trend is the city arriving
-  around the thermometer.
 THREAD: weather (a local climate made out of surfaces), health
   (night heat as the killer, not day heat), building (materials
   chosen for cost deciding a city's temperature).
@@ -518,11 +378,6 @@ ESSENCE: the flat land beside a river floods because it is the
 ROOT: money / the benefits arrive every year and the bill arrives
   once a lifetime, and a rare large loss is reliably undervalued
   against a steady small gain.
-CANNOT: no floodplain that stops being a floodplain because houses
-  were built on it — the water's account of the land is not amended
-  by planning permission. And no defence without transfer: a wall
-  protects this reach by sending the water somewhere downstream,
-  faster and higher.
 THREAD: chance (rare big events discounted by everybody),
   infrastructure (defence as probability management), law (who bears
   a risk that everyone knew about).
@@ -535,11 +390,6 @@ ESSENCE: a delta is not solid ground. It is a pile of mud held up by
   rising, and the sea gets the blame.
 ROOT: deep earth / loose sediment compacts under its own weight
   forever, so a delta keeps its height only by continuous resupply.
-CANNOT: no stable delta without sediment reaching it, so no dam
-  upstream without a bill paid at the coast, decades later and
-  hundreds of miles away. And no telling the two causes apart from
-  the street: what a resident meets is water in the house, whether
-  the land fell or the sea rose.
 THREAD: rivers (a river's real cargo is dirt), water (extraction
   dropping the ground it is pumped from), power (a harm caused
   upstream by people who will never see it).
@@ -553,11 +403,6 @@ ESSENCE: deserts do not march. Dry land degrades in place — too many
 ROOT: the living world / plants hold soil, shade it and return water
   to the air, so stripping the cover shifts the local water balance
   in the direction of dryness.
-CANNOT: no dryland recovering on its own timetable once the soil has
-  gone — what recovers is the seed bank, the crust and the roots,
-  and bare mineral ground has none of them. And no blaming the
-  rainfall by itself: the same drought crosses ungrazed land and
-  leaves it standing.
 THREAD: farming (the plough as the beginning of erosion), water (a
   well concentrating damage in a ring around it), weather (a drought
   as a test rather than a cause).
@@ -571,11 +416,6 @@ ESSENCE: a river is one thing and its basin holds several
   resented.
 ROOT: government / sovereignty claims everything inside a line, and
   a river refuses to stay inside any line.
-CANNOT: no downstream security without upstream cooperation, so no
-  purely national water policy on a shared river. And no equal
-  bargaining across that table: the upstream side already holds the
-  water, so any agreement has to buy something the upstream side
-  actually wants.
 THREAD: law (a right to a flow rather than to a thing), power
   (leverage held by position alone), farming (irrigation as the
   largest user by far and the least visible).
@@ -588,11 +428,6 @@ ESSENCE: every map leaves nearly everything out, and what it keeps
   a sentence saying the same thing would not be.
 ROOT: a picture is taken as a report of what is there, so a claim
   drawn as a picture slips past the part of a reader that argues.
-CANNOT: no map without selection, so no neutral map — the choice of
-  what to show comes before any question of accuracy. And no flat
-  map without distortion: a curved surface cannot be laid flat, so
-  every projection sacrifices shape, area, distance or direction,
-  and you only get to choose which.
 THREAD: evidence (a definition doing the work a measurement is
   credited with), power (naming and claiming as one act), image (a
   picture read faster than it can be questioned).
@@ -606,10 +441,6 @@ ESSENCE: change a map's scale and things appear and vanish. At one
 ROOT: measurement / a reading is a question asked at a chosen
   resolution, and the resolution is part of the answer rather than a
   detail of the equipment.
-CANNOT: no comparing two figures taken at different resolutions —
-  two countries' coastline lengths mean nothing side by side unless
-  both used the same ruler. And no scale that shows everything: more
-  detail always means less area on the same sheet.
 THREAD: measurement (resolution inside every number), computing
   (sampling deciding what can be represented at all), evidence (a
   statistic whose definition is doing the arguing).
@@ -622,10 +453,6 @@ ESSENCE: regions are drawn, not found. Almost everything on the
   an edge, and every such edge is arguable.
 ROOT: the mind / thinking works by sorting, and continuous ground
   offers nothing to sort by unless somebody supplies a cut.
-CANNOT: no region whose boundary all its own criteria agree on —
-  pick any two features and their lines cross. And no settling the
-  argument by choosing a "natural" region: the naturalness was
-  assumed at the moment the line was drawn.
 THREAD: language (a dialect shading into the next valley's), law (an
   administrative line pretending to be a fact of the ground),
   statistics (results that change when the districts change).
@@ -639,11 +466,6 @@ ESSENCE: things near each other resemble each other — soil, income,
 ROOT: whatever spreads, spreads outward from wherever it started, so
   similarity falls off with distance for reasons that have nothing
   to do with the trait itself.
-CANNOT: no treating nearby places as independent observations — the
-  ordinary way of judging whether a pattern is real assumes
-  independence and is simply wrong on a map. And no explaining a
-  cluster by what is inside it until the neighbours have been ruled
-  out first.
 THREAD: statistics (correlated samples inflating confidence),
   medicine (a disease cluster that is really a population cluster),
   the living world (a species range as a spread rather than a fit).
@@ -657,11 +479,6 @@ ESSENCE: what a piece of land gets used for is decided by what it
   ring by ring.
 ROOT: money / land near a market can charge more precisely because
   using it saves the journey, and the saving is collected as rent.
-CANNOT: no perishable crop grown far from its buyer before
-  refrigeration and fast transport, so the rings redraw themselves
-  every time the vehicle changes. And no land price independent of
-  transport cost: cheapen the journey and the near land loses its
-  premium immediately.
 THREAD: economy (rent as a captured advantage), transport (a cost
   falling and re-making every decision it touched), cities (land use
   as a price map with soil underneath it).
@@ -674,11 +491,6 @@ ESSENCE: firms of the same kind pile into the same few places even
   anywhere else at any price.
 ROOT: people together / knowledge that lives in practice moves by
   contact, and contact needs proximity.
-CANNOT: no growing a cluster with subsidy alone — the thing being
-  paid for is other firms already being there, which the first
-  arrival cannot supply to itself. And no cluster without
-  congestion: the crowding that supplies the benefit raises every
-  cost, and the two rise together, always.
 THREAD: economy (returns that increase with scale), teaching (skill
   carried by practitioners and not by documents), history (an early
   accident deciding where an industry sits forever).
@@ -692,12 +504,6 @@ ESSENCE: before engines, the winds and currents were a one-way
 ROOT: navigation / a ship under sail cannot choose its path freely,
   so the achievable routes are set by a wind pattern nobody
   controls.
-CANNOT: no returning by the outward road in a steady wind belt, so
-  no voyage of exploration without first solving the way home —
-  which is what stopped several journeys that were easy outbound.
-  And no year-round timetable where the wind reverses with the
-  season: the monsoon sets the sailing dates and everything else
-  waits for them.
 THREAD: weather (the trade winds and the belts), trade (a season
   deciding a market's calendar), history (which coasts met which,
   and when).
@@ -711,10 +517,6 @@ ESSENCE: the sea's food is not spread evenly. A few narrow strips
 ROOT: the living world / life at sea is limited by nutrients, and
   nutrients sink, so production happens only where something lifts
   them back up into the light.
-CANNOT: no rich fishery in warm still clear water — clear water is
-  clear because there is nothing in it. And no fishery that survives
-  a change in the wind: shift the upwelling and the fish go, leaving
-  a fleet built for them with nothing to catch.
 THREAD: oceans (currents hauling heat and nutrients together),
   farming (a harvest nobody planted and everybody counts on), money
   (a common pool that nobody owns).
@@ -728,11 +530,6 @@ ESSENCE: there is a line across every dry continent where farming
 ROOT: chance / a short run of a variable thing is not its average,
   and people take the run they happened to live through as the
   description of the place.
-CANNOT: no reliable farming on rainfall that varies more than the
-  crop can survive — the average can be sufficient while the spread
-  is fatal. And no learning it permanently: the emptied land is
-  resettled in the next wet decade by people who did not live
-  through the last dry one.
 THREAD: chance (a sample too short to contain its own tail), farming
   (a crop as a bet placed on a season), history (settlement pushed
   by policy against arithmetic nobody checked).
@@ -747,10 +544,6 @@ ESSENCE: some of the world's driest, most productive farmland is
 ROOT: money / a stock being drawn down looks exactly like a flow
   until it is gone, and nothing in the annual accounts marks the
   difference between the two.
-CANNOT: no permanent settlement on an aquifer that does not refill,
-  so no reading a green desert as a solved problem. And no gradual
-  warning: a falling water table raises pumping costs slowly and
-  then crosses a depth at which the whole enterprise fails at once.
 THREAD: money (a store spent as though it were income), farming
   (yields bought from the past), water (rain that fell in a
   different climate entirely).
@@ -764,11 +557,6 @@ ESSENCE: a very large share of the world's people live within a
 ROOT: several unrelated advantages happen to sit on the same narrow
   band, and demand for a fixed strip cannot be answered by making
   more of it.
-CANNOT: no relieving coastal pressure by building inland — the thing
-  wanted is the edge, and the edge has a fixed length. And no
-  coastal development without exposure: the same ribbon collects
-  storms, surges, erosion and rising water, so the wealth and the
-  hazard end up on identical ground.
 THREAD: money (fixed supply meeting rising demand), weather (storm
   surge finding the crowd), infrastructure (defences protecting the
   most expensive land first and the poorest last).
@@ -782,11 +570,6 @@ ESSENCE: being in the middle of everything is not a gift. A flat
 ROOT: war / defence is bought from terrain, and a place with no
   terrain must buy it with people and money instead, every year,
   forever.
-CANNOT: no cheap defence of open ground — the cost is permanent and
-  is paid whether or not anybody comes. And no staying out of it:
-  the route through you is valuable to others regardless of your
-  preferences, so neutrality in a corridor is a request rather than
-  a position.
 THREAD: war (terrain multiplying force), government (a state's shape
   setting its budget), history (borders redrawn again and again on
   the same ground).
@@ -799,11 +582,6 @@ ESSENCE: several countries have built a capital in an empty place on
   cheapest way to refuse to answer it.
 ROOT: power / legitimacy is partly a claim about whose country this
   is, and the site of the government is a statement of that claim.
-CANNOT: no neutral capital that is also convenient — the whole
-  method is to choose a place with no existing interest, which means
-  a place with no existing anything. And no cheap version:
-  everything such a city needs must be built, and the ministries
-  arrive long before the life does.
 THREAD: government (a capital as a bundle of permissions), history
   (a city founded with a stated logic rather than a found one),
   building (a designed city against a grown one).
@@ -817,11 +595,6 @@ ESSENCE: a narrow neck of land between two seas is worth far more
 ROOT: money / a saving repeated by every ship forever adds up to a
   very large sum in the present, and that sum is what justifies the
   digging.
-CANNOT: no canal without a water supply and a solution to the levels
-  — locks spend a staggering volume of fresh water per ship, so the
-  geography of the lakes decides the design. And no toll that stays
-  out of politics: a cut with a queue at it is a lever, so a canal
-  is never only engineering.
 THREAD: trade (chokepoints made by hand), engineering (a lock as a
   staircase built for water), power (a strip of land governed
   separately because of what passes through it).
@@ -835,10 +608,6 @@ ESSENCE: ships grew because bigger is cheaper per ton, and every
 ROOT: money / a cost per ton that falls with vessel size makes the
   largest usable ship the standard, and the standard then sets the
   minimum a port has to supply.
-CANNOT: no staying in a trade without matching the ship that exists
-  — a port serves the fleet of the day and not the fleet it was
-  built for. And no dredging without somewhere to put the spoil and
-  a current that will not fill the channel back in by spring.
 THREAD: logistics (scale economies deciding an industry's shape),
   history (the container moving the docks downriver), engineering
   (maintenance as the true cost of a channel).
@@ -851,10 +620,6 @@ ESSENCE: people site towns using the worst thing anybody remembers,
   safest-looking place is often the one that has not had its turn.
 ROOT: chance / rare events are common over long spans and absent
   over short ones, and human records are short.
-CANNOT: no judging a site from lived experience or from a century of
-  gauges — the sample is too short to contain the event that
-  matters. And no reading a long quiet stretch as safety: for a
-  hazard on a slow clock, quiet is what the run-up looks like.
 THREAD: chance (rare large events), deep earth (the rock keeping a
   much longer memory than the archive), infrastructure (design
   standards set from a series that is too short).
@@ -868,11 +633,6 @@ ESSENCE: in cold country the ground itself is a building material
   three.
 ROOT: physics / ice inside a soil carries load and water does not,
   so the strength of that ground is a function of its temperature.
-CANNOT: no ordinary foundation on permanently frozen ground — the
-  building's own warmth is the mechanism that destroys its support,
-  so the design has to keep heat out of the soil. And no local
-  repair once thawing is general: pipes, roads, runways and pilings
-  fail together, because all of them rest on the same one fact.
 THREAD: building (the ground working as part of the structure),
   infrastructure (a whole town's assets sharing one failure mode),
   deep earth (frozen ground storing carbon as well as strength).
@@ -886,11 +646,6 @@ ESSENCE: rough country holds more languages, more crop varieties and
 ROOT: distance decay / contact is what merges things, so terrain
   that raises the price of contact preserves differences that would
   otherwise blend away.
-CANNOT: no uniformity in broken terrain without a state that reaches
-  every valley, so no reading diversity as a choice — it is the
-  default, and the merging is what needs explaining. And no keeping
-  it deliberately once a road goes in: isolation cannot be
-  maintained as a policy.
 THREAD: language (dialects shading valley to valley), farming (many
   local varieties instead of a few national ones), government (a
   state's real border is its reach).
@@ -904,11 +659,6 @@ ESSENCE: every crop, tree, pest and disease lives inside a band of
 ROOT: the living world / a range is a climate, so when the climate
   walks the range must walk with it or the population dies where it
   is standing.
-CANNOT: no fixed asset following a moving climate — orchards,
-  forests and irrigation works are decades-long bets on a band
-  staying put. And no orderly retreat: the arrivals and the
-  departures happen at different speeds, so the assembled community
-  comes apart rather than relocating together.
 THREAD: farming (a variety bred for a climate that is leaving), the
   living world (a range shifting faster than the soil under it),
   money (a long-lived asset priced on an assumption).
@@ -922,11 +672,6 @@ ESSENCE: places get closer without moving. When a journey that took
 ROOT: transport / what matters is time and cost rather than miles,
   so improving the vehicle moves the map without touching the
   ground.
-CANNOT: no transport improvement that helps everywhere equally — a
-  new line pulls its stops closer and pushes everything between them
-  further away in relative terms. And no reverting when the link
-  fails: the factories, houses and habits built around a fast link
-  do not unbuild themselves.
 THREAD: history (a message outrunning the messenger), economy (a
   market's extent set by reach), cities (a bypass moving trade away
   from a town rather than easing it).
@@ -941,11 +686,6 @@ ESSENCE: a frontier is a zone and a boundary is a line, and the
 ROOT: government / a state claims every acre inside a line, and a
   world made of such states leaves no unclaimed space for ambiguity
   to live in.
-CANNOT: no unclaimed land on a full map, so no letting a
-  disagreement rest — the line has to be somewhere, and the
-  alternative to agreement is a standing dispute. And no genuine
-  frontier zone inside a system of states: what looks like one is a
-  claim held weakly, and it will be tested.
 THREAD: government (sovereignty as a claim to have no superior),
   history (empires ending where their logistics did rather than at a
   line), law (a title needing an edge to be a title).
@@ -958,11 +698,6 @@ ESSENCE: big cities line up. Once a route exists, every place along
   railway on.
 ROOT: transport / growth follows access, and access is delivered
   along a line rather than spread over an area.
-CANNOT: no ring of equal-sized cities around a strong route, so no
-  evenly spread growth in a country with one dominant axis — the
-  axis takes it. And no governing such a string sensibly under the
-  old boundaries: those cities share labour, water, air and traffic
-  while being administered as strangers.
 THREAD: infrastructure (systems crossing many authorities),
   government (boundaries that no longer match the thing they
   govern), economy (a labour market larger than any city on it).
@@ -976,10 +711,6 @@ ESSENCE: the same feature changes sides. A river is a barrier to an
 ROOT: an obstacle is defined by what it costs whoever is crossing
   it, and that cost belongs to the technology rather than to the
   ground.
-CANNOT: no permanent strategic value in a piece of ground — the
-  fortress guarding a pass is worth nothing against an enemy who
-  goes over it. And no reading old campaigns onto a new map: the
-  same country is a different country to a different engine.
 THREAD: war (terrain multiplying force), transport (each mode with
   its own cost surface laid over one landscape), history (a
   technology remaking geography without moving a stone).

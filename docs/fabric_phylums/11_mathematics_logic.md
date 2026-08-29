@@ -9,8 +9,6 @@ ESSENCE: counting is the first abstraction — three stones, three
 ROOT: premise — collections match one-to-one without naming what
   they hold (shepherds matched sheep to pebbles before numerals
   existed).
-CANNOT: no honest recount disagrees — count the heap left to
-  right, then right to left: the answer is forced on you.
 THREAD: money (bookkeeping is pebble-matching grown up), music
   (rhythm is counting the body does), computing (everything
   digital is two pebbles, endlessly).
@@ -22,9 +20,6 @@ ESSENCE: written numbers are bundles — each place holds up to
   hundred by where it stands.
 ROOT: mathematics / counting is the first abstraction — bundling
   is counting the counts.
-CANNOT: no place holds ten. A tenth in any place MUST become a
-  carry; and no column's sum may disagree with counting the pile
-  one by one — the recount law reaches into every column.
 THREAD: money (dimes are bundled pennies, dollars bundled dimes),
   computing (the same bundling by twos), measuring (metric is
   bundling by tens all the way down).
@@ -41,9 +36,6 @@ ESSENCE: multiplying is counting by copies — three times 1,289 is
   adding that learned to bundle.
 ROOT: mathematics / counting — the same threeness, applied to
   piles instead of pebbles.
-CANNOT: no product escapes its addition — an answer that
-  disagrees with the copies laid down and counted is simply
-  wrong, whatever table it came from.
 THREAD: farming (rows times plants), money (price times count),
   building (area is times made visible).
 RULE: to times two numbers — lay the larger number down as many
@@ -59,9 +51,6 @@ ESSENCE: the domino law — what is true at the start and survives
   closes a room with no far wall.
 ROOT: mathematics / counting — the numbers are built by steps,
   so truths climb the same stairs the numbers did.
-CANNOT: no infinite room closes by visiting members — checked a
-  million proves nothing about the million-and-first. Without the
-  step-proof, exhaustion ends exactly where counting doesn't.
 THREAD: proof (this is the ladder proofs use to reach forever),
   the doing element (a finite receipt plus this law equals an
   infinite theorem), computing (loops trusted by this law alone).
@@ -72,9 +61,6 @@ ESSENCE: proof is chained certainty — start from stated premises,
   sure as the start; truth transported without leakage.
 ROOT: premise — some steps compel: grant "all men die" and
   "Socrates is a man" and you have already granted the rest.
-CANNOT: no proof stronger than its premises — the chain transports
-  certainty, it cannot mint it. And one broken link is not a 99%
-  proof; it is no proof.
 THREAD: building (a load path is a proof in steel — one bad weld
   unproves it), law (a case is a proof a jury will accept with
   leaks; math accepts none), navigation (dead reckoning is the
@@ -86,9 +72,6 @@ ESSENCE: contradiction kills the whole system — rules that prove
   system that proves everything says nothing.
 ROOT: premise — from "P and not-P", every conclusion follows
   legally; the fire is never local.
-CANNOT: no living with one small contradiction — there are no
-  small ones. A single both-true-and-false anywhere collapses
-  true-versus-false everywhere.
 THREAD: computing (a spec that contradicts itself is satisfied by
   anything, including nothing), law (contracts quarantine their
   contradictions with severance clauses — human systems survive
@@ -103,10 +86,6 @@ ESSENCE: zero and the negatives were invented, not found — marks
 ROOT: counting (this file), extended past where pebbles go — legal
   because the new rules keep every old score (Joe's rule-change
   law: widen the board, honor the old games).
-CANNOT: no algebra inside "numbers are heaps" — 3 minus 5 has no
-  pebble answer until the rules are re-minted. And the mint has a
-  law of its own: divide by zero and the contradiction fire starts
-  (allow it and 1 = 2 in four lines).
 THREAD: money (negatives ARE debt made arithmetic; banking runs on
   the cheat), physics (imaginary numbers, the next scandal, turned
   out to run the quantum books), the fabric (the rule-change law
@@ -118,10 +97,6 @@ ESSENCE: infinity is a process, not a place — "the counting never
   place and paradoxes bloom.
 ROOT: counting — "add one" never refuses, so there is no last
   number.
-CANNOT: no largest number, no finished list of all of them. And
-  endlessness comes in sizes: no list, even endless, holds all the
-  decimals — one can always be built that differs from every entry
-  (the diagonal escape).
 THREAD: navigation (the horizon: steered by, never stood on),
   physics (an infinite answer in a formula means the formula
   broke, not the world), computing (a loop that never halts —
@@ -135,8 +110,6 @@ ESSENCE: math reaches into the physical world unreasonably well —
 ROOT: UNSURE — the fact is iron, the why is open: either the world
   is mathematical at bottom, or minds fish with the only net they
   own and count what it catches.
-CANNOT: no deep physical law found so far has refused mathematical
-  dress — an empirical cannot, softer than this file's other walls.
 THREAD: astronomy (Neptune found at a desk — predicted from
   arithmetic before any telescope turned), physics (file 01 is
   written in equations end to end), the fabric (the bet that small
@@ -149,10 +122,6 @@ ESSENCE: Gödel — any honest rulebook rich enough for arithmetic
 ROOT: proof (this file) turned on itself — a sentence built to say
   "this rulebook cannot prove me": if provable, the book lies; if
   honest, true and unprovable.
-CANNOT: no final rulebook — adopt the missed truth as a new
-  premise and the larger book misses truths of its own; the ladder
-  has no top rung. No system certifies itself; trust is always
-  lent from outside.
 THREAD: computing (the halting wall is this same trick in
   silicon), this corpus (every essence carries a cannot — here is
   proof's own), law UNSURE (no constitution establishes its own
@@ -164,10 +133,6 @@ ESSENCE: symmetry is sameness under change — a thing's symmetries
   slide, swap), and that list is its deepest description.
 ROOT: premise — "unchanged by which change" carves nature at
   joints that shape-lists miss.
-CANNOT: no lopsided outcome from an even-handed cause — unless
-  something hidden leaned, or the balance stood on a point and
-  chance tipped it (the pencil must fall SOME way); the lean or
-  the tip must exist.
 THREAD: physics (the crown: each symmetry of law is cashed as a
   conservation law — laws-same-tomorrow IS energy's bookkeeping),
   medicine (mirror-twin molecules: one cures, its reflection can
@@ -180,9 +145,6 @@ ESSENCE: probability is ignorance made precise — single outcomes
   chance is lawful in bulk. (averages settle as trials mount)
 ROOT: counting (this file) applied to what might happen instead of
   what did.
-CANNOT: no law for the single case — the die owes nothing on any
-  one roll, and no run of losses makes a win "due": the coin
-  cannot remember.
 THREAD: money (insurance: nobody knows whose house burns; the pool
   knows how many — an industry on this one essence), physics (the
   quantum floor runs on it natively — file 01's last entry),
@@ -193,8 +155,6 @@ ASKED-AS: odds gambling casino lottery streak luck betting averages random cards
 ESSENCE: taking away is counting down — what remains when one
   pile is removed from another; the reverse walk of adding.
 ROOT: mathematics / counting.
-CANNOT: no taking a larger pile from a smaller one — the pile
-  itself cannot go below nothing; only a ledger of owing can.
 THREAD: money (making change is taking away), time (how long
   until is a taking away), checking (adding back must restore
   exactly what was there).

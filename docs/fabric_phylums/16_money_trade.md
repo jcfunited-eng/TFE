@@ -8,9 +8,6 @@ ESSENCE: money is a token made valuable by agreement alone — the
   believes tomorrow's stranger will take it.
 ROOT: language / words bind by agreement, not by nature — money
   is the same arbitrary-but-binding trick with numbers on it.
-CANNOT: no private money — a token no stranger honors is paper
-  again. And when the belief dies the money dies with it, whole
-  lifetimes of savings at once (Germany 1923: wheelbarrows of it).
 THREAD: language (the original worthless-token machine), maps
   (the agreed zero at Greenwich), law (titles and borders —
   fictions with teeth).
@@ -21,9 +18,6 @@ ESSENCE: a price is a discovered meeting point — where the most a
   decrees it, the haggling finds it.
 ROOT: trade / both sides must win — price is where two private
   valuations overlap.
-CANNOT: a decreed price does not kill the real one, it relocates
-  it — force the number low and it reappears as waiting lines and
-  empty shelves; force it high, as warehouses of the unsold.
 THREAD: physics (equilibrium — the resting point of opposing
   pushes), auctions, wages (a salary is a price wearing a collar).
 ASKED-AS: supply demand market worth cost rent control shortage expensive cheap gouging
@@ -33,10 +27,6 @@ ESSENCE: value needs wanting AND rarity together; either alone is
   useless and priceless.
 ROOT: premise — many wanters over few pieces; bidding does the
   rest.
-CANNOT: no paying for abundance (what all can have free, none
-  will buy), no value in unwanted rarity (your one-of-a-kind
-  doodle). Hence the farmer's curse: the bumper year that beggars
-  its growers.
 THREAD: collecting (the error is the treasure), music (the
   unreleased tape), water and diamonds — the old riddle, solved
   by this line.
@@ -47,9 +37,6 @@ ESSENCE: a voluntary trade happens only when each side values
   their own measure, which is why trade is not war.
 ROOT: premise — valuations differ by person and moment; the
   difference is the fuel.
-CANNOT: no voluntary exchange without a gap to share. A trade
-  that truly leaves one side worse needed force or a lie — find
-  the loser, look for the lie.
 THREAD: farming (the harvest swap that fed the first towns),
   chemistry (bonds form when the joined state suits both atoms —
   UNSURE as more than rhyme), friendship (favors ride the same
@@ -62,9 +49,6 @@ ESSENCE: interest is the price of time — money now beats the same
   rent (at 7% a sum doubles in ~10 years).
 ROOT: premise — the future is discounted for uncertainty and
   delay.
-CANNOT: no borrowing free of time's meter, and no aiming
-  compounding only at savings — an unpaid debt doubles by the
-  same arithmetic, pointed at you.
 THREAD: fermentation (growth feeding on its own growth — the
   cooking file flagged it), herds (the oldest interest: flocks
   breed their increase), maintenance (the skipped repair
@@ -76,10 +60,6 @@ ESSENCE: printing more tokens against the same goods thins every
   without a bill, paid by whoever holds the old paper.
 ROOT: money-as-token — the whole pile of tokens prices the whole
   shelf of goods.
-CANNOT: no printing wealth — presses mint claims, not goods;
-  double the tokens and you halve the token, not the bread. The
-  physics file ruled it first: you cannot spend what does not
-  exist.
 THREAD: language (a superlative spent on everything soon buys
   nothing — word inflation is real), cooking (watering the soup:
   more bowls, same soup).
@@ -92,9 +72,6 @@ ESSENCE: the ledger is trade's memory, and honest ledgers write
 ROOT: physics / conservation — bookkeeping is that law in a suit
   (the physics file says so); the two fabrics — every gain writes
   its debt beside it.
-CANNOT: no one-sided entry in honest books; wealth cannot appear
-  without a source line. An unbalanced book is an error or a
-  crime — there is no third reading.
 THREAD: chemistry (reaction equations balance both sides), the
   fabric itself (every minted CAN carries its CANNOT —
   double-entry done in ink).
@@ -105,9 +82,6 @@ ESSENCE: trust is the real currency — every trade wider than
   and trust is what makes strangers affordable to deal with.
 ROOT: the deal as exchanged promises (law file); repetition —
   cheat once here, trade never again.
-CANNOT: no complex economy on suspicion — without trust or its
-  paid substitutes (contracts, collateral, reputation), commerce
-  shrinks back to cash on the barrel and arm's reach.
 THREAD: law (enforcement is trust's backstop, priced in), banking
   (a bank IS stored trust — see the run, below), medicine (the
   placebo — belief doing real work, UNSURE as more than rhyme).
@@ -120,9 +94,6 @@ ESSENCE: a bubble is price detached from thing — when the reason
   2008).
 ROOT: money-as-agreed-fiction — a bubble is agreement outrunning
   the thing agreed upon.
-CANNOT: no gentle ending — a structure whose only content is each
-  other's confidence cannot be exited slowly. The bank run is the
-  same law reversed: trust collapsing all at once.
 THREAD: fashion crazes, stampedes (each runs because the others
   run), applause dying in a hall — belief-structures share one
   failure mode.

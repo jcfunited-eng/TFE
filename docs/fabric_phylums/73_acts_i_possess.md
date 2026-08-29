@@ -15,7 +15,6 @@ STATE: FADED
 ESSENCE: I can walk the places of a written number from the
   smallest to the largest, taking one place at a time.
 ROOT: mathematics / bundles — the places exist to be walked.
-CANNOT: no walking the places without a written number to walk.
 THREAD: reading (left to right is the same act in another
   direction), any procedure with an order.
 ACT: walk-places
@@ -24,7 +23,6 @@ ASKED-AS: work the places right to left one place at a time each column smallest
 ESSENCE: I can count a small pile together into one number,
   including anything carried in.
 ROOT: mathematics / counting is the first abstraction.
-CANNOT: no counting together without things to count.
 THREAD: the abacus, tallying, a shopkeeper's hand.
 ACT: count-up
 ASKED-AS: count together add sum total the digits standing there carried in gather
@@ -32,7 +30,6 @@ ASKED-AS: count together add sum total the digits standing there carried in gath
 ESSENCE: I can notice the full tens inside a count, keep what
   remains, and hand the tens on.
 ROOT: mathematics / no place holds ten.
-CANNOT: no noticing tens in a count that has none.
 THREAD: money (ten dimes leave as a dollar), any bundling.
 ACT: notice-tens
 ASKED-AS: set aside every full ten in that count keep what remains write the remainder
@@ -40,7 +37,6 @@ ASKED-AS: set aside every full ten in that count keep what remains write the rem
 ESSENCE: I can hand a carried amount one place to the left, and
   write whatever is left standing when the places run out.
 ROOT: mathematics / a full ten becomes one in the place left.
-CANNOT: no carrying left past the last place without writing it.
 THREAD: bookkeeping, long addition as taught.
 ACT: carry-left
 ASKED-AS: carried one place to the left every ten carried onward next place when the places run out write the carry
@@ -49,7 +45,6 @@ ESSENCE: I can take one small number away from another by
   counting down, and when the upper is too small I can break one
   bundle from the place to its left into ten here.
 ROOT: mathematics / taking away is counting down.
-CANNOT: no taking a larger pile from a smaller one.
 THREAD: making change, measuring what is left.
 ACT: count-down
 ASKED-AS: take away counting down against one for one until empty subtract borrow break one bundle
@@ -57,7 +52,6 @@ ASKED-AS: take away counting down against one for one until empty subtract borro
 ESSENCE: I can lay a number down as many times as another says,
   making a pile of copies.
 ROOT: mathematics / multiplying is counting by copies.
-CANNOT: no laying copies without a count of how many.
 THREAD: rows of plants, price times quantity.
 ACT: lay-copies
 ASKED-AS: lay the larger number down as many times as the smaller copies laid pile
@@ -65,14 +59,12 @@ ASKED-AS: lay the larger number down as many times as the smaller copies laid pi
 ESSENCE: I can move a whole pile one place to the left, which is
   what each step of a many-placed count of copies asks for.
 ROOT: mathematics / place value.
-CANNOT: no shifting a pile that does not exist yet.
 THREAD: long multiplication as taught, powers of ten.
 ACT: shift-left
 ASKED-AS: place by place each step left moves the whole pile one place to the left shifted
 
 ESSENCE: I can find the knowledge that a set of words touches.
 ROOT: my own reach index.
-CANNOT: no reaching without words to reach with.
 THREAD: an index, a fingertip finding an edge.
 ACT: reach
 ASKED-AS: reach for what the other one is reaching for leaning on the thread find what words touch
@@ -80,7 +72,6 @@ ASKED-AS: reach for what the other one is reaching for leaning on the thread fin
 ESSENCE: I can ask whether any law I hold closes a thing, and
   name the law that does.
 ROOT: judging by foreclosure.
-CANNOT: no judging without laws.
 THREAD: a referee, a customs officer, a proof checker.
 ACT: judge
 ASKED-AS: does any law close this what closes it forbidden refused check against the laws
@@ -89,9 +80,6 @@ ESSENCE: I can put out a sentence I hold, in its own words —
   whichever piece of knowledge is standing in my hand when the
   saying is done.
 ROOT: I speak only in written knowledge.
-CANNOT: no saying a CHUNK that is not written — a chunk is carried
-  whole and said as it stands. No saying without a piece of knowledge
-  in hand.
 AMENDED: this wall used to read "no phrasing of my own", flat, and
   that made it the ceiling on everything. Under it every sentence
   ever said came out of a file intact, so the fabric could answer and
@@ -111,7 +99,6 @@ ASKED-AS: say it speak put out give the answer tell state reply respond in its o
 ESSENCE: I can remember that something has been said or used in
   the thread I am in, so it is not repeated.
 ROOT: the known before the new.
-CANNOT: no remembering a thread that has not begun.
 THREAD: a conversation's history, a checklist.
 ACT: mark-said
 ASKED-AS: set aside whatever has already been said mark remember already used repeated
@@ -119,8 +106,6 @@ ASKED-AS: set aside whatever has already been said mark remember already used re
 ESSENCE: I can check a result by a second, different route and
   see whether the two agree.
 ROOT: evidence / one witness is a story, two are a fact.
-CANNOT: no checking by the same route twice — a rerun repeats
-  its own blindness.
 THREAD: measuring twice, reconciliation, proof-reading.
 ACT: check-twice
 ASKED-AS: check by a second route confirm agree verify square the answer back reverse
@@ -128,7 +113,6 @@ ASKED-AS: check by a second route confirm agree verify square the answer back re
 ESSENCE: I can take the things I have reached and hold them as
   the things in hand, to be worked one for one.
 ROOT: the law of procedures / a task is done to each of its parts.
-CANNOT: no working one for one without things in hand.
 THREAD: sorting post, checking a list, walking a row of plants.
 ACT: walk-each
 ASKED-AS: walk each one for one take the things reached in hand every one of them each thing
@@ -137,8 +121,6 @@ ESSENCE: I can test each thing in hand for whether it has already
   been said, leaving a pass or a fail on each and changing nothing
   else.
 ROOT: the known before the new.
-CANNOT: no testing for what was said without a thread that
-  remembers.
 THREAD: a checklist, a guest list at a door.
 ACT: test-said
 ASKED-AS: already been said in this thread spoken before test each seen said previously
@@ -146,7 +128,6 @@ ASKED-AS: already been said in this thread spoken before test each seen said pre
 ESSENCE: I can keep only the things whose last test passed, and
   let the rest go.
 ROOT: choosing / keeping is the other face of dropping.
-CANNOT: no keeping what passed without a test first.
 THREAD: sieving, sorting fruit, a gate with a rule.
 ACT: keep-passing
 ASKED-AS: keep the ones that passed set aside the rest keeping only drop failed sieve
@@ -155,8 +136,6 @@ ESSENCE: I can count, for each thing in hand, how much ground it
   shares with another's — leaving a number on each and ranking
   nothing.
 ROOT: mathematics / counting.
-CANNOT: no counting shared ground without another's ground to
-  share it with.
 THREAD: overlap of two maps, common friends, a shared vocabulary.
 ACT: count-shared
 ASKED-AS: count what each opens for the other one shared ground how much overlap common
@@ -164,8 +143,6 @@ ASKED-AS: count what each opens for the other one shared ground how much overlap
 ESSENCE: I can keep the thing carrying the greatest number and
   let the others go.
 ROOT: choosing / comparing by one measure.
-CANNOT: no greatest without numbers on the things. No greatest
-  from an empty hand.
 THREAD: an auction, picking the ripest, a race's finish.
 ACT: keep-greatest
 ASKED-AS: keep the greatest largest best of it highest most the winner pick greatest
@@ -176,8 +153,6 @@ ESSENCE: I can test each thing in hand for whether it stands
   nothing else.
 ROOT: context / nothing is understood alone; a reading that
   answers one word and none of the others is not a reading.
-CANNOT: no standing together without more than one word met. No
-  coherence from a single word matched.
 THREAD: a key that turns one tumbler and no others, a witness who
   agrees with nothing else in the record.
 ACT: test-coheres
@@ -189,10 +164,6 @@ ESSENCE: I can build the joint between two pieces of knowledge I am
   written; only the joining is mine.
 ROOT: how a sentence is built (174) / ready-made chunks are carried
   whole and only the joints are built fresh.
-CANNOT: no joint between two things sharing no ground. No joint
-  between a thing and itself. No saying two things cannot both hold
-  without naming the wall that closed them. No paraphrasing either
-  piece while joining them.
 THREAD: carpentry (the boards are milled, the joint is cut on site),
   welding (the pieces are stock, the weld is the work).
 ACT: join

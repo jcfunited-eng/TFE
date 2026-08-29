@@ -10,10 +10,6 @@ ESSENCE: division asks two different questions with one symbol. Twelve
   never the same question.
 ROOT: premise — multiplying joins a count of groups to a size of group, so
   undoing it can hand back either one of them.
-CANNOT: no telling from the number which question was asked, so no reading
-  the answer's units off the arithmetic — twelve sweets among four
-  children gives sweets, twelve metres cut in four-metre lengths gives
-  lengths.
 THREAD: cooking (splitting a batch against counting portions), money (cost
   each against how many I can afford), building (cuts per plank against
   planks per job).
@@ -25,9 +21,6 @@ ESSENCE: long division is repeated taking-away done in bundles — strip out
   march place by place.
 ROOT: this file / division as measuring — how many fit is answered by
   taking them out until no more will go.
-CANNOT: no division that leaves more than the divisor behind — if another
-  whole one still fits, the taking-away is not finished and the digit
-  above is too small.
 THREAD: money (making change by handing the largest coins first), packing
   (filling boxes until what remains will not fill one), time (turning
   minutes into hours and minutes).
@@ -44,8 +37,6 @@ ESSENCE: the remainder is an answer, not a scrap. A hundred people and
   it refuses to say which way to round.
 ROOT: this file / the two divisions — sharing tolerates parts, measuring
   usually does not.
-CANNOT: no rounding rule living inside the numbers — nothing in "three and
-  a third" says bus or ticket; the world decides and the arithmetic obeys.
 THREAD: shipping (part loads still need a whole lorry), staffing (there is
   no third of a nurse), cooking (a part egg, which is why small recipes
   are awkward).
@@ -57,9 +48,6 @@ ESSENCE: a quick test for a divisor exists only where ten behaves simply
   digit sum. Seven gets nothing, and that is why.
 ROOT: mathematics / written numbers are bundles — a test asks what a
   single bundle of ten is worth on the divisor's own wheel.
-CANNOT: no easy last-digit test for seven, thirteen, or any divisor that
-  ten sits awkwardly on — not undiscovered, unavailable; the shortcut is a
-  property of ten, never of cleverness.
 THREAD: computing (a machine bundles by two, so its easy tests are for
   two, four and eight), calendars (sevens are the awkward ones there too),
   music (why some rhythms never subdivide).
@@ -77,9 +65,6 @@ ESSENCE: factors come in couples — each one has a partner it multiplies
   everything above has already been written down as somebody's partner.
 ROOT: mathematics / multiplying is counting by copies — a small count
   forces a large size, and the two are found together.
-CANNOT: no factor above the square root without a partner below it, so no
-  number hides a large divisor from a finished small search. Square
-  numbers are the one place a factor is its own partner.
 THREAD: computing (why testing a number for primeness is far cheaper than
   it looks), building (rectangles of a fixed area: long and thin, or near
   square), packing (box shapes for a fixed count).
@@ -95,9 +80,6 @@ ESSENCE: the prime pile of a number is a full description, not a
   number's pile, everything the two share and everything they do not.
 ROOT: mathematics / primes are the atoms of number, one pile per number
   and only one pile ever.
-CANNOT: no fact about dividing hidden from the pile — if two numbers share
-  no prime they share no divisor above one, and no amount of searching
-  will turn one up.
 THREAD: chemistry (a formula settles what a compound can react with),
   music (which rhythms will eventually line up), computing (the difficulty
   of un-piling is the lock on the codes).
@@ -109,8 +91,6 @@ ESSENCE: the greatest common divisor is the largest piece two numbers can
   taking away copies of them, which is the same fact seen from underneath.
 ROOT: this file / the prime pile — the shared part of two piles, each
   prime taken at the smaller of its two counts.
-CANNOT: no common divisor bigger than it, and none that is not itself one
-  of its divisors — every shared measure hides inside the greatest one.
 THREAD: building (the largest tile that fits two rooms with no cutting),
   money (the smallest unit two currencies both express), gears (teeth
   counts sharing a factor repeat sooner).
@@ -127,9 +107,6 @@ ESSENCE: the least common multiple is where two cycles first meet again —
   what they share and you get the first meeting.
 ROOT: this file / the prime pile — the joined pile, each prime taken at
   the larger of its counts, so the shared part is not paid for twice.
-CANNOT: no meeting earlier than it, and no meeting that is not one of its
-  own multiples — the cycles agree there or not at all, and no waiting
-  changes the pattern.
 THREAD: astronomy (planets returning to the same alignment), music (two
   rhythms crossing and re-crossing), rotas (two shift patterns falling on
   the same day).
@@ -141,10 +118,6 @@ ESSENCE: two numbers sharing no prime are strangers, and strangers cover
   introducing the same faces to each other.
 ROOT: this file / the greatest common divisor — when it is one, nothing is
   shared that could shorten the cycle.
-CANNOT: no early repeat between two coprime cycles; the shortcut simply is
-  not there. And no even wear on gears whose teeth counts share a factor —
-  the same tooth keeps meeting the same tooth, and the damage
-  concentrates.
 THREAD: engineering (hunting gears chosen coprime so wear spreads),
   farming (crop rotations that avoid re-meeting a pest's cycle), music
   (rhythms that take a long time to agree).
@@ -156,9 +129,6 @@ ESSENCE: a negative is a direction, not only a debt. The line runs both
   becomes five paces the other side.
 ROOT: mathematics / zero and the negatives were invented; this is the
   picture that makes the invention feel forced rather than clever.
-CANNOT: no comparing negatives by size alone — minus nine is further from
-  zero and lower on the line than minus two; bigger debt, smaller number,
-  and those two readings never agree.
 THREAD: weather (below freezing), money (an overdraft), lifts (floors
   below the ground, numbered downward).
 ASKED-AS: negative numbers line direction below zero colder which bigger minus nine two
@@ -169,9 +139,6 @@ ESSENCE: a minus sign is a turn-around. Multiplying by a negative faces
   that law is worth more.
 ROOT: mathematics / the rule-change law — widen the numbers, keep every
   old score; the sign rule is what the old scores demand.
-CANNOT: no other choice available — set minus times minus to minus and a
-  single line of ordinary working produces two different values for the
-  same product; the contradiction fire starts and it is never local.
 THREAD: physics (a reversal reversed), language (two negatives in a
   sentence, where the same logic is optional and custom wins), electronics
   (a switch flipped twice).
@@ -183,9 +150,6 @@ ESSENCE: taking away a negative adds. Cancel a debt and you are richer by
   taking-away costume.
 ROOT: this file / the minus sign as a turn-around, applied to the
   counting-down walk instead of the copying one.
-CANNOT: no keeping "take away means smaller" once negatives exist — that
-  sentence was a fact about heaps, and heaps stopped being the whole board
-  when the mint opened.
 THREAD: money (a written-off loan showing up as income), temperature (the
   drop that did not happen), bookkeeping (a reversing entry undoing last
   month).
@@ -197,9 +161,6 @@ ESSENCE: times before plus is a reading convention, like reading left to
   line with enough brackets needs no convention at all.
 ROOT: premise — writing is a code, and a code needs agreed parsing; the
   quantities underneath do not care how they were typed.
-CANNOT: no truth decided by the convention — the famous arguing sums have
-  no right answer, only a badly written question, and the cure is brackets
-  rather than argument.
 THREAD: language (punctuation deciding a sentence's meaning), computing
   (every language publishes its own precedence table and they differ), law
   (a misplaced comma changing a contract).
@@ -211,10 +172,6 @@ ESSENCE: adding and multiplying do not care about order or grouping;
   by an upside-down number.
 ROOT: premise — the reordering laws belong to the two joining operations,
   and the other two are those same operations run backwards.
-CANNOT: no free reordering across a minus or a divide, which is where most
-  mental arithmetic falls over. And no grouping a chain of divisions
-  without brackets — a divided by b divided by c has two honest meanings
-  and they differ.
 THREAD: cooking (steps that may be swapped and steps that may not),
   computing (why a compiler may reorder some arithmetic and must not
   reorder other), music (order of effects on a signal).
@@ -226,10 +183,6 @@ ESSENCE: the one law joining adding to multiplying is that a count of a
   you is this law being cashed in.
 ROOT: mathematics / multiplying is counting by copies — the copies may be
   laid down in pieces and the pieces counted separately.
-CANNOT: no splitting a factor across a product — halving one side of a
-  times does not halve the product twice. And no law running the other
-  way: a sum of products is not generally a product of sums, and treating
-  it so is the classic wreck.
 THREAD: money (a discount taken on a whole basket rather than item by
   item), building (a floor's area split into strips), law (a rule applied
   to each member or to the group as one).
@@ -241,9 +194,6 @@ ESSENCE: a power counts copies being multiplied, and one law runs the
   other power rule is that one sentence wearing a costume.
 ROOT: mathematics / multiplying is counting by copies — applied to itself,
   so the count becomes the thing counted.
-CANNOT: no adding exponents across different bases — two cubed times three
-  cubed is neither five cubed nor six cubed; the copies must be copies of
-  the same thing before they can be pushed together.
 THREAD: music (each octave doubles, so pitches add while frequencies
   multiply), computing (bits add while possibilities multiply), money
   (interest on interest).
@@ -256,10 +206,6 @@ ESSENCE: nothing chose that anything to the power nothing is one, or that
 ROOT: this file / powers add their counts — the definitions were extended
   precisely so that the single law keeps working past where it was first
   written.
-CANNOT: no rival convention that keeps the adding law intact. And no
-  settled meaning for nothing raised to nothing — the two patterns
-  crossing there disagree, so it is a choice, made one way in counting and
-  another in analysis.
 THREAD: music (a half step is a twelfth root of two, a fractional power
   you can hear), physics (half-lives), measurement (loudness and acidity
   are both written as powers).
@@ -271,8 +217,6 @@ ESSENCE: a root asks the power question backwards — what, multiplied by
   refuse negatives, because an even count cannot.
 ROOT: this file / the minus sign as a turn-around — an even number of
   turns always ends up facing forward.
-CANNOT: no ordinary even root of a negative number — dead, not difficult;
-  the sign arithmetic forbids it before any searching begins.
 THREAD: geometry (the side of a cube read off its volume), money (the
   yearly rate hidden inside a multi-year gain), sound (root mean square,
   where the squaring is exactly what hides the sign and the rooting is
@@ -285,9 +229,6 @@ ESSENCE: the square root of two cannot be any fraction. Suppose it were,
   a one-metre square.
 ROOT: mathematics / parity — the even-odd heartbeat survives every
   multiplication, and it convicts the assumption.
-CANNOT: no fraction equals it, and no written decimal for it ever ends or
-  repeats — dead, not merely undiscovered. Most numbers are like this; the
-  tidy ones are the rarity.
 THREAD: building (a diagonal no tape measure lands on exactly), music (why
   an evenly spaced scale cannot also keep pure whole-number ratios),
   geometry (pi is the same refusal, harder proved).
@@ -299,10 +240,6 @@ ESSENCE: each new kind of number was minted to make one operation always
   fail at the root of a negative.
 ROOT: mathematics / the rule-change law — each widening is legal because
   it keeps every score the old board had settled.
-CANNOT: no widening that costs nothing — the negatives cost "bigger always
-  means more of something", the fractions cost "every number has a next
-  one", the imaginaries cost order itself, and there is no arranging those
-  in a line at all.
 THREAD: language (loanwords admitted to say what could not be said), law
   (a right extended while the old cases still stand), music (notes added
   between notes, something lost each time).
@@ -314,9 +251,6 @@ ESSENCE: scientific notation splits a number into what you know and how
   nobody measured.
 ROOT: mathematics / written numbers are bundles — the bundling count
   pulled out and written on its own where it can be read.
-CANNOT: no comparing two such numbers by their digits — the exponents are
-  compared first and usually decide alone; a three with a large exponent
-  beats a nine with a smaller one, every time.
 THREAD: astronomy (distances that no ordinary writing survives), chemistry
   (a mole is a power of ten given a name), computing (this is precisely
   how a machine stores a fraction).
@@ -328,10 +262,6 @@ ESSENCE: an order of magnitude is one step of ten, and thinking in steps
   content of the argument.
 ROOT: this file / scientific notation — the exponent is the step count, so
   exponents are what get compared first.
-CANNOT: no intuition for large numbers without the steps — the words
-  million, billion and trillion sound alike and differ by thousands each
-  time, which is why budgets and risks are routinely misjudged by a factor
-  of a thousand.
 THREAD: money (a national budget set beside a household one), the living
   world (a bacterium beside a whale), computing (a billionth of a second
   beside a second).
@@ -343,10 +273,6 @@ ESSENCE: always rounding a half upward tilts every long total upward,
   why banks and machines do it that way and schools mostly do not.
 ROOT: this file / rounding discards, and a discard rule that is not
   even-handed becomes an error that piles up instead of cancelling.
-CANNOT: no unbiased total from a biased rule, and no rescue by volume —
-  more rows make the drift larger, not smaller. And no rounding twice:
-  two-point-four-five taken to two-point-five and then to three
-  manufactures a step the original never justified.
 THREAD: money (a payroll rounding a penny a row, ten thousand rows),
   computing (error accumulating through a long sum), polling (percentages
   that add to a hundred and one).
@@ -358,9 +284,6 @@ ESSENCE: round everything to one digit and a power of ten, then do the sum
   blunder a calculator will never notice.
 ROOT: this file / orders of magnitude — the leading digit and the exponent
   carry almost all of the information in a number.
-CANNOT: no calculator catches a misplaced point or a mistyped zero; the
-  machine is faithful to whatever it was handed, so the guard has to be
-  built outside it.
 THREAD: engineering (a back-of-envelope check before any design proceeds),
   shopping (a basket estimated to the nearest pound), medicine (a dose a
   thousand times too large announcing itself to anyone who estimated
@@ -379,10 +302,6 @@ ESSENCE: changes chain by multiplying, never by adding. A rise of ten
 ROOT: mathematics / no percent without its whole — each change takes its
   whole from the step before, so the steps compose like copies rather than
   like counts.
-CANNOT: no adding percentage changes across steps — three years of ten
-  percent is not thirty percent, it is thirty-three and a tenth. And no
-  order effect: the multiplying does not care, though the amounts along
-  the way certainly do.
 THREAD: money (compound interest, inflation stacked over years), shopping
   (discounts applied one after another), wages (a cut restored by an
   equal-sounding rise, which never restores it).
@@ -395,9 +314,6 @@ ESSENCE: a rate moving from four percent to five percent has risen one
 ROOT: mathematics / a percent needs its whole — and a change in a
   percentage has two candidate wholes, the scale it sits on and the old
   figure it started from.
-CANNOT: no reading which is meant from the word percent alone; the two
-  must be named apart in the sentence or it is ambiguous by construction,
-  however careful the arithmetic behind it.
 THREAD: money (an interest rate rise reported both ways on the same day),
   medicine (a risk going from two in a thousand to three), politics (a
   poll movement inside its own noise).
@@ -409,9 +325,6 @@ ESSENCE: a proportion is a claim that two ratios are the same, and
   standing.
 ROOT: algebra / an equation is a balance — the same treatment given to
   both sides, chosen to clear away the division.
-CANNOT: no cross-multiplying across a plus sign — the move works on one
-  bare ratio equalling one bare ratio and on nothing else; this is the
-  commonest wreck in the whole subject.
 THREAD: cooking (scaling a recipe up or down), maps (a scale bar turned
   into ground distance), medicine (a dose worked out per kilogram of
   patient).
@@ -426,10 +339,6 @@ ESSENCE: two quantities are directly proportional when their ratio stays
   their product stays put: double the workers and halve the days.
 ROOT: this file / proportion as a fixed ratio — the inverse case simply
   fixes the product instead of the ratio.
-CANNOT: no inverse proportion reaching zero — halving forever never
-  arrives. And no direct proportion surviving a fixed overhead, which is
-  why "twice the size, twice the price" fails wherever there is a setup
-  cost to pay first.
 THREAD: physics (pressure against volume in a squeezed gas), work (people
   against days, until they start getting in each other's way), money (unit
   cost falling with quantity but never to nothing).
@@ -442,9 +351,6 @@ ESSENCE: a conversion factor is a fraction that equals one — sixty minutes
 ROOT: mathematics / a rate's second partner is a unit — so units can be
   carried through the arithmetic as though they were quantities in their
   own right.
-CANNOT: no wrong answer surviving unit cancellation — set the fraction the
-  wrong way up and the leftover units are visible nonsense, seconds
-  squared per metre, which is the entire point of doing it this way.
 THREAD: engineering (a spacecraft lost to pounds against newtons), cooking
   (grams against cups, which needs a density as well), medicine
   (millilitres against milligrams, where the error kills the patient).
@@ -460,10 +366,6 @@ ESSENCE: a unit with a "per" in it is a recipe for the arithmetic. Metres
   lawfully be done to it next.
 ROOT: this file / units carry through arithmetic — so the units are a
   running audit of the calculation, checkable at every line.
-CANNOT: no adding quantities of unlike units, ever, however similar the
-  names sound. And no reading a compound unit's meaning from its size —
-  fifty of something per something means nothing until both somethings are
-  said aloud.
 THREAD: physics (an equation whose units do not balance is wrong before it
   is even tested), money (dollars per share against dollars per year),
   farming (yield per acre per season).
@@ -474,10 +376,6 @@ ESSENCE: when two things work at one job, add their rates and never their
   third and a sixth an hour — a half together — so the tub fills in two.
 ROOT: mathematics / a rate is an amount per unit — amounts add, so rates
   over the same unit add, and times simply do not.
-CANNOT: no adding the times — three hours and six hours answers no
-  question here. And no averaging them either: the averaged four and a
-  half is a different wrong number, and it sounds more reasonable, which
-  makes it worse.
 THREAD: work (two crews on one wall), plumbing (a drain open while a tap
   runs, which is one rate minus the other), computing (two machines on one
   queue, until they start colliding).
@@ -494,10 +392,6 @@ ESSENCE: average speed is total distance over total time, and that is
 ROOT: this file / a rate is an amount per unit — averaging a rate means
   averaging over whatever sits in its bottom, which here is time and not
   trips.
-CANNOT: no averaging rates by averaging their numbers unless their bottoms
-  are equal. And no escaping a slow first leg: spend an hour at thirty and
-  no finite return speed whatever can lift the round trip to an average of
-  sixty.
 THREAD: money (a true yearly rate over good years and bad), fuel (miles
   per gallon averaged across a mixed fleet), sport (a runner's pace across
   uneven splits).
@@ -510,9 +404,6 @@ ESSENCE: averaging averages is honest only when the groups are the same
 ROOT: mathematics / an average is the pile shared out even — and
   re-sharing already-shared piles throws away the count each pile was
   standing for.
-CANNOT: no recovering the true average from the group averages alone; the
-  sizes are missing information and no arithmetic substitutes for them.
-  Equal sizes are the single case where the shortcut is not a lie.
 THREAD: schools (a district figure built from school figures), money (a
   company margin assembled from its divisions), sport (an average across
   seasons of different lengths).
@@ -525,10 +416,6 @@ ESSENCE: a weighted average lets each item bring its own say. Give every
 ROOT: this file / the average of averages — the repair is to carry the
   counts through the calculation instead of dropping them at the first
   step.
-CANNOT: no weighted average landing outside the range of its own values —
-  whatever the weights, the answer sits between the smallest and the
-  largest, so a result outside them is proof of an arithmetic error and
-  needs no further checking.
 THREAD: school (a final grade from parts worth different shares), money (a
   portfolio's return, a price index), the living world (a measurement
   averaged over unequal populations).
@@ -544,9 +431,6 @@ ESSENCE: the base is only how big a bundle grows before it carries. Change
   tenth repeats in twos.
 ROOT: mathematics / written numbers are bundles — the bundle size was a
   choice and it could have been another.
-CANNOT: no fraction ends in a base unless its bottom is built only from
-  that base's own primes — a tenth CANNOT be written exactly in binary,
-  however many places are allowed. Dead, not imprecise.
 THREAD: computing (why a tenth plus a fifth does not equal three-tenths in
   a machine), money (why financial systems store whole pennies), time
   (sixties, chosen because sixty has so many factors).
@@ -558,10 +442,6 @@ ESSENCE: binary bundles by two, so every place holds nothing or one and
   followed the hardware.
 ROOT: this file / the base is a choice of bundle — and two is the smallest
   bundle that still counts anything.
-CANNOT: no digit above one in any place. And no representing more than two
-  multiplied by itself as many times as there are places — sixteen places
-  stop dead at sixty-five thousand odd, which is why counters wrap and old
-  games break at strange numbers.
 THREAD: computing (every stored thing is this), electronics (a switch),
   logic (true and false written as the same two marks).
 RULE: to write a number in binary — halve it again and again, writing down
@@ -576,10 +456,6 @@ ESSENCE: hexadecimal is a shorthand for binary, not a rival to it. Sixteen
   reason it exists.
 ROOT: this file / the base is a choice of bundle — and a base that is a
   power of another translates place by place with no arithmetic at all.
-CANNOT: no such clean split between ten and two — ten is not a power of
-  two, so a decimal digit does not map onto a whole number of bits, and
-  that mismatch is exactly why human numbers and machine numbers keep
-  disagreeing at the edges.
 THREAD: computing (colours written as six hex digits, two per channel),
   memory addresses, printing (any nested notation with a nested unit).
 ASKED-AS: hexadecimal why sixteen colour codes memory address letters binary shorthand digits
@@ -590,9 +466,6 @@ ESSENCE: on a wheel of remainders, adding, taking away and multiplying all
   both land on nothing.
 ROOT: mathematics / numbers wrap on a dial — the wrap respects every
   operation built out of adding, and division is not one of them.
-CANNOT: no division on a wheel whose size shares a factor with the divisor
-  — dead, not awkward. Division works everywhere only when the wheel's
-  size is prime, which is why the codes choose prime wheels.
 THREAD: computing (hashing and checksums live on the wheel), music
   (transposing a tune is addition on the pitch wheel), calendars (what day
   of the week a date falls on).
@@ -604,10 +477,6 @@ ESSENCE: a check digit is a remainder deliberately bolted on so that a
   single wrong keystroke usually bounces instead of paying a stranger.
 ROOT: this file / the wheel keeps adding and multiplying — so a weighted
   sum of the digits has a predictable remainder that any change disturbs.
-CANNOT: no check digit catching every error — it must miss some, since far
-  more wrong numbers exist than remainders to hold them; the design only
-  chooses which mistakes to catch, usually single wrong digits and
-  neighbouring swaps.
 THREAD: computing (checksums and error-correcting codes are this grown
   large), money (card and account numbers), logistics (a barcode scanner
   refusing a smudge).
@@ -620,9 +489,6 @@ ESSENCE: reduce every number in a calculation to its digit sum, do the
 ROOT: mathematics / a number and its digit sum agree on the nine-wheel —
   the check is that agreement run across a whole calculation instead of a
   single number.
-CANNOT: no check ever confirms an answer; checks only convict. A test that
-  cannot fail tells you nothing, and one that fails rarely tells you very
-  little.
 THREAD: computing (a passing test suite proves no correctness), science (a
   survived prediction is not a proof), medicine (a normal result that
   rules out far less than it appears to).
@@ -639,9 +505,6 @@ ESSENCE: putting numbers on a line turns bigger into further right and
   negative flips it end for end.
 ROOT: premise — the numbers carry a complete order, so they can be laid in
   one row with nothing left over and nothing tied.
-CANNOT: no laying the imaginary numbers on one line — the order is not
-  there to be found, which is why they need a whole plane and why "bigger"
-  stops meaning anything among them.
 THREAD: measuring (a ruler is a number line with a job), time (a
   timeline), music (pitch heard as height, which is why the metaphor works
   at all).
@@ -653,9 +516,6 @@ ESSENCE: between any two fractions there is another — average them and you
   hole with fractions crowded around it forever and none of them landing.
 ROOT: mathematics / some infinities are larger — the fractions list off
   one by one, the line's points refuse to.
-CANNOT: no smallest positive fraction, and no next fraction after a given
-  one — the question has no answer at all, unlike among the whole numbers
-  where "next" is always waiting.
 THREAD: physics (whether space itself is grainy or smooth, still
   unsettled), computing (a machine holds a finite grid, so every stored
   number is a nearby fraction standing in), music (pitch as a continuum
@@ -668,9 +528,6 @@ ESSENCE: absolute value throws away the sign and keeps the distance from
   off" matters and which side does not.
 ROOT: this file / the number line — a distance is a length, and lengths do
   not carry direction.
-CANNOT: no negative absolute value, so no equation setting one equal to a
-  negative has any solution — dead on sight, no working needed. And no
-  undoing it: from the size alone the sign is gone for good.
 THREAD: engineering (a tolerance stated as a distance from target), money
   (the size of an error whether over or under), navigation (how far off
   course, not which side of it).
@@ -682,10 +539,6 @@ ESSENCE: an inequality survives adding or taking away anything at all, and
   whole line, and left and right change places along with it.
 ROOT: this file / multiplying by a negative flips the line — the order is
   a fact about which way the line points.
-CANNOT: no keeping the direction through a negative multiply. And no
-  multiplying an inequality by an unknown whose sign is not known — that
-  is not a hard step, it is an illegal one, and the cases must be split
-  and done separately.
 THREAD: money (a debt comparison reversing when read as owed instead of
   held), engineering (a limit reversing when the quantity is redefined as
   a shortfall), law (a threshold written as at least, or as no more than).
@@ -697,9 +550,6 @@ ESSENCE: turn two positive numbers upside down and their order reverses —
   dozen jobs.
 ROOT: this file / a rate and its inverse — dividing one by a larger number
   leaves less.
-CANNOT: no order reversal you can trust across a change of sign — if the
-  two numbers straddle zero the flip does something else entirely, so the
-  rule holds only for two numbers on the same side of it.
 THREAD: work (the tap rates, read backwards), physics (frequency against
   wavelength), money (a bond's price against its yield, which is this
   reversal and confuses everybody who meets it).
@@ -711,9 +561,6 @@ ESSENCE: an interval is a stretch of the line, and the only thing ever
   every argument about a threshold is that difference.
 ROOT: this file / the number line — a stretch is named by its two ends
   plus a decision taken at each end.
-CANNOT: no largest number below a boundary — "the biggest number under
-  one" does not exist, which is why an open end must be written as a rule
-  and never as a value.
 THREAD: law (a speed limit and what exactly counts as breaking it),
   medicine (a normal range and the patient sitting on the edge), computing
   (off-by-one errors, the commonest bug there is).
@@ -725,9 +572,6 @@ ESSENCE: infinity cannot be added to, taken from, or divided by, because
   anything: infinity minus infinity is not zero, it is not anything.
 ROOT: mathematics / infinity is a process and not a place, while
   arithmetic is defined only on places.
-CANNOT: no arithmetic with infinity as an operand — dead, not advanced. A
-  formula that produces one has broken, and the honest reading is that the
-  setup was wrong rather than that the answer is large.
 THREAD: physics (an infinite answer means the model failed, not the
   world), computing (overflow and divide-by-zero as machine events), money
   (a price model running to infinity is announcing that it has left its
@@ -740,9 +584,6 @@ ESSENCE: zero is the anchor of adding and the black hole of multiplying.
   characters, and nearly all of zero's oddness comes out of that split.
 ROOT: mathematics / zero was invented — and the invention had to serve
   both operations at once, without a say in how they would treat it.
-CANNOT: no reciprocal for zero — nothing multiplies by it to give one,
-  precisely because everything multiplies by it to give zero. That one
-  sentence is the whole reason division by it fails.
 THREAD: money (a balance of nothing against a multiplier of nothing — one
   is a state, the other is ruin), physics (a zero underneath marking where
   a theory ends), computing (the empty value that behaves unlike every
@@ -755,9 +596,6 @@ ESSENCE: division asks what multiplies back. Six divided by zero asks what
   opposite failures.
 ROOT: this file / zero has no reciprocal; mathematics / the rule-change
   law — a widening must keep every old score, and this one cannot.
-CANNOT: no number may be minted for it — name one and a four-line argument
-  produces one equals two, and the contradiction fire burns the whole
-  system rather than the corner it began in.
 THREAD: computing (a machine must either stop or invent a signal meaning
   not-a-number), physics (a singularity is where the equations do
   precisely this), law (a rule with no possible application beside one
@@ -770,9 +608,6 @@ ESSENCE: one is left out of the primes on purpose. Let it in and every
   unique, is destroyed.
 ROOT: mathematics / primes are the atoms and the pile is unique — the
   definition was chosen to protect the theorem.
-CANNOT: no definition that admits one and keeps uniqueness; the two
-  demands are incompatible, so one had to go, and the theorem was worth
-  more than the tidiness.
 THREAD: language (a category boundary drawn to make the generalisations
   work), chemistry (why a lone proton is treated apart from the elements),
   law (a definition written to preserve a rule's force).
@@ -785,10 +620,6 @@ ESSENCE: a decimal that repeats forever is not an approximation — it is a
 ROOT: this file / a fraction ends or repeats according to the primes in
   its bottom — repeating is the ordinary case, not a defect in the
   writing.
-CANNOT: no decimal both repeating and untidy — repetition is proof of a
-  fraction. And no number sitting between nought point nine recurring and
-  one; there is no room for one, and a number with nothing between it and
-  another simply is that other.
 THREAD: money (a third of a bill, which no cash settles exactly),
   computing (a machine's tenth is a repeating binary fraction cut short),
   music (a beat divided in three).
@@ -804,10 +635,6 @@ ESSENCE: some numbers are written exactly only as a symbol — a third, the
   the very end keeps every digit the problem actually earned.
 ROOT: mathematics / a calculation is no more precise than its worst input
   — and rounding early makes you the worst input.
-CANNOT: no recovering precision once rounded — the discarded digits are
-  gone, and later steps can magnify what is left of the error rather than
-  settling it. Taking one nearly-equal rounded number from another
-  destroys almost all their accuracy in a single step.
 THREAD: engineering (working in symbols until the last line), computing (a
   long subtraction losing every meaningful digit), surveying (an angle
   carried exact and cashed once at the end).
@@ -819,9 +646,6 @@ ESSENCE: decimals compare place by place from the left, and the first
   place has already spoken and nothing to its right can answer back.
 ROOT: mathematics / written numbers are bundles — the leftmost differing
   bundle outranks everything below it, however much of it there is.
-CANNOT: no longer decimal being automatically larger; that habit comes
-  from whole numbers, where more digits does mean more, and it simply does
-  not cross the point.
 THREAD: money (a price of four and a half against four and forty-five
   hundredths), sport (times read to hundredths), medicine (a dose read off
   a chart in a hurry).
@@ -833,9 +657,6 @@ ESSENCE: taking a share of a share multiplies the shares. Twenty percent
   most often go wrong.
 ROOT: mathematics / of is times — with both factors below one, so the
   answer has to be smaller than either of them.
-CANNOT: no share of a share exceeding either share; the answer is bounded
-  above by both, so a reported figure that is not is arithmetically
-  impossible before any argument about the data starts.
 THREAD: money (a commission taken on a margin), medicine (a complication
   rate inside a treated group inside a screened population), news (a
   percentage rise quoted on a tiny base).
@@ -847,10 +668,6 @@ ESSENCE: adding tops and bottoms is wrong for fractions and right for
   means two different things in those two sentences.
 ROOT: mathematics / a fraction is a paused division — a tally is not a
   division at all until somebody performs it.
-CANNOT: no combining two rates by adding their parts unless both came from
-  counts over the same kind of trial. The pooled rate is a weighted
-  average and it always lands between the two, so a pooled figure outside
-  them is proof of a mistake.
 THREAD: sport (a season average built from two half-seasons), medicine
   (pooling two trials' success rates), money (a blended interest rate
   across two balances).
@@ -863,9 +680,6 @@ ESSENCE: anything growing by a steady percentage doubles on a schedule,
 ROOT: this file / percentage changes multiply — repeated multiplying by
   one fixed factor reaches double after a fixed number of steps, whatever
   it set out from.
-CANNOT: no steady percentage growth that avoids doubling — the only
-  question is when, which is why small rates compounding quietly for
-  decades are misjudged so reliably in both directions.
 THREAD: money (savings, inflation and debt all on the same clock),
   population (a growth rate read as a doubling time), the living world
   (bacteria in a dish, until the dish runs out).
@@ -877,9 +691,6 @@ ESSENCE: the honest average of things that multiply is the number which,
   real result is down a quarter.
 ROOT: this file / changes chain by multiplying — an average must be taken
   in whichever operation the quantities actually use.
-CANNOT: no multiplying average that exceeds the plain average of the same
-  rates, ever — and the gap widens with the scatter, so a rougher ride
-  ends lower than a smooth one with the same average step.
 THREAD: money (why an advertised average beats what any investor
   received), population growth across uneven years, physics (averaging
   ratios of any kind at all).
@@ -891,10 +702,6 @@ ESSENCE: counting the things between two marks and counting the gaps
   posts.
 ROOT: this file / an interval is named by its ends — and the ends are
   things too, so their fate must be settled before anything is counted.
-CANNOT: no counting a run by subtracting its ends without first deciding
-  whether the ends are in. And no cure but deciding — this single slip is
-  the most common arithmetic error there is, in every trade that has ever
-  counted anything.
 THREAD: building (posts against panels), computing (a loop running one
   time too few), calendars (days between two dates, and whether both of
   them are worked).

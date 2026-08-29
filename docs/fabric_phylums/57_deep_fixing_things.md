@@ -9,9 +9,6 @@ ESSENCE: a screw is a wound spring parked on a ramp and held by
   a hair backward; a million small slips is a loose bolt.
 ROOT: physics / the thread is a ramp wrapped in a circle, and
   only friction parks a load on a ramp.
-CANNOT: no fastening without friction — a frictionless screw
-  would unwind the moment the wrench left; lock washers, inserts,
-  and thread glue are friction re-armed.
 THREAD: machines (washing machines eat their own bolts),
   aviation (critical fasteners are wired shut — slips forbidden
   by wire, not hope).
@@ -24,9 +21,6 @@ ESSENCE: penetrating oil is a crowbar one molecule wide — an oil
   first job was shoving water off metal).
 ROOT: physics / narrow spaces pull liquids in — the tighter the
   gap, the harder the pull (the candle-wick law).
-CANNOT: no force before the film — torque on a still-dry joint
-  shears the bolt, not the rust; the oil needs time, and
-  tap-and-wait IS the tool.
 THREAD: craft (solder wicking into a tight joint by the same
   pull), cooking (the lamp wick lifting its own fuel).
 ASKED-AS: wd40 rusted bolt stuck squeaky hinge soak overnight spray loosen nut seized
@@ -37,8 +31,6 @@ ESSENCE: a lock is a row of spring-loaded pins that must all sit
   until one instant lines them all up.
 ROOT: chance+risk / enough tries find a narrow target — the
   jiggle is sampling, not strength.
-CANNOT: no jiggling past real absence — the search rescues only
-  the almost-right; a key worn past tolerance can rattle forever.
 THREAD: engineering (adding small noise to un-stick a system is
   a real, named technique), this file (the whack that reseats
   an old radio — same family).
@@ -51,9 +43,6 @@ ESSENCE: off-and-on works because most machine sickness lives in
   the beginning.
 ROOT: computing / a system knows its start better than any of
   its middles — beginnings are rehearsed, middles are wilderness.
-CANNOT: no reboot heals the bones — a failing disk, a corrupted
-  file, a burnt part survive every restart; off-and-on cures
-  only what forgetting can cure.
 THREAD: medicine (sleep looks like the nightly version — UNSURE
   at mechanism), teaching (starting the explanation over beats
   patching it).
@@ -66,9 +55,6 @@ ESSENCE: duct tape is a liquid handshake with a cloth spine —
   flat, feeble when peeled — a peel attacks one thin line at a
   time.
 ROOT: craft / contact is everything — glue is fit, poured.
-CANNOT: no grip without touch — dust, water, oil, or
-  cold-stiffened glue void the handshake; and no tape strong
-  against the peel — a failed patch always lifts from an edge.
 THREAD: the living world (geckos climb on contact area alone, no
   glue at all), engineering (shear versus peel decides rivets
   and welds — plane skins are not taped).
@@ -80,9 +66,6 @@ ESSENCE: paint is a mask, not a cure — iron's hunger for oxygen
   own edges and opens ever more bare iron; the flaw recruits.
 ROOT: physics / disorder wins — refined metal is uphill, and
   rust is the ore road home.
-CANNOT: no barrier better than its worst scratch, and no rust
-  un-rusting — back to metal only through the smelter's full
-  price, paid again.
 THREAD: medicine (infection through broken skin — the same
   barrier law), building (cracks start at corners; rust starts
   at scratches — one family).
@@ -94,9 +77,6 @@ ESSENCE: a cheap tool hides its true price — it dies sooner (buy
   of a chewed bolt is never sold cheap.
 ROOT: chance+risk / expected value — real cost is the price plus
   every consequence, weighted by its odds.
-CANNOT: no pressing softness into hardness — past its strength a
-  blade deforms, and force spent past that line is paid by the
-  screw, the knuckle, or both.
 THREAD: money (the old boots parable — buying cheap serially
   costs more), craft (the master's few good tools against the
   drawer of junk).
@@ -109,9 +89,6 @@ ESSENCE: righty-tighty is an agreement hardened into hardware —
   cut backward so riding tightens it).
 ROOT: law+agreements / a coordination rule needs no truth, only
   unanimity — same species as driving on the right.
-CANNOT: no value in a private standard — the rule pays because
-  nobody has to check; mixed threads strip fasteners at every
-  changeover — why backwards ones are marked.
 THREAD: money (value by unanimity is the same magic), machines
   (the turnbuckle runs both handednesses so one twist tightens
   two ends).
@@ -123,8 +100,6 @@ ESSENCE: a wet finger finds the draft because evaporation is a
   such, feels cold's direction perfectly.
 ROOT: deep column 50 / evaporation is the fastest escape — read
   here as an instrument.
-CANNOT: no reading from a dry finger — without water there is no
-  theft, and without theft no signal.
 THREAD: sailing (the licked finger aloft — the oldest wind
   gauge), survival (windchill is the same theft at body scale).
 ASKED-AS: draft window wet finger lick wind direction leaky door winter cold spot breeze

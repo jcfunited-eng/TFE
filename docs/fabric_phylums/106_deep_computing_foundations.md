@@ -6,10 +6,6 @@ ESSENCE: underneath every program, however clever, a processor
   Jump there. There is nothing else inside.
 ROOT: computer science / a recipe is steps in order, and the
   machine is only a stage for steps.
-CANNOT: no act a machine performs that is not built from these
-  tiny orders. No understanding above that may contradict it —
-  every picture, word and sound on a screen was assembled out of
-  moves and adds.
 THREAD: writing (every book is letters in order), building (a
   cathedral is placed stones), music (any piece is single notes
   in sequence).
@@ -21,10 +17,6 @@ ESSENCE: the machine repeats one loop forever — fetch the next
   sense of place the machine has.
 ROOT: this file / a processor only carries out small orders;
   computer science / a system is its state plus rules for moving.
-CANNOT: no processor that knows what it is doing overall; it sees
-  one instruction, never the program. No progress if the marker
-  does not advance — the loop is not a feature, it is the machine
-  being alive.
 THREAD: reading (a finger moving along a line), assembly lines
   (one station, one action, then the next part), clerks (a stack
   of forms and a place-marker).
@@ -36,10 +28,6 @@ ESSENCE: inside the machine everything is numbers — a letter, a
   agreement and the same bits are a photograph or gibberish.
 ROOT: language / a symbol carries meaning only under a shared
   convention.
-CANNOT: no meaning inside the data itself; a stored number does
-  not know what it is. No reading a file without knowing its
-  kind, which is why a wrong guess about format gives noise
-  rather than an error.
 THREAD: writing (marks mean nothing without the alphabet), money
   (a note is paper plus agreement), music (dots on lines, given a
   clef).
@@ -50,10 +38,6 @@ ESSENCE: a number inside a machine has a fixed number of digits,
   overflow into a bigger box — it wraps around, quietly, to a
   small or negative number, and everything after that is wrong.
 ROOT: physics / a fixed store holds a fixed count of states.
-CANNOT: no counting past the size of the box. No warning either,
-  unless someone asked for one — the addition succeeds, and the
-  wrongness travels downstream looking exactly like a normal
-  value.
 THREAD: odometers (rolling from all nines to zero), clocks (the
   hour after twelve is one), calendars (a two-digit year meeting
   the century).
@@ -65,10 +49,6 @@ ESSENCE: fractions are stored in a scheme that cannot represent
   operations accumulate.
 ROOT: mathematics / a finite store cannot hold an endless
   expansion, and most decimals are endless in the machine's base.
-CANNOT: no exact equality test on these numbers; you compare
-  within a tolerance or you get nonsense. No money held in them —
-  count whole pennies, because a bank does not accept "close
-  enough".
 THREAD: measurement (a ruler has a smallest mark), cooking
   (repeated rounding of halves drifts), surveying (small angle
   errors compound over distance).
@@ -80,10 +60,6 @@ ESSENCE: a byte is not a letter. Most alphabets need more than
   a name used to be.
 ROOT: this file / everything is numbers, and characters are
   numbers under an agreed scheme.
-CANNOT: no reading text without knowing its encoding — the same
-  bytes are two different words under two schemes. No safe
-  cutting of text at an arbitrary byte; the cut must fall on a
-  character boundary.
 THREAD: language (a letter with an accent is still one letter),
   writing systems (some scripts join marks into one sign), post
   (a name misspelled by machinery that assumed an alphabet).
@@ -95,9 +71,6 @@ ESSENCE: people write in words; machines run small orders. Some
   the words you wrote never run — a translation of them does.
 ROOT: this file / a processor only carries out small orders, so
   everything human must be turned into them.
-CANNOT: no machine reading your source directly. No blaming only
-  your text when behaviour is odd — the translator's choices, the
-  version, and its settings are all part of what actually ran.
 THREAD: translation (the audience hears the interpreter),
   cooking (a recipe read aloud versus prepped in advance), music
   (score to performance, always by someone).
@@ -109,10 +82,6 @@ ESSENCE: memory comes in layers, each larger and slower than the
   touched runs fast; work that jumps everywhere starves.
 ROOT: physics / distance and size both cost time, and no material
   escapes both.
-CANNOT: no memory that is both large and fast; the trade is
-  physical, not a design failing. No speed from a good method
-  that walks memory at random — the layout can beat the
-  algorithm.
 THREAD: kitchens (counter, cupboard, cellar, shop), workshops
   (the tools on the bench set the pace), libraries (the desk pile
   versus the stacks).
@@ -124,10 +93,6 @@ ESSENCE: the machine never fetches one number; it fetches a whole
   expensive — how the data sits decides the speed.
 ROOT: this file / distance costs; craft / one trip carries
   whatever one trip can carry.
-CANNOT: no fetching a single value cheaply — you pay for the
-  block whether you use the rest or not. No fast walk over data
-  scattered one item per block; you are carrying buckets to take
-  sips.
 THREAD: shopping (one trip, a full basket), post (a parcel priced
   by the journey, not the gram), farming (walk the row, not the
   field at random).
@@ -140,10 +105,6 @@ ESSENCE: the gaps between where data can sit are not small. In
   price.
 ROOT: this file / memory is layered, and each layer is
   further away than the last.
-CANNOT: no treating storage as one thing — a design blind to
-  which layer it touches will be a thousand times slower for no
-  visible reason. No hiding a journey behind a tidy name; the
-  waiting is real.
 THREAD: distance (pocket, room, town, continent), libraries (in
   hand, on the shelf, in the warehouse, on loan), memory
   (recalled, looked up, written away for).
@@ -155,10 +116,6 @@ ESSENCE: the machine can find memory that nothing can reach any
   pauses at moments you did not choose.
 ROOT: software development / every allocation has an owner and an
   end; this is the machine owning the end.
-CANNOT: no automatic collection without pauses or extra work;
-  something must trace what is still reachable. No collector that
-  saves you from holding on to things you no longer need — what
-  is still referenced is still alive, wanted or not.
 THREAD: cleaning (a nightly sweep that closes the shop), grazing
   (fields rested in rotation), libraries (a stock-take with the
   doors shut).
@@ -170,9 +127,6 @@ ESSENCE: many programs want the same processor, memory, disk and
   space, and it alone may touch the hardware.
 ROOT: people together / a shared resource with no referee is
   taken by whoever grabs hardest.
-CANNOT: no fair sharing without a referee that outranks every
-  player. No program reaching the hardware directly — it must
-  ask, and the asking is exactly where safety lives.
 THREAD: sport (the referee is on neither team), traffic (signals
   at a shared junction), courts (a dispute settled by someone
   above both parties).
@@ -184,10 +138,6 @@ ESSENCE: the machine runs in two modes: the privileged one, where
   memory — by knocking on a door and being carried across.
 ROOT: this file / the operating system alone may touch the
   hardware, so there must be a door.
-CANNOT: no touching the world from ordinary mode without
-  crossing. No free crossing either: each one costs, which is why
-  reading a file in one big piece beats reading it a byte at a
-  time by a wide margin.
 THREAD: banks (the counter between customer and vault), courts
   (an application, not a self-help remedy), buildings (a controlled
   door rather than an open wall).
@@ -200,10 +150,6 @@ ESSENCE: the world does not wait its turn. A key press, an
   forward can also react.
 ROOT: this file / the processor's loop has a place-marker, and a
   saved marker can be returned to.
-CANNOT: no noticing anything without either interruption or
-  constant asking, and constant asking wastes the machine. No
-  handling of an interruption that may take its time — everything
-  else is stopped while it runs.
 THREAD: shops (a bell at the counter), nursing (a call button
   mid-round), parenting (whatever you were doing, saved and
   resumed).
@@ -215,10 +161,6 @@ ESSENCE: each program runs inside its own walled room, with
   bank page down with it.
 ROOT: this file / the operating system is referee; law / property
   lines exist so neighbours need not trust each other.
-CANNOT: no isolation without a wall, and no wall without a cost —
-  talking across it means copying or asking permission. No
-  containment at all where any part may write any other part's
-  memory.
 THREAD: ships (watertight compartments), buildings (fire doors),
   farming (fences so one sick animal is not the whole herd).
 ASKED-AS: program crashed others fine separate own memory walls isolated processes task manager apps
@@ -229,10 +171,6 @@ ESSENCE: threads are workers inside one room. Sharing between
   work, with no wall anywhere to catch it.
 ROOT: this file / isolation is a wall, and a wall is what was
   removed here.
-CANNOT: no cheap sharing and safe isolation at once; the wall
-  removed for speed is the wall that was protecting you. No
-  containing a fault inside one thread — the damage is the whole
-  program's.
 THREAD: kitchens (one bench, no partitions), ships (one hold, no
   bulkheads), offices (a shared desk where anyone may move
   anyone's papers).
@@ -244,10 +182,6 @@ ESSENCE: there is one processor and many things wanting it, so
   entirely of turns.
 ROOT: this file / the machine does one instruction at a time, so
   sharing must be sharing of time.
-CANNOT: no running everything at once on one worker — the slices
-  are real and the total is fixed. No promise about when your
-  turn comes unless something specifically promises it; ordinary
-  systems offer fairness, never punctuality.
 THREAD: teaching (one teacher circulating among thirty), medicine
   (a waiting room with triage), kitchens (one oven, many dishes,
   timed turns).
@@ -259,10 +193,6 @@ ESSENCE: every program is given its own clean map of memory,
   disk if it is not in memory at all.
 ROOT: this file / processes are walled rooms, and the wall is
   built out of this translation.
-CANNOT: no two programs colliding in memory neither can name. No
-  free translation, either: when real memory runs out the machine
-  starts trading with the disk, and a fast program becomes a
-  waiting one without changing a line.
 THREAD: post (a box number that hides the real address), theatre
   (everyone believes they are centre stage), banking (your
   balance is not particular coins in a drawer).
@@ -276,9 +206,6 @@ ESSENCE: the same trick played one level up: a whole machine, or
 ROOT: computer science / any machine can imitate any other; this
   file / the referee can hand out imaginary machines as easily as
   real turns.
-CANNOT: no escaping the real machine underneath — its speed,
-  memory and failures are still yours. No isolation as strong as
-  a separate machine; a shared floor is still a shared floor.
 THREAD: theatre (a stage set that travels with the company),
   shipping (a container that fits every lorry and ship), tents (a
   carried indoors).
@@ -290,10 +217,6 @@ ESSENCE: a disk holds numbered blocks and nothing else. A file —
   about which blocks belong to whom.
 ROOT: computer science / a layer keeps a promise and hides its
   workings.
-CANNOT: no file without a record of its blocks; lose that record
-  and the data is present but unreachable. No guarantee its
-  blocks sit together, which is why reading "in order" can still
-  mean the disk jumping about.
 THREAD: libraries (a bound book, and a catalogue saying where),
   warehouses (an order assembled from scattered bins), music (an
   album is a name over separate tracks).
@@ -305,10 +228,6 @@ ESSENCE: names are arranged as a tree, so every thing has exactly
   that people and programs can agree where anything is.
 ROOT: computer science / arrangement is what makes finding
   possible; language / a name must be unambiguous to be useful.
-CANNOT: no two files with the same full path — the path IS the
-  name. No finding anything in a flat heap of a million names;
-  hierarchy is what makes a name sayable, guessable and
-  searchable.
 THREAD: addresses (country, city, street, number), biology
   (kingdom down to species), families (a surname line, branching).
 ASKED-AS: folders within each other path tree root directory where is it saved full name
@@ -319,9 +238,6 @@ ESSENCE: deleting usually removes the name, not the contents. The
   anyone who looks past the index.
 ROOT: this file / a file is a name plus a record of blocks, and
   removing the record is cheaper than scrubbing the blocks.
-CANNOT: no erasure by deletion — that is why recovery tools work
-  at all, and why a sold disk can betray you. No certainty of
-  erasure without overwriting, and on some storage not even then.
 THREAD: libraries (a card pulled from the catalogue, the book
   still on the shelf), paper (crossing out is not shredding),
   memory (forgetting a name is not losing the face).
@@ -333,10 +249,6 @@ ESSENCE: "saved" usually means "handed to a buffer". The words
   which is slow, which is why almost nothing does it by default.
 ROOT: this file / writing to a disk is a journey, and journeys
   are batched to be affordable.
-CANNOT: no durability without the wait; speed here is bought with
-  exactly the risk you are trying to avoid. No knowing from
-  inside a program that a write reached the platter unless it
-  asked and the answer came back.
 THREAD: post (a letter in the pillar box is not delivered),
   banking (a payment shown as pending), promises (said is not
   done).
@@ -348,9 +260,6 @@ ESSENCE: every act on a file is checked against who is asking:
   once at the start.
 ROOT: this file / the operating system referees; law / rights
   attach to particular persons and things.
-CANNOT: no protection from a check made once and then trusted
-  forever; the check belongs at each act. No help from any of it
-  where everything runs as the owner of everything.
 THREAD: banks (a signature checked at every withdrawal),
   buildings (keys per door, not per building), libraries
   (reference only, lending, restricted).
@@ -362,10 +271,6 @@ ESSENCE: run any data through a fixed recipe and you get a short
   backwards from fingerprint to data is impractical.
 ROOT: mathematics / a many-to-few mapping can be easy forwards
   and hopeless backwards.
-CANNOT: no proving two files are identical without comparing
-  them, but matching fingerprints make a difference vanishingly
-  unlikely. No avoiding collisions in principle — there are more
-  possible files than fingerprints, always.
 THREAD: fingerprints (small, unique enough, useless for
   rebuilding the person), seals (a broken one shows tampering),
   weighing (a quick check that the sack was not opened).
@@ -377,10 +282,6 @@ ESSENCE: anything sent across a shared wire can be read and
   the contents and by proving who the other end is.
 ROOT: this file / a network is strangers passing messages, and
   strangers may read what they carry.
-CANNOT: no secrecy on a public path without scrambling. No
-  security from scrambling alone, either — an encrypted
-  conversation with an impostor is perfectly private and
-  completely lost; the identity check is the other half.
 THREAD: post (a postcard versus a sealed letter), law (a signed
   and witnessed deed), speech (a whispered secret to the wrong
   person).
@@ -392,9 +293,6 @@ ESSENCE: a network is not a wire between two programs. It is a
   built on top; it is never a thing you are given.
 ROOT: physics / a signal crossing distance through many hands has
   many chances to be lost.
-CANNOT: no network call that cannot fail. No telling a lost
-  request from a lost reply — the caller sees the same silence
-  either way, and the work may or may not have been done.
 THREAD: post (letters lost, delayed, doubled), rumour (a message
   across many mouths), sailing (a signal that may not be seen).
 ASKED-AS: network message lost dropped delayed connection failed did it arrive unreliable internet unsure
@@ -405,9 +303,6 @@ ESSENCE: a message is chopped into small packets that travel
   came is work that somebody must do.
 ROOT: this file / a network is unreliable message passing, and
   each piece is passed separately.
-CANNOT: no assuming arrival order matches sending order. No
-  reassembly without numbering — an unnumbered stream cannot be
-  repaired, only taken as it comes.
 THREAD: post (a set of parcels arriving over several days),
   building (materials delivered out of sequence), music (parts
   posted separately to be scored together).
@@ -419,10 +314,6 @@ ESSENCE: people use names; machines need addresses. Before any
   cached, and it can be wrong.
 ROOT: language / a name must be resolved to a thing before the
   thing can be reached.
-CANNOT: no reaching a name directly; the translation is a real
-  step with real failures. No instant change of a name's meaning
-  either — old answers sit in caches everywhere, so the world
-  moves over to the new address gradually.
 THREAD: post (a name looked up in a directory to get an address),
   telephones (a phone book before a call), shops (a brand name
   resolved to an actual branch).
@@ -434,9 +325,6 @@ ESSENCE: two different things get called speed. Bandwidth is how
   film and terrible for a conversation.
 ROOT: this file / carrying more and arriving sooner are different
   physical questions.
-CANNOT: no fixing a wait by widening the pipe — width moves more,
-  it does not move sooner. No help from bandwidth for a small
-  message; there, the wait is the entire cost.
 THREAD: post (a lorry of letters versus a phone call), water (a
   fat pipe still takes time to reach the tap), roads (more lanes
   do not shorten the drive).
@@ -448,9 +336,6 @@ ESSENCE: every question that must go and come back costs at least
   all. So the cure is asking fewer times, never asking faster.
 ROOT: physics / nothing outruns light, and the distance is
   geography.
-CANNOT: no beating the round trip with better code or newer
-  hardware. No chatty design across a distance — a hundred small
-  questions is a hundred journeys, however small each one is.
 THREAD: conversation (the pause on a call across an ocean), post
   (letters back and forth versus one full letter), shopping (one
   list beats twenty trips).
@@ -461,10 +346,6 @@ ESSENCE: two machines that have never met can work together only
   messages and the order of the turns. The agreement is the whole
   connection; without it the wire carries nothing but noise.
 ROOT: language / shared grammar is what makes sound into speech.
-CANNOT: no communication without a shared format — an unagreed
-  message is not misread, it is unreadable. No changing a
-  protocol alone; both ends must move together, which is why old
-  formats live so very long.
 THREAD: language (grammar both speakers hold), music (an agreed
   tuning before anyone plays), law (contracts fixing form and
   sequence).
@@ -476,10 +357,6 @@ ESSENCE: a structure in memory is held together by addresses that
   both ends must agree exactly how.
 ROOT: this file / memory addresses are private to one program's
   map.
-CANNOT: no sending a shape as it sits in memory; the links point
-  at rooms the other machine does not have. No rebuilding what
-  the sender did not include — anything implied by context is
-  lost in the flattening.
 THREAD: furniture (flat-packed to travel, rebuilt with
   instructions), music (a performance written down to be played
   elsewhere), recipes (a dish sent as words, not as dinner).
@@ -491,10 +368,6 @@ ESSENCE: a call across a network is written to look like a call
   in ways a local call never invents.
 ROOT: this file / networks lose, delay, duplicate and reorder,
   while a local call simply runs.
-CANNOT: no hiding a network behind a familiar shape — the
-  differences leak out as timeouts, partial work and duplicates.
-  No pretending it is fast: a loop that was free becomes a
-  disaster when each turn crosses a wire.
 THREAD: shops (asking the back room versus reaching the shelf),
   conversation (a letter is not a word in the same room), travel
   (a step versus a flight, both called "going there").
@@ -506,10 +379,6 @@ ESSENCE: client and server name who is asking and who is
   by minute.
 ROOT: this file / a protocol defines turns, and a role is a
   position in the turns.
-CANNOT: no reading a system's shape from its hardware; roles
-  belong to conversations. No server without an asker — nothing
-  serves unprompted, which is why an unused server looks exactly
-  like a broken one.
 THREAD: shops (a shop is a customer of its suppliers), language
   (speaker and listener swap every turn), medicine (a doctor who
   is someone else's patient).
@@ -521,10 +390,6 @@ ESSENCE: if a server remembers nothing between requests, any copy
   what makes a machine irreplaceable.
 ROOT: software development / state is where difficulty lives, and
   here it is also where inflexibility lives.
-CANNOT: no free replacement of a machine holding something no
-  other machine has. No abolishing state, either — it moves
-  somewhere shared, and that somewhere becomes the limit and the
-  weak point.
 THREAD: shops (any till serves any customer), taxis (any driver,
   any fare), teaching (a supply teacher can take the class if the
   plan is on paper).
@@ -536,11 +401,6 @@ ESSENCE: work does not arrive smoothly. A queue lets a fast,
   wait instead of a collapse.
 ROOT: this file / rates differ, and something must hold the
   difference.
-CANNOT: no queue that rescues a worker who is slower than the
-  sender on average — then the line grows forever and the queue
-  has only delayed the failure. No unbounded queue that is safe;
-  a line with no limit hides the overload until the memory is
-  gone.
 THREAD: shops (a checkout line absorbing the lunchtime rush),
   water (a tank between pump and tap), post (a sorting office
   holding the Christmas surge).
@@ -552,10 +412,6 @@ ESSENCE: since silence is indistinguishable from slowness, every
   willing to not know, and then lets you act.
 ROOT: this file / a lost request and a lost reply look the same
   from where you stand.
-CANNOT: no waiting without a limit unless you accept being stuck
-  forever. No timeout that is right: too short abandons work that
-  would have finished, too long ties up everything behind it. You
-  are choosing which error to make.
 THREAD: meeting someone (you leave after twenty minutes), post (a
   claim made after two weeks), medicine (a decision made before
   the results arrive).
@@ -567,10 +423,6 @@ ESSENCE: when something slows down, everyone retries — and the
   finished off by its own clients trying to help.
 ROOT: this file / retries are the answer to lost messages, and
   answers applied by everyone at once become a crowd.
-CANNOT: no safe retrying without waiting longer each time and
-  spreading the attempts out; identical rules make everyone knock
-  in unison. No recovery for a service whose queue refills faster
-  than it drains.
 THREAD: crowds (everyone leaving by one exit at once), phones (a
   ticket line redialling in unison), traffic (a jam that reforms
   behind itself).
@@ -582,10 +434,6 @@ ESSENCE: a database is not just storage. It is a promise-keeper:
   write, including the ones nobody remembered to check.
 ROOT: law / a rule kept by a registry beats a rule kept by mutual
   goodwill.
-CANNOT: no rule held by every program agreeing to hold it — one
-  careless writer voids it for everyone, forever. No repairing
-  broken data from outside once several programs have built on
-  it.
 THREAD: law (a land registry rather than neighbourly promises),
   weights (a certified scale above any shopkeeper), banking (the
   bank's ledger, not the customers').
@@ -598,9 +446,6 @@ ESSENCE: a transaction makes four promises: all of it or none of
   machine.
 ROOT: this file / a database keeps what programs cannot;
   accounting / an entry has two sides and both must land.
-CANNOT: no half a transfer surviving a crash — the missing half
-  is the whole disaster. No confirmed-then-forgotten write; a
-  promise that dies with the power was never a promise.
 THREAD: accounting (double entry balances or is void), law (a
   deal signed by both or by neither), ceremony (it completes, or
   it did not happen).
@@ -612,9 +457,6 @@ ESSENCE: an index is a second arrangement of the same facts, kept
   recorded twice.
 ROOT: computer science / arrangement is work stored up in
   advance, and stored work must be maintained.
-CANNOT: no free reading — every index makes writing slower and
-  takes space. No help from an index for a question it was not
-  built for; the wrong index costs everything and gives nothing.
 THREAD: books (the index at the back, built by hand), libraries
   (a card catalogue maintained daily), shops (a stock list
   updated at every sale).
@@ -626,10 +468,6 @@ ESSENCE: store each fact in exactly one place, so a correction
   accepting the risk of disagreement in exchange for speed.
 ROOT: this file / a fact with two homes drifts; and reading
   scattered facts costs journeys.
-CANNOT: no two copies of a fact that stay equal by good
-  intentions. No fast read of a fact scattered across many tables
-  without either joining work or a kept copy — you are choosing
-  which cost, not avoiding it.
 THREAD: records (one address book, not five), cooking (a master
   recipe versus cards in every drawer), law (one register of
   title, amended once).
@@ -641,10 +479,6 @@ ESSENCE: when the data outgrows one machine, it is split by some
   become expensive or impossible.
 ROOT: craft / division of labour, applied to facts rather than
   hands.
-CANNOT: no splitting without choosing what to split by, and that
-  choice decides which questions stay cheap forever. No easy
-  counting, joining or transacting across the boundary — the
-  split is real, not cosmetic.
 THREAD: libraries (branches by subject, and the book you want is
   in the other one), post (sorting by district), schools (classes
   by year, and the pupil who needs both).
@@ -656,9 +490,6 @@ ESSENCE: keep copies on several machines and the death of one
   honest machines hold two different truths.
 ROOT: computer science / redundancy is what lets a message
   survive damage — at the cost of length, and here of agreement.
-CANNOT: no survival of machine death without copies. No copies
-  that are always identical — updating several things at a
-  distance takes time, and during that time they differ.
 THREAD: the body (two kidneys), law (deeds in triplicate,
   amended one at a time), families (the same story told slightly
   differently in two houses).
@@ -670,10 +501,6 @@ ESSENCE: when the link between two halves of a system breaks —
   can talk again. There is no third door.
 ROOT: logic / two parts that cannot hear each other cannot agree
   on anything new.
-CANNOT: no system that is both consistent and available while
-  split — not merely hard: impossible. No dodging the choice by
-  not deciding; a system that never chose has chosen the worse
-  one by accident.
 THREAD: law (two courts cut off from each other), navigation (two
   ships out of contact holding one plan), families (two branches
   deciding in isolation).
@@ -685,10 +512,6 @@ ESSENCE: the usual settlement is to answer now and agree later:
   a reader may see yesterday's answer.
 ROOT: this file / during a split, or during any spreading change,
   copies differ.
-CANNOT: no "later" without a rule for settling disagreements —
-  last-writer-wins, merge, or a human. No hiding the window from
-  the user; a design that assumes reads are always current will
-  be wrong in public.
 THREAD: banking (a payment showing up tomorrow), post (a change
   of address in transit), rumour (the news reaching one village
   before the next).
@@ -700,9 +523,6 @@ ESSENCE: one machine is either up or down. Many machines are
   weather, not the emergency.
 ROOT: chance / with many parts, the chance that all are well at
   once falls away quickly.
-CANNOT: no all-or-nothing failure in a system of many parts. No
-  telling a dead machine from a slow one — you can only choose
-  how long to wait, and be wrong sometimes in both directions.
 THREAD: the body (an organ failing while you walk about), cities
   (a power cut on one street), teams (two members unreachable and
   nobody agreed they had left).
@@ -714,9 +534,6 @@ ESSENCE: every machine has its own clock, and clocks drift, jump,
   ordering has to be carried by the messages themselves.
 ROOT: physics / there is no shared instant to appeal to, only
   signals that take time to arrive.
-CANNOT: no shared "now" across separated machines. No ordering
-  two events by their stamps when the clocks were never the same
-  clock; a later stamp may belong to the earlier event.
 THREAD: history (events dated from separate calendars), law (two
   witnesses and two wristwatches), navigation (longitude waited
   on a clock that could travel).

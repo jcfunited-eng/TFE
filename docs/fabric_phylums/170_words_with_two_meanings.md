@@ -12,8 +12,6 @@ ESSENCE: crust, pie and jam are kitchen words that each keep a second
   guitars mean anywhere else.
 ROOT: words and meaning (66) / handles are few and things are many,
   so reuse is forced and the reuse is usually a picture.
-CANNOT: no kitchen sense in a line with no food, heat or eating word
-  — a crust with a mantle beside it is a planet every time.
 THREAD: the deep earth (33: the planet's crust was named by picture),
   music (10: to jam is to play without a written part).
 SPLITS-INTO: kitchen: crust pie jam pastry loaf oven fruit sugar baking filling | earth: crust plate mantle rock quake layer continent | blockage: jam traffic stuck blocked printer gun paper log | music: jam session improvise band play unwritten | share: pie slice chart portion percent market
@@ -24,8 +22,6 @@ ESSENCE: bank is three unrelated things — a place that holds money,
   Interest and account mean the first, water and mud the second,
   aircraft and corner the third.
 ROOT: this file / one spelling, several histories that never met.
-CANNOT: no money sense in a line about water — the two banks share
-  only a picture of a heap, and the heap is long forgotten.
 THREAD: money (16: the money sense runs the whole trade field),
   flight (05: banking is turning by tilting the lift).
 SPLITS-INTO: money: bank account loan deposit branch interest teller savings | river: bank shore edge water bend erosion mud stream | tilt: bank turn aircraft corner camber lean roll
@@ -37,8 +33,6 @@ ESSENCE: bark is the noise a dog makes, the skin of a tree, and an
   third, which is now nearly gone.
 ROOT: this file / two words from different tongues arrived at the
   same spelling and stayed.
-CANNOT: no tree sense without a tree word nearby — bark with dog or
-  loud beside it is a sound, and no amount of letters says otherwise.
 THREAD: living world (31: bark is a tree's armour and its plumbing),
   words and meaning (66: strangers wearing the same coat).
 SPLITS-INTO: dog: bark growl howl whine puppy loud noise | tree: bark trunk peel wood cork birch cambium | ship: bark sail rigging vessel mast crew
@@ -50,8 +44,6 @@ ESSENCE: spring and fall are both seasons and both motions, and each
   nearby settle it; so do steel, water and defeat.
 ROOT: this file / a word for a motion was lent to the time of year
   when that motion happens, and both survived.
-CANNOT: no season sense without a calendar or weather word beside it
-  — spring with steel is a coil, and fall with empire is a defeat.
 THREAD: farming (14: the seasons are the planting calendar),
   engineering (04: a spring stores energy in bending).
 SPLITS-INTO: season: spring fall autumn summer winter planting harvest weather | coil: spring steel tension suspension compress recoil bounce | water: spring source stream well groundwater aquifer bubbling | motion: spring leap jump pounce fall drop tumble | defeat: fall collapse defeat empire ruin decline downfall
@@ -63,8 +55,6 @@ ESSENCE: current and wave are both water words that were lent to
   a disturbance travelling, and a surge of people.
 ROOT: this file / borrowed structure — what water does was the first
   clear picture of what electricity and sound do.
-CANNOT: no electrical sense without a circuit word nearby — amps,
-  wire or voltage make it electricity, and tide makes it the sea.
 THREAD: physics (01: waves carry energy without carrying matter),
   words and meaning (66: metaphor moves a word's home).
 SPLITS-INTO: time: current now present latest today recent version | water: current tide flow drift channel eddy wave surf swell breaker | electricity: current amps circuit voltage charge wire supply | physics: wave frequency crest trough light sound interference | crowd: wave surge trend spread rush rippling | greeting: wave hand arm signal goodbye
@@ -76,9 +66,6 @@ ESSENCE: light is what lets you see, the opposite of heavy, and the
   the third.
 ROOT: this file / one short common word taking three jobs, because
   short common words always do.
-CANNOT: no weight sense without a carrying or weighing word — light
-  beside heavy is a weight, light beside dark is a brightness, and
-  nothing else in the spelling tells them apart.
 THREAD: light and seeing (34), physics (01: a photon has energy and
   no weight, which is why the two senses never meet).
 SPLITS-INTO: seeing: light lamp bulb bright shadow sun beam dark glow | weight: light heavy carry load weigh feather portable | fire: light match candle ignite flame lit fuse burner | food: light heavy rich meal snack calories filling
@@ -91,8 +78,6 @@ ESSENCE: right is correct, a direction, and something a person is
   nothing at all.
 ROOT: this file / a word for straight became a word for correct and
   a word for the favoured hand, and all three stayed.
-CANNOT: no entitlement sense without a law, claim or freedom word —
-  the right answer and the right to answer share only letters.
 THREAD: law (17: rights are claims someone else must honour),
   martial arts (07: left and right are a body's own frame).
 SPLITS-INTO: correct: right wrong answer correct true mistaken accurate | direction: right left turn hand side lane clockwise | entitlement: right law claim freedom vote duty owed protest
@@ -104,9 +89,6 @@ ESSENCE: run and drive are both moving-the-body words that became
   run is also a tear in a stocking and a stretch of days.
 ROOT: this file / the word for making a thing go was taken from the
   word for going.
-CANNOT: no legs sense in a line about a business or a machine — run
-  with company, program or system is operating, and run with feet or
-  track is moving.
 THREAD: computing (19: a program runs, and a disk is a drive),
   money (16: a run on a bank is neither legs nor operating).
 SPLITS-INTO: legs: run sprint jog race track marathon feet miles | operate: run drive operate manage machine engine program business | road: drive road route street avenue lane driveway | urge: drive hunger motivation ambition push instinct appetite | storage: drive disk hard file gigabyte backup partition | cloth: run ladder stocking tear thread snagged | stretch: run streak spell series record straight
@@ -118,9 +100,6 @@ ESSENCE: set and stand are the two commonest verbs in the language
   a stall, a grandstand, an opinion, and a group of trees.
 ROOT: this file / the shortest words take the most jobs, because
   they are reached for first.
-CANNOT: no reading of set or stand from the word alone — these two
-  carry more senses than almost any others, so they can only be read
-  off their neighbours.
 THREAD: craft (29: a set adhesive is a chemical event), people
   together (21: taking a stand is a public position).
 SPLITS-INTO: place: set stand put lay position upright rest | group: set collection matching series pair kit boxed | harden: set cure firm concrete jelly solidify glue | stage: set scenery studio backdrop props lighting | watching: stand grandstand seat crowd stadium terrace | stall: stand market vendor booth counter pitch | position: stand stance view opinion refuse tolerate | trees: stand grove copse timber forest planted
@@ -132,9 +111,6 @@ ESSENCE: break and strike both mean to hit and both mean to stop
   and taking down a tent.
 ROOT: this file / hitting and stopping are joined by the picture of
   a thing interrupted.
-CANNOT: no stoppage sense without a work or union word nearby —
-  strike with union, wage or picket is a walkout, and strike with
-  hammer or blow is a hit.
 THREAD: people together (21: a strike is a coordinated refusal),
   physics (01: a break starts at the smallest flaw).
 SPLITS-INTO: shatter: break crack snap smash split fracture shattered | pause: break rest recess interval holiday coffee lunch | stoppage: strike union picket walkout wage dispute ballot | hit: strike blow punch hammer impact lightning | find: strike gold oil discover lucky vein | dawn: break dawn daylight morning first
@@ -146,9 +122,6 @@ ESSENCE: draw and tie both name a game that ended level, and both
   fastening, and also the cloth at a collar.
 ROOT: this file / the level game is named from the pictures of
   pulling even and being bound together.
-CANNOT: no level sense without a contest word nearby — draw with
-  pencil is a picture, draw with sword is a pull, and draw with
-  score is a result.
 THREAD: sport (08: a draw is a result, not an absence of one),
   craft (29: drawing wire is pulling it through a die).
 SPLITS-INTO: pull: draw pull haul tow extract sword curtain water | picture: draw sketch pencil line drawing artist paper | level: draw tie score even points match result nil | fasten: tie knot rope lace bind fasten secure | clothing: tie collar shirt suit knot neck | bond: tie family loyalty link connection bound
@@ -160,8 +133,6 @@ ESSENCE: fair and fine both mean acceptable and both name something
   delicate, and also merely all right.
 ROOT: this file / a word of mild approval drifts, because mild
   approval is used constantly and worn smooth.
-CANNOT: no penalty sense without a court, ticket or offence word —
-  a fine day and a fine of forty pounds share nothing but letters.
 THREAD: law (17: a fine is a price the state sets on a breach),
   weather (13: fair means settled, which is a forecast not a mood).
 SPLITS-INTO: just: fair unfair share treatment rules equal justice | carnival: fair rides stalls county funfair booth prize | weather: fair clear settled dry mild sunny | penalty: fine ticket court penalty speeding parking | thin: fine thread grain powder detail dust delicate | acceptable: fine okay alright well good enough
@@ -173,9 +144,6 @@ ESSENCE: hard and sound are both words for solid that went somewhere
   and also a channel of sea water.
 ROOT: this file / firmness under pressure was lent to tasks, to
   arguments and to sleep.
-CANNOT: no difficulty sense in a line about materials — hard with
-  steel or stone is a property, hard with exam or struggle is a
-  task, and a hard material makes nothing difficult by itself.
 THREAD: engineering (04: hardness and toughness are opposite
   properties), navigation (12: a sound is water you can measure).
 SPLITS-INTO: solid: hard firm rock stone steel dense unyielding | difficult: hard easy difficult tough exam struggle effort | noise: sound noise hear loud ear volume acoustic | healthy: sound solid safe healthy sleep argument judgement | water: sound strait channel inlet coast fjord | measure: sound depth probe fathom soundings
@@ -187,8 +155,6 @@ ESSENCE: key opens a lock, names the most important thing, names a
   and scale the third; legend and symbol the fourth.
 ROOT: this file / the picture of a thing that unlocks was carried to
   anything that makes the rest make sense.
-CANNOT: no musical sense without a note, scale or instrument word —
-  the key of D and the key to the door are unrelated objects.
 THREAD: music (10: a key is a set of relationships, not a pitch),
   computing (19: a key is what makes a locked message readable).
 SPLITS-INTO: lock: key lock door turn latch spare padlock | important: key central crucial main critical factor decisive | music: key scale major minor sharp signature pitch | map: key legend symbol chart colour explain | keyboard: key press button type stroke space
@@ -200,8 +166,6 @@ ESSENCE: match is a small stick that makes fire, a pairing of things
   third.
 ROOT: this file / the fire sense and the pairing sense came from
   different words and collided in one spelling.
-CANNOT: no fire sense without a flame, strike or burning word — a
-  football match lights nothing.
 THREAD: sport (08: a match is a fixture with two sides), chemistry
   (03: a match head is a stored, unstable reaction).
 SPLITS-INTO: fire: match strike light flame box candle burning | pair: match matching pair fit suit same compare identical | contest: match game team score fixture opponent tournament
@@ -212,8 +176,6 @@ ESSENCE: mine is the word for belonging to me, a hole dug for ore,
   and seam the second; buried, field and sweeper the third.
 ROOT: this file / a possessive word and a digging word are unrelated
   and share a spelling by accident.
-CANNOT: no possession sense in a line with ore, coal or explosive —
-  the letters are identical and the subjects never touch.
 THREAD: the deep earth (33: a seam is a layer worth following),
   war (23: a minefield denies ground without holding it).
 SPLITS-INTO: belonging: mine yours ours possession belongs my hers | digging: mine ore shaft coal seam miner tunnel quarry | weapon: mine explosive buried field detonate sweeper landmine
@@ -225,8 +187,6 @@ ESSENCE: note and bill both name paper money, and both have older
   pasted on a wall.
 ROOT: money (16) / paper money began as a written promise, which is
   why both words for it are writing words.
-CANNOT: no money sense without a currency, cash or payment word — a
-  note in the margin and a note in a wallet are two objects.
 THREAD: law (17: a bill becomes an act when it passes), music (10:
   a note is a position in a key, not a sound alone).
 SPLITS-INTO: writing: note memo write jot scribble margin remind | music: note pitch scale chord staff sharp middle | money: note bill cash currency dollar tenner change | owing: bill invoice charge account pay statement receipt | bird: bill beak duck peck feathers | law: bill act parliament congress vote clause passed | poster: bill poster billboard advertise flyer posted
@@ -238,9 +198,6 @@ ESSENCE: order is a command, an arrangement in sequence, a purchase,
   neighbouring words carry the whole burden.
 ROOT: this file / a word meaning what is put in its place spread to
   everything that has a place.
-CANNOT: no command sense in a line about buying or sorting — an
-  order from an officer, an order for two coffees and an order of
-  insects are three unrelated facts.
 THREAD: cleaning (18: order is the state entropy leaves), living
   world (31: order sits between class and family).
 SPLITS-INTO: command: order instruct obey command officer directive orders | sequence: order sequence sorted alphabetical list rank first | purchase: order buy delivery invoice restaurant customer takeaway | tidiness: order tidy chaos disorder arrangement neat | biology: order family genus class species kingdom | brotherhood: order monks nuns knights religious founded
@@ -252,8 +209,6 @@ ESSENCE: party is a celebration, a political body, a group doing
   search and climbing the third; clause and signatory the fourth.
 ROOT: this file / the root sense is a part taken from a whole, and
   every branch keeps that.
-CANNOT: no celebration sense in a line with contract or plaintiff —
-  a third party has never brought a cake.
 THREAD: law (17: a party is whoever the agreement binds), power
   (24: a party is a machine for choosing candidates).
 SPLITS-INTO: celebration: party guests music drinks birthday dancing invite | politics: party vote election candidate manifesto member leader | agreement: party contract signatory plaintiff third clause parties | group: party search rescue climbing expedition working
@@ -265,8 +220,6 @@ ESSENCE: plant is a growing thing, a factory, and the act of putting
   the second; evidence and spy the third.
 ROOT: this file / the planting sense came first and the factory
   sense from equipment set down in place.
-CANNOT: no growing sense in a line about production or power — a
-  power plant has no roots and a planted witness has no leaves.
 THREAD: farming (14: a plant is a machine that runs on light),
   engineering (04: plant means fixed equipment in every trade).
 SPLITS-INTO: growing: plant seed root leaf soil garden water species | factory: plant works machinery production power industrial site | placing: plant bury install evidence spy witness planted
@@ -278,8 +231,6 @@ ESSENCE: pool is water to swim in, a spill gathering on a floor, a
   and share the third; cue and pocket the fourth.
 ROOT: this file / the picture of separate things running together
   into one body carries every sense.
-CANNOT: no swimming sense without water words — a typing pool, a
-  car pool and a betting pool hold no water at all.
 THREAD: money (16: pooling risk is what insurance is), people
   together (21: shared resources need rules about draw-down).
 SPLITS-INTO: swimming: pool swim water deep dive lane chlorine | puddle: pool blood water gather collect spill pooled | shared: pool fund share resources typing risk gene | game: pool cue balls table snooker pocket break
@@ -291,8 +242,6 @@ ESSENCE: press is to push, the news trade, a machine that squeezes,
   third; iron and crease the fourth.
 ROOT: this file / a printing press pressed, and the whole news trade
   took the machine's name.
-CANNOT: no news sense without a reporter, media or publishing word
-  — pressing a shirt reports nothing.
 THREAD: media (19: the press is named after a machine it no longer
   uses), craft (29: a press applies steady force, not a blow).
 SPLITS-INTO: push: press button push squeeze lean pressed down | news: press reporter journalist media newspaper conference release | machine: press printing hydraulic stamp print bale | iron: press iron shirt crease steam laundry
@@ -304,9 +253,6 @@ ESSENCE: scale is a plate on a fish, a device for weighing, the size
   histories, one spelling.
 ROOT: this file / a word for a shell or dish gave both the weighing
   pan and the fish plate, and size came from the ladder sense.
-CANNOT: no weighing sense without a weight or balance word — the
-  scale of a map and the scale on a bathroom floor are unrelated
-  instruments.
 THREAD: measurement (36: scale is the ratio between model and
   world), music (10: a scale is the chosen subset of pitches).
 SPLITS-INTO: weighing: scale weigh balance kilogram bathroom weight scales | size: scale large small model ratio drawing map full | fish: scale skin snake shed reptile flake scaly | music: scale notes major minor octave practise chromatic | deposit: scale kettle limescale hard water boiler descale
@@ -318,8 +264,6 @@ ESSENCE: seal is a sea animal, a closure that keeps things in or
   wax and official the third.
 ROOT: this file / the animal and the stamp are unrelated words that
   arrived at one spelling.
-CANNOT: no animal sense in a line about gaskets or documents — a
-  broken seal is a leak or a forgery, never a hurt creature.
 THREAD: engineering (04: a seal is a designed part with a rated
   pressure), law (17: a seal was the signature before signatures).
 SPLITS-INTO: animal: seal pup flipper colony arctic fish sealion | closure: seal gasket airtight watertight lid rubber leak sealed | stamp: seal wax stamp signature official document approval unsealed
@@ -331,9 +275,6 @@ ESSENCE: second and term both name a stretch of time and both name
   in an agreement, and a part of a sum.
 ROOT: this file / a division of an hour and a division of a year
   both took words that already meant something.
-CANNOT: no time sense without a clock, calendar or duration word —
-  the terms of a contract have no length, and seconding a motion
-  takes no time at all.
 THREAD: mathematics (11: a term is one part of an expression),
   law (17: terms are the conditions the parties actually agreed).
 SPLITS-INTO: clock: second minute hour timer countdown split | order: second first third place runner next | support: second motion vote proposal committee seconded | word: term phrase word definition glossary jargon technical | period: term semester school office prison lease serving | condition: term contract clause agreement conditions payment | sum: term equation expression algebra series polynomial
@@ -345,8 +286,6 @@ ESSENCE: spirit is a soul or ghost, the mood of a group, a strong
   second; whisky and distilled the third; letter and law the fourth.
 ROOT: this file / a word for breath became a word for life, then for
   what is distilled off, then for what is meant rather than said.
-CANNOT: no drink sense without a bottle, distilling or bar word —
-  team spirit is not served in glasses.
 THREAD: law (17: the spirit of the law loses to the letter unless a
   judge says otherwise), chemistry (03: distilling separates by
   boiling point).
@@ -359,8 +298,6 @@ ESSENCE: stock is shares in a company, the liquid a soup is built
   simmer the second; shelf and warehouse the third.
 ROOT: this file / a word for a tree trunk spread to anything that is
   the standing base of something else.
-CANNOT: no share sense without a market, price or company word — a
-  chicken stock has no dividend and a shelf has no shareholders.
 THREAD: money (16: a share is a claim on future earnings), cooking
   (02: stock is water that has taken on what bones gave up).
 SPLITS-INTO: shares: stock share market price exchange dividend equity | soup: stock broth bones simmer base gravy chicken | supply: stock inventory shelf warehouse shortage restock | animals: stock cattle livestock herd farm breeding | gun: stock barrel butt rifle shoulder wooden
@@ -372,8 +309,6 @@ ESSENCE: table and board both name a flat surface on legs and both
   the act of getting onto a ship.
 ROOT: this file / the group of people is named after the furniture
   they meet around, in both words and in many languages.
-CANNOT: no committee sense without a meeting, member or governance
-  word — a chopping board governs nothing.
 THREAD: power (24: a board is a body with authority, not a
   meeting), keeping knowledge (40: a table is data given a shape).
 SPLITS-INTO: furniture: table board chair leg dining surface top | data: table rows columns figures spreadsheet tabulated | committee: board directors trustees governors meeting chairman | plank: board timber plank plywood floor nailed | meals: board lodging room bed keep boarding | boarding: board plane ship train gangway pass | motion: table motion propose postpone parliament tabled
@@ -385,8 +320,6 @@ ESSENCE: trip and turn are both about motion and both about
   whose go it is, and becoming something else.
 ROOT: this file / a stumble and a journey met in one word, and the
   switch sense came from a mechanism released by a knock.
-CANNOT: no journey sense in a line about switches or breakers —
-  tripping a fuse takes nobody anywhere.
 THREAD: electricity (04: a breaker trips to protect the circuit),
   people together (21: taking turns is the oldest fairness rule).
 SPLITS-INTO: journey: trip travel holiday flight visit itinerary outing | stumble: trip fall catch foot stumble kerb tripped | switch: trip breaker fuse circuit alarm sensor tripped | rotate: turn spin rotate wheel screw handle revolution | occasion: turn taking queue whose next round | become: turn sour milk grey leaves colour | bend: turn corner junction road left signal
@@ -398,8 +331,6 @@ ESSENCE: watch is to look at something over time, the clock strapped
   and lookout the third.
 ROOT: this file / keeping watch and a device for keeping time were
   joined by the sailor's word for a shift.
-CANNOT: no timepiece sense without a wrist, strap or dial word —
-  watching a film needs no watch.
 THREAD: navigation (12: the ship's watch system splits a day into
   shifts), the mind (20: sustained attention decays predictably).
 SPLITS-INTO: look: watch see observe monitor television guard viewing | clock: watch wrist strap dial winding pocket | duty: watch night shift lookout crew sentry keeping
@@ -411,8 +342,6 @@ ESSENCE: well is in good health, a hole dug for water or oil, a word
   second; done and spoken the third.
 ROOT: this file / two unrelated words, one for a spring and one for
   goodness, sharing four letters.
-CANNOT: no water sense without a digging, depth or pumping word —
-  a well-made chair holds nothing and is dug nowhere.
 THREAD: language (09: well is the commonest filler in speech and
   carries no subject there), farming (14: a well is a hole reaching
   the water table).
@@ -425,8 +354,6 @@ ESSENCE: yard is a length of three feet, an enclosed piece of ground
   and rigging the third.
 ROOT: this file / a word for a stick or rod gave both the measure
   and the ship's spar; the enclosure is a different word entirely.
-CANNOT: no measure sense without a length, cloth or distance word —
-  a scrapyard is not three feet of anything.
 THREAD: measurement (36: body-based units survive in trades),
   building (15: a builder's yard is storage with a fence).
 SPLITS-INTO: length: yard feet inches metre measure cloth yards | ground: yard garden backyard fence gate scrap shipyard | ship: yard mast sail spar rigging yardarm
@@ -438,8 +365,6 @@ ESSENCE: charge and cover both split between money and protection.
   insurance, and another band's version of a song.
 ROOT: this file / a word for loading a thing up became both the
   price loaded on and the powder loaded in.
-CANNOT: no electrical sense without a battery, circuit or voltage
-  word — a service charge stores no energy.
 THREAD: electricity (04: charge is conserved and measured in
   coulombs), law (17: a charge is the state naming an offence).
 SPLITS-INTO: price: charge fee cover cost bill pay free surcharge | electricity: charge battery volt current static plug charging | rush: charge attack cavalry storm forward charged | accusation: charge court crime accused plead police charged | duty: charge care responsibility ward custody | shelter: cover shelter hide protect fire lid covered | insurance: cover policy insured claim risk premium covered | song: cover version band original recording
@@ -451,8 +376,6 @@ ESSENCE: check is to verify, to hold something back, a bank draft,
   which is exactly why it needs guarding.
 ROOT: this file / a chess word for threatening the king spread to
   everything that stops a thing short.
-CANNOT: no verifying sense in a line about cloth or chess — a
-  checked shirt has been inspected by nobody.
 THREAD: games (08: check is a threat with one move to answer),
   engineering (04: a check valve holds flow to one direction).
 SPLITS-INTO: verify: check verify test inspect confirm double checking | restraint: check hold restrain curb keeping unchecked | payment: check cheque bank pay endorse account | chess: check king move mate board checkmate | pattern: check checked squares tartan cloth chequered | bill: check restaurant waiter bill tab paying
@@ -464,8 +387,6 @@ ESSENCE: class and type both mean a kind, and both grew other lives.
   printed from.
 ROOT: this file / a word for sorting people into groups was lent to
   sorting everything else.
-CANNOT: no teaching sense without a pupil, lesson or school word —
-  a class of insects sits in no classroom.
 THREAD: living world (31: class is a level in the ranking of life),
   computing (19: a type says what may be done with a value).
 SPLITS-INTO: school: class lesson pupils teacher classroom term taught | rank: class upper working middle society status | kind: class type category group sort family kinds | keyboard: type typing keys typist keyboard fingers typed | print: type font typeface letters press printing | style: class stylish elegant grace poise classy
@@ -477,8 +398,6 @@ ESSENCE: lead, wind and close are the three where the two senses are
   near. Spelling alone loses information that speech keeps.
 ROOT: language (09) / writing dropped the sound distinctions that
   once kept these apart on the page.
-CANNOT: no reading of these from spelling — the page has thrown away
-  the very difference the ear uses, so only the neighbours remain.
 THREAD: linguistics (144: spelling records an older pronunciation),
   words and meaning (66: one spelling, two strangers).
 SPLITS-INTO: metal: lead pipe paint pencil heavy poisoning solder | first: lead follow front ahead leader margin leading | leash: lead dog collar walk lead | wire: lead cable plug terminal connect leads | air: wind blow gust breeze storm weather windy | coil: wind winding clock thread spool rewind | shut: close shut door lid lock closed | near: close nearby beside almost proximity closely
@@ -490,8 +409,6 @@ ESSENCE: field and space are both words for a region that became
   played on. Space is room, a gap, and everything outside the sky.
 ROOT: this file / a word for open ground was carried to anything
   with an extent and a boundary.
-CANNOT: no farming sense without a crop, soil or grazing word — a
-  magnetic field grows nothing.
 THREAD: physics (01: a field has a value at every point), teaching
   (30: a field of study is a bounded body of knowledge).
 SPLITS-INTO: farm: field crop grass meadow plough acre hedge grazing | subject: field study discipline research expert speciality | force: field magnetic gravitational electric flux lines | play: field pitch player outfield ball fielding | room: space room gap area clearance fit spacious | cosmos: space orbit rocket star vacuum astronaut spacecraft | gap: space between spacing blank margin letters
@@ -503,8 +420,6 @@ ESSENCE: file is a folder of papers, a record on a computer, a metal
   and nail the third; marching and single the fourth.
 ROOT: this file / the paper sense comes from a thread things were
   strung on, and the computer sense copied the office wholesale.
-CANNOT: no tool sense without a metal, edge or smoothing word — a
-  filed document has been stored, not sharpened.
 THREAD: computing (19: files and folders are an office moved into
   glass), craft (29: a file cuts on the push stroke only).
 SPLITS-INTO: papers: file folder cabinet record document archive filing | computer: file save folder disk delete format filename | tool: file rasp metal smooth nail edge filed | line: file single rank column marching soldiers
@@ -517,8 +432,6 @@ ESSENCE: film, screen and sheet are three words for something thin
   broad expanse, and a rope on a sail.
 ROOT: this file / a picture cast on a thin flat thing named the
   whole trade that casts it.
-CANNOT: no cinema sense without a camera, director or showing word —
-  a film of oil on water has no plot.
 THREAD: photography (34: film was a light-sensitive layer, which is
   the thin-layer sense exactly), medicine (06: screening is sieving
   a population).
@@ -531,8 +444,6 @@ ESSENCE: form and state both mean a condition and both name an
   inside one, a ceremony, and the act of saying something plainly.
 ROOT: this file / a word for how a thing stands became both the
   standing and the body that records it.
-CANNOT: no country sense without a government, border or nation word
-  — a liquid state has no capital city.
 THREAD: government (24: a state is a monopoly on legitimate force
   inside a border), sport (08: form is recent performance, not
   ability).
@@ -546,8 +457,6 @@ ESSENCE: ground is the earth underfoot, the safety wire in a
   ground to a letter-counter.
 ROOT: this file / the picture of what a thing rests on covers earth,
   circuits and arguments alike.
-CANNOT: no earth sense in a line about coffee, dismissal or
-  reasoning — grounds for divorce are not soil.
 THREAD: electricity (04: earth is a reference, not a destination),
   law (17: grounds are the stated basis a case must stand on).
 SPLITS-INTO: earth: ground soil dig floor surface dirt underfoot | electrical: ground earth wire circuit safety neutral grounded | punish: grounded punished forbidden home teenager | crush: ground grind coffee pepper flour milled | reason: grounds basis reason case evidence dismissal | coffee: grounds filter dregs residue espresso
@@ -559,8 +468,6 @@ ESSENCE: hand is the part at the end of an arm, a worker on a farm
   claim it instantly.
 ROOT: this file / a body part becomes a measure and a worker,
   because both were counted in hands.
-CANNOT: no body sense in a line about cards or clocks — the hour
-  hand has no fingers and a good hand has no palm.
 THREAD: measurement (36: hands, feet and cubits are all bodies),
   games (08: a hand is private information, which is the whole game).
 SPLITS-INTO: body: hand finger palm wrist arm grip glove | worker: hand crew deck farm hired hands | cards: hand deal cards poker dealt bridge | clock: hand dial face hour minute sweep | help: hand help lend give assistance | horse: hands height horse withers measured
@@ -572,8 +479,6 @@ ESSENCE: head is the top of a body, the person in charge, the top or
   each pull it a different way.
 ROOT: this file / the topmost part of a body is the readiest picture
   for the topmost part of anything.
-CANNOT: no body sense in a line about departments, rivers or beer —
-  the head of the river has no skull.
 THREAD: power (24: the head of an organisation is a position, not a
   person), building (15: head is also the height of water above a
   point).
@@ -587,8 +492,6 @@ ESSENCE: mark, point and line are the three words for the marks
   connection, a family, and an actor's words.
 ROOT: this file / the simplest shapes get the shortest names and the
   shortest names take the most jobs.
-CANNOT: no reading of these three from the word alone — each is
-  common enough to appear everywhere, so only the neighbours decide.
 THREAD: mathematics (11: point and line are undefined terms on
   purpose), story (27: a line is what an actor is given to say).
 SPLITS-INTO: stain: mark stain scratch spot smudge dirt marked | score: mark grade marking exam marks assessed | target: mark target aim hit missed overshot | money: mark deutsche german currency franc | sharp: point tip needle pencil nib pointed | purpose: point meaning reason pointless argument | place: point spot location junction turning | dot: point decimal places rounding digit | rope: line rope cord washing towline | queue: line queue waiting row order | phone: line call phone connection engaged | descent: line family lineage descent house | text: line verse script actor read lines | business: line work trade product range
@@ -600,8 +503,6 @@ ESSENCE: mean is to signify, the arithmetic average, unkind, and
   are separated by their company and by nothing else.
 ROOT: this file / a word for what is in the middle and a word for
   what is intended collided.
-CANNOT: no average sense without a number, sum or data word — a
-  mean remark cannot be calculated.
 THREAD: statistics (35: the mean is one of several middles and often
   the wrong one), right and wrong (25: meanness is a judgement).
 SPLITS-INTO: signify: mean means meaning signify intend meant | average: mean average median arithmetic sum figures | unkind: mean cruel nasty spiteful bully meanness | stingy: mean tight miserly generous stingy money
@@ -613,9 +514,6 @@ ESSENCE: race is a contest of speed, a grouping of people by
   ancestry and census the second.
 ROOT: this file / a word for a running and a word for a lineage
   arrived at one spelling from different tongues.
-CANNOT: no contest sense in a line about ancestry or census —
-  matching the letters here joins two subjects that must not be
-  joined by accident.
 THREAD: heredity (32: ancestry is measurable and races are not
   natural kinds), engineering (04: an engine racing is a governor
   fault).
@@ -628,8 +526,6 @@ ESSENCE: rest is to stop and recover, and also everything that is
   sense are unrelated and equally common.
 ROOT: this file / a word for pausing and a word for what remains
   came from different roots and met here.
-CANNOT: no recovery sense in a line about remainders — the rest of
-  the money is not asleep.
 THREAD: music (10: a rest is a note-length of silence, counted),
   sleep (37: rest and sleep are not the same recovery).
 SPLITS-INTO: recover: rest sleep break tired recover pause resting | remainder: rest others remaining leftover balance | support: rest armrest headrest stand prop leaning | music: rest bar beat silence notation crotchet
@@ -641,8 +537,6 @@ ESSENCE: ring and round both carry a circle and a stage of a
   doctor's tour of the ward, and making a number simpler.
 ROOT: this file / the shape names the space, the space names the
   bout, and the bout names the turn.
-CANNOT: no sound sense without a bell, phone or call word — a
-  boxing ring rings nothing.
 THREAD: mathematics (11: rounding is discarding precision on
   purpose), medicine (06: rounds are a scheduled review of every
   patient).
@@ -656,8 +550,6 @@ ESSENCE: root and rock are both words for what a thing stands on
   music.
 ROOT: this file / the picture of the fixed base under a thing is
   reused everywhere, including in mathematics.
-CANNOT: no plant sense without a soil, leaf or growing word — the
-  root of the problem grows nowhere and the square root even less.
 THREAD: mathematics (11: a root is where an expression equals zero),
   linguistics (144: a root is the part left when affixes are
   stripped).
@@ -670,8 +562,6 @@ ESSENCE: shot and tip both name a small thing at the end of
   for service, a piece of advice, and tilting a thing over.
 ROOT: this file / a word for what is discharged and a word for what
   is pointed both spread by picture.
-CANNOT: no firing sense without a gun, range or ammunition word — a
-  good shot with a camera fires nothing.
 THREAD: photography (34: a shot is a continuous take), medicine
   (06: a shot is a dose delivered past the gut).
 SPLITS-INTO: firing: shot gun bullet fired rifle range shooting | photograph: shot camera frame angle take scene | injection: shot vaccine jab needle booster dose | attempt: shot try attempt chance having | drink: shot spirits glass measure whisky | end: tip finger point edge iceberg tips | gratuity: tip waiter service gratuity restaurant percent | advice: tip hint suggestion pointer useful tips | tilt: tip over spill pour lorry dump tipping
@@ -684,8 +574,6 @@ ESSENCE: sign and model both stand for something else. A sign is a
   description used to predict.
 ROOT: this file / anything that stands for another thing gets called
   by the word for standing-for.
-CANNOT: no naming sense without a contract, name or paper word —
-  signing a document and a sign of rain are different acts entirely.
 THREAD: evidence (36: a model is judged by its predictions, not its
   likeness), medicine (06: a sign is seen by the examiner and a
   symptom is reported by the patient).
@@ -699,8 +587,6 @@ ESSENCE: story and volume are both parts of books that mean other
   traded.
 ROOT: this file / a book was a rolled scroll, and its bulk gave both
   the loudness sense and the amount sense.
-CANNOT: no building sense without a floor, storey or height word —
-  a good story has no staircase.
 THREAD: architecture (15: a storey is a structural unit), money (16:
   volume is the count of shares traded, not their price).
 SPLITS-INTO: tale: story tale plot character narrative fiction | floor: storey story building floors upper level | news: story report journalist headline covering | loudness: volume loud turn down knob sound | capacity: volume litres cubic capacity container fluid | book: volume set encyclopedia bound edition volumes | trade: volume shares traded turnover quantity
@@ -712,8 +598,6 @@ ESSENCE: train is to teach by repetition, a line of railway
   and practise mean the teaching.
 ROOT: this file / a word for what is drawn along gave the carriages,
   the gown and the sequence.
-CANNOT: no railway sense without a station, track or carriage word —
-  training a dog needs no rails.
 THREAD: teaching (30: training is practice under correction),
   logistics (39: a train is many loads pulled by one engine).
 SPLITS-INTO: railway: train station platform rail carriage track freight | teach: train coach practise drill instruct apprentice training | gown: train gown bridal trailing hem | chain: train events thought consequences sequence
@@ -725,10 +609,6 @@ ESSENCE: cry is three things wearing one word — the eyes running,
   share a word and share nothing else.
 ROOT: this file / one sound was given more than one job and nobody
   called it back.
-CANNOT: no grief sense with a kitchen word beside it — onion, chop,
-  knife or fume standing near turns the eyes' running into chemistry,
-  and no amount of letters says otherwise. No shout sense without
-  somebody to shout to.
 THREAD: medicine body (the tear film has two jobs and one duct),
   cooking (02: what a cut onion releases), meaning ritual (26: grief
   given a shape and a schedule).
@@ -740,9 +620,6 @@ ESSENCE: discovery is two things — finding out what was not known,
   is a lawyer's word and takes the whole meaning when law is nearby.
 ROOT: this file / a trade took a common word and gave it a narrow
   job.
-CANNOT: no finding-out sense with a court word beside it — trial,
-  document, disclosure or evidence standing near makes it the legal
-  one. No legal sense without a proceeding to be part of.
 THREAD: law and justice (most of what proves a case is held by the
   other side), development methods (60: finding out what is there).
 SPLITS-INTO: finding: discovery find found unknown new learn science research curiosity surprise | legal: discovery document disclosure trial court evidence litigation party subpoena
@@ -755,11 +632,6 @@ ESSENCE: the entries in this file and its neighbours are about WORDS,
   understood, not what it was asking.
 ROOT: words and meaning (66) / the name is not the thing — a pointer
   is not its target.
-CANNOT: no answering a question about a thing with an entry about a
-  word — the map is not the ground, and handing over the map when the
-  ground was asked for is a dodge wearing an answer's coat. No
-  settling a sense with an entry about the thing itself: the sense
-  has to be settled before the thing can be reached.
 THREAD: language (09: the name is not the thing), keeping knowledge
   (a catalogue card is not the book).
 ASKED-AS: about words not things dictionary entry sense settling map not the ground meta

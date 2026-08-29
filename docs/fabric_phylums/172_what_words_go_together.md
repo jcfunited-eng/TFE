@@ -11,9 +11,6 @@ ESSENCE: the kitchen is a small workshop for heat and cutting, and
   kitchen with near certainty.
 ROOT: cooking (02) / a trade's vocabulary is its tools, its
   materials and its operations, and nothing else.
-CANNOT: no kitchen reading without a food, heat or utensil word
-  present — one alone can be borrowed, two together almost never
-  are.
 THREAD: craft (29: every trade names the same three crowds), words
   and meaning (66: a word is aimed by the hand holding it).
 MEANS-SAME: pan pot knife board oven hob whisk sieve ladle tray | flour butter egg sugar salt dough batter stock sauce | chop stir simmer bake fry knead season taste serve
@@ -25,9 +22,6 @@ ESSENCE: the workshop runs on holding, cutting and joining. Its
   than living things.
 ROOT: craft (29) / a workshop is a place where a material is held
   still and changed.
-CANNOT: no workshop sense in a line with no tool and no material —
-  the same verbs serve surgery and cookery, and only the tools sort
-  them out.
 THREAD: engineering (04: fits and tolerances are the written form),
   building (15: the site is a workshop with weather).
 MEANS-SAME: vice clamp chisel plane saw drill hammer file spanner lathe | timber plywood steel dowel sheet stock offcut | cut plane drill tap fasten glue sand square measure
@@ -39,8 +33,6 @@ ESSENCE: the garden joins living things to soil and weather. Its
   signature.
 ROOT: farming (14) / growing is managing light, water and soil for a
   chosen plant.
-CANNOT: no garden sense without a growing thing named — spade, bed
-  and border all live elsewhere without a plant beside them.
 THREAD: living world (31: a plant is a machine running on light),
   weather (13: frost dates rule the whole calendar).
 MEANS-SAME: seed seedling bulb shrub hedge lawn weed bloom compost | spade fork trowel rake hose secateurs wheelbarrow | sow plant prune water mulch weed transplant harvest
@@ -52,8 +44,6 @@ ESSENCE: the road is vehicles, surfaces and rules. Its crowd is
   written code.
 ROOT: transport (39) / moving people needs a surface, a machine and
   an agreed set of rules for meeting.
-CANNOT: no road sense without a vehicle, surface or traffic word —
-  lane, turn and signal all belong to other trades on their own.
 THREAD: law (17: the rules of the road are enforced law), physics
   (01: stopping distance is speed squared).
 MEANS-SAME: road lane kerb junction roundabout motorway verge tarmac | car tyre brake clutch gear indicator wheel engine | overtake yield signal limit licence fine parking priority
@@ -64,8 +54,6 @@ ESSENCE: the sea is water, wind and vessels, and its vocabulary is
   and tide belong nowhere else and give the subject away instantly.
 ROOT: oceans (13) / a ship is a machine balanced against water,
   wind and weight.
-CANNOT: no sea sense without a vessel, water or navigation word —
-  sheet, bank, current and yard all mean something else on land.
 THREAD: navigation (12: position at sea is dead reckoning plus
   fixes), physics (01: buoyancy is displaced weight).
 MEANS-SAME: hull keel deck mast rudder bow stern anchor rigging | tide swell current wake shoal reef harbour channel | sail moor navigate berth trim sound dock cast off
@@ -77,8 +65,6 @@ ESSENCE: the sky holds two crowds that share one space — weather
   pressure.
 ROOT: flight (05) / air is a fluid with weight, and everything in
   the sky is arranged by that.
-CANNOT: no sky sense without air, height or weather words — a
-  ceiling in a room and a ceiling in the sky are two measurements.
 THREAD: weather (13: pressure differences are what wind is), flight
   (05: lift is a pressure difference across a wing).
 MEANS-SAME: cloud front gust overcast thunder squall haze visibility | altitude airspeed wing lift stall runway heading cockpit | pressure ceiling humidity dewpoint knots feet
@@ -90,8 +76,6 @@ ESSENCE: the body has three crowds — the outside parts, the inside
   picture, as in the head of a river.
 ROOT: medicine (06) / anatomy names parts, physiology names what
   they do, and both are needed to read a sentence.
-CANNOT: no body sense from a part name alone — head, hand, foot,
-  heart and spine are the most borrowed nouns in the language.
 THREAD: words and meaning (66: metaphor's favourite quarry), martial
   arts (07: movement is read in joints and levers).
 MEANS-SAME: skin hair limb hand foot shoulder knee elbow jaw | heart lung liver kidney gut nerve artery muscle bone | breathe swallow digest pulse sweat blink flex heal
@@ -103,9 +87,6 @@ ESSENCE: illness talk has three crowds — what the patient reports,
   words keep them apart if read carefully.
 ROOT: medicine (06) / a symptom is reported and a sign is observed,
   and a diagnosis is neither.
-CANNOT: no diagnosis from symptoms alone — the same three complaints
-  fit a dozen conditions, and only a discriminating finding sorts
-  them.
 THREAD: evidence (36: the test that could rule out is the test worth
   doing), the mind (20: how a thing is described shapes what is seen).
 MEANS-SAME: pain ache nausea fatigue dizzy fever cough breathless | rash swelling temperature pulse pallor tender murmur | infection fracture tumour deficiency inflammation allergy syndrome
@@ -117,8 +98,6 @@ ESSENCE: money words split into what is held, what moves, and what
   from water and weather while the subject is not.
 ROOT: money (16) / a currency is an agreement, and all its
   vocabulary is metaphor over that agreement.
-CANNOT: no money sense without a value, payment or account word —
-  interest, share, bond and credit are ordinary words elsewhere.
 THREAD: words and meaning (66: dead metaphors carry the whole
   field), law (17: a debt is an enforceable promise).
 MEANS-SAME: cash account balance savings asset debt loan capital | pay transfer deposit withdraw invest spend borrow lend | price rate interest yield inflation currency fee tax
@@ -130,8 +109,6 @@ ESSENCE: law language names parties, documents and outcomes, and it
   and contracts must not.
 ROOT: law (17) / the definitions clause decides the case, so the
   vocabulary is fixed by writing rather than by use.
-CANNOT: no legal sense without a party, instrument or ruling word —
-  charge, party, bill, term and consideration all lead double lives.
 THREAD: words and meaning (66: a definition is a family plus a
   difference), power (24: enforcement is what makes a rule law).
 MEANS-SAME: plaintiff defendant claimant party witness judge jury counsel | contract clause statute deed warrant summons affidavit | verdict ruling damages injunction acquittal sentence appeal
@@ -143,8 +120,6 @@ ESSENCE: school words name a place, a schedule and a measurement.
   an assessment word rather than a time word.
 ROOT: teaching (30) / an institution for learning is mostly a
   timetable and a way of scoring.
-CANNOT: no school sense from a time word alone — term, period and
-  class are the calendar of a dozen trades.
 THREAD: measurement (36: a grade is a coarse instrument), people
   together (21: a cohort moves as a group).
 MEANS-SAME: pupil student teacher head tutor class cohort governor | lesson term timetable homework holiday assembly period | exam grade mark report syllabus curriculum revision test
@@ -156,8 +131,6 @@ ESSENCE: music has three crowds — pitch words, time words, and
   things elsewhere, but two together settle it.
 ROOT: music (10) / sound is organised in two directions, pitch and
   time, and every term belongs to one of them.
-CANNOT: no musical sense from key, note, scale, bar or rest alone —
-  each is an ordinary word until a second music word joins it.
 THREAD: mathematics (11: intervals are ratios), physics (01: pitch
   is frequency and timbre is the shape of the wave).
 MEANS-SAME: note key scale chord octave sharp flat interval tune | bar beat tempo rest rhythm measure metre syncopation | play sing strum bow phrase rehearse perform score
@@ -168,8 +141,6 @@ ESSENCE: building words name loads, materials and stages. The stage
   is an order of work that nothing else follows.
 ROOT: building (15) / a structure is a path for loads down to the
   ground, built in the order the loads arrive.
-CANNOT: no building sense without a material or structural word —
-  beam, load, foundation and frame are all borrowed constantly.
 THREAD: physics (01: everything standing is in compression somewhere),
   engineering (04: a factor of safety is an admission of ignorance).
 MEANS-SAME: foundation footing beam joist stud rafter lintel load bearing | brick mortar concrete timber plaster insulation steel | excavate pour frame roof render plaster fit snag
@@ -181,8 +152,6 @@ ESSENCE: farming words are seasonal, and the season crowd is what
   sentence on land.
 ROOT: farming (14) / a crop is a bet placed at planting and settled
   at harvest.
-CANNOT: no farming sense without a crop, animal or soil word —
-  yield, field, stock and crop all mean money elsewhere.
 THREAD: weather (13: the whole calendar is a weather forecast),
   money (16: a harvest is a cash flow with one payday).
 MEANS-SAME: field soil furrow acre pasture fallow irrigation hedgerow | seed sow yield harvest silage grain fodder rotation | herd flock graze calving lambing feed barn
@@ -194,8 +163,6 @@ ESSENCE: weather words describe air doing three things — moving,
   one, and the two rarely mix in the same sentence by accident.
 ROOT: weather (13) / weather is heat moved around by a turning
   planet, and every term names a piece of that.
-CANNOT: no weather sense without air, water or sky words — front,
-  depression, pressure and ridge all live in other trades.
 THREAD: oceans (13: the sea stores the heat that drives it), flight
   (05: pilots read pressure before they read cloud).
 MEANS-SAME: cloud overcast clear fog haze sunshine visibility | rain drizzle sleet snow hail humidity dew frost | wind gust gale front depression pressure ridge storm
@@ -207,9 +174,6 @@ ESSENCE: applying heat to food has its own crowd, and the divisions
   boil never describe the same event.
 ROOT: cooking (02) / a method is a carrier of heat plus a
   temperature, and everything else is timing.
-CANNOT: no browning in a wet pan — water holds the temperature down
-  until it has all gone, so wet methods and browned flavours never
-  occur together.
 THREAD: chemistry (03: browning needs heat above what water allows),
   physics (01: fat and water carry heat far faster than air).
 MEANS-SAME: roast bake grill broil sear toast char brown crust | fry saute deep shallow sizzle render crisp | boil simmer poach steam braise blanch stew reduce
@@ -221,9 +185,6 @@ ESSENCE: cold storage is one idea — slowing life and chemistry down
   because everything restarts at once.
 ROOT: chemistry (03) / reaction rates fall steeply with temperature,
   and so does everything living.
-CANNOT: no keeping without cold or drying or sealing — every
-  preservation method removes heat, water or air, and there is no
-  fourth.
 THREAD: farming (14: the harvest problem is storage, not growing),
   medicine (06: the cold chain is what makes vaccines possible).
 MEANS-SAME: fridge chill freezer frozen ice thaw defrost chiller | preserve cure smoke salt pickle can bottle vacuum | spoil rancid mould bacteria date shelf life
@@ -235,8 +196,6 @@ ESSENCE: cleaning words name the dirt, the agent and the method, and
   failures.
 ROOT: cleaning (18) / dirt is matter in the wrong place, and every
   method gives it somewhere else to be.
-CANNOT: no cleaning without moving dirt somewhere else — the clean
-  room is paid for by a dirty cloth, a full bin or a used tank.
 THREAD: chemistry (03: a detergent lets water carry oil), physics
   (01: order here is disorder somewhere else).
 MEANS-SAME: dust grease grime stain soot mould limescale residue | soap detergent bleach solvent vinegar polish disinfectant | wipe rinse scrub soak sweep vacuum mop dry
@@ -248,8 +207,6 @@ ESSENCE: sewing words name cloth, joins and shapes. It is a small
   its own.
 ROOT: textiles (29) / cloth has a grain and a stretch, and every
   technique is a way of respecting or fighting them.
-CANNOT: no sewing sense without cloth or stitch words — pattern,
-  cut, pin and press all serve other trades.
 THREAD: craft (29: a template is a pattern in another material),
   design (28: fit is the whole test).
 MEANS-SAME: fabric cotton wool linen weave grain selvedge nap bolt | seam hem stitch baste tack dart pleat gusset | needle thread bobbin pin shears thimble machine iron
@@ -261,8 +218,6 @@ ESSENCE: writing words split between the making and the shaping —
   computing or music, so they need a companion.
 ROOT: language (09) / a text is a structure, and its parts have
   names borrowed by every other field that has structure.
-CANNOT: no writing sense from a structure word alone — line, clause,
-  paragraph, note and volume all belong elsewhere as easily.
 THREAD: law (17: a clause is a unit of obligation), computing (19:
   a line is a row of characters).
 MEANS-SAME: draft edit revise cut rewrite proof publish submit | sentence paragraph clause heading page chapter footnote | clarity voice tone flow verbose repetitive concise
@@ -274,9 +229,6 @@ ESSENCE: computer words are almost all borrowed from an office —
   reading.
 ROOT: computing (19) / an office was moved into glass, and its
   furniture kept its names.
-CANNOT: no computing sense from a single borrowed word — file,
-  memory, window, virus, cloud and drive all mean something older
-  and commoner.
 THREAD: words and meaning (66: metaphor grows vocabulary without
   minting sounds), keeping knowledge (40: a directory is a card
   index).
@@ -289,8 +241,6 @@ ESSENCE: electricity words are unusually reliable because most were
   all mean something older.
 ROOT: electricity (04) / charge flows through a difference and does
   work along the way, and every term names one part of that.
-CANNOT: no electrical sense from ground, charge, current or lead
-  alone — each needs a minted word beside it to settle the reading.
 THREAD: physics (01: a circuit is a loop or it is nothing), water
   (13: the flow picture is where the words came from).
 MEANS-SAME: volt amp ohm watt current charge resistance capacitance | wire circuit fuse switch resistor capacitor battery terminal | earth ground insulate solder short trip discharge wire
@@ -301,8 +251,6 @@ ESSENCE: plumbing words are about water under pressure and water
   supply is pressure and valves, waste is falls and traps.
 ROOT: building (15) / water arrives under pressure and leaves under
   gravity, and the two systems must never meet.
-CANNOT: no waste flow without a fall — a level pipe carries nothing
-  away, which is why the gradient is the whole design.
 THREAD: physics (01: a siphon and a trap are the same device),
   medicine (06: separating clean supply from waste is public health).
 MEANS-SAME: mains pressure valve stopcock tap cistern pipe copper | drain trap gully soil vent gradient blockage sewer | solder plumb bleed flush isolate lag seal
@@ -313,8 +261,6 @@ ESSENCE: animal words divide into kinds, parts and doings, and the
   belong to no other subject and settle a sentence at once.
 ROOT: living world (31) / an animal's parts are the record of what
   it does for a living.
-CANNOT: no animal sense from a doing word alone — graze, herd, nest
-  and hunt are all used of people constantly.
 THREAD: farming (14: livestock is animals under management), heredity
   (32: a breed is a chosen narrowing).
 MEANS-SAME: hoof beak fin feather claw fur horn tail scale | mammal bird fish insect reptile breed litter species | graze nest hunt migrate moult breed hatch roost
@@ -325,8 +271,6 @@ ESSENCE: plant words split into parts, kinds and conditions, and
   condition crowd — wilting, blight, leggy — is far more reliable.
 ROOT: living world (31) / a plant is a machine that runs on light
   and cannot move, so its whole vocabulary is about place.
-CANNOT: no plant sense from root, stem, shoot or bud alone — every
-  one of them has a second home in language, numbers or trade.
 THREAD: farming (14: a weed is a plant somewhere unwanted), chemistry
   (03: photosynthesis is the whole engine).
 MEANS-SAME: root stem leaf bud shoot bark sap petal seed | annual perennial shrub grass fern moss conifer | wilt blight mildew aphid leggy rootbound chlorosis
@@ -338,8 +282,6 @@ ESSENCE: rock words name kinds, structures and processes, and the
   about time.
 ROOT: the deep earth (33) / a rock is a record of the conditions
   that made it, and every name is a claim about those conditions.
-CANNOT: no rock sense without a mineral, layer or earth word — bed,
-  fault, dyke, strike and vein all belong to other trades.
 THREAD: chemistry (03: a mineral is a composition and a structure),
   history (42: the layers are the archive).
 MEANS-SAME: granite basalt limestone sandstone shale slate marble quartz | strata bedding fault fold dyke seam vein outcrop | erosion weathering sediment intrusion metamorphic volcanic uplift
@@ -351,8 +293,6 @@ ESSENCE: star words split into objects, measures and motions. The
   borrowed constantly.
 ROOT: astronomy (12) / everything known about a star arrives as
   light, so the vocabulary is mostly about measuring light.
-CANNOT: no astronomy sense from orbit, phase or body alone — these
-  are ordinary words until a measure word joins them.
 THREAD: light and seeing (34: a spectrum is a chemical fingerprint),
   navigation (12: position was found by stars long before radio).
 MEANS-SAME: star planet moon comet galaxy nebula asteroid orbit | magnitude parallax redshift lightyear spectrum luminosity | rotation revolution eclipse transit phase conjunction
@@ -363,9 +303,6 @@ ESSENCE: war words name forces, ground and acts. The ground crowd is
   relative to an enemy, which no other subject needs.
 ROOT: strategy (23) / conflict is the management of position, supply
   and morale under an opponent's will.
-CANNOT: no military sense without a force, weapon or ground word —
-  campaign, front, strike, siege and defence are all borrowed by
-  business and sport.
 THREAD: games (08: a contest is war with agreed rules), logistics
   (39: supply decides more battles than tactics).
 MEANS-SAME: troops regiment infantry armour reserve garrison casualty | flank front line salient rear terrain position | advance retreat besiege bombard ambush surrender withdraw
@@ -377,9 +314,6 @@ ESSENCE: game words name the players, the field and the scoring, and
   point are borrowed everywhere.
 ROOT: games (08) / a game is a set of rules that turns effort into a
   score.
-CANNOT: no game sense from point, round, match or set alone — the
-  four commonest game words are also four of the most borrowed words
-  in the language.
 THREAD: law (17: rules are enforceable or they are suggestions),
   strategy (23: a game with hidden information is a different game).
 MEANS-SAME: player team captain referee substitute opponent squad | pitch court board goal net track lane crease | score point goal innings frame fixture league draw
@@ -390,9 +324,6 @@ ESSENCE: travel words name the leg, the paper and the place. Ticket,
   sentence at once; trip, connection and stop do not.
 ROOT: transport (39) / a journey is legs joined at places where the
   traveller must wait.
-CANNOT: no travel sense from trip, connection or terminal alone —
-  each has a strong second home in electricity, computing or
-  medicine.
 THREAD: logistics (39: people and freight follow the same network
   laws), money (16: the cheap fare is priced in time).
 MEANS-SAME: flight train ferry transfer connection layover departure arrival | ticket passport visa boarding booking insurance itinerary | terminal platform gate hostel luggage customs border
@@ -404,9 +335,6 @@ ESSENCE: birth and death are the two ends and share one crowd of
   often than anywhere else in life.
 ROOT: the human journey (37) / the two events every society records
   and marks, without exception.
-CANNOT: no birth or death sense without a person and an event word —
-  labour, delivery, passing and remains all mean other things
-  elsewhere.
 THREAD: law (17: a certificate is what makes it official), ritual
   (26: rites of passage mark the transitions).
 MEANS-SAME: labour delivery midwife newborn cord placenta due antenatal | dying palliative bereaved funeral burial cremation mourning wake | certificate register estate will probate inheritance next of kin
@@ -418,8 +346,6 @@ ESSENCE: family words are relationship words, and they carry no
   are borrowed so heavily as pictures elsewhere.
 ROOT: people together (21) / kinship is the first structure any
   society builds and names exhaustively.
-CANNOT: no family sense from a borrowed kinship picture — a parent
-  company, a sister ship and a daughter cell are not families.
 THREAD: heredity (32: relatedness is measurable and is not the same
   as family), law (17: next of kin is a legal position).
 MEANS-SAME: mother father son daughter brother sister child parent spouse | cousin uncle aunt nephew niece grandparent inlaw stepchild | married divorced widowed adopted guardian custody household
@@ -431,8 +357,6 @@ ESSENCE: work words name the role, the arrangement and the trouble.
   and insurance.
 ROOT: people together (21) / employment is a bargain of time for
   money, written down or not.
-CANNOT: no employment sense from position, terms or cover alone —
-  each belongs to three other fields at least.
 THREAD: law (17: a contract of employment is the whole relationship),
   money (16: wages are a price for time).
 MEANS-SAME: employee manager supervisor colleague apprentice contractor staff | shift rota wage salary overtime leave notice probation | grievance dismissal redundancy tribunal strike backlog burnout
@@ -443,8 +367,6 @@ ESSENCE: buying and selling has three crowds — the offer, the money
   and nowhere else; price, order, deal and cover do not.
 ROOT: money (16) / a trade is one event recorded from two sides, with
   a period afterwards in which either side may complain.
-CANNOT: no trade sense from order, deal or charge alone — these are
-  three of the most reused words there are.
 THREAD: law (17: offer and acceptance make the contract), keeping
   knowledge (40: the receipt is the record that settles disputes).
 MEANS-SAME: price quote discount bid haggle offer invoice | pay deposit instalment refund credit card cash | receipt warranty guarantee return exchange complaint delivery
@@ -456,8 +378,6 @@ ESSENCE: measuring words name the instrument, the unit and the
   serious measurement from a casual one.
 ROOT: measurement (36) / a measurement without a stated uncertainty
   is a number, not a measurement.
-CANNOT: no measurement without a unit and an uncertainty — a bare
-  figure carries neither and cannot be checked by anyone.
 THREAD: engineering (04: tolerance is the whole of manufacturing),
   chance (35: a margin is a probability statement).
 MEANS-SAME: ruler gauge scale caliper thermometer meter dial sensor | metre gram second litre degree percent ratio unit | tolerance uncertainty calibration accuracy precision margin error
@@ -469,8 +389,6 @@ ESSENCE: time words divide into points, stretches and repeats.
   is why schedules fail.
 ROOT: measurement (36) / a moment, a duration and a frequency are
   three different quantities that share one vocabulary.
-CANNOT: no schedule from a point without a duration — a deadline
-  says when it is due and nothing at all about how long it takes.
 THREAD: logistics (39: lead time is a duration and delivery date is
   a point), music (10: tempo is a frequency, not a speed of hands).
 MEANS-SAME: now today deadline moment instant date noon midnight | hour day week duration spell period while term | daily weekly annual shift rota cycle recurring interval
@@ -481,8 +399,6 @@ ESSENCE: engine words name the cycle, the parts and the faults, and
   exhaust is an order that occurs nowhere else.
 ROOT: engineering (04) / an engine turns burning into turning, and
   every part is named for its place in that sequence.
-CANNOT: no engine sense from drive, charge, timing or valve alone —
-  every one of them serves another trade daily.
 THREAD: physics (01: efficiency is bounded by temperatures, not by
   cleverness), chemistry (03: combustion needs fuel, air and heat).
 MEANS-SAME: intake compression ignition exhaust stroke timing firing | piston cylinder crankshaft valve gasket injector turbo | misfire knock overheat seize stall leak smoke
@@ -494,8 +410,6 @@ ESSENCE: flight words are about a machine balanced in a fluid.
   companion.
 ROOT: flight (05) / lift is bought with speed and paid for in drag,
   and every term names part of that bargain.
-CANNOT: no flight sense from lift, bank, stall or ceiling alone —
-  each is an ordinary word in building, money or driving.
 THREAD: physics (01: a stall is loss of attached flow, not loss of
   speed), navigation (12: heading, track and course differ by wind).
 MEANS-SAME: lift drag thrust weight stall angle attack trim | yaw pitch roll rudder aileron elevator flap throttle | taxi takeoff climb cruise descent approach landing runway
@@ -506,8 +420,6 @@ ESSENCE: hospital words name places, roles and stages of care. Ward,
   charge and round are not, and they appear in law, money and games.
 ROOT: medicine (06) / a hospital is a queue managed by urgency
   rather than by arrival.
-CANNOT: no clinical sense from round, charge or theatre alone — each
-  belongs to at least two other fields.
 THREAD: logistics (39: triage is scheduling under scarcity), people
   together (21: a handover is where most errors are born).
 MEANS-SAME: ward theatre clinic emergency icu recovery bedside | nurse consultant registrar porter anaesthetist matron | triage admission observation discharge referral followup handover
@@ -518,8 +430,6 @@ ESSENCE: the factory floor names lines, batches and quality. Batch,
   other subject produces.
 ROOT: engineering (04) / making many of one thing is a different
   problem from making one, and the vocabulary records that.
-CANNOT: no manufacturing sense from line, batch or plant alone —
-  line is queue, telephone and family; plant is vegetation.
 THREAD: logistics (39: inventory is stored decisions), measurement
   (36: quality control is sampling with stated risk).
 MEANS-SAME: line batch lot shift throughput bottleneck changeover | defect reject tolerance inspection sample scrap rework | machine tooling jig conveyor pallet maintenance downtime
@@ -531,8 +441,6 @@ ESSENCE: office words name papers, meetings and hierarchy, and
   single word.
 ROOT: people together (21) / organisations run on records of what
   was decided and by whom.
-CANNOT: no office sense from a single borrowed word — board, chair,
-  minutes, file, brief and cover all live elsewhere first.
 THREAD: keeping knowledge (40: minutes are the institution's
   memory), power (24: who signs is who decides).
 MEANS-SAME: memo minutes agenda report brief filing correspondence | agenda chair minutes action apologies quorum circulate | manager director deputy department reporting approval signoff
@@ -543,8 +451,6 @@ ESSENCE: worship and rite name gatherings, objects and calendars.
   sabbath — because it is a schedule that nothing else keeps.
 ROOT: ritual (26) / a rite is a repeated act that marks a
   transition, and repetition needs a calendar.
-CANNOT: no religious sense from service, order, offering or spirit
-  alone — every one of these words is at home in trade or feeling.
 THREAD: people together (21: shared costly acts bind groups),
   history (42: the calendar preserves what the doctrine forgets).
 MEANS-SAME: congregation service sermon prayer hymn blessing pilgrimage | altar icon relic scripture vestment incense chalice | feast fast vigil sabbath festival lent pilgrimage anniversary
@@ -555,9 +461,6 @@ ESSENCE: the forest is a crowd of tree words, layer words and
   and place a sentence among trees immediately.
 ROOT: living world (31) / a wood is a competition for light, and
   every term describes a position in that competition.
-CANNOT: no forest sense from stand, crown, bark or timber alone —
-  each is a word in trade, anatomy or dogs before it is a word in
-  woods.
 THREAD: farming (14: forestry is farming on a fifty-year clock),
   weather (13: a canopy makes its own climate underneath).
 MEANS-SAME: canopy understorey shrub litter floor crown deadwood | conifer broadleaf hardwood softwood evergreen deciduous | coppice thin fell plant prune timber regenerate
@@ -568,8 +471,6 @@ ESSENCE: the mountain names heights, hazards and routes. Ridge,
   approach are borrowed by business and war constantly.
 ROOT: geography (33) / height changes weather, plants and danger
   faster than distance does.
-CANNOT: no mountain sense from face, pass, ridge or summit alone —
-  all four are standard words in trade, geology and argument.
 THREAD: weather (13: altitude is a weather change per hundred
   metres), medicine (06: altitude sickness is a real ceiling).
 MEANS-SAME: summit ridge face col saddle scree couloir gully | crevasse avalanche exposure whiteout rockfall altitude | ascent traverse pitch belay approach descent bivouac

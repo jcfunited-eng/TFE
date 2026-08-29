@@ -9,9 +9,6 @@ ESSENCE: to solve is to find EVERY value that makes a statement true and
   other half is the argument that nothing else qualifies.
 ROOT: mathematics / proof is chained certainty — an answer without the
   no-others part is a guess that happened to work.
-CANNOT: no solving by finding one value that fits — a lucky number proves
-  only that the set is not empty. And no set proved empty by failing to
-  find one; that takes an argument, not a search.
 THREAD: law (a verdict must exclude the alternatives, not merely fit one),
   medicine (a diagnosis that explains the symptoms is not the only one
   that would), detective work (means and motive fitting is not proof).
@@ -23,10 +20,6 @@ ESSENCE: three fates await any equation. It can be true for every value,
   is itself an answer.
 ROOT: premise — an equation is a claim about values, and claims come in
   always, sometimes and never.
-CANNOT: no solving an identity — asking where the two sides agree when
-  they agree everywhere returns everything, which looks like a broken
-  working and is not. And no rescuing a never: an honest arrival at a
-  false statement means the set is empty.
 THREAD: law (a rule that applies to everybody against one that applies in
   cases), language (a definition against a claim), computing (a condition
   that is always true, which is a bug wearing a test's clothes).
@@ -38,9 +31,6 @@ ESSENCE: the safe moves are the reversible ones. Add the same thing to
   the answer set may change under you.
 ROOT: algebra / an equation is a balance — but the balance rule says what
   keeps truth, and reversibility is what keeps the whole set.
-CANNOT: no one-way move without a duty afterwards — squaring, multiplying
-  by an expression, and taking logs are all one-way, and each of them owes
-  a check at the end.
 THREAD: cooking (steps you can undo against steps you cannot), surgery
   (reversible before irreversible), computing (an operation that loses
   information cannot be inverted).
@@ -52,9 +42,6 @@ ESSENCE: some letters are the thing being hunted and some are standing in
   forever, instead of one case today.
 ROOT: algebra / a letter is a name for a number not yet known — with the
   further step of deciding which letters get to stay unknown.
-CANNOT: no telling parameter from unknown by looking at the letters; it is
-  a decision made outside the algebra, and a working that forgets which is
-  which produces nonsense that checks out line by line.
 THREAD: computing (an argument against a variable in a function), law (a
   rule stated for any amount rather than for one amount), physics (a
   constant carried as a symbol until the last line).
@@ -66,10 +53,6 @@ ESSENCE: rearranging a formula for a different letter is the same work as
   by hand.
 ROOT: this file / parameters and unknowns — any letter may be nominated as
   the hunted one and the rest demoted to fixed.
-CANNOT: no rearranging past a letter that appears twice without first
-  gathering it — the two appearances must be brought together into one
-  before it can be isolated, and skipping that is where the working always
-  breaks.
 THREAD: engineering (one formula read four ways for four jobs), cooking (a
   recipe scaled by any ingredient you happen to have), money (an interest
   formula solved for the years instead).
@@ -86,9 +69,6 @@ ESSENCE: a linear equation says a steady climb reaches a stated height,
   path crosses a level line once or never.
 ROOT: premise — a constant rate never turns back, so it visits every value
   at most once.
-CANNOT: no linear equation with two different answers. And none with no
-  answer at all unless the climb is flat — a flat climb either sits on the
-  level line forever or misses it forever.
 THREAD: money (a fixed monthly saving reaching a target on one date only),
   physics (steady motion passing a marker once), travel (a constant speed
   arriving once).
@@ -100,9 +80,6 @@ ESSENCE: one equation with two unknowns is not unsolvable — it is
   against the count of unknowns.
 ROOT: premise — each independent equation removes one degree of freedom,
   and the answer set shrinks by a dimension each time.
-CANNOT: no pinning two unknowns with one equation, ever — and no help from
-  a second equation that is the first one in disguise: it removes nothing,
-  because it says nothing new.
 THREAD: engineering (a structure with fewer supports than degrees of
   movement), cooking (two ingredients and one constraint on the total),
   accounting (books that do not determine a figure).
@@ -114,9 +91,6 @@ ESSENCE: two straight relations can do only three things: cross at one
   pictures.
 ROOT: this file / a linear equation is a straight climb — and two straight
   paths in a plane have only these three arrangements.
-CANNOT: no two straight lines meeting at exactly two points — the case
-  does not exist, so a working that produces two answers has an error in
-  it and needs no further checking.
 THREAD: navigation (two bearings fixing a position, unless they are the
   same bearing), law (two rules that conflict, agree, or are the same
   rule), physics (two constraints on one motion).
@@ -128,9 +102,6 @@ ESSENCE: substitution and elimination reach the same crossing by different
   Neither is more correct — only cheaper or dearer on the day.
 ROOT: this file / equivalent equations — both routes are chains of
   reversible moves, so both keep the whole answer set.
-CANNOT: no elimination without matching the coefficients of the unknown
-  being removed first, and no substitution without one unknown already
-  standing alone or cheaply made to.
 THREAD: cooking (two routes to the same dish), navigation (fixing a
   position by bearings or by distances), computing (two algorithms with
   the same output and different costs).
@@ -148,9 +119,6 @@ ESSENCE: when a system collapses to a plain false statement like nought
   and the answers form a whole line.
 ROOT: this file / three arrangements of two lines — the arithmetic reports
   which arrangement you are in by what it collapses to.
-CANNOT: no distinguishing the two cases before the collapse — the working
-  looks identical until the unknowns cancel, which is why the collapse
-  must be read rather than treated as a mistake.
 THREAD: accounting (a set of books that either contradicts itself or
   repeats itself), computing (constraints that are unsatisfiable against
   constraints that are redundant), law (conflicting statutes against
@@ -163,10 +131,6 @@ ESSENCE: a product is nothing only if one of its parts is nothing. That
   each piece takes its turn.
 ROOT: arithmetic / zero is the black hole of multiplying, and it is the
   only number that gets there without a zero going in.
-CANNOT: no zero product without a zero factor — which also means no such
-  trick for any other target: a product equalling six tells you nothing
-  about the parts, and setting each part to six is the most common wrong
-  step in the subject.
 THREAD: engineering (a chain fails only if a link fails), law (a
   requirement met only if every condition is met), computing (a check that
   short-circuits on the first false).
@@ -179,9 +143,6 @@ ESSENCE: dividing both sides by an expression containing the unknown
 ROOT: this file / safe moves are reversible — dividing by something that
   might be nothing is not reversible, because you cannot multiply back by
   nothing.
-CANNOT: no cancelling an unknown factor without losing every answer that
-  made it nothing. The legal move is to bring everything to one side and
-  factor instead, which keeps them all.
 THREAD: computing (dividing by a value that might be zero), money (a
   per-unit figure that hides the case of no units), physics (a step that
   assumes a quantity is not at rest).
@@ -193,9 +154,6 @@ ESSENCE: squaring both sides invents answers. Both plus three and minus
   refused.
 ROOT: this file / safe moves are reversible — squaring is not, since it
   merges two starting values into one, and no later step can unmerge them.
-CANNOT: no undoing the merge from inside the algebra; the only remedy is
-  outside it, by putting each candidate back into the original equation
-  and seeing whether it survives.
 THREAD: law (evidence consistent with two stories), medicine (a finding
   that two different conditions both produce), computing (a hash that two
   inputs share).
@@ -207,9 +165,6 @@ ESSENCE: an extraneous solution is not a mistake in the working — it is
   line of the method.
 ROOT: this file / one-way moves change the answer set — so the set has to
   be re-tested against the question that was actually asked.
-CANNOT: no method that avoids the check while using one-way steps. And no
-  telling a real answer from an invented one by how it looks — only the
-  original equation has standing to decide.
 THREAD: science (a hypothesis surviving the derivation still owes an
   experiment), law (a confession obtained by a tainted route), computing
   (a result from a lossy transformation, verified against the source).
@@ -225,10 +180,6 @@ ESSENCE: a quadratic has exactly three possible fates among ordinary
   is the whole story.
 ROOT: premise — a squared unknown draws a single-turn curve, and a
   single-turn curve meets a level line twice, once, or not at all.
-CANNOT: no quadratic with three ordinary answers, and none with exactly
-  one unless the curve touches — a single answer is always a double answer
-  standing in one place, which is why it behaves strangely in problems
-  about counting.
 THREAD: physics (a thrown ball reaching a height twice, once at the top,
   or never), money (a break-even reached on two dates or none),
   engineering (a load a beam meets, grazes, or misses).
@@ -241,9 +192,6 @@ ESSENCE: completing the square rebuilds a quadratic as a perfect square
 ROOT: algebra / the square of a sum has a fixed shape — so any quadratic
   can be forced into that shape by supplying the term it is missing and
   taking the same amount away again.
-CANNOT: no unwinding an equation with the unknown in two places; the
-  gathering must happen first, and completing the square is simply the
-  gathering done for quadratics.
 THREAD: engineering (a rearrangement chosen to make the next step
   possible), physics (energy written as a square plus a remainder, which
   is where the turning point shows), building (a shape completed by
@@ -260,9 +208,6 @@ ESSENCE: the quadratic formula is completing the square carried out once,
   ever be written has already been solved; the formula is the receipt.
 ROOT: this file / solving with letters answers every case at once — the
   formula is that principle cashed for one whole family of equations.
-CANNOT: no formula of the same kind for every degree — the cubic and
-  quartic have them, uglier, and above the fourth degree no such formula
-  in roots exists at all. Proved dead, not undiscovered.
 THREAD: engineering (a standard part replacing a bespoke one), law (a
   settled precedent removing the need to argue afresh), computing (a
   library routine standing in for the derivation).
@@ -274,9 +219,6 @@ ESSENCE: the piece under the root sign tells you the kind of answer before
   the whole result.
 ROOT: this file / a quadratic's three fates — the sign of that piece is
   exactly what decides which fate you are in.
-CANNOT: no quadratic whose answer kind disagrees with it. And no reading
-  the SIZE of the answers off it — it reports how many and what sort,
-  never where they are.
 THREAD: medicine (a single marker that sorts patients into groups before
   the full workup), engineering (a stability check done before the
   detailed calculation), weather (one index saying whether a storm is
@@ -290,9 +232,6 @@ ESSENCE: a quadratic's turning point sits exactly midway between its two
 ROOT: mathematics / symmetry is sameness under change — the curve is
   unchanged by a flip about its middle line, so everything on it comes in
   matched pairs.
-CANNOT: no lopsided parabola — the two arms rise at matched rates, so no
-  answer sits nearer the turning point than its partner. Any working
-  producing an off-centre vertex has an error.
 THREAD: physics (a thrown ball rising and falling in mirrored time), money
   (a cost curve whose cheapest point lies between two break-evens), sport
   (the top of an arc halfway along it).
@@ -304,9 +243,6 @@ ESSENCE: the answers to an equation and the places where its graph meets
   they can be counted.
 ROOT: geometry / two numbers pin a point on a sheet, so every equation
   becomes a picture and every picture an equation.
-CANNOT: no answer without a crossing and no crossing without an answer —
-  which means a curve that clearly never reaches the line settles the
-  question with no algebra at all.
 THREAD: engineering (reading a design point off a chart instead of
   computing it), money (a break-even seen as an intersection), navigation
   (a fix as the meeting of two drawn lines).
@@ -318,9 +254,6 @@ ESSENCE: a difference of two squares always splits, into the sum times the
   ninety-nine without any working.
 ROOT: algebra / the square of a sum — with one sign flipped, the two
   crossing terms cancel each other instead of doubling.
-CANNOT: no such split for a SUM of two squares among ordinary numbers —
-  the shape that always works one way never works the other, which is
-  exactly where imaginary numbers earn their keep.
 THREAD: mental arithmetic (numbers either side of a round one),
   engineering (a small difference computed without cancellation error),
   this file (rationalising a denominator uses it directly).
@@ -332,9 +265,6 @@ ESSENCE: factoring is a search, so it needs a search order rather than
   factor tidily at all.
 ROOT: algebra / factoring is un-multiplying, and un-multiplying is search
   — but the search space has cheap corners worth checking first.
-CANNOT: no shape-spotting before the common factor is removed; a hidden
-  common factor disguises every shape underneath it. And no guarantee at
-  the end — refusing to factor is the normal case.
 THREAD: repair (check the cheap causes before dismantling), medicine
   (common things first), computing (fast paths tried before the general
   algorithm).
@@ -352,8 +282,6 @@ ESSENCE: the two answers of a quadratic add to the middle coefficient
   can be checked, and often guessed, without ever solving the equation.
 ROOT: this file / each answer names a factor — multiplying the factors
   back out puts the sum and the product on display in the coefficients.
-CANNOT: no pair of answers disagreeing with those two totals — which makes
-  them a free check on any solution, and a fast disproof of a wrong one.
 THREAD: money (a total and a product known before the parts), puzzles (two
   numbers with a given sum and product), physics (a system's two
   behaviours whose sum is fixed by the setup).
@@ -365,9 +293,6 @@ ESSENCE: if a polynomial with whole-number coefficients has a tidy
   list you can test one by one.
 ROOT: this file / each answer names a factor — multiplying the factors out
   shows exactly where the tops and bottoms can have come from.
-CANNOT: no tidy answer outside that list, so a polynomial whose list all
-  fail has no fractional answers at all — its answers are untidy or
-  imaginary, and no more searching will help.
 THREAD: detective work (narrowing suspects by a physical constraint),
   computing (pruning a search space before searching), chemistry (which
   formulas are possible given the masses).
@@ -379,9 +304,6 @@ ESSENCE: divide a polynomial by x minus a and the remainder is simply the
 ROOT: algebra / dividing polynomials mirrors long division — and the
   leftover, when the divisor is a single step, has nowhere to hide except
   the value itself.
-CANNOT: no remainder of higher degree than the divisor, so dividing by a
-  single-step divisor always leaves a plain number — never an expression,
-  which is why the shortcut is exact rather than approximate.
 THREAD: computing (evaluating a polynomial by nested multiplying, which is
   this division walked), money (a balance after regular deductions),
   engineering (a residual after a linear correction).
@@ -392,9 +314,6 @@ ESSENCE: if that remainder is nothing, x minus a is a factor and a is an
   idea, and every method for polynomials moves between them freely.
 ROOT: this file / the remainder theorem, read at the case where the
   remainder vanishes.
-CANNOT: no root without its factor and no factor without its root — the
-  correspondence is exact, so a claimed answer that leaves a remainder is
-  not an answer.
 THREAD: chemistry (a reaction that goes to completion leaving nothing),
   accounting (a balance closing to zero as proof the entries are
   complete), engineering (a residual of nothing meaning the model fits
@@ -407,9 +326,6 @@ ESSENCE: every root you find lets you divide it out and continue on a
   is a quadratic you already know how to finish.
 ROOT: this file / a root names a factor — so removing the factor removes
   the root and shortens the problem.
-CANNOT: no ladder that starts without a first root, and finding that first
-  one has no general method above the fourth degree. The descent is easy;
-  the first step is the hard one.
 THREAD: engineering (peeling one known effect off a signal to see what
   remains), medicine (treating one diagnosis and re-examining), computing
   (reducing a problem to a smaller instance of itself).
@@ -421,9 +337,6 @@ ESSENCE: a polynomial of degree n has exactly n answers once imaginary
   mirrored pairs, never singly.
 ROOT: algebra / the numbers were widened until roots always exist — and
   the widening was exactly enough, with nothing further needed.
-CANNOT: no real-coefficient polynomial with a lone imaginary answer. Which
-  forces something concrete: an odd-degree one must have at least one
-  ordinary answer, because the pairs cannot use them all up.
 THREAD: engineering (vibration modes arriving in pairs), physics
   (solutions that come as matched forward and backward waves), music (a
   filter's behaviour described by mirrored pairs).
@@ -435,10 +348,6 @@ ESSENCE: a fraction with letters underneath carries a list of forbidden
   later does not free the value it forbade.
 ROOT: arithmetic / no zero below the bar — and the prohibition attaches to
   the original expression, not to whatever it is simplified into.
-CANNOT: no reinstating a forbidden value by simplification. The simplified
-  form agrees with the original everywhere except at that point, where the
-  original has no value at all — which is precisely the hole a graph shows
-  there.
 THREAD: computing (a simplified expression that no longer crashes where
   the original did, and is therefore not equivalent), law (a clause struck
   out that still governs past events), medicine (a dose formula undefined
@@ -452,9 +361,6 @@ ESSENCE: only factors may be cancelled, never terms. The top and bottom of
 ROOT: arithmetic / cancelling is dividing top and bottom by the same
   thing, which is multiplying by one — and a term is not a thing the whole
   top was multiplied by.
-CANNOT: no cancelling across a plus or minus sign. Test it on numbers once
-  — two plus four over four is not two plus one — and the temptation never
-  returns.
 THREAD: cooking (halving an ingredient but not the whole recipe), money
   (cancelling a shared cost that was added rather than multiplied), law
   (striking a phrase that was joined by and).
@@ -466,9 +372,6 @@ ESSENCE: rational expressions add exactly as fractions do — same bottom
   else happens.
 ROOT: arithmetic / fractions add only when the pieces match — with the
   pieces now named by factors rather than by size.
-CANNOT: no common bottom found without factoring first — multiplying the
-  two bottoms together always works and usually produces a mess that then
-  has to be undone.
 THREAD: cooking (measures reconciled before combining), money (payments on
   different cycles brought to one), music (rhythms written over a common
   subdivision).
@@ -485,9 +388,6 @@ ESSENCE: an asymptote is a line the curve approaches forever and never
   caring, where the highest powers win.
 ROOT: this file / forbidden values, plus the fact that in a race between
   powers the tallest term eventually dominates every other.
-CANNOT: no crossing a vertical asymptote — the value does not exist there.
-  But horizontal ones CAN be crossed on the way out; only the far
-  behaviour is promised, never the journey.
 THREAD: money (a cost per unit falling toward a floor it never meets),
   physics (a terminal speed approached and never exceeded), chemistry (a
   reaction approaching completion).
@@ -499,9 +399,6 @@ ESSENCE: simplifying a root means pulling out whatever square hides inside
   added.
 ROOT: arithmetic / factors come in pairs — and a pair of equal factors
   under a square root steps outside as one.
-CANNOT: no adding unlike roots — a root of two plus a root of three stays
-  two terms forever, exactly as unlike letters do. And no root of a sum
-  splitting into a sum of roots: try nine and sixteen.
 THREAD: building (an exact diagonal kept as a root until the cut), physics
   (a formula left in roots so the structure stays visible), music
   (interval ratios written as roots).
@@ -517,9 +414,6 @@ ESSENCE: rationalising moves the root from the bottom to the top. For a
   at once.
 ROOT: this file / a difference of squares always splits — used backwards,
   as a device for making roots cancel each other.
-CANNOT: no clearing a two-term root bottom by multiplying by itself — that
-  produces a middle crossing term and leaves you worse off; the sign must
-  be flipped or the trick does not fire.
 THREAD: engineering (rearranging so the error-prone operation happens
   where it does least harm), money (a rate restated to make comparison
   possible), navigation (a formula recast for the tables available).
@@ -531,9 +425,6 @@ ESSENCE: when the unknown sits in the exponent, none of the ordinary moves
   built for exactly that job.
 ROOT: arithmetic / powers add their counts — an operation that reaches the
   count itself is a different operation from any that reaches the number.
-CANNOT: no solving two to the x equals ten by algebra of the ordinary kind
-  — dead, not difficult; you can bracket the answer by trial forever and
-  never write it exactly without the new tool.
 THREAD: money (finding how many years a balance takes to reach a target),
   physics (how long until half is left), the living world (how many
   doublings a colony has been through).
@@ -546,9 +437,6 @@ ESSENCE: a logarithm is that tool, and it is nothing more than the power
 ROOT: this file / an exponential equation needs an operation that reaches
   the exponent — this is that operation, defined as the undoing of raising
   to a power.
-CANNOT: no logarithm of nothing or of a negative — no power of a positive
-  base ever lands there, so the question has no answer; dead, not merely
-  off the table.
 THREAD: music (how many octaves between two pitches), computing (how many
   halvings reach one), chemistry (acidity as a count of tenfold steps).
 ASKED-AS: what is a log logarithm means power base undo exponent explain simply
@@ -559,9 +447,6 @@ ESSENCE: logs turn multiplying into adding. That is why they were invented
   lookup.
 ROOT: arithmetic / powers add their counts — read from the other side, the
   counts ARE the logs, so multiplying numbers adds their counts.
-CANNOT: no rule turning a log of a SUM into anything simpler — the log of
-  a plus b has no expansion at all, which is the mistake everybody makes
-  and the reason the tool feels arbitrary.
 THREAD: engineering (the slide rule, three centuries of calculation
   standing on this), music (adding intervals to multiply frequencies),
   astronomy (magnitudes added to combine brightness ratios).
@@ -573,9 +458,6 @@ ESSENCE: every log rule is a power rule read backwards. A power becomes a
   say about the exponents.
 ROOT: this file / a log is the exponent — so any statement about exponents
   becomes a statement about logs by simply renaming it.
-CANNOT: no log rule without a matching power rule behind it, so no rule
-  needs memorising separately — and any invented rule can be refuted in
-  one line by translating it back into powers.
 THREAD: language (a grammar rule restated in the passive), computing (the
   same operation named in two libraries), law (a right and its
   corresponding duty).
@@ -587,9 +469,6 @@ ESSENCE: all logarithms are the same shape at different scales — the log
   them.
 ROOT: this file / a log is an exponent, and changing the base only changes
   what one step is worth, exactly like changing units.
-CANNOT: no base below one or equal to one — a base of one raises to one
-  forever and reaches nothing else, so its log is not a function at all;
-  the ratio trick has nothing to work with.
 THREAD: measuring (converting between two units of the same quantity),
   music (the same interval counted in tones or in cents), computing
   (halvings against tenfold steps).
@@ -601,9 +480,6 @@ ESSENCE: loudness, earthquakes and acidity are all measured in logs
   steps is a thousandfold and the chart stays readable.
 ROOT: this file / logs turn multiplying into adding — so a multiplicative
   range becomes an additive one and fits on a page.
-CANNOT: no reading differences off a log scale as amounts — a gap of two
-  is a hundred times, not two more, which is why every one of these scales
-  is misreported the same way.
 THREAD: astronomy (star brightness), the body (hearing and sight, which
   both respond to ratios rather than amounts), money (a chart of long-run
   growth drawn so early years stay visible).
@@ -615,9 +491,6 @@ ESSENCE: an expression made of multiplied factors can only change sign
   and the whole solution is read off.
 ROOT: this file / a product is nothing only when a part is — so the sign
   of the whole is fixed within any stretch containing no such point.
-CANNOT: no sign change in the middle of a stretch with no critical point
-  in it — which is why testing one number per stretch is enough, and why
-  testing more is wasted work.
 THREAD: engineering (a stability boundary crossed only at known points),
   weather (a front as the line where a sign changes), medicine (a
   threshold above which a treatment reverses effect).
@@ -634,9 +507,6 @@ ESSENCE: an absolute value equation is two equations in disguise, because
   one of them.
 ROOT: arithmetic / absolute value keeps the distance and discards the sign
   — so undoing it means restoring both possibilities.
-CANNOT: no absolute value equalling a negative — no solutions, settled
-  before any working. And no splitting into cases without the check
-  afterwards, since splitting is itself a one-way move.
 THREAD: engineering (a tolerance breached on either side), navigation (a
   distance off course with the side unknown), law (a rule about magnitude
   regardless of direction).
@@ -648,9 +518,6 @@ ESSENCE: an absolute value inequality is a sentence about distance, and
   stretches and an or.
 ROOT: arithmetic / the size of a difference is the distance between two
   numbers — so these are statements about how near or how far.
-CANNOT: no writing "greater than" as a single chained inequality — the
-  answer is in two separate pieces with a gap between them, and chaining
-  it produces a statement that is never true.
 THREAD: engineering (inside tolerance against outside it), medicine (a
   normal range against an alarm range), law (within a limit against in
   breach on either side).
@@ -661,9 +528,6 @@ ESSENCE: several inequalities together draw a region rather than a point.
   surviving halves overlap, and that overlap is a shape with corners.
 ROOT: this file / an equation is a line and an inequality is one side of
   it — so a system of them is an intersection of sides.
-CANNOT: no region at all when the halves have no common overlap — the
-  constraints are then incompatible and no compromise exists, which is a
-  real answer and not a failure of method.
 THREAD: money (a budget with several limits at once), farming (land,
   labour and water each capping what can be planted), engineering (a
   design space bounded by several requirements).
@@ -675,9 +539,6 @@ ESSENCE: a sequence can be described in two ways: a rule for the next term
   any question instantly.
 ROOT: mathematics / recursion is a rule fed its own output — and a closed
   form is the same sequence described without the feeding.
-CANNOT: no jumping to the thousandth term from a step-by-step rule without
-  walking all thousand steps. And no closed form for many perfectly
-  well-behaved sequences — they exist term by term and in no shorter way.
 THREAD: money (a balance rolled forward monthly against a formula for any
   year), computing (an iterative routine against a direct one), the living
   world (growth described step by step).
@@ -689,9 +550,6 @@ ESSENCE: an arithmetic sequence adds the same amount each step, so it
   place it bites.
 ROOT: this file / a constant rate draws a straight climb — a sequence is
   that climb sampled at whole numbers.
-CANNOT: no arithmetic sequence bending; its differences are equal forever,
-  so a list whose differences change is not one and no formula of this
-  shape will fit it.
 THREAD: money (fixed monthly savings), building (evenly spaced rafters),
   time (dates on a regular schedule).
 ASKED-AS: arithmetic sequence common difference nth term formula minus one first start
@@ -702,9 +560,6 @@ ESSENCE: a geometric sequence multiplies by the same amount each step, so
   it beats any straight climb.
 ROOT: arithmetic / changes chain by multiplying — a sequence built that
   way compounds every step onto every previous one.
-CANNOT: no geometric sequence reaching nothing while its ratio is not
-  nothing — it halves forever and arrives never. And no straight climb
-  outrunning one in the long run, whatever head start it has.
 THREAD: money (compound interest and debt), the living world (populations
   before a limit bites), physics (radioactive decay).
 ASKED-AS: geometric sequence common ratio doubling nth term grows fast halving never reaches
@@ -715,9 +570,6 @@ ESSENCE: adding a long arithmetic list is done by folding it in half. Pair
   pairs, and no adding is needed.
 ROOT: mathematics / symmetry is sameness under change — the list read
   backwards is the same list, and pairing exploits it.
-CANNOT: no such pairing for a list whose steps are uneven; the trick is
-  paid for entirely by the constant difference, and it fails the moment
-  that goes.
 THREAD: building (counting bricks in a sloping stack), money (total paid
   on a steadily rising schedule), sport (cumulative results over a regular
   season).
@@ -734,9 +586,6 @@ ESSENCE: a geometric sum is found by a trick of cancellation: multiply the
 ROOT: this file / equivalent equations — the multiplied copy is a
   legitimate second equation, and eliminating between them removes the
   entire middle.
-CANNOT: no such cancellation when the ratio is one — every term is
-  identical, the shifted copies line up exactly, and the formula divides
-  by nothing; that case must be handled as plain repeated addition.
 THREAD: money (a loan's total repayments, an annuity's value), computing
   (the total work of a doubling process), music (the total length of a
   fading echo).
@@ -749,9 +598,6 @@ ESSENCE: an endless geometric sum has a finite total when each term is
 ROOT: this file / geometric terms fade toward nothing — and they fade fast
   enough that what is left to add shrinks in proportion to what is left
   over.
-CANNOT: no finite total when the ratio reaches one in size — the terms
-  stop shrinking and the sum runs away. Dead, not slow: there is no clever
-  ordering that rescues it.
 THREAD: money (the value of a payment lasting forever), physics (a
   bouncing ball's total travel, finite despite endless bounces),
   philosophy (the runner's endless halves, answered here).
@@ -763,10 +609,6 @@ ESSENCE: induction owes exactly two things and nothing else: that the
   no far wall.
 ROOT: mathematics / the domino law — this is the accounting of what that
   law actually requires of you.
-CANNOT: no proof from the step alone — a false claim can survive every
-  step if it never started. And no proof from any number of checked cases
-  without the step, however many; the two obligations do different work
-  and neither substitutes.
 THREAD: engineering (a chain proof of a repeated process), law (a
   precedent that propagates, once established at a first case), computing
   (a loop trusted because it preserves its invariant).
@@ -783,9 +625,6 @@ ESSENCE: a function is a machine that takes one input and returns exactly
   and none of the machinery applies to it.
 ROOT: premise — the value of a thing must be determined by what went in,
   or nothing built on it can be relied upon.
-CANNOT: no function giving two outputs for one input, so no plain function
-  for "the number whose square is this" — that is the reason the root sign
-  means only the positive one, by decree.
 THREAD: computing (a routine that must return one value), law (a rule that
   must decide each case one way), cooking (a recipe giving the same dish
   from the same ingredients).
@@ -797,9 +636,6 @@ ESSENCE: f of x is not f times x. The bracket is a machine's mouth, not a
   single habit.
 ROOT: this file / a function is a machine — and notation borrowed from
   multiplication invites a reading the machine never agreed to.
-CANNOT: no distributing a function across a sum. Squaring, rooting,
-  logging and sining all refuse it; the rare machines that allow it are
-  exactly the straight-line ones, and they are the exception.
 THREAD: language (a word that changes meaning inside a phrase), computing
   (a function call against a product in careless notation), music (an
   effect applied to a chord is not the effect applied to each note).
@@ -811,9 +647,6 @@ ESSENCE: the domain is everything the machine will accept and the range is
   why.
 ROOT: this file / a function is a machine — and every real machine has
   materials it will not take and outputs it cannot reach.
-CANNOT: no output outside the range, however the input is chosen — which
-  settles whole equations at a glance: a squared expression can never
-  equal a negative, and no working is needed to say so.
 THREAD: engineering (a machine's rated input and its achievable output),
   medicine (a test valid only within a range of patients), computing
   (accepted arguments and possible return values).
@@ -825,9 +658,6 @@ ESSENCE: composing functions is wiring machines in series — the output of
   forgiving.
 ROOT: this file / a function is a machine — and machines placed in a line
   pass work along in one direction only.
-CANNOT: no assuming composition may be swapped; the two orders are usually
-  different functions with different domains. The pairs that do commute
-  are rare and worth noticing when they appear.
 THREAD: cooking (chop then cook against cook then chop), computing (piped
   commands whose order matters), manufacturing (paint then drill, or drill
   then paint).
@@ -839,9 +669,6 @@ ESSENCE: an inverse function is the machine run backwards, and it exists
   hand back.
 ROOT: this file / a function gives one output — so its inverse can only be
   a function if the original never sent two inputs to one place.
-CANNOT: no inverse for a machine that collides — squaring has none over
-  all numbers, because plus and minus three both arrive at nine and the
-  way back is not determined. Dead, not awkward.
 THREAD: computing (a lossy compression that cannot be undone), cooking (a
   scrambled egg), language (a translation that merged two distinct words
   into one).
@@ -853,10 +680,6 @@ ESSENCE: an inverse can be bought by narrowing the entrance. Squaring has
   paid on purpose.
 ROOT: this file / an inverse needs no collisions — and collisions can be
   removed by refusing the inputs that caused them.
-CANNOT: no restriction that is free — every value shut out of the entrance
-  is a value the inverse can never return, which is exactly why the root
-  sign gives only positives and half of every answer has to be restored by
-  hand.
 THREAD: law (a right granted within a narrowed class of cases),
   engineering (a component certified only within a range), medicine (a
   test interpreted only within the population it was validated on).
@@ -868,9 +691,6 @@ ESSENCE: a graph is the complete set of a relation's answers drawn as
   as how many answers there are.
 ROOT: geometry / a place is a pair of numbers, so a pairing of numbers is
   a set of places.
-CANNOT: no curve that doubles back over itself vertically being a function
-  — two heights above one spot means two outputs for one input, and the
-  picture reports it instantly.
 THREAD: money (a chart that shows at a glance what a table hides),
   medicine (a trace read for shape rather than for values), physics (a
   phase picture showing every possible behaviour at once).
@@ -883,9 +703,6 @@ ESSENCE: moving a graph obeys one strange law: changes made outside the
 ROOT: this file / a function is a machine — a change inside the bracket
   alters what is being fed in, so the picture must move against it to show
   the same output.
-CANNOT: no inside change acting in the direction it reads. And no swapping
-  the order of a stretch and a shift without changing the result — the two
-  do not commute, which is where most graph sketching goes wrong.
 THREAD: film (moving the camera against moving the subject), navigation
   (shifting the map against shifting the ship), music (a tune transposed
   against the key signature changed).
@@ -897,9 +714,6 @@ ESSENCE: solving is a conversation between two languages, and the
   problem asserts before touching any algebra.
 ROOT: this file / to solve is to find every value making a statement true
   — so the statement must exist before there is anything to solve.
-CANNOT: no algebra rescuing a wrong translation — the working will be
-  flawless and the answer will be to a different question. And no checking
-  that error inside the algebra; only the words can catch it.
 THREAD: law (drafting the question a court is actually being asked),
   engineering (stating the requirement before designing), medicine (the
   presenting complaint against the real problem).

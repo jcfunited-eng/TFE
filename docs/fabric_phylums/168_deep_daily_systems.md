@@ -11,10 +11,6 @@ ESSENCE: money spent can be earned again, a thing broken can be
   is really an argument about what the hours are being turned into.
 ROOT: physics / time moves one way, and no store of anything converts
   back into it.
-CANNOT: no recovering a spent hour by any means — you can only decide
-  about the next one. And no saving time as a substance: what people
-  call saving time is spending it on something else, so the honest
-  question is never how to have more but what the trade was.
 THREAD: economy (a cost is what you gave up), farming (a planting
   window that closes), the human journey (a childhood that happens
   once).
@@ -26,11 +22,6 @@ ESSENCE: hours are not interchangeable. There are two or three in a
   entirely on what those few hours were spent on.
 ROOT: the body / alertness runs on a daily rhythm, so capacity varies
   by several times across a single day.
-CANNOT: no doing demanding work in a depleted hour by deciding to —
-  the capacity is not available and effort does not summon it. And no
-  schedule that treats every slot as equal without spending the best
-  hours on whatever asked for them first, which is usually other
-  people.
 THREAD: sport (training placed where the body can take it), farming (a
   task done at the hour the weather allows), cooking (a dish started
   when the kitchen is calm).
@@ -42,11 +33,6 @@ ESSENCE: urgent means it is making a noise now; important means it
   year and arrive at the end with nothing they meant to do.
 ROOT: the mind / attention goes to what is present and concrete, and
   a distant benefit is neither.
-CANNOT: no important work getting done in the gaps left by urgent work
-  — there are no gaps, because urgency expands to fill whatever is
-  available. And no urgency that announces its own weight: the
-  loudness of a demand carries no information about whether it
-  matters.
 THREAD: medicine (a screening appointment postponed for a decade),
   building (maintenance always losing to today's job), farming (the
   fence that is mended after the animals are out).
@@ -58,10 +44,6 @@ ESSENCE: like with like. Doing all the phone calls together, all the
   setting-up cost that is paid once instead of six times.
 ROOT: this file / starting a kind of work has a fixed cost, and a
   fixed cost divided across a batch is smaller per item.
-CANNOT: no cheap interleaving of unlike tasks — every change of kind
-  pays the setting-up again. And no batching without a cost of its
-  own: things wait longer to be done, so anything that must be
-  immediate has to be taken out of the batch deliberately.
 THREAD: cooking (preparing everything before the pan goes on),
   workshops (one setup, many parts), shopping (one journey, eight
   errands).
@@ -74,10 +56,6 @@ ESSENCE: stopping one thing to do another is not free and the cost is
   interruptions produces nothing at all.
 ROOT: the mind / the working bench is small and holds a task's state
   only while attention is on it.
-CANNOT: no deep work in an interruptible hour — the interruption does
-  not have to arrive, the possibility of it is enough to keep the
-  picture shallow. And no measuring the loss: what was lost is work
-  that never happened, so the day feels full and produces nothing.
 THREAD: cooking (a sauce abandoned and returned to), writing (a
   sentence lost to a doorbell), driving (a route thought about and
   then missed).
@@ -89,11 +67,6 @@ ESSENCE: if a thing takes two minutes, doing it now is cheaper than
   managing a small task exceeds the task.
 ROOT: this file / handling has a fixed cost, so below some size the
   handling costs more than the doing.
-CANNOT: no cheap deferral of a tiny task — the filing, the reminding
-  and the returning are together larger than the job. And no applying
-  it upward: past a couple of minutes the rule inverts, and doing
-  things immediately because they are in front of you is how a day
-  gets eaten by whatever arrived most recently.
 THREAD: cleaning (a spill wiped now against a stain later), post (a
   letter opened once rather than moved four times), workshops (a tool
   put back rather than searched for).
@@ -105,10 +78,6 @@ ESSENCE: a head is a terrible place to keep a list. Anything unwritten
   it is the quiet.
 ROOT: the mind / an unresolved intention keeps returning to attention
   until it is either done or trusted to somewhere else.
-CANNOT: no relief from a system you do not trust — if you suspect the
-  list is incomplete, the head keeps its own copy and you are paying
-  twice. And no partial capture: what matters is that everything goes
-  in, because one thing left out reopens the whole worry.
 THREAD: navigation (a written course rather than a remembered one),
   cooking (a written order in a busy kitchen), farming (a diary of
   what was done to which field).
@@ -120,10 +89,6 @@ ESSENCE: a list you never reread is a place things go to be lost. What
   dropped, delegated or given a date.
 ROOT: this file / trust in a store depends on it being checked, and an
   unchecked store cannot be trusted, so it stops relieving anything.
-CANNOT: no working system without a review — the list silently rots
-  and the head quietly resumes the job. And no review that only adds:
-  the necessary work is deletion, and refusing to delete is what turns
-  a list into a monument to a life nobody has time for.
 THREAD: accounting (a reconciliation that must actually happen),
   farming (a walk round the whole holding once a week), boats (a check
   of the whole vessel rather than the part in use).
@@ -135,11 +100,6 @@ ESSENCE: work expands to fill the time it is given. A task with two
   more consideration, more polish and more waiting to start.
 ROOT: the mind / effort is calibrated to the deadline rather than to
   the work, because the deadline is the visible constraint.
-CANNOT: no finishing early without a reason to — the spare time is
-  absorbed before anybody notices it existed. And no manufacturing a
-  deadline that everyone knows is invented: it has to be real to
-  somebody else, which is why other people's deadlines are met and
-  your own are not.
 THREAD: study (an essay finished the night before whatever the notice),
   building (a job that fits its programme), cooking (a meal ready when
   the guests arrive and not before).
@@ -151,11 +111,6 @@ ESSENCE: a plan that assumes nothing goes wrong is not optimism, it is
   picture — and the record of every similar past task says otherwise.
 ROOT: the mind / a forecast is built by simulating the case, and
   imagination produces the clean run.
-CANNOT: no accurate estimate from imagining the task — the
-  interruptions, the mistake and the missing part are real and
-  unimaginable in advance. And no fixing it by adding effort: the
-  correction comes from looking at how long the last five like it
-  actually took, which nobody wants to do.
 THREAD: building (a project that overruns by the usual proportion),
   cooking (a dinner that takes an hour longer than planned), travel (a
   journey timed without the parking).
@@ -167,10 +122,6 @@ ESSENCE: a day packed edge to edge has no capacity to absorb anything
   problem into an inconvenience.
 ROOT: mathematics / variation accumulates in a chain, and without gaps
   each delay is passed on in full to everything downstream.
-CANNOT: no reliable schedule with no gaps in it — the first
-  disturbance propagates to the end. And no removing the variation
-  itself: traffic, other people and your own body will not be made
-  regular, so the only place a buffer can live is in the plan.
 THREAD: transport (a timetable with recovery time built in),
   engineering (a tolerance that lets parts fit), farming (a harvest
   window wider than the harvest).
@@ -182,11 +133,6 @@ ESSENCE: overcommitting is not a character flaw, it is what happens by
   later between things that were never compared to each other.
 ROOT: the mind / a decision is judged against the moment it is made
   in, and future weeks feel emptier than present ones.
-CANNOT: no accurate sense of a future week's capacity from inside this
-  one — the distant week looks free because its demands have not
-  arrived yet. And no escape by intending to be careful: the only
-  defence is a rule made in advance, because the moment of asking is
-  always the wrong moment to decide.
 THREAD: money (spending decided purchase by purchase), farming (more
   planted than can be harvested), households (a calendar agreed one
   invitation at a time).
@@ -198,10 +144,6 @@ ESSENCE: saying yes to something is spending, and the budget is
   present to argue for it, which is why it always loses.
 ROOT: economy / every choice is a refusal, and here the refused thing
   is absent from the room where the choosing happens.
-CANNOT: no yes without a corresponding no — the arithmetic is fixed
-  whether or not anyone does it. And no fair contest between a person
-  asking and a plan that cannot speak: the request is concrete and
-  present, and what it displaces is neither.
 THREAD: money (a purchase that quietly cancels another), sport (a
   training week that cannot hold two priorities), farming (an acre
   under one crop).
@@ -213,10 +155,6 @@ ESSENCE: handing a task over means handing over the standard, the
   case for delegating rests on the task repeating.
 ROOT: language / an instruction is a compressed copy of an intention,
   so the missing part has to be supplied by watching or by correcting.
-CANNOT: no delegating a one-off task profitably — the teaching exceeds
-  the doing and there is no second time to repay it. And no
-  delegating a standard you have never stated: what comes back is the
-  other person's idea of good, which is the only idea they were given.
 THREAD: cooking (teaching somebody a dish rather than cooking it),
   farming (showing a hand a job that will be done fifty times),
   teaching (an explanation that costs an hour and saves a year).
@@ -228,11 +166,6 @@ ESSENCE: a checklist is for what you do rarely and cannot afford to
   thinking was done once, calmly, by a person who had time.
 ROOT: the mind / recall is unreliable and reconstructed, while a
   written list is complete on its worst day as on its best.
-CANNOT: no reliable memory for an infrequent sequence — the practice
-  that makes recall safe never accumulates. And no checklist for the
-  frequent case: things done daily do not need a list, they need a
-  place, and a list there is friction that will be abandoned within a
-  week.
 THREAD: aviation (a list read aloud before every flight), medicine (a
   count before closing), sailing (a departure check run in the same
   order every time).
@@ -244,11 +177,6 @@ ESSENCE: for what you do every day, the answer is not a list but a
   then collected repeatedly for nothing.
 ROOT: the mind / a repeated sequence in a fixed context stops
   requiring deliberation, and deliberation is the expensive part.
-CANNOT: no routine that survives being different each time — the
-  saving comes from the sameness, so a flexible routine is just
-  deciding again with extra steps. And no routine for the rare thing:
-  without repetition there is no groove to fall into, which is why the
-  rare thing needs a list instead.
 THREAD: cooking (a kitchen where everything has one place), sport (a
   warm-up done identically), farming (a milking order that never
   changes).
@@ -261,11 +189,6 @@ ESSENCE: a house has a maintenance schedule whether or not anyone
   worse rate.
 ROOT: physics / things wear continuously, so the only choice is
   whether the attention is scheduled or forced.
-CANNOT: no maintenance that happens by noticing — the things that need
-  it are hidden, silent and boring, which is precisely why they are
-  the ones that fail. And no schedule that lives in a head: the whole
-  point is a year-long interval, and nothing survives a year in
-  anybody's memory.
 THREAD: aviation (a life measured in hours between inspections),
   farming (machinery serviced before the season, not during it), the
   body (a check-up on a date rather than on a symptom).
@@ -279,11 +202,6 @@ ESSENCE: some things should be replaced on a schedule and some should
 ROOT: chance / the cost of a failure is its likelihood multiplied by
   its consequence, and only the consequence distinguishes these two
   cases.
-CANNOT: no run-to-failure on a part whose failure damages something
-  else — the saving on the part is smaller than the damage by an
-  enormous margin. And no preventive replacement of everything: a
-  household that replaces on schedule what could safely break spends
-  more than it saves and never finds out.
 THREAD: engineering (a bearing changed on hours against a bulb changed
   when it goes), the body (a filling replaced before it cracks a
   tooth), motoring (a cambelt against a wiper blade).
@@ -295,10 +213,6 @@ ESSENCE: one small failure that takes others with it is the whole
   original fault was a seal costing almost nothing.
 ROOT: engineering / a failure that propagates has a cost set by what
   it reaches rather than by what it was.
-CANNOT: no assessing a small part by its own price — the question is
-  what is downstream of it. And no warning in most cases: the damaging
-  faults are slow, hidden and silent until the consequence arrives all
-  at once.
 THREAD: farming (a gate left open), sailing (one fitting that lets
   water in), computing (one failure that corrupts everything it
   touched).
@@ -310,10 +224,6 @@ ESSENCE: a spare is only a spare if it exists before the failure. The
   is needed, which is invariably a Sunday night.
 ROOT: this file / a failure removes the capacity to respond to it, so
   the response has to be arranged in advance.
-CANNOT: no acquiring a spare during the failure — the shops are shut,
-  the part is unusual, and you are now without the thing that would
-  have taken you to get it. And no spare that is not findable: one you
-  cannot locate within the failure is the same as not owning it.
 THREAD: sailing (a repair kit carried because there is no shop),
   medicine (a rescue dose kept at home), farming (a part held for the
   machine that will stop mid-harvest).
@@ -325,11 +235,6 @@ ESSENCE: documents are lost in the same four places every time: a pile
   — it is one known place per kind of thing, chosen once.
 ROOT: the mind / recall of location is unreliable, so retrieval has to
   be answered by a rule rather than by remembering.
-CANNOT: no finding a document by memory of where it was put — the
-  putting was unremarkable and the finding is urgent. And no system
-  that requires deciding where each item goes: a place that has to be
-  chosen at filing time is a place that will not be chosen the same
-  way twice.
 THREAD: libraries (a scheme that makes retrieval possible), workshops
   (a shadow board where a missing tool is visible), farming (records
   kept in one book rather than four).
@@ -342,11 +247,6 @@ ESSENCE: the household's information usually lives in one person's
   or gone.
 ROOT: people together / knowledge that was never written cannot be
   transferred by an emergency.
-CANNOT: no household continuing smoothly through the loss of the
-  person who held everything — the others do not know what they do not
-  know. And no fixing it during the crisis: the writing down has to
-  happen while it feels unnecessary, which is the only reason it is
-  almost never done.
 THREAD: business (a firm that stops when the owner is ill), farming (a
   holding whose knowledge is one person's), medicine (a patient
   history nobody else can supply).
@@ -358,10 +258,6 @@ ESSENCE: a backup that has never been restored is a belief, not a
   time, is that the copying stopped silently months ago.
 ROOT: evidence / an untested claim is a hope, and a mechanism that
   fails quietly gives no sign of having failed.
-CANNOT: no confidence in an untested copy — a backup and a broken
-  backup look identical from outside. And no protection from a copy
-  kept beside the original: the fire, the flood and the theft take
-  both, so a copy in the same place answers only one kind of loss.
 THREAD: sailing (a bilge pump nobody has switched on), medicine (an
   alarm never tested), building (a fire door that has never been
   opened).
@@ -374,11 +270,6 @@ ESSENCE: paying for things automatically is not laziness, it is the
   charged then.
 ROOT: this file / a decision repeated is a decision that will
   eventually be skipped, so the reliable version does not require one.
-CANNOT: no reliable monthly action that depends on attention — over
-  years the miss rate is not zero and it is charged at penalty rates.
-  And no automation without a check: money moving unwatched is money
-  that will keep moving after the reason has ended, so the saving in
-  attention has to be paid back once a year.
 THREAD: farming (an irrigation timer against remembering), medicine (a
   weekly pill organiser), engineering (a process that fails safe
   rather than requiring a person).
@@ -390,11 +281,6 @@ ESSENCE: money behaves better in separate pots than in one. Bills from
   asked to do, and self-control has a bad record.
 ROOT: the mind / a single balance is judged as one number, and a
   number that contains commitments looks like money that is available.
-CANNOT: no accurate sense of what is spendable from a mixed account —
-  the rent, the annual bills and the spending money look identical. And
-  no willpower that substitutes for the arrangement: it works while
-  things are calm and is unavailable in exactly the weeks it is
-  needed.
 THREAD: farming (seed kept apart from grain for eating), cooking
   (ingredients set aside before the dish begins), business (money held
   for tax that was never the firm's to spend).
@@ -407,11 +293,6 @@ ESSENCE: the emergency fund is not a round number, it is a number of
   losing work.
 ROOT: chance / a buffer is sized against the duration of the
   interruption, not against the size of any single shock.
-CANNOT: no buffer sized without knowing the real monthly outgoings —
-  most people's estimate is well below the figure the bank statement
-  shows. And no substituting available credit: borrowing capacity is
-  withdrawn at exactly the moment it is needed, which is the moment
-  the income stopped.
 THREAD: farming (grain held against a bad season rather than a bad
   day), sailing (fuel reserve measured against distance to shelter),
   business (a firm's runway counted in months).
@@ -423,11 +304,6 @@ ESSENCE: insure what would ruin you and pay for what would merely
   profit as well as the loss.
 ROOT: chance / a rare huge loss and a frequent small one can share an
   average and share nothing else, and only the first is unsurvivable.
-CANNOT: no insurance that pays out more than it takes in across
-  everyone — so buying cover for small losses is a losing trade
-  repeated. And no self-insuring a ruin: the whole reason to accept a
-  losing trade is that the alternative ends you, and that is the only
-  reason.
 THREAD: sailing (a lifejacket against a spare rope), farming (a barn
   insured and a fence not), medicine (a serious risk covered and a
   cold not).
@@ -440,10 +316,6 @@ ESSENCE: paying a small charge repeatedly is invisible, and that is
   year.
 ROOT: the mind / a recurring cost is felt at the moment of joining and
   never again, so it is never re-decided.
-CANNOT: no noticing a recurring charge in a normal month — it is
-  designed to be below the threshold at which anybody looks. And no
-  fixing it once: they accumulate again, so the repair is an annual
-  review of every recurring line rather than one clear-out.
 THREAD: business (a firm with software nobody remembers buying),
   farming (a standing charge on a meter for something disconnected),
   households (a gym membership as a monthly payment for an intention).
@@ -455,10 +327,6 @@ ESSENCE: the price you are paying quietly rises for staying. Renewals
   costs money every year in several places at once.
 ROOT: this file / a default decides for anybody without a reason to
   act, and the pricing was designed around that.
-CANNOT: no keeping a good rate by loyalty — the arrangement rewards
-  leaving, and it does so deliberately. And no catching it without a
-  date in a calendar: the increase arrives quietly, on a renewal
-  nobody reads, in a month chosen by somebody else.
 THREAD: money (a rate that changes without the borrower doing
   anything), farming (a contract that rolls over on worse terms),
   utilities (a tariff that ends without ceremony).
@@ -471,11 +339,6 @@ ESSENCE: whether to repair or replace is not about the price of the
   postpone the same decision.
 ROOT: mathematics / a cost is compared over the period it buys, so two
   prices are only comparable per year of service.
-CANNOT: no honest comparison without estimating remaining life — the
-  repair looks cheaper by construction because it is a smaller number.
-  And no repair that beats replacement where the failing part is the
-  first of several: fixing one wearing component of a worn machine
-  buys a month.
 THREAD: motoring (a repair bill against a car's remaining years),
   building (a patched roof against a new one), clothing (a resoling
   that is worth it once and not twice).
@@ -487,11 +350,6 @@ ESSENCE: the useful number for a purchase is what it costs each time
   expensive, however good the thing was and however low the price.
 ROOT: mathematics / a fixed cost divided by uses falls with the count,
   so frequency decides the real price and not the ticket.
-CANNOT: no judging a purchase by its price alone — the price is one
-  half of a division and the other half is unknown at the till. And no
-  cheap version of a thing you use daily: the frequent contact is
-  where quality is actually experienced, and where its absence is paid
-  for over and over.
 THREAD: craft (a good tool that outlives its owner), building (a floor
   walked on every day), textiles (a garment worn weekly against one
   worn once).
@@ -504,11 +362,6 @@ ESSENCE: the cheap version of something you need often gets bought
   how often the thing is touched.
 ROOT: this file / cost is divided across use, so the frequently used
   thing repays quality and the rarely used one does not.
-CANNOT: no economy in the cheap version of a daily item — it fails,
-  annoys, and is replaced, and the total exceeds the good one. And no
-  general rule that expensive is better: for the rarely used thing the
-  cheap one is correct, and the money spent on quality there is simply
-  gone.
 THREAD: farming (boots and a rarely used implement priced by opposite
   logic), cooking (a knife against a specialist mould), building (a
   hand tool against a hired machine).
@@ -520,11 +373,6 @@ ESSENCE: for the thing used once a year, borrowing or hiring is
   costs are paid every day whether or not the thing is used.
 ROOT: this file / possession carries a continuous cost while use is
   occasional, and the two do not match.
-CANNOT: no free ownership — space, upkeep and the mental cost of
-  knowing it is there are charged continuously. And no hiring what you
-  need suddenly and often: the availability is the thing being bought
-  when you own it, so an emergency item is worth owning at almost any
-  price.
 THREAD: farming (contractors for machinery used two weeks a year),
   building (a hired scaffold against an owned ladder), sport
   (equipment for a sport tried once).
@@ -537,10 +385,6 @@ ESSENCE: everything that arrives has to land somewhere, and if there
   failure of tidiness, it is a missing station.
 ROOT: this file / a system needs somewhere to put work in progress, or
   the work in progress occupies the workspace.
-CANNOT: no house without a staging place — it will have one anyway and
-  it will be the kitchen table. And no staging place that is never
-  emptied: an in-tray that is not cleared becomes storage, and storage
-  in the wrong place is what a mess actually is.
 THREAD: kitchens (a place for dishes waiting to be washed), workshops
   (a bench that must be cleared before the next job), post (a tray
   emptied on a schedule).
@@ -553,10 +397,6 @@ ESSENCE: a thing is only put away if putting it away is easier than
 ROOT: this file / effort decides behaviour more reliably than
   intention, so the storage's difficulty is what determines whether it
   is used.
-CANNOT: no habit of tidying that survives inconvenient storage — the
-  effort is charged every single time. And no storage that hides:
-  something in a sealed unlabelled box in a loft has been discarded in
-  every respect except that it still takes up room.
 THREAD: kitchens (utensils at the point of use), workshops (a tool
   hung where the hand reaches for it), farming (gates and equipment
   placed where the work is).
@@ -569,10 +409,6 @@ ESSENCE: the constraint in clearing out is not space and it is not
   done.
 ROOT: the mind / deliberate choices draw on a limited capacity, and
   the difficulty of each one is unrelated to the size of the object.
-CANNOT: no clearing a house in one effort — the deciding runs out, and
-  what remains is exactly the hard cases nobody could resolve. And no
-  progress from moving things: relocating an undecided object
-  preserves the decision and buys nothing.
 THREAD: writing (an edit that runs out of judgement), shopping (a
   choice that gets harder as the trip goes on), medicine (a clinic
   where the last decisions of the day are worse than the first).
@@ -585,10 +421,6 @@ ESSENCE: what you paid for a thing is gone and has nothing to say
   reproach of seeing it.
 ROOT: economy / a cost already spent cannot be recovered by any future
   choice, so it is not a factor in any future choice.
-CANNOT: no recovering a past payment by continuing to own the thing —
-  the loss happened at the till. And no honest reckoning while it is
-  in the room: the object argues for itself by being present, which is
-  why the answer is always clearer for somebody else's possessions.
 THREAD: money (holding a bad investment to avoid taking the loss),
   farming (a machine kept because of what it cost), relationships (a
   course continued because of the years already in it).
@@ -601,11 +433,6 @@ ESSENCE: things that cannot be discarded because of who gave them are
   does not touch it.
 ROOT: meaning / an object can carry a meaning that has nothing to do
   with its use, and the meaning is the thing being kept.
-CANNOT: no resolving a sentimental object with a usefulness argument —
-  it was never being kept for use. And no keeping everything that
-  carries a memory: a memory kept in fifty objects is diluted across
-  all of them, so a few chosen deliberately hold more than a loft
-  holds.
 THREAD: religion (a relic whose value is not material), families (a
   house kept for what happened in it), music (an instrument nobody
   plays and nobody will sell).
@@ -617,10 +444,6 @@ ESSENCE: one in, one out. Storage is fixed and acquisition is not, so
   a garage or a unit rented for objects nobody will ever look at.
 ROOT: physics / a container has a fixed volume, and an unbounded
   inflow into a bounded space overflows by arithmetic.
-CANNOT: no keeping a house clear with acquisition unmatched by
-  disposal — willpower does not change the volume. And no solving it
-  with more storage: the additional space fills at the same rate,
-  which is why the second cupboard is full within the year.
 THREAD: farming (a shed that fills whatever its size), computing (a
   disk that fills to whatever capacity it has), roads (a lane that
   fills as soon as it opens).
@@ -632,11 +455,6 @@ ESSENCE: a household runs on somebody noticing — that the milk is low,
   counted, and it does not transfer when a task is handed over.
 ROOT: this file / the expensive part of a task is deciding it needs
   doing, and only the doing is visible to anybody else.
-CANNOT: no sharing a household's work by sharing its tasks — asking to
-  be told what to do leaves the whole noticing load where it was. And
-  no seeing it from outside: the person carrying it has no evidence to
-  point at, because the evidence is a list of things that did not go
-  wrong.
 THREAD: business (a manager whose work is knowing what needs
   attention), medicine (a nurse noticing the change before the
   monitor), farming (a stockman who sees which animal is off).
@@ -649,11 +467,6 @@ ESSENCE: two people cannot coordinate from two private calendars. A
   morning.
 ROOT: people together / coordination requires shared information, and
   what is not shared cannot be coordinated around.
-CANNOT: no avoiding double-booking without one shared record — two
-  correct private views cannot detect a conflict between them. And no
-  system that only one person maintains: whoever is not entering
-  things is not covered by it, and their commitments will be the ones
-  that collide.
 THREAD: business (a system of record that must be one place),
   navigation (a single agreed chart), sport (a fixture list everyone
   reads).
@@ -666,10 +479,6 @@ ESSENCE: booking early is not organisation for its own sake — many
 ROOT: economy / where the price is not allowed to clear a shortage,
   the shortage is paid in waiting, and the waiting starts when you
   join.
-CANNOT: no purchasing your way past a queue that is not priced — the
-  wait is the currency and it must be paid in advance. And no leaving
-  it until you need it: the thing you need in March was allocated in
-  November to people who did not yet need it either.
 THREAD: medicine (a waiting list joined at the referral), education (a
   place applied for a year ahead), travel (a booking that is cheaper
   and available only early).
@@ -682,10 +491,6 @@ ESSENCE: the standard slips one notch at a time and never announces
   matter.
 ROOT: people together / a rule is learned from what is tolerated, and
   a household teaches itself the same way a group does.
-CANNOT: no holding a standard only at the important moments — by then
-  the ordinary level has already moved. And no single decision that
-  restores it: the recovery is done in the same small steps as the
-  decline, in the opposite direction, and it takes longer.
 THREAD: cities (a broken window that changes what a street tolerates),
   sport (a training standard that slips in the unwatched sessions),
   farming (a fence line that goes gradually).
@@ -697,10 +502,6 @@ ESSENCE: a system is only real if it works in a bad week. Anything
   fails are the weeks that decide how a life actually goes.
 ROOT: engineering / a design is judged by its behaviour under load,
   and the load here is illness, travel and disorder.
-CANNOT: no system tested in good conditions — the good week hides
-  every weakness. And no arrangement that survives without a reduced
-  version: it needs a minimum form that can be kept when everything is
-  wrong, or it stops entirely and has to be started again from nothing.
 THREAD: engineering (a structure designed for the storm), medicine (a
   regime a patient can keep on a bad day), farming (a routine that
   must hold through a wet fortnight).
@@ -712,11 +513,6 @@ ESSENCE: the run of days is not the point, and treating it as one
   weather, two is a new pattern.
 ROOT: the mind / an identity built on an unbroken record is destroyed
   by a single break, and destroyed identities do not restart.
-CANNOT: no unbroken record across a real life — illness and
-  circumstance will end it, so a plan requiring perfection has a
-  guaranteed ending. And no restarting from zero being neutral: the
-  cost of beginning again is much larger than the cost of continuing,
-  which is why the second miss is the expensive one.
 THREAD: sport (training measured monthly rather than daily), money
   (saving judged by the year), teaching (a pupil's progress across a
   term).
@@ -729,11 +525,6 @@ ESSENCE: a resolution is a plan to be a different person under
   to be somewhere else.
 ROOT: this file / effort decides behaviour, so moving the effort is
   more reliable than increasing the resolve.
-CANNOT: no sustained behaviour change from intention alone — the
-  intention is strongest at the moment of deciding and weakest at
-  every moment that matters afterwards. And no arrangement that helps
-  without a cost: the friction you add for yourself is real friction
-  and will also be paid on the days it was not needed.
 THREAD: farming (a fence that works better than watching), design (a
   default that decides for most people), households (a fruit bowl
   where the biscuit tin was).
@@ -746,10 +537,6 @@ ESSENCE: shopping is done inside a machine built to change your mind,
   aisle.
 ROOT: the mind / a choice is shaped by the situation it is made in, so
   the situation is chosen before the choice.
-CANNOT: no resisting a shop's arrangement in the moment — it is
-  designed by people who have measured what works and you have not.
-  And no list that helps if it is not followed: the list's value is
-  entirely in it being treated as already decided.
 THREAD: money (a budget set before the purchase), medicine (a decision
   made before the symptom), sailing (a plan made ashore rather than in
   weather).
@@ -762,10 +549,6 @@ ESSENCE: deciding what to eat is a decision made three times a day
   ordering in.
 ROOT: the mind / a decision made repeatedly at low capacity is made
   badly, so removing the decision is worth more than improving it.
-CANNOT: no reliable eating from deciding at the moment of hunger — the
-  decision is made by whoever is tired and nearest to a shop. And no
-  plan that leaves nothing for a bad day: rigidity fails on the first
-  disruption, so the plan needs a default that requires nothing.
 THREAD: farming (a feeding routine that does not depend on the day),
   hospitals (menus decided in advance for the same reason), sport (a
   fuelling plan set before an event).
@@ -777,11 +560,6 @@ ESSENCE: errands have a shape, and the shape is geography and opening
   the ten minutes that would have combined them.
 ROOT: this file / the fixed cost of a journey is paid per journey, so
   the count of journeys is what determines the cost.
-CANNOT: no cheap unplanned errand running — the travel is most of the
-  cost and it is being paid repeatedly. And no combining after the
-  fact: the saving requires knowing the whole list before setting out,
-  which is why a list that is not kept continuously cannot be batched
-  at all.
 THREAD: logistics (a delivery round planned as one route), farming
   (one trip to town for everything), cooking (one heating of the oven
   for several things).
@@ -793,11 +571,6 @@ ESSENCE: undone small tasks do not stay small. Each one adds a
   becomes a deadline, the unanswered message becomes an apology.
 ROOT: this file / an unresolved item keeps costing attention, so the
   cost is per day rather than per task.
-CANNOT: no cost-free deferral of a queue of small things — they charge
-  rent continuously, and the total is larger than doing them was. And
-  no clearing them by working harder on the big things: the small ones
-  are not competing with the big ones for time, they are competing for
-  the attention the big ones need.
 THREAD: money (a small debt whose interest exceeds the debt), farming
   (jobs postponed until the season closes on them), computing (a
   backlog of small faults that becomes a failure).
@@ -810,10 +583,6 @@ ESSENCE: travelling costs a day at each end that nobody counts. The
   runs continuously behind.
 ROOT: this file / a task's real cost includes its setting up and its
   putting away, and both are invisible in the plan.
-CANNOT: no trip that costs only its own duration — the preparation and
-  the recovery are real and land on ordinary days. And no back-to-back
-  arrangements after travel: the day after is not a working day,
-  whatever the calendar says about it.
 THREAD: cooking (a meal whose clearing up is half the work),
   engineering (a machine's changeover counted against its run), sport
   (recovery counted as part of the training).
@@ -825,10 +594,6 @@ ESSENCE: a job's real cost includes getting to it. An hour each way is
   makes it the most expensive hour in the week.
 ROOT: economy / a cost is what you gave up, and commuting time is
   given up without appearing in any wage.
-CANNOT: no comparing two jobs on pay alone — one may be several
-  unpaid weeks a year longer than the other. And no adapting to a long
-  commute: it is one of the few things people do not get used to, and
-  the cost is charged every day it happens.
 THREAD: farming (a field far from the yard costing more to work),
   building (travel to site counted in a price), households (a school
   run that decides the shape of a day).
@@ -840,11 +605,6 @@ ESSENCE: protect the hours you think best in, because nobody else will
   they ask for is rarely the thing that needed the capacity.
 ROOT: this file / capacity varies through the day, and the allocation
   goes to whoever claims it rather than to whoever needs it.
-CANNOT: no doing your most demanding work in whatever is left — what
-  is left is the depleted part of the day by definition. And no
-  protecting time without visibly claiming it: an unbooked hour is
-  read by everybody as available, so the defence has to exist in the
-  same calendar the requests arrive in.
 THREAD: farming (a task that must have the morning), medicine (a
   theatre list protected from other demands), music (practice at a
   fixed hour that nothing displaces).
@@ -857,11 +617,6 @@ ESSENCE: the systems themselves need reviewing, because a life
   question anybody still has.
 ROOT: this file / an arrangement is a solution to conditions, and the
   conditions move while the arrangement stays.
-CANNOT: no arrangement that stays right without being revisited — the
-  household it was built for no longer exists. And no doing it
-  continuously: reviewing everything all the time is the thing the
-  systems were built to avoid, so it has to be one date, in a
-  calendar, once.
 THREAD: farming (a rotation reconsidered between seasons), business
   (a firm's arrangements outliving the reason for them), medicine (a
   repeat prescription reviewed rather than renewed forever).
@@ -875,11 +630,6 @@ ESSENCE: intentions are renewed daily and arrangements are made once.
 ROOT: this file / repeated decisions are eventually skipped, so
   reliability comes from removing the decision rather than from
   strengthening the decider.
-CANNOT: no outcome that depends on being at your best every day —
-  every life contains bad weeks and the plan must survive them. And no
-  system that runs itself forever either: they decay, drift and stop
-  fitting, so the one thing that cannot be automated is the occasional
-  honest look at whether any of it still works.
 THREAD: engineering (a machine that fails safe rather than requiring
   vigilance), farming (a fence rather than watching the gate),
   design (a default that decides for everybody who does not choose).

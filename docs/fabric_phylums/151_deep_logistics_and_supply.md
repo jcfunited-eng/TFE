@@ -14,10 +14,6 @@ ESSENCE: stock is not a thing you have, it is a bet you have paid
 ROOT: chance+risk / holding a reserve is buying protection against a
   spread of outcomes, and the size of the reserve follows the spread
   and not the average.
-CANNOT: no reducing inventory without either reducing uncertainty or
-  accepting more shortages — those are the only two doors, and every
-  scheme that claims a third is quietly using one of them. And no
-  system with zero stock and zero shortage anywhere in it.
 THREAD: money (cash held against an uncertain month), the body (fat
   as a store against a lean season), computing (a buffer sized for
   the jitter and not for the rate).
@@ -31,10 +27,6 @@ ESSENCE: there are two costs and only one of them appears in the
   So the visible cost wins the argument every time.
 ROOT: money / a decision goes to whichever side of the ledger is
   measured, so an unmeasured cost is treated as zero.
-CANNOT: no correct stock level without putting a number on running
-  out, however rough — and the number has to be argued, because it
-  will never arrive from the accounts. And no fixing this by
-  instinct: the pressure runs one way for years.
 THREAD: medicine (the harm of a treatment being visible and the harm
   of not treating being invisible), governance (a spending cut that
   is counted against a service loss that is not), farming (the cost
@@ -49,10 +41,6 @@ ESSENCE: how much stock you need is set by the wait. During the
   anything else at all.
 ROOT: mathematics / a stock is a reservoir, and a reservoir is sized
   by the outflow over the refill time.
-CANNOT: no cutting inventory while lead times grow, and no
-  negotiating a stock target separately from the lead time that
-  produced it. And no covering a long lead time with a clever
-  ordering rule: the goods are simply not there yet.
 THREAD: farming (a store sized by the length of the hungry gap),
   water (a reservoir sized by the dry season), computing (a queue
   sized by how long a restart takes).
@@ -66,10 +54,6 @@ ESSENCE: how much you need to hold is driven by how much demand
   looks at and the part that hardly matters.
 ROOT: chance+risk / a reserve exists to cover the distance between
   the outcome and the expectation, so it is set by the spread.
-CANNOT: no planning from an average — a forecast that is right on
-  average and wrong every day produces both stockouts and surplus in
-  the same month. And no reducing the spread by forecasting harder:
-  the wobble is in the world, not in the arithmetic.
 THREAD: weather (a reservoir built for the drought, not the annual
   rainfall), money (income variance mattering more than income),
   medicine (a patient's swings mattering more than their mean).
@@ -83,10 +67,6 @@ ESSENCE: a long lead time that is always the same can be planned
   most often fail to buy.
 ROOT: chance+risk / a plan is sized by the tail of the distribution,
   so the tail is what has to be paid for.
-CANNOT: no benefit from an average lead time that the supplier
-  cannot hold — a supplier who is quick and erratic costs more to
-  use than one who is slow and exact. And no cure by ordering
-  earlier: earlier orders inherit the same spread.
 THREAD: transport (a train timetable's value being in its keeping),
   medicine (a drug's dosing depending on predictable absorption),
   people (a colleague who is reliable beating one who is fast).
@@ -100,10 +80,6 @@ ESSENCE: the extra stock kept for safety is not a percentage or a
 ROOT: mathematics / independent variations add up as a square root
   rather than by simple addition, so a longer window is less risky
   per day than a short one.
-CANNOT: no safety stock figure without naming the certainty you are
-  buying — "enough" is not a specification. And no doubling of
-  safety stock from doubling the lead time: it rises by about forty
-  per cent, which surprises people in both directions.
 THREAD: chance+risk (errors in a long run partly cancelling), money
   (portfolio risk falling with the square root of the number of
   holdings), building (a factor of safety chosen and stated).
@@ -118,11 +94,6 @@ ESSENCE: the last few per cent of reliability cost as much as all
 ROOT: mathematics / covering a wider slice of a bell-shaped spread
   means reaching into a tail where each further step needs far more
   reserve.
-CANNOT: no hundred per cent service, at any budget — it is not
-  expensive, it is unreachable, because there is no largest possible
-  demand. And no single service level for a whole catalogue: the
-  cheap fast-moving item deserves a high one and the slow expensive
-  one does not.
 THREAD: engineering (the last decimal of reliability costing more
   than the machine), medicine (screening's last few cases), computing
   (each extra nine of uptime costing what all the previous ones did).
@@ -137,10 +108,6 @@ ESSENCE: for a thing bought once for one occasion — the Christmas
 ROOT: chance+risk / the best decision under uncertainty balances the
   costs of the two kinds of error, and there is no reason for those
   costs to be equal.
-CANNOT: no correct single-shot order quantity derived from the
-  forecast alone. And no symmetry: ordering to the expected demand
-  is only right when overstocking and understocking hurt exactly the
-  same, which is almost never true.
 THREAD: medicine (a test's threshold set by which mistake is worse),
   law (a standard of proof chosen the same way), farming (sowing
   extra seed because a gap costs more than a thinning).
@@ -153,10 +120,6 @@ ESSENCE: a forecast is accurate for tomorrow, poor for next month
   guess across shrinks with it.
 ROOT: chance+risk / uncertainty accumulates with time, so error
   grows with the distance you are predicting across.
-CANNOT: no forecast improving faster than its horizon lengthens.
-  And no planning system rescued by a better model when the real
-  problem is that it asks for a nine-month view — the fix is to the
-  lead time, not to the mathematics.
 THREAD: weather (a five-day outlook against a five-week one), money
   (a business plan's third year), computing (a cache that works
   because it only has to predict the next second).
@@ -170,10 +133,6 @@ ESSENCE: forecasts get better the more you lump together and worse
   deciding late — never by forecasting harder.
 ROOT: mathematics / independent wobbles partly cancel when added,
   so a sum is proportionally steadier than any of its parts.
-CANNOT: no accurate forecast at the item, location and day level —
-  this is a fact about the arithmetic, and no data and no method
-  changes it. And no planning system that demands one without
-  quietly producing fiction.
 THREAD: astronomy (a population predictable where an individual is
   not), insurance (a pool that works only because it is a pool),
   medicine (a trial result true of a group and not of a patient).
@@ -187,11 +146,6 @@ ESSENCE: one shared pile of stock serves the same reliability with
 ROOT: mathematics / independent variations combine as a square root,
   so the reserve needed grows with the square root of the number of
   separate pools.
-CANNOT: no keeping local stock everywhere and central stock levels
-  at once — every decentralisation buys response time and pays for
-  it in inventory, and the exchange rate is fixed by arithmetic. And
-  no pooling benefit at all from stock that is nominally central but
-  physically committed to one site.
 THREAD: insurance (many small risks in one pool), power grids (one
   connected network needing less spare capacity than many islands),
   people together (a shared rota needing fewer people than separate
@@ -206,11 +160,6 @@ ESSENCE: the cheapest way to serve many variants is to keep the
 ROOT: chance+risk / the total across variants is far steadier than
   any single variant, so stock held before the split enjoys the
   steadiness.
-CANNOT: no postponement without a real point in the process where
-  the product is still common — if the difference is designed in at
-  the start, no amount of scheduling can defer it. And no free
-  lunch: the late step is nearly always more expensive per unit than
-  the same step done in bulk.
 THREAD: cooking (a base sauce finished several ways), computing (a
   general system configured at run time), teaching (a common
   foundation before specialisation).
@@ -225,11 +174,6 @@ ESSENCE: a handful of lines are most of the money and most of the
   tail and starves the head.
 ROOT: money / value in almost any catalogue is distributed very
   unevenly, so uniform effort is misallocated by construction.
-CANNOT: no single stocking policy that is right for both ends of a
-  catalogue. And no ignoring the tail: it is where most of the
-  stockouts, most of the obsolete stock and most of the
-  administrative cost live, even though it is almost none of the
-  revenue.
 THREAD: money (a few holdings carrying a portfolio), computing
   (optimising the hot path and leaving the rest), teaching (effort
   aimed where it changes the most).
@@ -243,11 +187,6 @@ ESSENCE: your sales figures are not your demand figures. Nobody buys
 ROOT: evidence / a measurement taken through a filter measures the
   filter, and here the filter is the availability you are trying to
   set.
-CANNOT: no reading true demand from sales history without knowing
-  when the item was out — and most systems do not record that. And
-  no escape from the spiral by tuning the forecast: the data is
-  wrong in a particular direction, so a better model fits the bias
-  more precisely.
 THREAD: medicine (a disease appearing rare because it is not
   tested for), computing (a log that only records successes),
   governance (a service judged by the people it managed to serve).
@@ -261,11 +200,6 @@ ESSENCE: everything built on a stock system rests on whether the
   invisible until a customer stands in front of an empty space.
 ROOT: evidence / a control system acts on its reading, so an
   inaccurate reading produces confident wrong action.
-CANNOT: no automatic replenishment worth anything on inaccurate
-  records — the better the automation, the more faithfully it acts
-  on the error. And no fixing it with one big stock count: accuracy
-  is a rate of decay, so it needs continuous counting rather than an
-  annual one.
 THREAD: accounting (a reconciliation that must be done regularly or
   not at all), computing (a cache that has drifted from the truth),
   navigation (a dead-reckoned position needing a fix).
@@ -280,10 +214,6 @@ ESSENCE: stock goes off even when it does not go off. A part
   accounts.
 ROOT: money / value comes from what someone will pay now, so an
   unsold good is losing value continuously whatever its condition.
-CANNOT: no old stock quietly becoming useful again. And no honest
-  inventory figure without a write-down policy applied on a
-  schedule: without one, the balance sheet slowly fills with
-  fiction, and the fiction is largest just before it is discovered.
 THREAD: money (a loan book carrying bad debt at face value),
   farming (a store that keeps but loses quality), computing (data
   kept forever because deleting requires a decision).
@@ -297,10 +227,6 @@ ESSENCE: the honest measure of a stock operation is not how much is
   capital, and the difference is speed and nothing else.
 ROOT: money / a return is earned per cycle, so the number of cycles
   in a year is a multiplier on everything.
-CANNOT: no comparing two operations by their stock value alone.
-  And no raising turns simply by cutting stock: turns rise honestly
-  only when the flow gets faster, and cutting stock without changing
-  the flow buys the ratio with stockouts.
 THREAD: money (a business's return depending on how often capital
   cycles), farming (two harvests a year against one), restaurants
   (table turnover deciding the takings more than the prices).
@@ -315,10 +241,6 @@ ESSENCE: order in large amounts and you pay less per order but hold
 ROOT: mathematics / where one cost falls and another rises with the
   same variable, the total has a minimum, and near a minimum the
   slope is small.
-CANNOT: no order quantity that minimises both costs at once. And no
-  worthwhile precision in the calculation: a batch twice the ideal
-  size costs about a quarter more, which means the effort belongs in
-  reducing the ordering cost rather than in tuning the quantity.
 THREAD: engineering (an optimum where two curves cross), the mind
   (deliberating past the point where the decision improves), money
   (rebalancing a portfolio too often).
@@ -333,10 +255,6 @@ ESSENCE: batches exist because changing over costs something. A
 ROOT: money / where a fixed cost is paid per event, the sensible
   event is large, so making the event cheap is what makes small
   events sensible.
-CANNOT: no small batches on top of an expensive changeover — the
-  instruction simply raises cost until it is reversed. And no
-  flexibility bought without paying for it somewhere: quick
-  changeover is engineering work, and it is the price of variety.
 THREAD: cooking (a kitchen that can cook one portion because it is
   set up to), computing (a deployment done daily because it was made
   cheap), teaching (short frequent assessments only where marking is
@@ -353,11 +271,6 @@ ESSENCE: a small ripple in shop demand becomes a swell at the
 ROOT: engineering / a chain of controllers each reacting to the one
   in front, with delay, is an oscillator whether or not anyone
   wanted one.
-CANNOT: no damping the swings by better behaviour at one level —
-  the amplification is structural, and the cures are structural too:
-  share the real end demand upstream, shorten the delays, and stop
-  ordering in lumps. And no factory correctly reading its own order
-  book as market information.
 THREAD: engineering (a feedback loop with lag going unstable),
   money (markets amplifying a small piece of news), people together
   (a rumour growing at each retelling).
@@ -371,11 +284,6 @@ ESSENCE: when supply is short and it is shared out according to how
   the moment supply recovers.
 ROOT: strategy / a rule that rewards a behaviour will be met with
   that behaviour, and here the rule rewards exaggeration.
-CANNOT: no honest ordering under a proportional allocation rule, at
-  any level of goodwill — one customer's restraint only funds
-  another's exaggeration. And no reading demand from orders during
-  an allocation: the only usable signal is what customers actually
-  consumed.
 THREAD: money (a bank run made of the fear of one), governance (a
   subsidy allocated by claimed need), farming (a water right claimed
   in full so it is not lost).
@@ -389,10 +297,6 @@ ESSENCE: a price promotion does not create a customer, it moves a
 ROOT: money / a lower price brings forward and concentrates buying
   that would have happened anyway, so a demand curve in time is
   being rearranged rather than raised.
-CANNOT: no reading a promotional peak as demand. And no smooth
-  factory behind a lumpy commercial calendar: every promotion is
-  paid for twice, once in margin and once in the whipsaw it sends
-  up the chain.
 THREAD: money (a tax deadline moving activity rather than creating
   it), farming (a subsidy year distorting the following one),
   computing (a benchmark run that does not resemble real use).
@@ -405,10 +309,6 @@ ESSENCE: every level of a chain that holds its own safety stock is
   layer's protection also lengthens the next layer's lead time.
 ROOT: mathematics / protection duplicated at each stage adds up
   while the risk it covers does not, since it is the same risk.
-CANNOT: no local optimisation adding up to a good chain — each
-  layer behaving sensibly for itself produces a chain that is worse
-  than any of them intended, and no amount of pressure on individual
-  layers changes it. And no cure without visibility across layers.
 THREAD: money (fees taken at every layer of a fund structure),
   governance (each department holding its own contingency),
   computing (retries stacked at four levels producing a storm).
@@ -423,10 +323,6 @@ ESSENCE: the amount of work sitting in a system, the rate it comes
 ROOT: mathematics / a steady flow through a container must satisfy
   this identity whatever the system is doing inside, which is why it
   applies to factories, hospitals and phone lines alike.
-CANNOT: no shortening time in the system while the queue and the
-  throughput stay as they were. And no exception for a special case:
-  the relation needs no assumptions about the order of service or
-  the shape of the arrivals.
 THREAD: medicine (a waiting list falling only by treating more or
   listing fewer), roads (traffic density, flow and journey time),
   computing (requests in flight, throughput and latency).
@@ -440,10 +336,6 @@ ESSENCE: work waiting in a process is not neutral. It is cash spent
   anyone notices.
 ROOT: engineering / a long queue between cause and effect breaks the
   feedback that would have corrected the cause.
-CANNOT: no fast feedback in a system with a long queue, at any level
-  of attention. And no seeing the cost of work in progress in the
-  accounts: it sits on the balance sheet as an asset, which is why
-  it accumulates for years without argument.
 THREAD: computing (a large batch of untested changes), teaching
   (marking returned weeks after the work), farming (a disease found
   at harvest rather than in the field).
@@ -459,10 +351,6 @@ ESSENCE: as a resource gets busier, waiting does not grow gently —
 ROOT: mathematics / when arrivals and service times both vary, the
   gaps that idle time would have absorbed are gone, and the queue
   has nowhere to recover.
-CANNOT: no system that is both fully utilised and responsive — this
-  is not management failure, it is arithmetic, and it applies to
-  machines, doctors, runways and people alike. And no fixing the
-  waiting by working harder at ninety-eight per cent occupancy.
 THREAD: medicine (a hospital at full beds losing the ability to
   admit), roads (a motorway at capacity collapsing into stop-start),
   the mind (a diary with no gaps that cannot absorb one surprise).
@@ -476,10 +364,6 @@ ESSENCE: queues are made by variability, not by shortage of
   adding a single machine.
 ROOT: mathematics / idle time cannot be stored, so a system pays for
   every slow spell and is never repaid for a fast one.
-CANNOT: no queue-free system at full load with any variation in it,
-  and no removing a queue by adding capacity alone if the variation
-  is left in place. And no averaging away the problem: the average
-  can balance perfectly while the queue grows without limit.
 THREAD: transport (bus bunching from tiny timing differences),
   computing (jitter causing backlog at a server that is fast
   enough), the body (an irregular heartbeat at an adequate rate).
@@ -494,11 +378,6 @@ ESSENCE: a system produces what its slowest stage produces, and no
 ROOT: engineering / a series arrangement is limited by its narrowest
   member, so capacity is a property of one point rather than of the
   system.
-CANNOT: no raising output by improving a non-bottleneck — the extra
-  simply piles up in front of the constraint as inventory, which is
-  the classic result of an efficiency programme aimed everywhere at
-  once. And no hidden second answer: at any moment there is one
-  constraint.
 THREAD: the body (fitness limited by whichever system gives out
   first), computing (a pipeline limited by one stage), farming (a
   crop limited by the scarcest nutrient).
@@ -512,10 +391,6 @@ ESSENCE: an hour lost at the constraint is an hour lost by the whole
   never allowed to stand idle waiting for parts or a decision.
 ROOT: engineering / where one point sets the total, its time is the
   only time that carries the system's value.
-CANNOT: no making up the constraint's lost hour later — there is by
-  definition no spare capacity there. And no sensible measurement of
-  efficiency elsewhere: a non-constraint running at full utilisation
-  is producing inventory, not output.
 THREAD: sport (a team's tactic organised around one player), the
   mind (protecting the hours in which the real work happens),
   medicine (the theatre being the scarce resource a hospital is
@@ -529,10 +404,6 @@ ESSENCE: the whole of constraint thinking is one sentence: find the
   that busy is not the same as productive.
 ROOT: engineering / improvement is only real where it moves the
   limiting quantity, so the first task is always identification.
-CANNOT: no improvement programme working without naming the
-  constraint first — effort applied evenly is effort mostly wasted.
-  And no permanent answer: the moment the constraint is relieved it
-  moves somewhere else, so the work is a cycle and never a project.
 THREAD: medicine (treating the condition that limits the patient),
   computing (profiling before optimising), farming (the scarcest
   nutrient setting the yield whatever else is added).
@@ -546,9 +417,6 @@ ESSENCE: fix a bottleneck and you do not remove it, you move it —
   place that stopped mattering.
 ROOT: engineering / removing the narrowest member of a series leaves
   a new narrowest member immediately.
-CANNOT: no system without a constraint. And no reusing last year's
-  map: a constraint moves with the product mix, the season and the
-  staffing, so it can be in three different places in one year.
 THREAD: trades (a repair relocating the weak point next door),
   roads (a widened junction pushing the jam one block on), medicine
   (one joint replaced and the next one starting to hurt).
@@ -563,10 +431,6 @@ ESSENCE: moving work one piece at a time through a series of steps
 ROOT: mathematics / in a batch, every item waits for every other
   item at every step, so the waiting grows with the batch size at
   each station.
-CANNOT: no short lead times with large batches, however fast the
-  machines. And no free move to flow: small batches need cheap
-  changeovers and reliable stages, so flow is bought with
-  engineering rather than with instruction.
 THREAD: cooking (plating a table's meals together against as ready),
   computing (streaming against buffering), teaching (feedback on
   each exercise against at the end of term).
@@ -579,10 +443,6 @@ ESSENCE: running with almost no stock only works when everything
   is the last thing you get, not the first thing you do.
 ROOT: engineering / a buffer exists to absorb variation, so removing
   it exposes every variation it was hiding.
-CANNOT: no just-in-time on top of unreliable supply — the copies of
-  it that failed were copies of the inventory policy without the
-  decade of reliability work underneath. And no partial version: a
-  chain is as dependable as its least dependable member.
 THREAD: money (living without savings requiring a steady income),
   the body (training hard requiring sleep and food first), computing
   (removing retries only after the network is sound).
@@ -596,11 +456,6 @@ ESSENCE: inventory is a blanket over the faults. A machine that
   exactly the point.
 ROOT: evidence / a system that never fails visibly cannot be
   improved, because it is not saying where it hurts.
-CANNOT: no learning what is wrong with a process while it is padded
-  — the faults are all still there, they are simply being paid for
-  in cash instead of in stoppages. And no lowering the water without
-  the will to fix what appears: done without that, it is just a
-  shortage.
 THREAD: money (a large cash balance hiding a poor business), the
   body (painkillers letting an injury continue), governance (a
   reserve fund that postpones a needed reform).
@@ -613,11 +468,6 @@ ESSENCE: expediting one order does not create capacity, it takes it
   is a confession that the ordinary flow no longer works.
 ROOT: mathematics / a queue reordered is still the same queue, so
   every place gained by one job is a place lost by another.
-CANNOT: no benefit from a priority scheme in which most items are
-  priority — the labels stop carrying information and the
-  expediters' effort becomes pure overhead. And no expediting
-  without a cost: the switching itself consumes capacity at the very
-  place that had none.
 THREAD: medicine (triage only working while most patients are not
   urgent), computing (a task scheduler thrashing between jobs),
   people together (an office where everything is urgent).
@@ -631,10 +481,6 @@ ESSENCE: capacity does not arrive in small increments. You cannot
   is.
 ROOT: money / where the smallest purchasable unit is large, the
   match between capacity and demand can only be approximate.
-CANNOT: no smoothly matching lumpy capacity to smooth growth. And
-  no avoiding the choice: adding early wastes money for a year,
-  adding late costs sales and overtime, and both are the same
-  decision seen from two sides.
 THREAD: building (a bridge built for the traffic of thirty years
   hence), power (a station's whole output arriving at once), teaching
   (a class that needs a second teacher at one extra pupil).
@@ -648,11 +494,6 @@ ESSENCE: it is often cheaper to change the demand than to chase it.
 ROOT: money / price and terms are levers on when people buy, so the
   demand curve in time is something an operation can act on rather
   than only receive.
-CANNOT: no shaping demand without giving something back — the
-  customer moves because they were paid to, in money or in
-  convenience. And no shaping at all where the customer's timing is
-  not theirs to choose, which is why emergency services and
-  utilities must build for the peak instead.
 THREAD: power (tariffs shifting load off the evening peak),
   transport (cheaper travel outside the rush), medicine (appointment
   systems spreading a day's arrivals).
@@ -666,11 +507,6 @@ ESSENCE: the fastest goods are the ones that never go into store.
   is the whole reason it is rare.
 ROOT: engineering / storage exists to decouple two flows, so where
   the flows can be synchronised the storage has no work to do.
-CANNOT: no cross-docking without accurate, punctual inbound
-  deliveries — one late lorry has nowhere to wait, so the goods that
-  did arrive miss their outbound run too. And no cross-docking of
-  what has not already been allocated to a destination: the sorting
-  decision has to have been made upstream.
 THREAD: post (a sorting office that never stores), computing
   (streaming data through rather than writing it down), transport
   (a connecting flight with no overnight).
@@ -685,11 +521,6 @@ ESSENCE: routing everything through a hub buys frequency and
 ROOT: money / consolidation lowers the cost per item and raises the
   cost per item's journey, so the crossing point is set by how much
   volume a lane has.
-CANNOT: no hub network without a single point whose failure is
-  everybody's failure — the concentration that creates the economics
-  creates the exposure, and no amount of process removes it. And no
-  direct network offering daily service on thin routes: there is
-  nothing to fill the vehicle with.
 THREAD: flight (an airline's connecting bank against point-to-point
   carriers), computing (a central exchange against direct peering),
   people together (an organisation routing all decisions through one
@@ -704,10 +535,6 @@ ESSENCE: waiting to fill a vehicle saves money and costs time, and
   on the dock are paying for the saving.
 ROOT: money / a fixed cost per vehicle makes filling it the cheapest
   path, and filling takes time that belongs to the customer.
-CANNOT: no cheap freight and fast freight from the same shipment.
-  And no consolidation without a firm cut-off: without one, each
-  shipment waits for the next promising order and the wait has no
-  end.
 THREAD: baking (an oven filled before it is lit), computing
   (batching messages to save round trips), post (a collection time
   that decides the whole delivery promise).
@@ -721,11 +548,6 @@ ESSENCE: each way of moving things has a different shape of cost.
   by distance. The mode is picked by the shape, not by the speed.
 ROOT: money / a cost made of a fixed part and a per-mile part
   produces a different winner at every distance and every volume.
-CANNOT: no single cheapest mode — the answer changes with distance,
-  weight, value and how much time is worth, and any general claim
-  that one mode is cheapest has hidden the other four variables. And
-  no cheap air freight, at any volume: the per-mile cost is
-  physical.
 THREAD: money (fixed and variable costs deciding a business's
   scale), computing (a slow high-bandwidth channel against a fast
   narrow one), travel (why a long trip and a short one choose
@@ -740,11 +562,6 @@ ESSENCE: journeys are slow at the joins. A container crosses an
   stationary, and nearly all damage happens while being handled.
 ROOT: engineering / a system of stages is dominated by its waits,
   and a handover is where both queues and mistakes live.
-CANNOT: no meaningful improvement from a faster vehicle when the
-  vehicle is a fifth of the elapsed time. And no touch-free
-  transfer: every handling is a chance to break, lose or mislabel,
-  so the count of touches is a better predictor of trouble than the
-  miles.
 THREAD: medicine (a patient's journey delayed at every handover),
   computing (latency dominated by hops rather than by link speed),
   building (a project's time spent between trades).
@@ -758,10 +575,6 @@ ESSENCE: the cost of moving something is dominated by how many times
   Choosing the unit of handling is choosing the cost.
 ROOT: money / labour is charged by the touch, so cost per item is a
   function of how many items share each touch.
-CANNOT: no small-unit distribution at large-unit costs. And no
-  escaping it with automation alone: machinery lowers the cost per
-  touch, and the number of touches is a property of the network
-  design.
 THREAD: cooking (portioning as the expensive part of catering),
   post (a letter's cost being nearly all in the sorting and
   delivering), computing (per-record overhead dominating a job).
@@ -776,10 +589,6 @@ ESSENCE: freight is charged on the larger of what a thing weighs and
 ROOT: money / a vehicle runs out of space and of weight allowance at
   different points, so the price must be based on whichever is
   reached first.
-CANNOT: no cheap freight for a bulky light product without redesign
-  of the pack. And no recovering it later: the cube is set by the
-  packaging decision, and it is paid on every single unit ever
-  shipped.
 THREAD: this file (holding cost also being paid in space), building
   (flat-pack furniture existing entirely for this reason), computing
   (compressing before sending).
@@ -793,11 +602,6 @@ ESSENCE: refrigerated transport is a separate, much smaller network
   planning is done against expiry rather than against a date.
 ROOT: engineering / where the product deteriorates during the
   journey, time is a cost of goods rather than a cost of service.
-CANNOT: no substituting ordinary capacity for cold capacity when
-  the cold network is full — there is no fallback, which is why cold
-  chains fail hard rather than gradually. And no recovering from a
-  temperature excursion: the product is finished even though it looks
-  perfect and is still in date.
 THREAD: medicine (vaccines lost to one failed refrigerator),
   farming (a harvest with days to live), computing (data with a
   retention deadline).
@@ -811,10 +615,6 @@ ESSENCE: where goods expire, they must be shipped in order of when
   not the goods move.
 ROOT: farming / harvest is a one-way gate on a moving clock, so a
   perishable good is losing value from the moment it exists.
-CANNOT: no first-in-first-out policy being correct for perishables —
-  the arrival order and the expiry order are not the same, so a
-  warehouse that ships oldest-first can still throw away newer stock
-  that expires sooner. And no selling remaining life back.
 THREAD: medicine (a drug stock rotated by expiry), money (an option
   losing value as it approaches its date), farming (the best day to
   eat and the best day to keep being different days).
@@ -828,10 +628,6 @@ ESSENCE: paper stops goods as effectively as a broken axle. A wrong
   it is a skilled trade in its own right.
 ROOT: law / a rule enforced at a chokepoint has the force of a
   physical barrier, whatever the goods are doing.
-CANNOT: no moving goods across a border faster than their paperwork,
-  at any freight rate. And no fixing a document error while the
-  goods are in transit at the usual speed: corrections queue behind
-  the same officials who found the problem.
 THREAD: law (a case delayed by a filing error), medicine (a referral
   rejected on a form), computing (a schema mismatch stopping a data
   feed that is otherwise fine).
@@ -845,10 +641,6 @@ ESSENCE: at some named point on the journey, ownership and risk pass
   where the handover was.
 ROOT: law / a contract binds at a specific clause, and here the
   clause is a place on a map.
-CANNOT: no arguing about a loss without first settling who owned it
-  at the moment. And no assuming the handover is where the goods
-  physically change hands: it is wherever the terms say, which is
-  often a port neither party ever visits.
 THREAD: law (title passing at a defined moment), money (settlement
   date deciding who bears a market move), building (practical
   completion as the point risk transfers).
@@ -862,11 +654,6 @@ ESSENCE: buying everything from one supplier is cheaper — better
   entirely for the year it is needed.
 ROOT: chance+risk / a low-probability, high-consequence event is
   under-insured by anyone judging on the ordinary year.
-CANNOT: no single-source saving without single-source exposure — the
-  discount is the price of the risk, and taking the discount is
-  taking the risk whether or not anyone said so aloud. And no
-  arranging a second source after the first one fails: qualification
-  takes months that you do not have.
 THREAD: money (concentrated holdings paying more until they do
   not), farming (one variety across a whole region), computing (one
   provider for everything).
@@ -880,10 +667,6 @@ ESSENCE: two suppliers are not two suppliers if they share a
   most organisations have never looked past their own suppliers.
 ROOT: chance+risk / diversification only works across independent
   risks, and hidden shared dependence makes many holdings into one.
-CANNOT: no resilience from duplication that shares a cause. And no
-  knowing your exposure from your own purchase orders: it takes
-  asking suppliers who their suppliers are, which most contracts
-  never required.
 THREAD: money (assets that fall together in the one crisis), power
   grids (redundant lines on the same pylons), computing (two regions
   sharing a control plane).
@@ -896,10 +679,6 @@ ESSENCE: a second source that never receives an order is not a
   exercised is capability that has already lapsed.
 ROOT: engineering / an untested standby is an assumption, and
   assumptions decay silently.
-CANNOT: no dormant supplier being ready on the day. And no cheap
-  answer: keeping a second source alive means giving it real volume
-  every year, which is exactly the cost people try to avoid by
-  keeping it dormant.
 THREAD: computing (a backup never restored from), medicine (a
   procedure a surgeon has not done for two years), governance (an
   emergency plan never rehearsed).
@@ -914,10 +693,6 @@ ESSENCE: a shortage and an allocation are different situations that
   wrong answer wastes the whole period.
 ROOT: money / scarcity and priority are different mechanisms, and
   only one of them can be argued with.
-CANNOT: no buying your way out of a true shortage — the goods do not
-  exist, so the money only raises the price for everyone. And no
-  engineering your way out of an allocation: a redesign takes longer
-  than the allocation lasts, and the part was available all along.
 THREAD: medicine (a drug shortage against a rationing decision),
   governance (famine as failure of claim rather than of harvest),
   computing (a capacity limit against a quota).
@@ -931,10 +706,6 @@ ESSENCE: goods coming back are a different business from goods going
   is judgement rather than picking.
 ROOT: engineering / a flow of identical items and a flow of unique
   ones need different systems, however similar their direction looks.
-CANNOT: no handling returns with the outbound system, at any scale.
-  And no forecasting them from sales alone: what comes back depends
-  on the return policy, the season and the product's fit, and it
-  arrives weeks after the sale that produced it.
 THREAD: cleaning (sorting mixed waste being far harder than sorting
   at source), medicine (a patient presenting with an unknown against
   a scheduled procedure), computing (parsing arbitrary input against
@@ -949,11 +720,6 @@ ESSENCE: spare parts turn the ordinary economics upside down.
   might never move.
 ROOT: money / the correct reserve follows the cost of running out,
   and here that cost is enormous while the holding cost is small.
-CANNOT: no applying ordinary turnover targets to service parts — a
-  manager judged on stock turns will scrap exactly the parts whose
-  absence stops a factory. And no forecasting intermittent demand
-  with methods built for steady demand: they predict a smooth
-  trickle of something that arrives in single lumps years apart.
 THREAD: medicine (an antidote stocked for the case that may never
   come), power (a spare transformer with a two-year lead time),
   fire services (equipment justified by consequence rather than use).
@@ -967,11 +733,6 @@ ESSENCE: nobody in the chain is paid for the flow. The salesperson
   supply chain dysfunction is honest people meeting their targets.
 ROOT: money / people optimise what they are measured on, so a set of
   local measures produces a set of local optima and no global one.
-CANNOT: no good chain assembled from separately optimised parts —
-  the cheapest purchase price often carries the longest lead time
-  and the biggest minimum order, and that trade is invisible to
-  everyone but the person holding the stock. And no fixing it by
-  exhortation while the measures stay as they are.
 THREAD: governance (departments each hitting targets while the
   citizen's experience worsens), medicine (specialties optimising
   their own throughput), engineering (subsystems each within spec
@@ -985,11 +746,6 @@ ESSENCE: efficiency means having nothing spare; resilience means
   is visible every year and the benefit appears once a generation.
 ROOT: money / a reserve costs continuously and pays rarely, so the
   pressure on it is constant and in one direction.
-CANNOT: no chain that is both fully efficient and shock-proof — the
-  buffer that absorbs a shock is by definition the stock, capacity
-  or supplier that looked unnecessary the day before. And no
-  discovering the right level from experience: the shocks are too
-  rare to learn from, so it has to be a decided policy.
 THREAD: money (capital requirements arguing against returns),
   medicine (spare intensive-care capacity), governance (a stockpile
   criticised every year until the year it is needed).

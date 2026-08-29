@@ -8,9 +8,6 @@ ESSENCE: everything pools where paths cross — cities sit at fords,
   hand before anyone plays.
 ROOT: physics + the deep earth / rivers, coasts, and mountains fix
   where movement is cheap, and trade goes where movement is cheap.
-CANNOT: no summoning a crossroads by decree alone — a capital
-  planted in empty country stays an office until the paths consent
-  to come.
 THREAD: computing (the internet pools at its cable crossings), the
   living world (every trail in dry country bends to the
   waterhole), money (a market is a crossing built of offers).
@@ -21,8 +18,6 @@ ESSENCE: the last mile costs most — the ocean moves a shirt for
   the doorstep serves one door, and one door splits nothing.
 ROOT: money + trade / shared costs divide, solo costs do not —
   scale lives in the middle of every journey and dies at its ends.
-CANNOT: no bulk discount at the doorstep — every parcel ends its
-  trip alone, and the alone part cannot be shared away.
 THREAD: computing (the cable into the house costs more per user
   than the ocean fiber), medicine (the vaccine is cheap; the last
   arm in the last village is the expense), teaching (broadcast is
@@ -34,9 +29,6 @@ ESSENCE: the standard box beat the fast ship — agreeing on one
   fits everything moves through everything without repacking.
 ROOT: law + agreements / a standard is a treaty that pays everyone
   for keeping it; the value is the sameness, not the box.
-CANNOT: no capturing the gain alone — a standard kept by one party
-  is just a box. And whatever will not fit the box is exiled to
-  the expensive edges of the system.
 THREAD: computing (data travels in fixed-size parcels — any cargo,
   one shape), money (coinage is the container for value),
   railroads (one track width, or unload at every border).
@@ -47,9 +39,6 @@ ESSENCE: networks beat point-to-point — ten cities need forty-five
   few fat lines serve every pair.
 ROOT: mathematics / pairs multiply faster than members — count the
   members, the pairs explode.
-CANNOT: no connecting everything to everything at scale — the pair
-  count outruns any fleet. The toll is the transfer: a hub system
-  cannot hand everyone a nonstop; someone always changes planes.
 THREAD: the body (all blood routes through one hub called the
   heart), language (a shared second tongue is a hub — learn one
   instead of every pair), post (the sorting office made mail
@@ -61,9 +50,6 @@ ESSENCE: congestion is everyone's sensible choice colliding — each
   has no author and every author.
 ROOT: people together / crowds sum choices without a chooser —
   each move sane, the sum not.
-CANNOT: no widening out of it — the promised minutes attract
-  exactly the trips that spend them, and the jam re-forms at the
-  new width. Free roads fill; that is what free means.
 THREAD: money (a winning trade crowds until it stops winning),
   electricity (the evening peak), the living world (the shared
   pasture, grazed to mud by reasonable sheep).
@@ -73,10 +59,6 @@ ESSENCE: every trip is secretly a round trip — the truck that
   hauls out must come home, and if it returns empty the paying leg
   carries both fares; whole trades exist to fill the ride back.
 ROOT: money / the loop's cost is fixed whether one leg earns or two.
-CANNOT: no one-way price that escapes the return leg — the empty
-  ride home is hidden in every ticket. Lopsided flows cannot
-  balance themselves: someone's cargo rides cheap in the empties
-  and someone else's pays double.
 THREAD: taxis (the dead leg back from the airport is in the fare),
   shipping (scrap and wastepaper cross oceans mostly to fill boxes
   going home), the body (veins are the backhaul of the blood).
@@ -87,9 +69,6 @@ ESSENCE: a supply chain is a chain — the shelf empties when any
   strength is its weakest link, never its average.
 ROOT: chance + risk / requirements in a row multiply — many
   almost-certain links make an uncertain whole.
-CANNOT: no strengthening a chain by polishing its strong links. No
-  average good enough to survive a zero — the missing two-dollar
-  part parks the hundred-thousand-dollar truck.
 THREAD: war (for want of a nail the kingdom was lost — the old
   rhyme is this law), the body (one blocked artery, any heart),
   computing (one tiny shared program breaks half the internet).
@@ -101,9 +80,6 @@ ESSENCE: distance died for words but not for bodies or hours — a
   awake at once.
 ROOT: physics / light is cheap to send and mass is not; and the
   planet turns — noon is local forever.
-CANNOT: no shipping matter at message speed. No shared working day
-  between opposite sides of the globe without somebody's night —
-  the overlap cannot be negotiated wider.
 THREAD: money (markets follow the sun: Tokyo hands to London hands
   to New York), medicine (jet lag — the traveler arrives before
   the body's clock does), astronomy (the deep version: no shared

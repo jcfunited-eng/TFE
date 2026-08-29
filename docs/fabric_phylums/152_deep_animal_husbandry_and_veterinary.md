@@ -14,11 +14,6 @@ ESSENCE: a wild animal meets its own needs — it finds water, chooses
   is that list of transferred jobs.
 ROOT: farming / confinement removes an animal's ability to solve its
   own problems, and the problems do not go away with the ability.
-CANNOT: no keeping an animal without taking on the whole list — a
-  need that is neither met by the animal nor met by the keeper is
-  simply not met, and it shows up as disease. And no partial
-  transfer: penning an animal and leaving it to sort out its own
-  water or footing is the commonest form of neglect there is.
 THREAD: the human journey (a hospital patient who cannot fetch a
   glass of water), building (a sealed house needing mechanical
   everything the open one did for free), governance (a duty of care
@@ -35,10 +30,6 @@ ESSENCE: every kept animal needs five things, and four of them are
 ROOT: the living world / a behaviour that evolved is a need and not
   a preference, so an animal prevented from performing it is under
   strain even when it is fat and free of disease.
-CANNOT: no welfare from food and health alone — a well-fed animal
-  with nothing to do develops the pacing, biting, feather-pecking
-  and tail-chewing that no ration corrects. And no substituting one
-  need for another: extra food does not answer a need for space.
 THREAD: the human journey (a prisoner well fed and still harmed),
   the mind (boredom producing real illness), medicine (a patient
   whose numbers are fine and whose life is not).
@@ -52,11 +43,6 @@ ESSENCE: disease is a contest between how much pathogen arrives and
   that lowers the resistance meeting it.
 ROOT: the living world / an infection depends on dose, and a dose is
   produced by other animals in proportion to how many and how close.
-CANNOT: no medicating a stocking-density problem away — a shed a
-  quarter too full will keep producing the disease as fast as it is
-  treated, at any dose of anything. And no reading a density figure
-  without the air, the bedding and the feed space: the number that
-  matters is animals per resource, not animals per square metre.
 THREAD: public health (crowding and epidemic disease in the same
   relation), farming (a monoculture handing a pest its whole life),
   computing (load and failure rising together).
@@ -70,11 +56,6 @@ ESSENCE: in any animal building, air comes before heat. Animals
   pneumonia.
 ROOT: weather / warm air holds more water, so a heated closed space
   fills with moisture that then condenses on everything in it.
-CANNOT: no fixing bad air by adding heat — heat without ventilation
-  raises the humidity and makes it worse, which is exactly the
-  instinct of everyone who walks into a cold shed. And no
-  ventilation without an inlet: opening one door gives a draught
-  along one line and stale air everywhere else.
 THREAD: building (condensation inside a sealed wall), the body
   (breathing rate rising to clear waste rather than to gain air),
   ships and mines (ventilation as the first engineering problem).
@@ -88,11 +69,6 @@ ESSENCE: the air that matters is the air at the animal's head, and
   perfectly good air.
 ROOT: chemistry / a gas produced at floor level in a still room
   reaches its highest concentration at floor level.
-CANNOT: no assessing a building from standing height, ever — the
-  honest test is kneeling down for a minute, and if it stings the
-  eyes there it has been damaging lungs for weeks. And no removing
-  ammonia without removing the wet: it is made by bacteria in damp
-  bedding, so it is a management fault before it is a gas.
 THREAD: medicine (a workplace exposure limit measured where the
   worker breathes), building (radon and carbon monoxide pooling low),
   the body (an insult to the airway lining preceding infection).
@@ -107,11 +83,6 @@ ESSENCE: cold on its own kills very few animals. Cold with wet, or
 ROOT: physics / insulation is trapped still air, so anything that
   wets it or blows it away removes the insulation and not merely
   some of the comfort.
-CANNOT: no shelter without dryness and shelter from wind together —
-  a roof over a wet floor is not shelter, and a windbreak with a bog
-  under it is not either. And no young animal surviving on fat
-  reserves it does not have: newborns have almost none, which is why
-  the first hours decide the week.
 THREAD: survival (the outdoor rule about wet clothing), textiles (a
   compressed or soaked insulating layer being no layer at all),
   building (a cold wall that is only a problem when it is damp).
@@ -125,10 +96,6 @@ ESSENCE: bedding has four jobs and they are all mechanical. It keeps
   that fill a vet's day.
 ROOT: engineering / a surface an animal spends half its life against
   decides its comfort, its temperature and the bacteria at its skin.
-CANNOT: no clean animal on dirty bedding, and no amount of teat
-  disinfectant or foot bathing outrunning a wet lying area. And no
-  saving money by bedding thinly: the straw not used is paid for in
-  mastitis, lameness and hock sores, at many times the price.
 THREAD: medicine (pressure sores from a bed rather than a disease),
   cleaning (a damp surface as a growing medium), building (a floor
   as the coldest surface in a room).
@@ -143,10 +110,6 @@ ESSENCE: a floor an animal cannot trust changes everything it does.
 ROOT: the body / an animal that fears falling changes its gait
   first, and every other behaviour that depends on movement changes
   with it.
-CANNOT: no reading behaviour off an animal on bad footing — the
-  quiet herd may be a frightened one. And no recovering an animal
-  from a serious slip injury in most cases: the hip and the pelvis
-  do not mend in a heavy animal on a hard floor.
 THREAD: the human journey (an older person's whole life shrinking
   after one fall), transport (a road surface deciding driver
   behaviour), sports (footwear changing what a player will attempt).
@@ -161,11 +124,6 @@ ESSENCE: how much feed an animal turns into food differs enormously
 ROOT: the living world / an animal spends feed on staying alive
   before it spends any on growing, so the share left for growth
   falls as the body it must maintain gets bigger.
-CANNOT: no finishing an animal cheaply at the top of its growth
-  curve — every extra kilo costs more than the one before, and there
-  is a point past which the feed is worth more than the gain. And no
-  comparing species' figures without saying what feed: a conversion
-  number on grain and one on grass are not the same measurement.
 THREAD: money (rising marginal costs deciding when to stop), the
   body (a trained athlete's last percent of improvement), engineering
   (efficiency falling as a machine approaches its limit).
@@ -181,11 +139,6 @@ ESSENCE: you do not feed a cow, you feed the several kilos of
 ROOT: the living world / a population takes time to change its
   makeup, so a change faster than the population can follow is a
   shock rather than a diet.
-CANNOT: no sudden change to a ruminant's diet, in either direction —
-  and the danger is greatest with the best feed, which is why the
-  escaped heifer in the grain store dies and the one in the hedge
-  does not. And no rumen recovering on its own timetable: rebuilding
-  the population takes days to weeks.
 THREAD: the body (gut flora disrupted by a sudden change or a
   course of antibiotics), farming (soil life needing gradual change),
   people together (a team's culture taking longer to turn than its
@@ -200,11 +153,6 @@ ESSENCE: fibre in a ruminant's diet is not filler and not roughage
   working properly, however good the numbers on the ration look.
 ROOT: the body / a digestive organ is a machine with mechanical
   requirements as well as chemical ones.
-CANNOT: no high-concentrate ruminant diet without effective fibre in
-  it, at any level of supplementation. And no judging fibre by
-  chemical analysis alone: finely chopped or milled fibre analyses
-  the same and does not make the animal chew, so the physical length
-  is part of the specification.
 THREAD: the body (human digestion needing bulk it gains nothing
   from), engineering (a mixture needing a carrier that does no work
   itself), cooking (a structure that holds the rest together).
@@ -219,11 +167,6 @@ ESSENCE: a pig or a chicken has no fermentation vat to build protein
 ROOT: the body / an animal that cannot make a required part must
   eat it, so the diet's quality is set by the scarcest part rather
   than by the total protein.
-CANNOT: no monogastric thriving on forage — it lacks the machinery,
-  so grass through a pig is largely grass out of a pig. And no
-  correcting an amino acid shortfall by feeding more of the same
-  mixture: past a point that adds cost and nitrogen pollution and no
-  growth at all.
 THREAD: food (grain and bean gaps being different gaps), farming (a
   crop limited by its scarcest nutrient), money (a cost structure
   tied to one input's market).
@@ -237,11 +180,6 @@ ESSENCE: water is the feed that decides all the others. An animal
   many can drink at once.
 ROOT: the body / eating requires water to process what is eaten, so
   intake of dry matter is capped by water available.
-CANNOT: no maintaining production on restricted water, at any
-  quality of ration. And no assuming a working drinker is an
-  adequate one: the number that matters is flow rate and drinking
-  space at peak, because animals drink in bouts and a slow trough
-  becomes a queue that the timid never reach.
 THREAD: farming (irrigation deciding what fertiliser can do),
   engineering (a system limited by its narrowest supply), people
   (a canteen judged by its queue rather than its menu).
@@ -256,10 +194,6 @@ ESSENCE: animals refuse water long before it is dangerous. Water
 ROOT: the living world / an animal's caution about what it swallows
   is a defence, so palatability is a real physiological control and
   not fussiness.
-CANNOT: no relying on a laboratory result alone — water can pass a
-  test and be refused, and refusal is what harms the animal. And no
-  medicating through water that the sick animals are not drinking:
-  the ones that most need the dose are the ones drinking least.
 THREAD: medicine (a medicine no patient will take being no
   medicine), food (a ration rejected by taste), computing (a safety
   system switched off because it was annoying).
@@ -273,12 +207,6 @@ ESSENCE: an animal's fat cover, felt with the hand over the back and
   and the difference decides whether either gets in calf.
 ROOT: evidence / a measurement that integrates over time tells you
   about management, while a snapshot tells you only about today.
-CANNOT: no reading condition from weight or from looking over a
-  gate — the assessment is done by hand, on a scale, by someone
-  trained, or it is not being done. And no correcting condition
-  quickly at the wrong point in the cycle: putting condition on a
-  lactating or heavily pregnant animal is slow, expensive and often
-  impossible.
 THREAD: medicine (a long-run marker against a single reading),
   money (a balance sheet against a day's takings), the body (body
   composition mattering more than the scales).
@@ -292,11 +220,6 @@ ESSENCE: whether an animal is short of copper, selenium, cobalt or
   valley may not exist at all.
 ROOT: geology / the rock beneath decides the soil's chemistry, and
   the plant can only offer what it could take up.
-CANNOT: no diagnosing a mineral problem from the animal alone —
-  soil, forage and blood together are what make a case. And no
-  blanket supplementing without measuring: several of these minerals
-  have a narrow window, and the treatment for a deficiency that was
-  not there is a poisoning.
 THREAD: farming (a nutrient locked in soil while the bag says
   plenty), public health (goitre and dental fluorosis mapping onto
   geology), food (a regional diet's characteristic gap).
@@ -310,10 +233,6 @@ ESSENCE: for several trace elements the gap between too little and
   later, in an animal that looked well.
 ROOT: chemistry / a dose makes the medicine or the poison, and where
   the two doses are close, the margin for error is the whole issue.
-CANNOT: no supplementing from several routes at once without adding
-  them up. And no feeding cattle minerals to sheep: this single
-  error kills flocks every year, and the copper accumulates silently
-  in the liver until it is released all at once.
 THREAD: pharmacy (a narrow therapeutic index requiring monitoring),
   food (a vitamin toxic in excess), farming (a fertiliser that locks
   another nutrient).
@@ -327,10 +246,6 @@ ESSENCE: feed is most of the cost of keeping any animal — commonly
   reduce intake.
 ROOT: money / where one input dominates the cost, everything that
   affects its use is a lever on the result.
-CANNOT: no profitable enterprise with poor intake, however good the
-  ration on paper. And no separating welfare from economics at this
-  point: for feed intake they are the same number, which is the one
-  place the two arguments do not need reconciling.
 THREAD: engineering (a plant judged by its yield on the main
   feedstock), medicine (nutrition deciding recovery), money (the
   largest line in a budget deserving most attention).
@@ -345,11 +260,6 @@ ESSENCE: the breeding date is the beginning of everything. Feed
 ROOT: the living world / the reproductive cycle has a fixed length
   that no management changes, so the calendar is the animal's and
   not the farmer's.
-CANNOT: no shifting a breeding season within a year — the animal's
-  gestation is what it is, so bringing it forward means missing a
-  cycle and living with the gap. And no tight calving block from
-  poor fertility: the pattern spreads a little every year until it is
-  no pattern at all.
 THREAD: farming (a crop's whole plan back-calculated from a date),
   logistics (a schedule built backwards from a sailing), money (a
   cash flow determined by when the income lands).
@@ -363,11 +273,6 @@ ESSENCE: many farm animals breed by day length rather than by
 ROOT: astronomy / day length is the one environmental signal that is
   exactly repeatable every year, so it is the signal a body can
   safely trust.
-CANNOT: no breeding a strongly seasonal animal out of season by
-  management alone. And no expecting the same seasonality in every
-  breed: those from lower latitudes are far less seasonal, which is
-  why the answer is often a change of genetics rather than a change
-  of technique.
 THREAD: plants (flowering triggered by night length), the living
   world (migration timed by the sun), the human journey (birth
   seasonality still faintly visible in people).
@@ -381,11 +286,6 @@ ESSENCE: almost all of the growth in a pregnancy happens in the last
 ROOT: the living world / a fetus grows fastest when it is largest,
   so the mother's requirement rises steeply at the end rather than
   evenly across the term.
-CANNOT: no making up late-pregnancy nutrition after the birth — the
-  offspring's birth weight and the colostrum are already decided, so
-  the mistake is only discovered when it is finished. And no feeding
-  a twin-bearing ewe like a single: the requirement is set by what
-  she is carrying, so she has to be scanned to be fed.
 THREAD: the human journey (nutrition in pregnancy affecting a whole
   life), building (a foundation decided before anything visible),
   farming (a crop's yield set at flowering).
@@ -399,11 +299,6 @@ ESSENCE: hard births are mostly made months earlier. A dam too fat
   decision taken in the summer.
 ROOT: engineering / a fit between two dimensions is settled when the
   dimensions are chosen, not when they meet.
-CANNOT: no easy calving from an over-fat heifer, and no correcting a
-  sire choice at the birth. And no fixing it with skill in the shed:
-  assistance manages the consequence and cannot remove the mismatch,
-  which is why the sire's ease-of-birth figures matter more than any
-  other in a heifer group.
 THREAD: medicine (obstructed labour and the pelvis it was born
   with), building (a component ordered to the wrong dimension),
   design (a tolerance problem discovered at assembly).
@@ -418,11 +313,6 @@ ESSENCE: the commonest mistake in a birthing shed is helping too
 ROOT: the body / a birth is a sequence of stages with their own
   durations, so the useful question is whether it is advancing, not
   how long it has been.
-CANNOT: no judging a birth by the clock alone — a slow but
-  progressing birth is normal and a fast one that has stopped is an
-  emergency. And no undoing an early intervention: the damage from
-  pulling into an unopened passage is done in seconds and lasts for
-  the animal's life.
 THREAD: medicine (the same argument in human obstetrics), craft (a
   material that must be allowed to reach a state), management (an
   intervention made before a process has had time to work).
@@ -437,12 +327,6 @@ ESSENCE: a newborn farm animal is born with no immunity at all — its
 ROOT: the body / the newborn gut is briefly permeable so that
   immunity can be handed over, and that permeability is a hazard
   which is closed as soon as it has served.
-CANNOT: no immunity later from colostrum given late — the same
-  litres at thirty hours are merely food. And no small feed doing
-  the job: the requirement is quantity, quality, quickly and
-  cleanly, and failure at any one of the four gives an animal that
-  will meet everything the shed has to offer with nothing to meet it
-  with.
 THREAD: medicine (a treatment window that closes), law (a right lost
   by missing a deadline), computing (a boot-time key exchange that
   cannot be repeated).
@@ -457,11 +341,6 @@ ESSENCE: the antibodies a mother gives protect the young and also
 ROOT: the body / a passive defence cannot tell a vaccine from an
   infection, so protection and the ability to learn are in
   opposition.
-CANNOT: no effective vaccination of a young animal while maternal
-  antibody is still high — the dose is wasted and the record says it
-  was given, which is worse than not having done it. And no closing
-  the gap entirely: it can be narrowed by timing and by vaccinating
-  the mother, never removed.
 THREAD: public health (infant vaccination schedules built around the
   same fact), the mind (a strongly held belief blocking new
   learning), computing (a cache serving stale answers and preventing
@@ -476,11 +355,6 @@ ESSENCE: weaning is not one stress, it is four arriving together —
   by a week or two apiece.
 ROOT: the body / stresses combine, and an animal handling several at
   once has to spend on all of them from one budget.
-CANNOT: no weaning, mixing, castrating, vaccinating, dehorning and
-  transporting on one day without paying for it — this is the
-  standard practice that fills the treatment book. And no recovery of
-  the lost growth: the check at weaning shows in the sale weight
-  months later.
 THREAD: the human journey (life events clustering and illness
   following), engineering (loads combining on one member), management
   (a reorganisation, a new system and a deadline in one quarter).
@@ -494,10 +368,6 @@ ESSENCE: nearly all the worms are outside the animal. The great
   grazing management with a drug as a tool, not the other way round.
 ROOT: the living world / a population lives where its numbers are,
   and killing the visible minority leaves the reservoir untouched.
-CANNOT: no worming out a parasite problem on a contaminated
-  pasture, at any frequency of dosing. And no clean pasture without
-  a plan for it: a field is made clean by time, by hay or silage, or
-  by grazing a species the worm cannot use, and by nothing else.
 THREAD: farming (rotation aimed at a pest's life cycle), public
   health (treating people while the water supply stays contaminated),
   cleaning (wiping a surface that is being re-contaminated).
@@ -513,11 +383,6 @@ ESSENCE: every animal dosed is a lottery run for resistance: the
 ROOT: heredity / selection acts on whoever survives, so a treatment
   applied to everyone is the strongest possible selection for
   resisting it.
-CANNOT: no preserving a wormer while treating the whole group every
-  time — and there are only a few chemical families in existence,
-  with none new for decades, so a resistant population is permanent.
-  And no detecting the problem early by watching the animals: by the
-  time the drench visibly fails, resistance is well established.
 THREAD: medicine (antibiotic stewardship on the identical logic),
   farming (a pesticide breeding its own defeat), strategy (a
   defence that trains the attacker).
@@ -533,10 +398,6 @@ ESSENCE: within any group, a few animals carry most of the parasite
 ROOT: the living world / burdens in a population are distributed
   very unevenly, so uniform treatment is mostly wasted and
   occasionally insufficient.
-CANNOT: no benefit from treating an animal that had almost no
-  burden, and considerable harm to the flock's future. And no
-  selective treatment without a way of choosing: without a real test
-  or score it becomes guessing, and guessing treats the wrong ones.
 THREAD: medicine (targeting treatment rather than treating a
   population), logistics (a few lines carrying most of the value),
   teaching (help directed where it changes something).
@@ -551,11 +412,6 @@ ESSENCE: the fly, the tick, the louse and the mite run on
   is half over.
 ROOT: the living world / a cold-blooded parasite's life cycle runs
   at a rate set by warmth, so its year is set by the weather.
-CANNOT: no protection from a treatment applied after the population
-  has built. And no ignoring housing and hygiene: flies breed in
-  particular places on every farm — the muck, the wet corners, the
-  calf pens — so removing the breeding site does more than any
-  spray.
 THREAD: farming (spraying timed against an insect's emergence),
   public health (mosquito control aimed at standing water), weather
   (a season as a biological calendar).
@@ -570,11 +426,6 @@ ESSENCE: a vaccine is not a fence around an animal. It usually
   under way.
 ROOT: the body / immunity is learned, and learning takes time that
   the disease does not allow once it has arrived.
-CANNOT: no protection from a vaccine given during an outbreak, in
-  time to matter for that outbreak. And no vaccinating a sick,
-  starved or heavily stressed animal into immunity: the response
-  requires a body with something to spare, so a vaccine given at
-  weaning day may buy nothing at all.
 THREAD: public health (a seasonal campaign that must precede the
   season), computing (a patch applied before rather than after),
   building (a defence installed ahead of the flood).
@@ -589,10 +440,6 @@ ESSENCE: the cheapest medicine on any farm is the gate. Most new
   cabinet.
 ROOT: chance+risk / keeping a hazard out is cheaper than managing it
   once inside, and the routes in are few enough to be listed.
-CANNOT: no keeping a closed herd's health while buying animals in
-  freely — every purchase is the whole risk, whatever the price. And
-  no measuring the benefit: success looks exactly like nothing
-  happening, which is why the effort is always the first thing cut.
 THREAD: public health (border and hospital infection control),
   computing (perimeter hygiene against an infected machine inside),
   farming (clean seed and clean tools).
@@ -606,11 +453,6 @@ ESSENCE: an animal that has just arrived is the single most likely
   incubation of the diseases you are worried about actually is.
 ROOT: the living world / an infection has a silent period, so
   appearance at arrival carries no information at all.
-CANNOT: no telling a healthy new animal from an incubating one by
-  looking, at any level of experience. And no quarantine worth
-  anything at a shared airspace, a shared trough or a shared fence
-  line: separation has to be real, and the same person doing both
-  groups in the same boots has not separated them.
 THREAD: public health (quarantine as the oldest measure there is),
   computing (a new device isolated until scanned), logistics (goods
   inspected before entering a store).
@@ -625,11 +467,6 @@ ESSENCE: many animals recover from a disease and go on carrying it
 ROOT: the living world / an organism that can persist in a host
   without killing it has found a better strategy than one that
   cannot.
-CANNOT: no clearing such a disease by treating the sick — the well
-  ones are the source. And no finding carriers without testing: they
-  have no signs by definition, which is exactly what makes eradicating
-  these diseases a matter of testing and culling rather than of
-  medicine.
 THREAD: public health (asymptomatic carriage and the difficulty of
   eradication), computing (a dormant infection reactivating), people
   together (a problem that returns because its cause was never the
@@ -644,10 +481,6 @@ ESSENCE: the animals that look ill are a small part of the cost. The
   causes scour. It is invisible and it is most of the loss.
 ROOT: money / a loss spread thinly over many animals is larger than
   a loss concentrated in a few, and far harder to see.
-CANNOT: no assessing a herd's health from the treatment book — the
-  entries record what was noticed, and the loss lives among what was
-  not. And no recovering it later: a calf's damaged lung is a
-  permanent cap on that animal's performance.
 THREAD: medicine (a chronic condition costing more than an acute
   one), engineering (small continuous losses beating rare failures),
   money (a slow leak against a single theft).
@@ -662,10 +495,6 @@ ESSENCE: filling a building, emptying it completely, cleaning and
 ROOT: the living world / an organism needs a continuous supply of
   hosts, so an interruption with a clean and dry period is a break
   it cannot cross.
-CANNOT: no clean building without emptying it — disinfectant on a
-  dirty surface does very little, and drying does more than most
-  chemicals. And no all-in all-out with a mixed-age group in one
-  airspace: the principle is defeated by one pen of stragglers.
 THREAD: farming (rotation removing a pest's host for a season),
   public health (a ward closed and deep-cleaned), computing
   (rebuilding a machine from clean rather than repairing it).
@@ -679,11 +508,6 @@ ESSENCE: lameness is the commonest serious welfare failure in kept
   foot is where they are paid for.
 ROOT: the body / feet are loaded continuously, so any fault in the
   ground or in the time spent on it accumulates without pause.
-CANNOT: no trimming and treating a herd out of a lameness problem
-  caused by its buildings and tracks. And no measuring it from the
-  ones being treated: lameness has to be scored across the whole
-  group by watching them walk, or the number is a fraction of the
-  truth.
 THREAD: the human journey (foot problems from a job spent standing),
   building (a floor deciding the health of everyone on it), sports
   (surfaces causing most chronic injury).
@@ -697,10 +521,6 @@ ESSENCE: a hoof grows continuously and wears continuously, and
   correction to a mismatch that the ground has caused.
 ROOT: the body / a growing structure in constant contact reaches a
   shape set by the balance of growth against wear.
-CANNOT: no correct trimming interval for all conditions — it is set
-  by the ground, so the same herd needs a different schedule on a
-  different farm. And no trimming an over-worn foot back into shape:
-  there is nothing to remove, and the answer is the surface.
 THREAD: the body (fingernails and teeth shaped by use), engineering
   (a wear surface designed against its duty), horses (shoeing
   existing entirely because of this mismatch).
@@ -714,11 +534,6 @@ ESSENCE: the udder is an opening straight into the body, held a foot
   parlour and the shed long before it is treated with a tube.
 ROOT: the living world / infection follows contact and opportunity,
   so a route in that is opened regularly is the route that matters.
-CANNOT: no controlling mastitis with antibiotics while the lying
-  area is dirty or the machine is wrong — the cure rate is a
-  fraction and the reinfection rate is total. And no reading the
-  problem from clinical cases alone: the bulk milk cell count is the
-  measure, and most of the infection is never visible.
 THREAD: medicine (catheter and line infections following the same
   logic), cleaning (a route of contamination rather than a dirty
   object), engineering (a machine as a vector between users).
@@ -733,11 +548,6 @@ ESSENCE: prey animals hide pain, because in the wild the one that
 ROOT: the living world / a signal that attracts predators is
   selected against, so the display of weakness is suppressed
   precisely when the weakness is greatest.
-CANNOT: no reading a prey animal's pain from vocalising or
-  complaining — dogs and pigs show more, sheep, cattle, horses and
-  rabbits show almost nothing until it is extreme. And no
-  interpreting stoicism as a lower capacity for pain: the nervous
-  systems are the same.
 THREAD: the mind (people concealing distress in some settings),
   medicine (pain under-treated in patients who cannot report it),
   the living world (a sick bird sitting still and dying quietly).
@@ -752,10 +562,6 @@ ESSENCE: what a painful animal changes is its behaviour, and the
   instrument.
 ROOT: evidence / a change is only visible against a known baseline,
   so continuity of observation is the measurement.
-CANNOT: no assessing pain on a first visit as well as the daily
-  stockperson can. And no substituting a checklist for familiarity:
-  the signs are individual, and the useful question is always what
-  is different rather than what is present.
 THREAD: medicine (a family noticing what a clinician cannot), the
   mind (behaviour change as the first sign of trouble), engineering
   (condition monitoring against a normal signature).
@@ -770,11 +576,6 @@ ESSENCE: every animal has a distance at which it becomes
 ROOT: the living world / a prey animal's response to an approaching
   figure is a fixed reaction to position and distance, so handling
   is a geometry rather than a contest of wills.
-CANNOT: no moving an animal by pushing into the flight zone from
-  the wrong side — it turns and comes past you, which is precisely
-  what handlers then treat as defiance. And no quiet handling in a
-  race too narrow to step back in: the animal must have somewhere
-  the pressure can send it.
 THREAD: people together (personal space and how a crowd is
   steered), martial arts (moving someone by position rather than
   force), sailing (working with the wind's angle instead of against).
@@ -791,10 +592,6 @@ ESSENCE: animals will not walk into a dark place, will balk at a
 ROOT: the living world / an animal built to detect danger treats
   every discontinuity as a possible threat, so the design of the
   space is the design of the behaviour.
-CANNOT: no fast handling through a facility with distractions in it,
-  at any level of skill. And no benefit from force: an animal that
-  has balked and been beaten balks harder the next time, because it
-  has now learned that the place is dangerous.
 THREAD: architecture (crowd flow designed by sightlines and
   lighting), the mind (a small obstacle stopping a process), teaching
   (removing distractions rather than demanding attention).
@@ -808,11 +605,6 @@ ESSENCE: calm handling is not only kindness, it is a number. Animals
   argument are the same argument, and they do not need reconciling.
 ROOT: the body / fear costs energy and suppresses growth, digestion
   and reproduction, all through the same hormones.
-CANNOT: no undoing a bad experience quickly — an animal frightened
-  in a crush or a race remembers that place, so every rough handling
-  makes all future handling harder and slower. And no good handling
-  from a changing crowd of strangers: familiarity is part of the
-  mechanism.
 THREAD: people together (a workplace's turnover following how people
   are treated), teaching (fear reducing what is learned), sport (a
   frightened animal or athlete performing worse).
@@ -827,10 +619,6 @@ ESSENCE: transport harms animals mostly at its ends and not in the
 ROOT: the body / stress comes from novelty, handling and conflict,
   and a moving vehicle supplies less of all three than a loading
   yard does.
-CANNOT: no low-stress journey with several transfers, however short
-  each leg. And no mixing unfamiliar animals for a journey without
-  fighting: pigs in particular establish a hierarchy immediately and
-  do it in a confined lorry, which is where the injuries come from.
 THREAD: logistics (handovers dominating a journey's time and
   damage), the human journey (the airport being worse than the
   flight), medicine (a patient transfer as the risky moment).
@@ -844,12 +632,6 @@ ESSENCE: humane slaughter is a technical matter with one
   The killing is not the welfare question; the stun is.
 ROOT: right+wrong / where death is accepted, the moral weight falls
   entirely on whether there was experience of it.
-CANNOT: no humane slaughter without a reliable stun and a check that
-  it worked — an unnoticed failure is the worst outcome there is,
-  which is why the monitoring is as regulated as the equipment. And
-  no separating the last minutes from the hours before: an animal
-  driven and frightened for an hour has had a bad death whatever the
-  stun did.
 THREAD: medicine (anaesthesia judged by unconsciousness and its
   monitoring), law (a procedure specified because outcomes cannot be
   checked afterwards), engineering (a critical function with a
@@ -865,10 +647,6 @@ ESSENCE: stress before slaughter is written into the meat. An animal
 ROOT: chemistry / muscle after death continues the chemistry it was
   running while alive, so its condition at the end determines the
   product.
-CANNOT: no hiding poor handling from the carcass — the meat reports
-  it, which makes welfare measurable rather than merely asserted.
-  And no correcting either fault afterwards by any process of
-  hanging, ageing or cooking.
 THREAD: cooking (why a cut behaves as it does), evidence (a physical
   record of a process nobody witnessed), sport (physiology showing in
   the outcome).
@@ -883,10 +661,6 @@ ESSENCE: diseases cross between animals and people, and they cross
   away from lambing.
 ROOT: the living world / an organism that can use two hosts will,
   and the crossing happens wherever the two hosts touch.
-CANNOT: no zoonotic risk without contact, and no contact without
-  some risk. And no assuming a healthy-looking animal is safe: many
-  of the important crossings come from animals with no signs at all,
-  which is why the precaution is routine rather than triggered.
 THREAD: public health (most new human diseases arriving from
   animals), cleaning (hand washing as the single largest measure),
   farming (a farm as a place where two worlds meet daily).
@@ -901,11 +675,6 @@ ESSENCE: bacteria that learn to survive an antibiotic in an animal's
   drives it hardest.
 ROOT: heredity / resistance genes move between bacterial species,
   so a reservoir built anywhere is a reservoir available everywhere.
-CANNOT: no keeping the consequences of farm antibiotic use on the
-  farm. And no maintaining routine preventive dosing as a substitute
-  for husbandry: whole-group medication is what a system needs when
-  its air, density or hygiene are wrong, so the honest fix is
-  upstream of the syringe.
 THREAD: medicine (hospital stewardship on the same logic), farming
   (a pesticide breeding its own defeat), governance (a cost imposed
   on people outside the transaction).
@@ -920,11 +689,6 @@ ESSENCE: an animal treated with a drug carries traces of it in its
 ROOT: chemistry / a substance leaves a body at a rate set by its own
   chemistry, so the wait is a property of the drug and not a matter
   of judgement.
-CANNOT: no shortening a withdrawal period by judgement, and no
-  telling whether it has passed by looking at the animal. And no
-  managing it without individual identification and a written
-  record: the whole system rests on knowing which animal and which
-  date, which is why the record-keeping is a legal requirement.
 THREAD: pharmacy (a drug's half-life setting dosing intervals), law
   (a rule that only works with records), food (one contaminated
   batch spoiling a whole tank).
@@ -939,11 +703,6 @@ ESSENCE: the commonest failure in ending an animal's life is doing
 ROOT: right+wrong / where suffering continues while a decision is
   postponed, delay is itself the harm rather than a neutral
   position.
-CANNOT: no undoing days of suffering by a later good decision, and
-  no reading the decision from money already spent: what has been
-  spent is gone and tells you nothing about what happens next. And
-  no leaving a hopeless animal to die on its own as the kinder
-  course.
 THREAD: medicine (end-of-life decisions and the same delay), money
   (a sunk cost holding a decision hostage), the mind (avoidance
   making an unpleasant choice worse).
@@ -958,11 +717,6 @@ ESSENCE: nothing in husbandry can be judged without records,
   the individual.
 ROOT: evidence / an outlier can only be recognised against a
   distribution, so the record is what makes anything visible at all.
-CANNOT: no herd health work without identification and records —
-  every decision becomes an anecdote about the animal that was
-  remembered. And no reconstructing them afterwards: the useful
-  record is written on the day, and memory of a busy season is
-  worthless within weeks.
 THREAD: accounting (the ledger as the basis of every judgement),
   medicine (notes as the difference between medicine and guessing),
   keeping knowledge (the record outlasting the person who kept it).
@@ -977,11 +731,6 @@ ESSENCE: the primary diagnostic instrument on any farm is a person
   monitoring, whatever else it is.
 ROOT: the mind / attention is a finite resource, so more to watch
   means less watching of each.
-CANNOT: no substitute for the daily walk — sensors report a few
-  things well and miss the animal standing slightly apart with its
-  ears back. And no restoring the skill quickly: knowing normal for
-  a particular group takes months, so a change of staff is a change
-  in what the farm can see.
 THREAD: medicine (a ward nurse noticing before any monitor),
   engineering (an operator who knows a machine's normal sound),
   teaching (a class size past which individuals disappear).
@@ -996,11 +745,6 @@ ESSENCE: pushing hard on production traits drags the fitness traits
   deliberately.
 ROOT: heredity / traits are linked through shared physiology, so
   selecting on one moves others whether or not anyone selected them.
-CANNOT: no selecting for a single trait without moving its
-  correlated ones. And no correcting it by management alone: an
-  animal bred to a level of output its body struggles to support
-  needs more inputs, more attention and more veterinary help for
-  every year of its shorter life.
 THREAD: farming (a high-yield crop that needs the whole package),
   engineering (a design optimised on one measure failing on others),
   sport (a specialised athlete fragile outside the sport).
@@ -1015,11 +759,6 @@ ESSENCE: on a farm the value of the individual sets the ceiling on
 ROOT: money / a treatment competes against alternatives, and where
   the individual's value is bounded the alternatives include
   replacement.
-CANNOT: no transplanting pet-animal practice onto livestock — the
-  economics forbid it, and pretending otherwise leads to animals
-  neither treated properly nor put down promptly. And no herd
-  improvement from individual treatment alone: treating the cases
-  never touches whatever is producing them.
 THREAD: public health (population measures against individual
   care), medicine (cost-effectiveness deciding what is offered),
   logistics (repair against replace as an economic question).
@@ -1033,11 +772,6 @@ ESSENCE: deciding which animals leave is the strongest and cheapest
   genetics that produced them, all in one decision.
 ROOT: heredity / a population is shaped by who stays, so removal is
   as strong a lever as any selection of who is bred.
-CANNOT: no herd health improving while its worst animals are kept
-  and treated indefinitely. And no culling decision that is only
-  about the individual: the animal removed is also removed as a
-  source, so the calculation includes what it was doing to everything
-  around it.
 THREAD: money (cutting losses being harder than making gains),
   people together (a team improved most by who leaves), farming
   (roguing diseased plants from a crop).
@@ -1052,11 +786,6 @@ ESSENCE: almost everything a farm vet treats was caused by the
   right.
 ROOT: farming / an animal is a system in an environment, so its
   health is mostly a property of the environment.
-CANNOT: no solving a herd problem in the animal when the cause is in
-  the building — the treatment succeeds, the disease returns, and
-  the conclusion drawn is usually that the drug has stopped working.
-  And no environment-free medicine: the same disease in two sheds is
-  two different problems.
 THREAD: public health (housing, water and air determining health far
   more than clinics), engineering (a machine failing from its
   installation rather than its design), medicine (a patient's

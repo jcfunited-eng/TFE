@@ -14,11 +14,6 @@ ESSENCE: two separate systems decide whether you can sleep. One is a
 ROOT: living machinery / the body keeps its own day and runs it whatever
   the outside does; engineering (two independent controllers acting on
   one output).
-CANNOT: no sleeping well against a closed window however tired you are —
-  which is why a night worker lying down exhausted at nine in the
-  morning sleeps badly and briefly. And no explaining sleep with
-  tiredness alone: the second wind in the evening and the dip after
-  lunch are both the clock overruling the pressure, on schedule.
 THREAD: living machinery (the body's own day, running from the inside),
   engineering (a set point and a separate permission), flight (two
   instruments that must agree before an action is safe).
@@ -33,10 +28,6 @@ ROOT: astronomy / the planet's turn is the only perfectly repeatable
   fact, and a clock built on it must be corrected by the signal that
   reports it; living machinery (a clock that free-runs and is trimmed
   rather than driven).
-CANNOT: no resetting a clock with light at the wrong hour — the same
-  exposure that fixes a schedule at seven in the morning wrecks it at
-  midnight. And no shifting it fast: the correction is about an hour a
-  day, so a four-hour move takes most of a week whatever anyone does.
 THREAD: earth + sky (dawn as the one unmistakable signal), living
   machinery (jet lag as physiology rather than weakness), engineering (a
   drifting clock disciplined by a reference pulse).
@@ -50,10 +41,6 @@ ESSENCE: indoor lighting is far dimmer than people believe and daylight
 ROOT: physics / the eye's response compresses an enormous range into a
   narrow feeling, so brightness cannot be judged by looking; living
   machinery (a sense reporting differences rather than absolute levels).
-CANNOT: no judging light dose by how bright it seems — the perception is
-  compressed and the clock is not. And no substitute for going outside
-  in the morning: no household lamp gets close, which is why the
-  cheapest available sleep intervention is a walk before nine.
 THREAD: light + seeing (a range compressed by the eye), living machinery
   (a sensor that reads change and not level), health practice (an
   intervention that costs nothing and is therefore not believed).
@@ -67,11 +54,6 @@ ESSENCE: shifted schedules cost more than the hours they take away. The
 ROOT: living machinery / no arguing a clock into a new time, and no
   moving one organ's clock while the others hold; this file (the window
   and the pressure fighting each other every day).
-CANNOT: no adapting to a rotating schedule — it is designed so that
-  adaptation never completes, which is why rotating shifts are harder
-  than permanent nights. And no fixing it with more sleep: the same
-  total hours taken at the wrong point of the cycle do not restore what
-  the disagreement is costing.
 THREAD: work (a schedule designed around a rota rather than a body),
   public health (an occupational exposure carried by a whole workforce),
   living machinery (the misery being the disagreement rather than the
@@ -86,11 +68,6 @@ ESSENCE: there are hours when the body is switched off whatever the
 ROOT: living machinery / the body's own day sets a low point for
   alertness that arrives on schedule; this file (the clock decides
   performance independently of how much sleep was had).
-CANNOT: no willing alertness through the trough — effort raises effort
-  and not performance, which is why the errors are made by conscientious
-  people. And no scheduling around it entirely: somebody has to be
-  awake, so the answer is design — shorter stints, checks, rest breaks
-  and not doing the delicate work then.
 THREAD: health practice (error rates falling to process rather than to
   effort), flight (duty limits written from this arithmetic), public
   health (a road safety system built around the error rather than
@@ -106,11 +83,6 @@ ROOT: this file / the harm lies in the disagreement between the clock
   and the schedule, and this is that disagreement in miniature, repeated
   weekly; living machinery (a clock that shifts about an hour a day and
   is asked to move two).
-CANNOT: no free weekend lie-in for a body on an early alarm — the late
-  Sunday morning pushes the clock later and makes Monday worse, so the
-  recovery causes the problem it is recovering from. And no fixing it by
-  discipline at the weekend alone: the underlying mismatch is between a
-  person's chronotype and their working hours.
 THREAD: living machinery (the clock as physiology rather than habit),
   work (start times as a health policy nobody calls one), public health
   (an exposure shared by most of a population).
@@ -124,12 +96,6 @@ ESSENCE: whether a person is a morning or an evening type is
 ROOT: heredity / a clock's natural period varies between people the way
   any inherited quantity does; living machinery (a clock that runs on
   its own and is only trimmed by light).
-CANNOT: no arguing a chronotype into another one — it can be nudged an
-  hour or so with light and schedule, and not converted. And no fair
-  comparison of school performance across start times without accounting
-  for it: later school starts have repeatedly improved sleep, attendance
-  and grades in adolescents, which is one of the better-evidenced
-  findings in the whole field.
 THREAD: teaching (a timetable set by adult convenience), family + lives
   (a household with two chronotypes in it), public health (a policy
   lever that costs nothing and is fought bitterly).
@@ -145,11 +111,6 @@ ROOT: living machinery / the day's changes are filed into a keepable
   form while the doors are closed — and the filing has stages that are
   not interchangeable; engineering (a maintenance schedule where
   different jobs run at different points).
-CANNOT: no getting a full night's work done in a short night, however
-  efficiently it is slept — the stages are ordered, so a truncated night
-  is not a scaled-down one. And no ranking the stages: they are not
-  competing, and the popular claim that deep sleep is the important one
-  and dreaming optional is not supported.
 THREAD: living machinery (maintenance requiring the doors closed), the
   mind (a memory that improves overnight), teaching (a lesson slept on
   being a lesson kept).
@@ -164,11 +125,6 @@ ROOT: living machinery / every sense fades whatever stays the same, and
   a permanently reduced state becomes the baseline against which
   everything is judged; evidence + measurement (a self-report taken by
   the impaired instrument).
-CANNOT: no self-diagnosing as a short sleeper — the judgment is made by
-  the faculty that is impaired, which is why almost everybody who claims
-  it is wrong. And no training yourself to need less: the studies
-  restricting sleep show performance degrading steadily while the sense
-  of impairment plateaus after a few days.
 THREAD: health practice (a concussed player as the worst available
   judge), the mind (confidence uncoupled from competence), living
   machinery (a set point defended and a sensation that adapts).
@@ -183,10 +139,6 @@ ROOT: living machinery / lost sleep is repaid only in sleep, and repaid
   denser rather than merely longer — this is the question of what the
   repayment actually restores; evidence + measurement (two measures of
   one state that recover at different rates).
-CANNOT: no reading recovery off how you feel, which closes the most
-  natural test anyone has. And no banking sleep against a future
-  shortage in more than a small way: sleeping extra beforehand helps a
-  little and nothing like enough to pay for a run of short nights.
 THREAD: training (an athlete rating their own readiness far above their
   performance), health practice (the reserve that hides a loss until it
   is gone), flight (duty rules written because self-assessment fails).
@@ -200,11 +152,6 @@ ESSENCE: a nap works or backfires depending on its length and its hour.
 ROOT: this file / sleep pressure is a quantity that discharges, so
   spending it in the afternoon leaves less for the night; engineering (a
   battery partially discharged before the job that needed it).
-CANNOT: no long afternoon nap without a cost at bedtime — the pressure
-  taken is taken. And no nap free of grogginess if it goes deep: waking
-  out of deep sleep leaves twenty minutes or more of genuine impairment,
-  which is why a nap before driving needs coffee first and the wake-up
-  allowed for.
 THREAD: living machinery (a fuel store that refills on its own clock),
   work (a rest break designed rather than sneaked), flight (controlled
   rest with a fixed length and a check afterwards).
@@ -218,10 +165,6 @@ ESSENCE: falling asleep needs the body's temperature to drop, and it
 ROOT: physics / heat leaves down a gradient and faster through an open
   surface, so warming the skin accelerates the core's cooling; living
   machinery (the temperature thermostat and its several levers).
-CANNOT: no sleep onset without the drop, so no falling asleep easily in
-  a hot room — the cooling cannot complete. And no benefit from a hot
-  bath immediately before bed: the warming has to be far enough ahead
-  for the rebound to arrive at bedtime, which is the whole trick.
 THREAD: living machinery (cooling by sweat and by skin flow, each
   spending something), building (a bedroom's temperature as equipment),
   the body (cold feet keeping a person awake for a reason).
@@ -235,11 +178,6 @@ ESSENCE: caffeine does not remove tiredness, it hides the reading — and
 ROOT: nutrition / caffeine blocks the molecule that reports how long you
   have been awake; this file (sleep needs the pressure and the window
   together, and this removes the pressure's voice).
-CANNOT: no falling asleep normally while the pressure is blocked, so no
-  honest claim to be unaffected — the effect on sleep depth is
-  measurable in people who report none. And no clean escape: the poor
-  night raises next day's tiredness, which raises the dose, which is the
-  loop.
 THREAD: nutrition (the pharmacology, the half-life and why it differs
   between people), living machinery (a signal removed by blocking the
   receiver), this file (insomnia maintained by the attempt to fix it).
@@ -254,11 +192,6 @@ ROOT: living machinery / a system pushed steadily removes its own
   receivers and rebounds when the push stops — here inside a single
   night; this file (sleep is a structured process, and a drug can change
   the structure while leaving the hours).
-CANNOT: no restful night from a drink before bed, which closes the most
-  common self-medication for insomnia. And no reading it off the
-  falling-asleep: alcohol genuinely helps that part, which is exactly
-  why the habit forms and why it is so hard to argue against from the
-  inside.
 THREAD: living machinery (rebound as the same machinery running with the
   push removed), nutrition (the dose curve and the priority burn), this
   file (a habit maintained by an immediate reward and an invisible
@@ -274,10 +207,6 @@ ROOT: living machinery / a steady push is answered by the body removing
   its own receivers, so the exit is worse than the entrance; evidence +
   measurement (a subjective improvement much larger than the measured
   one).
-CANNOT: no long-term insomnia solved by sedation, so no exit without a
-  planned taper — the rebound is the trap and it is predictable. And no
-  equivalence with sleep: the architecture is changed, and next-day
-  impairment and fall risk in older people are real and measured.
 THREAD: health practice (a comfort treatment that removes the signal
   being tracked), living machinery (dependence as the machinery running
   with the push removed), this file (the behavioural treatment that
@@ -292,12 +221,6 @@ ESSENCE: chronic insomnia is usually kept alive by the response to it,
 ROOT: the mind / an association is learnt by pairing, so a bed paired
   with wakefulness becomes a cue for wakefulness; this file (the
   pressure is spent by lying in bed even without sleeping).
-CANNOT: no fixing it by spending longer in bed — that dilutes the
-  pressure across more hours and produces lighter, more broken sleep,
-  which is why the treatment that works starts by restricting time in
-  bed rather than extending it. And no keeping the bed as a cue for
-  sleep while using it for lying awake, which is why the instruction is
-  to get up.
 THREAD: the mind (a routine filed under a place), this file (the cue
   doing the work rather than the intention), health practice (a
   treatment that is uncomfortable first and effective after).
@@ -311,11 +234,6 @@ ESSENCE: sleep is the one task that effort makes worse. Trying produces
 ROOT: the mind / monitoring for a state requires holding it in mind, and
   holding it is incompatible with it arriving; this file (sleep arrives
   when the pressure and the window allow, and no effort adds to either).
-CANNOT: no falling asleep on purpose, ever — it is not a voluntary act,
-  so it cannot be performed. And no useful advice of the form "relax and
-  stop worrying about it": instructing someone to stop monitoring is
-  itself a monitoring instruction, which is why the working versions
-  replace the attention rather than remove it.
 THREAD: the mind (a thought that cannot be deleted by deciding), sports
   (the yips, and effort destroying an automatic action), craft (the
   loose hand outperforming the gripped one).
@@ -329,11 +247,6 @@ ESSENCE: the commonest missed cause of ruined days is a throat that
 ROOT: living machinery / the body was never designed, and the food pipe
   crossing the air pipe leaves a soft collapsible throat; this file (a
   person's own report is made by the impaired instrument).
-CANNOT: no self-detection — the awakenings do not reach memory, so the
-  sufferer's account is of tiredness with no cause. And no fixing the
-  consequences while it continues: the blood pressure, the mood and the
-  daytime sleepiness are downstream, so treating them one by one is a
-  career.
 THREAD: health practice (a symptom treated while the cause runs on),
   living machinery (the seams of a body built by renovation), family +
   lives (the partner who makes the diagnosis).
@@ -348,11 +261,6 @@ ESSENCE: screens at night are blamed almost entirely on their colour,
 ROOT: this file / the clock responds to light dose and timing, and a
   small screen delivers a small dose; the mind (attention held is
   arousal held).
-CANNOT: no meaningful clock shift from a phone screen in a lit room,
-  which closes the strongest version of the claim — the room light is
-  doing more. And no dismissing the effect either: content that grips,
-  argues or alarms delays sleep reliably, so what matters is what the
-  screen is showing rather than what colour it is.
 THREAD: the mind (attention as the thing being spent), this file (indoor
   light being far dimmer than it feels), public health (advice built on
   a mechanism rather than an outcome).
@@ -366,10 +274,6 @@ ESSENCE: what dreams are for is genuinely unsettled after a century of
 ROOT: the living world / a thing kept this long usually pays rent
   somehow, and the rent has not been located; evidence + measurement (a
   phenomenon reportable only by an unreliable witness after the fact).
-CANNOT: no interpreting a dream's content as a message — the symbol
-  dictionaries have no predictive record whatever. And no studying it
-  from the inside: the report is constructed on waking and changes as it
-  is told, so the data is a memory of a reconstruction.
 THREAD: the mind (a memory reshaped by every retelling), living
   machinery (the same wiring doing the day job and the night one),
   evidence + measurement (a question where the instrument is the
@@ -384,11 +288,6 @@ ESSENCE: sleep in later life becomes earlier, lighter and more broken,
 ROOT: living machinery / two clocks of ageing run at once, and the sleep
   machinery ages along with everything else; this file (the clock is
   trimmed by light, and an indoor life delivers less of it).
-CANNOT: no assuming an older person needs less because they get less,
-  which is the assumption that ends the enquiry before it starts. And no
-  accepting fragmentation as inevitable: bright morning light, daytime
-  activity and treating the pain fix a substantial share of what gets
-  written off as age.
 THREAD: training (what training preserves in an ageing body), health
   practice (a complaint dismissed as ageing and treatable), this file
   (light dose as the cheapest available intervention).
@@ -403,11 +302,6 @@ ROOT: evidence + measurement / a measure tested on a mixed population
   shows a small average effect that belongs entirely to a subgroup; this
   file (chronic insomnia is maintained by something the advice does not
   touch).
-CANNOT: no treating established insomnia with hygiene alone — the trials
-  are clear, and offering it as the treatment wastes months and teaches
-  people that nothing works. And no skipping it either: it is the floor,
-  and there is no point treating anything while a double espresso at
-  nine is in the picture.
 THREAD: public health (advice that reaches the people who needed it
   least), health practice (a first-line measure mistaken for the whole
   treatment), this file (the maintaining cycle that hygiene does not
@@ -421,11 +315,6 @@ ESSENCE: the first thing short sleep takes is not memory, it is judgment
 ROOT: the mind / a fast emotional verdict runs first and the slow check
   is what fatigue removes; living machinery (the brain's costly
   readiness, degraded before anything obvious fails).
-CANNOT: no noticing this from inside — the faculty that would notice is
-  the one impaired, so the tired person experiences a world that has
-  become annoying rather than a self that has changed. And no separating
-  it from the rest of a life: most of what a short night costs is spent
-  on other people.
 THREAD: the mind (an emotion as a fast reading of a stake), people
   together (a household's arguments clustering in the tired weeks), work
   (decisions made at the end of long shifts).
@@ -439,11 +328,6 @@ ESSENCE: the stress response is a solution, not an injury. It moves fuel
 ROOT: living machinery / the body has one all-purpose emergency setting
   that funds a sprint from every long-term account; the living world (a
   response tuned to the length of the danger that shaped it).
-CANNOT: no performing under pressure without the response, so no aiming
-  to eliminate it — an athlete or speaker with no arousal performs
-  badly. And no reading harm off the sensation: the pounding chest is
-  the mobilisation working, and treating it as a symptom of illness is
-  how a normal response becomes a panic problem.
 THREAD: living machinery (the emergency setting and what it borrows
   from), training (a load that builds when it is followed by recovery),
   the mind (a feeling reporting a stake).
@@ -457,11 +341,6 @@ ESSENCE: arousal helps performance up to a point and then wrecks it, and
 ROOT: mathematics / two opposing effects — mobilisation rising and
   attention narrowing — produce a curve with a peak; the mind (attention
   is one beam, and pressure narrows it).
-CANNOT: no single right level of pressure, so no coaching that applies
-  to everything — pumping up a surgeon and calming a sprinter are both
-  errors. And no removing the narrowing at high arousal: the tunnel
-  vision is the mechanism, which is why complex plans fail under
-  pressure and only rehearsed ones survive.
 THREAD: martial arts (falling to the trained floor under pressure),
   sports + games (attention freed by automation), teaching (an exam
   measuring performance under an arousal nobody trained for).
@@ -476,11 +355,6 @@ ROOT: engineering / starting and stopping are separate functions, and a
   system is characterised by whichever of them is weaker; living
   machinery (an emergency setting built for minutes and billed by the
   year).
-CANNOT: no measuring stress by the size of the reaction — the
-  informative quantity is the time to return, so a large spike that
-  clears is healthier than a small one that persists. And no clearing it
-  by waiting: if the situation is being rehearsed mentally, the body
-  keeps receiving the news as though it were arriving.
 THREAD: living machinery (a correction with a lag, and the wobble it
   creates), money (a debt whose problem is duration rather than size),
   this file (rumination as the mechanism that keeps it on).
@@ -494,12 +368,6 @@ ESSENCE: the bill for long stress is not paid in one place. It
 ROOT: living machinery / every fix is a trade priced somewhere else in
   the body, so a system held out of position pays in several currencies;
   this file (the cost is duration rather than intensity).
-CANNOT: no test for it — there is no cortisol reading or blood panel
-  that captures the load, which is why it is so easily dismissed as
-  unmeasurable and therefore unreal. And no isolating it from
-  circumstance: the people with the highest load are the ones with the
-  least control over their lives, which makes it a public health
-  quantity as much as a personal one.
 THREAD: public health (social determinants acting through a body),
   living machinery (more dials than knobs, so every knob is a
   compromise), evidence + measurement (a real quantity with no good
@@ -514,11 +382,6 @@ ESSENCE: what makes a demand stressful is not its size but whether you
 ROOT: the mind / a threat is appraised against what can be done about
   it, so the same event is two different events to two people;
   engineering (a controller with no actuator can only watch).
-CANNOT: no reducing stress by reducing demand alone — a lightened
-  workload with no control over it is not much better, which is why
-  well-meaning workplace fixes so often fail. And no substitute for real
-  predictability: telling people the schedule is more valuable than most
-  of what is offered instead, and costs nothing.
 THREAD: work (job design as a health intervention), power (control
   distributed downward or hoarded), public health (a gradient in illness
   running down a hierarchy).
@@ -532,11 +395,6 @@ ESSENCE: the body cannot tell a rehearsed threat from a present one.
 ROOT: the mind / imagination runs the same machinery as perception,
   which is what makes it useful and what makes this possible; this file
   (the harm is duration, and rumination supplies the duration).
-CANNOT: no stopping a thought by deciding to, so no useful instruction
-  to stop dwelling on it — the monitoring is the dwelling. And no
-  distinguishing the useful version from the useless one by how it
-  feels: planning and rumination feel identical from inside, and the
-  test is whether it ends in an action.
 THREAD: the mind (a thought that cannot be deleted on command), this
   file (the off-switch as the failing part), people together (an
   argument rehearsed for a week and had once).
@@ -552,11 +410,6 @@ ROOT: this file / the response continues while the situation is being
   rehearsed, so rest with the mind still engaged is not rest; living
   machinery (repair requiring conditions the working state does not
   allow).
-CANNOT: no recovering from a job while still in it mentally, so no
-  holiday that fixes anything if the phone comes along. And no detaching
-  by intention: what works is absorbing activity — exercise, craft,
-  company, anything demanding enough to occupy the attention that would
-  otherwise rehearse.
 THREAD: living machinery (maintenance that requires closing the doors),
   work (the boundary as an organisational decision rather than a
   personal one), the mind (attention as one beam that can be occupied
@@ -571,11 +424,6 @@ ESSENCE: the stress response was built to be followed by movement — fuel
 ROOT: the living world / a response is shaped by the action it prepared
   for, and the preparation is completed by the action; training (an
   acute load followed by recovery being the shape the body expects).
-CANNOT: no completing the loop by thinking about it, which is why advice
-  to calm down works so poorly. And no claiming exercise removes the
-  stressor: the meeting is still tomorrow, so what changes is the
-  physiology and the sleep, and that turns out to be most of what was
-  hurting.
 THREAD: training (the reliable and immediate effect on mood), living
   machinery (an emergency setting designed for a chase), health practice
   (movement acting on a dozen systems at once).
@@ -589,11 +437,6 @@ ESSENCE: being known and having people to call is not a soft factor.
 ROOT: the living world / the species that survived by grouping takes
   damage from being alone; this file (the response is appraised against
   what can be done, and support changes the appraisal).
-CANNOT: no substituting quantity for closeness — the count of contacts
-  predicts far less than whether anyone can be relied on. And no
-  dismissing the effect as reverse causation: the ill do become
-  isolated, and the association survives the studies designed to test
-  that.
 THREAD: family + lives (the household as a health system), public health
   (a determinant nobody can prescribe), people together (belonging as an
   ordinary human requirement).
@@ -607,11 +450,6 @@ ESSENCE: burnout is three things at once, and mistaking it for simple
 ROOT: this file / a chronic mismatch between demands and control
   produces a stable state rather than a passing one; work (a condition
   produced by a job's design and located in a person).
-CANNOT: no curing burnout with rest alone — the person returns to the
-  same conditions with the same cynicism, and it takes about a fortnight
-  to be back where they started. And no treating it as an individual
-  failing: the reliable causes are workload, control, reward, fairness,
-  community and values, all of which are properties of an organisation.
 THREAD: work (job design as the intervention), public health (an
   exposure treated as a character flaw), this file (control and
   predictability as the operative variables).
@@ -625,11 +463,6 @@ ESSENCE: what turns a job into an illness is a lasting imbalance between
 ROOT: this file / control and predictability decide a demand's cost, and
   reward and fairness are the social versions of the same thing; people
   together (a relationship judged by its balance over time).
-CANNOT: no fixing this with wellbeing provision — the fruit bowl and the
-  resilience course do not touch effort, reward, control or fairness,
-  which is why they are so widely resented. And no individual solution
-  to a structural imbalance: the person can leave, and that is the whole
-  of their leverage.
 THREAD: work (a workplace as a health exposure), power (who holds the
   say), public health (a cause located in conditions and treated in
   individuals).
@@ -644,11 +477,6 @@ ROOT: the body / the resting branch of the nervous system acts on the
   heart through the breath, which is the one autonomic connection under
   voluntary control; evidence + measurement (a robust immediate effect
   and a weak long-term literature).
-CANNOT: no fast route to calm through the in-breath — quick or deep
-  breathing raises arousal rather than lowering it, and the
-  hyperventilating anxious person is making it worse. And no claiming it
-  addresses the situation: it moves the physiology for minutes, which is
-  genuinely useful and is not a solution to anything causing the stress.
 THREAD: the body (a reflex that can be entered voluntarily), martial
   arts (breath as the settling of a body under pressure), health
   practice (a real small effect promoted into a cure).
@@ -661,11 +489,6 @@ ESSENCE: waiting for a bad thing is frequently worse than the bad thing.
 ROOT: this file / predictability lowers the response more than the size
   of the threat does, so an unresolved threat is the most expensive
   kind; the mind (a mind cannot stop monitoring an unsettled question).
-CANNOT: no closing a stress response on an open question — it stays live
-  until the matter settles, so telling somebody not to worry until they
-  know is asking for the impossible. And no comfort in reassurance
-  without information: what settles it is the answer, which is why fast
-  results are a clinical kindness and not an administrative detail.
 THREAD: health practice (the weeks between a screening recall and the
   all-clear), the mind (a question held open occupying the attention),
   public health (communication that names when the answer will come).
@@ -679,12 +502,6 @@ ESSENCE: a habit is learnt by the reward that arrived, and only an
 ROOT: the mind / a habit is a choice filed under a cue — and what files
   it is the reward that followed, on a timescale of seconds; chance +
   risk (a distant consequence discounted to nearly nothing).
-CANNOT: no habit forming around a delayed benefit on its own — so no
-  waiting for the good behaviour to become automatic through virtue. And
-  no fixing it by understanding the benefit better: the reliable move is
-  to attach an immediate reward that is genuinely felt, which is why
-  company, music, a coffee afterwards or a visible tick outperform
-  another explanation of why it matters.
 THREAD: the mind (the cue that runs the routine after the wanting has
   gone), training (a programme that survives on what is enjoyable rather
   than what is optimal), money (a saving nobody feels being a saving
@@ -699,11 +516,6 @@ ESSENCE: automaticity grows along a curve that rises fast and then
 ROOT: the mind / repetition compiles a routine, and compiling takes as
   long as it takes; this file (a complex behaviour has more to compile
   than a simple one).
-CANNOT: no fixed number of days, which closes the most repeated claim in
-  the whole self-improvement literature. And no giving up at the point
-  the number implies: the curve's shape means the early weeks feel like
-  no progress at all, so quitting at three weeks is quitting in the
-  steepest part of the effort.
 THREAD: the mind (repetition compiling a skill), training (the
   arithmetic of years against weeks), teaching (a plateau mistaken for a
   ceiling).
@@ -718,10 +530,6 @@ ESSENCE: what builds a habit is meeting the same cue in the same
 ROOT: the mind / a habit is filed under a sight, a time or a place, so
   the filing needs a stable one; teaching (spacing and consistency doing
   different jobs in learning).
-CANNOT: no automatic behaviour without a consistent trigger — so no
-  habit from a resolution to do something more often, which names no
-  situation at all. And no useful plan of the form "when I have time":
-  that describes a state, not a cue, and it never arrives.
 THREAD: the mind (the cue as the thing that actually runs it), cleaning
   + maintenance (a routine attached to a fixed point in a week), craft
   (a practice hour held at the same time every day).
@@ -735,11 +543,6 @@ ESSENCE: behaviour flows downhill along the path of least effort, and
 ROOT: the mind / deciding is expensive and the easy option takes the job
   over; engineering (a system settles into whatever state costs least to
   maintain).
-CANNOT: no willpower contest with a cue met fifty times a day and won
-  every time — the arithmetic guarantees eventual failure, so the win
-  has to be taken once, in advance, by changing the arrangement. And no
-  friction that has to be re-imposed daily: anything requiring a
-  decision each time is not friction, it is another decision.
 THREAD: public health (defaults and product design outperforming
   advice), the mind (the biscuit in the hand at the same chair),
   building (a layout deciding how a house is used).
@@ -754,11 +557,6 @@ ROOT: the mind / each judgment call is a fresh occasion for persuasion,
   and the persuading is done by the version of you that wants the thing;
   money (a rule set in advance to bind a future self who will see things
   differently).
-CANNOT: no keeping a boundary that has to be re-decided — so no
-  moderation policy for something genuinely difficult, which is why
-  bright lines are used for exactly the hard cases. And no bright line
-  without a cost: it is rigid where flexibility would have been fine,
-  and that rigidity is the price of not negotiating.
 THREAD: money (a pre-commitment against a future temptation), law (a
   rule preferred to a discretion because discretion is lobbied), right +
   wrong (a promise made to remove a later choice).
@@ -772,11 +570,6 @@ ESSENCE: changes framed as who you are outlast changes framed as what
 ROOT: the mind / a decision is expensive and a settled self-description
   removes the decision; people together (behaviour matching a role, in
   front of others and alone).
-CANNOT: no identity claimed into existence — it is built by accumulating
-  the evidence of small acts, so the direction runs from behaviour to
-  identity as much as back. And no shortcut through announcing it:
-  telling people about an intention can discharge some of the
-  satisfaction the doing was meant to provide.
 THREAD: people together (a role adopted and then inhabited), the mind (a
   self-description that survives contradicting evidence), teaching (a
   learner who thinks of themselves as good at something).
@@ -790,11 +583,6 @@ ESSENCE: a lapse is normal and almost never the thing that ends an
 ROOT: the mind / one bad instance is weak evidence and feels like strong
   evidence, especially against a self-description; chance + risk (a
   single result carrying almost no information about a rate).
-CANNOT: no year-long change with no lapses in it, so no plan that is
-  only viable while perfect. And no recovering from a lapse without
-  having decided in advance what a lapse means: the decision gets made
-  in the worst possible state, so it has to be made earlier — one miss
-  is a miss, two in a row is the thing to watch.
 THREAD: chance + risk (a single outcome read as a verdict), the mind (an
   all-or-nothing reading of a mixed record), training (a missed week
   inside a four-year record).
@@ -808,11 +596,6 @@ ESSENCE: an old habit is not deleted, it is outvoted. The original
 ROOT: the mind / a habit is overwritten cue by cue with a rival routine,
   and overwriting is not erasing; living machinery (a learned pathway
   that persists once built).
-CANNOT: no deleting an old habit, so no point at which the person is
-  safe from it in its original context. And no rival routine without a
-  rival: quitting alone leaves the cue firing into empty space, which is
-  why substitution outperforms subtraction almost everywhere it has been
-  compared.
 THREAD: the mind (overwriting rather than erasing), living machinery (a
   system returning to its old state when the push is removed), people
   together (an old role resumed in an old room).
@@ -826,11 +609,6 @@ ESSENCE: the best moment to change a behaviour is when the context has
 ROOT: the mind / a habit is filed under a place and a time, so losing
   the place suspends the file; this file (behaviour follows the
   arrangement it finds itself in).
-CANNOT: no window that stays open — it closes within weeks as new
-  routines compile, whatever they happen to be, so the default is that
-  the disruption installs habits rather than good ones. And no waiting
-  for one: the disruption can be manufactured, which is what rearranging
-  a kitchen or changing a commute is actually doing.
 THREAD: the mind (the chair that carried the biscuit), family + lives (a
   move as the moment everything is renegotiated), public health (an
   intervention timed to a transition rather than to a campaign).
@@ -845,11 +623,6 @@ ROOT: the mind / a decision made in advance is not present at the moment
   of action, which is run by cues and by whatever is easiest; evidence +
   measurement (a predictor that explains a fraction of the variation and
   is treated as the cause).
-CANNOT: no closing this gap with more motivation — increasing the
-  intention barely moves the behaviour, which is the finding that
-  undermines most persuasion campaigns. And no explaining the gap as
-  insincerity: the intention was real, and what was missing was a
-  specification of when and where.
 THREAD: public health (education campaigns that change attitudes and not
   behaviour), the mind (effort spent where it moves the odds), this file
   (the environment doing what the intention cannot).
@@ -863,11 +636,6 @@ ESSENCE: the fix for the gap is unglamorous: decide in advance exactly
 ROOT: the mind / a cue fires a routine cheaply while a decision is
   expensive, so a plan that names a cue is a plan that will run; this
   file (a habit needs a situation to attach to).
-CANNOT: no benefit from a vague plan — more, better, regularly and soon
-  name no situation and change nothing. And no plan that survives
-  without a specified trigger: the value is entirely in the
-  specification, not in the resolve behind it, which is why weak
-  intentions with specific plans beat strong intentions without them.
 THREAD: the mind (a routine filed under a time and a place), flight (a
   briefed action attached to a named condition), craft (a step written
   into the sequence rather than remembered).
@@ -881,11 +649,6 @@ ESSENCE: measuring a behaviour changes it before anything else is done.
 ROOT: evidence + measurement / an instrument that the subject can see
   becomes part of the system it measures; the mind (attention brought to
   something automatic converts it back into a decision).
-CANNOT: no neutral self-measurement, so no record that describes the
-  behaviour that would have happened. And no lasting effect from
-  measuring alone: it fades as recording becomes automatic in its turn,
-  which is why tracking works best in bursts and as a diagnostic rather
-  than as a permanent practice.
 THREAD: evidence + measurement (an observer changing the observed),
   training (the log as the mechanism of progression), money (an expense
   diary changing spending in the first week).
@@ -898,11 +661,6 @@ ESSENCE: a goal names an outcome and an outcome names no action. Lose
   the way.
 ROOT: this file / behaviour runs on cues and specifications, and an
   outcome is neither; engineering (a target is not a control input).
-CANNOT: no acting on an outcome directly — so no goal, however
-  motivating, that substitutes for naming the behaviour. And no daily
-  feedback from an outcome that moves slowly: weight, fitness and a
-  manuscript all move too slowly to reward anything, which is why
-  progress has to be measured in the behaviour instead.
 THREAD: money (a target return against a savings rate), teaching (a
   grade against a study routine), training (a programme performed
   against a physique imagined).
@@ -917,11 +675,6 @@ ROOT: evidence + measurement / a striking finding replicated in small
   studies and not in large ones is usually an artefact of how the small
   ones were run and published; this file (the reliable levers are
   structural rather than internal).
-CANNOT: no relying on a reserve of self-control that may not exist, so
-  no plan whose safety margin is being strong later. And no concluding
-  that effort is free either: whether or not the tank exists, decisions
-  genuinely do get worse when tired, hungry and hurried, which is the
-  practical part that survived.
 THREAD: evidence + measurement (replication as the actual test), the
   mind (a plausible model outliving its evidence), this file (designing
   so that self-control is not required).
@@ -936,11 +689,6 @@ ROOT: this file / behaviour flows down the effort gradient, and the
   gradient is what remains when attention is gone; health practice (an
   error rate that cannot be lowered by telling careful people to be
   careful).
-CANNOT: no vigilance held across thousands of occasions — a per-occasion
-  failure rate multiplied by a year's occasions approaches certainty, so
-  any scheme depending on it has a date of failure written into it. And
-  no way to test a plan in a good week: the good week is not the
-  condition it has to survive.
 THREAD: health practice (checklists and marked limbs instead of more
   effort), engineering (a design that fails safe rather than one that
   requires attention), flight (procedures written because trained people

@@ -10,11 +10,6 @@ ESSENCE: law's distinctive act is announcing, in advance, what will
   read them and steer.
 ROOT: law / a rule must be findable to be owed; the mind / people can
   only aim at a target they can see.
-CANNOT: no punishing under a rule made after the act — a penalty
-  invented afterwards teaches nobody anything and steers nothing. No
-  guidance from a rule too vague to obey; if honest people cannot tell
-  which side of it they are on, it is not a rule, it is a licence for
-  whoever enforces it.
 THREAD: games (rules fixed before the deal), teaching (a mark scheme
   handed out with the assignment), employment (a policy that cannot
   discipline yesterday's conduct).
@@ -27,10 +22,6 @@ ESSENCE: law and morality overlap and neither contains the other.
   strangers.
 ROOT: right + wrong / a moral claim needs no procedure; law / a legal
   claim needs one, and the procedure is what shrinks it.
-CANNOT: no law against everything wrong — ingratitude, cruelty of the
-  tongue and most betrayal are unprovable and would put a court in
-  every kitchen. No moral force from legality either; that a thing is
-  permitted says nothing about whether it should be done.
 THREAD: medicine (what is licensed against what is wise), business
   (lawful and shameful trading), families (a promise that no court
   will ever hear).
@@ -42,11 +33,6 @@ ESSENCE: two engines make law. One writes a general rule in advance
   the case; the second is exact and accumulates slowly.
 ROOT: law / like cases must fall alike — and the likeness can be
   declared first or discovered afterwards.
-CANNOT: no statute that anticipates every case it will meet, so
-  judges must fill gaps whatever the theory says. No case-built rule
-  available before somebody has already suffered the facts that made
-  it — the first person through pays for the clarity everyone after
-  enjoys.
 THREAD: language (a grammar written down against usage hardening into
   rule), medicine (a protocol issued against practice settling from
   cases), building (a code against a trade custom).
@@ -58,10 +44,6 @@ ESSENCE: a constitution is a law that ordinary law may not
   overrule the elected — and that is the design, not a fault in it.
 ROOT: people and power / the deepest rule is the one saying how rules
   may be changed, and this is that rule armed.
-CANNOT: no supremacy without a striker-down, and no striker-down that
-  is itself elected in the ordinary way — it would then answer to the
-  majority it exists to restrain. No enforcement by that body either:
-  it holds no army, so its power is entirely the habit of obeying it.
 THREAD: sport (a governing body that voids a result the crowd wanted),
   clubs (a founding charter needing a two-thirds vote), families (a
   will that binds the heirs who would rather it did not).
@@ -73,10 +55,6 @@ ESSENCE: splitting the power to write rules, to apply them, and to
   bodies, with different interests and different timetables, to agree.
 ROOT: power / power drifts toward concentration, so dispersal must be
   engineered against the current.
-CANNOT: no protection from separation where the same faction holds
-  every branch — the lines are still drawn and nothing stands on
-  them. No efficiency from it either: the friction is the product,
-  and complaining about the delay is complaining about the safeguard.
 THREAD: banking (two signatures on a payment), aviation (two pilots
   who must both agree), publishing (a writer, an editor and a
   fact-checker who do not report to each other).
@@ -89,10 +67,6 @@ ESSENCE: how an answer was reached is part of the answer. The same
   everyone who was not there.
 ROOT: power / procedure removes persons from decisions, and belief in
   the outcome is what procedure buys.
-CANNOT: no acceptable verdict from a hidden process, however correct
-  it turns out to be — the watching public cannot tell correct from
-  lucky. No fair hearing before somebody with an interest in the
-  result; the appearance is not a lesser problem, it is the problem.
 THREAD: sport (a referee who is not a supporter), schools (a
   disciplinary hearing with the pupil present), medicine (a second
   opinion from outside the team).
@@ -105,10 +79,6 @@ ESSENCE: how sure a court must be is not a fixed thing — it is a
   recoverable and years are not.
 ROOT: law / the two errors are unequal, so the threshold is set by
   what is at stake rather than by how much can be known.
-CANNOT: no standard that removes error; raising it converts wrongful
-  convictions into wrongful acquittals, one for one. No single
-  standard for all matters either — the same threshold that is right
-  for a prison sentence would make a debt uncollectable.
 THREAD: medicine (a screening threshold trading missed cases against
   false alarms), engineering (a safety factor chosen from the cost of
   failure), hiring (a bar that rejects good people to avoid bad ones).
@@ -121,10 +91,6 @@ ESSENCE: one act can raise two separate questions. Did you wrong the
   the other is won.
 ROOT: law / punishment and compensation answer different needs and
   therefore cannot share a proceeding.
-CANNOT: no compensation for a victim from a prison sentence — the
-  state takes the punishment and the loss stays where it fell. No
-  contradiction in losing one case and winning the other; they asked
-  different questions to different standards.
 THREAD: sport (a red card and a separate assault charge), employment
   (dismissal and a tribunal claim as distinct events), insurance (a
   payout unaffected by whether anyone was prosecuted).
@@ -137,11 +103,6 @@ ESSENCE: a serious offence needs two things: the forbidden act, and a
   separates murder from an accident.
 ROOT: right + wrong / blame follows choice, and the ladder is the
   law's attempt to grade how much choice there was.
-CANNOT: no serious conviction from the act alone in a system that
-  grades blame — otherwise the surgeon and the poisoner are the same.
-  No direct evidence of a state of mind, ever: it is always inferred
-  from conduct, which is why intent is the most argued element in any
-  trial.
 THREAD: medicine (a bad outcome from a good decision), driving (an
   accident, carelessness, and racing through a crowd), teaching (a
   wrong answer against copied work).
@@ -154,10 +115,6 @@ ESSENCE: a contract is two people writing private law for
   somebody writes over them.
 ROOT: law / obligation flows from agreement; and a legal system
   cannot function if every deal must be written from nothing.
-CANNOT: no contract shorter than its defaults — what looks like a one
-  page agreement is a hundred pages of supplied law with a page of
-  changes on top. No enforcing terms that the state refuses to lend
-  its force to, whatever both sides signed.
 THREAD: building (a standard form with a schedule of amendments),
   language (grammar supplied so speakers need not agree it), games
   (house rules layered on a printed rulebook).
@@ -170,11 +127,6 @@ ESSENCE: consent is the source of a contract's force, so where
   choice.
 ROOT: right + wrong / agreement means less as the power gap widens,
   and the law must draw a line somewhere in that gradient.
-CANNOT: no unlimited freedom of contract — if desperation could
-  authorise anything, then anything could be bought from the
-  desperate, and the market for it would appear immediately. No
-  bright line either: the boundary between a hard bargain and an
-  unconscionable one is argued case by case forever.
 THREAD: medicine (consent forms that must be explained, not just
   signed), employment (terms a tribunal will strike out), lending
   (rates capped whatever the borrower agreed).
@@ -186,10 +138,6 @@ ESSENCE: the law usually does not force you to keep your promise. It
   breaking and paying is the efficient thing for everyone.
 ROOT: law / a court can move money reliably and can supervise
   performance only clumsily, so it does what it does well.
-CANNOT: no ordering someone to perform a personal service; that is
-  compulsion, and courts will not run it. No damages at all for a
-  loss the breaker could not have foreseen when the deal was made —
-  liability tracks what was in contemplation, not what happened.
 THREAD: employment (notice paid in lieu of worked), building (a
   contractor who pays rather than finishes), tickets (a refund rather
   than a seat).
@@ -201,10 +149,6 @@ ESSENCE: damages aim to put the wronged party where performance
   not a bigger claim, it is an uncollectable one.
 ROOT: law / the remedy must match the wrong, and the wrong here is
   the missing performance rather than the broken promise.
-CANNOT: no recovering a loss you could have avoided cheaply. No
-  profit from a breach either — damages restore, they do not reward,
-  which is why a claim that would leave you better off than
-  performance fails.
 THREAD: insurance (a duty to prevent further damage after a leak),
   farming (a crop that could have been sold elsewhere), medicine (a
   patient who refuses the treatment that would have limited the
@@ -217,9 +161,6 @@ ESSENCE: tort is the law for harm between strangers who agreed
   and leaving it where it fell is itself a decision.
 ROOT: premise — every harm lands on somebody, so the only question a
   legal system can actually answer is where it should rest.
-CANNOT: no undoing an injury; money is a substitute and everyone
-  involved knows it. No leaving loss unallocated — silence is not
-  neutrality, it is a rule that the victim pays.
 THREAD: insurance (the whole trade is a market in who bears losses),
   neighbours (a fallen tree and whose tree it was), medicine (an
   injury that must be lived with whoever pays).
@@ -232,10 +173,6 @@ ESSENCE: negligence has four parts: you owed care to this person,
   what happened.
 ROOT: law / a rule must be general, so the standard is a fiction of
   an ordinary careful person rather than a checklist.
-CANNOT: no knowing in advance exactly what the standard requires;
-  that is why professions publish guidance, and why following it is a
-  defence and not a shield. No judging the standard free of hindsight
-  — the very fact that harm occurred makes the risk look obvious.
 THREAD: medicine (a protocol followed against a bad outcome), driving
   (a speed lawful and yet too fast for the conditions), employment (a
   risk assessment done after the fall).
@@ -248,10 +185,6 @@ ESSENCE: two questions hide inside "caused". Would the harm have
   somewhere.
 ROOT: causation / a cause is one link in an endless chain, and any
   stopping point is a judgement rather than a discovery.
-CANNOT: no liability without the act making a difference — a wrong
-  that changed nothing costs nothing. And no liability stretching to
-  every downstream consequence; without a limit, one careless moment
-  would own every misfortune that follows it forever.
 THREAD: medicine (a treatment that made no difference to the
   outcome), history (a war traced back to a wrong turning), insurance
   (a policy naming which links it covers).
@@ -264,10 +197,6 @@ ESSENCE: for some activities the law stops asking about fault. Keep
   can choose not to.
 ROOT: law / where proving fault is impossible for the victim and
   prevention is cheapest for the actor, liability follows the actor.
-CANNOT: no defence of "I took every precaution" where liability is
-  strict — that is what strict means. No such rule for ordinary life
-  either; applied to everything it would price walking down a street,
-  so it is reserved for chosen, profitable, dangerous activity.
 THREAD: farming (an escaped bull), manufacture (a product recall
   regardless of how careful the plant was), transport (a carrier
   liable for goods however the damage occurred).
@@ -280,10 +209,6 @@ ESSENCE: property is not a thing, it is a bundle of separate rights
   owners of different kinds.
 ROOT: law / a title is an agreement about behaviour toward an object,
   and agreements can be divided as finely as anyone likes.
-CANNOT: no answering "whose is it" with one name in any developed
-  system — the tenant, the lender, the neighbour with a right of way
-  and the council each hold real sticks. No selling more sticks than
-  you hold, however complete your ownership feels.
 THREAD: music (writing, recording and performing rights held apart),
   land (mineral rights sold from beneath a farm), families (a house
   occupied for life and owned by the children).
@@ -295,10 +220,6 @@ ESSENCE: the law protects whoever actually holds a thing against
   begin with someone taking it back by force and arguing afterwards.
 ROOT: power / the state exists to remove private remedy, so it must
   defend the present arrangement while the claim is heard.
-CANNOT: no lawful self-help repossession in most matters, however
-  clearly right you are — the remedy is a court, not a van. No
-  indefinite protection for possession either; hold long enough and
-  openly enough and many systems will simply give you the title.
 THREAD: rentals (an occupier who must be evicted through a process),
   lending (a borrowed tool that must be sued for, not seized),
   squatting (occupation ripening into a right).
@@ -310,10 +231,6 @@ ESSENCE: a right good against the whole world has to be findable by
   what he is about to be bound by.
 ROOT: law / a rule must be findable to be owed, applied to rights
   over things rather than to conduct.
-CANNOT: no secret right binding a buyer who could not have known —
-  either it is registered or it is not enforceable against him. No
-  cheap dealing in unregistered land either; every sale must then
-  investigate a chain of paper back through generations.
 THREAD: computing (a directory turning a name into an address),
   shipping (a register of vessels and their charges), marriage (a
   public record so nobody marries a spouse who is already bound).
@@ -326,10 +243,6 @@ ESSENCE: an idea copies for nothing, so nobody can be excluded from
   public ownership.
 ROOT: money / value needs rarity, and here the rarity is
   deliberately created by law rather than found in the world.
-CANNOT: no perpetual protection consistent with the bargain — remove
-  the term and the public has paid the price and never collects. No
-  protection for the idea itself either; what is protected is a
-  particular expression or a disclosed method, never the thought.
 THREAD: farming (a plant variety protected for a period), medicine (a
   drug patent and the generic that follows), publishing (works falling
   into the public domain).
@@ -342,10 +255,6 @@ ESSENCE: three different tools get muddled into one phrase. A patent
   with, and lasts as long as it is used.
 ROOT: this file / artificial scarcity must be shaped to the job it is
   paying for, and the three jobs are different.
-CANNOT: no patent without disclosure — secrecy and patent are
-  alternatives, not partners. No copyright over a fact, a method or a
-  title; and no trademark at all once a name has become the ordinary
-  word for the thing.
 THREAD: cooking (a recipe unprotectable, a cookbook protected, a
   brand protected differently), engineering (a published method
   against a guarded process), language (a brand name swallowed into
@@ -358,10 +267,6 @@ ESSENCE: when a loss must fall somewhere, the useful question is who
   now has a reason to.
 ROOT: premise — behaviour follows incentives, so a liability rule is
   a price signal aimed at whoever can respond to it.
-CANNOT: no rule that only compensates — every allocation of loss also
-  teaches somebody a lesson, whether or not that was intended. No
-  prevention bought by placing the loss on someone who could not have
-  prevented it; that is redistribution wearing a safety argument.
 THREAD: shipping (loss allocated to whoever controls the cargo at
   each stage), banking (fraud losses placed to make the bank build
   better checks), building (the party who chose the material bearing
@@ -376,10 +281,6 @@ ESSENCE: a company can own, sue, owe and be punished as if it were a
 ROOT: law / a legal person is a fiction created because it is useful,
   and this one is useful precisely because it caps somebody's
   downside.
-CANNOT: no limited liability without somebody else bearing the
-  uninsured loss — the risk is moved, never destroyed. No punishing a
-  company as such: a fine falls on shareholders and customers, and
-  the humans who decided are reached only by naming them.
 THREAD: money (investment that would not happen without a cap on
   loss), medicine (a dissolved firm and the patients still injured),
   families (a household that cannot ring-fence its debts the same
@@ -393,11 +294,6 @@ ESSENCE: there are two ways to stop harm. Write a rule that forbids
   hurt.
 ROOT: law / prevention and compensation are different instruments,
   and every system runs both because neither alone is enough.
-CANNOT: no regulation fine-grained enough to fit every operator — it
-  must be written for the average and will be wrong for the careful
-  and the reckless alike. No prevention from liability where the
-  harmer will be insolvent or untraceable when the bill arrives; then
-  the rule is the only thing left.
 THREAD: driving (a speed limit and a claim for careless driving),
   food (inspection and a claim for poisoning), building (a code and a
   suit against the builder).
@@ -409,10 +305,6 @@ ESSENCE: winning is three separate questions. Will this court hear
   and a failure on the third is a piece of paper.
 ROOT: power / a court's writ ends where the state's agents end, and
   states end at borders.
-CANNOT: no enforcement abroad without the other state agreeing to
-  lend its force. No escaping the question by contract alone — the
-  parties can name a court and a law, and cannot give that court
-  reach over assets in a country that will not cooperate.
 THREAD: shipping (a vessel arrested in a friendly port because it
   cannot be arrested at sea), money (assets moved to a place with no
   treaty), families (a custody order unenforceable across a frontier).
@@ -424,10 +316,6 @@ ESSENCE: no system can try every case, so the discount for pleading
   gap will make an innocent person with a weak case take the deal.
 ROOT: premise — behaviour follows incentives, and here the incentive
   is a certainty against a gamble with a much larger loss.
-CANNOT: no system that both offers real trials to everyone and
-  processes its actual caseload; the arithmetic does not permit it.
-  No plea system without innocent pleas — the same gap that produces
-  efficiency produces them, and it cannot be tuned away.
 THREAD: insurance (a settlement offered against the cost of fighting),
   employment (a payoff signed rather than a tribunal), games (a
   forfeit accepted because the appeal costs more).
@@ -441,11 +329,6 @@ ESSENCE: a sentence is picked from a range, and the range is written
 ROOT: power / a decision with a named frightening case and a diffuse
   cost passes easily, and the cost of severity falls on people with
   no constituency.
-CANNOT: no downward correction from inside the political process; a
-  code accumulates severity the way a coastline accumulates wreckage.
-  No consistency without narrowing the range, and no fitting the
-  person once it is narrowed — that is the whole argument about
-  guidelines in one line.
 THREAD: schools (a discipline policy written from the worst incident),
   insurance (premiums set by the catastrophic claim), aviation (rules
   written from the crash and never repealed).
@@ -458,10 +341,6 @@ ESSENCE: an appeal is a second look at the law, rarely at the facts.
 ROOT: evidence / a record preserves words and loses everything else,
   so the second reader knows less about the people and more about the
   argument.
-CANNOT: no re-running a trial on appeal — that would make the first
-  one a rehearsal and double every case. No correction on appeal of a
-  jury that simply believed the wrong witness; that error is
-  invisible in the only material the appeal court has.
 THREAD: sport (a review that can check an offside line and not a
   referee's feel for a game), medicine (a case reviewed from notes),
   examinations (a remark of the script, not a re-sit).
@@ -473,10 +352,6 @@ ESSENCE: at some point an answer must stop being questionable, even
   litigating until the other runs out of money.
 ROOT: law / predictability is the product, and a decision that can be
   reopened forever predicts nothing.
-CANNOT: no justice system that corrects every error — the cost of
-  perpetual review is paid by everyone waiting behind. No finality
-  without accepting known wrongs standing, which is why systems keep
-  narrow doors open for fresh evidence and pay for them dearly.
 THREAD: accounting (books closed at year end though errors remain),
   building (a completion certificate), sport (a result that stands
   once the season has moved on).
@@ -488,10 +363,6 @@ ESSENCE: a right you cannot afford to assert is a right in name.
   sides know it before anything is filed.
 ROOT: money / a contest whose price is time and cash is won by
   whoever can pay longest, whatever the merits.
-CANNOT: no equal access from equal rules where the costs are unequal.
-  No cheap fix either: legal aid, fee caps and no-win arrangements
-  each redistribute the problem and none removes it, because
-  representation is genuinely expensive to produce.
 THREAD: medicine (a treatment that exists and is unaffordable),
   education (a right to appeal that requires a specialist), housing
   (a tenant with a good claim and no way to run it).
@@ -503,10 +374,6 @@ ESSENCE: claims expire. Not because the wrong stops being a wrong,
   claim from a false one, and trying does more harm than refusing.
 ROOT: evidence / testimony decays with time, so a late trial is not a
   slow trial, it is a less reliable one.
-CANNOT: no justice for the very old claim, only a guess dressed as a
-  verdict. And no clean line: the same rule that protects defendants
-  from ancient accusations bars real victims who took years to be
-  able to speak, which is why every such limit is fought over.
 THREAD: accounting (records destroyed after a statutory period),
   medicine (a history nobody can now reconstruct), archaeology (a
   site whose context was lost, leaving objects that prove little).
@@ -519,10 +386,6 @@ ESSENCE: the rule of law is a claim about officials, not about
   it is only obedience.
 ROOT: power / a state's agents can always break the rule they are
   enforcing, so the doctrine is the discipline aimed at them.
-CANNOT: no rule of law where the state can decide a case about itself
-  — that is the whole reason courts must be able to rule against the
-  government and survive doing it. No test of it in easy times; it is
-  measured only when the state loses and complies.
 THREAD: sport (a governing body sanctioning its own favourite club),
   business (a firm's complaints process judged by the firm), families
   (a parent who applies a rule to themselves).
@@ -535,10 +398,6 @@ ESSENCE: people arrange their whole lives around the law as they
   rule is better than the old one.
 ROOT: law / predictability is the product, and every unpredictable
   correction spends some of it.
-CANNOT: no reform without breaking somebody's reliance; the question
-  is only who and how much notice they get. No credit for a good rule
-  applied backwards — the people it now condemns could not have obeyed
-  it when they acted.
 THREAD: money (a tax rule changed after the year it applies to),
   building (a permission withdrawn after the foundations), sport (a
   rule change applied to completed seasons).
@@ -551,10 +410,6 @@ ESSENCE: rules produce injustice in odd cases, so systems grow a
   thing to soften them.
 ROOT: law / like cases must fall alike, which turns every merciful
   exception into a general rule within a generation.
-CANNOT: no permanent escape valve — discretion exercised
-  consistently is a rule, and exercised inconsistently is caprice.
-  There is no third option, which is why this cycle repeats in every
-  legal tradition that has run long enough.
 THREAD: teaching (an exceptions policy that becomes the policy),
   offices (a favour granted twice becoming an entitlement), religion
   (dispensations hardening into canon).
@@ -568,10 +423,6 @@ ESSENCE: laypeople decide the facts because facts are about ordinary
 ROOT: power / a decision-maker who cannot be appointed, promoted or
   dismissed by a party is the only one structurally free of that
   party.
-CANNOT: no reasons from a jury, so no way to correct a verdict built
-  on a bad reason. No expertise either — a jury is chosen precisely
-  for being ordinary, which makes it excellent on credibility and
-  poor on anything technical.
 THREAD: teaching (peer marking on presentation, not on chemistry),
   sport (a crowd's sense of a foul), medicine (a lay panel judging
   whether a patient was treated with respect).
@@ -583,11 +434,6 @@ ESSENCE: some true things may not be told to a court. Not because
   when it changes nothing about whether this act happened.
 ROOT: the mind / a vivid fact captures judgement out of proportion to
   what it actually implies.
-CANNOT: no fact-finding free of prejudice once the prejudicial fact
-  is heard; an instruction to disregard is not an eraser. No
-  excluding everything either — the same reasoning taken far enough
-  would keep out most evidence, so every rule here is a fought
-  compromise.
 THREAD: medicine (a diagnosis anchored by an earlier one), hiring (a
   gap in a CV weighed far past its meaning), sport (a player's
   reputation shaping the next decision).
@@ -599,10 +445,6 @@ ESSENCE: a confession feels like the end of the argument and is the
   from an innocent person — and once given, everyone stops looking.
 ROOT: the mind / a person under enough pressure will choose the
   immediate relief over a distant consequence they cannot picture.
-CANNOT: no confession that certifies itself; it must be checked
-  against facts only the guilty could know. No undoing its effect on
-  the rest of the case — investigators, witnesses and juries all
-  reinterpret everything else around it.
 THREAD: medicine (a patient agreeing to a symptom that was suggested),
   history (confessions under torture proving whatever was wanted),
   teaching (a child admitting to whatever ends the questioning).
@@ -615,10 +457,6 @@ ESSENCE: every right is an instruction to somebody else. A right to
   whether they can bear it.
 ROOT: law / an entitlement with no corresponding duty is a wish, not
   a right.
-CANNOT: no right without an addressee — declare one that nobody in
-  particular must satisfy and it becomes a slogan that courts cannot
-  apply. No costless right: even the ones described as freedoms
-  require enforcement, and enforcement requires revenue.
 THREAD: medicine (a right to care requires trained people who exist),
   housing (a right to shelter requires somebody to build), schools (a
   right to education requires teachers and buildings).
@@ -631,10 +469,6 @@ ESSENCE: the protections that make a trial fair — silence, disclosure,
   the innocent, since innocence is the thing in dispute.
 ROOT: logic / a rule must be applied before the answer is known, so
   it cannot be conditioned on the answer.
-CANNOT: no procedural protection available only to the innocent —
-  such a rule would require deciding the case first. No system that
-  frees no guilty person and convicts no innocent one; the two rates
-  move together and every reform trades one against the other.
 THREAD: medicine (a screening rule that must apply before the
   diagnosis), security (a search rule applied to everyone), banking
   (fraud checks that inconvenience honest customers).
@@ -646,10 +480,6 @@ ESSENCE: every legal system keeps one door outside its own machinery
   result nobody can defend, and no rule can be written to catch that.
 ROOT: law / a general rule cannot anticipate every case, so
   somewhere a person must be able to say no.
-CANNOT: no mercy governed by rules — the moment it has criteria it is
-  another rule with the same problem. No accountable mercy either;
-  the same discretion that saves the sympathetic case can free a
-  friend, and there is no way to have one without the other.
 THREAD: teaching (a head who overrides an exclusion), immigration (a
   minister's exceptional grant), employment (a manager waiving a
   policy for one person).
@@ -661,10 +491,6 @@ ESSENCE: only someone actually harmed may bring a case. That keeps
   loss is worth the cost of suing.
 ROOT: law / a court decides disputes between parties, so it needs a
   party with a real stake in the answer.
-CANNOT: no court remedy for a wrong that injures everyone slightly
-  and no one enough. No sound decision from a case brought by
-  somebody indifferent to the outcome — the argument would be
-  half-fought and would bind everybody afterwards.
 THREAD: power (a diffuse cost against a concentrated benefit),
   environment (pollution harming a region and no single victim),
   consumers (a penny overcharged on a million bills).
@@ -676,10 +502,6 @@ ESSENCE: the answer to the unsuable small harm is to bundle a
   they now speak for people who have never heard of them.
 ROOT: people and power / organised numbers beat scattered ones, and
   this is that organisation performed by a law firm.
-CANNOT: no bundle without binding the absent — members who never
-  chose the lawyer are bound by the result. No perfect alignment
-  either: the assembler is paid from the settlement, so their
-  interest is a fast settlement rather than the best one.
 THREAD: unions (bargaining for members who did not vote for it),
   insurance (a pool acting for many policyholders), politics (a
   representative voting for people who disagree).
@@ -692,11 +514,6 @@ ESSENCE: nearly every case ends without a verdict. Both sides
   decisions cast over bargaining.
 ROOT: law / predictability is the product, and a predictable outcome
   can be traded rather than fought for.
-CANNOT: no settlement without a shared enough guess about the
-  verdict; where the law is unsettled the case must be fought, which
-  is exactly how the law becomes settled. No public record from a
-  settled case either — the facts stay private, and a pattern of
-  wrongdoing can be bought into silence one claim at a time.
 THREAD: money (a price found by two valuations meeting), employment
   (a settlement with a confidentiality clause), medicine (repeated
   claims settled without any of them being tried).
@@ -709,10 +526,6 @@ ESSENCE: most of what proves a case is held by the party who did the
   pages.
 ROOT: evidence / a claim is only as good as access to what happened,
   and access is usually unequal.
-CANNOT: no fair trial where one side holds all the records and need
-  not produce them. No cheap version either — the same power that
-  reveals a decisive memo is the power to bury a small claimant in
-  paper, and no rule yet written separates the two.
 THREAD: employment (a worker who cannot see the emails about them),
   medicine (records held by the hospital being sued), regulation (an
   inspector's power to compel documents).
@@ -725,11 +538,6 @@ ESSENCE: a lawyer's real work is translation. A client arrives with
 ROOT: language / a system can only process what its own vocabulary
   can express, and law's vocabulary is a fixed list of causes of
   action.
-CANNOT: no remedy for a wrong that fits no recognised shape, however
-  real the harm — that is why new kinds of injury take decades to
-  become actionable. No lay access to a system built of those shapes;
-  the translation is a specialist skill, which is most of why it
-  costs.
 THREAD: medicine (symptoms translated into a diagnosis before
   treatment exists), forms (a complaint that must be fitted to the
   boxes), language (a feeling with no word in this tongue).
@@ -743,10 +551,6 @@ ESSENCE: law uses open pretences to get work done — a company treated
 ROOT: language / a name is a tool, and a tool may be knowingly
   misapplied if it does the job and everyone knows it is being
   misapplied.
-CANNOT: no fiction that stays harmless once people forget it is one —
-  argued from as though true, it produces conclusions nobody
-  intended. No removing them cheaply either; each one is load-bearing
-  by the time anybody objects.
 THREAD: mathematics (imaginary numbers, useful long before they were
   respectable), accounting (a notional charge for an internal
   transfer), games (a rule that treats a piece as being somewhere it
@@ -760,10 +564,6 @@ ESSENCE: between states there is law and no sheriff. It works well
   powerful enough to bear the reputational cost.
 ROOT: law / enforcement is what separates law from advice, and above
   states there is no body holding force.
-CANNOT: no compulsion of a great power by international process
-  alone. No dismissing the system either — most of it is obeyed most
-  of the time, because most states gain far more from predictability
-  than from any single breach.
 THREAD: trade (contracts between firms in different countries),
   sport (international bodies whose sanction is exclusion), families
   (a household rule between adults with no authority over each other).
@@ -775,10 +575,6 @@ ESSENCE: a code is written to be read by a stranger: general
   and impossible to summarise without losing what it said.
 ROOT: writing / how knowledge is stored decides who can retrieve it,
   and these two make opposite choices about that.
-CANNOT: no code that stays complete — it is out of date the moment
-  reality invents a case, so it needs continual amendment. No quick
-  answer from case law without a trained reader; the rule exists
-  nowhere as a sentence, only as a pattern across judgments.
 THREAD: cooking (a written recipe against an apprenticeship),
   medicine (a formulary against clinical experience), craft (a
   standard against a shop's accumulated practice).
@@ -791,11 +587,6 @@ ESSENCE: judges must decide what a text means when it plainly did not
   those two, forever.
 ROOT: language / words are lossy vessels, so meaning must be
   recovered by someone, and recovery is a choice.
-CANNOT: no interpretation-free application of a rule to a case its
-  writers never imagined — even refusing to interpret is an
-  interpretation. No neutral method: strict and purposive readings
-  each favour different parties reliably, which is why the argument is
-  never about method for long.
 THREAD: scripture (letter and spirit, argued for millennia),
   computing (a program does what you wrote, never what you meant),
   contracts (a clause read against whoever drafted it).
@@ -808,10 +599,6 @@ ESSENCE: criminal law also speaks. Naming an act a crime says what
   enforced.
 ROOT: people together / a group's rules are how it tells its members
   what it is, quite apart from what it does to offenders.
-CANNOT: no separating the message from the machinery — a law passed
-  to make a statement still gives police, prosecutors and courts a
-  real power over real people. No lasting message from a rule
-  everyone can see is never applied; the statement decays into a joke.
 THREAD: schools (a rule stated to set a tone), religion (a
   prohibition that mostly instructs), sport (a code of conduct that
   says who we are).
@@ -823,10 +610,6 @@ ESSENCE: punishing the offender does nothing for the victim's loss,
   is much of why victims so often say the process was not for them.
 ROOT: law / punishment and repair are separate aims, so a proceeding
   aimed at one will not deliver the other.
-CANNOT: no repair from imprisonment — the offender's earnings stop,
-  so even a compensation order has nothing behind it. No public
-  vindication from a private settlement either; the money is paid and
-  the wrong is never named.
 THREAD: insurance (the only body that actually repairs most losses),
   medicine (treating the injury while the inquiry runs separately),
   families (an apology and a repayment being different acts).
@@ -839,10 +622,6 @@ ESSENCE: when a criminal code grows past what any person could read,
   choosing what to charge.
 ROOT: law / a rule must be findable to be owed, and findable means by
   an ordinary person, not by a specialist with a fortnight.
-CANNOT: no fair notice from a code nobody can read in a lifetime. No
-  limiting prosecutorial power while the code is that large — where
-  almost any active person is technically in breach of something, the
-  real decision moved to whoever selects the target.
 THREAD: tax (a code so long that compliance is a paid service),
   employment (a handbook nobody reads and everybody signs), driving
   (regulations breached daily by careful drivers).
@@ -855,11 +634,6 @@ ESSENCE: a trial is a contest, not an inquiry. Two sides each build
   trying to find the truth.
 ROOT: evidence / a claim tested by someone motivated to break it is
   tested harder than one examined by someone with no stake.
-CANNOT: no truth-seeking from either advocate — that is not their
-  job, and a system that expected it would collapse the first time
-  one of them did it. No fair contest between unequal advocates; the
-  method's entire justification assumes both sides are competently
-  argued.
 THREAD: science (peer review as motivated attack), sport (a game
   refereed rather than choreographed), debate (a proposition tested
   by opposition rather than by reflection).

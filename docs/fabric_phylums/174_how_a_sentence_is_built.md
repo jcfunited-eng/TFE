@@ -15,12 +15,10 @@ ESSENCE: a word's behaviour is the company it keeps — the words that
   sit immediately before and after it everywhere it has been seen.
   Behaviour is the only thing a class may be built from, because a
   word's meaning is not available before the reading and its company
-  always is.
+  always is. A word seen fewer than four times has no behaviour yet:
+  one or two sightings are an accident, not a habit.
 ROOT: language (09) / words as agreed tokens — an agreement shows up
   as a habit of position, which can be counted.
-CANNOT: no behaviour in a word seen fewer than four times — one or
-  two sightings are an accident, not a habit, and a class built on
-  them is a class built on noise. No class read off a word's meaning.
 THREAD: animals (a species is told by where it lives and what it eats
   before anyone opens it up), trade (a shop is known by its
   neighbours), music (a note's role is set by the chord under it).
@@ -32,9 +30,6 @@ ESSENCE: two words behave alike when more than half of the company
   here so it can be argued with.
 ROOT: this file / a class is a claim about company, so it is settled
   by counting company.
-CANNOT: no likeness from a single shared neighbour — one word in
-  common is a coincidence and every word in the language shares one.
-  No likeness between two words with no company at all.
 THREAD: family (kinship is shared descent, counted not felt),
   chemistry (elements grouped by how they react, not by how they
   look), medicine (a syndrome is a set of signs that travel together).
@@ -46,9 +41,6 @@ ESSENCE: the frame is the commonest hundred words in the writing, and
   so a fabric written about other things grows a different frame.
 ROOT: this file / to place a thing you need something already placed,
   and frequency is the only thing available before a reading.
-CANNOT: no frame chosen by hand — a hand-chosen frame smuggles in the
-  meaning classes this file exists to avoid. No placing a word
-  against a frame it never touches.
 THREAD: navigation (fixed stars are chosen for being always there,
   not for being interesting), surveying (a benchmark is arbitrary and
   must be), money (a unit of account is whatever everyone already
@@ -63,9 +55,6 @@ ESSENCE: a group holds while the writing habitually puts each word
   of the pair is not a habit.
 ROOT: attention (78) / a few things can be held at once, so the parts
   have to be made bigger before a long sentence will fit.
-CANNOT: no reading of a long sentence without a grouping first — the
-  parts outnumber what can be held and the reading dies of width. No
-  group built from a pair the writing never sets together.
 THREAD: music (a phrase is heard, not the notes), reading (the eye
   takes clumps), packing (things go in boxes before they go in a van).
 ASKED-AS: group chunk phrase clump run of words break boundary grouping split
@@ -80,10 +69,6 @@ ESSENCE: a nesting hangs every group under one other group, and the
   stops everything else is not a reading, it is a stall.
 ROOT: language (09) / finite pieces make infinite sentences, and only
   nesting explains how, since a flat line cannot contain itself.
-CANNOT: no nesting with crossed links. No nesting with a group
-  hanging under itself. No nesting with a loop of groups hanging
-  under each other. No nesting with two roots. No nesting with a root
-  that is not the doing. No reading without a doing.
 TRIED-AND-CLOSED: "no group hanging under one the writing never sets
   beside it" was written here as a wall and taken straight back out.
   It looks right and it is measurable, and it killed every reading of
@@ -108,13 +93,6 @@ ESSENCE: the doing is the group the sentence turns on, and it is
   subject in front of it and the wall then grips on itself.
 ROOT: grammar (67) / a sentence needs a doer and a doing, and the
   doing is the one that cannot be removed.
-CANNOT: no doing in a group never placed after a pointer. No doing in
-  a group carrying the question. A heap of names asserts nothing, so
-  nothing in it can be true or false. Contrast is not written as a
-  wall here on purpose: it says which surviving reading leads, and a
-  wall says which readings die. Written as a wall it kills every
-  reading including the one it prefers, because the rival it measures
-  against is dead by then.
 THREAD: law (a charge must state what was done), physics (a
   description with no verb describes no event), accounts (an entry
   with no transaction is not an entry).
@@ -126,9 +104,6 @@ ESSENCE: a sense is produced from the company present and never
   the moment it is written.
 ROOT: words and meaning (66) / a word alone is a menu, a word in
   company has been served.
-CANNOT: no sense taken from a stored list of senses. No sense settled
-  by one neighbour — one word of company can be borrowed, two
-  together almost never are.
 THREAD: cooking (172: two kitchen words place a kitchen), medicine (a
   sign alone is nothing, a pair is a syndrome), law (context is what
   a contract term means, and courts say so).
@@ -139,9 +114,6 @@ ESSENCE: a ready-made chunk is carried whole and only its joints are
   speaking speed.
 ROOT: attention (78) / practised things stop costing, and speech is
   the most practised thing there is.
-CANNOT: no fluent speed from building every phrase fresh — the
-  construction costs more than the gap between words allows. No chunk
-  carried that the writing has never once put together.
 THREAD: cooking (a stock made in advance), craft (a jig), music (a
   learned run under the fingers).
 ASKED-AS: chunk ready made phrase idiom fixed expression fluent speed prefab
@@ -151,9 +123,6 @@ ESSENCE: a reading's worth is what it beat — the surviving nesting
   reported without its closed alternatives has been reported dishonestly.
 ROOT: the ribbons / a finding has utility when some question reaches
   it, and the closed side is half of what was found.
-CANNOT: a reading reported with none of its closed alternatives
-  cannot be told from a guess, and is not reported. Worth is never
-  measured on the surviving side alone.
 THREAD: elections (a winner is a margin), evidence (a result with no
   control is not a result), trade (a price is what the next bid was).
 ASKED-AS: contrast beat alternative rival reading margin why this reading closed
@@ -167,16 +136,6 @@ ESSENCE: a joint is what is built fresh between two chunks carried
 ROOT: this file / ready-made chunks are carried and only the joints
   are built fresh, because there is no time to construct every phrase
   at speaking speed.
-CANNOT: no joint between two things that share no ground — a joint
-  needs something for both ends to hold. No ground counted from a
-  word the writing uses everywhere: a word common to a fiftieth of
-  all the knowledge is shared by everything and holds nothing, so
-  ground is counted in uncommon words only. One uncommon word is
-  ground enough — two things both about fingers share "finger" and
-  little else, and that is a real hold; it is two COMMON words that
-  are no hold at all. No joint stated as a chunk:
-  a joint found already written somewhere is not a joint, it is
-  another chunk. No joint between a thing and itself.
 THREAD: carpentry (the boards are milled, the joint is cut on site),
   music (the phrases are practised, the transitions are not), welding
   (the pieces are stock, the weld is the work).
@@ -188,20 +147,6 @@ ESSENCE: two things that share ground and are closed by no wall stand
   and saying which wall closed them is the whole of the answer.
 ROOT: this file / what survives the walls is the answer, so what the
   walls do to a pair is a finding about the pair.
-CANNOT: no standing-together without shared ground. No cannot-both-
-  hold without naming the wall that closed them — an unexplained
-  contradiction is an assertion, not a finding. No cannot-both-hold
-  from a wall that already closes one of them on its own: then it is
-  that one thing that is closed and the pair has nothing to do with
-  it. A contradiction is a wall that lets each stand alone and stops
-  them standing together, and nothing else earns the name. No
-  cannot-both-hold from a wall that is not about BOTH of them: two
-  things put side by side cover a lot of ground between them, and a
-  wall touching only that pile is about neither. A forbidding wall
-  says one thing cannot stand in the company of another, so it only
-  speaks to a PAIR when the forbidden thing is in one of them and the
-  company it is forbidden in is in the other. Both halves in the same
-  one is that one thing closed, and says nothing about the pair.
 THREAD: law (two clauses that cannot both be honoured, and which one
   gives), accounts (two entries that will not reconcile), medicine
   (two drugs that must not be given together).
@@ -216,10 +161,6 @@ ESSENCE: a wall made of common words is not a wall. What a wall
   sentence is sound; what was taken from it is not.
 ROOT: this file / ground is counted in uncommon words only, and a
   wall's grip is ground like any other.
-CANNOT: no wall from a forbidden part with no uncommon word in it —
-  it names nothing in particular, so it forbids nothing in
-  particular. No closing a thing on words the writing uses
-  everywhere.
 THREAD: law (a statute that forbids "conduct" forbids everything and
   is struck down for it), medicine (a test that flags everyone
   diagnoses nobody).

@@ -7,10 +7,6 @@ ESSENCE: to measure is to compare against an agreed stick — meter,
   what lets two strangers' numbers speak.
 ROOT: premise — nature carries quantities but no units; units are
   the contract that shares them.
-CANNOT: no measurement without a standard — a number with no unit
-  says nothing. Unlike sticks cannot be compared untranslated: a
-  Mars probe burned on exactly that, one team's units read as
-  another's.
 THREAD: money (currency is the agreed stick for value), music
   (concert pitch, so orchestras can meet), law (blood-alcohol
   lines and deadlines — agreed sticks for judgment).
@@ -22,9 +18,6 @@ ESSENCE: every measurement wears error bars — the honest form of
 ROOT: instruments jiggle, hands differ, the world moves during the
   reading; repeat the measurement and the scatter you see IS the
   bar.
-CANNOT: no exact measurement of anything continuous — more
-  decimals can be bought; the last decimal cannot. Two results
-  whose bars overlap cannot honestly be called different.
 THREAD: polls (the margin printed small under the headline),
   machining (parts made to tolerances, never to sizes), physics'
   floor (the world itself refuses exact pairs — file 01's last
@@ -36,9 +29,6 @@ ESSENCE: an experiment forces nature to answer one question —
   twin (the control) to show what would have happened anyway.
 ROOT: causes hide in crowds of circumstance; isolation is the only
   interrogation they answer.
-CANNOT: no changing two things and knowing which one worked.
-  Without the untouched twin, no telling the medicine from the
-  recovery that was coming regardless.
 THREAD: cooking (same recipe twice, changing only the butter),
   farming's side-by-side test plots (the first controlled trials),
   the sugar-pill group in medicine, debugging any machine — one
@@ -51,8 +41,6 @@ ESSENCE: moving together is not causing — a hidden third thing
 ROOT: correlation is a fact about records; cause is a claim about
   intervention — only changing something (the experiment) promotes
   one to the other.
-CANNOT: no reading cause off co-movement alone — direction and
-  third things are invisible inside the record itself.
 THREAD: roosters and sunrise (arrow backward), more firemen at
   fires with more damage (the third thing is the fire's size),
   trading (patterns mined from co-movement die when bet on — the
@@ -65,10 +53,6 @@ ESSENCE: who you asked shapes what you heard — a sample speaks for
   tilt.
 ROOT: the part stands for the whole only by blind drawing;
   convenience is never blind.
-CANNOT: no fixing a tilted sample by enlarging it — a million
-  tilted answers measure the tilt precisely. A famous poll of two
-  million phone-owners called an election wrong; a fair draw a
-  fraction that size called it right.
 THREAD: the returning bombers (armor was wanted where their holes
   were — the downed planes, unseen, held the lesson), reviews (the
   furious and the delighted write; the middle is silent), history
@@ -81,9 +65,6 @@ ESSENCE: seekers find what they seek — the eye votes for what it
   first to defeat the seeker's own eye.
 ROOT: the mind / perception is construction, and belief steers the
   construction (file 34's editor again).
-CANNOT: no honest test designed after the answer is seen — a
-  prediction made after the result is a target painted around the
-  arrow.
 THREAD: double-blind medicine (even the doctor must not know who
   got the real pill), superstition's whole recipe (hits kept,
   misses dropped), trading systems fit to the past they were
@@ -96,9 +77,6 @@ ESSENCE: one result is a rumor — a finding becomes knowledge only
 ROOT: any single result may be luck, tilt, or hunger for the
   answer (the three entries above); independent repetition
   disinfects all three at once.
-CANNOT: no result confirms itself — repetition by the same hands
-  checks only the hands. A finding no one else can produce is not
-  knowledge yet, however famous its maker.
 THREAD: recipes (one that works only in the inventor's kitchen is
   not one), law (one witness vs corroboration), the fusion-in-a-
   jar announcement no lab could repeat — the bridge held.
@@ -109,10 +87,6 @@ ESSENCE: not finding is weak news unless the search could have
   proportion to how hard and how well you looked.
 ROOT: a miss carries information equal to the search's power, no
   more.
-CANNOT: no proving absence by casual looking. But no keeping a
-  claim alive forever on "you haven't looked everywhere" either —
-  a well-searched silence counts, and counts more with every good
-  search.
 THREAD: medicine (a clear scan of the right organ means much; "I
   feel fine" means little), keys absent from the bowl vs absent
   from the house, lake monsters in well-sounded lakes.
@@ -123,9 +97,6 @@ ESSENCE: the strongest knowledge is impossibility knowledge — a
   where failure was possible.
 ROOT: this corpus's own two-fabric law — every entry in every file
   carries a CANNOT because the CANNOT is where the strength lives.
-CANNOT: no learning from a test that could not fail, and no
-  knowledge in a claim compatible with every outcome —
-  fortune-tellers live on sentences no result can break.
 THREAD: physics (its glory is refusals — no free energy, no
   passing light), engineering (design starts from what the
   material cannot do), every white line in these files.

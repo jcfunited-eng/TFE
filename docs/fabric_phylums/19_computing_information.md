@@ -8,8 +8,6 @@ ESSENCE: information is surprise — a message carries exactly what
   message carries nothing. (the rarer the news, the more it weighs)
 ROOT: mathematics / probability — information is the odds turned
   inside out.
-CANNOT: no news in the known — a message the receiver could have
-  written transfers zero, whatever it cost to send.
 THREAD: music (file 10's engine — the expected beat carries no
   thrill), markets (a price moves only on surprise; the expected
   earnings are already inside it), language (the commonest words
@@ -21,9 +19,6 @@ ESSENCE: the bit is the atom of difference — any message, picture,
   distinguishable states, enough times, hold anything sayable.
 ROOT: mathematics / counting — two symbols suffice for all
   numbers; the rest is agreed code tables.
-CANNOT: no message from a one-state signal — the lamp that is
-  always on says nothing. Two possible states is the floor beneath
-  all speech; below it, silence.
 THREAD: farming+life (DNA spells every living thing in a
   four-letter alphabet, two bits a rung), language (Morse: a
   civilization's traffic through one on-off key), physics (no bit
@@ -36,9 +31,6 @@ ESSENCE: computation is rule-following made physical — a procedure
   relays, or electrons can walk the steps.
 ROOT: mathematics / proof — a proof is checkable step by step by
   something that knows nothing; logic is mechanical at the bottom.
-CANNOT: no "you know what I meant" — the rules run as written, not
-  as intended; every bug is the gap between the two, executed
-  faithfully.
 THREAD: cooking (a recipe precise enough cooks in any hands — most
   aren't, which is why grandma matters), law (bureaucracy is
   computation on paper; its cruelties are bugs run faithfully),
@@ -51,9 +43,6 @@ ESSENCE: one machine imitates all — a device that reads rules as
   hardware is frozen once, software is poured daily.
 ROOT: the bit (this file) — once rules and data share an alphabet,
   a machine can eat machines.
-CANNOT: no computer out-CANs the universal one — special hardware
-  buys speed, never new possibility; there is no higher machine,
-  only faster ones.
 THREAD: farming+life (every cell carries the whole rulebook; liver
   and neuron differ by which pages run), money UNSURE (the
   universal stand-in among goods — anything's imitator, nothing
@@ -67,9 +56,6 @@ ESSENCE: the halting wall — no program can read every other
 ROOT: mathematics / Gödel — the same self-reference: feed the
   foreteller a program built to do the opposite of whatever is
   foretold about it.
-CANNOT: no perfect bug-finder, no perfect virus-catcher, no
-  compiler that flags every endless loop — not unbuilt:
-  unbuildable. Every real tool patrols a wall with a proven hole.
 THREAD: mathematics (Gödel's unprovable truths and this wall are
   one theorem in two costumes), law UNSURE (no rulebook forecloses
   every exploit of itself — tax codes leak by the same geometry),
@@ -83,9 +69,6 @@ ESSENCE: error correction is redundancy spent wisely — channels
   (say it three ways, keep the majority).
 ROOT: mathematics / probability — errors strike at random, and
   random damage shows against pattern like a stain.
-CANNOT: no repair without prepayment — a message at maximum
-  compression has no spare cloth to patch with; perfectly small
-  and perfectly durable cannot be the same message.
 THREAD: farming+life (DNA runs double — each strand the other's
   backup, repair crews patrolling), language (speech is half
   redundant — why bars allow conversation: "yu cn stll rd ths"),
@@ -98,9 +81,6 @@ ESSENCE: compression is essence-extraction — to shrink a message
   what refuses to shrink is, by definition, its information.
 ROOT: information as surprise (this file) — the predictable part
   rides free; only surprise must be paid for in full.
-CANNOT: no compressor shrinks everything — most possible files are
-  patternless, and the patternless cannot shrink (a shrink-all
-  compressor could eat its own output down to nothing — absurd).
 THREAD: physics (a law is a library folded into one line — F=m·a
   is compression), this corpus ("essences, not data" IS this law,
   obeyed while stated), language (a proverb is a compressed life).
@@ -113,9 +93,6 @@ ESSENCE: encryption is a one-way door — arithmetic holds actions
 ROOT: mathematics / asymmetry of effort. UNSURE at bedrock: the
   doors are undefeated, not proven, and quantum machines already
   threaten this one.
-CANNOT: no reading without the key, though the locked text crosses
-  enemy hands in full view — possession is not access; the key,
-  not the channel, is the wall.
 THREAD: cooking (file 02's one-way protein door, chosen on purpose
   — but here the sender keeps an un-cook key), money (a digital
   signature is the door run backward: one can seal, all can
@@ -128,10 +105,6 @@ ESSENCE: copying is free and perfect — information, unlike matter,
   giving it away leaves you still holding it.
 ROOT: the bit (this file) — a difference can be restated in any
   body; only the bodies are scarce.
-CANNOT: no un-sharing — a secret told is a copy made, and copies
-  cannot be recalled. And no natural scarcity: scarcity of
-  information must be manufactured, by law or by locked doors,
-  never assumed.
 THREAD: money+law (songs needed new law where bread never did —
   property built for loaves fits copies badly), medicine (a virus
   is information copying itself on borrowed machinery — biology
@@ -145,7 +118,6 @@ ESSENCE: computers bundle by twos, not by tens — each place holds
   one carried into the place to its left.
 ROOT: computing / two states are the cheapest thing to build and
   the hardest to mistake.
-CANNOT: no place holding two in this counting. No third digit.
 THREAD: mathematics (the same bundling law, a different size),
   electricity (on and off), music (a bar of two beats).
 RULE: to add piles written in twos — work the places right to

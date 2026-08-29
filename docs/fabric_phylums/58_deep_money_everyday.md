@@ -7,9 +7,6 @@ ESSENCE: prices end in .99 because the eye weighs the left digit
   from three — stores buy that measured discount for one cent
   (the anti-theft till story is UNSURE).
 ROOT: the mind / the first thing weighed weighs most — anchoring.
-CANNOT: no symmetric penny — the cent turning 3.00 into 2.99
-  moves buyers; anywhere else it moves nobody. Power is
-  position, not value.
 THREAD: story (headlines front-load for the same reader),
   negotiation (the opening number names the battlefield).
 ASKED-AS: prices 99 cents gas station ending psychology store tag sale odd penny
@@ -20,9 +17,6 @@ ESSENCE: the house wins because every game pays a notch under
   evening, arithmetic the year.
 ROOT: chance+risk / expected value, given trials enough to
   cancel luck.
-CANNOT: no bet-sizing system turns a negative game positive —
-  doubling after losses relocates the ruin; only changed odds
-  ever helped — why card counters are expelled.
 THREAD: this file (insurance — this arithmetic reversed), sport
   (the bookmaker's line — an edge in a jersey).
 ASKED-AS: casino gambling house edge always wins slots roulette lottery streak odds
@@ -33,9 +27,6 @@ ESSENCE: insurance is the casino reversed — a small sure loss
   insure the house, not the toaster.
 ROOT: chance+risk / expected value bows to ruin — no average
   consoles a player removed from the game.
-CANNOT: no insuring the already-known — a burning house has no
-  honest price; the product is priced ignorance — why insurers
-  fight to know more than you.
 THREAD: farming (scattered plots, varied seed — ancient
   self-insurance), money (diversification — self-written cover).
 ASKED-AS: insurance premium deductible worth it extended warranty phone car health claim
@@ -46,10 +37,6 @@ ESSENCE: compound interest grows the pile by a fraction of the
   debt in under 4).
 ROOT: farming+life / whatever multiplies, multiplies its own
   multipliers — yeast, populations, money: one curve.
-CANNOT: no exponential that looks like one early — a doubling
-  process spends most of its life looking small (the
-  half-covered lily pond is one doubling from done); fortunes
-  and debts arrive "suddenly."
 THREAD: medicine (epidemics ride this curve), cooking
   (fermentation's arithmetic).
 ASKED-AS: compound interest savings retirement credit card debt double rule 72 snowball apr
@@ -60,9 +47,6 @@ ESSENCE: sales manufacture urgency because a vanishing chance is
   stand to lose this?"
 ROOT: the mind / losing weighs roughly double gaining — measured
   repeatedly.
-CANNOT: no pressure from an offer truly open forever — the pitch
-  installs a clock or count ("3 left", "today only"); the
-  deadline that quietly renews is the confession.
 THREAD: auctions (bidding wars — the same fear in numbers),
   negotiation ("final offer" — the same clock).
 ASKED-AS: sale limited time black friday deal countdown last one clearance discount ends fomo
@@ -73,9 +57,6 @@ ESSENCE: cash hurts and cards don't — bills handed over are a
   near-double bids; UNSURE how far).
 ROOT: the mind / felt-now outweighs billed-later — what sells
   sofas on installments.
-CANNOT: no making the tap sting by willpower — feeling follows
-  form; working fixes are structural (cash envelopes, the card
-  left home).
 THREAD: casinos (chips — money anesthetized on purpose), this
   file (urgency, .99 — bent scales).
 ASKED-AS: cash card credit spend more tap phone overspend budget envelope chips
@@ -86,9 +67,6 @@ ESSENCE: the middleman deletes connections — a hundred growers
   hauling, storing, bulk-splitting, and unsold-stock risk.
 ROOT: movement of goods / hubs beat webs — many-times-many
   collapses to many-plus-many.
-CANNOT: no free removal — "cut out the middleman" reassigns his
-  work to you (search, haul, store, risk); he reappears inside
-  the platforms that promised his death.
 THREAD: the body (blood — one loop, not organ-to-organ), farming
   (the grain elevator).
 ASKED-AS: middleman cut out wholesale retail markup dealer grocer direct farmer cheaper
@@ -99,8 +77,6 @@ ESSENCE: bulk is cheaper because every sale drags costs that
   (travel sizes are, per gram, the store's priciest goods).
 ROOT: money / every transaction has a toll, and tolls don't
   scale.
-CANNOT: no discount in what you waste — the half-poured gallon
-  cost more than the finished pint; stores count on overbuying.
 THREAD: cooking (the family pot beats single servings),
   engineering (setup versus run cost — the factory's logic).
 ASKED-AS: bulk costco warehouse bigger cheaper unit price per ounce family pack wholesale
@@ -111,9 +87,6 @@ ESSENCE: tipping persists because everyone is locked in by
   it in, and the lone quitter stiffs a person, not a system.
 ROOT: law+agreements / a custom is a door only everyone-at-once
   can exit — the same lock as sides of the road.
-CANNOT: no buying the meal already served — a tip now buys only
-  the next visit or the norm; measured tips barely track
-  service quality.
 THREAD: the mind (shame is the enforcement arm), law (places
   that ended it did so together).
 ASKED-AS: tipping tip how much percent restaurant waiter america why obligated delivery haircut
@@ -124,9 +97,6 @@ ESSENCE: a bubble is obvious only afterward because while it
   looks, for years, identical to the wrong one.
 ROOT: money / price is both measurement and advertisement — the
   loop feeds itself.
-CANNOT: no cashing an early correct call safely — the market can
-  stay wrong longer than a doubter stays solvent; verdict and
-  evidence arrive together, at the pop.
 THREAD: story (hindsight rewrites every disaster as foretold),
   chance+risk (the remembered prophet — thousands guessed, one
   quoted).

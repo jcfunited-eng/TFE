@@ -7,9 +7,6 @@ ESSENCE: writing is the first time-travel — a thought fixed in
   dead still talk.
 ROOT: physics / matter holds arrangement — order pressed into clay
   or ink stays until something spends energy erasing it.
-CANNOT: no reply — the reader cannot ask, and the letter says the
-  same words to every misunderstanding. And before writing, no
-  mind's contents outlived its brain.
 THREAD: heredity (DNA is writing older than writers — recipes
   crossing generations with no mind attached), music (a score lets
   the dead conduct), law (a constitution is the dead still voting).
@@ -21,9 +18,6 @@ ESSENCE: copies fight decay — every medium rots (paper burns, ink
   already dying.
 ROOT: physics / disorder wins — no vault outlasts time. Decay
   cannot be out-built, only out-bred.
-CANNOT: no permanent original. The single-copy treasure is unsafe
-  everywhere — the great library of Alexandria was one copy with
-  marble columns.
 THREAD: heredity (life's whole method — individuals die, copies do
   not), computing (the backup rule: three copies, two kinds of
   medium, one far away), money (one vault is no vault).
@@ -34,9 +28,6 @@ ESSENCE: the index makes the library — a million books without a
   and the map of the shelves is worth a wing of shelves.
 ROOT: mathematics + computing / search without order grows with
   the pile; search with order barely grows at all.
-CANNOT: no using what cannot be found — a truth filed wrong is as
-  gone as a truth burned, and worse: it still costs shelf space
-  and breeds the false comfort of "we have that somewhere."
 THREAD: the mind (tip-of-the-tongue — the fact is in there, the
   handle is lost), cities (a city without addresses cannot be
   delivered to), computing (the web is unusable without search —
@@ -49,9 +40,6 @@ ESSENCE: formats die and take their contents with them — knowledge
   storage becomes decoration.
 ROOT: language / marks mean nothing alone — meaning lives in a
   pact between writer and reader, and pacts expire.
-CANNOT: no self-explaining record. Egypt's stones survived intact
-  and unreadable for fourteen centuries — the data outlived the
-  format — until one stone carried the same words in a living code.
 THREAD: computing (the tape is fine, the tape drive is extinct),
   heredity (a genome with no living cell to read it is the same
   dead tape), music (notations lost mid-history — UNSURE how much
@@ -65,9 +53,6 @@ ESSENCE: the keeper's paradox — organizing costs now and pays
 ROOT: the mind + money / the future is discounted — present effort
   against later gain loses the vote daily. The same tax cleaning
   and maintenance pay.
-CANNOT: no indexing at recall time — the moment the answer is
-  needed is the moment there is no time to build the finding of
-  it. A pile cannot be searched at crisis speed.
 THREAD: farming (no planting at harvest time), medicine (the
   allergy noted today saves the stranger ten years out), insurance
   (premiums are this paradox priced in money).
@@ -79,10 +64,6 @@ ESSENCE: before writing, memory wore armor — rhyme, rhythm, and
 ROOT: music + language / pattern constrains choice — in a rhymed
   line most wrong words cannot fit, so the form filters errors at
   the door.
-CANNOT: no faithful plain prose across generations of mouths —
-  unarmored speech drifts a little per telling with no alarm
-  ringing. Epics crossed centuries by mouth because they were
-  bound; gossip crosses a room and arrives changed.
 THREAD: computing (the checksum is a rhyme — extra structure that
   makes corruption visible), teaching (the alphabet is sung, the
   tables chanted), law + ritual (oaths keep fixed words so any
@@ -95,9 +76,6 @@ ESSENCE: every record chooses — someone decided what was worth
 ROOT: the mind + people together / keepers keep what serves,
   flatters, or interests them; the rest was equally real and is
   equally gone.
-CANNOT: no neutral archive, and no reading silence as absence —
-  most of what happened left no record: the kitchens, the losers,
-  the ordinary days. The unrecorded cannot testify.
 THREAD: histories (the whole deferred field stands on this line),
   evidence (armor the bombers by the holes in the ones that
   returned and you armor the wrong places — the missing data is
@@ -110,9 +88,6 @@ ESSENCE: forgetting is a feature — keep everything and the useful
   memory that cannot release cannot serve.
 ROOT: the index law inverted — every kept item taxes every future
   search; the fabric's drain law wearing an archivist's coat.
-CANNOT: no total archive that stays usable — save all and the
-  archive becomes a landfill with a catalog. A search through
-  everything costs everything.
 THREAD: the mind (the man who could not forget drowned in detail —
   normal forgetting is triage), law (sealed records and spent
   convictions — societies legislate forgetting so lives can

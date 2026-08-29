@@ -33661,3 +33661,2019 @@ OPENING beat 18743 2026-08-29 17:20:47
   A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
   B stands where A is closed: zone, migration
   reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:07
+  A: what bears ice car sit spin wheel tru
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:07
+  A: what bears ice car sit spin wheel tru
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: solar, cream, fridge, compas, spark, thermostat, chart, balanc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:07
+  A: what bears ice car sit spin wheel tru
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: automatical, discharge, conclud, bould, infrar, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:08
+  A: what bears ice car sit spin wheel tru
+  B: what bears step one pump well substitut earli
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: extend, supercool
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:08
+  A: what bears ice car sit spin wheel tru
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: chopp, indistinguishable
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18746 2026-08-29 17:21:08
+  A: what bears ice car sit spin wheel tru
+  B: what bears hand leav equal time treat someone
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, stud, roar, compensat, assessment, jam, unload, pupil
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18747 2026-08-29 17:21:10
+  A: what bears ice car sit spin wheel tru
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: blurr, smudge, achiev, northern, supply
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18748 2026-08-29 17:21:12
+  A: what bears ice car sit spin wheel tru
+  B: what bears cannot see one harmles which test
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: candle, churn, mercy, hazard, flexibility, abolish, mri, coercion
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18749 2026-08-29 17:21:15
+  A: what bears ice car sit spin wheel tru
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: emulsion, trim, changeov, summit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18750 2026-08-29 17:21:19
+  A: what bears ice car sit spin wheel tru
+  B: what bears fall hold one end gentle spent
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, integrand, besieg
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18751 2026-08-29 17:21:21
+  A: what bears ice car sit spin wheel tru
+  B: what bears battery reaction instant one full slow
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rebellion
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, motor, solar, coffee, unles, momentum, collision, orbit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, scrambl, loaf, needle, fli, eddi, vote, politenes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: opposit, magnet, static, stove, bland, honey, candle, bas
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears battery reaction instant one full slow
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: textbook, evolv, reheat, fiction, scope, competent, pavement, dismantl
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18753 2026-08-29 17:21:26
+  A: what bears out kill stand fit while rul
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: halfway, payoff, pen, credibility, contradict, abolish, intelligence, instance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18755 2026-08-29 17:21:32
+  A: what bears out kill stand fit while rul
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: stud, surveillance, licence, dew, charity
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18756 2026-08-29 17:21:35
+  A: what bears out kill stand fit while rul
+  B: what bears room need cannot alone side anyth
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: syrup, artefact, deepen, nap, strap, disposal, runny, flue
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18757 2026-08-29 17:21:37
+  A: what bears out kill stand fit while rul
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: magnetism, scripture, recurr, revisit, rigour
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18758 2026-08-29 17:21:39
+  A: what bears out kill stand fit while rul
+  B: what bears generator pow push change two out
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rhyme, affection, tariff, treaty, abroad, valid, dependable, apparent
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18759 2026-08-29 17:21:42
+  A: what bears out kill stand fit while rul
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, neglect, unload, encount, boom, truthful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18760 2026-08-29 17:21:45
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, machine, free, bill, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18760 2026-08-29 17:21:45
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, goodwill
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, pole, particle, tough, bak, hurry, halfway, costume
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: compas, oppos, interchangeable, stud, titl, scaffold, survey, clevernes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bottleneck, bag, silenc, bat, evolv, abstraction, dramatic, reheat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: capp, sour, dilut, bounce, unlimit, corrosive, guide, permission
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18761 2026-08-29 17:21:48
+  A: what bears flow one finish blood train vessel
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, formality, acidity, sustain, previou, treaty, indistinguishable, identifi
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18762 2026-08-29 17:21:51
+  A: what bears flow one finish blood train vessel
+  B: what bears rate nam
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: contaminat, flee, outrank, saturation, concentrate, acquir, volcano, deviance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18769 2026-08-29 17:22:09
+  A: what bears below between bond because grease pure
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18769 2026-08-29 17:22:09
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, bowl, rippl, element, color, jar, trapp, taste
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18769 2026-08-29 17:22:09
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, without, noth
+  B stands where A is closed: attend, transcript, conductor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18769 2026-08-29 17:22:09
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outrun, warp, ignition, nitrogen, completion, steer, atmosphere, lawful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18770 2026-08-29 17:22:12
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, free, fuel
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18770 2026-08-29 17:22:12
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: dam, talent, hall
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18780 2026-08-29 17:22:27
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, output
+  B stands where A is closed: numerical
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18785 2026-08-29 17:22:35
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: matrix
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18790 2026-08-29 17:22:44
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: conserv
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18800 2026-08-29 17:23:01
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, form, free, fuel, gas, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18800 2026-08-29 17:23:01
+  A: what bears below between bond because grease pure
+  B: what connects crest
+  A stands where B is closed: nev, only, mov, chang, form, output, work, heat
+  B stands where A is closed: don
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18800 2026-08-29 17:23:01
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, crust, grease, snap, decompos, strand
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18800 2026-08-29 17:23:01
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: ignorance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18810 2026-08-29 17:23:19
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: clause, cach, regulation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18840 2026-08-29 17:24:08
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stay, machine, work, hard, win, heat, without, noth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18840 2026-08-29 17:24:08
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18840 2026-08-29 17:24:08
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, system
+  B stands where A is closed: seize
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18840 2026-08-29 17:24:08
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stable, grease, unwall, attach, soap, rinse, mineral
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18840 2026-08-29 17:24:08
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discus
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18841 2026-08-29 17:25:26
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18841 2026-08-29 17:25:26
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, without, noth
+  B stands where A is closed: screw, leg, attend, intervention, bred, correlation, connect, transcript
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18841 2026-08-29 17:25:26
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: only, mov, chang, output, work, without, noth, itself
+  B stands where A is closed: spoken
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18841 2026-08-29 17:25:26
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, impossible, dust, overlap, spark, grind, outrun, warp
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18841 2026-08-29 17:25:26
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: dam, talent, hall, calv, impression
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18842 2026-08-29 17:25:29
+  A: what bears below between bond because grease pure
+  B: what closed conversation one thread that persists between
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: double, static, infinite, histori, lag, scrambl, capp, mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18843 2026-08-29 17:25:31
+  A: what bears below between bond because grease pure
+  B: what bears force
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, constant
+  B stands where A is closed: outlast, symmetrical, deny, morality, betrayal, proximity, malice
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18844 2026-08-29 17:25:34
+  A: what bears below between bond because grease pure
+  B: what bears gas out net walk overwork netles
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: honey, hamm, brac, negotiable, contaminat, revision, con, draught
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18846 2026-08-29 17:25:52
+  A: what bears below between bond because grease pure
+  B: what bears electron deal
+  A stands where B is closed: nev, destroy, only, mov, chang, stay, system, machine
+  B stands where A is closed: hoard, resource
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18849 2026-08-29 17:25:59
+  A: what connects shov
+  B: what connects wiggl
+  A stands where B is closed: work, without, noth, itself, unles, change, need, both
+  B stands where A is closed: chang, work, noth, itself, unles, push, yourself, stop
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18849 2026-08-29 17:25:59
+  A: what connects shov
+  B: where else does birth calv heif stand
+  A stands where B is closed: nev, chang, work, hard, motion, cold, without, noth
+  B stands where A is closed: only, mov, clos, output, without, need, both, cannot
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18849 2026-08-29 17:25:59
+  A: what connects shov
+  B: what bears force
+  A stands where B is closed: nev, only, mov, chang, clos, work, hard, motion
+  B stands where A is closed: shove, infinite
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18849 2026-08-29 17:25:59
+  A: what connects shov
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: nev, only, mov, chang, clos, work, hard, motion
+  B stands where A is closed: correlat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18850 2026-08-29 17:26:03
+  A: what connects shov
+  B: what bears momentum out somewhere spike cash pip
+  A stands where B is closed: nev, only, mov, chang, clos, output, work, hard
+  B stands where A is closed: neat, pin, alt, maintenance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18853 2026-08-29 17:26:10
+  A: what connects shov
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: nev, only, mov, chang, clos, output, work, hard
+  B stands where A is closed: screw
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18854 2026-08-29 17:26:13
+  A: what connects shov
+  B: what bears end chain soft somewhere spot game
+  A stands where B is closed: nev, only, mov, chang, clos, output, work, hard
+  B stands where A is closed: seventh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18855 2026-08-29 17:26:17
+  A: what connects shov
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: nev, only, mov, chang, clos, output, work, hard
+  B stands where A is closed: restrict
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears electron deal
+  A stands where B is closed: nev, destroy, only, mov, chang, stay, system, machine
+  B stands where A is closed: energy, nev, only, mov, chang, stay, clos, system
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: creat, destroy, form, constant, machin, gas, bill, flow
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears past grow lump pip plumb cell
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: output, impossible, charg, swing, identical, tun, wire, arrangement
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, motor, yourself, shock, spark, infinite, pan, flavor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: wast, cream, double, static, powd, possibiliti, radiator, crust
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18857 2026-08-29 17:26:22
+  A: where else does birth calv heif stand
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, workforce, dough, furnace, pressur, gust, syrup, knee
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18858 2026-08-29 17:26:24
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bas, thermal, reservoir, rush, transition, offset, consideration, sunny
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18859 2026-08-29 17:26:27
+  A: where else does birth calv heif stand
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compas, flesh, panic, vulnerable, abstraction, development, verification, byt
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18860 2026-08-29 17:26:30
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discrete
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18860 2026-08-29 17:26:30
+  A: where else does birth calv heif stand
+  B: what bears both once one overshoot poison range
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: warp, purity, substanc, unnam, chunk, satisfi, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18861 2026-08-29 17:26:33
+  A: where else does birth calv heif stand
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compromise, unwall, prose, discharge, conclud, shortest, kinship, monsoon
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18862 2026-08-29 17:26:36
+  A: where else does birth calv heif stand
+  B: what bears bill direction cost neutral eith choice
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: hop, scope, attribution, envelope, licence, node, malfunction, recommendation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: reverse, bowl, overlap, particl, messag, particle, overcook, raw
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: cream, compas, chart, ignition, lubricant, compare, redundancy, flesh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discharge, conclud, infrar, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears step one pump well substitut earli
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: extend
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18865 2026-08-29 17:26:45
+  A: what bears ice car sit spin wheel tru
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: chopp, indistinguishable
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18866 2026-08-29 17:26:48
+  A: what bears ice car sit spin wheel tru
+  B: what bears hand leav equal time treat someone
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, stud, compensat, assessment, jam, unload, pupil, bell
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18867 2026-08-29 17:26:50
+  A: what bears ice car sit spin wheel tru
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: blurr, smudge, achiev, northern, supply
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18868 2026-08-29 17:26:53
+  A: what bears ice car sit spin wheel tru
+  B: what bears cannot see one harmles which test
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: candle, churn, hazard, abolish, mri, envelope, unpleasant, regime
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18869 2026-08-29 17:26:55
+  A: what bears ice car sit spin wheel tru
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: emulsion, trim, changeov, summit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18870 2026-08-29 17:26:58
+  A: what bears ice car sit spin wheel tru
+  B: what bears fall hold one end gentle spent
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, besieg
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, motor, solar, coffee, unles, momentum, collision, orbit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, scrambl, loaf, needle, fli, eddi, vote, politenes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: opposit, magnet, static, stove, bland, honey, candle, bas
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears battery reaction instant one full slow
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: textbook, evolv, reheat, fiction, scope, competent, pavement, dismantl
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18873 2026-08-29 17:27:06
+  A: what bears out kill stand fit while rul
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: halfway, payoff, pen, credibility, contradict, abolish, intelligence, instance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18875 2026-08-29 17:27:13
+  A: what bears out kill stand fit while rul
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: stud, surveillance, licence, dew, charity
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18876 2026-08-29 17:27:15
+  A: what bears out kill stand fit while rul
+  B: what bears room need cannot alone side anyth
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: syrup, artefact, deepen, nap, strap, disposal, runny, flue
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18877 2026-08-29 17:27:18
+  A: what bears out kill stand fit while rul
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: magnetism, scripture, recurr, revisit, rigour
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18878 2026-08-29 17:27:20
+  A: what bears out kill stand fit while rul
+  B: what bears generator pow push change two out
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rhyme, affection, tariff, treaty, abroad, valid, dependable, apparent
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18879 2026-08-29 17:27:23
+  A: what bears out kill stand fit while rul
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, neglect, unload, encount, boom, truthful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18880 2026-08-29 17:27:26
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, machine, free, bill, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18880 2026-08-29 17:27:26
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, goodwill
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, pole, particle, tough, bak, hurry, halfway, costume
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: compas, oppos, interchangeable, stud, titl, scaffold, survey, clevernes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bottleneck, bag, silenc, bat, evolv, abstraction, dramatic, reheat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: capp, sour, dilut, bounce, unlimit, corrosive, guide, permission
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18881 2026-08-29 17:27:28
+  A: what bears flow one finish blood train vessel
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, formality, acidity, sustain, previou, treaty, indistinguishable, identifi
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18882 2026-08-29 17:27:31
+  A: what bears flow one finish blood train vessel
+  B: what bears rate nam
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: contaminat, flee, outrank, saturation, concentrate, acquir, volcano, deviance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18889 2026-08-29 17:27:49
+  A: what bears below between bond because grease pure
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18889 2026-08-29 17:27:49
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, bowl, rippl, element, color, jar, trapp, taste
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18889 2026-08-29 17:27:49
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, without, noth
+  B stands where A is closed: attend, transcript, conductor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18889 2026-08-29 17:27:49
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outrun, warp, ignition, nitrogen, completion, steer, atmosphere, lawful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18890 2026-08-29 17:27:52
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, free, fuel
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18890 2026-08-29 17:27:52
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: dam, talent, hall
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18900 2026-08-29 17:28:09
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, output
+  B stands where A is closed: numerical
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18905 2026-08-29 17:28:18
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: matrix
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18910 2026-08-29 17:28:26
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: conserv
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18920 2026-08-29 17:28:45
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, form, free, fuel, gas, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18920 2026-08-29 17:28:45
+  A: what bears below between bond because grease pure
+  B: what connects crest
+  A stands where B is closed: nev, only, mov, chang, form, output, work, heat
+  B stands where A is closed: don
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18920 2026-08-29 17:28:45
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, crust, grease, snap, decompos, strand
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18920 2026-08-29 17:28:45
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: ignorance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18930 2026-08-29 17:29:02
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: clause, cach, regulation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18960 2026-08-29 17:29:54
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stay, machine, work, hard, win, heat, without, noth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18960 2026-08-29 17:29:54
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18960 2026-08-29 17:29:54
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, system
+  B stands where A is closed: seize
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18960 2026-08-29 17:29:54
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stable, grease, unwall, attach, soap, rinse, mineral
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 18960 2026-08-29 17:29:54
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discus
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19000 2026-08-29 17:31:04
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, free, bill, win, real, turn
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19000 2026-08-29 17:31:04
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: particle, unchang, purifi, spirit, reappear, evaporation, shelv, relocat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19040 2026-08-29 17:32:13
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: only, cannot, spe, two, exact, fast, ever, once
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19242 2026-08-29 17:38:28
+  A: what bears below between bond because grease pure
+  B: what closed conversation one thread that persists between
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: net, static, histori, scrambl, capp, sauce, beaten, scrubb
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19243 2026-08-29 17:38:30
+  A: what bears below between bond because grease pure
+  B: what bears force
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, constant
+  B stands where A is closed: outlast, proximity, malice
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19244 2026-08-29 17:38:33
+  A: what bears below between bond because grease pure
+  B: what bears gas out net walk overwork netles
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: negotiable, contaminat, con, national, competent, encouragement, criteria, centr
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19245 2026-08-29 17:38:36
+  A: what bears below between bond because grease pure
+  B: what bears gas out net walk overwork netles
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: periodic
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19249 2026-08-29 17:38:46
+  A: what connects shov
+  B: what connects wiggl
+  A stands where B is closed: nev, only, mov, chang, stay, work, hard, motion
+  B stands where A is closed: only, mov, chang, work, hard, noth, itself, turn
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19249 2026-08-29 17:38:46
+  A: what connects shov
+  B: where else does birth calv heif stand
+  A stands where B is closed: nev, only, mov, chang, stay, work, machin, impossible
+  B stands where A is closed: clos, system, machine, output, free, fuel, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19249 2026-08-29 17:38:46
+  A: what connects shov
+  B: what bears force
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: shove, infinite, downward, pendulum
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19249 2026-08-29 17:38:46
+  A: what connects shov
+  B: what bears electron deal
+  A stands where B is closed: nev, only, mov, chang, stay, system, machine, work
+  B stands where A is closed: craft
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19249 2026-08-29 17:38:46
+  A: what connects shov
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: addres, backup, aloft, recall, presence, correlat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19250 2026-08-29 17:38:50
+  A: what connects shov
+  B: what bears momentum out somewhere spike cash pip
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: brac, stride, torque, neat, pin, alt, maintenance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19253 2026-08-29 17:38:58
+  A: what connects shov
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: screw, unbalanc, crime
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19254 2026-08-29 17:39:01
+  A: what connects shov
+  B: what bears end chain soft somewhere spot game
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: seventh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19255 2026-08-29 17:39:05
+  A: what connects shov
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: restrict, wealth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears electron deal
+  A stands where B is closed: nev, destroy, only, mov, chang, stay, system, machine
+  B stands where A is closed: energy, nev, only, mov, chang, stay, clos, system
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: creat, destroy, form, constant, machin, gas, bill, flow
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears past grow lump pip plumb cell
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: output, impossible, charg, swing, momentum, identical, tun, wire
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, motor, yourself, shock, spark, infinite, pan, flavor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: wast, cream, double, static, powd, possibiliti, radiator, crust
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19257 2026-08-29 17:39:10
+  A: where else does birth calv heif stand
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, workforce, dough, furnace, pressur, gust, syrup, knee
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19258 2026-08-29 17:39:13
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bas, thermal, reservoir, rush, transition, offset, consideration, sunny
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19259 2026-08-29 17:39:15
+  A: where else does birth calv heif stand
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compas, flesh, panic, vulnerable, abstraction, development, verification, byt
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19260 2026-08-29 17:39:19
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discrete
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19260 2026-08-29 17:39:19
+  A: where else does birth calv heif stand
+  B: what bears both once one overshoot poison range
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: warp, purity, substanc, unnam, chunk, satisfi, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19261 2026-08-29 17:39:22
+  A: where else does birth calv heif stand
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compromise, unwall, prose, discharge, conclud, shortest, kinship, monsoon
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19262 2026-08-29 17:39:24
+  A: where else does birth calv heif stand
+  B: what bears bill direction cost neutral eith choice
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: hop, scope, attribution, envelope, licence, node, malfunction, recommendation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: reverse, bowl, overlap, particl, messag, particle, overcook, raw
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: cream, compas, chart, ignition, lubricant, compare, redundancy, flesh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discharge, conclud, infrar, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears step one pump well substitut earli
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: extend
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19265 2026-08-29 17:39:33
+  A: what bears ice car sit spin wheel tru
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: chopp, indistinguishable
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19266 2026-08-29 17:39:36
+  A: what bears ice car sit spin wheel tru
+  B: what bears hand leav equal time treat someone
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, stud, compensat, assessment, jam, unload, pupil, bell
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19267 2026-08-29 17:39:38
+  A: what bears ice car sit spin wheel tru
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: blurr, smudge, achiev, northern, supply
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19268 2026-08-29 17:39:41
+  A: what bears ice car sit spin wheel tru
+  B: what bears cannot see one harmles which test
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: candle, churn, hazard, abolish, mri, envelope, unpleasant, regime
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19269 2026-08-29 17:39:43
+  A: what bears ice car sit spin wheel tru
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: emulsion, trim, changeov, summit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19270 2026-08-29 17:39:47
+  A: what bears ice car sit spin wheel tru
+  B: what bears fall hold one end gentle spent
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, besieg
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, motor, solar, coffee, unles, momentum, collision, orbit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, scrambl, loaf, needle, fli, eddi, vote, politenes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: opposit, magnet, static, stove, bland, honey, candle, bas
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears battery reaction instant one full slow
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: textbook, evolv, reheat, fiction, scope, competent, pavement, dismantl
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19273 2026-08-29 17:39:54
+  A: what bears out kill stand fit while rul
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: halfway, payoff, pen, credibility, contradict, abolish, intelligence, instance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19275 2026-08-29 17:40:00
+  A: what bears out kill stand fit while rul
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: stud, surveillance, licence, dew, charity
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19276 2026-08-29 17:40:02
+  A: what bears out kill stand fit while rul
+  B: what bears room need cannot alone side anyth
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: syrup, artefact, deepen, nap, strap, disposal, runny, flue
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19277 2026-08-29 17:40:05
+  A: what bears out kill stand fit while rul
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: magnetism, scripture, recurr, revisit, rigour
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19278 2026-08-29 17:40:07
+  A: what bears out kill stand fit while rul
+  B: what bears generator pow push change two out
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rhyme, affection, tariff, treaty, abroad, valid, dependable, apparent
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19279 2026-08-29 17:40:10
+  A: what bears out kill stand fit while rul
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, neglect, unload, encount, boom, truthful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19280 2026-08-29 17:40:14
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, machine, free, bill, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19280 2026-08-29 17:40:14
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, goodwill
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, pole, particle, tough, bak, hurry, halfway, costume
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: compas, oppos, interchangeable, stud, titl, scaffold, survey, clevernes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bottleneck, bag, silenc, bat, evolv, abstraction, dramatic, reheat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: capp, sour, dilut, bounce, unlimit, corrosive, guide, permission
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19281 2026-08-29 17:40:16
+  A: what bears flow one finish blood train vessel
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, formality, acidity, sustain, previou, treaty, indistinguishable, identifi
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19282 2026-08-29 17:40:19
+  A: what bears flow one finish blood train vessel
+  B: what bears rate nam
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: contaminat, flee, outrank, saturation, concentrate, acquir, volcano, deviance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19289 2026-08-29 17:40:39
+  A: what bears below between bond because grease pure
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19289 2026-08-29 17:40:39
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, bowl, rippl, element, color, jar, trapp, taste
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19289 2026-08-29 17:40:39
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, without, noth
+  B stands where A is closed: attend, transcript, conductor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19289 2026-08-29 17:40:39
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outrun, warp, ignition, nitrogen, completion, steer, atmosphere, lawful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19290 2026-08-29 17:40:42
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, free, fuel
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19290 2026-08-29 17:40:42
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: dam, talent, hall
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19300 2026-08-29 17:40:59
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, output
+  B stands where A is closed: numerical
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19305 2026-08-29 17:41:08
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: matrix
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19310 2026-08-29 17:41:16
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: conserv
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19320 2026-08-29 17:41:34
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, form, free, fuel, gas, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19320 2026-08-29 17:41:34
+  A: what bears below between bond because grease pure
+  B: what connects crest
+  A stands where B is closed: nev, only, mov, chang, form, output, work, heat
+  B stands where A is closed: don
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19320 2026-08-29 17:41:34
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, crust, grease, snap, decompos, strand
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19320 2026-08-29 17:41:34
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: ignorance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19330 2026-08-29 17:41:53
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: clause, cach, regulation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19360 2026-08-29 17:42:48
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stay, machine, work, hard, win, heat, without, noth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19360 2026-08-29 17:42:48
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19360 2026-08-29 17:42:48
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, system
+  B stands where A is closed: seize
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19360 2026-08-29 17:42:48
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stable, grease, unwall, attach, soap, rinse, mineral
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19360 2026-08-29 17:42:48
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discus
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19400 2026-08-29 17:43:58
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, free, bill, win, real, turn
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19400 2026-08-29 17:43:58
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: particle, unchang, purifi, spirit, reappear, evaporation, shelv, relocat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19440 2026-08-29 17:45:04
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: only, cannot, spe, two, exact, fast, ever, once
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19642 2026-08-29 17:51:08
+  A: what bears below between bond because grease pure
+  B: what closed conversation one thread that persists between
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: net, static, histori, scrambl, capp, sauce, beaten, scrubb
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19643 2026-08-29 17:51:11
+  A: what bears below between bond because grease pure
+  B: what bears force
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, constant
+  B stands where A is closed: outlast, proximity, malice
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19644 2026-08-29 17:51:14
+  A: what bears below between bond because grease pure
+  B: what bears gas out net walk overwork netles
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: negotiable, contaminat, con, national, competent, encouragement, criteria, centr
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19645 2026-08-29 17:51:17
+  A: what bears below between bond because grease pure
+  B: what bears gas out net walk overwork netles
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: periodic
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19649 2026-08-29 17:51:27
+  A: what connects shov
+  B: what connects wiggl
+  A stands where B is closed: nev, only, mov, chang, stay, work, hard, motion
+  B stands where A is closed: only, mov, chang, work, hard, noth, itself, turn
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19649 2026-08-29 17:51:27
+  A: what connects shov
+  B: where else does birth calv heif stand
+  A stands where B is closed: nev, only, mov, chang, stay, work, machin, impossible
+  B stands where A is closed: clos, system, machine, output, free, fuel, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19649 2026-08-29 17:51:27
+  A: what connects shov
+  B: what bears force
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: shove, infinite, downward, pendulum
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19649 2026-08-29 17:51:27
+  A: what connects shov
+  B: what bears electron deal
+  A stands where B is closed: nev, only, mov, chang, stay, system, machine, work
+  B stands where A is closed: craft
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19649 2026-08-29 17:51:27
+  A: what connects shov
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: addres, backup, aloft, recall, presence, correlat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19650 2026-08-29 17:51:31
+  A: what connects shov
+  B: what bears momentum out somewhere spike cash pip
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: brac, stride, torque, neat, pin, alt, maintenance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19653 2026-08-29 17:51:38
+  A: what connects shov
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: screw, unbalanc, crime
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19654 2026-08-29 17:51:41
+  A: what connects shov
+  B: what bears end chain soft somewhere spot game
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: seventh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19655 2026-08-29 17:51:45
+  A: what connects shov
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: nev, only, mov, chang, stay, clos, system, machine
+  B stands where A is closed: restrict, wealth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears electron deal
+  A stands where B is closed: nev, destroy, only, mov, chang, stay, system, machine
+  B stands where A is closed: energy, nev, only, mov, chang, stay, clos, system
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears ice car sit spin wheel tru
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: creat, destroy, form, constant, machin, gas, bill, flow
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears past grow lump pip plumb cell
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: output, impossible, charg, swing, momentum, identical, tun, wire
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, motor, yourself, shock, spark, infinite, pan, flavor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears noth cannot mean game winn won
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: wast, cream, double, static, powd, possibiliti, radiator, crust
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19657 2026-08-29 17:51:50
+  A: where else does birth calv heif stand
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, workforce, dough, furnace, pressur, gust, syrup, knee
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19658 2026-08-29 17:51:53
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bas, thermal, reservoir, rush, transition, offset, consideration, sunny
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19659 2026-08-29 17:51:55
+  A: where else does birth calv heif stand
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compas, flesh, panic, vulnerable, abstraction, development, verification, byt
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19660 2026-08-29 17:51:59
+  A: where else does birth calv heif stand
+  B: what bears noth chance random near before mean
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discrete
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19660 2026-08-29 17:51:59
+  A: where else does birth calv heif stand
+  B: what bears both once one overshoot poison range
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: warp, purity, substanc, unnam, chunk, satisfi, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19661 2026-08-29 17:52:01
+  A: where else does birth calv heif stand
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: compromise, unwall, prose, discharge, conclud, shortest, kinship, monsoon
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19662 2026-08-29 17:52:04
+  A: where else does birth calv heif stand
+  B: what bears bill direction cost neutral eith choice
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: hop, scope, attribution, envelope, licence, node, malfunction, recommendation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:12
+  A: what bears ice car sit spin wheel tru
+  B: what bears mov free game forbidden delet rule
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:12
+  A: what bears ice car sit spin wheel tru
+  B: what bears out kill stand fit while rul
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: reverse, bowl, overlap, particl, messag, particle, overcook, raw
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:13
+  A: what bears ice car sit spin wheel tru
+  B: what bears like random one anyway well drug
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: cream, compas, chart, ignition, lubricant, compare, redundancy, flesh
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:13
+  A: what bears ice car sit spin wheel tru
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discharge, conclud, infrar, arc
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:13
+  A: what bears ice car sit spin wheel tru
+  B: what bears step one pump well substitut earli
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: extend
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19665 2026-08-29 17:52:13
+  A: what bears ice car sit spin wheel tru
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: chopp, indistinguishable
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19666 2026-08-29 17:52:15
+  A: what bears ice car sit spin wheel tru
+  B: what bears hand leav equal time treat someone
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, stud, compensat, assessment, jam, unload, pupil, bell
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19667 2026-08-29 17:52:18
+  A: what bears ice car sit spin wheel tru
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: blurr, smudge, achiev, northern, supply
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19668 2026-08-29 17:52:20
+  A: what bears ice car sit spin wheel tru
+  B: what bears cannot see one harmles which test
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: candle, churn, hazard, abolish, mri, envelope, unpleasant, regime
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19669 2026-08-29 17:52:23
+  A: what bears ice car sit spin wheel tru
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: emulsion, trim, changeov, summit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19670 2026-08-29 17:52:26
+  A: what bears ice car sit spin wheel tru
+  B: what bears fall hold one end gentle spent
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, besieg
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears weak hand kill whole strong spar
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, only, mov, chang, form, stay
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, motor, solar, coffee, unles, momentum, collision, orbit
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears surface line open wound direct cleanlines
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, scrambl, loaf, needle, fli, eddi, vote, politenes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: opposit, magnet, static, stove, bland, honey, candle, bas
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears battery reaction instant one full slow
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: textbook, evolv, reheat, fiction, scope, competent, pavement, dismantl
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19673 2026-08-29 17:52:33
+  A: what bears out kill stand fit while rul
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: halfway, payoff, pen, credibility, contradict, abolish, intelligence, instance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19675 2026-08-29 17:52:40
+  A: what bears out kill stand fit while rul
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: stud, surveillance, licence, dew, charity
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19676 2026-08-29 17:52:43
+  A: what bears out kill stand fit while rul
+  B: what bears room need cannot alone side anyth
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: syrup, artefact, deepen, nap, strap, disposal, runny, flue
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19677 2026-08-29 17:52:45
+  A: what bears out kill stand fit while rul
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: magnetism, scripture, recurr, revisit, rigour
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19678 2026-08-29 17:52:48
+  A: what bears out kill stand fit while rul
+  B: what bears generator pow push change two out
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rhyme, affection, tariff, treaty, abroad, valid, dependable, apparent
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19679 2026-08-29 17:52:50
+  A: what bears out kill stand fit while rul
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outlast, neglect, unload, encount, boom, truthful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19680 2026-08-29 17:52:54
+  A: what bears out kill stand fit while rul
+  B: what bears flow one finish blood train vessel
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, machine, free, bill, win, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19680 2026-08-29 17:52:54
+  A: what bears out kill stand fit while rul
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: frictionles, goodwill
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears nev noth cannot alone hand base
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears below between bond because grease pure
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: surf, pole, particle, tough, bak, hurry, halfway, costume
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears glas stone flight substance whatev smell
+  A stands where B is closed: energy, nev, destroy, only, mov, chang, form, stay
+  B stands where A is closed: compas, oppos, interchangeable, stud, titl, scaffold, survey, clevernes
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: bottleneck, bag, silenc, bat, evolv, abstraction, dramatic, reheat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears bill heat hot paid wall fast
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: capp, sour, dilut, bounce, unlimit, corrosive, guide, permission
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19681 2026-08-29 17:52:56
+  A: what bears flow one finish blood train vessel
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: rippl, formality, acidity, sustain, previou, treaty, indistinguishable, identifi
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19682 2026-08-29 17:52:59
+  A: what bears flow one finish blood train vessel
+  B: what bears rate nam
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: contaminat, flee, outrank, saturation, concentrate, acquir, volcano, deviance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19689 2026-08-29 17:53:17
+  A: what bears below between bond because grease pure
+  B: what bears mov turn change los bond because
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, creat, destroy, only, mov, chang, form
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19689 2026-08-29 17:53:17
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: battery, bowl, rippl, element, color, jar, trapp, taste
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19689 2026-08-29 17:53:17
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, without, noth
+  B stands where A is closed: attend, transcript, conductor
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19689 2026-08-29 17:53:17
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: outrun, warp, ignition, nitrogen, completion, steer, atmosphere, lawful
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19690 2026-08-29 17:53:21
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, output, work, free, fuel
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19690 2026-08-29 17:53:21
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: dam, talent, hall
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19700 2026-08-29 17:53:38
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, output
+  B stands where A is closed: numerical
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19705 2026-08-29 17:53:45
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: matrix
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19710 2026-08-29 17:53:54
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: conserv
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19720 2026-08-29 17:54:11
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: energy, nev, destroy, form, free, fuel, gas, without
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19720 2026-08-29 17:54:11
+  A: what bears below between bond because grease pure
+  B: what connects crest
+  A stands where B is closed: nev, only, mov, chang, form, output, work, heat
+  B stands where A is closed: don
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19720 2026-08-29 17:54:11
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: creat, crust, grease, snap, decompos, strand
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19720 2026-08-29 17:54:11
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: ignorance
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19730 2026-08-29 17:54:26
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: clause, cach, regulation
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19760 2026-08-29 17:55:24
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stay, machine, work, hard, win, heat, without, noth
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19760 2026-08-29 17:55:24
+  A: what bears below between bond because grease pure
+  B: what connects shov
+  A stands where B is closed: only, mov, chang, clos, system, machine, output, work
+  B stands where A is closed: mediator
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19760 2026-08-29 17:55:24
+  A: what bears below between bond because grease pure
+  B: what connects wiggl
+  A stands where B is closed: nev, creat, destroy, only, mov, chang, stay, system
+  B stands where A is closed: seize
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19760 2026-08-29 17:55:24
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: stable, grease, unwall, attach, soap, rinse, mineral
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19760 2026-08-29 17:55:24
+  A: what bears below between bond because grease pure
+  B: where else does birth calv heif stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: discus
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19800 2026-08-29 17:56:32
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: nev, only, chang, free, bill, win, real, turn
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19800 2026-08-29 17:56:32
+  A: what bears below between bond because grease pure
+  B: where else does liability damag foreseen stand
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: particle, unchang, purifi, spirit, reappear, evaporation, shelv, relocat
+  reported, not graded — worth is an observer's to say
+
+OPENING beat 19840 2026-08-29 17:57:40
+  A: what bears below between bond because grease pure
+  B: what bears energy total light price per long
+  A stands where B is closed: energy, nev, creat, destroy, only, mov, chang, form
+  B stands where A is closed: only, cannot, spe, two, exact, fast, ever, once
+  reported, not graded — worth is an observer's to say

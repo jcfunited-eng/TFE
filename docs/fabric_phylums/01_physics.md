@@ -6,8 +6,6 @@ ESSENCE: energy is never created or destroyed, only moved or changed
   in form. (E stays constant in a closed system)
 ROOT: premise — the universe keeps its books; confirmed everywhere,
   always, without exception so far.
-CANNOT: no machine can output more work than the energy fed into it.
-  Free energy machines are impossible — not hard: impossible.
 THREAD: cooking (a stove moves energy into food, never invents it),
   money (you cannot spend what does not exist — bookkeeping is this
   law wearing a suit), farming (all food energy is captured sunlight).
@@ -18,8 +16,6 @@ ESSENCE: disorder wins on its own. Heat flows hot to cold, never the
   scattered heat.
 ROOT: premise — there are astronomically more messy arrangements than
   tidy ones; chance alone walks toward mess.
-CANNOT: nothing un-mixes by itself. No engine turns heat into work
-  completely. Nothing runs forever.
 THREAD: cooking (the egg never un-cooks), cleaning (rooms dirty
   themselves; cleaning is paid work against this law), life (living
   IS paying this tax continuously), the fabric itself (Joe's white
@@ -31,8 +27,6 @@ ESSENCE: a thing keeps doing what it is doing unless pushed. Change
   shove without being shoved back. (F = m·a; action = reaction)
 ROOT: premise — motion is a state, not an activity; only CHANGE
   needs a cause.
-CANNOT: no acceleration without force. No recoilless push. You
-  cannot lift yourself by your own belt.
 THREAD: martial arts (you borrow the opponent's push), flight
   (wings shove air down, air shoves wings up), sports (every throw
   is a managed recoil), rockets (throwing mass backward IS the push).
@@ -41,8 +35,6 @@ ASKED-AS: car seatbelt brake cart slippery ice gun kick jump swing skateboard
 ESSENCE: moving mass keeps its punch: momentum (mass × speed) is
   conserved in every collision, no exceptions.
 ROOT: same bookkeeping premise as energy, applied to motion.
-CANNOT: no collision loses total momentum. A light thing cannot stop
-  a heavy thing without paying in speed.
 THREAD: sports (follow-through), car safety (crumple zones spend the
   punch over time), martial arts (mass through the target).
 ASKED-AS: crash truck bicycle billiard pool balls airbag helmet catch tackle bowling
@@ -50,8 +42,6 @@ ASKED-AS: crash truck bicycle billiard pool balls airbag helmet catch tackle bow
 ESSENCE: everything pulls on everything, weakly, by mass alone;
   double the distance and the pull drops fourfold. (F = G·m₁·m₂/r²)
 ROOT: premise — mass bends the arena all other motion plays in.
-CANNOT: nothing shielded from gravity. No sideways orbit without
-  falling — an orbit IS falling that keeps missing.
 THREAD: astronomy (all of it), oceans (tides are the moon's pull
   made visible), flight (lift is a rented victory, paid hourly),
   building (every structure is an argument with this law).
@@ -61,8 +51,6 @@ ESSENCE: waves add. Two waves in the same place sum — crest on
   crest doubles, crest on trough erases.
 ROOT: premise — a wave is a traveling disturbance of a medium, and
   disturbances stack.
-CANNOT: two identical waves meeting exactly out of step cannot make
-  light or sound — they make silence and darkness.
 THREAD: music (harmony and beat notes ARE this law), noise-cancel
   headphones, ocean rogue waves (crests stacking), Joe's crystal
   substrate (computing by wave addition).
@@ -72,8 +60,6 @@ ESSENCE: like charges push, opposites pull, and a moving charge
   makes magnetism; wiggled charges shed waves that travel alone —
   light itself.
 ROOT: premise — charge is a second kind of bookkeeping beside mass.
-CANNOT: no net charge created or destroyed. No magnetic pole alone —
-  cut a magnet, get two magnets.
 THREAD: chemistry (every bond is this pull), the body (every nerve
   firing), computing (every bit flipped), lightning, radio.
 ASKED-AS: static balloon hair magnet compass shock spark wire socks doorknob fridge
@@ -83,8 +69,6 @@ ESSENCE: matter comes in discrete pieces — atoms — and the pieces
   them.
 ROOT: premise — divide anything enough and you hit indivisible
   units with fixed characters.
-CANNOT: no smooth, infinitely divisible stuff. No transmuting lead
-  to gold by chemistry — kind is set below chemistry's reach.
 THREAD: cooking (recipes are re-arrangements, never transmutations),
   medicine (drugs are shaped keys for shaped locks), materials
   (steel vs iron is arrangement, not substance).
@@ -94,8 +78,6 @@ ESSENCE: no two matter-particles of the same kind may occupy the
   same state — they exclude each other.
 ROOT: quantum premise; UNSURE at plain-language depth, but the law
   is iron.
-CANNOT: matter cannot pass through matter. Atoms cannot collapse
-  flat. Two solids cannot share a space.
 THREAD: why floors hold, why chemistry has a periodic table at all,
   why you can grip a sword — solidity itself is this refusal.
 ASKED-AS: floor table wall chair hand ghost push glass brick touch walking
@@ -104,8 +86,6 @@ ESSENCE: nothing carrying mass or news outruns light in vacuum
   (~300,000 km each second).
 ROOT: measured premise — light's speed comes out the same for every
   observer, and everything else bends to keep that true.
-CANNOT: no instant messages. No simultaneous "now" shared across
-  distance. The stars you see are histories.
 THREAD: astronomy (telescopes are time machines), navigation and
   satellites (clocks must be corrected or maps drift), Joe's law
   that facts are moments for askers — relativity says the same.
@@ -116,8 +96,6 @@ ESSENCE: the very small runs on chance constrained by law — until
   settles it.
 ROOT: quantum premise; the deepest known layer, and the one Joe's
   trade-law most resembles.
-CANNOT: no knowing both position and speed exactly, ever — not
-  ignorance: the world does not hold both answers at once.
 THREAD: chemistry's bonds, the sun's burning (tunneling), computer
   chips (electrons obeying possibility-law by the billion), the two
   fabrics (possibility and settlement as physics, not metaphor).

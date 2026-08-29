@@ -12,10 +12,6 @@ ESSENCE: a business is not a good idea and it is not a sale. It is a
   without the other and you have a hobby or a hold-up.
 ROOT: money / value needs wanting and rarity — the making supplies
   the wanting, the keeping needs the rarity.
-CANNOT: no business from a single transaction, however profitable —
-  one sale is an event and a business is a pattern. And no business
-  from creating value you keep none of: a firm can improve a million
-  lives and die, and many have.
 THREAD: farming (a harvest against a farm), craft (a commission
   against a workshop), medicine (a cure against a practice).
 ASKED-AS: what makes a business repeatable customers value capture profit hobby one off sale
@@ -26,9 +22,6 @@ ESSENCE: three different questions wear the same word, money. Revenue
   firm can be excellent at one and dying of another.
 ROOT: accounting / earning and paying are recorded when they happen,
   and the money itself moves on a separate timetable.
-CANNOT: no reading a firm's health from any one of the three. And no
-  choosing between them either — each can end a company on its own
-  and for its own reasons, so all three have to be sound at once.
 THREAD: farming (a sold harvest, a season's costs, and a cheque that
   comes in March), households (a salary, a budget, and the day before
   payday), building (a signed contract and an empty bank account).
@@ -40,10 +33,6 @@ ESSENCE: firms rarely die of being unprofitable. They die on a Tuesday
   an event with a date on it.
 ROOT: this file / earnings are measured across a stretch of time while
   obligations fall due at single points inside it.
-CANNOT: no surviving a gap between what must be paid now and what
-  arrives later, whatever the year's figures say — nobody accepts next
-  quarter's profit as this week's wages. And no warning from the
-  profit line: a firm's most dangerous month often looks like its best.
 THREAD: households (a good salary and an overdrawn account), farming
   (rich in standing crop and unable to buy diesel), plumbing (a full
   tank behind a frozen pipe).
@@ -55,11 +44,6 @@ ESSENCE: growing costs money before it makes money. You buy the stock,
   goes. A firm can go under from too many customers.
 ROOT: this file / cash leaves on the cost's timetable and arrives on
   the customer's, and growth widens the gap between the two.
-CANNOT: no funding fast growth out of the profits that growth
-  produces — the profits arrive after the spending, always, so the
-  difference must be borrowed, invested, or taken out of the growth
-  itself. And no outrunning it by selling more: selling more is the
-  mechanism.
 THREAD: farming (an extra field planted with seed bought first),
   building (a bigger job needing materials before the first stage
   payment), households (a better job that starts a month before it
@@ -72,11 +56,6 @@ ESSENCE: before anything else, ask whether one of them pays. One
   Volume is the same injury applied repeatedly.
 ROOT: mathematics / a total is a single case multiplied, and a
   negative case multiplied stays negative however large the total.
-CANNOT: no fixing a loss-making unit by getting bigger — the only
-  thing scale changes is the share of the costs paid once, so the
-  repair has to come from the fixed side and has to be named. And no
-  hiding it: a firm losing money on every sale grows toward a larger
-  loss on a predictable schedule.
 THREAD: cooking (a dish sold under the price of its ingredients),
   transport (a route that loses on every run), farming (a crop whose
   inputs cost more than the buyer pays).
@@ -88,10 +67,6 @@ ESSENCE: what is left after the direct cost of the thing you sold is
   pound cannot afford the habits of one keeping eighty.
 ROOT: this file / capture is the size of the slice, and the slice is
   the only source that every other activity is paid out of.
-CANNOT: no expensive selling on a thin margin — the salesperson's
-  wage comes out of the pence, and at eight pence it takes an
-  impossible number of sales. And no copying a rich firm's practices
-  on a poor firm's margin; those practices are affordable, not clever.
 THREAD: shops (a grocer's pennies against a jeweller's pounds),
   farming (bulk grain against a rare herb), restaurants (drinks paying
   for the room the food sits in).
@@ -104,11 +79,6 @@ ESSENCE: costs that arrive whether or not you sell anything and costs
   the price.
 ROOT: mathematics / a cost that does not move with volume is divided
   by volume, and a cost that moves with volume never is.
-CANNOT: no discounting out of trouble with heavy variable costs —
-  every extra sale brings its own cost along, so the extra volume
-  dilutes nothing. And no holding out for price with heavy fixed
-  costs: an empty seat, an idle machine and a dark hotel room earn
-  nothing and cost the same as a full one.
 THREAD: aviation (a seat that expires at the gate), farming (a
   combine paid for whatever the yield), building (a hired crane
   costing the same on a wet day).
@@ -121,10 +91,6 @@ ESSENCE: where most costs are fixed, profit swings much harder than
   reckless in consecutive years.
 ROOT: this file / a fixed pile subtracted from a moving line leaves a
   remainder that moves by a multiple of the line.
-CANNOT: no gentle profit line in a high-fixed-cost business — the
-  amplification runs both ways and cannot be arranged to run only one.
-  And no judging such a firm by one good year: the year says as much
-  about where the volume landed as about anybody's management.
 THREAD: theatres (a full house and a half-empty one, same cast),
   farming (a fixed rent against a variable yield), sailing (a hull
   that goes faster and turns worse for the same reason).
@@ -138,11 +104,6 @@ ESSENCE: there is a volume at which you stop losing and start
 ROOT: this file / fixed costs are covered by what each sale
   contributes above its own variable cost, so the count is the pile
   divided by the contribution.
-CANNOT: no break-even figure without knowing which of your costs are
-  which — with the split wrong the number is decoration. And no static
-  answer: the point moves every time you hire, sign a lease or change
-  a price, which is why taking on a fixed cost is a decision to sell
-  more, permanently.
 THREAD: farming (acres that must be planted before a season pays),
   events (tickets that must go before the hall is covered), households
   (the earnings needed before a month is clear).
@@ -154,11 +115,6 @@ ESSENCE: a price is not a sum you calculate, it is a sentence you say
   tells the buyer nothing except that you did not think about them.
 ROOT: money / a price is where two valuations meet, and your costs
   are not standing on the buyer's side of that meeting.
-CANNOT: no cost-plus price that reflects worth — the same object is
-  worth different amounts to different buyers on different days, and
-  your costs know none of that. And no separating price from position:
-  cheap and dear are claims about quality that a buyer believes before
-  trying anything.
 THREAD: art (a canvas priced by the name on it), restaurants (a menu
   arranged so the prices explain each other), clothing (an identical
   garment at two prices sold to two different people).
@@ -171,10 +127,6 @@ ESSENCE: the same thing sold at different prices to different people
   really paying for.
 ROOT: this file / a single price refuses everybody below it and gives
   away value to everybody above it.
-CANNOT: no two prices without a barrier between the two groups — with
-  no fence the cheap price becomes the only price within a week. And
-  no fence that is free to build: the coupon, the queue, the delay and
-  the stripped-down version are all waste manufactured on purpose.
 THREAD: transport (one seat sold six ways), medicine (one drug priced
   by country), cinemas (an afternoon showing).
 ASKED-AS: different prices same product discounts students early booking coupons unfair segments
@@ -185,10 +137,6 @@ ESSENCE: a price cut teaches. Whoever buys at the lower price learns
   price and called it a sale.
 ROOT: the mind / a number once seen becomes the reference that every
   later number is judged against.
-CANNOT: no temporary price reduction inside the customer's memory. And
-  no returning to the old price without losing the buyers who came for
-  the new one — they were never your customers, they were the price's
-  customers.
 THREAD: shops (a chain that can never stop discounting), publishing (a
   cheap edition that caps the price of the next book), restaurants (a
   voucher crowd that vanishes at full price).
@@ -201,10 +149,6 @@ ESSENCE: a lower price is the one move every rival can copy by
   advantages do.
 ROOT: this file / an advantage lasts exactly as long as reproducing it
   takes, so the reproduction time is the advantage.
-CANNOT: no lasting gain from a price cut a rival can see — the share
-  comes back and the margin does not. And no price war that ends well
-  for anyone in it: it ends when somebody runs out of money, and the
-  survivor inherits a market that has learned a lower price.
 THREAD: sport (a tactic copied in a season against a decade's
   academy), farming (anyone can undercut, nobody can hurry a
   vineyard), retail (a war that leaves both shops poorer).
@@ -217,11 +161,6 @@ ESSENCE: two numbers decide whether a business can grow — what it
   guess.
 ROOT: this file / a customer is an investment paid for now and repaid
   in instalments, so the question is a return measured over a period.
-CANNOT: no growth where winning a customer costs more than the
-  customer ever brings — spending harder makes it worse faster, which
-  is the commonest way a well-funded firm dies. And no comfort from a
-  good ratio measured on the first customers: the cheapest ones came
-  first, and the price of the next thousand rises.
 THREAD: farming (an orchard paid for years before it fruits),
   education (training that repays across a career), fishing (fuel
   burned to reach a ground before anything is landed).
@@ -234,11 +173,6 @@ ESSENCE: losing a small share of customers every month is not a small
 ROOT: mathematics / a constant fraction removed repeatedly is decay,
   and decay meeting a fixed inflow settles at a level rather than
   rising without limit.
-CANNOT: no growing out of a leaking bucket by pouring faster — the
-  level where inflow equals loss is set by the loss rate, and pouring
-  only reaches it sooner. And no separating retention from growth:
-  keeping is cheaper than winning by a margin that surprises everybody
-  who measures it.
 THREAD: plumbing (a tank with a hole finding its own level), teaching
   (a class re-recruited every term), farming (a herd whose losses
   decide the size of the herd).
@@ -250,10 +184,6 @@ ESSENCE: selling is a series of narrowing gates, and the end is the
   wide early gate beats a heroic effort at the last one.
 ROOT: mathematics / independent fractions multiply, so a chain of
   gates falls away far faster than any single gate suggests.
-CANNOT: no reading a pipeline's health from its total — the same
-  total can be one terrible stage or five mediocre ones, and the
-  repairs are different. And no closing your way out of a shortage of
-  enquiries: the last gate cannot pass what never entered the first.
 THREAD: manufacturing (yield through many steps), education (a cohort
   narrowing at each stage), medicine (a screening chain that loses
   people at every step).
@@ -265,10 +195,6 @@ ESSENCE: every other way of getting customers is a tap you pay to keep
   enough that recommending it makes the recommender look good.
 ROOT: mathematics / a source proportional to the base grows by
   multiplication, while a purchased source only ever adds.
-CANNOT: no compounding growth from paid channels alone — turn the
-  money off and it stops the same week. And no manufacturing a
-  referral out of an adequate product: people pass on what makes them
-  look discerning, never what merely worked.
 THREAD: farming (seed saved from the crop against seed bought each
   year), disease (spread by contact against spread from one source),
   music (a song passed between friends).
@@ -281,10 +207,6 @@ ESSENCE: you can feel it in which direction the effort runs. Without
   love.
 ROOT: money / value needs wanting, and real wanting shows up as
   behaviour rather than as agreement.
-CANNOT: no fixing a missing fit with better selling — a harder push
-  moves the same weight and stops when the pushing does. And no
-  mistaking the signal: praise, pilots and politeness are free, while
-  paying, returning and complaining are not.
 THREAD: teaching (a class that asks questions against one waiting for
   the bell), medicine (a treatment patients ask for by name), markets
   (a stall people queue at before it opens).
@@ -297,10 +219,6 @@ ESSENCE: agreement is not demand. A trial, a pilot, a letter of
   would rather keep.
 ROOT: evidence / a claim is worth what it cost to make, and an
   enthusiastic yes costs nothing whatever.
-CANNOT: no reading demand from a signal the other side pays nothing
-  for. And no pilot that proves a business: a free trial tests whether
-  the thing works, never whether anyone will pay, and those two
-  questions have different answers more often than not.
 THREAD: charity (people who say they will give and do not), research
   (a survey about a future purchase), friendship (a plan agreed and
   never arranged).
@@ -312,10 +230,6 @@ ESSENCE: a firm where one customer is a third of the revenue does not
   a bad quarter but an ending.
 ROOT: people and power / power in a dealing is the quality of each
   side's alternative, and a firm with one large buyer has none.
-CANNOT: no independence from a customer you cannot afford to lose —
-  the terms will be theirs, and goodwill does not alter the arithmetic
-  underneath. And no gradual escape: the work of replacing them has to
-  be done in the years when it feels unnecessary.
 THREAD: farming (a grower supplying one buyer), employment (a
   contractor with one client, which is a job wearing an invoice),
   towns (one employer and everything that follows from it).
@@ -327,10 +241,6 @@ ESSENCE: revenue per customer is easy to see and tells you the wrong
   quiet small ones pay for the building.
 ROOT: accounting / costs land on activities rather than on the size of
   the invoice, so serving is a separate figure from selling.
-CANNOT: no knowing which customers are profitable without tracing what
-  serving them actually consumes — an average hides the answer by
-  construction. And no fixing an unprofitable customer by selling them
-  more: you multiply whatever the arrangement already was.
 THREAD: medicine (a patient whose care costs many times the tariff),
   transport (a delivery address that eats an afternoon), farming (a
   field whose access track costs more than its yield).
@@ -342,10 +252,6 @@ ESSENCE: the better thing does not win. The thing that reaches people
   road to the buyer.
 ROOT: this file / making value and keeping value are separate
   problems, and distribution is the bridge between them.
-CANNOT: no revenue from a product nobody can encounter — quality is
-  invisible before purchase, so it cannot do the work of being found.
-  And no building distribution late: the channels are already occupied
-  by whoever built them first, and they were not holding a place.
 THREAD: farming (a crop with no route to market rotting in the field),
   publishing (a good book with no shelf), medicine (a treatment that
   exists and never reaches a clinic).
@@ -358,10 +264,6 @@ ESSENCE: whoever stands between you and the buyer owns the
   do.
 ROOT: people and power / whoever holds the scarce link in a chain
   collects the value of the link.
-CANNOT: no keeping your margin and your channel's convenience at once
-  — the fee is the price of not having to find anybody. And no owning
-  a customer you have never spoken to: a name held by somebody else is
-  a name you can lose in an afternoon.
 THREAD: farming (a grower and the buyer who takes the whole crop),
   music (a performer and the venue), publishing (a writer and the
   shop).
@@ -374,11 +276,6 @@ ESSENCE: a customer stays not because they are pleased but because
   advantage there is.
 ROOT: this file / a purchase compares the alternative, and the
   alternative includes the price of getting there.
-CANNOT: no keeping customers with switching costs forever — they buy
-  time, not affection, and a customer held only by friction leaves the
-  day somebody offers to pay the exit fee. And no imposing them
-  without making your own selling harder: the wall that keeps yours in
-  keeps theirs out.
 THREAD: banking (an account nobody ever moves), typing (a keyboard
   layout that outlived its reason), building (a heating system that
   decides the next twenty years).
@@ -390,11 +287,6 @@ ESSENCE: a brand is not a logo, it is a promise about what will
   charge more than the identical unnamed thing standing beside it.
 ROOT: economy / where quality cannot be verified before purchase the
   buyer needs something else to go on, and this is that something.
-CANNOT: no brand surviving a broken promise repeated — the whole asset
-  is the expectation, and it is destroyed by exactly the thing it
-  claims. And no building one quickly: it is a record of kept
-  promises, so it can be bought from somebody who built it and never
-  built in a hurry.
 THREAD: medicine (a licence standing in for a judgement nobody can
   make), food (a familiar name trusted in a foreign town), craft (a
   maker's mark).
@@ -406,10 +298,6 @@ ESSENCE: an advantage is a moat only if it gets harder to cross the
   learning and things worth more as more people use them do.
 ROOT: economy / profits persist only behind a barrier, so the real
   question is whether the barrier repairs itself.
-CANNOT: no durable advantage from anything a well-funded rival can
-  simply buy — people, machines and marketing are all for sale. And no
-  moat that must be rebuilt every quarter: if holding it costs what it
-  earns, it was a treadmill wearing a castle's name.
 THREAD: farming (soil built over decades against one good year),
   language (a standard nobody can leave alone), sport (a youth system
   against a signing).
@@ -421,10 +309,6 @@ ESSENCE: every distinguishing feature becomes an expectation. What was
   is always sliding toward sameness, and standing still is falling.
 ROOT: this file / an advantage lasts as long as reproducing it takes,
   and a feature is the fastest thing there is to reproduce.
-CANNOT: no feature that keeps its premium once rivals have it — the
-  price falls to the cost of providing it and the customer keeps the
-  difference. And no escape by adding more features: that is the same
-  race run faster, and it ends at a product nobody can explain.
 THREAD: technology (a capability that was a luxury and is now
   assumed), hotels (amenities that became requirements), farming (a
   variety that everybody plants).
@@ -437,11 +321,6 @@ ESSENCE: the way a good firm dies is by doing everything right. Its
   analysis is correct right up until it is fatal.
 ROOT: this file / decisions get judged against today's customers and
   today's margins, and a new market has neither.
-CANNOT: no seeing the threat in the figures while it is still cheap to
-  answer — by the time the numbers justify moving, the newcomer has
-  the volume and the learning. And no solving it with better analysis:
-  the analysis is not wrong, the criteria are, so the escape is a
-  decision to be judged by something else.
 THREAD: farming (a machine that first did the job badly and then did
   all of it), medicine (a crude cheap test that spread past the
   accurate slow one), music (a worse-sounding format everybody chose).
@@ -453,10 +332,6 @@ ESSENCE: the dangerous newcomer does not arrive better. It arrives
   part nobody is watching.
 ROOT: this file / what a product can do rises along a curve while what
   people need rises far more slowly, so the two lines cross.
-CANNOT: no defending against a cheaper worse product by improving your
-  own — improving moves you further from where the attack is coming
-  from. And no comfort in it being unsuitable today: suitability is a
-  moving line and it is moving toward you.
 THREAD: transport (a rough vehicle doing an unglamorous job),
   photography (a poor picture that was instant), education (a course
   worse than a lecture and available at midnight).
@@ -469,11 +344,6 @@ ESSENCE: if your new product takes sales from your old one, that is
   both lines.
 ROOT: this file / formats and features are reproducible, so the choice
   is never whether the change happens but who owns it.
-CANNOT: no protecting an old product from a better replacement — you
-  can only choose which firm owns the replacement. And no fair
-  internal fight: the old line has the revenue, the staff and the
-  history, so a new thing left to compete inside the building loses on
-  every measure that exists.
 THREAD: publishing (a paper edition defended into oblivion),
   photography (a profitable film business and a camera it would not
   sell), farming (a new variety that ends the old one's acreage).
@@ -486,11 +356,6 @@ ESSENCE: everything that grows fast slows down, and the moment to
   weakness.
 ROOT: this file / both capability and demand saturate, so every
   product has a ceiling it reaches before anyone believes it exists.
-CANNOT: no beginning the next curve out of a crisis — the funds, the
-  attention and the credit are all gone at exactly the moment they are
-  needed. And no evidence to justify starting early: the case cannot
-  be made from the figures, so it must be made by judgement, which is
-  why it is rare.
 THREAD: farming (an orchard planted while the old one still crops),
   sport (rebuilding a winning team), the body (training built in
   health rather than after the injury).
@@ -502,10 +367,6 @@ ESSENCE: an unsold hour is gone. A firm selling hands and hours holds
   a bad price rather than have an empty Tuesday.
 ROOT: this file / capacity that cannot be stored has no second chance
   to be sold, and its cost was already paid.
-CANNOT: no stockpiling capacity in a service — Tuesday's spare hours
-  cannot be made available on Friday, so supply and demand must meet
-  in real time or one of them is wasted. And no growth without hiring:
-  the output is the people, so scale is linear and expensive, forever.
 THREAD: transport (a seat that departs whether or not it is sold),
   hotels (a room worth nothing at midnight), medicine (a clinic list
   with three gaps in it).
@@ -518,10 +379,6 @@ ESSENCE: making things gets cheaper as you grow and running the place
 ROOT: this file / production cost per unit falls with volume while
   coordination cost rises with head count, and the two curves cross
   somewhere.
-CANNOT: no size at which both are still improving — past the crossing
-  the firm is buying production savings with coordination losses. And
-  no fixing coordination cost by hiring managers to coordinate: that
-  is the cost, arriving in person.
 THREAD: kitchens (a brigade that stops working past a size), building
   (a site with more supervisors than trades), armies (a staff growing
   faster than the fighting strength).
@@ -533,10 +390,6 @@ ESSENCE: whatever you buy, you never learn. Make-or-buy is not only a
   who can raise their price.
 ROOT: this file / a capability is built by doing, so the boundary of a
   firm decides what the firm becomes able to do.
-CANNOT: no keeping a skill you have stopped practising — it leaves
-  with the people who had it and does not return on request. And no
-  making everything either: a firm that builds what it could buy
-  spends its scarcest attention on parts nobody will ever notice.
 THREAD: cooking (a kitchen that buys its stock and forgets how),
   farming (contractors who own all the machinery and all the skill),
   medicine (a hospital that outsourced a laboratory and lost its
@@ -549,11 +402,6 @@ ESSENCE: owning your supplier buys control and destroys a price. The
   customer cannot leave, and nobody has to win the work.
 ROOT: money / a price carries news, and an internal transfer is a
   price with nobody on the other side of it.
-CANNOT: no internal supplier under genuine competitive discipline —
-  you can imitate it with transfer prices and a right to buy outside,
-  and every imitation is weaker than the thing. And no free
-  integration: you have taken on the fixed costs and the cycles of a
-  business you previously did not have to survive.
 THREAD: farming (a mill owned by the growers), building (an in-house
   joinery that is never the cheapest quote), families (a relative
   doing the work and nobody able to complain).
@@ -566,10 +414,6 @@ ESSENCE: the wage bill you removed comes back as specification,
   message.
 ROOT: language / an instruction is a compressed copy of an intention,
   and distance removes every chance to correct the copy in passing.
-CANNOT: no outsourcing a job you cannot specify — the parts that were
-  never written down are exactly the parts that come back wrong. And
-  no honest comparison at the quoted price: the quote covers the doing
-  and never the managing, and the managing is the half you kept.
 THREAD: building (a subcontracted trade that needs a full-time
   supervisor), publishing (a translation checked line by line),
   cooking (a recipe sent to somebody who has never tasted the dish).
@@ -581,11 +425,6 @@ ESSENCE: a thing built by four teams comes out in four pieces, joined
   agreement was expensive.
 ROOT: people together / coordination has a price, so work gets divided
   along the lines where talking costs the most.
-CANNOT: no design that ignores who talks to whom — the org chart is
-  visible in the finished thing whether anybody planned it or not. And
-  no repairing a badly jointed product without touching the
-  arrangement of the people: redraw the diagram alone and the seams
-  grow back in the same places.
 THREAD: building (a house designed by three trades that meet at one
   awkward corner), music (an album stitched from two studios),
   government (a service split across departments and felt as a queue).
@@ -598,11 +437,6 @@ ESSENCE: how many people report to one person decides the number of
   top and the ground.
 ROOT: this file / a manager's attention is fixed, so it gets divided,
   and the divisor sets the shape of the whole building.
-CANNOT: no close supervision and few layers at once — choosing either
-  chooses the other, and the choice should follow how much judgement
-  the work needs. And no span so wide that a manager can still develop
-  anybody: past a point they can be told about their people and never
-  teach them.
 THREAD: schools (a class size that decides what teaching is possible),
   armies (a section led directly and a division led by message),
   farming (a stockman and the number of animals he can actually see).
@@ -614,10 +448,6 @@ ESSENCE: two bosses means two priorities and no way to settle them
   of it, who has no authority to resolve anything.
 ROOT: people and power / an unsettled question travels downward until
   it reaches somebody who cannot pass it on.
-CANNOT: no matrix without a stated tie-break — without one the winner
-  is whichever manager is more persistent, which teaches everybody the
-  wrong lesson. And no removing the tension by redrawing it: both
-  claims are real, so a structure only decides who has to carry them.
 THREAD: families (a child with two adults who contradict each other),
   building (a site where client and contractor both give orders),
   medicine (a patient under two consultants).
@@ -629,10 +459,6 @@ ESSENCE: most slowness in an organisation is not disagreement, it is
   undecided question simply sits there eating meetings.
 ROOT: people together / a group cannot act until somebody is entitled
   to end the discussion.
-CANNOT: no speed without named ownership of a decision. And no
-  consensus at size: agreement from everybody is only reachable in a
-  small room, so past that the choice is between a named decider and a
-  standstill dressed up as inclusiveness.
 THREAD: ships (one captain, and a very good reason for it), sport (a
   penalty taker chosen before the moment arrives), households (a
   kitchen where nobody is cooking and everybody is helping).
@@ -644,11 +470,6 @@ ESSENCE: the pay plan is the real strategy document. Whatever is
   the bonus scheme and you can predict the year.
 ROOT: premise — behaviour follows incentives, and an incentive is read
   as text rather than as purpose.
-CANNOT: no strategy that survives a contradicting pay plan — the plan
-  wins every time, without anybody deciding to defy anything. And no
-  formula that captures a whole job: whatever is left out of it is
-  left out of the work, so the unmeasurable parts need something other
-  than money holding them up.
 THREAD: sport (a striker paid per goal who stops tracking back),
   medicine (a clinic paid by the procedure), schools (a teacher judged
   on one subject and the timetable that follows).
@@ -660,11 +481,6 @@ ESSENCE: culture is not the values on the wall. It is the worst
   unpunished shortcut teaches more than any number of statements.
 ROOT: people together / a rule is learned from what happens when it is
   broken, never from what is written about it.
-CANNOT: no culture different from the behaviour actually permitted —
-  an announcement cannot outrank the evidence in front of people. And
-  no changing it with words: the change is one specific act, usually
-  costly, usually involving somebody valuable who was being allowed to
-  behave badly.
 THREAD: schools (a class that learns the real rules in a week), sport
   (a team where one player is exempt), families (a house rule that
   applies to some people).
@@ -676,12 +492,6 @@ ESSENCE: interviews barely predict performance. A conversation
   afterwards. Most hiring rests on a signal nobody has ever checked.
 ROOT: evidence / a test predicts only what it actually samples, and a
   chat samples chatting.
-CANNOT: no reliable judgement of ability from an unstructured
-  interview — the impression forms in minutes and the rest of the hour
-  is spent confirming it. And no escaping the problem entirely: work
-  samples and set questions improve it, and even good selection leaves
-  most of the outcome unexplained, so the real repair is an honest
-  correction afterwards.
 THREAD: sport (a trial match against a season), medicine (a symptom
   that impresses and predicts nothing), education (an entrance exam
   that ranks preparation).
@@ -693,10 +503,6 @@ ESSENCE: keeping somebody who is failing is not the kind option. The
   suited elsewhere. Delay does not avoid the bill, it lets it run.
 ROOT: this file / a cost that accrues continuously is paid whether or
   not anybody writes it down.
-CANNOT: no avoiding the cost of a wrong hire by waiting — the choice
-  is between paying it once and paying it monthly. And no pleasant
-  version of it: the discomfort of the person deciding is real and is
-  not one of the costs that belongs on the list.
 THREAD: medicine (a treatment continued because stopping is awkward),
   sport (a place kept by seniority), farming (a machine nursed three
   seasons past its end).
@@ -709,10 +515,6 @@ ESSENCE: a new person is a cost for months before they are a
   first.
 ROOT: language / a workplace's real knowledge is unwritten, so it can
   only move by somebody stopping to explain it.
-CANNOT: no immediate relief from adding people to a stretched team —
-  the teaching comes out of exactly the people who had no time. And no
-  shortening the ramp with documents alone: they carry the rules and
-  not the reasons, and the reasons are what the job runs on.
 THREAD: kitchens (a new pair of hands slowing service for a
   fortnight), farming (a hand who must learn the ground), medicine (a
   rotation that costs the ward before it helps).
@@ -725,10 +527,6 @@ ESSENCE: organisations reward good work by handing over a different
   good at what they do.
 ROOT: this file / a promotion is a change of occupation disguised as a
   prize for the previous one.
-CANNOT: no using advancement as the only reward without eventually
-  filling the senior posts with people chosen for a different job. And
-  no easy reversal: stepping back reads as failure, so the mistake is
-  permanent unless the organisation deliberately builds a way back.
 THREAD: sport (a great player who makes a poor coach), schools (a
   teacher promoted out of the classroom), armies (a soldier who was
   better before the commission).
@@ -741,11 +539,6 @@ ESSENCE: when people leave, the written work stays and the knowledge
   making them.
 ROOT: people together / an institution is re-taught into each arrival,
   and teaching runs slower than replacing.
-CANNOT: no organisation holding what it has learned while its people
-  leave faster than they can be taught — above a certain rate the
-  memory cannot be maintained at any price. And no substitute in
-  documentation: what gets written down is the procedure, and what
-  walks out is the judgement.
 THREAD: hospitals (a ward with a new team every rotation), sport (a
   squad rebuilt every season), farming (a holding sold before anybody
   learns its fields).
@@ -757,11 +550,6 @@ ESSENCE: the founder is not a job title, it is a pile of judgements
   that never appeared in anyone's description.
 ROOT: this file / a firm's early years run on one person's taste, and
   taste is the hardest thing there is to hand over.
-CANNOT: no smooth founder handover in a company that never made the
-  founder's judgements explicit — the successor is being asked to be
-  somebody rather than to do something. And no founder able to judge
-  the successor fairly: everything done differently looks like an
-  error, and some of it is the entire point.
 THREAD: kitchens (a restaurant after the chef leaves), farming (a
   holding passed to a child with different instincts), music (a band
   after the songwriter).
@@ -773,11 +561,6 @@ ESSENCE: there is a size at which a firm must stop being a group of
   made the place good, and it is also the only way the place survives.
 ROOT: people and power / below the size where everyone knows everyone,
   judgement is cheaper than rules; above it, it is not.
-CANNOT: no scaling on relationships alone — a day arrives when nobody
-  holds the whole picture and the informal system starts dropping
-  things silently. And no installing the procedure early either:
-  put in before it is needed, it removes the speed that was the young
-  firm's only advantage.
 THREAD: sport (a club that must finally appoint a secretary), families
   (a business among relatives that needs written terms), villages (a
   settlement that outgrows knowing everybody).
@@ -790,11 +573,6 @@ ESSENCE: firms break at predictable sizes, and always at the joint
   of the volume.
 ROOT: engineering / a structure fails at its weakest member, and
   growth loads every member at once.
-CANNOT: no growing without rebuilding what already works — the
-  arrangement that suits ten people is not a smaller copy of the one
-  for a hundred, it is a different shape. And no warning from things
-  going well: the break arrives during success, because success is
-  what applied the load.
 THREAD: building (a structure sound until a storey is added), farming
   (a holding that outgrows one pair of hands), rivers (a channel that
   copes until it does not).
@@ -806,10 +584,6 @@ ESSENCE: moving the boxes on a chart feels like doing something and
   the underlying question was, still unanswered, in a new shape.
 ROOT: people together / a structure allocates work, and no allocation
   answers a question about what the work should be.
-CANNOT: no structural change that fixes a strategy problem — boxes
-  cannot decide what to sell. And no free reshuffle: every one breaks
-  the informal channels that were doing the real coordinating, and
-  those take years to grow back.
 THREAD: government (departments merged, split and merged again), sport
   (a change of formation instead of a change of players), households
   (rearranging a room instead of throwing anything out).
@@ -821,11 +595,6 @@ ESSENCE: buying a company is the easy half. What was bought is a group
   which nobody agreed to and most will not do.
 ROOT: people together / an institution is its habits, and habits do
   not transfer with a title deed.
-CANNOT: no acquisition delivering its promised savings without
-  changing how people work — and no changing how they work without
-  losing some of the people who were the reason for buying. And no
-  honest scoring afterwards: once merged, the comparison is gone, so
-  failures are absorbed rather than counted.
 THREAD: sport (two squads merged and neither playing), families (two
   households combining and arguing about how things are done), farming
   (two holdings joined with incompatible machinery).
@@ -837,10 +606,6 @@ ESSENCE: a strategy that rules nothing out is a wish. The work is in
   would make you ordinary at two things instead of excellent at one.
 ROOT: economy / every choice is a refusal, and a strategy is the
   refusals stated in advance so they need not be argued each time.
-CANNOT: no strategy without a sacrifice — if a rival could adopt your
-  plan while giving up nothing, the plan says nothing. And no position
-  held by a firm that serves everybody: being acceptable to all buyers
-  means being the first choice of none.
 THREAD: cooking (a menu kept short on purpose), sport (a system that
   accepts a weakness in order to have a strength), building (a design
   that commits).
@@ -852,11 +617,6 @@ ESSENCE: if the place stops when you are ill, you do not own a
   handed to somebody else, without you in the room.
 ROOT: this file / a business is a repeatable arrangement, and an
   arrangement living in one head is not repeatable.
-CANNOT: no selling a firm whose value walks out with the owner — a
-  buyer is purchasing the arrangement, and there is not one. And no
-  building the arrangement while personally doing all the work: the
-  hours have to be taken out of the doing, deliberately, at the time
-  it hurts most.
 THREAD: farming (a holding nobody else can run), medicine (a practice
   that is one doctor), craft (a workshop that is one pair of hands).
 ASKED-AS: business depends on me cannot take holiday sell company owner works everything systems
@@ -867,11 +627,6 @@ ESSENCE: money does not sit evenly along a chain. In one trade the
   which does the most work or carries the most risk.
 ROOT: money / value needs rarity, so the return collects at whichever
   step is hardest to replace.
-CANNOT: no earning from a step that anyone can perform, however
-  essential it is — essential and scarce are different words and only
-  one of them gets paid. And no assuming the pool stays put: it moves
-  when the scarcity moves, and the firm that owned the good link
-  usually notices late.
 THREAD: farming (growers, processors and shops in one chain with
   wildly different margins), music (performers, labels and venues),
   building (materials, trades and developers).
@@ -884,11 +639,6 @@ ESSENCE: an owner behaves differently from a manager doing the same
   the bit they run.
 ROOT: people and power / whoever acts on your behalf has their own
   life, and ownership is the cheapest way to narrow the gap.
-CANNOT: no cheap supervision standing in for ownership — watching
-  everything costs more than the thing being watched, which is why
-  franchises, partnerships and profit shares keep being reinvented.
-  And no ownership without surrendering control: the owner you created
-  will now do it their way, which was the point and is also the price.
 THREAD: farming (a tenant with a share of the crop against a hired
   hand), shops (a manager and a proprietor on a wet Tuesday), fishing
   (a skipper with a share of the catch).
@@ -901,10 +651,6 @@ ESSENCE: the scarcest thing in a firm is not money, it is the
   failure of a company that could easily afford all three.
 ROOT: the mind / attention is one beam, and the beams that matter
   belong to a handful of people who cannot be duplicated.
-CANNOT: no pursuing many things at once without starving all of them —
-  the money divides and the attention does not. And no buying more of
-  it: a senior arrival consumes attention long before supplying any,
-  so the relief comes well after the decision that needed it.
 THREAD: farming (a farmer with three enterprises and one pair of
   eyes), medicine (a surgeon's list), households (a family that took
   on too much in one year).
@@ -917,11 +663,6 @@ ESSENCE: the base rate is failure. Most businesses started this year
   as one.
 ROOT: chance / a survival chance below one, compounded across years,
   approaches a small number however good each year looked.
-CANNOT: no venture that escapes the base rate by intending to — the
-  ordinary causes are demand smaller than hoped and money that ran out
-  before it arrived, and neither is settled by determination. And no
-  reading a firm's quality from its being alive at five years; that is
-  a fact about chance as much as about anybody's judgement.
 THREAD: nature (seeds and the fraction that germinate), medicine (a
   treatment whose success rate is the honest headline), fishing (boats
   that fished the same water and did not come back).

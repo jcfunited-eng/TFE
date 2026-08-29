@@ -8,8 +8,6 @@ ESSENCE: the road is universal — every human ever, king or
   us verifiably share.
 ROOT: living world / one family, one code — the shape rides the
   shared recipe.
-CANNOT: no exemptions from the shape — no unborn adult, no
-  unsleeping life, no unaging body.
 THREAD: story + drama (every culture's tales are stage-marked:
   birth, coming-of-age, death), meaning + ritual (rites of passage
   mark this road's milestones), law (majority ages and inheritance
@@ -23,9 +21,6 @@ ESSENCE: a human baby is born helpless and stays helpless for
 ROOT: living world / size's rules (the head must pass at birth;
   the brain must wait) and evolution — the bet paid: helpless
   young, unmatched adults.
-CANNOT: no shortcut through childhood — the wiring needs years of
-  world and cannot be pre-installed. A foal walks in an hour; we
-  pay for our brains in helpless years.
 THREAD: teaching + learning (schools exist because the bet does),
   craft (apprenticeship — long uselessness buying mastery), people
   together (the bet costs more than two can pay — grandmothers,
@@ -38,9 +33,6 @@ ESSENCE: growth is one-way and ordered — sit before stand, stand
   repeat.
 ROOT: heredity / the recipe unfolds in sequence — later steps need
   earlier ones already cooked.
-CANNOT: no skipping a stage and no going back for one — no
-  hurrying a child into what the body has not built, and no
-  returning to seventeen, however well remembered.
 THREAD: cooking (no frosting a cake mid-bake), building
   (foundation before frame before roof, always), music (scales
   before speed — the order is not the teacher's whim).
@@ -52,10 +44,6 @@ ESSENCE: sleep is mandatory maintenance — a third of every life
   with it — iron in existence, UNSURE in function.
 ROOT: living world / life is paid-for order — the paying includes
   scheduled downtime.
-CANNOT: no skipping sleep and keeping the mind — judgment sags in
-  a day, breaks in days. And no creature has evolved out of it
-  despite the cost (a third of life spent defenseless) — the
-  strongest proof it buys something waking cannot.
 THREAD: cleaning + maintenance (the shop must close to be swept),
   money (markets close and books settle overnight), computing
   (systems reindex in the quiet hours).
@@ -67,9 +55,6 @@ ESSENCE: the young mind rewires easily and stiffens by the year —
   steeper.
 ROOT: the mind / repetition wears channels deeper each pass — the
   brain trades flexibility for reliability as it sets.
-CANNOT: no erasing a habit by wishing — old paths are overgrown,
-  not deleted, and stress finds them again. And the child's
-  effortless door does not reopen for the adult.
 THREAD: language (accents are the audible proof), craft (the
   smith's first habits become his last), teaching (why the
   earliest years get the most patient teachers).
@@ -81,8 +66,6 @@ ESSENCE: aging is wear plus winding-down — damage accumulates
 ROOT: physics / disorder wins — repair is paid work and the paying
   slows; living world / evolution barely polices the years after
   the children are raised.
-CANNOT: no stopping it yet — slowed, patched, softened, but no
-  body has ever been exempted; every fix buys years, not immunity.
 THREAD: engineering (metal fatigue plus discontinued parts — the
   same two killers), building (deferred maintenance compounds),
   money (the body's maintenance debt, at interest).
@@ -94,9 +77,6 @@ ESSENCE: death is certain and load-bearing — every body stops, and
 ROOT: living world / evolution works by replacement — deathless
   parents would jam the machine; physics / disorder collects in
   the end.
-CANNOT: no exemption bought by medicine, rank, or wealth — none
-  ever. And no species of immortals in a finite world: without
-  death, no room for the young.
 THREAD: people together (elections, retirement, inheritance —
   every institution rehearses succession because bodies do), story
   (death is the deadline that makes plots matter), keeping
@@ -110,9 +90,6 @@ ESSENCE: grief is love's bill — the pain after loss is not a
 ROOT: the mind / bonds are physical wiring, and torn wiring
   hurts; living world / cooperation — bonding wins, and grief is
   its exit fee.
-CANNOT: no love without the debt — the only way never to grieve is
-  never to bond, which costs more. And no shortcut through it:
-  grief is walked, not solved.
 THREAD: meaning + ritual (every culture ever found holds funerals
   — every people built a way to pay the bill together), music
   (half of all songs), money (exact bookkeeping: value received,
@@ -126,9 +103,6 @@ ESSENCE: the young risk and the old teach — a body's best decade
 ROOT: human journey / aging (reflexes peak in the twenties;
   knowledge keeps compounding); living world / evolution — an
   elder's value is the stored map.
-CANNOT: no holding both peaks in one body at once. And wisdom
-  cannot be transfused, only taught, and only partly: some lessons
-  refuse words and are paid for again each generation.
 THREAD: strategy + conflict (young soldiers, old generals),
   sports (players peak, coaches ripen), teaching + learning (the
   whole field is this entry with a school bell).

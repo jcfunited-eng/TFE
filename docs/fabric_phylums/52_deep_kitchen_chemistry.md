@@ -9,10 +9,6 @@ ESSENCE: bread going stale is not drying — cooked starch, jumbled
   young crystals and the loaf turns briefly fresh again.
 ROOT: deep water (50) / freezing needs a starting corner —
   crystallizing is freezing's family, and cooked starch refreezes.
-CANNOT: no rescue in the fridge — the crystals form fastest just
-  above freezing, so the fridge stales bread quicker than the
-  counter. (The full accounting — crystals versus slow water
-  migration — stays UNSURE.)
 THREAD: cooking (stale bread's second careers — toast, croutons),
   farming (day-old rice firming by the same law).
 ASKED-AS: bread stale hard loaf bag fridge toast revive oven crusty rice leftover
@@ -23,9 +19,6 @@ ESSENCE: a cut apple browns because the knife breaks its cells and
   at acid.
 ROOT: chemistry / mixing wins where walls allow it — the knife
   removes the walls.
-CANNOT: no browning without the meeting — a whole unbruised apple
-  cannot brown, and a cooked slice cannot either: the enzyme is a
-  protein, and cooking shut that one-way door.
 THREAD: cooking (guacamole's losing fight; the graying cut potato),
   tea (black tea is this browning done to the leaf on purpose).
 ASKED-AS: apple brown cut slices lemon avocado guacamole banana bruise potato gray
@@ -36,9 +29,6 @@ ESSENCE: fat goes rancid because oxygen gnaws at its loose joints
   cool.
 ROOT: chemistry / reactions need their threshold — light and warmth
   keep paying oxygen's admission.
-CANNOT: no oil both soft and durable — the loose joints that keep a
-  fat liquid are exactly where oxygen bites, so fish and nut oils
-  turn fastest while hard fats last. No cooking it back.
 THREAD: medicine (pills kept dark and cool), museums (oil paint
   aging by the same slow oxygen), rust (iron's patient version).
 ASKED-AS: butter rancid smell old nuts oil fishy stale walnuts crayon musty expired
@@ -48,9 +38,6 @@ ESSENCE: honey never spoils because it is nearly waterless sugar
   water pulled out through its skin and dies of thirst inside food.
 ROOT: cooking / salt moves water without touching it — sugar plays
   the same trick, at strength.
-CANNOT: no rot in the sealed jar, ever — but no such armor once
-  watered: thinned honey ferments (that is mead). Crystallized is
-  not spoiled — sugar ordering itself, undone by warm water.
 THREAD: survival (jam, jerky, salt pork — preserving is water
   denied), archaeology (tomb honey called edible — UNSURE as report,
   sound as chemistry).
@@ -62,9 +49,6 @@ ESSENCE: the room's air holds one level of dampness and every open
   dries hard on top of its crystal-staling.
 ROOT: chemistry / mixing wins where walls allow it — no wall here;
   food and air trade until even.
-CANNOT: no crisp thing staying crisp uncovered — crispness IS being
-  drier than the room, a state the room is always ending. One shelf
-  cannot leave both chip and loaf as they were.
 THREAD: weather (humid coasts keep crackers in tins), craft (guitars
   and furniture drinking the seasons the same way).
 ASKED-AS: chips soggy stale crackers cereal soft bread hard crust tin humid limp
@@ -75,9 +59,6 @@ ESSENCE: leftovers taste different because the pot keeps working in
   toward a flat cardboard note, hurried by the meat's own iron.
 ROOT: chemistry / mixing wins where walls allow it; this file / fat
   meets oxygen.
-CANNOT: no un-marrying — flavors that crossed cannot be sorted back,
-  the same door as the salted soup. (That stews taste BETTER on day
-  two: direction real, causes part-settled — UNSURE.)
 THREAD: cooking (a marinade is this crossing, hired on purpose),
   farming+life (cheese and wine aging on the same slow clock).
 ASKED-AS: leftovers next day pizza stew curry chili better reheated meat cardboard soup fridge
@@ -88,9 +69,6 @@ ESSENCE: freezer burn is ice leaving without melting — frozen water
   leathery, safe but ruined.
 ROOT: deep water (50) / evaporation is the fastest escape — even ice
   evaporates, never once passing through wet.
-CANNOT: no stopping it with more cold — colder freezers still trade
-  vapor; only a tight wrap with the air pressed out stands between
-  food and frost. Water gone as vapor will not rejoin as flesh.
 THREAD: mountains (snowbanks shrinking in dry cold without a drip of
   melt), survival (freeze-dried rations are freezer burn finished on
   purpose).
@@ -102,9 +80,6 @@ ESSENCE: milk curdles in some coffee because acid does to protein
   the cup tips what the nose cannot yet smell.
 ROOT: cooking / cooking proteins is one-way — acid is a second key
   to the same door.
-CANNOT: no stirring curds back to milk — clumped protein is one-way.
-  And no trusting smell alone: the hot acid test fires a day or two
-  ahead of the nose.
 THREAD: cooking (yogurt and cheese are curdling hired on purpose),
   the body (stomachs curdle milk on arrival — acid again).
 ASKED-AS: milk curdle coffee chunks sour cream hot tea lemon spoiled flakes split
@@ -115,9 +90,6 @@ ESSENCE: the fridge is a brake, not a wall — cold slows nearly all
   slow motion.
 ROOT: chemistry / heat is a hurry — read backward: cold is only a
   dawdle.
-CANNOT: no pause button in the kitchen — nothing leaves the fridge
-  younger, and even the freezer, which does stop the microbes,
-  cannot stop the slow chemistry of fat and ice.
 THREAD: medicine (vaccines ride cold chains on this law), the living
   world (cold-blooded lives run slow in the cold — same arithmetic).
 ASKED-AS: fridge expiration dates how long keeps freezer forever slow spoil cold pantry

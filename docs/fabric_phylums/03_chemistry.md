@@ -6,9 +6,6 @@ ESSENCE: every chemical bond is electric — atoms stick by sharing,
   donating, or hoarding electrons; there is no other glue.
 ROOT: physics / opposites pull; physics / exclusion (why electrons
   sit in shells at all).
-CANNOT: no bond without an electron deal. Atoms with full hands
-  (helium, neon) cannot be made to hold much of anything — helium
-  will not burn, ever, in anything.
 THREAD: cooking (browning and flavor are bonds re-dealt), medicine
   (a drug works only if its charges fit the target's), materials
   (glue, rust, and dye are all the same electric handshake).
@@ -19,9 +16,6 @@ ESSENCE: the periodic table is a seating chart — element character
   repeats, and outer electrons are all chemistry can see.
 ROOT: physics / exclusion — electrons stack in closing shells
   because no two may share a state.
-CANNOT: no element escapes its column. Francium's violence in
-  water was known before anyone made a grain of it — a new
-  element's chemistry is fixed before it exists.
 THREAD: music (the octave — the same character an interval later),
   language (few letters, endless words), the phylums themselves
   (few essences, endless arrangements).
@@ -31,8 +25,6 @@ ESSENCE: like dissolves like — charged solvents host charged
   guests, oily solvents host oily guests; each refuses the other's.
 ROOT: chemistry / bonds are electric — a solvent holds only what
   it can grip.
-CANNOT: salt cannot dissolve in oil. Grease cannot leave in plain
-  water — no scrubbing beats the refusal without a mediator.
 THREAD: cooking (the emulsion truce, yolk as diplomat), cleaning
   (soap is a molecule with one hand for each side), medicine (a
   pill must be partly oily or the body's oily walls refuse it).
@@ -42,9 +34,6 @@ ESSENCE: reactions rearrange, never create — every atom entering a
   reaction leaves it; mass in equals mass out. (balancing an
   equation is bookkeeping)
 ROOT: physics / matter comes in kept, discrete pieces.
-CANNOT: no reaction makes or unmakes an atom. Burning destroys
-  nothing — the log's whole mass leaves as gas and ash, every atom
-  accounted for.
 THREAD: cooking (recipes rearrange; the pan loses only steam),
   money (double-entry books), farming (what the harvest carries
   off the field must be paid back or the soil goes broke).
@@ -55,9 +44,6 @@ ESSENCE: every reaction has a price of admission — even a downhill
   energy)
 ROOT: chemistry / old bonds must part before new ones close, and
   parting costs first, pays later.
-CANNOT: no fire without ignition. Gasoline and air can sit mixed
-  forever — no spark, no burn. Nothing reacts merely because
-  reacting would profit it.
 THREAD: cooking (browning's 140°C door), engineering (starter
   motors and pilot lights), money (no venture pays before seed
   cost is spent — UNSURE as essence, sure as rhyme).
@@ -68,8 +54,6 @@ ESSENCE: heat is a hurry — warmer molecules collide harder and
   climb; cold is chemistry's brake, never its off-switch.
 ROOT: physics / temperature IS molecular motion — hotter crowds
   pay the admission price more often.
-CANNOT: a fridge cannot stop decay, only slow its clock. Nothing
-  keeps forever warm; almost nothing happens frozen.
 THREAD: cooking (fridge as brake, oven as throttle), medicine
   (iced organs travel; fever is the body raising its own tempo),
   farming (grain lasts in cool barns, rots in warm ones).
@@ -80,9 +64,6 @@ ESSENCE: a catalyst is a matchmaker — it offers a cheaper path
   unchanged, ready to hurry the next.
 ROOT: chemistry / the price of admission can be lowered; the
   destination cannot be moved by it.
-CANNOT: no catalyst makes a losing reaction pay — it speeds only
-  what would happen anyway, shifting arrival time, never the
-  address.
 THREAD: the body (every enzyme — unhurried digestion would take
   years), cars (the converter scrubbing exhaust), brokers and
   matchmakers (speed the deal, own nothing of it).
@@ -93,8 +74,6 @@ ESSENCE: acid and base are one currency with opposite signs —
   cancel into water and a salt. (pH counts the currency)
 ROOT: chemistry / bonds are electric — the hydrogen ion is the
   smallest possible courier of charge.
-CANNOT: mixed opposites cannot both survive — neutralization is
-  mandatory. Nothing is strongly both at once.
 THREAD: cooking (acid cuts fat; baking soda's burp is this
   cancellation making gas), the body (blood holds its pH in a
   corridor or you die), farming (sour soil is limed — a
@@ -105,9 +84,6 @@ ESSENCE: burning, rusting, and breathing are one reaction at three
   speeds — a fuel handing electrons to oxygen and paying out the
   energy its bonds had banked. (oxidation)
 ROOT: chemistry / bonds are electric; physics / energy bookkeeping.
-CANNOT: no fire without an electron-taker — a candle drowns in
-  pure nitrogen. And no un-burning: ash and smoke will not remake
-  the log (physics / disorder wins).
 THREAD: the body (breath is slow fire, cell by cell), bridges
   (rust is the same fire at a crawl, patient and total), rockets
   (carry your own taker and even empty space cannot stop the burn).
@@ -118,9 +94,6 @@ ESSENCE: reactions run both directions at once and settle where
   finished; push the balance and it leans away from your push.
 ROOT: physics / the very small runs on chance — collisions go
   forward and back by sheer numbers.
-CANNOT: a settled balance cannot be moved by wishing — only by
-  adding, removing, heating, or squeezing. Most sealed reactions
-  cannot run to completion at all; they stop at the truce line.
 THREAD: the body (blood chemistry is held truces), oceans (CO₂
   dissolving vs escaping — the air-sea truce that eats our
   exhaust), money (price sits where buying speed equals selling
@@ -135,10 +108,6 @@ ESSENCE: a cut onion is a trap that arms itself only when broken. The
   washing an acid off itself, not the body being sad.
 ROOT: chemistry / two things kept apart react when they are brought
   together, and a cell wall is what was keeping them apart.
-CANNOT: no sting from an onion left whole — nothing is mixed until
-  something breaks the compartments. No stopping it by holding your
-  breath: it arrives at the eye through the air, not the nose. No
-  tears without water on the surface to make the acid in.
 THREAD: cooking (02: why a sharp knife and a cold onion sting less —
   fewer cells torn, less vapour), living world (a plant defending
   itself against being eaten), medicine body (the tear film is a wash

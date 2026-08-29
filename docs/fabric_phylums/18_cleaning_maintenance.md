@@ -8,9 +8,6 @@ ESSENCE: left alone, everything drifts toward mess — dust
   settles, edges dull, weeds return; order is not a state but an
   upkeep, bought and bought again.
 ROOT: physics / disorder wins — this field is that law's bill.
-CANNOT: no room stays clean, no machine tends itself, no final
-  cleaning exists — the work cannot finish because the law never
-  rests.
 THREAD: cooking (the kitchen dirties at the speed of its use),
   the body (living IS continuous self-repair), farming (an
   untended field walks back to wilderness), law (rules
@@ -23,9 +20,6 @@ ESSENCE: dirt is matter out of place — soil in the field is
   matter, it re-sorts it to where it belongs.
 ROOT: physics / matter is conserved — cleaning moves, never
   erases.
-CANNOT: nothing vanishes by cleaning — every "away" is a place
-  (the rag, the drain, the landfill, the air). Thrown away means
-  thrown somewhere.
 THREAD: pollution (the factory's "away" is someone's river),
   money (a cost cut is often a cost moved — UNSURE), tidying (a
   drawer is where out-of-place goes to be in place).
@@ -37,9 +31,6 @@ ESSENCE: grease and water refuse each other, and soap is the
   soap's escorts.
 ROOT: chemistry / like dissolves like; cooking / the emulsion
   truce — same treaty, different table.
-CANNOT: no washing fat with water alone — rinse forever, the
-  grease stays. No mediator, no mixture: the refusal always wins
-  unbrokered.
 THREAD: cooking (egg yolk is mayonnaise's soap), medicine (soap
   kills germs by dissolving their fatty coats — handwashing beat
   plagues before anyone knew why).
@@ -50,8 +41,6 @@ ESSENCE: wear is slow disassembly — every use rubs a little off,
   death is surfaces meeting, and oil's entire job is to keep
   moving parts from ever quite touching.
 ROOT: physics / friction taxes all motion; disorder wins.
-CANNOT: no frictionless use, no part that serves forever. Oil
-  postpones the meeting; nothing cancels it.
 THREAD: the body (cartilage is the body's bearing, and it
   wears), rivers (water filing mountains — a canyon is wear),
   stone stairs dished by centuries of feet, money (depreciation
@@ -64,9 +53,6 @@ ESSENCE: most failures announce themselves early and quietly —
   one.
 ROOT: wear is gradual, so warnings exist; the arithmetic of
   small-now against huge-later.
-CANNOT: an unread warning protects nothing — the signal exists
-  whether or not anyone looks, but the cheap repair expires. No
-  buying it back after the collapse.
 THREAD: medicine (the checkup — tumors and cracks obey one law),
   navigation (the position fix catching dead reckoning's drift),
   money (reconciliation is inspection of a ledger).
@@ -78,8 +64,6 @@ ESSENCE: a skipped repair is a loan from the machine at ruinous
   at compound rates.
 ROOT: money / interest — the same arithmetic, pointed at your
   house; wear feeding wear.
-CANNOT: no pausing the meter — the debt grows unacknowledged;
-  postponement is never neutral. Nothing waits at today's price.
 THREAD: medicine (the ignored symptom), the body (a limp
   reshapes the knee, the knee the hip), debt itself (file 16
   warned: compounding aims both ways).
@@ -92,8 +76,6 @@ ESSENCE: a tool is intention given a shape — the screwdriver's
 ROOT: physics / force concentrated (the knife's law,
   generalized); design as a decision made once, in metal, for
   all later hands.
-CANNOT: no free substitution — pliers round the bolt they turn;
-  misdelivered force does not vanish, it lands as harm.
 THREAD: cooking (the knife — the kitchen's edition), surgery
   (the scalpel is intention at its sharpest), language (the
   precise word is the right tool; the almost-right one mangles
@@ -106,9 +88,6 @@ ESSENCE: prevention beats cure by orders of magnitude — paint
   restoring it broken.
 ROOT: the compounding law above — failure cascades, prevention
   does not.
-CANNOT: no cure at prevention's price — once failed, the cheap
-  option is extinct, and some failures have no cure at any price
-  (the burned house, the lost hearing).
 THREAD: medicine (clean water saved more lives than all
   surgery), law (the careful contract against the lawsuit),
   farming (weeds pulled young).
@@ -120,8 +99,6 @@ ESSENCE: refined metal is held above its resting state — ore is
   painted bridge exists only because renewal outpaces return.
 ROOT: chemistry / oxygen bonds greedily; physics / downhill
   wins.
-CANNOT: no bare steel stays bright in wet air; no permanent
-  coating — only renewed ones. Rust does not sleep.
 THREAD: the cut apple browning (its own slow oxygen fire), the
   body (the same oxygen that powers us ages us — UNSURE at
   depth), histories (iron empires survive as stains in the

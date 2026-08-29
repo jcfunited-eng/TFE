@@ -6,8 +6,6 @@ ESSENCE: the cell is the unit of life — nothing alive is less than
   one; everything alive is one, or a federation of them.
 ROOT: premise — life requires an inside kept different from the
   outside, so it requires a wall.
-CANNOT: no living half-cell. No life as loose chemistry — a virus
-  outside a cell is a message, not a creature.
 THREAD: building (no house without walls), power + governance (a
   border is the claim of an inside), money (a firm exists where its
   books separate inside from out).
@@ -18,8 +16,6 @@ ESSENCE: living is paid-for order — a body keeps its shape only by
   becomes weather in days.
 ROOT: physics / disorder wins — life never breaks that law, it
   hires it: order in here, bought by exporting more mess as heat.
-CANNOT: no creature without a fuel line. No cost-free rest — even
-  sleep burns. No perpetual organism.
 THREAD: cooking (fermentation's workers eat or quit), cleaning (a
   tidy room and a live body decay the same way, unpaid), money (a
   business is alive in exactly this sense — cash flow or dissolve).
@@ -29,9 +25,6 @@ ESSENCE: evolution is differential survival compounding — offspring
   vary, some variants leave more offspring, and the winners' traits
   pile up across generations; no plan, no foresight, only hindsight.
 ROOT: heredity / copying with rare errors; mathematics / compounding.
-CANNOT: nothing evolves toward a goal — the eye was never aimed at,
-  only kept, working step by working step. No perfect creature: only
-  good-enough that out-bred its neighbors.
 THREAD: money (markets breed products the same blind way), language
   (words survive by use, not by committee), strategy (doctrine
   evolves by which armies came home).
@@ -41,9 +34,6 @@ ESSENCE: everything eats something and feeds something — the chains
   tangle into one web, and every creature's energy is sunlight
   passed hand to hand from the plants that caught it.
 ROOT: physics / energy is never created — only captured and passed.
-CANNOT: no species stands alone. No food from nowhere. Pull one
-  strand and the web redraws — sometimes gently, sometimes as
-  collapse.
 THREAD: money + trade (supply chains are food webs with invoices),
   farming (a field is the web pruned to one strand — hence the
   constant defense), movement of goods (cities sit on their supper
@@ -55,8 +45,6 @@ ESSENCE: a niche is a way of making a living, and two species
   outcompetes, or one shifts.
 ROOT: living world / evolution — the losing line thins until it
   moves or ends.
-CANNOT: no two complete rivals coexisting forever; where rivals
-  persist, their livings differ somewhere.
 THREAD: money (two identical shops on one street end this way),
   sports (roster spots), people together (a newcomer finds an
   unclaimed role or contests a held one).
@@ -67,9 +55,6 @@ ESSENCE: cooperation is a winning strategy, not a kindness —
   because partners out-survive loners.
 ROOT: living world / evolution keeps whatever leaves more
   offspring; teamwork often does.
-CANNOT: no partnership held by sentiment — it lasts while both
-  sides profit, and since cheating pays short-term, every stable
-  pairing carries enforcement.
 THREAD: money (trade is symbiosis with ledgers), law + agreements
   (contracts are the enforcement between strangers), power
   (alliances hold exactly as long as interests do).
@@ -80,9 +65,6 @@ ESSENCE: extinction is forever — when the last one dies, that way
   of species that ever lived are gone)
 ROOT: living world / evolution has no memory of the dead — it can
   only vary the living.
-CANNOT: no bringing a species back whole — even a rebuilt body
-  wakes in the wrong world, missing its web. The dodo's niche can
-  be refilled; the dodo cannot.
 THREAD: language (tongues with no living speakers), craft (lost
   arts — we can copy the sword, not the smith), keeping knowledge
   (the burned library is the same one-way door; hence archives).
@@ -92,10 +74,6 @@ ESSENCE: size sets the rules — double a creature's length and its
   weight roughly ×8 while its surfaces only ×4, so each size lives
   under different physics.
 ROOT: mathematics / squares grow slower than cubes.
-CANNOT: no horse-sized insect — skin-breathing and thin legs fail
-  at that weight. No mouse-sized whale — small warm bodies starve
-  keeping warm (a shrew eats near its own weight daily). No King
-  Kong: bone strength scales with area, load with volume.
 THREAD: building (a cathedral is not a scaled-up hut — walls must
   thicken faster than height), flight (why the giants don't fly),
   cooking (fine-diced food cooks fast — surface again).
@@ -106,9 +84,6 @@ ESSENCE: all life is one family — every known creature runs the
   of descent rooted some 4 billion years down.
 ROOT: heredity / one code; evidence — the dictionary matches from
   yeast to you, which only shared ancestry explains.
-CANNOT: no creature found outside the tree — no second, separate
-  life on earth so far. Bread yeast can read a human gene;
-  strangers could not.
 THREAD: language (the Romance tongues betray one Latin mother the
   same way), medicine (mouse trials work at all because the mouse
   is family), keeping knowledge (shared alphabets prove shared

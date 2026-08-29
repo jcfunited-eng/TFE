@@ -8,9 +8,6 @@ ESSENCE: people decide by feeling and then hire reasons — winning
 ROOT: the mind / emotions are fast verdicts; reasoning is the
   press office. UNSURE as a universal — trained deciders in
   narrow domains do better; the default stands.
-CANNOT: no arguing someone out of what they were never argued
-  into. Facts alone cannot move a feeling-held belief — they
-  harden it as often as not.
 THREAD: money (ads sell feelings and mention the product), law
   (jurors pick the story, then weigh the evidence — UNSURE, old
   courtroom wisdom), story + drama (fiction persuades deepest
@@ -22,8 +19,6 @@ ESSENCE: lasting persuasion is self-persuasion — conclusions
   the craft is arranging steps and letting them walk.
 ROOT: the mind / beliefs defend themselves — a conclusion arriving
   as "mine" meets no wall. UNSURE at the edges.
-CANNOT: no installing a belief by telling. Pushed conclusions push
-  back; a confession extracted is not a conviction formed.
 THREAD: teaching (Socrates asked questions on purpose; the lesson
   discovered is the lesson kept), money (the test drive lets the
   customer sell the car to themselves), story (shown beats told).
@@ -33,9 +28,6 @@ ESSENCE: a small gift opens a large door — felt debt is out of all
   proportion to the favor's size, and askers who give first
   collect more.
 ROOT: people together / the gift ledger; the lever is the ledger.
-CANNOT: no accepting the free sample and staying even — refusing
-  the gift is the only exit, which is why refusing is made
-  awkward.
 THREAD: diplomacy (concessions are traded, never given), money
   (loss leaders), meaning + ritual (offerings before petitions —
   old as prayer).
@@ -46,10 +38,6 @@ ESSENCE: two borrowed compasses steer most choices — what runs out
   work often enough to be installed, and misfire on command.
 ROOT: the mind / attention is one beam — shortcuts are a busy
   judge's economy. UNSURE how far culture can retune them.
-CANNOT: no crowd signal certifies quality — the crowd may be
-  reading each other, all of them reading nobody (laugh tracks,
-  the empty-restaurant law). "Only three left" cannot be checked
-  from outside — which is why it is said.
 THREAD: money (a bubble is social proof eating itself; auctions
   run on scarcity), people together (fashion), computing (fake
   reviews are counterfeit proof).
@@ -60,9 +48,6 @@ ESSENCE: people steer to match their own past statements — a small
   self-contradiction hurts more than going along costs.
 ROOT: the mind / beliefs defend themselves — and the belief
   defended hardest is "I am consistent." UNSURE at depth.
-CANNOT: no clean retreat from a public position without paying in
-  face — so wise negotiators build the other side a bridge, and
-  positions announced early harden wrongly.
 THREAD: law (precedent binds courts the same way), power (regimes
   trapped in their own slogans), diplomacy (the red line announced
   in public must then be walked).
@@ -73,9 +58,6 @@ ESSENCE: choices flip with wording while facts hold still — "nine
   from the same number; whoever sets the frame has half-decided.
 ROOT: the mind / seeing is guessing — the frame hands the builder
   a blueprint.
-CANNOT: no frameless telling of a choice — some frame arrives with
-  the words; the only question is whose. Neutral wording can be
-  approached, never reached.
 THREAD: medicine (consent moves with phrasing), money (a fee and a
   discount can be the same cents and different furies), evidence +
   measurement (survey wording is half the result).
@@ -87,8 +69,6 @@ ESSENCE: the first number spoken bends the whole negotiation
 ROOT: the mind / the workbench is small — minds adjust from what
   they are handed rather than compute fresh. Why knowing doesn't
   cure it is UNSURE; that it doesn't is measured.
-CANNOT: no un-hearing an anchor — awareness dampens the drag,
-  never removes it.
 THREAD: money (list prices exist to anchor, not to sell), law
   (opening demands), image + design (the overpriced decoy on the
   menu, there to make its neighbor look cheap).
@@ -99,10 +79,6 @@ ESSENCE: negotiation is overlap-finding — each side has a
   deal lands in that space or nowhere.
 ROOT: money + trade / voluntary exchange happens only where both
   sides gain by their own lights.
-CANNOT: no eloquence closes a gap that isn't there — nothing lands
-  outside both lines. And the side that can walk cannot be
-  squeezed: power in the room is the quality of each side's
-  elsewhere.
 THREAD: diplomacy (armistice lines trace two exhaustions), law
   (plea bargains), money (every price is a settled negotiation).
 ASKED-AS: bargaining leverage compromise stalemate buyer seller meeting middle alternatives bluffing
@@ -114,8 +90,6 @@ ESSENCE: positions are demands; interests are the reasons under
 ROOT: persuasion + negotiation / overlap-finding — the overlap
   often exists only below the stated line. Craft-rule, not iron:
   UNSURE.
-CANNOT: no discovering an interest by repeating a position louder
-  — volume probes nothing.
 THREAD: diplomacy (a peninsula returned but demilitarized fed both
   hungers), medicine (the patient asks for a pill, wants
   reassurance — the interview's whole art), law (settlements

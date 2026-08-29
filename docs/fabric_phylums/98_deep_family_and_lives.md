@@ -9,10 +9,6 @@ ESSENCE: before it has words, a baby is running an experiment — cry,
   love is read against that first draft.
 ROOT: the mind / repetition wears channels deeper each pass — the
   first thousand answers set the default setting.
-CANNOT: no growing up with no expectation at all — the door tested and
-  never opened teaches as thoroughly as the door that opens. And no
-  deleting the draft, only overwriting it, slowly, with years of
-  contrary evidence.
 THREAD: people together (trust builds in drops — this is that ledger's
   opening balance), teaching (the first lesson learned is who the
   teacher is), human journey (habits laid early run deepest).
@@ -24,10 +20,6 @@ ESSENCE: a toddler in a strange room explores in loops — out to the
   away and the exploring stops.
 ROOT: this file / the first draft — a creature that cannot retreat
   cannot afford to advance.
-CANNOT: no bold child without a boring safe adult behind them —
-  courage is spent from a reserve somebody else is holding. And no
-  base faked by presence alone: an adult in the room but unavailable
-  shortens the loops.
 THREAD: money (an emergency fund is what lets a person take the risky
   job), survival (base camp — the climb is measured from it), sports
   (home ground).
@@ -39,10 +31,6 @@ ESSENCE: kittens stalk string; children play house, war, and doctor.
 ROOT: living world / the young of every hunting and social species
   play; teaching — a skill needs repetitions, and repetitions need a
   cheap arena.
-CANNOT: no rehearsing what cannot be made safe — play requires a
-  padded copy of the real thing. And no play under real threat: a
-  frightened child stops playing first, which is why the stopping is
-  read as a symptom.
 THREAD: flight (the simulator is play with instruments), sports (a
   scrimmage is a war nobody dies in), story (fiction is grown-up
   pretending).
@@ -54,10 +42,6 @@ ESSENCE: the word means teaching. The target is a child who behaves
   be caught.
 ROOT: teaching + learning / the lesson is what was learned, not what
   was said; right + wrong (blame assumes the child could have chosen).
-CANNOT: no rule carried inside that was never explained — fear travels
-  exactly as far as the watcher's eye and stops. And no teaching while
-  either party is in a rage: nothing goes in while the alarm is
-  ringing.
 THREAD: law (deterrence against rehabilitation — the same argument at
   nation size), power (rules obeyed only when enforced are not rules),
   teaching.
@@ -70,11 +54,6 @@ ESSENCE: a small consequence that arrives every single time beats a
 ROOT: the mind / learning tracks how reliably an act is followed by a
   result; chance + risk — a rare heavy penalty is simply a bet worth
   taking.
-CANNOT: no rule learned from patchy enforcement — occasional payoff is
-  the strongest schedule known for keeping a behaviour alive, which is
-  exactly how a slot machine holds a player. And no repairing
-  inconsistency with severity: it only raises the stakes of the
-  gamble.
 THREAD: law (certainty of being caught deters far better than length
   of sentence), chance + risk, money (a threat nobody believes changes
   no behaviour).
@@ -87,9 +66,6 @@ ESSENCE: in the teenage years the wanting system finishes early and
 ROOT: human journey / growth is one-way and ordered — two systems
   running on two timetables; heredity (the timetable is issued, not
   chosen).
-CANNOT: no lecturing the brakes into finishing sooner — the schedule
-  is bodily and deaf to argument. And no risk-free adolescence: the
-  same push that makes them dangerous is what makes them leave home.
 THREAD: human journey (the young risk and the old teach), power (why
   every society draws an age line and then argues about where),
   insurance (premiums priced by people with no opinion about
@@ -102,10 +78,6 @@ ESSENCE: nobody becomes competent by being protected from
   age.
 ROOT: this file / play as rehearsal, grown up and with real stakes;
   teaching (a skill needs repetitions where failing costs something).
-CANNOT: no competence without survivable failure — a person shielded
-  until thirty meets their first real failure with no practice and
-  full weight. And no safety net that announces itself: rescue that
-  arrives every time teaches only that rescue always arrives.
 THREAD: craft (the apprentice ruins cheap material first, on purpose),
   engineering (test to destruction on the bench, never in service),
   money.
@@ -117,10 +89,6 @@ ESSENCE: family is dealt and friends are chosen, and the choosing is
   can be.
 ROOT: people together / trust and the gift ledger, running without any
   of the compulsion that holds kin together.
-CANNOT: no friendship on duty alone — the moment attendance is owed
-  the thing has quietly converted into something else. And no
-  friendship without an exit: a bond that cannot be left cannot be
-  chosen.
 THREAD: money (a voluntary trade tells you more than a compelled one),
   meaning + ritual (blood brothers, godparents — cultures forging
   chosen kin into formal kin), law (adoption).
@@ -132,9 +100,6 @@ ESSENCE: a person can be surrounded all day and starving. Company is
   remotely the same.
 ROOT: the mind / a person is a model in someone else's head — company
   requires no model, intimacy is the model being accurate.
-CANNOT: no curing the lack of one with more of the other — no quantity
-  of acquaintance sums into being known. A crowded life can be an
-  unwitnessed life, and usually knows it.
 THREAD: people together (size changes substance — city anonymity),
   computing (a thousand followers and nobody to call at four in the
   morning), music (half of all songs).
@@ -145,10 +110,6 @@ ESSENCE: to be known you have to hand over the material for the wound
   of this where you get the closeness and keep the weapon.
 ROOT: this file / company against intimacy; premise — knowing requires
   disclosure, and disclosure cannot be recalled.
-CANNOT: no being known safely — the information that makes closeness
-  possible is the same information that makes betrayal possible, and
-  they travel as one packet. And no unsaying it afterwards: telling is
-  a one-way door.
 THREAD: strategy + conflict (every alliance shares intelligence with
   someone who may not stay), law (confessional, lawyer, doctor —
   privilege invented to make exposure survivable), money (a loan is
@@ -163,10 +124,6 @@ ESSENCE: most of what a long couple fights about is never solved.
 ROOT: people together; premise — two whole persons cannot be reduced
   to one set of preferences, so some disagreements are structural
   furniture.
-CANNOT: no marriage without permanent disagreements — the choice was
-  never between solved and unsolved, only between a livable version
-  and a corrosive one. And no partner debugged: the trait that grates
-  at fifty was fully visible at twenty.
 THREAD: law (a treaty that manages a border dispute forever without
   settling it), engineering (some vibrations are damped, never
   eliminated), power (a coalition governs while disagreeing).
@@ -178,10 +135,6 @@ ESSENCE: watch a couple argue and the danger is in the style, not the
   the worst of the four by a distance.
 ROOT: this file / the perpetual conflict — since the subject never
   resolves, only the manner carries information about the future.
-CANNOT: no bond surviving contempt as a habit — it is the one that
-  says the other is beneath respect, and nothing can be negotiated
-  from there. (Strong signal, not fate: couples do change it on
-  purpose. UNSURE as a law, well replicated as a pattern.)
 THREAD: strategy + conflict (humiliating an opponent forecloses the
   settlement you wanted), people together (rung-pain — contempt is a
   public demotion), persuasion (an insulted listener has stopped
@@ -194,10 +147,6 @@ ESSENCE: every close pair injures each other, weekly. What separates
   start again." Repair is the skill; harmony is its by-product.
 ROOT: right + wrong / a feud ends by ritual, not arithmetic — the same
   exit machinery at household size.
-CANNOT: no bond without rupture, therefore none without repair — the
-  choice is never whether damage happens. And no injury that simply
-  fades: an unrepaired one files itself into the permanent story of
-  who this person is.
 THREAD: cleaning + maintenance (the small fix now against the ceiling
   later), craft (the mended pot works, and shows its seam), law
   (settlement rather than judgment).
@@ -209,10 +158,6 @@ ESSENCE: in almost every household the care work concentrates on one
   by who cannot bear to leave it undone.
 ROOT: people together; premise — a job with no name on it falls to
   whoever has the lowest tolerance for it staying undone.
-CANNOT: no even split arising by itself — unassigned work is not
-  shared work, and without an explicit assignment it lands on the
-  least able to refuse. And no relief through complaining: the load is
-  pinned in place by the carrier's own reliability.
 THREAD: money (a common resource is used by whoever bears the least
   cost of using it), power (responsibility drifts to whoever will
   absorb it), right + wrong (duty without a stated limit).
@@ -225,10 +170,6 @@ ESSENCE: there is a stretch of life spent holding up children and
 ROOT: human journey / a long childhood at one end and a long decline
   at the other, both stretched by medicine, both landing on the same
   middle.
-CANNOT: no scheduling around it — the two clocks are set by other
-  people's bodies and neither will wait. And no borrowing time from
-  either end: the child's years and the parent's years run at the same
-  moment, not in a queue.
 THREAD: money (peak earning years are also peak outflow), engineering
   (a beam loaded from both ends), farming (the season does not care
   what else is happening).
@@ -241,10 +182,6 @@ ESSENCE: a serious diagnosis does not stay inside one body. Everyone's
 ROOT: people together / an institution recruits humans into roles; a
   family is the smallest one, and illness rewrites its roster
   overnight.
-CANNOT: no illness confined to the patient — a household cannot absorb
-  a serious one without redistributing its work. And no easy handing
-  back of an emergency role: the child who became the manager stays
-  the manager.
 THREAD: medicine (the treatment plan is written for one body and
   executed by four), money (medical costs are household costs),
   strategy (a unit reorganises around its casualty).
@@ -257,10 +194,6 @@ ESSENCE: grief does not run down a checklist and finish. It arrives in
 ROOT: human journey / grief is love's bill — but the paying is
   irregular; the mind (memory fires on cues, and cues do not consult a
   calendar).
-CANNOT: no stages walked in order — the famous five were drawn from
-  the dying, not the bereaved, and no study finds a fixed sequence.
-  And no borrowing someone else's timetable: "still?" is a fact about
-  the speaker.
 THREAD: meaning + ritual (anniversaries exist because grief is cued,
   so cultures schedule the cue), medicine (healing times differ by
   body and nobody argues), the mind.
@@ -273,10 +206,6 @@ ESSENCE: people keep consulting the dead. He would have hated this;
 ROOT: the mind / a modelled person keeps running after the original
   stops; keeping knowledge (what is remembered gets authority the
   living have to earn).
-CANNOT: no cross-examining the dead — the quoted verdict cannot be
-  updated, corrected, or argued with, so it hardens exactly where a
-  living person would have softened. And the dead can only say what
-  the living are able to imagine them saying.
 THREAD: law (precedent — judges long buried deciding this morning),
   keeping knowledge (a will, a founder's intent, a constitution),
   meaning + ritual (many cultures consult ancestors openly, and
@@ -290,10 +219,6 @@ ESSENCE: what passes down is mostly not the estate. It is a trade, an
 ROOT: heredity carries some of it and teaching carries most of it —
   UNSURE which carries what, and that argument is centuries old and
   still live.
-CANNOT: no disinheriting the non-material — a child cut out of the
-  will still carries the vocabulary, the flinch, and the recipes. And
-  no clean copy: what transmits is what was demonstrated daily, never
-  what was intended.
 THREAD: craft (whole trades running in families for generations),
   language (an accent is inheritance you can hear), money (the largest
   advantage a child gets is usually not cash).
@@ -305,10 +230,6 @@ ESSENCE: a long life reverses a current. The one who drove everyone
   receiver inside a family built around the old direction.
 ROOT: human journey / aging is wear plus a shrinking repair budget;
   people together / rung-pain — the ladder runs inside the family too.
-CANNOT: no keeping the old exchange once the capacity changes — a role
-  held by ability cannot be held past the ability. And no care without
-  a cost to dignity unless the offering is redirected: a person with
-  nothing left to give becomes a patient instead of a member.
 THREAD: power (an ex-leader sitting in the room), work (retirement is
   this transition put on a date), meaning + ritual (elder roles
   invented precisely to keep an offering available).
@@ -322,10 +243,6 @@ ESSENCE: long loneliness is not only sad, it is measurably bad for the
 ROOT: living world / a social animal's baseline assumes company, so
   the body reads isolation as danger and leaves the alarm on.
   Direction well replicated, size UNSURE.
-CANNOT: no measuring it by headcount — it tracks the gap between the
-  connection wanted and the connection had, so a full house can be
-  lonely and a solitary week can be rest. And no healthy version of
-  unchosen open-ended isolation.
 THREAD: medicine (the alarm held on is what wears a body out — the
   same stress machinery), power (solitary confinement is recognised as
   punishment for exactly this reason), the mind.
@@ -338,10 +255,6 @@ ESSENCE: belonging is not being allowed in the room. It is being
 ROOT: this file / company against intimacy, aimed at a group instead
   of a pair; people together (a club everyone belongs to binds no
   one).
-CANNOT: no belonging without being needed for something — a person who
-  could be swapped for any other has attended, not joined. And no
-  manufacturing it with invitations: the group has to actually depend
-  on them, which means handing over something that would be missed.
 THREAD: craft (a job in the group is the fastest door into it),
   meaning + ritual (every congregation hands the newcomer a task
   within a week), people together.
@@ -355,10 +268,6 @@ ESSENCE: one person is at the same time somebody's child, somebody's
 ROOT: people together / institutions recruit people into shapes, and a
   person stands inside several at once; the mind (attention is one
   beam).
-CANNOT: no serving two roles in one hour — the conflict is structural
-  rather than a failure of organisation, and something is genuinely
-  dropped. And no role that pauses politely: they do not know about
-  each other.
 THREAD: computing (one processor, many demands — the whole art of
   scheduling), law (conflict of interest is this, formalised and
   declared), strategy (a two-front war).
@@ -371,11 +280,6 @@ ESSENCE: households rarely divide chores by negotiation. They divide
 ROOT: this file / care falling unequally, at daily-chore scale;
   premise — an unowned task falls to whoever has the tightest
   standard.
-CANNOT: no fair split from good intentions — where the owner is not
-  named, the person with the highest standard becomes the owner by
-  default. And no handing a task back by doing it badly: the ownership
-  is enforced by the other person's higher tolerance, which cannot be
-  argued down.
 THREAD: cleaning + maintenance, engineering (the tightest tolerance in
   the room defines the spec), money (a shared cost with no assigned
   payer).
@@ -387,10 +291,6 @@ ESSENCE: somebody in every household is running a list nobody else can
   the task exists is not, and the knowing is most of the job.
 ROOT: this file / division by drift; the mind (an open list has to be
   held continuously, and holding costs attention all day).
-CANNOT: no delegating a task without transferring the noticing — "just
-  ask me and I'll do it" leaves the manager's job exactly where it
-  was. And no measuring this work in hours: its whole cost is that it
-  never closes.
 THREAD: computing (a background process holding state is still
   running), engineering (monitoring is a separate job from repair, and
   staffed separately), money (bookkeeping is the invisible half of a
@@ -404,10 +304,6 @@ ESSENCE: every family runs on rules nobody wrote — what may be joked
 ROOT: people together / institutions are shapes people flow through,
   and the family is the smallest; teaching (the demonstrated lesson
   always beats the stated one).
-CANNOT: no family without them — a household cannot negotiate every
-  interaction fresh, so it grows habits and then forgets they were
-  ever choices. And no outsider reading them off the surface: an
-  in-law learns the rules only by tripping one.
 THREAD: language (grammar is an institution nobody runs and everyone
   obeys), law (common law is unwritten rule finally written), meaning
   + ritual (custom outliving its reason).
@@ -420,10 +316,6 @@ ESSENCE: the sibling bond is usually the longest one a person has — it
 ROOT: human journey / the road's length — these are the passengers who
   board earliest and get off latest; this file (family is dealt, not
   chosen).
-CANNOT: no second witness to a childhood once they are gone — the only
-  other person who stood in that kitchen holds the only other copy.
-  And no resigning: an estranged sibling is still a sibling, which is
-  why that particular silence is so loud.
 THREAD: keeping knowledge (two copies of an archive nobody else
   holds), law (inheritance disputes are sibling disputes with
   paperwork attached), people together.
@@ -436,10 +328,6 @@ ESSENCE: siblings raised in one house did not grow up in the same
 ROOT: this file / a family is a moving institution — a child meets the
   household at a date; evidence + measurement (two honest witnesses
   who sampled different conditions).
-CANNOT: no single true version of a shared childhood — the
-  disagreement is not a memory failure, it is a sampling fact. And no
-  raising the second child the way you raised the first: by then the
-  parents are different people, in a different house.
 THREAD: evidence + measurement (who you asked shapes what you heard),
   heredity (same recipe, different kitchen), story (the unreliable
   narrator who is not lying).
@@ -452,10 +340,6 @@ ESSENCE: families hand out parts early — the responsible one, the wild
 ROOT: people together / a group's roles recruit the people standing in
   them; the mind (a category, once assigned, filters the very evidence
   that could revise it).
-CANNOT: no changing a family role from inside the family — behaviour
-  that would count as evidence anywhere else is read as the old part
-  played in a new way. And no leaving it at the door: the room
-  supplies the cue whether or not anybody speaks.
 THREAD: teaching (a child labelled slow is taught by someone who
   believes it), story (the character everyone knows before the scene
   begins), people together.
@@ -469,10 +353,6 @@ ESSENCE: a parent and a small child are not in the same relationship.
 ROOT: this file / attachment sets the first draft — the child has no
   second sample to compare against; power (the weaker side's stake is
   larger by construction).
-CANNOT: no equal footing in that pair, however warm — the child cannot
-  leave, cannot compare, and cannot outwait it. And no throwaway
-  remark at that scale: a passing adult sentence can install a
-  permanent belief.
 THREAD: power (any bond where one side can leave and the other
   cannot), right + wrong (consent is doubtful wherever refusal is
   costly), teaching.
@@ -484,10 +364,6 @@ ESSENCE: when two people pair, two households collide. One family
   about the topic — they are two unwritten rulebooks meeting.
 ROOT: this file / every family runs on unspoken rules — and each
   partner arrives carrying one, unread and assumed universal.
-CANNOT: no merging two rulebooks without first discovering them, and
-  they can only be discovered by being broken — which is the actual
-  work the early rows are doing. And no neutral default: saying
-  nothing installs one of them anyway, usually the louder family's.
 THREAD: people together (two merged organisations keep two cultures
   for years), law (conflict of laws — whose system governs), meaning +
   ritual (whose holidays, whose funeral rites).
@@ -500,11 +376,6 @@ ESSENCE: the sharpest measured drop in a couple's satisfaction with
 ROOT: this file / roles carried at once, abruptly doubled; human
   journey (a human infant is the most expensive dependant in nature,
   and the bill starts at full size).
-CANNOT: no adding a total dependant without taking the hours from
-  somewhere — attention is finite and the baby's claim is not
-  negotiable. And no reading the dip as a verdict on the marriage: it
-  lifts again in most couples, which means it measured the load and
-  not the bond.
 THREAD: money (a fixed budget meeting a large new line item),
   engineering (a system run at full load has no reserve left for
   anything), the mind.
@@ -516,10 +387,6 @@ ESSENCE: the same act changes meaning as the child grows. Carrying
   every stage by succeeding at it.
 ROOT: human journey / stages stretch and compress but never reorder —
   the job description changes underneath the person doing it.
-CANNOT: no parenting method that stays right — one that is working is
-  evidence it is nearly time to stop. And no advance notice of the
-  change: it is announced by the method starting to fail, never
-  before.
 THREAD: teaching (scaffolding removed as the skill arrives), craft
   (the jig comes off once the joint holds), engineering (training
   wheels become a fault after a point).
@@ -532,10 +399,6 @@ ESSENCE: a child learns repair by watching somebody with power do it.
 ROOT: this file / repair is the actual skill — and it transmits by
   demonstration; teaching (the demonstrated lesson beats the stated
   one, every time).
-CANNOT: no teaching repair by instruction alone — a child ordered to
-  apologise who never sees it done learns apology as a punishment
-  rather than a tool. And no staying neutral: silence after an adult's
-  mistake is itself a lesson, and it lands.
 THREAD: power (a leader admitting error changes what a whole
   institution believes is permitted), right + wrong (a debt has to be
   named before it can be dropped), teaching.
@@ -548,10 +411,6 @@ ESSENCE: a separation ends a marriage. Where there are children it
 ROOT: this file / roles carried at once — the parent role does not
   dissolve when the partner role does; law (custody is a scripted
   relationship for people who cannot script one).
-CANNOT: no clean exit from a co-parenthood — the two must keep
-  negotiating with the person they left, for decades. And no keeping
-  the conflict away from the child while using them as the channel:
-  the handover is the channel.
 THREAD: money (a dissolved partnership carrying continuing joint
   liabilities), strategy + conflict (an armistice is not a peace),
   law.
@@ -564,9 +423,6 @@ ESSENCE: a new adult arrives in a household with a job and no
   — is slower than everybody wants.
 ROOT: this file / attachment is built by accumulated repetition, and
   authority rests on the bond that has not been built yet; teaching.
-CANNOT: no borrowing a parent's authority by marrying them — it does
-  not transfer with the address. And no shortcut through the time: the
-  bond is made of ordinary days and cannot be declared into existence.
 THREAD: power (legitimacy is not conferred by paperwork alone),
   teaching (a substitute teacher on the first morning), people
   together (a manager parachuted over an existing team).
@@ -579,10 +435,6 @@ ESSENCE: a loan between relatives converts the relationship into a
 ROOT: people together / the gift ledger — a family runs on unpriced
   favours, and a stated figure replaces the ledger with an account;
   money.
-CANNOT: no keeping the old footing while a named debt is open — the
-  ledger cannot hold a diffuse favour and an exact number at the same
-  time. Which is why the standing advice is to give it or refuse it,
-  never to lend it.
 THREAD: money (the difference between a gift and a loan is the
   schedule attached), right + wrong (promises bind the future self),
   law (a family loan is rarely documented and never forgotten).
@@ -595,10 +447,6 @@ ESSENCE: closeness is not stored, it is maintained. Without a
 ROOT: the mind / what is not re-run gets overgrown; people together
   (an institution survives by being re-taught, and a friendship is a
   two-person institution).
-CANNOT: no relationship maintained on good intentions — "we should
-  catch up" is not contact and does not become it. And no fair reading
-  of a fade from either end: both feel dropped, because neither
-  counted the calls they themselves did not make.
 THREAD: meaning + ritual (holidays make attendance compulsory for
   exactly this reason), cleaning + maintenance (schedules exist
   because nobody notices gradual decline), keeping knowledge.
@@ -611,10 +459,6 @@ ESSENCE: the same walls that make a home safe make harm inside it hard
 ROOT: this file / intimacy requires exposure — the trust closeness
   needs is exactly what is handed to someone who abuses it; people
   together (a group closes around its own).
-CANNOT: no privacy that shields only the good things — a wall does not
-  sort what happens behind it. And no single decision to leave where
-  the household is also the income, the housing, and the childcare:
-  the exit is a dozen decisions, each with a price.
 THREAD: power (any closed institution polices itself badly — the same
   law at family size), law (the state's slow, contested entry into the
   home), money (staying is often the cheaper option, and that is the
@@ -628,10 +472,6 @@ ESSENCE: at the end of a life somebody else usually decides — the
 ROOT: right + wrong / consent needs a person able to give it, so when
   that fails someone must stand in; this file (deciding falls
   unequally, exactly like the care did).
-CANNOT: no undoing the choice and no sharing its weight afterwards — a
-  decision taken once for another person can never be tested against
-  the road not taken. And no relief from a family vote: agreement
-  spreads the blame, not the memory.
 THREAD: law (advance directives exist to move the decision back to its
   owner while there is still time), right + wrong (moral luck — the
   same choice judged by how it happened to turn out), medicine.
@@ -645,10 +485,6 @@ ESSENCE: when the children leave, a couple finds out what they had.
 ROOT: this file / roles carried at once — remove the loudest one and
   whatever is left is exposed; human journey (the stage arrives on the
   children's schedule, not the couple's).
-CANNOT: no postponing the finding-out — the children leave on their
-  own timetable and the question walks in behind them. And no
-  answering it in advance: which case a pair is in cannot be known
-  while the shared work is still supplying the conversation.
 THREAD: work (a team after the launch makes the same discovery),
   meaning + ritual (retirement and its identity problem), money (a
   firm whose only contract ends).
@@ -661,10 +497,6 @@ ESSENCE: parents save for the big trip and children remember the
 ROOT: the mind / repetition wears channels deeper each pass — a thing
   done fifty times is stored differently from a thing done once;
   meaning + ritual.
-CANNOT: no buying a childhood memory with one large event — a single
-  occasion competes against a hundred repetitions and loses. And no
-  choosing which small things stick: they are laid down by frequency,
-  not by intention.
 THREAD: meaning + ritual (every faith runs on weekly repetition rather
   than one spectacular day), teaching (spaced practice beats the
   crammed session), music (the tune everyone knows was heard, never
@@ -678,10 +510,6 @@ ESSENCE: the friend who knew you at twenty knows something no new
 ROOT: this file / company against intimacy, with a clock added;
   keeping knowledge (an archive's worth is that it was written then
   and not now).
-CANNOT: no shortcut to an old friend — thirty years of witness takes
-  thirty years, so the ones alive now are the only ones there will
-  ever be. And no manufacturing one by telling your history: being
-  told is not having been there.
 THREAD: keeping knowledge (a burnt archive cannot be rebuilt out of
   memory), money (some things are unbuyable because the input is
   time), human journey.
@@ -693,10 +521,6 @@ ESSENCE: families almost never break over the fight everybody names.
   outside and completely inevitable from inside.
 ROOT: this file / an unrepaired injury does not fade, it files itself
   into the record; people together (trust drains in buckets).
-CANNOT: no repairing an estrangement by settling the last incident —
-  the named event is the receipt, not the bill. And no accurate
-  reading from outside: the visible cause is the smallest item in the
-  case.
 THREAD: engineering (fatigue failure — the load that finally broke it
   was an ordinary load), strategy + conflict (the incident that starts
   a war is not its cause), law (the last straw in a long record).
@@ -709,10 +533,6 @@ ESSENCE: who stands at the bedside is decided by geography and
 ROOT: this file / care falls unequally — here distance is doing the
   allocating; movement of goods + people (everything about a family
   changes when a day's travel costs a week's wages).
-CANNOT: no presence bought from a distance — money replaces nearly
-  every part of care except being in the room, and being in the room
-  is the part that gets remembered. And no fair accounting between the
-  two contributions: they are not in the same unit.
 THREAD: money (remittances are one of the largest quiet money flows on
   earth, and this is what they cannot buy), meaning + ritual (funerals
   scheduled around flights), movement of goods + people.

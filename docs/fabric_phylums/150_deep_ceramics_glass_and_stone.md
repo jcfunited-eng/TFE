@@ -16,11 +16,6 @@ ESSENCE: clay is not a substance, it is a shape. It is rock that
 ROOT: chemistry / properties come from the arrangement of the
   innards, and here the arrangement is a stack of plates with liquid
   between them.
-CANNOT: no plasticity without platelets — sand and ground rock of
-  any fineness will not hold a shape, which is why clay had to be
-  found rather than made. And no clay that is plastic and does not
-  shrink: the water between the plates has to leave, and when it
-  does the plates come closer.
 THREAD: the body (joints sliding on a fluid film), building (a
   lubricated slope that slips), snow (packing only in a narrow
   wetness band).
@@ -33,10 +28,6 @@ ESSENCE: clay works only inside a narrow window of wetness. Too wet
   moving back up it is nearly impossible without ruin.
 ROOT: craft / a material has one state in which the work of the hour
   is possible, and the state is moving all the time.
-CANNOT: no re-wetting a dried pot back to workable clay — water
-  entering unevenly swells the outside against a dry core and the
-  piece cracks apart. Bone-dry clay can only be broken up, soaked to
-  slurry and started again from the beginning.
 THREAD: cooking (dough at the right temperature and no other),
   building (plaster's working window between too wet and gone off),
   metals (forging inside a temperature band).
@@ -50,11 +41,6 @@ ESSENCE: there are two kinds of water in clay and only one of them
   water again, however long it soaks.
 ROOT: chemistry / a reaction that consumes part of the material is
   one-way, while evaporation is not.
-CANNOT: no reclaiming fired clay, at any temperature — this is the
-  hinge the whole craft turns on, and it is why a broken pot stays
-  broken and a broken unfired pot goes back in the bucket. And no
-  gradual crossing: the change happens at a temperature, not over a
-  career.
 THREAD: cooking (an egg that has set), medicine (a burn as against a
   bruise), keeping knowledge (writing carved as against writing in
   sand).
@@ -69,11 +55,6 @@ ESSENCE: a pot shrinks twice, for two different reasons. It shrinks
 ROOT: mathematics / a proportional change applies to every
   dimension at once, so a small percentage on a length is a large
   one on a volume.
-CANNOT: no fitting a fired piece to a fired opening unless both went
-  through the same clay and the same fire — two clays shrink by
-  different amounts, so a lid of one body on a jar of another does
-  not fit and cannot be made to. And no adjusting after: a fired pot
-  cannot be made larger.
 THREAD: metals (a casting pattern cut oversize by the shrink rule),
   building (a floor laid to a size the wood does not yet have),
   tailoring (cutting for cloth that will shrink at the first wash).
@@ -87,10 +68,6 @@ ESSENCE: a pot cracks in drying because one part of it got there
   open.
 ROOT: physics / a difference is what does damage; a whole body
   changing size together does no harm at all.
-CANNOT: no crack from drying evenly, however fast, and no rescue for
-  a crack once it has opened — clay does not heal, and a filled
-  crack reopens in the fire along the same line. And no fast drying
-  of a piece with thick and thin parts together.
 THREAD: metals (a casting cracking where thick meets thin), building
   (a slab cured wet to stop it drying at the top first), the body (a
   wound healing at different speeds along its length).
@@ -103,10 +80,6 @@ ESSENCE: wedging is not mixing the clay, it is emptying it —
   with it, and unaligned clay pulls off centre on the wheel.
 ROOT: craft / preparation decides the ceiling of the work, and its
   effects are invisible until the stage where nothing can be done.
-CANNOT: no wedging air out during throwing — the moment for it has
-  passed, and the bubble is now sealed inside a wall. And no clay
-  from two different batches used together unwedged: they shrink
-  differently and part company at the join.
 THREAD: this file (annealing glass to remove the stress that was put
   in earlier), cooking (kneading against folding — the same motion
   for a different end), building (compacting a base before pouring).
@@ -121,10 +94,6 @@ ESSENCE: the wall of a pot must be even in thickness, and not
 ROOT: physics / a body's response to heat and to drying goes with
   its thickness, so a body of two thicknesses is two bodies tied
   together.
-CANNOT: no thick base with a thin wall surviving a fast firing — the
-  base is still driving off water while the wall is already hot. And
-  no correcting thickness after leather-hard on the inside: only the
-  outside can still be turned away.
 THREAD: metals (a weld between two thicknesses cooling unequally),
   cooking (a joint of meat with a thin end), building (a foundation
   of two depths settling differently).
@@ -137,9 +106,6 @@ ESSENCE: any sealed hollow form must be given a hole before it is
   it takes the neighbours with it.
 ROOT: physics / a gas heated in a fixed volume raises its pressure
   without limit, and a fired body has no give at all.
-CANNOT: no sealed piece in a kiln, at any size. And no hole so small
-  it can be missed — a hidden pinhole under a foot ring is the
-  ordinary solution, but it must actually reach the void.
 THREAD: cooking (an egg or a chestnut bursting in a hot oven), the
   body (a sealed cavity under pressure), engineering (any vessel
   needing a relief path by law).
@@ -152,10 +118,6 @@ ESSENCE: a pot must be genuinely bone dry before it meets the fire.
   with the door ajar, doing nothing that looks like progress.
 ROOT: physics / a liquid becoming a gas expands enormously, and a
   solid with narrow pores cannot pass that much gas at once.
-CANNOT: no telling by looking — clay that feels dry can still be
-  damp inside, so the test is the back of the hand: cold means water
-  is still evaporating. And no shortcut on the slow start: the time
-  is spent driving out water, and water does not hurry.
 THREAD: welding (damp or painted metal boiling into the weld),
   cooking (a wet surface steaming rather than browning), building
   (a screed that must be dry before a floor goes on).
@@ -169,11 +131,6 @@ ESSENCE: throwing begins with making the lump perfectly symmetrical
   and the wall thins wherever the correction lags.
 ROOT: physics / a spinning body meets the tool at a rate set by its
   own turning, so any asymmetry becomes a repeating disturbance.
-CANNOT: no centring a pot after it is opened — the walls are thin
-  and cannot take the force. And no strength from gripping harder:
-  centring is done by bracing the arms against the body and letting
-  the wheel do the work, because a hand alone cannot hold still
-  against a rotating load.
 THREAD: engineering (balancing a wheel before it is used), music
   (tuning before playing), building (setting out from one true line
   before anything is built).
@@ -186,10 +143,6 @@ ESSENCE: on the wheel a wall only ever gets thinner. Clay is moved
   therefore a budget: a fixed amount of wall, spent upward, once.
 ROOT: physics / matter is conserved, so height comes out of
   thickness and out of nothing else.
-CANNOT: no thickening a thin wall on the wheel — collapsing it down
-  and starting again is the only route, and by then the clay is too
-  wet to survive it. And no recovering the clay budget: what went
-  into an unwanted height is gone from the rim.
 THREAD: money (a fixed budget spent forward), craft (cutting to the
   waste side because wood cannot be added back), writing (a first
   draft's material redistributed but never increased).
@@ -204,9 +157,6 @@ ESSENCE: water on the wheel is both the lubricant that makes
 ROOT: craft / the material's condition is running out while the work
   is being done, so speed is a property of the design and not of the
   worker's haste.
-CANNOT: no long careful throwing of a tall thin form — it will
-  collapse from softening before it collapses from any mistake. And
-  no drying it out on the wheel: the water is inside the wall.
 THREAD: cooking (a pastry warming in the hands as it is worked),
   building (a mortar going off in the board), surgery (tissue
   deteriorating while the operation runs).
@@ -219,10 +169,6 @@ ESSENCE: clay remembers being handled. A wall stretched hard on one
   body relax toward the shape its particles were left lying in.
 ROOT: chemistry / working a material leaves its particles lined up,
   and heat gives them the freedom to act on that alignment.
-CANNOT: no correcting a warp after firing and no seeing it coming
-  before — the pot that left the wheel round is not the pot that
-  comes out of the kiln. And no clearing the memory by drying: only
-  breaking the clay down and wedging it again starts it over.
 THREAD: metals (a machined part moving as its locked-in stress is
   released), wood (a board that cups when one face is planed), the
   body (a posture learned young and returned to under fatigue).
@@ -237,10 +183,6 @@ ESSENCE: leather-hard is the state a potter waits for and the state
 ROOT: craft / the useful state of a material is a passing condition,
   so the schedule of the work is set by the material rather than by
   the worker.
-CANNOT: no trimming a foot on a soft pot — it drags and distorts —
-  and no trimming a dry one: it chips and dulls the tool. The window
-  is real and it is short, and it can only be held open by wrapping,
-  never reopened.
 THREAD: cooking (a cake turned out of its tin at the right moment),
   building (concrete floated when it has stiffened but not set),
   farming (a hay crop cut in the only fine week).
@@ -253,10 +195,6 @@ ESSENCE: two pieces of clay only join if they are at the same
   is made, but the matched moisture is why it holds.
 ROOT: physics / two bodies changing size at different times tear at
   the surface between them.
-CANNOT: no joining fresh clay to leather-hard clay and expecting it
-  to keep — the crack does not appear at once, which is what makes
-  the mistake so easy to repeat. And no repairing that crack after:
-  the two parts have already shrunk to different sizes.
 THREAD: building (a new extension moving against an old wall),
   medicine (a graft mismatched to its bed), materials (two metals
   bonded and swelling at different rates in the sun).
@@ -271,10 +209,6 @@ ESSENCE: adding pre-fired grit to a clay body opens it up — the
 ROOT: engineering / a design buys a virtue with a virtue, and here
   the virtue sold is the very slipperiness that made the clay
   workable.
-CANNOT: no smooth fine porcelain body that also survives a fire or a
-  large sculpture — the properties are opposed and no additive gives
-  both. And no adding grog after throwing: the body is chosen before
-  the first touch.
 THREAD: building (aggregate in concrete for the same three
   reasons), cooking (bran in a dough shortening the gluten), metals
   (an alloying element blocking growth at the cost of workability).
@@ -289,9 +223,6 @@ ESSENCE: the clays that are purest are the least workable. A clay
 ROOT: geology / transport sorts particles by size and picks up
   passengers, so the same journey that refines a material
   contaminates it.
-CANNOT: no naturally occurring clay that is both white and highly
-  plastic. And no removing the iron from a red clay: it is in the
-  mineral, so a red clay fires red for ever and can only be covered.
 THREAD: metals (ore purity and ease of working rarely coinciding),
   food (refined flour losing what made it nutritious), water (a
   spring clean because it travelled through rock and poor because of
@@ -306,10 +237,6 @@ ESSENCE: the first firing has nothing to do with beauty. It is done
   all.
 ROOT: engineering / a process step exists to create the condition
   the next step requires, not to advance the visible product.
-CANNOT: no dipping a vitrified pot in glaze and having anything
-  stick — nothing draws the water in, so it runs off. And no
-  handling a raw dried pot without breaking some of it, which is the
-  other half of why the first firing exists.
 THREAD: painting (a primer coat that exists to be absorbed into),
   building (a scratch coat keyed for the one after it), teaching (a
   foundation year that teaches nothing anyone came for).
@@ -323,11 +250,6 @@ ESSENCE: a glaze is a glass that is manufactured on the pot. Ground
   body when everything is cold.
 ROOT: chemistry / a mixture of rocks has a melting behaviour set by
   its recipe, so melting temperature is something that is designed.
-CANNOT: no glaze that works on any body at any temperature — a glaze
-  is written for one body and one firing, and moving either breaks
-  it. And no glaze at all without the body's own surface taking part:
-  a layer at the join is body and glaze mixed together, and that
-  layer is what holds it on.
 THREAD: welding (a filler chosen to melt with its parent metal),
   building (a render matched to the wall behind it), cooking (a sauce
   that must set at the temperature the dish is served).
@@ -341,9 +263,6 @@ ESSENCE: a melted glaze is a liquid and it obeys gravity. It thins
   reason.
 ROOT: fluids / a liquid on a slope flows until it is too cold or too
   stiff to flow, so the only questions are how runny and how long.
-CANNOT: no glaze right to the bottom edge of a piece fired upright.
-  And no rescue: a pot stuck to a shelf comes off with its own foot
-  attached, and the shelf keeps the scar.
 THREAD: painting (a coat running on a vertical surface), cooking
   (cheese leaving the top of a dish and welding to the tin), metals
   (solder finding its way to where it was not wanted).
@@ -357,11 +276,6 @@ ESSENCE: how thick a glaze goes on is not decided by the dipping
   gives three different results in one afternoon.
 ROOT: physics / a porous body pulls water in at a rate set by how
   much water it already holds.
-CANNOT: no repeatable glaze result without controlling the pot's
-  dryness as well as the dip — which is why the workshop's records
-  say how long, on what, at what state. And no correcting a thin
-  coat by dipping again: the first coat has already sealed the
-  surface it needed to drink through.
 THREAD: painting (a porous wall drinking the first coat), cooking (a
   batter clinging or sliding by how dry the surface is), farming
   (soil taking up water at a rate set by how wet it already is).
@@ -376,10 +290,6 @@ ESSENCE: every kind of decoration has its own firing temperature,
 ROOT: engineering / a process whose steps happen at different
   temperatures can only run in one direction, because every step
   revisits everything already done.
-CANNOT: no adding a high-fired decoration to a finished pot — the
-  gold and the enamel burn away long before the glaze melts. And no
-  doing a piece with several decorating methods in a single firing:
-  the number of firings is set by the number of temperatures.
 THREAD: metals (brazing before soldering an assembly and never
   after), cooking (the order set by what each stage survives),
   building (trades sequenced by what buries what).
@@ -394,10 +304,6 @@ ESSENCE: glaze and body must end up the same size when cold, and
 ROOT: physics / two materials joined face to face and cooled
   together load each other by whatever difference there is in their
   shrinking.
-CANNOT: no judging a glaze on its own — the identical recipe fits
-  one body and crazes on another, so a glaze without its body named
-  is not information. And no curing crazing by firing hotter or by
-  glazing thinner: those change the degree and never the sign.
 THREAD: materials (two bonded metals loaded by every change of
   weather), building (a hard render on a soft wall), dentistry (a
   filling expanding differently from the tooth).
@@ -413,11 +319,6 @@ ESSENCE: the whole problem of glazing is one number: how much the
 ROOT: physics / a material's response to temperature is a fixed
   property, so a joint between two materials carries their
   difference for ever.
-CANNOT: no fixing a fit problem in the glaze bucket alone — the
-  answer is always a change of the ratio between two materials, and
-  it can be made from either side. And no glaze under stretch that
-  will not eventually craze, even if it comes out of the kiln clean:
-  the crazing arrives weeks later with the first hot drink.
 THREAD: this file (tempered glass built on the same asymmetry),
   building (pre-stressed concrete squeezed so it is never stretched),
   metals (shot-peening a surface into compression).
@@ -432,10 +333,6 @@ ESSENCE: a crazed glaze means opposite things on two pots. On dense
 ROOT: engineering / the same defect is trivial or fatal according to
   what lies behind it, so a fault must always be read together with
   its substrate.
-CANNOT: no crazed earthenware that is sound for food or drink, and
-  no sealing it afterwards from the outside. And no telling the two
-  apart by eye: it is settled by whether the body is vitrified,
-  which is a firing temperature, not an appearance.
 THREAD: medicine (the same rash meaning nothing or everything by
   what is under it), building (a hairline crack in render against
   one in a beam), computing (a warning that is noise in one system
@@ -451,11 +348,6 @@ ESSENCE: a glaze can look perfect and still give up metal into food.
 ROOT: chemistry / a glass dissolves in acid at a rate set by its own
   composition, so stability is a property of the recipe and not of
   glass in general.
-CANNOT: no telling a leaching glaze from a safe one by looking, so
-  the honest answers are a tested recipe, a full firing, and a
-  laboratory test. And no making an underfired or crazed glaze safe
-  by using the pot gently: the exposure is small and daily, which is
-  the shape of exposure that accumulates.
 THREAD: pharmacy (a dose built from many small ones), plumbing (lead
   pipe dissolving into soft water), food (a container chosen by what
   it is going to hold).
@@ -469,10 +361,6 @@ ESSENCE: the silica inside a clay body suddenly changes its crystal
   went perfectly can be ruined by opening the door early.
 ROOT: chemistry / a crystal has more than one way to stack, and a
   change of stacking is a change of volume that happens all at once.
-CANNOT: no fast cooling through that band without risking a clean
-  ringing crack in ware that survived the fire. And no seeing it
-  coming: the pot looks finished, and the crack appears in the
-  cooling kiln or on the shelf that evening.
 THREAD: metals (iron restacking itself on heating, which is the
   whole of steelmaking), water (ice expanding as it forms), geology
   (minerals changing form with depth and shifting the rock).
@@ -487,10 +375,6 @@ ESSENCE: a hard brittle thing does not break because it is hot or
   fragile one.
 ROOT: physics / stress comes from a difference, and heat entering a
   solid always arrives at the outside first.
-CANNOT: no thick vessel surviving a fast temperature change,
-  whatever it is made of and however strong. And no toughening
-  against thermal shock by making the wall heavier: that makes it
-  strictly worse, which is the opposite of everyone's instinct.
 THREAD: this file (drying and firing a pot of uneven thickness),
   building (a stone step split by a frost after sun), the body (a
   tooth cracked between hot and cold in one mouthful).
@@ -504,11 +388,6 @@ ESSENCE: a kiln is not controlled to a temperature, it is controlled
   and treat the thermometer as a rough guide.
 ROOT: chemistry / a reaction rate climbs steeply with heat, so time
   and temperature trade against each other along a known exchange.
-CANNOT: no reading a firing from its peak temperature alone — a fast
-  firing to a stated number is underfired and a slow one to the same
-  number is overfired, and both look like the same figure in the
-  log. And no cone reading after the event beyond the one fact it
-  recorded: how far it bent.
 THREAD: cooking (safety as time at temperature rather than a
   number), medicine (dose as strength times duration), building
   (concrete gaining strength on warmth and time together).
@@ -523,10 +402,6 @@ ESSENCE: a kiln is never one temperature. Heat arrives from
 ROOT: physics / heat flows down a gradient, and any box that is
   heated at one place and loses heat at its skin must have a spread
   inside it.
-CANNOT: no even firing without measuring the spread first — cones
-  are placed at several heights precisely because the controller
-  reads one spot. And no transferring a firing schedule between two
-  kilns and expecting the same pots.
 THREAD: cooking (the back and front of a domestic oven), farming (a
   field with a wet corner), computing (one machine in a cluster
   running hotter and failing first).
@@ -539,10 +414,6 @@ ESSENCE: almost all the cost of a firing is heating the kiln and its
   piece is the most expensive object in the building.
 ROOT: money / where the cost falls per batch rather than per item,
   the sensible batch is as large as the box will take.
-CANNOT: no cheap single firing, at any scale. And no packing a load
-  without planning it whole: shelves, posts and heights have to work
-  out together, so what gets made is partly decided by what will
-  stack.
 THREAD: logistics (a lorry dispatched half full costing the same as
   a full one), baking (an oven lit for one loaf), computing (a job
   run on a machine that had to be started anyway).
@@ -557,11 +428,6 @@ ESSENCE: what the kiln is breathing changes what comes out of it.
 ROOT: chemistry / a metal's colour depends on how many electrons it
   is carrying, and a hungry flame is a chemical agent that takes
   them away.
-CANNOT: no getting reduction colours in an electric kiln without
-  introducing something to burn, because there is no flame to starve
-  — this single fact separates two whole traditions of pottery. And
-  no reversing it late: a piece reduced and then given air on
-  cooling comes back oxidised.
 THREAD: cooking (browning as a chemistry of the surface, not of the
   ingredient), metals (a furnace atmosphere deciding whether a part
   scales), photography (the developer deciding what the same
@@ -577,10 +443,6 @@ ESSENCE: in some firings the glaze arrives as a gas. Salt or soda
 ROOT: chemistry / a reaction between a vapour and a surface happens
   wherever the two meet, so the pattern of the result is a map of
   the flow.
-CANNOT: no even coverage from a vapour glaze — the flashing and the
-  shadow are the method, not a fault, and they cannot be evened out.
-  And no going back: a kiln used for salt is a salt kiln for ever,
-  because the walls will keep giving it off.
 THREAD: weather (frost settling only where the air reached), light
   (a photograph as a record of what the light could see), farming (a
   spray drifting and landing by wind rather than by intention).
@@ -596,11 +458,6 @@ ESSENCE: earthenware, stoneware and porcelain are not three
 ROOT: chemistry / a mixture begins to melt at the temperature its
   most fusible parts allow, and the melt fills space by capillary
   pull.
-CANNOT: no waterproof earthenware without a glaze — the body itself
-  is a sponge, and a chip in the glaze lets water into the wall. And
-  no going further than the end of the road: past its maturing point
-  a body has too much liquid inside it to stand, and slumps into a
-  puddle on the shelf.
 THREAD: metals (sintering powder into a solid part by the same
   mechanism), building (fired brick from soft brick by the same
   ladder), geology (rock partly melted and welded at depth).
@@ -616,11 +473,6 @@ ESSENCE: porcelain is unforgiving for exactly the reasons it is
 ROOT: engineering / one set of properties produces both the prize
   and the price, so the difficulty cannot be separated from the
   result.
-CANNOT: no easy-throwing porcelain that is also white and
-  translucent — the additives that make it forgiving are exactly the
-  ones that stop light passing. And no correcting a warp: porcelain
-  goes on moving right up to its maturing temperature, so a slight
-  lean put in on the wheel becomes a definite one in the fire.
 THREAD: cooking (a delicate ingredient with a short window),
   materials (a high-performance alloy with a narrow process range),
   music (an instrument that rewards and punishes the same touch).
@@ -634,10 +486,6 @@ ESSENCE: the inside of a kiln has to be made of something that will
   if you look at it. Every kiln is a compromise between the two.
 ROOT: engineering / insulation is trapped air and strength is solid
   material, so the two cannot be maximised in one body.
-CANNOT: no refractory that is strong, insulating and cheap. And no
-  material at all that survives high heat and thermal cycling
-  without eventually failing: kiln furniture is consumable, and a
-  shelf that has warped will warp the ware on it.
 THREAD: this file (grog opening a body at the cost of its
   plasticity), building (a wall that must insulate and carry load),
   clothing (a fabric warm because it holds air and weak for the same
@@ -653,11 +501,6 @@ ESSENCE: glass has no melting point. Its atoms are frozen in the
   in between.
 ROOT: chemistry / a crystal has a fixed melting temperature because
   its structure is fixed, and glass has no structure to break.
-CANNOT: no casting glass the way metal is cast, straight from liquid
-  to solid, because there is no sharp change to time the work by —
-  glassworking is a race down a slope instead. And no glass flowing
-  at room temperature: it is far too stiff, and the old story about
-  cathedral windows is untrue.
 THREAD: cooking (sugar going through the same states — thread, ball,
   crack), materials (a plastic softening rather than melting), the
   mind (a gradual change with no single moment of transition).
@@ -671,10 +514,6 @@ ESSENCE: a glassblower works inside a window of stiffness. Too hot
   in each short visit.
 ROOT: craft / where the workable state is a passing condition, the
   work must be broken into what fits inside it.
-CANNOT: no pausing to think with glass on the end of a pipe. And no
-  single long operation: every glass form is a sequence of short
-  ones, and the whole trade is arranged — the assistant, the bench,
-  the tools within reach — around losing no seconds between them.
 THREAD: cooking (a sugar or chocolate window), surgery (a step that
   must be finished before the tissue changes), music (a live
   performance with no stopping).
@@ -690,11 +529,6 @@ ESSENCE: a finished glass object has to be cooled on a schedule or
 ROOT: physics / a solid that is cooled unevenly freezes a
   disagreement about size into itself, and nothing removes stress
   except letting the material move.
-CANNOT: no skipping the anneal on anything thick — and the time
-  needed rises steeply with thickness, so a heavy cast piece may be
-  cooled over days while a thin blown one takes hours. And no
-  detecting the stress by eye: it takes polarised light, or the
-  piece breaking on its own.
 THREAD: metals (stress relieving a welded frame), building (a
   concrete pour cured slowly to avoid cracking), the mind (an
   unresolved tension surfacing long after the event).
@@ -709,11 +543,6 @@ ESSENCE: tempered glass is a pane with an enormous argument stored
   a moment.
 ROOT: physics / stored energy released is released along whatever
   path is available, and here the path runs through the whole body.
-CANNOT: no cutting, drilling or grinding tempered glass — every
-  hole, every edge, every notch has to be made before it is
-  toughened, and a pane that needs a change is a pane that must be
-  remade. And no local repair of a chip: there is no such thing as a
-  small failure in a tempered pane.
 THREAD: engineering (a pressurised vessel failing all at once), the
   mind (a long-held tension released by a small trigger), building
   (a pre-stressed beam that cannot be cut on site).
@@ -728,10 +557,6 @@ ESSENCE: laminated and toughened glass are two deliberate choices of
   other's place.
 ROOT: engineering / a failure mode is chosen at design time, so the
   question is never whether it breaks but what it does when it does.
-CANNOT: no glass that both stays in place and clears itself away.
-  And no interchanging the two: a laminated windscreen that
-  shattered into crumbs would blind the driver, and a toughened
-  shopfront that hung together would trap the people inside.
 THREAD: cars (crumple zones and seatbelts choosing where damage
   goes), building (a fuse designed to be the thing that goes),
   medicine (choosing which side effect to accept).
@@ -745,10 +570,6 @@ ESSENCE: every ordinary window pane was made by floating molten
   nothing else will show it.
 ROOT: engineering / a manufacturing process leaves its own history
   in the product, and here the history sits on one surface only.
-CANNOT: no telling the two faces apart by eye or by hand. And no
-  assuming a flat clear sheet is symmetrical: a coating put on the
-  wrong face fails, and it fails months later as haze or peeling,
-  long after anyone could say which way round it went.
 THREAD: textiles (a cloth with a right and a wrong side from its
   finish), paper (a felt side and a wire side), materials (a rolled
   sheet carrying the direction it was rolled in).
@@ -762,10 +583,6 @@ ESSENCE: glass is not cut, it is cracked to order. The wheel does
   never be scored twice.
 ROOT: building / a crack is a force magnifier, and a crack that has
   been blunted is no longer a magnifier at all.
-CANNOT: no going over a score again — the wheel skids on the groove
-  it made, blunts itself, and the break wanders. And no leaving a
-  scored sheet until tomorrow: the score must be run while it is
-  fresh, so the two actions are one job.
 THREAD: this file (clay's window of workability), medicine (a wound
   edge that must be closed before it dries), craft (an irreversible
   step rehearsed because it starts a clock).
@@ -779,9 +596,6 @@ ESSENCE: a break can only run in a line that opens outward, so glass
   outlines exist because complicated single pieces cannot.
 ROOT: mathematics / the geometry of what a crack can do sets the
   shapes available, and the craft is built inside that boundary.
-CANNOT: no cutting an inside corner in one pass, at any skill. And
-  no drilling a hole near an edge without support: the hole and the
-  edge join up through the glass.
 THREAD: woodwork (a saw that cannot cut a stopped corner), computing
   (a data structure limiting which questions are cheap), building
   (a material's geometry deciding an architectural style).
@@ -796,10 +610,6 @@ ESSENCE: blowing and casting make two different materials out of one
 ROOT: engineering / the tool leaves its logic in the product, so the
   family of shapes available is set by the method before any design
   is drawn.
-CANNOT: no thin even hollow ware from casting, and no thick solid
-  detail from blowing. And no shortening the anneal on a cast piece:
-  the thickness that makes it possible is the thickness that makes
-  the cooling long.
 THREAD: metals (forging against casting giving different parts from
   one alloy), building (poured against assembled), cooking (a food
   shaped by pressure against one shaped by a mould).
@@ -813,11 +623,6 @@ ESSENCE: glass takes its colour from metals dissolved in it —
   colours in different glass recipes.
 ROOT: chemistry / a dissolved metal absorbs particular colours of
   light according to what state it is in and what surrounds it.
-CANNOT: no judging a glass colour from a small sample of the wrong
-  thickness — a pale tint in thin sheet is a deep bottle green in a
-  base. And no getting copper red without controlling the
-  atmosphere: the same batch gives green in air and red in a starved
-  flame.
 THREAD: pottery (the same oxides and the same atmosphere rule),
   light (colour as what a material takes out of white light), food
   (a pigment shifting with acidity).
@@ -832,10 +637,6 @@ ESSENCE: there are two ways to make glass or a glaze look coloured
 ROOT: light / light is absorbed by molecules and scattered by
   particles, and those are different mechanisms with different
   looks.
-CANNOT: no clear and opaque at once from one mechanism. And no
-  reliable opal glass without controlling the cooling: the particles
-  form during the cooling, so the same batch gives clear glass when
-  it is quenched and a cloudy one when it is not.
 THREAD: weather (a clear sky and a white cloud from the same water),
   food (a clear stock and a cloudy one), paint (a dye against a
   pigment).
@@ -849,11 +650,6 @@ ESSENCE: stone is judged by two properties that people constantly
   hard stone is not the durable stone.
 ROOT: materials / resistance to a point pressing in and resistance
   to a crack spreading are separate mechanisms in any solid.
-CANNOT: no reading a stone's durability from how hard it is to
-  carve, which is why the easy-working stones built the cathedrals.
-  And no working a stone with a tool softer than it: the tool wears
-  away instead of the work, so the material's hardness sets the
-  trade's whole toolkit.
 THREAD: metals (hard and brittle against tough and soft), the body
   (a stiff bone and a resilient one), building (a hard render on a
   soft wall failing).
@@ -868,10 +664,6 @@ ESSENCE: most stone was made in layers, or grew with its crystals
 ROOT: geology / rock formed under gravity or under pressure has a
   direction built into it, and that direction is a plane of weakness
   for ever after.
-CANNOT: no splitting a bedded stone cleanly across its layers — the
-  break wanders and takes lumps out of the face. And no finding the
-  bedding by looking alone in some stones: it takes a wet surface, a
-  test split, or the sound.
 THREAD: wood (splitting along the grain and cutting across it),
   butchery (a carcass coming apart along its own seams), people
   together (an organisation dividing along its real lines).
@@ -885,10 +677,6 @@ ESSENCE: carving goes rough to fine and never back, and the rule
   work below it.
 ROOT: craft / a one-way process fixes constraints as it goes, so the
   order of operations decides what remains possible.
-CANNOT: no putting stone back, at any stage, so an over-cut is a
-  redesign and not a repair. And no leaving the fine work for the
-  end on one area only: the finished part becomes the ceiling for
-  everything else.
 THREAD: writing (drafting whole before polishing any part), painting
   (working the whole canvas up together), building (setting out all
   the levels before any is finished).
@@ -902,10 +690,6 @@ ESSENCE: a block of stone keeps its faults hidden until the tool
   answers dead.
 ROOT: evidence / an internal state cannot be read from an external
   surface, so a channel that reaches inside must be used instead.
-CANNOT: no seeing into a block, and no guarantee even from a good
-  ring — the tap finds gross cracks and misses fine ones. And no
-  insuring against it by care: the flaw was there before the carver
-  arrived.
 THREAD: pottery (a fired pot rung to hear whether it is cracked),
   medicine (percussion of a chest for the same reason), engineering
   (ultrasound to find what the eye cannot).
@@ -920,10 +704,6 @@ ESSENCE: whether a stone will take a polish is settled by whether
 ROOT: physics / a uniform action on a non-uniform material produces
   a non-uniform result, and repeating it makes the difference
   larger.
-CANNOT: no mirror polish on a stone with soft inclusions, at any
-  effort. And no polish surviving on a soft stone in the weather:
-  marble outdoors goes sugary within a few decades because rain
-  dissolves the very grains that were shining.
 THREAD: metals (a two-phase alloy polishing unevenly), farming (one
   treatment across a field of two soils), teaching (uniform
   instruction widening a gap rather than closing it).
@@ -938,10 +718,6 @@ ESSENCE: a sedimentary stone must be laid the way it lay in the
 ROOT: geology / a plane of weakness stays a plane of weakness, so
   its orientation in the building decides whether gravity and water
   work along it or across it.
-CANNOT: no face-bedded stone lasting in a weathering wall, whatever
-  its quality. And no correcting it afterwards: the only remedy is
-  cutting the stone out and replacing it, which is why the mason's
-  first job on every block is finding the bed.
 THREAD: wood (a board's growth rings deciding how it cups),
   materials (a printed or laminated part strong along its layers),
   building (a beam installed on its side).
@@ -957,9 +733,6 @@ ESSENCE: what destroys most stone buildings is not frost but salt.
 ROOT: chemistry / evaporation removes water and leaves everything
   that was dissolved in it, and a growing crystal exerts a real
   force.
-CANNOT: no sealing a damp stone wall from the outside without moving
-  the damage inward. And no removing the salt by washing the face:
-  the reservoir is inside the wall, and it keeps coming.
 THREAD: farming (irrigated land salting up by exactly this
   arithmetic), the body (a stone forming from a supersaturated
   fluid), building (a damp wall pushing a paint film off from
@@ -975,10 +748,6 @@ ESSENCE: the dust of all three of these crafts is one poison.
 ROOT: the body / the lung clears large particles and cannot clear
   very small ones, so the harm is decided by particle size and not by
   how dirty the air looks.
-CANNOT: no reversing that scarring, ever. And no judging the danger
-  by what can be seen: the fraction that does the damage is
-  invisible, so a workshop that looks clean can still be ruining
-  everyone in it. And no dry sweeping in a pottery.
 THREAD: mining (the same disease under its older names), building
   (cutting paving, blocks and worktops), the body (asbestos working
   by the very same mechanism at a different size).
@@ -993,11 +762,6 @@ ESSENCE: fired clay is the most durable thing ordinary people ever
 ROOT: keeping knowledge / what survives is not what was valued but
   what nobody had a reason to destroy and nothing had an appetite
   for.
-CANNOT: no such record from wood, cloth, leather, food or bronze —
-  the first four are eaten and the last was always worth recasting,
-  so whole ways of life are known only through their rubbish. And no
-  bias-free reading of it: what we know is shaped by what happened
-  to be fired.
 THREAD: geology (a fossil record biased toward hard parts), keeping
   knowledge (archives surviving by neglect rather than by care),
   history (bureaucratic receipts outliving the literature).

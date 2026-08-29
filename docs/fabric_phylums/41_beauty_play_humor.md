@@ -7,9 +7,6 @@ ESSENCE: beauty is order with a surprise in it — enough pattern to
   zone lies between wallpaper and static.
 ROOT: the mind / perception hunts patterns and pays out pleasure
   when one is found barely.
-CANNOT: no beauty at the poles — the fully predictable bores and
-  the fully random repels; a checkerboard and a static screen
-  miss from opposite sides.
 THREAD: music (theme-and-variation is this law naked), gardens
   (between parking lot and jungle), fire and surf (order arriving
   as endless novelty — watchable forever).
@@ -21,8 +18,6 @@ ESSENCE: symmetry pleases, and a slight deliberate break pleases
 ROOT: the living world / symmetry signals health and clean growth
   (UNSURE on mechanism, iron on the preference); the pattern law
   above.
-CANNOT: no perfect symmetry reads as alive — the exactly mirrored
-  face turns uncanny; machine-perfect is felt as no-one-home.
 THREAD: pottery (the intentional flaw), jazz (swing is symmetry
   bent on purpose), lettering (the trained hand nudges the
   mathematical center).
@@ -34,9 +29,6 @@ ESSENCE: play is practice wearing a mask of pointlessness — the
   repetitions done.
 ROOT: the living world / costly universal behavior persists only
   if it pays; the free-mistake zone is the payment.
-CANNOT: no play under real stakes — the instant consequences turn
-  real, play dies mid-motion; and none on command — ordered fun
-  is work.
 THREAD: kittens and chess (both rehearse wars never to be
   fought), fire drills and simulators (play formalized for
   adults), science (sanctioned "what if" with a budget).
@@ -48,9 +40,6 @@ ESSENCE: a laugh marks a rule broken safely — something wrong
   the safety and it is an attack.
 ROOT: play's law above / humor is play with meanings; the mind —
   two readings held, then snapped.
-CANNOT: no joke without a broken rule, and no laugh where the
-  harm is real and near — the same slip is comedy across the
-  street and an emergency at your feet.
 THREAD: tickling (attack inside safety — and impossible by your
   own hand, since nothing is violated), puns (grammar's dignity
   slipping), the roast versus the insult (the frame is the whole
@@ -62,8 +51,6 @@ ESSENCE: timing is humor's physics — expectation built, held one
   land as nothing.
 ROOT: music / tension needs time to build and resolution must
   land on the beat; the mind's expectations run on clocks.
-CANNOT: no joke survives arrhythmia — the stepped-on punchline
-  kills perfect material; content cannot repair broken timing.
 THREAD: music (the rest before the final chord), suspense (dread
   is comic timing played slow), the auctioneer's held silence.
 ASKED-AS: comedian delivery pause standup ruined funnier awkward anticipation moment setup waiting stage
@@ -75,9 +62,6 @@ ESSENCE: a joke explained is a joke dead — the laugh lives only
   fact is iron.
 ROOT: teaching+learning / the answer given is not the answer
   earned; owning the finding is part of the finding.
-CANNOT: no laugh arrives by delivery of a joke's meaning —
-  understanding shows up, laughter does not; proof the laugh was
-  never about the information.
 THREAD: magic (explained, it is a procedure), poetry (paraphrase
   carries the cargo and loses the poem), teaching (the struggled
   problem beats the solved example).
@@ -89,8 +73,6 @@ ESSENCE: laughter is social before it is funny — people laugh far
   amusement's clothes.
 ROOT: people together / synchrony binds — shared laughter is a
   two-second ritual.
-CANNOT: no measuring a joke on paper — the same set kills Friday
-  and dies Tuesday; a laugh cannot be sized without a room.
 THREAD: laugh tracks (engineering built on the contagion), cinema
   versus the same film alone on a couch, applause and yawns (the
   same contagion in other clothes).
@@ -103,9 +85,6 @@ ESSENCE: play's deepest pull sits at almost-too-hard — a task
 ROOT: teaching+learning / the same seam is where learning runs
   fastest, which is likely the point (UNSURE on why it feels like
   joy, iron on where the seam sits).
-CANNOT: no absorption from comfort, however pleasant; and none
-  with feedback delayed — bowl through a curtain and the game
-  dies instantly.
 THREAD: games (levels exist to chase the seam as skill grows),
   climbing and fishing, work at its best (the craftsman's lost
   afternoon).

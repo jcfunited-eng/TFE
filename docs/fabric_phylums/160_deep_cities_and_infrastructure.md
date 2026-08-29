@@ -13,11 +13,6 @@ ESSENCE: the first limit on how big a settlement can get is how much
 ROOT: physics / water is dense and will not compress, so moving it
   costs energy in direct proportion to its volume and the height it
   is lifted.
-CANNOT: no city larger than its supply, so no growth past the
-  aqueduct without building another one first — which is why the
-  great water works always come before the great expansions. And no
-  trading quality for quantity: a person needs a minimum volume
-  regardless of how clean it is.
 THREAD: geography (settlements sitting where the water sits), energy
   (pumping as a city's largest single electricity user), history
   (works built long before anyone understood germs).
@@ -31,11 +26,6 @@ ESSENCE: a water or power system is not sized for what people use.
 ROOT: engineering / a network has to deliver the maximum
   simultaneous demand, and an average tells you nothing whatever
   about simultaneity.
-CANNOT: no sizing a network from total consumption, so no capital
-  saving from average efficiency — the money goes on the peak. And
-  no peak without a shape: shift the timing and the pipe shrinks,
-  which is why moving demand is nearly always cheaper than building
-  capacity.
 THREAD: logistics (queues made by variability rather than by
   shortage), energy (a grid built for the coldest evening of the
   decade), economy (a fixed cost carried by rare use).
@@ -48,10 +38,6 @@ ESSENCE: what matters about a reservoir is not how much it holds but
   rate, not a volume.
 ROOT: measurement / a store's worth is set by the flow through it
   against the length of the shortfall it must bridge.
-CANNOT: no supply security from capacity alone — a tank is only as
-  good as whatever refills it. And no drought planning from average
-  rainfall: the design case is the driest multi-year run, and a
-  record too short to contain one will always understate it.
 THREAD: chance (a rare event sitting outside a short record),
   geography (the catchment as the real asset), logistics (cover
   measured in days of demand).
@@ -65,11 +51,6 @@ ESSENCE: water in pipes has to be pushed uphill and held back coming
 ROOT: physics / pressure in a standing column depends only on
   height, so every ten metres of elevation is a fixed change nobody
   can design away.
-CANNOT: no single pressure across varied ground — one setting cannot
-  serve a hilltop and a valley floor, so the zoning is compulsory.
-  And no raising pressure for the high ground without breaking pipes
-  in the low: leaks and bursts climb steeply with pressure, so the
-  system is always tuned between two failures.
 THREAD: physics (a column of fluid and its own weight), building
   (roof tanks doing the same job one address at a time), maintenance
   (leakage driven by pressure more than by age).
@@ -83,11 +64,6 @@ ESSENCE: a water network loses a large slice of everything it
 ROOT: economy / repair cost climbs steeply as leaks get smaller and
   rarer while the value saved falls, so there is an economic level
   of loss and it is not zero.
-CANNOT: no leak-free buried network — pipes shift, corrode and get
-  struck, continuously and everywhere. And no finding small leaks
-  cheaply: they surface nowhere, so detection means pressure zoning,
-  night-flow measurement and listening, all of which cost more than
-  the water in most places.
 THREAD: maintenance (a fault cheaper to tolerate than to find),
   economy (the last few per cent costing as much as all the rest),
   measurement (a loss inferred rather than observed).
@@ -100,11 +76,6 @@ ESSENCE: treating water at the works is not enough, because the
   network, where it has faded, is where the quality problems live.
 ROOT: chemistry / a disinfectant is consumed as it works, so its
   concentration falls with time and distance travelled.
-CANNOT: no guaranteeing quality at the tap by testing at the plant —
-  that sample has not travelled the pipe the customer drinks from.
-  And no dead ends without trouble: water standing still loses its
-  protection and gains taste, colour and growth, which is why
-  networks are looped and flushed deliberately.
 THREAD: chemistry (a reaction continuing after it leaves the
   vessel), public health (the pipe and the drain doing more than any
   clinic), measurement (a reading valid only where it was taken).
@@ -117,11 +88,6 @@ ESSENCE: a sewer does not destroy anything; it moves it. The first
   first in distance, and eventually by treatment.
 ROOT: public health / infection travels from waste to mouth, so the
   whole benefit lies in breaking that path and not in the pipe.
-CANNOT: no health gain from collection alone, so no sewer without a
-  disposal question attached to it. And no solving it locally:
-  whatever leaves this city arrives at the next one downstream,
-  which is why river agreements and treatment standards had to
-  arrive together.
 THREAD: geography (upstream and downstream as a political
   relationship), public health (preventing exposure beating treating
   cases), law (a harm exported past the boundary that would price
@@ -136,10 +102,6 @@ ESSENCE: older cities put rain and sewage down one pipe, which works
 ROOT: engineering / a system sized for the average cannot carry the
   extreme, so an overflow is built in somewhere and the only
   question is where it discharges.
-CANNOT: no treating every drop in a combined system — storm flow is
-  many times the dry-weather flow, so a works big enough would stand
-  idle nearly always. And no cheap separation: the cost is in
-  digging up every street, not in the pipes themselves.
 THREAD: drainage (rain as the largest and least controllable input),
   economy (a capital cost that is almost all excavation), law (a
   permitted discharge that looks like a failure and is a design).
@@ -153,11 +115,6 @@ ESSENCE: sewage treatment is three jobs in order — let the solids
 ROOT: chemistry and the living world / different contaminants are
   removed by different mechanisms, and settling, digestion and
   disinfection do not substitute for one another.
-CANNOT: no biological stage surviving a shock load of the wrong
-  chemical — the bacteria doing the work are alive, can be poisoned,
-  and take weeks to recover. And no skipping a stage to save money:
-  the later stage fails first when an earlier one underperforms, so
-  the saving shows up as a breach further downstream.
 THREAD: chemistry (a process built of stages in sequence), the
   living world (a managed population doing industrial work),
   maintenance (a system whose failure surfaces one stage later).
@@ -170,11 +127,6 @@ ESSENCE: everything a city consumes ends up mixed together in one
 ROOT: measurement / a mixed flow is an automatic average over
   everyone contributing to it, which is a sample no survey could
   afford to buy.
-CANNOT: no attributing anything in a sewer to a person or a street
-  without deliberately sampling smaller, which is exactly where the
-  privacy questions start. And no reading a concentration as a
-  quantity without knowing the flow: rain, industry and leakage all
-  dilute it, so the raw figure means nothing alone.
 THREAD: measurement (a proxy carrying an assumed constant), public
   health (surveillance not depending on people coming forward),
   evidence (a record made with no audience in mind).
@@ -187,11 +139,6 @@ ESSENCE: a power network is built so that any single thing can fail
 ROOT: engineering / failures of individual components are
   unavoidable and roughly independent, so reliability is bought by
   arranging that no single one matters.
-CANNOT: no surviving simultaneous failures the design did not
-  anticipate — the standard covers one, so two at once is a rarer
-  and quite different situation with no guarantee attached. And no
-  redundancy without idle capacity: the spare path has to exist and
-  stay unused, which looks like waste in every budget review.
 THREAD: logistics (efficiency meaning nothing spare), engineering
   (redundancy through independent paths), government (preparation
   that looks like waste until the week it does not).
@@ -205,11 +152,6 @@ ESSENCE: the frequency of the mains is the balance between
 ROOT: physics / rotating machines tied to one network are
   mechanically locked together, so their common speed reports the
   net torque on the entire set.
-CANNOT: no steady frequency without something adjusting output
-  within seconds, so no grid without fast reserve. And no grid
-  without inertia: the spinning mass is what slows the fall long
-  enough for the controls to act, so replacing those machines with
-  electronics means deliberately replacing the inertia too.
 THREAD: physics (a shared shaft as a shared measurement), control (a
   feedback loop whose speed decides stability), energy (storage as
   the missing piece of every electricity system).
@@ -223,10 +165,6 @@ ESSENCE: the great blackouts get the attention, but almost every
 ROOT: engineering / reliability spending goes where a failure
   affects the most people, so the parts serving few customers each
   get the least protection.
-CANNOT: no improving household reliability by strengthening the
-  high-voltage network — the faults are not there. And no cheap fix
-  for distribution: it is thousands of miles of low-value line, so
-  any improvement is multiplied by an enormous length.
 THREAD: economy (spending following consequence rather than
   frequency), maintenance (tree-cutting as the largest single
   cause), measurement (an average outage figure hiding where faults
@@ -241,11 +179,6 @@ ESSENCE: most power stations need electricity to start up — for
 ROOT: engineering / a system whose operation depends on its own
   output cannot restart itself, so recovery needs a resource
   deliberately kept outside the loop.
-CANNOT: no switching a grid back on as one action — it must be
-  re-energised in stages, matching load to generation at every step
-  or it collapses again. And no assuming the capability is there:
-  black-start plants are paid to sit ready for an event that may
-  never come, so a cost review finds them first.
 THREAD: computing (a bootstrap needing something outside itself),
   engineering (a dependency loop), government (capacity that only
   shows its worth in a crisis).
@@ -258,10 +191,6 @@ ESSENCE: buried cables do not blow down in storms, and they cost
 ROOT: engineering / protection against one class of failure is
   bought by accepting worse behaviour in another, and no arrangement
   is best on both counts.
-CANNOT: no cheap undergrounding in an existing street — the cost is
-  the excavation and the other services already down there, not the
-  cable. And no fault-free buried network either: water, ground
-  movement and other people's diggers reach it eventually.
 THREAD: maintenance (repair time as the hidden half of reliability),
   infrastructure (digging as the dominant cost of everything under a
   street), economy (a trade between how often and how long).
@@ -275,11 +204,6 @@ ESSENCE: a gas network stores its own buffer inside the pipes. The
 ROOT: physics / a compressible fluid stores energy by being
   squeezed, and a large network held at pressure holds a great deal
   of it.
-CANNOT: no storing electricity in a wire the same way — this is
-  precisely the advantage gas has and the grid does not. And no gas
-  network without constant leak management and an added smell: the
-  fuel is invisible, it collects in enclosed spaces, and it forgives
-  nothing.
 THREAD: energy (storage as the deciding difference between fuels),
   physics (compressibility as a store), safety (a hazard managed by
   making it detectable).
@@ -293,11 +217,6 @@ ESSENCE: heat is cheap to make and expensive to move. A district
 ROOT: physics / heat leaks out of a pipe in proportion to its length
   and the temperature difference, so the loss is fixed and the
   benefit depends on how much is delivered per metre.
-CANNOT: no district heating in low-density housing — pipe cost and
-  losses per customer lose to individual boilers every time. And no
-  cheap retrofitting of the customers: each building needs its own
-  connection and controls, so the scheme has to sign up a critical
-  mass before it can be built at all.
 THREAD: energy (waste heat as a resource with a delivery problem),
   geography (density as the condition for anything shared), economy
   (a network needing minimum take-up before it can exist).
@@ -311,10 +230,6 @@ ESSENCE: moving water is usually the largest single thing a city's
 ROOT: physics / raising a mass against gravity costs a fixed amount
   of energy per ton per metre, and a city moves an enormous number
   of tons every day.
-CANNOT: no cheap water where it has to be lifted far, so the energy
-  price and the water price are tied together permanently. And no
-  efficiency gain that beats gravity: pumps can be improved a
-  little, and the height cannot be argued with at all.
 THREAD: energy (a fixed physical cost hidden under an unrelated
   service), geography (a city's elevation deciding its running
   costs), economy (two prices coupled through an invisible input).
@@ -328,11 +243,6 @@ ESSENCE: the water mains under a street are not sized for drinking.
 ROOT: engineering / a network sized for its largest required draw
   serves every smaller draw automatically, and the largest draw here
   is not a domestic one.
-CANNOT: no shrinking mains to match household demand without losing
-  fire cover — the two duties share one pipe. And no free
-  oversizing: slow-moving water sits longer, loses its disinfectant
-  and picks up taste, so the fire requirement quietly manufactures a
-  water-quality problem.
 THREAD: safety (a rare requirement dominating an everyday design),
   public health (stagnation as the price of capacity), economy
   (capital spent on a use almost never exercised).
@@ -346,11 +256,6 @@ ESSENCE: streets do two incompatible jobs — carrying traffic
 ROOT: engineering / movement wants few interruptions and access
   requires constant ones, so the two demands cannot be met on the
   same piece of pavement.
-CANNOT: no high-capacity street lined with driveways and parked
-  cars — every access is an interruption, and interruptions are what
-  capacity is made of. And no hierarchy without a cost: the streets
-  chosen for movement become unpleasant to live on, and the ones
-  chosen for access become rat runs the moment the big road jams.
 THREAD: architecture (a street working or failing like a room),
   logistics (a network sorted into trunks and branches), government
   (a decision about who carries a shared cost).
@@ -364,10 +269,6 @@ ESSENCE: a road's capacity is not set by its width but by its
 ROOT: logistics / a system produces what its constraint produces,
   and on a road network the constraint is wherever flows have to
   cross each other.
-CANNOT: no raising capacity by widening links while the junctions
-  stay as they are, so no congestion relief from a wider road alone.
-  And no removing the constraint: making one junction free with a
-  bridge or a tunnel moves the queue to the next one along.
 THREAD: logistics (a bottleneck that moves rather than vanishes),
   engineering (a chain limited by one stage), economy (an investment
   whose benefit is captured by the next constraint).
@@ -382,11 +283,6 @@ ESSENCE: traffic lights do not create capacity, they divide it.
 ROOT: measurement / a fixed resource shared among competing claims
   is a scheduling problem, and the scheduling overhead is itself a
   real cost.
-CANNOT: no giving every approach more green — the sum is fixed, so
-  an improvement for one movement is a deterioration for another,
-  always. And no perfect coordination both ways on a two-way street:
-  a wave timed for one direction is mistimed for the other unless
-  the spacing happens to cooperate.
 THREAD: computing (scheduling with switching costs), logistics
   (changeover time as lost capacity), choosing (a fixed pot divided
   among claimants).
@@ -400,11 +296,6 @@ ESSENCE: a motorway moves the most vehicles just below the point
 ROOT: flow / spacing between vehicles grows as drivers react to each
   other, so density and speed trade against each other and their
   product peaks somewhere in the middle.
-CANNOT: no maximum throughput at maximum density — the two are
-  different quantities, and confusing them is why letting more
-  traffic on can move less traffic. And no quick recovery once flow
-  has broken down: the jam clears backwards, slowly, long after
-  whatever caused it has gone.
 THREAD: logistics (waiting rising steeply as a resource approaches
   full), physics (flow as density times speed), crowds (the same
   curve for people on foot).
@@ -418,11 +309,6 @@ ESSENCE: a bus or train line needs enough people living and working
 ROOT: economy / a scheduled service costs nearly the same full or
   empty, so cost per passenger is dominated by how many people are
   within reach of it.
-CANNOT: no frequent service in low density without a subsidy that
-  grows without limit, so no transit answer to a settlement pattern
-  built around driving. And no winning riders back with a thin
-  service: waiting dominates the journey, so cutting frequency loses
-  passengers faster than it saves money.
 THREAD: geography (settlement pattern deciding what services are
   possible), economy (a fixed cost divided by a shrinking base),
   architecture (density as the thing that pays for the bus).
@@ -435,11 +321,6 @@ ESSENCE: from a passenger's point of view, time spent waiting counts
   rather than making it quicker.
 ROOT: the mind / time spent unable to act and not knowing when it
   ends is experienced as far longer than time spent travelling.
-CANNOT: no casual use of a service you have to consult a timetable
-  for — past an interval of about ten minutes every trip needs
-  planning, and a trip that needs planning is not taken on impulse.
-  And no substituting speed for frequency: five minutes off the
-  journey does nothing for somebody waiting twenty.
 THREAD: the mind (waiting felt as longer than moving), logistics
   (batch size deciding responsiveness), economy (an improvement
   costing operating money rather than capital).
@@ -453,11 +334,6 @@ ESSENCE: a bus spends a surprising share of its journey standing
 ROOT: logistics / total time is moving plus stopping, and the
   stopping term grows with the number of stops rather than with
   distance.
-CANNOT: no speeding up a stopping service by raising its top speed —
-  the time is not being spent there. And no removing stops for free:
-  fewer stops means faster running and a longer walk at each end,
-  which loses exactly the passengers who lived nearest the ones
-  removed.
 THREAD: logistics (changeover time dominating throughput), design
   (a step and a door deciding a whole system's speed), economy (a
   small saving multiplied by an enormous count).
@@ -471,11 +347,6 @@ ESSENCE: fares almost never cover the cost of running public
 ROOT: economy / most of the cost is fixed and much of the benefit
   lands on people not paying the fare, so the fare can never measure
   the service's worth.
-CANNOT: no profitable comprehensive network — the profitable parts
-  are a few busy corridors, and running only those is not a network.
-  And no honest comparison with roads on this basis: roads are not
-  asked to recover their cost from users at all, so the test is
-  being applied to one mode only.
 THREAD: economy (a fixed cost divided by a shrinking base),
   government (a service whose benefits are not captured by its
   price), measurement (a metric that steers the thing it measures).
@@ -489,10 +360,6 @@ ESSENCE: a rule requiring a fixed number of parking spaces per flat
 ROOT: geometry / space is conserved, so land committed to storing
   vehicles is land unavailable for everything else, in a ratio
   nobody chose on purpose.
-CANNOT: no compact street under a high parking requirement — the
-  arithmetic forbids it whatever the design intention. And no free
-  parking anywhere: the cost is built into every rent and every
-  price, and paid equally by the people who do not drive.
 THREAD: architecture (a rule deciding built form more than any
   design does), economy (a cost bundled into a price and hidden from
   the user), geography (land use decided by a number in a code).
@@ -505,11 +372,6 @@ ESSENCE: the three metres at the edge of a street is the most
   whoever complains loudest.
 ROOT: economy / a scarce resource given away free gets allocated by
   queueing, habit and political noise rather than by value.
-CANNOT: no adding kerb space — the length of the street is fixed, so
-  every use is at another use's expense. And no efficient allocation
-  while it is unpriced: a van double-parks because waiting in the
-  road is cheaper than any legal alternative, which is a correct
-  answer to the prices as set.
 THREAD: economy (a free resource reliably over-consumed), logistics
   (loading as the invisible half of urban freight), government (an
   allocation settled politically rather than by use).
@@ -522,11 +384,6 @@ ESSENCE: the last few miles of a delivery cost more than the
   multiplied the stops without changing any of the streets.
 ROOT: logistics / cost is driven by the number of handling events
   and stops rather than by distance, and a city maximises both.
-CANNOT: no efficient urban delivery without somewhere to unload and
-  somebody to receive — a failed delivery doubles that parcel's cost
-  instantly. And no voluntary consolidation: each carrier optimises
-  its own round, and the shared saving belongs to nobody in
-  particular.
 THREAD: logistics (cost dominated by touches), economy (a saving
   nobody is positioned to capture), geography (the kerb as the
   binding constraint).
@@ -540,11 +397,6 @@ ESSENCE: the cost of collecting rubbish is almost all in stopping
 ROOT: logistics / a round's cost is driven by the number of stops
   and the time at each, so anything adding stops or handling is
   multiplied across the whole city.
-CANNOT: no free extra collection round — each new stream is another
-  vehicle, another crew and another pass down every street. And no
-  system that ignores what people will actually do: a contaminated
-  stream is worth nothing, so the binding constraint is human
-  behaviour rather than sorting machinery.
 THREAD: logistics (stops rather than distance driving cost), economy
   (a marginal service costing more than its yield), people together
   (a system resting on cooperation nobody enforces).
@@ -558,10 +410,6 @@ ESSENCE: each disposal route wins on something different. Landfill
 ROOT: chemistry / recovering a material is worth doing when the
   recycled route costs less energy than making it new, and that
   comparison comes out differently for every material.
-CANNOT: no single best answer for all waste, so no policy that is
-  both honest and simple. And no recycling without a buyer: a sorted
-  material with no market is stored, exported or burned, so
-  collection is only the first half of the claim.
 THREAD: chemistry (energy of production deciding what is worth
   recovering), economy (a market being what makes recycling real),
   measurement (a rate reported as tonnes collected rather than
@@ -576,11 +424,6 @@ ESSENCE: trees in a street do several measured things — they shade
 ROOT: the living world / a tree's benefits scale with its canopy,
   and canopy is a function of age and of how much underground room
   it was given at the start.
-CANNOT: no mature canopy out of a small pit under a pavement — the
-  tree dies young or stays small, so the number planted and the
-  benefit delivered are different figures. And no shade from a newly
-  planted street: the useful effects arrive decades after the credit
-  for planting them.
 THREAD: the living world (growth as the limiting rate),
   infrastructure (roots and buried services fighting for one space),
   government (a benefit arriving several administrations later).
@@ -593,11 +436,6 @@ ESSENCE: every roof and every paved yard turns rain that would have
   was fields when it was sized.
 ROOT: water / rain either soaks in, evaporates or runs off, and
   covering ground removes the first two options entirely.
-CANNOT: no keeping a drainage system adequate while the catchment
-  above it is being paved — the sizing assumption is invalidated
-  continuously by people acting individually. And no fixing it
-  downstream: capacity added at the bottom moves the flooding to
-  wherever the flow now exceeds the next section.
 THREAD: water (a catchment's response set by its surface), law (a
   small individual act with a shared cost), infrastructure (a design
   assumption quietly falsified over decades).
@@ -611,10 +449,6 @@ ESSENCE: a flood defence does not stop flooding. It raises the size
 ROOT: chance / a barrier changes the shape of the outcomes rather
   than removing the tail, and cutting frequency while raising
   consequence is a trade and not a cure.
-CANNOT: no defence that cannot be exceeded, so no development behind
-  one that may assume it is safe. And no defence without a transfer:
-  the water goes somewhere, faster, and that somewhere has residents
-  too.
 THREAD: chance (frequency traded against severity), geography
   (floodplains built on anyway), government (a protection that
   encourages the behaviour it was protecting against).
@@ -628,11 +462,6 @@ ESSENCE: a hundred-year flood is not one that comes every hundred
 ROOT: chance / independent yearly trials produce clusters, and a
   long-run average says nothing whatever about the spacing of
   events.
-CANNOT: no reassurance from having just had one, so no reading a
-  recent flood as protection against the next. And no fixed meaning
-  for the label: the estimate comes from a short record on a
-  changing catchment and a changing climate, so the line moves — and
-  it has been moving in one direction.
 THREAD: chance (rare events clustering), measurement (a figure
   derived from a series that is too short), geography (a hazard
   record shorter than the hazard's own cycle).
@@ -646,11 +475,6 @@ ESSENCE: deferring maintenance is borrowing at a very high rate. The
 ROOT: economy / decay compounds, so a postponed repair grows faster
   than money does, and the arithmetic of delay is always
   unfavourable.
-CANNOT: no clearing a backlog inside one budget cycle — it built up
-  over decades and would have to come out of an annual pot. And no
-  political reward for doing the work: a bridge that does not fall
-  gets nobody re-elected, and the failure arrives on a successor's
-  watch.
 THREAD: cleaning (order against decay, paid for continuously),
   government (a benefit invisible until it is withdrawn), economy (a
   cost pushed into the future at a terrible rate).
@@ -663,12 +487,6 @@ ESSENCE: everything built has a replacement date, and a city built
   is a schedule of future spending nobody has budgeted.
 ROOT: engineering / a component's life is roughly fixed when it is
   installed, so a cohort put in together comes out together.
-CANNOT: no smooth renewal programme after a lumpy building
-  programme — the bulge is baked in, and the only options are to
-  spend early or to fail together. And no accurate age from the
-  records: what was installed often differs from what was drawn, so
-  the first job in any renewal is finding out what is actually
-  there.
 THREAD: logistics (capacity arriving in indivisible lumps), economy
   (depreciation as a real cost that sends no bill), maintenance (a
   failure distribution with a shape rather than a flat rate).
@@ -681,11 +499,6 @@ ESSENCE: the expensive part of a buried service is never the pipe or
   wants to be the second one to dig.
 ROOT: economy / the shared cost of access dominates the private cost
   of the asset, so whoever digs first is paying for everybody.
-CANNOT: no cheap retrofit of anything underground — the cost is
-  almost the same whether the new service is large or small. And no
-  coordination without somebody forcing it: each utility's own
-  optimum is to dig when it suits them, so the street is opened
-  repeatedly unless one authority makes them share.
 THREAD: economy (a shared cost nobody volunteers to bear), logistics
   (batching to avoid a repeated setup), government (coordination
   needing an authority nobody wants to create).
@@ -700,11 +513,6 @@ ESSENCE: the ground under a street is more crowded than the street
 ROOT: keeping knowledge / a record made by many parties over a
   century with no shared standard and no penalty for being wrong is
   not really a record.
-CANNOT: no accurate map of what is buried under an old city — the
-  information was never assembled and the assets have moved. And no
-  reclaiming the space: dead pipes and ducts stay where they are
-  because removal costs more than abandonment, so the congestion
-  only ever increases.
 THREAD: keeping knowledge (an archive that was never kept),
   engineering (as-built differing from as-drawn), infrastructure (a
   shared space with no owner).
@@ -717,11 +525,6 @@ ESSENCE: people on foot behave like a fluid and have a capacity
 ROOT: flow / throughput is density times speed, and speed collapses
   as density climbs, so a crowd's ability to move has a peak and
   then a cliff.
-CANNOT: no crowd disaster caused by panic in most cases — the deaths
-  are usually compressive and happen to people who could not move,
-  so the cause is a geometry that let density rise. And no managing
-  it at the exit: by the time density is dangerous at a doorway, the
-  decisions that caused it were taken hundreds of metres back.
 THREAD: flow (density times speed), building (a stair or a doorway
   as the constraint on everything behind it), safety (a design case
   that must assume the worst arrival pattern).
@@ -736,11 +539,6 @@ ESSENCE: some structures fail gracefully — a beam cracks, sags and
 ROOT: engineering / redundancy in a structure means an alternative
   load path, and a structure without one converts a local defect
   into a total collapse.
-CANNOT: no relying on visible warning in a non-redundant structure,
-  so no cheap inspection regime for one. And no inspecting what
-  cannot be reached: the parts that corrode are the wet, dirty,
-  enclosed ones, and getting to them is most of the cost of finding
-  anything out.
 THREAD: engineering (a load path as a proof, and its absence as a
   risk), maintenance (inspection as the only substitute for
   redundancy), chance (a failure with no precursor).
@@ -754,11 +552,6 @@ ESSENCE: a tunnel's real danger is not collapse, it is smoke. Heat
 ROOT: physics / hot gas rises and then runs along the ceiling of any
   enclosed space, so a long tube channels a fire's products straight
   at whoever is downwind of it.
-CANNOT: no escaping upward out of a tunnel, so no self-rescue
-  without a walkway and a cross-passage within a short distance. And
-  no ventilation strategy that is right in every case: pushing smoke
-  away from one group pushes it toward another, and the operator has
-  to choose while the information is still bad.
 THREAD: physics (buoyant flow in a confined space), building (fire
   safety as buying time rather than preventing fires), war (a
   decision taken under time pressure on partial information).
@@ -772,11 +565,6 @@ ESSENCE: keeping a city moving through snow and ice is a forecasting
 ROOT: chance / a preventive action has to be taken before the event
   is confirmed, so the decision is made under uncertainty and judged
   afterwards with certainty.
-CANNOT: no treating a road after ice has formed to the same effect —
-  the salt has to be worked into the surface by traffic before it is
-  needed. And no cheap accuracy: the useful forecast is road-surface
-  temperature at particular spots, which differs from air
-  temperature and varies within a few hundred metres.
 THREAD: weather (a forecast used as a decision rather than as
   information), government (spending judged in hindsight on a
   decision made in advance), maintenance (prevention costing less
@@ -790,10 +578,6 @@ ESSENCE: a utility paid per unit sold loses money when its customers
   every successful one.
 ROOT: economy / an organisation acts on the incentive it is paid by,
   and paying for volume buys volume.
-CANNOT: no serious efficiency programme from a supplier whose income
-  depends on throughput, unless the way it is paid is changed. And
-  no fixing it by exhortation: the customer responds to the bill and
-  the company responds to its revenue, and a leaflet moves neither.
 THREAD: economy (an agent acting on its own incentives), government
   (regulation deciding what a monopoly is rewarded for), energy (a
   system where the cheapest unit is the one not used).
@@ -807,11 +591,6 @@ ESSENCE: the last customer on a network costs many times what the
 ROOT: economy / a network's cost scales with its length and its
   revenue with its connections, so cost per customer rises as
   density falls.
-CANNOT: no cost-reflective pricing and universal service at the same
-  time — charging remote customers what they actually cost would
-  disconnect them. And no ending the subsidy quietly: the moment it
-  is made visible it turns into a political argument about who
-  belongs to the country.
 THREAD: economy (averaged pricing hiding wildly different costs),
   government (universal provision as a decision about membership),
   geography (density deciding what anything costs to deliver).
@@ -825,12 +604,6 @@ ESSENCE: the long-distance part of a communications network is cheap
 ROOT: economy / a cost that cannot be spread over many users is
   borne by one, and a dedicated connection is by definition
   unshared.
-CANNOT: no competitive market in physical connections to a house —
-  duplicating the last mile costs more than one customer's revenue,
-  so it is a natural monopoly and gets regulated as one. And no
-  wireless escape from the arithmetic: radio shares capacity among
-  everyone in range, so density brings the cost straight back in
-  another form.
 THREAD: economy (one supplier genuinely being cheapest),
   infrastructure (a shared trunk and a private branch), government
   (regulated access as the alternative to competition).
@@ -844,11 +617,6 @@ ESSENCE: networks look robust and usually are not, because traffic
 ROOT: engineering / optimisation gathers flows onto the cheapest
   paths, so an efficient network is by construction a concentrated
   one.
-CANNOT: no redundancy from many routes that share a component, so no
-  reading a network diagram as a reliability assessment. And no
-  finding these points in the design documents: they emerge from how
-  the system is actually operated, which is why they are usually
-  discovered by the failure.
 THREAD: geography (chokepoints made by everybody optimising alike),
   logistics (two suppliers who share one factory), computing (a
   dependency nobody has ever drawn).
@@ -862,12 +630,6 @@ ESSENCE: infrastructure systems lean on each other. Power runs the
 ROOT: engineering / coupled systems hand load to each other, and a
   component that fails sheds its work onto neighbours already near
   their own limits.
-CANNOT: no assessing one system's resilience in isolation, so no
-  useful plan written by a single utility about its own assets
-  alone. And no stopping a cascade once it runs faster than people
-  can decide: the protection has to act automatically, which means
-  it must also be able to disconnect things deliberately, in the
-  right order.
 THREAD: logistics (a chain reaction through coupled stages), money
   (a bank failure spreading through claims), civilisations
   (interconnection as fragility).
@@ -881,11 +643,6 @@ ESSENCE: a system that can absorb a failure has something spare — a
 ROOT: logistics / efficiency means having nothing unused and
   resilience means having exactly that, so the two are opposed in a
   way no cleverness resolves.
-CANNOT: no resilience without a cost, so no free hardening of any
-  system. And no keeping the spare without a rule protecting it:
-  whoever is measured on cost will find it, honestly, and remove it,
-  and the removal looks like an improvement right up until it does
-  not.
 THREAD: logistics (efficiency against resilience), government
   (preparation that looks like waste), engineering (margin as the
   thing that absorbs whatever was not foreseen).
@@ -899,10 +656,6 @@ ESSENCE: nobody thinks about the water until it runs brown, or the
   famous.
 ROOT: the mind / attention goes to change, so a system that performs
   identically every day produces no signal at all.
-CANNOT: no political constituency for a thing that works, so no
-  funding won on the strength of good performance. And no learning
-  that lasts: after a failure the money appears, and the attention
-  decays far faster than the assets do.
 THREAD: government (prevention as the cheapest and least rewarded
   spending), medicine (a prevented illness never existing to be
   noticed), maintenance (an invisible good).
@@ -916,11 +669,6 @@ ESSENCE: the person who knows how a system actually behaves is
 ROOT: teaching / skill that lives in practice runs wordless, and the
   part that matters was never the part anybody thought to write
   down.
-CANNOT: no running a plant off its documentation alone, so no safe
-  handover without overlap between the leaver and the replacement.
-  And no capturing it by writing more procedures: the knowledge is
-  about exceptions, and a procedure describes the normal case by
-  construction.
 THREAD: teaching (losing knowledge as the normal case), craft
   (apprenticeship carrying what texts cannot), keeping knowledge (a
   store held in people rather than in files).
@@ -935,11 +683,6 @@ ESSENCE: a city needs a sewage works, a waste transfer station, a
 ROOT: government / a concentrated cost produces motivated opponents
   and a diffuse benefit produces nobody, so the politics is lopsided
   regardless of the merits.
-CANNOT: no siting such a facility by consultation alone — nobody
-  volunteers, so the process either compensates the neighbours or
-  overrides them. And no city without them: refusing every site does
-  not remove the need, it moves it to whichever community has the
-  least capacity to object.
 THREAD: government (a concentrated cost against a diffuse benefit),
   economy (a cost landing on people who are not party to the act),
   geography (facilities ending up where objection is cheapest).
@@ -953,11 +696,6 @@ ESSENCE: a new system fails most in its first months and then
 ROOT: engineering / failure rates start high from manufacturing and
   installation defects, fall to a low steady level, then climb again
   at the end of life.
-CANNOT: no judging a design by its first year of faults, since most
-  of them are installation rather than design. And no skipping
-  commissioning to open on time: the faults are not avoided by being
-  ignored, only moved out of a testing period and into live service
-  where they cost far more.
 THREAD: engineering (a failure rate with a shape over time),
   management (schedule pressure paid for later), maintenance (early
   faults misreported as design failures).
@@ -971,11 +709,6 @@ ESSENCE: pumps, valves, signals and substations are now worked from
 ROOT: engineering / connecting a system to a network gives you
   control at a distance, and control at a distance is available to
   whoever can reach that network.
-CANNOT: no remote operation without remote reachability — the two
-  are one property described twice. And no simply disconnecting: the
-  staffing, the maintenance rounds and the response times were all
-  rebuilt around remote control, so going back means rebuilding the
-  organisation as well as the wiring.
 THREAD: computing (convenience and exposure being the same feature),
   infrastructure (a dependency added without ever being counted),
   history (a technology remaking whatever adopts it).

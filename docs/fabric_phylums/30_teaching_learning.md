@@ -8,9 +8,6 @@ ESSENCE: learning builds on what is already there — no mind is an
   can land.
 ROOT: the mind / memory is a web, not a shelf — a thing is kept by
   its connections.
-CANNOT: no teaching past a misconception without touching it —
-  truth poured onto a wrong model gets reinterpreted by the wrong
-  model. No lesson delivers more than the hooks can hold.
 THREAD: building (foundations before floors), farming (the soil
   decides what the seed can do), these files (every ROOT line is
   this law — essences standing on essences).
@@ -21,9 +18,6 @@ ESSENCE: spaced beats crammed — ten minutes today, tomorrow, and
   forgetting between visits is part of the planting.
 ROOT: memory strengthens most when pulled back near the edge of
   loss — the climb back is the strengthening.
-CANNOT: no cramming into keeping — one night's heroics can pass
-  one morning's exam and cannot survive the month. The calendar
-  cannot be bribed.
 THREAD: exercise (muscle grows between sessions, not during),
   farming (steady light watering roots deeper than one flood),
   friendship (presence spread over months outbuilds one grand
@@ -35,9 +29,6 @@ ESSENCE: memory strengthens by being used — pulling knowledge out
   the pull itself is the exercise that counts.
 ROOT: the fabric's own traffic law — the traveled path widens.
   Rereading walks the eye; retrieval walks the memory.
-CANNOT: no strengthening by recognition — the warm "I know this"
-  of rereading measures familiarity, not possession; fluent
-  reviewers fail cold tests.
 THREAD: martial arts (drills are the body's retrieval), music
   (playing without the sheet), apprentices made to do rather than
   watch, flashcards beating highlighters everywhere they race.
@@ -48,10 +39,6 @@ ESSENCE: an error followed by fast correction is the fastest
   which no success can do.
 ROOT: failure-is-the-path, this corpus's own law; a correction
   lands best while the miss is still warm.
-CANNOT: no fast learning where errors hide — hidden by shame,
-  punished into hiding, or found months late, a mistake teaches
-  its wrong lesson the whole time. Practice that never misses is
-  practice at what is already owned.
 THREAD: engineering (every fallen bridge rewrote the handbook),
   aviation's no-blame confession system (reported near-misses made
   flying safe), science itself (the experiment is error-hunting
@@ -63,9 +50,6 @@ ESSENCE: experts cannot remember not-knowing — once a thing turns
   the best knowers are often the worst explainers.
 ROOT: the mind — learning overwrites the old ignorance rather than
   archiving it; there is nothing left to consult.
-CANNOT: no expert hears their own explanation with beginner's
-  ears. The gap is invisible from above — it must be reported from
-  below, which is why real teaching runs on asking.
 THREAD: manuals written by the machine's own engineers, the
   tapping game (a song tapped on a table is obvious to the tapper,
   noise to the listener — tappers guess half will name it; almost
@@ -78,10 +62,6 @@ ESSENCE: skill climbs in stages — rules first (slow, spoken, one
   (the doing runs wordless); no stage can be skipped.
 ROOT: the mind — repetition moves work from the narrow effortful
   channel to the wide automatic one.
-CANNOT: no starting at flow — talent buys a faster climb, never a
-  skipped rung. And flow cannot explain itself (the curse above),
-  while hard thinking mid-performance breaks it: the champion who
-  starts steering the swing is briefly a beginner again.
 THREAD: driving (white knuckles to arriving with no memory of the
   drive), language (grammar dissolving into just speaking),
   martial arts belts (the ladder made wearable).
@@ -93,8 +73,6 @@ ESSENCE: visible progress beats applied pressure — the learner who
   pressure-only schooling is the evidence.
 ROOT: the mind — effort follows reward, and learning's native
   reward is felt growth.
-CANNOT: no sustained learning on fear alone — the pressed student
-  stops at the first unwatched moment, and often forever.
 THREAD: games (levels and scores are progress kept always visible
   — teaching voluntarily what schools compel), exercise streaks,
   farming (you tend longest what you can watch grow).
@@ -105,8 +83,6 @@ ESSENCE: the teacher's real product is independence — the work
   of a teacher is what students do later, alone.
 ROOT: knowledge transfers; the knower does not — performance that
   needs the teacher present is borrowing, not learning.
-CANNOT: no teaching by permanent scaffolding — help that never
-  withdraws becomes dependence wearing help's clothes.
 THREAD: parenting (eighteen years of planned obsolescence), the
   old crafts (apprenticeship ends in a masterpiece made alone,
   judged by strangers), physical therapy (finished when the
@@ -118,9 +94,6 @@ ESSENCE: sleep files the day's learning — a fact or skill studied
   awake; practice continues in the sleeping brain.
 ROOT: the human journey (file 37) — sleep is when memory moves
   from holding into keeping.
-CANNOT: no replacing sleep with more study — the all-nighter
-  unfiles what it crams. What was never slept on was never fully
-  kept.
 THREAD: musicians finding the hard passage smoother in the
   morning, "sleep on it" for decisions (the folk wisdom got there
   first), the rested student beating the exhausted crammer.

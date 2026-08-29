@@ -10,10 +10,6 @@ ESSENCE: three different things get called knowing. Believing is
   own head.
 ROOT: premise — a belief is a claim about the world, made in a
   head, and the head is not where the world is.
-CANNOT: no inspecting a belief of your own and seeing whether it is
-  knowledge — a true belief and a confident false one are
-  indistinguishable from the inside. Every check that works is an
-  outside check.
 THREAD: evidence + measurement (the whole apparatus exists because
   the inside view is not enough), law (a witness sure and wrong
   looks exactly like a witness sure and right), the mind.
@@ -26,10 +22,6 @@ ESSENCE: you glance at the station clock, it reads three, and it is
 ROOT: this file / knowledge needs belief, reason and world to line
   up — here the reason and the world lined up by coincidence
   instead of by connection.
-CANNOT: no fixing this by adding conditions — every patch anyone
-  has proposed gets a new stopped clock built for it. What is
-  missing is not another rule but a working link between the
-  reason and the fact.
 THREAD: chance + risk (a right answer from a broken method pays
   once and teaches nothing), medicine (a correct diagnosis reached
   by wrong reasoning), navigation.
@@ -42,10 +34,6 @@ ESSENCE: ask why you believe something and you give a reason. Ask
   further.
 ROOT: mathematics + logic / a chain is only as strong as its
   premises — walked backwards, that is a search for the bottom.
-CANNOT: no belief supported all the way down. Every chain of
-  reasons terminates, and the terminations are not themselves
-  supported — anyone who says otherwise has stopped and not
-  noticed stopping.
 THREAD: law (a court eventually accepts the record, the oath and
   the calendar without proving them), building (every structure
   ends on ground nobody engineered), teaching (the child's fourth
@@ -60,10 +48,6 @@ ESSENCE: belief is not a switch. You can hold a thing at
 ROOT: chance + risk / a gamble's price is each outcome weighed by
   its chance; premise — a graded quantity is being poured into an
   ungraded slot.
-CANNOT: no acting on a probability, only on a decision made using
-  one. And no single confidence level that is right for every
-  action — how sure you must be depends on what being wrong costs,
-  and that is not a fact about the evidence.
 THREAD: medicine (a scan at eight in ten, and an operation that is
   all or nothing), law (beyond reasonable doubt against balance of
   probabilities — two lines drawn for two costs), money.
@@ -76,10 +60,6 @@ ESSENCE: certainty is real and its territory is small. Inside rules
   the inside the two feel identical.
 ROOT: mathematics + logic / a chain transports certainty and cannot
   mint it — and the world was never among the premises.
-CANNOT: no certainty about anything that could have been otherwise.
-  If a claim rules out ways the world might have been, then some
-  possible evidence counts against it, and that possibility is
-  exactly what removes the last per cent.
 THREAD: physics (its firmest laws are the most heavily attacked
   ones, not the proven ones), law (no verdict claims certainty; the
   standard is a level of doubt), engineering.
@@ -92,10 +72,6 @@ ESSENCE: the sun has risen every morning anyone recorded. That is a
   worked so far, because working so far is the past again.
 ROOT: premise — no heap of particular cases contains a general law;
   the leap is supplied by the person, not found in the heap.
-CANNOT: no justifying the future's resemblance to the past without
-  using it — every argument for it helps itself to it. And no
-  living without it either: the assumption is unjustified and not
-  optional, which is the honest position and an uncomfortable one.
 THREAD: farming (every planting date is this bet, made annually),
   engineering (a beam tested yesterday and trusted tomorrow),
   chance + risk (past frequency spent as forecast).
@@ -108,10 +84,6 @@ ESSENCE: a thousand white swans do not establish that all swans are
   them.
 ROOT: this file / the gap that stops examples becoming a law does
   nothing to stop one counterexample being fatal.
-CANNOT: no finishing a general claim by collecting instances,
-  however many. And no half-death for a genuine counterexample —
-  either the claim goes or something else is blamed for the case,
-  and that second move has to be paid for openly.
 THREAD: engineering (a bridge is disproved by one collapse and
   never proved by standing), law (one honest clock defeats a
   hundred character witnesses), cooking (one failed batch tells
@@ -125,10 +97,6 @@ ESSENCE: science has no "proved" drawer. What it has is a shooting
   clever people wanted dead.
 ROOT: this file / confirming is impossible and refuting is not — so
   the method aims itself entirely at the half that works.
-CANNOT: no theory ever finished. A survivor is not a winner, and
-  the most reliable law in use is still one that has not yet met
-  the case that breaks it. And no standing at all without attempted
-  kills: an idea nobody attacked has no record, only age.
 THREAD: engineering (a design is trusted after the tests that tried
   to fail it), medicine (a treatment is kept while it keeps
   outperforming, never crowned), law (the account that survived
@@ -143,10 +111,6 @@ ESSENCE: three different situations get flattened into "not
 ROOT: evidence + measurement / a law earns its keep by what it
   forbids; premise — the three states have different futures, so
   one word for all three loses the information.
-CANNOT: no untestable claim ever becoming knowledge — not because
-  it is false, but because there is no road from where it sits to
-  where knowledge is. And no treating unsupported as refuted: an
-  unexamined claim is owed a look, a dead one is not.
 THREAD: law (acquitted, unproven and never charged are three
   different things), medicine (no evidence of benefit against
   evidence of no benefit), money.
@@ -159,10 +123,6 @@ ESSENCE: nothing is ever tested by itself. Every experiment leans
   the result does not say which.
 ROOT: this file / a refutation is decisive against a claim only if
   the claim was what got tested — and a bundle was what got tested.
-CANNOT: no experiment that isolates one belief. And no rule for
-  choosing what to blame: keeping the theory and blaming the setup
-  is always available, which is why honest work states in advance
-  what it would accept as the theory's own failure.
 THREAD: engineering (a failed part, a failed jig, or a failed
   drawing — the test looks the same), medicine (a trial that
   disappoints because the drug is inert or because the dose was
@@ -175,10 +135,6 @@ ESSENCE: for any pile of facts there is more than one story that
   everything observed and disagree about everything underneath.
 ROOT: this file / examples cannot complete a general claim —
   therefore the evidence never picks out exactly one.
-CANNOT: no data set that selects a single explanation on its own —
-  the choosing is done by something else: simplicity, fit with
-  neighbouring knowledge, or which story someone already held. And
-  no honest pretending it was the data that chose.
 THREAD: law (two accounts consistent with the same physical
   evidence — the whole reason trials exist), detective work,
   astronomy (the same sky read by two very different systems for
@@ -192,10 +148,6 @@ ESSENCE: when two explanations fit equally, take the one with fewer
   anything at all.
 ROOT: this file / more than one story always fits, so a tiebreaker
   is needed and this is the one that has earned its place.
-CANNOT: no using simplicity to settle a disagreement between
-  explanations that fit unequally — it is a tiebreaker, and only
-  where the tie is real. Nor any escape from judgment: which
-  account is simpler depends on what you are counting.
 THREAD: engineering (fewer parts, fewer failures — the identical
   rule in metal), medicine (one condition explaining five symptoms
   is preferred to five conditions), computing.
@@ -208,11 +160,6 @@ ESSENCE: simple is not a synonym for true. Weather, bodies, markets
   the moment it becomes a claim about how the world had to be.
 ROOT: this file / parsimony as a tiebreaker — this entry is the
   edge of that tool, where its users mostly cut themselves.
-CANNOT: no reading the world's complexity off your preference for
-  neatness. And no simple account of a system with many parts
-  interacting — a description shorter than its subject has thrown
-  something away, and what it threw away may be the part that
-  matters.
 THREAD: medicine (one cause is preferred and old people have six),
   farming (a field is soil, weather, seed, pest and history at
   once), people together (a single-cause history is nearly always
@@ -226,10 +173,6 @@ ESSENCE: the observation that does not fit is the most valuable
 ROOT: this file / a general claim can only be killed, never
   completed — so the killing candidates are the only informative
   events.
-CANNOT: no learning from the results that agreed with you. And no
-  progress in a system that files every anomaly as bad technique —
-  which is exactly what a working, well-run field does most of the
-  time, correctly, because most anomalies really are bad technique.
 THREAD: engineering (the one odd reading before a failure),
   medicine (the patient who does not follow the pattern),
   astronomy (a wobble in an orbit that turned out to be a planet).
@@ -244,10 +187,6 @@ ROOT: this file / anomalies accumulate without forcing anything,
   because a frame is what makes the evidence readable in the first
   place; people together (a shared frame is a shared possession and
   is defended like one).
-CANNOT: no field turning over on the strength of the evidence
-  alone. And no smooth turn: while the old frame stands, the
-  anomalies are noise, and the moment it goes they are all
-  evidence, so the change cannot be gradual even in principle.
 THREAD: medicine (ulcers as stress until they were bacteria),
   geology (drifting continents laughed at, then obvious), power
   (institutions change by replacement, not conversion).
@@ -261,10 +200,6 @@ ESSENCE: two people can use one word inside two different systems
 ROOT: this file / a frame makes evidence readable — it also makes
   vocabulary mean; language (a word's sense comes from the system
   it sits in, not from a label on the thing).
-CANNOT: no settling a cross-frame dispute by repeating the
-  sentence more clearly — the clarity is not the problem. And no
-  neutral translation ready-made: the two sides have to build one,
-  by saying what each term would rule out.
 THREAD: law (a term of art against its everyday twin — the source
   of a great many bad arguments), teaching, language.
 ASKED-AS: talking past each other same word different meaning definitions argue clarify
@@ -276,10 +211,6 @@ ESSENCE: an argument that goes quiet has two possible causes.
 ROOT: people together / a group's attention is finite and moves in
   fashions; this file (a settled question and an abandoned one
   leave the same record, which is nothing).
-CANNOT: no reading agreement off silence. And no reviving the
-  distinction later without going back to what was actually shown
-  — the reasons a field stopped arguing are rarely written down,
-  which is why abandoned questions come back wearing new words.
 THREAD: keeping knowledge (what was not recorded cannot be
   re-examined), medicine (practices continued for decades on a
   trial nobody had reread), history.
@@ -293,10 +224,6 @@ ESSENCE: you cannot measure without already believing something. A
 ROOT: evidence + measurement / a number needs an agreed stick; this
   file (the stick is agreed on the strength of a belief about how
   the world works).
-CANNOT: no theory-free measurement anywhere. And therefore no
-  clean test of a theory using instruments that assume it — the
-  circle is real, and the escape is to measure the same thing by a
-  route resting on different beliefs and see whether the two agree.
 THREAD: astronomy (distance measured by brightness assumes what
   the star is), medicine (a blood test measures a proxy chosen
   because of a theory about the disease), money.
@@ -310,10 +237,6 @@ ESSENCE: an instrument is an argument made out of metal and glass.
 ROOT: this file / measurement carries theory inside it — an
   instrument is that theory hardened into an object and sold as
   neutral.
-CANNOT: no seeing through an instrument without borrowing its
-  builder's beliefs. And no way to be sure the picture is not the
-  instrument's own artefact except by making the same thing appear
-  through a device built on different principles.
 THREAD: light + seeing (every optical trick has a matching false
   image), medicine (scan artefacts read as tumours), computing (a
   visualisation that shows the plotting choice, not the data).
@@ -325,10 +248,6 @@ ESSENCE: looking costs. Take a temperature and the thermometer
   no free look — the cost is sometimes tiny and it is never zero.
 ROOT: physics / a reading is an interaction and interactions go
   both ways; this file (measurement is a doing, not a receiving).
-CANNOT: no measuring anything without touching it — a look that
-  changed nothing collected nothing, because information arrives
-  only on something that came back. And no measuring people
-  unobserved: an observed person is a different subject.
 THREAD: the mind (a watched worker works differently — the effect
   named after a factory), medicine (blood pressure raised by the
   cuff), evidence + measurement.
@@ -341,10 +260,6 @@ ESSENCE: every observation is made from somewhere — a position, a
   no standpoint.
 ROOT: this file / instruments carry the beliefs of their makers,
   and a person is the instrument that carries the most.
-CANNOT: no view from nowhere. And no fix by removing the observer
-  — remove them and you have no observation. The workable repair
-  is many standpoints and the comparison of what they disagree
-  about, which is what a discipline is.
 THREAD: history (every source was written by somebody with a
   stake), image + design (a photograph is a decision about where
   to stand), evidence + measurement (many independent hands).
@@ -357,10 +272,6 @@ ESSENCE: "I saw it with my own eyes" reports a verdict, not a
   in a fraction of a second and did not show its work for.
 ROOT: the mind / seeing is guessing — this file takes that fact and
   asks what weight the guess may carry as evidence.
-CANNOT: no unprocessed sense report available to anybody, however
-  honest. And no separating what was seen from what was expected
-  after the fact — the two arrive already blended, which is why
-  identification improves with procedure and never with sincerity.
 THREAD: law (line-up procedure carrying more weight than the
   witness's confidence), light + seeing (illusions that persist
   after you know), medicine.
@@ -374,10 +285,6 @@ ESSENCE: how sure someone is about a memory and how accurate it is
 ROOT: the mind / recall rebuilds rather than replays — this file
   asks what that means for memory used as evidence by a court, a
   family or a person.
-CANNOT: no reading accuracy off confidence. And no memory that
-  improves by being retold — the retelling is a rewrite, so the
-  most polished account in the room is the one that has been
-  worked on the most.
 THREAD: law (statements taken early, in writing, for this reason
   alone), family (two siblings with incompatible childhoods, both
   honest), keeping knowledge (a record made at the time beats any
@@ -392,11 +299,6 @@ ESSENCE: nearly everything you know, you were told. The shape of
 ROOT: people together / knowledge accumulates because it is
   transmitted; premise — a single lifetime cannot verify a
   civilisation.
-CANNOT: no checking it all yourself — a person who accepted only
-  what they had personally verified would know almost nothing and
-  would still be trusting their own senses and memory. The real
-  question is never whether to rely on others but which others,
-  and how you would notice if they were wrong.
 THREAD: keeping knowledge (libraries as the store of what nobody
   alive checked), teaching, money (credit works exactly this way,
   and fails the same way).
@@ -409,10 +311,6 @@ ESSENCE: a report is worth what its chain is worth. Who saw it, who
   fifty.
 ROOT: this file / testimony carries almost everything, so the
   question of when it may be trusted is not optional.
-CANNOT: no independence between sources that share an origin —
-  counting them separately multiplies confidence with no new
-  evidence at all. And no trusting a chain whose links you cannot
-  name: an untraceable report can be true and cannot be weighed.
 THREAD: law (hearsay rules — an attempt to write this down), news,
   people together (a rumour that gains detail as it travels, which
   is the signature of a bad chain).
@@ -425,11 +323,6 @@ ESSENCE: an expert's say-so is real evidence, and it is evidence of
   shortcut anybody has.
 ROOT: this file / testimony is most of knowledge, and expertise is
   testimony with a track record attached.
-CANNOT: no weighing an expert without knowing the range they were
-  trained on. And no expert who can transfer their conclusion
-  without their reasons and still leave you able to spot it going
-  wrong — deference buys speed and costs the ability to detect
-  error.
 THREAD: medicine (a second opinion, sought for exactly this
   reason), law (the expert witness, cross-examined like anyone),
   teaching.
@@ -443,11 +336,6 @@ ESSENCE: authority fails in a small number of regular ways. It
 ROOT: this file / an expert's weight comes from a record inside a
   range — every failure mode is a way the record does not cover
   the claim being made.
-CANNOT: no authority that transfers between subjects — a great
-  physicist on nutrition is a member of the public with a loud
-  voice. And no interest that announces itself: whoever pays for
-  the study is a fact you must go and find, because it will not
-  arrive with the finding.
 THREAD: money (funded research and the direction its errors lean),
   medicine (guidelines written by people with a stake), power (a
   credential used as a fence around a question).
@@ -461,10 +349,6 @@ ESSENCE: when many people who could have disagreed do not, that is
 ROOT: evidence + measurement / independent repetition disinfects
   luck, tilt and wishful hands at once; this file (agreement is
   worth what the disagreement would have cost).
-CANNOT: no evidence in an agreement that was never at risk — if
-  dissent was impossible, unpaid or career-ending, the unanimity
-  measures the pressure and not the world. And no weight in a
-  consensus of people who all learned it from one place.
 THREAD: law (twelve jurors who deliberated against twelve who
   copied one), science (replication by strangers), people together
   (a room that agrees because the boss spoke first).
@@ -478,10 +362,6 @@ ESSENCE: consensus fails in its own regular ways. It counts the
 ROOT: this file / agreement is worth the risk it ran — each mode
   is a way the risk was absent while the appearance of agreement
   remained.
-CANNOT: no consensus proving itself right. And no lone dissenter
-  proving it wrong either — most dissenters are simply mistaken,
-  which is why "they laughed at the great ones too" establishes
-  nothing about who is laughing now.
 THREAD: medicine (a treatment standard held for a generation on
   weak trials), power (professions defending their own necessity),
   history (the once-unanimous positions nobody will now own).
@@ -496,10 +376,6 @@ ESSENCE: real expertise only grows where the world answers back
 ROOT: this file / knowledge needs a check outside the head, and a
   field with no feedback supplies none; the mind (fluency builds
   confidence out of practice, regardless of results).
-CANNOT: no expertise in a field that never returns a verdict —
-  years spent there make a person smoother, not better. And no
-  telling the two kinds apart by listening: the confident voice
-  sounds identical in both.
 THREAD: medicine (surgery against long-term prognosis — one trains
   and one does not), money (traders and the scoreboard; advisers
   and none), teaching.
@@ -513,10 +389,6 @@ ESSENCE: the same evidence gets two different bars depending on
 ROOT: the mind / beliefs defend themselves; this file (the defence
   operates on the standard of proof, which is why it is invisible
   to the person doing it — they really are examining the evidence).
-CANNOT: no catching this in yourself by trying harder to be fair —
-  the effort is applied inside the same asymmetry. The only
-  workable checks are external: state the standard first, or hand
-  the same material to someone who wants the other answer.
 THREAD: law (a standard of proof fixed in advance, for this
   reason), evidence + measurement (predictions registered before
   the result), persuasion.
@@ -528,10 +400,6 @@ ESSENCE: the map is not the land. Not a warning against sloppiness
   perfect map would be the land again, and you could not fold it.
 ROOT: premise — a representation stands in for a thing by being
   unlike it in most respects and like it in a chosen few.
-CANNOT: no map that is complete and still a map. And no map that
-  is right for every purpose: a road map and a geology map of one
-  county disagree everywhere and neither is wrong, because "right"
-  is only defined once a use is named.
 THREAD: language (a word is a handle and has no crust), computing
   (a model of a system that runs faster than the system by
   discarding it), image + design.
@@ -544,10 +412,6 @@ ESSENCE: abstraction is throwing things away on purpose. To call
   managed to drop while still working.
 ROOT: this file / a map earns its use by omission — the same move
   running through every kind of thinking, not only maps.
-CANNOT: no abstraction that keeps everything — a summary as long as
-  the original is the original. And no free lunch: whatever was
-  dropped is the direction in which the abstraction will
-  eventually fail, and it will fail there quietly.
 THREAD: mathematics (number is what remains when the things are
   thrown away), money (a price discards everything about a good
   except one number), teaching (a rule taught by leaving out the
@@ -562,10 +426,6 @@ ESSENCE: a model can be false and useful at the same time, and
 ROOT: this file / abstraction drops things, so every model is
   literally false about what it dropped; premise — the question of
   a model is never whether it is true but where it holds.
-CANNOT: no model that is true — being true would mean keeping
-  everything. And no model without a range: a model used outside
-  the conditions it was fitted to is not slightly wrong, it is
-  reporting on a world it never described.
 THREAD: engineering (safety factors as an admission that the model
   is a sketch), money (a risk model that held until the day it
   mattered), physics (the ideal gas, wrong everywhere and useful
@@ -579,11 +439,6 @@ ESSENCE: "it works, so it must be true" is a step too far, and it
   arrived.
 ROOT: this file / models are useful and false — this entry names
   the mistake that fact invites, and how quietly it is made.
-CANNOT: no inferring the mechanism from the success of a
-  prediction. And no discovering the error from inside the working
-  range — the only place a wrong-but-working picture reveals
-  itself is outside the conditions where it was built, which is
-  precisely where nobody has been testing it.
 THREAD: medicine (bad theory with effective practice — bleeding was
   the exception, willow bark the case that worked), astronomy
   (circles upon circles predicted eclipses accurately for
@@ -598,10 +453,6 @@ ESSENCE: a definition is a decision, not a discovery. Nobody found
 ROOT: language / to define is to name the family and the
   difference — and both are choices about how to cut, made by
   people, for purposes.
-CANNOT: no discovering the true meaning of a word — there is
-  nothing there to discover, only usage and decision. And no
-  neutral definition of a contested thing: whoever fixes the
-  boundary has settled part of the argument before it starts.
 THREAD: law (statutory definitions that decide who is a worker, a
   refugee, a child), medicine (a blood-pressure line moved, and
   millions become patients overnight), money.
@@ -615,11 +466,6 @@ ESSENCE: draw any sharp line across a smooth change and you will
 ROOT: this file / definitions are decisions — and a decision
   applied to a gradient produces neighbours on opposite sides who
   differ by nothing that matters.
-CANNOT: no boundary that is both sharp and faithful, wherever the
-  underlying thing changes gradually. And no fix by moving the
-  line: it produces new borderline cases in a new place. The only
-  honest options are a line that admits its arbitrariness or a
-  grade that costs you the yes-or-no.
 THREAD: law (an age of majority — one day apart, two legal
   species), medicine (the diagnostic cut-off and the patients just
   under it), the living world (where one species ends).
@@ -633,11 +479,6 @@ ESSENCE: take one grain from a heap and it is still a heap. Do that
 ROOT: this file / a sharp line across a gradient misfiles the
   middle — this is what happens when the gradient is walked one
   step at a time and the line is asked to declare itself.
-CANNOT: no consistent answer from a vague word under repeated
-  small changes — either every step keeps the word, which ends
-  absurdly, or one step loses it, and no one can say which. And no
-  removing vagueness from language: the vague words are the useful
-  ones.
 THREAD: law (the reasonable time, the substantial part —
   deliberately vague and litigated forever), farming, medicine
   (one drink, one more, and where impairment starts).
@@ -650,10 +491,6 @@ ESSENCE: some words look like measurements and contain a verdict.
   before anybody notices it started.
 ROOT: right + wrong / no pile of facts adds up to an ought — this
   entry is where the ought gets in anyway, hidden inside a noun.
-CANNOT: no neutral vocabulary for a contested subject. And no
-  arguing against the verdict while accepting the word — you have
-  to take the word apart, because as long as it stands the
-  conclusion is already inside the description.
 THREAD: medicine (healthy smuggles a chosen goal — the body has no
   preference), persuasion (choosing the word is most of winning),
   money (efficient means efficient at something, and the something
@@ -668,10 +505,6 @@ ESSENCE: before arguing, find out which of three arguments you are
 ROOT: this file / definitions are decisions and thick words hide
   verdicts — so a single disagreement can be three different
   objects, needing three different tools.
-CANNOT: no settling a values dispute with more evidence, and no
-  settling a fact dispute with more sincerity — using the wrong
-  tool is why an argument can run for years with both sides
-  competent. And no telling which kind you are in without asking.
 THREAD: persuasion (find the kind before opening your mouth), law
   (a trial separates findings of fact from questions of law for
   precisely this reason), teaching.
@@ -685,10 +518,6 @@ ESSENCE: if a tree falls with nobody there, does it make a sound?
 ROOT: this file / a word dispute dissolves on definition — this is
   the cleanest specimen of one, which is why it has survived as an
   example for centuries.
-CANNOT: no fact of the matter to be found in a verbal dispute, and
-  no amount of investigation that will find one. And no dismissing
-  every dispute as merely verbal either: the test is whether both
-  sides, told which meaning is in use, immediately agree.
 THREAD: law (arguments over what a contract's word covers, where
   the stakes are real and the dispute is still about a word),
   language, teaching.
@@ -702,10 +531,6 @@ ESSENCE: some questions are hard and some are broken. "What is
 ROOT: this file / a question can smuggle a claim in its own
   wording; language (a question is a statement with a hole in it —
   and the statement can be wrong).
-CANNOT: no answering a question whose presupposition is false —
-  every answer offered accepts the false part. And no telling hard
-  from broken by how it feels: broken questions feel deep, which
-  is why they survive so long.
 THREAD: mathematics (what is one divided by zero — the question
   needs dismantling, not computing), law (a question that assumes
   a fact not in evidence, which is why it can be objected to),
@@ -721,10 +546,6 @@ ESSENCE: a thought experiment tells you what your mind does with a
 ROOT: this file / a model holds only in the range it was fitted to
   — and a mind is a model fitted to ordinary life, then queried
   about a world with no friction and no death.
-CANNOT: no reading a fact about reality off an intuition about an
-  impossible case. And no dismissing the method either — it is the
-  only way to test a general claim against a case that has never
-  occurred, which is often the only test available.
 THREAD: right + wrong (the runaway-trolley family, endlessly
   productive and endlessly overread), physics (riding alongside a
   light beam — a thought experiment that paid), law (the extreme
@@ -739,10 +560,6 @@ ESSENCE: "how likely is this?" is not a complete question. Likely
 ROOT: chance + risk / chance is lawful in bulk — but the bulk has
   to be named, and naming it is a judgement rather than a
   calculation.
-CANNOT: no probability for a genuinely one-off event without
-  choosing a comparison class. And no rule that picks the class
-  for you — narrower is more relevant and has fewer cases in it,
-  and that trade has no correct answer, only a defensible one.
 THREAD: medicine (a survival figure that changes with every detail
   added), insurance (the whole industry is class-choosing), law
   (how rare is this evidence — and among whom).
@@ -756,11 +573,6 @@ ESSENCE: some things happen once. The origin of life, a war, an
 ROOT: evidence + measurement / an experiment isolates a cause by
   intervening — where intervention is impossible, the only
   substitute is a trace whose alternatives can be ruled out.
-CANNOT: no experiment on a unique past event, and therefore no
-  certainty of the experimental kind about any of history,
-  geology, or a life. And no excuse for guessing: a trace still
-  forbids things, so a story contradicted by the rocks is dead
-  whether or not anyone can rerun the world.
 THREAD: the deep earth (a mountain read from its layers), law (a
   crime, reconstructed and never repeated), astronomy (one
   universe, no control group).
@@ -774,10 +586,6 @@ ESSENCE: nothing about the past reaches you. What reaches you is
 ROOT: this file / unique events can only be known by traces; time
   runs one way, so the evidence is downstream and the event is not
   available.
-CANNOT: no direct access to any past moment, including your own
-  yesterday. And no trace without a survival story: what remains
-  is what could survive, so the record is filtered before anyone
-  reads it, and the filter is not random.
 THREAD: keeping knowledge (what survives is what the material
   allowed), the deep earth (soft-bodied creatures nearly absent
   from the fossils, and not from the past), history.
@@ -791,10 +599,6 @@ ESSENCE: some knowing cannot be said. Riding a bicycle, judging
 ROOT: the mind / practice moves work below the level where words
   reach; premise — knowledge stored as a skill is stored in a
   format that does not convert to speech.
-CANNOT: no writing down a skill completely — every instruction
-  runs out at "you will feel it". And no learning one from the
-  writing alone: the missing part transfers only by doing beside
-  someone, which is a cost no format has removed.
 THREAD: craft (the apprentice's years), medicine (examining hands
   learned at a bedside), teaching (the expert who cannot say what
   they do).
@@ -808,10 +612,6 @@ ESSENCE: you can list what you know. You cannot list what you have
 ROOT: this file / a check on knowledge has to come from outside —
   and the most invisible gap is the one where nothing was ever
   filed.
-CANNOT: no inventory of your own ignorance. And no calibrating
-  confidence against it: a person who has met three of a field's
-  hundred problems and solved all three has exactly the same inner
-  evidence as one who has met ninety.
 THREAD: teaching (a beginner's confidence, which is honest), the
   mind (nothing fires for the thing that did not happen), medicine
   (the diagnosis never considered).
@@ -825,10 +625,6 @@ ESSENCE: "I cannot see how else it could be" is a fact about the
 ROOT: this file / more than one story always fits the evidence —
   so the inability to produce a second one is a limit of the
   producer.
-CANNOT: no proving an alternative does not exist by failing to
-  think of it. And no shortcut around the work: showing something
-  impossible means deriving a contradiction from it, which is a
-  different and much harder job than being unable to picture it.
 THREAD: mathematics (the difference between unproved and
   disproved), engineering (failure modes nobody imagined, which is
   most of them), chance + risk.
@@ -843,11 +639,6 @@ ESSENCE: the famous result about the limits of formal systems says
 ROOT: mathematics + logic / no system certifies itself — this entry
   is the fence around that result, because it is the most
   misquoted sentence in the subject.
-CANNOT: no using the result outside a formal system — there is no
-  rulebook to point at in a conversation about politics or God,
-  and without one the theorem has no subject. And no reading it as
-  a licence for anything: it is a proof, and proofs constrain
-  rather than release.
 THREAD: computing (the halting wall — the same shape, correctly
   applied), law (a constitution that cannot establish its own
   authority — the analogy is real and is an analogy), persuasion.
@@ -861,11 +652,6 @@ ESSENCE: a system that talks about itself can tie itself in a knot.
 ROOT: mathematics + logic / a contradiction anywhere burns
   everything — so a system able to build one about itself is in
   danger from its own expressiveness.
-CANNOT: no complete system that can also fully describe itself and
-  stay consistent — one of the three has to go. And no repair from
-  the inside: the standard escapes are levels, where a system
-  talks only about a lower one, and every level added leaves a top
-  that talks about nothing.
 THREAD: law (a rule for amending the rules, and whether it governs
   its own amendment), computing (a program reading its own
   output), language (a sentence that reports on itself).
@@ -878,10 +664,6 @@ ESSENCE: doubt is a tool with a job. Applied to a specific claim it
   that started from a bad premise.
 ROOT: this file / every claim rests on premises, and the premises
   are where errors hide silently; evidence + measurement.
-CANNOT: no correcting a hidden bad assumption without doubting
-  something you were not doubting. And no useful doubt without a
-  target: doubt has to name what it wants — a source, a step, a
-  measurement — or it does no work at all.
 THREAD: engineering (the design review whose job is to attack),
   medicine (the differential diagnosis — deliberately entertaining
   what you do not believe), law.
@@ -895,11 +677,6 @@ ESSENCE: doubt without a target is a dead end. Applied to
 ROOT: this file / every chain of reasons terminates — universal
   doubt refuses every termination, so it never reaches a place to
   stand.
-CANNOT: no refuting the total sceptic, and no gain from being one
-  — the position survives every argument and pays nothing, since
-  it gives no reason to prefer any action over any other. And no
-  half-measure available in principle: what stops the slide is a
-  decision to stop, not a proof.
 THREAD: law (a system that would accept no evidence could hold no
   trial), medicine (a patient who trusts no test cannot be
   treated), the mind.
@@ -912,11 +689,6 @@ ESSENCE: the test of whether you hold a belief or are held by it:
   not doing the job you think it is.
 ROOT: this file / a claim that forbids nothing carries nothing —
   applied to the person holding it rather than to the claim.
-CANNOT: no belief that risks nothing being informative about the
-  world. And no honest use of this test after the fact: the
-  condition must be named before the result arrives, because a
-  condition invented afterwards will always be one that was not
-  met.
 THREAD: money (a position with no exit rule is not a position),
   evidence + measurement (predictions stated in advance), right +
   wrong.
@@ -930,11 +702,6 @@ ESSENCE: changing your mind well is a skill with two opposite
 ROOT: this file / belief comes in strengths — updating well means
   the size of the shift matching the size of the evidence, which
   requires actually having held a strength rather than a switch.
-CANNOT: no proportional updating from someone whose belief was a
-  yes or no — an all-or-nothing holder can only flip or dig in.
-  And no credit for either extreme: the immovable and the
-  weathervane are both ignoring the evidence, in opposite
-  directions.
 THREAD: money (a trader who cannot cut and one who cannot hold),
   medicine (a diagnosis revised, and one abandoned at the first
   odd symptom), teaching.
@@ -948,10 +715,6 @@ ESSENCE: a bad argument for a claim does not make the claim false.
 ROOT: mathematics + logic / a conclusion inherits nothing from a
   broken chain except its unproved status; this file (justification
   and truth are separate objects).
-CANNOT: no reading a claim's falsity off its defender's failure.
-  And no comfort in that either: once the argument is gone the
-  claim has no support, so the honest position afterwards is not
-  agreement or disagreement but a return to open.
 THREAD: law (a case lost on procedure by a party who was in the
   right), evidence + measurement, teaching (a correct answer
   arrived at by wrong working, which must still be marked).
@@ -966,10 +729,6 @@ ROOT: this file / a claim that could be about anything cannot be
   ruled out one at a time; premise — the cost of asking and the
   cost of answering must be kept in some proportion or the system
   stops.
-CANNOT: no obligation to disprove an unsupported claim, and no
-  support gained by a failed disproof — "you cannot show it is
-  not" leaves the claim exactly where it started. And no exemption
-  for popular claims: age and numbers do not shift the burden.
 THREAD: law (the accuser proves the case, and the accused proves
   nothing), money (the seller demonstrates the return), evidence +
   measurement.
@@ -983,11 +742,6 @@ ESSENCE: predicting and understanding come apart in both
 ROOT: this file / more than one story fits the data — so a story
   that predicts is not thereby the right story, and the right
   story is not thereby a good predictor.
-CANNOT: no inferring the mechanism from forecasting success, and
-  no dismissing an explanation for forecasting failure — weather,
-  earthquakes and people are all understood far better than they
-  are predicted. And no intervening safely on a rule you only know
-  as a pattern: change the world and the pattern may not come.
 THREAD: medicine (knowing exactly why a heart fails and not when),
   the deep earth (plate motion understood, the quake's date not),
   money (a fitted rule that stops paying the day it is used).

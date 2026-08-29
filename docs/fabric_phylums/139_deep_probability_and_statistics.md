@@ -11,10 +11,6 @@ ESSENCE: probability rests on three rules and nothing else. No chance is
   subject is squeezed out of those three.
 ROOT: premise — chance is a way of sharing out one whole unit of belief or
   of frequency across the possibilities, with none lost or created.
-CANNOT: no probability above one, so no combination of steps may produce
-  one — and an answer above one is proof of an arithmetic error, not of a
-  very likely event. And no adding chances for outcomes that can happen
-  together.
 THREAD: money (shares of a whole that must total one), physics
   (probabilities in the quantum books obeying these same three), law (a
   set of exclusive verdicts).
@@ -26,9 +22,6 @@ ESSENCE: the fastest route to "at least one" is almost always to compute
   at all.
 ROOT: this file / the three rules — something and its opposite share the
   whole unit between them, so either one is the other subtracted.
-CANNOT: no adding the chances of "a six on the first, or the second, or
-  the third" — those overlap, and the naive sum passes one, which is the
-  visible proof it was wrong.
 THREAD: engineering (system reliability computed as one minus the chance
   everything fails), medicine (the chance of no adverse event across many
   patients), computing (the chance a batch of jobs all succeed).
@@ -40,9 +33,6 @@ ESSENCE: adding the chances of two events that can both happen counts the
   alternately adding and subtracting.
 ROOT: mathematics / counting — the same double-counting that ruins a
   headcount of two overlapping clubs.
-CANNOT: no plain addition unless the events genuinely exclude one another.
-  And no shortcut for many overlapping events; the corrections alternate
-  all the way down, which is why such problems get hard fast.
 THREAD: money (customers counted in two campaigns), public health (people
   with either of two conditions), computing (the size of a union of two
   sets).
@@ -54,9 +44,6 @@ ESSENCE: mutually exclusive and independent are near opposites, and they
   happening tells you nothing about the other.
 ROOT: this file / independence is about information, while exclusivity is
   about compatibility — two different questions entirely.
-CANNOT: no two events with real chances being both exclusive and
-  independent. If they exclude each other, learning one occurred tells you
-  the other did not, and that is information.
 THREAD: law (two charges that cannot both be true against two unrelated
   charges), medicine (competing diagnoses against coincident ones), sport
   (winning and losing the same match against winning two different ones).
@@ -68,9 +55,6 @@ ESSENCE: independence is not something the arithmetic can check. It is
   things are linked far more often than anyone assumes.
 ROOT: mathematics / chances multiply only where events do not touch — so
   the multiplication is the assertion, not the proof.
-CANNOT: no establishing independence from the data being multiplied. And
-  no assuming pairwise independence gives independence altogether: three
-  events can be independent in every pair and jointly determined.
 THREAD: engineering (two backups sharing one power feed), money (assets
   that move together in exactly the crisis they were meant to hedge),
   public health (siblings' outcomes sharing a household).
@@ -82,9 +66,6 @@ ESSENCE: a conditional probability moves you into a smaller room. Given
   changed in the world; the accounting changed.
 ROOT: this file / the total is always one — so restricting the
   possibilities requires dividing by how much of the whole survived.
-CANNOT: no conditioning on something impossible; the room is empty and the
-  division fails. And no conditional chance smaller than the joint chance
-  it came from — dividing by a number below one can only raise it.
 THREAD: medicine (a risk quoted for people already known to have a
   finding), law (the odds given the evidence admitted), insurance (a rate
   for a class rather than the population).
@@ -96,9 +77,6 @@ ESSENCE: the chance of A given B and the chance of B given A are different
   true at once, and the confusion between them has convicted people.
 ROOT: this file / conditioning rescales by how big the given room is — and
   the two rooms are different sizes.
-CANNOT: no reading one direction off the other without knowing the two
-  base rates. Dead, not approximate; the numbers can differ by any factor
-  whatever.
 THREAD: law (the chance of the evidence if innocent against the chance of
   innocence given the evidence), medicine (test performance against test
   meaning), security (the chance an attacker matches against the chance a
@@ -111,10 +89,6 @@ ESSENCE: Bayes is not really a formula; it is a discipline. Start with
   Evidence multiplies belief; it does not replace it.
 ROOT: this file / conditional probability — the formula is only the
   bookkeeping of moving between the two directions.
-CANNOT: no updating without a starting belief, so no "what the evidence
-  alone says" — that phrase always conceals a prior, usually an unexamined
-  one. And no evidence strong enough to rescue a belief that started at
-  nothing.
 THREAD: medicine (a test result read against how likely the disease was
   before), law (evidence weighed against the other facts of the case),
   navigation (a fix combined with the dead-reckoned position).
@@ -126,10 +100,6 @@ ESSENCE: the base-rate trap dissolves when you stop using percentages and
   visible without any formula: about one in a hundred.
 ROOT: this file / the two directions differ by the sizes of the pools —
   and counting actual people makes the pool sizes impossible to overlook.
-CANNOT: no intuition rescuing a percentage-based version of this problem;
-  trained doctors get it wrong at high rates, and the same doctors get it
-  right when it is stated in counts. The failure is in the notation, not
-  the person.
 THREAD: medicine (screening a healthy population), security (an alarm on
   rare events swamped by false ones), law (a database match in a large
   population).
@@ -146,9 +116,6 @@ ESSENCE: odds are the natural currency of evidence. Written as odds, an
   probabilities is entirely a notation problem.
 ROOT: this file / Bayes as updating — the division by the total evidence
   cancels when the two stories are compared as a ratio.
-CANNOT: no odds for a certainty; certainty is odds of infinity to nothing,
-  and no evidence multiplies to or away from it. Which is the formal
-  statement of why a closed mind cannot be moved by data.
 THREAD: gambling (where odds were the native language first), medicine
   (likelihood ratios reported for tests), law (the weight of one piece of
   evidence stated as a multiplier).
@@ -160,9 +127,6 @@ ESSENCE: when a choice is made at each of several steps, the number of
   counting formula there is.
 ROOT: mathematics / multiplying is counting by copies — each earlier
   choice carries a full set of later ones along with it.
-CANNOT: no multiplying when a later choice depends on an earlier one in a
-  way that changes how MANY options remain. If the count itself varies,
-  the cases must be split and added.
 THREAD: computing (the size of a password space), manufacturing (product
   variants from a list of options), cooking (combinations from a set
   menu).
@@ -174,9 +138,6 @@ ESSENCE: a permutation is an arrangement, where order counts. Filling
   bronze are not the same as three medals.
 ROOT: this file / choices multiply — with the pool shrinking by one at
   each step because nobody stands twice.
-CANNOT: no reusing an item unless replacement is allowed; without it the
-  falling count is compulsory. And no permutation count applying to a
-  situation where the positions are interchangeable.
 THREAD: sport (podium finishes), computing (the number of orderings a
   sorting algorithm must distinguish), music (the orderings of a set of
   notes).
@@ -188,9 +149,6 @@ ESSENCE: a combination is a selection, where order does not count. Take
   of its orderings.
 ROOT: this file / a permutation counts arrangements — so the selection
   count is the arrangement count with the internal orderings divided out.
-CANNOT: no dividing by orderings when order actually matters, and no
-  forgetting to when it does not. Deciding which of the two you are in is
-  the whole difficulty; the arithmetic afterwards is mechanical.
 THREAD: card games (a hand is a selection, not an arrangement), medicine
   (choosing a treatment group), computing (subsets of a set of features).
 RULE: to count selections — ask whether swapping two chosen items gives a
@@ -206,9 +164,6 @@ ESSENCE: the binomial situation is a fixed number of tries, two outcomes
 ROOT: this file / choices multiply and selections are counted — a
   particular sequence has a computable chance, and the number of such
   sequences is a combination.
-CANNOT: no binomial answer once the chance drifts between tries, or once
-  the tries influence one another — and both fail constantly in real data,
-  which is why the model flatters and misleads.
 THREAD: manufacturing (defects in a fixed batch), medicine (responders out
   of a fixed group), polling (a fixed sample with a fixed underlying
   proportion).
@@ -220,9 +175,6 @@ ESSENCE: expectation adds, always. The expected total of several things is
   that never asks for independence.
 ROOT: this file / an expected value is a weighted sum — and sums may be
   regrouped freely regardless of what the terms know about each other.
-CANNOT: no such freedom for spread — variances add only when the parts do
-  not move together. And no such freedom for products: the expected value
-  of a product is the product of expected values only under independence.
 THREAD: money (expected total cost across linked risks), computing
   (average work of an algorithm, summed over dependent steps), the living
   world (expected total offspring across linked lifetimes).
@@ -234,9 +186,6 @@ ESSENCE: the average of a function is not the function of the average.
   volatility costs money and why plans built on averages disappoint.
 ROOT: premise — a curve bends, so scattering a value around its centre
   moves the outcome toward whichever side the curve rises on.
-CANNOT: no computing an average outcome by putting average inputs into a
-  nonlinear formula. Dead, not approximate: the error has a fixed
-  direction, set by which way the formula bends.
 THREAD: money (a portfolio's growth against its average return),
   engineering (fatigue driven by peaks, not by average load), planning (a
   project whose duration is set by the slowest of many tasks).
@@ -248,9 +197,6 @@ ESSENCE: variance measures spread by averaging the squared distances from
   its square root, the standard deviation, is what gets reported.
 ROOT: mathematics / absolute value keeps distance and discards sign, and
   squaring does the same job while staying smooth enough to work with.
-CANNOT: no negative variance, so a computed one below nothing is proof of
-  an error. And no variance at all for a quantity taking one value — no
-  scatter, nothing to measure, and every comparison test collapses.
 THREAD: engineering (tolerance stated as a spread), money (volatility as a
   standard deviation), manufacturing (process control charts drawn in
   these units).
@@ -262,10 +208,6 @@ ESSENCE: variances add for independent things; standard deviations do not.
   why it helps only as the square root.
 ROOT: this file / variance is a squared distance — and squared quantities
   add along a right angle exactly as the right triangle law says.
-CANNOT: no adding standard deviations directly, ever. And no cancellation
-  at all when the errors move together — correlated errors add closer to
-  plainly, which is why common-mode faults are so much worse than the
-  arithmetic of independent ones suggests.
 THREAD: engineering (tolerance stacking in an assembly), money (why
   diversification reduces risk and by how much), surveying (accumulating
   errors along a traverse).
@@ -281,9 +223,6 @@ ESSENCE: a distribution is the whole story — which values occur and how
   photographs: useful, and silent about everything they cropped.
 ROOT: premise — a summary is a projection, and a projection discards by
   construction.
-CANNOT: no rebuilding a distribution from two numbers, so no answering a
-  question about extremes from a mean and a spread. Two datasets can match
-  on both and be nothing alike.
 THREAD: money (a risk figure that hides the shape of the losses), public
   health (an average exposure concealing a poisoned few), engineering (a
   mean load that never caused the failure).
@@ -295,10 +234,6 @@ ESSENCE: most real distributions lean. When a few very large values sit
   trouble the thing can cause.
 ROOT: this file / a summary discards shape — and skew is the first thing
   it discards.
-CANNOT: no symmetric-looking reasoning about a skewed quantity — the
-  familiar rule that most values sit within two spreads of the middle
-  fails badly. And no risk assessment from the centre; risk lives entirely
-  in the tail.
 THREAD: money (incomes, insurance losses, market falls), the living world
   (seed dispersal distances), engineering (component lifetimes with early
   failures).
@@ -310,9 +245,6 @@ ESSENCE: some quantities have tails heavy enough that averaging never
   large numbers simply does not apply.
 ROOT: this file / an average converges when the spread is finite — and for
   a heavy enough tail it is not.
-CANNOT: no stable average, no meaningful standard error, and no confidence
-  interval built the usual way. Dead, not slow to converge: more data does
-  not help, which is the most counter-intuitive fact in the subject.
 THREAD: money (market crashes, where the largest few days dominate every
   average), the living world (wealth and city sizes), computing (network
   traffic and file sizes).
@@ -324,9 +256,6 @@ ESSENCE: the bell curve appears wherever a quantity is the sum of many
   with the same shape from entirely unrelated causes.
 ROOT: this file / adding independent things adds their variances — and
   repeated adding washes out the shape of the individual pieces.
-CANNOT: no bell curve where one contribution dominates the rest, and none
-  for quantities built by MULTIPLYING many small factors — those come out
-  skewed instead, which is why sizes and incomes do not look like heights.
 THREAD: the body (height and blood pressure), engineering (measurement
   error in an instrument), money (the log of a price rather than the
   price).
@@ -338,9 +267,6 @@ ESSENCE: the central limit theorem says the AVERAGE of many draws is bell
   own scatter is the familiar bell.
 ROOT: this file / adding independent contributions produces the bell — and
   an average is a sum divided by a count.
-CANNOT: no such promise about the individual values; they keep their own
-  shape forever. Confusing the two makes people expect a bell in the raw
-  data, where there is no reason for one at all.
 THREAD: polling (why a sample proportion has a known scatter), quality
   control (batch averages behaving predictably where units do not),
   physics (the smoothness of any bulk measurement).
@@ -352,9 +278,6 @@ ESSENCE: the long run settles the RATIO and not the COUNT. Flip a coin a
   bound. Both are true at once.
 ROOT: this file / the scatter of an average shrinks as the square root of
   the count, while the scatter of a total grows as the square root of it.
-CANNOT: no correction of past imbalance. The proportion recovers by
-  dilution, never by repayment — the absolute deficit is under no
-  obligation ever to close, and typically does not.
 THREAD: gambling (a losing streak that never has to be repaid), money (a
   strategy whose average return converges while the running total drifts),
   physics (a random walk that returns to the start rarely).
@@ -366,9 +289,6 @@ ESSENCE: any figure computed from a sample is itself a random quantity,
   data.
 ROOT: this file / a sample is a draw — so anything computed from it
   inherits the randomness of the draw.
-CANNOT: no statement about a population from a sample figure without a
-  claim about how that figure would vary across other possible samples.
-  And no such claim without knowing how the sample was drawn.
 THREAD: polling (the spread of results across repeated polls), medicine
   (the variation between trials of the same treatment), manufacturing
   (batch-to-batch variation in a measured average).
@@ -381,10 +301,6 @@ ESSENCE: the standard error is how much a sample estimate wobbles, and it
 ROOT: this file / variances add for independent draws — so an average of n
   draws has a variance divided by n, and its spread divided by the root of
   n.
-CANNOT: no beating the square root by collecting more of the same kind of
-  data. And no standard error at all for a systematic error: bias does not
-  shrink with sample size, so a large biased study is a precisely wrong
-  one.
 THREAD: polling (why a sample of a thousand and one of four thousand
   differ by only half), medicine (trial size and cost), engineering
   (averaging repeated measurements to reduce noise).
@@ -397,9 +313,6 @@ ESSENCE: how large a sample must be depends on how variable the thing is
 ROOT: this file / the standard error depends on the sample size and the
   spread, with the population size entering only when the sample is a
   large fraction of it.
-CANNOT: no requirement to sample a fixed percentage of a population; the
-  intuition that a bigger country needs a proportionally bigger poll is
-  simply wrong. And no rescue of a badly drawn sample by making it larger.
 THREAD: polling (national samples of about a thousand), quality control (a
   fixed sample from any size of batch), medicine (trial size set by effect
   size and variability).
@@ -412,10 +325,6 @@ ESSENCE: a confidence interval is a statement about the PROCEDURE, not
 ROOT: this file / a sample statistic has a distribution — the interval is
   built so that it captures the target in a stated share of possible
   samples.
-CANNOT: no reading a ninety-five percent chance that the truth lies in
-  THIS interval, under the reasoning that produced it. To say that you
-  need a prior belief, which is a different framework with different
-  obligations.
 THREAD: engineering (a calibration guarantee about a method rather than a
   reading), law (a procedure's reliability against a verdict's truth),
   weather (a forecasting system's track record against tomorrow).
@@ -428,9 +337,6 @@ ESSENCE: an interval's WIDTH carries more information than whether it
 ROOT: this file / an interval reports both an estimate and a precision —
   and the precision is the part that says whether the study could have
   found anything.
-CANNOT: no concluding absence from a wide interval spanning zero — that is
-  a study too small to speak, not a finding of nothing. And no concluding
-  importance from an interval excluding zero by a hair.
 THREAD: medicine (an inconclusive trial reported as a negative one),
   engineering (a measurement whose uncertainty exceeds the effect sought),
   law (evidence too weak to support either conclusion).
@@ -442,9 +348,6 @@ ESSENCE: a hypothesis test is proof by contradiction with the certainty
   assumption. That is the entire logic.
 ROOT: mathematics / contradiction refutes a premise — softened here, so
   that improbability under the premise stands in for impossibility.
-CANNOT: no conclusion of the strength a real contradiction gives. A
-  surprising result under an assumption is not a disproof of it, and rare
-  things happen at exactly their stated rate.
 THREAD: law (a case built by excluding an alternative account), medicine
   (a diagnosis by ruling out), engineering (a fault located by testing a
   hypothesis about it).
@@ -456,10 +359,6 @@ ESSENCE: the test can reject and can never accept. Failing to find
   one, and never that there is none.
 ROOT: this file / the logic is contradiction — and failing to reach a
   contradiction confirms nothing about the premise.
-CANNOT: no proving a null hypothesis by this route, ever. To claim
-  something is absent you need a different design that could have detected
-  it, which is why equivalence trials are a separate and harder kind of
-  study.
 THREAD: law (not guilty against innocent), medicine (a test that failed to
   find disease against one that ruled it out), science (absence of
   evidence and its conditions).
@@ -471,10 +370,6 @@ ESSENCE: a p-value is computed ASSUMING nothing is going on. So it cannot
   subject is this one confusion.
 ROOT: this file / the two conditional directions are different numbers —
   and a p-value is squarely in the direction nobody wants.
-CANNOT: no p-value giving the chance the result was a fluke, the chance
-  the hypothesis is false, or the chance a repeat would agree. It gives
-  none of these, and the number itself is very variable from study to
-  study.
 THREAD: law (the chance of the evidence given innocence against the chance
   of innocence), medicine (test performance against test meaning), news
   (every headline that has ever restated this wrongly).
@@ -487,9 +382,6 @@ ESSENCE: power is the chance a study would notice an effect of a stated
 ROOT: this file / the standard error sets how large a difference is
   distinguishable from noise — so the sample size decides what is
   detectable.
-CANNOT: no power computed after the fact from the result obtained; that
-  quantity is a restatement of the p-value and carries no new information.
-  Power is a design property and only a design property.
 THREAD: engineering (an instrument's detection limit fixed before the
   experiment), medicine (a trial sized for a clinically meaningful
   effect), law (an investigation with no chance of finding the evidence).
@@ -501,9 +393,6 @@ ESSENCE: in an underpowered study, the only results that reach
   worse the inflation.
 ROOT: this file / an estimate scatters around the truth, and a
   significance filter admits only the upper tail of that scatter.
-CANNOT: no unbiased estimate from a set of results selected for passing a
-  threshold. And no fixing it by averaging many small studies; they carry
-  the same filter and average to the same inflated figure.
 THREAD: money (backtested strategies selected for having worked), sport (a
   scouted performance that will not repeat), medicine (early dramatic
   findings shrinking as bigger trials arrive).
@@ -515,10 +404,6 @@ ESSENCE: test twenty independent questions at the usual threshold and
   and it climbs fast.
 ROOT: this file / at least one is one minus none — with the number of
   chances being the number of questions asked.
-CANNOT: no threshold that keeps its meaning across many questions without
-  being tightened. And no honest tightening without knowing how many
-  questions were asked, which is the part that usually cannot be
-  recovered.
 THREAD: medicine (a trial measuring many outcomes), money (a rule found by
   searching thousands of candidates), computing (an alerting system with
   many rules generating constant false alarms).
@@ -530,9 +415,6 @@ ESSENCE: the count of tests is usually invisible. Every choice about which
   that were available.
 ROOT: this file / the arithmetic of many chances — with the chances now
   being analysis decisions rather than declared tests.
-CANNOT: no correcting after the fact for a number nobody recorded, so no
-  rescuing such an analysis by arithmetic. The only remedy is declaring
-  the analysis before seeing the data, which is why that practice exists.
 THREAD: law (evidence selected after the fact to fit a theory), money (a
   strategy refined against the same history it is tested on), science (the
   reason pre-registration was invented).
@@ -544,9 +426,6 @@ ESSENCE: significance answers whether an effect is distinguishable from
   different sentence, and the one worth reporting.
 ROOT: this file / a test statistic mixes the size of the effect with the
   size of the study, so the verdict alone cannot separate them.
-CANNOT: no reading an effect's size out of a p-value; a huge study makes a
-  trivial effect pass and a small one leaves a real effect unmarked. The
-  two pieces of information are entangled beyond recovery.
 THREAD: medicine (clinically meaningful against statistically detectable),
   engineering (a measurable difference too small to matter), money (an
   edge real but smaller than the costs of trading it).
@@ -558,9 +437,6 @@ ESSENCE: a correlation coefficient measures how well a STRAIGHT line
   nothing at all.
 ROOT: this file / covariance measured in units of the two spreads, so the
   units cancel and only the pattern remains.
-CANNOT: no detecting a curved relationship with it, however strong. And no
-  reading the STEEPNESS off it: a correlation near one says the points sit
-  tightly on a line, never how sloped that line is.
 THREAD: medicine (a dose-response that rises then falls), money (a
   relationship that reverses above a threshold), engineering (a response
   linear only within a range).
@@ -572,9 +448,6 @@ ESSENCE: wildly different datasets can share the same mean, spread and
   and the stories do not.
 ROOT: this file / a summary is a projection, and many different objects
   cast the same one.
-CANNOT: no diagnosing the shape of a relationship from its summary
-  numbers. The plot is not a presentation step at the end; it is the step
-  that tells you whether the summary meant anything.
 THREAD: medicine (a trend driven by a handful of patients), engineering (a
   fit hiding a systematic pattern in what is left over), money (a
   correlation created entirely by one crisis week).
@@ -586,10 +459,6 @@ ESSENCE: noise in the measurement drags a correlation toward nothing.
   instrument, and the number cannot say which.
 ROOT: this file / independent errors add variance — the extra scatter
   enters the bottom of the correlation and shrinks it.
-CANNOT: no distinguishing a genuinely weak link from a well-measured one
-  seen through a poor instrument, without knowing the measurement's
-  reliability. And no such attenuation in the opposite direction; noise
-  weakens, it does not manufacture.
 THREAD: psychology (constructs measured by questionnaire), medicine (a
   single blood reading standing for a long-run level), economics (survey
   income against actual income).
@@ -601,9 +470,6 @@ ESSENCE: regression draws the line that makes the total squared leftovers
   means one wild point can drag the whole line.
 ROOT: this file / variance is a squared distance — the same choice, made
   for the same reasons and with the same cost.
-CANNOT: no resistance to outliers in a least-squares fit; a single distant
-  point has leverage proportional to its distance squared. Methods that
-  resist exist and are chosen deliberately, not by default.
 THREAD: engineering (a calibration line fitted to readings), money (a
   relationship estimated across a period containing one crash), surveying
   (adjusting a network of measurements).
@@ -615,10 +481,6 @@ ESSENCE: a regression predicts the AVERAGE outcome for a given input, not
   the whole of what matters.
 ROOT: this file / a summary discards spread — a fitted line is a summary
   of the centre and says nothing about the width.
-CANNOT: no individual prediction from a group relationship without a much
-  wider interval than the one drawn around the line. Two different bands
-  exist — one for the average and one for a new case — and the narrow one
-  is almost always the one shown.
 THREAD: medicine (a survival curve for a group against a patient's
   prospects), money (an expected return against an actual year), education
   (a predicted grade for a cohort against a pupil).
@@ -631,9 +493,6 @@ ESSENCE: the leftovers are where the diagnosis lives. If the model has
 ROOT: premise — a model plus its leftovers reconstruct the data exactly,
   so anything the model failed to capture is sitting in the leftovers by
   construction.
-CANNOT: no good model with a pattern in its residuals, however high the
-  reported fit. And no judging a fit by its headline number alone: a
-  strong-looking fit with curved residuals is a wrong model fitted well.
 THREAD: engineering (a fault visible in what a control model fails to
   predict), medicine (a subgroup showing up as a systematic error), money
   (a strategy whose errors cluster in one regime).
@@ -645,9 +504,6 @@ ESSENCE: a fitted relationship is only entitled to speak within the range
   exactly where it is most wrong.
 ROOT: this file / a model is a summary of the data it saw — and it has
   seen nothing outside its own range.
-CANNOT: no warning from the model that it has left its range; the formula
-  produces a number just as willingly, with an interval computed as though
-  the shape still held.
 THREAD: engineering (a material model used beyond its tested loads), money
   (a risk model calibrated on calm years), public health (a dose curve
   extended below the doses studied).
@@ -659,9 +515,6 @@ ESSENCE: adding more predictors always improves the fit to the data you
 ROOT: mathematics / more free parameters means a larger family of curves
   to choose the best from, and a larger family cannot contain a worse
   best.
-CANNOT: no comparing models of different sizes by fit alone; the larger
-  always wins and always deserves to be doubted. Any honest comparison
-  must charge for parameters or test on held-out data.
 THREAD: engineering (a model with a knob for every observation), money (a
   strategy with a rule for every past loss), science (a theory amended
   once per anomaly).
@@ -673,9 +526,6 @@ ESSENCE: with as many free numbers as data points, any model fits
   worse the performance on the future.
 ROOT: this file / a sample carries both signal and scatter, and a flexible
   enough model cannot tell them apart.
-CANNOT: no detecting overfitting from the fitted data; by construction it
-  looks excellent there. Only data withheld from the fitting can report
-  it, which is why the withholding must be arranged in advance.
 THREAD: money (a trading rule tuned on the history it is tested on),
   computing (a learned model memorising its training set), teaching (a
   pupil drilled on the exam paper).
@@ -687,10 +537,6 @@ ESSENCE: cross-validation buys an honest estimate by fitting on part of
   and that is easier to violate than it looks.
 ROOT: this file / only unseen data can report overfitting — so the
   discipline is to manufacture unseen data by withholding it.
-CANNOT: no honest estimate if the data was cleaned, scaled or selected
-  using the whole set before splitting; the leak is invisible and inflates
-  the score. And no validity at all when the data has a time order and the
-  split ignores it.
 THREAD: computing (leakage as the commonest error in applied learning),
   medicine (a score developed and validated on overlapping populations),
   money (a backtest whose universe was chosen with hindsight).
@@ -708,9 +554,6 @@ ESSENCE: no amount of data settles a causal question by itself. The same
   the numbers.
 ROOT: premise — data records what went together, and causation is a claim
   about what would have happened otherwise, which was never observed.
-CANNOT: no causal conclusion without a causal assumption, so no purely
-  data-driven causality. And no rescue by sample size: a bigger dataset
-  estimates the same association more precisely and settles nothing.
 THREAD: public health (an association argued about for decades), economics
   (a policy effect inferred from history), medicine (why trials exist at
   all).
@@ -722,9 +565,6 @@ ESSENCE: a common cause makes two effects move together although neither
   measurable, and completely useless as a lever.
 ROOT: this file / association arises from any shared path, and a shared
   ancestor is a path.
-CANNOT: no adjusting away a confounder you did not measure, and no way to
-  know from the data alone whether one remains. Which is why observational
-  estimates carry a permanent unresolvable doubt.
 THREAD: public health (the healthy-user problem), economics (a policy
   adopted by the places already improving), medicine (a treatment given to
   the patients most likely to do well).
@@ -736,9 +576,6 @@ ESSENCE: conditioning on a COMMON EFFECT manufactures an association out
   because either one alone was enough to get in.
 ROOT: this file / conditioning restricts to a smaller room — and a room
   defined by a shared consequence is populated by trade-offs.
-CANNOT: no removing this by adjusting for MORE variables; adjusting is
-  what causes it. The universal instinct to control for everything
-  available makes this bias worse, which is why it is so persistent.
 THREAD: medicine (associations found only among hospital patients),
   business (talent and looks appearing to trade off among the famous),
   science (findings visible only among published studies).
@@ -751,9 +588,6 @@ ESSENCE: randomising the assignment is the only device that balances the
 ROOT: this file / a random split has a known sampling distribution — so
   the imbalance it leaves is exactly the noise that the inference already
   accounts for.
-CANNOT: no statistical adjustment achieving this — adjustment can only
-  balance what was recorded. And no randomisation for many questions of
-  interest, which is precisely why those questions stay open for decades.
 THREAD: medicine (the controlled trial), public health (a programme
   allocated by lottery), agriculture (where the whole technique was
   invented, on field plots).
@@ -765,9 +599,6 @@ ESSENCE: a treatment can look better in every subgroup and worse overall,
   there is no last table.
 ROOT: mathematics / combining two ratios is a weighted average, and
   unequal weights can put the blend anywhere between them.
-CANNOT: no arithmetic rule for which table to believe — the data are
-  identical in all of them. The choice is settled by the causal story: a
-  common cause should be split on, a consequence of treatment should not.
 THREAD: medicine (a hospital with worse survival because it takes worse
   cases), law (hiring fair in every department and unfair overall), sport
   (a better rate every month and a worse season).
@@ -779,10 +610,6 @@ ESSENCE: survival analysis exists because most people in the study have
   as failures both bias the answer badly.
 ROOT: premise — a partial observation is still an observation, and the
   method must be built to use one rather than to discard it.
-CANNOT: no using a plain average time-to-event when some times are
-  incomplete. And no valid analysis if the reason for dropping out is
-  related to the outcome — censoring must be uninformative, and that is an
-  assumption, not a fact.
 THREAD: engineering (component lifetimes with units still running),
   business (customer tenure with customers still subscribed), law (time to
   reoffending among those not yet reoffended).
@@ -794,10 +621,6 @@ ESSENCE: the hazard is the chance of the event in the next moment given
   from an average lifetime.
 ROOT: this file / conditional probability — the hazard is a conditional
   rate, computed among those still at risk.
-CANNOT: no reading a hazard from an average lifetime; two things with
-  identical average lifetimes can have opposite patterns of risk over
-  time. And no constant hazard except where the object genuinely does not
-  age.
 THREAD: engineering (infant mortality and wear-out in components),
   medicine (recurrence risk that peaks and falls), business (customer
   churn concentrated in the first months).
@@ -809,9 +632,6 @@ ESSENCE: missing data is rarely missing at random. The people who did not
   being measured, so the gap is a signal and not a hole.
 ROOT: this file / conditioning on availability is conditioning on a
   consequence, which biases whatever caused it.
-CANNOT: no fixing this by analysing the complete cases, and no fixing it
-  by filling gaps with averages — both assume the very randomness that is
-  in doubt. And no test on the observed data that can rule it out.
 THREAD: polling (non-response concentrated in particular groups), medicine
   (patients who dropped out because the treatment failed), engineering
   (sensors whose failure correlates with the event of interest).
@@ -824,10 +644,6 @@ ESSENCE: the two schools disagree about what a probability is attached to.
 ROOT: premise — probability is a measure obeying three rules, and the
   rules do not say what may be measured; that is a philosophical choice
   laid on top.
-CANNOT: no experiment distinguishing the two stances, since both make the
-  same predictions about repeatable data. And no free lunch: one framework
-  demands a prior be declared, the other buries the same choices in the
-  design of the procedure.
 THREAD: law (a standard of proof against a degree of belief), medicine (a
   test's operating characteristics against a patient's odds), computing
   (both approaches used side by side and argued about).
@@ -839,9 +655,6 @@ ESSENCE: a prior is not a weakness of the Bayesian approach, it is the
   only about whether they are stated in the open.
 ROOT: this file / updating requires a starting belief — and an analysis
   claiming none has made one implicitly.
-CANNOT: no analysis free of prior assumptions, so no such thing as letting
-  the data speak for itself. And no prior so uninformative that it says
-  nothing: flatness in one parameterisation is strong opinion in another.
 THREAD: law (a presumption stated in the rules against an unstated one),
   science (a model choice functioning as a hidden assumption), engineering
   (design assumptions declared in a specification).
@@ -854,9 +667,6 @@ ESSENCE: the largest question in statistics is almost never which test to
 ROOT: premise — every inference is about a population, and the link
   between the data and that population is made by the sampling, not by the
   arithmetic.
-CANNOT: no method repairing a sample that never included the people the
-  conclusion is about. And no warning of it inside the numbers: badly
-  gathered data produces confident output and beautiful intervals.
 THREAD: polling (famous failures caused entirely by who could be reached),
   medicine (trials run on populations unlike the patients treated),
   history (records that survived because of what they were).
@@ -869,10 +679,6 @@ ESSENCE: when the algebra refuses, simulate. Generate the situation many
 ROOT: this file / the long-run proportion converges to the true chance —
   so a computer running the experiment is a legitimate way to evaluate a
   probability.
-CANNOT: no simulation better than the model it encodes; it answers the
-  question you programmed, which may not be the one you have. And no
-  precision beyond the square-root law — a thousand times more runs for
-  thirty times the precision.
 THREAD: engineering (reliability of a system too tangled to solve), money
   (portfolio outcomes under many futures), physics (calculations done by
   random sampling because no formula exists).

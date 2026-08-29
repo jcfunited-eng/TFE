@@ -7,9 +7,6 @@ ESSENCE: the earth is about 4.6 billion years old — against that,
   is the budget that makes slow causes sufficient.
 ROOT: evidence + measurement / radioactive clocks in rock tick at
   known rates, and independent clocks agree.
-CANNOT: no explaining this planet in thousands of years — canyon,
-  coal, and chalk each demand the full budget. And no watching
-  geology happen: a human life sees one frame of the film.
 THREAD: astronomy (starlight's travel time demands the same
   budget), living world (evolution spends this same account),
   money (compounding wants time more than rate — geology is
@@ -20,9 +17,6 @@ ESSENCE: rock remembers — mud and sand settle in flat sheets, each
   atop the last, so a cliff is a book read bottom-up: deepest is
   oldest.
 ROOT: physics / things settle downward; younger lands on older.
-CANNOT: no layer older than the one beneath it unless the whole
-  book was folded or flipped later — and folding leaves marks, so
-  even the scrambling stays legible.
 THREAD: keeping knowledge (archaeology digs the same book — trash
   heaps layer like mud), cleaning (the desk pile, oldest at the
   bottom, is this at home), image + design (restorers read a
@@ -35,9 +29,6 @@ ESSENCE: the earth's shell is broken into rafts drifting at
   when a stuck edge slips.
 ROOT: deep earth / the core's heat stirs the deep rock; deep time
   turns fingernail speed into oceans opened and closed.
-CANNOT: no quake called to the day — stress can be measured, the
-  moment of slip cannot (so far). No permanent map: every atlas is
-  one frame.
 THREAD: money (markets creep, jam, and quake by the same shape —
   stress hidden, release sudden), people together (institutions
   drift slowly, then lurch), strategy + conflict (pressure builds
@@ -49,8 +40,6 @@ ESSENCE: rock is not permanent, only slow — melt hardens to new
   stone, depth melts it again; every pebble is mid-journey.
 ROOT: physics / atoms are never used up, only rearranged; the
   core's heat and the sun keep the wheel turning.
-CANNOT: no final form, and no first face — the planet's earliest
-  surface was recycled before anything could remember it.
 THREAD: cooking (wheat to bread to toast to crumbs), craft (the
   smith's scrap bucket — metal re-forged forever), money (capital
   melts out of dead firms into new ones).
@@ -62,8 +51,6 @@ ESSENCE: a fossil is an accidental burial — a body covered fast,
   gap-toothed.
 ROOT: deep earth / rock remembers; chance + risk / preservation is
   a lottery few enter and fewer win.
-CANNOT: no complete record — most species left no trace at all;
-  absence from the rocks is never proof of absence from the world.
 THREAD: keeping knowledge (archives hold what happened to get
   filed, not what happened), histories (Pompeii is a fossil city —
   we read the past by its accidents), evidence (survivorship bias
@@ -75,9 +62,6 @@ ESSENCE: water, ice, and wind beat rock — not by strength but by
   time as the ally; a canyon is a river's paycheck.
 ROOT: deep time / small causes multiplied; physics — water expands
   as it freezes: the wedge in every crack.
-CANNOT: no permanent mountain — demolition starts the day it
-  rises, and without fresh uplift every land ends flat. Nothing
-  outlasts weather; it only outspends it a while.
 THREAD: cleaning + maintenance (rust and rot are indoor erosion;
   maintenance is uplift), martial arts (soft beats hard is a
   training-hall proverb because it is a geological fact),
@@ -90,9 +74,6 @@ ESSENCE: the planet runs on its own furnace — birth-heat plus
   the sun's weather then tears down.
 ROOT: physics / the surface story needs a power source, and this
   is it.
-CANNOT: no drift, quake, or volcano on a cold world — geology dies
-  with the furnace (the moon's did; its face is a fossil). And the
-  furnace is finite: this earth too will one day go still.
 THREAD: engineering (every engine is a heat difference put to work
   — the planet is one), weather (the sun stirs the air as the core
   stirs the rock: two furnaces, one planet), cooking (convection
@@ -106,10 +87,6 @@ ESSENCE: ice ages are written on the land — mile-thick sheets
 ROOT: deep earth / rock remembers; astronomy — slow wobbles in the
   earth's orbit pace the comings and goings (UNSURE on the full
   mix of causes).
-CANNOT: no reading northern country without the ice — the lakes,
-  fjords, and lone boulders in flat fields have no other author.
-  And no assuming the door is shut: the warm spell is an interval,
-  not an ending.
 THREAD: survival + wilderness (the water map is the ice's will),
   movement of goods (harbors and soils sit where the ice left
   them), histories (flood stories may be the melt remembered —
@@ -121,9 +98,6 @@ ESSENCE: the planet sorted itself by weight while molten — iron
   continents, which ride high exactly because their rock is
   lighter than the ocean floors'.
 ROOT: physics / dense sinks in fluid.
-CANNOT: no digging to the iron — the deepest hole ever drilled
-  (~12 km of ~6,371) scratches the skin; everything below is known
-  by quake-echo, not by visit.
 THREAD: oceans (why there are basins at all — heavy floor sits
   low, water fills it), medicine (the body's interior read by
   echoes too — same trick as the earth's), astronomy (iron

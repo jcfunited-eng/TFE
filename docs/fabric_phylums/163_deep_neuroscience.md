@@ -12,11 +12,6 @@ ESSENCE: a neuron is not a wire and not a switch. It is an adding
 ROOT: engineering / a device that sums many inputs and compares the
   total to a threshold is the smallest thing that can be said to
   decide anything.
-CANNOT: no output proportional to a single input, so no reading a
-  neuron's meaning from any one of the cells feeding it. And no
-  memory of the inputs that failed: everything below the line is
-  discarded and leaves no trace, which is why nearly all the
-  information arriving at a cell is thrown away.
 THREAD: engineering (a relay that trips at a set current), money (a
   balance that must clear a threshold before anything happens), law
   (a vote counted against a quorum).
@@ -30,11 +25,6 @@ ESSENCE: the spike is the same size every time. A weak stimulus and a
 ROOT: physics / a signal travelling a metre without loss must be
   regenerated at every step, and anything regenerated to a standard
   cannot carry a magnitude.
-CANNOT: no fading with distance, which is the whole point — but also
-  no strength in a single spike, so no reading intensity from one
-  event. And no signal faster than the spikes can be counted: a
-  measure built from a rate needs time to be read, which puts a floor
-  under how fast a nervous system can know anything.
 THREAD: computing (a digital pulse that survives a long cable), music
   (loudness carried by how often the drum is struck), engineering.
 ASKED-AS: nerve signal strength pain more spikes rate all or nothing same size louder
@@ -46,10 +36,6 @@ ESSENCE: immediately after a spike a nerve cannot fire again at any
   backwards, because the stretch behind it is still recovering.
 ROOT: engineering / a device that must be reset between uses has both
   a maximum rate and a built-in direction.
-CANNOT: no signal running both ways along an axon, so no need for any
-  separate mechanism enforcing direction — the exhaustion does it.
-  And no rate above the reset time, which is why intensity saturates:
-  past a point a stronger stimulus cannot produce a faster train.
 THREAD: engineering (a machine gun's cyclic rate set by its
   mechanism), music, computing.
 ASKED-AS: nerve fire again limit fast maximum rate backwards direction reset pain saturate strongest
@@ -61,12 +47,6 @@ ESSENCE: wrapping an axon in fat lets the spike skip. Instead of
   or a wrapped one — and wrapping is the enormously better deal.
 ROOT: physics / an insulated conductor loses less along its length,
   so the signal survives to the next place it is regenerated.
-CANNOT: no fast thin fibres without the wrapping, so an unwrapped
-  nervous system must be thick and slow — a squid's fastest fibre is
-  as wide as a pencil lead. And no partial damage that is harmless:
-  strip the wrapping and the spike does not slow gracefully, it
-  fails, which is why demyelinating disease produces total loss of a
-  function rather than a weak version of it.
 THREAD: electrics (insulation and repeaters on a long line),
   engineering, building.
 ASKED-AS: myelin nerve speed insulation multiple sclerosis fast reflexes damage thick fibre jumps gaps
@@ -78,10 +58,6 @@ ESSENCE: nerves do not touch. At the junction the electrical signal
   be made stronger or weaker, and a soldered joint cannot.
 ROOT: engineering / adjustability has to live somewhere, and it can
   only live at a step where something is converted.
-CANNOT: no learning in a nervous system wired by direct contact, so
-  no memory without the gap. And no free adjustability: the chemical
-  step costs about a millisecond of delay and a great deal of fuel,
-  paid at every one of the hundred trillion junctions, every time.
 THREAD: engineering (a clutch rather than a welded shaft), money (a
   price that can move because there is a transaction), teaching.
 ASKED-AS: synapse gap chemical nerves connect learning stronger weaker delay memory junction transmitter
@@ -93,10 +69,6 @@ ESSENCE: there are direct electrical junctions too, and comparing
   system that has to change is built on the slow kind.
 ROOT: this file / speed and modifiability are bought with different
   mechanisms, so a nervous system needing both must run both.
-CANNOT: no learning at an electrical junction, so no nervous system
-  built entirely of the fast kind that could ever be trained. And no
-  synchrony from chemical ones: their delays vary, so a crowd that
-  must act as a single unit cannot be wired that way.
 THREAD: engineering (a rigid coupling against a gearbox), music (a
   section playing as one), medicine.
 ASKED-AS: nerves connected directly electrical fast heart together reflex escape fixed cannot learn
@@ -110,11 +82,6 @@ ESSENCE: a handful of chemicals do nearly all of it, and they split
 ROOT: engineering / carrying a message and setting the conditions
   under which messages are carried are different jobs, so different
   substances do them.
-CANNOT: no explaining behaviour by the workhorses: they are
-  everywhere and their level is not a variable anybody experiences.
-  And no chemical with a meaning of its own — what the same molecule
-  does depends entirely on which lock it lands in, so the same
-  substance excites here and inhibits a millimetre away.
 THREAD: engineering (signal wiring against supply voltage), music (a
   note against the key the piece is in), money.
 ASKED-AS: brain chemicals dopamine serotonin glutamate gaba what they do traffic settings different places
@@ -127,11 +94,6 @@ ESSENCE: every transmitter has two kinds of lock waiting for it. One
   completely different consequences.
 ROOT: engineering / a receiver decides what a signal means, so one
   message can be read as an instruction or as a change of policy.
-CANNOT: no predicting a chemical's effect from the chemical — the
-  question is always which locks are present on which cells. And no
-  drug that acts on a transmitter without acting on both kinds of
-  answer, which is most of why anything touching the brain has
-  effects nobody wanted.
 THREAD: law (an order against a change in the standing rules),
   computing (a command against a configuration change), engineering.
 ASKED-AS: receptors different types same chemical fast slow effects lasting minutes drug unwanted brain
@@ -143,12 +105,6 @@ ESSENCE: a message that is not ended is not a message. The chemical
   carrying information at all.
 ROOT: engineering / a channel carries information only through
   changes, so anything that persists is silence at a different level.
-CANNOT: no signalling without clearing, so no junction where the
-  removal machinery fails still working weakly — it stops working.
-  And no separating a drug that blocks the clearing from a drug that
-  raises the signal: they are the same intervention, which is why so
-  many substances that alter mood work by interfering with the
-  cleanup rather than the message.
 THREAD: cleaning (a room that must be cleared between uses),
   computing (a buffer that must be emptied), music (a note that must
   stop).
@@ -162,11 +118,6 @@ ESSENCE: for every cell pushing, there is one pushing back. Roughly a
   is a seizure.
 ROOT: engineering / positive feedback without a brake has exactly two
   outcomes, silence and saturation, and neither carries information.
-CANNOT: no computation without inhibition, so no brain that is a mass
-  of excitation with control added on top — the restraint is
-  structural. And no local failure that stays local: lose inhibition
-  in a patch and the excitation recruits its neighbours, which is why
-  the disturbance spreads.
 THREAD: engineering (a governor that is part of the engine, not an
   accessory), money, power + governance.
 ASKED-AS: brain inhibition seizure epilepsy balance excitation runaway spreads control cells calm neighbours
@@ -179,11 +130,6 @@ ESSENCE: neighbours suppress each other, and that single arrangement
   invented by this.
 ROOT: this file / a network reports differences rather than levels,
   and mutual suppression is the cheapest way to build that in.
-CANNOT: no faithful report of an even surface — the sense that
-  sharpens edges necessarily distorts flats, which is exactly what
-  every optical illusion of bands and grids is showing. And no
-  turning it off to check: the processing happens before anything
-  reaches you, so there is no raw version available.
 THREAD: image + design (why a border makes two greys look unequal),
   light + seeing, engineering.
 ASKED-AS: optical illusion edges bands grey looks different neighbours suppress contrast outline sharpened eye
@@ -196,10 +142,6 @@ ESSENCE: learning is a physical change in the junctions. Use one hard
 ROOT: this file / a network's behaviour is entirely set by its
   connection strengths, so changing behaviour means changing
   strengths and there is no other option.
-CANNOT: no memory without structural change, so no learning that does
-  not cost protein, fuel and time — and no instant permanent memory,
-  because the building takes hours. And no reading a memory out: it
-  is not written anywhere in a form that could be inspected, only run.
 THREAD: craft (a path worn by walking it), computing (weights rather
   than files), teaching.
 ASKED-AS: memory stored where brain connections stronger learning physical change spines grow hours protein
@@ -212,11 +154,6 @@ ESSENCE: the rule is about order, not just co-occurrence. If cell A
   which things go together.
 ROOT: mathematics / causes precede effects, so a rule sensitive to
   order is a rule that can find causes.
-CANNOT: no learning of sequence or prediction from a rule that only
-  counts coincidence, so no direction of time in a network wired
-  symmetrically. And no association across a long gap: the window is
-  milliseconds, so anything learnt across seconds or hours needs a
-  separate mechanism holding a trace in the meantime.
 THREAD: teaching (the signal must come before the thing), chance +
   risk, computing.
 ASKED-AS: cells fire together wire timing before after order prediction learning window milliseconds cause
@@ -230,11 +167,6 @@ ESSENCE: connections weaken as readily as they strengthen, and the
 ROOT: mathematics / information lives in differences between weights,
   so a rule that only increases them destroys the information it was
   meant to store.
-CANNOT: no lifelong learning without forgetting built in, so no
-  memory system that keeps everything. And no strengthening without a
-  budget: much of what looks like learning one thing is the
-  weakening of its competitors, which is why practising one skill can
-  measurably worsen a neighbouring one.
 THREAD: cleaning (a shelf that must be weeded to stay useful), money,
   teaching.
 ASKED-AS: forgetting necessary connections weaken pruned learning new interferes old skill worse saturate memory
@@ -247,11 +179,6 @@ ESSENCE: a child's brain builds far too much and then cuts. The
 ROOT: the living world / it is cheaper to overbuild and select than
   to specify in advance, when what is needed depends on a world the
   builder cannot see.
-CANNOT: no fine wiring specified from the instructions — there are
-  not enough genes by many orders of magnitude, so the detail has to
-  come from use. And no getting the pruned connections back: the cut
-  is not reversible, which is what makes early experience count for
-  so much more than later experience.
 THREAD: craft (carving as removal), farming (thinning a crop),
   teaching.
 ASKED-AS: baby brain connections too many pruned childhood use it lose experience shapes wiring
@@ -265,10 +192,6 @@ ESSENCE: a critical period does not simply lapse. It is opened by the
 ROOT: engineering / a system that must first be shaped by the world
   and then made reliable has to have a mechanism for ending its own
   plastic phase.
-CANNOT: no permanent stability and permanent adaptability in the same
-  tissue, so the closing is not a design fault. And no benefit
-  without the risk: reopening a window in an adult also reopens the
-  vulnerability that made the window dangerous in the first place.
 THREAD: engineering (a setting jig removed once the glue is cured),
   building, teaching.
 ASKED-AS: critical period language lazy eye window closes children adults learn harder reopened brakes
@@ -282,10 +205,6 @@ ESSENCE: the branching tree a neuron grows is not plumbing, it is
 ROOT: physics / a signal spreading through a branched leaky cable
   interacts with its neighbours locally, so geometry becomes
   computation.
-CANNOT: no reducing a neuron to the sum of its inputs, so no honest
-  model of a brain that treats each cell as a single adding node. And
-  no rewiring by strength alone: moving a connection is a change no
-  adjustment of its strength can imitate.
 THREAD: mathematics, electrics (a branched circuit where position
   changes the answer), building.
 ASKED-AS: dendrites branches inputs where land close far veto shape matters neuron computation tree
@@ -299,10 +218,6 @@ ESSENCE: neurons are a minority of the brain. The support cells wrap
 ROOT: this file / the cells that do the signalling are specialised to
   the point of helplessness, so everything else has to be done by
   somebody.
-CANNOT: no junction working without a support cell present — remove
-  it and the transmitter is not cleared and the fuel is not
-  delivered. And no understanding a brain from its neurons alone,
-  which is what a century of looking only at neurons cost.
 THREAD: people together (the staff without whom the named workers
   cannot work), building, engineering.
 ASKED-AS: glial cells brain support neurons minority astrocytes fuel cleaning immune not just glue
@@ -316,11 +231,6 @@ ESSENCE: a nerve cell running from your spine to your foot is a
 ROOT: physics / random blundering crosses a hair in an instant and a
   metre never, so anything longer than a cell needs deliberate
   freight.
-CANNOT: no repair or resupply at the far end faster than the freight
-  runs, which is why a damaged long nerve recovers over months and
-  why the longest nerves fail first in almost every nerve disease.
-  And no immunity to hijacking: several viruses and one famous toxin
-  ride the return service straight into the nervous system.
 THREAD: movement of goods (a factory and a site connected by one
   slow road), engineering, farming.
 ASKED-AS: long nerves feet first numbness diabetes transport axon slow months recovery toxin travels
@@ -333,11 +243,6 @@ ESSENCE: cut a nerve in an arm and it regrows, slowly, along the
   well as a physical one.
 ROOT: engineering / a system whose wiring encodes decades of learning
   cannot afford stray regrowth, so it forbids growth as a policy.
-CANNOT: no central regeneration without removing the block, and no
-  removing the block without accepting exactly the miswiring it was
-  preventing. And no useful regrowth without guidance: a peripheral
-  nerve regrows into whatever tube it finds, which is why recovered
-  hands often move a finger when they meant to move another.
 THREAD: building (a conduit that survives the cable), farming, law.
 ASKED-AS: spinal cord injury never heals nerve arm regrows why difference scar block guidance months
 
@@ -349,11 +254,6 @@ ESSENCE: regions do specialise, but not the way the diagrams show. A
 ROOT: this file / everything is done by patterns spread across
   populations, so a place is where a pattern is concentrated rather
   than where a function is kept.
-CANNOT: no single seat for any complex ability, so no brain area for
-  language, morality or attention in the way a room holds a machine.
-  And no reading function off anatomy: two people's identical regions
-  can be doing measurably different jobs, and one person's region
-  changes job after injury.
 THREAD: people together (an institution where responsibility is
   distributed), computing, maps.
 ASKED-AS: brain areas parts responsible speech language centre damage recover other areas take over
@@ -367,11 +267,6 @@ ESSENCE: the honest account of the hemispheres is small. The left
 ROOT: evidence + measurement / a real asymmetry in one narrow
   function was inflated into a theory of personality that nothing
   supports.
-CANNOT: no person who is one-sided, so no training a hemisphere. And
-  no clean split even in language: a person with the left side
-  damaged loses grammar and vocabulary and keeps swearing, singing
-  and tone, which shows the work was divided differently from how
-  anybody guessed.
 THREAD: evidence + measurement, the mind, story + drama.
 ASKED-AS: left right brain logical creative myth hemispheres language speech tone singing damage split
 
@@ -383,11 +278,6 @@ ESSENCE: the cortex is a sheet about three millimetres thick, six
   it.
 ROOT: engineering / one general-purpose unit repeated a million times
   is cheaper to specify and to build than a million special ones.
-CANNOT: no dedicated hardware for a sense, so no reason a patch
-  cannot do another job — reroute the inputs in a young animal and
-  the hearing cortex processes vision, in columns, using the same
-  circuit. And no explaining what a region does from its structure,
-  since the structure is the same as its neighbour's.
 THREAD: engineering (a standard module repeated), building, computing.
 ASKED-AS: cortex layers same everywhere columns vision hearing rewired blind reading touch general circuit
 
@@ -399,11 +289,6 @@ ESSENCE: the body and the visual world are laid out on the cortex as
   first visual map.
 ROOT: engineering / resolution costs tissue, so tissue is allocated
   where resolution earns its keep.
-CANNOT: no even sensitivity across a body, so no such thing as
-  ordinary touch: two points a centimetre apart are two on a
-  fingertip and one on a back. And no map without a distortion:
-  something has to be under-served, and it is always the parts that
-  do not need to discriminate.
 THREAD: maps (a transport map drawn to journeys rather than to
   distance), image + design, engineering.
 ASKED-AS: brain map body hands lips huge back small two points touch fingertips vision centre
@@ -416,10 +301,6 @@ ESSENCE: those maps move. Lose a finger and the neighbouring
   felt in a hand that is no longer there.
 ROOT: this file / territory is held by ongoing traffic, so a region
   that stops sending loses its ground to neighbours that have not.
-CANNOT: no fixed map after childhood, so no explaining adult
-  recovery or adult skill without it. And no remapping without
-  confusion: the new arrangement is built out of the old wiring, so
-  the sensations arrive labelled with the wrong address.
 THREAD: farming (a field taken back by the hedges), power (territory
   held by occupation), craft.
 ASKED-AS: phantom limb amputation feel hand gone touch face brain map changes practice violin territory
@@ -432,10 +313,6 @@ ESSENCE: almost nothing reaches the cortex without passing through
   and attending to.
 ROOT: engineering / a gate placed where every line converges is the
   cheapest place to control what gets through.
-CANNOT: no attention without a gate, so no separating what you
-  noticed from what was let past. And no raw sensory input available
-  to anybody: by the time a signal reaches awareness it has already
-  been through a checkpoint controlled by the destination.
 THREAD: keeping knowledge (an editor between the wire and the page),
   power + governance, computing.
 ASKED-AS: thalamus relay senses gate attention filtered expecting cortex sends back smell exception awareness
@@ -448,11 +325,6 @@ ESSENCE: in almost every sensory pathway the fibres running downward
 ROOT: engineering / sending only the surprise is enormously cheaper
   than sending the whole picture, provided the receiver can generate
   the expectation.
-CANNOT: no seeing without predicting, so no unfiltered perception to
-  fall back on when the prediction is wrong. And no equal treatment
-  of the expected and the unexpected: something entirely predicted
-  produces almost no upward signal at all, which is why a constant
-  presence disappears and a small change does not.
 THREAD: computing (sending only what changed), the mind, evidence +
   measurement.
 ASKED-AS: brain predicts expects seeing illusion surprise signal down fibres more perception argument change
@@ -465,11 +337,6 @@ ESSENCE: one curled structure is required to lay down new memories of
   as, and hands the binding to the cortex over months.
 ROOT: engineering / writing to a slow permanent store needs a fast
   temporary one in front of it, and the two can fail separately.
-CANNOT: no new memories of events without it, and no loss of old ones
-  from destroying it — which is why the two kinds of amnesia are
-  quite different injuries. And no memory of a moment stored in one
-  place: the sight, the sound and the smell are held where they were
-  processed, and only the index knows they belong together.
 THREAD: computing (a cache in front of a disk, and an index rather
   than a copy), keeping knowledge, teaching.
 ASKED-AS: hippocampus memory new cannot remember old fine amnesia minutes index scattered pieces damage
@@ -482,11 +349,6 @@ ESSENCE: memory is several systems that fail separately. A person who
   only one of them is available to be told.
 ROOT: this file / different jobs are done by different tissue, so
   they are lost in different injuries.
-CANNOT: no single measure of memory, so no meaningful statement that
-  somebody has a good or bad one. And no reporting on the systems
-  that are not connected to speech: the skill memory cannot be
-  described by the person who owns it, which is why expertise is so
-  hard to teach by telling.
 THREAD: teaching (showing against explaining), craft, the mind.
 ASKED-AS: memory types skills facts events forgot but can do learned without knowing amnesia different
 
@@ -497,11 +359,6 @@ ESSENCE: a memory is not finished when it is made. Over hours and
   physically re-written each time it is visited.
 ROOT: this file / storage is structural, so both writing and
   re-writing require the same slow building work.
-CANNOT: no permanent memory available immediately, so no protecting
-  a fresh memory from being disrupted in the hours after it forms.
-  And no recall that leaves the original untouched: the very act of
-  bringing it back is what makes it editable, so the most-visited
-  memories are the most altered.
 THREAD: keeping knowledge (a document that is re-typed every time it
   is read), story + drama, law.
 ASKED-AS: memory changes each time recalled rewritten unreliable witness hours after event disrupted stored
@@ -515,11 +372,6 @@ ESSENCE: during sleep the memory index replays the day's sequences,
 ROOT: this file / moving a memory from a fast store to a slow one
   means presenting it to the slow one repeatedly, and there is no
   time to do that while the store is in use.
-CANNOT: no filing without the replay, so no substituting rest for
-  sleep — the work is an activity, not an absence. And no replay of
-  what was never indexed: an event that did not reach the index in
-  the first place has nothing to be replayed, which is why divided
-  attention costs memory before sleep is even reached.
 THREAD: keeping knowledge (a night shift re-shelving), computing,
   teaching.
 ASKED-AS: sleep memory consolidation replay night learning next day rest not enough attention filing
@@ -533,11 +385,6 @@ ESSENCE: one small structure decides what matters. It receives a fast
 ROOT: physics / a full analysis takes time nobody has when the answer
   matters, so a crude fast path must run in parallel with the good
   slow one.
-CANNOT: no fast alarm that is also accurate — the price of the speed
-  is a high false alarm rate, and the coiled hose gets the same
-  response as the snake. And no conscious veto in the moment: the
-  response is already running before the slow path reports, so it can
-  only be cancelled afterwards.
 THREAD: strategy + conflict (a tripwire that fires before
   identification), the mind, survival.
 ASKED-AS: jumped before saw fear amygdala snake alarm fast reaction startle recognise afterwards false
@@ -550,11 +397,6 @@ ESSENCE: deep structures under the cortex do not produce movement.
   look like too little movement or too much.
 ROOT: engineering / where many possible outputs share one body, the
   hard problem is not generating actions but choosing between them.
-CANNOT: no voluntary movement without the release, so no separating
-  the will to act from the machinery that permits it. And no
-  smoothing a habit's transfer: once an action has moved down here it
-  is triggered by context rather than by intention, which is why a
-  habit runs even when you are watching it run.
 THREAD: power + governance (a licence granted by lifting a
   prohibition), craft, the mind.
 ASKED-AS: habits automatic basal ganglia parkinsons movement starting stuck tremor tics chosen released context
@@ -568,11 +410,6 @@ ESSENCE: the reward chemical is not pleasure. Its cells fire when
 ROOT: mathematics / a system learning from outcomes needs the
   difference between what it expected and what it got, and nothing
   else.
-CANNOT: no learning from a reward that is fully predicted — once you
-  know the treat is coming, the treat stops teaching. And no
-  satisfaction from a signal that means keep going: a system driven
-  by wanting rather than liking can pursue something it no longer
-  enjoys, which is the shape of addiction.
 THREAD: teaching (praise that stops meaning anything), money, the
   mind.
 ASKED-AS: dopamine pleasure wanting liking reward surprise expected addiction chasing not enjoying learning
@@ -585,10 +422,6 @@ ESSENCE: the small dense structure at the back holds more than half
   everything is clumsy, mistimed and overshot.
 ROOT: engineering / any control system with a delay must predict, or
   it will hunt around its target instead of reaching it.
-CANNOT: no accurate fast movement without prediction, so no
-  compensating for its loss by trying harder — trying harder produces
-  bigger overshoots. And no learning a skill without it: the error
-  signal it computes is what physical practice is actually training.
 THREAD: flight (a pilot leading the aircraft rather than chasing it),
   sports, engineering.
 ASKED-AS: cerebellum balance coordination clumsy drunk walking overshoot timing skill practice tremor reaching
@@ -601,11 +434,6 @@ ESSENCE: the oldest part is a few centimetres of tissue at the top of
 ROOT: the living world / the functions that came first are run by the
   structures that came first, and everything since has been built on
   top rather than in place of them.
-CANNOT: no life without it, so no recovery from its loss however
-  intact the rest — which is why the legal definition of death is
-  tested here and nowhere else. And no redundancy: everything above
-  it has some duplication and this has almost none, because it was
-  never built to be survivable.
 THREAD: engineering (the one subsystem with no backup), law, the
   human journey.
 ASKED-AS: brain stem breathing heart death definition small bleed fatal tests reflexes coma life
@@ -619,11 +447,6 @@ ESSENCE: the nerves running the body's automatic business come in
   is addressed.
 ROOT: engineering / a response needed all at once is wired to
   broadcast, and a response needed selectively cannot be.
-CANNOT: no partial alarm, so no calming one organ's stress response
-  and leaving the others going. And no slow recovery from the calm
-  side: the addressed system acts and stops in a second, while the
-  broadcast one leaves hormones in the blood for many minutes, which
-  is why the shakes outlast the fright.
 THREAD: engineering (a public address against a telephone), people
   together, medicine.
 ASKED-AS: fight flight rest digest nerves heart racing gut shaking afterwards vagus calm broadcast
@@ -635,11 +458,6 @@ ESSENCE: the spinal cord holds complete programmes, not just relays.
   faster, and a correction when the ground is not what was expected.
 ROOT: engineering / a repetitive pattern is cheapest to generate
   locally and expensive to send down a line stride by stride.
-CANNOT: no conscious control of a rhythm at that speed, so no walking
-  by deciding each step — and thinking about the steps measurably
-  makes it worse. And no useful programme without the corrections:
-  the local rhythm alone cannot handle a kerb, which is why the
-  reconnection matters more than the rhythm in spinal injury.
 THREAD: music (a drummer keeping time while the conductor shapes),
   engineering, martial arts + movement.
 ASKED-AS: walking automatic rhythm spinal cord steps not thinking pattern generator injury training legs
@@ -653,10 +471,6 @@ ESSENCE: there are wires running down from the brain whose only job
 ROOT: this file / a system that sends predictions downward can send
   permissions downward too, and the cheapest place to censor a signal
   is where it arrives.
-CANNOT: no pain signal that reaches awareness unedited, so no reading
-  injury from the amount of pain in either direction. And no purely
-  local treatment of long-standing pain: if the gate itself has been
-  left open, there is nothing at the injury site to treat.
 THREAD: power + governance (censorship at the border rather than in
   the capital), the mind, medicine.
 ASKED-AS: pain gate rubbing helps soldier not feeling wound brain turns down chronic no injury
@@ -670,11 +484,6 @@ ESSENCE: the brain itself has no pain sensors. It can be cut, burnt
 ROOT: the living world / a sense is grown where behaviour could
   change the outcome, and nothing an animal can do protects the
   inside of its own skull.
-CANNOT: no locating a brain problem by where the head hurts, so no
-  reading a tumour's position off a headache. And no anaesthetic
-  needed for the brain itself in surgery: only the scalp, the skull
-  and the coverings are numbed, which is exactly why awake operating
-  is possible.
 THREAD: the living world, medicine, evidence + measurement.
 ASKED-AS: brain no pain awake surgery talking headache comes from covering scalp vessels tumour
 
@@ -687,11 +496,6 @@ ESSENCE: the barrier round the brain's vessels is built by the vessel
 ROOT: this file / a nervous system running on tiny controlled
   chemical differences cannot tolerate the blood's chemistry
   arriving unfiltered.
-CANNOT: no sealed brain without the sensing gaps, so no barrier that
-  is complete — and the vomiting centre sits at one of those gaps for
-  exactly that reason. And no barrier under inflammation: it opens
-  when the brain is inflamed or injured, which is when it is least
-  affordable and, awkwardly, the only time some treatments get in.
 THREAD: law (a border with declared crossing points), building,
   chemistry.
 ASKED-AS: blood brain barrier protects gaps sensing poison vomiting inflammation opens leaky infection drugs
@@ -704,11 +508,6 @@ ESSENCE: brain tissue has no fuel reserve at all, so an active patch
   activity that asked for it.
 ROOT: engineering / where storage is impossible, supply must be
   demand-driven and local.
-CANNOT: no imaging faster than the blood can respond, so no scan that
-  sees a thought at the speed a thought happens — a second is an
-  eternity in this tissue. And no separating an increase in
-  excitation from an increase in inhibition: both cost fuel, both
-  raise flow, and the scan shows one bright patch either way.
 THREAD: building (a district drawing power as it wakes), evidence +
   measurement, engineering.
 ASKED-AS: brain scan blood flow active area lights up second delay inhibition looks same fuel
@@ -722,11 +521,6 @@ ESSENCE: when a brain cell is starved it does not simply fade. It
 ROOT: this file / the main transmitter is toxic in quantity, so the
   substance the brain runs on is the substance that spreads its
   injuries.
-CANNOT: no injury that stays the size of the insult, so no assessing
-  damage from the first hours. And no blocking the poison without
-  blocking the signalling: every attempt to protect neurons this way
-  has failed in people for exactly that reason, which is why the
-  treatment is still restoring the blood supply and nothing else.
 THREAD: engineering (a fire spread by the fuel of the machine),
   chemistry, medicine.
 ASKED-AS: stroke damage spreads hours after cells die neighbours poisoned glutamate protect drugs failed
@@ -739,11 +533,6 @@ ESSENCE: the brain has its own immune cells, and their day job is not
   it is no longer clear that they stop at the right junctions.
 ROOT: the living world / a cleaner and a soldier are the same
   machinery pointed differently, so a body reuses one for both.
-CANNOT: no immune activation in the brain without collateral to the
-  wiring, which is why inflammation anywhere in the body reliably
-  produces fog, flatness and slowness. And no separating pruning from
-  damage by looking: the process is identical, and only the target
-  list differs.
 THREAD: cleaning, war, the living world.
 ASKED-AS: brain fog inflammation infection thinking slow immune cells microglia pruning eating connections illness
 
@@ -756,11 +545,6 @@ ESSENCE: the retina is not a camera film. It is brain tissue, pushed
 ROOT: engineering / a hundredfold reduction at the source is only
   possible if the reduction is intelligent, so the processing must
   happen before the bottleneck.
-CANNOT: no sending the picture, so no image travelling up the optic
-  nerve — what travels is a heavily edited set of features, and the
-  scene you experience is rebuilt from it. And no repairing a retina
-  as if it were a sensor: it is nervous tissue, so it does not
-  regenerate.
 THREAD: photography, computing (compression at the camera), light +
   seeing.
 ASKED-AS: eye retina brain tissue picture sent nerve fibres fewer processing movement contrast rebuilt
@@ -773,11 +557,6 @@ ESSENCE: sight splits into two jobs almost immediately. One stream
 ROOT: engineering / recognising and aiming need different
   information, different speed and different precision, so they are
   built as separate systems.
-CANNOT: no single visual experience that both streams feed equally,
-  so no assuming that what a person can see is what their hands can
-  use. And no introspective access to the second stream: the aiming
-  system does its work without reporting, which is why skilled
-  physical action cannot be described by the person performing it.
 THREAD: martial arts + movement, craft, the mind.
 ASKED-AS: seeing what where two streams reach grasp cannot say posts card correctly damage vision
 
@@ -789,11 +568,6 @@ ESSENCE: no single cell means anything. A face, a word or an
 ROOT: mathematics / a code using combinations of many elements
   carries vastly more than a code using one element per meaning, from
   the same number of elements.
-CANNOT: no cell for a person, a concept or a grandmother, so no
-  finding the neuron that holds a memory. And no reading a brain by
-  listening to single cells: a recording from one cell in a
-  population code is close to meaningless, which is why the field
-  waited on the ability to record thousands at once.
 THREAD: language (meaning carried by combinations of a few sounds),
   computing, music (a chord rather than a note).
 ASKED-AS: one cell for face grandmother neuron pattern many cells together meaning code population
@@ -806,11 +580,6 @@ ESSENCE: with every spike identical, there are only two ways to say
   between its two ears.
 ROOT: this file / a standardised pulse can carry information in its
   frequency or in its phase, and nothing else.
-CANNOT: no fine timing code without machinery to compare arrival
-  times, so no free precision — the owl's brainstem contains delay
-  lines built for the purpose. And no rate code that is fast: reading
-  a rate requires counting over a window, so a system needing
-  millisecond answers cannot use one.
 THREAD: music (rhythm against pitch), engineering, mathematics.
 ASKED-AS: nerve code rate timing spikes per second precise milliseconds owl hearing direction ears difference
 
@@ -822,11 +591,6 @@ ESSENCE: the same object's colour, motion, shape and sound are
   object fire in step with each other, and it is UNSURE.
 ROOT: this file / there is no place where everything comes together,
   so unity has to be made by something other than convergence.
-CANNOT: no final destination in the brain where the picture is
-  assembled and viewed — that would need a viewer, and the question
-  would start again. And no dismissing the problem as unreal: binding
-  fails in real conditions, and people do report a moving object's
-  colour attached to the wrong shape.
 THREAD: the mind, computing, philosophy of knowing.
 ASKED-AS: how brain combines colour shape movement one object binding problem unsolved together where
 
@@ -839,11 +603,6 @@ ESSENCE: what can be measured is which activity reliably accompanies
   experienced at all.
 ROOT: evidence + measurement / a correlation identifies where to look
   and cannot by itself explain what is found there.
-CANNOT: no deciding between theories of consciousness with a
-  correlation, since every theory predicts one. And no test for
-  experience from the outside: everything measurable is a report or a
-  behaviour, so a system that behaves identically and experiences
-  nothing cannot be ruled out by any measurement.
 THREAD: philosophy of being, evidence + measurement, the mind.
 ASKED-AS: consciousness brain where located awareness measured signals unconscious why experience explained not settled
 
@@ -856,11 +615,6 @@ ESSENCE: anaesthetic drugs are chemically unlike one another and
 ROOT: this file / if awareness lives in the exchange between regions,
   then abolishing the exchange abolishes it without abolishing the
   activity.
-CANNOT: no explanation of anaesthesia from a single receptor, so no
-  neat account of how it works — this is a genuinely open question
-  and the depth is judged by proxy. And no guarantee from stillness:
-  a body that does not move may still be forming memories, which is
-  why depth and paralysis have to be watched separately.
 THREAD: computing (a network partition where every machine still
   runs), medicine, philosophy of being.
 ASKED-AS: anaesthetic how works unconscious drugs different same effect connections broken awareness depth unknown
@@ -873,12 +627,6 @@ ESSENCE: nearly everything first known about brain function came from
   it. Cutting a power cable stops the music.
 ROOT: evidence + measurement / removing a part tells you what breaks,
   which is a weaker claim than what the part was doing.
-CANNOT: no localising a function from a lesion alone, so no map built
-  from damage that can be trusted without other evidence. And no
-  clean experiment: natural damage never respects anatomical
-  boundaries, and the brain begins reorganising immediately, so what
-  is observed is a brain adapting rather than a brain missing a
-  piece.
 THREAD: evidence + measurement, engineering, computing.
 ASKED-AS: brain damage patient lost ability tells us area necessary performing different power cable stops
 
@@ -891,11 +639,6 @@ ESSENCE: the pictures are honest and the captions usually are not. A
 ROOT: evidence + measurement / an instrument's claims cannot exceed
   its resolution, and the resolution here is coarse in both space and
   time.
-CANNOT: no reading a mental state off a scan, so no lie detection, no
-  reading of intent, and no seeing love or fear in a picture. And no
-  meaning without the comparison condition: the bright patch is a
-  difference between two tasks, so change the comparison and the
-  patch moves.
 THREAD: evidence + measurement, image + design, law.
 ASKED-AS: brain scan lights up shows thought love lie detector resolution millimetres seconds comparison overclaimed
 
@@ -906,11 +649,6 @@ ESSENCE: the computer comparison hides more than it reveals. In a
   Nothing can be copied off it, and it cannot be paused.
 ROOT: this file / storage is structural, so in this machine the data
   and the hardware are the same physical thing.
-CANNOT: no reading a mind out of a brain the way a file is copied off
-  a disk, so no upload — the state is not separable from the
-  substrate that holds it. And no restarting from a saved point: the
-  system has no state that exists apart from its own continuous
-  running, so pausing it is not a thing that can be done to it.
 THREAD: computing, philosophy of being, engineering.
 ASKED-AS: brain like computer memory storage upload copy mind paused hardware software different wiring
 
@@ -922,11 +660,6 @@ ESSENCE: no mental illness is a shortage of one chemical. The same
   because it was ever what the evidence showed.
 ROOT: this file / a chemical has no meaning of its own, only the
   meanings its various locks give it in various places.
-CANNOT: no targeting an illness by targeting a substance, so no
-  explaining a treatment's benefit as topping up a deficiency. And no
-  argument from a drug back to a cause: something helping does not
-  show what was wrong, any more than a drink calming a fright shows
-  the fright was a shortage of alcohol.
 THREAD: chemistry, evidence + measurement, the mind.
 ASKED-AS: chemical imbalance serotonin depression low levels theory wrong drugs work does not prove
 
@@ -939,12 +672,6 @@ ESSENCE: the brain is never off. When a person is given nothing to
 ROOT: this file / a system that predicts must generate models of the
   world, and with no input to check them against it generates them
   anyway.
-CANNOT: no resting the brain by not attending to anything, so no
-  baseline of nothing against which to measure activity — which is a
-  genuine problem for every scanning study, since the comparison
-  condition is itself busy. And no separating this network's activity
-  from its content: it produces wandering thought, and wandering
-  thought is what it is doing.
 THREAD: the mind, computing (a background process that runs when the
   foreground stops), meaning + ritual.
 ASKED-AS: mind wandering daydreaming resting brain busy doing nothing network baseline thinking about others
@@ -958,11 +685,6 @@ ESSENCE: whether an adult grows new neurons is one of the field's
 ROOT: evidence + measurement / a finding that depends on identifying
   cells by their chemical markers can be undone when the markers turn
   out to be shared.
-CANNOT: no settling this by the animal work, since the species that
-  clearly do it are not us. And no acting on the popular version:
-  claims that exercise or diet grow new brain cells in adults are
-  running far ahead of what has been shown in humans, whatever they
-  have shown in mice.
 THREAD: evidence + measurement, the living world, medicine.
 ASKED-AS: new brain cells adults grow exercise memory hippocampus disputed evidence mice humans unsure
 
@@ -975,11 +697,5 @@ ESSENCE: the gut has its own nervous system of a few hundred million
 ROOT: engineering / a long process with local conditions and no need
   for central speed is cheapest to run locally, and reported on
   centrally.
-CANNOT: no conscious control of it, so no willing digestion — and no
-  separating its state from mood, since most of the traffic on that
-  line is inbound and the brain is receiving it constantly. And no
-  clean causal story about gut and mind: the direction of most
-  claimed effects is UNSURE, and the wiring runs mostly the way
-  nobody advertises.
 THREAD: engineering, the living world, medicine.
 ASKED-AS: gut brain second nervous system butterflies nerves stomach mood signals upward digestion automatic

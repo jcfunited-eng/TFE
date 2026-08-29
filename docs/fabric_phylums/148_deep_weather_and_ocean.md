@@ -11,10 +11,6 @@ ESSENCE: the atmosphere is an engine. The tropics receive far more
 ROOT: heat and electricity / an engine lets heat fall from hot to cold
   and takes work on the way down, and the planet has a permanent hot
   end and a permanent cold end.
-CANNOT: no weather on an evenly heated planet — with nothing to carry,
-  the air would sit still. And no engine without both ends: the
-  circulation is driven by the difference, so a world with a smaller
-  pole-to-tropic difference has a weaker, not a calmer, machine.
 THREAD: heat and electricity (work harvested from a flow, never from a
   still pool), money (profit from a difference), the body (blood
   carrying heat outward), energy (a temperature gradient as a resource).
@@ -27,10 +23,6 @@ ESSENCE: air rising at the equator cannot reach the poles in one
   circulation, not an accident of geography.
 ROOT: this file / heat is carried poleward by circulating air, and a
   spinning planet breaks that carrying into bands rather than one loop.
-CANNOT: no rain under sinking air — descending air warms and dries as
-  it comes down, so it can hold more moisture rather than less, which
-  makes precipitation nearly impossible. And no explaining these
-  deserts by distance from the sea: many of them are coastal.
 THREAD: farming (where crops can and cannot be grown), history (the
   belt of ancient civilisations along river valleys in dry lands),
   the living world (biomes arranged in latitude bands).
@@ -43,10 +35,6 @@ ESSENCE: wind is a difference in pressure being paid out. Air pushed
   of the wind's strength.
 ROOT: flight and fluids / fluid moves only where pressure differs, and
   the force is set by how fast the pressure changes with distance.
-CANNOT: no wind without a pressure difference somewhere, and none at
-  all in a uniform field however low the pressure is overall. And no
-  reading wind strength from the pressure value: it is the spacing
-  that matters, so a deep low with widely spaced lines is calm.
 THREAD: flight and fluids (pressure difference as the only mover),
   plumbing (flow following a pressure drop), electricity (current
   needing a difference in push), money (a price gradient moving goods).
@@ -59,10 +47,6 @@ ESSENCE: on a spinning world the wind cannot go straight. Deflected
   north and the other in the south.
 ROOT: motion and force / a thing moving freely over a rotating surface
   appears to curve, and the curve's direction is set by the rotation.
-CANNOT: no cyclone forming on the equator — the deflection falls to
-  nothing there, so a low can never be spun into a storm and the belt
-  a few degrees either side is permanently free of hurricanes. And no
-  deflection acting on a stationary parcel: it only bends motion.
 THREAD: motion and force (a moving thing curving on a spinning world),
   the ocean (currents circling their basins), astronomy (rotation
   shaping everything that forms on a spinning body).
@@ -74,11 +58,6 @@ ESSENCE: above the ground the wind ends up blowing along the pressure
   circles the system indefinitely instead of filling it in.
 ROOT: this file / a steady force and a steady deflection can cancel,
   and a flow in which they do has nothing left to change its direction.
-CANNOT: no weather system collapsing quickly at height — the balance
-  is why lows persist for days instead of equalising in hours. And no
-  such balance near the equator or at very small scales: it needs the
-  deflection to be significant, so a dust devil and a tropical squall
-  obey different rules from a mid-latitude depression.
 THREAD: motion and force (a body in balanced forces travelling
   steadily), astronomy (an orbit as a permanent balanced fall),
   money (a market where two opposite pressures settle).
@@ -92,11 +71,6 @@ ESSENCE: friction breaks the balance at the bottom. Near the ground
 ROOT: this file / the standing balance depends on the wind's speed, so
   anything that slows the wind tips the balance toward the pressure
   push.
-CANNOT: no rising air over a low without this inflow — the lifting
-  that makes the weather is caused by the friction, so a system's rain
-  is made at the surface and not at the top. And no equivalent over a
-  high: the same friction makes air spiral outward and sink, which is
-  why high pressure means clear.
 THREAD: flight and fluids (a boundary layer where a surface slows a
   flow), plumbing (a pipe's wall drag), the ocean (wind dragging on
   the surface), the home (draughts following the floor).
@@ -108,10 +82,6 @@ ESSENCE: a low is a machine for lifting air and an anticyclone is a
   warms, dries, and makes none. Everything else is detail.
 ROOT: this file / air rising expands and cools while air sinking is
   compressed and warms, and cooling is what forces moisture out of air.
-CANNOT: no rain from a strong high, however humid the air feels — the
-  descending motion prevents the lifting that condensation requires.
-  And no clear settled spell inside a deep low: the lifting is
-  structural, so the cloud is a consequence and not a coincidence.
 THREAD: heat and electricity (a change of state releasing its energy),
   cooking (steam condensing on a cold lid), the home (a stagnant warm
   room), farming (settled weather for harvest).
@@ -124,11 +94,6 @@ ESSENCE: the atmosphere is not a smooth blend. It sits in great slabs
 ROOT: heat and electricity / two things in contact drift toward one
   state, so air resting over a surface for days acquires that
   surface's temperature and moisture.
-CANNOT: no mixing of two air masses on meeting — they slide over and
-  under each other for days, which is why the boundary is a persistent
-  feature rather than a smudge. And no forecasting an arrival from
-  local conditions: the weather coming is a property of where that air
-  has been, not of where you are.
 THREAD: people (a group carrying the habits of where it formed), the
   ocean (water masses keeping their salt and temperature), history
   (a migration bringing a whole way of doing things).
@@ -141,11 +106,6 @@ ESSENCE: a front is the sloping wall where two air masses meet, and
 ROOT: motion and force / a denser fluid slides beneath a lighter one,
   and the angle at which it does sets how fast the lighter one is made
   to rise.
-CANNOT: no front without a temperature contrast — a front is the
-  contrast, so a weakening one simply stops existing. And no
-  interchanging the two: the gentle ramp and the steep shove produce
-  different clouds, different rain, and different warning times, from
-  the same physics running one way or the other.
 THREAD: geology (one plate sliding beneath another), cooking (oil and
   water refusing to blend), the ocean (a river plume riding over
   seawater), building (a slope deciding a flow's speed).
@@ -159,10 +119,6 @@ ESSENCE: high above, a narrow river of very fast wind circles each
 ROOT: this file / a temperature difference across a distance produces
   a pressure difference that grows with height, so the sharpest
   contrast makes the strongest wind at the top.
-CANNOT: no jet stream without a temperature contrast to make it — it
-  is the contrast expressed as speed. And no forecasting the surface
-  without the upper flow: a depression's track is a consequence of the
-  steering, so the map that matters is the one nobody sees.
 THREAD: rivers (a channel concentrating a flow), transport (a route
   that decides which towns thrive), the ocean (a fast narrow current
   on a basin's western edge), history (a trade route steering events).
@@ -175,10 +131,6 @@ ESSENCE: when the jet meanders far north and south it can lock in
   normally sweeps systems along has stalled.
 ROOT: this file / the surface weather is steered by the upper flow, so
   a stationary upper pattern produces stationary surface conditions.
-CANNOT: no extreme lasting weeks without something holding the pattern
-  still — brief extremes need only a passing system, but persistent
-  ones need a block. And no local cause for it: the pattern is
-  hemispheric, so the cause of a country's drought is elsewhere.
 THREAD: money (a market stuck in one regime), the mind (a rumination
   that will not move on), the ocean (a stalled current pattern),
   people (an institution frozen in a posture).
@@ -192,11 +144,6 @@ ESSENCE: air cools as it rises, always, at a rate set by physics
 ROOT: heat and electricity / a gas expanding does work and cools by a
   fixed amount, so a rising parcel's temperature is predictable while
   the air around it is not.
-CANNOT: no thunderstorm in a stable atmosphere, however hot the
-  ground — the lifting stops. And no calm afternoon in a deeply
-  unstable one: once a parcel is warmer than its surroundings the
-  rising accelerates itself, so the situation is either self-limiting
-  or self-amplifying with almost nothing in between.
 THREAD: motion and force (stability as whether a nudge restores or
   runs away), electronics (feedback that opposes or joins its cause),
   money (a market that damps or amplifies a move).
@@ -209,10 +156,6 @@ ESSENCE: sometimes the air gets warmer with height instead of cooler,
   hot and windy.
 ROOT: this file / rising air must be warmer than its surroundings to
   keep rising, and a layer that warms upward guarantees it will not be.
-CANNOT: no dispersal upward through an inversion — the only escape is
-  sideways, so a valley or a basin becomes a sealed container. And no
-  clearing it from below: it is broken by sunshine heating the ground
-  or by wind, and on a cold calm winter day there is neither.
 THREAD: the home (a stratified room with a hot ceiling), the ocean
   (a layer that resists mixing), public health (pollution episodes),
   cooking (a lid keeping everything in).
@@ -226,11 +169,6 @@ ESSENCE: a thunderstorm is one enormous convection cell running its
 ROOT: heat and electricity / a change of state releases the energy it
   took to make, so condensation high up is a heat source in exactly
   the place that drives further rising.
-CANNOT: no thunderstorm without moisture — dry rising air has no
-  energy source and simply makes a thermal. And no ordinary storm
-  lasting long: the rain and the updraught occupy the same space, so
-  the machine destroys itself in under an hour unless something tilts
-  them apart.
 THREAD: heat and electricity (latent heat as a hidden store), the
   living world (a population that eats its own resource), money (a
   boom carrying the seed of its bust), fire (a self-feeding column).
@@ -243,11 +181,6 @@ ESSENCE: hail is a measure of an updraught's strength. A stone can
 ROOT: motion and force / falling has a top speed set by air resistance
   against weight, so a rising wind must exceed that speed to keep a
   stone aloft.
-CANNOT: no large hail from a weak storm, at any temperature. And no
-  hail at all without supercooled water: the stone grows by liquid
-  droplets freezing onto it, so the storm must lift water above the
-  freezing level and keep it liquid, which is a specific and not a
-  common arrangement.
 THREAD: motion and force (terminal velocity), farming (crop damage as
   a proxy for storm severity), evidence (a mark on the ground
   reporting a condition nobody measured).
@@ -261,10 +194,6 @@ ESSENCE: a storm makes lightning only if it has ice. The charge is
 ROOT: chemistry / two different solid forms of water exchange charge
   on contact, and which one gains depends on temperature and on liquid
   being present.
-CANNOT: no lightning from a cloud that never freezes, however heavy
-  its rain. And no separation without violent vertical motion to
-  carry the light and heavy particles apart: the charge is torn free
-  by collisions and then sorted by gravity, and both steps are needed.
 THREAD: the home (rubbing two unlike materials to move charge), the
   living world (mixed-phase clouds seeding rain), weather (why
   lightning counts are used as a measure of storm intensity).
@@ -278,11 +207,6 @@ ESSENCE: the dangerous wind from a storm is often the one coming down.
 ROOT: heat and electricity / evaporation cools whatever it leaves, so
   rain falling through dry air makes a pocket of cold heavy air in the
   middle of the sky.
-CANNOT: no strong downdraught without dry air below the cloud — a
-  humid layer prevents the evaporation that does the chilling, which
-  is why the most violent examples come in dry regions. And no
-  warning from the rain: the worst of these can arrive from a cloud
-  dropping little rain at the ground.
 THREAD: heat and electricity (evaporative cooling), flight (an
   aircraft meeting a sudden headwind then tailwind on approach), the
   home (cold air falling off a window), farming (crop flattening).
@@ -296,11 +220,6 @@ ESSENCE: what turns an ordinary storm into a tornado factory is wind
 ROOT: motion and force / a flow with a shear across it carries spin,
   and tilting a horizontal spin upright turns it into a rotation about
   a vertical axis.
-CANNOT: no long-lived rotating storm without wind shear — without it
-  the storm chokes on its own rain within the hour. And no tornado
-  from rotation alone: the spin must also be concentrated near the
-  ground, which is why most rotating storms never produce one and the
-  forecasting stays probabilistic.
 THREAD: motion and force (spin as a quantity that can be tilted), the
   ocean (shear tearing a hurricane apart), sport (spin imparted by a
   glancing contact), fluid flow (a vortex tightening as it shrinks).
@@ -313,11 +232,6 @@ ESSENCE: a hurricane is a heat engine running on a warm ocean, and it
 ROOT: this file / a convective machine needs an energy supply and
   needs its column to stay vertical, and the ocean supplies the first
   while low shear permits the second.
-CANNOT: no hurricane over cold water or over land — the fuel line is
-  cut, which is why they weaken within hours of landfall. And no
-  hurricane in strong shear: the same wind change that organises a
-  thunderstorm tears a hurricane's column apart, so the two systems
-  want opposite conditions.
 THREAD: heat and electricity (an engine needing a hot end), energy
   (a machine limited by its supply), the ocean (warm water depth as a
   stored fuel), chance (a rare conjunction of conditions).
@@ -330,10 +244,6 @@ ESSENCE: the eye is not calm because the storm is weak there. Air
 ROOT: motion and force / going in a circle requires a constant inward
   pull, and the tightest circles closest to the centre demand the
   fastest winds and leave a descending core.
-CANNOT: no eye in a weak or disorganised storm — its appearance is the
-  sign the machine has fully organised. And no safety in the calm: the
-  wind returns from the opposite direction, so anything that survived
-  the first half is now loaded the other way.
 THREAD: motion and force (circular motion and its inward pull), fluid
   flow (the still centre of a whirlpool), the mind (a false sense of
   the danger having passed), building (a structure loaded in reverse).
@@ -345,10 +255,6 @@ ESSENCE: a hurricane's winds are not the same all round. Its own
   decides where the water is pushed hardest onto the coast.
 ROOT: motion and force / velocities add, so a rotating system that is
   also travelling has a fast side and a slow side by simple addition.
-CANNOT: no equal damage around a landfall — two towns the same
-  distance from the centre have completely different experiences. And
-  no reading the threat from the storm's category alone: the same
-  storm arriving on a different side of a bay is a different event.
 THREAD: motion and force (adding motions), sailing (avoiding the
   dangerous quadrant), transport (a wind that helps one direction and
   hinders the other), evidence (an average hiding a strong asymmetry).
@@ -361,11 +267,6 @@ ESSENCE: a monsoon is a sea breeze the size of a continent. Land heats
 ROOT: heat and electricity / water holds far more heat per degree than
   land, so the two change temperature at completely different rates
   under the same sun.
-CANNOT: no monsoon without a large landmass beside a large ocean —
-  the contrast is the mechanism, so the phenomenon is geographic
-  rather than climatic. And no reliability in its timing: the onset is
-  a threshold being crossed, so a small shift makes a large difference
-  to when the rain arrives, which is what makes it so consequential.
 THREAD: heat and electricity (thermal mass and how fast things
   change), farming (an agricultural calendar built on one date),
   history (civilisations organised around a seasonal rain).
@@ -377,11 +278,6 @@ ESSENCE: the same mechanism runs daily at the coast. By afternoon the
   breeze runs the other way. It is reliable enough to plan a day by.
 ROOT: this file / land and sea change temperature at different rates,
   so the contrast between them reverses on a daily cycle.
-CANNOT: no sea breeze on a windy day — a strong regional wind
-  overwhelms it, so the effect appears only when nothing else is
-  happening. And no sea breeze inland beyond a limited reach: the
-  circulation has a size set by the contrast, and it dies at a front
-  that can be watched moving across the land.
 THREAD: heat and electricity (a warm column drawing air in at the
   bottom), sailing (an afternoon wind that can be counted on), farming
   (coastal microclimates), the home (a draught between two rooms).
@@ -394,11 +290,6 @@ ESSENCE: mountains make rain by force. Air arriving at a range has
   reason alone.
 ROOT: this file / rising air cools and drops its moisture, and
   descending air warms and takes it back up.
-CANNOT: no rain shadow without a windward rainfall — the two are one
-  transaction, so the dry side's dryness is the wet side's rain
-  already spent. And no escaping it by height: the air arrives at the
-  lee slope both drier and warmer than it started, which makes the
-  effect stronger, not weaker.
 THREAD: heat and electricity (the sky's blue and the sunset's red as
   one transaction seen twice), farming (irrigation on one side of a
   range), history (settlement patterns following rainfall lines).
@@ -411,10 +302,6 @@ ESSENCE: fog is cloud at ground level, and there are only three ways
 ROOT: heat and electricity / air holds a limited amount of water that
   depends on its temperature, so saturation can be reached from either
   direction or by combination.
-CANNOT: no fog forming in air that is being warmed and not moistened.
-  And no single cure or forecast: a fog made by cooling burns off in
-  sunshine, a fog made by warm air over cold ground can thicken in it,
-  and treating them alike is how a forecast goes badly wrong.
 THREAD: heat and electricity (condensation on a cold surface), the
   home (a bathroom mirror against a cold window), cooking (steam over
   a pan meeting cool air), transport (visibility as an operating limit).
@@ -426,10 +313,6 @@ ESSENCE: cold air is heavy and it flows downhill like water. On a
   above it — and the frost forms in the dip while the slope stays clear.
 ROOT: motion and force / a denser fluid sinks beneath a lighter one,
   and cooled air is denser than the air around it.
-CANNOT: no frost pocket on a windy night — the draining needs stillness
-  and any mixing destroys it. And no reading a valley's risk from the
-  regional forecast: the temperature quoted is measured in the open at
-  a standard height, and the ground in a hollow can be far colder.
 THREAD: farming (orchards planted on slopes and never in the dip),
   building (a house sited above the valley floor), water (a liquid
   finding the low ground), the home (cold air falling to the floor).
@@ -442,10 +325,6 @@ ESSENCE: the lowest layer of the atmosphere is a different animal from
 ROOT: flight and fluids / a surface slows the fluid touching it and
   the slowing spreads upward, while heating from below stirs the same
   region from underneath.
-CANNOT: no smooth flight or steady wind inside it — turbulence is its
-  defining property, which is why the last thousand feet is the bumpy
-  part. And no surface measurement representing the atmosphere: what
-  a weather station reads is the state of this layer, not of the sky.
 THREAD: flight and fluids (a boundary layer on any surface), transport
   (a lorry's drag in a churned airstream), public health (pollution
   concentrations set by this layer's depth), the ocean (a mixed layer).
@@ -459,10 +338,6 @@ ESSENCE: relative humidity misleads because it is a percentage of a
 ROOT: heat and electricity / the amount of water air can hold climbs
   steeply with temperature, so the denominator of the fraction changes
   faster than the numerator.
-CANNOT: no comparing humidity across temperatures using the
-  percentage. And no comfort judgement from it alone: what a body
-  cares about is whether sweat can evaporate, which depends on the
-  actual water content and the temperature together, not the ratio.
 THREAD: the body (why humid heat is dangerous and humid cold is only
   unpleasant), the home (damp problems in cold rooms at high
   readings), farming (drying crops), medicine (dehydration risk).
@@ -476,10 +351,6 @@ ESSENCE: the wet-bulb temperature is the coldest a wet surface can get
 ROOT: heat and electricity / evaporation is the only cooling that can
   push a thing below the air's temperature, and it fails when the air
   can accept no more water.
-CANNOT: no cooling by sweating into air that is already saturated at
-  body temperature — the mechanism is not reduced, it is abolished.
-  And no adaptation to it: the limit is physical rather than
-  physiological, so acclimatisation, fitness and shade do not move it.
 THREAD: heat and electricity (evaporative cooling and its defeat), the
   body (sweating as the human superpower), public health (heat deaths
   clustering in humid nights), farming (livestock in humid heat).
@@ -493,10 +364,6 @@ ESSENCE: heavy snow needs cold air and a moisture source, and the two
 ROOT: heat and electricity / cold air can hold very little water
   vapour, so the potential for precipitation falls sharply as the
   temperature drops.
-CANNOT: no great snowfall in extreme cold — the coldest places on
-  earth are deserts by rainfall. And no lake-effect snow after the
-  lake freezes: the water supply is cut, so the phenomenon shuts off
-  mid-winter and returns nothing until the thaw.
 THREAD: heat and electricity (warm air holding more water), the living
   world (polar deserts), transport (why a marginal temperature is the
   disruptive one), farming (snow as insulation for a crop).
@@ -510,10 +377,6 @@ ESSENCE: freezing rain is a report about the layers above. Snow falls
 ROOT: heat and electricity / a change of state takes time and energy,
   so a droplet passing quickly through a cold layer can stay liquid
   below its freezing point.
-CANNOT: no freezing rain from a uniformly cold atmosphere — it
-  requires a specific sandwich, which is why it is local, brief, and
-  hard to forecast. And no gradual onset: the ice accretes on
-  contact, so the road is fine and then it is not.
 THREAD: heat and electricity (supercooling and delayed change of
   state), transport (the most dangerous road condition), flight
   (airframe icing from the same droplets), the home (frozen pipes).
@@ -525,10 +388,6 @@ ESSENCE: rainfall has two numbers and they answer different questions.
   swallow is a rate, and everything above that rate runs off.
 ROOT: mathematics / a total and a rate are different quantities, and a
   system with a maximum throughput responds to the second.
-CANNOT: no flood from a large total delivered slowly, and no safety in
-  a small total delivered in an hour. And no flood protection designed
-  from annual rainfall: the design case is an intensity over a
-  duration, and the two statistics can move in opposite directions.
 THREAD: money (income against cash flow), computing (throughput
   against total volume), the body (a dose rate against a total dose),
   farming (a downpour that runs off and a drizzle that soaks in).
@@ -541,10 +400,6 @@ ESSENCE: drought is slow and it hides. Rainfall can be a little below
 ROOT: this file / a store filled slowly and drawn down slowly hides a
   deficit until it is exhausted, so the visible symptom lags the cause
   by a season or more.
-CANNOT: no seeing a drought beginning from the weather — it is a
-  balance over months, not an event. And no ending it with one storm:
-  the same store must be refilled, and heavy rain on dry hard ground
-  runs off rather than soaking in, so a downpour can flood a drought.
 THREAD: money (a savings buffer masking a deficit), the body (a slow
   nutrient depletion), farming (soil moisture as the real variable),
   energy (a reservoir's slow refill).
@@ -557,10 +412,6 @@ ESSENCE: most of the water vapour crossing an ocean travels in a few
   region's water and much of its flooding.
 ROOT: this file / moisture is carried by wind, and wind is
   concentrated into narrow fast streams rather than distributed evenly.
-CANNOT: no even distribution of rainfall through a wet season — a
-  handful of arrivals dominates the total, so an average is a poor
-  description of what actually happens. And no water security from an
-  average: the supply depends on whether a few events arrive.
 THREAD: money (a few trades or customers making the year), chance (a
   total dominated by its largest members), farming (a harvest set by a
   few days), rivers (flow concentrated into flood events).
@@ -573,11 +424,6 @@ ESSENCE: a forecast has a horizon, and it is a property of the
 ROOT: mathematics / in a system where small differences amplify, any
   imperfection in the starting state grows exponentially, and the
   starting state is measured imperfectly by construction.
-CANNOT: no extending the horizon far by better computers or finer
-  models — halving the initial error buys only a fixed extra span, so
-  enormous effort buys hours. And no forecast of a shower's location
-  days ahead: small features have short horizons, so the limit depends
-  on the size of what is asked about.
 THREAD: chance (compounding of small errors), computing (sensitivity
   to initial conditions), money (why long forecasts of prices fail),
   history (the limits of prediction in any coupled system).
@@ -591,11 +437,6 @@ ESSENCE: because the starting state is uncertain, the modern answer is
 ROOT: chance / an uncertain input produces a distribution of outputs,
   and the distribution carries information the single best guess does
   not.
-CANNOT: no honest single-line forecast — a deterministic prediction is
-  one member of a spread presented without its siblings. And no
-  constant confidence: some patterns are robust for ten days and
-  others fall apart in two, so a forecast without its uncertainty has
-  had the most important part removed.
 THREAD: chance (a distribution against a point estimate), medicine (a
   prognosis given as a range), money (a scenario set), engineering
   practice (a model calibrated with its error understood).
@@ -609,11 +450,6 @@ ESSENCE: the ocean is not one body of water, it is layers that refuse
 ROOT: motion and force / a denser fluid sinks beneath a lighter one,
   and staying stacked by density is the resting state that mixing must
   work against.
-CANNOT: no mixing across a strong density boundary without energy —
-  wind, tide, or a storm must pay for it. And no productivity in a
-  strongly stratified sea: the nutrients are below the boundary and
-  the light is above it, so the two never meet and the water is clear
-  and empty, which is why tropical seas look beautiful and are deserts.
 THREAD: cooking (oil floating on water), the home (a warm ceiling and
   a cold floor), the atmosphere (an inversion that will not mix),
   farming (nutrients out of reach of roots).
@@ -625,10 +461,6 @@ ESSENCE: the top of the ocean is stirred into a uniform layer by wind
   cools quickly; a deep one is a vast flywheel that barely responds.
 ROOT: this file / the ocean is stratified, and the mixed layer is the
   part where stirring has beaten stratification.
-CANNOT: no rapid sea temperature change where the mixed layer is deep
-  — the heat is spread through too much water. And no permanent depth:
-  a storm deepens it in a day by dragging cold water up, which is why
-  a hurricane can cool the sea beneath it and weaken itself.
 THREAD: heat and electricity (thermal mass deciding how fast something
   changes), the atmosphere (a boundary layer growing and collapsing),
   farming (a deep soil buffering a dry spell).
@@ -640,10 +472,6 @@ ESSENCE: below the mixed layer the temperature drops sharply through a
   it crosses it and makes the water below effectively another room.
 ROOT: this file / density differences hold layers apart, and
   temperature is the dominant control on density in most of the ocean.
-CANNOT: no simple sound path from the surface into the deep — the
-  bending creates shadow zones where a listener hears nothing, which
-  is the basis of every submarine's tactics. And no vertical migration
-  of nutrients through it without mechanical help.
 THREAD: light (bending where speed changes), the atmosphere (a lid
   layer), the living world (life concentrated at boundaries), sound
   (refraction making shadows).
@@ -655,11 +483,6 @@ ESSENCE: the deep ocean's slow circulation is driven by density, and
   and returns to the surface centuries later somewhere entirely else.
 ROOT: motion and force / a denser fluid sinks, and both chilling and
   salting increase density, so the two act as one control.
-CANNOT: no deep circulation without somewhere for water to sink —
-  which happens in a very few small regions, so a global system hangs
-  on a handful of places. And no quick response: the round trip takes
-  centuries, so a change made now is answered by an ocean that will
-  surface long after everyone alive is gone.
 THREAD: energy (a slow store with a long memory), farming (soil
   carbon's slow turnover), history (consequences arriving generations
   later), plumbing (a circulation driven by density and not a pump).
@@ -673,11 +496,6 @@ ESSENCE: the world's great fisheries sit where deep water comes up.
 ROOT: this file / nutrients accumulate in the deep and light exists
   only at the surface, so production happens wherever the two are
   forced to meet.
-CANNOT: no rich fishery in permanently stratified water, however warm
-  and sunlit. And no upwelling without the right wind: when the wind
-  pattern shifts, the cold water stops rising, the food chain
-  collapses within weeks, and the fishery fails — which is exactly
-  what an El Niño does.
 THREAD: farming (fertility as the meeting of nutrients and sun), the
   living world (productivity concentrated at boundaries), money (an
   industry resting on a narrow physical condition).
@@ -691,11 +509,6 @@ ESSENCE: wind does not push surface water the way it blows. On a
 ROOT: motion and force / a moving thing on a rotating surface curves,
   and each layer of water is dragged by the one above it and deflected
   in turn.
-CANNOT: no predicting surface currents from wind direction alone. And
-  no upwelling from an onshore wind: the same wind blowing the other
-  way along the coast pushes water toward the land and suppresses it,
-  so the sign of a coastal ecosystem's fortune flips with the wind's
-  direction along the shore.
 THREAD: motion and force (deflection on a spinning world), sailing (a
   current setting a vessel sideways), farming (an effect at right
   angles to its apparent cause), fluid flow (layered drag).
@@ -709,10 +522,6 @@ ESSENCE: each ocean basin holds a great slow wheel of current, and the
 ROOT: this file / the deflection on a spinning planet varies with
   latitude, and that variation forces the returning flow to concentrate
   against one side of a basin.
-CANNOT: no symmetrical gyre on a rotating planet. And no swapping the
-  sides: the intensification is always on the western boundary of a
-  basin, which is why the climates of the two coasts at the same
-  latitude differ so sharply and always in the same direction.
 THREAD: transport (a fast narrow route carrying most of the traffic),
   the atmosphere (a jet stream as a concentrated return), rivers (flow
   concentrating into channels), money (flows concentrating in a few
@@ -726,10 +535,6 @@ ESSENCE: how big waves get is decided by three things and the smallest
 ROOT: physics / a wave grows by the wind doing work on it over
   distance and time, so a limit in either caps the result regardless
   of the wind's strength.
-CANNOT: no large waves in an enclosed water however violent the storm
-  — the fetch is missing. And no instant sea: a wind that has just
-  started has not yet built the waves that its strength would
-  eventually support, so a forecast of wind is not a forecast of sea.
 THREAD: energy (a store filled at a rate over time), engineering
   practice (a chain limited by its weakest link), farming (growth
   limited by whichever input is scarcest).
@@ -742,10 +547,6 @@ ESSENCE: sea is the chop being made now, and swell is what a distant
   weather is fine.
 ROOT: physics / a wave's speed depends on its length, so a mixture of
   lengths spreads out as it travels and separates itself in time.
-CANNOT: no swell without a distant storm — a calm coast with a heavy
-  swell is reporting weather a thousand miles away. And no confusing
-  the two for a boat: a short steep sea and a long swell of the same
-  height are completely different experiences.
 THREAD: physics (dispersion sorting a mixture of wavelengths), sound
   (bass travelling further than treble), astronomy (signals arriving
   sorted by their speed), sailing (reading the weather from the water).
@@ -759,10 +560,6 @@ ESSENCE: waves do not arrive evenly. They travel in groups, with the
 ROOT: physics / waves add, so several trains of different lengths
   produce a pattern of reinforcement and cancellation that travels
   with them.
-CANNOT: no waiting out a set and assuming the next is safe — the
-  grouping is statistical, not a schedule. And no design against the
-  average wave: a structure or a vessel meets the largest of many
-  thousands, so the design case is a tail of a distribution.
 THREAD: physics (interference of two rhythms), chance (a rare
   coincidence being certain over enough trials), money (a rare extreme
   dominating a risk), music (beats between two close notes).
@@ -775,11 +572,6 @@ ESSENCE: a wave in deep water barely notices the bottom. As it reaches
   wave is tall.
 ROOT: physics / a shallow-water wave's speed depends on depth, so the
   front of a wave entering shallows slows before the back does.
-CANNOT: no wave passing over a shallow bank unchanged — the shoaling
-  is compulsory. And no reading danger from the open sea: a swell that
-  is a gentle hump offshore becomes a breaking wall on a bar or a
-  reef, which is why the hazard is concentrated exactly where boats
-  must pass.
 THREAD: physics (a wave's speed set by its medium), transport (a
   harbour entrance as the dangerous point), motion and force (energy
   concentrated into a smaller volume), sport (why surf breaks where it does).
@@ -791,11 +583,6 @@ ESSENCE: waves turn toward shallow water, because the part of a wave
   from, why headlands take a battering, and why bays are calm.
 ROOT: physics / a wave bends toward the region where it travels more
   slowly, and shallow water is slow water.
-CANNOT: no oblique arrival at a gently shelving beach — the bending
-  straightens it out, always. And no shelter behind a headland from
-  the energy: the waves wrap around it and concentrate on its point,
-  so the erosion goes to the projecting land and the sediment goes to
-  the bay.
 THREAD: light (bending where speed changes), geology (headlands eroded
   and bays filled), sound (bending in air of varying temperature),
   building (coastal defence placed by where the energy converges).
@@ -808,10 +595,6 @@ ESSENCE: a rip current is the water going back. Waves pile water onto
 ROOT: motion and force / water carried shoreward must return, and it
   takes the easiest path back, which is where the waves are not
   breaking.
-CANNOT: no beach with waves and no return flow — the rip is a
-  consequence of the surf, not an anomaly. And no escaping one by
-  swimming against it: it is narrow and it is faster than a person, so
-  the answer is to cross it sideways, which is the opposite of instinct.
 THREAD: plumbing (a return path forming wherever there is a supply),
   electricity (every current needing its return), the mind (an
   instinct that is exactly wrong), crowds (a counterflow forming).
@@ -825,11 +608,6 @@ ESSENCE: a tsunami is not a big wave, it is a different creature. Its
 ROOT: physics / a wave whose length far exceeds the water's depth
   moves at a speed set by the depth alone, and carries the entire
   water column with it.
-CANNOT: no seeing one coming from a boat in deep water — it is a
-  gentle hump metres long from crest to crest in height and kilometres
-  in length. And no single wave: the sea withdrawing is the trough of
-  a train, so the first arrival is not the largest and the danger
-  continues for hours.
 THREAD: physics (waves whose speed depends on the medium), geology
   (the seafloor movement that starts it), the mind (a warning sign
   that draws people toward the danger), history (recurring disasters).
@@ -843,10 +621,6 @@ ESSENCE: the moon explains why there are tides and almost nothing
 ROOT: motion and force / every body of water has natural rhythms it
   answers strongly to, and a driving force near one of those rhythms
   produces a response far larger than the force itself.
-CANNOT: no predicting a place's tide from astronomy alone — two ports
-  a short distance apart can differ by hours in timing and by metres
-  in range. And no tide worth the name in a small enclosed sea: the
-  Mediterranean and the Baltic feel the same moon and barely respond.
 THREAD: motion and force (resonance answering a driving rhythm), music
   (a body that rings at one note), building (a structure matched to a
   ground motion), the home (water sloshing in a bath at one rate).
@@ -860,11 +634,6 @@ ESSENCE: the current and the height are out of step. The water is
 ROOT: physics / a flow fills and empties a basin, so the rate of
   change of level is greatest when the level itself is in the middle
   of its range.
-CANNOT: no slack water at high tide in an open coast — the stream runs
-  on past the turn in many places, so the relationship is local and
-  must be looked up rather than reasoned. And no crossing a strong
-  tidal gate at the wrong hour: the stream can exceed a small vessel's
-  speed entirely.
 THREAD: physics (a rate and a quantity being ninety degrees apart),
   motion and force (a pendulum fastest at the bottom), transport
   (timing a passage), farming (working with a rhythm rather than a level).
@@ -878,11 +647,6 @@ ESSENCE: what floods a coast in a storm is not the waves, it is the
 ROOT: flight and fluids / a lower pressure above a fluid lets it rise,
   and a wind exerting a steady drag on the surface piles water against
   a barrier.
-CANNOT: no surge without somewhere for the water to pile up — a steep
-  coast sheds it and a shallow shelving bay concentrates it, so the
-  same storm produces wildly different floods along one coastline. And
-  no defence designed for the storm alone: the design case is the
-  coincidence of storm and tide, which is a chance event.
 THREAD: chance (two independent events coinciding), building (defences
   sized by a combination rather than by one cause), money (correlated
   risks arriving together), history (floods remembered by their date).
@@ -895,11 +659,6 @@ ESSENCE: floating ice and grounded ice are completely different for
   sea everywhere.
 ROOT: motion and force / a floating body displaces exactly its own
   weight of fluid, so its melting neither raises nor lowers the level.
-CANNOT: no sea level rise from melting sea ice, however much of it
-  goes. And no equal rise everywhere from land ice: the ice sheet's
-  own gravity holds a bulge of water near it, so losing it lowers the
-  sea nearby and raises it more than average far away, which is
-  strongly counter-intuitive and entirely real.
 THREAD: motion and force (floating as displaced weight), the home (ice
   melting in a full glass without overflowing), astronomy (a mass
   pulling the water around it), geology (land rebounding after ice).
@@ -913,10 +672,6 @@ ESSENCE: the ocean and the atmosphere are one coupled system, and
 ROOT: this file / the wind drives the ocean and the ocean's
   temperature drives the wind, so the two form a loop that can tip
   between states rather than resting in one.
-CANNOT: no explaining it from the ocean or the atmosphere alone —
-  neither has the mechanism, which is why it went unexplained while
-  each was studied separately. And no strict schedule: it is a loop
-  with feedback, so it recurs irregularly and cannot be diaried.
 THREAD: control (positive feedback tipping a system between states),
   money (a market flipping regime), the living world (a food web
   reorganising), energy (a system with two stable states).
@@ -930,11 +685,6 @@ ESSENCE: weather and climate are predictable on opposite timescales,
 ROOT: mathematics / a chaotic system's individual path is
   unpredictable while its statistics are constrained by the boundaries
   it runs inside.
-CANNOT: no forecasting next month's weather from a climate model, and
-  no dismissing a climate projection because the forecast was wrong on
-  Thursday — they are not the same claim, and being poor at one says
-  nothing about the other. And no climate prediction of a single
-  season's storms: the individual events remain unpredictable.
 THREAD: chance (a single coin toss against a thousand), the living
   world (an individual's life against a population's statistics),
   money (a price tomorrow against an economy's constraints).

@@ -6,10 +6,6 @@ ESSENCE: a name is a claim about what a thing IS, planted where
   everyone who comes after, forever.
 ROOT: language / a word carries its concept into every head that
   reads it.
-CANNOT: no clear thought about a badly named thing — nobody
-  re-derives the truth from the lines when a confident name sits
-  right there. And no good name for a thing holding two ideas;
-  the struggle to name it IS the design confessing.
 THREAD: biology (a misfiled species hides from its own kin), law
   (a term defined loosely is argued over for a century), kitchens
   (the jar labelled sugar holding salt).
@@ -20,10 +16,6 @@ ESSENCE: the name is the test. Say aloud what a piece does; if
   you are holding two things in one coat and the coat is the only
   thing joining them.
 ROOT: this file / a name is a claim about what a thing is.
-CANNOT: no honest short name for a piece with two jobs — the name
-  either lies by leaving one out, or grows into a description. No
-  reuse of such a piece either; whoever wants half of it must
-  take both halves.
 THREAD: tools (a thing sold as a knife-and-spoon is neither),
   teaching (a lesson with two aims teaches neither), writing (the
   sentence that will not shorten holds two sentences).
@@ -35,10 +27,6 @@ ESSENCE: state is memory kept inside the program, and it is where
   earlier and elsewhere decided which way it goes.
 ROOT: causation / the next moment is written from this one, and
   the past is not printed on the page.
-CANNOT: no understanding a stateful part by reading it — the page
-  shows the rules, never the history that chose the branch. No
-  two runs alike without the same history, whether or not anyone
-  wrote that history down.
 THREAD: medicine (a symptom that depends on last month), law (a
   penalty that depends on prior convictions), games (the same
   move is brilliant or fatal depending on the position).
@@ -50,10 +38,6 @@ ESSENCE: a value that can never change cannot be changed behind
   families of fault simply have nowhere to happen.
 ROOT: this file / state is where difficulty lives; remove change
   and the difficulty leaves with it.
-CANNOT: no stale copy, no half-updated thing, and no surprise
-  from a distance in something that cannot be written to. But no
-  free lunch either: to change an unchangeable thing you must
-  build a new one, and building costs.
 THREAD: law (a signed original versus a page anyone may amend),
   money (a receipt that cannot be edited afterwards), writing
   (ink for contracts, pencil for drafts).
@@ -65,10 +49,6 @@ ESSENCE: a piece that only computes tells you everything in its
   cannot see and did not agree to.
 ROOT: this file / the name is a claim about the whole of what a
   thing does.
-CANNOT: no local reasoning where effects are hidden — to know
-  what one line does you must open every piece it calls, and
-  every piece they call. No repeating a call safely when the
-  first call already changed the world.
 THREAD: medicine (a drug with undeclared second actions),
   contracts (a clause that also signs you up elsewhere), cooking
   (a recipe that quietly uses tomorrow's ingredients).
@@ -79,10 +59,6 @@ ESSENCE: cohesion is how much a part's insides belong together;
   along couplings — so put what changes together in one place,
   and keep the paths between places few and thin.
 ROOT: craft / things that are used together are stored together.
-CANNOT: no changing one end of a tight coupling alone; the other
-  end comes with it. And no zero coupling in a system that does
-  anything — parts must touch, so the craft is choosing where and
-  how narrowly.
 THREAD: the body (organs joined by few clean vessels), cities (a
   grid you can redevelop block by block, versus a knot), machines
   (bolted apart beats welded solid).
@@ -94,9 +70,6 @@ ESSENCE: what a part promises is what others may lean on; all the
   freedom you keep.
 ROOT: law / what is published and relied upon binds; craft / a
   tool is used by its handle.
-CANNOT: no changing what you exposed — once someone leans on a
-  detail it is a promise, whether you meant it as one or not. No
-  freedom left in a part that kept no secrets.
 THREAD: shops (the price list is public, the supplier deal is
   not), medicine (the label states the dose, not the factory),
   craft (a guarantee covers what it says and no more).
@@ -108,10 +81,6 @@ ESSENCE: every simplification holds in the middle and fails at
   it was only thinner than the ground.
 ROOT: this file / a promise covers what it states; everything
   outside the promise is still real.
-CANNOT: no abstraction that never leaks — the only layer that has
-  never leaked is one nobody has pushed hard yet. No repairing
-  from above a leak whose cause is below; you can only work
-  around it, knowingly.
 THREAD: maps (the road that turns out to be a track), driving
   (the pedal's promise breaks on ice), translation (it holds
   until the poem).
@@ -122,9 +91,6 @@ ESSENCE: layering is a rule about who may call whom — each level
   and it is the whole point: any level can be torn out and
   replaced, because nothing reached past it.
 ROOT: building / the floor carries the wall, never the reverse.
-CANNOT: no swapping a level that others reached around. No level
-  that calls upward — a floor leaning on its own ceiling is not a
-  floor, and the two are one thing pretending to be two.
 THREAD: post (letter, van, road — none knows the others' work),
   armies (orders down a chain, not shouted across it), the body
   (skin, muscle, bone, each in its order).
@@ -136,10 +102,6 @@ ESSENCE: dependencies point somewhere, and the direction decides
   reverse, and never in a circle.
 ROOT: building / what is underneath carries what is above, so it
   must not need it.
-CANNOT: no separate life for two parts that depend on each other
-  — a circle is one part with a seam drawn on it. No stable core
-  that knows its own callers; the moment it does, it moves
-  whenever they do.
 THREAD: farming (the crop depends on the soil, never the soil on
   the crop), law (by-laws point at constitutions), teaching
   (arithmetic does not depend on the word problem).
@@ -151,9 +113,6 @@ ESSENCE: instead of a part reaching out to fetch what it needs,
   stand-in, or next year's replacement, untouched.
 ROOT: this file / dependency direction — being handed a thing
   removes the arrow that pointed outward.
-CANNOT: no testing a part that fetches its own world; you cannot
-  give it a different world to be tested in. No swapping what a
-  part hard-wired for itself without cutting the part open.
 THREAD: cooking (a chef given ingredients versus one who must go
   shopping), theatre (props come from the stagehand), tools (a
   drill takes any bit because it holds none).
@@ -165,9 +124,6 @@ ESSENCE: a value that anything may read and anything may write
   again be understood, tested, or moved on its own.
 ROOT: this file / coupling is the path change travels; a global
   is a path from everywhere to everywhere.
-CANNOT: no answering "what is it now" for a global — the true
-  answer is "whatever ran last", and everything ran. No unit
-  small enough to test alone once a global runs through it.
 THREAD: kitchens (one salt cellar everyone reseasons from),
   money (a joint account with no memo line), roads (one shared
   lane in both directions).
@@ -179,10 +135,6 @@ ESSENCE: what happens when things go wrong is half the design,
   branch before it is walked.
 ROOT: this file / a promise must state what happens when it
   cannot be kept.
-CANNOT: no bolting recovery onto a shape that assumed success —
-  recovery needs facts the happy path never bothered to keep. No
-  system more reliable than its worst-handled failure, however
-  good the rest is.
 THREAD: flight (the checklist is mostly what to do when something
   breaks), sailing (reefing is rehearsed in calm), hospitals
   (triage is designed before the crash, not during).
@@ -194,9 +146,6 @@ ESSENCE: a fault caught at its birth names its own cause. The
   beats quiet and later, every time.
 ROOT: evidence / a signal is traceable only while it is still
   near its source.
-CANNOT: no tracing a swallowed error back home — you arrive at
-  the symptom and the trail is cold. No safety in continuing on a
-  value you already know is wrong; every step after builds on it.
 THREAD: medicine (pain that stops you saves the joint), factories
   (the line halts at the bad part, not at the loading bay), money
   (a wrong entry caught at the till, not at the audit).
@@ -208,10 +157,6 @@ ESSENCE: check what comes in at the door, once, where the outside
   not a habit everyone tries to keep.
 ROOT: this file / fail early; and law / evidence is admitted at
   the door, not weighed afterwards.
-CANNOT: no trusted interior without a guarded door. No checking
-  in the middle — by then you cannot tell what came from outside
-  and what the program built itself, so you must suspect
-  everything or nothing.
 THREAD: the body (skin and gut wall do the filtering), buildings
   (one ticket gate, not a guard at every seat), farming
   (quarantine at the gate, not in the herd).
@@ -223,10 +168,6 @@ ESSENCE: an act is idempotent when doing it twice equals doing it
   repeats things out of anxiety.
 ROOT: this file / a network answer that never came is
   indistinguishable from work that never happened.
-CANNOT: no safe retry of an act that stacks — "add ten pounds"
-  twice is theft, "set it to fifty" twice is nothing. No delivery
-  that is exactly once; you get at least once, and you make the
-  extra times harmless.
 THREAD: light switches (flip up twice, still up), medicine (a
   dose repeats badly, a splint does not), post (the same letter
   arriving twice should not double the order).
@@ -238,9 +179,6 @@ ESSENCE: two workers touch one value with no agreed order, and
   because the fault lives in the timing, not the lines.
 ROOT: causation / two causes on one effect need an ordering, and
   nothing supplies one by itself.
-CANNOT: no seeing a race by reading the code — the fault is an
-  ordering nobody wrote down. No test that proves it gone;
-  passing is exactly what a race does most of the time.
 THREAD: sport (two runners and one baton), traffic (an unmarked
   crossroads works until it does not), speech (two people
   starting the same sentence at once).
@@ -252,10 +190,6 @@ ESSENCE: each holds what the other needs, and each waits politely
   it will stay stopped.
 ROOT: this file / shared things need turns, and a turn taken is a
   turn somebody else is waiting on.
-CANNOT: no escape from the inside — none may release before
-  finishing, and none may finish before the other releases. No
-  deadlock at all where everyone takes what they need in one
-  agreed order; that single rule kills it dead.
 THREAD: doorways (two people each stepping aside forever), money
   (two firms each waiting for the other to pay first), law (two
   courts each awaiting the other's ruling).
@@ -267,10 +201,6 @@ ESSENCE: one worker has one story. Two have every interleaving of
   does not get bigger.
 ROOT: mathematics / combinations grow faster than the things
   combined.
-CANNOT: no proving a concurrent design by running it — the run
-  you did not get is the one that fails. No cheap concurrency:
-  the speed is bought with reasoning, and the bill arrives at
-  every future change.
 THREAD: kitchens (two cooks, one stove, endless orders of
   operations), music (an orchestra needs a conductor because ears
   cannot), traffic (junction rules exist because heads cannot).
@@ -284,10 +214,6 @@ ESSENCE: a cache is a fast liar you invite in on purpose. It
 ROOT: computer science / a kept answer trades space for time;
   this file / naming is the hardest act, and a cache key is a
   name.
-CANNOT: no cache without a story for going stale — "it refreshes
-  eventually" is a story with a hole in it. No correct key that
-  leaves out anything the answer depended on; leave one thing out
-  and two different questions get one answer.
 THREAD: news (yesterday's paper read as today), the mind (a first
   impression outliving the person), kitchens (a sauce prepped for
   a menu that has since changed).
@@ -299,9 +225,6 @@ ESSENCE: nearly all of a program's time hides in a tiny part of
   actually goes, and let the measurement pick the target.
 ROOT: evidence / a guess and a measurement are not the same kind
   of thing, however confident the guesser.
-CANNOT: no knowing where time goes without watching it go;
-  intuition here is reliably, famously wrong. No honest claim of
-  a speed-up without a before and an after measured the same way.
 THREAD: medicine (test before treating), plumbing (the narrowest
   pipe sets the flow, and it is rarely the one you would replace),
   farming (fix the one poor field, not the whole farm).
@@ -313,9 +236,6 @@ ESSENCE: there are two levers on speed: the shape of the work as
   the plain method beats the clever one, and most work is small.
 ROOT: computer science / cost grows with size in different
   shapes.
-CANNOT: no buying your way out of a bad shape with fast hardware
-  or tight code. No assuming the clever method wins either: below
-  some size its setting-up costs more than its cleverness saves.
 THREAD: travel (a better route beats a faster car, but not for
   crossing the road), farming (rotation beats a sharper hoe),
   books (the index beats reading faster, once the book is thick).
@@ -326,10 +246,6 @@ ESSENCE: every piece of memory has a beginning, an owner, and an
   who was using it has finished. Most memory faults are arguments
   about that "after".
 ROOT: craft / a borrowed thing has a lender and a return.
-CANNOT: no memory without an owner — "everyone owns it" and
-  "nobody owns it" both end in the same corpse. No use of a thing
-  past its end; the address stays valid-looking long after the
-  meaning there has gone.
 THREAD: libraries (a borrowed book has a due date), tenancy (keys
   handed back when the lease ends), tools (the ladder returned to
   the shed, or lost to the world).
@@ -341,10 +257,6 @@ ESSENCE: a leak is memory taken and never returned. Nothing
   like the cause.
 ROOT: this file / every allocation has an end, and a leak is an
   end that never comes.
-CANNOT: no finding a leak in a short run — a leak is not an
-  event, it is a slope, and a slope needs time to be visible. No
-  leak at all in a program that ends soon; long life is what
-  invents the fault.
 THREAD: the body (slow swelling, not a wound), houses (clutter
   kept from every year), money (a small subscription nobody ever
   cancelled).
@@ -356,10 +268,6 @@ ESSENCE: a bug is a wrong line inside a right shape; a design
   you patch it, and each patch is correct.
 ROOT: software development / a bug is the gap between intent and
   instruction — but a shape can be intended wrongly too.
-CANNOT: no fixing a design fault at the site of a symptom; press
-  it down here and it rises there. No meaningful count of
-  remaining bugs while the shape is wrong, because the supply is
-  being manufactured.
 THREAD: medicine (a symptom versus a disease), building (a
   cracked tile versus a settling foundation), law (a typo in a
   statute versus a statute that should not exist).
@@ -371,10 +279,6 @@ ESSENCE: a fault you cannot summon on purpose is a fault you
   for a change.
 ROOT: evidence / a claim becomes testable only when it can be
   made to happen again on demand.
-CANNOT: no verified fix without a reliable reproduction — the
-  best you can honestly say is "it has not happened lately". No
-  reproduction without the same inputs and the same history,
-  including the parts nobody thought to write down.
 THREAD: mechanics (the noise the car will not make at the
   garage), medicine (a rash you can bring on is a rash you can
   treat), science (a result nobody can repeat is not yet a
@@ -387,10 +291,6 @@ ESSENCE: strip away everything that still leaves the fault
   cut that finally makes it stop.
 ROOT: this file / reproduction makes it an experiment; software
   development / halve the suspect ground and ask which half.
-CANNOT: no understanding a fault buried in a thousand
-  irrelevant lines; the noise is doing the hiding. No minimal
-  case without a check at every cut that still says "failed" —
-  otherwise you are not shrinking it, you are losing it.
 THREAD: cooking (drop ingredients until the taste goes),
   medicine (an elimination diet), electricity (unplug everything,
   then add back one at a time).
@@ -402,10 +302,6 @@ ESSENCE: every fault fixed should leave behind the test that
   wound cannot be opened twice.
 ROOT: writing / memory outside the head survives the head, and
   survives the person leaving.
-CANNOT: no lasting memory of past pain in people's heads alone —
-  people leave, and the same mistake is fresh to whoever arrives.
-  No confident change of old code without the scars in place;
-  without them, courage is just luck.
 THREAD: the body (immunity remembers the infection), sailing
   (charts marked where ships were lost), law (rules written the
   morning after each disaster).
@@ -417,10 +313,6 @@ ESSENCE: refactoring is changing the shape without changing what
   stays a program anyone can still work in.
 ROOT: this file / a promise is the outside; the shape inside is
   the secret, and secrets may be rebuilt.
-CANNOT: no refactoring without a way to prove behaviour
-  unchanged; without that it is rewriting and hoping. No doing it
-  in the same breath as adding a feature — then a difference in
-  behaviour cannot say which act caused it.
 THREAD: houses (moving interior walls, same address), writing (a
   redraft that says the same thing better), music (rearranged,
   same tune).
@@ -433,10 +325,6 @@ ESSENCE: a shortcut taken today is time borrowed from tomorrow,
   effort goes on servicing it.
 ROOT: money / interest compounds, and compounding is quiet at
   first.
-CANNOT: no debt-free system built at speed — the choice is only
-  which debt, taken knowingly, repaid when. No repaying a debt
-  nobody wrote down; an unrecorded shortcut is never found again,
-  it is only suffered.
 THREAD: money (the loan itself), houses (the roof repair deferred
   another year, then another), the body (sleep borrowed back with
   interest).
@@ -448,10 +336,6 @@ ESSENCE: complexity bought for speed is paid at once and forever,
   place the measurement condemned.
 ROOT: this file / almost all the time hides in a tiny part, and
   nobody guesses which part.
-CANNOT: no undoing complexity once other things lean on it — the
-  clever version becomes load-bearing long before it is proved
-  necessary. No speed worth having in code that is not yet
-  correct; fast and wrong is only wrong sooner.
 THREAD: building (fitting a house to a road that was never laid),
   farming (irrigating a field before knowing the crop), packing
   (gear carried for a trip that went another way).
@@ -462,10 +346,6 @@ ESSENCE: writing code takes less of you than working out why it
   have, by your own arithmetic, nothing left over for the day it
   goes wrong.
 ROOT: the mind / untangling costs more than tangling.
-CANNOT: no debugging a piece harder than the head that wrote it —
-  the author is the strongest reader it will ever have, and the
-  author is already spent. No long life for what one person
-  understood on one good day.
 THREAD: climbing (never go up what you cannot come down), knots
   (the one nobody can untie is not a good knot), writing (a
   sentence too dense to edit).
@@ -477,10 +357,6 @@ ESSENCE: the code already says what it does. A comment earns its
   second copy that quietly rots out of step.
 ROOT: this file / duplicated knowledge drifts apart, and nothing
   warns you.
-CANNOT: no comment restating the code that stays true — the code
-  moves, the sentence does not, and the reader believes the
-  sentence. No recovering a reason that was never written; it
-  lived in one head, and heads leave.
 THREAD: maps (a note that the ford floods in spring), medicine
   (notes recording why this treatment, not that one), law (the
   record behind the words).
@@ -492,9 +368,6 @@ ESSENCE: two things that look alike today may be alike by
   copies cost less than one dishonest sharing.
 ROOT: this file / cohesion is about what truly belongs together,
   which is not the same as what currently resembles.
-CANNOT: no cheap un-joining of a bad shared piece — by then both
-  callers depend on its compromises. No knowing whether two
-  things are one thing until both have changed a few times.
 THREAD: tailoring (one pattern forced onto two bodies), law (one
   statute stretched over unlike cases), cooking (one sauce base
   that keeps needing exceptions).
@@ -506,10 +379,6 @@ ESSENCE: the dangerous duplication is not repeated text but
   system believes two things at once.
 ROOT: this file / a fact with two homes has no home; law / one
   register of record.
-CANNOT: no keeping two copies of a rule in step by good intention
-  alone. No finding the second copy when it matters; nothing
-  points from one to the other, which is exactly why it was
-  missed the first time.
 THREAD: records (one address book, not five), building (one
   measurement everyone works from), music (parts copied from one
   score, never edited apart).
@@ -521,10 +390,6 @@ ESSENCE: building for a future you imagine costs today's time,
   always general in the wrong direction.
 ROOT: software development / every added piece must pay rent, and
   an unused piece pays none.
-CANNOT: no knowing the shape of a second case before it exists —
-  one example cannot define a family. No free option either: the
-  flexibility is carried, tested and explained forever, used or
-  not.
 THREAD: building (rooms for children never had), packing (the
   just-in-case kit that becomes the heaviest bag), farming (a
   barn sized for a herd that never came).
@@ -536,10 +401,6 @@ ESSENCE: code nobody runs is still read, still searched, still
   it if it is ever wanted again.
 ROOT: software development / every change is kept with its
   history, so deleting loses nothing.
-CANNOT: no harmless unused code in a system people must read; a
-  reader cannot tell it is dead without doing the work of proving
-  it. No trusting kept-just-in-case code when the day comes — it
-  has not been run or tested in years.
 THREAD: gardens (dead wood cut out so the tree can be read),
   maps (a road drawn that no longer exists), houses (the box kept
   unopened for a decade).
@@ -551,10 +412,6 @@ ESSENCE: one ordinary style used everywhere is read faster than a
   the boring thing the house already does.
 ROOT: teaching / a familiar form frees the mind to take in the
   content.
-CANNOT: no fluent reading of a place with a new convention in
-  every corner. No local improvement worth the break in pattern
-  unless it is carried everywhere; half-applied, it is simply one
-  more dialect.
 THREAD: roads (a sign means the same in every town), music
   (notation is not reinvented per piece), kitchens (every branch
   keeps the knives in the same drawer).
@@ -566,9 +423,6 @@ ESSENCE: the strongest check is a shape that cannot say the wrong
   forgotten, and no future writer can drift from it.
 ROOT: this file / validation at the boundary, carried further:
   build the door so the bad thing does not fit through it.
-CANNOT: no forgetting a rule the shape itself enforces. No safety
-  in relying on every writer, present and future, to remember a
-  rule the shape still lets them break.
 THREAD: engineering (a plug that fits only one way), machines (an
   interlock that will not let the guard open while the blade
   turns), law (a form that cannot be signed incomplete).
@@ -580,10 +434,6 @@ ESSENCE: "there is nothing here" is a real answer that needs a
   somewhere far from the assumption.
 ROOT: logic / absence is a case in the world, not a malfunction
   in it.
-CANNOT: no answer about a thing that is not there. No silent
-  stand-in for missing, either — a zero or a blank put where
-  "unknown" belongs turns an open question into a confident wrong
-  fact.
 THREAD: records (a blank field means unasked, not zero), medicine
   (no result is not a normal result), shops (out of stock is an
   answer, not a price of nothing).
@@ -595,10 +445,6 @@ ESSENCE: everything opened must be closed — files, connections,
   rehearses.
 ROOT: this file / every resource has an owner and an end; and
   every failure is a fork in the story that someone must write.
-CANNOT: no release that runs only when all goes well; failure is
-  when release matters most. No long life for a program with a
-  slow drip of unclosed things — the limit is simply further away
-  than the fault.
 THREAD: sailing (gear secured before the weather, not after),
   kitchens (the gas turned off even when the dish is ruined),
   libraries (the book returned even unread).
@@ -610,9 +456,6 @@ ESSENCE: anything that can grow without a limit eventually
   that looks perfectly well.
 ROOT: physics / no store is infinite, so unbounded growth always
   meets a wall it did not plan for.
-CANNOT: no unbounded thing that is safe — only ones that have not
-  filled yet. No graceful behaviour at a limit nobody named; an
-  unplanned limit arrives as a crash, never as a polite refusal.
 THREAD: farming (a herd never culled outgrows the land), houses
   (a loft that never had a clear-out), roads (a car park with no
   count, full at the worst hour).
@@ -624,9 +467,6 @@ ESSENCE: the clock, the random source, the network and the
   differently on every run, and no test can pin it down.
 ROOT: this file / what is handed in can be chosen; what a part
   fetches for itself cannot.
-CANNOT: no repeatable run with an unnamed input. No testing what
-  happens at midnight on the last day of February inside code
-  that asks the world what time it is.
 THREAD: science (an experiment must state every condition),
   cooking (a recipe that depends on the weather has to say so),
   sport (a fair race measures the wind).
@@ -638,10 +478,6 @@ ESSENCE: faults gather at the edges — zero, one, empty, full,
   the author pictured. The ends are where the thinking ran out.
 ROOT: mathematics / a rule stated for the general case says least
   about its own extremes.
-CANNOT: no confidence from testing the middle alone. No fence
-  built right without counting posts and gaps separately; they
-  are never the same number, and that gap is a whole family of
-  faults.
 THREAD: building (corners and joints fail, not walls), sewing
   (hems and seams give first), medicine (the very young and the
   very old break the dosing rule).
@@ -653,9 +489,6 @@ ESSENCE: a loop is a promise that holds at every turn plus
   to answer outright. Break either half and it never stops.
 ROOT: mathematics / induction — a truth kept at each step, and a
   ground floor to stand on.
-CANNOT: no loop that ends without something changing toward its
-  ending. No recursion without a case answered outright; with no
-  floor it falls until the machine stops it.
 THREAD: stairs (each step alike, and a landing), directions (walk
   until the church, or walk forever), stories (a tale within a
   tale needs an innermost one).
@@ -667,9 +500,6 @@ ESSENCE: choose how the facts are arranged and most of the code
   guess the program.
 ROOT: computer science / how facts are arranged decides how they
   are found.
-CANNOT: no clean code over a bad arrangement — the mess has to
-  live somewhere, and it lives in every reader. No fixing that by
-  effort in the code; the repair is upstream, in the shape.
 THREAD: kitchens (the layout decides the movements), libraries
   (shelving decides the searching), building (the plan decides
   the plumbing).
@@ -680,9 +510,6 @@ ESSENCE: debugging is not staring, it is asking. Say plainly what
   false if you were wrong, and check that one thing. Believe,
   test, cut, repeat.
 ROOT: evidence / a belief that forbids nothing cannot be checked.
-CANNOT: no learning from changing five things at once — when it
-  works, you know nothing about why. No hypothesis worth the time
-  if every possible outcome would confirm it.
 THREAD: medicine (diagnosis by ruling out), mechanics (swap one
   part, not five), science (the experiment that could have gone
   the other way).
@@ -694,9 +521,6 @@ ESSENCE: if it worked before, something changed between then and
   change far faster than reading the code ever will.
 ROOT: software development / every change kept with its history;
   halving finds anything, given a test that says which half.
-CANNOT: no birthday found without a reliable way to say "broken
-  or not" at each point you try. No such search through work kept
-  as one enormous change; big steps hide their own culprits.
 THREAD: medicine (what changed in the diet), farming (which
   season the field turned), households (the bill that started
   climbing in March).
@@ -708,10 +532,6 @@ ESSENCE: an error message is read by a stranger at their worst
   difference between a minute and a day.
 ROOT: this file / failure is part of the design, and the message
   is the part a person actually meets.
-CANNOT: no diagnosis from a message that only says something went
-  wrong. No use in one that names the failing line but not the
-  value that broke it — the code was already visible; the data
-  was not.
 THREAD: medicine (a useful referral names the findings), law (a
   refusal must state its grounds), teaching (a mark with reasons
   teaches; a score alone does not).
@@ -723,10 +543,6 @@ ESSENCE: when a piece is hard to test, the difficulty is almost
   the first customer, complaining early and cheaply.
 ROOT: this file / a part that is handed its world can be given
   any world, including a small one.
-CANNOT: no easy test for a piece tangled into everything — the
-  test must rebuild the tangle first. No ignoring that signal
-  cheaply: whatever makes a thing hard to test makes it hard to
-  change.
 THREAD: engineering (a part that cannot be bench-tested cannot be
   serviced), craft (a joint you cannot inspect is a joint you
   cannot trust), medicine (a symptom that resists measurement

@@ -7,8 +7,6 @@ ESSENCE: a wave is a traveling shape, not traveling stuff — the hump
   what travels is energy wearing a pattern.
 ROOT: measured premise — ocean swell crosses miles of water that
   stays put; kin of physics / waves add.
-CANNOT: no throwing the rope by wiggling it — the pattern arrives,
-  the material stays home. A wave cannot deliver its medium.
 THREAD: oceans (the swell outruns the water; the cork only bobs),
   sound (air stays, the word crosses the room), crowds (a stadium
   wave circles while every person keeps their seat).
@@ -20,8 +18,6 @@ ESSENCE: a wave keeps its cargo of energy, so sent down a thinning
   m/s); the crack is that small sonic boom.
 ROOT: this file / a wave is a traveling shape — energy kept while
   the carrier shrinks.
-CANNOT: no crack from an even rope — same thickness end to end,
-  same speed, no boom. The concentration IS the taper.
 THREAD: rivers (the same water through a narrows must hurry), money
   (UNSURE — a fixed sum forced through ever fewer hands).
 ASKED-AS: whip crack bullwhip snap tip loud boom lash rope flick why
@@ -32,8 +28,6 @@ ESSENCE: the snapped towel is the whip's law in cloth — the flick's
   enough to bite (whether it too passes sound: UNSURE; the welt is
   not in doubt).
 ROOT: this file / the tapering cord.
-CANNOT: no snap led by the towel's heavy middle — fold it thick at
-  the front and the same arm delivers a flop.
 THREAD: fishing (a fly cast is a whip in slow motion), sports (the
   wrist's late release in a golf swing).
 ASKED-AS: towel snap flick locker room sting welt wet rolled tip crack
@@ -42,9 +36,6 @@ ESSENCE: every swinging thing owns one rhythm, and pushes timed to
   it add up — a playground swing rises high on taps a toddler could
   give, so long as each tap lands on the beat.
 ROOT: physics / waves add — in step they add; off step they cancel.
-CANNOT: no pumping a swing against its beat — the off-time push
-  fights the last one and tears down the height already built.
-  Strength cannot substitute for timing.
 THREAD: music (a string hums when its own note is sung at it),
   driving (rocking a stuck car free, in time with its bounce), radio
   (tuning is choosing whose pushes may add).
@@ -55,9 +46,6 @@ ESSENCE: resonance is why soldiers break step on a bridge —
   pushes on a giant swing, so armies cross in scattered, harmless
   rhythm.
 ROOT: this file / timed pushes add up.
-CANNOT: no such danger from heavier but beatless traffic — a bridge
-  that shrugs off trucks can be worked loose by marchers weighing
-  far less. The threat is the timing, never the weight.
 THREAD: engineering (tower dampers are hired beat-spoilers), history
   (Broughton, 1831 — a marching company, a fallen bridge; London's
   new footbridge, whose sway recruited its own pushers).
@@ -69,10 +57,6 @@ ESSENCE: a spinning thing defends the direction of its axis —
   nose steady the whole flight.
 ROOT: physics / a thing keeps doing what it is doing unless pushed —
   turning is a motion too, and kept.
-CANNOT: no standing for the stopped top — balance was never its
-  talent. And no crediting the bicycle to this alone: the wheels
-  help, but a bike is held up mostly by the rider's tiny steerings
-  and the fork's geometry — shares UNSURE, the helping is not.
 THREAD: shooting (rifled barrels spin bullets for the football's
   reason), the planet (Earth's held axis keeps the seasons'
   calendar).
@@ -84,8 +68,6 @@ ESSENCE: the amount of spin is kept and shape sets its pace — mass
   (severalfold) without one new push.
 ROOT: physics / a thing keeps doing what it is doing unless pushed —
   the turning is conserved; the shape spends it.
-CANNOT: no free speed — pulling arms into a whirl is real work, paid
-  by muscle; arms out again, the spin slows right back.
 THREAD: diving (the tuck is the pulled-in arm), astronomy (a
   collapsing star spins to a blur the same way), weather (air drawn
   into a storm's core tightens its whirl).
@@ -97,9 +79,6 @@ ESSENCE: a pendulum's beat is set by its length and almost nothing
   way, which is why pendulums kept the world's time for centuries.
 ROOT: measured premise — Galileo's; each swing trades height for
   speed in a fixed exchange.
-CANNOT: no fixing a fast clock with a heavier bob — weight buys
-  nothing; only length tunes the beat. Lower to slow, raise to
-  hurry.
 THREAD: music (the metronome — sliding its weight IS changing its
   length), the body (a walking leg swings near its own pendulum
   beat), deep earth (pendulum beats once mapped gravity's local
@@ -112,9 +91,6 @@ ESSENCE: shake a held rope at one of its own fitting rhythms and
   whose loops divide the length exactly will stand.
 ROOT: physics / waves add — a wave plus its own echo, added without
   rest.
-CANNOT: no standing loops at an in-between rhythm — off the rope's
-  menu the adding churns to a jitter; the menu is fixed by length
-  and tightness.
 THREAD: music (a guitar string's note IS its standing loop — fret it
   shorter, pitch climbs), the kitchen (a microwave's hot and cold
   patches are standing loops; the turntable drags food through

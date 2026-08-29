@@ -11,11 +11,6 @@ ESSENCE: ask a member what their religion is and you get a
   is what gets said about it.
 ROOT: people together / what a group shares has to be visible and
   repeatable to be checked, and beliefs are neither.
-CANNOT: no tradition carried on doctrine alone — a creed with no
-  practices attached has nothing to occupy a week, nothing to teach
-  a child by, and nothing for a stranger to see. And no reading a
-  living tradition off its official statements: the statements
-  describe the specialists.
 THREAD: law (what a system does against what its constitution
   says), craft (the trade learned at a bench, not from the manual),
   family (household rules nobody has written down).
@@ -29,11 +24,6 @@ ESSENCE: the order usually runs the other way from what outsiders
 ROOT: the mind / people steer to match their own past actions, and
   an action already performed is a reason already given; this file
   (practice is what is transmitted).
-CANNOT: no converting a population by argument at scale — it has
-  never worked once, anywhere, on its own. And no keeping a belief
-  alive in someone who has stopped doing everything attached to it:
-  the belief thins out within a generation, usually within one
-  life.
 THREAD: teaching (the skill practised before it is understood), the
   mind (habit as a choice made once and then filed), people
   together.
@@ -47,11 +37,6 @@ ESSENCE: moral teaching in every tradition arrives as people rather
 ROOT: story + drama / character is revealed by choice under
   pressure — so an exemplar packs a whole ethic into one memorable
   decision; the mind (shapes are stored, lists are not).
-CANNOT: no rule that states its own exceptions — the cases where it
-  bends have to be shown, and showing them means a story with a
-  person in it. And no moral system transmitted to children as
-  principles: they arrive as heroes, villains and what happened to
-  each.
 THREAD: teaching (the worked example outlasting the formula), law
   (case law doing what statutes cannot), sports (a young player
   copying one player, not a coaching manual).
@@ -65,11 +50,6 @@ ESSENCE: most believers in most centuries could not read, and the
 ROOT: keeping knowledge / before writing, memory wore armour —
   rhyme, image and repetition; people together (transmission has to
   work through the medium the audience actually has).
-CANNOT: no tradition that depends on reading surviving a population
-  that cannot read — it either grows a non-textual body or it
-  contracts to a literate class. And no assuming shared doctrine
-  from shared membership: what members hold is what they were
-  shown, which varies by village.
 THREAD: image + design (a cathedral's windows as the book for
   those who had none), music (doctrine memorised because it
   rhymed), teaching.
@@ -83,10 +63,6 @@ ESSENCE: a myth is not a wrong answer to a question about how the
 ROOT: meaning + ritual / narrative is the packaging meaning
   survives shipping in; this file (what a story is for decides what
   counts as reading it correctly).
-CANNOT: no myth surviving on accuracy — none has ever been kept
-  because it was a good record, and many are kept while everybody
-  knows they are not one. And no myth without a use: one that stops
-  instructing stops being retold, whatever its historical merits.
 THREAD: story (a fable, whose truth is in the lesson), law (a
   founding story doing the work of a constitution), teaching.
 ASKED-AS: did it really happen myth true story literal genesis flood believe historical
@@ -99,11 +75,6 @@ ESSENCE: origin stories answer why rather than how. Why work is
 ROOT: this file / myth is compressed instruction — an origin is the
   most economical place to put an instruction, because it makes the
   rule as old as the world.
-CANNOT: no origin story that leaves the present unexplained — one
-  that ends without bearing on how life is now does not get told
-  twice. And no arguing with a rule that has been placed at the
-  beginning: it has no author to appeal against and no date to be
-  before.
 THREAD: power (a founding story is a legitimacy machine), family
   (how the family came to be here, told to fix what the children
   owe), history.
@@ -117,11 +88,6 @@ ESSENCE: the sacred is handled by rules of contact. It spreads and
 ROOT: meaning + ritual / the fence makes the sacred, and a fence
   needs rules for crossings; the mind (contamination reasoning,
   which runs on contact and is very hard to argue with).
-CANNOT: no sacred without a matching category of the polluted — a
-  thing that cannot be spoiled cannot be protected, and a
-  protection with no threat is not observed. And no rebuilding
-  purity by decree once contact has occurred: it takes a procedure,
-  and the procedure is the point.
 THREAD: medicine (sterile fields, which are this logic with a germ
   theory), cooking (kitchens that keep certain foods apart),
   cleaning.
@@ -135,11 +101,6 @@ ESSENCE: nearly every tradition rules on food, and the rules are
 ROOT: this file / the sacred works through contact rules — food is
   where contact is most frequent and most public; people together
   (a group is defined by what it refuses).
-CANNOT: no food rule that stays private — eating is social, so
-  keeping one announces membership whether or not that was
-  intended. And no cheap food rule: if it cost nothing to keep,
-  it would sort nobody, and traditions that lighten their rules
-  lose the sorting along with the burden.
 THREAD: cooking (cuisines shaped for centuries by a prohibition),
   money (the cost of a separate supply chain), people together.
 ASKED-AS: halal kosher fasting vegetarian pork forbidden eat together diet rules meals
@@ -152,11 +113,6 @@ ESSENCE: dress and marks put membership where it cannot be taken
 ROOT: people together / trust runs on what cannot be faked cheaply;
   this file (a demand works by being visible and continuous rather
   than by being difficult once).
-CANNOT: no signal of belonging that can be removed at will — one
-  that can be dropped when inconvenient is dropped exactly when it
-  would have cost something, which is when it would have counted.
-  And no such mark without a price paid to outsiders: the cost to
-  the wearer is the whole content of the signal.
 THREAD: armies (the uniform, which does the identical job), craft
   (a guild's tools carried in public), money (a costly guarantee).
 ASKED-AS: headscarf turban clothing beard visible wearing identify religion outsiders mark
@@ -169,11 +125,6 @@ ESSENCE: the groups that ask most, last longest. Demands that look
 ROOT: meaning + ritual / a costly signal sorts the sincere from the
   convenient; this file (the sorting is what the group needs, and
   the individual's sincerity is only the mechanism).
-CANNOT: no group holding together while its demands are free — a
-  community offering benefits with no entry price fills with people
-  taking the benefits, and the ones carrying the costs leave. And
-  no useful demand that outsiders find reasonable: a sensible
-  requirement screens nobody.
 THREAD: armies (basic training that is harder than the job
   requires), people together (initiation costs across every kind of
   society), money.
@@ -188,11 +139,6 @@ ROOT: people together / below the size where everyone knows
   everyone, reputation stops policing behaviour — and something has
   to take over; the pattern is well attested and its direction of
   cause is UNSURE.
-CANNOT: no reputation-based order past the scale where reputations
-  circulate — the arithmetic runs out at a few hundred people. And
-  no large-scale trust among strangers without something standing
-  in: a watching god, a state, a court, or a credit record. Every
-  large society has at least one.
 THREAD: money (credit ratings doing this job for commerce), law
   (courts as the secular replacement), people together.
 ASKED-AS: god watching judges everything small tribe spirits big religions strangers honest
@@ -205,11 +151,6 @@ ESSENCE: believing you are watched changes what you do, whether or
 ROOT: this file / large groups need something in place of
   reputation; people together (people answer far more to the chance
   of being caught than to the size of the penalty).
-CANNOT: no enforcement for every rule in any society — there is
-  never enough of it, so most compliance has to be unpoliced, and
-  an internalised watcher is how that is done. And no watcher that
-  works after the belief goes: the effect is in the believing, not
-  in the arrangement.
 THREAD: power (surveillance, which is this made literal and
   expensive), teaching (a conscience installed early and doing the
   same job), law.
@@ -223,11 +164,6 @@ ESSENCE: what religion adds to morality is mostly not the content.
 ROOT: right + wrong / a short list of values recurs everywhere,
   wearing local dress; this file (a code needs carrying, and
   carrying is an institutional job).
-CANNOT: no moral code sustained with no reminder system — a rule
-  reviewed once a year decays, which is why every tradition
-  reviews weekly at least. And no reading a group's morality off
-  its scripture: what is enforced and what is written have been
-  different everywhere, in both directions.
 THREAD: law (a statute is nothing without courts and inspectors),
   teaching (spaced repetition, which is what a weekly service is),
   people together.
@@ -241,10 +177,6 @@ ESSENCE: wherever there is surplus there is a full-time religious
 ROOT: people together / whoever acts on your behalf has a life of
   their own and their own interests; this file (a practice needing
   expertise produces experts, and experts produce an institution).
-CANNOT: no religion of any size without specialists — the calendar,
-  the texts, the buildings and the rites all need somebody whose
-  job it is. And no specialists without interests: expecting the
-  office to have none is expecting people to be unlike people.
 THREAD: medicine (a profession that sets its own standards and
   guards its own entry), law (a guild with a monopoly on
   representation), power.
@@ -259,11 +191,6 @@ ROOT: people together / a group can only take in new members as
   fast as it can teach them, and personal authority does not
   transmit; premise — what cannot be inherited must be replaced by
   something that can.
-CANNOT: no inheriting charisma — successors get the office and not
-  the person, which is why succession is the most dangerous moment
-  in any movement's life. And no institution that keeps the
-  original fire: the conversion that saves the movement is also
-  what the reformers will later complain about.
 THREAD: money (a founder's company after the founder), power (the
   second ruler problem, in every dynasty), craft (a workshop after
   the master).
@@ -278,11 +205,6 @@ ESSENCE: founders overwhelmingly write nothing. The writing comes
 ROOT: keeping knowledge / a record is made when someone fears
   losing something; this file (oral transmission is the default and
   writing is the emergency measure).
-CANNOT: no scripture written before there is something to lose —
-  the impulse to fix a text arrives with the generation that
-  notices it is going. And no text free of the moment of its
-  writing: what got included answers questions the community had
-  then, not the ones the founder was asked.
 THREAD: history (memoirs written when the participants start
   dying), law (a custom codified when it starts being disputed),
   keeping knowledge.
@@ -296,11 +218,6 @@ ESSENCE: somebody decided which books count. Lists were argued over
 ROOT: keeping knowledge / every record chooses, and the choosing
   leaves no mark in the result; this file (an authoritative text
   needs an edge, and edges are drawn by people).
-CANNOT: no canon without a decider — a pile of writings does not
-  sort itself, so behind every scripture there is a body that
-  ruled. And no reading the boundary off the contents: the excluded
-  texts are not visibly different in kind, which is why the
-  arguments were long.
 THREAD: law (which precedents count as binding), keeping knowledge
   (an archive is its acquisition policy), teaching (the syllabus,
   which is a canon with a timetable).
@@ -314,11 +231,6 @@ ESSENCE: the commentary always outgrows the text. A short body of
 ROOT: this file / a fixed text meets changing circumstances, and
   something has to absorb the difference; law (a settled code plus
   case law is the identical arrangement).
-CANNOT: no fixed text governing a changing world without an
-  interpretive layer — either the reading moves or the text is
-  abandoned, and traditions that forbid the first get the second.
-  And no interpretation that is not itself interpreted: the layer
-  grows without limit.
 THREAD: law (a constitution and two centuries of decisions),
   computing (a specification and its accumulated errata),
   language.
@@ -332,10 +244,6 @@ ESSENCE: an unchangeable text plus a movable reading is the only
 ROOT: this file / commentary absorbs change; premise — continuity
   and adaptation are both required, and they must be assigned to
   different layers or they destroy each other.
-CANNOT: no tradition that changes its foundation and stays the same
-  tradition. And none that refuses all reinterpretation and
-  survives a changed world — every long-lived body has both a fixed
-  layer and a moving one, whatever it says about itself.
 THREAD: law (amendment made hard and interpretation left possible),
   building (a foundation and a building that gets altered),
   language (a written standard and a spoken language moving under
@@ -350,11 +258,6 @@ ESSENCE: translation is the recurring crisis. A sacred text carries
 ROOT: language / a translator cannot carry sense, sound, level and
   association at once and must choose; this file (a text treated as
   authoritative makes every such choice into a doctrinal ruling).
-CANNOT: no translation that is not also an interpretation — there
-  is no neutral rendering to fall back on. And no keeping a text
-  from ordinary readers indefinitely once they can read: the
-  demand for a version in the spoken tongue arrives with literacy,
-  every time.
 THREAD: law (a treaty in two languages, both authentic, and the
   disputes that follow), language, power (control of the text as
   control of the reading).
@@ -368,11 +271,6 @@ ESSENCE: reading a text as literal history and reading it as figure
 ROOT: this file / myth is not a failed report; language (a sentence
   carries several jobs at once, and which is meant is set by the
   setting rather than the words).
-CANNOT: no tradition that has only ever read one way — the
-  allegorical and the plain readings are both documented from the
-  earliest layers everywhere anyone has looked. And no settling
-  which is correct from the text: the text does not say how it
-  wants to be read.
 THREAD: language (figurative speech, understood by children and
   denied by combatants), law (letter against spirit — the identical
   fight), story.
@@ -386,10 +284,6 @@ ESSENCE: someone must be able to settle what the text means, and
 ROOT: this file / a fixed text needs a moving reading; people
   together (the deepest rule in any group is the one saying how the
   rules get settled).
-CANNOT: no shared reading without a body that can rule. And no such
-  body without dissent from those who read differently: the
-  authority that ends disagreement also manufactures the category
-  of the person who disagrees.
 THREAD: law (a supreme court, which exists for exactly this
   reason), language (an academy declaring correct usage), power.
 ASKED-AS: who decides meaning authority pope council interpretation disagree official ruling correct
@@ -402,10 +296,6 @@ ESSENCE: growing traditions split, and the splitting is normal
 ROOT: this file / interpretation requires a decider, and a body
   spread across places and centuries acquires more than one; people
   together (a group grows past the size where one settlement holds).
-CANNOT: no large tradition without branches — none has stayed
-  single, anywhere, at any scale. And no reunion by agreement on
-  doctrine: the splits are held in place by institutions,
-  buildings, incomes and memories of the split itself.
 THREAD: language (dialects becoming languages when the contact
   drops), law (jurisdictions diverging from one shared code),
   people together.
@@ -420,11 +310,6 @@ ROOT: people together / a group defines itself by its boundary, and
   the boundary is only under pressure where somebody is standing
   close to it; this file (competing readings are rivals for the same
   members).
-CANNOT: no fierce boundary where there is no overlap — the
-  intensity tracks similarity, which is why the bitterest religious
-  conflicts have been between the most closely related bodies. And
-  no defusing it by pointing out how much is shared: the sharing is
-  the problem.
 THREAD: sports (the local derby against a distant club), power
   (splits inside a political movement, uglier than the fight with
   the other side), family.
@@ -438,11 +323,6 @@ ESSENCE: the reformer's move is always the same: back to the
 ROOT: this file / commentary accumulates without limit, and the
   accumulation eventually looks like corruption to somebody; the
   original practice is not available, only its record.
-CANNOT: no returning to an origin — what is restored is a
-  reconstruction, assembled from evidence, for present reasons. And
-  no reform that stays small: an argument that the accumulated
-  layer is illegitimate cannot be limited to the parts the reformer
-  disliked.
 THREAD: law (originalism, which is this exact move in a court),
   craft (a revival of an old technique, always a modern object),
   history.
@@ -457,10 +337,6 @@ ROOT: people together / the people inside an organisation depend on
   it, so its survival becomes their interest; premise — an attack
   on the arrangement can only come from someone the arrangement is
   not paying.
-CANNOT: no reform generated by the office that would be reformed —
-  it has happened, and vanishingly rarely, and never without
-  outside pressure. And no prophet with a comfortable position:
-  standing costs, and someone with much to lose does not incur it.
 THREAD: money (disruption arriving from outside an industry),
   power (revolutions led from the second rank, not the first),
   medicine (the outsider with the unwelcome finding).
@@ -475,10 +351,6 @@ ROOT: this file / practice travels ahead of doctrine, and the
   practices already in place are the ones people will keep; people
   together (a group takes in newcomers only as fast as it can teach
   them, so meeting them partway is cheaper).
-CANNOT: no tradition transplanting unchanged — one that refuses all
-  local material stays a foreigners' religion. And no admitting it
-  openly: acknowledging the borrowing undercuts the claim to be
-  the original thing, so it is done and denied everywhere at once.
 THREAD: cooking (a cuisine arriving and marrying the local
   ingredients), language (loanwords denied by the same speakers who
   use them), music.
@@ -492,11 +364,6 @@ ESSENCE: two survival strategies, and a tradition mostly runs one.
 ROOT: this file / a tradition must be transmitted, and there are
   only two supplies of new members — births and converts; premise —
   optimising for one costs the other.
-CANNOT: no tradition doing both well — recruiting hard means
-  lowering the entry cost, which weakens the boundary the
-  inherited kind depends on. And no inherited tradition surviving a
-  demographic collapse: with no conversion, the arithmetic is the
-  whole story.
 THREAD: money (a business growing by acquisition or by loyalty),
   language (tongues that spread and tongues that are kept),
   people together.
@@ -510,10 +377,6 @@ ESSENCE: religions are inherited far more than they are chosen.
 ROOT: this file / practice is transmitted, and the household is
   where practice is installed; premise — a mechanism operating on
   everyone born beats one operating on the few who are persuaded.
-CANNOT: no tradition growing on persuasion against a demographic
-  trend. And no honest account of religious change that starts with
-  ideas: the ideas explain which tradition, and the households
-  explain how many.
 THREAD: language (mother tongues, spread the same way), people
   together (norms passed down before they are examined), family.
 ASKED-AS: born into religion parents raised same faith children numbers growing shrinking
@@ -526,11 +389,6 @@ ESSENCE: conversion is a change of belonging that a change of
 ROOT: this file / people take part first and believe afterwards;
   people together (anything new travels over ground both sides
   already share, and a relationship is that ground).
-CANNOT: no conversion at scale without a social bridge — a message
-  arriving with no relationship attached converts almost nobody,
-  which is why every successful mission is built on households.
-  And no keeping a convert who gains no community: belief without
-  belonging does not last a decade.
 THREAD: persuasion (lasting change is self-persuasion, arriving
   through someone trusted), money (products spread along the same
   lines), people together.
@@ -544,10 +402,6 @@ ESSENCE: pilgrimage does several things at once and none of them
 ROOT: meaning + ritual / a status becomes real when it is witnessed
   — a pilgrimage is a status ceremony with a long approach; this
   file (cost sorts and belonging is built among strangers).
-CANNOT: no pilgrimage without a journey — a destination reached
-  cheaply confers nothing, which is why arriving comfortably is
-  felt as a loss even by those who choose it. And no private one:
-  the return and the recognition are half the machine.
 THREAD: sports (a season that means what it cost), craft (the
   journeyman's years of travel), the human journey.
 ASKED-AS: pilgrimage mecca camino walked journey holy place travel return changed status
@@ -560,11 +414,6 @@ ESSENCE: sacred places outlive the traditions that made them. A
 ROOT: this file / traditions absorb what is locally in place;
   people together (a habit of gathering somewhere is easier to
   redirect than to end).
-CANNOT: no erasing a place's sacredness by changing what is built
-  on it — demolition has been tried extensively and the site
-  outlives the demolition. And no explaining the choice by the
-  doctrine: the same features — water, height, a boundary — get
-  chosen by traditions with nothing else in common.
 THREAD: the deep earth (springs and faults that decide where
   people gather), history (cities that stay where the geography
   put them), building.
@@ -577,11 +426,6 @@ ESSENCE: prayer is not one activity. Asking for something, giving
   all five are the ones that hold people through good years and bad.
 ROOT: this file / practice is what is transmitted, and a practice
   covering only one mood serves people only in that mood.
-CANNOT: no tradition surviving on petition alone — a practice that
-  only asks is falsified weekly by the world and leaves nothing to
-  do when things go well. And no substituting one kind for
-  another: thanks does not discharge what confession does, and
-  neither does what silence does.
 THREAD: the mind (writing down what you are grateful for, which is
   measurably not nothing), medicine (structured attention practices
   and their measured effects), meaning + ritual.
@@ -595,11 +439,6 @@ ESSENCE: asking, out loud and in words, does something to the
 ROOT: the mind / a thought becomes inspectable only when it leaves
   the head; this file (a practice available at the moment of
   helplessness is the one most heavily used).
-CANNOT: no comfort from an outcome nobody can influence without
-  something to do — this is why every high-risk trade has
-  practices at the dangerous moment. And no reading the practice as
-  a factual bet: people who expect nothing still pray at a
-  bedside, which tells you what the act is for.
 THREAD: medicine (families at a bedside, doing anything they can be
   given to do), sports (the routine before the shot), the mind.
 ASKED-AS: prayer works answered why pray anyway helpless waiting hospital hoping doing something
@@ -612,11 +451,6 @@ ESSENCE: confession is machinery for admitting a thing without
 ROOT: right + wrong / shame drives concealment, so a system that
   wants disclosure has to make disclosure survivable; meaning +
   ritual (a settling ritual closes what arithmetic cannot).
-CANNOT: no honest admission where the cost of admitting is
-  unbounded — raise the stakes to a person's whole standing and the
-  truth stops being affordable. And no closure without a stated
-  end: a penance with no completion point does not discharge
-  anything and is not used twice.
 THREAD: law (a plea system trading admission for a known
   sentence), medicine (a reporting system that names the error and
   keeps the person), teaching.
@@ -631,11 +465,6 @@ ROOT: chance + risk / the extraordinary tends back towards the
   ordinary, and people seek help at extremes; this file (a
   pilgrimage supplies cost, attention and expectation, all of which
   have measured effects).
-CANNOT: no reading a cure from a recovery that followed it — the
-  comparison needed is what would have happened otherwise, and
-  nobody at a shrine is running one. And no dismissing what
-  happens there either: the improvements are frequently real, and
-  what caused them is the open question.
 THREAD: medicine (the placebo's honest reach), chance + risk
   (regression to the middle), evidence + measurement.
 ASKED-AS: healing miracle cured shrine got better prayers worked recovery doctors amazed
@@ -648,11 +477,6 @@ ESSENCE: a demanded cost gets replaced by a token, and the token
 ROOT: meaning + ritual / cost is what makes an offering mean
   anything; this file (the required size of the cost is set by the
   community, and communities lower it as they can afford to).
-CANNOT: no substitution down to nothing — a token with no cost
-  stops signalling and the practice dies, which is the fate of
-  every offering that becomes free. And no going back up easily: a
-  community that has lowered the price cannot restore it by
-  instruction.
 THREAD: money (a symbolic payment that closes a legal obligation),
   law (damages standing in for a wrong that cannot be undone),
   meaning + ritual.
@@ -667,11 +491,6 @@ ROOT: this file / practice is what carries a tradition, and
   practices have to occupy time to do it; law (a legal system is a
   group's settled fights, and religious law settles fights the
   state has no interest in).
-CANNOT: no total system enforced by a state — states have neither
-  the reach nor the appetite, so a total code must be carried
-  voluntarily. And no voluntary code without a community that
-  notices: total law and tight community come together or not at
-  all.
 THREAD: law (jurisdictions that stop at the front door), medicine
   (guidance about daily life, which is the same ambition without
   the sanction), power.
@@ -685,11 +504,6 @@ ESSENCE: religious law mostly has no police, and is obeyed anyway —
 ROOT: people together / the strongest punishment most groups own is
   simply being excluded; this file (a total code carried without
   coercion needs a sanction that reaches everywhere the code does).
-CANNOT: no unpoliced code obeyed by people with nothing at stake in
-  the group — the observance tracks the belonging, everywhere it
-  has been examined. And no reviving observance by adding penalties
-  from outside: a state-enforced religious rule changes what the
-  keeping means.
 THREAD: craft (a professional standard with no legal force and near
   total compliance), sports (rules kept in a game with no
   referee), people together.
@@ -703,10 +517,6 @@ ESSENCE: a person under two laws faces a real conflict, not a
 ROOT: law / a legal system is a settled set of fights, and here two
   settled systems both claim the same person; this file (religious
   law is total, so overlap is guaranteed).
-CANNOT: no jurisdiction that avoids the collision, short of one
-  side giving up its claim. And no general rule for resolving it:
-  every arrangement in use is a negotiated patchwork of
-  exemptions, carve-outs and quiet non-enforcement.
 THREAD: law (conscientious exemption, argued in every country),
   medicine (a practitioner's refusal and a patient's entitlement),
   power.
@@ -721,10 +531,6 @@ ROOT: meaning + ritual / the sacred is made by a fence, and an
   insult is a test of whether the fence still holds; people
   together (an unpunished insult is information about a group's
   strength).
-CANNOT: no insult to a thing that cannot be diminished — so the
-  offence has to be located in the community, which is where it is
-  actually felt. And no such rule staying narrow: once offence is
-  the standard, whoever is most easily offended sets the limit.
 THREAD: law (defamation, protecting standing rather than truth),
   power (rules against insulting a state, which work identically),
   people together.
@@ -738,11 +544,6 @@ ESSENCE: faith and evidence are playing different games, and most
 ROOT: language / some sentences do rather than report; this file
   (what looks like a claim about the world is often a declaration
   of loyalty, and the grammar does not distinguish them).
-CANNOT: no refuting a commitment with data — the data lands
-  somewhere else. And no claiming immunity for everything on those
-  grounds either: a tradition that makes a factual claim — about a
-  date, a healing, a place — has entered the other game and cannot
-  leave when the result comes in.
 THREAD: right + wrong (a promise, which is not a prediction),
   people together (loyalty as a stance rather than an estimate),
   evidence + measurement.
@@ -756,10 +557,6 @@ ESSENCE: some statements are flags rather than claims. Said aloud,
 ROOT: people together / membership must be signalled with something
   that outsiders will not say; this file (a costly demand sorts,
   and a costly statement is a demand made of the tongue).
-CANNOT: no flag that is cheap to fly — a statement everyone agrees
-  with identifies nobody. And no arguing against one on its
-  content: the reply is not to the evidence but to the demand that
-  the person step out of their group.
 THREAD: sports (a fan's loyalty declared in the face of the
   record), power (a slogan whose implausibility is what makes it
   load-bearing), persuasion.
@@ -774,11 +571,6 @@ ROOT: the mind / people steer to match their past actions, and the
   larger the action the stronger the steering; this file (public,
   costly commitment makes retreat more expensive than
   reinterpretation).
-CANNOT: no disproof reaching a belief that people have paid for
-  publicly — the cost of dropping it now includes everything
-  already spent. And no predicting who will leave from the
-  evidence: the ones who leave are usually those who committed
-  least.
 THREAD: money (holding a losing position because of what it cost),
   people together (a group closing around a challenged member),
   the mind.
@@ -793,11 +585,6 @@ ESSENCE: reports from people who have had the deepest religious
 ROOT: the mind / the machinery producing the ordinary sense of
   being a separate self can be interrupted, and what is left is
   described similarly because the same thing is missing.
-CANNOT: no explaining the cross-cultural agreement by borrowing —
-  the reports match between traditions with no contact. And no
-  reading the agreement as settling what was experienced: a shared
-  description is evidence about a shared mechanism, and what it is
-  a mechanism for stays open.
 THREAD: the mind (dissolution of the self, produced by several
   routes), medicine (measured effects of long practice), the human
   journey.
@@ -811,10 +598,6 @@ ESSENCE: saying it cannot be put into words is itself a claim, and
 ROOT: language / what is stored as experience does not convert to
   sentences; this file (a report that cannot be examined cannot be
   argued with, and both the honesty and the immunity are real).
-CANNOT: no examining a report that has been declared unsayable —
-  and no dismissing it either, since inability to describe an
-  experience is ordinary and true of taste, pain and music. What is
-  blocked is the argument, not the experience.
 THREAD: craft (the skill that cannot be written down), music (what
   a piece does, which no description delivers), the mind.
 ASKED-AS: cant describe words fail indescribable experience explain ineffable understand been there
@@ -828,11 +611,6 @@ ROOT: this file / a benevolent, capable designer and a world with
   this much suffering in it are hard to hold together; premise —
   the difficulty is internal to the account rather than imported by
   critics.
-CANNOT: no account of a good and capable designer that leaves
-  suffering unaddressed — the problem arrives with the claim and
-  cannot be declined. And no answer that has closed the question:
-  the traditions themselves keep returning to it, in their own
-  scriptures, in their own voices.
 THREAD: medicine (why the innocent case is the one that breaks
   people), law (the punishment nobody can justify), right + wrong.
 ASKED-AS: why suffering children cancer earthquake good god allows evil unfair innocent
@@ -846,11 +624,6 @@ ESSENCE: the standard answers each buy relief at a price. Freedom
 ROOT: this file / the problem cannot be declined, so answers are
   produced; premise — each answer preserves one part of the account
   by weakening another, which is what makes them all unstable.
-CANNOT: no answer that keeps the designer good, capable and
-  informed while leaving the suffering unexplained — something has
-  to give, and each answer chooses what. And no dismissing the
-  answers as evasions: each is a serious position and each is paid
-  for.
 THREAD: law (a defence that succeeds by conceding one element),
   right + wrong (tragic choice, where no option is clean), power.
 ASKED-AS: free will explains suffering greater good test mysterious ways answer excuse plan
@@ -863,11 +636,6 @@ ESSENCE: what a tradition actually does at a bedside is not an
 ROOT: meaning + ritual / structure holds when feeling cannot; this
   file (the practice is what is transmitted, and it is the practice
   that is used at the hardest moments).
-CANNOT: no argument that helps at a deathbed. And no substitute
-  assembled on the spot: the value of the script is that it exists
-  in advance and nobody has to invent it while destroyed, which is
-  why the traditions that keep such scripts are used by people who
-  hold none of the doctrine.
 THREAD: medicine (what a good nurse does with no treatment left),
   family (grief and its schedule), meaning + ritual.
 ASKED-AS: what to say dying comfort funeral chaplain hospital words help present grief
@@ -880,11 +648,6 @@ ESSENCE: afterlives differ enormously and each shapes the living
 ROOT: this file / an unseen witness governs behaviour, and what the
   witness is expected to do with the record is what the belief
   actually delivers.
-CANNOT: no afterlife belief that leaves conduct untouched — the
-  shape of the expected settlement is exactly what makes the belief
-  load-bearing. And no reading a tradition's ethics off its
-  afterlife alone: the same picture supports wildly different
-  behaviour depending on who is thought to be judged and for what.
 THREAD: money (a debt due at a known date changes spending today),
   law (a sentence, and what the anticipation of it does), right +
   wrong.
@@ -899,10 +662,6 @@ ROOT: right + wrong / a wrong requires an accounting, and the
   accounting is not always available; this file (a belief that
   supplies one meets a need that does not go away when the belief
   does).
-CANNOT: no society without unsettled accounts — courts, memory and
-  compensation all run out, and the residue is large in every
-  generation. And no removing the demand by removing the belief:
-  what disappears is the answer, not the question.
 THREAD: law (limitation periods, after which no remedy exists),
   history (crimes past any possible redress), story (fiction
   supplying the justice the world did not).
@@ -916,10 +675,6 @@ ESSENCE: where religious practice declines, the functions do not.
 ROOT: this file / a tradition is a bundle of practices doing
   identifiable jobs; premise — the jobs were not invented by the
   tradition and do not leave with it.
-CANNOT: no society without an answer to those jobs — none has been
-  found. And no substitute that carries all of them: the
-  replacements tend to be single-purpose, so people assemble
-  several, and the assembly is less durable than what it replaced.
 THREAD: sports (a season, a tribe, a weekly gathering), power (a
   movement supplying belonging and a moral frame), meaning +
   ritual.
@@ -934,11 +689,6 @@ ROOT: this file / the functions outlive the belief; meaning +
   ritual (synchrony, a fixed wheel of dates and a script for
   grief are the mechanisms, and they are separable from the
   content).
-CANNOT: no assembling those alone — every one of them requires
-  other people on a schedule, which is why the private version does
-  not work. And no obtaining them on demand: they are built by
-  showing up for years, and are not available at the moment of need
-  to someone who has not.
 THREAD: family (a household that stops eating together), the mind
   (long loneliness and its measured cost), people together.
 ASKED-AS: miss church community singing together neighbors funeral know what to do lonely
@@ -951,10 +701,6 @@ ESSENCE: arguing someone out of a belief that carries their
 ROOT: people together / belonging is load-bearing and a belief
   holding it up is not being held for its evidence; the mind (the
   feeling arrives first and decides which reasons get a hearing).
-CANNOT: no argument that beats a belonging — you are offering a
-  correction and asking for an exile. And no honest surprise when
-  it fails: the same is true of the arguer's own identity beliefs,
-  which is why the exchange feels symmetrical from both sides.
 THREAD: persuasion (lasting change is self-persuasion and needs a
   route that costs nothing to standing), power (positions held
   because of who holds them), family.
@@ -968,10 +714,6 @@ ESSENCE: when people do leave a tradition, the belonging usually
 ROOT: this file / belief follows practice and belonging, so it
   follows them out as well; the mind (the account a person gives of
   their own change is written after the change).
-CANNOT: no leaving that is caused by an argument, in the ordinary
-  case — the arguments are found afterwards, when they are needed.
-  And no keeping someone whose community has gone: the practice
-  ends when the people do, and the belief does not survive alone.
 THREAD: people together (leaving a group as the strongest
   sanction and the commonest exit), family (a household changing
   when one person moves), the mind.
@@ -985,10 +727,6 @@ ESSENCE: the commonest outsider's error is to read a practice as a
 ROOT: this file / practice comes before doctrine, so what is being
   done is usually not what is being asserted; language (a sentence
   can do rather than report, and the grammar does not mark which).
-CANNOT: no useful correction of a claim nobody made. And no
-  learning what a practice is for by asking what it asserts — the
-  question to ask is what changes for the person and the group when
-  they do it, which is answerable and rarely asked.
 THREAD: persuasion (arguing against a position the other side does
   not hold), teaching (correcting an error the learner has not
   made), people together.
@@ -1003,11 +741,6 @@ ESSENCE: the same slots turn up filled differently everywhere. An
 ROOT: people together / the same problems arrive in every society —
   cooperation, memory, mortality, boundary, succession — so the
   solutions rhyme; right + wrong (a shared roster in local dress).
-CANNOT: no tradition of any size missing most of these slots — one
-  that leaves several empty is either very young or being held up
-  by something else that fills them. And no reading the answers off
-  the slots: knowing which questions get asked everywhere tells you
-  nothing about which answers are right.
 THREAD: language (a universal capacity with local vocabularies),
   music (present in every culture, shared by none), law.
 ASKED-AS: all religions same different similar patterns across cultures common features compare

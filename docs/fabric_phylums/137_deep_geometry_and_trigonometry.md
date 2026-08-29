@@ -9,9 +9,6 @@ ESSENCE: a geometric proof grants nothing to the picture. The drawing is a
   proof holds for every triangle and not merely for the one on the page.
 ROOT: mathematics / proof is chained certainty — the diagram is evidence
   of nothing, since it can only ever be one case drawn imperfectly.
-CANNOT: no measuring a diagram as a step in a proof, and no reading an
-  unstated fact off it — that two lines appear to meet, or that a point
-  looks to be inside, is exactly how the famous fake proofs work.
 THREAD: law (a finding must rest on evidence in the record, not on how the
   parties look), computing (a test passing on one input is not a proof),
   science (an illustration against a measurement).
@@ -23,9 +20,6 @@ ESSENCE: one of the old assumptions — that through a point beside a line
   one of them describes the universe we live in.
 ROOT: mathematics / a system stands on chosen premises — and premises that
   feel obvious are still premises.
-CANNOT: no proving that assumption from the others; two thousand years of
-  attempts failed and it was finally shown impossible. And no telling
-  which geometry a surface obeys without measuring it.
 THREAD: physics (mass bends space, so the triangles of the universe do not
   close at half a turn), navigation (a globe's triangles fatten), the
   fabric (a rule dropped on purpose to see what survives).
@@ -37,9 +31,6 @@ ESSENCE: a locus is a shape defined by a rule instead of drawn by a hand —
   about distance in disguise.
 ROOT: premise — a shape is exactly the set of places satisfying a
   condition, so conditions and shapes are the same subject.
-CANNOT: no point in the locus failing the rule, and no point satisfying
-  the rule left out — which makes the rule a complete test, so questions
-  about the shape become questions about the condition.
 THREAD: law (a jurisdiction as everywhere within a boundary), farming (a
   field reachable within a set walk of the well), computing (a query
   defining a set rather than listing it).
@@ -51,9 +42,6 @@ ESSENCE: everywhere equally far from two points is one straight line, at
   the three bisectors meet.
 ROOT: this file / a locus is a rule about distance — and equal distance
   from two fixed points is the simplest such rule there is.
-CANNOT: no circle through three points in a straight row — the bisectors
-  are parallel and never meet, so the centre does not exist. Dead, not
-  hard to find.
 THREAD: navigation (a position fixed equidistant from two beacons), law (a
   boundary drawn midway between two claims), farming (splitting land
   fairly between two wells).
@@ -65,9 +53,6 @@ ESSENCE: everywhere equally far from two LINES is the bisector of their
   places a circle that touches all three sides.
 ROOT: this file / a locus is a rule about distance — with the distance
   measured to a line rather than to a point.
-CANNOT: no shortest path from a point to a line except the perpendicular
-  one; every other route is the hypotenuse of a right triangle and
-  therefore longer. That is what makes the definition well behaved.
 THREAD: engineering (clearance measured square to a face), sport (the
   shortest run to a touchline), navigation (distance off a coast).
 ASKED-AS: angle bisector equal distance from two lines perpendicular inscribed circle touches sides
@@ -78,9 +63,6 @@ ESSENCE: congruent means identical in every measure; similar means
   of angles however complete will ever supply it.
 ROOT: geometry / shape is what survives resizing — so angle information is
   size-blind by its nature.
-CANNOT: no congruence proved from angles alone, ever. And no similarity
-  needing more than two angles — the third is forced, so a third
-  measurement adds nothing.
 THREAD: maps (a plan is congruent to nothing and similar to the land),
   manufacturing (parts that must interchange, not merely match in shape),
   photography (an enlargement).
@@ -92,9 +74,6 @@ ESSENCE: three sides fix a triangle; two sides with the angle BETWEEN them
   the source of a whole class of wrong answers.
 ROOT: this file / congruence needs enough information to force one shape —
   and some collections of three facts simply do not force it.
-CANNOT: no fixing a triangle from two sides and a non-included angle in
-  general — the swinging side can meet the base in two places. And no
-  telling from the numbers alone which case you are in without checking.
 THREAD: navigation (a bearing and a distance leaving two possible
   positions), medicine (a symptom pattern consistent with two diagnoses),
   law (facts consistent with two accounts).
@@ -106,10 +85,6 @@ ESSENCE: any two sides of a triangle together beat the third. That is not
   all, however carefully you try.
 ROOT: geometry / the straight line is the shortest path — the triangle
   inequality is that fact wearing three lengths.
-CANNOT: no triangle with sides two, three and nine — dead, not fiddly; the
-  short sides cannot reach across. And no distance measure worth the name
-  that breaks it, which is why it is an axiom wherever distance is defined
-  afresh.
 THREAD: navigation (a detour is never shorter), computing (any distance
   used for searching must obey it or the search is unsound), money (three
   exchange rates that break it are an arbitrage).
@@ -120,8 +95,6 @@ ESSENCE: join the midpoints of two sides of any triangle and the segment
   Small, free, and behind an enormous amount of later geometry.
 ROOT: geometry / similar shapes scale every length by one factor — the
   small triangle cut off is a half-size copy of the whole.
-CANNOT: no such segment failing to be parallel — which means it can be
-  used as a proof of parallelism, not merely a consequence of one.
 THREAD: building (a cross brace at mid-height), craft (halving a pattern
   and keeping the lines true), engineering (a scaled sub-assembly inside a
   frame).
@@ -133,9 +106,6 @@ ESSENCE: a line crossing two parallels makes the same angle with both,
   sliding argument, seen from a different chair.
 ROOT: mathematics / symmetry is sameness under change — parallel lines are
   unchanged by sliding, so the angles are too.
-CANNOT: no angle relation surviving if the lines are not parallel; the
-  whole family collapses at once. And no proving lines parallel from a
-  drawing that merely looks it — the equal angle IS the test.
 THREAD: building (a rafter meeting parallel walls at matched angles),
   weaving (a diagonal thread crossing a warp), roads (a slip road meeting
   a carriageway).
@@ -147,9 +117,6 @@ ESSENCE: cut any polygon into triangles from one corner and the angle sum
   triangle's, used repeatedly.
 ROOT: geometry / a flat triangle's corners make half a turn — and every
   polygon is triangles pushed together.
-CANNOT: no polygon disagreeing with that count, convex or not. And no such
-  simple sum on a curved surface, where the triangles themselves disobey
-  and the deficit measures the curvature.
 THREAD: craft (patchwork angles that must close), building (a hip roof's
   meeting angles), computing (graphics that break every surface into
   triangles for exactly this reason).
@@ -161,9 +128,6 @@ ESSENCE: walk right round any polygon and you turn through exactly one
   regular case follows by dividing.
 ROOT: mathematics / an angle counts turning — walking a closed loop and
   ending facing the way you started is one turn, no more and no less.
-CANNOT: no closed walk turning through more or less than a full turn while
-  going round once. And no regular polygon whose exterior angle fails to
-  divide a turn exactly, which is what limits which ones exist.
 THREAD: navigation (a course returning to its start), robotics (a rover
   tracking its own heading), sport (a lap counted by turning).
 ASKED-AS: exterior angles add up to a full turn always polygon walk around regular
@@ -174,9 +138,6 @@ ESSENCE: a triangle has several natural centres and they are usually
   corners; the angle bisectors meet at the centre of the circle inside.
 ROOT: this file / each centre is the meeting of a family of loci, and each
   family answers a different question about distance.
-CANNOT: no single point serving all those jobs except in an equilateral
-  triangle, where they coincide. Asking for "the centre" of a general
-  triangle is asking an incomplete question.
 THREAD: engineering (centre of mass against centre of the smallest
   enclosing circle), town planning (the site nearest all three villages
   against the site equidistant from them), physics (balance point).
@@ -188,9 +149,6 @@ ESSENCE: the balance point of a triangle sits two-thirds of the way down
   involved.
 ROOT: this file / the median splits a triangle into two equal areas, so
   the balance must lie on every median at once.
-CANNOT: no triangle balancing anywhere else. And no balance point outside
-  a triangle at all, though for a general shape — a horseshoe, a boomerang
-  — the balance point can lie in empty air.
 THREAD: engineering (centre of mass deciding whether a thing tips),
   sailing (a hull's balance), art (the visual weight of a composition).
 ASKED-AS: centroid balance point triangle two thirds median cardboard pin centre mass
@@ -201,9 +159,6 @@ ESSENCE: an angle drawn from the rim of a circle onto a fixed arc is the
 ROOT: this file / a circle is the locus of equal distance — so every rim
   point is in the same relationship to the centre, and the isosceles
   triangles do the rest.
-CANNOT: no rim position giving a different angle on the same arc, which
-  makes the property a test: four points lie on one circle exactly when
-  the angles agree.
 THREAD: navigation (a horizontal sextant angle putting a ship on a circle
   through two landmarks), photography (where a fixed field of view can
   stand), sport (the angle on goal from anywhere on an arc).
@@ -215,9 +170,6 @@ ESSENCE: any angle drawn on a diameter is a right angle. Stand anywhere on
   producing right angles anywhere.
 ROOT: this file / the rim angle is half the centre angle — and the centre
   angle on a diameter is a straight half-turn.
-CANNOT: no point on the circle failing it, and no point off the circle
-  succeeding — inside gives a wider angle, outside a narrower one, so the
-  property identifies the circle exactly.
 THREAD: engineering (finding the centre of a disc with a set square),
   building (checking a corner without measuring), computing (a fast test
   for whether a point lies within a sphere).
@@ -230,9 +182,6 @@ ESSENCE: a tangent touches a circle exactly once and stands square to the
 ROOT: this file / a circle is the locus of equal distance — the nearest
   point of a line to the centre is the perpendicular foot, and touching
   means that foot is on the circle.
-CANNOT: no tangent meeting a circle twice — a second meeting makes it a
-  chord. And no tangent at all from a point inside; every line through an
-  inside point cuts across.
 THREAD: engineering (a belt running onto a pulley leaves along the
   tangent), physics (release a whirled stone and it flies off
   tangentially, not outward), roads (a straight joining a curve smoothly).
@@ -243,9 +192,6 @@ ESSENCE: an arc is a fraction of the way round and a sector is that same
   full turn the angle takes — no new formulas, only a share taken twice.
 ROOT: mathematics / a ratio compares without measuring — the angle's share
   of a turn is the share of everything the circle has.
-CANNOT: no arc length or sector area without the radius; the angle alone
-  fixes the share but not the size, which is the whole difference between
-  shape and measurement.
 THREAD: cooking (a slice of a round cake), engineering (a curved road's
   length from its bend), craft (a cone made from a flat sector).
 RULE: to find an arc or sector — divide the angle by a full turn to get
@@ -260,9 +206,6 @@ ESSENCE: a triangle's area is half its base times its height, and ANY side
   side. Three different-looking calculations, one answer, every time.
 ROOT: geometry / a triangle is half of the rectangle that boxes it along
   one side — and the boxing can be done three ways.
-CANNOT: no using a slanted side as the height; the height is the
-  perpendicular drop and nothing else, which is why obtuse triangles need
-  the height taken outside the shape.
 THREAD: farming (land area from a survey), building (roof panel
   quantities), craft (fabric needed for a triangular piece).
 ASKED-AS: area of triangle half base times height which side perpendicular slant obtuse
@@ -273,9 +216,6 @@ ESSENCE: on a grid, the middle of a segment is the average of its ends,
   with no drawing at all.
 ROOT: geometry / a place is a pair of numbers — so operations on places
   become operations on pairs of numbers, done separately.
-CANNOT: no averaging that lands off the segment — a weighted average of
-  two points always lies between them, so this method can never overshoot
-  and a result outside is proof of an error.
 THREAD: computing (blending two colours or two positions is the same
   arithmetic), animation (a frame partway between two poses), maps (a
   point a stated fraction along a road).
@@ -287,9 +227,6 @@ ESSENCE: slope is a rate wearing a picture: how much it climbs for each
   changes at a steady rate.
 ROOT: mathematics / a rate is an amount per unit — with the unit being
   distance across rather than time.
-CANNOT: no slope for a vertical line — the step across is nothing and the
-  division fails, which is why vertical lines break every formula written
-  in terms of slope and need their own separate form.
 THREAD: roads (a gradient sign is a slope in percent), money (a chart's
   steepness as a rate of return), the body (the effort of a hill).
 ASKED-AS: slope gradient rise over run steepness rate vertical line undefined negative
@@ -300,9 +237,6 @@ ESSENCE: a line can be written three ways and each is convenient for a
   copes with vertical lines.
 ROOT: this file / slope is the one number a straight line has — so any
   form is that number plus one anchoring fact.
-CANNOT: no line determined by a slope alone — the slope fixes direction
-  and nothing else, so exactly one further fact, a point or an intercept,
-  is always required and always sufficient.
 THREAD: engineering (a calibration written as an offset and a rate), money
   (a fixed fee plus a rate per unit), navigation (a bearing plus a fix).
 RULE: to write down a line's equation — if you have the slope and where it
@@ -320,9 +254,6 @@ ESSENCE: parallel lines share a slope. Perpendicular lines have slopes
 ROOT: this file / slope is rise over run — and a quarter turn exchanges
   rise and run, which is exactly what taking the reciprocal and flipping
   the sign does.
-CANNOT: no perpendicular pair failing that product, except the vertical
-  and horizontal pair, where one slope does not exist at all and the rule
-  has to be stated separately.
 THREAD: building (squaring a frame by direction rather than by
   measurement), computing (finding the direction square to a surface),
   navigation (a course at right angles to a current).
@@ -334,10 +265,6 @@ ESSENCE: the equation of a circle is the distance rule written out and
   picture you can reason about.
 ROOT: this file / a locus is a rule about distance, plus the grid that
   turns distance into arithmetic.
-CANNOT: no circle equation with different multipliers on the two squared
-  terms — that is an ellipse. And none at all with a negative on the right
-  after completing the square: no points satisfy it, so the shape is
-  empty.
 THREAD: navigation (a radio range fix as a circle), computing (collision
   detection done entirely by comparing squared distances), engineering (a
   tolerance zone drawn round a target).
@@ -348,9 +275,6 @@ ESSENCE: slice a cone at different tilts and you get a circle, an ellipse,
   one surface cut four ways — which is why they keep turning up together.
 ROOT: premise — a family of shapes generated by one continuous change will
   share properties throughout, whether or not anyone noticed.
-CANNOT: no fifth curve from a plane slice of a cone. The list is complete,
-  so any curve in this family is one of them and can be named by its tilt
-  alone.
 THREAD: astronomy (every orbit under gravity is one of these, with the
   speed choosing which), engineering (a cone cut for a duct joint), light
   (the pool cast on a wall by a lampshade).
@@ -362,9 +286,6 @@ ESSENCE: each conic is also a rule about distance. A parabola is
   where they DIFFER by a fixed amount.
 ROOT: this file / a locus is a rule about distance — and the three rules
   differ only in what is done with the second distance.
-CANNOT: no ellipse whose fixed total is less than the gap between the two
-  points — no such shape exists, which is why the string must be longer
-  than the distance between the pins.
 THREAD: gardening (drawing a flowerbed with two pegs and a loop of
   string), astronomy (a planet's two-focus orbit with the sun at one),
   navigation (a position from the difference in two signals' arrival).
@@ -377,9 +298,6 @@ ESSENCE: a parabola sends every incoming parallel ray to one point, and
 ROOT: this file / the parabola is the equal-distance locus — the equal
   distances make every reflected path the same length, so the rays arrive
   in step.
-CANNOT: no sphere doing this job properly — a spherical mirror smears
-  distant light across a small region instead of a point, and correcting
-  that flaw took centuries and a special shape.
 THREAD: astronomy (every reflecting telescope), engineering (satellite
   dishes and microphones), the living world (an ear cupped by a hand,
   crudely doing the same).
@@ -391,9 +309,6 @@ ESSENCE: an ellipse has two focal points, and everything sent from one
   end of the year than the other.
 ROOT: this file / the ellipse is the fixed-total locus — equal total
   distance means equal travel time from focus to focus by any route.
-CANNOT: no ellipse with its two foci in the same place unless it is a
-  circle — the circle is the degenerate member of the family, not a
-  different kind of thing.
 THREAD: astronomy (planetary orbits, with the sun at one focus and nothing
   at all at the other), architecture (whispering galleries), medicine
   (shock waves focused on a stone inside the body).
@@ -405,10 +320,6 @@ ESSENCE: one number runs the whole conic family — how far the shape
   and the four curves are its settings.
 ROOT: this file / the conics are one family cut at different tilts — the
   tilt and the dial are the same information said twice.
-CANNOT: no conic outside the dial's range and no gap in it — the family is
-  continuous, which is why a comet's path can pass from an orbit that
-  returns to one that never does with nothing dramatic happening at the
-  boundary.
 THREAD: astronomy (a comet's fate read off one number), engineering (a
   design parameter sweeping a family of shapes), physics (a system's
   behaviour changing kind as one parameter crosses a value).
@@ -420,10 +331,6 @@ ESSENCE: three coordinates locate a point in a room, and the same
   space is now a plane, fixed by a point and a direction square to it.
 ROOT: geometry / dimension is how many numbers a point demands — and the
   arithmetic was never about there being two.
-CANNOT: no line in space determined by two equations the way it is on a
-  sheet — in three dimensions one equation gives a surface, so a line
-  needs two surfaces crossing, and that is why the descriptions look
-  different.
 THREAD: computing (every three-dimensional graphic runs on this),
   engineering (a part positioned in a machine), navigation (position,
   bearing and altitude).
@@ -435,9 +342,6 @@ ESSENCE: anything that narrows to a point holds exactly a third of the box
   a coincidence.
 ROOT: geometry / scaling a shape by a factor scales its volume three times
   over — so the stack of shrinking slices sums to a third.
-CANNOT: no pointed solid holding more than a third, and none holding less
-  if it tapers evenly to the point. The fraction is fixed by the taper
-  alone, not by the shape of the base.
 THREAD: cooking (an ice cream cone against its cup), building (a spire's
   material against a tower's), farming (a conical grain heap's contents).
 ASKED-AS: cone volume third cylinder pyramid prism why one third same base
@@ -448,9 +352,6 @@ ESSENCE: surface area is the shape flattened out — the net you would cut
   wrap it in, the other is what fits inside.
 ROOT: geometry / dimension — a skin is length twice and a filling is
   length three times, so they scale on different gears.
-CANNOT: no net at all for a sphere; it cannot be flattened without
-  stretching, which is the same impossibility that makes every flat world
-  map a lie. Every wrapped ball has creases for this reason.
 THREAD: packaging (a box's cardboard against its contents), tailoring
   (curved cloth cut in flat panels), maps (the flattening problem, met
   again).
@@ -462,9 +363,6 @@ ESSENCE: a cross section is what a slice reveals, and it is quite unlike a
   rebuilds the solid exactly.
 ROOT: geometry / a shadow discards one direction irrecoverably, whereas a
   slice discards a position that can simply be recorded.
-CANNOT: no rebuilding a solid from shadows alone, however many. But a
-  stack of slices CAN, which is precisely why medicine scans in slices
-  rather than photographing through.
 THREAD: medicine (scanners that slice rather than shadow), geology (a core
   taken through strata), cooking (what a cut reveals about how a loaf
   rose).
@@ -476,9 +374,6 @@ ESSENCE: in a right triangle the three sides give six ratios, and two of
   other trigonometric quantity is built from them.
 ROOT: geometry / similar shapes hold every angle while scaling every
   length — so a ratio of two sides depends on the angle alone.
-CANNOT: no sine or cosine above one, since neither of those sides can
-  exceed the hypotenuse. Which settles equations instantly: a sine set
-  equal to two has no solutions, no working required.
 THREAD: building (a roof pitch given as a ratio), navigation (resolving a
   course into north and east), physics (splitting a force into two
   directions).
@@ -491,10 +386,6 @@ ESSENCE: the reason a table of sines could ever be written is that the
 ROOT: geometry / similar shapes scale every length by one factor — the
   factor cancels when two lengths are divided, leaving the angle alone in
   charge.
-CANNOT: no dependence on size hiding in these ratios. And no such
-  cancellation on a curved surface, where triangles of different sizes
-  genuinely differ in shape and spherical trigonometry becomes a separate
-  subject.
 THREAD: astronomy (measuring distances no one can travel), surveying (a
   baseline and two angles giving an unreachable distance), navigation
   (tables carried aboard for centuries).
@@ -506,9 +397,6 @@ ESSENCE: put the triangle inside a circle of radius one and the two ratios
   turn, and negative angles, mean something.
 ROOT: this file / the ratios depend on the angle alone — so a circle of
   fixed radius can hold every angle's answer as a place.
-CANNOT: no angle beyond a quarter turn inside a right triangle — the
-  triangle definition simply runs out, so the circle definition is not an
-  extension of convenience but the only way onward.
 THREAD: physics (rotation described by a point going round), music (a
   vibration as a circle seen edge on), computing (angles handled
   uniformly, with no special cases at the quadrant boundaries).
@@ -526,9 +414,6 @@ ESSENCE: because that point sits on a circle of radius one, its two
   doing most of its work.
 ROOT: this file / the unit circle definition — the circle's own equation,
   read with the coordinates renamed.
-CANNOT: no pair of values for one angle breaking it, which makes it a
-  check on any claimed values. And no need to remember the related
-  identities separately — dividing through by either square produces them.
 THREAD: physics (energy split between two forms always totalling the
   same), engineering (a signal's two parts summing to constant power),
   music (a wave's phase moving while its strength does not).
@@ -540,9 +425,6 @@ ESSENCE: a radian is the angle that wraps one radius round the rim. It
   every later formula about rotation gets simpler.
 ROOT: mathematics / a chosen bundle is a convention, but one bundle makes
   the arithmetic vanish — and the one that does is the radius itself.
-CANNOT: no radian count that is a whole number of full turns — a turn is
-  two pi radians and pi is not a fraction, so the two systems never line
-  up exactly. The awkwardness is real and is the price.
 THREAD: physics (rotation rates and every oscillation formula), computing
   (every trigonometry library expects radians and the degree mistake is
   the classic bug), engineering (angular speed of a shaft).
@@ -554,10 +436,6 @@ ESSENCE: in any triangle at all, each side divided by the sine of the
   so it needs one such pair to be known.
 ROOT: this file / area from two sides and the included angle, computed
   three ways round the same triangle — the equality falls straight out.
-CANNOT: no use of it without a matched side-and-opposite-angle pair
-  already in hand. And no unique answer when the given data is two sides
-  and a non-included angle — the ambiguous case returns, and the sine rule
-  reports it by offering two angles.
 THREAD: surveying (a distance from a baseline and two angles), navigation
   (running a fix from two bearings), astronomy (parallax measurement).
 ASKED-AS: sine rule law of sines side over sin opposite angle when ambiguous
@@ -568,9 +446,6 @@ ESSENCE: the cosine rule is Pythagoras with a correction term for the
   correction is exactly what measures that.
 ROOT: geometry / the right triangle's law — generalised by dropping the
   requirement that the corner be right, and paying for it with one term.
-CANNOT: no need for a matched side-and-angle pair here, which is why this
-  rule handles the cases the sine rule cannot: three sides given, or two
-  sides with the angle between them.
 THREAD: navigation (distance across a bend in a course), engineering (a
   linkage's reach at a given joint angle), physics (combining two forces
   at an angle, which is the same arithmetic).
@@ -582,9 +457,6 @@ ESSENCE: solving a triangle is choosing between two tools by what you were
   points to the cosine rule.
 ROOT: this file / each rule needs a particular pattern of information, and
   the pattern is visible before any calculating begins.
-CANNOT: no solving a triangle from three angles — that fixes the shape and
-  leaves the size free, so infinitely many triangles answer. At least one
-  length must always be supplied.
 THREAD: surveying (choosing which instrument reading to take next),
   medicine (choosing a test by what is already known), navigation (which
   fix method the available information permits).
@@ -602,9 +474,6 @@ ESSENCE: two sides and the angle between them give the area directly: half
   perpendicular to be drawn or found.
 ROOT: this file / the sine is the opposite over the hypotenuse — so one
   side times the sine of the included angle IS the height on the other.
-CANNOT: no area from three angles, and no area from two sides alone — the
-  angle between them is what fixes how open the shape is, and without it
-  the area ranges from nothing up to the maximum at a right angle.
 THREAD: farming (land area from a survey with no square corners), craft
   (fabric for an angled panel), physics (the twisting effect of a force,
   which is this same product).
@@ -616,9 +485,6 @@ ESSENCE: a periodic function is one that repeats: its value at any moment
   were only the doorway.
 ROOT: this file / the unit circle definition — going round returns you to
   where you were, so anything defined by the journey must repeat.
-CANNOT: no periodic function reaching a new maximum later on — the repeat
-  forbids growth, so anything genuinely growing must be a periodic part
-  multiplied or added to something else.
 THREAD: music (a note is a repeating pressure change), the body (heartbeat
   and sleep cycles), astronomy (tides, seasons and orbits).
 ASKED-AS: periodic function repeats cycle period sine wave same every time forever
@@ -628,10 +494,6 @@ ESSENCE: any simple wave is fixed by three dials. Amplitude is how far it
   cycle it starts. Set those three and the wave is completely described.
 ROOT: this file / a periodic function repeats — so only the size, the
   spacing and the starting offset are left free.
-CANNOT: no fourth dial needed for a pure wave, and none of the three
-  recoverable from the others — a wave heard for less than one full period
-  cannot have its period measured, which is why short samples are
-  ambiguous.
 THREAD: music (loudness, pitch and timing), physics (every oscillator
   described this way), engineering (a signal specified by three numbers
   and nothing more).
@@ -643,9 +505,6 @@ ESSENCE: a trigonometric identity is one quantity written two ways. That
   identities are the permitted rewrites.
 ROOT: algebra / an identity is true for every value — so it may be
   substituted anywhere without any obligation to check.
-CANNOT: no identity changing a value, only its dress. So no identity can
-  make a false statement true, and any working that seems to gain answers
-  by rewriting has left the identities somewhere.
 THREAD: language (paraphrase that makes a sentence parseable), computing
   (rewriting an expression into a form the machine can evaluate quickly),
   engineering (a formula recast for the data you happen to have).
@@ -657,9 +516,6 @@ ESSENCE: add two waves of the same frequency and you always get a single
   why interference works the way it does.
 ROOT: this file / the addition formulas — a sum of a sine and a cosine
   with the same argument collapses into one shifted sine.
-CANNOT: no new frequency from adding same-frequency waves. Which makes the
-  converse informative: a new frequency appearing anywhere means something
-  in the system multiplied rather than added.
 THREAD: music (two instruments in unison sound as one note, louder or
   cancelled), physics (interference patterns from two slits), engineering
   (noise cancellation, which is this arithmetic used on purpose).
@@ -671,10 +527,6 @@ ESSENCE: anything that repeats can be built from sines and cosines, which
   ago and became the arithmetic of recurrence.
 ROOT: this file / sine and cosine are the simplest repeating functions —
   and a repeating shape of any complexity is a sum of them.
-CANNOT: no repeating signal that resists this description, however jagged
-  — a square pulse and a heartbeat both decompose. But no such
-  decomposition for something that never repeats and never settles; the
-  method needs a pattern to find.
 THREAD: music (a timbre is which sines are present and how loud), medicine
   (a heart trace read by its components), computing (sound, image and
   radio all stored as lists of these ingredients).
@@ -686,9 +538,6 @@ ESSENCE: a vector is an arrow: a size together with a direction, and no
   makes them addable.
 ROOT: premise — some quantities need a direction to be stated at all, and
   those cannot be handled by plain numbers.
-CANNOT: no adding a vector to a plain number, ever. And no comparing two
-  vectors as bigger or smaller in general — only their lengths compare,
-  and two arrows of equal length pointing differently are not equal.
 THREAD: physics (force, velocity and momentum are all arrows), navigation
   (a course is a bearing and a distance), sport (a pass has a weight and a
   direction and both must be right).
@@ -700,10 +549,6 @@ ESSENCE: vectors add tip to tail — walk the first, then the second from
   parallelogram seen two ways.
 ROOT: this file / a vector is a displacement without a home — so
   performing two displacements in either order lands in the same place.
-CANNOT: no adding vectors by adding their lengths — two forces of ten
-  pulling at an angle do not make twenty, and only make ten if they pull
-  ninety degrees apart in a very particular way. The directions must be
-  carried through.
 THREAD: navigation (a ship's course plus the current's drift), physics
   (net force as the sum of all the pulls), aviation (heading and wind
   giving track).
@@ -715,10 +560,6 @@ ESSENCE: the dot product asks how much one arrow goes the other's way. It
   directions used up.
 ROOT: this file / a vector carries a direction — and this operation
   measures agreement of direction and throws the direction away.
-CANNOT: no dot product being a vector; the answer has no direction and
-  cannot be added to arrows. And no positive result for arrows pointing
-  more than a quarter turn apart — the sign alone says which side of
-  square they are.
 THREAD: physics (work done is force dotted with movement, so pushing
   sideways does none), computing (how similar two things are, measured
   exactly this way), lighting (how brightly a surface is lit by its angle
@@ -731,10 +572,6 @@ ESSENCE: when the dot product is nothing, the arrows are square to each
   measured and no drawing made.
 ROOT: this file / the dot product measures agreement — and nothing is what
   perfect disagreement of direction looks like.
-CANNOT: no perpendicular pair with a non-zero dot product, and no
-  non-perpendicular pair with a zero one, unless one arrow has no length
-  at all — that degenerate case is perpendicular to everything and to
-  nothing.
 THREAD: computing (testing a surface's facing direction against a light),
   engineering (checking a frame is square by direction), physics (a force
   that does no work because it acts across the motion).
@@ -746,10 +583,6 @@ ESSENCE: the cross product of two arrows in space gives a third arrow,
   turns up wherever twisting is involved.
 ROOT: this file / two arrows span a flat patch — and in three dimensions a
   flat patch can be named by the single direction standing square to it.
-CANNOT: no cross product in the plane; the answer needs a third direction
-  to point in. And no swapping the order without reversing the answer,
-  which makes this the standard example of an operation where order
-  changes the sign.
 THREAD: physics (turning effect and magnetic force are both this),
   computing (the facing direction of a triangle in a graphics scene),
   engineering (a spanner's leverage depending on where and how you pull).
@@ -762,9 +595,6 @@ ESSENCE: a matrix is bookkeeping for a transformation. Its columns are
 ROOT: premise — a change that respects addition and scaling is fixed by
   its effect on a handful of building blocks, and the rest is carried
   along.
-CANNOT: no matrix for a transformation that bends or that moves the origin
-  — those need extra machinery, which is why graphics systems use a larger
-  grid to sneak movement in.
 THREAD: computing (every rotation, scaling and projection on a screen),
   engineering (a system's response written as a table), economics (an
   input-output table doing exactly this job).
@@ -777,9 +607,6 @@ ESSENCE: the determinant tells you what a transformation does to area, and
 ROOT: this file / a matrix records where the basic directions land — and
   the area they span afterwards is the factor everything else is scaled
   by.
-CANNOT: no inverse for a transformation with a determinant of nothing —
-  information has been destroyed and cannot be restored. That is the exact
-  reason such a system of equations has no unique solution.
 THREAD: computing (a singular matrix meaning a solver must refuse),
   engineering (a mechanism that loses a degree of freedom at a particular
   position), physics (a change of variables and how it stretches volumes).
@@ -791,9 +618,6 @@ ESSENCE: doing one transformation then another is recorded by multiplying
   rule exists precisely to record that.
 ROOT: this file / a matrix is a transformation's bookkeeping — so
   combining transformations must combine their books, in order.
-CANNOT: no swapping the order of two matrices in general. And no reading
-  the combined effect by multiplying the entries position by position;
-  that operation exists and means something else entirely.
 THREAD: manufacturing (assembly steps whose order changes the product),
   computing (the classic bug of applying rotation and movement in the
   wrong order), cooking (season then reduce against reduce then season).
@@ -805,9 +629,6 @@ ESSENCE: transformations sort by what they leave alone. Rigid motions keep
   family is defined by what it refuses to disturb.
 ROOT: mathematics / symmetry is sameness under change — a family of
   changes is best described by the quantity that survives it.
-CANNOT: no transformation preserving distance while changing shape, and
-  none preserving angles while changing which lines are parallel. The
-  hierarchy is strict, and each level down loses something permanently.
 THREAD: maps (a projection preserving area or angle but never both),
   photography (perspective changing lengths while keeping straight lines
   straight), computing (choosing a transformation by what must survive).
@@ -819,10 +640,6 @@ ESSENCE: with only a straightedge and compasses, the lengths you can
   why three famous ancient problems were finally proved impossible.
 ROOT: mathematics / the tools define the reachable set — and a wall proved
   by algebra, long after geometry had given up guessing.
-CANNOT: no trisecting a general angle and no doubling a cube with those
-  tools. Not unsolved, impossible; and adding a marked ruler changes the
-  reachable set and makes both easy, which shows the wall was in the
-  tools.
 THREAD: engineering (what a given machine's motions can and cannot
   produce), computing (what a restricted instruction set can compute),
   music (which intervals a fixed fretting can sound).

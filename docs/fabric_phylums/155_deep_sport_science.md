@@ -13,11 +13,6 @@ ESSENCE: how hard you can go and how long you can hold it are one curve, not
 ROOT: living machinery / one supply refills continuously and another is a
   finite store, so effort above the refill rate draws a tank down;
   mathematics / a curve with an asymptote and a fixed area over it.
-CANNOT: no going above the sustainable intensity without a clock starting,
-  so no pacing plan that ignores what has already been spent — the reserve
-  does not refill while you are still above the line. And no single number
-  describing an athlete: a big reserve and a high sustainable line are two
-  athletes who beat each other at two distances.
 THREAD: money (an income and a savings balance being different constraints),
   engineering (a battery buffering a generator), farming (a water table
   drawn down faster than it recharges).
@@ -30,10 +25,6 @@ ESSENCE: the slow supply is not only for long events. A boxer between
 ROOT: living machinery / the fast stores are refilled by the slow system, so
   recovery rate is an aerobic quantity; fitness and movement / the base
   decides how much hard work can be absorbed.
-CANNOT: no repeated sprinting without an aerobic engine, so no sport of
-  short efforts that is trained by short efforts alone. And no reading a
-  sprint sport's demand from its longest single effort: the demand is the
-  sum of the efforts and of the gaps between them.
 THREAD: engineering (a generator sized for the duty cycle rather than the
   peak), money (cash flow mattering more than one large sale), firefighting
   (recovery between exposures deciding the total work).
@@ -46,10 +37,6 @@ ESSENCE: lactate is not what makes muscles hurt and it is not a waste
 ROOT: evidence / a quantity that reliably accompanies a state is easily
   promoted into its cause; living machinery / an intermediate shuttled
   between tissues rather than dumped as rubbish.
-CANNOT: no burn explained by lactate — the acidity has other sources, and
-  producing lactate actually consumes some of it. And no dismissing the
-  measurement: the point where it starts climbing steeply is among the best
-  single predictors of endurance performance there is.
 THREAD: medicine (a marker treated as the disease), weather (a falling
   barometer being a sign and not a cause), management (a metric that tracked
   something real and then got targeted).
@@ -62,10 +49,6 @@ ESSENCE: an endurance effort can be limited by how much oxygen the heart
 ROOT: engineering / a chain is limited by one member, and the identity of
   that member decides the repair; the body / the pump serves every muscle at
   once, so it is shared while the muscles are not.
-CANNOT: no improving a delivery-limited athlete with more local muscle work,
-  and no improving a muscle-limited one with more heart work — so a
-  programme written without knowing which is training half blind. And no
-  permanent answer: the limiter moves as the athlete changes.
 THREAD: computing (a program bound by disk against one bound by processor),
   plumbing (a pressure problem against a tap problem), business (a
   bottleneck that relocates as soon as it is fixed).
@@ -78,11 +61,6 @@ ESSENCE: an endurance result is three things multiplied — the ceiling of
 ROOT: mathematics / a product of three factors can be reached many ways, so
   the product does not identify the parts; fitness and movement / economy
   improving long after the engine has stopped.
-CANNOT: no ranking athletes by the ceiling test alone, which is why
-  laboratory numbers predict badly among trained people. And no improving
-  all three by one method: the ceiling wants hard work, the fraction wants
-  sustained work near the limit, and the cost wants years of the movement
-  itself.
 THREAD: business (revenue as price times volume times retention),
   engineering (efficiency, capacity and duty cycle multiplying), education
   (one result from ability, effort and method in any mixture).
@@ -95,10 +73,6 @@ ESSENCE: strength grows with the cross-section of muscle and weight grows
 ROOT: mathematics / area grows as the square of a length and volume as the
   cube, so their ratio falls as size rises; physics / moving yourself is
   work done against your own weight.
-CANNOT: no sport of moving your own body in which extra mass is free, so no
-  unlimited benefit from size in running, jumping or climbing. And no
-  escaping it by training: the scaling is geometry, so it decides the shape
-  of athlete the sport selects.
 THREAD: animals (why a flea's jump does not scale up to a horse),
   engineering (a bridge that cannot simply be built twice as large),
   business (a small firm's agility against a large one's reach).
@@ -111,10 +85,6 @@ ESSENCE: power is force multiplied by the speed it is produced at, so it can
 ROOT: physics / power is work over time, so it depends on how much force and
   on how quickly; fitness and movement / a body answers exactly the question
   it was asked.
-CANNOT: no power built by training one end only, so no programme of heavy
-  lifting alone that makes a jumper. And no single best load: the load that
-  produces the most power differs by movement and by athlete, so it has to
-  be measured rather than assumed.
 THREAD: engines (torque against revolutions, and power being their product),
   business (margin times turnover), music (loudness times the speed of the
   attack).
@@ -127,10 +97,6 @@ ESSENCE: a muscle cannot produce its maximum force and its maximum speed at
 ROOT: the body / the internal mechanism takes time to attach and detach, so
   faster shortening leaves fewer attachments pulling at any instant; physics
   / a limit on the machine, not on the intention.
-CANNOT: no maximum force at maximum speed, ever, so no training that raises
-  both to their ceilings at once. And no reading strength from a fast
-  movement: a sprinting athlete is not producing large force in any instant,
-  which is why sprinting is not a strength test.
 THREAD: engines (peak torque and peak revs sitting at different points),
   gears (a bicycle trading force for speed), tools (a lever's arm making the
   same trade).
@@ -143,10 +109,6 @@ ESSENCE: a maximum lift takes several tenths of a second to build, and a
 ROOT: the body / recruitment ramps up over time, so a short contact samples
   only the beginning of the ramp; physics / an impulse is force multiplied
   by the time it acts.
-CANNOT: no expressing maximum strength inside a fast movement, so no
-  automatic transfer from a heavier squat to a faster sprint. And no
-  improving early force with slow lifting alone: the intention to move fast
-  is itself part of the stimulus, even against a heavy load.
 THREAD: electricity (a supply that cannot ramp fast enough for a surge),
   engines (the lag before boost arrives), speech (a reply that lands after
   the moment for it has gone).
@@ -159,10 +121,6 @@ ESSENCE: tendons store and return energy like springs, so a bounce costs far
 ROOT: physics / a stretched elastic returns most of the work put into it,
   and free energy beats made energy; the body / tendon as a spring in series
   with a motor.
-CANNOT: no elastic return from a slow movement — pause at the bottom and the
-  stored energy has gone as heat, so a countermovement only helps when it is
-  quick. And no stiffness for free: a stiffer tendon returns more and
-  tolerates less, so spring quality and injury risk travel together.
 THREAD: machines (a flywheel returning energy between strokes), archery (a
   bow storing the draw), money (a buffer giving back exactly what it took
   in).
@@ -175,10 +133,6 @@ ESSENCE: in most sports the difference between a beginner and an expert is
 ROOT: engineering / output is what is made minus what is lost, and the
   losses are the larger term in an unskilled performer; fitness and movement
   / a repeated movement gets cheaper as the unnecessary parts drop out.
-CANNOT: no fitness that compensates for a badly learned movement in a skill
-  sport — the cost is multiplied by every repetition, so the fitter beginner
-  still loses. And no technique acquired from fitness work: the movement has
-  to be practised, at the speeds it is used at.
 THREAD: driving (fuel use decided by the driver), craft (a skilled hand
   doing less work for more result), writing (a clear paragraph costing the
   reader less).
@@ -191,10 +145,6 @@ ESSENCE: learning a movement passes through stages — understanding what to
 ROOT: the mind / attention is limited, and a movement must be built before
   it can be freed; teaching / feedback that helps a novice confuses an
   expert.
-CANNOT: no skipping the early clumsy phase, so no shortcut through
-  demonstration and explanation. And no expert built by keeping the early
-  conditions: the practice that builds a beginner — slow, simple,
-  predictable — is exactly what stops an intermediate improving.
 THREAD: language (grammar drilled, then forgotten, then obeyed), craft (an
   apprentice's stages), music (scales that become invisible).
 ASKED-AS: learning skill stages beginner intermediate coaching practice drills automatic thinking about technique
@@ -206,10 +156,6 @@ ESSENCE: practising a skill in varied conditions — different distances,
 ROOT: the mind / a solution reconstructed is stored more usefully than one
   retrieved, and variation forces reconstruction; teaching / the struggled
   answer outlasting the given one.
-CANNOT: no adaptable skill out of identical repetitions, so no transfer to a
-  game that never repeats a situation exactly. And no comfortable route to
-  it: variable practice looks worse on the day, so a coach judging by the
-  session will always choose the wrong method.
 THREAD: teaching (interleaved study beating blocked study), farming (a crop
   bred in one field failing in another), software (code tested only on the
   case it was written for).
@@ -222,10 +168,6 @@ ESSENCE: doing the same thing twenty times in a row looks like rapid
 ROOT: evidence / a measurement taken during training measures the current
   state and not what was retained; the mind / performance and learning are
   different quantities and can move in opposite directions.
-CANNOT: no reading learning from performance inside a session, which closes
-  the coach's most natural instrument. And no honest comparison of methods
-  without a delayed test: everything that makes a session look good is the
-  same thing that makes it fade.
 THREAD: teaching (cramming that passes the exam and leaves nothing),
   medicine (a symptom relieved while the disease continues), management (a
   quarter's numbers borrowed from the next one).
@@ -238,10 +180,6 @@ ESSENCE: the first thing tiredness takes is not strength, it is judgement.
 ROOT: the mind / effortful choosing draws on the resource fatigue drains,
   and the automatic parts survive longer than the deliberate ones; fitness
   and movement / fatigue is several failures wearing one word.
-CANNOT: no reading a player's game skill from a fresh test, so no assessment
-  taken rested that predicts the last ten minutes. And no fixing it with
-  conditioning alone: fitness moves where it starts, and the decisions still
-  have to be rehearsed in that state.
 THREAD: driving (a tired driver keeping the car straight and missing the
   junction), medicine (a surgeon's hands steady and their judgement gone),
   war (mistakes clustering at the end of a long day).
@@ -254,10 +192,6 @@ ESSENCE: cutting training volume sharply for the last week or two while
 ROOT: this file / performance is fitness minus accumulated fatigue, and the
   two clear on different clocks; fitness and movement / a planned easy week
   making built fitness visible.
-CANNOT: no taper that adds fitness, so no rescuing a poor build-up in the
-  final fortnight. And no taper by resting completely: dropping the
-  intensity as well loses the sharpness within days, so it is the volume
-  that goes and the quality that stays.
 THREAD: money (a debt cleared revealing the underlying income), photography
   (a print that was always there in the negative), cleaning (a surface that
   was never dirty, only covered).
@@ -270,10 +204,6 @@ ESSENCE: the reason training is organised into blocks is that qualities are
 ROOT: this file / adaptations have their own timescales and their own decay
   rates, which is a fact about tissue; evidence / a sound principle carrying
   a large superstructure of untested detail.
-CANNOT: no schedule that ignores decay rates, so no plan that builds speed
-  six months out and expects to find it in the final. And no confidence in
-  the named models: tested against sensible progressive training, the
-  differences between them are small and inconsistent.
 THREAD: farming (a planting calendar written back from harvest), building
   (trades sequenced by curing times), study (revision timed against
   forgetting).
@@ -287,10 +217,6 @@ ROOT: living machinery / the body regulates its own salt and water
   concentration and reports it as thirst, so overriding the signal removes
   the regulator; evidence / a plausible prescription that outran its testing
   and hardened into doctrine.
-CANNOT: no benefit from drinking ahead of thirst in most events, which
-  closes fifty years of advice. And no dismissing fluid entirely: in long
-  hot events the losses are large enough to matter, so the honest rule is
-  drink to thirst and take salt with it when the event is long.
 THREAD: nutrition (an appetite signal overridden by a rule), medicine (a
   treatment whose harm is rarer and worse than the disease), public health
   (advice that is hard to withdraw once it is famous).
@@ -303,10 +229,6 @@ ESSENCE: in a long hard effort the thing that stops you is usually your
 ROOT: living machinery / a core temperature that must be held in a narrow
   band, and output is the cheapest thing to give up; the mind / effort is
   regulated in anticipation rather than at the point of failure.
-CANNOT: no beating heat by willpower, so no pacing plan for a hot day that
-  matches a cool one. And no relying on how it feels early: the slowdown
-  begins well before the discomfort, so an athlete who feels fine at the
-  start is already losing pace.
 THREAD: engines (a system that derates itself before it overheats),
   computing (a chip that throttles), farming (a crop that shuts its pores
   and stops growing).
@@ -319,10 +241,6 @@ ESSENCE: thin air costs endurance immediately, and the body answers over
 ROOT: living machinery / a demand produces an adaptation, and this demand
   also removes the ability to make other demands; this file / fitness has
   several components, and a method can raise one while starving another.
-CANNOT: no altitude benefit from training hard at altitude, so no camp that
-  ignores where the hard sessions happen. And no benefit for everybody: the
-  blood response varies enormously between people, and a substantial
-  minority get essentially nothing.
 THREAD: money (an investment whose carrying cost eats the return), farming
   (a soil improvement that stops you planting), medicine (a treatment with
   strong responders and none).
@@ -335,10 +253,6 @@ ESSENCE: crossing time zones does not only make athletes tired, it puts the
 ROOT: the living world / an internal clock entrained by light shifts slowly,
   so it lags the calendar; the body / performance rising and falling across
   a day on that clock.
-CANNOT: no adapting faster by wanting to, so no schedule that flies in the
-  day before a long-haul final and expects a normal performance. And no
-  equal cost in both directions: the clock lengthens more easily than it
-  shortens, which is why westward travel hurts less.
 THREAD: shift work (the same disruption without the travel), medicine (drug
   effects that vary by time of day), farming (animals whose yields follow
   the light).
@@ -351,11 +265,6 @@ ESSENCE: most of what predicts injury cannot be changed — age, sex, the
 ROOT: evidence / a factor that correlates is not a factor that can be acted
   on, and screening needs both; fitness and movement / injuries cluster
   where the load jumped, which is the modifiable one.
-CANNOT: no useful screening from a weak association — at realistic injury
-  rates a test flags mostly people who will be fine and misses most who will
-  not. And no prevention programme that works unless it is actually
-  performed: the trials that succeed all have adherence as their main
-  difficulty.
 THREAD: medicine (a screening test whose harm comes from false positives),
   insurance (a risk factor that prices and does not prevent), safety (a
   checklist that only works when it is used).
@@ -368,10 +277,6 @@ ESSENCE: whether an athlete goes back is a medical question surrounded by
 ROOT: people together / a decision made under conflicting incentives goes to
   whoever wants it most; law / a rule set beforehand binds the person who
   will later want to break it.
-CANNOT: no honest return decision made in the moment by the people affected
-  — which is why head-injury rules are removal first and assessment later.
-  And no criterion that works if it can be overruled: the entire value is in
-  it being binding.
 THREAD: law (a constitution written to bind a future government), money (a
   rule against selling in a panic), medicine (a protocol that removes a
   doctor's discretion on purpose).
@@ -384,10 +289,6 @@ ESSENCE: picking future champions from children barely works. The tests
 ROOT: evidence / a prediction is only as good as the stability of what it
   measures, and childhood performance is unstable; the living world /
   development rates varying enormously between children of one age.
-CANNOT: no early selection that beats keeping a wide group longer, so no
-  defensible narrow academy at young ages. And no fixing it with better
-  tests: the instability is in the thing being predicted, so no measurement
-  of the twelve-year-old solves it.
 THREAD: education (selection at eleven predicting badly), hiring (an
   interview that measures interview skill), farming (a seedling's vigour
   failing to predict the crop).
@@ -400,10 +301,6 @@ ESSENCE: in almost every youth sport, children born just after the cut-off
 ROOT: this file / selection at a young age measures maturity, and maturity
   tracks birth date inside a year group; people together / an advantage that
   compounds because it buys access to more advantage.
-CANNOT: no fair selection inside a single-year band, so no youth ranking
-  that is not partly a birthday table. And no self-correction: the effect
-  persists into professional squads, which means the late-born players who
-  were just as good were lost rather than delayed.
 THREAD: education (the youngest in a class diagnosed more often), money (a
   small early advantage compounding), farming (a seedling shaded out by a
   slightly taller neighbour).
@@ -416,10 +313,6 @@ ESSENCE: the finding was that top violinists had accumulated more deliberate
 ROOT: evidence / an average from a small sample turned into a threshold for
   everybody; the mind / deliberate practice being a specific, effortful,
   feedback-rich activity and not merely time spent.
-CANNOT: no guarantee from hours, so no promise that anybody reaches the top
-  by accumulating them. And no dismissal of practice either: nobody arrives
-  without an enormous quantity of it, so it is necessary and it is not
-  sufficient.
 THREAD: business (survivor stories sold as a method), education (time on
   task against quality of task), farming (an input that is required and not
   decisive).
@@ -432,10 +325,6 @@ ESSENCE: performance rises with excitement and then falls. Too flat and you
 ROOT: the mind / arousal narrows attention and raises muscle tension, which
   helps a gross task and ruins a precise one; the body / one stress response
   serving two opposite requirements.
-CANNOT: no single optimum for an athlete, so no team talk that is right for
-  everyone in the room. And no fixing under-performance by raising
-  intensity: past the peak, more excitement makes it worse, which is why
-  some players need calming and some need firing up.
 THREAD: exams (nerves that sharpen against nerves that blank), speaking
   (energy that carries a room against energy that rushes it), surgery (calm
   as a technical requirement).
@@ -448,11 +337,6 @@ ESSENCE: choking is not fear, it is a well-learned skill being taken back
 ROOT: the mind / an automated skill runs below awareness, so attending to
   its parts interferes with it; sports and games / practice buys automation,
   and automation is what pressure attacks.
-CANNOT: no choking in a skill that was never automatic — beginners
-  deteriorate under pressure for another reason entirely, and the two need
-  opposite remedies. And no cure by trying harder: more effort means more
-  monitoring, so the fixes are routines and an external focus that put
-  attention elsewhere.
 THREAD: speech (a word said daily becoming impossible when watched), walking
   (a staircase you fall down while thinking about it), typing (fingers that
   fail the moment you look at them).
@@ -465,10 +349,6 @@ ESSENCE: a team's output is not the sum of its players. Adding a better
 ROOT: people together / individual effort falls when it cannot be
   identified, and coordination costs rise with group size; sports and games
   / eleven strikers losing to eleven ordinary players with positions.
-CANNOT: no team performance predicted from the sum of individuals, so no
-  squad built purely by buying the best available. And no cohesion produced
-  by results alone: the causation runs both ways, and the part a coach can
-  actually move is the clarity of the roles.
 THREAD: work (a project slowed by adding people), rowing (a crew pulling
   less each as it grows), music (an ensemble that needs parts and not
   soloists).
@@ -481,10 +361,6 @@ ESSENCE: one approach to team sports refuses to separate fitness, technique
 ROOT: fitness and movement / transfer is highest when training matches the
   speed, load and position of the task; this file / a skill is best
   practised in the conditions it will be used in.
-CANNOT: no separating the qualities without losing the specificity, which is
-  the whole claim. And no proving the framework against alternatives,
-  because team-sport programmes cannot be run as clean trials — the logic is
-  sound and the evidence base is thin. UNSURE.
 THREAD: teaching (a project that carries the skills inside it), craft (an
   apprentice learning by making real pieces), military training (a rehearsal
   of the whole task rather than of its parts).
@@ -497,10 +373,6 @@ ESSENCE: small optimisations only matter once the large ones are complete. A
 ROOT: mathematics / a small improvement on a small term is a small
   improvement, so gains are ranked by the size of what they act on; evidence
   / a visible novelty credited for a result the boring foundation produced.
-CANNOT: no marginal gain that substitutes for a basic one, so no advantage
-  from equipment and supplements in an athlete who is not sleeping or
-  training consistently. And no unlimited stacking: the small things cost
-  attention too, and attention taken from the basics is a net loss.
 THREAD: money (optimising fees while overspending), engineering (polishing a
   component that is not the bottleneck), health (a supplement regime on top
   of a bad diet).
@@ -513,10 +385,6 @@ ESSENCE: the ceiling test measures the most oxygen a body can use in a
 ROOT: evidence / a measure discriminates only across the range where it
   varies, and it saturates inside a selected population; this file / a
   performance is a product of three factors and this is only one.
-CANNOT: no predicting a race from the ceiling alone among trained people,
-  which makes it a poor selection tool at the top. And no raising it
-  indefinitely: it plateaus within a couple of years of hard training while
-  performance goes on improving for a decade.
 THREAD: education (a test that separates at the bottom and not at the top),
   hiring (a qualification everybody in the pool already holds), engineering
   (a specification every design already meets).
@@ -529,10 +397,6 @@ ESSENCE: muscle fibres run along a range from slow and enduring to fast and
 ROOT: heredity / a trait with a strong genetic component and a modest
   trainable range; the body / a fibre's properties set by machinery that
   changes slowly and only so far.
-CANNOT: no turning a distance runner into a sprinter by training, so no
-  programme that overcomes the distribution. And no reading the type off a
-  result: technique, size and training history all move a performance, so an
-  untested athlete's makeup is a guess.
 THREAD: farming (a breed suited to a climate), engines (a design optimised
   for torque or for revolutions), the mind (a temperament that training
   shapes and does not replace).
@@ -545,10 +409,6 @@ ESSENCE: put a group on identical training and the improvement runs from
 ROOT: heredity / a response to an environment is a trait that varies like
   any other; evidence / a mean concealing a spread wide enough to include
   zero.
-CANNOT: no promising an individual the average result, so no programme
-  guaranteed to work for a given person. And no concluding somebody cannot
-  improve from one failed block: the non-response is usually to that
-  stimulus rather than to training itself.
 THREAD: medicine (a drug with responders and non-responders inside one
   average), education (a method that suits some students), farming (a
   variety that thrives on one soil and fails on another).
@@ -561,10 +421,6 @@ ESSENCE: at the top, the gap between men's and women's records is roughly
 ROOT: the body / hormonal development producing different average sizes,
   muscle masses and blood characteristics; mathematics / a difference in
   group means saying nothing about any individual.
-CANNOT: no closing the gap at the elite level by training, which is why the
-  categories exist. And no using it to place an individual: the
-  distributions overlap heavily, so most women outperform most men and the
-  comparison only holds at the extreme tail.
 THREAD: statistics (a mean difference against an overlapping spread),
   medicine (a reference range that differs by group), law (a category rule
   justified at the tail and applied to everybody).
@@ -577,10 +433,6 @@ ESSENCE: elite athletes in a sport look alike because the sport removed
 ROOT: chance and risk / a selected sample tells you about the selection
   rather than about the process; this file / many traits are largely
   inherited and not trainable.
-CANNOT: no acquiring a champion's proportions by training, so no programme
-  that delivers the body the sport selected for. And no reading a method's
-  value from the people it was used on: they were already the survivors of a
-  filter.
 THREAD: business (studying only the firms still standing), history
   (monuments as a filtered sample of the past), medicine (a treatment judged
   by the patients who came back).
@@ -593,10 +445,6 @@ ESSENCE: cutting weight to make a class is mostly water removed in the last
 ROOT: people together / a costly practice nobody can stop alone is a trap
   the rules created; living machinery / fluid and salt losses that damage
   the very systems the sport is testing.
-CANNOT: no individual escaping it while the weigh-in is far from the
-  contest, so no education campaign that solves it. And no full recovery in
-  a few hours: rehydration restores weight faster than it restores function,
-  so the athlete who cut hardest competes degraded.
 THREAD: money (an arms race costing everyone and benefiting nobody), farming
   (a chemical everyone must use once anyone does), law (a rule change as the
   only exit from a collective trap).
@@ -609,10 +457,6 @@ ESSENCE: for hard efforts past about ninety minutes the limit is often
 ROOT: living machinery / a store small relative to the demand and refilled
   at a limited rate; the body / an absorbing surface whose transporters
   increase with regular exposure.
-CANNOT: no fuelling around the absorption ceiling, so no plan that pours in
-  more than the gut takes without buying distress. And no gut prepared on
-  race day: the training has to include the feeding, which is why athletes
-  rehearse their nutrition as a skill.
 THREAD: engineering (a fuel line limiting an engine's peak), logistics (a
   supply rate constraining an advance), farming (a soil that takes water
   only so fast).
@@ -625,10 +469,6 @@ ESSENCE: nearly everything sold to athletes does nothing measurable. The
 ROOT: evidence / a large market with weak regulation produces confident
   claims and few replications; nutrition / a substance corrects a shortage
   or it does nothing, unless it is a drug.
-CANNOT: no supplement that substitutes for training or sleep, so no shortcut
-  in the tub. And no assuming purity: unregulated products are repeatedly
-  found contaminated with banned substances, which makes them a sporting
-  risk as well as a waste of money.
 THREAD: medicine (a market of remedies with a handful of real drugs in it),
   nutrition (a deficiency corrected against a surplus excreted), money (an
   industry selling hope at a low burden of proof).
@@ -641,10 +481,6 @@ ESSENCE: the drugs that matter work by raising oxygen carrying or by
 ROOT: this file / adaptation is limited by recovery, so anything raising
   recovery raises the training that can be absorbed; evidence / a test that
   samples the wrong moment measures nothing.
-CANNOT: no catching a doper by testing at competition alone, which is why
-  out-of-competition testing and biological passports exist. And no clean
-  field maintained by testing alone: with short detection windows and
-  enormous incentives, the deterrent is mostly the fear of a record.
 THREAD: tax (an audit that samples the wrong period), war (an advantage
   built in preparation rather than in the battle), business (an edge created
   before the visible contest begins).
@@ -657,10 +493,6 @@ ESSENCE: athletes slow down before anything is empty and speed up at the end
 ROOT: the mind / output is set by a forecast of what remains, which is why
   an unknown endpoint changes behaviour; living machinery / a protective
   reserve held back rather than a tank run dry.
-CANNOT: no true exhaustion in a paced event — the end spurt proves reserve
-  was held, so a collapse at the line is a pacing error and not a
-  physiological floor. And no pacing without knowing the distance: an
-  athlete given a false endpoint paces for it and pays for it.
 THREAD: money (spending against an expected pay day), driving (fuel managed
   against a known route), work (energy budgeted to a deadline that then
   moves).
@@ -673,10 +505,6 @@ ESSENCE: elite players are not faster at reacting to a light in a
 ROOT: the mind / expertise is stored pattern recognition, so an expert is
   answering an earlier question; teaching / perception trained by exposure
   to real situations rather than by drilling the response.
-CANNOT: no advantage from raw reaction speed, so no testing sporting talent
-  with a reaction timer. And no anticipation without exposure to the domain:
-  it is built from thousands of situations in that sport, and it does not
-  carry over to another one.
 THREAD: driving (an experienced driver reading a road earlier), medicine (a
   diagnosis formed before the tests arrive), chess (a position recognised
   rather than calculated).
@@ -689,10 +517,6 @@ ESSENCE: in aiming skills, experts fix their gaze on the target for
 ROOT: the mind / a movement is programmed from visual information, and the
   programming needs time on the target; this file / pressure disrupts
   automatic processes by moving attention.
-CANNOT: no accurate aiming skill with a scanning gaze, so no fix that works
-  on the hands alone. And no universal number: the useful duration differs
-  by task and by person, so the training is to lengthen your own rather than
-  to hit a published figure.
 THREAD: driving (looking where you want to go), shooting (a held sight
   picture), reading (a fixation long enough to take the word in).
 ASKED-AS: quiet eye gaze aiming putting free throw looking target pressure missing focus training
@@ -704,10 +528,6 @@ ESSENCE: telling a learner what went wrong after every attempt speeds up the
 ROOT: the mind / a learner handed the answer stops generating one, and the
   generating is where the learning lives; this file / performance during
   practice is not the same thing as learning.
-CANNOT: no independent performer built on continuous correction, so no
-  coaching style of constant instruction that produces a player who solves
-  the game. And no benefit from silence either: the learner needs enough
-  information to know what to change, just not on every attempt.
 THREAD: teaching (a student who cannot work without the marker), parenting
   (a child who never chooses), management (a team that needs approval for
   every step).
@@ -721,10 +541,6 @@ ROOT: fitness and movement / transfer scales with the match in speed, load
   and position, and resemblance is not that match; the mind / a skill is a
   solution to a specific problem, so changing the problem changes the answer
   being learned.
-CANNOT: no specificity from appearance, so no gym exercise justified by
-  looking like the sport. And no skipping the general either: the useful gym
-  work is broad strength and power that raises capacity, while the skill is
-  trained by the skill.
 THREAD: teaching (an exercise that resembles the exam and tests something
   else), engineering (a mock-up that behaves nothing like the part),
   language (a phrasebook that is not speech).
@@ -737,10 +553,6 @@ ESSENCE: for skills performed on your own terms — a serve, a putt, a lift —
 ROOT: the mind / attention will be occupied by something, so a routine
   claims it before the situation can; this file / choking is a skill taken
   back under conscious control.
-CANNOT: no routine that helps a skill performed on an opponent's timing —
-  there is no gap to put it in, which is why the technique belongs to closed
-  skills. And no benefit from a routine invented on the day: it works by
-  being automatic, which takes months.
 THREAD: religion (a ritual that steadies a person before an ordeal),
   aviation (a checklist run identically every time), surgery (a pause and a
   sequence before the first cut).
@@ -754,10 +566,6 @@ ROOT: being something / a self is built from a long run of activity, so
   removing the activity removes part of the person; the mind / an
   expectation of harm changes movement, and altered movement is itself a
   risk.
-CANNOT: no complete rehabilitation that addresses tissue only — an athlete
-  who is physically ready and afraid moves differently and gets hurt again.
-  And no reassurance that substitutes for graded exposure: confidence is
-  rebuilt by doing the thing in steps, never by being told it is safe.
 THREAD: work (a job loss experienced as a loss of self), medicine (recovery
   from surgery gated by belief as well as tissue), martial arts (fear of
   falling cured only by falling).
@@ -770,10 +578,6 @@ ESSENCE: a brain injury with no visible wound, whose symptoms are unreliable
 ROOT: living machinery / an organ that reports its own state using the very
   function that was damaged; evidence / a long-latency harm in confounded
   populations, which is genuinely hard to size.
-CANNOT: no self-assessment by a concussed athlete, so no on-field decision
-  left to them or to their coach. And no protection from helmets against
-  this particular injury: they prevent skull fractures and do not stop the
-  brain moving inside the skull.
 THREAD: medicine (a patient whose judgement is the impaired thing), law (a
   rule written because the moment cannot be trusted), engineering (a payload
   wrecked by deceleration inside an intact container).
@@ -786,10 +590,6 @@ ESSENCE: during a growth spurt bones lengthen before muscles and tendons
 ROOT: the body / tissues in one chain growing on different clocks, so the
   chain is briefly mismatched; fitness and movement / capacity is a record
   of recent weeks, and here the body itself has changed.
-CANNOT: no reading a growing athlete's decline as a loss of application, so
-  no response of more training. And no fixing it by stretching: the mismatch
-  resolves with time, so the useful action is to manage the load and wait it
-  out.
 THREAD: building (a structure loaded before the concrete has cured), farming
   (a plant putting everything into height and nothing into roots), teaching
   (a child whose handwriting collapses in a growth year).
@@ -802,10 +602,6 @@ ESSENCE: eating too little for the training done shuts down whatever is not
 ROOT: living machinery / a body in shortfall spends on survival and stops
   paying for reproduction and maintenance; nutrition / availability is
   intake minus what the training has already spent.
-CANNOT: no maintaining bone and hormonal health in a chronic deficit, so no
-  lean-at-any-cost programme that is sustainable. And no diagnosis from body
-  weight: the shortfall is a balance, so an athlete of ordinary weight with
-  an enormous training load has it too.
 THREAD: nutrition (a deficit that stops being a diet and becomes a
   shortage), farming (a field cropped for years without inputs), money (a
   business funding itself by deferring maintenance).
@@ -818,10 +614,6 @@ ESSENCE: a simple jump test taken regularly tracks readiness better than
 ROOT: evidence / a measurement is informative against a baseline, and an
   individual's own series is the tightest baseline available; this file /
   individual variation swamping group averages.
-CANNOT: no reading readiness from a single test with no history, so no
-  useful screening on the first day. And no meaning in a change smaller than
-  the test's own day-to-day wobble: without knowing that noise, a monitoring
-  programme reports weather as climate.
 THREAD: medicine (a patient's own trend against a population range), money
   (a spending series against a budget), engineering (a vibration reading
   meaningful only against its own history).
@@ -834,10 +626,6 @@ ESSENCE: much of performance history is technology and rule changes wearing
 ROOT: evidence / a step change across a whole population points to a shared
   cause outside the individuals; sports and games / records climb toward
   walls set by the body, so a sudden jump needs another explanation.
-CANNOT: no comparing performances across an equipment change, so no clean
-  record list that spans one. And no separating the two contributions
-  afterwards: once everybody adopts the equipment the comparison is gone,
-  which is why governing bodies rule on the technology instead.
 THREAD: money (returns that were really a rising market), farming (yields
   credited to skill during a wet decade), computing (a benchmark broken by a
   change of compiler).
@@ -850,10 +638,6 @@ ESSENCE: peak age is set by which quality the sport needs. Explosive events
 ROOT: the body / power fades early while endurance and skill hold much
   longer; fitness and movement / each ability has its own cost of being kept
   and its own rate of decay.
-CANNOT: no single peak age for athletes, so no age-based selection rule that
-  is right across sports. And no holding a sprinter's peak with experience:
-  the quality that declines is the quality the event tests, which is exactly
-  why judgement cannot compensate.
 THREAD: work (professions peaking at different ages for the same reason),
   music (a violinist's hands against a conductor's ear), chess (calculation
   against pattern knowledge).
@@ -866,10 +650,6 @@ ESSENCE: playing again before recovery is complete does not usually cut the
 ROOT: fitness and movement / recovery is a rate and load accumulates against
   it; the mind / an athlete compensating to hold output, which hides the
   deficit until something tears.
-CANNOT: no reading recovery from match performance, so no schedule defended
-  by the fact that players still ran. And no rotating out of it entirely at
-  the top: a squad has a quality gradient, so rotation trades injury risk
-  against results and somebody has to choose.
 THREAD: work (overtime that keeps output and raises errors), machines (a
   plant run through its maintenance window), medicine (a compensating
   patient who looks fine until they suddenly do not).
@@ -882,10 +662,6 @@ ESSENCE: belief moves performance measurably. Athletes told they were given
 ROOT: this file / output is set by a forecast rather than by a hard limit,
   and belief changes the forecast; evidence / an effect that requires
   blinding before it can be separated from the intervention.
-CANNOT: no trusting an unblinded performance study, which removes most of
-  the sports-supplement literature. And no dismissing the effect as fake:
-  the extra work really was done, so belief is an input to performance and
-  not an artefact of measuring it.
 THREAD: medicine (a placebo with real physiological effects), management (a
   team performing to what it was told about itself), teaching (expectations
   that change results).
@@ -898,10 +674,6 @@ ESSENCE: everything in this file points one way — the session is a stimulus,
 ROOT: fitness and movement / adaptation needs the demand and the repair, and
   only the demand happens in front of anybody; the mind / what is visible
   and scheduled gets managed, and what is not is not counted at all.
-CANNOT: no adaptation from the session alone, so no programme that is
-  complete as a list of sessions. And no judging a coach by what happens in
-  training: the visible work is the easiest part to add and the part least
-  often actually limiting.
 THREAD: farming (a harvest decided by soil built out of season), education
   (learning that happens between the lessons), building (a pour whose
   strength is all in the curing).

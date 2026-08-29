@@ -10,10 +10,6 @@ ESSENCE: working together pays more than working alone, but only
 ROOT: premise — a defector inside a cooperating group collects the
   group's product and pays none of its cost, so defection spreads
   by arithmetic, not by wickedness.
-CANNOT: no cooperation without a cost imposed on defection — a
-  group that cannot punish will be farmed by its own members. And
-  no free punishing: somebody must spend to enforce, which is the
-  real problem hiding under the obvious one.
 THREAD: sports (a rule with no referee is a suggestion), the living
   world (cleaner fish and the mimics that exploit them), law (the
   state claims punishment so nobody has to fund a private feud).
@@ -25,11 +21,6 @@ ESSENCE: punishing costs money; remembering is nearly free — so
 ROOT: people together / trust drains in buckets — one betrayal
   outweighs a hundred quiet successes, which makes the threat both
   cheap to make and heavy to receive.
-CANNOT: no reputation without three things at once: a name that
-  sticks to one person, a memory that outlives the deal, and an
-  expectation of meeting again. Remove any one and the discipline
-  is gone — which is why anonymity and one-off dealings collect
-  the worst behaviour anybody has.
 THREAD: money (a credit score is this run by machine), tourist
   districts (nobody comes back, so nobody has to be good), trades
   and medicine (a licence is reputation held in escrow).
@@ -42,10 +33,6 @@ ESSENCE: the strongest punishment most groups own is simply
 ROOT: people and power / specialisation leaves nobody able to
   supply themselves, which quietly hands every group a very heavy
   weapon it never had to build.
-CANNOT: no exclusion biting where the member can simply go
-  elsewhere — in a city it is an inconvenience, in a village it was
-  a death sentence. And no group holding anyone whose exit is free
-  and whose needs are met outside it.
 THREAD: professional licences that can be revoked, credit
   blacklists, the living world (the animal driven from the troop),
   armies and boarding schools, which arrange for no elsewhere.
@@ -57,10 +44,6 @@ ESSENCE: some things cannot be withheld from those who did not pay
   everybody reasoning carefully leaves it unbuilt.
 ROOT: premise — behaviour follows incentives, and here the
   incentive points away from the outcome everyone wants.
-CANNOT: no voluntary funding at scale of a benefit nobody can be
-  shut out of — the failure is not selfishness but arithmetic:
-  contributing costs you fully and buys you almost nothing. So
-  either compulsion, or the thing does not exist.
 THREAD: public radio drives and their small share of givers,
   vaccination, group projects where two people do the work, unions
   bargaining raises that non-members receive as well.
@@ -72,10 +55,6 @@ ESSENCE: a shared resource with private taking empties itself —
   individual right up to the moment there is nothing left.
 ROOT: premise — the gain lands on one person and the cost is split
   among all; that split is what breaks the arithmetic.
-CANNOT: no shared pot with unlimited private ladles survives —
-  goodwill does not change the sum. And no fixing it by asking: the
-  only things that work are a boundary, a quota, an owner, or a
-  group small enough to watch each other.
 THREAD: fisheries and aquifers, antibiotics losing their power to
   overuse, shared kitchens, the free road everybody drives on and
   nobody leaves because it is already full.
@@ -86,9 +65,6 @@ ESSENCE: some rules need no truth at all, only agreement — there is
   benefit is that nobody ever has to check.
 ROOT: premise — where the harm comes from mismatch rather than from
   the choice itself, any answer everyone takes is a right answer.
-CANNOT: no private solution to a coordination problem — being right
-  alone is being wrong. And no changing such a rule gradually: half
-  a country switching sides is worse than either side.
 THREAD: making (screw threads and rail gauges), language (words
   mean what everyone takes them to mean), money (a currency is a
   coordination rule wearing a number), clocks and calendars.
@@ -99,10 +75,6 @@ ESSENCE: owning is not a fact about a thing, it is a promise by
   enough people are willing to back that promise.
 ROOT: law / a title is an agreement written down and armed; the
   object itself carries no mark anywhere of whose it is.
-CANNOT: no ownership without a community that will enforce it. And
-  no slow building on doubtful title — nobody plants a tree, digs a
-  well, or roofs a house on ground they may lose, so weak property
-  shows up as the absence of anything that takes years.
 THREAD: money (value by agreement — the same trick), farming (the
   enclosure fights), war (conquest as the rewriting of titles),
   squatting and the laws that eventually reward it.
@@ -114,10 +86,6 @@ ESSENCE: below the size where everyone knows everyone, judgement is
   judgement does not copy and a written rule copies perfectly.
 ROOT: people together / past a hundred-odd members, relationships
   stop covering the group and something else has to.
-CANNOT: no scaling judgement — it lives in one head and cannot be
-  handed out. And no written rule that fits every case it will
-  meet: buying consistency means buying the wrong answer in the odd
-  case, deliberately, as the price.
 THREAD: family rules that would be absurd in a company, startups
   writing a first handbook the year they stop knowing every name,
   sports (the referee's judgement replaced by video and clauses).
@@ -130,10 +98,6 @@ ESSENCE: the deepest rule in any group is the one saying how the
 ROOT: law / procedure removes persons from decisions, and this is
   procedure turned on itself, the only place it can stand up
   without leaning on somebody.
-CANNOT: no stable group without an agreed way to change its rules.
-  And no settling that question mid-quarrel — it has to be fixed
-  while nobody yet knows who it will favour, or it is just the
-  quarrel again in better clothes.
 THREAD: constitutions and their amendment clauses, club bylaws,
   succession (the same problem aimed at a person instead of a
   text), games (the argument about a house rule, mid-game).
@@ -145,9 +109,6 @@ ESSENCE: in a group where everyone talks to everyone, the pairs
   and messages climb and descend instead of crossing.
 ROOT: mathematics / pairs grow as n squared while a tree's links
   grow as n; the ladder is a cost cut long before it is a power grab.
-CANNOT: no flat group past a few dozen — the pairs outrun anyone's
-  day. Flatten a large organisation formally and an informal tree
-  grows back inside it within months.
 THREAD: armies (squads inside platoons inside companies), postal
   codes and file systems (the same tree, for addresses), the meeting
   that works at six people and dies at twenty.
@@ -161,9 +122,6 @@ ESSENCE: handing work over means handing over what you know, and
 ROOT: language / words are lossy vessels — an instruction is a
   compressed copy of an intention, and the deeper the task, the more
   of it was left out of the copy.
-CANNOT: no delegating without loss. And no delegating
-  accountability — the doing moves and the answering stays, which
-  is why the person who handed it over is still the one asked.
 THREAD: teaching (the same gap, aimed at a learner), computing (a
   program does what you wrote, never what you meant), cooking from
   a recipe written by someone who never watched you cook.
@@ -175,10 +133,6 @@ ESSENCE: whoever acts on your behalf has their own life, and their
   commission sells you the car that pays him best.
 ROOT: premise — behaviour follows incentives, and two people's
   incentives are never the same document.
-CANNOT: no agent whose interests match yours everywhere — you can
-  narrow the gap and pay for the narrowing, never close it. And no
-  arrangement that removes the problem: watching them is itself a
-  job you would have to give to somebody.
 THREAD: landlords and tenants over a leaking roof, contractors paid
   by the hour, a fund manager paid on gains but not on losses,
   doctors paid per procedure, lawyers paid per hour of argument.
@@ -190,10 +144,6 @@ ESSENCE: a number that was a good sign of the thing stops being one
   quietly separate.
 ROOT: premise — behaviour follows incentives, and a measure is a
   smaller, nearer, more reachable target than what it stood for.
-CANNOT: no measure that survives being made a target. And no single
-  number safe to manage by — if it could not be gamed it would be
-  too crude to manage by, so the choice is between gameable and
-  useless.
 THREAD: schools teaching the test, hospitals meeting waiting-time
   rules by renaming the wait, police clearance rates, software
   measured in lines written, factories once weighed by the tonne.
@@ -205,10 +155,6 @@ ESSENCE: bad news thins as it climbs, and nobody has to lie for it
   summariser. Ten honest layers produce one dishonest report.
 ROOT: people together / rung-pain — the messenger is standing on the
   very ladder the news might shake.
-CANNOT: no undistorted report through a channel that also grades the
-  reporter — the messenger is inside the message. The only fixes are
-  channels that bypass the ladder, and every one of them weakens the
-  ladder it bypasses.
 THREAD: audits and anonymous lines, walking the floor unannounced,
   aviation (incident reports made unpunishable on purpose, which is
   much of why flying became safe), the survey nobody answers truly.
@@ -220,10 +166,6 @@ ESSENCE: the member who reports harm inside a group is punished by
   for from outside or it simply will not happen.
 ROOT: people together / a group sorts into us and them, and the
   reporter has just moved themselves across that line by speaking.
-CANNOT: no honest internal reporting without protection from
-  outside the group being reported on — the incentives inside point
-  exactly the wrong way, and it is the reporter's own colleagues who
-  deliver the cost.
 THREAD: aviation (reports made unpunishable, deliberately), medicine
   (the near-miss register), police and army codes of silence,
   families keeping one secret for three generations.
@@ -236,10 +178,6 @@ ESSENCE: a meeting spends many people's time to build one shared
 ROOT: premise — coordination is never free; either you pay to sync
   or you pay for the divergence, and one of those bills always
   arrives.
-CANNOT: no coordination without cost. And no meeting that scales —
-  the price rises with the head count while the amount that can be
-  decided does not, so past about eight people a meeting becomes a
-  broadcast wearing a circle of chairs.
 THREAD: written records replacing the standing meeting, orchestras
   (a conductor is coordination compressed into one person), military
   briefings kept short because attention is the budget.
@@ -251,10 +189,6 @@ ESSENCE: split a job among people and output multiplies — but each
   motion. A skill is worth something only inside the web that wants it.
 ROOT: premise — practice concentrates skill, and concentrating skill
   means abandoning the rest of the work to other people.
-CANNOT: no gains from specialisation without dependence on exchange
-  — the same cut that raises output removes self-sufficiency,
-  permanently. And no specialist secure alone: a trade with no buyers
-  left is not a smaller income, it is none.
 THREAD: farming (the first surplus is what let anyone be anything
   else), supply chains halted by one missing part, a hospital that
   cannot run without one machine's one technician.
@@ -266,10 +200,6 @@ ESSENCE: a middleman makes nothing and consumes nothing and looks
   who have never met.
 ROOT: money / trust and searching both cost, and somebody pays those
   costs whether or not there is a person visibly collecting.
-CANNOT: no removing the middleman's function, only the middleman —
-  cut him out and the finding, the vouching, the storing, and the
-  risk land on the two remaining parties, who are usually worse at
-  all four.
 THREAD: markets (a price is found by somebody doing this work),
   computing (platforms as middlemen at planetary scale), farming (the
   buyer who takes the whole crop on the day it has to move).
@@ -281,10 +211,6 @@ ESSENCE: nobody is in charge and the shelves fill — millions of
   local, unwritten, and stale by tomorrow.
 ROOT: the mind / one head holds very little, so a system that needs
   nobody to hold the whole outperforms one that does.
-CANNOT: no central plan holding all the local knowledge — it is
-  perishable and mostly cannot be written down, so it cannot be
-  gathered in time to be used. And no market where the corners cannot
-  signal: cut the feedback and it is a plan with extra steps.
 THREAD: the pencil nobody knows how to make from scratch, ant
   colonies and immune systems (decisions with no decider), computing
   (many small processors beating one large one).
@@ -296,10 +222,6 @@ ESSENCE: a price is one number carrying news you never heard — a
   what lets it travel to millions of strangers at once.
 ROOT: money / a price is where two valuations meet, and every fact
   that moved either side is folded into the meeting point.
-CANNOT: no price signal without free movement on both sides — fix
-  the number and you have cut the wire, and everyone downstream keeps
-  acting on last year's news. And no reading the reason back out of a
-  price: the compression runs one way.
 THREAD: engineering (a gauge reading with no diagnosis attached),
   medicine (a fever says there is a fight, not with what), language
   (a proverb is an argument compressed past its reasons).
@@ -312,10 +234,6 @@ ESSENCE: when there is not enough, something must decide who goes
 ROOT: money / value needs wanting and rarity; rationing is what
   happens when the wanting outruns the rarity and the price is not
   allowed to say so.
-CANNOT: no allocation without exclusion — there is no scheme where
-  everybody gets it, only schemes that hide who was refused. Price
-  refuses the poor, queues refuse the busy, rules refuse the
-  unconnected, and lotteries refuse at random.
 THREAD: wartime coupons, transplant lists, concert tickets and the
   resale market that reappears under every rule ever written,
   hospital waiting lists as a price paid in months.
@@ -326,11 +244,6 @@ ESSENCE: many people each trade a small certain loss for cover
   spread thin enough that no single household is destroyed by it.
 ROOT: chance / a rare huge loss and a frequent tiny one can share an
   average and share nothing else; only the second is survivable.
-CANNOT: no insuring a loss that lands on everyone at once — a pool
-  cannot cover a flood that reaches every member the same day, which
-  is why war, currency collapse, and whole-region disasters are
-  excluded or fall to governments. And no pool paying out more than
-  it takes in: somebody funds it.
 THREAD: farming (scattered fields as the oldest policy), ships
   (marine insurance invented modern finance), making (redundancy is
   insurance paid in hardware instead of money).
@@ -342,10 +255,6 @@ ESSENCE: a debt moves goods from the future into the present, and the
   promised itself.
 ROOT: money / interest is the price of time, and this is the thing
   being bought with it: consumption now against production later.
-CANNOT: no borrowing without a later real production to answer it —
-  you cannot borrow from a future that will not exist. And a debt
-  that cannot be paid will not be paid: it ends in default, in
-  inflation, or in forgiveness, never in payment.
 THREAD: students and mortgages (borrowing against a self who does not
   exist yet), farming (seed borrowed against a harvest that may not
   come), empires undone by the loans that built them.
@@ -357,10 +266,6 @@ ESSENCE: when the unit shrinks, every number written in it lies about
   restating them compares two different units.
 ROOT: money / dilution — but read here as measurement: the thing
   being counted held still and the counter moved.
-CANNOT: no comparing money across years without converting to one
-  unit — a dollar is not a dollar. And no contract in a moving unit
-  that stays neutral: it moves wealth from lenders to borrowers and
-  from savers to spenders, with nobody deciding that it should.
 THREAD: evidence (any measurement taken with a drifting instrument),
   pensions eaten during a retirement, old wage figures quoted to prove
   anything at all, maps (a scale bar that shrank).
@@ -371,9 +276,6 @@ ESSENCE: a lead buys the means of keeping the lead — better tools,
   difference widens on its own, with nobody ever deciding to widen it.
 ROOT: money / interest compounds; this is the same arithmetic applied
   to position, contacts, and health instead of to a balance.
-CANNOT: no gap that closes untouched — compounding has no natural
-  stopping point, so a spread narrows only when something interrupts
-  it: a tax, an inheritance rule, a new technology, a war, a collapse.
 THREAD: power (office gathering the means to hold office), farming
   (the good field bought with the good harvest), sport (academies
   recruiting whoever was already ahead), attention online.
@@ -387,10 +289,6 @@ ESSENCE: a tax is what a group does after admitting nobody will
 ROOT: people and power / the free-rider problem answered by
   compulsion, since contributing is irrational for each and vital for
   all at once.
-CANNOT: no funding a non-excludable good voluntarily at scale. And no
-  tax that leaves behaviour unchanged — the dodge, the move, and the
-  shrunken activity are effects as real as the revenue; tax a thing
-  hard enough and you get the behaviour instead of the money.
 THREAD: tobacco duty aiming at behaviour and collecting revenue too,
   window taxes and the bricked-up windows still visible, power (a
   state without revenue is a suggestion).
@@ -402,10 +300,6 @@ ESSENCE: a decision with a named winner and a scattered nameless
   face, no meeting, and nobody to send.
 ROOT: the mind / attention goes to what is concrete and present, and
   a cost split a million ways is invisible to each of the million.
-CANNOT: no fair hearing for a diffuse cost against a concentrated
-  benefit — the loser cannot afford to attend. Which is why the
-  hardest arrangements to remove are those where a few gain much and
-  very many lose a little.
 THREAD: money (tariffs and subsidies), medicine (the visible saved
   patient against the invisible ones a cheaper policy would have
   saved), law (the named victim outranking the statistic).
@@ -419,10 +313,6 @@ ESSENCE: corruption is arithmetic, not character — what a bribe is
 ROOT: premise — behaviour follows incentives; a clerk holding a stamp
   everybody needs is holding a priced asset whether or not anyone
   intended to hand him one.
-CANNOT: no honest system where breaking the rule pays better than
-  keeping it — you cannot exhort a bad sum into a good one. And no low
-  corruption without either narrow discretion or real detection:
-  wishing supplies neither.
 THREAD: enforcement (thin and selective invites exactly this), design
   (a form nobody can complete without a favour is a bribe generator),
   power (patronage as corruption made official and legal).
@@ -433,10 +323,6 @@ ESSENCE: people answer far more to the chance of being caught than to
   and rare, and costs less to run besides.
 ROOT: the mind / a distant, unlikely, enormous cost is discounted
   almost to nothing, while a small certain one is felt every time.
-CANNOT: no deterrence bought with severity where detection is weak —
-  you cannot make an uncaught act expensive. And no cheap substitute
-  for certainty: certainty is the costly half, which is precisely why
-  governments keep reaching for the other one.
 THREAD: hanging for pickpocketing while pickpockets worked the hanging
   crowds, parking meters against parking fines, teaching (a small
   consistent consequence beats an occasional storm).
@@ -449,10 +335,6 @@ ESSENCE: put a price on something that was being done out of duty or
 ROOT: the mind / a fee reclassifies an act from a wrong into a
   transaction, and the shame that had been doing the work is dismissed
   as no longer needed.
-CANNOT: no adding a price to an obligation without converting it into
-  a purchase. And no easy way back — remove the fine afterwards and the
-  old shame does not return, because the framing only had to change
-  once.
 THREAD: blood donation (paid systems collecting less, and worse),
   volunteers offered small sums and doing less, right and wrong (a duty
   and a price are two different species of reason).
@@ -463,10 +345,6 @@ ESSENCE: a legal system is a group's settled fights written down —
   generation does not have to fight for. Law is compressed conflict.
 ROOT: law / like cases must fall alike, run for centuries — a rudder
   built entirely out of yesterdays.
-CANNOT: no cheap disputes without stored answers — a society deciding
-  every quarrel fresh pays the full price every time. And no untested
-  rule that is really law yet: a rule nobody has tried to break has
-  not learned where its own edges are.
 THREAD: language (grammar is precedent nobody voted on), sports (the
   rulebook is thickest exactly where the cheating was), medicine
   (protocols written out of the deaths that taught them).
@@ -478,9 +356,6 @@ ESSENCE: no contract covers everything, so real dealings run on the
   finished.
 ROOT: law / words never fully hold intent, and the gap between the
   text and the meaning is where ordinary goodwill lives and works.
-CANNOT: no agreement complete enough to run on its own text —
-  working strictly to rule is a recognised way of stopping a workplace
-  dead without breaking a single term of it.
 THREAD: making (the drawing never says everything, and the shop fills
   it in), marriage, teams where "not my job" is technically true,
   treaties held together by habit rather than by clause.
@@ -492,10 +367,6 @@ ESSENCE: there is never enough enforcement for all the breaking, so
   learn.
 ROOT: law / a rule without consequence is a suggestion — and the
   budget for consequences is always smaller than the offending is.
-CANNOT: no rule enforced everywhere — the money to catch everyone does
-  not exist. And no harmless unenforced rule: a law on the books and
-  off the street teaches that rules are optional, and hands whoever
-  picks the fraction a weapon.
 THREAD: speed limits obeyed at a number nobody ever wrote, tax audits
   aimed where they are cheap rather than where the money is, schools
   where one class is punished for what another is not.
@@ -507,9 +378,6 @@ ESSENCE: rules are written in the shape of the disaster that already
   wrote a rule for.
 ROOT: evidence / a rule can only encode what has been seen, and an
   unseen kind of failure leaves nothing to write from.
-CANNOT: no rulebook anticipating a kind of failure nobody has met. And
-  no judging a system's safety by the thickness of its rulebook — a
-  thick book records past accidents, not future ones.
 THREAD: making (a margin guards against the size of a surprise, never
   its species), aviation (regulations readable as a list of crashes),
   finance (each rule named for the collapse that produced it).
@@ -521,10 +389,6 @@ ESSENCE: a guard for every citizen would cost more than the citizens
   and force is what gets spent when it runs out.
 ROOT: power / power needs agents and agents cost money; this is that
   bill written out in full.
-CANNOT: no regime affording force against everyone at once — a
-  minority can be compelled, a majority must be persuaded. And no
-  belief created by decree: commanded loyalty is theatre, and theatre
-  does not lower the guard bill by a penny.
 THREAD: occupations that bankrupt their occupiers, tax systems running
   on voluntary filing because auditing everyone is impossible, a
   classroom of thirty held by one adult.
@@ -536,9 +400,6 @@ ESSENCE: the weaker parties combine against the strongest, which makes
 ROOT: power / organised numbers beat scattered ones, so the biggest
   player is also the one everybody else has a reason to organise
   against.
-CANNOT: no permanent alliance without a permanent common enemy. And no
-  dominance that does not recruit its own opposition — winning too
-  visibly is itself a cost, paid later.
 THREAD: strategy (coalitions forming against whoever leads the board),
   companies (rivals cooperating on a standard to check the largest
   one), families, the living world (small birds mobbing a hawk).
@@ -550,10 +411,6 @@ ESSENCE: you can steer what people argue about and the words they
   son who did not come home.
 ROOT: the mind / direct experience outranks testimony; persuasion works
   in the gaps where the audience has no way to check.
-CANNOT: no persuading anyone against what they touch daily — the
-  broadcast cannot beat the kitchen. So propaganda is strongest about
-  the distant and the future and weakest about here and now, which is
-  exactly where regimes lose it.
 THREAD: wartime reporting believed until the wounded come home,
   advertising (strong on feeling, weak on a product that fails twice),
   medicine (no campaign survives a drug that does not work).
@@ -566,9 +423,6 @@ ESSENCE: the worst-off rebel least — misery uses up everything a person
 ROOT: the mind / people judge against a moving reference rather than
   against zero, so the gap between what was expected and what came is
   the grievance that is actually felt.
-CANNOT: no rebellion from the floor — the truly crushed have nothing
-  left to organise with. And no unrest without a reference: where things
-  have always been this bad, this bad is not news.
 THREAD: revolutions that follow reforms rather than crackdowns, strikes
   commoner in good years than in bad, families (the privilege withdrawn
   stings far more than the one never given).
@@ -579,10 +433,6 @@ ESSENCE: an emergency justifies shortcuts, and the shortcuts outlive it
   hand it back, and nobody is eager to declare their own necessity over.
 ROOT: power / power drifts toward concentration, and a crisis removes
   the friction that normally slows the drift.
-CANNOT: no automatic return of emergency powers — the giving back must
-  be done by the holder, or by a rule written before the emergency and
-  enforced by somebody else. And no clean end to an emergency that
-  nobody is required to declare ended.
 THREAD: wartime measures still on the books generations later,
   temporary taxes, the Roman dictator's six months and the men who kept
   it longer, house rules added in a bad year and never lifted.
@@ -594,10 +444,6 @@ ESSENCE: the people inside an organisation depend on it, so its
   rather than stop.
 ROOT: people together / an institution recruits new humans into old
   shapes — and the shape includes its own continuation.
-CANNOT: no organisation dissolving itself on success — a purpose can
-  end, but a payroll has to be ended by somebody outside it. And no
-  honest self-assessment of whether a body is still needed: the
-  assessors are the staff.
 THREAD: charities outliving the disease, committees formed for one
   emergency and meeting for decades, laws still enforced whose reason
   nobody now remembers.
@@ -608,10 +454,6 @@ ESSENCE: the people who built a thing know why every rule is there;
   blindly or delete them without knowing what the rule was holding up.
 ROOT: people together / an institution recruits new humans into old
   shapes, and the shapes travel far better than the reasons do.
-CANNOT: no safe removal of a rule whose reason has been lost — the
-  reason does not stop existing when the memory of it does. And no
-  reason surviving unless it is re-taught: what is not explained each
-  generation is gone in one.
 THREAD: the fence across a field that should not be pulled down until
   you know why it was put up, safety rules written after deaths nobody
   remembers, family customs kept long after their story.
@@ -623,9 +465,6 @@ ESSENCE: a group can only take in new people as fast as it can teach
   wearing the old name.
 ROOT: people together / an institution is re-taught into each arrival,
   and teaching runs at the speed of relationships, not of hiring.
-CANNOT: no growing a culture faster than it can be transmitted. And no
-  restoring it afterwards by writing it down — what was lost is exactly
-  the part that was never written.
 THREAD: companies that doubled their headcount and stopped being
   themselves, armies expanded overnight, schools, immigration arguments
   (which are usually arguments about rate, not about people).
@@ -637,10 +476,6 @@ ESSENCE: the forms, the queues, the identical treatment of unidentical
   kindness at the same time.
 ROOT: power / procedure removes persons from decisions, which is the
   point and the price in one move.
-CANNOT: no impartiality at scale without procedure, and no procedure
-  without cases it handles stupidly. The demand to cut red tape and the
-  demand to be treated the same as everybody else are one demand pulling
-  in opposite directions.
 THREAD: hospitals triaging by rule instead of by sympathy, exams marked
   blind, immigration queues, the small town where everything is easy if
   you are known and impossible if you are not.
@@ -653,10 +488,6 @@ ESSENCE: trust is measured by what nobody has to do — where it is high,
   on no receipt.
 ROOT: money / trust is the real currency — counted here as all the
   checking that never had to happen.
-CANNOT: no cheap dealing without trust — remove it and the substitutes
-  cost real money forever, so a low-trust place is not poor by accident.
-  And no buying trust directly: it is a by-product of many kept promises
-  and cannot be ordered in.
 THREAD: countries where a handshake closes a house sale against those
   where it takes three months, families lending without paper, making (a
   checked-twice process is slower for exactly this reason).
@@ -668,10 +499,6 @@ ESSENCE: the cheat takes the gain once; the suspicion it plants is
   recovering the money, they are defending the discount everyone lives on.
 ROOT: people and power / trust is infrastructure, so damage to it is
   damage to a shared thing rather than to a private one.
-CANNOT: no private betrayal — the harm cannot be kept between the two
-  parties, it is levied on the next thousand deals. And no restoring the
-  old price of a promise once enough have broken: the new price is
-  paperwork, and it is permanent.
 THREAD: one bad contractor and a whole trade is asked for deposits, a
   scam in one village ending lending in it, medicine (one falsified study
   and every later one is doubted).
@@ -683,10 +510,6 @@ ESSENCE: an unhappy member can leave or can complain, and the two work
   worse quietly.
 ROOT: premise — improvement takes effort, and effort is only spent by
   somebody who expects to still be there afterwards.
-CANNOT: no repair pressure from members who can leave at no cost — exit
-  removes the complaint along with the complainer. And no improvement
-  from captivity either: where there is no exit, the complaint can simply
-  be ignored.
 THREAD: schools losing the parents who would have organised,
   neighbourhoods, marriages, the customer who never complains and never
   comes back.
@@ -698,10 +521,6 @@ ESSENCE: the people inside are present every day and the people served
   not from malice: from proximity.
 ROOT: the mind / attention is one beam and the near thing takes it; what
   is measured internally beats what is real externally.
-CANNOT: no group staying outward-facing without an outside force it
-  cannot control — a customer who can leave, an election, a rival, an
-  auditor with no stake in the answer. Self-assessment always grades
-  kindly, so a body judged only by itself will pass.
 THREAD: schools where the paperwork outranks the pupils, armies polished
   in peacetime into parade grounds, software teams shipping what is
   pleasant to build, hospitals optimising whatever is counted.
@@ -714,9 +533,6 @@ ESSENCE: a group of people with perfectly sensible individual
 ROOT: mathematics / preferences ranked by individuals need not combine
   into a ranking at all, so the result is a property of the method as
   much as of the people.
-CANNOT: no voting rule fair in every sense at once. And no neutral
-  agenda — whoever chooses what is voted on, and in what order, holds
-  much of the outcome before a single hand goes up.
 THREAD: committees where the last motion wins, run-off elections changed
   by changing the pairings, sports (seeding decides brackets), the
   meeting chaired by whoever cared enough to chair it.
@@ -729,10 +545,6 @@ ESSENCE: a handover has to move two things at different speeds —
   leaves.
 ROOT: power / legitimacy is belief, and belief attaches to a person or
   to a procedure — there is nothing else fast enough to catch it.
-CANNOT: no succession without a stretch where authority and competence
-  sit in different hands — the overlap can be shortened, never removed.
-  And no group outliving a leader who cannot be replaced: irreplaceable
-  is a diagnosis, not a compliment.
 THREAD: family firms in the third generation, founders unable to name a
   successor because every candidate looks like a rival, monarchies
   inventing rules of inheritance precisely to skip the war.

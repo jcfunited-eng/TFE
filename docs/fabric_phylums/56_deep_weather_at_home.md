@@ -8,8 +8,6 @@ ESSENCE: the calm before a storm is the storm's intake stroke — a
   before the rush (not every storm grants one).
 ROOT: physics / lighter rises through heavier — the storm is a
   chimney, and a chimney has a draw.
-CANNOT: no separating the quiet from the violence — they are one
-  machine; the stillness IS the storm already at work on you.
 THREAD: fire (a great blaze makes its own inrushing wind), sea
   (the drawback before a big wave — water gathered into the
   coming crest).
@@ -22,9 +20,6 @@ ESSENCE: the smell of coming rain is cargo, not mood — drops
   sometimes with an ozone edge pulled down from the heights.
 ROOT: chemistry / a smell is molecules in flight — nothing is
   smelled that did not physically travel to you.
-CANNOT: no rain-smell from a floor that holds none — over open
-  sea or clean rock nothing is kicked up; dry living soil must
-  be loaded first.
 THREAD: farming (the after-rain perfume is the soil's own
   workforce), cooking (beets taste of earth — the same molecule).
 ASKED-AS: rain smell storm coming fresh dirt earthy summer shower pavement dust drops
@@ -35,9 +30,6 @@ ESSENCE: frost picks clear nights because clouds are a blanket —
   lands on that overchilled surface as ice fur.
 ROOT: cooking / heat moves by touch, flow, and glow — a frost
   night is glow with no reply.
-CANNOT: no hard frost under a lid — cloud deck, tree, or carport
-  answers the beam; the car in the open whitens while its
-  neighbor under the tree stays merely wet.
 THREAD: farming (orchard fans stir warm air down to fight the
   beam), desert (cloudless lands scorch by day, freeze by night).
 ASKED-AS: frost windshield clear night scraping car morning white grass lawn cold snap
@@ -48,9 +40,6 @@ ESSENCE: wind has no voice — the howl is manufactured at
   the pitch, so faster wind cries higher.
 ROOT: music / a steady beat on the air IS a tone, whatever drums
   it.
-CANNOT: no howl in the open — over bare smooth ground the gale
-  runs near silent; the rush in an empty field is your own head
-  being the obstacle.
 THREAD: music (flutes and organ pipes are tamed howls — edge
   plus tube, tuned), engineering (the flutter that hums a wire
   can shake a bridge to pieces).
@@ -63,10 +52,6 @@ ESSENCE: hail is a summer stone because only summer heat drives
   winter's shallow, gentle clouds cannot lift a pea.
 ROOT: physics / lighter rises through heavier, driven to
   violence by summer's hot floor.
-CANNOT: no great hail from a mild cloud — a stone falls the
-  instant the updraft can no longer carry it; every hailstone is
-  a certificate of the wind that held it. Winter's sleet forms
-  by falling through cold layers, not by being held up.
 THREAD: aviation (these updrafts are why airliners go around
   storms, never through), geology (rings as diary — hailstones
   and tree trunks, one trick).
@@ -79,9 +64,6 @@ ESSENCE: morning fog is cloud parked on the grass, born of the
   noon.
 ROOT: this file / frost's clear-night beam — fog is its other
   child, repossessed at daybreak.
-CANNOT: no burning off what keeps arriving — fog fed by warm wet
-  air crossing a cold sea ignores noon entirely; the sun evicts
-  only fog whose supply has stopped.
 THREAD: sea (coastal fog that owns whole summer days), aviation
   (valley airports scheduled around late-morning clearing).
 ASKED-AS: fog morning burn off lifting valley mist drive headlights noon clearing airport
@@ -92,9 +74,6 @@ ESSENCE: lightning and thunder leave together — light arrives
   seconds to the rumble, divide, and the storm is ranged.
 ROOT: physics / every messenger has a speed — sound is only a
   shove passed molecule to molecule.
-CANNOT: no thunder first, ever; and no silent lightning — the
-  "heat lightning" of summer nights is an ordinary storm past
-  roughly 20 km, its sound spent before arrival.
 THREAD: sea (the old cannon-flash ranging trick — the same
   arithmetic), fireworks (bloom then boom, the lesson free every
   July).
@@ -107,9 +86,6 @@ ESSENCE: humid heat feels hotter because the body's cooler is
   correction).
 ROOT: deep column 50 / evaporation is the fastest escape — here
   with the door jammed.
-CANNOT: no cooling from sweat that drips — a soaked shirt is
-  coin spent on nothing; and past a real heat-plus-humidity line
-  a resting body in shade cannot shed its own warmth at all.
 THREAD: survival (that line is the hard bound of livable
   climate), desert (dry 45°C is survivable with water — the same
   law's kinder face).
@@ -120,9 +96,6 @@ ESSENCE: cold air is heavier air — open an upright freezer and
   freezer barely spills, its cold lying in the box like a liquid
   with the lid on top.
 ROOT: physics / lighter rises through heavier — read downward.
-CANNOT: no pouring uphill — the spilled cold cannot climb back
-  in; an open upright is a running drain, an open chest a still
-  pond, which is why market freezers are chests.
 THREAD: farming (orchards planted off the valley floor, where
   draining cold pools and kills), mountains (evening wind
   pouring off cooling slopes — the same spill at landscape

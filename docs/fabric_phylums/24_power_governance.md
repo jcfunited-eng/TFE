@@ -7,10 +7,6 @@ ESSENCE: no ruler rules alone — every order is executed by chains
   that those hands will obey.
 ROOT: premise — one body can compel almost nothing; scale
   requires borrowed hands.
-CANNOT: no command survives its executors' refusal — when the
-  soldiers stand still, the order is noise; collapsed regimes end
-  exactly here. And no coercing the coercers all the way down —
-  someone at the bottom obeys for another reason.
 THREAD: money (currency is orders that sellers agree to honor),
   war (armies dissolve by desertion before defeat), computing (a
   password is authority only where the system obeys it).
@@ -22,9 +18,6 @@ ESSENCE: legitimacy is the shared belief that this power is
 ROOT: power + governance / power needs agents — agents obey
   cheaply only while they believe. UNSURE at the edge: near-pure
   fear has run for decades, expensively.
-CANNOT: no ruling by force alone for long — coercion costs more
-  than it extracts, and the guards need guarding, without end.
-  And belief cannot be decreed — commanded loyalty is theater.
 THREAD: money (paper money IS this — valuable because believed),
   meaning + ritual (crowns, oaths, anthems: machinery for making
   the belief felt), law (courts own no army; compliance is
@@ -36,10 +29,6 @@ ESSENCE: whoever controls what is known controls much of what can
   story); every power reaches for all three.
 ROOT: the mind / seeing is guessing — rule the inputs and you
   rule many verdicts.
-CANNOT: no perfect control of information — it leaks, copies, and
-  jumps walls; censorship is a race the censor slowly loses. But
-  the mirror holds too: no subject can act on what they cannot
-  learn.
 THREAD: war (reconnaissance and deception decide before contact),
   money (insider knowledge is banned because decisive), computing
   + information (a whole field named for this law).
@@ -51,9 +40,6 @@ ESSENCE: power drifts toward concentration — office gathers the
   needs maintenance like any dam.
 ROOT: people together / the ladder regrows. UNSURE at depth;
   observed from empires to condo boards.
-CANNOT: no arrangement of power maintains itself unattended —
-  written rules cannot self-enforce; agents must uphold them
-  against their own interest, or they are parchment.
 THREAD: money (wealth compounds by the same drift), farming (the
   monoculture crowds the field), cleaning + maintenance
   (this dam needs upkeep like any other).
@@ -65,9 +51,6 @@ ESSENCE: succession is the perennial crisis — the moment between
 ROOT: power + governance / legitimacy is belief — belief attaches
   to a person or a procedure; when the person dies, only
   procedure can catch the crown.
-CANNOT: no strongman system solves succession — personal loyalty
-  cannot be bequeathed; the empire splits, the sons war. The
-  founder cannot will what only he was believed to be.
 THREAD: money (family firms wobble at handover — UNSURE on the
   rates), meaning + ritual (coronations exist to seam the gap
   fast), story + drama (Shakespeare's histories are this crisis
@@ -80,9 +63,6 @@ ESSENCE: procedure is a machine for removing persons from
   the prediction.
 ROOT: people together / past the village, trust must be borrowed
   — rules are trust for strangers.
-CANNOT: no removing persons fully — every rule meets a case it
-  never imagined, and a person judges the gap; discretion cannot
-  be abolished, only moved and watched.
 THREAD: law + agreements (the whole field is this machine), money
   (capital flees unpredictable courts, measurably), computing
   (code runs rules with no judge in the gap — its power and its
@@ -96,9 +76,6 @@ ROOT: people together / rung-pain — the messenger has a ladder to
   fall from; the mind / beliefs defend themselves, and power
   removes its correctors. UNSURE as iron; the pattern fills the
   famine and war records.
-CANNOT: once a messenger is shot, no ruler can buy honest bad
-  news at any price the ruler will pay — that market closes.
-  Absolute power cannot know what it rules.
 THREAD: money (the boss's dashboard tells the same lies at
   company scale), war (armies lie upward until the front
   collapses), medicine (patients soften symptoms for fearsome
@@ -111,9 +88,6 @@ ESSENCE: rule endures by keeping rivals divided — the many who
 ROOT: power + governance / power needs agents — organized numbers
   win, so organization is the whole battlefield. UNSURE as iron;
   strong as pattern.
-CANNOT: an unorganized majority cannot outweigh an organized
-  minority, whatever the arithmetic says — numbers without
-  coordination are not power.
 THREAD: war (defeat in detail — beat the armies one at a time),
   money (a cartel versus scattered customers), people together
   (the single ally who breaks the spell — organizing is that, at
@@ -125,10 +99,6 @@ ESSENCE: every government runs on extraction — tax, levy, or
   justice, defense) that paying beats the alternatives on offer.
 ROOT: premise — governing costs, and someone always pays; money +
   trade underneath. UNSURE as framing; the pattern is very old.
-CANNOT: no state without revenue. And no extracting past the
-  point where hiding, fleeing, or revolting costs less than
-  paying — fallen dynasties are the record of where that point
-  was.
 THREAD: farming (the first states rose where grain could be
   counted and carted, UNSURE), money
   (inflation is a tax nobody voted on), law (the bargain's

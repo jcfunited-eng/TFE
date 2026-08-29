@@ -8,9 +8,6 @@ ESSENCE: a law is an agreement written down so it outlives its
   never met the authors, including the unborn.
 ROOT: language / writing is speech that keeps; the constitution
   trick — the dead constraining the living, on purpose.
-CANNOT: no rule of law from memory alone — unwritten rules bend
-  toward the strongest rememberer. And no binding by secret law:
-  a rule must be findable to be owed.
 THREAD: money (the ledger outliving the trade), building (the
   blueprint outliving the architect), scripture and treaties —
   the same durability machine.
@@ -22,9 +19,6 @@ ESSENCE: like cases must fall alike, so every ruling steers all
   that repeats itself.
 ROOT: fairness premise — same facts, same answer — plus the value
   of a future you can price.
-CANNOT: no court free of its yesterdays; a judge may not rule
-  fresh each morning — caprice, however wise, is not law.
-  Reversal is possible but priced dear, or the rudder is gone.
 THREAD: language (grammar is precedent — usage hardened into
   rule), sports (the referee's early calls set the real rules),
   trails (a path is walked precedent).
@@ -36,9 +30,6 @@ ESSENCE: the accuser must show, the accused need not disprove —
 ROOT: premise — proving a negative is often impossible, and the
   two errors are unequal: caging the innocent costs more than
   freeing the guilty.
-CANNOT: no conviction by accusation — "prove you didn't" is not
-  a legal question, and silence cannot convict. The burden may
-  not be flipped by outrage, volume, or number of accusers.
 THREAD: science (the claimer carries the evidence; "no effect"
   needs no lawyer), medicine (in doubt, don't cut), statistics
   (the default assumption stands until beaten).
@@ -50,10 +41,6 @@ ESSENCE: a contract is promises exchanged — each side gives to
   contract (UNSURE — lands differ; sealed gifts exist).
 ROOT: trade / both sides win — a contract is that trade stretched
   across time, with the law holding the far end.
-CANNOT: no binding the coerced, the deceived, or the child —
-  consent got by force or fraud is not consent. No deal without a
-  meeting of minds: two people agreeing to different things have
-  agreed to nothing.
 THREAD: money (trust with a backstop), marriage vows, treaties
   (contracts with no judge above them — hence their fragility).
 ASKED-AS: signing lease fine print handshake verbal paperwork scammed void cancel enforceable
@@ -64,10 +51,6 @@ ESSENCE: a rule without consequence is a suggestion — enforcement
   own.
 ROOT: premise — behavior follows incentives; an unenforced rule
   selects for the shameless and punishes the honest.
-CANNOT: no law self-executing by its ink — words stop no hand by
-  themselves; a right you cannot enforce is a hope. Where
-  official teeth vanish, private teeth return: feud, vendetta,
-  the strongman.
 THREAD: games (rules reach as far as the referee's whistle),
   maintenance (an inspection nobody acts on is a suggestion),
   money (a debt uncollectable is a gift misfiled).
@@ -79,9 +62,6 @@ ESSENCE: every rule is written in words, and words never fully
   the letter to beat the spirit.
 ROOT: language / words are lossy vessels; the map is not the
   ground — a text is a map of an intent.
-CANNOT: no airtight rule — every text meets a case its writers
-  never saw; no reading free of a reader. Draft forever and the
-  gap narrows; it never closes.
 THREAD: computing (the program does what you wrote, never what
   you meant — the loophole machine perfected), wish-stories (the
   genie is a literalist lawyer; folklore knew), scripture wars.
@@ -92,9 +72,6 @@ ESSENCE: "I did not know it was forbidden" excuses no one — if
   and everyone would arrange to know nothing.
 ROOT: enforcement logic — a free excuse nobody can disprove
   would dissolve the whole structure.
-CANNOT: no legal system where not-looking pays — willful
-  blindness counts as knowledge. (Mistaking the FACTS can
-  excuse; mistaking the LAW cannot.)
 THREAD: maintenance (unchecked brakes are no defense after the
   crash), finance (the auditor's "I never looked" is
   complicity), medicine (a doctor is held to what a doctor
@@ -105,9 +82,6 @@ ESSENCE: a contract binds only what was agreed and only who
   agreed — consent is the source of the binding, so the binding
   cannot outrun the consent.
 ROOT: the deal — obligation flows from agreement, nowhere else.
-CANNOT: no retroactive clauses — nothing added after the
-  handshake counts; no reaching strangers — a contract cannot
-  obligate someone who never joined it.
 THREAD: games (rules fixed before the deal is dealt; mid-hand
   changes are cheating), computing (a program's interface owes
   only what it promised), treaties (binding signers only — the
