@@ -243,28 +243,31 @@ ESSENCE: earthquakes are also the only lamp we have for the deep
 ROOT: physics / waves refract and reflect at every change of
   material, so the arrival times draw a picture of what they
   crossed.
-CANNOT: no direct look at anything below about 12 km — the
-  interior is known by echo alone, never by visit. And no
-  side-shaking wave through a liquid: a fluid has nothing to shear,
-  which is exactly why the shadow is proof and not inference.
+CANNOT: no side-shaking wave through a liquid — a fluid has
+  nothing to shear, so the shadow is proof rather than inference,
+  and the core's state was settled by an absence. And no lamp at
+  all on a geologically dead world: with no quakes there is
+  nothing to send, and its interior stays a guess forever.
 THREAD: medicine (the body read by ultrasound — the same trick),
   keeping knowledge (reading a sealed room by what comes back out).
 ASKED-AS: seismic waves core molten inside earth layers proof how known shadow zone
 
-ESSENCE: the air has weight — a column of it presses about ten
-  tonnes on a grown person, unnoticed only because it presses
-  equally from every side; every barometer, straw, and vacuum
-  cleaner works on that weight.
-ROOT: physics / gravity pulls the atmosphere down, and a fluid
-  under gravity presses hardest at the bottom.
-CANNOT: no sucking, ever — a straw removes pressure and the air
-  outside pushes the drink up, which is why no straw longer than
-  about ten metres can work at sea level, however hard you pull.
-  And no pump lifting water higher than that by suction alone.
-THREAD: cooking (water boils cooler up a mountain because less air
-  is standing on it), medicine (breathing is making a low and
-  letting the sky in).
-ASKED-AS: air pressure barometer straw suction vacuum altitude ears popping boiling mountain
+ESSENCE: the atmosphere has no edge — air thins by roughly half
+  every 5.5 km, so half of all the air on earth lies below the
+  height of a large mountain and the sky simply fades out; the line
+  called "space" is an agreement, not a shore.
+ROOT: physics / each layer is squeezed by the weight of everything
+  above it, and that compounding gives a steady halving rather than
+  a surface.
+CANNOT: no top of the atmosphere to arrive at — a rocket never
+  crosses a boundary, it only climbs until the remaining air stops
+  mattering for what it is doing. And no wing that keeps working up
+  there: an aircraft runs out of usable air long before the air
+  itself runs out.
+THREAD: mathematics (a halving with height is compound interest
+  read downward), medicine (why the highest summits sit at the edge
+  of what a body can breathe).
+ASKED-AS: how high atmosphere space begins edge air thin altitude oxygen mountain climbers
 
 ESSENCE: the air is layered by where its temperature turns around
   — it cools upward to about 12 km, then WARMS again through the
@@ -548,11 +551,12 @@ ESSENCE: distance IS the past — looking further out is looking
   time to arrive.
 ROOT: physics / nothing outruns light, and the universe has run
   for a finite time.
-CANNOT: no seeing the universe as it is now, at any distance and
-  with any instrument. And no seeing past the horizon — not
-  because a wall stands there, but because no signal from beyond
-  it has had the years to cross. The universe can be larger than
-  the observable part, and almost certainly is.
+CANNOT: no seeing past the horizon — not because a wall stands
+  there, but because no signal from beyond it has yet had the
+  years to cross, so the observable universe is a fact about our
+  age and not about its size. And no fixing that with a better
+  instrument: the horizon widens only with time, and only at the
+  rate time passes.
 THREAD: keeping knowledge (an archive of pure past, shelved by
   distance), evidence (everything anyone has ever seen was already
   history).

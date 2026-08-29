@@ -409,20 +409,22 @@ THREAD: engineering (feedback control got its great use here),
   (every machine needed this before it could exist).
 ASKED-AS: electricity factories motors wiring homes appliances grid power distribution shaft belts
 
-ESSENCE: interchangeable parts came before the assembly line and
-  made it possible — once every part is made to a tolerance rather
-  than fitted by hand, repair stops needing a craftsman and
-  assembly stops needing judgement.
-ROOT: engineering / no part is made exact; the trick is budgeting
-  the misses so that any part fits any assembly.
-CANNOT: no interchangeable parts without accurate measurement and
-  machine tools that hold a tolerance — the idea is old and had to
-  wait on the gauge. And no field repair of hand-fitted goods: a
-  hand-fitted rifle's spare must be filed to that rifle.
-THREAD: measurement (tolerance is where these two fields meet),
-  movement of goods (a standard is a treaty that pays everyone for
-  keeping it), computing (modular parts, same law).
-ASKED-AS: interchangeable parts spare repair standardised guns manufacturing precision fit replacement machine
+ESSENCE: the deep shift was skill moving out of hands and into
+  tooling — once the jig, the gauge, and the machine hold the
+  accuracy, the work can be done by someone who never learned the
+  trade, and a factory can be set up where no trade exists.
+ROOT: measurement / accuracy held by an instrument need not be
+  held by a person; teaching — what a tool guarantees does not
+  have to be taught.
+CANNOT: no rapid scaling wherever the skill lives only in
+  practitioners — a craft workforce cannot be recruited in a hurry
+  or moved abroad, so output stays capped by apprenticeships. And
+  no abolishing the skill: it concentrates instead in the far
+  smaller number of people who build the tools.
+THREAD: craft (mastery relocated rather than destroyed), money
+  (wages follow scarcity, and the scarce skill moved), power
+  (a country can now buy an industry it never grew).
+ASKED-AS: factory unskilled workers craft skill machines jigs training deskilling toolmaker production
 
 ESSENCE: the assembly line moved the work to the worker — instead
   of a man walking around a machine gathering tools, the machine
@@ -708,22 +710,22 @@ THREAD: measurement (definitions doing the work), law (a legal
   an argument about what mattered).
 ASKED-AS: census counting population government records surnames identity categories forms state taxes
 
-ESSENCE: double-entry bookkeeping is an invention, and a
-  load-bearing one — writing every transaction twice makes a lie
-  break a visible balance, which made it safe to hand money to
-  people you could not watch, which is what a large business
-  actually is.
-ROOT: money / the ledger is trade's memory; error correction — a
-  message with spare structure exposes its own corruption.
-CANNOT: no large firm without a way to detect theft at a distance
-  — trust cannot scale past the eye, so commerce stays at arm's
-  reach until the books can testify. And no honest set of books
-  that does not balance: an unbalanced ledger is an error or a
-  crime, and there is no third reading.
-THREAD: computing (checksums are this idea in silicon), law
-  (evidence that accuses itself), people together (borrowed trust
-  is what lets strangers deal).
-ASKED-AS: accounting invented double entry books balance fraud business trust merchants venice records
+ESSENCE: the lasting company needed an invented moment — closing
+  the books on a chosen date and declaring a profit. Before that a
+  venture was wound up at the end of each voyage and the money
+  divided, because finishing was the only way to know how it had
+  gone.
+ROOT: money / a result exists only once the reckoning is done, and
+  a continuing business never finishes anything on its own.
+CANNOT: no permanent enterprise without a periodic reckoning —
+  with no closing date there is no profit to distribute and
+  nothing an absent owner can be paid on. And no exact figure at
+  the cut: the date lands in the middle of everything, so every
+  closing rests on judgements about what counts as finished.
+THREAD: measurement (the chosen window decides the answer), law (a
+  financial year is a legal fact before it is an economic one),
+  money (quarterly figures shaping the behaviour they report).
+ASKED-AS: financial year quarterly results profit declared accounting period books closed dividends reporting
 
 ESSENCE: the company with limited liability is a legal machine for
   pooling risk — it lets many strangers put money into one venture
@@ -909,22 +911,22 @@ THREAD: the living world (evolution works by replacement, not by
   generation).
 ASKED-AS: old guard resist change new generation ideas accepted funerals progress retire younger
 
-ESSENCE: rules arrive after the disaster — almost every safety
-  code, building standard, and financial regulation is a scar,
-  written in response to a specific catastrophe, which is why the
-  rulebook reads as an arbitrary list until you know the stories.
-ROOT: the mind + money / an unrealised risk is discounted to
-  nothing, and the cost of prevention is present while the harm is
-  hypothetical.
-CANNOT: no rule against a harm nobody has yet suffered — the
-  political price cannot be paid before the funeral. And no
-  general rule from a specific disaster: the code guards the exact
-  failure that occurred, and the next one arrives by a route
-  nobody wrote about.
-THREAD: engineering (every fallen bridge rewrote the handbook),
-  medicine (labels listing the harms already done), law (statutes
-  named after victims).
-ASKED-AS: regulations why exist safety rules after accident disaster laws passed reaction prevention
+ESSENCE: rules accumulate and almost never leave — removing one
+  means arguing in public that a past harm was acceptable, and
+  nobody can afford to say that, so every long-lived system grows
+  more encumbered whether or not the encumbrance still helps.
+ROOT: the harm from removing a safeguard lands visibly on whoever
+  removed it, while the cost of keeping it is spread thin across
+  everybody and shows up as nothing in particular.
+CANNOT: no even-handed review of rules — the pressure to add and
+  the pressure to remove are wildly unequal, so pruning happens
+  only in a crisis or a collapse. And no organisation staying as
+  quick as it began: the accumulation is structural, not a failure
+  of anyone's will.
+THREAD: computing (old code nobody dares delete), medicine (drug
+  labels that only ever grow), law (statutes repealed far more
+  rarely than they are passed).
+ASKED-AS: rules pile up red tape never removed forms process slower organisation older
 
 ESSENCE: prediction is mostly the present, stretched — forecasts
   scale up whatever is currently growing and miss the thing that

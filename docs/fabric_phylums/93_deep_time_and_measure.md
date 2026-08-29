@@ -231,9 +231,9 @@ ROOT: the part stands for the whole only through the drawing, and
   the drawing defines which whole.
 CANNOT: no borrowing a sample's authority for a different
   population — results from young men do not transfer to old
-  women, and a study on mice is a study on mice. And no enlarging
-  a sample into a different frame: a million draws from the wrong
-  list is the wrong list, measured well.
+  women, and a study on mice is a study on mice. And no frame that
+  stays valid: the list a sample was drawn from ages, so an old
+  survey describes a country that has since stopped existing.
 THREAD: medicine (trial populations and who the drug was never
   tested on), law (a jury drawn from one district), teaching (a
   method proven in one kind of school).
@@ -340,8 +340,9 @@ ROOT: any score is true level plus a draw, and selecting the top
   of a list selects both, so the draw part cannot repeat.
 CANNOT: no selecting on a noisy measure without over-selecting
   luck, so no chosen top group can fully repeat its showing. And
-  no crediting the intervention that happened to be applied at the
-  extreme: the return to normal was already booked.
+  no measure refined enough to abolish the pull — it shrinks only
+  as the instrument's noise shrinks, which is why the remedy is a
+  better instrument and never a sterner word.
 THREAD: hiring (the star recruit who was partly a good interview
   day), teaching (streaming children by one noisy test), money
   (last year's best fund).
@@ -362,21 +363,22 @@ THREAD: medicine (screening versus diagnosis), law (a matching
   rather than by frequency).
 ASKED-AS: how likely rare common odds before test prior chance population frequency screening
 
-ESSENCE: test a million people for a one-in-ten-thousand condition
-  with a test that is right 99% of the time and you get about a
-  hundred true finds and ten thousand false alarms — so most
-  positives are wrong, and the test is still a good test.
-ROOT: base rates / the healthy crowd is so much larger that its
-  small error rate outnumbers the sick crowd entirely.
-CANNOT: no accuracy figure high enough to fix this if the
-  condition is rare enough — 99.9% only moves the ratio, never
-  reverses it. And no reading a first positive as a diagnosis:
-  screening finds candidates, and only a second, different test
-  decides.
-THREAD: security (an alarm that cries wolf because almost nobody
-  is a threat), law (a one-in-a-million match in a ten-million
-  city), computing (spam filters tuned against this arithmetic).
-ASKED-AS: positive test result wrong false alarm screening mammogram accurate scared retest odds
+ESSENCE: no test can miss less and cry wolf less at the same time
+  — move the line to catch more of the real cases and more of the
+  false ones come across with them, so every setting is a chosen
+  balance between two different ways of being wrong.
+ROOT: the two groups overlap on whatever is being measured, so any
+  line drawn through them cuts into both.
+CANNOT: no threshold that removes both errors, so no setting is
+  "accurate" in the abstract — only chosen, by whichever mistake
+  costs more here. And no honest single accuracy figure: one
+  number has already hidden which of the two errors the test was
+  tuned to avoid.
+THREAD: law (better that ten guilty go free is a threshold picked
+  out loud), security (an alarm sensitive enough to catch
+  everything gets switched off), medicine (screening set to miss
+  little and therefore to frighten often).
+ASKED-AS: test sensitivity threshold missed cases false alarms tradeoff catch everything tuning accuracy
 
 ESSENCE: "significant" is a small word doing a small job — it
   means only that a result is bigger than the wobble luck alone
