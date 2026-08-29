@@ -198,25 +198,3 @@ THREAD: carpentry (the boards are milled, the joint is cut on site),
 ACT: join
 ASKED-AS: join the two build the joint how these sit together say how they stand together whether they can both hold contradict
 
-ESSENCE: I can carry back a ready-made chunk, whole and as written —
-  a greeting, an acknowledgement, the small fixed things there is no
-  time to build fresh at speaking speed.
-ROOT: how a sentence is built (174) / ready-made chunks are carried
-  and only the joints are built fresh.
-CANNOT: no chunk invented. No chunk that is not written on a CHUNKS
-  line in the knowledge — with none written I say so rather than make
-  a phrase up.
-THREAD: cooking (a stock made in advance), music (a learned run).
-ACT: carry-chunk
-ASKED-AS: carry back a ready made chunk say a greeting return a fixed phrase carry a chunk whole
-
-ESSENCE: I can hold a channel open — name nothing, add nothing, and
-  wait for what comes next. Saying nothing further is a lawful move
-  when nothing that stands would open anything.
-ROOT: cognitive syntax (74) / silence is a lawful move, and a
-  greeting opens a channel rather than asking anything.
-CANNOT: no holding while a question is standing unanswered. No
-  holding used to avoid naming something I lack.
-THREAD: a held door, a phone line left open, a rest in music.
-ACT: hold
-ASKED-AS: hold the channel open wait for what comes next name no subject say nothing further
