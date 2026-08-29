@@ -273,3 +273,65 @@ This is not yet production evidence and does not close L-009. Production must
 first restore the same resident organism with this source path mounted, then
 either witness a real contacted opening action and its preserved page surface
 or report the exact missing physical cause without manufacturing one.
+
+## Live receptor-anatomy restore correction and native book grasp
+
+The first contact-bound production observation exposed one exact restore
+defect: the authenticated persistent world retained Guala's pose and every
+lived object value, but its restored `guala-body-1` record carried
+`receptor_geometry=null`. The native closing grip therefore reached
+`GraspContactCommand` and truthfully refused at
+`grasp_contact_geometry_unavailable`. This was not a missing grip, book, or
+learning event; the immutable hand/eye/ear anatomy declared by the live body
+had been omitted when the older world body was restored.
+
+Commit `c55779d5509d914c7169ce916fc1825b642677a8` adds one explicit,
+authenticated, one-way receptor-anatomy migration. It preserves pose, held
+object, active contact, every object, thermal state, and organism identity;
+mounts only a missing constructor-declared receptor geometry; refuses any
+different persisted non-null anatomy; advances the world revision once; and
+rebonds the unchanged thermal state to the migrated world observation. The
+same correction allows a source-bound optical surface to advance while its
+object remains in the body's exact held-object custody. It does not select an
+object, page, source, word, or meaning.
+
+Local evidence was deliberately bounded to the affected boundary:
+
+- all 40 embodiment-world and thermally-coupled-world tests passed;
+- the two native closing/opening grip command proofs passed;
+- `git diff --check` passed before commit.
+
+The hot controller drained the predecessor to zero tasks before admitting the
+candidate, then deployed the commit once as task definition `dsf-ai-task:1338`
+with immutable image digest
+`sha256:7a0884bf61c727d0ca2c8ac76e76c416ab5b1bb7e31958a9c0ebbb32b42254af`.
+It live-verified the unchanged organism identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at or beyond tick `279343`.
+Production contains one desired/running task, zero pending tasks, and one
+deployment.
+
+The live persisted world then proved:
+
+- Guala's exact declared receptor geometry is non-null and durable;
+- the staged physical book remained at `(6314, 4387, 0)` beside her unchanged
+  pose rather than being reconstructed;
+- native tick `279474` carried Guala's own left-grip displacement of `-1`;
+- the world resolved that contact without an object identity in the command;
+- `guala-body-1.held_object_id` and `book.held_by_body_id` both became `book`
+  / `guala-body-1` and remained so through world revision `22683`.
+
+While she held the book, one brief exact Alice sentence was spoken through the
+general grounded tutor-pressure path and then stopped. Its 39,770 signed-16
+samples had SHA-256
+`794abdbf0d2d8e9005ab96829c8ca3de3000618236de48bdccae21f67e557fcd`.
+The same organism settled 103 sensorium hops, 38,975 physically transitioned
+neuron occurrences, 136 complete neuronal fractals, and one native vocal
+response with two self-hearing hops. The request carried pressure only and no
+title, page, word, label, or semantic authority.
+
+No positive grip displacement occurred during the following bounded quiet
+observation. The book remains held and its optical surface remains null.
+Therefore the native grasp half is now live and complete, but L-009 remains
+open for Guala's own opening grip, first source-bound surface transition, and
+the resulting exact visual consequence. No page is credited from the grasp or
+the read-aloud alone.
