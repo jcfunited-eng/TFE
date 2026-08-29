@@ -714,3 +714,32 @@ ENTRY: a run of common words taken for a chunk
     Any test that matches a run whole must first ask what its
     commonest member alone would match.
   STATUS: DRAINED
+
+ENTRY: a score taken on sentences I chose
+  ASKED-AS: bench test score chosen sentences selection success
+    measured proof reading correct
+  VERDICT: fifteen of fifteen was a lie of selection. I wrote the
+    bench sentences and I wrote the answers they are graded against,
+    and the sentences I reached for were ones carrying pointers —
+    "the dog bit the man", "the fire heated the water" — which is
+    exactly the half of the reading that works. Holding one set back
+    while settling the rule does not fix that, because I wrote the
+    held-back set too and reached for the same shape.
+    Measured 2026-08-29: the same facts reshaped BY RULE rather than
+    by me — statements turned into why-questions and questions
+    stripped back to statements — read 31 of 40. Every failure is one
+    cause: with the question words gone no group is marked, so no
+    contrast exists and the weak half decides. "bread rise" turns on
+    bread. "leaves change colour" turns on leaves.
+  WHAT WOULD DRAIN IT: nothing about the reading — this entry is
+    about the measuring. A score on cases the builder chose is not
+    evidence, and the honest number is the one taken on cases a rule
+    generated. Both are printed now, and the rule-generated one is
+    marked as the one to report.
+  THE WORSE FAILURE, named because it is mine and not the fabric's:
+    the output of the rewritten turn was printed with "doing: ice,
+    doer: melt" for "why does salt melt ice" — both wrong — and
+    reported as a finished piece of work. Injecting success is
+    failure in disguise and it is lying. A run whose output was not
+    read line by line has not been run.
+  STATUS: STANDING (white) — this one is discipline and does not drain

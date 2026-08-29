@@ -79,6 +79,38 @@ ROLES = [
 ]
 
 
+def transformed():
+    """The bench sentences reshaped BY RULE, not by me.
+
+    This exists because 15/15 was a lie of selection. I wrote the
+    sentences and I wrote the answers, and I picked sentences that
+    happen to carry pointers, which is exactly the half of the reading
+    that works. Same facts in a shape I did not choose score far
+    worse, and that number is the honest one. Never report the chosen
+    sets without this one beside them."""
+    out = []
+    for s, doing, ab, fb in CASES + HELD_OUT:
+        if not s.startswith(("why", "how", "what")):
+            out.append(("why does " + s, doing))
+            out.append(("what makes " + s, doing))
+        for p in ("why does ", "why do "):
+            if s.startswith(p):
+                out.append((s[len(p):], doing))
+    return out
+
+
+def grade_transformed(F=None):
+    F = F or core.fabric()
+    rows, good = [], 0
+    for sent, doing in transformed():
+        w = wanting.want(sent, F)
+        got = w.get("turns_on") or ""
+        ok = same_word(got, doing)
+        good += ok
+        rows.append((sent, got, doing, ok))
+    return rows, good
+
+
 def grade_roles(F=None):
     F = F or core.fabric()
     rows, good = [], 0
@@ -147,3 +179,10 @@ if __name__ == "__main__":
     for sent, got, ok in rows:
         print(f"  {'ok  ' if ok else 'FAIL'}  {sent:<50} {got}")
     print(f"  {good}/{len(ROLES)} roles read correctly")
+    rows, good = grade_transformed(F)
+    print("\nRESHAPED BY RULE — the number I did not get to choose")
+    for sent, got, want, ok in rows:
+        if not ok:
+            print(f"  FAIL  {sent:<48} -> {got} (want {want})")
+    print(f"  {good}/{len(rows)} read correctly"
+          f"   <-- report THIS one, not the chosen sets alone")

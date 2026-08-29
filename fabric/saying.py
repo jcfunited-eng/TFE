@@ -23,16 +23,37 @@ subject as last turn — and the situation is whatever combination
 survives. Fifteen moves that each fire or do not give many more turns
 than fifteen.
 
-WHOSE: the move list is MINE, on trial. Joe has not seen it and it is
-not ratified. It is in code rather than in the knowledge, which is a
-compromise and the wrong side of the architecture — knowledge is
-meant to be the processor. Moving the moves into the corpus, so a
-move can be added by writing a sentence, is the next step and it is
-named here so it is not quietly forgotten.
+HAND-WRITING IS FORBIDDEN. Every sentence this file used to say was
+written by me — "near enough everything X keeps company with" — so
+the parts were the fabric's and the English was mine, which makes the
+turn my voice wearing its findings. None of that is left. A turn now
+emits only two things: TERMS, which are the words 174 and 74 use for
+the parts of a reading and are read out of those entries at run time,
+and WORDS, which are what the reading and the assembly produced.
+Delete the entries and the terms go with them.
 
-WHAT IT WILL NOT DO: pass stored text off as its own speech. When it
-says something the corpus holds, it says that is what it is doing.
+It reads terse because the fabric has no prose of its own yet. That is
+the true state and it is better than borrowing mine.
 """
+
+
+def terms(F):
+    """The fabric's own words for the parts of a reading, read from
+    the entries that define them rather than typed here."""
+    out = set()
+    for e in F.entries:
+        if e["field"] not in ("how a sentence is built",
+                              "cognitive syntax"):
+            continue
+        m = re.match(r"\s*(?:a|an|the)\s+([a-z][a-z-]*)\s+"
+                     r"(?:is|holds|hangs|says|leans|carries)",
+                     e["essence"].lower())
+        if m:
+            out.add(m.group(1))
+        for w in ("doer", "done-to", "ground", "chunk", "joint"):
+            if w in e["essence"].lower():
+                out.add(w)
+    return out
 import os, re, sys
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
@@ -198,110 +219,66 @@ class Thread:
         self.last_asked_for = None
         self.last_doing = None
         self.met = set()
+        self.terms = terms(self.F)
 
     # ---------- the moves ----------
-    # Each returns the words it would say, or None when it does not
-    # apply. Not applying IS the killing: a move that has nothing to
-    # say under this reading says nothing, and the turn is whatever
-    # survives. Order here is the order a person says things in —
-    # answer the person, then the subject, then what is missing.
+    # Each returns (TERM, WORDS) or None. The term is the fabric's own
+    # word for that part, checked against what 174 and 74 actually
+    # define — a term this code names that the knowledge does not hold
+    # is refused rather than printed, so the vocabulary cannot drift
+    # away from the entries. The words are what the reading produced.
+    # Nothing here is a sentence and nothing here is mine.
+
+    def _t(self, term, words):
+        if term not in self.terms:
+            return None
+        w = [x for x in words if x]
+        return (term, w) if w else None
 
     def m_greet(self, s):
         if s.unread or (not s.no_subject and (s.about or s.kind)):
             return None
         if self.greeted:
-            return None
+            return self._t("turn", list(self.no_subject)[:1])
         self.greeted, self.greeted_on = True, self.turns
-        return ("Hello. You have not given me a subject yet — say "
-                "what you want and I will tell you what I can reach "
-                "and what I cannot.")
-
-    def m_greet_again(self, s):
-        if s.unread or not self.greeted:
-            return None
-        if not s.no_subject and (s.about or s.kind):
-            return None
-        if self.turns == self.greeted_on:
-            return None          # the greeting itself, not a repeat
-        if s.no_subject:
-            return "Hello again."
-        if self.turns == self.greeted_on:
-            return None          # the greeting itself, not a repeat
-        return "Still nothing in that for me to take hold of."
+        return self._t("turn", sorted(self.no_subject)[:1])
 
     def m_unread(self, s):
         if not s.unread:
             return None
-        return f"I could not read that. {s.unread[0]}"
+        return self._t("reading", [])
 
     def m_lean(self, s):
         if not s.leaned:
             return None
-        asked = (f", and you are asking {s.asked_with}"
-                 if s.asked_with else "")
-        return f"Still on {s.leaned}{asked}."
+        return self._t("conversation", [s.leaned])
 
-    def m_thin_nothing(self, s):
-        if not (s.thin and not s.leaned):
+    def m_group(self, s):
+        if s.unread or not s.w.get("groups"):
             return None
-        return ("There is not enough in that on its own, and the "
-                "thread is not standing on anything yet for it to "
-                "lean on.")
+        return self._t("group", s.w["groups"])
 
-    def m_carry_on(self, s):
-        if s.leaned or not (s.same_subject and self.turns):
+    def m_doing(self, s):
+        if not s.turns_on:
             return None
-        return f"Still on {s.subject}."
+        return self._t("doing", [s.turns_on])
 
-    def m_moved(self, s):
-        if s.leaned:
+    def m_doer(self, s):
+        if not s.doer:
             return None
-        if not (self.subject and s.new_subject):
-            return None
-        if self.subject in self.no_subject:
-            return None
-        return f"We were on {self.subject}; you have moved to {s.subject}."
+        return self._t("doer", [s.doer])
 
-    def m_heard(self, s):
-        if not s.about or s.unread or s.leaned:
+    def m_done_to(self, s):
+        if not s.done_to:
             return None
-        what = ", ".join(s.about[:3])
-        # who did what to whom, when the reading has it. This is the
-        # nesting doing its job in the conversation rather than in a
-        # test: without it "the dog bit the man" and "the man bit the
-        # dog" came back as the same turn.
-        if s.doer and s.done_to and s.turns_on:
-            return (f"So {s.doer} is what does it, {s.turns_on} is "
-                    f"what happens, and {s.done_to} is what it "
-                    f"reaches.")
-        if s.kind and s.turns_on:
-            return (f"You want {self._kind_short(s.kind)}, about "
-                    f"{what}, and the sentence turns on {s.turns_on}.")
-        if s.turns_on:
-            return (f"You want something done — {s.turns_on} — and it "
-                    f"is about {what}.")
-        return f"I have this as being about {what}."
+        return self._t("done-to", [s.done_to])
 
     def m_forbids(self, s):
         if not s.forbidden:
             return None
-        f = ", ".join(s.forbidden)
-        return (f"You have ruled out {f}, so that is a limit on what "
-                f"I may use, not a place to go looking.")
-
-    def m_guessing(self, s):
-        if s.leaned or not (s.guessing and s.turns_on and s.about):
-            return None
-        return (f"I am not sure {s.turns_on} is the word it turns on. "
-                f"Nothing in that sentence marked one part off "
-                f"against another, so I went on how the writing "
-                f"usually runs, which is the half of me that is "
-                f"weaker.")
+        return self._t("ground", ["not:"] + s.forbidden)
 
     def m_sense(self, s):
-        """What the word is carrying HERE, produced from the company
-        standing with it. Said only when the company actually marks
-        something off, and it says how thin the ground under it was."""
         if s.leaned or not s.senses:
             return None
         best = None
@@ -312,23 +289,9 @@ class Thread:
         if not best or best[1]["near"] < 3:
             return None
         w, sn = best
-        return (f"Taking '{w}' the way this company puts it — "
-                f"{', '.join(sn['marks'][:4])} — off {sn['near']} of "
-                f"the {sn['seen']} places I have it.")
-
-    def m_no_ground(self, s):
-        if not s.about or s.ground:
-            return None
-        return (f"I hold nothing about {', '.join(s.about[:2])}. Not "
-                f"that it is unanswerable — there is no ground "
-                f"written under it in me.")
+        return self._t("sense", [w + ":"] + sn["marks"][:4])
 
     def m_between(self, s):
-        """The content of the turn, assembled. Where the things this
-        sentence puts together actually meet in the writing — built
-        against this pair, so it is not a stored sentence and not an
-        entry. Said before anything fetched, because it is the part
-        that was made."""
         parts = [p for p in (s.doer, s.turns_on, s.done_to) if p]
         if len(parts) < 2:
             parts = s.about[:2]
@@ -339,118 +302,46 @@ class Thread:
         ground = (j or {}).get("ground") or []
         key = (core.stem(a), core.stem(b))
         if key in self.met and ground:
-            # said already; go a step out rather than repeat it
             out = FR.beyond(a, b, ground)
-            if len(out) >= 2:
-                return (f"Past that, what stands with the ground "
-                        f"between {a} and {b} but not with either of "
-                        f"them: {', '.join(out)}. Two steps out, and "
-                        f"still nothing of mine written down.")
-            return None
+            return self._t("ground", [a + "+" + b, "past:"] + out) \
+                if len(out) >= 2 else None
         self.met.add(key)
-        if not j or j["kind"] == "apart":
-            return (f"I have {a} and {b} and the writing never stands "
-                    f"them together, so I have no ground where they "
-                    f"meet.")
-        made = (f" I put that together just now from what each keeps "
-                f"company with — no one thing written in me says it.")
-        # the bearing is a finding on its own. Withholding it because
-        # the shared words are few threw away the answer to "is a dog
-        # an animal" in every case where the two are rarely written
-        # in one line, which is most of the interesting ones.
-        where = (f" They meet on {', '.join(ground)}."
-                 if len(ground) >= 2
-                 else " They share too little written down for me to "
-                      "say where.")
-        # NO BEARING CLAIM. It was reasoned rather than measured,
-        # scored an unrelated pair the same as a true one, and is
-        # retracted — 174 carries the falsification. What is left is
-        # the meeting ground, which is counted and is only ever
-        # claimed to be what it is: where the writing puts these two
-        # near each other.
-        if len(ground) < 2:
-            return (f"I have {a} and {b} and the writing puts too "
-                    f"little near both of them for me to say where "
-                    f"they meet.")
-        return (f"Where {a} and {b} meet in what I hold: "
-                f"{', '.join(ground)}.{made} What I cannot tell you "
-                f"is HOW they sit with each other — I had a way of "
-                f"telling that and it turned out to be measuring "
-                f"which word is commoner.")
+        return self._t("ground", [a + "+" + b] + ground)
 
-    def m_offer(self, s):
-        if not s.ground:
+    def m_guessing(self, s):
+        if s.leaned or not (s.guessing and s.turns_on):
             return None
-        for e in s.ground:
-            if e["id"] in self.offered:
-                continue
-            self.offered.add(e["id"])
-            line = e["essence"].rstrip(".")
-            return (f"What is written in me on that: {line}. "
-                    f"That sentence was already in me before you "
-                    f"asked — I did not work it out just now.")
-        return ("What I hold on that I have already said in this "
-                "conversation, and saying it again would add nothing.")
+        return self._t("pointer", ["none"])
 
-    def m_ask_back(self, s):
-        if s.unread or not s.about:
-            return None
-        if s.kind and s.ground:
-            return None
-        if s.forbidden and not s.ground:
-            return (f"What is it FOR? You have told me what I may not "
-                    f"use and what it is about, and not what would "
-                    f"count as having done it.")
-        if not s.kind:
-            return (f"What would count as an answer — how it is done, "
-                    f"or why it happens, or what it is?")
-        return None
-
-    def m_nothing(self, s):
-        return None
-
-    MOVES = ["m_unread", "m_greet", "m_greet_again",
-             "m_lean", "m_thin_nothing", "m_carry_on",
-             "m_moved", "m_heard", "m_forbids", "m_guessing",
-             "m_sense", "m_between", "m_no_ground", "m_ask_back"]
-    # m_offer is written below and is deliberately NOT in this list.
-    # It handed over a stored sentence, which is retrieval however it
-    # is labelled, and it wandered — asked about a dog biting a man it
-    # offered an entry on how elephants shed heat. The content of a
-    # turn is now assembled by m_between from where the sentence's own
-    # parts meet, and no single entry holds what that produces. Kept
-    # in the file so the thing it was is on the record.
-
-    @staticmethod
-    def _kind_short(kind):
-        k = kind.split(".")[0].split("—")[0].strip()
-        return k[:60] if k else "an answer"
+    MOVES = ["m_unread", "m_greet", "m_lean", "m_group", "m_doing",
+             "m_doer", "m_done_to", "m_guessing", "m_forbids",
+             "m_sense", "m_between"]
 
     # ---------- the turn ----------
     def turn(self, text):
         s = Said(text, self, self.F)
         out = []
         for name in self.MOVES:
-            said = getattr(self, name)(s)
-            if said and said not in self.spoken[-4:]:
-                out.append(said)
+            got = getattr(self, name)(s)
+            if not got:
+                continue
+            line = got[0] + ": " + " ".join(got[1])
+            if line not in self.spoken[-6:]:
+                out.append(line)
         if not out:
-            out = ["I have nothing to say to that which I have not "
-                   "already said."]
+            out = ["ground: none"]
         self.spoken.extend(out)
         self.turns += 1
         if s.subject:
             self.subject = s.subject
         if s.turns_on and not s.leaned:
             self.last_doing = s.turns_on
-        return " ".join(out)
+        return "\n".join(out)
 
 
 def main():
     F = core.fabric()
     t = Thread(F)
-    print(f"{len(F.entries)} things written. One thread. "
-          f"Empty line to stop.\n")
     while True:
         try:
             line = input("> ").strip()
