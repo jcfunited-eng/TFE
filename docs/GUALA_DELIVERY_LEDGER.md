@@ -76,6 +76,18 @@ tick `272538`. The complete current source/runtime/capability reconciliation is
   carried charge during unattended articulation. This is a physically learned
   apple-associated vocal form; human-audible intelligibility as the spoken word
   `apple` remains the final unproven boundary.
+- A later unattended articulation at tick `274210` emitted 28,000 exact native
+  pressure samples under SHA-256
+  `7f0430212c6f1ac5ce52716ec235c47630032e1e3a516930a7b0e9f8eb308f0a`
+  and returned them through seven self-hearing hops. The raw 1.75-second WAV
+  peaks at only `-58.1 dBFS`, explaining why ordinary browser playback is
+  effectively inaudible. An observer-only copy amplified by exactly `+49 dB`
+  has SHA-256
+  `df45faf391bedc646d8ff1f53fa47cce59a22c946f4cc07cf29155610c640425`
+  and changes neither native pressure nor cognition. Its spectrum contains
+  several separated voiced-pressure bursts, but neither the spectrum nor the
+  known apple route is accepted as proof that a human listener hears the word
+  `apple`; that final acoustic judgment remains open.
 
 ### Varied live counting-song experience — 2026-08-29
 
