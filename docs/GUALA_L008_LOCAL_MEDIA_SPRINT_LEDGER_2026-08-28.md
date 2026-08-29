@@ -211,3 +211,30 @@ Duplicate, ceiling, and post-restart custody acceptance also remain open.
 Status remains **Partial**. Picture, book, ordinary audio, and song now have
 direct live transition evidence. PDF remains custody-only in this ledger;
 video, duplicate, ceiling, and post-restart custody acceptance remain open.
+
+## Task-1322 PDF live and source-restore evidence — 2026-08-29
+
+- The previously retained one-page elephant PDF was verified through the
+  explicit custody-record route after later task restarts. Its 4,722,587 source
+  bytes rehashed to
+  `76681add460c228ea30e525f7524905ceb93adf325cda9426d41109345ea6372`,
+  proving exact source restoration for that retained record. No visual
+  transition is inferred from that custody fact.
+- A separate original one-page geometric PDF was then presented once so the
+  PDF sensory boundary had direct evidence. It contains only colored geometric
+  shapes, not semantic text. Exact source: 19,634 bytes, SHA-256
+  `5be70b9a4e11f5b27dd8c19c7aa14d047f5534ab58e905a71086a9ccd4f073db`;
+  custody receipt
+  `aaf1a15d92b13dc8baf1c4b80feb6a66e26d288f7b5270cef2ddf694b41b8511`.
+- The request returned HTTP 200 in 28.827 seconds and committed one rendered
+  page as `offered-pdf` at organism tick `260292`. Across eight
+  whole-sensorium hops it carried 108 sight-source inputs, 7,605 physically
+  transitioned neurons, 51 complete-neuron-fractal occurrences, and 369
+  partial-cue reassemblies with no energy exhaustion. Causal-transition
+  receipt:
+  `3c3ebd3f14564e86c673276dc4c71e07e052b16286bdf9f67896f838ef0c4d2e`.
+
+Status remains **Partial**. Picture, PDF, book, ordinary audio, and song now
+have direct live transition evidence, and one retained PDF source has passed
+exact post-restart rehash. Video, duplicate idempotence, and configured ceiling
+refusal remain open.

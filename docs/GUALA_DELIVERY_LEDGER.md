@@ -749,9 +749,10 @@ completed on 2026-08-29 with one task and verified native CURRENT beyond tick
   exist for picture, book, ordinary audio, and song; the task-1322 audio occurrence
   carried 19,200 pressure samples through 22 hops at tick 260138 and retained
   its exact 38,478 source bytes. A separate licensed song phrase committed 49
-  hops at tick 260214 and retained its exact 76,878 source bytes. PDF custody
-  exists without direct transition evidence in the current ledger; video,
-  duplicate, ceiling, and restart acceptance remain open.
+  hops at tick 260214 and retained its exact 76,878 source bytes. A one-page
+  geometric PDF then committed 108 sight inputs at tick 260292; the separately
+  retained elephant PDF rehashed exactly after restart. Video, duplicate
+  idempotence, and ceiling refusal remain open.
 - [ ] **L-009** Connect guided and self-selected Project Gutenberg experiences.
 - [ ] **L-010** Connect guided and self-selected Khan Academy experiences.
 - [ ] **L-011** Connect guided and self-selected YouTube experiences.
