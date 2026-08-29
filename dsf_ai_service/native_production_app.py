@@ -6480,8 +6480,9 @@ def _build_public_observation_from_snapshot(
         "organism": _section(
             True,
             "native_current_with_admitted_sensory_transitions",
-            "native state is restored; admitted curriculum and mono auditory "
-            "transitions are mounted; autonomous thought and action are not",
+            "native state is restored and admitted sensory transitions are "
+            "mounted; current thought, action, consequence, and articulation "
+            "evidence is reported only by its dedicated sections below",
             physical_transition_claimed=native["physical_transition_claimed"],
             state_bytes=native["state_bytes"],
             tick=native["organism_tick"],
