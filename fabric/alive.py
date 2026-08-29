@@ -49,6 +49,8 @@ WALK_FLOOR = 120       # beats that must pass before ANY second walk;
                        # the life spent all of it walking
 LIVING = 8             # ribbons held at once
 MEET_PAIRS = 6         # meetings looked at per beat
+MINT_EVERY = 5         # beats between attempts to write a new claim
+MINT_BUDGET = 8.0      # a minting beat gets room to finish
 CHECKPOINT_EVERY = 20
 
 STOP = False
@@ -136,7 +138,7 @@ def restock(F):
         qs = standing.all_standing(F, kinds)
     except Exception as e:
         log(f"the walk for standing questions failed ({e})")
-        return []
+        return [], []
     out = []
     for q in qs:
         asking = wording(q)
@@ -144,7 +146,7 @@ def restock(F):
             out.append(asking)
     log(f"walked the structure in {time.perf_counter() - t0:.0f}s — "
         f"{len(qs)} questions standing, {len(out)} of them sayable")
-    return out
+    return out, qs
 
 
 def wording(q):
@@ -187,10 +189,15 @@ class Clock:
         return self.left() <= 0
 
 
-def beat(F, s, pool, live):
-    clock = Clock(BEAT_BUDGET)
+def beat(F, s, pool, live, qcache=None):
     s["beats"] += 1
     b = s["beats"]
+    # Minting is the only step that adds anything, and it was last in
+    # the queue, so reading spent the whole budget and it never ran
+    # once — not even far enough to refuse. It now gets its own beat,
+    # with room to finish, one in every MINT_EVERY.
+    minting_beat = (b % MINT_EVERY == 0)
+    clock = Clock(MINT_BUDGET if minting_beat else BEAT_BUDGET)
 
     # 1. lay ribbons on askings not yet taken up
     asked = set(s["asked"])
@@ -243,14 +250,22 @@ def beat(F, s, pool, live):
     #    own possible; this is the other face, under the same law —
     #    un-aimed, verified after, and reached by a question already
     #    standing. Bounded: one walk, at most one claim per beat.
-    if read_this_beat is not None and not clock.spent():
+    if minting_beat and read_this_beat is not None:
         try:
             import minting
             stood, _closed, err = read_this_beat.travel(
                 steps=2, width=5, F=F)
             if stood and not clock.spent():
-                made, _ref = minting.mint_claims(
-                    stood, questions=None, limit=1)
+                # Pass the questions the life already holds. With
+                # questions=None it re-walked the whole structure on
+                # every beat — twenty seconds inside a two-second
+                # budget — so the step was silently never affording
+                # to finish.
+                made, ref = minting.mint_claims(
+                    stood, questions=qcache, limit=1,
+                    reacher=read_this_beat.asking)
+                if not made and ref:
+                    s["refused"] = s.get("refused", 0) + len(ref)
                 for m in made:
                     s["minted"] = s.get("minted", 0) + 1
                     log(f"beat {b}: MINTED a claim nobody wrote — "
@@ -320,7 +335,7 @@ def run():
          f"({s['read']} questions read so far)"
          if resumed else "FIRST BREATH"))
     F = core.fabric()
-    pool = restock(F)
+    pool, qcache = restock(F)
     live = []
     for asking in s.get("living", [])[:LIVING]:
         try:
@@ -332,7 +347,7 @@ def run():
     last_restock = s["beats"]
     while not STOP:
         try:
-            live = beat(F, s, pool, live)
+            live = beat(F, s, pool, live, qcache)
         except Exception as e:
             log(f"beat {s['beats']} fell over "
                 f"({type(e).__name__}: {e}) — still alive")
@@ -351,7 +366,7 @@ def run():
         due = s["beats"] - last_restock >= RESTOCK_EVERY
         if (hungry or due) and s["beats"] - last_restock >= WALK_FLOOR:
             F = core.fabric().fresh()
-            found = restock(F)
+            found, qcache = restock(F)
             unseen = [a for a in found if a not in set(s["asked"])]
             if not unseen and found:
                 s["asked"] = []
@@ -366,7 +381,8 @@ def run():
                 f"laid, {s['read']} questions read, "
                 f"{s['closed']} readings closed, "
                 f"{s['openings']} openings, "
-                f"{s.get('minted', 0)} claims minted, "
+                f"{s.get('minted', 0)} claims minted "
+                f"({s.get('refused', 0)} refused by the law), "
                 f"{len(live)} living")
         for _ in range(int(REST * 10)):
             if STOP:

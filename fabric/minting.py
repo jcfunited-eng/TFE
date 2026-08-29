@@ -226,7 +226,7 @@ def claim_candidates(F, entries, limit=24):
     return out
 
 
-def mint_claims(entries, questions=None, limit=3):
+def mint_claims(entries, questions=None, limit=3, reacher=None):
     """Write the joints that survive the law. Returns what was
     written, and says what it refused and why."""
     F = core.fabric()
@@ -245,10 +245,20 @@ def mint_claims(entries, questions=None, limit=3):
     for c in claim_candidates(F, entries):
         a, b = c["a"], c["b"]
         ground = " ".join(F.words_of(c["ground"])[:6])
-        # reached by a question already standing, or it is unattached
-        q, score = reached_by(F, dict(a=c["ground"], b=c["ground"]),
-                              questions) if questions else (None, 0)
-        if questions and q is None:
+        # Reached by a question already standing, or it is
+        # unattached. When the pair came from a walk that STARTED at
+        # a standing question, that walk is the reaching — it got
+        # there along the links the knowledge declared. Asking
+        # instead for shared letters between the question and the
+        # ground is the word-matching this whole fabric exists to
+        # stop doing, and it refused every honest candidate.
+        if reacher:
+            q, score = {"text": reacher}, 99
+        else:
+            q, score = reached_by(F, dict(a=c["ground"],
+                                          b=c["ground"]),
+                                  questions) if questions else (None, 0)
+        if questions and q is None and not reacher:
             refused.append((a, b, "no standing question reaches it — "
                                   "unattached, kept rather than minted"))
             continue
