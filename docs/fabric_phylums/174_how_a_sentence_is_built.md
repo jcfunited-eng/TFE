@@ -168,7 +168,13 @@ ROOT: this file / ready-made chunks are carried and only the joints
   are built fresh, because there is no time to construct every phrase
   at speaking speed.
 CANNOT: no joint between two things that share no ground — a joint
-  needs something for both ends to hold. No joint stated as a chunk:
+  needs something for both ends to hold. No ground counted from a
+  word the writing uses everywhere: a word common to a fiftieth of
+  all the knowledge is shared by everything and holds nothing, so
+  ground is counted in uncommon words only. One uncommon word is
+  ground enough — two things both about fingers share "finger" and
+  little else, and that is a real hold; it is two COMMON words that
+  are no hold at all. No joint stated as a chunk:
   a joint found already written somewhere is not a joint, it is
   another chunk. No joint between a thing and itself.
 THREAD: carpentry (the boards are milled, the joint is cut on site),
@@ -188,7 +194,14 @@ CANNOT: no standing-together without shared ground. No cannot-both-
   from a wall that already closes one of them on its own: then it is
   that one thing that is closed and the pair has nothing to do with
   it. A contradiction is a wall that lets each stand alone and stops
-  them standing together, and nothing else earns the name.
+  them standing together, and nothing else earns the name. No
+  cannot-both-hold from a wall that is not about BOTH of them: two
+  things put side by side cover a lot of ground between them, and a
+  wall touching only that pile is about neither. A forbidding wall
+  says one thing cannot stand in the company of another, so it only
+  speaks to a PAIR when the forbidden thing is in one of them and the
+  company it is forbidden in is in the other. Both halves in the same
+  one is that one thing closed, and says nothing about the pair.
 THREAD: law (two clauses that cannot both be honoured, and which one
   gives), accounts (two entries that will not reconcile), medicine
   (two drugs that must not be given together).

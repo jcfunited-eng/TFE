@@ -486,12 +486,37 @@ def h_join(s):
     for b in items[1:]:
         if b is a or b["id"] == a["id"]:
             continue                      # no joint to itself
+        # Ground is counted in uncommon words only. A word the
+        # writing uses everywhere is shared by everything and holds
+        # nothing — joints were being made on "only" and "while".
         shared = a["color"] & b["color"]
+        rare, i, m = 0, 0, shared
+        common = len(F.entries) // 50
+        while m:
+            if m & 1 and F.df.get(i, 0) <= common:
+                rare |= 1 << i
+            m >>= 1
+            i += 1
+        shared = rare
         n = bin(shared).count("1")
-        if n < 2:
+        if n < 1:
             continue                      # no joint without ground
         pair = a["color"] | b["color"]
-        wall = eliminate.closes(pair, pair, F, laws)
+        # A wall claiming these two conflict must be ABOUT both of
+        # them. Judged on the union alone, any wall touching the
+        # pile qualifies, which had a lamination wall declaring a
+        # wet finger incompatible with cell death.
+        def spans(L):
+            """The forbidden thing in one, the company it is
+            forbidden in in the other. Both halves inside one of them
+            closes that one, and says nothing about the pair."""
+            ac, bc = a["color"], b["color"]
+            return ((L.a & ac) == L.a and bin(L.b & bc).count("1") >= 2
+                    and not (L.a & bc) == L.a) or \
+                   ((L.a & bc) == L.a and bin(L.b & ac).count("1") >= 2
+                    and not (L.a & ac) == L.a)
+        both = [L for L in laws if spans(L)]
+        wall = eliminate.closes(pair, pair, F, both)
         if wall is not None:
             # A contradiction is a wall that lets each stand ALONE
             # and stops them standing together. A wall that already
