@@ -133,6 +133,18 @@ ESSENCE: the doing is the group the sentence turns on, and it is
   noise. Counted both ways on thirty sentences: frame inside and
   pointers across reads twenty-nine, pointers on both sides reads
   twenty-seven, and the frame on both sides reads three.
+  Where the contrast leaves more than one group standing, the doing is
+  looked for BETWEEN them first — a doing that reaches something has
+  the doer arriving before it and the done-to after it, so it is not
+  at either end. Measured across seventy sentences, forty of them
+  shaped by rule rather than chosen: 60 without it, 64 with it. It
+  costs one case that worked — an order like "keep food cold" has no
+  doer at all and its doing is first — and a gated version that tried
+  to spare imperatives scored 62, worse than the plain one, so the
+  gate was reasoned and wrong and is not here.
+  MINE, ON TRIAL: this between-rule is my construct, not ratified,
+  named as mine because the last rule I wrote into this file unmarked
+  read as the fabric's and was false.
   The asking words are never it: they say what kind of
   answer will count and almost never name what happened, and file 171
   already holds which words those are.

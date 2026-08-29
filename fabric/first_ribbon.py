@@ -594,6 +594,11 @@ def doing_of(gs, why=False):
     # doing while anything else is standing
     not_asking = [i for i in cand if not set(gs[i]) & C.asking]
     cand = not_asking or cand
+    # 174: a doing that reaches something has the doer before it and
+    # the done-to after it, so where more than one group is standing
+    # it is looked for between them rather than at an end.
+    ends = cand
+    cand = [i for i in cand if 0 < i < len(gs) - 1] or cand
     pick = min(cand, key=lambda i: (C.opened(head(gs[i])),
                                     -C.count.get(head(gs[i]), 0)))
     # How it was settled, said out loud. Measured over thirty

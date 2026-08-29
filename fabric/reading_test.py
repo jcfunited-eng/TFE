@@ -166,6 +166,7 @@ def grade(F=None, cases=None):
 
 if __name__ == "__main__":
     F = core.fabric()
+    TOTAL = [0, 0]
     for name, cases in (("SETTLED ON", CASES), ("HELD OUT", HELD_OUT)):
         rows, good = grade(F, cases)
         print(f"\n{name}")
@@ -174,6 +175,7 @@ if __name__ == "__main__":
             if why:
                 print(f"          {why}")
         print(f"  {good}/{len(cases)} read correctly")
+        TOTAL[0] += good; TOTAL[1] += len(cases)
     rows, good = grade_roles(F)
     print("\nWHO DID WHAT TO WHOM")
     for sent, got, ok in rows:
@@ -186,3 +188,5 @@ if __name__ == "__main__":
             print(f"  FAIL  {sent:<48} -> {got} (want {want})")
     print(f"  {good}/{len(rows)} read correctly"
           f"   <-- report THIS one, not the chosen sets alone")
+    TOTAL[0] += good; TOTAL[1] += len(rows)
+    print(f"\n  DOING, EVERY CASE: {TOTAL[0]}/{TOTAL[1]}")
