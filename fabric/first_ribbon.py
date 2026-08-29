@@ -560,6 +560,15 @@ def sense_of(word, others):
                      "off — this writing draws no line here"))
 
 
+def standing(gs):
+    """What a sentence with no doing says: the first group STANDS and
+    what follows is what it is SAID TO BE."""
+    if len(gs) < 2:
+        return None
+    return dict(stands=head(gs[0]),
+                said_to_be=[head(g) for g in gs[1:]])
+
+
 def nesting(gs):
     """The finished nesting: which group is the doing, and what role
     each of the others hangs under it in.
@@ -602,6 +611,16 @@ def doing_of(gs, why=False):
     if len(gs) < 2:
         how = ("one group — a doing is found by contrast between "
                "groups and there is nothing here to contrast")
+        return (None, how) if why else None
+    # 174: a doing arrives alone and is never the first thing said, so
+    # a sentence has one only when some group AFTER the first arrived
+    # alone. Where none did, the sentence says what a thing IS and has
+    # no doing — forcing one is what made "congestion is not caused by
+    # too many vehicles" turn on "too".
+    if not any(not carried_in(g) for g in gs[1:]):
+        how = ("no doing — nothing after the first group arrived "
+               "alone, so this says what a thing is rather than "
+               "doing something")
         return (None, how) if why else None
     plain = [i for i, g in enumerate(gs) if not carried_in(g)]
     # a marked member needs a plain one to be marked against: if

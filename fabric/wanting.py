@@ -60,7 +60,13 @@ def want(sentence, F=None):
     res = FR.read(head)
     if res["missing"]:
         return dict(unread=res["missing"])
-    gs = res["groups"]
+    # The cap in 174 is on STAGING nestings, where the count of ways
+    # to hang climbs steeply. Finding the doing stages nothing — it
+    # reads a contrast off the groups — so it sees all of them. Taking
+    # the capped list made the true doing the last group in "Eyes
+    # painted on a wall raise honeybox takings" and the between-rule
+    # then refused it for sitting at an end.
+    gs = FR.groups(head)
     turns_on, settled_by = None, None
     if gs:
         d, settled_by = FR.doing_of(gs, why=True)

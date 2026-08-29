@@ -478,6 +478,17 @@ ENTRY: a rate taken over too few sightings
     seventy is not an improvement, it is noise, and shipping it would
     have bought a line saying the reading got better. Not shipped.
     The honest number for the doing across everything is 60 of 70.
+  FIFTH ROUTE CLOSED — the hub. The doing joins the things either
+    side of it, so it ought to be the candidate whose company most
+    overlaps every other content word in the sentence. Measured: the
+    rate reads 62, the hub alone reads 59, and the hub with the rate
+    breaking its ties reads 62 — identical. It is not a signal.
+  SIXTH ROUTE CLOSED — the frame size. Prepositions that get read as
+    doings ("among", "after") sit just below the commonest hundred,
+    so widening the frame should absorb them. It absorbs content words
+    too: at two hundred and at three hundred the reading falls to 55,
+    at fifty to 59, against 62 at a hundred. The number in 174 is
+    already at its best.
   WHAT WOULD DRAIN IT: either a second contrast that works when the
     sentence has no pointer in it at all, or a way to read a doing
     from the two words either side of it rather than from the word's

@@ -199,6 +199,39 @@ THREAD: accounts (every entry has a from and a to, and reversing
 ASKED-AS: doer done to role who did what to whom subject object
   which one acted receiver direction of the doing
 
+ESSENCE: not every sentence does something. A sentence may instead
+  say what a thing IS, and it has no doing at all — nothing acts and
+  nothing is acted on. The two are told apart by the contrast already
+  counted and nothing else is needed: a doing arrives ALONE, with no
+  frame word carrying it in, and it is never the first thing said. So
+  a sentence has a doing only when some group AFTER the first arrived
+  alone. "drugs | change | a physiology" has one and "a dose | is
+  really | a spread" has none, because the word that joins the two
+  halves is a frame word and carries its group in. Where there is no
+  doing, what the sentence says is that the first thing STANDS and
+  the rest is what it is SAID TO BE.
+  Forcing an is-sentence into a doing is what produced "congestion is
+  not caused by too many vehicles" read as doer "by" and doing "too":
+  the reading went hunting for a doing that was not there and settled
+  on whatever was nearest. 1,411 of this fabric's 3,212 sentences
+  carry is, are, was or were — an essence says what a thing is, so
+  the definitional sentence is the common case here and was the one
+  with no reading.
+ROOT: grammar (67) / a sentence needs a doer and a doing — and where
+  it has neither it is not a smaller version of one, it is a
+  different thing being said.
+HOLDS: a doing holds only when a group after the first arrived alone.
+  A standing holds when no group after the first arrived alone: the
+  first group is what stands and what follows is what it is said to
+  be.
+MINE, ON TRIAL: the after-the-first test is my construct. What is not
+  mine is the contrast it runs on, which this file already held.
+THREAD: law (a statute that defines a term does nothing and is not a
+  weaker command), accounts (an opening balance records no
+  transaction), maps (a legend performs no journey).
+ASKED-AS: is are was were says what a thing is definition standing
+  said to be no doing copula equation naming
+
 ESSENCE: a sense is produced from the company present and never
   fetched from a list — the senses of a common word have no end and
   new ones are made when needed, so a table of them is out of date
