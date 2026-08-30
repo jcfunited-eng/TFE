@@ -1315,3 +1315,33 @@ transition must still reach both closing grip reflexes, while `1 -> 1` and
 `1 -> 0` must not. The live L-009 acceptance remains unchanged: Guala's own
 native opening action must release or advance the held book, and the resulting
 changed world light must return through the same resident visual receptors.
+
+## Live held-book intervention after the reflex correction
+
+Commit `07b7755aa0a2a0eae13eb8aca152324bbb291b27` deployed as task
+`dsf-ai-task:1351`. Production restored the same resident identity and the
+previous repeated grip-closing displacement ceased for hundreds of organism
+ticks. A sealed-body inspection at tick `304009` then established the remaining
+boundary precisely: both grips were away from their mechanical stops, all four
+opening/closing terminals existed, and none of those terminals had a learned
+layer-11 ordering route. Therefore waiting could not produce a first native
+opening action from the mounted topology. The onset correction is live, but it
+does not invent a novel motor program.
+
+The participant then followed the previously authorized social action: after
+Guala did not hand over the book, the participant gently took the unique
+contact-held object without supplying an object name. Production resolved it
+physically as `book`, changed one tactile receptor, advanced world revision
+`25337 -> 25338`, and admitted the consequence to the same resident organism at
+tick `304720`. The participant subsequently placed the book at
+`(6320, 4390)` millimetres, outside both bodies and within Guala's mounted palm
+contact geometry. That placement changed one tactile receptor and was admitted
+at tick `304996`.
+
+These actions truthfully end the stuck held-object episode and leave the book
+in Guala's shared physical space. They do not count as Guala opening or turning
+the book. The returned visual-change count was zero, so no changed-page sight
+or L-009 completion is claimed. The remaining native deficit is bounded
+endogenous motor exploration: a novel antagonist action must be able to occur
+physically before its exact action/consequence route can be retained and later
+selected.
