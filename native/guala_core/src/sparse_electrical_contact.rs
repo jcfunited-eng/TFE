@@ -969,6 +969,7 @@ fn jointly_carrier_bound_transitions(
     interval_microseconds: u32,
     provisional: Vec<ElectricalContactTransition>,
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
+    let reconciliation_stopwatch = std::time::Instant::now();
     // A neuron's per-contact demands are individually bounded whole-carrier
     // values, but their transient sum across a real fan-out need not fit the
     // width of one resident carrier store.  The sum exists only to derive the
@@ -992,6 +993,7 @@ fn jointly_carrier_bound_transitions(
                 .ok_or(SparseElectricalError::ArithmeticWidth)?;
         }
     }
+    let demand_wall = reconciliation_stopwatch.elapsed();
 
     let transitions = anatomy
         .contacts
@@ -1059,7 +1061,8 @@ fn jointly_carrier_bound_transitions(
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
-    component_energy_descending_transitions(
+    let allocation_wall = reconciliation_stopwatch.elapsed();
+    let transitions = component_energy_descending_transitions(
         anatomy,
         predecessor_contacts,
         capacitances,
@@ -1067,7 +1070,15 @@ fn jointly_carrier_bound_transitions(
         available_carriers,
         interval_microseconds,
         transitions,
-    )
+    )?;
+    let energy_wall = reconciliation_stopwatch.elapsed();
+    eprintln!(
+        "guala-reconciliation-phases demand_ms={} allocation_ms={} energy_ms={}",
+        demand_wall.as_millis(),
+        (allocation_wall - demand_wall).as_millis(),
+        (energy_wall - allocation_wall).as_millis(),
+    );
+    Ok(transitions)
 }
 
 fn gcd_u128(mut left: u128, mut right: u128) -> u128 {
