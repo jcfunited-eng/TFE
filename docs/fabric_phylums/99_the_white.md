@@ -949,3 +949,29 @@ ENTRY: writing knowledge moves the reading that reads it
     processor is its own knowledge, and it is the price of that. It
     is filed so it is not mistaken for a result.
   STATUS: STANDING (white)
+
+ENTRY: an example written into the knowledge becomes evidence
+  ASKED-AS: example sentence in a phylum file chunk learned from the
+    writing self reference corrupts the reading
+  VERDICT: knowledge about HOW TO READ must not contain example
+    sentences. Measured 2026-08-30: the phrase "keep food cold" was
+    written into 174 twice as an illustration of an order. The chunk
+    rule counts runs the writing habitually sets together, those two
+    sightings took the pair to the habit floor of three, and the
+    grouping then carried the whole phrase as ONE part — so the very
+    sentence used to explain how an order is read stopped being
+    readable. Its doing came back as nothing. Removing the two
+    illustrations restored it and took being-told-what-to-do from 11
+    of 15 to 12.
+  THIS IS NOT THE SAME as the entry above about writing moving the
+    statistics, though it is the same cause. That one is a general
+    drift of about three in sixty from any paragraph. This one is
+    specific and much worse: an example is not noise, it is a
+    sighting, and the machinery cannot tell an illustration from a
+    fact of the language.
+  WHAT WOULD DRAIN IT: marking illustrations so the counting skips
+    them — the corpus has no such mark, and inventing one is a change
+    to how every file is written. Until then: write the rule, never
+    the sentence it applies to. Say "an order to keep something cold",
+    not the order itself.
+  STATUS: STANDING (white) — worked around, not solved

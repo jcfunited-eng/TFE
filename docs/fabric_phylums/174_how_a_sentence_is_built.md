@@ -149,7 +149,7 @@ ESSENCE: the doing is the group the sentence turns on, and it is
   the doer arriving before it and the done-to after it, so it is not
   at either end. Measured across seventy sentences, forty of them
   shaped by rule rather than chosen: 60 without it, 64 with it. It
-  costs one case that worked — an order like "keep food cold" has no
+  costs one case that worked — an order has no
   doer at all and its doing is first — and a gated version that tried
   to spare imperatives scored 62, worse than the plain one, so the
   gate was reasoned and wrong and is not here.
@@ -261,12 +261,13 @@ ASKED-AS: is are was were says what a thing is definition standing
 ESSENCE: a turn may be an ORDER, and an order names no doer. Nobody
   is said to be doing it because the one being told is the one who
   will, so the doing is the first thing said and everything after it
-  is what to do it to. "cool a room without a fan" is not about
-  cooling; it asks for cooling to be done. Every other reading in
+  is what to do it to. an order to cool
+  something is not about cooling; it asks for cooling to be done. Every other reading in
   this file looks for the doing anywhere but first, because a
   statement puts its doer there, so an order read as a statement
-  comes back turning on the wrong word every time — "keep food cold"
-  turned on "food" and "build me a bridge" turned on "me".
+  comes back turning on the wrong word every time: an order to keep
+  something cold turned on the thing, and an order to build turned on
+  the person spoken to.
   An order is told from a statement by what comes after it: an order
   hands over a thing to work on, so a pointer opens one of the groups
   that follow. "cool | A room", "light | A fire", "measure | A field".
@@ -283,10 +284,10 @@ HOLDS: an order holds when its first group brings a content word in
   with no frame word carrying it, and either some group after it is
   opened by a pointer OR a constraint is hung off it. Its doing is
   that first group and it has no doer.
-  The constraint is the second mark and it is a strong one: "keep food
-  cold without electricity" has no pointer in it anywhere, and a thing
-  said about the world does not come with a rule about what may be
-  used to bring it about. Only an order does, because only an order is
+  The constraint is the second mark and it is a strong one: an order
+  of bare words with a without-clause hung off it has no pointer in it
+  anywhere, and a thing said about the world does not come with a rule
+  about what may be used to bring it about. Only an order does, because only an order is
   going to be carried out.
 MINE, ON TRIAL: the pointer-after test is my construct. Measured on
   fifteen instructions a person would actually give: 11 read against
