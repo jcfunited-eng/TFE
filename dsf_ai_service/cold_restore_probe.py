@@ -1802,11 +1802,11 @@ def _rehearse_a011_ordinary_interval(
         production._startup()
         before = production._native_record()
         result = production._attempt_unattended_interval()
-        # Persistence is off cognition's critical path: an ordinary interval
-        # lawfully defers its seal to the checkpoint cadence. The rehearsal
-        # proves durable advancement by sealing the pending chain itself
-        # before comparing published state.
-        production._seal_pending_chain()
+        # Persistence is off cognition's critical path. Exercise the sole
+        # background-custody cycle directly in this isolated process so the
+        # rehearsal proves the same publish-and-adopt boundary production
+        # uses; the retired synchronous seal is intentionally unreachable.
+        production._custodian_cycle()
         after = production._native_record()
     action = result.get("motor_action")
     consequence = action.get("sensory_consequence") if isinstance(action, dict) else None

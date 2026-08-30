@@ -922,57 +922,126 @@ pub struct NativeResidentOrganismRuntime {
 /// in the bounded external custodian. Pure custody material: encoding a
 /// snapshot touches no runtime bookkeeping, never pauses cognition, and
 /// carries no authority over the organism.
-#[pyclass(frozen, module = "guala_core")]
+#[pyclass(module = "guala_core")]
 pub struct NativeLivedStateSnapshot {
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     articulated_body: ArticulatedBodyState,
-    fabric_generation: u64,
-    organism_tick: u64,
+    observation: RuntimeObservation,
+    predecessor: RuntimeObservation,
+    next_prepare_ordinal: u64,
     identity: [u8; IDENTITY_BYTES],
     budget: RuntimeBudget,
+}
+
+#[pyclass(module = "guala_core")]
+pub struct NativePreparedLivedCheckpoint {
+    envelope: Option<Vec<u8>>,
+    observation: RuntimeObservation,
+    predecessor_state_receipt: [u8; 32],
+    next_prepare_ordinal: u64,
+}
+
+impl NativeLivedStateSnapshot {
+    fn build_checkpoint(&mut self) -> Result<NativePreparedLivedCheckpoint, RuntimeError> {
+        let joint_state = encode_empty_mounted_joint_state()
+            .map_err(RuntimeError::MountedTransition)?;
+        let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+        let sealed_cognitive = std::mem::take(&mut self.cognitive)
+            .seal_with_terminal_observation(cognitive_budget)
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+        let fabric = encode_fabric(
+            self.observation.fabric_generation,
+            &joint_state,
+            &sealed_cognitive.encoded,
+            &self.vestibular,
+            &self.articulated_body,
+            self.budget,
+        )?;
+        let envelope = encode_envelope(
+            self.identity,
+            self.observation.organism_tick,
+            &fabric,
+            self.budget,
+        )?;
+        let mut observation = self.observation.clone();
+        observation.predecessor_state_receipt = Some(self.predecessor.state_receipt);
+        observation.predecessor_organism_tick = Some(self.predecessor.organism_tick);
+        observation.predecessor_fabric_generation =
+            Some(self.predecessor.fabric_generation);
+        observation.predecessor_mounted_generation =
+            Some(self.predecessor.mounted_generation);
+        observation.state_bytes = envelope.len();
+        observation.state_receipt = sha256(&envelope);
+        observation.fabric_bytes = fabric.len();
+        observation.fabric_receipt = sha256(&fabric);
+        observation.complete_neuron_count = sealed_cognitive.summary.complete_neuron_count;
+        observation.developmental_resting_neuron_count =
+            sealed_cognitive.summary.resting_neuron_count;
+        observation.cognitive_mosaic_count = sealed_cognitive.summary.mosaic_count;
+        observation.mosaic_of_mosaics_count = sealed_cognitive.mosaic_of_mosaics_count;
+        observation.energy = sealed_cognitive.summary.energy;
+        observation.derived_budget = self.budget.derive()?;
+        Ok(NativePreparedLivedCheckpoint {
+            envelope: Some(envelope),
+            observation,
+            predecessor_state_receipt: self.predecessor.state_receipt,
+            next_prepare_ordinal: self.next_prepare_ordinal,
+        })
+    }
 }
 
 #[pymethods]
 impl NativeLivedStateSnapshot {
     #[getter]
     fn organism_tick(&self) -> u64 {
-        self.organism_tick
+        self.observation.organism_tick
     }
 
-    /// Encode this snapshot as one complete GLORUN generation envelope,
-    /// entirely off the runtime lock. Identical assembly to the sealing
-    /// boundary: empty mounted joint state, sealed cognitive bytes, the
-    /// vestibular and articulated bodies, one envelope.
-    fn encode_generation<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
-        let envelope = py
-            .allow_threads(|| {
-                let joint_state = encode_empty_mounted_joint_state()
-                    .map_err(RuntimeError::MountedTransition)?;
-                let cognitive_budget =
-                    cognitive_budget_after_joint(joint_state.len(), self.budget)?;
-                let sealed_cognitive = self
-                    .cognitive
-                    .clone()
-                    .seal_with_terminal_observation(cognitive_budget)
-                    .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-                let fabric = encode_fabric(
-                    self.fabric_generation,
-                    &joint_state,
-                    &sealed_cognitive.encoded,
-                    &self.vestibular,
-                    &self.articulated_body,
-                    self.budget,
-                )?;
-                encode_envelope(
-                    self.identity,
-                    self.organism_tick,
-                    &fabric,
-                    self.budget,
-                )
-            })
+    /// Build one exact checkpoint outside the resident runtime lock.
+    fn prepare_checkpoint(&mut self, py: Python<'_>) -> PyResult<NativePreparedLivedCheckpoint> {
+        py.allow_threads(|| self.build_checkpoint())
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Compatibility observation for existing cold probes. Production
+    /// custody uses ``prepare_checkpoint`` so the exact encoded body can be
+    /// adopted without encoding or parsing it a second time.
+    fn encode_generation<'py>(&mut self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let checkpoint = py
+            .allow_threads(|| self.build_checkpoint())
             .map_err(|error: RuntimeError| PyValueError::new_err(error.to_string()))?;
-        Ok(PyBytes::new(py, &envelope))
+        let envelope = checkpoint
+            .envelope
+            .as_deref()
+            .ok_or_else(|| PyValueError::new_err("lived checkpoint lost its envelope"))?;
+        Ok(PyBytes::new(py, envelope))
+    }
+}
+
+#[pymethods]
+impl NativePreparedLivedCheckpoint {
+    #[getter]
+    fn organism_tick(&self) -> u64 {
+        self.observation.organism_tick
+    }
+
+    #[getter]
+    fn state_bytes(&self) -> usize {
+        self.observation.state_bytes
+    }
+
+    #[getter]
+    fn state_sha256(&self) -> String {
+        hex_digest(&self.observation.state_receipt)
+    }
+
+    fn encoded_generation<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        let envelope = self
+            .envelope
+            .as_deref()
+            .ok_or_else(|| PyValueError::new_err("lived checkpoint was already adopted"))?;
+        Ok(PyBytes::new(py, envelope))
     }
 }
 
@@ -3047,6 +3116,60 @@ impl ResidentOrganismRuntime {
         Ok(receipt)
     }
 
+    fn validate_lived_checkpoint(
+        &self,
+        checkpoint: &NativePreparedLivedCheckpoint,
+    ) -> Result<(), RuntimeError> {
+        if self.pending.is_some()
+            || self.direct_predecessor.is_some()
+            || self.pending_contact_growth.is_some()
+        {
+            return Err(RuntimeError::PendingCandidateExists);
+        }
+        let unsealed = self
+            .unsealed
+            .as_ref()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        let envelope = checkpoint
+            .envelope
+            .as_ref()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        let valid = checkpoint.predecessor_state_receipt
+            == self.active.observation.state_receipt
+            && checkpoint.observation.identity == self.active.observation.identity
+            && checkpoint.observation.organism_tick <= unsealed.observation.organism_tick
+            && checkpoint.next_prepare_ordinal <= self.next_prepare_ordinal
+            && checkpoint.observation.state_bytes == envelope.len()
+            && checkpoint.observation.state_receipt == sha256(&envelope);
+        if !valid {
+            return Err(RuntimeError::PendingTokenMismatch);
+        }
+        Ok(())
+    }
+
+    /// Adopt the exact checkpoint that the sole external publisher has
+    /// already made durable. The current lived successor remains untouched;
+    /// only its recovery predecessor advances to the same immutable body.
+    fn adopt_published_lived_checkpoint(
+        &mut self,
+        checkpoint: &mut NativePreparedLivedCheckpoint,
+    ) -> Result<(), RuntimeError> {
+        self.validate_lived_checkpoint(checkpoint)?;
+        let envelope = checkpoint
+            .envelope
+            .take()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        let unsealed = self
+            .unsealed
+            .as_mut()
+            .ok_or(RuntimeError::PendingCandidateMissing)?;
+        self.active.envelope = envelope;
+        self.active.observation = checkpoint.observation.clone();
+        unsealed.predecessor = checkpoint.observation.clone();
+        unsealed.predecessor_next_prepare_ordinal = checkpoint.next_prepare_ordinal;
+        Ok(())
+    }
+
     /// Seal the current lived intake once at its explicit persistence boundary.
     fn seal_unsealed_trajectory_direct(
         &mut self,
@@ -4509,11 +4632,35 @@ impl NativeResidentOrganismRuntime {
             cognitive: runtime.cognitive_state().clone(),
             vestibular: vestibular.clone(),
             articulated_body: articulated_body.clone(),
-            fabric_generation: observation.fabric_generation,
-            organism_tick: observation.organism_tick,
+            observation: observation.clone(),
+            predecessor: runtime.active.observation.clone(),
+            next_prepare_ordinal: runtime.next_prepare_ordinal,
             identity: observation.identity,
             budget: runtime.budget,
         }
+    }
+
+    /// Advance only the authenticated recovery boundary after the sole store
+    /// writer has published this exact checkpoint. The live cognition and
+    /// body may already be newer and are never copied back or replaced.
+    fn adopt_published_lived_checkpoint(
+        &mut self,
+        mut checkpoint: PyRefMut<'_, NativePreparedLivedCheckpoint>,
+    ) -> PyResult<()> {
+        self.runtime
+            .adopt_published_lived_checkpoint(&mut checkpoint)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Refuse a stale or foreign checkpoint before the store writer changes
+    /// CURRENT. Reading this gate changes no native state.
+    fn validate_lived_checkpoint(
+        &self,
+        checkpoint: PyRef<'_, NativePreparedLivedCheckpoint>,
+    ) -> PyResult<()> {
+        self.runtime
+            .validate_lived_checkpoint(&checkpoint)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
     }
 
     fn prepare(
@@ -5869,6 +6016,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeResidentOrganismRuntime>()?;
     module.add_class::<NativeResidentOrganismObservation>()?;
     module.add_class::<NativeLivedStateSnapshot>()?;
+    module.add_class::<NativePreparedLivedCheckpoint>()?;
     module.add_class::<NativeResidentOrganismPrepare>()?;
     module.add_class::<NativeCausalIntervalEvidence>()?;
     module.add_function(wrap_pyfunction!(
@@ -8279,6 +8427,87 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn published_lived_checkpoint_advances_recovery_without_rolling_back_life() {
+        let first_source = source("background-checkpoint-first");
+        let second_source = source("background-checkpoint-second");
+        let first_episode = vec![(
+            first_source.clone(),
+            vec![(5, 1); first_source.joint_source_occurrences().len()],
+        )];
+        let second_episode = vec![(
+            second_source.clone(),
+            vec![(5, 1); second_source.joint_source_occurrences().len()],
+        )];
+        let mut native = NativeResidentOrganismRuntime {
+            runtime: create_resident_genesis(IDENTITY, 0, budget()).unwrap(),
+        };
+        native
+            .runtime
+            .active
+            .articulated_body
+            .initialize_proprioception();
+
+        let first = native
+            .runtime
+            .advance_admitted_trajectory_unsealed(&first_episode)
+            .unwrap();
+        let mut snapshot = native.snapshot_lived_state();
+        let checkpoint = snapshot.build_checkpoint().unwrap();
+        let stale_duplicate = NativePreparedLivedCheckpoint {
+            envelope: checkpoint.envelope.clone(),
+            observation: checkpoint.observation.clone(),
+            predecessor_state_receipt: checkpoint.predecessor_state_receipt,
+            next_prepare_ordinal: checkpoint.next_prepare_ordinal,
+        };
+        let checkpoint_envelope = checkpoint.envelope.clone().unwrap();
+        let checkpoint_observation = checkpoint.observation.clone();
+        let mut checkpoint = checkpoint;
+
+        let second = native
+            .runtime
+            .advance_admitted_trajectory_unsealed(&second_episode)
+            .unwrap();
+        let live_cognitive = native.runtime.unsealed.as_ref().unwrap().cognitive.clone();
+        let live_body = native
+            .runtime
+            .unsealed
+            .as_ref()
+            .unwrap()
+            .articulated_body
+            .clone();
+
+        native
+            .runtime
+            .adopt_published_lived_checkpoint(&mut checkpoint)
+            .unwrap();
+
+        assert_eq!(native.runtime.active_envelope(), checkpoint_envelope);
+        assert_eq!(native.runtime.observation(), checkpoint_observation);
+        assert_eq!(first.observation.organism_tick, checkpoint_observation.organism_tick);
+        let living = native.runtime.unsealed.as_ref().unwrap();
+        assert_eq!(living.observation.organism_tick, second.observation.organism_tick);
+        assert_eq!(living.cognitive, live_cognitive);
+        assert_eq!(living.articulated_body, live_body);
+        assert!(checkpoint.envelope.is_none());
+        assert!(native
+            .runtime
+            .validate_lived_checkpoint(&stale_duplicate)
+            .is_err());
+
+        native.runtime.abort_unsealed_trajectory().unwrap();
+        assert_eq!(
+            native.runtime.observation().organism_tick,
+            checkpoint_observation.organism_tick
+        );
+        assert_eq!(
+            native.runtime.observation().state_receipt,
+            checkpoint_observation.state_receipt
+        );
+        assert_eq!(native.runtime.active_envelope(), checkpoint_envelope);
+        assert!(native.runtime.unsealed.is_none());
     }
 
     #[test]

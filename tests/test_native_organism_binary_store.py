@@ -225,6 +225,24 @@ def test_compact_publication_and_exact_current_only_restore(
     assert not any("owner" in name.lower() or "lock" in name.lower() for name in names)
 
 
+def test_already_encoded_lived_checkpoint_stages_exactly_once(tmp_path: Path) -> None:
+    body = _state("background-lived-checkpoint")
+
+    staged = store.stage_native_organism_state_bytes(
+        tmp_path,
+        body,
+        identity=IDENTITY,
+        organism_tick=41,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
+
+    assert staged.identity == IDENTITY
+    assert staged.organism_tick == 41
+    assert staged.state_bytes == len(body)
+    assert staged.state_sha256 == hashlib.sha256(body).hexdigest()
+    assert _decode(staged.path.read_bytes(), body) == body
+
+
 def test_stage_fsync_failure_cleans_only_its_private_stage(
     tmp_path: Path,
     _concrete_native_boundary,

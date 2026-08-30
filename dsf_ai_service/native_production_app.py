@@ -120,11 +120,13 @@ from dsf_ai_service.substrate.native_organism_binary_store import (
     NativeOrganismBinaryStoreError,
     RestoredNativeOrganism,
     _read_current,
+    discard_staged_native_organism,
     migrate_current_native_organism_current_format,
     publish_staged_native_organism,
     reconcile_orphaned_staged_native_organisms,
     restore_current_native_organism,
     stage_active_native_organism,
+    stage_native_organism_state_bytes,
 )
 from dsf_ai_service.substrate.native_resident_resource_admission import (
     NativeResidentResourceAdmission,
@@ -1934,13 +1936,17 @@ _last_causal_cross_context_use_evidence: dict[str, Any] | None = None
 _last_intrinsic_curiosity_evidence: dict[str, Any] | None = None
 _last_social_experience_evidence: dict[str, Any] | None = None
 _last_tested_physical_choice_evidence: dict[str, Any] | None = None
-# Deferred-checkpoint chain: how many unattended intervals have advanced the
-# open unsealed trajectory since the last seal, and the published predecessor
-# sha the eventual seal must chain from. Persistence cadence is transport;
-# physics is untouched — the chain's final sealed state is proven identical
-# to sealing every interval. Any exception aborts the whole open chain.
+# Lived intervals since the last exact recovery checkpoint. This count only
+# requests work from the external custodian; it never schedules, pauses, or
+# decides organism physics. An abandoned trajectory changes the epoch so a
+# checkpoint cloned from that branch can never publish.
 _pending_unsealed_intervals: int = 0
 _pending_chain_predecessor_sha: str | None = None
+_checkpoint_requested = threading.Event()
+_custodian_stop = threading.Event()
+_custodian_thread: threading.Thread | None = None
+_custody_trajectory_epoch = 0
+_last_custodian_evidence: dict[str, object] | None = None
 
 
 def _checkpoint_every_intervals() -> int:
@@ -10607,6 +10613,21 @@ def _public_admitted_intake_result(result: dict[str, Any]) -> dict[str, Any]:
     return public_result
 
 
+def _abort_lived_trajectory(organism: Any) -> None:
+    """Invalidate an off-lock checkpoint before restoring its predecessor."""
+
+    global _custody_trajectory_epoch
+    global _pending_unsealed_intervals, _pending_chain_predecessor_sha
+
+    _custody_trajectory_epoch += 1
+    try:
+        organism.abort_unsealed_trajectory()
+    finally:
+        _pending_unsealed_intervals = 0
+        _pending_chain_predecessor_sha = None
+        _checkpoint_requested.clear()
+
+
 def _prepare_continuous_native_action_consequence(
     *,
     organism_identity: str,
@@ -10979,14 +11000,13 @@ def _perform_admitted_intake_locked(
     global _last_reciprocal_social_play_evidence
     global _active_cross_intake_causal_motor_traces
 
-    # Persistence is off cognition's critical path: by default every moment
-    # defers its seal and the checkpoint cadence decides when the chain
-    # copies out. An explicit True/False from the caller still wins
-    # (shutdown and chain-flush paths pass False to force a seal).
+    # Ordinary lived time never seals or serializes the organism. The sole
+    # background custodian snapshots the exact resident state after the
+    # configured count and adopts that same published body as the runtime's
+    # recovery predecessor. An explicit False remains available only to
+    # offline migration/rehearsal callers; no production route passes it.
     if defer_seal is None:
-        defer_seal = (
-            _pending_unsealed_intervals + 1 < _checkpoint_every_intervals()
-        )
+        defer_seal = True
 
     totals = {
         "complete_neuron_fractal_count": 0,
@@ -11466,7 +11486,7 @@ def _perform_admitted_intake_locked(
         intake_error = error
     if intake_error is not None:
         try:
-            organism.abort_unsealed_trajectory()
+            _abort_lived_trajectory(organism)
         except (RuntimeError, ValueError) as abort_error:
             if "has no pending candidate" not in str(abort_error):
                 raise RuntimeError(
@@ -11499,7 +11519,7 @@ def _perform_admitted_intake_locked(
             root_yaw_source_tick=int(last_hop["organism_tick"]),
         )
     except BaseException:
-        organism.abort_unsealed_trajectory()
+        _abort_lived_trajectory(organism)
         raise
     action_execution: Any | None = None
     action_consequence: dict[str, Any] | None = None
@@ -11540,7 +11560,7 @@ def _perform_admitted_intake_locked(
                 _pending_unsealed_intervals = 0
                 _pending_chain_predecessor_sha = None
             except BaseException:
-                organism.abort_unsealed_trajectory()
+                _abort_lived_trajectory(organism)
                 _pending_unsealed_intervals = 0
                 _pending_chain_predecessor_sha = None
                 raise
@@ -11723,7 +11743,7 @@ def _perform_admitted_intake_locked(
             if organism_published:
                 raise
             try:
-                organism.abort_unsealed_trajectory()
+                _abort_lived_trajectory(organism)
             except (RuntimeError, ValueError) as abort_error:
                 if "has no pending candidate" not in str(abort_error):
                     raise RuntimeError(
@@ -12332,6 +12352,8 @@ def _perform_admitted_intake_locked(
             "organism_tick": _sealed_pointer.organism_tick,
             "state_sha256": _sealed_pointer.state_sha256,
         }
+    if _pending_unsealed_intervals >= _checkpoint_every_intervals():
+        _checkpoint_requested.set()
     _refresh_public_observation_cache()
     return {
         "accepted": True,
@@ -13204,13 +13226,9 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             episodes, environment = _unattended_interval_episodes(interval_id)
             _episodes_wall_ms = (time.perf_counter() - _episodes_started) * 1000.0
             intake_reason = f"continuous-environment:{interval_id}"
-            _defer = _pending_unsealed_intervals + 1 < _checkpoint_every_intervals()
-            if _defer:
-                result = _perform_admitted_intake_locked(
-                    episodes, intake_reason, defer_seal=True
-                )
-            else:
-                result = _perform_admitted_intake_locked(episodes, intake_reason)
+            result = _perform_admitted_intake_locked(
+                episodes, intake_reason, defer_seal=True
+            )
             after = _native_record()
         except HTTPException as error:
             _last_unattended_pause = {
@@ -15463,53 +15481,187 @@ def _startup() -> None:
         raise
 
 
-def _seal_pending_chain() -> None:
-    """Seal and publish any open deferred-checkpoint chain.
+def _custodian_cycle() -> str:
+    """Publish one exact resident checkpoint outside lived-time work.
 
-    Runs under the transition lock at shutdown (and is safe to call when no
-    chain is open). The chain's physics is already lived; this closes custody
-    exactly as the Nth interval would have.
+    The transition boundary is borrowed once to clone a bounded native
+    snapshot and once to atomically join the already-staged checkpoint to
+    CURRENT and the resident recovery predecessor. Expensive sealing,
+    compression, and read-back happen between those borrows. This is the sole
+    ordinary CURRENT writer; no fourth-moment seal remains in cognition.
     """
 
-    global _restored, _pending_unsealed_intervals, _pending_chain_predecessor_sha
+    global _restored, _boot_error
+    global _pending_unsealed_intervals, _pending_chain_predecessor_sha
+    global _last_custodian_evidence
 
     with _transition_lock:
         if _pending_unsealed_intervals == 0:
-            return
+            return "unchanged"
         restored, admission = _runtime()
         organism = restored.organism
-        sealed_observation = organism.seal_unsealed_trajectory_direct()
-        chain_predecessor = (
-            _pending_chain_predecessor_sha or restored.pointer.state_sha256
+        predecessor = restored.pointer
+        trajectory_epoch = _custody_trajectory_epoch
+        captured_interval_count = _pending_unsealed_intervals
+        snapshot_started = time.perf_counter()
+        snapshot = organism.snapshot_lived_state()
+        snapshot_wall_ms = (time.perf_counter() - snapshot_started) * 1000.0
+
+    encode_started = time.perf_counter()
+    checkpoint = snapshot.prepare_checkpoint()
+    envelope = bytes(checkpoint.encoded_generation())
+    encode_wall_ms = (time.perf_counter() - encode_started) * 1000.0
+    if (
+        checkpoint.organism_tick != snapshot.organism_tick
+        or checkpoint.state_bytes != len(envelope)
+        or checkpoint.state_sha256 != hashlib.sha256(envelope).hexdigest()
+    ):
+        raise RuntimeError("custodian checkpoint changed after native encoding")
+    stage_started = time.perf_counter()
+    staged = stage_native_organism_state_bytes(
+        STATE_ROOT,
+        envelope,
+        identity=predecessor.identity,
+        organism_tick=checkpoint.organism_tick,
+        max_envelope_bytes=admission.max_envelope_bytes,
+    )
+    del envelope
+    stage_wall_ms = (time.perf_counter() - stage_started) * 1000.0
+
+    try:
+        with _transition_lock:
+            current = _restored
+            if (
+                current is None
+                or current.organism is not organism
+                or current.pointer != predecessor
+                or _custody_trajectory_epoch != trajectory_epoch
+            ):
+                discard_staged_native_organism(staged)
+                return "superseded"
+            organism.validate_lived_checkpoint(checkpoint)
+            publish_started = time.perf_counter()
+            published = publish_staged_native_organism(
+                staged,
+                expected_predecessor_sha256=predecessor.state_sha256,
+                object_store=_object_store(),
+                max_envelope_bytes=admission.max_envelope_bytes,
+                max_fabric_bytes=admission.max_fabric_bytes,
+                max_logical_peak_bytes=admission.max_logical_peak_bytes,
+            )
+            try:
+                organism.adopt_published_lived_checkpoint(checkpoint)
+            except BaseException as error:
+                _restored = None
+                _boot_error = (
+                    "published custodian checkpoint could not be adopted by "
+                    f"the resident recovery boundary: {type(error).__name__}: {error}"
+                )
+                raise RuntimeError(_boot_error) from error
+            publish_wall_ms = (time.perf_counter() - publish_started) * 1000.0
+            _restored = RestoredNativeOrganism(
+                organism=organism,
+                pointer=published.pointer,
+            )
+            _pending_unsealed_intervals = max(
+                0,
+                _pending_unsealed_intervals - captured_interval_count,
+            )
+            _pending_chain_predecessor_sha = None
+            _checkpoint_requested.clear()
+            if _pending_unsealed_intervals >= _checkpoint_every_intervals():
+                _checkpoint_requested.set()
+            _last_custodian_evidence = {
+                "checkpoint_tick": published.pointer.organism_tick,
+                "state_sha256": published.pointer.state_sha256,
+                "captured_interval_count": captured_interval_count,
+                "remaining_interval_count": _pending_unsealed_intervals,
+                "snapshot_wall_ms": round(snapshot_wall_ms, 1),
+                "encode_wall_ms": round(encode_wall_ms, 1),
+                "stage_wall_ms": round(stage_wall_ms, 1),
+                "publish_and_adopt_wall_ms": round(publish_wall_ms, 1),
+            }
+    except BaseException:
+        discard_staged_native_organism(staged)
+        raise
+    _refresh_public_observation_cache()
+    return "checkpointed"
+
+
+def _custodian_loop() -> None:
+    while not _custodian_stop.is_set():
+        if not _checkpoint_requested.wait(1.0):
+            continue
+        if _custodian_stop.is_set():
+            return
+        started = time.perf_counter()
+        try:
+            outcome = _custodian_cycle()
+        except BaseException as error:
+            outcome = f"failed:{type(error).__name__}"
+            if _restored is not None:
+                _checkpoint_requested.set()
+        detail = ""
+        if outcome == "checkpointed" and _last_custodian_evidence is not None:
+            detail = " " + " ".join(
+                f"{key}={value}"
+                for key, value in _last_custodian_evidence.items()
+                if key != "state_sha256"
+            )
+        print(
+            f"guala-custodian outcome={outcome} "
+            f"wall_ms={(time.perf_counter() - started) * 1000.0:.0f}{detail}",
+            file=sys.stderr,
+            flush=True,
         )
-        published = _publish_committed_organism(
-            organism, admission, chain_predecessor
-        )
-        organism.acknowledge_sealed_trajectory()
-        _pending_unsealed_intervals = 0
-        _pending_chain_predecessor_sha = None
-        _restored = RestoredNativeOrganism(
-            organism=organism, pointer=published.pointer
-        )
-        del sealed_observation
-        _refresh_public_observation_cache()
+        if outcome.startswith("failed:"):
+            _custodian_stop.wait(1.0)
+
+
+def _start_custodian() -> None:
+    global _custodian_thread
+
+    if _custodian_thread is not None and _custodian_thread.is_alive():
+        return
+    _custodian_stop.clear()
+    _custodian_thread = threading.Thread(
+        target=_custodian_loop,
+        name="guala-custodian",
+        daemon=True,
+    )
+    _custodian_thread.start()
+
+
+def _stop_custodian() -> None:
+    global _custodian_thread
+
+    _custodian_stop.set()
+    _checkpoint_requested.set()
+    thread = _custodian_thread
+    if thread is not None:
+        thread.join(timeout=30.0)
+    _custodian_thread = None
+    if thread is None or not thread.is_alive():
+        try:
+            _custodian_cycle()
+        except BaseException as error:
+            print(
+                "ERROR: final custodian checkpoint failed: "
+                f"{type(error).__name__}: {error}",
+                file=sys.stderr,
+                flush=True,
+            )
 
 
 async def _lifespan(_application: FastAPI):
     _startup()
+    _start_custodian()
     _start_unattended_time()
     try:
         yield
     finally:
         _stop_unattended_time()
-        try:
-            _seal_pending_chain()
-        except BaseException as error:
-            print(
-                f"ERROR: shutdown chain seal failed: {type(error).__name__}: {error}",
-                file=sys.stderr,
-                flush=True,
-            )
+        _stop_custodian()
 
 
 app = FastAPI(title="Guala native organism", version="1", lifespan=_lifespan)

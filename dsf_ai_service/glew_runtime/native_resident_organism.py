@@ -2038,6 +2038,21 @@ class NativeResidentOrganism:
         encoding; touches nothing and never pauses cognition."""
         return self.__runtime.snapshot_lived_state()
 
+    def adopt_published_lived_checkpoint(self, checkpoint: object) -> None:
+        """Advance recovery custody to one already-published checkpoint.
+
+        The native runtime verifies the checkpoint's exact predecessor and
+        encoded body before moving its recovery boundary. Its newer live
+        cognition and articulated body remain untouched.
+        """
+
+        self.__runtime.adopt_published_lived_checkpoint(checkpoint)
+
+    def validate_lived_checkpoint(self, checkpoint: object) -> None:
+        """Refuse stale custody before the sole writer changes CURRENT."""
+
+        self.__runtime.validate_lived_checkpoint(checkpoint)
+
     def readiness(self) -> NativeResidentObservationView:
         """Observe only the active native state."""
 

@@ -603,6 +603,70 @@ def _prove_restored_body(
     return organism, before
 
 
+def _stage_exact_native_organism_state(
+    root: Path,
+    state: bytes,
+    *,
+    identity: str,
+    organism_tick: int,
+    maximum: int,
+    failure_injector: FailureInjector | None,
+) -> StagedNativeOrganism:
+    """One exact durable staging implementation for both custody callers."""
+
+    state_sha256 = hashlib.sha256(state).hexdigest()
+    stored = _encode_stored_state(state)
+    stored_sha256 = hashlib.sha256(stored).hexdigest()
+    stage = root / f".stage-{uuid.uuid4()}{STATE_SUFFIX}"
+    descriptor = os.open(
+        stage,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600,
+    )
+    try:
+        _write_all(descriptor, stored)
+        os.fsync(descriptor)
+    except BaseException:
+        os.close(descriptor)
+        try:
+            stage.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+    else:
+        os.close(descriptor)
+    del stored
+    _sync_directory(root)
+    staged = StagedNativeOrganism(
+        store_root=root,
+        path=stage,
+        identity=identity,
+        organism_tick=organism_tick,
+        state_bytes=len(state),
+        state_sha256=state_sha256,
+        stored_bytes=stage.stat().st_size,
+        stored_sha256=stored_sha256,
+    )
+    byte_count, receipt = _file_receipt(stage)
+    if byte_count != staged.stored_bytes or receipt != staged.stored_sha256:
+        discard_staged_native_organism(staged)
+        raise NativeOrganismBinaryStoreError(
+            "native organism durable stage read-back changed"
+        )
+    try:
+        _read_exact_state(
+            stage,
+            expected_bytes=staged.state_bytes,
+            expected_sha256=staged.state_sha256,
+            max_envelope_bytes=maximum,
+        )
+        _fault(failure_injector, "after_stage_fsync")
+    except BaseException:
+        discard_staged_native_organism(staged)
+        raise
+    return staged
+
+
 def stage_active_native_organism(
     store_root: str | os.PathLike[str],
     organism: NativeResidentOrganism,
@@ -631,60 +695,53 @@ def stage_active_native_organism(
         raise NativeOrganismBinaryStoreError(
             "native organism active save is not exact GLORUN"
         )
-    stored = _encode_stored_state(state)
-    stored_sha256 = hashlib.sha256(stored).hexdigest()
-    stage = root / f".stage-{uuid.uuid4()}{STATE_SUFFIX}"
-    descriptor = os.open(
-        stage,
-        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-        0o600,
-    )
-    try:
-        _write_all(descriptor, stored)
-        os.fsync(descriptor)
-    except BaseException:
-        os.close(descriptor)
-        try:
-            stage.unlink()
-        except FileNotFoundError:
-            pass
-        raise
-    else:
-        os.close(descriptor)
-    del state, stored
-    _sync_directory(root)
-    staged = StagedNativeOrganism(
-        store_root=root,
-        path=stage,
+    return _stage_exact_native_organism_state(
+        root,
+        state,
         identity=before.identity,
         organism_tick=before.organism_tick,
-        state_bytes=before.state_bytes,
-        state_sha256=before.state_sha256,
-        stored_bytes=stage.stat().st_size,
-        stored_sha256=stored_sha256,
+        maximum=maximum,
+        failure_injector=failure_injector,
     )
-    byte_count, receipt = _file_receipt(stage)
-    if byte_count != staged.stored_bytes or receipt != staged.stored_sha256:
-        discard_staged_native_organism(staged)
+
+
+def stage_native_organism_state_bytes(
+    store_root: str | os.PathLike[str],
+    state: bytes,
+    *,
+    identity: str,
+    organism_tick: int,
+    max_envelope_bytes: int,
+    failure_injector: FailureInjector | None = None,
+) -> StagedNativeOrganism:
+    """Durably stage one already-encoded exact lived-state checkpoint.
+
+    Encoding happens before this storage boundary and never borrows the live
+    organism.  This function owns only one bounded immutable GLORUN body and
+    applies the same exact compression, fsync, read-back, and receipt checks as
+    ordinary staging.
+    """
+
+    root = _store_root(store_root)
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
+    identity = _canonical_identity(identity)
+    organism_tick = _nonnegative_integer(organism_tick, "organism tick")
+    if (
+        not isinstance(state, bytes)
+        or not state.startswith(STATE_MAGIC)
+        or len(state) > maximum
+    ):
         raise NativeOrganismBinaryStoreError(
-            "native organism durable stage read-back changed"
+            "lived-state checkpoint is not exact GLORUN"
         )
-    try:
-        _read_exact_state(
-            stage,
-            expected_bytes=staged.state_bytes,
-            expected_sha256=staged.state_sha256,
-            max_envelope_bytes=maximum,
-        )
-    except BaseException:
-        discard_staged_native_organism(staged)
-        raise
-    try:
-        _fault(failure_injector, "after_stage_fsync")
-    except BaseException:
-        discard_staged_native_organism(staged)
-        raise
-    return staged
+    return _stage_exact_native_organism_state(
+        root,
+        state,
+        identity=identity,
+        organism_tick=organism_tick,
+        maximum=maximum,
+        failure_injector=failure_injector,
+    )
 
 
 def discard_staged_native_organism(staged: StagedNativeOrganism) -> None:
@@ -1386,4 +1443,5 @@ __all__ = (
     "restore_current_native_organism",
     "rollback_to_verified_predecessor",
     "stage_active_native_organism",
+    "stage_native_organism_state_bytes",
 )
