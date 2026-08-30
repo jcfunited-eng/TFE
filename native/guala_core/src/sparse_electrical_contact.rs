@@ -1122,7 +1122,8 @@ fn settle_energy_component(
 ) -> Result<(), SparseElectricalError> {
     let (component_neurons, outward) =
         outward_by_contact_indices(anatomy, transitions, component_contacts)?;
-    // Per-neuron integer pre-scan with the exact wide path as fallback.
+    // Per-neuron exact sign pre-scan with the exact common-denominator path as
+    // fallback.
     // descent - curvature = sum over neurons of w(q - w)/C with C > 0, and
     // descent = sum of qw/C. When every neuron's w(q - w) is nonnegative the
     // sum cannot be negative, so descent >= curvature and the component
@@ -1130,36 +1131,31 @@ fn settle_energy_component(
     // arithmetic below reaches); when additionally some qw > 0, descent > 0.
     // Only a neuron that moved more carriers than its separated charge — a
     // genuine overshoot candidate — forces the exact common-denominator
-    // computation. Machine integers with checked widening; any overflow
-    // falls through to the exact path.
+    // computation.  Do not multiply or narrow here: mature neuron charges can
+    // lawfully make w(q-w) wider than i128 even though its sign is immediately
+    // knowable. Falling through merely because that disposable product is
+    // wide rebuilt a population-sized least-common denominator on ordinary
+    // intervals. BigInt sign comparisons prove the same sufficient condition
+    // without changing the accepted transition; ambiguous components still
+    // use the unchanged exact calculation below.
     {
         let mut all_within_charge = true;
         let mut any_positive_descent_term = false;
         for (neuron_index, node_outward) in component_neurons.iter().zip(&outward) {
-            let Some(w) = node_outward.to_i128() else {
-                all_within_charge = false;
-                break;
-            };
-            let q = predecessor_membranes[*neuron_index].separated_elementary_charges();
-            let Some(q_minus_w) = q.checked_sub(w) else {
-                all_within_charge = false;
-                break;
-            };
-            let Some(product) = w.checked_mul(q_minus_w) else {
-                all_within_charge = false;
-                break;
-            };
-            if product < 0 {
+            let q = BigInt::from(
+                predecessor_membranes[*neuron_index].separated_elementary_charges(),
+            );
+            let q_minus_w = &q - node_outward;
+            if (node_outward.is_positive() && q_minus_w.is_negative())
+                || (node_outward.is_negative() && q_minus_w.is_positive())
+            {
                 all_within_charge = false;
                 break;
             }
-            match w.checked_mul(q) {
-                Some(qw) if qw > 0 => any_positive_descent_term = true,
-                Some(_) => {}
-                None => {
-                    all_within_charge = false;
-                    break;
-                }
+            if (node_outward.is_positive() && q.is_positive())
+                || (node_outward.is_negative() && q.is_negative())
+            {
+                any_positive_descent_term = true;
             }
         }
         if all_within_charge && any_positive_descent_term {
