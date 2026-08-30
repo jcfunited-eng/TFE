@@ -1556,6 +1556,25 @@ impl NeuronPhysicalAnatomy {
         settle_prepared_psi_krimelack(&self.psi, &predecessor.psi, prepared).map_err(Into::into)
     }
 
+    pub(crate) fn prepare_gate_interval_settlement(
+        &self,
+        predecessor: &NeuronPhysicalState,
+        gate_work: &GateWorkOccurrence,
+        psi: &PsiSettlement,
+    ) -> Result<PreparedGateIntervalSettlement, NeuronPhysicalError> {
+        prepare_gate_interval_settlement(
+            &self.gate,
+            &self.plastic,
+            &predecessor.plastic,
+            &predecessor.gate,
+            predecessor.membrane,
+            self.capacitance,
+            &psi.successor,
+            gate_work,
+        )
+        .map_err(Into::into)
+    }
+
     /// The same anatomy carrying a different membrane capacitance.
     ///
     /// Since the 2026-08-05 geometric-differentiation ratification the
@@ -3401,6 +3420,29 @@ pub(crate) fn settle_neuron_physical_interval_with_contact(
     inter_neuron_outward_elementary_charges: i128,
     prepared_psi: Option<PsiSettlement>,
 ) -> Result<NeuronPhysicalInterval, NeuronPhysicalError> {
+    settle_neuron_physical_interval_with_contact_and_prepared_gate(
+        anatomy,
+        predecessor,
+        perspective,
+        gate_work,
+        interval_microseconds,
+        inter_neuron_outward_elementary_charges,
+        prepared_psi,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn settle_neuron_physical_interval_with_contact_and_prepared_gate(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    perspective: JointNeuronPerspective<'_>,
+    gate_work: GateWorkOccurrence,
+    interval_microseconds: u32,
+    inter_neuron_outward_elementary_charges: i128,
+    prepared_psi: Option<PsiSettlement>,
+    prepared_gate: Option<PreparedGateIntervalSettlement>,
+) -> Result<NeuronPhysicalInterval, NeuronPhysicalError> {
     let psi = match prepared_psi {
         Some(psi) => psi,
         None => {
@@ -3408,19 +3450,31 @@ pub(crate) fn settle_neuron_physical_interval_with_contact(
             settle_psi_krimelack(&anatomy.psi, &predecessor.psi, &mathloom)?
         }
     };
-    let gate_membrane = settle_gate_membrane_with_contact(
-        &anatomy.gate,
-        &anatomy.plastic,
-        &predecessor.plastic,
-        predecessor.gate.clone(),
-        &psi.successor,
-        gate_work,
-        anatomy.capacitance,
-        predecessor.membrane,
-        predecessor.carriers,
-        interval_microseconds,
-        inter_neuron_outward_elementary_charges,
-    )?;
+    let gate_membrane = match prepared_gate {
+        Some(prepared) => settle_gate_membrane_with_contact_from_prepared(
+            &anatomy.gate,
+            predecessor.gate.clone(),
+            anatomy.capacitance,
+            predecessor.membrane,
+            predecessor.carriers,
+            interval_microseconds,
+            inter_neuron_outward_elementary_charges,
+            &prepared,
+        )?,
+        None => settle_gate_membrane_with_contact(
+            &anatomy.gate,
+            &anatomy.plastic,
+            &predecessor.plastic,
+            predecessor.gate.clone(),
+            &psi.successor,
+            gate_work,
+            anatomy.capacitance,
+            predecessor.membrane,
+            predecessor.carriers,
+            interval_microseconds,
+            inter_neuron_outward_elementary_charges,
+        )?,
+    };
     let successor = NeuronPhysicalState::new_with_exact_receptor_residue(
         psi.successor.clone(),
         gate_membrane.successor_gate.clone(),
@@ -3493,9 +3547,24 @@ pub(crate) struct GateMembraneSettlement {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct GatePopulationSettlement {
     open_population: u128,
+    released_energy_zeptojoules: Exact,
     released_quanta: u128,
     dissipation_residue_zeptojoules: PhysicalEnergyResidue,
     exported_heat_zeptojoules: Exact,
+}
+
+/// One exact gate-energy descent prepared from the interval's unchanged
+/// structural inputs. Recovery may free local dissipation capacity before the
+/// descent is committed, but it does not change the selected population,
+/// released energy, retained residue, membrane, plastic support, Psi state, or
+/// gate work. Carrying this result across that recovery boundary prevents the
+/// same exact population minimization from being evaluated twice.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct PreparedGateIntervalSettlement {
+    predecessor_open_population: u128,
+    predecessor_dissipation_residue_zeptojoules: PhysicalEnergyResidue,
+    open_minus_closed_energy_zeptojoules: Exact,
+    uncapped_population_settlement: Option<GatePopulationSettlement>,
 }
 
 fn quantize_gate_release(
@@ -3613,6 +3682,39 @@ pub(crate) fn settle_gate_membrane_with_contact(
     interval_microseconds: u32,
     inter_neuron_outward_elementary_charges: i128,
 ) -> Result<GateMembraneSettlement, GateSettlementError> {
+    let prepared = prepare_gate_interval_settlement(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        &predecessor_gate,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        &gate_work,
+    )?;
+    settle_gate_membrane_with_contact_from_prepared(
+        anatomy,
+        predecessor_gate,
+        capacitance,
+        predecessor_membrane,
+        predecessor_carriers,
+        interval_microseconds,
+        inter_neuron_outward_elementary_charges,
+        &prepared,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn prepare_gate_interval_settlement(
+    anatomy: &TwoStateGateAnatomy,
+    plastic_anatomy: &PlasticSupportAnatomy,
+    plastic_state: &PlasticSupportState,
+    predecessor_gate: &TwoStateGateState,
+    predecessor_membrane: LocalMembraneConductanceState<1>,
+    capacitance: MembraneCapacitance,
+    psi: &PsiKrimelackState,
+    gate_work: &GateWorkOccurrence,
+) -> Result<PreparedGateIntervalSettlement, GateSettlementError> {
     if predecessor_gate.open_population > anatomy.population {
         return Err(GateSettlementError::GatePopulationExceeded);
     }
@@ -3623,23 +3725,70 @@ pub(crate) fn settle_gate_membrane_with_contact(
         predecessor_membrane,
         capacitance,
         psi,
-        &gate_work,
+        gate_work,
     )?;
+    let uncapped_population_settlement = select_gate_population_settlement(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        predecessor_gate,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        gate_work,
+        None,
+    )?;
+    Ok(PreparedGateIntervalSettlement {
+        predecessor_open_population: predecessor_gate.open_population,
+        predecessor_dissipation_residue_zeptojoules: predecessor_gate
+            .dissipation_residue_zeptojoules
+            .clone(),
+        open_minus_closed_energy_zeptojoules: open_minus_closed,
+        uncapped_population_settlement,
+    })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn settle_gate_membrane_with_contact_from_prepared(
+    anatomy: &TwoStateGateAnatomy,
+    predecessor_gate: TwoStateGateState,
+    capacitance: MembraneCapacitance,
+    predecessor_membrane: LocalMembraneConductanceState<1>,
+    predecessor_carriers: CarrierReservoirs,
+    interval_microseconds: u32,
+    inter_neuron_outward_elementary_charges: i128,
+    prepared: &PreparedGateIntervalSettlement,
+) -> Result<GateMembraneSettlement, GateSettlementError> {
+    if predecessor_gate.open_population != prepared.predecessor_open_population
+        || predecessor_gate.dissipation_residue_zeptojoules
+            != prepared.predecessor_dissipation_residue_zeptojoules
+    {
+        return Err(GateSettlementError::InvalidAnatomy);
+    }
     let free_quanta = anatomy
         .dissipation_capacity_quanta
         .checked_sub(predecessor_gate.dissipated_quanta)
         .ok_or(GateSettlementError::GatePopulationExceeded)?;
-    let population_settlement = select_gate_population_settlement(
-        anatomy,
-        plastic_anatomy,
-        plastic_state,
-        &predecessor_gate,
-        predecessor_membrane,
-        capacitance,
-        psi,
-        &gate_work,
-        Some(free_quanta),
-    )?;
+    let population_settlement = match &prepared.uncapped_population_settlement {
+        Some(uncapped) => quantize_gate_release(
+            &predecessor_gate.dissipation_residue_zeptojoules,
+            &uncapped.released_energy_zeptojoules,
+            &anatomy.dissipation_quantum_zeptojoules,
+            Some(free_quanta),
+        )?
+        .map(
+            |(released_quanta, dissipation_residue_zeptojoules, exported_heat_zeptojoules)| {
+                GatePopulationSettlement {
+                    open_population: uncapped.open_population,
+                    released_energy_zeptojoules: uncapped.released_energy_zeptojoules.clone(),
+                    released_quanta,
+                    dissipation_residue_zeptojoules,
+                    exported_heat_zeptojoules,
+                }
+            },
+        ),
+        None => None,
+    };
     let mut successor_gate = predecessor_gate.clone();
     let mut exported_heat_zeptojoules = Exact::zero();
     if let Some(settlement) = population_settlement {
@@ -3740,7 +3889,9 @@ pub(crate) fn settle_gate_membrane_with_contact(
         successor_gate,
         successor_carriers,
         membrane,
-        open_minus_closed_energy_zeptojoules: open_minus_closed,
+        open_minus_closed_energy_zeptojoules: prepared
+            .open_minus_closed_energy_zeptojoules
+            .clone(),
         exported_heat_zeptojoules,
     })
 }
@@ -3805,6 +3956,7 @@ fn select_gate_population_settlement(
         };
         return Ok(Some(GatePopulationSettlement {
             open_population: target_population,
+            released_energy_zeptojoules: released_energy,
             released_quanta,
             dissipation_residue_zeptojoules,
             exported_heat_zeptojoules,
@@ -3838,6 +3990,7 @@ fn select_gate_population_settlement(
         };
         return Ok(Some(GatePopulationSettlement {
             open_population: successor_population,
+            released_energy_zeptojoules: released_energy,
             released_quanta,
             dissipation_residue_zeptojoules,
             exported_heat_zeptojoules,
@@ -3914,6 +4067,7 @@ fn select_gate_population_settlement(
         if selected.is_none() {
             selected = Some(GatePopulationSettlement {
                 open_population,
+                released_energy_zeptojoules: released_energy,
                 released_quanta,
                 dissipation_residue_zeptojoules,
                 exported_heat_zeptojoules,
@@ -4279,18 +4433,22 @@ pub(crate) fn required_gate_recovery_extent_for_interval_with_psi(
     gate_work: &GateWorkOccurrence,
     psi: &PsiSettlement,
 ) -> Result<u128, NeuronPhysicalError> {
-    let settlement = select_gate_population_settlement(
-        &anatomy.gate,
-        &anatomy.plastic,
-        &predecessor.plastic,
-        &predecessor.gate,
-        predecessor.membrane,
-        anatomy.capacitance,
-        &psi.successor,
-        gate_work,
-        None,
-    )?;
-    let Some(settlement) = settlement else {
+    let prepared = anatomy.prepare_gate_interval_settlement(predecessor, gate_work, psi)?;
+    required_gate_recovery_extent_for_prepared_interval(anatomy, predecessor, &prepared)
+}
+
+pub(crate) fn required_gate_recovery_extent_for_prepared_interval(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    prepared: &PreparedGateIntervalSettlement,
+) -> Result<u128, NeuronPhysicalError> {
+    if predecessor.gate.open_population != prepared.predecessor_open_population
+        || predecessor.gate.dissipation_residue_zeptojoules
+            != prepared.predecessor_dissipation_residue_zeptojoules
+    {
+        return Err(GateSettlementError::InvalidAnatomy.into());
+    }
+    let Some(settlement) = &prepared.uncapped_population_settlement else {
         return Ok(0);
     };
     let required_quanta = settlement.released_quanta;
@@ -4909,7 +5067,23 @@ pub(crate) fn settle_extended_interval_with_contact(
     input: NeuronIntervalInput<'_>,
     inter_neuron_outward_elementary_charges: i128,
 ) -> Result<ExtendedIntervalSettlement, NeuronPhysicalError> {
-    let physical = settle_neuron_physical_interval_with_contact(
+    settle_extended_interval_with_contact_and_prepared_gate(
+        anatomy,
+        predecessor,
+        input,
+        inter_neuron_outward_elementary_charges,
+        None,
+    )
+}
+
+pub(crate) fn settle_extended_interval_with_contact_and_prepared_gate(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    input: NeuronIntervalInput<'_>,
+    inter_neuron_outward_elementary_charges: i128,
+    prepared_gate: Option<PreparedGateIntervalSettlement>,
+) -> Result<ExtendedIntervalSettlement, NeuronPhysicalError> {
+    let physical = settle_neuron_physical_interval_with_contact_and_prepared_gate(
         anatomy,
         predecessor,
         input.perspective,
@@ -4917,6 +5091,7 @@ pub(crate) fn settle_extended_interval_with_contact(
         input.interval_microseconds,
         inter_neuron_outward_elementary_charges,
         input.prepared_psi,
+        prepared_gate,
     )?;
     let predecessor_open_population = predecessor.gate.open_population();
     let successor_open_population = physical.successor.gate.open_population();
@@ -7293,6 +7468,91 @@ mod tests {
                     assert_eq!(
                         observed, expected,
                         "population={population} predecessor={predecessor_open} work={signed_work}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn prepared_gate_descent_matches_direct_capacity_bounded_settlement() {
+        let fixture = physical_fixture();
+        let gate = TwoStateGateAnatomy::new(
+            8,
+            0,
+            q(0, 1),
+            q(1, 4),
+            3,
+            r(1, 1),
+            r(-1, 1),
+            Vec::new(),
+            fixture.ring_count,
+        )
+        .unwrap();
+        for predecessor_open in 0..=gate.population {
+            for dissipated_quanta in 0..=gate.dissipation_capacity_quanta {
+                for signed_work in -16..=16_i64 {
+                    let mut predecessor_gate = fixture.state.gate.clone();
+                    predecessor_gate.open_population = predecessor_open;
+                    predecessor_gate.dissipated_quanta = dissipated_quanta;
+                    predecessor_gate.dissipation_residue_zeptojoules =
+                        PhysicalEnergyResidue::from_exact(q(1, 8));
+                    let work = GateWorkOccurrence::new(q(signed_work, 1));
+                    let direct = select_gate_population_settlement(
+                        &gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        &predecessor_gate,
+                        fixture.state.membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &work,
+                        Some(gate.dissipation_capacity_quanta - dissipated_quanta),
+                    )
+                    .unwrap();
+                    let prepared = prepare_gate_interval_settlement(
+                        &gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        &predecessor_gate,
+                        fixture.state.membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &work,
+                    )
+                    .unwrap();
+                    let projected = prepared
+                        .uncapped_population_settlement
+                        .as_ref()
+                        .and_then(|uncapped| {
+                            quantize_gate_release(
+                                &predecessor_gate.dissipation_residue_zeptojoules,
+                                &uncapped.released_energy_zeptojoules,
+                                &gate.dissipation_quantum_zeptojoules,
+                                Some(
+                                    gate.dissipation_capacity_quanta - dissipated_quanta,
+                                ),
+                            )
+                            .unwrap()
+                            .map(
+                                |(
+                                    released_quanta,
+                                    dissipation_residue_zeptojoules,
+                                    exported_heat_zeptojoules,
+                                )| GatePopulationSettlement {
+                                    open_population: uncapped.open_population,
+                                    released_energy_zeptojoules: uncapped
+                                        .released_energy_zeptojoules
+                                        .clone(),
+                                    released_quanta,
+                                    dissipation_residue_zeptojoules,
+                                    exported_heat_zeptojoules,
+                                },
+                            )
+                        });
+                    assert_eq!(
+                        projected, direct,
+                        "open={predecessor_open} dissipated={dissipated_quanta} work={signed_work}"
                     );
                 }
             }

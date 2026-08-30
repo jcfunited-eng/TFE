@@ -9,9 +9,10 @@
 //! work, or whole-brain scan is present here.
 
 use crate::complete_neuron::{
-    required_gate_recovery_extent_for_interval_with_psi, settle_recovery_only, GateWorkOccurrence,
-    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, PsiSettlement,
-    RecoveryContact, RecoveryError, RecoveryLaneAddress, RecoveryLaneAnatomy, RecoveryLaneState,
+    required_gate_recovery_extent_for_prepared_interval, settle_recovery_only,
+    NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState,
+    PreparedGateIntervalSettlement, RecoveryContact, RecoveryError, RecoveryLaneAddress,
+    RecoveryLaneAnatomy, RecoveryLaneState,
 };
 use crate::exact_rational::{ExactRational, ExactRationalError};
 use core::cmp::Ordering;
@@ -727,8 +728,7 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
     neuron_index: usize,
     neuron_anatomy: &NeuronPhysicalAnatomy,
     predecessor_neuron: &NeuronPhysicalState,
-    gate_work: &GateWorkOccurrence,
-    prepared_psi: &PsiSettlement,
+    prepared_gate: &PreparedGateIntervalSettlement,
     predecessor_reservoir: RecoveryFluidReservoirState,
 ) -> Result<ResidentGateRecoverySettlement, RecoveryFluidError> {
     let mounted = recovery_anatomy
@@ -737,11 +737,10 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
     if mounted.psi_contacts.len() != neuron_anatomy.psi_ring_count() {
         return Err(RecoveryFluidError::AnatomyWidth);
     }
-    let required_extent = required_gate_recovery_extent_for_interval_with_psi(
+    let required_extent = required_gate_recovery_extent_for_prepared_interval(
         neuron_anatomy,
         predecessor_neuron,
-        gate_work,
-        prepared_psi,
+        prepared_gate,
     )?;
     if required_extent == 0 {
         return Ok(ResidentGateRecoverySettlement {

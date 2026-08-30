@@ -16,7 +16,7 @@ use crate::complete_neuron::{
     encode_neuron_physical_cell, encode_neuron_physical_state,
     encode_neuron_physical_state_with_energy, encode_sparse_physical_state_delta,
     expand_legacy_receptor_channel_population, extend_neuron_positional_fabric,
-    settle_extended_interval_with_contact, sparse_physical_state_delta,
+    settle_extended_interval_with_contact_and_prepared_gate, sparse_physical_state_delta,
     sparse_retained_physical_state_delta, NeuronAnatomyCodecError, NeuronIntervalInput,
     NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, NeuronStateCodecError,
     PlasticSupportState, RecoveryLaneAddress, SparsePhysicalStateDelta,
@@ -3804,6 +3804,7 @@ pub(crate) fn settle_reached_cohort_interval(
     let mut recovered_neurons = predecessor.neurons.to_vec();
     let mut recovered_reservoir = predecessor.recovery_fluid;
     let mut recovery_active = false;
+    let mut prepared_gate_settlements = Vec::with_capacity(input.neurons.len());
     // Psi settlement reads only each neuron's own predecessor and shared
     // immutable field. Compute those independent preparations concurrently,
     // then retain the existing mounted-order recovery-fluid exchange below.
@@ -3838,16 +3839,26 @@ pub(crate) fn settle_reached_cohort_interval(
         let neuron_anatomy = &anatomy.neurons[resident_index];
         let neuron_predecessor = &predecessor.neurons[resident_index];
         let prepared_psi = prepared_psi?;
+        let prepared_gate = neuron_anatomy
+            .prepare_gate_interval_settlement(
+                neuron_predecessor,
+                &neuron_input.gate_work,
+                &prepared_psi,
+            )
+            .map_err(|error| ReachedCohortError::Neuron {
+                neuron_index: resident_index,
+                error,
+            })?;
         let recovered = settle_resident_gate_recovery_before_interval(
             &anatomy.recovery_fluid,
             resident_index,
             neuron_anatomy,
             neuron_predecessor,
-            &neuron_input.gate_work,
-            &prepared_psi,
+            &prepared_gate,
             recovered_reservoir,
         )?;
         neuron_input.prepared_psi = Some(prepared_psi);
+        prepared_gate_settlements.push(prepared_gate);
         recovery_active |= recovered.settled_extent != 0;
         recovered_reservoir = recovered.successor_reservoir;
         recovered_neurons[resident_index] = recovered.successor_neuron;
@@ -3908,8 +3919,9 @@ pub(crate) fn settle_reached_cohort_interval(
         .neurons
         .into_vec()
         .into_par_iter()
+        .zip(prepared_gate_settlements.into_par_iter())
         .enumerate()
-        .map(|(input_index, neuron_input)| {
+        .map(|(input_index, (neuron_input, prepared_gate))| {
             let resident_index = resident_indices[input_index];
             let combined_contact_outward = if !precomputed_contact_input {
                 electrical.outward_elementary_charges_by_neuron[resident_index]
@@ -3923,11 +3935,12 @@ pub(crate) fn settle_reached_cohort_interval(
                 // once.  Adding the local term again would duplicate material.
                 external_contact_outward[input_index]
             };
-            let settled = settle_extended_interval_with_contact(
+            let settled = settle_extended_interval_with_contact_and_prepared_gate(
                 &anatomy.neurons[resident_index],
                 &recovered_neurons[resident_index],
                 neuron_input,
                 combined_contact_outward,
+                Some(prepared_gate),
             )
             .map_err(|error| ReachedCohortError::Neuron {
                 neuron_index: resident_index,
@@ -4111,14 +4124,23 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
                     error,
                 })?,
         };
+        let prepared_gate = neuron_anatomy
+            .prepare_gate_interval_settlement(
+                predecessor_neuron,
+                &neuron_input.gate_work,
+                &prepared_psi,
+            )
+            .map_err(|error| ReachedCohortError::Neuron {
+                neuron_index: resident_index,
+                error,
+            })?;
         let recovery_stopwatch = std::time::Instant::now();
         let recovered = settle_resident_gate_recovery_before_interval(
             &anatomy.recovery_fluid,
             resident_index,
             neuron_anatomy,
             predecessor_neuron,
-            &neuron_input.gate_work,
-            &prepared_psi,
+            &prepared_gate,
             reservoir,
         )?;
         gate_recovery_us = gate_recovery_us
@@ -4134,11 +4156,12 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         reservoir = recovered.successor_reservoir;
         neuron_input.prepared_psi = Some(prepared_psi);
         let extended_stopwatch = std::time::Instant::now();
-        let settled = settle_extended_interval_with_contact(
+        let settled = settle_extended_interval_with_contact_and_prepared_gate(
             neuron_anatomy,
             &recovered.successor_neuron,
             neuron_input,
             input.external_contact_outward_elementary_charges[input_index],
+            Some(prepared_gate),
         )
         .map_err(|error| ReachedCohortError::Neuron {
             neuron_index: resident_index,
