@@ -254,3 +254,13 @@ def test_browser_microphone_requires_a_running_audio_thread_and_real_samples() -
     assert "microphoneStream!==null&&micLastSampleAtMs!==null" in page
     assert "Microphone permission open · waiting for real audio samples" in page
     assert "createScriptProcessor" not in continuous_microphone
+
+
+def test_read_only_observation_never_blocks_the_live_microphone_clock() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    microphone_sender = page.split(
+        "async function sendMicrophoneWindow", 1
+    )[1].split("async function toggleMicrophone", 1)[0]
+
+    assert "void refreshObservation(true)" in microphone_sender
+    assert "await refreshObservation(true)" not in microphone_sender
