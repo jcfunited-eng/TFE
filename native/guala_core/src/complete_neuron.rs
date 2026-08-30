@@ -30,7 +30,6 @@ use crate::local_membrane_conductance_balance::{
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{One, Signed, ToPrimitive, Zero};
-use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
@@ -187,6 +186,29 @@ pub(crate) struct PsiSettlement {
     pub(crate) dissipated_quanta: u128,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PsiRingSettlementPlan {
+    Retain,
+    Move {
+        minimum_index: usize,
+        dissipated_quanta: u128,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct PreparedPsiRingTarget {
+    by_predecessor_winding: [Result<PsiRingSettlementPlan, PsiSettlementError>; 3],
+}
+
+/// One anatomy's exact response to one gate-owned MathLoom delivery. Energy
+/// landscapes are anatomy and target properties, so this immutable plan is
+/// prepared once and then applied independently to every neuron sharing that
+/// heavy anatomy. Retained ring state and dissipation capacity remain local.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct PreparedPsiKrimelackDelivery {
+    rings: Box<[PreparedPsiRingTarget]>,
+}
+
 /// Settle every typed MathLoom position through its mounted finite energy
 /// landscape. DSF supplies only the canonical coupling-energy term. The
 /// successor is selected by reachable exact energy descent, never assignment
@@ -197,8 +219,15 @@ pub(crate) fn settle_psi_krimelack(
     predecessor: &PsiKrimelackState,
     delivery: &BorrowedMathLoomDelivery<'_>,
 ) -> Result<PsiSettlement, PsiSettlementError> {
+    let prepared = prepare_psi_krimelack_delivery(anatomy, delivery)?;
+    settle_prepared_psi_krimelack(anatomy, predecessor, &prepared)
+}
+
+fn prepare_psi_krimelack_delivery(
+    anatomy: &PsiKrimelackAnatomy,
+    delivery: &BorrowedMathLoomDelivery<'_>,
+) -> Result<PreparedPsiKrimelackDelivery, PsiSettlementError> {
     if delivery.constraints().len() != anatomy.constraint_count
-        || predecessor.rings.len() != anatomy.rings.len()
         || delivery.constraints().iter().any(|constraint| {
             constraint.word().numerator().len() != anatomy.positions
                 || constraint.word().denominator().len() != anatomy.positions
@@ -206,45 +235,81 @@ pub(crate) fn settle_psi_krimelack(
     {
         return Err(PsiSettlementError::DeliveryShapeChanged);
     }
-    let mut successor = predecessor.clone();
-    let mut changed_rings = 0_usize;
-    let mut dissipated_quanta = 0_u128;
     let uniform_ring_anatomy = anatomy
         .rings
         .first()
         .filter(|first| anatomy.rings.iter().all(|ring| ring == *first));
-    let mut uniform_settlements = HashMap::<(PsiRingState, BalancedTrit), PsiRingState>::new();
+    let uniform_targets = uniform_ring_anatomy.map(|uniform| {
+        std::array::from_fn::<PreparedPsiRingTarget, 3, _>(|target_index| {
+            PreparedPsiRingTarget {
+                by_predecessor_winding: std::array::from_fn(|current_index| {
+                    prepare_one_ring_plan(
+                        uniform,
+                        all_trits()[current_index],
+                        all_trits()[target_index],
+                    )
+                }),
+            }
+        })
+    });
+    let mut rings = Vec::new();
+    rings
+        .try_reserve_exact(anatomy.rings.len())
+        .map_err(|_| PsiSettlementError::ArithmeticWidth)?;
     for constraint_index in 0..anatomy.constraint_count {
         let word = delivery.constraints()[constraint_index].word();
         for (part_index, part) in [word.numerator(), word.denominator()].iter().enumerate() {
             for (position, target) in part.iter().enumerate() {
                 let ring_index = (constraint_index * 2 + part_index) * anatomy.positions + position;
-                let ring_anatomy = &anatomy.rings[ring_index];
-                let prior = predecessor.rings[ring_index];
-                let settled = if let Some(uniform) = uniform_ring_anatomy {
-                    if let Some(settled) = uniform_settlements.get(&(prior, *target)) {
-                        *settled
-                    } else {
-                        let settled = settle_one_ring(uniform, prior, *target)?;
-                        uniform_settlements.insert((prior, *target), settled);
-                        settled
-                    }
-                } else {
-                    settle_one_ring(ring_anatomy, prior, *target)?
+                let prepared = match uniform_targets {
+                    Some(targets) => targets[trit_index(*target)],
+                    None => PreparedPsiRingTarget {
+                        by_predecessor_winding: std::array::from_fn(|current_index| {
+                            prepare_one_ring_plan(
+                                &anatomy.rings[ring_index],
+                                all_trits()[current_index],
+                                *target,
+                            )
+                        }),
+                    },
                 };
-                if settled.winding != prior.winding {
-                    changed_rings += 1;
-                    let used = settled
-                        .dissipated_quanta
-                        .checked_sub(prior.dissipated_quanta)
-                        .ok_or(PsiSettlementError::ArithmeticWidth)?;
-                    dissipated_quanta = dissipated_quanta
-                        .checked_add(used)
-                        .ok_or(PsiSettlementError::ArithmeticWidth)?;
-                }
-                successor.rings[ring_index] = settled;
+                rings.push(prepared);
             }
         }
+    }
+    Ok(PreparedPsiKrimelackDelivery {
+        rings: rings.into_boxed_slice(),
+    })
+}
+
+fn settle_prepared_psi_krimelack(
+    anatomy: &PsiKrimelackAnatomy,
+    predecessor: &PsiKrimelackState,
+    prepared: &PreparedPsiKrimelackDelivery,
+) -> Result<PsiSettlement, PsiSettlementError> {
+    if predecessor.rings.len() != anatomy.rings.len()
+        || prepared.rings.len() != anatomy.rings.len()
+    {
+        return Err(PsiSettlementError::DeliveryShapeChanged);
+    }
+    let mut successor = predecessor.clone();
+    let mut changed_rings = 0_usize;
+    let mut dissipated_quanta = 0_u128;
+    for (ring_index, prepared_target) in prepared.rings.iter().enumerate() {
+        let prior = predecessor.rings[ring_index];
+        let plan = prepared_target.by_predecessor_winding[trit_index(prior.winding)]?;
+        let settled = apply_one_ring_plan(&anatomy.rings[ring_index], prior, plan)?;
+        if settled.winding != prior.winding {
+            changed_rings += 1;
+            let used = settled
+                .dissipated_quanta
+                .checked_sub(prior.dissipated_quanta)
+                .ok_or(PsiSettlementError::ArithmeticWidth)?;
+            dissipated_quanta = dissipated_quanta
+                .checked_add(used)
+                .ok_or(PsiSettlementError::ArithmeticWidth)?;
+        }
+        successor.rings[ring_index] = settled;
     }
     Ok(PsiSettlement {
         successor,
@@ -253,12 +318,12 @@ pub(crate) fn settle_psi_krimelack(
     })
 }
 
-fn settle_one_ring(
+fn prepare_one_ring_plan(
     anatomy: &PsiRingAnatomy,
-    predecessor: PsiRingState,
+    predecessor_winding: BalancedTrit,
     target: BalancedTrit,
-) -> Result<PsiRingState, PsiSettlementError> {
-    let current_index = trit_index(predecessor.winding);
+) -> Result<PsiRingSettlementPlan, PsiSettlementError> {
+    let current_index = trit_index(predecessor_winding);
     let mut energies = [Exact::zero(), Exact::zero(), Exact::zero()];
     for candidate in all_trits() {
         let index = trit_index(candidate);
@@ -282,7 +347,7 @@ fn settle_one_ring(
     }
     let (minimum_index, minimum_energy) = minimum.expect("self reachability is admitted");
     if energies[current_index] == *minimum_energy {
-        return Ok(predecessor);
+        return Ok(PsiRingSettlementPlan::Retain);
     }
     if tied {
         return Err(PsiSettlementError::DegenerateLowerEnergySuccessor);
@@ -290,9 +355,27 @@ fn settle_one_ring(
     let drop = &energies[current_index] - minimum_energy;
     let quanta = exact_unsigned_quanta(&drop, &anatomy.dissipation_quantum_zeptojoules)
         .ok_or(PsiSettlementError::DissipationNotQuantized)?;
+    Ok(PsiRingSettlementPlan::Move {
+        minimum_index,
+        dissipated_quanta: quanta,
+    })
+}
+
+fn apply_one_ring_plan(
+    anatomy: &PsiRingAnatomy,
+    predecessor: PsiRingState,
+    plan: PsiRingSettlementPlan,
+) -> Result<PsiRingState, PsiSettlementError> {
+    let PsiRingSettlementPlan::Move {
+        minimum_index,
+        dissipated_quanta,
+    } = plan
+    else {
+        return Ok(predecessor);
+    };
     let next_dissipated = predecessor
         .dissipated_quanta
-        .checked_add(quanta)
+        .checked_add(dissipated_quanta)
         .ok_or(PsiSettlementError::ArithmeticWidth)?;
     if next_dissipated > anatomy.dissipation_capacity_quanta {
         return Ok(predecessor);
@@ -1456,6 +1539,21 @@ impl NeuronPhysicalAnatomy {
         delivery: &BorrowedMathLoomDelivery<'_>,
     ) -> Result<PsiSettlement, NeuronPhysicalError> {
         settle_psi_krimelack(&self.psi, &predecessor.psi, delivery).map_err(Into::into)
+    }
+
+    pub(crate) fn prepare_shared_psi_delivery(
+        &self,
+        delivery: &BorrowedMathLoomDelivery<'_>,
+    ) -> Result<PreparedPsiKrimelackDelivery, NeuronPhysicalError> {
+        prepare_psi_krimelack_delivery(&self.psi, delivery).map_err(Into::into)
+    }
+
+    pub(crate) fn settle_prepared_psi_delivery(
+        &self,
+        predecessor: &NeuronPhysicalState,
+        prepared: &PreparedPsiKrimelackDelivery,
+    ) -> Result<PsiSettlement, NeuronPhysicalError> {
+        settle_prepared_psi_krimelack(&self.psi, &predecessor.psi, prepared).map_err(Into::into)
     }
 
     /// The same anatomy carrying a different membrane capacitance.

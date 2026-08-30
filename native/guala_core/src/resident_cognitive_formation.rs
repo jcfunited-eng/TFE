@@ -40,8 +40,8 @@ use crate::complete_neuron::{
     sparse_physical_state_delta, sparse_retained_physical_state_delta, DnaExpressionContact,
     ExactPhysicalStateDelta,
     ExactSignedDelta, GateWorkOccurrence, NeuronIntervalInput, NeuronPhysicalAnatomy,
-    NeuronPhysicalState, PhysicalStateCoordinate, PhysicalStateDeltaEntry, RecoveryContact,
-    RecoveryLaneAddress, SparsePhysicalStateDelta,
+    NeuronPhysicalState, PhysicalStateCoordinate, PhysicalStateDeltaEntry,
+    PreparedPsiKrimelackDelivery, RecoveryContact, RecoveryLaneAddress, SparsePhysicalStateDelta,
 };
 use crate::declared_geometric_anatomy::{declared_neuron_territory, DeclaredNeuronPlace};
 use crate::developmental_electrical_anatomy::{
@@ -18772,6 +18772,36 @@ fn settle_internal_contact_interval(
             .map_err(FormationError::JointFieldUnavailable)?,
         );
     }
+    let mut reached_psi_deliveries = BTreeMap::<usize, PreparedPsiKrimelackDelivery>::new();
+    for (cohort_index, selected_members) in selected_members_by_cohort.iter().enumerate() {
+        let cohort = cohorts
+            .get(cohort_index)
+            .ok_or(FormationError::NoncanonicalState)?;
+        for (_, neuron_index) in selected_members {
+            let anatomy = &cohort.anatomy.neuron_anatomies()[*neuron_index];
+            if shared_required_positions > anatomy.mathloom_positions() {
+                continue;
+            }
+            let identity = anatomy.heavy_anatomy_identity();
+            if reached_psi_deliveries.contains_key(&identity) {
+                continue;
+            }
+            let delivery = reached_mathloom_deliveries
+                .get(&anatomy.mathloom_positions())
+                .ok_or(FormationError::NoncanonicalState)?;
+            reached_psi_deliveries.insert(
+                identity,
+                anatomy
+                    .prepare_shared_psi_delivery(delivery)
+                    .map_err(|error| {
+                        FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                            neuron_index: *neuron_index,
+                            error,
+                        })
+                    })?,
+            );
+        }
+    }
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
@@ -18901,17 +18931,25 @@ fn settle_internal_contact_interval(
             let perspective = bind_neuron_perspective(&shared, coordinate, 0)
                 .map_err(FormationError::JointFieldUnavailable)?;
             let neuron_anatomy = &cohort.anatomy.neuron_anatomies()[neuron_index];
-            let delivery = reached_mathloom_deliveries
-                .get(&neuron_anatomy.mathloom_positions())
-                .ok_or(FormationError::NoncanonicalState)?
-                .for_perspective(perspective)
-                .map_err(FormationError::JointFieldUnavailable)?;
-            let prepared_psi = neuron_anatomy
-                .prepare_psi_settlement_from_delivery(
+            let prepared_psi = if let Some(prepared_delivery) = reached_psi_deliveries
+                .get(&neuron_anatomy.heavy_anatomy_identity())
+            {
+                neuron_anatomy.settle_prepared_psi_delivery(
+                    &cohort.state.neurons()[neuron_index],
+                    prepared_delivery,
+                )
+            } else {
+                let delivery = reached_mathloom_deliveries
+                    .get(&neuron_anatomy.mathloom_positions())
+                    .ok_or(FormationError::NoncanonicalState)?
+                    .for_perspective(perspective)
+                    .map_err(FormationError::JointFieldUnavailable)?;
+                neuron_anatomy.prepare_psi_settlement_from_delivery(
                     &cohort.state.neurons()[neuron_index],
                     &delivery,
                 )
-                .map_err(|error| {
+            }
+            .map_err(|error| {
                     FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
                         neuron_index,
                         error,
