@@ -3137,6 +3137,8 @@ pub(crate) struct SparseReachedCohortIntervalSettlement {
     pub(crate) quiescent: bool,
     pub(crate) material_prepare_us: u64,
     pub(crate) neuron_settlement_us: u64,
+    pub(crate) gate_recovery_us: u64,
+    pub(crate) extended_interval_us: u64,
     pub(crate) material_validation_us: u64,
     pub(crate) apply_us: u64,
 }
@@ -4094,6 +4096,8 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     let mut newly_opened_gate_channels = Vec::new();
     let mut local_outward_elementary_charges = Vec::new();
     let mut locally_quiescent = Vec::new();
+    let mut gate_recovery_us = 0_u64;
+    let mut extended_interval_us = 0_u64;
     for (input_index, mut neuron_input) in input.neurons.into_vec().into_iter().enumerate() {
         let resident_index = resident_indices[input_index];
         let neuron_anatomy = &anatomy.neurons[resident_index];
@@ -4107,6 +4111,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
                     error,
                 })?,
         };
+        let recovery_stopwatch = std::time::Instant::now();
         let recovered = settle_resident_gate_recovery_before_interval(
             &anatomy.recovery_fluid,
             resident_index,
@@ -4116,9 +4121,19 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
             &prepared_psi,
             reservoir,
         )?;
+        gate_recovery_us = gate_recovery_us
+            .checked_add(
+                u64::try_from(recovery_stopwatch.elapsed().as_micros()).map_err(|_| {
+                    ReachedCohortError::MaterialArithmetic("settlement timing overflow")
+                })?,
+            )
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "settlement timing overflow",
+            ))?;
         recovery_active |= recovered.settled_extent != 0;
         reservoir = recovered.successor_reservoir;
         neuron_input.prepared_psi = Some(prepared_psi);
+        let extended_stopwatch = std::time::Instant::now();
         let settled = settle_extended_interval_with_contact(
             neuron_anatomy,
             &recovered.successor_neuron,
@@ -4129,6 +4144,15 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
             neuron_index: resident_index,
             error,
         })?;
+        extended_interval_us = extended_interval_us
+            .checked_add(
+                u64::try_from(extended_stopwatch.elapsed().as_micros()).map_err(|_| {
+                    ReachedCohortError::MaterialArithmetic("settlement timing overflow")
+                })?,
+            )
+            .ok_or(ReachedCohortError::MaterialArithmetic(
+                "settlement timing overflow",
+            ))?;
         if settled.newly_opened_gate_channels != 0 {
             newly_opened_gate_channels
                 .push((resident_index, settled.newly_opened_gate_channels));
@@ -4202,6 +4226,8 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
             (neuron_settlement_wall - material_prepare_wall).as_micros(),
         )
         .map_err(|_| ReachedCohortError::MaterialArithmetic("settlement timing overflow"))?,
+        gate_recovery_us,
+        extended_interval_us,
         material_validation_us: u64::try_from(
             (material_validation_wall - neuron_settlement_wall).as_micros(),
         )

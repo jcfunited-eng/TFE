@@ -18734,6 +18734,8 @@ fn settle_internal_contact_interval(
     let cohort_settle_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_material_prepare_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_neuron_settlement_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_gate_recovery_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_extended_interval_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_material_validation_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_apply_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_effector_us = std::sync::atomic::AtomicU64::new(0);
@@ -19093,6 +19095,8 @@ fn settle_internal_contact_interval(
         let relaxed = std::sync::atomic::Ordering::Relaxed;
         cohort_material_prepare_us.fetch_add(settlement.material_prepare_us, relaxed);
         cohort_neuron_settlement_us.fetch_add(settlement.neuron_settlement_us, relaxed);
+        cohort_gate_recovery_us.fetch_add(settlement.gate_recovery_us, relaxed);
+        cohort_extended_interval_us.fetch_add(settlement.extended_interval_us, relaxed);
         cohort_material_validation_us.fetch_add(settlement.material_validation_us, relaxed);
         cohort_apply_us.fetch_add(settlement.apply_us, relaxed);
         // A mounted motor terminal is a second, neuron-local physical path.
@@ -19521,7 +19525,8 @@ fn settle_internal_contact_interval(
     eprintln!(
         "guala-cohort-aggregate wall_ms={} prepare_us={} growth_us={} scaffold_us={} \
          input_us={} pack_us={} settle_us={} material_prepare_us={} neuron_us={} \
-         material_validate_us={} apply_us={} effector_us={} evidence_us={} tail_us={} \
+         gate_recovery_us={} extended_us={} material_validate_us={} apply_us={} \
+         effector_us={} evidence_us={} tail_us={} \
          cohorts={} members={}",
         (contact_stopwatch.elapsed() - shared_wall).as_millis(),
         cohort_prepare_us.load(relaxed),
@@ -19532,6 +19537,8 @@ fn settle_internal_contact_interval(
         cohort_settle_us.load(relaxed),
         cohort_material_prepare_us.load(relaxed),
         cohort_neuron_settlement_us.load(relaxed),
+        cohort_gate_recovery_us.load(relaxed),
+        cohort_extended_interval_us.load(relaxed),
         cohort_material_validation_us.load(relaxed),
         cohort_apply_us.load(relaxed),
         cohort_effector_us.load(relaxed),
