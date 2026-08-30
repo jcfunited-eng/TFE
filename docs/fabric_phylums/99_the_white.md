@@ -519,7 +519,25 @@ ENTRY: a subject common enough to enter the frame
     construction — both are frequent. Note this is the same shape as
     "what separates a contentful word from a merely rare one", filed
     above, and may be one question rather than two.
-  STATUS: STANDING (white)
+  DRAINED 2026-08-30 — SPREAD ACROSS SUBJECTS, which is not a kind of
+    frequency and is why the earlier counting could not find it. A
+    structural word reaches every subject the fabric has; a word the
+    writing merely dwells on reaches about half. Measured across 162
+    subjects: the, a, is, of and and reach 1.00; water reaches 0.49,
+    air 0.43, mind 0.44, power 0.46, words 0.41. The frame is now the
+    commonest hundred words that reach more than three fifths of the
+    subjects, which drops water, rather, computing and evidence and
+    takes in slightly rarer structural ones in their place.
+    All three benches rose at once, which had not happened before:
+    the doing 63 to 64, the kind 41 to 43, being told what to do 12 to
+    13. Keeping the frame at a hundred matters — letting it grow to
+    134 instead scored worse on two of the three.
+  NOTE ON THE OTHER HALF: this does NOT drain "what separates a
+    contentful word from a merely rare one". That question is about
+    words like connect and exclude, which are spread wide AND empty,
+    so spread would call them structural. The two questions looked
+    like one and are not.
+  STATUS: DRAINED
 
 ENTRY: the rate of being opened, taken over the whole frame
   ASKED-AS: opened by a pointer rate frame hundred commonest noise

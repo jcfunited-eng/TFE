@@ -111,6 +111,9 @@ class Company:
                            "alike", "more than")
         self.frame_size = S.get("size of the frame",
                                 "frame", "commonest")
+        self.frame_spread = S.get("how many subjects a frame word "
+                                  "must reach",
+                                  "reach most", "more than")
         self.pair_habit = S.get("sightings that make a pair a habit",
                                 "group", "fewer than")
         self.pointer_share = S.get("how often a pointer is followed "
@@ -138,10 +141,27 @@ class Company:
                         lines.append(ws)
         self.lines = lines
         self.count = collections.Counter(w for s in lines for w in s)
-        # the frame: whatever the writing itself uses most. Never
-        # chosen by hand — the wall forbids that explicitly.
-        self.frame = {w for w, _ in
-                      self.count.most_common(int(self.frame_size))}
+        # THE FRAME: the commonest words that also reach most of the
+        # subjects. Frequency alone let content words in — a fabric
+        # written about physics and cooking makes "water" one of its
+        # hundred commonest, and a frame word never closes a group, so
+        # the better the corpus covered a subject the less readable
+        # that subject became. Spread is not a kind of frequency: the
+        # structural words reach every subject, a dwelt-on one reaches
+        # half. Never listed by hand.
+        subj = collections.defaultdict(set)
+        for e in F.entries:
+            for w in set(re.findall(r"[a-z']+",
+                                    (e["essence"] + " "
+                                     + e["thread"]).lower())):
+                subj[w].add(e["field"])
+        nsub = len({e["field"] for e in F.entries}) or 1
+        self.frame = set()
+        for w, _n in self.count.most_common(4000):
+            if len(subj[w]) / nsub > self.frame_spread:
+                self.frame.add(w)
+                if len(self.frame) >= int(self.frame_size):
+                    break
         # every word's company, and what it follows
         self.before = collections.defaultdict(collections.Counter)
         self.after = collections.defaultdict(collections.Counter)

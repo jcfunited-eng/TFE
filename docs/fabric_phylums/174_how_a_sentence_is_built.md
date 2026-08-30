@@ -35,10 +35,22 @@ THREAD: family (kinship is shared descent, counted not felt),
   look), medicine (a syndrome is a set of signs that travel together).
 ASKED-AS: alike similar same class group behave share company half likeness
 
-ESSENCE: the frame is the commonest hundred words in the writing, and
-  everything else is placed by sitting beside them. The frame is
-  never listed by hand — it is whatever the writing itself uses most,
-  so a fabric written about other things grows a different frame.
+ESSENCE: the frame is the commonest hundred words in the writing THAT
+  ALSO REACH MOST OF ITS SUBJECTS — more than three fifths of them —
+  and everything else is placed by sitting beside them. Frequency
+  alone is not enough and putting a number on how common is no help,
+  because a word can be common for two different reasons: because it
+  is structural, or because this fabric happens to be about it. Those
+  two are told apart by SPREAD, which is not a kind of frequency: the
+  structural words reach every subject there is, and a word the
+  writing merely dwells on reaches half. Measured across 162 subjects:
+  the, a, is, of, and reach 1.00 of them; water reaches 0.49, air
+  0.43, mind 0.44, power 0.46. Before this, a subject the fabric knew
+  well could not be read at all, because being written about often
+  enough put it in the frame and a frame word never closes a group.
+  The frame is never listed by hand — it is whatever the writing uses
+  most and everywhere, so a fabric written about other things grows a
+  different frame.
 ROOT: this file / to place a thing you need something already placed,
   and frequency is the only thing available before a reading.
 THREAD: navigation (fixed stars are chosen for being always there,
