@@ -92,7 +92,8 @@ def test_articulation_cannot_offer_pressure_from_a_different_event(
 def test_gualaloom_plays_only_the_exact_native_pressure_endpoint() -> None:
     page = PAGE.read_text(encoding="utf-8")
 
-    assert "Hear latest native pressure" in page
+    assert "Hear raw native pressure" in page
+    assert "Hear Guala" in page
     assert "X-Guala-Pressure-SHA256" in page
     assert "new Audio(nativePressureUrl)" in page
     assert "speechSynthesis" not in page

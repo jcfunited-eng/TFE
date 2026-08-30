@@ -197,6 +197,10 @@ def test_native_pressure_has_raw_and_explicit_observer_amplified_playback() -> N
     source = GUALA.read_text(encoding="utf-8")
     assert "Hear raw native pressure" in source
     assert "Hear amplified observer playback" in source
+    assert 'id="native-listen-toggle"' in source
+    assert "Hear Guala" in source
+    assert "playLiveNativePressure(nativePressurePlayback(value.articulation))" in source
+    assert "each new exact utterance" in source
     assert "Amplification affects your speaker only" in source
     assert 'response.headers.get("X-Guala-Pressure-SHA256")' in source
     assert "nativePressureContext.createGain()" in source
