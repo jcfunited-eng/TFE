@@ -63,6 +63,7 @@ its other homes are named so a cascade can branch.
 - MATERIAL AND ITS REFUSALS — what a medium forbids gives the form
   its character: watercolor cannot be undone, marble can only be
   taken away, film cost money by the second; also: craft, building.
+- PINK (told to me in conversation, 2026-08-30) — pink is a pale red color that people wear to look soft and warm
 
 ## CLAIMS
 What holds, written to be tested by a crossing query. Worth is

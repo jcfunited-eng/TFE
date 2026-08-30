@@ -195,6 +195,20 @@ def _answer(q):
                     f"  Said rather than hidden.")
 
 
+_CONV = None
+
+
+def _converse(q):
+    """One turn of the conversation — the thread held across
+    turns so its questions and your answers connect."""
+    global _CONV
+    import converse
+    with LOCK:
+        if _CONV is None:
+            _CONV = converse.Converse()
+        return _CONV.turn(q)
+
+
 _FRAME = {"the", "a", "an", "of", "and", "or", "to", "for", "in",
           "on", "at", "is", "are", "was", "were", "be", "been",
           "do", "does", "did", "you", "i", "it", "its", "that",
@@ -370,7 +384,7 @@ class Door(BaseHTTPRequestHandler):
             self._send("  nothing asked.", "text/plain; charset=utf-8")
             return
         try:
-            out = _plain(q)
+            out = _converse(q)
             out += ("\n\n" + "-" * 46 +
                     "\nTHE READING, IN THE MACHINE'S OWN TERMS\n\n")
             out += _heard(q)
