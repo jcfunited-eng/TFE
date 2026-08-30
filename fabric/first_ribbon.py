@@ -323,7 +323,12 @@ def company():
 # ---------------------------------------------------------------
 def groups(sentence, forbids=False):
     C = company()
-    ws = re.findall(r"[a-z']+", sentence.lower())
+    # A NUMBER IS A WORD. The sentence was tokenised as letters only,
+    # so every digit was thrown away before anything looked at it —
+    # "add 59 and 73" arrived as "add and". Found by a task whose
+    # answer is arithmetic rather than my judgement; no bench of
+    # sentences I wrote had a number in it, so none could see this.
+    ws = re.findall(r"[a-z']+|\d+", sentence.lower())
     if not ws:
         return []
     # A group is a run of frame words carrying one word from outside
@@ -822,6 +827,11 @@ def doing_of(gs, why=False, forbids=False):
     # doing while anything else is standing
     not_asking = [i for i in cand if not set(gs[i]) & C.asking]
     cand = not_asking or cand
+    # A NUMBER NAMES A QUANTITY AND CANNOT BE A DOING. Not a judgement
+    # about English — a count does not act. Without this "subtract 67
+    # and 62" turned on 67.
+    not_number = [i for i in cand if not head(gs[i]).isdigit()]
+    cand = not_number or cand
     # 174: a doing that reaches something has the doer before it and
     # the done-to after it, so where more than one group is standing
     # it is looked for between them rather than at an end.
