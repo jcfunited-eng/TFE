@@ -263,16 +263,25 @@ def _plain(q):
                   for s in held_words}
 
     if make:
+        made = None
         if held_slugs:
             top = max(held_slugs, key=held_slugs.get)
+            try:
+                import hands
+                made = hands.make(content, top)
+            except Exception as e:
+                made = (f"the hands fell over: "
+                        f"{type(e).__name__}: {e} — said rather "
+                        f"than hidden.")
+        if made:
+            out.append(made)
+        elif held_slugs:
             out.append(
                 f"What I cannot yet do is the making itself — "
-                f"the hands that assemble knowledge into a thing "
-                f"are not built. Nothing certain to give you, but "
-                f"here is what is true: the knowledge your want "
-                f"needs stands mostly in {top}, and when the "
-                f"assembling is built, that is where it will "
-                f"reach.")
+                f"the knowledge your want needs stands mostly in "
+                f"{top}, but nothing under your words decomposes "
+                f"into components my laws can grip, so I have "
+                f"nothing honest to assemble.")
         else:
             out.append(
                 "And I hold nothing under those words yet, so "

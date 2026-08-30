@@ -1052,3 +1052,27 @@ ENTRY: a written procedure with a "when" in it cannot be followed
     knowledge, only read out of it.
   STATUS: STANDING (white) — and it is the reason adding works
     end-to-end and multiplying does not
+
+ENTRY: compose a procedure for a make-want by word overlap
+  ASKED-AS: create make recipe assemble procedure order steps
+    hands
+  VERDICT: did not hold — three variants measured 2026-08-30 on
+    "create a pumpkin cheese cake recipe". Plain overlap chose
+    canning and altitude rules for a cheesecake; component
+    fencing (parts decomposed into held things) still let the
+    universal media (water, heat, food) grip everything; rarity
+    weighting inside the phylum reordered the noise without
+    removing it. WHY, exactly: which rules APPLY is a fact about
+    the want's ACT (set a sweet milk-protein structure), and the
+    act is not present in the want's words — no weighting of
+    word-grips can supply what the words do not carry.
+  STATUS: STANDING (white). What survived: decomposition — a
+    held part broken into the subject's own components, each
+    component's governing law found by name in the law's own
+    statement (never its worked example). Shipped as the hands'
+    honest first form.
+  WOULD DRAIN ON: reading the want's ACT — the kind of change it
+    asks for — through the language phylum's senses and the
+    subject's methods, so rules are chosen by the change they
+    govern, not the words they share. That is the crossing, and
+    it is the named next build.
