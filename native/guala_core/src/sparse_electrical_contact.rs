@@ -448,11 +448,11 @@ impl ContactEndpoint {
 /// cannot change the sign: the exact rational bracket alone decides
 /// lawfulness.  No new constant, threshold, or damping factor is introduced —
 /// only the authored capacitances and the separated charges already in state.
-fn stored_energy_change_bracket(
+fn stored_energy_change_fraction_parts(
     left: ContactEndpoint,
     right: ContactEndpoint,
     transferred_from_left: i128,
-) -> BigRational {
+) -> (BigInt, BigInt) {
     // This is a transient comparison, not resident state.  A mature membrane
     // may lawfully hold an i128 charge while the exact q² and 2nq terms need
     // more than i128 during the comparison.  Keeping those intermediate
@@ -466,10 +466,20 @@ fn stored_energy_change_bracket(
         - &doubled * BigInt::from(left.separated_elementary_charges);
     let right_numerator = squared
         + doubled * BigInt::from(right.separated_elementary_charges);
-    BigRational::from_integer(left_numerator)
-        / wide_rational(left.capacitance.picofarads())
-        + BigRational::from_integer(right_numerator)
-            / wide_rational(right.capacitance.picofarads())
+    let (left_capacitance_numerator, left_capacitance_denominator) =
+        left.capacitance.picofarads().parts();
+    let (right_capacitance_numerator, right_capacitance_denominator) =
+        right.capacitance.picofarads().parts();
+    let left_capacitance_numerator = BigInt::from(left_capacitance_numerator);
+    let right_capacitance_numerator = BigInt::from(right_capacitance_numerator);
+    let numerator = left_numerator
+        * BigInt::from(left_capacitance_denominator)
+        * &right_capacitance_numerator
+        + right_numerator
+            * BigInt::from(right_capacitance_denominator)
+            * &left_capacitance_numerator;
+    let denominator = left_capacitance_numerator * right_capacitance_numerator;
+    (numerator, denominator)
 }
 
 fn stored_energy_strictly_decreases(
@@ -477,7 +487,9 @@ fn stored_energy_strictly_decreases(
     right: ContactEndpoint,
     transferred_from_left: i128,
 ) -> Result<bool, SparseElectricalError> {
-    Ok(stored_energy_change_bracket(left, right, transferred_from_left).is_negative())
+    let (numerator, _) =
+        stored_energy_change_fraction_parts(left, right, transferred_from_left);
+    Ok(numerator.is_negative())
 }
 
 /// Exact junctional work released by the whole elementary charges that
@@ -500,19 +512,21 @@ fn released_electrostatic_work_zeptojoules(
     if transferred_from_left == 0 {
         return Ok(BigRational::zero());
     }
-    let change = stored_energy_change_bracket(left, right, transferred_from_left);
-    if !change.is_negative() {
+    let (change_numerator, change_denominator) =
+        stored_energy_change_fraction_parts(left, right, transferred_from_left);
+    if !change_numerator.is_negative() {
         return Err(SparseElectricalError::ArithmeticWidth);
     }
-    let elementary_charge_squared_scale = BigRational::new(
-        BigInt::from(FAST_E_NUMERATOR)
-            * BigInt::from(FAST_E_NUMERATOR)
-            * BigInt::from(1_000_u16),
-        BigInt::from(FAST_E_DENOMINATOR)
-            * BigInt::from(FAST_E_DENOMINATOR)
-            * BigInt::from(2_u8),
-    );
-    Ok(-change * elementary_charge_squared_scale)
+    let scale_numerator = BigInt::from(FAST_E_NUMERATOR)
+        * BigInt::from(FAST_E_NUMERATOR)
+        * BigInt::from(1_000_u16);
+    let scale_denominator = BigInt::from(FAST_E_DENOMINATOR)
+        * BigInt::from(FAST_E_DENOMINATOR)
+        * BigInt::from(2_u8);
+    Ok(BigRational::new(
+        -change_numerator * scale_numerator,
+        change_denominator * scale_denominator,
+    ))
 }
 
 /// Largest whole-carrier transfer in the field-driven direction that remains
