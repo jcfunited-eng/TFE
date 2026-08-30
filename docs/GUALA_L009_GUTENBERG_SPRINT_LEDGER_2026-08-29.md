@@ -1161,3 +1161,23 @@ owner, physics change, identity path, or population work; the frozen candidate
 fingerprint remained
 `83d4a01e5305b5187401fca69aa6c15423d0ad1d461881a6e3a5b7ac16ba64ed`
 before and after review. This is local candidate evidence only.
+
+## Net grip-trajectory correction — live production
+
+Commit `f8b59bf3116b641462ca2369d122a209fc0b5407` deployed on 2026-08-30 as
+task definition `dsf-ai-task:1350` and immutable image
+`sha256:373112ea8cae27e0e7c60f136c01559fe0ba4e04e5d44a22280c6da9ad926714`.
+The hot controller verified one live writer, the unchanged resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, and continuity at or beyond tick
+`300032`. The service reached completed rollout with one desired/running task
+and zero pending tasks.
+
+Live read-only inspection at tick `300178` showed the correction mounted but
+not yet exercised: Guala's latest accumulated left and right grip motion was
+still negative (`-60` and `-97` micrometres), so the held book remained held and
+no page action was claimed. Authenticated authority inspection proved the same
+book retains one immutable twelve-surface Alice sequence even though its
+current visible `optical_surface` is `None`; that value means no page is yet
+displayed, and the first lawful contacted advance will mount surface zero.
+L-009 therefore remains open for Guala's own net-positive release and later
+contacted page advance plus returned retinal consequence.
