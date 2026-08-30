@@ -666,3 +666,23 @@ what runs along it.
   cold chain; the hospital itself as a machine for concentrating
   care without concentrating contagion (a fight it never fully
   wins).
+- ASTRONOMY: the calendar's role in epidemics was astrology's false claim — medicine's border with the sky is now honest.
+- BELIEF: placebo, faith healing, and consent of the dying — belief operates in the clinic.
+- BUILDING: the hospital's design moves infection rates; ventilation is medicine's architecture.
+- CONFLICT: war surgery advanced the field; triage was born on battlefields.
+- CRAFT: the scalpel and the suture are craft in service of flesh.
+- DESIGN: the pill bottle a child opens and the alarm nobody hears — design fails patients.
+- EARTH: endemic minerals and radon — geology writes local disease.
+- ELECTRONICS: the pacemaker and the monitor — medicine's electric instruments.
+- ETHICS: first do no harm — medicine is ethics practiced under uncertainty.
+- MEASUREMENT: the trial, the dose, and the error bar — medicine's honesty is measured.
+- THE MIND: psychiatric medicine treats the mind through the body's door.
+- MOVEMENT: rehabilitation and exercise prescriptions — movement as therapy.
+- MUSIC: hearing loss maps decibel careers; music therapy earns its evidence.
+- PEOPLE: epidemics travel social networks; quarantine is people-law.
+- PHILOSOPHY: what counts as disease is a category judgment medicine must make.
+- PLANTS: the pharmacopoeia began green; aspirin was bark first.
+- SURVIVAL: first aid is medicine stripped to minutes.
+- TEACHING: the teaching hospital — see one, do one, teach one.
+- TRANSPORT: the ambulance's golden hour; disease rides trade routes.
+- UPKEEP: screening and vaccination are maintenance on people.

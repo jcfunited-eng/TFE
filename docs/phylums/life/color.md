@@ -518,3 +518,16 @@ what runs along it.
   actual; breeds and crops carry culture's choices in living
   form; inheritance as the oldest family story, now with its
   arithmetic written.
+- ANIMALS: animals are life's mobile branch; shared laws, separate file.
+- ASTRONOMY: life's chemistry is stardust; the habitable zone is astronomy's biology.
+- BUILDING: termite mounds and reefs — life builds; our buildings host ecosystems.
+- COMPUTING: DNA as code and evolution as search inspired computing's methods.
+- DESIGN: selection is the blind designer; biomimicry copies its portfolio.
+- EARTH: life remade the air and buries carbon into rock — planet and life co-author.
+- ETHICS: what may be done to living things — life is ethics' widest subject.
+- THE MIND: the mind is life's most expensive organ; evolution priced it.
+- MOVEMENT: muscle and gait are life's engineering for motion.
+- PEOPLE: kin selection and cooperation — sociality is a biological wager.
+- PHILOSOPHY: what life IS resists definition; the virus sits on the fence.
+- PLANTS: plants are life's other kingdom — the energy source of the rest.
+- PLAY: play is a biological behavior; mammals rehearse by it.

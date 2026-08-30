@@ -576,3 +576,18 @@ First-class connections — the cascade's paths outward.
   scale.
 - LANGUAGE: the citation as provenance record; what cannot be
   written into a claim with unit and bar cannot be inherited.
+- ANIMALS: tagging, counts, and the census of the wild.
+- BELIEF: claims that measure nothing mark belief's border with knowledge.
+- BUILDING: the level, the plumb line, and the survey — building begins by measuring.
+- CONFLICT: intelligence is measurement of the enemy; the range finder aims.
+- CRAFT: the gauge and the template hold craft to tolerance.
+- DESIGN: legibility distances and testing arithmetic — design measured, not felt.
+- ELECTRONICS: the meter and the oscilloscope — electronics sees only by measuring.
+- ETHICS: honest scales are commerce's oldest ethics; the metric that misleads is judged.
+- FLIGHT: the pitot tube and altimeter — flight flies on instruments.
+- MOVEMENT: the stopwatch and the photo finish made sport honest.
+- PHILOSOPHY: what a measurement can know is epistemology with apparatus.
+- PLANTS: yield trials and growth rates — botany quantified.
+- SURVIVAL: pace counting and water rationing — measurement stripped to essentials.
+- UPKEEP: the inspection reading decides repair before failure.
+- THE BODY: vital signs, dose per kilogram, the growth chart — the body is medicine's most measured object.

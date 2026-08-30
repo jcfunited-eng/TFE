@@ -572,3 +572,8 @@ First-class connections — the cascade's paths outward.
 - UPKEEP: every dispersal of power decays unserviced — term
   limits, audits, fences deleted by inheritors who never learned
   their why. The dam needs walking.
+- BUILDING: public works legitimize states; the capital city is governance built.
+- EARTH: borders follow rivers and ranges; resources underground make law above.
+- MOVEMENT: stadium spectacle serves states; sport is soft power.
+- PLANTS: grain stores fed the first bureaucracies; famine topples governments.
+- TRANSPORT: roads are the state's arteries; who moves freely is policy.

@@ -530,3 +530,24 @@ what runs along it.
   exponentials in microbes and epidemics, rates and narrow bands
   in every dial — the body's regulation is arithmetic done in
   flesh, continuously, without being asked.
+- ANIMALS: the same organ plans and gaits at other scales; veterinary medicine is body knowledge ported.
+- BUILDING: stairs, chairs, doorways — every built dimension is a body measurement frozen.
+- COMPUTING: nerves as charge signals and the eye's compression taught computing its first designs.
+- CONFLICT: training, wounds, fatigue arithmetic — armies run on body limits.
+- CRAFT: the trained hand's grip and tremor set what tools can ask.
+- EARTH: bones are minerals on loan from rock; salt balance mirrors the sea we left.
+- ELECTRONICS: the nerve is a living circuit; sensors and prosthetics meet it in its own currency.
+- FLIGHT: acceleration limits, oxygen ceilings, the inner-ear compass confounded — flight is bounded by the body.
+- LANGUAGE: speech is breath, larynx, and tongue — language's hardware is anatomy.
+- THE MIND: one organ, two phylums: the brain's chemistry here, its behavior there.
+- MOVEMENT: muscles, levers, and fuel systems are the body's half of every sport.
+- MUSIC: hearing's range, the voice's reach, rhythm from the heartbeat — music plays the body.
+- PHILOSOPHY: the senses as instruments with error bars start every theory of knowing.
+- PLANTS: most medicine began as plant chemistry meeting body chemistry.
+- PLAY: play is the body practicing; laughter is a body event.
+- STORY: stories move heart rate and hormones — telling reaches the body.
+- SURVIVAL: the rule of threes is body arithmetic under scarcity.
+- TEACHING: skill lives in trained flesh; practice writes to muscle.
+- TRANSPORT: crash tolerance and motion sickness price every vehicle in body terms.
+- UPKEEP: sleep, hygiene, and repair — the body is the first maintained system.
+- BELIEF: fasting, purity rules, and ritual posture — belief disciplines the body.

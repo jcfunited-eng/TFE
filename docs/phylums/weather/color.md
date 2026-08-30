@@ -557,3 +557,16 @@ what runs along it.
   a broken sky-chemistry relation measured, priced, and largely
   repaired by treaty within one generation: the standing proof
   that some sky problems close.
+- ANIMALS: migration rides the seasons; beasts read pressure before instruments.
+- ASTRONOMY: the seasons are astronomy's shadow on the ground.
+- BUILDING: wind load, rain, and frost — buildings are weather's opponents.
+- CONFLICT: winter defeated armies that generals could not.
+- EARTH: mountains make rain shadows; the ground shapes the sky's habits.
+- ELECTRONICS: lightning and the forecast's computers — mutual traffic.
+- FLIGHT: weather is flight's daily judge — wind, ice, and storm.
+- MOVEMENT: outdoor sport is played against the sky's conditions.
+- PHILOSOPHY: the two-week forecast wall is a lesson in knowable limits.
+- PLANTS: climate writes what grows where; frost dates rule gardens.
+- SURVIVAL: exposure kills faster than hunger — weather is survival's clock.
+- TRANSPORT: storms close ports and passes; the schedule bends to sky.
+- UPKEEP: weathering is decay's outdoor form; paint and gutters fight it.

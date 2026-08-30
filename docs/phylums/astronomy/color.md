@@ -594,3 +594,9 @@ runs along it.
 - LIFE: the open question of company (the mirror holds it), and
   the working tools pointed at it — the moving water-band, the
   atmosphere fingerprint.
+- ANIMALS: migration steered by stars and the sky's compass senses in birds.
+- BUILDING: observatories and aligned monuments — building shaped by the sky's angles.
+- ELECTRONICS: every modern eye on the sky is a sensor and amplifier; radio astronomy IS electronics.
+- PHILOSOPHY: the sky is where knowing-by-prediction was first proven against knowing-by-story.
+- PLANTS: the year the stars announce is the planting year; calendars served fields first.
+- SURVIVAL: steering by stars strips down to survival's no-instrument navigation.

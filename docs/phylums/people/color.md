@@ -497,3 +497,10 @@ First-class connections — the cascade's paths outward.
   recipes as inheritance.
 - STORY: the frame that half-decides; origin stories doing
   present work, quietly re-edited when ownership changes.
+- BUILDING: density and the shared wall shape how strangers meet.
+- COMPUTING: the network rewired acquaintance; the feed sorts the crowd.
+- CRAFT: guilds and workshops organized fellowship around skill.
+- DESIGN: public space design decides whether strangers mix.
+- PHILOSOPHY: the other mind is philosophy's problem and people's daily practice.
+- SURVIVAL: the group is the first survival tool; exile was execution.
+- UPKEEP: households run on divided chores — maintenance is social.

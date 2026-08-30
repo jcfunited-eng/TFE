@@ -582,3 +582,6 @@ what runs along it.
 - ASTRONOMY: the hot gas's fixed lines — whole-number physics in
   light; the spheres' broken claim and its partial return are the
   mirror's.
+- ANIMALS: birdsong and whale song — music's claims meet other composers.
+- BUILDING: the hall is an instrument; every room plays what sounds in it.
+- PHILOSOPHY: why ordered sound moves us is an old open question.

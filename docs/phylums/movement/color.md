@@ -521,3 +521,6 @@ along it.
   the tail, applied to everybody.
 - CULTURE and SURVIVAL: the game as gathering, the record as shared
   story; the fall survived and the heat respected.
+- COMPUTING: motion capture and the training log — movement measured and modeled.
+- DESIGN: equipment fit and the legible field of play.
+- PEOPLE: the team is a small society; the crowd moves as one.

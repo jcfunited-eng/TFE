@@ -458,3 +458,8 @@ First-class connections — the cascade's paths outward.
   treaty with disorder, never a victory; and institutions have grain too —
   reformers who cut across it split them, and organizations come apart along
   their real seams, like the carcass and the stone.
+- ELECTRONICS: soldering and board-making are craft skills; the maker bench spans both.
+- LANGUAGE: trade words name what only hands know; the apprentice learns a vocabulary.
+- MOVEMENT: the craftsman's swing and steady hand are trained movement.
+- MUSIC: instrument making — the luthier is craft serving sound.
+- PLAY: toys and games are made things; whittling is play with an edge.

@@ -371,3 +371,5 @@ along it.
   order.
 - STORY: survival tales are the rules in carrying cases — these
   claims traveled for millennia as stories before any manual.
+- BELIEF: prayer at the edge and taboos that encode old dangers.
+- FLIGHT: ditching, exposure at altitude, and the search from the air.

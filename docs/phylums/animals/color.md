@@ -677,3 +677,7 @@ naming what runs along it.
   wearing the mask of fun.
 - MUSIC: the pond's score — voices pushed apart in pitch, hour,
   and rhythm to stay distinguishable.
+- CRAFT: leather, wool, bone, horn — the maker's oldest materials walk in on four legs.
+- MOVEMENT: animal gaits are the movement laws run on other body plans; riding borrows them whole.
+- PLANTS: grazer and grazed are one energy ledger; every pasture is the two phylums trading.
+- SURVIVAL: tracks, threat reads, and which animal is food or danger — field knowledge both ways.

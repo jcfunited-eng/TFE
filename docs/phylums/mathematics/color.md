@@ -603,3 +603,27 @@ what runs along it.
   tolerance is stated error; the algorithm became the machine;
   primes lock the channels; the compass-and-straightedge limit
   study became the theory of what machines can and cannot do.
+- ANIMALS: population curves, predator cycles, and the honeybee's hexagon economy.
+- ASTRONOMY: the sky was mathematics' first laboratory; orbits proved the calculus.
+- BELIEF: infinity and proof brush theology; certainty is a shared obsession.
+- BUILDING: the arch's curve, the load's vectors, the golden section's claims.
+- COMPUTING: computing is mathematics made mechanical; the algorithm is its native word.
+- CONFLICT: game tables and the square law — conflict computed.
+- CRAFT: the jig's geometry and the pattern's symmetry — craft counts.
+- DESIGN: grids, ratios, and type scales — design's quiet arithmetic.
+- EARTH: decay clocks date the rocks; waves and layers are equations in stone.
+- ELECTRONICS: circuit law is algebra; sampling is a theorem with a product line.
+- ETHICS: fair division and the reciprocity threshold — ethics computed where it can be.
+- FLIGHT: lift, drag, and the size law — flight is applied proportion.
+- GOVERNANCE: tax curves, voting paradoxes, and the census — states run on sums.
+- MEASUREMENT: error bars and averages are mathematics holding instruments honest.
+- THE MIND: the mind mismeasures probability predictably — mathematics names the gaps.
+- MOVEMENT: trajectories, energy budgets, and the scoreboard's statistics.
+- PEOPLE: network pairs grow as n squared — the crowd has mathematics.
+- PHILOSOPHY: proof and paradox are shared organs; Godel belongs to both.
+- PLANTS: phyllotaxis spirals and branching ratios — the garden counts.
+- PLAY: game trees, odds, and the rating curve — play is applied probability.
+- STORY: the spread threshold R decides what tales survive.
+- TEACHING: the learning curve and spacing arithmetic — teaching measured.
+- TRANSPORT: queueing and routing — traffic is mathematics in motion.
+- UPKEEP: failure curves and replacement schedules — decay computed.

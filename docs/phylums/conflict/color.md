@@ -545,3 +545,5 @@ runs along it.
   control never.
 - UPKEEP: availability versus inventory as true strength; repair as the
   quiet majority of capability.
+- COMPUTING: code breaking and secure channels decided real wars; the security dilemma runs in silicon now.
+- PLANTS: blockade and blight starve before bullets; crops are strategic ground.

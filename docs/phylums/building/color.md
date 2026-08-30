@@ -613,3 +613,6 @@ First-class connections — each named with what runs along it.
 - COOKING: the extractor hood as the hired third air-mover, the
   stuck jar lid as thermal expansion in the hand, the heavy pot
   as thermal mass — one physics, two kitchens.
+- BELIEF: temples and cathedrals drove structure's boldest leaps; orientation and ritual shaped plans.
+- CONFLICT: walls, forts, and sieges — building and breaking are one arms race.
+- TEACHING: schools are purpose-built rooms; acoustics and light decide what teaching they allow.

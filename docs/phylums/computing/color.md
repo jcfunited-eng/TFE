@@ -766,3 +766,13 @@ what runs along it.
 - TRANSPORT AND MOVEMENT: packets as parcels, queues as sorting
   offices, legs against wheels priced in watts and pavement,
   jerk-limited motion as ride quality.
+- ANIMALS: flocking, ant trails, and swarm rules — nature's distributed algorithms.
+- ASTRONOMY: the sky's data floods drove instruments-to-computers; navigation begat calculation.
+- BUILDING: smart structures and load modeling; the drawing became a computable model.
+- ETHICS: who the algorithm serves, what the data may say — computing's choices are judged here.
+- PHILOSOPHY: the halting wall and Godel are one family; computing is epistemology with a clock.
+- PLANTS: branching and phyllotaxis compute forms by rule — growth as algorithm.
+- PLAY: games drove hardware and theory alike; the game tree is a shared organ.
+- STORY: media formats, compression of narrative, the feed as editor.
+- SURVIVAL: navigation and signal codes strip to survival's minimal information needs.
+- UPKEEP: monitoring, backups, and scheduled maintenance — upkeep's arithmetic runs the fleet.

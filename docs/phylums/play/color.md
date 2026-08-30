@@ -435,3 +435,6 @@ what runs along it.
 - ETHICS: the frame is consent in miniature; the roast-or-insult
   line is judged by the receiver; the honored "I'm done" is the
   whole moral law of play in four words.
+- BELIEF: festivals mix play and worship; the sacred game is old.
+- FLIGHT: the kite is play that taught flight; flight simulation trains by game.
+- MEASUREMENT: the scoreboard and the rating — play measured for fairness.

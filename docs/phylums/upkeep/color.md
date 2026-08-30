@@ -398,3 +398,6 @@ First-class connections — what runs along each.
 - MATHEMATICS: halving the search, multiplying independent
   safeties, cost divided by uses, growth by factors — the
   arithmetic spine.
+- CONFLICT: logistics is upkeep at war; the unmaintained army loses first.
+- PLANTS: the garden is upkeep made visible — weeds are entropy in green.
+- SURVIVAL: gear maintained is survival banked in advance.

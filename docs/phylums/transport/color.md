@@ -414,3 +414,9 @@ First-class connections — each names what runs along it.
   lost — the multiplied-links law in its oldest uniform.
 - MEASUREMENT: navigation as drift-and-fix, the gauge, the chargeable
   weight — moving runs on agreed numbers.
+- ANIMALS: the horse, the camel, and the ox were transport for millennia.
+- ASTRONOMY: navigation by sky moved goods before instruments.
+- ELECTRONICS: signaling, tracking, and the engine's controller.
+- PLANTS: grain and timber were the first bulk cargo; produce races its own rot.
+- SURVIVAL: the road out is survival's first infrastructure.
+- UPKEEP: the fleet lives by its maintenance schedule; rust never sleeps.

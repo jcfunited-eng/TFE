@@ -554,3 +554,22 @@ what runs along it.
   the engineer's ethic — margins owed to strangers — as a moral
   artifact; and the code as culture's way of remembering its
   accidents after the witnesses die.
+- ANIMALS: hooves, wings, and spider silk out-engineer us; biomimicry copies them.
+- ASTRONOMY: telescopes and spacecraft are engineering at its precision limit.
+- BUILDING: structures are engineering's oldest branch; the load path is shared law.
+- COMPUTING: the chip is engineering's smallest artifact; control code runs the machines.
+- CONFLICT: fortification and armament drove materials and precision for centuries.
+- CRAFT: engineering is craft with calculation; the prototype is handwork.
+- DESIGN: form and function negotiate in every made thing.
+- EARTH: foundations, tunnels, and dams engage rock on its terms.
+- ELECTRONICS: power and signal are engineering's nervous system.
+- FLIGHT: the aircraft is the integrated exam: structures, engines, control at once.
+- GOVERNANCE: codes and standards are engineering law; infrastructure is public works.
+- MEASUREMENT: tolerance and calibration — engineering is measurement enforced.
+- MOVEMENT: prosthetics and sports gear engineer the body's levers.
+- MUSIC: halls, speakers, and instruments are acoustic engineering.
+- PHILOSOPHY: the safety factor is institutionalized doubt — engineering's epistemology.
+- PLANTS: timber's grain and fiber composites — grown materials engineered.
+- TEACHING: the worked example and the design review are engineering's classrooms.
+- TRANSPORT: vehicles and their ways are engineering in motion.
+- UPKEEP: inspection schedules and fatigue life — maintenance is designed in or paid for.

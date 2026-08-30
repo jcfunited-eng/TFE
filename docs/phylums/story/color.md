@@ -452,3 +452,11 @@ First-class connections; each names what runs along it.
   belief.
 - CULTURE: genres as a people's memory of what it feared and wanted;
   the shared telling as inheritance, like the recipe.
+- ASTRONOMY: constellations are the sky storied; the cosmos got its names from tales.
+- EARTH: flood myths and origin stories carry real geology dimly.
+- FLIGHT: Icarus to moon landings — flight is story's oldest dream fulfilled.
+- LIFE: creation tales and evolution's own epic — life demands narrative.
+- MOVEMENT: the match is a story with an unwritten ending — sport narrates itself.
+- PHILOSOPHY: the thought experiment is philosophy borrowing story's engine.
+- PLANTS: the world tree and the forbidden fruit — plants root deep in myth.
+- SURVIVAL: survival tales encode instruction; the cautionary story teaches cheap.

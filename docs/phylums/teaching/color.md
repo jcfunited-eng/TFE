@@ -508,3 +508,10 @@ runs along it.
 - STORY: the worked example as case; the misconception as the
   story that has always worked, unbeaten by one only ever
   examined.
+- BELIEF: catechism and initiation — belief teaches by ritual repetition.
+- CONFLICT: drill is teaching under discipline; armies are schools of a kind.
+- DESIGN: the diagram and the textbook page teach or obscure by layout.
+- PHILOSOPHY: what understanding IS decides what teaching aims at.
+- PLANTS: the school garden and botany's specimen lesson.
+- SURVIVAL: survival skills pass by demonstration — teaching stripped to essentials.
+- UPKEEP: maintenance is taught by apprenticeship; the checklist is its textbook.

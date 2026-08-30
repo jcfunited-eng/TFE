@@ -579,3 +579,23 @@ what runs along it.
   dark, the bomb shadowed a century, the satellite shrank the
   planet; physics's picture of one lawful universe is itself a
   cultural inheritance.
+- ANIMALS: scaling laws rule body plans; the flea and the elephant obey one equation.
+- ASTRONOMY: the sky is physics' oldest laboratory and hardest test bench.
+- BUILDING: statics is physics standing still; every wall balances forces.
+- COMPUTING: the transistor and the bit's energy floor — computing is physics constrained.
+- CONFLICT: ballistics and blast are physics weaponized.
+- CRAFT: heat treatment and material stress — craft obeys what it never wrote down.
+- DESIGN: light, contrast, and material behavior bound what design can do.
+- EARTH: plate motion, quakes, and the planet's heat engine.
+- ELECTRONICS: charge in matter is physics' gift to circuits.
+- FLIGHT: lift and drag are fluid physics earning wages.
+- MEASUREMENT: units and constants — measurement is physics' contract with the world.
+- THE MIND: the brain runs on charge and chemistry within physics' budget.
+- MOVEMENT: momentum and levers price every throw and jump.
+- MUSIC: the vibrating string wrote the first physics with numbers.
+- PHILOSOPHY: what physical law IS — description or decree — is philosophy's question.
+- PLANTS: water columns and light capture — the plant is applied physics.
+- STORY: the camera's optics and the screen's illusion of motion.
+- SURVIVAL: heat loss arithmetic is survival's core physics.
+- TRANSPORT: friction, momentum, and drag price all motion.
+- UPKEEP: entropy is why upkeep exists — disorder wins unpaid.

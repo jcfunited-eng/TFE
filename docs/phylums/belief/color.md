@@ -565,3 +565,5 @@ First-class connections; each names what runs along it.
 - PHILOSOPHY: the proofs and their long trying (mirror holds the
   ledger), faith and evidence as different games, the
   unfalsifiable marked off from the false.
+- EARTH: floods, quakes, and volcanoes seeded gods; deep time unseated young-earth readings.
+- MOVEMENT: ritual motion — dance, procession, pilgrimage — is belief carried by the body.

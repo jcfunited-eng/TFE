@@ -549,3 +549,13 @@ what runs along it.
   photography's silver chemistry, alchemy's stories, the
   firework's strontium red — color itself, for most of history,
   was a chemical possession.
+- ANIMALS: venoms, pheromones, digestion — animal life run as chemistry.
+- ASTRONOMY: spectra name the elements in stars; the periodic table was forged in them.
+- BUILDING: cement's cure, steel's rust, mortar's set — building stands on reactions.
+- CRAFT: glazes, dyes, tempering, tanning — craft is applied reactions by hand.
+- EARTH: rock weathering, ore formation, and the slow chemistry of soil and sea.
+- ELECTRONICS: doping, etching, batteries — electronics is chemistry made switchable.
+- FLIGHT: fuel energy per kilogram sets what can fly; combustion is the engine's chemistry.
+- THE MIND: transmitters and drugs — the mind's dials are molecules.
+- PLANTS: photosynthesis, alkaloids, scents — the plant is a chemical factory rooted.
+- UPKEEP: soap on grease, acid on scale, bleach on stain — cleaning is bench chemistry at home.

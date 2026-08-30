@@ -1137,3 +1137,7 @@ what runs along it.
 - PHILOSOPHY: the open questions this phylum files honestly in its
   mirror — what experience is, how the maps bind, what the self's
   unity finally rests on.
+- ANIMALS: animal minds test every theory — tool use, mourning, the mirror mark.
+- ASTRONOMY: pattern-hunger sees canals and constellations; the mind meets the sky halfway.
+- BUILDING: rooms shape mood and memory; the built environment enters the mind.
+- UPKEEP: habit is the mind's maintenance schedule; clutter taxes attention.

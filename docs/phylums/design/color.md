@@ -499,3 +499,8 @@ what runs along it.
   meeting regulation, the form that is a locked door.
 - ETHICS: effort aimed for the user or at them — the same tool,
   the sign flipped; the honest progress bar as a promise kept.
+- ANIMALS: camouflage, display, and streamlining — nature's designs precede ours.
+- PHILOSOPHY: what form owes function is an old argument about essence.
+- PLAY: delight is a design outcome; toys teach affordances pure.
+- TRANSPORT: vehicles are design at speed — cockpits, signage, the legible road.
+- UPKEEP: design decides what can be cleaned, opened, and repaired.

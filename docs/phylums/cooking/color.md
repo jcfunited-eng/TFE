@@ -489,3 +489,16 @@ what runs along it.
 - MATHEMATICS: the times rule (scaling), the square law, the
   square-root clock, ratios, compounding, proportion as chemistry's
   grammar.
+- ANIMALS: husbandry decides the meat, the milk, the egg — the kitchen's animal half.
+- BELIEF: feast and fast, clean and forbidden foods — belief writes menus.
+- BUILDING: the hearth centered the house; kitchens shape dwellings.
+- COMPUTING: the recipe is the folk program: ordered steps, ingredients as inputs, doneness as the halt.
+- CONFLICT: armies march on their stomachs; siege and ration are cooking under fire.
+- CRAFT: knives, pots, and ovens are craft's gifts; curing meat is material craft on food.
+- EARTH: salt from rock and sea, clay for the pot, the soil in every flavor.
+- MEASUREMENT: the thermometer and the scale turned lore into law — cooking's honest instruments.
+- MUSIC: the kitchen's timers and rhythms; fermentation and song share the word culture.
+- PEOPLE: the shared table is the smallest institution; hospitality is people-law over food.
+- PLANTS: vegetables, grains, spices — the green half of every cuisine.
+- SURVIVAL: boiling water safe and keeping food are survival's kitchen half.
+- UPKEEP: cleaning as you go, cold chains, larder rotation — the kitchen maintained.

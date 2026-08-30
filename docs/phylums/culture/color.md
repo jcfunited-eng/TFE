@@ -563,3 +563,17 @@ what runs along it.
   at all — the childhood window is the bottleneck every
   transmission method must pass; hands hold knowledge that words
   drop, which is why apprenticeship survives print.
+- BELIEF: rituals and creeds are culture's deepest inheritance.
+- CONFLICT: wars mark culture's calendar; conquest moves languages and recipes.
+- DESIGN: each era's look is culture made visible.
+- EARTH: where rivers, coasts, and ores sat decided where cultures grew.
+- ETHICS: each age's right and wrong is culture's slowest artifact.
+- GOVERNANCE: institutions are culture hardened into law.
+- THE MIND: what a culture rewards shapes what minds practice.
+- MOVEMENT: games and dances travel as culture; sport is ritualized contest.
+- MUSIC: every culture is audible; song carries history where writing is absent.
+- PEOPLE: kinship rules and manners are culture's daily face.
+- PHILOSOPHY: each age's questions are cultural products; philosophy is culture examining itself.
+- PLAY: festivals and humor mark what a culture permits.
+- SURVIVAL: cuisines and crafts encode scarcity survived.
+- TEACHING: how knowledge passes IS culture's reproduction.

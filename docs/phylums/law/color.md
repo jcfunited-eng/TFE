@@ -495,3 +495,25 @@ what runs along it.
   standard; screening thresholds as the two standards of proof.
 - BUILDING: codes against trade custom; permission relied on
   before foundations; the completion certificate as finality.
+- ANIMALS: ownership, cruelty statutes, and liability for beasts — animals are legal subjects.
+- ASTRONOMY: treaties partition orbits and claims beyond the sky.
+- THE BODY: injury, consent, and cause of death — law reads the body through medicine.
+- COOKING: food safety codes and honest labeling — the kitchen regulated.
+- CRAFT: guild rules, hallmarks, and standards were craft law before code law.
+- CULTURE: custom hardens into precedent; law is culture with teeth.
+- DESIGN: patents and trademarks — design owned and defended.
+- EARTH: mineral rights, water law, and quake codes bind law to ground.
+- ELECTRONICS: surveillance limits and spectrum allocation — charge flow regulated.
+- ENGINEERING: building codes and liability make the safety factor mandatory.
+- FARMING: land title and water rights are farming's legal skeleton.
+- FLIGHT: airspace, certification, and the crash inquiry — flight is law aloft.
+- LIFE: bioethics statutes and quarantine powers — life regulated.
+- MOVEMENT: the rules of the game are private law; doping is its crime.
+- MUSIC: copyright was invented for scores and songs.
+- PHILOSOPHY: what makes law binding is a philosophical question courts live inside.
+- PHYSICS: evidence standards lean on measurement; forensics is physics testifying.
+- PLANTS: seed patents and protected forests — the green world in law.
+- SURVIVAL: necessity as defense — law bends at survival's edge.
+- TRANSPORT: traffic law is the densest law most people meet.
+- UPKEEP: negligence is maintenance law; the inspection is a legal act.
+- WEATHER: disaster declarations and climate liability — weather enters court.

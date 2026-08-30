@@ -494,3 +494,8 @@ what runs along it.
   glide purse when engines stop.
 - STORY: Icarus — the oldest flight text, filed in the mirror for
   what its moral hid.
+- BUILDING: hangars, runways, and towers — flight's ground half.
+- DESIGN: the cockpit and the airline seat are design under constraint.
+- GOVERNANCE: airspace rules and certification — flight is governed to fly at all.
+- THE MIND: attention overload and instrument trust — the pilot's mind is a flight system.
+- UPKEEP: the inspection regime is why flying is safe; maintenance is airworthiness.

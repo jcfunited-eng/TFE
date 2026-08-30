@@ -516,3 +516,28 @@ what runs along it.
   chapters); roads, ships, and wires shrink carriage and widen
   every market; the granary's walls set the spoilage rate the
   storage arithmetic pays.
+- ANIMALS: livestock was money before coin; herds are capital that breeds.
+- ASTRONOMY: navigation opened trade routes; the almanac priced the harvest.
+- BUILDING: construction is the economy's heaviest purchase; land value is location arithmetic.
+- COMPUTING: markets run on code now; computation is a tradable input.
+- CONFLICT: war is the most expensive purchase; blockade is economics as weapon.
+- CRAFT: the workshop was the firm's ancestor; skill commands price.
+- DESIGN: design differentiates goods; the brand is priced perception.
+- EARTH: ores, oil, and soil are the ground floor of wealth.
+- ELECTRONICS: the transistor is the century's productivity engine.
+- ETHICS: fair price, honest scales, usury — every market runs on judged conduct.
+- FLIGHT: air freight and the tourist trade re-priced distance.
+- GOVERNANCE: tax, tender, and contract enforcement — the state is the market's floor.
+- LANGUAGE: contracts, brands, and negotiation run on words; trade spreads tongues.
+- MEASUREMENT: standard weights made trade possible; the audit is measurement with teeth.
+- THE MIND: choices under uncertainty — the buyer's mind is half of every price.
+- MOVEMENT: sport is an industry; prize and wage moved athletics from play.
+- MUSIC: recording turned performance into a good; the concert is scarce by design.
+- PEOPLE: trust lowers every transaction's cost; reputation is capital.
+- PHILOSOPHY: what value IS is a philosophical question wearing prices.
+- PLANTS: grain fed the first cities and the first bookkeeping counted it.
+- PLAY: the games industry and the casino monetize the seam and the edge.
+- STORY: advertising is story hired by commerce; media sells attention.
+- SURVIVAL: scarcity is survival generalized; insurance prices disaster.
+- TEACHING: schooling is investment; skill premiums price knowledge.
+- UPKEEP: maintenance deferred is debt compounding in machinery.

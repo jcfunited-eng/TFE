@@ -734,3 +734,8 @@ what runs along it.
   subject borrows.
 - PHILOSOPHY: the name and the thing, negation's strange power,
   and the meaning of meaning — which stands open, in the mirror.
+- ANIMALS: calls and signals mark where language begins and communication does not end.
+- BELIEF: scripture, prayer, and the sacred word — belief lives in language.
+- CONFLICT: propaganda, codes, and ultimatums — wars are fought in words too.
+- DESIGN: typography and layout are language made visible.
+- ETHICS: promise, lie, and slander — speech acts are judged conduct.

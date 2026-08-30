@@ -579,3 +579,4 @@ what runs along it.
 - TEACHING: the seed's lock as a prerequisite that genuinely is
   one; the rings as knowledge that outlives its holders because
   it is written.
+- CRAFT: timber, fiber, dye, and paper — craft's green materials.

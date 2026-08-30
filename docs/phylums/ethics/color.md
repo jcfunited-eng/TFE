@@ -534,3 +534,4 @@ runs along it.
 - PHILOSOPHY: the home workshop of the open proofs — is-ought
   bridges, lens wars, moral luck; this phylum keeps the working
   tools, philosophy the unfinished ones.
+- DESIGN: dark patterns and honest interfaces — design choices are conduct toward users.

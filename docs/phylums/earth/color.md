@@ -586,3 +586,6 @@ First-class connections — each names what runs along it.
 - STORY and BELIEF: flood memories, mountain gods, the deep past
   as every culture's first cosmology — and the diary that now
   answers those stories with receipts.
+- ELECTRONICS: quartz timing, rare earths, and silicon itself — electronics is dug from rock.
+- FLIGHT: terrain makes weather and thermals; volcanic ash closes skies.
+- PHILOSOPHY: deep time reset humanity's sense of its own scale.

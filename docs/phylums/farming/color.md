@@ -554,3 +554,15 @@ what runs along it.
 - ENGINEERING: every mean above — plow, drill, combine, pump,
   dam, drain, silo, greenhouse; terraces holding hillsides where
   the erosion law would take them.
+- ASTRONOMY: the planting calendar was astronomy's first paying job.
+- BELIEF: harvest festivals and rain prayers; the field taught dependence.
+- BUILDING: barns, terraces, and granaries — farming builds its own landscape.
+- CONFLICT: land is what wars are for; the farm feeds the army.
+- CRAFT: plows, scythes, and fences — farming runs on made tools.
+- EARTH: soil IS ground rock plus life; the farm mines it slowly.
+- GOVERNANCE: land title, water rights, and grain taxes built early states.
+- MEASUREMENT: the field's area, the seed rate, the yield count — farming was measured first.
+- PLANTS: the crop is the plant domesticated — one phylum farming the other.
+- TEACHING: farm knowledge passes parent to child; extension services teach at scale.
+- TRANSPORT: harvest moves or rots; the granary and the road are one system.
+- UPKEEP: drainage, fencing, and fallow — the farm is maintenance with seasons.
