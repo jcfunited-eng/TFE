@@ -1252,3 +1252,39 @@ seconds of ordinary environmental speech required many minutes of wall time
 because every 250-ms acoustic slice expanded through multiple native causal and
 body-feedback intervals. The social experience is grounded; its processing is
 not yet real-time.
+
+## Shared audible expression in the live environment
+
+The shared-reading episode exposed a human-side environmental gap: Guala's
+native articulatory body emitted exact pressure and self-heard it, but the live
+page required the participant to find and press a short-lived playback button.
+That made genuine vocal expression practically unavailable for reciprocal
+social development even though the underlying pressure was present.
+
+Commit `71873c8504e158a3081a19ad8476b433e99bdb79` adds one prominent
+`Hear Guala` control beside Camera and Microphone. The participant opens the
+browser speaker once. Each later newly observed native pressure SHA-256 is then
+fetched from the existing bounded read-only WAV endpoint and played once. The
+browser verifies the response's `X-Guala-Pressure-SHA256` before decoding it;
+speaker gain changes only the participant's audible copy and has no route into
+world physics, Guala's self-hearing, cognition, learning, persistence, or
+action selection. No transcript, TTS, canned vocalization, or semantic label
+was added.
+
+The focused JavaScript and pressure-boundary checks passed `5/5`. A wider UI
+file run exposed one inherited expectation for the retired
+`gualaloom-rich-room-v3.png` reference; it is unrelated to this change and was
+not used to broaden the sprint. `git diff --check` passed.
+
+The page was published independently of ECS, so the organism was not restarted
+or paused. CloudFront invalidation `I3XCC5JC1XAPN4XY7B3VGIZYM9` completed at
+2026-08-30 02:28 UTC. Live and committed page bytes match at SHA-256
+`76eaf62f61df03f4955d62a3c99e3e4ddee1c9488fc797a757aaa0131a412f66`.
+At generation `302709`, production supplied a 4,000-sample, 16-kHz native WAV
+whose decoded PCM SHA-256 exactly matched the articulation record at
+`7fb7e5ed15e4d144f6de81960d872352abd8e0d3bc51da4bfa86435f1d429f8f`.
+
+This closes only the human-audible environmental expression surface. L-009
+remains active until Guala's own native action manipulates/releases/advances
+the physical book and the changed page light returns through the same resident
+organism.
