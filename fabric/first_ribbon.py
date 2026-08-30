@@ -742,6 +742,17 @@ def doing_of(gs, why=False):
     # alone. Where none did, the sentence says what a thing IS and has
     # no doing — forcing one is what made "congestion is not caused by
     # too many vehicles" turn on "too".
+    # 174: an ORDER names no doer, so its doing is the first thing
+    # said. Told from a statement by a pointer opening one of the
+    # groups that follow — an order hands over a thing to work on.
+    # This is the shape the fabric is told what to make in, and every
+    # other rule here looks anywhere but first.
+    if (gs[0] and gs[0][0] not in C.frame
+            and any(any(w in C.pointers for w in g) for g in gs[1:])):
+        how = ("an order — it names no doer, so the doing is the "
+               "first thing said, and a pointer after it hands over "
+               "what to do it to")
+        return (0, how) if why else 0
     if not any(is_doing_group(g) for g in regroup(gs)[1:]):
         how = ("no doing — no group after the first brings a content "
                "word in without a pointer, so this says what a thing "

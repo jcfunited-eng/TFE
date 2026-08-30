@@ -258,6 +258,41 @@ THREAD: law (a statute that defines a term does nothing and is not a
 ASKED-AS: is are was were says what a thing is definition standing
   said to be no doing copula equation naming
 
+ESSENCE: a turn may be an ORDER, and an order names no doer. Nobody
+  is said to be doing it because the one being told is the one who
+  will, so the doing is the first thing said and everything after it
+  is what to do it to. "cool a room without a fan" is not about
+  cooling; it asks for cooling to be done. Every other reading in
+  this file looks for the doing anywhere but first, because a
+  statement puts its doer there, so an order read as a statement
+  comes back turning on the wrong word every time — "keep food cold"
+  turned on "food" and "build me a bridge" turned on "me".
+  An order is told from a statement by what comes after it: an order
+  hands over a thing to work on, so a pointer opens one of the groups
+  that follow. "cool | A room", "light | A fire", "measure | A field".
+  Where nothing after it is opened by a pointer the sentence is left
+  to the ordinary reading, because "salt melts ice" and "keep food
+  cold" are built the same way and nothing in them tells them apart.
+  THIS IS THE SHAPE THE FABRIC HAS TO UNDERSTAND. Everything else
+  read here is a sentence ABOUT something; an order is how the fabric
+  is told what to make, and until it reads one it cannot be told
+  anything.
+ROOT: this file / a sentence needs a doer and a doing, and where the
+  doer is the one being spoken to it is not said at all.
+HOLDS: an order holds when its first group brings a content word in
+  with no frame word carrying it, and some group after it is opened
+  by a pointer. Its doing is that first group and it has no doer.
+MINE, ON TRIAL: the pointer-after test is my construct. Measured on
+  fifteen instructions a person would actually give: 11 read against
+  3 without it, and the ordinary reading of statements goes UP, from
+  62 of 70 to 63. Reading the first group as the doing with no test
+  at all reads all fifteen orders and costs six statements, so the
+  test is what makes it safe.
+THREAD: an order to a soldier (nobody says who will march), a recipe
+  step (nobody says who stirs), a road sign (nobody is named).
+ASKED-AS: order instruction command tell what to do make build find
+  imperative told asked for no doer
+
 ESSENCE: a sense is produced from the company present and never
   fetched from a list — the senses of a common word have no end and
   new ones are made when needed, so a table of them is out of date

@@ -923,3 +923,29 @@ ENTRY: word classes the ribbon taught itself
   STATUS: STANDING (white) — kept unused in first_ribbon.py. It is
     the most promising thing standing and it has now failed five
     ways, which makes the promise itself worth doubting
+
+ENTRY: writing knowledge moves the reading that reads it
+  ASKED-AS: bench comparable corpus edit frame commonest hundred
+    statistics shift measurement noise self reference
+  VERDICT: a bench score is not comparable across a knowledge edit.
+    Measured 2026-08-30: adding one entry to 174 — twelve lines about
+    what an order is — moved the hand-labelled kind bench from 44 of
+    60 to 41, with the code identical, the frame still a hundred
+    words and the pointer set still sixteen. The reading takes its
+    frame, its pointers and its habits from the writing, and 174 is
+    part of the writing, so writing down how to read changes what is
+    read.
+  WHAT IT COSTS: a noise band of about three in sixty, five per cent,
+    from a single paragraph. Several decisions taken today were one
+    or two cases wide and sat inside it — they were called noise at
+    the time for a different reason, and that judgement now has a
+    number behind it rather than a feeling.
+  WHAT TO DO ABOUT IT: measure both arms against the SAME corpus.
+    Every comparison in this file that spans an edit to a phylum file
+    is suspect and should be re-run with the text present in both
+    arms. The order rule was re-measured that way and is +6 on being
+    told what to do, -1 on kind, -1 on the doing.
+  WHAT WOULD DRAIN IT: nothing — it is a property of a machine whose
+    processor is its own knowledge, and it is the price of that. It
+    is filed so it is not mistaken for a result.
+  STATUS: STANDING (white)
