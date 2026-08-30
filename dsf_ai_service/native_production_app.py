@@ -11385,6 +11385,10 @@ def _perform_admitted_intake_locked(
             # Any vocal action caused by hearing this sound is already the
             # native successor's one in-flight acoustic consequence. Do not
             # fold it into the current intake's immediate self-hearing path.
+            # Retain its interval alongside its recruitment, however: those
+            # are two views of the same native successor and must keep exact
+            # order when this intake also carries a primary world interval.
+            retain_articulatory_interval_evidence(last_hop)
             retain_articulated_body_evidence(last_hop)
             emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
             organic_mosaic_relations.extend(
@@ -14783,7 +14787,18 @@ def _mono_pcm_hop_episodes(
                 for index in range(1, len(channel))
                 if channel[index] != channel[index - 1]
             )
-        articulatory_change_indices = tuple(sorted(changed))
+        # The native neuronal interval boundary is exact whole microseconds.
+        # A 16 kHz body sample is 62.5 microseconds, so an odd sample index
+        # cannot be named by that boundary.  Feeding those half-microsecond
+        # instants into the shared whole-sensorium clock makes the next lived
+        # interval noncanonical.  Retain every changed body instant that the
+        # native clock can represent exactly; the full 16 kHz pressure still
+        # reaches the cochlear mechanics before this retained-source boundary.
+        articulatory_change_indices = tuple(
+            index
+            for index in sorted(changed)
+            if (index * 1_000_000) % sample_rate_hz == 0
+        )
     hops = _pcm_hops(
         samples,
         sample_rate_hz,

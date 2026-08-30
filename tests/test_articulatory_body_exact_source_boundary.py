@@ -61,7 +61,11 @@ def test_articulatory_body_retains_exact_motor_event_on_shared_sensory_clock() -
             for index in range(1, len(channel))
             if channel[index] != channel[index - 1]
         )
-    change_indices = tuple(sorted(changed))
+    change_indices = tuple(
+        index
+        for index in sorted(changed)
+        if (index * 1_000_000) % sample_rate_hz == 0
+    )
 
     pressure_hops = production._pcm_hops(
         pressure,
@@ -92,8 +96,10 @@ def test_articulatory_body_retains_exact_motor_event_on_shared_sensory_clock() -
             )
 
     first_times, _ = pressure_hops[0]
-    assert Fraction(1, sample_rate_hz) in first_times
+    assert Fraction(1, sample_rate_hz) not in first_times
+    assert Fraction(2, sample_rate_hz) in first_times
     assert Fraction(1, 1_000) in first_times
+    assert all((time * 1_000_000).denominator == 1 for time in first_times)
     first_ports = production._articulatory_body_ports(
         first_times,
         body_hops[0],
