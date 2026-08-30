@@ -18235,6 +18235,7 @@ fn settle_internal_contact_interval(
         interval_microseconds,
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let solver_wall = contact_stopwatch.elapsed();
     let mut contact_successors = Vec::with_capacity(settled.transitions.len());
     let mut contact_transitions = Vec::with_capacity(settled.transitions.len());
     for ((contact, transition), (left_flat, right_flat)) in compact_anatomy
@@ -18368,6 +18369,7 @@ fn settle_internal_contact_interval(
         }
     }
     layer_ten_contact_activity.sort_unstable_by_key(|(lineage, _, _)| *lineage);
+    let contact_projection_wall = contact_stopwatch.elapsed();
 
     let mut pre_field = Vec::with_capacity(selected.len());
     let mut post_field = Vec::with_capacity(selected.len());
@@ -18447,7 +18449,9 @@ fn settle_internal_contact_interval(
             JointUfSourceError::Physics(error),
         ))
     })?;
+    let field_wall = contact_stopwatch.elapsed();
     let groups = contact_components(selected.len(), &compact_anatomy);
+    let component_wall = contact_stopwatch.elapsed();
     let source_body = Arc::<[u8]>::from(encode_internal_contact_source(
         &selected,
         &flat_locations,
@@ -18459,6 +18463,7 @@ fn settle_internal_contact_interval(
         &compact_predecessor,
     )?);
     let source_authority = sha256(&source_body);
+    let source_wall = contact_stopwatch.elapsed();
     let shared = prepare_complete_joint_field_from_evaluated(
         source_body,
         source_authority,
@@ -18473,6 +18478,7 @@ fn settle_internal_contact_interval(
     if shared.result().gates.len() != 1 {
         return Err(FormationError::NoncanonicalState);
     }
+    let shared_prepare_wall = contact_stopwatch.elapsed();
 
     // Local contact successors are prepared only for reached cohorts.  The
     // former population-width construction copied every local contact state
@@ -18537,6 +18543,7 @@ fn settle_internal_contact_interval(
     electrical_fabric
         .replace_contact_states(fabric_successors)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
+    let contact_apply_wall = contact_stopwatch.elapsed();
 
     // Preserve the exact directed whole-carrier transfers from this settled
     // interval before the disjoint cohort consequences are applied. A motor
@@ -18654,6 +18661,18 @@ fn settle_internal_contact_interval(
     // causal order or allowing one cohort to observe another's mutation.
     // Indexed collection preserves cohort order for the evidence merge below.
     let shared_wall = contact_stopwatch.elapsed();
+    eprintln!(
+        "guala-shared-field-phases solver_ms={} projection_ms={} field_ms={} \
+         components_ms={} source_ms={} prepare_ms={} apply_ms={} routes_ms={}",
+        (solver_wall - compact_wall).as_millis(),
+        (contact_projection_wall - solver_wall).as_millis(),
+        (field_wall - contact_projection_wall).as_millis(),
+        (component_wall - field_wall).as_millis(),
+        (source_wall - component_wall).as_millis(),
+        (shared_prepare_wall - source_wall).as_millis(),
+        (contact_apply_wall - shared_prepare_wall).as_millis(),
+        (shared_wall - contact_apply_wall).as_millis(),
+    );
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
