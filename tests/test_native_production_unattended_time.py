@@ -287,17 +287,14 @@ def test_unattended_interval_does_not_repeat_the_committed_observer_refresh(
         result=result,
     )
 
-    def refresh_once_inside_committed_intake(
-        _episodes, _intake, **_kwargs
-    ) -> dict[str, object]:
+    def refresh_once_after_complete_unattended_evidence() -> None:
         nonlocal refresh_count
         refresh_count += 1
-        return result
 
     monkeypatch.setattr(
         production,
-        "_perform_admitted_intake_locked",
-        refresh_once_inside_committed_intake,
+        "_refresh_public_observation_cache",
+        refresh_once_after_complete_unattended_evidence,
     )
 
     observed = production._attempt_unattended_interval()

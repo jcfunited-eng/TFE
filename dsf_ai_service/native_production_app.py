@@ -10536,11 +10536,13 @@ def _perform_admitted_intake(
     _begin_external_intake()
     try:
         with _transition_lock:
-            return _perform_admitted_intake_locked(
+            result = _perform_admitted_intake_locked(
                 episodes,
                 intake,
                 vestibular_yaw=vestibular_yaw,
             )
+            _refresh_public_observation_cache()
+            return result
     finally:
         _end_external_intake()
 
@@ -12354,7 +12356,6 @@ def _perform_admitted_intake_locked(
         }
     if _pending_unsealed_intervals >= _checkpoint_every_intervals():
         _checkpoint_requested.set()
-    _refresh_public_observation_cache()
     return {
         "accepted": True,
         "ok": True,
@@ -13378,12 +13379,10 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "world_revision": environment["world_revision"],
         }
         _last_unattended_pause = None
-        # The admitted transition already refreshed the bounded public cache
-        # before returning.  Refreshing it again here re-read the resident
-        # body while the transition lock was still held; on the production
-        # organism that duplicate observer pass held external sight and sound
-        # outside cognition for tens of seconds after physics had completed.
-        # Observation never earns a second organism borrow.
+        # Publish one observation only after the unattended evidence is
+        # complete.  The inner transition performs no observer work: every
+        # lived caller owns exactly one correctly ordered cache refresh.
+        _refresh_public_observation_cache()
         return {"delivered": True, "outcome": category, **_last_unattended_evidence}
     finally:
         _transition_lock.release()

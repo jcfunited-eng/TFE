@@ -159,6 +159,12 @@ def test_live_audiovisual_arrival_is_announced_before_route_admission() -> None:
 def test_live_sight_counts_captured_frames_not_internal_consequence_hops(
     monkeypatch,
 ) -> None:
+    refresh_count = 0
+
+    def refresh_once_after_live_evidence() -> None:
+        nonlocal refresh_count
+        refresh_count += 1
+
     monkeypatch.setattr(
         production,
         "_live_sight_evidence",
@@ -173,7 +179,11 @@ def test_live_sight_counts_captured_frames_not_internal_consequence_hops(
             "observation": {"state_sha256": "a" * 64},
         },
     )
-    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(
+        production,
+        "_refresh_public_observation_cache",
+        refresh_once_after_live_evidence,
+    )
 
     production._perform_live_sight_intake(
         [("episode", [(1, 4)])],
@@ -185,6 +195,7 @@ def test_live_sight_counts_captured_frames_not_internal_consequence_hops(
     assert production._live_sight_evidence["committed_batch_count"] == 3
     assert production._live_sight_evidence["committed_frame_count"] == 13
     assert production._live_hearing_evidence["intake"] == "live-audiovisual:test"
+    assert refresh_count == 1
 
 
 def test_standalone_audio_never_borrows_an_earlier_camera_receipt(
