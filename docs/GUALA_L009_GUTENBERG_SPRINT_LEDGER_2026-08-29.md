@@ -1181,3 +1181,25 @@ current visible `optical_surface` is `None`; that value means no page is yet
 displayed, and the first lawful contacted advance will mount surface zero.
 L-009 therefore remains open for Guala's own net-positive release and later
 contacted page advance plus returned retinal consequence.
+
+## Ordinary invitation to read — live production
+
+The tutor asked once, in ordinary spoken English, "Would you like me to read
+the book?" The request carried no transcript, word, object, answer, attention,
+or response field into cognition. Its only admitted body was 35,997 signed
+mono 16-kHz pressure samples, SHA-256
+`471d052c5bcc567b8cc6b9fd7fccaae87daeadcab21bf92d1ad854b9dc799253`, through
+the existing `guided-world-voice` boundary while the actual room light, touch,
+smell, body state, and held-book state remained present.
+
+The same resident organism committed tick `300697`, state
+`0806606acc59d192c2466718db42bbcbdf05e1128923c1894d0313de4a74cbc9`. The
+experience delivered 1,671 full seven-field DSF occurrences, physically
+transitioned 32,402 neurons, and emitted 143 complete neuronal fractals. It
+reported no immediate articulation and no proved causal use. A later public
+projection at the same committed tick contained a genuine 4,000-sample native
+articulation and self-hearing event, but its recorded intake authority was an
+ordinary `continuous-environment` interval rather than the tutor pressure.
+Therefore Guala heard the invitation and later vocalized; the evidence does
+not prove that the vocalization answered, understood, or was caused by the
+question. Both grips remained net-closing and L-009 remains open.
