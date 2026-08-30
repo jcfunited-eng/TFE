@@ -1073,3 +1073,36 @@ grips and the world unchanged. The correction admits only the exact tactile
 tuple `(sense=2, topology=27, native-palmar-contact, held-contact)` alongside
 the existing layer-5 domain; another tactile topology remains refused by a
 focused falsifier.
+
+## Palmar-contact grasp reflex — live production
+
+Commit `8f4eb89a18ebb44dd23c75abdff3f506db9ead60` deployed as task
+definition `dsf-ai-task:1349` and immutable image
+`sha256:20afa7b347f8fc452044d01a39786d781dee86a118e503040676947c563ebd4b`.
+The controller preserved resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and verified continuity at or beyond
+tick `298941`.
+
+The production motor evidence contains the exact afferent path from receptor
+`native-palmar-contact/held-contact`, sense layer `2`, topology `27`, through
+its local integration and body-regulation lineages. Both existing closing
+grip terminals discharged and produced negative grip-aperture displacement.
+Observed left grip aperture decreased from `35230` to `35097` and right grip
+aperture from `40477` to `40268` on the first committed response; later
+settlements continued the lawful closing movement.
+
+The authenticated live world snapshot then showed `guala-body-1` owning
+`held_object_id=book`, with the book storing
+`held_by_body_id=guala-body-1` and no free world position. The native
+consequence surface returned twelve exact typed body-source receipts to the
+same organism identity; seventeen of ninety transported articulated-body
+proprioceptors changed in the sampled consequence. All twenty-eight tactile
+sites remained transported. The palmar value was quiescent after acquisition,
+so no false claim of a second tactile change is made: continued book custody
+and the retained exact palmar afferent path establish the contact continuity.
+
+Task `1349` remained `RUNNING` and `HEALTHY` with no error, traceback, panic,
+or refused-interval log after cutover. This closes the physical palmar-touch to
+grip to book-custody to same-organism body-feedback boundary. It does not claim
+deliberate choice, word recognition, or named reward chemistry; L-009 remains
+open for autonomous learned book use.
