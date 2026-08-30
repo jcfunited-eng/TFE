@@ -52,6 +52,35 @@ def split_forbidden(text):
                               if len(parts) > 1 else "")
 
 
+def forbidden_things(clause, asks, C):
+    """What a constraint actually rules out.
+
+    The clause is a small instruction of its own — "using rope or
+    nails" has a doing and things it is done to — so what is forbidden
+    is what the clause is ABOUT, not every word in it. Taking every
+    word put "using" and "them" into what may not be used, and a
+    constraint that forbids "them" forbids nothing.
+    """
+    if not clause.strip():
+        return []
+    gs = FR.groups(clause)
+    if not gs:
+        return []
+    out = []
+    for i, g in enumerate(gs):
+        w = FR.head(g)
+        if w in asks or w in C.asking or w in C.frame:
+            continue
+        # NOTE: skipping the clause's first group as "the way it is
+        # ruled out rather than what is" was tried and is wrong — it
+        # dropped wax from "without wax or oil" and spill from
+        # "without spilling them", because a constraint often names
+        # one thing and names it first.
+        if w not in out:
+            out.append(core.stem(w))
+    return out
+
+
 def want(sentence, F=None):
     """Read a sentence into what it wants."""
     F = F or core.fabric()
@@ -124,9 +153,7 @@ def want(sentence, F=None):
                 settled_by=settled_by,
                 doer=nest["doer"], done_to=nest["done_to"],
                 senses=senses,
-                forbidden=[core.stem(w) for w in
-                           re.findall(r"[a-z]+", forbidden.lower())
-                           if len(w) > 2],
+                forbidden=forbidden_things(forbidden, asks, C),
                 turns_on=turns_on,
                 groups=[" ".join(g) for g in gs],
                 incomplete=res["capped"])
