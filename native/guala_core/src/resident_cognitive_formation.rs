@@ -19617,6 +19617,7 @@ fn settle_internal_contact_interval(
     // its own settled anatomy. Untouched contacts and neurons keep their
     // standing schedules — nothing about them changed.
     {
+        let event_stopwatch = std::time::Instant::now();
         let interval = u32::try_from(interval_microseconds)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         // One endpoint read per reached neuron, not per contact: the
@@ -19683,6 +19684,7 @@ fn settle_internal_contact_interval(
         for contact_index in compact_original_indices.iter().copied() {
             settled_contacts[contact_index] = true;
         }
+        let event_scan_wall = event_stopwatch.elapsed();
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
@@ -19758,6 +19760,7 @@ fn settle_internal_contact_interval(
                 .contact_schedule
                 .reschedule_from_clock(clock, contact_index, due);
         }
+        let settled_reschedule_wall = event_stopwatch.elapsed();
         // The wake law: a changed endpoint wakes EVERY contact incident to
         // it, now — adding it to a later frontier is insufficient. A
         // sleeping incident contact first catches up exactly through the
@@ -19778,6 +19781,8 @@ fn settle_internal_contact_interval(
         }
         woken_contacts.sort_unstable();
         woken_contacts.dedup();
+        let woken_contact_count = woken_contacts.len();
+        let wake_collect_wall = event_stopwatch.elapsed();
         for contact_index in woken_contacts {
             if settled_contacts[contact_index] {
                 continue;
@@ -19979,6 +19984,7 @@ fn settle_internal_contact_interval(
                 .contact_schedule
                 .reschedule_from_clock(clock, contact_index, due);
         }
+        let wake_reschedule_wall = event_stopwatch.elapsed();
         for flat in changed_flats.iter().copied() {
             let (cohort_index, neuron_index, lineage) = flat_locations[flat];
             // The neuron's displacement changed this clock, so its return
@@ -20085,6 +20091,18 @@ fn settle_internal_contact_interval(
                 .recovery_schedule
                 .reschedule_from_clock(clock, flat, due);
         }
+        eprintln!(
+            "guala-event-phases scan_ms={} settled_reschedule_ms={} wake_collect_ms={} \
+             wake_reschedule_ms={} recovery_ms={} total_ms={} changed={} woken={}",
+            event_scan_wall.as_millis(),
+            (settled_reschedule_wall - event_scan_wall).as_millis(),
+            (wake_collect_wall - settled_reschedule_wall).as_millis(),
+            (wake_reschedule_wall - wake_collect_wall).as_millis(),
+            (event_stopwatch.elapsed() - wake_reschedule_wall).as_millis(),
+            event_stopwatch.elapsed().as_millis(),
+            changed_flats.len(),
+            woken_contact_count,
+        );
     }
     eprintln!(
         "guala-event-census clock={} due_now_contacts={} future_contacts={} \
