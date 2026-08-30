@@ -10654,6 +10654,45 @@ def _abort_lived_trajectory(organism: Any) -> None:
         _checkpoint_requested.clear()
 
 
+def _retain_already_lived_intake_after_refusal(
+    predecessor: Any,
+    lived_organism_tick: int | None,
+    intake: str,
+    error: BaseException,
+) -> bool:
+    """Keep physical intervals that completed before later intake work refused.
+
+    An HTTP request is not an organism transaction. Once native settlement
+    advances the resident tick, a later evidence or action-preparation error
+    cannot truthfully rewind those lived intervals to the last sealed CURRENT.
+    The failed outer request remains refused; only the already-completed native
+    successor is retained and offered to the ordinary external custodian.
+    """
+
+    global _pending_unsealed_intervals, _pending_chain_predecessor_sha
+
+    if (
+        lived_organism_tick is None
+        or lived_organism_tick <= predecessor.organism_tick
+    ):
+        return False
+    if _pending_chain_predecessor_sha is None:
+        _pending_chain_predecessor_sha = predecessor.state_sha256
+    _pending_unsealed_intervals += 1
+    if _pending_unsealed_intervals >= _checkpoint_every_intervals():
+        _checkpoint_requested.set()
+    print(
+        "guala-lived-intake-retained-after-refusal "
+        f"intake={intake} predecessor_tick={predecessor.organism_tick} "
+        f"resident_tick={lived_organism_tick} "
+        f"pending_intervals={_pending_unsealed_intervals} "
+        f"error={type(error).__name__}:{error}",
+        file=sys.stderr,
+        flush=True,
+    )
+    return True
+
+
 def _prepare_continuous_native_action_consequence(
     *,
     organism_identity: str,
@@ -11572,13 +11611,20 @@ def _perform_admitted_intake_locked(
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if intake_error is not None:
-        try:
-            _abort_lived_trajectory(organism)
-        except (RuntimeError, ValueError) as abort_error:
-            if "has no pending candidate" not in str(abort_error):
-                raise RuntimeError(
-                    "resident intake refusal and predecessor restoration both failed"
-                ) from abort_error
+        retained = _retain_already_lived_intake_after_refusal(
+            predecessor,
+            None if last_hop is None else int(last_hop["organism_tick"]),
+            intake,
+            intake_error,
+        )
+        if not retained:
+            try:
+                _abort_lived_trajectory(organism)
+            except (RuntimeError, ValueError) as abort_error:
+                if "has no pending candidate" not in str(abort_error):
+                    raise RuntimeError(
+                        "resident intake refusal and predecessor restoration both failed"
+                    ) from abort_error
         raise intake_error
     if last_hop is None or (
         committed_hop_count == 0 and committed_vestibular_tick_count == 0
@@ -11605,8 +11651,15 @@ def _perform_admitted_intake_locked(
             body_proprioceptive_sources=tuple(body_proprioceptive_sources),
             root_yaw_source_tick=int(last_hop["organism_tick"]),
         )
-    except BaseException:
-        _abort_lived_trajectory(organism)
+    except BaseException as error:
+        retained = _retain_already_lived_intake_after_refusal(
+            predecessor,
+            int(last_hop["organism_tick"]),
+            intake,
+            error,
+        )
+        if not retained:
+            _abort_lived_trajectory(organism)
         raise
     action_execution: Any | None = None
     action_consequence: dict[str, Any] | None = None

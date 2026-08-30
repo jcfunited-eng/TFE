@@ -143,3 +143,43 @@ def test_custodian_discards_a_snapshot_from_an_abandoned_trajectory(monkeypatch)
     assert production._custodian_cycle() == "superseded"
     assert calls == ["snapshot", "stage", "discard"]
     assert production._pending_unsealed_intervals == 4
+
+
+def test_later_refusal_retains_already_lived_resident_successor(monkeypatch) -> None:
+    checkpoint_requested = threading.Event()
+    predecessor = SimpleNamespace(organism_tick=40, state_sha256="11" * 32)
+    monkeypatch.setattr(production, "_pending_unsealed_intervals", 3)
+    monkeypatch.setattr(production, "_pending_chain_predecessor_sha", "11" * 32)
+    monkeypatch.setattr(production, "_checkpoint_requested", checkpoint_requested)
+    monkeypatch.setattr(production, "_checkpoint_every_intervals", lambda: 4)
+
+    retained = production._retain_already_lived_intake_after_refusal(
+        predecessor,
+        44,
+        "live-audiovisual:test",
+        RuntimeError("downstream evidence refused"),
+    )
+
+    assert retained is True
+    assert production._pending_unsealed_intervals == 4
+    assert production._pending_chain_predecessor_sha == predecessor.state_sha256
+    assert checkpoint_requested.is_set()
+
+
+def test_refusal_without_a_lived_successor_does_not_claim_retention(monkeypatch) -> None:
+    checkpoint_requested = threading.Event()
+    predecessor = SimpleNamespace(organism_tick=40, state_sha256="11" * 32)
+    monkeypatch.setattr(production, "_pending_unsealed_intervals", 3)
+    monkeypatch.setattr(production, "_pending_chain_predecessor_sha", "11" * 32)
+    monkeypatch.setattr(production, "_checkpoint_requested", checkpoint_requested)
+
+    retained = production._retain_already_lived_intake_after_refusal(
+        predecessor,
+        40,
+        "live-audiovisual:test",
+        RuntimeError("native settlement refused"),
+    )
+
+    assert retained is False
+    assert production._pending_unsealed_intervals == 3
+    assert not checkpoint_requested.is_set()
