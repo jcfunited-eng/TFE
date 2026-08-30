@@ -160,6 +160,9 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "micPairedHops.shift()" in page
     assert "const hops=micPairedHops.splice(0,hopCount)" in page
     assert "hops.map(hop=>hop.frame)" in page
+    assert "function dispatchMicrophoneWindowFromClock()" in page
+    assert "dispatchMicrophoneWindowFromClock();return" in page
+    assert "micStreamLoop" not in page
     assert "if(cameraInFlightEpoch!==null)return" not in page
     assert "if(micSending||micSamples>=" not in page
     assert "if(micAttending&&!micSending" not in page
@@ -182,6 +185,8 @@ def test_browser_microphone_requires_a_running_audio_thread_and_real_samples() -
     assert "await context.resume()" in page
     assert 'context.state!=="running"' in page
     assert "micLastSampleAtMs=Date.now()" in page
+    assert "micClockWatchdog=setTimeout" in page
+    assert "clearTimeout(micClockWatchdog)" in page
     assert "microphoneStream!==null&&micLastSampleAtMs!==null" in page
     assert "Microphone permission open · waiting for real audio samples" in page
     assert "createScriptProcessor" not in continuous_microphone
