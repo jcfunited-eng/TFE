@@ -279,6 +279,14 @@ def test_external_intake_signals_before_sync_route_worker_admission() -> None:
     assert inspect.isasyncgenfunction(production._external_intake_admission)
 
 
+def test_unattended_transport_yields_after_one_physical_hop() -> None:
+    assert production.UNATTENDED_HOPS_PER_INTERVAL == 1
+    assert (
+        production.CONTINUOUS_INTERVAL_MILLISECONDS
+        == production.INTAKE_HOP_MILLISECONDS
+    )
+
+
 def test_public_observation_read_is_inert(monkeypatch) -> None:
     attempted = threading.Event()
     monkeypatch.setattr(

@@ -1888,15 +1888,18 @@ NATIVE_PRESSURE_AUDIO_CACHE_COUNT = 4
 
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
-# actual persistent world and presents successive exact 250 ms intervals to
-# the native organism. Eight intervals commit in memory and the current body
-# is published once, keeping persistence current-only and bounded.
+# actual persistent world and presents one exact 250 ms physical interval at
+# a time to the native organism.  A transport lock may protect that indivisible
+# physical interval, but it must never turn several successive moments into one
+# database-style transaction: an arriving external experience belongs at the
+# next physical boundary, not after an eight-hop batch.  Deferred persistence
+# remains independent of this admission boundary.
 #
 # There is no artificial one-minute gap and no fabricated dark room. If the
 # world is unavailable, continuous experience is unavailable. Python does not
 # choose a need, direction, object, thought, or action here.
 UNATTENDED_TIME_ENV = "GUALA_UNATTENDED_TIME"
-UNATTENDED_HOPS_PER_INTERVAL = PARTIAL_PRESENTATION_ENDED_HOP_COUNT
+UNATTENDED_HOPS_PER_INTERVAL = 1
 CONTINUOUS_INTERVAL_MILLISECONDS = (
     UNATTENDED_HOPS_PER_INTERVAL * INTAKE_HOP_MILLISECONDS
 )
