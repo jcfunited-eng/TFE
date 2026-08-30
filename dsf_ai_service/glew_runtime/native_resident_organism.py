@@ -446,6 +446,15 @@ class ResidentCausalIntervalEvidence:
         ],
         ...,
     ]
+    articulatory_pressure_pcm: tuple[int, ...]
+    articulatory_body_trajectories: bytes
+    articulatory_sample_rate_hz: int
+    articulatory_peak_breath_flow_pcm: int
+    articulatory_glottal_open_samples_at_apex: int
+    articulatory_mouth_area_square_millimetres_at_apex: int
+    articulatory_perioral_area_displacement_square_millimetres: int
+    articulatory_applied_motor_quanta: int
+    articulatory_stalled_motor_quanta: int
     emitted_neuron_lineages: tuple[str, ...]
     changed_contact_channel_states: tuple[tuple[object, ...], ...]
     affective_balance_trajectories: tuple[
@@ -1184,6 +1193,15 @@ def _causal_interval_evidence(
             "root_yaw_unit_recruitments",
             "root_translation_unit_recruitments",
             "articulatory_unit_recruitments",
+            "articulatory_pressure_pcm",
+            "articulatory_body_trajectories",
+            "articulatory_sample_rate_hz",
+            "articulatory_peak_breath_flow_pcm",
+            "articulatory_glottal_open_samples_at_apex",
+            "articulatory_mouth_area_square_millimetres_at_apex",
+            "articulatory_perioral_area_displacement_square_millimetres",
+            "articulatory_applied_motor_quanta",
+            "articulatory_stalled_motor_quanta",
             "emitted_neuron_lineages",
             "changed_contact_channel_states",
             "affective_balance_trajectories",
@@ -1202,6 +1220,21 @@ def _causal_interval_evidence(
         raw_root_yaw = raw.root_yaw_unit_recruitments
         raw_root_translation = raw.root_translation_unit_recruitments
         raw_articulatory = raw.articulatory_unit_recruitments
+        raw_articulatory_pressure = raw.articulatory_pressure_pcm
+        raw_articulatory_body_trajectories = raw.articulatory_body_trajectories
+        raw_articulatory_sample_rate = raw.articulatory_sample_rate_hz
+        raw_articulatory_peak_breath_flow = raw.articulatory_peak_breath_flow_pcm
+        raw_articulatory_glottal_open = (
+            raw.articulatory_glottal_open_samples_at_apex
+        )
+        raw_articulatory_mouth_area = (
+            raw.articulatory_mouth_area_square_millimetres_at_apex
+        )
+        raw_articulatory_perioral_area = (
+            raw.articulatory_perioral_area_displacement_square_millimetres
+        )
+        raw_articulatory_applied = raw.articulatory_applied_motor_quanta
+        raw_articulatory_stalled = raw.articulatory_stalled_motor_quanta
         raw_emitted = raw.emitted_neuron_lineages
         raw_changes = raw.changed_contact_channel_states
         raw_affect = raw.affective_balance_trajectories
@@ -1217,6 +1250,68 @@ def _causal_interval_evidence(
             raw_duration_samples,
             "causal interval articulatory-clock duration",
         )
+        if not isinstance(raw_articulatory_pressure, list) or any(
+            isinstance(sample, bool)
+            or not isinstance(sample, int)
+            or sample < -32_768
+            or sample > 32_767
+            for sample in raw_articulatory_pressure
+        ):
+            raise RuntimeError("causal interval articulatory pressure changed format")
+        articulatory_pressure = tuple(raw_articulatory_pressure)
+        if not isinstance(raw_articulatory_body_trajectories, bytes):
+            raise RuntimeError("causal interval articulatory body changed format")
+        if len(raw_articulatory_body_trajectories) != 8 * len(
+            articulatory_pressure
+        ):
+            raise RuntimeError(
+                "causal interval articulatory pressure/body clocks diverged"
+            )
+        if articulatory_pressure and len(articulatory_pressure) != duration_samples:
+            raise RuntimeError(
+                "causal interval articulatory pressure changed duration"
+            )
+        articulatory_sample_rate = _positive_integer(
+            raw_articulatory_sample_rate,
+            "causal interval articulatory sample rate",
+        )
+        articulatory_peak_breath_flow = _signed_integer(
+            raw_articulatory_peak_breath_flow,
+            "causal interval articulatory peak breath flow",
+        )
+        articulatory_glottal_open = _signed_integer(
+            raw_articulatory_glottal_open,
+            "causal interval articulatory glottal opening",
+        )
+        articulatory_mouth_area = _signed_integer(
+            raw_articulatory_mouth_area,
+            "causal interval articulatory mouth area",
+        )
+        articulatory_perioral_area = _signed_integer(
+            raw_articulatory_perioral_area,
+            "causal interval articulatory perioral displacement",
+        )
+        articulatory_applied = _nonnegative_integer(
+            raw_articulatory_applied,
+            "causal interval applied articulatory motor quanta",
+        )
+        articulatory_stalled = _nonnegative_integer(
+            raw_articulatory_stalled,
+            "causal interval stalled articulatory motor quanta",
+        )
+        if not articulatory_pressure and any(
+            (
+                articulatory_peak_breath_flow,
+                articulatory_glottal_open,
+                articulatory_mouth_area,
+                articulatory_perioral_area,
+                articulatory_applied,
+                articulatory_stalled,
+            )
+        ):
+            raise RuntimeError(
+                "quiescent causal interval reports articulatory mechanics"
+            )
         rest_recovered = _nonnegative_integer(
             raw_rest_recovered,
             "causal interval rest-recovered neuron count",
@@ -1302,6 +1397,25 @@ def _causal_interval_evidence(
                 articulatory_unit_recruitments=(
                     _articulatory_unit_recruitment_evidence(raw_articulatory)
                 ),
+                articulatory_pressure_pcm=articulatory_pressure,
+                articulatory_body_trajectories=(
+                    raw_articulatory_body_trajectories
+                ),
+                articulatory_sample_rate_hz=articulatory_sample_rate,
+                articulatory_peak_breath_flow_pcm=(
+                    articulatory_peak_breath_flow
+                ),
+                articulatory_glottal_open_samples_at_apex=(
+                    articulatory_glottal_open
+                ),
+                articulatory_mouth_area_square_millimetres_at_apex=(
+                    articulatory_mouth_area
+                ),
+                articulatory_perioral_area_displacement_square_millimetres=(
+                    articulatory_perioral_area
+                ),
+                articulatory_applied_motor_quanta=articulatory_applied,
+                articulatory_stalled_motor_quanta=articulatory_stalled,
                 emitted_neuron_lineages=emitted,
                 changed_contact_channel_states=(
                     _changed_contact_channel_state_evidence(raw_changes)
