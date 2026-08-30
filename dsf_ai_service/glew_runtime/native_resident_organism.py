@@ -2383,6 +2383,63 @@ class NativeResidentOrganism:
                 self.__unsealed_tick = None
             raise
 
+    def advance_coexisting_admitted_interval_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Advance simultaneous admitted sources as one physical interval."""
+
+        if not isinstance(sources, tuple) or not sources:
+            raise TypeError("coexisting admitted sources must be a nonempty tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "coexisting admitted intervals must match the source tuple"
+            )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None),
+                "coexisting source port count",
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            candidate = (
+                self.__runtime.advance_coexisting_admitted_interval_unsealed(
+                    list(sources), [list(value) for value in intervals]
+                )
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=1,
+                candidate_committed=False,
+                expected_sealed=False,
+                initial_body_coexists=True,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
     def seal_unsealed_trajectory_direct(self) -> NativeResidentObservationView:
         """Seal the completed lived intake once for immediate persistence."""
 
@@ -2594,6 +2651,7 @@ class NativeResidentOrganism:
         causal_interval_count: int = 1,
         candidate_committed: bool = False,
         expected_sealed: bool = True,
+        initial_body_coexists: bool = False,
     ) -> ResidentPrepareEvidence:
         if not isinstance(candidate, self.__prepare_type):
             raise TypeError("resident organism prepare returned a structural impostor")
@@ -3281,7 +3339,10 @@ class NativeResidentOrganism:
         allowed_initial_body_additions = {(0, 0)}
         if initial_body_source_count:
             allowed_initial_body_additions.add(
-                (initial_body_source_count, initial_body_source_port_count)
+                (
+                    0 if initial_body_coexists else initial_body_source_count,
+                    initial_body_source_port_count,
+                )
             )
         if (added_interval_count, added_port_count) not in allowed_initial_body_additions:
             raise RuntimeError(

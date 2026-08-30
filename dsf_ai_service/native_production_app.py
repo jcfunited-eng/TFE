@@ -8866,12 +8866,15 @@ def _commit_admitted_hop(
     *,
     external_participant_action_receipt: str | None = None,
     purpose: str = "primary",
+    coexisting: bool = False,
 ) -> dict[str, Any]:
     """Prepare and commit one admitted hop or one ordered native trajectory.
 
     No persistence happens here.  The caller holds ``_transition_lock`` and
     must durably publish the committed body before any observation surface
-    reports it.  Returns only what the native observation actually says.
+    reports it. If ``coexisting`` is true, every supplied source reaches its
+    receptor in one shared physical interval rather than becoming a temporal
+    trajectory. Returns only what the native observation actually says.
     """
 
     sources = episode if isinstance(episode, tuple) else (episode,)
@@ -8881,10 +8884,12 @@ def _commit_admitted_hop(
         else (maximum_causal_intervals,)
     )
     _stage_started = time.perf_counter()
-    evidence: ResidentPrepareEvidence = organism.advance_admitted_trajectory_unsealed(
-        sources,
-        intervals,
+    advance = (
+        organism.advance_coexisting_admitted_interval_unsealed
+        if coexisting
+        else organism.advance_admitted_trajectory_unsealed
     )
+    evidence: ResidentPrepareEvidence = advance(sources, intervals)
     _elapsed_ms = (time.perf_counter() - _stage_started) * 1000.0
     _transport_stage_wall_ms["native_settlement"] = (
         _transport_stage_wall_ms.get("native_settlement", 0.0) + _elapsed_ms
@@ -11566,6 +11571,7 @@ def _perform_admitted_intake_locked(
                     consequence_episode,
                     consequence_admissions,
                     purpose="action_consequence",
+                    coexisting=True,
                     external_participant_action_receipt=(
                         action_execution.causal_intent_receipt_sha256
                     ),

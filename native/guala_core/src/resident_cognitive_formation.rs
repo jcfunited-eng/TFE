@@ -7178,7 +7178,7 @@ impl ResidentCognitiveFormationState {
             self.clone(),
             self.generation,
             self.hippocampal,
-            admitted_source,
+            &[admitted_source],
             vestibular,
             max_encoded_bytes,
             true,
@@ -7191,7 +7191,7 @@ impl ResidentCognitiveFormationState {
         expanded: Self,
         predecessor_generation_authority: u64,
         predecessor_hippocampal_authority: ResidentHippocampalIndex,
-        admitted_source: &AdmittedJointSourceEpisode,
+        admitted_sources: &[&AdmittedJointSourceEpisode],
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
         seal_successor: bool,
@@ -7215,12 +7215,24 @@ impl ResidentCognitiveFormationState {
             topology_index: predecessor_topology_index,
             formation_index: predecessor_formation_index,
         } = expanded;
-        let source = admitted_source.episode();
-        if source.joint_source_occurrences().is_empty() {
+        if admitted_sources.is_empty()
+            || admitted_sources
+                .iter()
+                .any(|admitted| admitted.episode().joint_source_occurrences().is_empty())
+        {
             return Err(FormationError::SourceOccurrenceAbsent);
         }
-        let initial_vocal_tract_calibration =
-            is_complete_articulated_body_proprioceptive_admission(source);
+        let initial_vocal_tract_calibration = admitted_sources.iter().any(|admitted| {
+            is_complete_articulated_body_proprioceptive_admission(admitted.episode())
+        });
+        let admitted_occurrence_count = admitted_sources.iter().try_fold(
+            0usize,
+            |count, admitted| {
+                count
+                    .checked_add(admitted.episode().joint_source_occurrences().len())
+                    .ok_or(FormationError::ArithmeticOverflow)
+            },
+        )?;
 
         let source_generation = predecessor_generation
             .checked_add(1)
@@ -7270,7 +7282,7 @@ impl ResidentCognitiveFormationState {
         let mut mosaics = predecessor_mosaics.into_vec();
         let mut newly_retained_mosaic_indices = Vec::new();
         cohorts
-            .try_reserve(source.joint_source_occurrences().len())
+            .try_reserve(admitted_occurrence_count)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         let mut physically_transitioned_neuron_lineages = BTreeSet::<[u8; 16]>::new();
         let mut metabolically_perturbed_body_receptor_lineages = Vec::<[u8; 16]>::new();
@@ -7286,7 +7298,7 @@ impl ResidentCognitiveFormationState {
             BTreeMap::<[u8; 16], TransitionNeuronPredecessor>::new();
         let mut externally_reached_receptor_places = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
         let mut externally_energized_by_occurrence =
-            vec![Vec::<[u8; 16]>::new(); source.joint_source_occurrences().len()];
+            vec![Vec::<[u8; 16]>::new(); admitted_occurrence_count];
         let mut emitted_neuron_fractals = Vec::new();
         let mut mosaic_formed = None;
         // The retired archive checkpoint is carried forward VERBATIM: never
@@ -7298,7 +7310,12 @@ impl ResidentCognitiveFormationState {
         let mut partial_cue_reassembly_count = 0usize;
         let mut endogenous_partial_cue_reassembly_count = 0usize;
         let mut metabolic = ReachedCohortMetabolicObservation::default();
-        for (occurrence_index, occurrence) in source.joint_source_occurrences().iter().enumerate() {
+        let mut occurrence_index = 0usize;
+        for admitted_source in admitted_sources {
+            let source = admitted_source.episode();
+            for (source_occurrence_index, occurrence) in
+                source.joint_source_occurrences().iter().enumerate()
+            {
             if !topology_index.matches_shape(&cohorts, &predecessor_electrical_fabric) {
                 topology_index = Arc::new(ResidentTopologyIndex::build(
                     &cohorts,
@@ -7308,10 +7325,14 @@ impl ResidentCognitiveFormationState {
             #[cfg(test)]
             RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(count.get() + 1));
             let admission = admitted_source
-                .admission(occurrence_index)
+                .admission(source_occurrence_index)
                 .ok_or(FormationError::NoncanonicalState)?;
             let shared =
-                prepare_complete_joint_field_with_admission(source, occurrence_index, admission)
+                prepare_complete_joint_field_with_admission(
+                    source,
+                    source_occurrence_index,
+                    admission,
+                )
                     .map_err(FormationError::JointFieldUnavailable)?;
             if vestibular.is_some()
                 && (occurrence_index != 0
@@ -8455,6 +8476,13 @@ impl ResidentCognitiveFormationState {
                     cohorts.push(cohort);
                 }
             }
+            occurrence_index = occurrence_index
+                .checked_add(1)
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            }
+        }
+        if occurrence_index != admitted_occurrence_count {
+            return Err(FormationError::NoncanonicalState);
         }
         let source_physics_wall = settlement_stopwatch.elapsed();
         palmar_contact_onset_receptor_lineages.sort_unstable();
@@ -8946,7 +8974,7 @@ impl ResidentCognitiveFormationState {
             self,
             predecessor_generation,
             predecessor_hippocampal,
-            &admitted_source,
+            &[&admitted_source],
             Some(ingress),
             max_encoded_bytes,
             false,
@@ -8983,7 +9011,36 @@ impl ResidentCognitiveFormationState {
             self,
             predecessor_generation,
             predecessor_hippocampal,
-            admitted_source,
+            &[admitted_source],
+            None,
+            max_encoded_bytes,
+            false,
+            observe_relations,
+            residency,
+        )?;
+        Ok((prepared.successor, prepared.observation))
+    }
+
+    /// Admit several independently authenticated physical sources into one
+    /// causal interval. Every occurrence retains its own exact source and DSF
+    /// authority; their receptor effects coexist before the fabric settles
+    /// once. This is the native boundary for simultaneous world and body
+    /// consequences, not an ordered trajectory.
+    pub(crate) fn advance_coexisting_admitted_transition_with_residency(
+        self,
+        admitted_sources: &[AdmittedJointSourceEpisode],
+        max_encoded_bytes: usize,
+        observe_relations: bool,
+        residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+    ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
+        let predecessor_generation = self.generation;
+        let predecessor_hippocampal = self.hippocampal;
+        let admitted_source_refs = admitted_sources.iter().collect::<Vec<_>>();
+        let prepared = Self::prepare_typed_admitted_transition_from_owned(
+            self,
+            predecessor_generation,
+            predecessor_hippocampal,
+            &admitted_source_refs,
             None,
             max_encoded_bytes,
             false,

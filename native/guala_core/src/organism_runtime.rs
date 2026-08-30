@@ -2909,6 +2909,7 @@ impl ResidentOrganismRuntime {
         let mut residency = self.causal_event_residency.take();
         let built = self.build_admitted_trajectory(
             episodes,
+            false,
             initial_cognitive,
             self.active.observation.clone(),
             self.active.vestibular.clone(),
@@ -2960,6 +2961,25 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        self.advance_admitted_intervals_unsealed(episodes, false)
+    }
+
+    /// Advance independently authenticated sources as one simultaneous
+    /// physical interval. The sources keep their exact occurrence-local DSF
+    /// fields, reach their own receptors, and settle the shared resident
+    /// fabric once.
+    fn advance_coexisting_admitted_interval_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        self.advance_admitted_intervals_unsealed(episodes, true)
+    }
+
+    fn advance_admitted_intervals_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        coexisting_sources: bool,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
@@ -2995,6 +3015,7 @@ impl ResidentOrganismRuntime {
         let mut residency = self.causal_event_residency.take();
         let built = self.build_admitted_trajectory(
             episodes,
+            coexisting_sources,
             initial_cognitive,
             current_observation,
             initial_vestibular,
@@ -3168,6 +3189,7 @@ impl ResidentOrganismRuntime {
     fn build_admitted_trajectory(
         &self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        coexisting_sources: bool,
         initial_cognitive: ResidentCognitiveFormationState,
         predecessor: RuntimeObservation,
         initial_vestibular: ResidentVestibularBody,
@@ -3236,30 +3258,39 @@ impl ResidentOrganismRuntime {
         let mut trajectory_authority_entries = Vec::new();
         let mut processed_interval_count = 0usize;
         let mut advance_interval = |
-            source: &NativeJointSourceEpisode,
-            intervals: &[(i64, i64)],
+            sources: &[(&NativeJointSourceEpisode, &[(i64, i64)])],
             interval_terminal: bool,
         | -> Result<(), RuntimeError> {
-            let admitted = admitted_episode_with_authored_intervals(source, intervals)
-                .map_err(RuntimeError::CognitiveFormation)?;
-            trajectory_authority_entries.push((
-                source.joint_source_authority_receipt(),
-                intervals.to_vec(),
-            ));
-            receptor_ingress = receptor_ingress
-                .checked_merge(observe_canonical_receptor_ingress(source))
-                .ok_or(RuntimeError::OrganismTickOverflow)?;
-            source_port_count = source_port_count
-                .checked_add(source.joint_source_ports().len())
-                .ok_or(RuntimeError::OrganismTickOverflow)?;
-            source_occurrence_count = source_occurrence_count
-                .checked_add(source.joint_source_occurrences().len())
-                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            if sources.is_empty() {
+                return Err(RuntimeError::AdmittedSourceRequired);
+            }
+            let mut admitted_sources = Vec::with_capacity(sources.len());
+            for (source, intervals) in sources {
+                admitted_sources.push(
+                    admitted_episode_with_authored_intervals(source, intervals)
+                        .map_err(RuntimeError::CognitiveFormation)?,
+                );
+                trajectory_authority_entries.push((
+                    source.joint_source_authority_receipt(),
+                    intervals.to_vec(),
+                ));
+                receptor_ingress = receptor_ingress
+                    .checked_merge(observe_canonical_receptor_ingress(source))
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                source_port_count = source_port_count
+                    .checked_add(source.joint_source_ports().len())
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+                source_occurrence_count = source_occurrence_count
+                    .checked_add(source.joint_source_occurrences().len())
+                    .ok_or(RuntimeError::OrganismTickOverflow)?;
+            }
+            let source_duration_samples =
+                coexisting_source_duration_samples_at_articulatory_rate(sources)?;
             let (successor, observation) = cognitive
                 .take()
                 .expect("trajectory cognition is restored after every interval")
-                .advance_admitted_transition_with_residency(
-                    &admitted,
+                .advance_coexisting_admitted_transition_with_residency(
+                    &admitted_sources,
                     cognitive_budget,
                     interval_terminal,
                     residency,
@@ -3297,8 +3328,7 @@ impl ResidentOrganismRuntime {
             );
             articulated_body = body_transition.successor;
             causal_interval_evidence.push(CausalIntervalEvidence {
-                source_duration_samples_at_articulatory_rate:
-                    source_duration_samples_at_articulatory_rate(source)?,
+                source_duration_samples_at_articulatory_rate: source_duration_samples,
                 rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
                 externally_perturbed_neuron_lineages: observation
                     .externally_perturbed_neuron_lineages
@@ -3332,8 +3362,12 @@ impl ResidentOrganismRuntime {
             Ok(())
         };
         let causal_source_count = causal_sources.len();
-        for (index, (source, intervals)) in causal_sources.iter().enumerate() {
-            advance_interval(source, intervals, index + 1 == causal_source_count)?;
+        if coexisting_sources {
+            advance_interval(&causal_sources, true)?;
+        } else {
+            for (index, source) in causal_sources.iter().enumerate() {
+                advance_interval(std::slice::from_ref(source), index + 1 == causal_source_count)?;
+            }
         }
         drop(advance_interval);
         let cognitive = cognitive.expect("trajectory cognition has a final successor");
@@ -3391,8 +3425,10 @@ impl ResidentOrganismRuntime {
         } else {
             (Vec::new(), Vec::new())
         };
-        let trajectory_authority =
-            admitted_trajectory_authority(&trajectory_authority_entries)?;
+        let admitted_authority = admitted_sources_authority(
+            &trajectory_authority_entries,
+            coexisting_sources,
+        )?;
         let transition = MountedJointDsfTransition {
             joint_field_count: source_occurrence_count,
             joint_neuron_count: 0,
@@ -3412,7 +3448,7 @@ impl ResidentOrganismRuntime {
             predecessor.mounted_generation,
             cognitive_observation.cognitive_ordinal,
             &fabric,
-            trajectory_authority,
+            admitted_authority,
             transition,
             source_occurrence_count,
             derived_budget,
@@ -3426,7 +3462,7 @@ impl ResidentOrganismRuntime {
         let token = prepare_token(
             predecessor.state_receipt,
             observation.state_receipt,
-            trajectory_authority,
+            admitted_authority,
             self.next_prepare_ordinal,
         );
         let pending = PendingResidentOrganismState {
@@ -4294,6 +4330,26 @@ fn source_duration_samples_at_articulatory_rate(
         .ok_or(RuntimeError::OrganismTickOverflow)
 }
 
+/// Require every source admitted beside another source to cover the same
+/// physical duration. Different source clocks may use different origins, but
+/// they cannot silently describe different spans and still claim one causal
+/// interval.
+fn coexisting_source_duration_samples_at_articulatory_rate(
+    sources: &[(&NativeJointSourceEpisode, &[(i64, i64)])],
+) -> Result<usize, RuntimeError> {
+    let mut duration = None;
+    for (source, _) in sources {
+        let current = source_duration_samples_at_articulatory_rate(source)?;
+        if duration.is_some_and(|expected| expected != current) {
+            return Err(RuntimeError::CognitiveFormation(
+                "coexisting physical sources cover different durations".into(),
+            ));
+        }
+        duration = Some(current);
+    }
+    duration.ok_or(RuntimeError::AdmittedSourceRequired)
+}
+
 fn body_proprioceptive_source(
     source_tick: u64,
     consequences: &[BodyProprioceptiveConsequence],
@@ -4343,13 +4399,18 @@ fn vestibular_trajectory_authority(
     sha256(&body)
 }
 
-fn admitted_trajectory_authority(
+fn admitted_sources_authority(
     episodes: &[([u8; 32], Vec<(i64, i64)>)],
+    coexisting_sources: bool,
 ) -> Result<[u8; 32], RuntimeError> {
     let episode_count =
         u32::try_from(episodes.len()).map_err(|_| RuntimeError::OrganismTickOverflow)?;
     let mut body = Vec::with_capacity(12 + episodes.len() * 36);
-    body.extend_from_slice(b"GLADTRJ1");
+    body.extend_from_slice(if coexisting_sources {
+        b"GLADCXI1"
+    } else {
+        b"GLADTRJ1"
+    });
     body.extend_from_slice(&episode_count.to_le_bytes());
     for (source_authority, intervals) in episodes {
         body.extend_from_slice(source_authority);
@@ -4636,6 +4697,53 @@ impl NativeResidentOrganismRuntime {
             .allow_threads(|| {
                 self.runtime
                     .advance_admitted_trajectory_unsealed(&episodes)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
+            root_translation_unit_recruitments:
+                prepared.root_translation_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    /// Admit multiple source bodies beside one another in one physical
+    /// interval. This is distinct from `advance_admitted_trajectory_unsealed`,
+    /// whose source list is deliberately temporal.
+    fn advance_coexisting_admitted_interval_unsealed(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "coexisting admitted source and interval counts differ",
+            ));
+        }
+        if sources.is_empty() {
+            return Err(PyValueError::new_err(
+                "coexisting admitted interval has no source",
+            ));
+        }
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime
+                    .advance_coexisting_admitted_interval_unsealed(&episodes)
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
@@ -8171,6 +8279,45 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn coexisting_sources_reach_one_causal_interval_instead_of_a_trajectory() {
+        let first_source = source("coexisting-world-consequence");
+        let second_source = source("coexisting-body-consequence");
+        let total_occurrence_count = first_source
+            .joint_source_occurrences()
+            .len()
+            .checked_add(second_source.joint_source_occurrences().len())
+            .unwrap();
+        let first_intervals = vec![(5, 1); first_source.joint_source_occurrences().len()];
+        let second_intervals = vec![(5, 1); second_source.joint_source_occurrences().len()];
+        let episodes = vec![
+            (first_source, first_intervals),
+            (second_source, second_intervals),
+        ];
+
+        let mut coexisting = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        coexisting.active.articulated_body.initialize_proprioception();
+        let predecessor_tick = coexisting.observation().organism_tick;
+        let admitted = coexisting
+            .advance_coexisting_admitted_interval_unsealed(&episodes)
+            .unwrap();
+
+        assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
+        assert_eq!(admitted.causal_interval_evidence.len(), 1);
+        assert_eq!(
+            admitted.phase_counts.current_cohort_evaluation_count,
+            total_occurrence_count
+        );
+
+        let mut trajectory = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        trajectory.active.articulated_body.initialize_proprioception();
+        let admitted = trajectory
+            .advance_admitted_trajectory_unsealed(&episodes)
+            .unwrap();
+        assert_eq!(admitted.observation.organism_tick, predecessor_tick + 2);
+        assert_eq!(admitted.causal_interval_evidence.len(), 2);
     }
 
     #[test]
