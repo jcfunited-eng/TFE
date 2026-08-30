@@ -476,6 +476,22 @@ def find_rule(F, step_text, floor=1):
     top, e = scored[0]
     second = scored[1][0] if len(scored) > 1 else 0
     if top >= floor and top > second: return (e, top)
+    # A TIE IS NOT A FAILURE TO REACH. Several procedures overlap a
+    # short step equally, and requiring the top to beat the second
+    # outright meant a step naming another procedure — "add that pile
+    # as the adding rule says" — reached nothing, so multiplying could
+    # not be done at all. Where they tie, prefer the one whose
+    # ASKED-AS NAMES a word of the step outright: that is the entry's
+    # own claim to answer to it, not a ranking of mine.
+    tied = [x[1] for x in scored if x[0] == top and top >= floor]
+    if len(tied) > 1:
+        want = {core.stem(w) for w in re.findall(r"[a-z]+",
+                                                 step_text.lower())}
+        named = [x for x in tied
+                 if want & {core.stem(w) for w in
+                            re.findall(r"[a-z]+", x["ask"].lower())}]
+        if len(named) == 1:
+            return (named[0], top)
     return (None, top)
 
 NUMBER_WORDS = None      # built from the knowledge, not listed

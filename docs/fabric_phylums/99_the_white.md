@@ -1028,3 +1028,27 @@ ENTRY: an order cannot be told from a statement, and I shipped a rule
     not in the reading: until something in the fabric holds what a
     command word is, a third is the ceiling.
   STATUS: STANDING (white)
+
+ENTRY: a written procedure with a "when" in it cannot be followed
+  ASKED-AS: procedure rule step conditional when if unless follow
+    interpreter runs every step
+  VERDICT: the interpreter has no notion of a condition. It takes the
+    steps of a rule and runs every one of them, so any clause that
+    says WHEN to do a thing is done always. Measured 2026-08-30: 28 of
+    the 46 written procedures in this fabric carry a when, an if or an
+    unless. More than half of what the fabric has written down about
+    how to do things cannot be followed correctly.
+  HOW IT SHOWED: told "multiply 12 by 3" the fabric reaches its own
+    times-rule, which says to lay the larger number down as many times
+    as the smaller says and add that pile — and then, WHEN the smaller
+    number is itself many places, to lay the pile place by place. The
+    smaller number is 3 and has one place, so the second clause does
+    not apply; the interpreter ran it anyway, turned the piles 12, 12,
+    12 into 12, 120, 1200, and answered 111.
+  WHAT WOULD DRAIN IT: steps that carry their condition, and a
+    follower that tests it. The conditions are already written in
+    plain words in the rules themselves — "when the smaller number is
+    itself many places" — so nothing needs to be added to the
+    knowledge, only read out of it.
+  STATUS: STANDING (white) — and it is the reason adding works
+    end-to-end and multiplying does not
