@@ -305,6 +305,15 @@ class Thread:
         parts = [p for p in (s.doer, s.turns_on, s.done_to) if p]
         if len(parts) < 2:
             parts = s.about[:2]
+        # A turn that brings ONE thing is paired with what the thread
+        # is already standing on. "what about sugar" after a turn
+        # about ice names one subject and has no doing, so there was
+        # nothing to put together and the fabric said nothing at all.
+        # The thread is the other half: 74 holds that a conversation
+        # is one thread carrying what has stood, and this is what that
+        # is for.
+        if len(parts) == 1 and self.subject and self.subject != parts[0]:
+            parts = [self.subject, parts[0]]
         if len(parts) < 2:
             return None
         a, b = parts[0], parts[1]
