@@ -6029,27 +6029,23 @@ pub(crate) fn passive_membrane_return_current(
         return Ok(None);
     }
     // One elementary charge toward zero must strictly lower the exact
-    // stored work, and the receiving/sending compartments must hold the
-    // material; the transport itself saturates at zero available, which
-    // the candidate comparison detects as no lawful move. Positive
-    // outward REDUCES separation, so toward-zero outward carries the
-    // displacement's own sign.
+    // stored work, and the sending compartment must hold that carrier.
+    // Positive outward REDUCES separation, so toward-zero outward carries
+    // the displacement's own sign.
     let toward_zero = displacement.signum();
-    let candidate = settle_membrane_pump_transport(
+    let available = if toward_zero > 0 {
+        predecessor.carriers.intracellular
+    } else {
+        predecessor.carriers.extracellular
+    };
+    if available == 0 {
+        return Ok(None);
+    }
+    if !passive_membrane_return_strictly_descends(
         anatomy,
         predecessor,
         toward_zero,
-        None,
-        1,
-    )?;
-    if candidate.membrane.membrane().separated_elementary_charges() == displacement {
-        return Ok(None);
-    }
-    let predecessor_work =
-        membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)?;
-    let successor_work =
-        membrane_and_gradient_work_zeptojoules_wide(anatomy, &candidate)?;
-    if successor_work >= predecessor_work {
+    )? {
         return Ok(None);
     }
     let potential = predecessor
@@ -6070,6 +6066,55 @@ pub(crate) fn passive_membrane_return_current(
         return Ok(None);
     }
     Ok(Some(current))
+}
+
+/// Exact sign of the stored-work change for one passive return carrier.
+///
+/// This is the same `successor_work - predecessor_work` comparison as
+/// materializing a complete successor neuron and evaluating both totals,
+/// reduced algebraically to the two coordinates that actually change:
+/// membrane separation and the reversal-owned carrier compartment.  It
+/// creates no successor neuron and observes no unrelated Psi, gate, recovery,
+/// plastic, or DNA state.
+fn passive_membrane_return_strictly_descends(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    outward_elementary_charge: i128,
+) -> Result<bool, NeuronPhysicalError> {
+    let predecessor_membrane = predecessor.membrane.membrane();
+    let predecessor_displacement = predecessor_membrane.separated_elementary_charges();
+    let successor_displacement = predecessor_displacement
+        .checked_sub(outward_elementary_charge)
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let predecessor_potential = predecessor_membrane
+        .potential_millivolts(anatomy.capacitance)
+        .map_err(MembraneConductanceError::from)
+        .map_err(GateSettlementError::from)?;
+    let successor_potential = ElementaryChargeMembraneState::from_physical_parts(
+        successor_displacement,
+        predecessor_membrane.carrier_phase(),
+    )
+    .potential_millivolts(anatomy.capacitance)
+    .map_err(MembraneConductanceError::from)
+    .map_err(GateSettlementError::from)?;
+    let predecessor_potential = rational_to_exact(predecessor_potential);
+    let successor_potential = rational_to_exact(successor_potential);
+    let capacitor_delta = rational_to_exact(anatomy.capacitance.picofarads())
+        * (successor_potential.clone() * successor_potential
+            - predecessor_potential.clone() * predecessor_potential)
+        * BigInt::from(500_u16);
+
+    let reversal = anatomy.gate.reversal_potential_millivolts;
+    let reversal_sign = reversal.parts().0.signum();
+    let gradient_carrier_delta = reversal_sign
+        .checked_mul(outward_elementary_charge)
+        .ok_or(GateSettlementError::ArithmeticWidth)?;
+    let gradient_delta = BigRational::new(
+        BigInt::from(801_088_317_u32),
+        BigInt::from(5_000_000_000_u64),
+    ) * rational_to_exact(reversal.checked_abs()?)
+        * BigInt::from(gradient_carrier_delta);
+    Ok(capacitor_delta + gradient_delta < BigRational::zero())
 }
 
 /// Settle one due passive membrane return: exactly one whole elementary
@@ -7350,6 +7395,56 @@ mod tests {
                 .is_none(), "zero displacement schedules no event");
             }
         }
+    }
+
+    #[test]
+    fn passive_return_direct_delta_matches_materialized_successor_work() {
+        let fixture = physical_fixture();
+        for displacement in -64_i128..=64 {
+            if displacement == 0 {
+                continue;
+            }
+            let mut state = fixture.state.clone();
+            state.membrane = LocalMembraneConductanceState::genesis(displacement);
+            let outward = displacement.signum();
+            let successor = settle_membrane_pump_transport(
+                &fixture.anatomy,
+                &state,
+                outward,
+                None,
+                1,
+            )
+            .unwrap();
+            let expected = successor.separated_elementary_charges() != displacement
+                && membrane_and_gradient_work_zeptojoules_wide(&fixture.anatomy, &successor)
+                    .unwrap()
+                    < membrane_and_gradient_work_zeptojoules_wide(&fixture.anatomy, &state)
+                        .unwrap();
+            assert_eq!(
+                passive_membrane_return_strictly_descends(
+                    &fixture.anatomy,
+                    &state,
+                    outward,
+                )
+                .unwrap(),
+                expected,
+                "direct delta disagreed at displacement {displacement}",
+            );
+        }
+
+        let mut depleted_positive = fixture.state.clone();
+        depleted_positive.membrane = LocalMembraneConductanceState::genesis(1);
+        depleted_positive.carriers = CarrierReservoirs::new(0, 1_000_000);
+        assert!(passive_membrane_return_current(&fixture.anatomy, &depleted_positive)
+            .unwrap()
+            .is_none());
+
+        let mut depleted_negative = fixture.state.clone();
+        depleted_negative.membrane = LocalMembraneConductanceState::genesis(-1);
+        depleted_negative.carriers = CarrierReservoirs::new(1_000_000, 0);
+        assert!(passive_membrane_return_current(&fixture.anatomy, &depleted_negative)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
