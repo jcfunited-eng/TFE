@@ -150,6 +150,15 @@ pub(crate) fn next_whole_carrier_crossing_clocks(
         return Ok(None);
     }
     let (phase_numerator, phase_denominator) = predecessor_phase.parts();
+    if let Some(crossing) = fixed_width_next_crossing(
+        phase_numerator,
+        phase_denominator,
+        current_numerator,
+        current_denominator,
+        interval_microseconds,
+    ) {
+        return Ok(Some(crossing));
+    }
     // Per-clock transfer t and remaining distance r to the next whole charge
     // in the drive's direction; the crossing is ceil(r / |t|) clocks.
     let per_clock_numerator = BigInt::from(current_numerator)
@@ -175,6 +184,53 @@ pub(crate) fn next_whole_carrier_crossing_clocks(
         .to_u64()
         .map(Some)
         .ok_or(ChargeTransferError::ArithmeticWidth)
+}
+
+/// Exact cancellation-first form of the crossing equation. `None` means only
+/// that a remaining product is wider than u128; the arbitrary-precision law
+/// above then evaluates the same ratio. No rounded value leaves this helper.
+fn fixed_width_next_crossing(
+    phase_numerator: i128,
+    phase_denominator: u128,
+    current_numerator: i128,
+    current_denominator: u128,
+    interval_microseconds: u32,
+) -> Option<u64> {
+    let phase_magnitude = phase_numerator.unsigned_abs();
+    let remaining = match (current_numerator.is_negative(), phase_numerator.is_negative()) {
+        (false, false) => phase_denominator.checked_sub(phase_magnitude)?,
+        (false, true) => phase_denominator.checked_add(phase_magnitude)?,
+        (true, false) => phase_denominator.checked_add(phase_magnitude)?,
+        (true, true) => phase_denominator.checked_sub(phase_magnitude)?,
+    };
+    let mut numerator_factors = [
+        remaining,
+        current_denominator,
+        MICROSECONDS_PER_MILLISECOND,
+        ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR,
+    ];
+    let mut denominator_factors = [
+        phase_denominator,
+        current_numerator.unsigned_abs(),
+        u128::from(interval_microseconds),
+        ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR,
+    ];
+    for numerator in &mut numerator_factors {
+        for denominator in &mut denominator_factors {
+            let divisor = gcd(*numerator, *denominator);
+            *numerator /= divisor;
+            *denominator /= divisor;
+        }
+    }
+    let numerator = numerator_factors
+        .into_iter()
+        .try_fold(1_u128, u128::checked_mul)?;
+    let denominator = denominator_factors
+        .into_iter()
+        .try_fold(1_u128, u128::checked_mul)?;
+    let quotient = numerator / denominator;
+    let ceiling = quotient.checked_add(u128::from(numerator % denominator != 0))?;
+    u64::try_from(ceiling).ok()
 }
 
 pub(crate) fn settle_elementary_charge_transfer(
