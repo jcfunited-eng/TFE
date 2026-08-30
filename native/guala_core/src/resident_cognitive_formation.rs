@@ -19607,24 +19607,23 @@ fn settle_internal_contact_interval(
         // changed — by pumping, passive recovery, membrane settlement,
         // external ingress, or contact transfer. An unchanged endpoint
         // wakes nothing.
-        let mut endpoint_cache = std::collections::BTreeMap::new();
+        let mut endpoint_cache = std::iter::repeat_with(|| None)
+            .take(flat_locations.len())
+            .collect::<Vec<_>>();
         for flat in selected.iter().copied() {
             let (cohort_index, neuron_index, _) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
             let capacitance =
                 cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].capacitance();
             let membrane = state.membrane_state();
-            endpoint_cache.insert(
-                flat,
-                (
+            endpoint_cache[flat] = Some((
                     membrane
                         .potential_millivolts(capacitance)
                         .map_err(FormationError::InternalMembraneUnavailable)?,
                     membrane.separated_elementary_charges(),
                     capacitance,
                     state.carrier_reservoirs().intracellular(),
-                ),
-            );
+                ));
         }
         // The wake law's changed-endpoint set is UNIVERSAL: every neuron
         // whose state at this interval's end differs from the entry view —
@@ -19661,12 +19660,10 @@ fn settle_internal_contact_interval(
                 changed_flats.push(flat);
             }
         }
-        let settled_positions = compact_original_indices
-            .iter()
-            .copied()
-            .enumerate()
-            .map(|(position, contact_index)| (contact_index, position))
-            .collect::<BTreeMap<_, _>>();
+        let mut settled_contacts = vec![false; topology_index.contacts.len()];
+        for contact_index in compact_original_indices.iter().copied() {
+            settled_contacts[contact_index] = true;
+        }
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
@@ -19675,12 +19672,12 @@ fn settle_internal_contact_interval(
             let successor_state = &transition.successor;
             let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
             let (left_potential, left_charges, left_capacitance, left_available) =
-                endpoint_cache
-                    .get(&left_flat)
+                endpoint_cache[left_flat]
+                    .as_ref()
                     .ok_or(FormationError::NoncanonicalState)?;
             let (right_potential, right_charges, right_capacitance, right_available) =
-                endpoint_cache
-                    .get(&right_flat)
+                endpoint_cache[right_flat]
+                    .as_ref()
                     .ok_or(FormationError::NoncanonicalState)?;
             // Two exact tiers. An ACTIVELY settled contact (whole carriers
             // moved or channels transitioned) reschedules from its raw
@@ -19761,7 +19758,7 @@ fn settle_internal_contact_interval(
         woken_contacts.sort_unstable();
         woken_contacts.dedup();
         for contact_index in woken_contacts {
-            if settled_positions.contains_key(&contact_index) {
+            if settled_contacts[contact_index] {
                 continue;
             }
             let entry = topology_index.contacts[contact_index];
@@ -19905,7 +19902,7 @@ fn settle_internal_contact_interval(
                 ),
                 FormationError,
             > {
-                if let Some(cached) = endpoint_cache.get(&flat) {
+                if let Some(cached) = endpoint_cache[flat].as_ref() {
                     return Ok(cached.clone());
                 }
                 let (cohort_index, neuron_index, _) = flat_locations[flat];
@@ -19968,10 +19965,7 @@ fn settle_internal_contact_interval(
             // new rate. A crossing inside the caught-up span cannot occur:
             // its due would have fired.
             let last = events.recovery_last_integrated[flat];
-            let scheduled_return_due = events
-                .recovery_schedule
-                .scheduled_dues()
-                .find_map(|(scheduled_flat, due)| (scheduled_flat == flat).then_some(due));
+            let scheduled_return_due = events.recovery_schedule.due_clock(flat);
             if last < clock {
                 // An unscheduled return means the descent law refused its
                 // current for the whole span: zero flow, frozen phase.

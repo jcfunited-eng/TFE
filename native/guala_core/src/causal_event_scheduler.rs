@@ -75,6 +75,14 @@ impl CarrierCrossingSchedule {
         self.len
     }
 
+    /// Exact due clock for one contact, or `None` when that contact is not
+    /// scheduled. The indexed position array is the authority for presence;
+    /// callers must not walk the heap to rediscover one contact's entry.
+    pub(crate) fn due_clock(&self, contact_index: usize) -> Option<u64> {
+        (self.position_by_contact[contact_index] != NO_POSITION)
+            .then_some(self.due_by_contact[contact_index])
+    }
+
     fn less(&self, left: u32, right: u32) -> bool {
         let left_due = self.due_by_contact[left as usize];
         let right_due = self.due_by_contact[right as usize];
