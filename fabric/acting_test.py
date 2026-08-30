@@ -25,7 +25,11 @@ import core, wanting
 
 OPS = ["add", "subtract", "multiply", "divide", "double", "halve",
        "count"]
+# "take {a} and {op} {b}" is here BECAUSE it fails. It was dropped from
+# this list once and the bench read 126 of 126, which is the whole
+# disease in one line: a test you prune until it passes is not a test.
 FRAMES = ["{op} {a} and {b}", "{op} {a} by {b}", "work out {a} {op} {b}",
+          "take {a} and {op} {b}",
           "{op} the number {a} and the number {b}",
           "please {op} {a} and {b}", "{op} {a} with {b}"]
 
