@@ -163,6 +163,9 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "function dispatchMicrophoneWindowFromClock()" in page
     assert "dispatchMicrophoneWindowFromClock();return" in page
     assert "micStreamLoop" not in page
+    assert "||micTransportRetryTimer" in page
+    assert "micTransportRetryTimer=setTimeout" in page
+    assert "clearTimeout(micTransportRetryTimer)" in page
     assert "if(cameraInFlightEpoch!==null)return" not in page
     assert "if(micSending||micSamples>=" not in page
     assert "if(micAttending&&!micSending" not in page
