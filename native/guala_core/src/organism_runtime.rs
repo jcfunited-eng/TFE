@@ -68,11 +68,14 @@ use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
     ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES,
 };
 use crate::root_yaw_terminal::RootYawDirection;
 use crate::root_translation_terminal::{RootTranslationAxis, RootTranslationDirection};
 use crate::virtual_articulatory_body::{
-    settle_articulatory_interval_discharges, ARTICULATORY_SAMPLE_RATE_HZ,
+    settle_native_articulatory_interval,
+    ArticulatoryBodyTransition as NativeArticulatoryBodyTransition,
+    ARTICULATORY_SAMPLE_RATE_HZ,
 };
 use crate::virtual_body_yaw_motion::{
     settle_signed_yaw_actuation, SignedYawActuation, YawBodyState,
@@ -96,8 +99,10 @@ const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
 const PRE_VESTIBULAR_FABRIC_VERSION: u16 = 7;
 const PRE_ARTICULATED_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
 const PRE_ARTICULATED_FABRIC_VERSION: u16 = 8;
-const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB09";
-const FABRIC_VERSION: u16 = 9;
+const PRE_PHONATORY_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB09";
+const PRE_PHONATORY_FABRIC_VERSION: u16 = 9;
+const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB10";
+const FABRIC_VERSION: u16 = 10;
 const CANAL_STATE_BYTES: usize = 32;
 const VESTIBULAR_BODY_BYTES: usize =
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES + CANAL_STATE_BYTES + std::mem::size_of::<u64>();
@@ -762,6 +767,7 @@ struct CausalIntervalEvidence {
     root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
     articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
+    articulatory_body_transition: Option<NativeArticulatoryBodyTransition>,
     emitted_neuron_lineages: Vec<[u8; 16]>,
     changed_contact_channel_states: Vec<ChangedContactChannelStateObservation>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
@@ -846,6 +852,86 @@ impl NativeCausalIntervalEvidence {
     #[getter]
     fn articulatory_unit_recruitments(&self) -> Vec<ArticulatoryUnitRecruitmentProjection> {
         project_articulatory_unit_recruitments(&self.interval.articulatory_unit_recruitments)
+    }
+
+    #[getter]
+    fn articulatory_pressure_pcm(&self) -> Vec<i16> {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map(|transition| transition.radiated_pressure_pcm.clone())
+            .unwrap_or_default()
+    }
+
+    #[getter]
+    fn articulatory_body_trajectories<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        let packed = self
+            .interval
+            .articulatory_body_transition
+            .as_ref()
+            .into_iter()
+            .flat_map(|transition| transition.body_mechanical_trajectories.iter())
+            .flat_map(|trajectory| trajectory.iter())
+            .flat_map(|sample| sample.to_le_bytes())
+            .collect::<Vec<_>>();
+        PyBytes::new(py, &packed)
+    }
+
+    #[getter]
+    fn articulatory_applied_motor_quanta(&self) -> u128 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| transition.applied_motor_quanta)
+    }
+
+    #[getter]
+    fn articulatory_stalled_motor_quanta(&self) -> u128 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| transition.stalled_motor_quanta)
+    }
+
+    #[getter]
+    fn articulatory_sample_rate_hz(&self) -> u32 {
+        ARTICULATORY_SAMPLE_RATE_HZ
+    }
+
+    #[getter]
+    fn articulatory_peak_breath_flow_pcm(&self) -> i32 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| transition.peak_breath_flow_pcm)
+    }
+
+    #[getter]
+    fn articulatory_glottal_open_samples_at_apex(&self) -> i32 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| transition.glottal_open_samples_at_apex)
+    }
+
+    #[getter]
+    fn articulatory_mouth_area_square_millimetres_at_apex(&self) -> i32 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| {
+                transition.mouth_area_square_millimetres_at_apex
+            })
+    }
+
+    #[getter]
+    fn articulatory_perioral_area_displacement_square_millimetres(&self) -> i32 {
+        self.interval
+            .articulatory_body_transition
+            .as_ref()
+            .map_or(0, |transition| {
+                transition.perioral_area_displacement_square_millimetres
+            })
     }
 
     #[getter]
@@ -3449,7 +3535,29 @@ impl ResidentOrganismRuntime {
                         consequence,
                     }),
             );
-            articulated_body = body_transition.successor;
+            let articulatory_recruitments = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .map(|event| (event.topology_index, event.outward_elementary_carriers))
+                .collect::<Vec<_>>();
+            let body_successor = body_transition.successor;
+            let articulatory_transition = if articulatory_recruitments.is_empty()
+                && body_successor.articulatory_acoustic_state().is_quiescent()
+            {
+                None
+            } else {
+                Some(
+                    settle_native_articulatory_interval(
+                        body_successor.clone(),
+                        &articulatory_recruitments,
+                        source_duration_samples,
+                    )
+                    .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
+                )
+            };
+            articulated_body = articulatory_transition
+                .as_ref()
+                .map_or(body_successor, |transition| transition.successor_body.clone());
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate: source_duration_samples,
                 rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
@@ -3470,6 +3578,7 @@ impl ResidentOrganismRuntime {
                 articulatory_unit_recruitments: observation
                     .articulatory_unit_recruitments
                     .clone(),
+                articulatory_body_transition: articulatory_transition,
                 emitted_neuron_lineages: observation
                     .emitted_neuron_fractals
                     .iter()
@@ -3799,6 +3908,7 @@ impl ResidentOrganismRuntime {
         )?;
         let mut cognitive = initial_cognitive;
         let mut vestibular = initial_vestibular;
+        let mut articulated_body = initial_articulated_body;
         let mut heading = predecessor_heading_millidegrees;
         let mut aggregate: Option<CognitiveFormationObservation> = None;
         let mut causal_interval_evidence =
@@ -3817,6 +3927,28 @@ impl ResidentOrganismRuntime {
                     residency,
                 )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            let articulatory_recruitments = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .map(|event| (event.topology_index, event.outward_elementary_carriers))
+                .collect::<Vec<_>>();
+            let articulatory_transition = if articulatory_recruitments.is_empty()
+                && articulated_body.articulatory_acoustic_state().is_quiescent()
+            {
+                None
+            } else {
+                Some(
+                    settle_native_articulatory_interval(
+                        articulated_body.clone(),
+                        &articulatory_recruitments,
+                        source_duration_samples_at_articulatory_rate(source)?,
+                    )
+                    .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
+                )
+            };
+            if let Some(transition) = articulatory_transition.as_ref() {
+                articulated_body = transition.successor_body.clone();
+            }
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate:
                     source_duration_samples_at_articulatory_rate(source)?,
@@ -3838,6 +3970,7 @@ impl ResidentOrganismRuntime {
                 articulatory_unit_recruitments: observation
                     .articulatory_unit_recruitments
                     .clone(),
+                articulatory_body_transition: articulatory_transition,
                 emitted_neuron_lineages: observation
                     .emitted_neuron_fractals
                     .iter()
@@ -3846,7 +3979,7 @@ impl ResidentOrganismRuntime {
                 changed_contact_channel_states: observation.changed_contact_channel_states.clone(),
                 affective_balance_trajectories: observation.affective_balance_trajectories.clone(),
                 frontier_advances: successor.observe_active_electrical_frontier_advances(),
-                articulated_body: initial_articulated_body.clone(),
+                articulated_body: articulated_body.clone(),
             });
             cognitive = successor;
             vestibular = ResidentVestibularBody {
@@ -3894,7 +4027,7 @@ impl ResidentOrganismRuntime {
                 &joint_state,
                 &cognitive_state,
                 &vestibular,
-                &initial_articulated_body,
+                &articulated_body,
                 self.budget,
             )?;
             let envelope =
@@ -3949,7 +4082,7 @@ impl ResidentOrganismRuntime {
             mounted,
             cognitive,
             vestibular,
-            articulated_body: initial_articulated_body,
+            articulated_body,
             observation: observation.clone(),
         };
         let receipt = ResidentPrepareReceipt {
@@ -5371,30 +5504,73 @@ fn exact_articulatory_interval_trajectory<'py>(
     let intervals = intervals
         .into_iter()
         .map(|(samples, recruitments, body)| {
+            if samples == 0 {
+                return Err(PyValueError::new_err(
+                    "articulatory evidence interval has no physical duration",
+                ));
+            }
             ArticulatedBodyState::decode(&body)
                 .map(|body| (samples, recruitments, body))
                 .map_err(|error| PyValueError::new_err(format!("{error:?}")))
         })
         .collect::<PyResult<Vec<_>>>()?;
-    let settled = settle_articulatory_interval_discharges(&intervals)
-        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-    let body_bytes = settled
-        .body_mechanical_trajectories
+    if intervals.is_empty() {
+        return Err(PyValueError::new_err(
+            "articulatory evidence requires one native interval",
+        ));
+    }
+    let mut resident_acoustic = intervals[0].2.articulatory_acoustic_state();
+    let mut pressure = Vec::new();
+    let mut body_trajectories: [Vec<i16>; 4] = std::array::from_fn(|_| Vec::new());
+    let mut applied = 0_u128;
+    let mut stalled = 0_u128;
+    let mut strongest_peak = 0_i32;
+    let mut strongest_glottis = 0_i32;
+    let mut strongest_mouth = 0_i32;
+    let mut final_perioral = 0_i32;
+    for (samples, recruitments, body) in intervals {
+        let body = body
+            .with_articulatory_acoustic_state(resident_acoustic)
+            .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+        let settled = settle_native_articulatory_interval(body, &recruitments, samples)
+            .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+        resident_acoustic = settled.successor_body.articulatory_acoustic_state();
+        pressure.extend_from_slice(&settled.radiated_pressure_pcm);
+        for (aggregate, interval) in body_trajectories
+            .iter_mut()
+            .zip(settled.body_mechanical_trajectories.iter())
+        {
+            aggregate.extend_from_slice(interval);
+        }
+        applied = applied
+            .checked_add(settled.applied_motor_quanta)
+            .ok_or_else(|| PyValueError::new_err("articulatory motor width exceeded"))?;
+        stalled = stalled
+            .checked_add(settled.stalled_motor_quanta)
+            .ok_or_else(|| PyValueError::new_err("articulatory motor width exceeded"))?;
+        if settled.peak_breath_flow_pcm.unsigned_abs() >= strongest_peak.unsigned_abs() {
+            strongest_peak = settled.peak_breath_flow_pcm;
+            strongest_glottis = settled.glottal_open_samples_at_apex;
+            strongest_mouth = settled.mouth_area_square_millimetres_at_apex;
+        }
+        final_perioral = settled.perioral_area_displacement_square_millimetres;
+    }
+    let body_bytes = body_trajectories
         .iter()
         .flat_map(|trajectory| trajectory.iter())
         .flat_map(|sample| sample.to_le_bytes())
         .collect::<Vec<_>>();
     Ok((
         ARTICULATORY_SAMPLE_RATE_HZ,
-        settled.radiated_pressure_pcm,
+        pressure,
         PyBytes::new(py, &body_bytes),
-        settled.peak_breath_flow_pcm,
-        settled.glottal_open_samples_at_apex,
-        settled.mouth_area_square_millimetres_at_apex,
-        settled.perioral_area_displacement_square_millimetres,
-        settled.applied_motor_quanta,
-        settled.stalled_motor_quanta,
-        settled.relaxation_sample_count,
+        strongest_peak,
+        strongest_glottis,
+        strongest_mouth,
+        final_perioral,
+        applied,
+        stalled,
+        0,
     ))
 }
 
@@ -6350,6 +6526,7 @@ fn parse_current_fabric(
     }
     let magic = &fabric[..FABRIC_MAGIC.len()];
     if magic != FABRIC_MAGIC
+        && magic != PRE_PHONATORY_FABRIC_MAGIC
         && magic != PRE_ARTICULATED_FABRIC_MAGIC
         && magic != PRE_VESTIBULAR_FABRIC_MAGIC
         && magic != LEGACY_FABRIC_MAGIC
@@ -6363,18 +6540,20 @@ fn parse_current_fabric(
         magic == PRE_VESTIBULAR_FABRIC_MAGIC && version == PRE_VESTIBULAR_FABRIC_VERSION;
     let pre_articulated =
         magic == PRE_ARTICULATED_FABRIC_MAGIC && version == PRE_ARTICULATED_FABRIC_VERSION;
+    let pre_phonatory =
+        magic == PRE_PHONATORY_FABRIC_MAGIC && version == PRE_PHONATORY_FABRIC_VERSION;
     let current = magic == FABRIC_MAGIC && version == FABRIC_VERSION;
-    if !legacy && !pre_vestibular && !pre_articulated && !current {
+    if !legacy && !pre_vestibular && !pre_articulated && !pre_phonatory && !current {
         return Err(RuntimeError::UnsupportedFabricVersion(version));
     }
     let generation = take_u64(fabric, &mut offset)?;
     let joint_len = take_u32(fabric, &mut offset)? as usize;
-    let cognitive_len = if current || pre_articulated || pre_vestibular {
+    let cognitive_len = if current || pre_phonatory || pre_articulated || pre_vestibular {
         take_u32(fabric, &mut offset)? as usize
     } else {
         0
     };
-    let vestibular = if current || pre_articulated {
+    let vestibular = if current || pre_phonatory || pre_articulated {
         let anatomy_end = offset
             .checked_add(FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES)
             .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -6405,9 +6584,14 @@ fn parse_current_fabric(
     } else {
         None
     };
-    let articulated_body = if current {
+    let articulated_body = if current || pre_phonatory {
+        let body_state_bytes = if current {
+            ARTICULATED_BODY_STATE_BYTES
+        } else {
+            PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
+        };
         let body_end = offset
-            .checked_add(ARTICULATED_BODY_STATE_BYTES)
+            .checked_add(body_state_bytes)
             .ok_or(RuntimeError::FabricLengthOverflow)?;
         let body = ArticulatedBodyState::decode(
             fabric
@@ -6432,7 +6616,8 @@ fn parse_current_fabric(
     Ok((
         generation,
         &fabric[offset..joint_end],
-        (current || pre_articulated || pre_vestibular).then_some(&fabric[joint_end..cognitive_end]),
+        (current || pre_phonatory || pre_articulated || pre_vestibular)
+            .then_some(&fabric[joint_end..cognitive_end]),
         vestibular,
         articulated_body,
     ))
@@ -7823,6 +8008,71 @@ mod tests {
         output.extend_from_slice(joint);
         output.extend_from_slice(cognitive);
         output
+    }
+
+    fn pre_phonatory_fabric(
+        generation: u64,
+        joint: &[u8],
+        cognitive: &[u8],
+        vestibular: &ResidentVestibularBody,
+        articulated_body: &ArticulatedBodyState,
+    ) -> Vec<u8> {
+        let mut old_body = articulated_body.encode().unwrap().to_vec();
+        old_body[crate::virtual_articulated_body::BODY_MAGIC.len()
+            ..crate::virtual_articulated_body::HEADER_BYTES]
+            .copy_from_slice(
+                &crate::virtual_articulated_body::PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
+                    .to_be_bytes(),
+            );
+        old_body.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+        let mut output = Vec::new();
+        output.extend_from_slice(PRE_PHONATORY_FABRIC_MAGIC);
+        output.extend_from_slice(&PRE_PHONATORY_FABRIC_VERSION.to_le_bytes());
+        output.extend_from_slice(&generation.to_le_bytes());
+        output.extend_from_slice(&u32::try_from(joint.len()).unwrap().to_le_bytes());
+        output.extend_from_slice(&u32::try_from(cognitive.len()).unwrap().to_le_bytes());
+        output.extend_from_slice(&encode_functional_vestibular_anatomy(&vestibular.anatomy));
+        output.extend_from_slice(&encode_canal_state(vestibular.canal));
+        output.extend_from_slice(&vestibular.source_tick.to_le_bytes());
+        output.extend_from_slice(&old_body);
+        output.extend_from_slice(joint);
+        output.extend_from_slice(cognitive);
+        output
+    }
+
+    #[test]
+    fn pre_phonatory_live_fabric_migrates_without_changing_the_organism() {
+        let joint = genesis_joint();
+        let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+            &genesis_cognitive(),
+            cognitive_budget_after_joint(joint.len(), budget()).unwrap(),
+        )
+        .unwrap();
+        let vestibular = genesis_vestibular();
+        let body = ArticulatedBodyState::at_neutral();
+        let old_fabric = pre_phonatory_fabric(23, &joint, &cognitive, &vestibular, &body);
+        let old_envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            109,
+            &old_fabric,
+            budget(),
+        )
+        .unwrap();
+
+        let migrated =
+            migrate_resident_organism_exact_energy_envelope(old_envelope, budget()).unwrap();
+        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
+        assert_eq!(parsed.identity, canonical_identity(IDENTITY).unwrap());
+        assert_eq!(parsed.organism_tick, 109);
+        assert_eq!(parsed.fabric_generation, 23);
+        assert_eq!(parsed.joint_bytes, joint);
+        assert_eq!(parsed.cognitive_bytes, Some(cognitive.as_slice()));
+        assert_eq!(parsed.vestibular, Some(vestibular));
+        assert_eq!(parsed.articulated_body, Some(body));
+        assert_eq!(
+            &parsed.fabric_bytes[..FABRIC_MAGIC.len()],
+            FABRIC_MAGIC
+        );
     }
 
     #[test]

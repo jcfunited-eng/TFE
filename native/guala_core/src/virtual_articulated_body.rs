@@ -9,10 +9,11 @@
 
 use core::mem::size_of;
 
-const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
+pub(crate) const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
 const LEGACY_BODY_VERSION: u16 = 1;
 const PREVIOUS_BODY_VERSION: u16 = 2;
-const BODY_VERSION: u16 = 3;
+pub(crate) const PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION: u16 = 3;
+const BODY_VERSION: u16 = 4;
 pub(crate) const LEGACY_BODY_AXIS_COUNT: usize = 37;
 pub(crate) const BODY_AXIS_COUNT: usize = 45;
 pub(crate) const LEGACY_BODY_EFFECTOR_TERMINAL_COUNT: usize = LEGACY_BODY_AXIS_COUNT * 2;
@@ -40,11 +41,18 @@ pub(crate) const ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET: usize =
     ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET
         + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT);
 pub(crate) const VOCAL_TRACT_SECTION_COUNT: usize = 8;
-const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
-pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES
+pub(crate) const LARYNGEAL_CYCLE_SAMPLES: u16 = 160;
+const ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    2 * VOCAL_TRACT_SECTION_COUNT * size_of::<i32>()
+        + size_of::<i32>()
+        + size_of::<u16>();
+pub(crate) const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
+pub(crate) const PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES
     + BODY_AXIS_COUNT * size_of::<i32>()
     + size_of::<u32>()
     + size_of::<u8>();
+pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + ARTICULATORY_ACOUSTIC_STATE_BYTES;
 
 pub(crate) const MIN_LUNG_AIR_MICROLITRES: u32 = 500_000;
 pub(crate) const NEUTRAL_LUNG_AIR_MICROLITRES: u32 = 2_000_000;
@@ -53,6 +61,37 @@ pub(crate) const MIN_TRACT_AREA_SQUARE_MILLIMETRES: i32 = 20;
 pub(crate) const MAX_TRACT_AREA_SQUARE_MILLIMETRES: i32 = 1_000;
 pub(crate) const NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES: [i32; VOCAL_TRACT_SECTION_COUNT] =
     [125, 145, 165, 185, 205, 225, 245, 265];
+
+/// The exact short-lived pressure state of the organism's one vocal body.
+///
+/// These are physical traveling-wave and laryngeal coordinates, not audio
+/// history. Keeping them resident prevents each cognitive interval from
+/// restarting phonation at phase zero and lets a pressure wave cross an
+/// interval or restart boundary exactly like every other body coordinate.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct ArticulatoryAcousticState {
+    pub(crate) right_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
+    pub(crate) left_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
+    pub(crate) previous_breath_flow: i32,
+    pub(crate) laryngeal_phase_sample: u16,
+}
+
+impl ArticulatoryAcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self {
+            right_traveling_pressure: [0; VOCAL_TRACT_SECTION_COUNT],
+            left_traveling_pressure: [0; VOCAL_TRACT_SECTION_COUNT],
+            previous_breath_flow: 0,
+            laryngeal_phase_sample: 0,
+        }
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        self.previous_breath_flow == 0
+            && self.right_traveling_pressure.iter().all(|value| *value == 0)
+            && self.left_traveling_pressure.iter().all(|value| *value == 0)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[repr(u8)]
@@ -879,6 +918,7 @@ pub(crate) struct ArticulatedBodyState {
     axes: [i32; BODY_AXIS_COUNT],
     lung_air_microlitres: u32,
     proprioception_initialized: bool,
+    articulatory_acoustic: ArticulatoryAcousticState,
 }
 
 impl ArticulatedBodyState {
@@ -891,6 +931,7 @@ impl ArticulatedBodyState {
             axes,
             lung_air_microlitres: NEUTRAL_LUNG_AIR_MICROLITRES,
             proprioception_initialized: false,
+            articulatory_acoustic: ArticulatoryAcousticState::at_rest(),
         }
     }
 
@@ -903,6 +944,7 @@ impl ArticulatedBodyState {
             axes,
             lung_air_microlitres,
             proprioception_initialized,
+            articulatory_acoustic: ArticulatoryAcousticState::at_rest(),
         };
         state.validate()?;
         Ok(state)
@@ -930,6 +972,19 @@ impl ArticulatedBodyState {
 
     pub(crate) fn proprioception_initialized(&self) -> bool {
         self.proprioception_initialized
+    }
+
+    pub(crate) fn articulatory_acoustic_state(&self) -> ArticulatoryAcousticState {
+        self.articulatory_acoustic
+    }
+
+    pub(crate) fn with_articulatory_acoustic_state(
+        mut self,
+        state: ArticulatoryAcousticState,
+    ) -> Result<Self, ArticulatedBodyError> {
+        self.articulatory_acoustic = state;
+        self.validate()?;
+        Ok(self)
     }
 
     pub(crate) fn initialize_proprioception(&mut self) {
@@ -968,12 +1023,28 @@ impl ArticulatedBodyState {
         cursor += size_of::<u32>();
         encoded[cursor] = u8::from(self.proprioception_initialized);
         cursor += size_of::<u8>();
+        for value in self.articulatory_acoustic.right_traveling_pressure {
+            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
+            cursor += size_of::<i32>();
+        }
+        for value in self.articulatory_acoustic.left_traveling_pressure {
+            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
+            cursor += size_of::<i32>();
+        }
+        encoded[cursor..cursor + size_of::<i32>()]
+            .copy_from_slice(&self.articulatory_acoustic.previous_breath_flow.to_be_bytes());
+        cursor += size_of::<i32>();
+        encoded[cursor..cursor + size_of::<u16>()]
+            .copy_from_slice(&self.articulatory_acoustic.laryngeal_phase_sample.to_be_bytes());
+        cursor += size_of::<u16>();
         debug_assert_eq!(cursor, ARTICULATED_BODY_STATE_BYTES);
         Ok(encoded)
     }
 
     pub(crate) fn decode(encoded: &[u8]) -> Result<Self, ArticulatedBodyError> {
-        if encoded.len() != ARTICULATED_BODY_STATE_BYTES {
+        if encoded.len() != ARTICULATED_BODY_STATE_BYTES
+            && encoded.len() != PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
+        {
             return Err(ArticulatedBodyError::InvalidLength);
         }
         let mut cursor = 0usize;
@@ -987,10 +1058,18 @@ impl ArticulatedBodyState {
                 .expect("fixed version width"),
         );
         cursor += size_of::<u16>();
+        if (version == BODY_VERSION && encoded.len() != ARTICULATED_BODY_STATE_BYTES)
+            || (version != BODY_VERSION
+                && encoded.len() != PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+        {
+            return Err(ArticulatedBodyError::InvalidLength);
+        }
         let mut axes = [0_i32; BODY_AXIS_COUNT];
         let encoded_axis_count = match version {
             LEGACY_BODY_VERSION => LEGACY_BODY_AXIS_COUNT,
-            PREVIOUS_BODY_VERSION | BODY_VERSION => BODY_AXIS_COUNT,
+            PREVIOUS_BODY_VERSION
+            | PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
+            | BODY_VERSION => BODY_AXIS_COUNT,
             _ => return Err(ArticulatedBodyError::UnsupportedVersion(version)),
         };
         for value in axes.iter_mut().take(encoded_axis_count) {
@@ -1027,18 +1106,62 @@ impl ArticulatedBodyState {
             _ => return Err(ArticulatedBodyError::TrailingBytes),
         };
         cursor += size_of::<u8>();
+        let articulatory_acoustic = if version == BODY_VERSION {
+            let mut right_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+            for value in &mut right_traveling_pressure {
+                *value = i32::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .try_into()
+                        .expect("fixed pressure width"),
+                );
+                cursor += size_of::<i32>();
+            }
+            let mut left_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+            for value in &mut left_traveling_pressure {
+                *value = i32::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .try_into()
+                        .expect("fixed pressure width"),
+                );
+                cursor += size_of::<i32>();
+            }
+            let previous_breath_flow = i32::from_be_bytes(
+                encoded[cursor..cursor + size_of::<i32>()]
+                    .try_into()
+                    .expect("fixed breath-flow width"),
+            );
+            cursor += size_of::<i32>();
+            let laryngeal_phase_sample = u16::from_be_bytes(
+                encoded[cursor..cursor + size_of::<u16>()]
+                    .try_into()
+                    .expect("fixed laryngeal-phase width"),
+            );
+            cursor += size_of::<u16>();
+            ArticulatoryAcousticState {
+                right_traveling_pressure,
+                left_traveling_pressure,
+                previous_breath_flow,
+                laryngeal_phase_sample,
+            }
+        } else {
+            ArticulatoryAcousticState::at_rest()
+        };
         if cursor != encoded.len() {
             return Err(ArticulatedBodyError::TrailingBytes);
         }
-        Self::from_physical_state(
+        let mut state = Self::from_physical_state(
             axes,
             lung_air_microlitres,
             // V3 adds no state bytes. It re-opens the existing one-shot
             // proprioceptive boundary exactly once so the newly embodied
             // airway-section motors can calibrate through their own afferent
             // anatomy. A V3 successor never repeats that admission.
-            version == BODY_VERSION && persisted_proprioception_initialized,
-        )
+            version >= PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
+                && persisted_proprioception_initialized,
+        )?;
+        state.articulatory_acoustic = articulatory_acoustic;
+        state.validate()?;
+        Ok(state)
     }
 
     fn validate(&self) -> Result<(), ArticulatedBodyError> {
@@ -1065,6 +1188,9 @@ impl ArticulatedBodyState {
                 return Err(ArticulatedBodyError::VocalTractOutsideAnatomy(index));
             }
         }
+        if self.articulatory_acoustic.laryngeal_phase_sample >= LARYNGEAL_CYCLE_SAMPLES {
+            return Err(ArticulatedBodyError::TrailingBytes);
+        }
         Ok(())
     }
 }
@@ -1077,14 +1203,14 @@ mod tests {
     fn neutral_state_is_canonical_and_cold_exact() {
         let state = ArticulatedBodyState::at_neutral();
         let encoded = state.encode().expect("neutral body encodes");
-        assert_eq!(encoded.len(), 195);
+        assert_eq!(encoded.len(), ARTICULATED_BODY_STATE_BYTES);
         assert_eq!(ArticulatedBodyState::resident_bytes(), encoded.len());
         assert_eq!(ArticulatedBodyState::decode(&encoded), Ok(state));
     }
 
     #[test]
     fn legacy_body_migrates_its_same_tract_geometry_without_growing() {
-        let mut legacy = [0_u8; ARTICULATED_BODY_STATE_BYTES];
+        let mut legacy = [0_u8; PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES];
         let mut legacy_tract = NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES;
         for (index, area) in legacy_tract.iter_mut().enumerate() {
             *area += i32::try_from(index + 1).unwrap();
@@ -1109,7 +1235,7 @@ mod tests {
         }
         legacy[cursor] = 1;
         cursor += 1;
-        assert_eq!(cursor, ARTICULATED_BODY_STATE_BYTES);
+        assert_eq!(cursor, PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
 
         let migrated = ArticulatedBodyState::decode(&legacy).unwrap();
         assert_eq!(
@@ -1118,7 +1244,7 @@ mod tests {
         );
         assert!(!migrated.proprioception_initialized());
         let current = migrated.encode().unwrap();
-        assert_eq!(current.len(), legacy.len());
+        assert_eq!(current.len(), ARTICULATED_BODY_STATE_BYTES);
         assert_eq!(
             u16::from_be_bytes(current[BODY_MAGIC.len()..HEADER_BYTES].try_into().unwrap()),
             BODY_VERSION
@@ -1129,9 +1255,10 @@ mod tests {
     fn previous_body_reopens_proprioception_once_and_current_body_does_not() {
         let mut previous = ArticulatedBodyState::at_neutral();
         previous.initialize_proprioception();
-        let mut encoded = previous.encode().unwrap();
+        let mut encoded = previous.encode().unwrap().to_vec();
         encoded[BODY_MAGIC.len()..HEADER_BYTES]
             .copy_from_slice(&PREVIOUS_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
 
         let reopened = ArticulatedBodyState::decode(&encoded).unwrap();
         assert!(!reopened.proprioception_initialized());
@@ -1143,6 +1270,24 @@ mod tests {
                 .unwrap()
                 .proprioception_initialized()
         );
+    }
+
+    #[test]
+    fn pre_phonatory_body_migrates_with_acoustic_state_at_rest() {
+        let mut previous = ArticulatedBodyState::at_neutral();
+        previous.initialize_proprioception();
+        let mut encoded = previous.encode().unwrap().to_vec();
+        encoded[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION.to_be_bytes());
+        encoded.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+
+        let migrated = ArticulatedBodyState::decode(&encoded).unwrap();
+        assert!(migrated.proprioception_initialized());
+        assert_eq!(
+            migrated.articulatory_acoustic_state(),
+            ArticulatoryAcousticState::at_rest()
+        );
+        assert_eq!(migrated.encode().unwrap().len(), ARTICULATED_BODY_STATE_BYTES);
     }
 
     #[test]

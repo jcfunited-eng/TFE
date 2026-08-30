@@ -100,7 +100,6 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
     RUNTIME_PHASE_WALL_MS,
     ResidentPrepareEvidence,
     create_native_resident_organism,
-    exact_articulatory_interval_trajectory,
     exact_native_root_yaw_proprioceptive_source,
     exact_native_root_translation_proprioceptive_source,
     exact_native_yaw_trajectory,
@@ -8851,6 +8850,31 @@ def _causal_interval_hops(
             "articulatory_unit_recruitments": (
                 interval.articulatory_unit_recruitments
             ),
+            "articulatory_pressure_pcm": interval.articulatory_pressure_pcm,
+            "articulatory_body_trajectories": (
+                interval.articulatory_body_trajectories
+            ),
+            "articulatory_sample_rate_hz": (
+                interval.articulatory_sample_rate_hz
+            ),
+            "articulatory_peak_breath_flow_pcm": (
+                interval.articulatory_peak_breath_flow_pcm
+            ),
+            "articulatory_glottal_open_samples_at_apex": (
+                interval.articulatory_glottal_open_samples_at_apex
+            ),
+            "articulatory_mouth_area_square_millimetres_at_apex": (
+                interval.articulatory_mouth_area_square_millimetres_at_apex
+            ),
+            "articulatory_perioral_area_displacement_square_millimetres": (
+                interval.articulatory_perioral_area_displacement_square_millimetres
+            ),
+            "articulatory_applied_motor_quanta": (
+                interval.articulatory_applied_motor_quanta
+            ),
+            "articulatory_stalled_motor_quanta": (
+                interval.articulatory_stalled_motor_quanta
+            ),
             "emitted_neuron_fractals": tuple(
                 {"neuron_lineage": lineage}
                 for lineage in interval.emitted_neuron_lineages
@@ -11059,7 +11083,18 @@ def _perform_admitted_intake_locked(
         ]
     ] = []
     articulatory_intervals: list[
-        tuple[int, tuple[tuple[int, int], ...], bytes]
+        tuple[
+            tuple[tuple[int, int], ...],
+            tuple[int, ...],
+            bytes,
+            bytes,
+            int,
+            int,
+            int,
+            int,
+            int,
+            int,
+        ]
     ] = []
     body_effector_bindings: list[tuple[int, str, str, str, int]] = []
     articulated_body_consequences: list[
@@ -11093,26 +11128,65 @@ def _perform_admitted_intake_locked(
 
     def retain_articulatory_interval_evidence(hop: dict[str, Any]) -> None:
         for interval in hop["causal_interval_evidence"]:
+            sample_rate_hz = interval["articulatory_sample_rate_hz"]
+            pressure = tuple(interval["articulatory_pressure_pcm"])
+            body_trajectories = bytes(
+                interval["articulatory_body_trajectories"]
+            )
+            recruitments = interval["articulatory_unit_recruitments"]
+            if sample_rate_hz != COCHLEAR_SAMPLE_RATE_HZ:
+                raise RuntimeError(
+                    "native articulatory body left the mounted cochlear clock"
+                )
             duration_samples = interval[
                 "source_duration_samples_at_articulatory_rate"
             ]
+            if not pressure:
+                if body_trajectories or recruitments:
+                    raise RuntimeError(
+                        "native articulatory event lost its physical transition"
+                    )
+                continue
             if (
                 isinstance(duration_samples, bool)
                 or not isinstance(duration_samples, int)
                 or duration_samples <= 0
+                or len(pressure) != duration_samples
             ):
                 raise RuntimeError(
-                    "native articulatory interval lost physical duration"
+                    "native articulatory pressure did not cover its exact physical interval"
                 )
-            recruitments = interval["articulatory_unit_recruitments"]
+            if len(body_trajectories) != (
+                ARTICULATORY_BODY_PORT_COUNT
+                * len(pressure)
+                * struct.calcsize("<h")
+            ):
+                raise RuntimeError(
+                    "native articulatory body trajectory changed cardinality"
+                )
             articulatory_intervals.append(
                 (
-                    duration_samples,
                     tuple(
                         (int(topology), int(carriers))
                         for _lineage, topology, carriers, _transfers in recruitments
                     ),
+                    pressure,
+                    body_trajectories,
                     interval["articulated_body_state"],
+                    int(interval["articulatory_peak_breath_flow_pcm"]),
+                    int(interval["articulatory_glottal_open_samples_at_apex"]),
+                    int(
+                        interval[
+                            "articulatory_mouth_area_square_millimetres_at_apex"
+                        ]
+                    ),
+                    int(
+                        interval[
+                            "articulatory_perioral_area_displacement_square_millimetres"
+                        ]
+                    ),
+                    int(interval["articulatory_applied_motor_quanta"]),
+                    int(interval["articulatory_stalled_motor_quanta"]),
                 )
             )
 
@@ -11321,10 +11395,14 @@ def _perform_admitted_intake_locked(
             receptor_ingress_quiescent_count += last_hop[
                 "receptor_ingress_quiescent_count"
             ]
-        if articulatory_unit_recruitments:
+        native_articulatory_pressure_present = any(
+            any(sample != 0 for sample in interval[1])
+            for interval in articulatory_intervals
+        )
+        if articulatory_unit_recruitments or native_articulatory_pressure_present:
             flattened_interval_recruitments = tuple(
                 recruitment
-                for _duration, recruitments, _body in articulatory_intervals
+                for recruitments, *_rest in articulatory_intervals
                 for recruitment in recruitments
             )
             aggregate_recruitments = tuple(
@@ -11337,35 +11415,42 @@ def _perform_admitted_intake_locked(
                 raise RuntimeError(
                     "native articulatory intervals lost recruitment order"
                 )
-            active_interval_indices = tuple(
-                index
-                for index, (_duration, recruitments, _body) in enumerate(
-                    articulatory_intervals
-                )
-                if recruitments
+            sample_rate_hz = COCHLEAR_SAMPLE_RATE_HZ
+            pressure_pcm = tuple(
+                sample
+                for _recruitments, pressure, *_rest in articulatory_intervals
+                for sample in pressure
             )
-            if not active_interval_indices:
-                raise RuntimeError(
-                    "native articulatory aggregate has no causal interval"
-                )
-            first_active = active_interval_indices[0]
-            last_active = active_interval_indices[-1]
-            (
-                sample_rate_hz,
-                pressure_pcm,
-                articulatory_body_trajectories,
-                peak_breath_flow_pcm,
-                glottal_open_samples_at_apex,
-                mouth_area_square_millimetres_at_apex,
-                perioral_area_displacement_square_millimetres,
-                applied_motor_quanta,
-                stalled_motor_quanta,
-                relaxation_sample_count,
-            ) = exact_articulatory_interval_trajectory(
-                intervals=tuple(
-                    articulatory_intervals[first_active : last_active + 1]
-                )
+            body_channels = [array("h") for _ in range(ARTICULATORY_BODY_PORT_COUNT)]
+            for interval in articulatory_intervals:
+                pressure = interval[1]
+                raw = array("h")
+                raw.frombytes(interval[2])
+                if sys.byteorder != "little":
+                    raw.byteswap()
+                for channel_index, channel in enumerate(body_channels):
+                    start = channel_index * len(pressure)
+                    channel.extend(raw[start : start + len(pressure)])
+            articulatory_body_trajectories = b"".join(
+                channel.tobytes() for channel in body_channels
             )
+            strongest_interval = max(
+                articulatory_intervals,
+                key=lambda interval: abs(interval[4]),
+            )
+            peak_breath_flow_pcm = strongest_interval[4]
+            glottal_open_samples_at_apex = strongest_interval[5]
+            mouth_area_square_millimetres_at_apex = strongest_interval[6]
+            perioral_area_displacement_square_millimetres = (
+                articulatory_intervals[-1][7]
+            )
+            applied_motor_quanta = sum(
+                interval[8] for interval in articulatory_intervals
+            )
+            stalled_motor_quanta = sum(
+                interval[9] for interval in articulatory_intervals
+            )
+            relaxation_sample_count = 0
             self_hearing_episodes = tuple(_mono_pcm_hop_episodes(
                 assembly_prefix=(
                     f"native-self-articulation-{last_hop['organism_tick']}"
@@ -13488,6 +13573,7 @@ def _live_frame_luminance(frame_bytes: bytes) -> tuple[float, ...]:
 def _pcm_hops(
     samples: tuple[int, ...],
     sample_rate_hz: int,
+    additional_sample_indices: tuple[int, ...] = (),
 ) -> list[tuple[tuple[Fraction, ...], tuple[float, ...]]]:
     """Slice PCM into successive hop occurrences of true retained instants.
 
@@ -13510,7 +13596,13 @@ def _pcm_hops(
     hops: list[tuple[tuple[Fraction, ...], tuple[float, ...]]] = []
     for start in range(0, len(signal_samples) - 1, hop_samples):
         window = signal_samples[start : start + hop_samples + 1]
-        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        indices = tuple(sorted(set(
+            _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        ) | {
+            index - start
+            for index in additional_sample_indices
+            if start <= index <= start + hop_samples
+        }))
         times = tuple(Fraction(index, sample_rate_hz) for index in indices)
         signal = tuple(window[index] / 32768.0 for index in indices)
         hops.append((times, signal))
@@ -13563,6 +13655,7 @@ def _articulatory_body_hops(
     packed_trajectories: bytes,
     sample_count: int,
     sample_rate_hz: int,
+    additional_sample_indices: tuple[int, ...] = (),
 ) -> list[tuple[tuple[Fraction, ...], ...]]:
     """Decimate the four exact native body trajectories on PCM hop clocks."""
 
@@ -13592,7 +13685,13 @@ def _articulatory_body_hops(
         raise ValueError("native articulatory body channels lost their shared clock")
     hops: list[tuple[tuple[Fraction, ...], ...]] = []
     for start in range(0, len(channels[0]) - 1, hop_samples):
-        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        indices = tuple(sorted(set(
+            _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        ) | {
+            index - start
+            for index in additional_sample_indices
+            if start <= index <= start + hop_samples
+        }))
         hops.append(
             tuple(
                 tuple(Fraction(values[start + index], span) for index in indices)
@@ -13629,6 +13728,7 @@ def _cochlear_hops(
     samples: tuple[int, ...],
     sample_rate_hz: int,
     trailing_silent_hops: int = 0,
+    additional_sample_indices: tuple[int, ...] = (),
 ) -> list[tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]]:
     """Slice one continuous capture into per-hop tonotopic band signals.
 
@@ -13667,7 +13767,13 @@ def _cochlear_hops(
     )
     hops: list[tuple[tuple[Fraction, ...], tuple[tuple[float, ...], ...]]] = []
     for start in range(0, physical_sample_count, hop_samples):
-        indices = _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        indices = tuple(sorted(set(
+            _retained_hop_sample_indices(hop_samples, sample_rate_hz)
+        ) | {
+            index - start
+            for index in additional_sample_indices
+            if start <= index <= start + hop_samples
+        }))
         if (start + hop_samples) // COCHLEAR_OBSERVATION_HOP_SAMPLES >= len(envelopes):
             break
         times = tuple(Fraction(index, sample_rate_hz) for index in indices)
@@ -14510,12 +14616,50 @@ def _mono_pcm_hop_episodes(
         capture_duration,
         Fraction(INTAKE_HOP_MILLISECONDS, 1_000),
     )
-    hops = _pcm_hops(samples, sample_rate_hz)
+    articulatory_change_indices: tuple[int, ...] = ()
+    if articulatory_body is not None:
+        expected_bytes = (
+            ARTICULATORY_BODY_PORT_COUNT
+            * len(samples)
+            * struct.calcsize("<h")
+        )
+        if len(articulatory_body) != expected_bytes:
+            raise ValueError("native articulatory body bytes changed cardinality")
+        raw_body = array("h")
+        raw_body.frombytes(articulatory_body)
+        if sys.byteorder != "little":
+            raw_body.byteswap()
+        changed = {0, len(samples)}
+        for channel_index in range(ARTICULATORY_BODY_PORT_COUNT):
+            start = channel_index * len(samples)
+            channel = raw_body[start : start + len(samples)]
+            changed.update(
+                index
+                for index in range(1, len(channel))
+                if channel[index] != channel[index - 1]
+            )
+        articulatory_change_indices = tuple(sorted(changed))
+    hops = _pcm_hops(
+        samples,
+        sample_rate_hz,
+        articulatory_change_indices,
+    )
     cochlear_hops = (
-        _cochlear_hops(samples, sample_rate_hz) if COCHLEAR_EARS_AUTHORIZED else []
+        _cochlear_hops(
+            samples,
+            sample_rate_hz,
+            additional_sample_indices=articulatory_change_indices,
+        )
+        if COCHLEAR_EARS_AUTHORIZED
+        else []
     )
     articulatory_body_hops = (
-        _articulatory_body_hops(articulatory_body, len(samples), sample_rate_hz)
+        _articulatory_body_hops(
+            articulatory_body,
+            len(samples),
+            sample_rate_hz,
+            articulatory_change_indices,
+        )
         if articulatory_body is not None
         else []
     )
