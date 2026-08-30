@@ -1166,10 +1166,42 @@ fn settle_energy_component(
     component_contacts: &[usize],
     transitions: &mut [ElectricalContactTransition],
 ) -> Result<(), SparseElectricalError> {
+    // The ordinary component decision is only a sign comparison. Accumulate
+    // the exact net node transfers in checked resident width first and prove
+    // the common no-overshoot case without allocating a BigInt per neuron.
+    // Any sum that does not fit, or any component that may overshoot, falls
+    // through to the unchanged unlimited-width authority below.
+    if let Some((component_neurons, outward)) =
+        outward_by_contact_indices_i128(anatomy, transitions, component_contacts)?
+    {
+        let mut all_within_charge = true;
+        let mut any_positive_descent_term = false;
+        for (neuron_index, node_outward) in component_neurons.iter().zip(&outward) {
+            let charge = predecessor_membranes[*neuron_index]
+                .separated_elementary_charges();
+            // For w > 0, q-w < 0 exactly when q < w. For w < 0,
+            // q-w > 0 exactly when q > w. The direct comparisons avoid an
+            // overflowing disposable subtraction while preserving its sign.
+            if (*node_outward > 0 && charge < *node_outward)
+                || (*node_outward < 0 && charge > *node_outward)
+            {
+                all_within_charge = false;
+                break;
+            }
+            if (*node_outward > 0 && charge > 0)
+                || (*node_outward < 0 && charge < 0)
+            {
+                any_positive_descent_term = true;
+            }
+        }
+        if all_within_charge && any_positive_descent_term {
+            return Ok(());
+        }
+    }
     let (component_neurons, outward) =
         outward_by_contact_indices(anatomy, transitions, component_contacts)?;
-    // Per-neuron exact sign pre-scan with the exact common-denominator path as
-    // fallback.
+    // Unlimited-width sign pre-scan with the exact common-denominator path as
+    // fallback for genuinely wide or ambiguous components.
     // descent - curvature = sum over neurons of w(q - w)/C with C > 0, and
     // descent = sum of qw/C. When every neuron's w(q - w) is nonnegative the
     // sum cannot be negative, so descent >= curvature and the component
@@ -1177,13 +1209,9 @@ fn settle_energy_component(
     // arithmetic below reaches); when additionally some qw > 0, descent > 0.
     // Only a neuron that moved more carriers than its separated charge — a
     // genuine overshoot candidate — forces the exact common-denominator
-    // computation.  Do not multiply or narrow here: mature neuron charges can
-    // lawfully make w(q-w) wider than i128 even though its sign is immediately
-    // knowable. Falling through merely because that disposable product is
-    // wide rebuilt a population-sized least-common denominator on ordinary
-    // intervals. BigInt sign comparisons prove the same sufficient condition
-    // without changing the accepted transition; ambiguous components still
-    // use the unchanged exact calculation below.
+    // computation. BigInt sign comparisons prove the same sufficient
+    // condition for a component that exceeded resident accumulation width;
+    // ambiguous components still use the unchanged exact calculation below.
     {
         let mut all_within_charge = true;
         let mut any_positive_descent_term = false;
@@ -1436,6 +1464,49 @@ fn settle_energy_component(
             Ok(())
         }
     }
+}
+
+fn outward_by_contact_indices_i128(
+    anatomy: &SparseElectricalAnatomy,
+    transitions: &[ElectricalContactTransition],
+    contact_indices: &[usize],
+) -> Result<Option<(Vec<usize>, Vec<i128>)>, SparseElectricalError> {
+    let mut neuron_indices = Vec::with_capacity(contact_indices.len().saturating_mul(2));
+    for contact_index in contact_indices {
+        let contact = anatomy
+            .contacts
+            .get(*contact_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        neuron_indices.extend([contact.left_neuron, contact.right_neuron]);
+    }
+    neuron_indices.sort_unstable();
+    neuron_indices.dedup();
+    let mut outward = vec![0_i128; neuron_indices.len()];
+    for contact_index in contact_indices {
+        let contact = anatomy
+            .contacts
+            .get(*contact_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        let transferred = transitions
+            .get(*contact_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?
+            .outward_elementary_charges_from_left;
+        let left = neuron_indices
+            .binary_search(&contact.left_neuron)
+            .map_err(|_| SparseElectricalError::AnatomyStateWidth)?;
+        let right = neuron_indices
+            .binary_search(&contact.right_neuron)
+            .map_err(|_| SparseElectricalError::AnatomyStateWidth)?;
+        let Some(left_outward) = outward[left].checked_add(transferred) else {
+            return Ok(None);
+        };
+        let Some(right_outward) = outward[right].checked_sub(transferred) else {
+            return Ok(None);
+        };
+        outward[left] = left_outward;
+        outward[right] = right_outward;
+    }
+    Ok(Some((neuron_indices, outward)))
 }
 
 fn connected_contact_components(
