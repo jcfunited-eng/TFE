@@ -171,27 +171,65 @@ company at hand, carry chunks, keep the contrast. All six run.
 
 ## THE NUMBERS, AND WHICH ONE TO QUOTE
 
-  reading, sentences I wrote          62/70
-  reading, real writing, hand-judged  ~10/25
-  is-or-acting, hand-labelled         44/60  (always-ACT scores 36)
+  being told what to do   29/30   (14/15 of it held out)
+  the doing               63/70   (40 of them reshaped by rule)
+  is-or-acting            43/60   (hand-labelled; always-ACT scores 36)
 
-QUOTE THE LAST TWO. The first is measured on sentences I constructed
-and it is 90 per cent because I reached for shapes the reading
-handles. The same ribbon on the fabric's own writing was 3 of 20
-before the is-sentence work and is about 10 of 25 after it.
+QUOTE THE FIRST ONE. Being told what to do is what the ribbon is for —
+everything else reads sentences ABOUT things. It was 3 of 15 when that
+bench was first built and the fabric could not read an instruction at
+all: every rule in 174 looked for the doing anywhere but first,
+because a statement puts its doer there.
 
-Two benches, and both are needed — each caught something the other
-could not:
-  fabric/reading_test.py  70 doing cases, 40 of them reshaped BY RULE
+An ORDER names no doer — the one being told is the one who will — so
+its doing is the first thing said. It is told from a statement by four
+marks, any one of which is enough: a pointer opening a later group, a
+constraint hung off it, an asking word that is not first, or any later
+group opened by a frame word at all.
+
+THREE BENCHES, and each has caught what the others could not:
+  fabric/telling_test.py  30 instructions, half written after the
+                          rules were settled and never looked at
+  fabric/reading_test.py  70 doing cases, 40 reshaped BY RULE
                           rather than chosen, plus 7 role cases
-  fabric/kind_test.py     60 sentences drawn by seed from the fabric's
-                          own writing and labelled by hand
+  fabric/kind_test.py     60 sentences drawn by seed from the
+                          fabric's own writing, labelled by hand
 
-RUN BOTH BEFORE AND AFTER ANY LANGUAGE CHANGE. Between them they
+RUN ALL THREE BEFORE AND AFTER ANY LANGUAGE CHANGE. Between them they
 caught: a chunk rule that took roles 7 to 4, a retraction that took
-the reading to 0/70, a merge rule that read well on statements and
-took the reading to 29/70 on questions, and a word-class that gained
-one kind-case while costing 37 doing-cases.
+the reading to 0/70, a merge that read well on statements and took the
+reading to 29/70 on questions, and a word-class that gained one case
+while costing 37.
+
+## TWO THINGS ABOUT THE FABRIC READING ITSELF
+
+The processor is the knowledge, so writing knowledge changes the
+reading. Two separate effects, both measured:
+
+1. DRIFT. Adding one entry to 174 — twelve lines — moved the kind
+   bench by three of sixty with the code identical. Benches are not
+   comparable across a knowledge edit. Measure both arms against the
+   same corpus.
+2. EXAMPLES BECOME EVIDENCE, and this one is worse. An illustration
+   written into 174 is a sighting like any other. Writing "keep food
+   cold" there twice took that pair to the chunk habit floor, the
+   grouping carried the whole order as one part, and the very
+   sentence used to explain how an order is read stopped being
+   readable. WRITE THE RULE, NEVER THE SENTENCE IT APPLIES TO.
+
+## THE FRAME NEEDS SPREAD, NOT JUST FREQUENCY
+
+A word is common for one of two reasons: it is structural, or this
+fabric happens to be about it. Frequency cannot tell them apart — both
+are frequent — and that is why counting failed for a day. Spread can,
+and spread is not a kind of frequency. Across 162 subjects the, a, is,
+of and and reach 1.00 of them; water reaches 0.49, air 0.43, mind
+0.44, words 0.41.
+
+The frame is now the commonest hundred words that reach more than
+three fifths of the subjects. This mattered because a frame word never
+closes a group, so the better the corpus covered a subject the less
+readable that subject became. All three benches rose at once.
 
 ## THE MEASURING INSTRUMENT WAS THE PROBLEM FOR HALF A DAY
 
