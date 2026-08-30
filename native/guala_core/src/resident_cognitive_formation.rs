@@ -17513,10 +17513,16 @@ fn exact_articulatory_preparation_transfers(
         .iter()
         .filter_map(|entry| {
             let transfer = entry.directed_transfer()?;
-            (entry.frontier_lineage() == transfer.receiver
-                && layer_of(transfer.sender) == Some(11)
-                && layer_of(transfer.receiver) == Some(12))
-            .then_some(transfer.receiver)
+            let reached_motor = entry.frontier_lineage();
+            let ordering = if transfer.sender == reached_motor {
+                transfer.receiver
+            } else if transfer.receiver == reached_motor {
+                transfer.sender
+            } else {
+                return None;
+            };
+            (layer_of(reached_motor) == Some(12) && layer_of(ordering) == Some(11))
+                .then_some(reached_motor)
         })
         .collect::<BTreeSet<_>>();
     let mut preparation_transfers = settled_directed_transfers
@@ -27632,6 +27638,41 @@ mod tests {
             "the exact adjacent ordering -> motor -> articulation path must prepare discharge"
         );
         assert_eq!(predecessor[0].directed_transfer(), Some(ordering_transfer));
+
+        let reverse_carrier_predecessor = [ActiveElectricalFrontierEntry::caused_with_frontier(
+            motor,
+            ordering,
+            motor,
+            ordering_bond,
+            3,
+        )
+        .unwrap()];
+        assert_eq!(
+            exact_articulatory_preparation_transfers(
+                articulatory,
+                &[motor_transfer],
+                &reverse_carrier_predecessor,
+                layer_of,
+            ),
+            vec![motor_transfer],
+            "carrier direction may oppose the causal frontier that reached the vocal motor"
+        );
+
+        let reverse_causal_frontier = [ActiveElectricalFrontierEntry::caused_with_frontier(
+            motor,
+            ordering,
+            ordering,
+            ordering_bond,
+            3,
+        )
+        .unwrap()];
+        assert!(exact_articulatory_preparation_transfers(
+            articulatory,
+            &[motor_transfer],
+            &reverse_causal_frontier,
+            layer_of,
+        )
+        .is_empty(), "current reaching ordering from a motor must not be relabelled as vocal preparation");
 
         let reverse = DirectedPhysicalTransferObservation {
             sender: articulatory,
