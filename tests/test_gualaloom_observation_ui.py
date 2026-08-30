@@ -99,19 +99,21 @@ def test_controls_have_monotonic_epoch_and_abort_boundaries() -> None:
     assert "function surfaceOwns(epoch,kind=surfaceKind)" in source
     assert "surfaceEpoch+=1" in source
     assert "if(surfaceAbort)surfaceAbort.abort()" in source
-    assert 'if(!camera.available&&(cameraStream!==null||cameraStarting)){stopCamera("Camera stopped · native capability withdrawn");return}' in source
-    assert "if(epoch!==cameraEpoch){acquired.getTracks().forEach(track=>track.stop());return}" in source
-    assert 'if(!capability("camera").available){acquired.getTracks().forEach(track=>track.stop());stopCamera("Camera stopped · native capability withdrawn");return}' in source
-    assert 'stopCamera("Camera stopped · native acceptance failed:' in source
+    assert "cameraWanted&&!cameraStream&&!cameraStarting&&camera.available" in source
+    assert "microphoneWanted&&!microphoneStream&&!microphoneStarting&&microphone.available" in source
+    assert "epoch!==cameraEpoch||!cameraWanted" in source
+    assert 'stopCamera("Camera stopped while page is hidden")' not in source
+    assert 'stopMicrophone("Microphone stopped while page is hidden")' not in source
+    assert "eye remains open and the stale window was discarded" in source
+    assert "senses remain open and the stale window was discarded" in source
     assert "if(acquired)acquired.getTracks().forEach(track=>track.stop())" in source
     assert "if(stream)stream.getTracks().forEach(track=>track.stop())" in source
-    assert 'stopMicrophone("Microphone stopped · native acceptance failed:' in source
+    assert "function retryCamera(reason)" in source
+    assert "function retryMicrophone(reason)" in source
     stop_camera = source[source.index("function stopCamera(") :]
     stop_camera = stop_camera[: stop_camera.index("function captureCameraFrame")]
     assert "stopMicrophone(" not in stop_camera
-    assert "microphone continues in her current world" in stop_camera
-    assert "stopCamera(\"Camera stopped while page is hidden\")" in source
-    assert "stopMicrophone(\"Microphone stopped while page is hidden\")" in source
+    assert "microphone remains open while her eye reconnects" in stop_camera
 
 
 def test_typed_text_is_rendered_as_pixels_not_submitted_as_semantics() -> None:

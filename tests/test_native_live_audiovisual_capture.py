@@ -153,9 +153,16 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "/api/v1/auditory/pcm/" not in page
     assert 'if(!cameraStream)return{ok:false,reason:"Open Camera first' not in page
     assert 'paired?cap.record?.audiovisual_endpoint:cap.endpoint' in page
-    assert 'micFrames=cameraStream?[captureCameraFrame()]:[]' in page
-    assert 'microphone continues in her current world' in page
+    assert "function captureMicrophoneSamples(samples)" in page
+    assert "while(micSamples>=MIC_SAMPLES_PER_HOP)" in page
+    assert "frame=captureCameraFrame()" in page
+    assert "micPairedHops.length>=CAMERA_MAX_FRAMES" in page
+    assert "micPairedHops.shift()" in page
+    assert "const hops=micPairedHops.splice(0,hopCount)" in page
+    assert "hops.map(hop=>hop.frame)" in page
     assert "if(cameraInFlightEpoch!==null)return" not in page
     assert "if(micSending||micSamples>=" not in page
     assert "if(micAttending&&!micSending" not in page
-    assert "remaining=MIC_SAMPLES_PER_HOP*CAMERA_MAX_FRAMES-micSamples" in page
+    assert "stale window was discarded" in page
+    assert 'stopCamera("Camera stopped while page is hidden")' not in page
+    assert 'stopMicrophone("Microphone stopped while page is hidden")' not in page
