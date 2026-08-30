@@ -18727,6 +18727,10 @@ fn settle_internal_contact_interval(
         (shared_wall - contact_apply_wall).as_millis(),
     );
     let cohort_prepare_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_growth_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_scaffold_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_input_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_pack_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_settle_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_effector_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_evidence_us = std::sync::atomic::AtomicU64::new(0);
@@ -18830,6 +18834,7 @@ fn settle_internal_contact_interval(
                 return Err(FormationError::NoncanonicalState);
             }
         }
+        let growth_wall = cohort_stopwatch.elapsed();
         let catalysts = selected_members
             .iter()
             .map(|(_, neuron_index)| {
@@ -18852,6 +18857,7 @@ fn settle_internal_contact_interval(
                         settled.outward_elementary_charges_by_neuron[*coordinate]
                     })
             .collect::<Vec<_>>();
+        let scaffold_wall = cohort_stopwatch.elapsed();
         let mut inputs = Vec::with_capacity(selected_members.len());
         let mut pending_layer_ten_plasticity = Vec::new();
         for (reached_input_index, (coordinate, neuron_index)) in
@@ -18964,6 +18970,7 @@ fn settle_internal_contact_interval(
                 prepared_psi: Some(prepared_psi),
             });
         }
+        let input_wall = cohort_stopwatch.elapsed();
         let (local_successors, local_transitions) = local_contact_result
             .ok_or(FormationError::NoncanonicalState)?;
         let local_successor = SparseElectricalState::from_contact_states(
@@ -19365,6 +19372,26 @@ fn settle_internal_contact_interval(
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
             relaxed,
         );
+        cohort_growth_us.fetch_add(
+            u64::try_from(growth_wall.as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_scaffold_us.fetch_add(
+            u64::try_from((scaffold_wall - growth_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_input_us.fetch_add(
+            u64::try_from((input_wall - scaffold_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_pack_us.fetch_add(
+            u64::try_from((preparation_wall - input_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
         cohort_settle_us.fetch_add(
             u64::try_from((settlement_wall - preparation_wall).as_micros())
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
@@ -19405,10 +19432,15 @@ fn settle_internal_contact_interval(
     .collect::<Vec<_>>();
     let relaxed = std::sync::atomic::Ordering::Relaxed;
     eprintln!(
-        "guala-cohort-aggregate wall_ms={} prepare_us={} settle_us={} effector_us={} \
-         evidence_us={} tail_us={} cohorts={} members={}",
+        "guala-cohort-aggregate wall_ms={} prepare_us={} growth_us={} scaffold_us={} \
+         input_us={} pack_us={} settle_us={} effector_us={} evidence_us={} tail_us={} \
+         cohorts={} members={}",
         (contact_stopwatch.elapsed() - shared_wall).as_millis(),
         cohort_prepare_us.load(relaxed),
+        cohort_growth_us.load(relaxed),
+        cohort_scaffold_us.load(relaxed),
+        cohort_input_us.load(relaxed),
+        cohort_pack_us.load(relaxed),
         cohort_settle_us.load(relaxed),
         cohort_effector_us.load(relaxed),
         cohort_evidence_us.load(relaxed),
