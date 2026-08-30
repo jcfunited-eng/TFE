@@ -166,3 +166,20 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "stale window was discarded" in page
     assert 'stopCamera("Camera stopped while page is hidden")' not in page
     assert 'stopMicrophone("Microphone stopped while page is hidden")' not in page
+
+
+def test_browser_microphone_requires_a_running_audio_thread_and_real_samples() -> None:
+    page = PAGE.read_text(encoding="utf-8")
+    continuous_microphone = page.split(
+        "async function startMicrophone", 1
+    )[1].split("async function sendMicrophoneWindow", 1)[0]
+
+    assert "context.audioWorklet" in page
+    assert 'registerProcessor("guala-microphone-capture-v1"' in page
+    assert 'new AudioWorkletNode(context,"guala-microphone-capture-v1"' in page
+    assert "await context.resume()" in page
+    assert 'context.state!=="running"' in page
+    assert "micLastSampleAtMs=Date.now()" in page
+    assert "microphoneStream!==null&&micLastSampleAtMs!==null" in page
+    assert "Microphone permission open · waiting for real audio samples" in page
+    assert "createScriptProcessor" not in continuous_microphone
