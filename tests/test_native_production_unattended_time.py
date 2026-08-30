@@ -8,6 +8,7 @@ public observation is inert.
 
 from __future__ import annotations
 
+import inspect
 import json
 import threading
 from types import SimpleNamespace
@@ -272,6 +273,10 @@ def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) ->
     assert observed == production._last_unattended_pause
     assert observed["delivered"] is False
     assert observed["outcome"] == "deferred_external_intake_waiting"
+
+
+def test_external_intake_signals_before_sync_route_worker_admission() -> None:
+    assert inspect.isasyncgenfunction(production._external_intake_admission)
 
 
 def test_public_observation_read_is_inert(monkeypatch) -> None:

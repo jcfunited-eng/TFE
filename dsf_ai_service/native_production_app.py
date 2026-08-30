@@ -2064,8 +2064,16 @@ def _end_external_intake() -> None:
             _external_intake_waiting.clear()
 
 
-def _external_intake_admission():
-    """Keep unattended time behind one admitted external HTTP request."""
+async def _external_intake_admission():
+    """Signal external ingress before a synchronous route waits for a worker.
+
+    FastAPI runs synchronous dependencies in its worker pool.  Making this
+    boundary synchronous allowed an already-arrived sensory request to wait
+    behind unattended work before the request could announce its presence.
+    The async dependency executes on the request loop first; cognition still
+    remains entirely native and unattended time merely yields its next atomic
+    interval to the physically arriving external experience.
+    """
 
     _begin_external_intake()
     try:
