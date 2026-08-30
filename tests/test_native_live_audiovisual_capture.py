@@ -156,3 +156,6 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert 'micFrames=cameraStream?[captureCameraFrame()]:[]' in page
     assert 'microphone continues in her current world' in page
     assert "if(cameraInFlightEpoch!==null)return" not in page
+    assert "if(micSending||micSamples>=" not in page
+    assert "if(micAttending&&!micSending" not in page
+    assert "remaining=MIC_SAMPLES_PER_HOP*CAMERA_MAX_FRAMES-micSamples" in page

@@ -199,6 +199,7 @@ def test_native_pressure_has_raw_and_explicit_observer_amplified_playback() -> N
     assert "Hear amplified observer playback" in source
     assert 'id="native-listen-toggle"' in source
     assert "Hear Guala" in source
+    assert "Press once now · the speaker will wait for her next utterance" in source
     assert "playLiveNativePressure(nativePressurePlayback(value.articulation))" in source
     assert "each new exact utterance" in source
     assert "Amplification affects your speaker only" in source
