@@ -1162,17 +1162,16 @@ fn settle_energy_component(
             return Ok(());
         }
     }
-    let common_denominator = inverse_capacitance_common_denominator(
-        capacitances,
-        component_neurons.iter().copied(),
-    )?;
-    let curvature = inverse_capacitance_sum_numerator(
-        capacitances,
-        component_neurons.iter().copied(),
-        outward.iter().map(|node_outward| node_outward * node_outward),
-        &common_denominator,
-    )?;
-    let descent = inverse_capacitance_sum_numerator(
+    // The component decision needs only exact signs and the smallest integer
+    // k for which curvature <= k*descent. Building the LCM of every distinct
+    // geometry-derived capacitance makes that small decision population-wide
+    // arbitrary-precision work. Fixed-binary integer enclosures are not an
+    // approximation authority: they are used only when their lower and upper
+    // bounds prove the same exact comparison. Any unresolved boundary falls
+    // through to the original unlimited-width calculation below.
+    const CERTIFIED_SIGN_BITS: usize = 192;
+    const CERTIFIED_SCALE_LIMIT: u32 = 16;
+    let descent_bounds = inverse_capacitance_scaled_sum_bounds(
         capacitances,
         component_neurons.iter().copied(),
         component_neurons
@@ -1183,21 +1182,109 @@ fn settle_energy_component(
                     predecessor_membranes[*neuron_index].separated_elementary_charges(),
                 ) * node_outward
             }),
-        &common_denominator,
+        CERTIFIED_SIGN_BITS,
     )?;
-    if curvature.is_zero() {
+    let margin_bounds = inverse_capacitance_scaled_sum_bounds(
+        capacitances,
+        component_neurons.iter().copied(),
+        component_neurons
+            .iter()
+            .zip(&outward)
+            .map(|(neuron_index, node_outward)| {
+                let q = BigInt::from(
+                    predecessor_membranes[*neuron_index].separated_elementary_charges(),
+                );
+                node_outward * (q - node_outward)
+            }),
+        CERTIFIED_SIGN_BITS,
+    )?;
+    if descent_bounds.lower > BigInt::zero() && margin_bounds.lower >= BigInt::zero() {
         return Ok(());
     }
-    if descent <= BigInt::from(0_u8) {
+    if descent_bounds.upper <= BigInt::zero() {
         for contact_index in component_contacts {
             transitions[*contact_index] =
                 quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
         }
         return Ok(());
     }
-    if descent >= curvature {
-        return Ok(());
+    let mut certified_scale_denominator = None;
+    if descent_bounds.lower > BigInt::zero() && margin_bounds.upper < BigInt::zero() {
+        for candidate in 2..=CERTIFIED_SCALE_LIMIT {
+            let candidate = BigInt::from(candidate);
+            let comparison = inverse_capacitance_scaled_sum_bounds(
+                capacitances,
+                component_neurons.iter().copied(),
+                component_neurons
+                    .iter()
+                    .zip(&outward)
+                    .map(|(neuron_index, node_outward)| {
+                        let q = BigInt::from(
+                            predecessor_membranes[*neuron_index]
+                                .separated_elementary_charges(),
+                        );
+                        node_outward * (&candidate * q - node_outward)
+                    }),
+                CERTIFIED_SIGN_BITS,
+            )?;
+            if comparison.lower >= BigInt::zero() {
+                certified_scale_denominator = Some(candidate);
+                break;
+            }
+            if comparison.upper >= BigInt::zero() {
+                break;
+            }
+        }
     }
+    let mut exact_common_denominator = None;
+    let scale_denominator = if let Some(certified) = certified_scale_denominator {
+        certified
+    } else {
+        let common_denominator = inverse_capacitance_common_denominator(
+            capacitances,
+            component_neurons.iter().copied(),
+        )?;
+        let curvature = inverse_capacitance_sum_numerator(
+            capacitances,
+            component_neurons.iter().copied(),
+            outward.iter().map(|node_outward| node_outward * node_outward),
+            &common_denominator,
+        )?;
+        let descent = inverse_capacitance_sum_numerator(
+            capacitances,
+            component_neurons.iter().copied(),
+            component_neurons
+                .iter()
+                .zip(&outward)
+                .map(|(neuron_index, node_outward)| {
+                    BigInt::from(
+                        predecessor_membranes[*neuron_index].separated_elementary_charges(),
+                    ) * node_outward
+                }),
+            &common_denominator,
+        )?;
+        if curvature.is_zero() {
+            return Ok(());
+        }
+        if descent <= BigInt::zero() {
+            for contact_index in component_contacts {
+                transitions[*contact_index] =
+                    quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
+            }
+            return Ok(());
+        }
+        if descent >= curvature {
+            return Ok(());
+        }
+        let quotient = &curvature / &descent;
+        let remainder = &curvature % &descent;
+        exact_common_denominator = Some(common_denominator);
+        if remainder.is_zero() {
+            quotient
+        } else {
+            quotient + BigInt::from(1_u8)
+        }
+    };
     // Choose the largest exact unit fraction that is no greater than the
     // component's physical line-minimum fraction.  Both the contact current
     // and its resident carrier phase have fixed-width exact rational
@@ -1206,13 +1293,6 @@ fn settle_energy_component(
     // fraction is conservative (therefore still strictly energy-descending),
     // has no tuned constant, and—unlike flooring each whole-carrier result—
     // lets every lawful branch retain its sub-carrier progress.
-    let scale_denominator = &curvature / &descent;
-    let scale_remainder = &curvature % &descent;
-    let scale_denominator = if scale_remainder.is_zero() {
-        scale_denominator
-    } else {
-        scale_denominator + BigInt::from(1_u8)
-    };
     let scale = ExactRational::new(
         1,
         scale_denominator
@@ -1259,29 +1339,54 @@ fn settle_energy_component(
     if scaled_component_neurons != component_neurons {
         return Err(SparseElectricalError::AnatomyStateWidth);
     }
-    let energy_change = inverse_capacitance_sum_numerator(
+    let energy_change_terms = component_neurons
+        .iter()
+        .zip(&scaled_outward)
+        .map(|(neuron_index, node_outward)| {
+            let prior = BigInt::from(
+                predecessor_membranes[*neuron_index].separated_elementary_charges(),
+            );
+            let successor = &prior - node_outward;
+            &successor * &successor - &prior * &prior
+        })
+        .collect::<Vec<_>>();
+    let energy_change_bounds = inverse_capacitance_scaled_sum_bounds(
         capacitances,
         component_neurons.iter().copied(),
-        component_neurons
-            .iter()
-            .zip(&scaled_outward)
-            .map(|(neuron_index, node_outward)| {
-                let prior = BigInt::from(
-                    predecessor_membranes[*neuron_index].separated_elementary_charges(),
-                );
-                let successor = &prior - node_outward;
-                &successor * &successor - &prior * &prior
-            }),
-        &common_denominator,
+        energy_change_terms.iter().cloned(),
+        CERTIFIED_SIGN_BITS,
     )?;
-    if energy_change < BigInt::from(0_u8) {
+    if energy_change_bounds.upper < BigInt::zero() {
         Ok(())
-    } else {
+    } else if energy_change_bounds.lower >= BigInt::zero() {
         for contact_index in component_contacts {
             transitions[*contact_index] =
                 quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
         }
         Ok(())
+    } else {
+        let common_denominator = match exact_common_denominator {
+            Some(common_denominator) => common_denominator,
+            None => inverse_capacitance_common_denominator(
+                capacitances,
+                component_neurons.iter().copied(),
+            )?,
+        };
+        let energy_change = inverse_capacitance_sum_numerator(
+            capacitances,
+            component_neurons.iter().copied(),
+            energy_change_terms,
+            &common_denominator,
+        )?;
+        if energy_change < BigInt::zero() {
+            Ok(())
+        } else {
+            for contact_index in component_contacts {
+                transitions[*contact_index] =
+                    quiescent_contact(predecessor_contacts.contacts[*contact_index].clone());
+            }
+            Ok(())
+        }
     }
 }
 
@@ -1433,6 +1538,67 @@ where
         common = (common / gcd) * numerator;
     }
     Ok(common)
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct ScaledSumBounds {
+    lower: BigInt,
+    upper: BigInt,
+}
+
+/// Enclose `2^scale_bits * sum(value / capacitance)` between exact integers.
+/// Each term is rounded outward independently, so the returned interval can
+/// prove a sign but can never invent one. This is a decision accelerator only;
+/// callers retain the unlimited-width rational path whenever zero remains in
+/// the interval.
+fn inverse_capacitance_scaled_sum_bounds<I, J>(
+    capacitances: &[MembraneCapacitance],
+    neuron_indices: I,
+    numerators: J,
+    scale_bits: usize,
+) -> Result<ScaledSumBounds, SparseElectricalError>
+where
+    I: IntoIterator<Item = usize>,
+    J: IntoIterator<Item = BigInt>,
+{
+    let mut neuron_indices = neuron_indices.into_iter();
+    let mut numerators = numerators.into_iter();
+    let mut lower = BigInt::zero();
+    let mut upper = BigInt::zero();
+    while let Some(neuron_index) = neuron_indices.next() {
+        let value = numerators
+            .next()
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        let capacitance = capacitances
+            .get(neuron_index)
+            .ok_or(SparseElectricalError::AnatomyStateWidth)?;
+        let (capacitance_numerator, capacitance_denominator) =
+            capacitance.picofarads().parts();
+        if capacitance_numerator <= 0 {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        if value.is_zero() {
+            continue;
+        }
+        let divisor = BigInt::from(capacitance_numerator);
+        let scaled = (value * BigInt::from(capacitance_denominator)) << scale_bits;
+        let quotient = &scaled / &divisor;
+        let remainder = scaled - &quotient * divisor;
+        if remainder.is_zero() {
+            lower += &quotient;
+            upper += quotient;
+        } else if remainder.is_positive() {
+            lower += &quotient;
+            upper += quotient + BigInt::from(1_u8);
+        } else {
+            lower += &quotient - BigInt::from(1_u8);
+            upper += quotient;
+        }
+    }
+    if numerators.next().is_some() || neuron_indices.next().is_some() {
+        return Err(SparseElectricalError::AnatomyStateWidth);
+    }
+    Ok(ScaledSumBounds { lower, upper })
 }
 
 fn inverse_capacitance_sum_numerator<I, J>(
