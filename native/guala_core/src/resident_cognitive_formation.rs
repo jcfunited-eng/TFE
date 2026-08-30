@@ -2598,6 +2598,59 @@ struct TransitionNeuronPredecessor {
     state: NeuronPhysicalState,
 }
 
+/// Comparison custody for one reached neuron during an ordinary resident
+/// interval. The common no-growth case borrows the predecessor already held
+/// by the interval boundary; only a genuine positional extension owns an
+/// extended comparison body. A changed predecessor is cloned/moved exactly
+/// once when it becomes retained transition evidence.
+enum SettlementComparisonPredecessor<'a> {
+    Borrowed {
+        neuron_index: usize,
+        state: &'a NeuronPhysicalState,
+    },
+    Extended {
+        neuron_index: usize,
+        anatomy: NeuronPhysicalAnatomy,
+        state: NeuronPhysicalState,
+    },
+}
+
+impl SettlementComparisonPredecessor<'_> {
+    fn neuron_index(&self) -> usize {
+        match self {
+            Self::Borrowed { neuron_index, .. } | Self::Extended { neuron_index, .. } => {
+                *neuron_index
+            }
+        }
+    }
+
+    fn state(&self) -> &NeuronPhysicalState {
+        match self {
+            Self::Borrowed { state, .. } => state,
+            Self::Extended { state, .. } => state,
+        }
+    }
+
+    fn retained(
+        self,
+        lineage: [u8; 16],
+        resident_anatomy: &NeuronPhysicalAnatomy,
+    ) -> TransitionNeuronPredecessor {
+        match self {
+            Self::Borrowed { state, .. } => TransitionNeuronPredecessor {
+                lineage,
+                anatomy: resident_anatomy.clone(),
+                state: state.clone(),
+            },
+            Self::Extended { anatomy, state, .. } => TransitionNeuronPredecessor {
+                lineage,
+                anatomy,
+                state,
+            },
+        }
+    }
+}
+
 fn retain_first_transition_predecessor(
     predecessors: &mut BTreeMap<[u8; 16], TransitionNeuronPredecessor>,
     predecessor: TransitionNeuronPredecessor,
@@ -18716,39 +18769,64 @@ fn settle_internal_contact_interval(
                     .map_err(FormationError::JointFieldUnavailable)?,
             );
         }
-        let comparison_predecessors = selected_predecessor_neurons[cohort_index]
-            .as_ref()
-            .ok_or(FormationError::NoncanonicalState)?
-            .iter()
-            .map(|(neuron_index, predecessor)| {
-                        let (extended_anatomy, extended_predecessor) =
-                            extend_neuron_positional_fabric(
-                    &cohort.anatomy.neuron_anatomies()[*neuron_index],
-                    predecessor,
-                    required_positions[*neuron_index],
-                )
-                .map_err(|error| {
-                                FormationError::PhysicalSettlementUnavailable(
-                                    ReachedCohortError::Neuron {
-                        neuron_index: *neuron_index,
-                        error,
-                                    },
-                                )
-                })?;
-                Ok((*neuron_index, extended_anatomy, extended_predecessor))
-            })
-            .collect::<Result<Vec<_>, FormationError>>()?;
         let positional_growth = cohort
             .anatomy
             .neuron_anatomies()
             .iter()
             .zip(&required_positions)
             .any(|(anatomy, required)| *required > anatomy.mathloom_positions());
+        let held_predecessors = selected_predecessor_neurons[cohort_index]
+            .as_ref()
+            .ok_or(FormationError::NoncanonicalState)?;
+        let comparison_predecessors = if positional_growth {
+            held_predecessors
+                .iter()
+                .map(|(neuron_index, predecessor)| {
+                    let (extended_anatomy, extended_predecessor) =
+                        extend_neuron_positional_fabric(
+                            &cohort.anatomy.neuron_anatomies()[*neuron_index],
+                            predecessor,
+                            required_positions[*neuron_index],
+                        )
+                        .map_err(|error| {
+                            FormationError::PhysicalSettlementUnavailable(
+                                ReachedCohortError::Neuron {
+                                    neuron_index: *neuron_index,
+                                    error,
+                                },
+                            )
+                        })?;
+                    Ok(SettlementComparisonPredecessor::Extended {
+                        neuron_index: *neuron_index,
+                        anatomy: extended_anatomy,
+                        state: extended_predecessor,
+                    })
+                })
+                .collect::<Result<Vec<_>, FormationError>>()?
+        } else {
+            held_predecessors
+                .iter()
+                .map(|(neuron_index, predecessor)| {
+                    SettlementComparisonPredecessor::Borrowed {
+                        neuron_index: *neuron_index,
+                        state: predecessor,
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
         if positional_growth {
             extend_resident_cohort_positional_fabrics(cohort, &required_positions)?;
         }
-        for (neuron_index, extended_anatomy, _) in &comparison_predecessors {
-            if extended_anatomy != &cohort.anatomy.neuron_anatomies()[*neuron_index] {
+        for predecessor in &comparison_predecessors {
+            let SettlementComparisonPredecessor::Extended {
+                neuron_index,
+                anatomy,
+                ..
+            } = predecessor
+            else {
+                continue;
+            };
+            if anatomy != &cohort.anatomy.neuron_anatomies()[*neuron_index] {
                 return Err(FormationError::NoncanonicalState);
             }
         }
@@ -18910,7 +18988,6 @@ fn settle_internal_contact_interval(
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
         let preparation_wall = cohort_stopwatch.elapsed();
-        let predecessor_neurons = &comparison_predecessors;
         // This interval is a native cross-cohort electrical consequence, not
         // a second externally admitted experience. Its retained changes join
         // the same pending local physical experience and may emit only after
@@ -19198,21 +19275,22 @@ fn settle_internal_contact_interval(
             .collect::<Vec<_>>();
         let effector_wall = cohort_stopwatch.elapsed();
         let mut retained_interval_deltas = Vec::new();
-        for (neuron_index, _, predecessor) in &comparison_predecessors {
+        for predecessor in &comparison_predecessors {
+            let neuron_index = predecessor.neuron_index();
             if let Some(delta) = sparse_retained_physical_state_delta(
-                    predecessor,
-                    &cohort.state.neurons()[*neuron_index],
+                    predecessor.state(),
+                    &cohort.state.neurons()[neuron_index],
                 )
                 .map_err(|error| {
                     FormationError::PhysicalSettlementUnavailable(
                         ReachedCohortError::Neuron {
-                            neuron_index: *neuron_index,
+                            neuron_index,
                             error,
                         },
                     )
                 })?
             {
-                retained_interval_deltas.push((*neuron_index, delta));
+                retained_interval_deltas.push((neuron_index, delta));
             }
         }
         let retained_change_this_interval = SparseResidentNeuronMask::from_indices(
@@ -19270,16 +19348,16 @@ fn settle_internal_contact_interval(
             )?);
         }
         let evidence_wall = cohort_stopwatch.elapsed();
-                let mut changed_predecessors = Vec::new();
-                for (neuron_index, predecessor_anatomy, predecessor) in predecessor_neurons {
-            let successor = &cohort.state.neurons()[*neuron_index];
-            if predecessor != successor {
-                        changed_predecessors.push(TransitionNeuronPredecessor {
-                            lineage: cohort.anatomy.neuron_lineages()[*neuron_index],
-                            anatomy: predecessor_anatomy.clone(),
-                            state: predecessor.clone(),
-                        });
-                }
+        let mut changed_predecessors = Vec::new();
+        for predecessor in comparison_predecessors {
+            let neuron_index = predecessor.neuron_index();
+            let successor = &cohort.state.neurons()[neuron_index];
+            if predecessor.state() != successor {
+                changed_predecessors.push(predecessor.retained(
+                    cohort.anatomy.neuron_lineages()[neuron_index],
+                    &cohort.anatomy.neuron_anatomies()[neuron_index],
+                ));
+            }
         }
         let relaxed = std::sync::atomic::Ordering::Relaxed;
         cohort_prepare_us.fetch_add(
