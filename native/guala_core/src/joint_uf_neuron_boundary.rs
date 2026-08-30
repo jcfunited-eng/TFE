@@ -32,6 +32,7 @@ pub(crate) enum JointNeuronBoundaryError {
     MalformedSharedFieldShape,
     NeuronCoordinateAbsent,
     GateAbsent,
+    PerspectiveMismatch,
     FrameOutsideGate,
     SourceIntervalOutsideGate,
     NonFiniteDsf,
@@ -481,7 +482,7 @@ impl MathLoomAnatomy {
 #[derive(Clone, Debug)]
 pub(crate) struct BorrowedMathLoomDelivery<'a> {
     perspective: JointNeuronPerspective<'a>,
-    constraints: Box<[TypedMathLoomConstraint]>,
+    constraints: Arc<[TypedMathLoomConstraint]>,
 }
 
 impl<'a> BorrowedMathLoomDelivery<'a> {
@@ -491,6 +492,25 @@ impl<'a> BorrowedMathLoomDelivery<'a> {
 
     pub(crate) fn constraints(&self) -> &[TypedMathLoomConstraint] {
         &self.constraints
+    }
+
+    /// Reuse one gate's exact seven-field conversion at another coordinate in
+    /// the same completed field. The DSF values belong to the gate, not to an
+    /// individual coordinate; only the neuron-local SEV view changes with the
+    /// coordinate. Refuse any attempt to cross a field or gate boundary.
+    pub(crate) fn for_perspective(
+        &self,
+        perspective: JointNeuronPerspective<'a>,
+    ) -> Result<Self, JointNeuronBoundaryError> {
+        if !std::ptr::eq(self.perspective.shared, perspective.shared)
+            || self.perspective.gate_index != perspective.gate_index
+        {
+            return Err(JointNeuronBoundaryError::PerspectiveMismatch);
+        }
+        Ok(Self {
+            perspective,
+            constraints: Arc::clone(&self.constraints),
+        })
     }
 }
 
@@ -527,7 +547,7 @@ pub(crate) fn settle_shared_dsf_mathloom<'a>(
     }
     Ok(BorrowedMathLoomDelivery {
         perspective,
-        constraints: constraints.into_boxed_slice(),
+        constraints: Arc::from(constraints),
     })
 }
 

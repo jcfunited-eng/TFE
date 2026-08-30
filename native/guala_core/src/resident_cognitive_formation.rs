@@ -59,7 +59,7 @@ use crate::joint_uf_neuron_boundary::prepare_complete_joint_field_admitted_fixtu
 use crate::joint_uf_neuron_boundary::{
     bind_neuron_perspective, prepare_complete_joint_field_from_evaluated,
     prepare_complete_joint_field_with_admission, required_mathloom_positions,
-    JointNeuronBoundaryError,
+    BorrowedMathLoomDelivery, JointNeuronBoundaryError, MathLoomAnatomy,
 };
 #[cfg(test)]
 use crate::joint_uf_source_adapter::admitted_fixture_episode;
@@ -18737,6 +18737,41 @@ fn settle_internal_contact_interval(
     let cohort_tail_us = std::sync::atomic::AtomicU64::new(0);
     let reached_cohort_count = std::sync::atomic::AtomicU64::new(0);
     let reached_member_count = std::sync::atomic::AtomicU64::new(0);
+    // Every selected neuron below is settling gate zero of this one completed
+    // field. Its seven DSF values therefore have one exact balanced-ternary
+    // conversion per mounted width, not one conversion per neuron. Psi remains
+    // neuron-local; only the immutable gate-owned delivery is shared.
+    let canonical_perspective = bind_neuron_perspective(&shared, 0, 0)
+        .map_err(FormationError::JointFieldUnavailable)?;
+    let shared_required_positions = required_mathloom_positions(canonical_perspective)
+        .map_err(FormationError::JointFieldUnavailable)?;
+    let mut reached_mathloom_widths = std::collections::BTreeSet::new();
+    for (cohort_index, selected_members) in selected_members_by_cohort.iter().enumerate() {
+        let cohort = cohorts
+            .get(cohort_index)
+            .ok_or(FormationError::NoncanonicalState)?;
+        for (_, neuron_index) in selected_members {
+            reached_mathloom_widths.insert(
+                cohort.anatomy.neuron_anatomies()[*neuron_index]
+                    .mathloom_positions()
+                    .max(shared_required_positions),
+            );
+        }
+    }
+    let mut reached_mathloom_deliveries =
+        BTreeMap::<usize, BorrowedMathLoomDelivery<'_>>::new();
+    for positions in reached_mathloom_widths {
+        let anatomy = MathLoomAnatomy::new(positions)
+            .map_err(FormationError::JointFieldUnavailable)?;
+        reached_mathloom_deliveries.insert(
+            positions,
+            crate::joint_uf_neuron_boundary::settle_shared_dsf_mathloom(
+                canonical_perspective,
+                anatomy,
+            )
+            .map_err(FormationError::JointFieldUnavailable)?,
+        );
+    }
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
@@ -18865,10 +18900,16 @@ fn settle_internal_contact_interval(
         {
             let perspective = bind_neuron_perspective(&shared, coordinate, 0)
                 .map_err(FormationError::JointFieldUnavailable)?;
-            let prepared_psi = cohort.anatomy.neuron_anatomies()[neuron_index]
-                .prepare_psi_settlement(
+            let neuron_anatomy = &cohort.anatomy.neuron_anatomies()[neuron_index];
+            let delivery = reached_mathloom_deliveries
+                .get(&neuron_anatomy.mathloom_positions())
+                .ok_or(FormationError::NoncanonicalState)?
+                .for_perspective(perspective)
+                .map_err(FormationError::JointFieldUnavailable)?;
+            let prepared_psi = neuron_anatomy
+                .prepare_psi_settlement_from_delivery(
                     &cohort.state.neurons()[neuron_index],
-                    perspective,
+                    &delivery,
                 )
                 .map_err(|error| {
                     FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
