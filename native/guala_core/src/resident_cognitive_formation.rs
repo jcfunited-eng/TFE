@@ -18673,6 +18673,13 @@ fn settle_internal_contact_interval(
         (contact_apply_wall - shared_prepare_wall).as_millis(),
         (shared_wall - contact_apply_wall).as_millis(),
     );
+    let cohort_prepare_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_settle_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_effector_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_evidence_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_tail_us = std::sync::atomic::AtomicU64::new(0);
+    let reached_cohort_count = std::sync::atomic::AtomicU64::new(0);
+    let reached_member_count = std::sync::atomic::AtomicU64::new(0);
     let cohort_results = cohorts
         .par_iter_mut()
         .zip(local_contact_results.into_par_iter())
@@ -19274,18 +19281,37 @@ fn settle_internal_contact_interval(
                         });
                 }
         }
-        eprintln!(
-            "guala-cohort-phases cohort={} members={} local_contacts={} prepare_ms={} \
-             settle_ms={} effector_ms={} evidence_ms={} tail_ms={} total_ms={}",
-            cohort_index,
-            selected_members.len(),
-            cohort.anatomy.contact_count(),
-            preparation_wall.as_millis(),
-            (settlement_wall - preparation_wall).as_millis(),
-            (effector_wall - settlement_wall).as_millis(),
-            (evidence_wall - effector_wall).as_millis(),
-            (cohort_stopwatch.elapsed() - evidence_wall).as_millis(),
-            cohort_stopwatch.elapsed().as_millis(),
+        let relaxed = std::sync::atomic::Ordering::Relaxed;
+        cohort_prepare_us.fetch_add(
+            u64::try_from(preparation_wall.as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_settle_us.fetch_add(
+            u64::try_from((settlement_wall - preparation_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_effector_us.fetch_add(
+            u64::try_from((effector_wall - settlement_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_evidence_us.fetch_add(
+            u64::try_from((evidence_wall - effector_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        cohort_tail_us.fetch_add(
+            u64::try_from((cohort_stopwatch.elapsed() - evidence_wall).as_micros())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
+        );
+        reached_cohort_count.fetch_add(1, relaxed);
+        reached_member_count.fetch_add(
+            u64::try_from(selected_members.len())
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+            relaxed,
         );
         Ok(Some((
             changed_predecessors,
@@ -19299,6 +19325,19 @@ fn settle_internal_contact_interval(
             },
         )
     .collect::<Vec<_>>();
+    let relaxed = std::sync::atomic::Ordering::Relaxed;
+    eprintln!(
+        "guala-cohort-aggregate wall_ms={} prepare_us={} settle_us={} effector_us={} \
+         evidence_us={} tail_us={} cohorts={} members={}",
+        (contact_stopwatch.elapsed() - shared_wall).as_millis(),
+        cohort_prepare_us.load(relaxed),
+        cohort_settle_us.load(relaxed),
+        cohort_effector_us.load(relaxed),
+        cohort_evidence_us.load(relaxed),
+        cohort_tail_us.load(relaxed),
+        reached_cohort_count.load(relaxed),
+        reached_member_count.load(relaxed),
+    );
     let mut motor_unit_recruitments = Vec::new();
     let mut root_yaw_unit_recruitments = Vec::new();
     let mut root_translation_unit_recruitments = Vec::new();
