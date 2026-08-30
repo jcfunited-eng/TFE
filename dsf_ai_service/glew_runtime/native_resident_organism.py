@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+from functools import cache
 import sys
 import time
 from dataclasses import dataclass
@@ -618,6 +619,21 @@ def _native_core():
     return importlib.import_module("guala_core")
 
 
+@cache
+def native_articulated_body_state_width() -> int:
+    neutral_state = getattr(
+        _native_core(), "exact_neutral_articulated_body_state", None
+    )
+    if not callable(neutral_state):
+        raise RuntimeError(
+            "guala_core does not expose the articulated-body width authority"
+        )
+    body = neutral_state()
+    if not isinstance(body, bytes) or not body:
+        raise RuntimeError("native articulated-body width authority is invalid")
+    return len(body)
+
+
 def _positive_integer(value: object, label: str) -> int:
     if (
         isinstance(value, bool)
@@ -1193,7 +1209,7 @@ def _causal_interval_evidence(
         raw_articulated_body = raw.articulated_body_state
         if not isinstance(raw_articulated_body, bytes) or len(
             raw_articulated_body
-        ) != 195:
+        ) != native_articulated_body_state_width():
             raise RuntimeError(
                 "causal interval articulated body changed format"
             )
@@ -1934,7 +1950,7 @@ class NativeResidentOrganism:
         if _positive_integer(
             candidate.articulated_body_state_bytes,
             "articulated body state bytes",
-        ) != 195:
+        ) != native_articulated_body_state_width():
             raise RuntimeError("resident articulated body state width changed")
         if not isinstance(
             candidate.articulated_body_proprioception_initialized, bool
@@ -4302,4 +4318,5 @@ __all__ = (
     "restore_native_resident_organism",
     "correct_native_resident_organism_growth_contamination",
     "migrate_native_resident_organism_exact_energy",
+    "native_articulated_body_state_width",
 )

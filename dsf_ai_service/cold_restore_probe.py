@@ -16,6 +16,7 @@ import tempfile
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_articulatory_interval_trajectory,
     exact_native_yaw_trajectory,
+    native_articulated_body_state_width,
     restore_native_resident_organism,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
@@ -1149,7 +1150,11 @@ def _rehearse_a013_articulated_body(
 
     before = organism.readiness()
     before_axes = tuple(before.articulated_body_axes)
-    if len(before_axes) != 45 or before.articulated_body_state_bytes != 195:
+    expected_body_bytes = native_articulated_body_state_width()
+    if (
+        len(before_axes) != 45
+        or before.articulated_body_state_bytes != expected_body_bytes
+    ):
         raise RuntimeError("A-013 restored body anatomy changed")
 
     prepared = organism.commit_admitted_trajectory_direct((), ())
@@ -1174,7 +1179,7 @@ def _rehearse_a013_articulated_body(
         or hot.state_sha256 != prepared.prepared_state_sha256
         or tuple(hot.articulated_body_axes) != before_axes
         or len(hot.articulated_body_axes) != 45
-        or hot.articulated_body_state_bytes != 195
+        or hot.articulated_body_state_bytes != expected_body_bytes
         or hot.articulated_body_proprioception_initialized is not True
     ):
         raise RuntimeError("A-013 articulated body live-copy transition changed")
