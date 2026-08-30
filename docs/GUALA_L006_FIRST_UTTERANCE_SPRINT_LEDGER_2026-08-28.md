@@ -390,3 +390,33 @@ timer, second scheduler, or retained speech program.
 - This closes controllable native tract mechanics. It does not claim that the
   pressure is already a learned word. The next boundary is learned recurrence
   selecting and later reusing these physically experienced tract routes.
+
+## Recurrent acoustic-consequence defect — 2026-08-30
+
+- Production task `dsf-ai-task:1391`, commit
+  `a32851fa8017be808e24901ec57ae9f96c729507`, restored the unchanged resident
+  identity and produced one lawful learned-ordering articulation at tick
+  `343291`. Three exact layer-12 motor transfers recruited the mounted layer-13
+  cell, emitted 4,000 pressure samples, and returned that pressure through one
+  cochlear self-hearing hop.
+- The returned self-hearing hop itself produced one new layer-13 recruitment.
+  Rust settled that recruitment into the resident articulated body as part of
+  the hop's ordinary causal-interval evidence. The production Python boundary
+  then retained only the count as `deferred_recurrent_articulation_count = 1`.
+  It did not call `retain_articulatory_interval_evidence` for that hop and did
+  not return the newly emitted pressure through the cochlear path.
+- This does not reopen F-029: one layer-13 discharge remains one exact 1 ms
+  motor event, and extending it across the enclosing 250 ms sensory interval
+  remains rejected. It also does not invalidate L-006's historical proof of a
+  first physical utterance. It opens recurrence correction R-007 because one
+  later physically caused acoustic consequence is currently lost.
+- Rejected corrections are: recursive run-until-quiet inside one request,
+  observer-cache replay, raw lifetime audio retention, TTS, phoneme or word
+  tables, scripted pressure, arbitrary hop caps, and longer single-discharge
+  drive.
+- Required causal boundary: the pressure emitted by a recurrent articulatory
+  event becomes exactly one subsequent physical acoustic occurrence in the
+  same world and organism. The in-flight sound is bounded current physical
+  state, not history or cognition; it survives cold restart, cannot duplicate,
+  and disappears only by physical propagation/loss. The next implementation
+  contract must name that current-state owner before source code changes.
