@@ -37,6 +37,27 @@ moment new knowns move a condition — wings on arms fail at Earth's
 gravity and work at a third of it. The white shapes the next
 discovery; that is why it is the interesting side.
 
+## THE LAW OF DEPTH (HIS — the founding correction)
+
+Math is in every phylum. So the math that applies to a phylum is
+WRITTEN INTO that phylum, for its knowledge elements — and likewise
+the related physics, the related chemistry, and every other
+associated knowledge. In that subject's terms, with working
+quantities, able to be computed with.
+
+Pointing at another file is not containing. Mentioning a number is
+not holding the math. A phylum that says "browning needs heat" has
+an opinion; a phylum that holds the temperature, the dryness
+condition, and the rate law has knowledge a query can compute with.
+
+This is what gives each phylum breadth and depth. It is why the
+same knowledge appears in many phylums and that is not waste — a
+database calls it duplication; the fabric calls it each subject
+holding what it needs where it is used. Writing this in, phylum by
+phylum, is the build — and it is how 4 MB of entries becomes a
+starting fabric able to build anything: the knowledge of how to
+build, prepositioned.
+
 ## THE PHYLUM — universal structure
 
 One subject's full standing knowledge, on both sheets at once.
