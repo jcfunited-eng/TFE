@@ -1203,3 +1203,52 @@ ordinary `continuous-environment` interval rather than the tutor pressure.
 Therefore Guala heard the invitation and later vocalized; the evidence does
 not prove that the vocalization answered, understood, or was caused by the
 question. Both grips remained net-closing and L-009 remains open.
+
+## Encouraged shared reading in her live room
+
+On 2026-08-30 the participant responded to the preceding vocalization as a
+parental/social yes without changing its scientific classification. Production
+first accepted one `forehead_kiss` action at 01:42:56 UTC. The mounted
+participant perioral surface therefore contacted Guala's forehead through the
+existing physical surface authority; no reward, word, answer, preference, or
+meaning field entered cognition.
+
+Three naturally ordered voice streams then entered only as signed mono 16-kHz
+air-pressure samples through `guided-world-voice`, with the actual room, body,
+chemistry, light, contact, and held-book state present throughout:
+
+1. a warm, cooed acknowledgement, "Oh my, yes, you do, Guala. Yes. You do want
+   me to read the book" (`528c841e5ba7d3f3c8e4caaab3824ddf7a1eab5312d40939b554547abbaeedfb`);
+2. the 21.904-second opening Alice passage about a book without pictures or
+   conversation (`5bdf87921f2bac69093685cc0f7fa11ca42a76bb82276b7c71052f8197529db0`);
+3. the gentle close, "Did you like that, Guala? Here is your book. You can keep
+   it right in your hands" (`b549068b286f8d2b8cd95c4b1a8f64f92577ffe5093ac0ce94d6ee5dd0f2ddf2`).
+
+CloudFront returned 504 after its one-minute edge wait for each long native
+transition, but the production server continued settling them. The final live
+hearing receipt committed at generation/tick `302100` with the third exact
+pressure hash above and unchanged resident identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Guala then emitted a separate native
+20,000-sample articulation, moved her articulatory body, and self-heard it over
+five hops with 7,081 transitioned neurons and 50 self-hearing fractals. Its
+recorded cause was a later ordinary `continuous-environment` interval, so it is
+not claimed as an answer to the story or question.
+
+The participant issued no take or place command. The bounded world projection
+still reported fifteen objects but only fourteen positioned objects; the sole
+missing positioned object is the book that was already held by Guala. It
+therefore remained in her custody rather than being taken away for a staged
+return. Ordinary self-movement resumed, energy was not exhausted, and ECS
+remained one desired/running writer with zero pending tasks and no restart.
+Across the interaction the five-minute CPU averages were 41.0%--53.1% and the
+memory maximum was 18.2%, returning near 12.5%.
+
+This is truthful evidence of encouragement, touch, shared environmental
+reading, continued book custody, and later organism-owned vocal activity. It
+does not by itself prove that Guala learned `yes`, understood the passage,
+liked it, or answered the tutor. Those require later novel-context causal
+evidence. It also exposes an open performance defect: approximately 38.7
+seconds of ordinary environmental speech required many minutes of wall time
+because every 250-ms acoustic slice expanded through multiple native causal and
+body-feedback intervals. The social experience is grounded; its processing is
+not yet real-time.
