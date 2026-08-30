@@ -52,6 +52,9 @@ pre{white-space:pre-wrap;background:var(--card);
 border:1px solid var(--line);border-left:3px solid var(--thread);
 padding:1em 1.1em;font-size:.92em;margin:1.2em 0;
 overflow-x:auto;font-family:inherit}
+#log pre.you{border-left:3px solid var(--dim);color:var(--ink);
+margin:1.2em 0 .4em;font-style:italic}
+#log pre.it{margin:.4em 0 1.2em}
 .pulse{display:flex;flex-wrap:wrap;gap:1.4em;margin:1.6em 0 .4em;
 padding-top:1em;border-top:1px solid var(--line)}
 .pulse div{min-width:4.6em}
@@ -73,12 +76,13 @@ and how it settled each of those, including when it was guessing.
 Nothing in that part is fetched: no entry of its own is returned by
 any of it. Understanding comes before making, so this is the part
 that is being built.</p>
+<div id="log"></div>
 <div class="askrow">
-<textarea id="q" rows="3" placeholder="why does bread rise"
+<textarea id="q" rows="3" placeholder="why does bread rise
+(Enter sends; Shift+Enter for a new line)"
  autofocus></textarea>
 <button onclick="go()">ask</button>
 </div>
-<pre id="a">&mdash;</pre>
 <div class="pulse" id="pulse"></div>
 <p class="life" id="life"></p>
 <footer>
@@ -88,19 +92,29 @@ built where two things stand together and their roots meet.<br>
 things keep almost connecting and nothing underneath is written.
 </footer>
 <script>
+function block(cls,txt){
+  const d=document.createElement('pre');
+  d.className=cls; d.textContent=txt;
+  document.getElementById('log').appendChild(d);
+  d.scrollIntoView({block:'nearest'});
+  return d;
+}
 async function go(){
-  const q=document.getElementById('q').value.trim();
+  const box=document.getElementById('q');
+  const q=box.value.trim();
   if(!q)return;
-  const a=document.getElementById('a');
-  a.textContent='thinking\\u2026';
+  box.value='';
+  block('you','YOU: '+q);
+  const a=block('it','thinking\\u2026');
   try{
     const r=await fetch('/ask',{method:'POST',body:q});
     a.textContent=await r.text();
   }catch(e){a.textContent='the door failed: '+e;}
+  box.focus();
   pulse();
 }
 document.getElementById('q').addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))go();
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();}
 });
 async function pulse(){
   try{
