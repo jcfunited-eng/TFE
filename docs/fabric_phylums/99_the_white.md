@@ -993,3 +993,38 @@ ENTRY: an example written into the knowledge becomes evidence
     the sentence it applies to. Say "an order to keep something cold",
     not the order itself.
   STATUS: STANDING (white) — worked around, not solved
+
+ENTRY: an order cannot be told from a statement, and I shipped a rule
+       that pretended it could
+  ASKED-AS: order instruction imperative told apart from a statement
+    precision false positives bench all orders
+  VERDICT: 29 of 30 on being told what to do was bought by reading two
+    statements in five as orders. Measured 2026-08-30 on 400 sentences
+    of the fabric's own writing, which contains no orders at all, so
+    every firing there is wrong:
+      a pointer opening a later group  70% of orders, 28% of statements
+      any frame word opening one       83% of orders, 40% of statements
+      an asking word not first         10% of orders,  4% of statements
+      a constraint hung off it         33% of orders,  0% of statements
+    Three of those four were shipped. The instruction bench is all
+    orders, so it could only ever measure how many orders were caught
+    and never how many statements were wrecked. 160 of 400 statements
+    were being read as orders and the bench said 29 of 30.
+  THE ERROR IS THE ONE ALREADY NAMED TWICE TODAY: measuring on one
+    distribution and shipping against another. It was named, filed,
+    and then made again within the hour, because the new bench was
+    built for the new case and nothing checked the old case through
+    the new code path. A bench per shape is not enough — every bench
+    has to be run through the SAME path that ships.
+  WHAT NOW STANDS: only the precise marks. A constraint, and the
+    learned word-class when it says the first word is a doing. That
+    catches 37 per cent of orders and 0 per cent of statements, and
+    being told what to do falls from a false 29 to an honest 17.
+  WHAT WOULD DRAIN IT: nothing available here. An order of bare words
+    IS a statement of bare words — "keep food cold" and "salt melts
+    ice" are the same shape — and English tells them apart by knowing
+    one first word is a verb. This corpus holds no orders, so it
+    cannot teach which words those are. The gap is in the knowledge,
+    not in the reading: until something in the fabric holds what a
+    command word is, a third is the ceiling.
+  STATUS: STANDING (white)
