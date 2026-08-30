@@ -10684,24 +10684,27 @@ def _prepare_continuous_native_action_consequence(
         raise RuntimeError("native body consequence has no causal motor discharge")
     if any(len(consequence) != 11 for consequence in articulated_body_consequences):
         raise RuntimeError("native body consequence changed its exact shape")
-    grip_closing_axes = tuple(sorted({
-        consequence[1]
-        for consequence in articulated_body_consequences
-        if consequence[1] in {
+    grip_displacement_by_axis = {
+        axis: sum(
+            consequence[5]
+            for consequence in articulated_body_consequences
+            if consequence[1] == axis
+        )
+        for axis in (
             "left_grip_aperture",
             "right_grip_aperture",
-        }
-        and consequence[5] < 0
-    }))
-    grip_opening_axes = tuple(sorted({
-        consequence[1]
-        for consequence in articulated_body_consequences
-        if consequence[1] in {
-            "left_grip_aperture",
-            "right_grip_aperture",
-        }
-        and consequence[5] > 0
-    }))
+        )
+    }
+    grip_closing_axes = tuple(sorted(
+        axis
+        for axis, displacement in grip_displacement_by_axis.items()
+        if displacement < 0
+    ))
+    grip_opening_axes = tuple(sorted(
+        axis
+        for axis, displacement in grip_displacement_by_axis.items()
+        if displacement > 0
+    ))
 
     authority = _world()
     before = authority.observation_snapshot()

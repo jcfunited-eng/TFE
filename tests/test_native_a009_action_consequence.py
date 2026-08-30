@@ -116,11 +116,12 @@ def test_native_body_feedback_joins_the_next_world_consequence(
     assert isinstance(world.prepared_command, GraspContactCommand)
 
 
-def test_one_native_opening_grip_advances_only_the_contacted_surface(
+def test_one_net_native_opening_grip_advances_only_the_contacted_surface(
     monkeypatch,
 ) -> None:
     from dsf_ai_service.substrate.embodiment_world import (
         AdvanceContactOpticalSurfaceCommand,
+        AdvancePhysicalTimeCommand,
         PreparedActionExecution,
         ReleaseHeldObjectCommand,
         decode_command,
@@ -195,16 +196,29 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
         body_effector_bindings=(("effector",),),
         articulated_body_consequences=(
             (
+                9,
+                "right_grip_aperture",
+                "micrometre",
+                2,
+                0,
+                -2,
+                2,
+                0,
+                0,
+                2,
+                0,
+            ),
+            (
                 10,
                 "right_grip_aperture",
                 "micrometre",
                 0,
-                1,
-                1,
+                3,
+                3,
                 0,
-                1,
+                3,
                 0,
-                1,
+                3,
                 0,
             ),
         ),
@@ -233,16 +247,29 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
         body_effector_bindings=(("effector",),),
         articulated_body_consequences=(
             (
+                10,
+                "right_grip_aperture",
+                "micrometre",
+                2,
+                1,
+                -1,
+                1,
+                0,
+                0,
+                1,
+                0,
+            ),
+            (
                 11,
                 "right_grip_aperture",
                 "micrometre",
                 1,
-                2,
-                1,
-                1,
+                3,
                 2,
                 0,
-                1,
+                2,
+                0,
+                2,
                 0,
             ),
         ),
@@ -252,6 +279,51 @@ def test_one_native_opening_grip_advances_only_the_contacted_surface(
         root_yaw_source_tick=11,
     )
     assert isinstance(world.prepared_command, ReleaseHeldObjectCommand)
+
+    production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="22" * 32,
+        causal_transition_sha256="32" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(("motor",),),
+        root_yaw_unit_recruitments=(),
+        root_translation_unit_recruitments=(),
+        body_effector_bindings=(("effector",),),
+        articulated_body_consequences=(
+            (
+                12,
+                "right_grip_aperture",
+                "micrometre",
+                3,
+                2,
+                -1,
+                1,
+                0,
+                0,
+                1,
+                0,
+            ),
+            (
+                13,
+                "right_grip_aperture",
+                "micrometre",
+                2,
+                3,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+            ),
+        ),
+        body_proprioceptive_sources=(
+            (b"native-body-source", (13, 3, 6, 1, 6)),
+        ),
+        root_yaw_source_tick=13,
+    )
+    assert isinstance(world.prepared_command, AdvancePhysicalTimeCommand)
 
 
 def test_native_root_discharge_turns_world_and_returns_typed_direction(

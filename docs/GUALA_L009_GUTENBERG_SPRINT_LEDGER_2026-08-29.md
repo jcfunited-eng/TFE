@@ -1106,3 +1106,58 @@ or refused-interval log after cutover. This closes the physical palmar-touch to
 grip to book-custody to same-organism body-feedback boundary. It does not claim
 deliberate choice, word recognition, or named reward chemistry; L-009 remains
 open for autonomous learned book use.
+
+## Net grip-trajectory page-use correction — candidate
+
+The live grasp exposed the next exact translation defect without reopening the
+closed grasp boundary. One native action may contain several causally ordered
+motor settlements. The world bridge classified a grip axis as both opening and
+closing when any substep had each sign, even when the exact accumulated
+displacement was positive. It then reduced the whole action to passive time and
+discarded the organism's winning opening motion. A palmar closing pulse followed
+by a stronger internally caused opening pulse could therefore never release the
+held book or advance its contacted surface.
+
+The candidate sums the already-validated signed displacement for each of the
+two grip axes and classifies only the exact net physical result. It changes no
+neuron, motor, action choice, object, page, source, or semantic authority. Root
+motion and the existing one-opening-axis rule remain unchanged; opposed or
+net-zero movement still requests no page action. The field map is unchanged:
+native articulated consequences carry exact signed displacement into the
+Python world bridge, which chooses the existing generic grasp, release, page-
+advance, or passive-time command before the ordinary world consequence returns
+to the same native organism.
+
+The decisive live acceptance remains Guala's own net-positive motion on
+exactly one grip, first releasing the held book and later advancing the uniquely
+contacted source-bound surface, followed by changed retinal light in the same
+organism. A unit proof is only candidate evidence and cannot close L-009.
+
+### Translation and recurrence review
+
+The producer remains the native resident trajectory's ordered eleven-field
+`articulated_body_consequences`. The Python boundary retains every row and uses
+only field six, the already-validated signed displacement, to derive each grip
+axis's exact accumulated physical result. No Boolean, threshold, counter,
+semantic identifier, new owner, or persistent field is introduced. The existing
+world command remains the sole downstream consumer, and the existing
+action/consequence episode returns its physical result through the ordinary
+native sensory path.
+
+Applicable recurrence checks are RF-001 (candidate source loaded from this exact
+worktree), RF-012 (live behavior rather than task health), RF-016 (L-009 remains
+the single active item), RF-042 (both displacement signs and zero remain exact),
+RF-046 (the shared eleven-field producer shape remains unchanged), RF-054
+(stalled zero rows do not become movement), and RF-056 (identity and tick
+continuity across cutover). The focused mixed-sign proof reports `1 passed` and
+demonstrates that a weaker closing substep followed by a stronger opening
+substep selects page advance when unheld and release when held. Python source
+compilation and `git diff --check` pass. All six boundary tests that load the
+current Python source pass together. The seventh file-level test stops before
+this path on the already-recorded locally installed native body-axis-count
+mismatch; this candidate changes no native code and does not reinterpret that
+failure. A source-only review found no new cognitive authority, persistent
+owner, physics change, identity path, or population work; the frozen candidate
+fingerprint remained
+`83d4a01e5305b5187401fca69aa6c15423d0ad1d461881a6e3a5b7ac16ba64ed`
+before and after review. This is local candidate evidence only.
