@@ -17494,30 +17494,38 @@ fn exact_prepared_efferent_carriers(
         .then_some(local_outward_elementary_charges.unsigned_abs())
 }
 
-/// Exact layer-12 preparation for one layer-13 articulatory discharge.
+/// Exact learned ordering -> vocal motor -> articulation preparation.
 ///
-/// Contact transport and the prepared neuron's local membrane discharge are
-/// adjacent physical events, not one simultaneous event.  The active frontier
-/// is the resident, restart-safe record of the immediately preceding contact
-/// transfer.  It is physical cause carried by the organism itself; it is not
-/// an observer label, timer, turn boundary, or speech command.
+/// The fixed layer-12 -> layer-13 body bridge is anatomy, not permission to
+/// vocalize. A vocal motor may prepare the layer-13 cell only when the
+/// immediately preceding resident frontier carried whole charge from a
+/// layer-11 ordering cell into that exact motor and the current interval then
+/// carried charge from that motor into layer 13. This is the two-contact
+/// physical sequence itself: no observer label, timer, phoneme, word, or
+/// speech command supplies its order.
 fn exact_articulatory_preparation_transfers(
     articulatory_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     layer_of: impl Fn([u8; 16]) -> Option<u32>,
 ) -> Vec<DirectedPhysicalTransferObservation> {
+    let prepared_vocal_motors = predecessor_frontier
+        .iter()
+        .filter_map(|entry| {
+            let transfer = entry.directed_transfer()?;
+            (entry.frontier_lineage() == transfer.receiver
+                && layer_of(transfer.sender) == Some(11)
+                && layer_of(transfer.receiver) == Some(12))
+            .then_some(transfer.receiver)
+        })
+        .collect::<BTreeSet<_>>();
     let mut preparation_transfers = settled_directed_transfers
         .iter()
         .copied()
-        .chain(
-            predecessor_frontier
-                .iter()
-                .filter_map(|entry| entry.directed_transfer()),
-        )
         .filter(|transfer| {
             transfer.receiver == articulatory_lineage
                 && layer_of(transfer.sender) == Some(12)
+                && prepared_vocal_motors.contains(&transfer.sender)
         })
         .collect::<Vec<_>>();
     preparation_transfers.sort_unstable();
@@ -27568,13 +27576,21 @@ mod tests {
     }
 
     #[test]
-    fn articulatory_preparation_is_exact_directed_layer_twelve_arrival() {
+    fn articulatory_preparation_requires_ordered_two_interval_motor_arrival() {
+        let ordering = [11_u8; 16];
         let motor = [12_u8; 16];
         let articulatory = [13_u8; 16];
-        let unrelated = [11_u8; 16];
+        let unrelated = [10_u8; 16];
+        let ordering_bond = StablePhysicalBondReference::new(ordering, motor, 0).unwrap();
         let motor_bond = StablePhysicalBondReference::new(motor, articulatory, 0).unwrap();
         let unrelated_bond =
             StablePhysicalBondReference::new(unrelated, articulatory, 0).unwrap();
+        let ordering_transfer = DirectedPhysicalTransferObservation {
+            sender: ordering,
+            receiver: motor,
+            bond: ordering_bond,
+            transferred_whole_carriers: 3,
+        };
         let motor_transfer = DirectedPhysicalTransferObservation {
             sender: motor,
             receiver: articulatory,
@@ -27582,40 +27598,40 @@ mod tests {
             transferred_whole_carriers: 5,
         };
         let layer_of = |lineage| match lineage {
+            value if value == ordering => Some(11),
             value if value == motor => Some(12),
             value if value == articulatory => Some(13),
-            value if value == unrelated => Some(11),
+            value if value == unrelated => Some(10),
             _ => None,
         };
 
-        assert_eq!(
-            exact_articulatory_preparation_transfers(
-                articulatory,
-                &[motor_transfer],
-                &[],
-                layer_of,
-            ),
-            vec![motor_transfer],
-            "a current directed motor arrival must prepare articulation"
-        );
-
-        let predecessor = [ActiveElectricalFrontierEntry::caused(
-            motor,
+        assert!(exact_articulatory_preparation_transfers(
             articulatory,
-            motor_bond,
-            5,
+            &[motor_transfer],
+            &[],
+            layer_of,
+        )
+        .is_empty(), "an unprepared vocal motor must not create generic sound");
+
+        let predecessor = [ActiveElectricalFrontierEntry::caused_with_frontier(
+            ordering,
+            motor,
+            motor,
+            ordering_bond,
+            3,
         )
         .unwrap()];
         assert_eq!(
             exact_articulatory_preparation_transfers(
                 articulatory,
-                &[],
+                &[motor_transfer],
                 &predecessor,
                 layer_of,
             ),
             vec![motor_transfer],
-            "the immediately preceding physical arrival must survive for the local discharge"
+            "the exact adjacent ordering -> motor -> articulation path must prepare discharge"
         );
+        assert_eq!(predecessor[0].directed_transfer(), Some(ordering_transfer));
 
         let reverse = DirectedPhysicalTransferObservation {
             sender: articulatory,
