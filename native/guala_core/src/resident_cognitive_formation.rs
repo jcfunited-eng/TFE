@@ -19186,12 +19186,11 @@ fn settle_internal_contact_interval(
                 )
             })
             .collect::<Vec<_>>();
-        let settlement_successor = cohort.state.clone();
         let mut retained_interval_deltas = Vec::new();
         for (neuron_index, _, predecessor) in &comparison_predecessors {
             if let Some(delta) = sparse_retained_physical_state_delta(
                     predecessor,
-                    &settlement_successor.neurons()[*neuron_index],
+                    &cohort.state.neurons()[*neuron_index],
                 )
                 .map_err(|error| {
                     FormationError::PhysicalSettlementUnavailable(
@@ -19259,7 +19258,6 @@ fn settle_internal_contact_interval(
                 &active_electrical_contacts,
             )?);
         }
-        cohort.state = settlement_successor;
                 let mut changed_predecessors = Vec::new();
                 for (neuron_index, predecessor_anatomy, predecessor) in predecessor_neurons {
             let successor = &cohort.state.neurons()[*neuron_index];
