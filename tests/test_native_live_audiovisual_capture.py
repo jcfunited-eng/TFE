@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import asyncio
 from fractions import Fraction
 from io import BytesIO
 import json
@@ -125,6 +126,34 @@ def test_route_commits_both_witnesses_from_one_native_transaction(
     assert captured["episodes"] == ["whole-roster-hop"]
     assert captured["includes_live_hearing"] is True
     assert captured["intake"].startswith("live-audiovisual:")
+
+
+def test_live_audiovisual_arrival_is_announced_before_route_admission() -> None:
+    class Request:
+        class URL:
+            path = production.LIVE_AUDIOVISUAL_INTAKE_ENDPOINT
+
+        url = URL()
+
+    observed: list[tuple[bool, int]] = []
+
+    async def downstream(_request):
+        observed.append(
+            (
+                production._external_intake_waiting.is_set(),
+                production._external_intake_waiter_count,
+            )
+        )
+        return object()
+
+    before = production._external_intake_waiter_count
+    asyncio.run(
+        production._announce_live_audiovisual_arrival(Request(), downstream)
+    )
+
+    assert observed == [(True, before + 1)]
+    assert production._external_intake_waiter_count == before
+    assert production._external_intake_waiting.is_set() is (before > 0)
 
 
 def test_live_sight_counts_captured_frames_not_internal_consequence_hops(

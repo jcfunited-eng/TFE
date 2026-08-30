@@ -15667,6 +15667,32 @@ async def _lifespan(_application: FastAPI):
 app = FastAPI(title="Guala native organism", version="1", lifespan=_lifespan)
 
 
+@app.middleware("http")
+async def _announce_live_audiovisual_arrival(
+    request: Request,
+    call_next: Any,
+) -> Response:
+    """Let resident transport see paired sight/sound before route queuing.
+
+    FastAPI runs the synchronous audiovisual handler in its worker pool.  A
+    dependency on that handler proved too late in production: the request was
+    already at the server while unattended transport repeatedly reacquired the
+    resident organism.  Mark only the live paired sensory path at the outer
+    ASGI boundary, before dependency solving or worker admission.  This flag
+    never enters cognition and cannot cause a transition; it merely makes the
+    unattended transport yield its next atomic borrow to physical input that
+    has already arrived.
+    """
+
+    if request.url.path != LIVE_AUDIOVISUAL_INTAKE_ENDPOINT:
+        return await call_next(request)
+    _begin_external_intake()
+    try:
+        return await call_next(request)
+    finally:
+        _end_external_intake()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
