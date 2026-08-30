@@ -13378,7 +13378,12 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "world_revision": environment["world_revision"],
         }
         _last_unattended_pause = None
-        _refresh_public_observation_cache()
+        # The admitted transition already refreshed the bounded public cache
+        # before returning.  Refreshing it again here re-read the resident
+        # body while the transition lock was still held; on the production
+        # organism that duplicate observer pass held external sight and sound
+        # outside cognition for tens of seconds after physics had completed.
+        # Observation never earns a second organism borrow.
         return {"delivered": True, "outcome": category, **_last_unattended_evidence}
     finally:
         _transition_lock.release()

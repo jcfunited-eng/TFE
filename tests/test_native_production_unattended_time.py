@@ -275,6 +275,37 @@ def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) ->
     assert observed["outcome"] == "deferred_external_intake_waiting"
 
 
+def test_unattended_interval_does_not_repeat_the_committed_observer_refresh(
+    monkeypatch,
+) -> None:
+    refresh_count = 0
+    result = _transition_result(None)
+    _mount_translation_boundary(
+        monkeypatch,
+        before=_native_record(70, "66" * 32),
+        after=_native_record(71, "77" * 32),
+        result=result,
+    )
+
+    def refresh_once_inside_committed_intake(
+        _episodes, _intake, **_kwargs
+    ) -> dict[str, object]:
+        nonlocal refresh_count
+        refresh_count += 1
+        return result
+
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        refresh_once_inside_committed_intake,
+    )
+
+    observed = production._attempt_unattended_interval()
+
+    assert observed["delivered"] is True
+    assert refresh_count == 1
+
+
 def test_external_intake_signals_before_sync_route_worker_admission() -> None:
     assert inspect.isasyncgenfunction(production._external_intake_admission)
 
