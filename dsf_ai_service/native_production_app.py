@@ -14780,7 +14780,7 @@ def _perform_live_sight_intake(
         _live_sight_evidence = {
             "committed_batch_count": previous["committed_batch_count"] + 1,
             "committed_frame_count": (
-                previous["committed_frame_count"] + result["hop_count"]
+                previous["committed_frame_count"] + provenance["frame_count"]
             ),
             "last_capture": dict(provenance),
             "last_intake": intake,

@@ -100,7 +100,7 @@ let cameraStream=null,cameraTimer=null,cameraInFlightEpoch=null,cameraAccepted=f
 // The live-sight capture contract: a batch of PNG frames carrying the
 // caller's declared provenance. One JPEG on the retired single-frame
 // schema is refused, correctly, as intake without declared provenance.
-const CAMERA_MIN_FRAMES=4,CAMERA_MAX_FRAMES=8,CAMERA_SAMPLE_MS=250,CAMERA_COLUMNS=9,CAMERA_ROWS=3,CAMERA_PIXELS_PER_SITE=16;
+const CAMERA_MIN_FRAMES=4,CAMERA_MAX_FRAMES=4,CAMERA_SAMPLE_MS=250,CAMERA_COLUMNS=9,CAMERA_ROWS=3,CAMERA_PIXELS_PER_SITE=16;
 const SENSOR_RETRY_MS=CAMERA_MIN_FRAMES*CAMERA_SAMPLE_MS,MICROPHONE_CLOCK_START_TIMEOUT_MS=CAMERA_MAX_FRAMES*CAMERA_SAMPLE_MS*8;
 let cameraFrames=[];
 let microphoneStream=null,microphoneInFlightEpoch=null,microphoneAccepted=false,microphoneStarting=false,microphoneEpoch=0,microphoneAbort=null,microphoneWanted=false,microphoneRetryTimer=null,micClockWatchdog=null,micTransportRetryTimer=null;

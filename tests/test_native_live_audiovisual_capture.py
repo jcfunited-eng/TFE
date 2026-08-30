@@ -127,6 +127,37 @@ def test_route_commits_both_witnesses_from_one_native_transaction(
     assert captured["intake"].startswith("live-audiovisual:")
 
 
+def test_live_sight_counts_captured_frames_not_internal_consequence_hops(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        production,
+        "_live_sight_evidence",
+        {"committed_batch_count": 2, "committed_frame_count": 9},
+    )
+    monkeypatch.setattr(production, "_live_hearing_evidence", None)
+    monkeypatch.setattr(
+        production,
+        "_perform_admitted_intake_locked",
+        lambda _episodes, _intake: {
+            "hop_count": 47,
+            "observation": {"state_sha256": "a" * 64},
+        },
+    )
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+
+    production._perform_live_sight_intake(
+        [("episode", [(1, 4)])],
+        "live-audiovisual:test",
+        {"frame_count": 4},
+        includes_live_hearing=True,
+    )
+
+    assert production._live_sight_evidence["committed_batch_count"] == 3
+    assert production._live_sight_evidence["committed_frame_count"] == 13
+    assert production._live_hearing_evidence["intake"] == "live-audiovisual:test"
+
+
 def test_standalone_audio_never_borrows_an_earlier_camera_receipt(
     monkeypatch,
 ) -> None:
@@ -161,6 +192,7 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "const hops=micPairedHops.splice(0,hopCount)" in page
     assert "hops.map(hop=>hop.frame)" in page
     assert "function dispatchMicrophoneWindowFromClock()" in page
+    assert "CAMERA_MIN_FRAMES=4,CAMERA_MAX_FRAMES=4" in page
     assert "dispatchMicrophoneWindowFromClock();return" in page
     assert "micStreamLoop" not in page
     assert "||micTransportRetryTimer" in page
