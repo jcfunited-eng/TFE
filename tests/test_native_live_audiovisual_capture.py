@@ -163,7 +163,9 @@ def test_browser_uses_bounded_current_world_or_audiovisual_pressure() -> None:
     assert "if(cameraInFlightEpoch!==null)return" not in page
     assert "if(micSending||micSamples>=" not in page
     assert "if(micAttending&&!micSending" not in page
-    assert "stale window was discarded" in page
+    assert "SENSOR_REQUEST_TIMEOUT_MS" not in page
+    assert "MICROPHONE_CLOCK_START_TIMEOUT_MS" in page
+    assert "setTimeout(()=>controller.abort()" not in page
     assert 'stopCamera("Camera stopped while page is hidden")' not in page
     assert 'stopMicrophone("Microphone stopped while page is hidden")' not in page
 

@@ -104,8 +104,9 @@ def test_controls_have_monotonic_epoch_and_abort_boundaries() -> None:
     assert "epoch!==cameraEpoch||!cameraWanted" in source
     assert 'stopCamera("Camera stopped while page is hidden")' not in source
     assert 'stopMicrophone("Microphone stopped while page is hidden")' not in source
-    assert "eye remains open and the stale window was discarded" in source
-    assert "senses remain open and the stale window was discarded" in source
+    assert "SENSOR_REQUEST_TIMEOUT_MS" not in source
+    assert "Camera window cancelled as the eye closed" in source
+    assert "Audiovisual window cancelled as the sense closed" in source
     assert "if(acquired)acquired.getTracks().forEach(track=>track.stop())" in source
     assert "if(stream)stream.getTracks().forEach(track=>track.stop())" in source
     assert "function retryCamera(reason)" in source
