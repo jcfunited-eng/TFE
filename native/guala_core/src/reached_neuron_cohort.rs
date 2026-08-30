@@ -3135,6 +3135,10 @@ pub(crate) struct SparseReachedCohortIntervalSettlement {
     pub(crate) locally_quiescent: Box<[(usize, bool)]>,
     pub(crate) electrically_active: bool,
     pub(crate) quiescent: bool,
+    pub(crate) material_prepare_us: u64,
+    pub(crate) neuron_settlement_us: u64,
+    pub(crate) material_validation_us: u64,
+    pub(crate) apply_us: u64,
 }
 
 /// The settled reference state the physics measures experience deltas
@@ -4003,6 +4007,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     state: &mut ReachedCohortState,
     mut input: ReachedCohortIntervalInput<'_>,
 ) -> Result<SparseReachedCohortIntervalSettlement, ReachedCohortError> {
+    let settlement_stopwatch = std::time::Instant::now();
     if state.neurons.len() != anatomy.neurons.len()
         || state.electrical.contact_count() != anatomy.electrical.contact_count()
         || input.neurons.is_empty()
@@ -4085,6 +4090,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         .map_err(|_| ReachedCohortError::MaterialArithmetic(
             "reached interval successor allocation failed",
         ))?;
+    let material_prepare_wall = settlement_stopwatch.elapsed();
     let mut newly_opened_gate_channels = Vec::new();
     let mut local_outward_elementary_charges = Vec::new();
     let mut locally_quiescent = Vec::new();
@@ -4134,6 +4140,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         locally_quiescent.push((resident_index, settled.quiescent));
         successors.push((resident_index, settled.successor));
     }
+    let neuron_settlement_wall = settlement_stopwatch.elapsed();
     let actual_successor_material = successors.iter().try_fold(
         0_u128,
         |total, (_, successor)| {
@@ -4169,6 +4176,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
     let quiescent = !recovery_active
         && !electrically_active
         && locally_quiescent.iter().all(|(_, value)| *value);
+    let material_validation_wall = settlement_stopwatch.elapsed();
 
     for (resident_index, successor) in successors {
         state.neurons[resident_index] = successor;
@@ -4180,6 +4188,7 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         Box::new([])
     };
     state.recovery_fluid = reservoir;
+    let apply_wall = settlement_stopwatch.elapsed();
     Ok(SparseReachedCohortIntervalSettlement {
         contact_transitions,
         local_outward_elementary_charges: local_outward_elementary_charges.into_boxed_slice(),
@@ -4187,6 +4196,18 @@ pub(crate) fn settle_reached_cohort_interval_precomputed_in_place(
         locally_quiescent: locally_quiescent.into_boxed_slice(),
         electrically_active,
         quiescent,
+        material_prepare_us: u64::try_from(material_prepare_wall.as_micros())
+            .map_err(|_| ReachedCohortError::MaterialArithmetic("settlement timing overflow"))?,
+        neuron_settlement_us: u64::try_from(
+            (neuron_settlement_wall - material_prepare_wall).as_micros(),
+        )
+        .map_err(|_| ReachedCohortError::MaterialArithmetic("settlement timing overflow"))?,
+        material_validation_us: u64::try_from(
+            (material_validation_wall - neuron_settlement_wall).as_micros(),
+        )
+        .map_err(|_| ReachedCohortError::MaterialArithmetic("settlement timing overflow"))?,
+        apply_us: u64::try_from((apply_wall - material_validation_wall).as_micros())
+            .map_err(|_| ReachedCohortError::MaterialArithmetic("settlement timing overflow"))?,
     })
 }
 

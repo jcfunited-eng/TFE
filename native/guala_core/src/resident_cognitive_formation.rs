@@ -18732,6 +18732,10 @@ fn settle_internal_contact_interval(
     let cohort_input_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_pack_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_settle_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_material_prepare_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_neuron_settlement_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_material_validation_us = std::sync::atomic::AtomicU64::new(0);
+    let cohort_apply_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_effector_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_evidence_us = std::sync::atomic::AtomicU64::new(0);
     let cohort_tail_us = std::sync::atomic::AtomicU64::new(0);
@@ -19086,6 +19090,11 @@ fn settle_internal_contact_interval(
                 )
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
         let settlement_wall = cohort_stopwatch.elapsed();
+        let relaxed = std::sync::atomic::Ordering::Relaxed;
+        cohort_material_prepare_us.fetch_add(settlement.material_prepare_us, relaxed);
+        cohort_neuron_settlement_us.fetch_add(settlement.neuron_settlement_us, relaxed);
+        cohort_material_validation_us.fetch_add(settlement.material_validation_us, relaxed);
+        cohort_apply_us.fetch_add(settlement.apply_us, relaxed);
         // A mounted motor terminal is a second, neuron-local physical path.
         // Incoming contact carriers only prepare it by leaving retained
         // membrane displacement; they are never relabelled as the action.
@@ -19445,7 +19454,6 @@ fn settle_internal_contact_interval(
                 ));
             }
         }
-        let relaxed = std::sync::atomic::Ordering::Relaxed;
         cohort_prepare_us.fetch_add(
             u64::try_from(preparation_wall.as_micros())
                 .map_err(|_| FormationError::ArithmeticOverflow)?,
@@ -19512,7 +19520,8 @@ fn settle_internal_contact_interval(
     let relaxed = std::sync::atomic::Ordering::Relaxed;
     eprintln!(
         "guala-cohort-aggregate wall_ms={} prepare_us={} growth_us={} scaffold_us={} \
-         input_us={} pack_us={} settle_us={} effector_us={} evidence_us={} tail_us={} \
+         input_us={} pack_us={} settle_us={} material_prepare_us={} neuron_us={} \
+         material_validate_us={} apply_us={} effector_us={} evidence_us={} tail_us={} \
          cohorts={} members={}",
         (contact_stopwatch.elapsed() - shared_wall).as_millis(),
         cohort_prepare_us.load(relaxed),
@@ -19521,6 +19530,10 @@ fn settle_internal_contact_interval(
         cohort_input_us.load(relaxed),
         cohort_pack_us.load(relaxed),
         cohort_settle_us.load(relaxed),
+        cohort_material_prepare_us.load(relaxed),
+        cohort_neuron_settlement_us.load(relaxed),
+        cohort_material_validation_us.load(relaxed),
+        cohort_apply_us.load(relaxed),
         cohort_effector_us.load(relaxed),
         cohort_evidence_us.load(relaxed),
         cohort_tail_us.load(relaxed),
