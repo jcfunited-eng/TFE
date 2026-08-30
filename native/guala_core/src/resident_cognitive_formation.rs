@@ -19754,7 +19754,9 @@ fn settle_internal_contact_interval(
                 }
                 None => None,
             };
-            events.contact_schedule.reschedule(contact_index, due);
+            events
+                .contact_schedule
+                .reschedule_from_clock(clock, contact_index, due);
         }
         // The wake law: a changed endpoint wakes EVERY contact incident to
         // it, now — adding it to a later frontier is insufficient. A
@@ -19973,7 +19975,9 @@ fn settle_internal_contact_interval(
                 }
                 None => None,
             };
-            events.contact_schedule.reschedule(contact_index, due);
+            events
+                .contact_schedule
+                .reschedule_from_clock(clock, contact_index, due);
         }
         for flat in changed_flats.iter().copied() {
             let (cohort_index, neuron_index, lineage) = flat_locations[flat];
@@ -20077,7 +20081,9 @@ fn settle_internal_contact_interval(
                 })
                 .transpose()?
             };
-            events.recovery_schedule.reschedule(flat, due);
+            events
+                .recovery_schedule
+                .reschedule_from_clock(clock, flat, due);
         }
     }
     eprintln!(

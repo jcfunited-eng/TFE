@@ -1,9 +1,11 @@
 //! Exact causal event scheduler foundation (S15, Codex-corrected form).
 //!
-//! One entry per contact in a preallocated indexed binary heap ordered by
-//! `(due_clock, contact_index)`. An entry's due clock is the CARRIER
-//! crossing alone: the earliest clock at which carrier phase can reach a
-//! whole elementary charge under the standing drive set at its last
+//! One entry per contact in a preallocated exact schedule. Genuinely future
+//! events occupy an indexed binary heap ordered by `(due_clock,
+//! contact_index)`; events already proven due on the immediately following
+//! physical clock occupy a preallocated frontier. An entry's due clock is the
+//! CARRIER crossing alone: the earliest clock at which carrier phase can
+//! reach a whole elementary charge under the standing drive set at its last
 //! settlement. Transition work is never scheduled for a sleeper — it is
 //! evaluated synchronously when a gradient event wakes an endpoint, and the
 //! catch-up below carries the predecessor work phase through unchanged as a
@@ -27,19 +29,24 @@
 //! is derived state: rebuilt from the organism on restore, never persisted,
 //! and holding no cognitive authority.
 
-/// Preallocated indexed min-heap over contacts.
+/// Preallocated exact schedule over contacts.
 ///
-/// Storage is three parallel arrays sized once to the contact count:
-/// the heap of contact indices ordered by `(due_clock, contact_index)`,
-/// each contact's current position in that heap (or NONE), and each
-/// contact's due clock. Replacement and removal are O(log n) with no
-/// scanning, no allocation after construction, and no stale entries.
+/// Genuinely future events remain in an indexed min-heap ordered by
+/// `(due_clock, contact_index)`. Events already proven due on the immediately
+/// following physical clock occupy a separate preallocated frontier: moving
+/// the whole active fabric through heap removal and reinsertion every clock
+/// adds no causal information. Both surfaces share the exact due-time array;
+/// draining preserves the same `(due_clock, contact_index)` order.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CarrierCrossingSchedule {
     heap: Vec<u32>,
     position_by_contact: Vec<u32>,
+    next_clock_contacts: Vec<u32>,
+    next_position_by_contact: Vec<u32>,
     due_by_contact: Vec<u64>,
     len: usize,
+    next_len: usize,
+    next_clock: Option<u64>,
 }
 
 const NO_POSITION: u32 = u32::MAX;
@@ -50,8 +57,12 @@ impl CarrierCrossingSchedule {
         Self {
             heap: vec![0; contact_count],
             position_by_contact: vec![NO_POSITION; contact_count],
+            next_clock_contacts: vec![0; contact_count],
+            next_position_by_contact: vec![NO_POSITION; contact_count],
             due_by_contact: vec![0; contact_count],
             len: 0,
+            next_len: 0,
+            next_clock: None,
         }
     }
 
@@ -59,28 +70,56 @@ impl CarrierCrossingSchedule {
         for position in self.position_by_contact.iter_mut() {
             *position = NO_POSITION;
         }
+        for position in self.next_position_by_contact.iter_mut() {
+            *position = NO_POSITION;
+        }
         self.len = 0;
+        self.next_len = 0;
+        self.next_clock = None;
     }
 
     /// Read-only walk of every scheduled contact and its absolute due clock.
-    /// Order is contact-index order, not due order; use `drain_due_at` for
-    /// causal ordering. Used by the census probe and the restore report.
+    /// Storage order is not causal order; use `drain_due_at` for exact
+    /// `(due_clock, contact_index)` ordering. Used by read-only census and
+    /// restore reporting.
     pub(crate) fn scheduled_dues(&self) -> impl Iterator<Item = (usize, u64)> + '_ {
-        self.heap[..self.len as usize].iter().map(move |contact| {
-            (*contact as usize, self.due_by_contact[*contact as usize])
-        })
+        self.next_clock_contacts[..self.next_len]
+            .iter()
+            .chain(self.heap[..self.len].iter())
+            .map(move |contact| {
+                (*contact as usize, self.due_by_contact[*contact as usize])
+            })
     }
 
     pub(crate) fn scheduled_len(&self) -> usize {
-        self.len
+        self.len + self.next_len
     }
 
     /// Exact due clock for one contact, or `None` when that contact is not
     /// scheduled. The indexed position array is the authority for presence;
     /// callers must not walk the heap to rediscover one contact's entry.
     pub(crate) fn due_clock(&self, contact_index: usize) -> Option<u64> {
-        (self.position_by_contact[contact_index] != NO_POSITION)
+        (self.position_by_contact[contact_index] != NO_POSITION
+            || self.next_position_by_contact[contact_index] != NO_POSITION)
             .then_some(self.due_by_contact[contact_index])
+    }
+
+    fn remove_next(&mut self, contact_index: usize) {
+        let position = self.next_position_by_contact[contact_index];
+        if position == NO_POSITION {
+            return;
+        }
+        let index = position as usize;
+        self.next_len -= 1;
+        if index != self.next_len {
+            let moved = self.next_clock_contacts[self.next_len];
+            self.next_clock_contacts[index] = moved;
+            self.next_position_by_contact[moved as usize] = index as u32;
+        }
+        self.next_position_by_contact[contact_index] = NO_POSITION;
+        if self.next_len == 0 {
+            self.next_clock = None;
+        }
     }
 
     fn less(&self, left: u32, right: u32) -> bool {
@@ -131,6 +170,11 @@ impl CarrierCrossingSchedule {
 
     /// Set, replace, or remove a contact's due clock in O(log n).
     pub(crate) fn reschedule(&mut self, contact_index: usize, due_clock: Option<u64>) {
+        self.remove_next(contact_index);
+        self.reschedule_heap(contact_index, due_clock);
+    }
+
+    fn reschedule_heap(&mut self, contact_index: usize, due_clock: Option<u64>) {
         let contact = contact_index as u32;
         let position = self.position_by_contact[contact_index];
         match (position, due_clock) {
@@ -164,19 +208,63 @@ impl CarrierCrossingSchedule {
         }
     }
 
+    /// Reschedule from a settled physical clock. A due time of exactly the
+    /// next clock enters the preallocated active frontier in O(1); every other
+    /// due time retains the indexed-heap authority unchanged.
+    pub(crate) fn reschedule_from_clock(
+        &mut self,
+        settled_clock: u64,
+        contact_index: usize,
+        due_clock: Option<u64>,
+    ) {
+        let next_clock = settled_clock.checked_add(1);
+        if due_clock.is_some() && due_clock == next_clock {
+            if self.next_position_by_contact[contact_index] != NO_POSITION
+                && self.next_clock == due_clock
+            {
+                self.due_by_contact[contact_index] = due_clock.expect("checked Some");
+                return;
+            }
+            self.remove_next(contact_index);
+            self.reschedule_heap(contact_index, None);
+            if self.next_clock.is_none() {
+                self.next_clock = due_clock;
+            }
+            if self.next_clock == due_clock {
+                let position = self.next_len;
+                self.next_clock_contacts[position] = contact_index as u32;
+                self.next_position_by_contact[contact_index] = position as u32;
+                self.due_by_contact[contact_index] = due_clock.expect("checked Some");
+                self.next_len += 1;
+                return;
+            }
+        }
+        self.reschedule(contact_index, due_clock);
+    }
+
     /// Pop every contact due at or before `clock`, in exact
     /// `(due_clock, contact_index)` order, into `due`. No allocation when
     /// `due` retains its capacity across clocks.
     pub(crate) fn drain_due_at(&mut self, clock: u64, due: &mut Vec<usize>) {
         due.clear();
+        if self.next_clock.is_some_and(|next| next <= clock) {
+            for position in 0..self.next_len {
+                let contact = self.next_clock_contacts[position] as usize;
+                self.next_position_by_contact[contact] = NO_POSITION;
+                due.push(contact);
+            }
+            self.next_len = 0;
+            self.next_clock = None;
+        }
         while self.len > 0 {
             let top = self.heap[0] as usize;
             if self.due_by_contact[top] > clock {
                 break;
             }
             due.push(top);
-            self.reschedule(top, None);
+            self.reschedule_heap(top, None);
         }
+        due.sort_unstable_by_key(|contact| (self.due_by_contact[*contact], *contact));
     }
 }
 
@@ -565,5 +653,40 @@ mod tests {
         schedule.reschedule(2, Some(5));
         schedule.drain_due_at(5, &mut due);
         assert_eq!(due, vec![2]);
+    }
+
+    #[test]
+    fn next_clock_frontier_preserves_due_order_and_future_heap() {
+        let mut schedule = CarrierCrossingSchedule::with_contact_count(8);
+        schedule.reschedule_from_clock(9, 7, Some(10));
+        schedule.reschedule_from_clock(9, 3, Some(10));
+        schedule.reschedule_from_clock(9, 5, Some(12));
+        assert_eq!(schedule.scheduled_len(), 3);
+        assert_eq!(schedule.due_clock(7), Some(10));
+        assert_eq!(schedule.due_clock(5), Some(12));
+
+        let mut due = Vec::new();
+        schedule.drain_due_at(10, &mut due);
+        assert_eq!(due, vec![3, 7]);
+        assert_eq!(schedule.scheduled_len(), 1);
+        schedule.drain_due_at(12, &mut due);
+        assert_eq!(due, vec![5]);
+        assert_eq!(schedule.scheduled_len(), 0);
+    }
+
+    #[test]
+    fn rescheduling_moves_exactly_between_next_clock_and_future_storage() {
+        let mut schedule = CarrierCrossingSchedule::with_contact_count(4);
+        schedule.reschedule_from_clock(20, 2, Some(21));
+        schedule.reschedule_from_clock(20, 2, Some(25));
+        assert_eq!(schedule.scheduled_len(), 1);
+        assert_eq!(schedule.due_clock(2), Some(25));
+        schedule.reschedule_from_clock(24, 2, Some(25));
+        assert_eq!(schedule.scheduled_len(), 1);
+
+        let mut due = Vec::new();
+        schedule.drain_due_at(25, &mut due);
+        assert_eq!(due, vec![2]);
+        assert_eq!(schedule.scheduled_len(), 0);
     }
 }
