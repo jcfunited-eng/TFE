@@ -93,116 +93,208 @@ never absolute — it is applicability to the query at hand.
   unwilling mixture into a structure and set it before it escapes.
 
 ## SCIENCE
-The applying math, physics, and chemistry written IN, with working
-quantities, in kitchen terms. This is what lets a query compute.
+The math, physics, and chemistry of cooking, held — not mentioned.
+Each piece is a LAW a query can compute with, a RULE it can follow,
+and where it earns it, a WORKED case proving the rule runs.
 
-HEAT AND WATER, THE NUMBERS
-- Water soaks heat like almost nothing else: 4.2 joules to move
-  one gram one degree. Oil takes about half that (~2 J/g°C). So
-  water heats slowly, holds much, and punishes impatience.
-- Bringing a liter of water from 20°C to the boil costs ~336 kJ.
-  Boiling it AWAY costs almost seven times more: turning one gram
-  of water to steam eats 2,257 J without rising a single degree.
-  Consequences a query can use: a hard rolling boil cooks no
-  faster than a bare simmer (same 100°C) and spends the whole
-  difference making steam; steam burns are worse than water burns
-  because that stored energy comes back out on skin; reducing a
-  sauce is buying flavor with fuel.
-- The boiling ceiling moves with pressure: ~1°C lower per 300 m of
-  altitude (water boils near 90°C at 3,000 m — eggs and rice break
-  their sea-level rules there). A sealed pot at one extra
-  atmosphere raises the ceiling to ~121°C — the pressure cooker.
-- Reaction speed roughly DOUBLES per 10°C. So 121°C in a pressure
-  cooker runs roughly four times faster than 100°C; and the same
-  law backwards is refrigeration: 4°C runs spoilage at a crawl.
+### PHYSICS — heating a thing
 
-THE TEMPERATURE LADDER (what sets where — the kitchen's clock)
-- ~50-55°C: fish and meat's first proteins (myosin) begin to set;
-  rare.
-- ~62-65°C: egg white sets; yolk thickens ~65, sets ~70. Meat at
-  60-65 is juicy-firm.
-- ~66-73°C: the second meat protein (actin) sets and SQUEEZES —
-  this is where juices are wrung out and meat turns dry. The gap
-  between 65 and 72 is the difference between succulent and
-  sawdust, and it is only seven degrees wide: this is why the
-  thermometer beats the clock.
-- ~65-85°C, held LONG: collagen (connective tissue) melts to
-  gelatin. Tough cuts become spoonable — but only with hours. Fast
-  heat can never do it; this is braising's whole secret.
-- 100°C: water's sea-level ceiling. Wet methods stop here.
-- ~140°C+: browning chemistry (proteins + sugars) runs at cooking
-  speed — the flavor of sear, crust, toast, roast.
-- ~160-180°C: sugar alone caramelizes.
-- ~150-230°C: fats smoke — butter ~150, olive ~190-210, refined
-  oils ~230. A smoking fat is breaking down; frying lives between
-  ~160 and 190.
+LAW: energy to heat = mass × heat-capacity × degrees climbed.
+  Q = m · c · ΔT, in joules, grams, °C.
+  Heat capacities c (J per gram per °C): water 4.18 · oil ~2.0 ·
+  ice 2.1 · lean meat ~3.5 · bone ~1.3 · steel 0.5 · air 1.0.
+RULE: to find the energy a heating job needs — take the mass in
+  grams, times its heat capacity, times the degrees it must climb.
+WORKED: one liter of water (1,000 g), 20°C to the boil (80°):
+  1,000 × 4.18 × 80 = 334,400 J.
 
-TIME AND SIZE, THE MATH
-- Heat crossing food follows the square law: double the thickness,
-  roughly QUADRUPLE the time to the center. A 4 cm roast is not
-  twice the 2 cm one — it is four times. This one relation prices
-  most cooking-time questions.
-- Surface against volume: halve the dice, double the total surface
-  per amount. More surface = faster heat entry, faster browning,
-  faster drying. The same math is why a grated thing flavors
-  instantly and why flour (all surface) can dust-explode while a
-  wheat berry is inert.
-- Scaling a recipe is the times rule on AMOUNTS but never on time
-  or temperature: quantities are linear, heat travel is not (the
-  square law), and pan surface sets evaporation. Double a stew's
-  ingredients and its simmer time barely moves; double a loaf and
-  its bake stretches by thickness squared.
-- Salt and smoke walk into food on the diffusion clock: penetration
-  follows the SQUARE ROOT of time, on the order of a centimeter per
-  day into meat. An overnight brine seasons the outer centimeter; a
-  ham cures for weeks because the math allows no shortcut.
-- Ratios rule baking because chemistry needs proportions, not
-  amounts: bread runs on water at 60-75% of flour's weight and salt
-  near 2% of it; seasoning food in general lands near 1% salt by
-  weight of the food — the band the tongue calls "seasoned, not
-  salty."
-- Living leaven compounds: warm yeast doubles roughly every hour
-  and a half — the same arithmetic as interest, which is why a
-  pinch of starter is enough and why doubling times, not amounts,
-  are what recipes state.
+LAW: time = energy ÷ power. t = Q ÷ P, seconds, joules, watts.
+RULE: to find how long a burner needs — compute the job's energy
+  by the rule above, divide by the burner's watts.
+WORKED: that liter on a 2,000 W kettle: 334,400 ÷ 2,000 ≈ 167 s —
+  call it three minutes; the same liter on a 500 W camp coil takes
+  four times as long, ~11 minutes. Same law, backwards: a burner's
+  true power = energy delivered ÷ time observed.
 
-THE CHEMISTRY IN THE POT
-- Browning (proteins + sugars, ~140°C+, dry) builds hundreds of
-  new aroma molecules that were in neither parent — flavor is
-  MADE, not released. Caramel (sugar alone, hotter) is a different
-  reaction with its own register.
-- Emulsion mechanics: oil beaten into water survives only as
-  droplets too small to find each other, held apart by a mediator
-  whose molecule has an oil-loving end and a water-loving end (egg
-  yolk's lecithin, mustard's coat). Mayonnaise is ~75% oil standing
-  in ~25% water because the droplets are crowded small — force
-  determines fineness, the mediator determines survival.
-- Acid's two jobs: it denatures protein without heat (ceviche
-  "cooks" in lime — sets protein but kills no parasites; the
-  safety and the set are different claims), and below pH 4.6 it
-  forbids botulism outright — pickling is chemistry as law.
-- Water activity is preservation's one law wearing four coats:
-  salting, sugaring at strength, drying, and freezing all deny
-  microbes FREE water. Jam, jerky, salt cod, and the freezer are
-  the same idea.
-- Cut plants brown by a different route: an enzyme meets air at
-  the wound (apple, avocado). Acid or heat stops the enzyme —
-  lemon on the cut face, blanching before the freeze.
-- Starch thickens by bursting: granules swell in hot water and
-  unravel (~60-70°C), tangling the liquid. Cooled, the chains
-  re-stack and weep — which is stale bread and split sauce; gentle
-  reheat partly undoes it (toast resurrects bread).
-- Alcohol does NOT all cook off: ~35% remains after 30 minutes of
-  simmering, ~25% after an hour, ~5% only after 2.5 hours.
+LAW: changing form eats energy without moving temperature.
+  Melting ice: 334 J/g. Boiling water away: 2,257 J/g.
+RULE: to price evaporation — grams of water to remove × 2,257.
+WORKED: reducing a sauce by one cup (240 g of water):
+  240 × 2,257 ≈ 542,000 J — MORE energy than bringing the whole
+  liter to the boil took. This is why reduction is slow, why a
+  covered pot boils sooner, why steam burns worse than water at
+  the same temperature (each gram gives its 2,257 J back on skin),
+  and why a rolling boil cooks no faster than a simmer: both sit
+  at the ceiling; the extra flame only buys steam.
 
-THE SAFETY ARITHMETIC
-- The danger zone is 5-60°C: in its warm heart, bacteria double
-  every ~20 minutes — one becomes a thousand in five hours. Below
-  5 they crawl; above 60 they die on the time-temperature trade.
-- The trade is exact and tradable: 63°C held 30 minutes equals
-  72°C held 15 seconds (milk's pasteurization); poultry's 74°C
-  "instant" equals 63°C held several minutes. Milder-longer equals
-  hotter-shorter — the ladder's mirror image.
+LAW: the boiling ceiling follows pressure.
+  T_boil ≈ 100°C − (altitude in meters ÷ 300).
+  Sealed at ~1 extra atmosphere: T_boil ≈ 121°C.
+RULE: to correct a wet recipe for altitude — drop the ceiling by
+  one degree per 300 m, then repay with time by the speed law
+  below.
+WORKED: at 1,800 m the pot tops out at 94°C; a "10-minute" egg is
+  a 94°C egg, and by the speed law (2^(6/10) ≈ 1.5) needs half
+  again the time.
+
+LAW: cooking speed roughly doubles per 10°C.
+  speed factor = 2^(ΔT ÷ 10).
+RULE: to trade temperature for time — raise by ΔT, divide the time
+  by 2^(ΔT/10); lower, multiply.
+WORKED: pressure cooker at 121°C vs open pot at 100: 2^(21/10) ≈
+  4.3× — the four-hour braise in one. Backwards it is the
+  refrigerator: 20°C kitchen down to 4°C is 2^(16/10) ≈ 3× slower
+  spoilage per step, and the full warm-to-cold gap runs tenfold+.
+
+### PHYSICS — heat crossing food (the time-and-size math)
+
+LAW: time to the center grows with thickness SQUARED.
+  t₂ = t₁ × (L₂ ÷ L₁)².
+RULE: to re-time a different thickness — square the ratio of
+  thicknesses and multiply the known time.
+WORKED: a 2 cm fillet cooks through in 8 minutes; the 5 cm roast
+  of the same meat: 8 × (5/2)² = 8 × 6.25 = 50 minutes. NOT 20.
+  This one rule re-prices most "how long" questions, and it is why
+  doubling a recipe never doubles its oven time — only thickness
+  matters, and a wider pan at the same depth adds nothing.
+
+LAW: surface grows by the square, volume by the cube.
+  For a piece of size s: surface ∝ s², amount ∝ s³ — so surface
+  per amount ∝ 1/s.
+RULE: halve the piece, double the surface per amount — heat entry,
+  browning, drying, and flavor exchange all scale with it.
+WORKED: one potato cut into 8 half-size pieces: same amount, 2×
+  the total surface, roughly ¼ the cook time by the square law —
+  and twice the crust per bite when roasted.
+
+LAW: penetration follows the square root of time.
+  depth ≈ k × √t; for salt into meat k ≈ 1 cm per √day.
+RULE: to plan a cure or brine — square the wanted depth (in cm)
+  to get days.
+WORKED: season 1 cm deep = 1 day in the brine. A 4 cm-thick ham
+  cured to its heart (2 cm from each face): 2² = 4 days minimum,
+  and practice doubles it for safety. There is no shortcut in the
+  law — that is WHY quick recipes only ever season the surface.
+
+LAW: force concentrates as pressure. P = F ÷ A.
+WORKED: a 20 N push (two bags of sugar) on a sharp edge of 1 mm²
+  = 20,000,000 Pa; the same push on the flat of a thumb (2 cm²)
+  = 100,000 Pa. The sharp knife cuts with two hundred times the
+  pressure of the push behind it — and a dull edge (3 mm² of
+  contact) loses two-thirds of it, which is why dull knives crush
+  and slip.
+
+LAW: mixing finds the weighted middle.
+  T_final = (m₁c₁T₁ + m₂c₂T₂) ÷ (m₁c₁ + m₂c₂).
+RULE: to predict the crash when cold food meets hot fat or water —
+  weight each side's mass × heat-capacity × temperature, add, and
+  divide by the summed mass × capacity.
+WORKED: 1,000 g of 180°C oil (c=2.0) takes 500 g of 20°C potato
+  (c≈3.4): (2,000×180 + 1,700×20) ÷ (2,000+1,700) ≈ 106°C. The
+  fry just became a boil — below browning's 140 floor. Halve the
+  load: (2,000×180 + 850×20) ÷ 2,850 ≈ 132°C — nearly back in the
+  window. THE LAW ITSELF says: fry in small batches.
+
+### MATHEMATICS — the kitchen's proportions
+
+LAW: scaling is the times rule on amounts ONLY.
+  amounts × n; temperatures × 1; times re-priced by thickness
+  squared, never by n.
+RULE: to scale a recipe — multiply every ingredient by n; leave
+  the oven alone; re-time only if the FOOD got thicker.
+
+LAW: baking runs on ratios to flour (baker's proportions).
+  Every ingredient states itself as a fraction of the flour's
+  weight: bread water 0.60-0.75 · salt 0.02 · yeast 0.005-0.02.
+RULE: to size any bread — choose the flour mass, multiply out the
+  fractions.
+WORKED: 500 g flour at 70% hydration, 2% salt: 350 g water, 10 g
+  salt. The ratio IS the recipe; the amounts are just its size.
+
+LAW: seasoning lands at ~1% salt by weight of the food; brines at
+  5-8% of the water.
+WORKED: a 2 kg roast wants ~20 g of salt; a 2-liter brine at 6%
+  wants 120 g.
+
+LAW: living things compound. N = N₀ × 2^(t ÷ doubling time).
+  Yeast, warm: doubles ~90 min. Spoilage bacteria, warm heart of
+  the danger zone: doubles ~20 min.
+RULE: to project growth — count the doublings that fit in the
+  time, raise 2 to that power.
+WORKED twice, same law, both directions of care:
+  · dough: a gram of yeast, 6 warm hours = 4 doublings = 16× —
+    why a pinch is enough and why time, not amount, is what
+    recipes state;
+  · danger: 1,000 bacteria on warm chicken, 3 hours = 9 doublings
+    = 512,000. The counter thaw is this arithmetic, run once.
+
+### CHEMISTRY — the reactions themselves
+
+REACTION: browning (Maillard): amino acids + reducing sugars
+  →(≥ ~140°C, dry surface)→ hundreds of new aroma and color
+  molecules that existed in neither parent. Flavor is MADE.
+  CONDITIONS, both hard: temperature ≥ ~140°C AND water gone from
+  the surface — a wet surface is pinned near 100 by the boiling
+  law, 40 degrees short, until the water is spent.
+REACTION: caramelization: sugar alone →(~160-180°C)→ its own
+  bitter-sweet family. A different reaction, a different register.
+
+REACTION: fermentation, the two hired kinds:
+  · yeast, no air: sugar → 2 alcohol + 2 CO₂ (bread's rise, beer)
+  · bacteria: sugar → lactic acid (yogurt, kraut, sourdough's tang)
+  The acid then falls under the pH law below — flavor and safety
+  from the same reaction.
+
+REACTION: chemical leavening: baking soda + an acid → CO₂ + water
+  + a salt. NO acid partner, NO burp — that is the whole
+  difference between soda (needs buttermilk, lemon, molasses) and
+  baking powder (carries its own acid, waits for water and heat).
+
+LAW: pH is a logarithm — each step is 10×.
+  The line that is law: below pH 4.6, botulism cannot grow.
+RULE: to can at home — measure the food's pH; ≤ 4.6 may take the
+  boiling-water bath; above 4.6 MUST take the pressure canner's
+  121°C, because the spore survives 100°C and no time at a boil
+  fixes that.
+
+LAW: proteins unfold one-way on the temperature ladder:
+  fish/meat myosin ~50-55°C · egg white ~62-65 · yolk 65-70 ·
+  meat actin ~66-73 (the SQUEEZE — juices wrung out, meat turns
+  dry) · collagen → gelatin 65-85°C held for HOURS.
+RULE: to cook meat juicy — bring it into the set-but-not-squeezed
+  window (58-65°C) and never past; to make tough meat tender —
+  hold 80-ish for hours and pay collagen's time bill; the two
+  goals need two different methods because the ladder says so.
+  Acid does what heat does (ceviche sets in lime) but kills
+  nothing — the set and the safety are separate claims.
+
+LAW: preservation is one law in four coats — deny microbes FREE
+  water. Salt binds it, sugar at strength binds it, drying removes
+  it, freezing locks it as ice. Jam, jerky, salt cod, and the
+  freezer are the same sentence in four accents.
+
+LAW: starch gels at 60-70°C — granules swell, burst, and tangle
+  the liquid (thickening); cooled, the chains re-stack and weep
+  (stale bread, split sauce); gentle reheat partly reverses it
+  (toast is chemistry, not nostalgia).
+
+LAW: alcohol outlasts the flame — after simmering:
+  30 min ~35% remains · 1 h ~25% · 2.5 h ~5%.
+RULE: cooking "off" the wine is a claim about TIME; state the
+  hours or don't make it.
+
+### THE SAFETY ARITHMETIC (physics + biology, welded)
+
+LAW: the danger zone is 5-60°C; in its warm heart the doubling
+  law above runs at ~20 minutes.
+LAW: killing trades time for temperature, tenfold per ~7°C:
+  t₂ = t₁ ÷ 10^(ΔT ÷ 7).
+RULE: to match any two pasteurizations — every 7°C hotter divides
+  the needed time by ten.
+WORKED: milk at 63°C for 30 min ≡ 70°C for 3 min ≡ 72°C for ~15 s
+  (the dairy's actual numbers). Chicken "74°C instantly" ≡ 63°C
+  held ~2.5 min — the sous-style road to safe AND juicy, straight
+  from this one law.
 - Washing raw poultry moves its bacteria to the sink and counters;
   heat, not water, is the instrument (mirror holds the full entry).
 
