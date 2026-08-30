@@ -7047,6 +7047,28 @@ impl ResidentCognitiveFormationState {
     /// recovery-fluid reservoir, the dissipation ledgers, and the separated
     /// membrane charge still standing away from rest.
     pub(crate) fn energy_state(&self) -> ReachedCohortEnergyState {
+        // This is terminal observation, never settlement authority. Each
+        // cohort owns independent anatomy/state, so its exact subtotal may be
+        // read concurrently. `IndexedParallelIterator::collect` preserves the
+        // canonical cohort order; the final BigRational additions therefore
+        // occur in precisely the former serial order and return bit-identical
+        // totals rather than an order-dependent reduction.
+        let cohort_energy = self
+            .cohorts
+            .par_iter()
+            .map(|cohort| {
+                reached_cohort_energy_state(&cohort.anatomy, &cohort.state)
+            })
+            .collect::<Vec<_>>();
+        let mut total = ReachedCohortEnergyState::default();
+        for cohort in cohort_energy {
+            accumulate_reached_cohort_energy(&mut total, cohort);
+        }
+        total
+    }
+
+    #[cfg(test)]
+    fn energy_state_serial_reference(&self) -> ReachedCohortEnergyState {
         let mut total = ReachedCohortEnergyState::default();
         for cohort in &self.cohorts {
             accumulate_reached_cohort_energy(
@@ -21312,6 +21334,21 @@ mod tests {
             })
             .collect::<Vec<_>>();
         DevelopmentalElectricalSeed::new(sites, contacts).unwrap()
+    }
+
+    #[test]
+    fn parallel_terminal_energy_observation_matches_serial_fixed_order() {
+        let source = exact_four_single_optical_episode(0);
+        let seed = explicit_optical_seed(&source, 500);
+        let mut state =
+            ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed])
+                .unwrap();
+        let prepared = state
+            .prepare_admitted_transition(&admitted_fixture_episode(&source), 16_000_000)
+            .unwrap();
+        state.commit(prepared).unwrap();
+
+        assert_eq!(state.energy_state(), state.energy_state_serial_reference());
     }
 
     fn local_lineage(ordinal: u64) -> [u8; 16] {
