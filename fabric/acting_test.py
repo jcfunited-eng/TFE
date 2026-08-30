@@ -34,9 +34,23 @@ FRAMES = ["{op} {a} and {b}", "{op} {a} by {b}", "work out {a} {op} {b}",
           "please {op} {a} and {b}", "{op} {a} with {b}"]
 
 
+# task shapes beyond arithmetic, so one narrow kind of instruction
+# cannot stand in for being told what to do. Each answer is checkable
+# without me: which of two numbers is bigger is not an opinion.
+SHAPES = [("which is bigger, {a} or {b}", "bigger"),
+          ("put {a} and {b} in order", "put"),
+          ("share {a} between {b} people", "share"),
+          ("count from {a} to {b}", "count"),
+          ("take {a} away from {b}", "take")]
+
+
 def cases():
     rnd = random.Random(11)
     out = []
+    for f, op in SHAPES:
+        for _ in range(6):
+            a, b = rnd.randint(2, 99), rnd.randint(2, 99)
+            out.append((f.format(a=a, b=b), op, {a, b}))
     for f in FRAMES:
         for op in OPS:
             for _ in range(3):

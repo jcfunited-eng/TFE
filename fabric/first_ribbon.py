@@ -810,11 +810,24 @@ def doing_of(gs, why=False, forbids=False):
                "word in without a pointer, so this says what a thing "
                "is rather than doing something")
         return (None, how) if why else None
-    plain = [i for i, g in enumerate(gs) if not carried_in(g)]
+    # Numbers and asking words are ruled out of the pool BEFORE the
+    # contrast narrows it. Ruling them out afterwards left nothing and
+    # fell back to the whole pool, so "which is bigger, 39 or 12"
+    # turned on 39 despite a rule saying a count cannot act.
+    # in that order and each with its own fallback: taken together
+    # they emptied the pool for "which is bigger, 39 or 12" — every
+    # group is either a number or carries the asking word — and the
+    # single fallback then handed back the numbers.
+    usable = [i for i in range(len(gs)) if not head(gs[i]).isdigit()]
+    if not usable:
+        usable = list(range(len(gs)))
+    noask = [i for i in usable if not (set(gs[i]) & C.asking)]
+    usable = noask or usable
+    plain = [i for i in usable if not carried_in(gs[i])]
     # a marked member needs a plain one to be marked against: if
     # nothing was opened, or everything was, there is no contrast here
-    contrast = 0 < len(plain) < len(gs)
-    cand = plain if contrast else list(range(len(gs)))
+    contrast = 0 < len(plain) < len(usable)
+    cand = plain if contrast else list(usable)
     # A group that carries no content word is not a finished group —
     # 174 says a group is a run of frame words CARRYING one word from
     # outside the frame, so a run that never met one is a leftover,
