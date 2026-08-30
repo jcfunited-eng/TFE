@@ -1063,3 +1063,13 @@ grip proprioception. A mounted contact or passing HTTP response alone cannot
 close this item. Named dopamine, oxytocin, or other molecular claims remain
 forbidden unless their exact simulated chemistry is independently present and
 observed.
+
+The first task-1348 unattended trajectory reached the new motor path, then was
+refused before commit because the Python/native boundary still required every
+motor afferent receptor to be layer 5. That was the predecessor body's former
+proprioceptor-only domain, not the candidate's exact layer-2 palmar anatomy.
+The refusal left the committed organism at generation `298941` and left both
+grips and the world unchanged. The correction admits only the exact tactile
+tuple `(sense=2, topology=27, native-palmar-contact, held-contact)` alongside
+the existing layer-5 domain; another tactile topology remains refused by a
+focused falsifier.

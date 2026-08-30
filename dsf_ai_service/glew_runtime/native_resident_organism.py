@@ -31,6 +31,10 @@ def _record_runtime_phase(phase: str, started: float) -> None:
 RUNTIME_SCHEMA = "guala.native.resident_organism_runtime.v3"
 OBSERVATION_SCHEMA = "guala.native.resident_organism_observation.v3"
 PREPARE_SCHEMA = "guala.native.resident_organism_prepare.v3"
+PALMAR_CONTACT_SENSE_LAYER = 2
+PALMAR_CONTACT_TOPOLOGY_INDEX = 27
+PALMAR_CONTACT_SENSOR_ID = "native-palmar-contact"
+PALMAR_CONTACT_SUBSTREAM_ID = "held-contact"
 
 DirectedPhysicalTransferEvidence = tuple[str, str, int, int]
 TimedDirectedPhysicalTransferEvidence = tuple[int, DirectedPhysicalTransferEvidence]
@@ -983,8 +987,14 @@ def _motor_unit_recruitment_evidence(
             )
             sensor_id = path[5]
             substream_id = path[6]
+            exact_palmar_contact = (
+                sense_layer == PALMAR_CONTACT_SENSE_LAYER
+                and receptor_topology == PALMAR_CONTACT_TOPOLOGY_INDEX
+                and sensor_id == PALMAR_CONTACT_SENSOR_ID
+                and substream_id == PALMAR_CONTACT_SUBSTREAM_ID
+            )
             if (
-                sense_layer != 5
+                (sense_layer != 5 and not exact_palmar_contact)
                 or len({lineage, regulation, integration, receptor}) != 4
                 or not isinstance(sensor_id, str)
                 or not sensor_id

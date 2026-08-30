@@ -1088,6 +1088,42 @@ def test_prepare_refuses_motor_without_exact_body_afferent_ancestry(
         organism.prepare(_Source())
 
 
+def test_motor_boundary_accepts_only_the_exact_palmar_grasp_afferent() -> None:
+    motor = "12" * 16
+    ordering = "11" * 16
+    regulation = "08" * 16
+    integration = "06" * 16
+    receptor = "02" * 16
+    recruitment = [
+        (
+            motor,
+            3,
+            9,
+            [(motor, 12, ordering, 11, 0, 4)],
+            [
+                (
+                    regulation,
+                    integration,
+                    receptor,
+                    boundary.PALMAR_CONTACT_SENSE_LAYER,
+                    boundary.PALMAR_CONTACT_TOPOLOGY_INDEX,
+                    boundary.PALMAR_CONTACT_SENSOR_ID,
+                    boundary.PALMAR_CONTACT_SUBSTREAM_ID,
+                )
+            ],
+        )
+    ]
+
+    observed = boundary._motor_unit_recruitment_evidence(recruitment)
+    assert observed[0][4][0][2] == receptor
+
+    wrong_site = list(recruitment[0][4][0])
+    wrong_site[4] -= 1
+    recruitment[0] = (*recruitment[0][:4], [tuple(wrong_site)])
+    with pytest.raises(RuntimeError, match="body afferent path is not physical"):
+        boundary._motor_unit_recruitment_evidence(recruitment)
+
+
 def test_prepare_refuses_fractal_count_without_per_neuron_evidence(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

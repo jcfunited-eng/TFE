@@ -1454,9 +1454,11 @@ pub(crate) struct MotorUnitRecruitment {
     pub(crate) body_effector_terminal: BodyEffectorTerminal,
     /// Exact sparse afferent ancestry already retained behind this motor cell:
     /// layer 12 -> layer 8 body regulation -> layer 6 local integration ->
-    /// one named layer-5 physical body receptor. This is transient anatomy
-    /// evidence only. An afferent site is not silently promoted into an
-    /// effector, action name, or command.
+    /// one exact physical receptor. Ordinary articulated paths terminate at a
+    /// named layer-5 body receptor; the singular palmar grasp reflex terminates
+    /// at its exact layer-2 tactile site. This is transient anatomy evidence
+    /// only. An afferent site is not silently promoted into an effector, action
+    /// name, or command.
     pub(crate) body_afferent_paths: Vec<MotorBodyAfferentPath>,
     /// Every exact whole-carrier transfer across this motor cell's direct
     /// contact with a mounted layer-11 ordering cell or its explicitly traced
