@@ -287,10 +287,13 @@ RULE: cooking "off" the wine is a claim about TIME; state the
 
 LAW: the danger zone is 5-60°C; in its warm heart the doubling
   law above runs at ~20 minutes.
-LAW: killing trades time for temperature, tenfold per ~7°C:
-  t₂ = t₁ ÷ 10^(ΔT ÷ 7).
+LAW: killing trades time for temperature, tenfold per ~7°C for
+  ordinary microbes: t₂ = t₁ ÷ 10^(ΔT ÷ 7). The toughest spores
+  (botulism's among them) trade nearer tenfold per ~10°C — the
+  number canning law runs on; the life phylum holds both scales.
 RULE: to match any two pasteurizations — every 7°C hotter divides
-  the needed time by ten.
+  the needed time by ten (ordinary microbes; use ~10°C per tenfold
+  when the target is a spore).
 WORKED: milk at 63°C for 30 min ≡ 70°C for 3 min ≡ 72°C for ~15 s
   (the dairy's actual numbers). Chicken "74°C instantly" ≡ 63°C
   held ~2.5 min — the sous-style road to safe AND juicy, straight
@@ -470,11 +473,15 @@ what runs along it.
 - FARMING: everything on the board grew somewhere; seasons set the
   pantry; breeds and varieties are flavor decisions made decades
   early.
-- WEATHER AND GEOGRAPHY: altitude moves the ceiling; climate wrote
-  the preservation map; the sea salts its coasts' cuisine.
+- WEATHER: altitude moves the ceiling; climate wrote the
+  preservation map; the sea salts its coasts' cuisine. (The
+  geography half of this road points outside the twelve — not yet
+  built.)
 - ECONOMY: salt as money, spice as empire, thrift's cookbook,
   preservation as stored wealth, the staple grains as civilization's
-  payroll.
+  payroll; and the doubling clock is one law with the ledger's —
+  dough and debt both run 2^(t ÷ doubling time), a dotted line this
+  phylum's mirror filed and the economy phylum cashed.
 - HISTORY AND CULTURE: recipes as inheritance, the table as bond,
   cuisine as the memory of scarcity survived.
 - ENGINEERING: the means — every stove, vessel, and cold box; the

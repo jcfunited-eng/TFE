@@ -207,7 +207,10 @@ Connections that broke, or are suspected and unproven.
 - SUSPECTED, UNPROVEN: FLAVOR PAIRING ↔ SHARED AROMA CHEMISTRY —
   grips on tested pairs, unproven as a predictor on new ones; the
   relation stands dotted until the CLAIMS entry above drains.
-- SUSPECTED, UNPROVEN: FERMENTATION'S ARITHMETIC ↔ MONEY'S
-  COMPOUNDING — the doubling math is identical; whether the
-  relation carries anything a query can USE beyond the analogy is
-  unproven. Filed dotted, awaiting a query that cashes it.
+- CASHED, DRAINED TO THE COLOR: FERMENTATION'S ARITHMETIC ↔
+  MONEY'S COMPOUNDING — filed here dotted, awaiting a query that
+  cashes it. The economy phylum cashed it: one law, 2^(t ÷
+  doubling time), run on dough here and on savings, debts, and
+  schemes there with working numbers, cargo both ways. The
+  relation stands first-class in both colors now; this entry
+  stays as the record of a dotted line that drained.
