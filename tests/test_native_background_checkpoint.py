@@ -154,8 +154,8 @@ def test_later_refusal_retains_already_lived_resident_successor(monkeypatch) -> 
     monkeypatch.setattr(production, "_checkpoint_every_intervals", lambda: 4)
 
     retained = production._retain_already_lived_intake_after_refusal(
+        SimpleNamespace(live_organism_tick=44),
         predecessor,
-        44,
         "live-audiovisual:test",
         RuntimeError("downstream evidence refused"),
     )
@@ -174,8 +174,8 @@ def test_refusal_without_a_lived_successor_does_not_claim_retention(monkeypatch)
     monkeypatch.setattr(production, "_checkpoint_requested", checkpoint_requested)
 
     retained = production._retain_already_lived_intake_after_refusal(
+        SimpleNamespace(live_organism_tick=40),
         predecessor,
-        40,
         "live-audiovisual:test",
         RuntimeError("native settlement refused"),
     )

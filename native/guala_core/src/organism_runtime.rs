@@ -101,11 +101,17 @@ const PRE_ARTICULATED_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";
 const PRE_ARTICULATED_FABRIC_VERSION: u16 = 8;
 const PRE_PHONATORY_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB09";
 const PRE_PHONATORY_FABRIC_VERSION: u16 = 9;
-const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB10";
-const FABRIC_VERSION: u16 = 10;
+const PRE_ACOUSTIC_FLIGHT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB10";
+const PRE_ACOUSTIC_FLIGHT_FABRIC_VERSION: u16 = 10;
+const FABRIC_MAGIC: &[u8; 8] = b"GLMFAB11";
+const FABRIC_VERSION: u16 = 11;
 const CANAL_STATE_BYTES: usize = 32;
 const VESTIBULAR_BODY_BYTES: usize =
     FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES + CANAL_STATE_BYTES + std::mem::size_of::<u64>();
+const MAX_ADMITTED_ACOUSTIC_INTERVAL_SECONDS: usize = 30;
+const MAX_IN_FLIGHT_ACOUSTIC_SAMPLES: usize =
+    ARTICULATORY_SAMPLE_RATE_HZ as usize * MAX_ADMITTED_ACOUSTIC_INTERVAL_SECONDS;
+const IN_FLIGHT_ACOUSTIC_BODY_CHANNELS: usize = 4;
 
 fn exact_energy_parts(value: &BigRational) -> (BigInt, BigInt) {
     (value.numer().clone(), value.denom().clone())
@@ -122,7 +128,8 @@ const FABRIC_FIXED_BYTES: usize = FABRIC_MAGIC.len()
     + std::mem::size_of::<u32>()
     + std::mem::size_of::<u32>()
     + VESTIBULAR_BODY_BYTES
-    + ARTICULATED_BODY_STATE_BYTES;
+    + ARTICULATED_BODY_STATE_BYTES
+    + std::mem::size_of::<u32>();
 const LEGACY_FABRIC_FIXED_BYTES: usize = LEGACY_FABRIC_MAGIC.len()
     + std::mem::size_of::<u16>()
     + std::mem::size_of::<u64>()
@@ -679,6 +686,134 @@ impl ResidentVestibularBody {
     }
 }
 
+/// One radiated vocal-body consequence that has left the mouth but has not
+/// yet reached the organism's ears. This is current physical state, not an
+/// observation log: it is replaced when heard and omitted at exact rest.
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct InFlightAcousticConsequence {
+    source_tick: u64,
+    pressure_pcm: Vec<i16>,
+    body_mechanical_trajectories: [Vec<i16>; IN_FLIGHT_ACOUSTIC_BODY_CHANNELS],
+}
+
+impl InFlightAcousticConsequence {
+    fn new(
+        source_tick: u64,
+        pressure_pcm: Vec<i16>,
+        body_mechanical_trajectories: [Vec<i16>; IN_FLIGHT_ACOUSTIC_BODY_CHANNELS],
+    ) -> Result<Option<Self>, RuntimeError> {
+        if pressure_pcm.is_empty() || pressure_pcm.iter().all(|sample| *sample == 0) {
+            return Ok(None);
+        }
+        if pressure_pcm.len() > MAX_IN_FLIGHT_ACOUSTIC_SAMPLES
+            || body_mechanical_trajectories
+                .iter()
+                .any(|trajectory| trajectory.len() != pressure_pcm.len())
+        {
+            return Err(RuntimeError::ArticulatedBody(
+                "radiated acoustic consequence exceeded its one-interval body bound".into(),
+            ));
+        }
+        Ok(Some(Self {
+            source_tick,
+            pressure_pcm,
+            body_mechanical_trajectories,
+        }))
+    }
+
+    fn pressure_s16le(&self) -> Vec<u8> {
+        self.pressure_pcm
+            .iter()
+            .flat_map(|sample| sample.to_le_bytes())
+            .collect()
+    }
+
+    fn body_s16le(&self) -> Vec<u8> {
+        self.body_mechanical_trajectories
+            .iter()
+            .flatten()
+            .flat_map(|sample| sample.to_le_bytes())
+            .collect()
+    }
+
+    fn matches_transport(&self, pressure_s16le: &[u8], body_s16le: &[u8]) -> bool {
+        fn samples_match_s16le<'a>(
+            samples: impl Iterator<Item = &'a i16>,
+            encoded: &[u8],
+        ) -> bool {
+            let mut chunks = encoded.chunks_exact(std::mem::size_of::<i16>());
+            let matched = samples.zip(chunks.by_ref()).all(|(sample, bytes)| {
+                sample.to_le_bytes() == [bytes[0], bytes[1]]
+            });
+            matched && chunks.remainder().is_empty()
+        }
+
+        pressure_s16le.len() == self.pressure_pcm.len() * std::mem::size_of::<i16>()
+            && body_s16le.len()
+                == self.pressure_pcm.len()
+                    * IN_FLIGHT_ACOUSTIC_BODY_CHANNELS
+                    * std::mem::size_of::<i16>()
+            && samples_match_s16le(self.pressure_pcm.iter(), pressure_s16le)
+            && samples_match_s16le(
+                self.body_mechanical_trajectories.iter().flatten(),
+                body_s16le,
+            )
+    }
+
+    fn followed_by(
+        mut self,
+        successor: Option<InFlightAcousticConsequence>,
+    ) -> Result<Option<Self>, RuntimeError> {
+        let Some(successor) = successor else {
+            return Ok(Some(self));
+        };
+        let combined_count = self
+            .pressure_pcm
+            .len()
+            .checked_add(successor.pressure_pcm.len())
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        if combined_count > MAX_IN_FLIGHT_ACOUSTIC_SAMPLES {
+            return Err(RuntimeError::ArticulatedBody(
+                "current radiated acoustic span exceeded the admitted sensory interval".into(),
+            ));
+        }
+        self.pressure_pcm.extend(successor.pressure_pcm);
+        for (retained, following) in self
+            .body_mechanical_trajectories
+            .iter_mut()
+            .zip(successor.body_mechanical_trajectories)
+        {
+            retained.extend(following);
+        }
+        Ok(Some(self))
+    }
+}
+
+fn in_flight_acoustic_from_receipt(
+    receipt: &ResidentPrepareReceipt,
+) -> Result<Option<InFlightAcousticConsequence>, RuntimeError> {
+    let mut pressure_pcm = Vec::new();
+    let mut body_mechanical_trajectories: [Vec<i16>; IN_FLIGHT_ACOUSTIC_BODY_CHANNELS] =
+        std::array::from_fn(|_| Vec::new());
+    for interval in &receipt.causal_interval_evidence {
+        let Some(transition) = interval.articulatory_body_transition.as_ref() else {
+            continue;
+        };
+        pressure_pcm.extend_from_slice(&transition.radiated_pressure_pcm);
+        for (retained, observed) in body_mechanical_trajectories
+            .iter_mut()
+            .zip(&transition.body_mechanical_trajectories)
+        {
+            retained.extend_from_slice(observed);
+        }
+    }
+    InFlightAcousticConsequence::new(
+        receipt.observation.organism_tick,
+        pressure_pcm,
+        body_mechanical_trajectories,
+    )
+}
+
 #[derive(Debug, Eq, PartialEq)]
 struct ActiveResidentOrganismState {
     envelope: Vec<u8>,
@@ -686,6 +821,7 @@ struct ActiveResidentOrganismState {
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     articulated_body: ArticulatedBodyState,
+    in_flight_acoustic: Option<InFlightAcousticConsequence>,
     observation: RuntimeObservation,
 }
 
@@ -697,6 +833,7 @@ struct PendingResidentOrganismState {
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     articulated_body: ArticulatedBodyState,
+    in_flight_acoustic: Option<InFlightAcousticConsequence>,
     observation: RuntimeObservation,
 }
 
@@ -720,6 +857,7 @@ struct UnsealedResidentOrganismState {
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     articulated_body: ArticulatedBodyState,
+    in_flight_acoustic: Option<InFlightAcousticConsequence>,
     observation: RuntimeObservation,
 }
 
@@ -1013,6 +1151,7 @@ pub struct NativeLivedStateSnapshot {
     cognitive: ResidentCognitiveFormationState,
     vestibular: ResidentVestibularBody,
     articulated_body: ArticulatedBodyState,
+    in_flight_acoustic: Option<InFlightAcousticConsequence>,
     observation: RuntimeObservation,
     predecessor: RuntimeObservation,
     next_prepare_ordinal: u64,
@@ -1042,6 +1181,7 @@ impl NativeLivedStateSnapshot {
             &sealed_cognitive.encoded,
             &self.vestibular,
             &self.articulated_body,
+            self.in_flight_acoustic.as_ref(),
             self.budget,
         )?;
         let envelope = encode_envelope(
@@ -2967,7 +3107,14 @@ fn retain_terminal_cognitive_observation(
 impl ResidentOrganismRuntime {
     fn restore_envelope(envelope: Vec<u8>, budget: RuntimeBudget) -> Result<Self, RuntimeError> {
         let derived_budget = budget.derive()?;
-        let (mounted, cognitive, vestibular, articulated_body, observation) =
+        let (
+            mounted,
+            cognitive,
+            vestibular,
+            articulated_body,
+            in_flight_acoustic,
+            observation,
+        ) =
             {
                 let parsed = parse_current_envelope(&envelope, budget)?;
                 let vestibular =
@@ -2980,6 +3127,7 @@ impl ResidentOrganismRuntime {
                 let articulated_body = parsed.articulated_body.clone().ok_or(
                     RuntimeError::UnsupportedFabricVersion(PRE_ARTICULATED_FABRIC_VERSION),
                 )?;
+                let in_flight_acoustic = parsed.in_flight_acoustic.clone();
                 let (mounted, summary) = restore_resident_mounted_state(
                     parsed.joint_bytes,
                     derived_budget.max_joint_state_bytes,
@@ -3002,6 +3150,7 @@ impl ResidentOrganismRuntime {
                     cognitive,
                     vestibular,
                     articulated_body,
+                    in_flight_acoustic,
                     observation,
                 )
             };
@@ -3012,6 +3161,7 @@ impl ResidentOrganismRuntime {
                 cognitive,
                 vestibular,
                 articulated_body,
+                in_flight_acoustic,
                 observation,
             },
             unsealed: None,
@@ -3069,6 +3219,7 @@ impl ResidentOrganismRuntime {
             self.active.observation.clone(),
             self.active.vestibular.clone(),
             self.active.articulated_body.clone(),
+            self.active.in_flight_acoustic.clone(),
             true,
             &mut residency,
         );
@@ -3097,6 +3248,7 @@ impl ResidentOrganismRuntime {
             cognitive: pending.cognitive,
             vestibular: pending.vestibular,
             articulated_body: pending.articulated_body,
+            in_flight_acoustic: pending.in_flight_acoustic,
             observation: pending.observation,
         };
         self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
@@ -3116,7 +3268,41 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, false)
+        self.advance_admitted_intervals_unsealed(episodes, false, false)
+    }
+
+    fn current_in_flight_acoustic(&self) -> Option<&InFlightAcousticConsequence> {
+        self.unsealed
+            .as_ref()
+            .map(|state| &state.in_flight_acoustic)
+            .unwrap_or(&self.active.in_flight_acoustic)
+            .as_ref()
+    }
+
+    fn live_organism_tick(&self) -> u64 {
+        self.unsealed
+            .as_ref()
+            .map_or(self.active.observation.organism_tick, |state| {
+                state.observation.organism_tick
+            })
+    }
+
+    /// Consume one cold-restorable radiated consequence through the actual
+    /// admitted cochlear/body episode. Exact transport bytes must match the
+    /// resident physical state; a caller cannot substitute another sound.
+    fn advance_in_flight_self_hearing_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        pressure_s16le: &[u8],
+        body_s16le: &[u8],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        let pending = self
+            .current_in_flight_acoustic()
+            .ok_or_else(|| RuntimeError::ArticulatedBody("no acoustic consequence is in flight".into()))?;
+        if !pending.matches_transport(pressure_s16le, body_s16le) {
+            return Err(RuntimeError::MountedSourceSubstitution);
+        }
+        self.advance_admitted_intervals_unsealed(episodes, false, true)
     }
 
     /// Advance independently authenticated sources as one simultaneous
@@ -3127,13 +3313,14 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, true)
+        self.advance_admitted_intervals_unsealed(episodes, true, false)
     }
 
     fn advance_admitted_intervals_unsealed(
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         coexisting_sources: bool,
+        consume_in_flight_acoustic: bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
@@ -3149,6 +3336,7 @@ impl ResidentOrganismRuntime {
             initial_cognitive,
             initial_vestibular,
             initial_articulated_body,
+            carried_in_flight_acoustic,
         ) = match prior {
             Some(state) => (
                 state.predecessor,
@@ -3157,6 +3345,7 @@ impl ResidentOrganismRuntime {
                 state.cognitive,
                 state.vestibular,
                 state.articulated_body,
+                state.in_flight_acoustic,
             ),
             None => (
                 self.active.observation.clone(),
@@ -3165,6 +3354,7 @@ impl ResidentOrganismRuntime {
                 std::mem::take(&mut self.active.cognitive),
                 self.active.vestibular.clone(),
                 self.active.articulated_body.clone(),
+                self.active.in_flight_acoustic.clone(),
             ),
         };
         let mut residency = self.causal_event_residency.take();
@@ -3175,11 +3365,16 @@ impl ResidentOrganismRuntime {
             current_observation,
             initial_vestibular,
             initial_articulated_body,
+            if consume_in_flight_acoustic {
+                None
+            } else {
+                carried_in_flight_acoustic
+            },
             false,
             &mut residency,
         );
         self.causal_event_residency = if built.is_ok() { residency } else { None };
-        let (pending, mut receipt, next_prepare_ordinal) = match built {
+        let (mut pending, mut receipt, next_prepare_ordinal) = match built {
             Ok(value) => value,
             Err(error) => {
                 let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
@@ -3187,6 +3382,11 @@ impl ResidentOrganismRuntime {
                 self.next_prepare_ordinal = predecessor_next_prepare_ordinal;
                 return Err(error);
             }
+        };
+        let emitted_acoustic = in_flight_acoustic_from_receipt(&receipt)?;
+        pending.in_flight_acoustic = match pending.in_flight_acoustic.take() {
+            Some(in_flight) => in_flight.followed_by(emitted_acoustic)?,
+            None => emitted_acoustic,
         };
         receipt.observation.predecessor_state_receipt = Some(predecessor.state_receipt);
         self.unsealed = Some(UnsealedResidentOrganismState {
@@ -3196,6 +3396,7 @@ impl ResidentOrganismRuntime {
             cognitive: pending.cognitive,
             vestibular: pending.vestibular,
             articulated_body: pending.articulated_body,
+            in_flight_acoustic: pending.in_flight_acoustic,
             observation: pending.observation,
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -3294,6 +3495,7 @@ impl ResidentOrganismRuntime {
                 &sealed_cognitive.encoded,
                 &unsealed.vestibular,
                 &unsealed.articulated_body,
+                unsealed.in_flight_acoustic.as_ref(),
                 self.budget,
             )?;
             let envelope = encode_envelope(
@@ -3403,6 +3605,7 @@ impl ResidentOrganismRuntime {
         predecessor: RuntimeObservation,
         initial_vestibular: ResidentVestibularBody,
         initial_articulated_body: ArticulatedBodyState,
+        initial_in_flight_acoustic: Option<InFlightAcousticConsequence>,
         seal_successor: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<
@@ -3649,6 +3852,7 @@ impl ResidentOrganismRuntime {
                 &cognitive_state,
                 &initial_vestibular,
                 &articulated_body,
+                initial_in_flight_acoustic.as_ref(),
                 self.budget,
             )?;
             let envelope =
@@ -3704,6 +3908,7 @@ impl ResidentOrganismRuntime {
             cognitive,
             vestibular: initial_vestibular,
             articulated_body,
+            in_flight_acoustic: initial_in_flight_acoustic,
             observation: observation.clone(),
         };
         let receipt = ResidentPrepareReceipt {
@@ -3755,6 +3960,7 @@ impl ResidentOrganismRuntime {
             self.active.observation.clone(),
             self.active.vestibular.clone(),
             self.active.articulated_body.clone(),
+            self.active.in_flight_acoustic.clone(),
             true,
             &mut residency,
         );
@@ -3783,6 +3989,7 @@ impl ResidentOrganismRuntime {
             cognitive: pending.cognitive,
             vestibular: pending.vestibular,
             articulated_body: pending.articulated_body,
+            in_flight_acoustic: pending.in_flight_acoustic,
             observation: pending.observation,
         };
         self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
@@ -3813,6 +4020,7 @@ impl ResidentOrganismRuntime {
             initial_cognitive,
             initial_vestibular,
             initial_articulated_body,
+            initial_in_flight_acoustic,
         ) = match prior {
             Some(state) => (
                 state.predecessor,
@@ -3821,6 +4029,7 @@ impl ResidentOrganismRuntime {
                 state.cognitive,
                 state.vestibular,
                 state.articulated_body,
+                state.in_flight_acoustic,
             ),
             None => (
                 self.active.observation.clone(),
@@ -3829,6 +4038,7 @@ impl ResidentOrganismRuntime {
                 std::mem::take(&mut self.active.cognitive),
                 self.active.vestibular.clone(),
                 self.active.articulated_body.clone(),
+                self.active.in_flight_acoustic.clone(),
             ),
         };
         let mut residency = self.causal_event_residency.take();
@@ -3839,6 +4049,7 @@ impl ResidentOrganismRuntime {
             current_observation,
             initial_vestibular,
             initial_articulated_body,
+            initial_in_flight_acoustic,
             false,
             &mut residency,
         );
@@ -3860,6 +4071,7 @@ impl ResidentOrganismRuntime {
             cognitive: pending.cognitive,
             vestibular: pending.vestibular,
             articulated_body: pending.articulated_body,
+            in_flight_acoustic: pending.in_flight_acoustic,
             observation: pending.observation,
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -3874,6 +4086,7 @@ impl ResidentOrganismRuntime {
         predecessor: RuntimeObservation,
         initial_vestibular: ResidentVestibularBody,
         initial_articulated_body: ArticulatedBodyState,
+        initial_in_flight_acoustic: Option<InFlightAcousticConsequence>,
         seal_successor: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
     ) -> Result<
@@ -4028,6 +4241,7 @@ impl ResidentOrganismRuntime {
                 &cognitive_state,
                 &vestibular,
                 &articulated_body,
+                initial_in_flight_acoustic.as_ref(),
                 self.budget,
             )?;
             let envelope =
@@ -4083,6 +4297,7 @@ impl ResidentOrganismRuntime {
             cognitive,
             vestibular,
             articulated_body,
+            in_flight_acoustic: initial_in_flight_acoustic,
             observation: observation.clone(),
         };
         let receipt = ResidentPrepareReceipt {
@@ -4247,6 +4462,7 @@ impl ResidentOrganismRuntime {
             &cognitive_state,
             &successor_vestibular,
             &successor_articulated_body,
+            self.active.in_flight_acoustic.as_ref(),
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -4287,6 +4503,7 @@ impl ResidentOrganismRuntime {
             cognitive,
             vestibular: successor_vestibular,
             articulated_body: successor_articulated_body,
+            in_flight_acoustic: self.active.in_flight_acoustic.clone(),
             observation: observation.clone(),
         });
         self.next_prepare_ordinal = next_prepare_ordinal;
@@ -4356,6 +4573,7 @@ impl ResidentOrganismRuntime {
         self.active.mounted = pending.mounted;
         self.active.vestibular = pending.vestibular;
         self.active.articulated_body = pending.articulated_body;
+        self.active.in_flight_acoustic = pending.in_flight_acoustic;
         self.active.observation = pending.observation;
         Ok(())
     }
@@ -4433,6 +4651,7 @@ impl ResidentOrganismRuntime {
             &cognitive_state,
             &self.active.vestibular,
             &self.active.articulated_body,
+            self.active.in_flight_acoustic.as_ref(),
             self.budget,
         )?;
         let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
@@ -4746,25 +4965,28 @@ impl NativeResidentOrganismRuntime {
     /// custodial encoding. Touches nothing and never pauses cognition.
     fn snapshot_lived_state(&self) -> NativeLivedStateSnapshot {
         let runtime = &self.runtime;
-        let (vestibular, articulated_body, observation) = runtime
+        let (vestibular, articulated_body, in_flight_acoustic, observation) = runtime
             .unsealed
             .as_ref()
             .map(|state| {
                 (
                     &state.vestibular,
                     &state.articulated_body,
+                    &state.in_flight_acoustic,
                     &state.observation,
                 )
             })
             .unwrap_or((
                 &runtime.active.vestibular,
                 &runtime.active.articulated_body,
+                &runtime.active.in_flight_acoustic,
                 &runtime.active.observation,
             ));
         NativeLivedStateSnapshot {
             cognitive: runtime.cognitive_state().clone(),
             vestibular: vestibular.clone(),
             articulated_body: articulated_body.clone(),
+            in_flight_acoustic: in_flight_acoustic.clone(),
             observation: observation.clone(),
             predecessor: runtime.active.observation.clone(),
             next_prepare_ordinal: runtime.next_prepare_ordinal,
@@ -4949,6 +5171,83 @@ impl NativeResidentOrganismRuntime {
             root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             root_translation_unit_recruitments:
                 prepared.root_translation_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    #[getter]
+    fn in_flight_acoustic_source_tick(&self) -> Option<u64> {
+        self.runtime
+            .current_in_flight_acoustic()
+            .map(|consequence| consequence.source_tick)
+    }
+
+    #[getter]
+    fn live_organism_tick(&self) -> u64 {
+        self.runtime.live_organism_tick()
+    }
+
+    #[getter]
+    fn in_flight_acoustic_pressure_s16le<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> Option<Bound<'py, PyBytes>> {
+        self.runtime
+            .current_in_flight_acoustic()
+            .map(|consequence| consequence.pressure_s16le())
+            .map(|pressure| PyBytes::new(py, &pressure))
+    }
+
+    #[getter]
+    fn in_flight_acoustic_body_s16le<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> Option<Bound<'py, PyBytes>> {
+        self.runtime
+            .current_in_flight_acoustic()
+            .map(|consequence| consequence.body_s16le())
+            .map(|body| PyBytes::new(py, &body))
+    }
+
+    fn advance_in_flight_self_hearing_unsealed(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+        pressure_s16le: &[u8],
+        body_s16le: &[u8],
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "in-flight self-hearing source and interval counts differ",
+            ));
+        }
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime.advance_in_flight_self_hearing_unsealed(
+                    &episodes,
+                    pressure_s16le,
+                    body_s16le,
+                )
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
+            root_translation_unit_recruitments: prepared.root_translation_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -5663,6 +5962,7 @@ fn migrate_resident_organism_exact_energy_envelope(
         &migrated_cognitive,
         &vestibular,
         &articulated_body,
+        None,
         budget,
     )?;
     let migrated_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
@@ -5745,6 +6045,7 @@ fn correct_resident_organism_growth_contamination_envelope(
         &corrected_cognitive,
         &vestibular,
         &articulated_body,
+        None,
         budget,
     )?;
     let corrected_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
@@ -5909,6 +6210,7 @@ fn create_resident_genesis_from_state(
         &cognitive,
         &vestibular,
         &articulated_body,
+        None,
         budget,
     )?;
     let envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
@@ -6391,6 +6693,7 @@ impl OrganismRuntime {
             &cognitive_bytes,
             vestibular,
             articulated_body,
+            parsed.in_flight_acoustic.as_ref(),
             budget,
         )?;
         let envelope = encode_envelope(parsed.identity, successor_organism_tick, &fabric, budget)?;
@@ -6448,6 +6751,7 @@ struct ParsedEnvelope<'a> {
     cognitive_bytes: Option<&'a [u8]>,
     vestibular: Option<ResidentVestibularBody>,
     articulated_body: Option<ArticulatedBodyState>,
+    in_flight_acoustic: Option<InFlightAcousticConsequence>,
 }
 
 fn parse_current_envelope<'a>(
@@ -6491,8 +6795,14 @@ fn parse_current_envelope<'a>(
         return Err(RuntimeError::FabricLengthMismatch);
     }
     let fabric_bytes = &envelope[offset..fabric_end];
-    let (fabric_generation, joint_bytes, cognitive_bytes, vestibular, articulated_body) =
-        parse_current_fabric(fabric_bytes, budget)?;
+    let (
+        fabric_generation,
+        joint_bytes,
+        cognitive_bytes,
+        vestibular,
+        articulated_body,
+        in_flight_acoustic,
+    ) = parse_current_fabric(fabric_bytes, budget)?;
     Ok(ParsedEnvelope {
         identity,
         organism_tick,
@@ -6502,7 +6812,119 @@ fn parse_current_envelope<'a>(
         cognitive_bytes,
         vestibular,
         articulated_body,
+        in_flight_acoustic,
     })
+}
+
+fn encode_in_flight_acoustic_consequence(
+    consequence: Option<&InFlightAcousticConsequence>,
+) -> Result<Vec<u8>, RuntimeError> {
+    let Some(consequence) = consequence else {
+        return Ok(Vec::new());
+    };
+    let sample_count = consequence.pressure_pcm.len();
+    if sample_count == 0
+        || sample_count > MAX_IN_FLIGHT_ACOUSTIC_SAMPLES
+        || consequence
+            .body_mechanical_trajectories
+            .iter()
+            .any(|trajectory| trajectory.len() != sample_count)
+    {
+        return Err(RuntimeError::ArticulatedBody(
+            "in-flight acoustic consequence changed its exact bound".into(),
+        ));
+    }
+    let sample_bytes = sample_count
+        .checked_mul(1 + IN_FLIGHT_ACOUSTIC_BODY_CHANNELS)
+        .and_then(|count| count.checked_mul(std::mem::size_of::<i16>()))
+        .ok_or(RuntimeError::FabricLengthOverflow)?;
+    let length = std::mem::size_of::<u64>()
+        .checked_add(std::mem::size_of::<u32>())
+        .and_then(|fixed| fixed.checked_add(sample_bytes))
+        .ok_or(RuntimeError::FabricLengthOverflow)?;
+    let mut encoded = Vec::with_capacity(length);
+    encoded.extend_from_slice(&consequence.source_tick.to_le_bytes());
+    encoded.extend_from_slice(
+        &u32::try_from(sample_count)
+            .map_err(|_| RuntimeError::FabricLengthOverflow)?
+            .to_le_bytes(),
+    );
+    for samples in std::iter::once(&consequence.pressure_pcm)
+        .chain(consequence.body_mechanical_trajectories.iter())
+    {
+        for sample in samples {
+            encoded.extend_from_slice(&sample.to_le_bytes());
+        }
+    }
+    if encoded.len() != length {
+        return Err(RuntimeError::FabricLengthMismatch);
+    }
+    Ok(encoded)
+}
+
+fn decode_in_flight_acoustic_consequence(
+    encoded: &[u8],
+) -> Result<Option<InFlightAcousticConsequence>, RuntimeError> {
+    if encoded.is_empty() {
+        return Ok(None);
+    }
+    if encoded.len() < std::mem::size_of::<u64>() + std::mem::size_of::<u32>() {
+        return Err(RuntimeError::FabricLengthMismatch);
+    }
+    let source_tick = u64::from_le_bytes(
+        encoded[..8]
+            .try_into()
+            .map_err(|_| RuntimeError::FabricLengthMismatch)?,
+    );
+    let sample_count = usize::try_from(u32::from_le_bytes(
+        encoded[8..12]
+            .try_into()
+            .map_err(|_| RuntimeError::FabricLengthMismatch)?,
+    ))
+    .map_err(|_| RuntimeError::FabricLengthOverflow)?;
+    if sample_count == 0 || sample_count > MAX_IN_FLIGHT_ACOUSTIC_SAMPLES {
+        return Err(RuntimeError::FabricLengthMismatch);
+    }
+    let channel_bytes = sample_count
+        .checked_mul(std::mem::size_of::<i16>())
+        .ok_or(RuntimeError::FabricLengthOverflow)?;
+    let expected_length = 12usize
+        .checked_add(
+            channel_bytes
+                .checked_mul(1 + IN_FLIGHT_ACOUSTIC_BODY_CHANNELS)
+                .ok_or(RuntimeError::FabricLengthOverflow)?,
+        )
+        .ok_or(RuntimeError::FabricLengthOverflow)?;
+    if encoded.len() != expected_length {
+        return Err(RuntimeError::FabricLengthMismatch);
+    }
+    let mut cursor = 12usize;
+    let mut read_channel = || -> Result<Vec<i16>, RuntimeError> {
+        let end = cursor
+            .checked_add(channel_bytes)
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        let samples = encoded[cursor..end]
+            .chunks_exact(2)
+            .map(|bytes| i16::from_le_bytes([bytes[0], bytes[1]]))
+            .collect();
+        cursor = end;
+        Ok(samples)
+    };
+    let pressure_pcm = read_channel()?;
+    let body_mechanical_trajectories = [
+        read_channel()?,
+        read_channel()?,
+        read_channel()?,
+        read_channel()?,
+    ];
+    if cursor != expected_length || pressure_pcm.iter().all(|sample| *sample == 0) {
+        return Err(RuntimeError::FabricLengthMismatch);
+    }
+    Ok(Some(InFlightAcousticConsequence {
+        source_tick,
+        pressure_pcm,
+        body_mechanical_trajectories,
+    }))
 }
 
 fn parse_current_fabric(
@@ -6515,6 +6937,7 @@ fn parse_current_fabric(
         Option<&[u8]>,
         Option<ResidentVestibularBody>,
         Option<ArticulatedBodyState>,
+        Option<InFlightAcousticConsequence>,
     ),
     RuntimeError,
 > {
@@ -6526,6 +6949,7 @@ fn parse_current_fabric(
     }
     let magic = &fabric[..FABRIC_MAGIC.len()];
     if magic != FABRIC_MAGIC
+        && magic != PRE_ACOUSTIC_FLIGHT_FABRIC_MAGIC
         && magic != PRE_PHONATORY_FABRIC_MAGIC
         && magic != PRE_ARTICULATED_FABRIC_MAGIC
         && magic != PRE_VESTIBULAR_FABRIC_MAGIC
@@ -6542,18 +6966,31 @@ fn parse_current_fabric(
         magic == PRE_ARTICULATED_FABRIC_MAGIC && version == PRE_ARTICULATED_FABRIC_VERSION;
     let pre_phonatory =
         magic == PRE_PHONATORY_FABRIC_MAGIC && version == PRE_PHONATORY_FABRIC_VERSION;
+    let pre_acoustic_flight = magic == PRE_ACOUSTIC_FLIGHT_FABRIC_MAGIC
+        && version == PRE_ACOUSTIC_FLIGHT_FABRIC_VERSION;
     let current = magic == FABRIC_MAGIC && version == FABRIC_VERSION;
-    if !legacy && !pre_vestibular && !pre_articulated && !pre_phonatory && !current {
+    if !legacy
+        && !pre_vestibular
+        && !pre_articulated
+        && !pre_phonatory
+        && !pre_acoustic_flight
+        && !current
+    {
         return Err(RuntimeError::UnsupportedFabricVersion(version));
     }
     let generation = take_u64(fabric, &mut offset)?;
     let joint_len = take_u32(fabric, &mut offset)? as usize;
-    let cognitive_len = if current || pre_phonatory || pre_articulated || pre_vestibular {
+    let cognitive_len = if current
+        || pre_acoustic_flight
+        || pre_phonatory
+        || pre_articulated
+        || pre_vestibular
+    {
         take_u32(fabric, &mut offset)? as usize
     } else {
         0
     };
-    let vestibular = if current || pre_phonatory || pre_articulated {
+    let vestibular = if current || pre_acoustic_flight || pre_phonatory || pre_articulated {
         let anatomy_end = offset
             .checked_add(FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES)
             .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -6584,8 +7021,8 @@ fn parse_current_fabric(
     } else {
         None
     };
-    let articulated_body = if current || pre_phonatory {
-        let body_state_bytes = if current {
+    let articulated_body = if current || pre_acoustic_flight || pre_phonatory {
+        let body_state_bytes = if current || pre_acoustic_flight {
             ARTICULATED_BODY_STATE_BYTES
         } else {
             PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
@@ -6604,6 +7041,21 @@ fn parse_current_fabric(
     } else {
         None
     };
+    let in_flight_acoustic = if current {
+        let acoustic_len = take_u32(fabric, &mut offset)? as usize;
+        let acoustic_end = offset
+            .checked_add(acoustic_len)
+            .ok_or(RuntimeError::FabricLengthOverflow)?;
+        let consequence = decode_in_flight_acoustic_consequence(
+            fabric
+                .get(offset..acoustic_end)
+                .ok_or(RuntimeError::EnvelopeEndedEarly)?,
+        )?;
+        offset = acoustic_end;
+        consequence
+    } else {
+        None
+    };
     let joint_end = offset
         .checked_add(joint_len)
         .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -6616,10 +7068,15 @@ fn parse_current_fabric(
     Ok((
         generation,
         &fabric[offset..joint_end],
-        (current || pre_phonatory || pre_articulated || pre_vestibular)
+        (current
+            || pre_acoustic_flight
+            || pre_phonatory
+            || pre_articulated
+            || pre_vestibular)
             .then_some(&fabric[joint_end..cognitive_end]),
         vestibular,
         articulated_body,
+        in_flight_acoustic,
     ))
 }
 
@@ -6629,11 +7086,14 @@ fn encode_fabric(
     cognitive: &[u8],
     vestibular: &ResidentVestibularBody,
     articulated_body: &ArticulatedBodyState,
+    in_flight_acoustic: Option<&InFlightAcousticConsequence>,
     budget: RuntimeBudget,
 ) -> Result<Vec<u8>, RuntimeError> {
+    let encoded_in_flight = encode_in_flight_acoustic_consequence(in_flight_acoustic)?;
     let length = FABRIC_FIXED_BYTES
         .checked_add(joint.len())
         .and_then(|value| value.checked_add(cognitive.len()))
+        .and_then(|value| value.checked_add(encoded_in_flight.len()))
         .ok_or(RuntimeError::FabricLengthOverflow)?;
     if length > budget.max_fabric_bytes {
         return Err(RuntimeError::FabricBudgetExceeded);
@@ -6660,6 +7120,12 @@ fn encode_fabric(
             .encode()
             .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
     );
+    output.extend_from_slice(
+        &u32::try_from(encoded_in_flight.len())
+            .map_err(|_| RuntimeError::FabricLengthOverflow)?
+            .to_le_bytes(),
+    );
+    output.extend_from_slice(&encoded_in_flight);
     output.extend_from_slice(joint);
     output.extend_from_slice(cognitive);
     Ok(output)
@@ -7634,6 +8100,138 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
+    fn in_flight_acoustic_consequence_round_trips_without_padding_or_loss() {
+        let consequence = InFlightAcousticConsequence::new(
+            41,
+            vec![0, -7, 11, 0],
+            [
+                vec![1, 2, 3, 4],
+                vec![5, 6, 7, 8],
+                vec![9, 10, 11, 12],
+                vec![13, 14, 15, 16],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let encoded = encode_in_flight_acoustic_consequence(Some(&consequence)).unwrap();
+        assert_eq!(
+            encoded.len(),
+            12 + 4 * (1 + IN_FLIGHT_ACOUSTIC_BODY_CHANNELS) * 2
+        );
+        assert_eq!(
+            decode_in_flight_acoustic_consequence(&encoded).unwrap(),
+            Some(consequence)
+        );
+        assert_eq!(decode_in_flight_acoustic_consequence(&[]).unwrap(), None);
+    }
+
+    #[test]
+    fn sequential_radiated_consequences_join_in_physical_order() {
+        let first = InFlightAcousticConsequence::new(
+            9,
+            vec![1, 2],
+            [vec![3, 4], vec![5, 6], vec![7, 8], vec![9, 10]],
+        )
+        .unwrap()
+        .unwrap();
+        let second = InFlightAcousticConsequence::new(
+            10,
+            vec![11, 12],
+            [vec![13, 14], vec![15, 16], vec![17, 18], vec![19, 20]],
+        )
+        .unwrap()
+        .unwrap();
+        let joined = first.followed_by(Some(second)).unwrap().unwrap();
+        assert_eq!(joined.source_tick, 9);
+        assert_eq!(joined.pressure_pcm, vec![1, 2, 11, 12]);
+        assert_eq!(
+            joined.body_mechanical_trajectories,
+            [
+                vec![3, 4, 13, 14],
+                vec![5, 6, 15, 16],
+                vec![7, 8, 17, 18],
+                vec![9, 10, 19, 20],
+            ]
+        );
+    }
+
+    #[test]
+    fn in_flight_acoustic_consequence_survives_current_fabric_restore() {
+        let consequence = InFlightAcousticConsequence::new(
+            17,
+            vec![2, -3, 5],
+            [
+                vec![7, 11, 13],
+                vec![17, 19, 23],
+                vec![29, 31, 37],
+                vec![41, 43, 47],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let fabric = encode_fabric(
+            17,
+            &genesis_joint(),
+            &genesis_cognitive(),
+            &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
+            Some(&consequence),
+            budget(),
+        )
+        .unwrap();
+        let envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            17,
+            &fabric,
+            budget(),
+        )
+        .unwrap();
+        let restored = ResidentOrganismRuntime::restore_envelope(envelope, budget()).unwrap();
+        assert_eq!(restored.active.in_flight_acoustic, Some(consequence));
+    }
+
+    #[test]
+    fn production_pre_acoustic_fabric_restores_with_no_invented_sound() {
+        let current = encode_fabric(
+            23,
+            &genesis_joint(),
+            &genesis_cognitive(),
+            &genesis_vestibular(),
+            &ArticulatedBodyState::at_neutral(),
+            None,
+            budget(),
+        )
+        .unwrap();
+        let acoustic_length_offset = FABRIC_MAGIC.len()
+            + std::mem::size_of::<u16>()
+            + std::mem::size_of::<u64>()
+            + 2 * std::mem::size_of::<u32>()
+            + VESTIBULAR_BODY_BYTES
+            + ARTICULATED_BODY_STATE_BYTES;
+        assert_eq!(
+            &current[acoustic_length_offset..acoustic_length_offset + 4],
+            &[0; 4]
+        );
+        let mut old = Vec::with_capacity(current.len() - 4);
+        old.extend_from_slice(PRE_ACOUSTIC_FLIGHT_FABRIC_MAGIC);
+        old.extend_from_slice(&PRE_ACOUSTIC_FLIGHT_FABRIC_VERSION.to_le_bytes());
+        old.extend_from_slice(&current[10..acoustic_length_offset]);
+        old.extend_from_slice(&current[acoustic_length_offset + 4..]);
+        let envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            23,
+            &old,
+            budget(),
+        )
+        .unwrap();
+
+        let restored = ResidentOrganismRuntime::restore_envelope(envelope, budget()).unwrap();
+
+        assert_eq!(restored.active.in_flight_acoustic, None);
+        assert_eq!(restored.active.observation.organism_tick, 23);
+    }
+
+    #[test]
     fn repeated_destination_cue_projects_once_without_losing_thought_causes() {
         let cue = InternallyReassembledFormationCueObservation {
             formation_receipt: [1; 32],
@@ -8148,6 +8746,7 @@ mod tests {
             &v34_cognitive,
             predecessor.vestibular.as_ref().unwrap(),
             &stopped_body,
+            None,
             budget(),
         )
         .unwrap();
@@ -8198,6 +8797,7 @@ mod tests {
             &v35_cognitive,
             predecessor.vestibular.as_ref().unwrap(),
             &lived_body,
+            None,
             budget(),
         )
         .unwrap();
@@ -8305,6 +8905,7 @@ mod tests {
             &genesis_cognitive(),
             &genesis_vestibular(),
             &ArticulatedBodyState::at_neutral(),
+            None,
             budget(),
         )
         .unwrap();
@@ -9580,6 +10181,7 @@ mod tests {
             &genesis_cognitive(),
             &genesis_vestibular(),
             &ArticulatedBodyState::at_neutral(),
+            None,
             budget(),
         )
         .unwrap();
@@ -9636,6 +10238,7 @@ mod tests {
             &genesis_cognitive(),
             &genesis_vestibular(),
             &ArticulatedBodyState::at_neutral(),
+            None,
             budget(),
         )
         .unwrap();
@@ -9722,6 +10325,7 @@ mod tests {
             &genesis_cognitive(),
             &genesis_vestibular(),
             &ArticulatedBodyState::at_neutral(),
+            None,
             budget(),
         )
         .unwrap();

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import struct
 from types import SimpleNamespace
 
 from dsf_ai_service import native_production_app as production
@@ -68,12 +69,63 @@ def _hop(tick: int, relations: tuple[dict[str, object], ...]) -> dict[str, objec
 
 def _quiescent_body_organism() -> SimpleNamespace:
     return SimpleNamespace(
+        in_flight_acoustic_source_tick=None,
+        in_flight_acoustic_pressure_s16le=None,
+        in_flight_acoustic_body_s16le=None,
+        advance_in_flight_self_hearing_unsealed=lambda *_args: None,
         live_articulated_body_axes=lambda: (),
         readiness=lambda: SimpleNamespace(
             articulated_body_state_sha256="44" * 32,
             articulated_body_axes=(),
         )
     )
+
+
+def test_in_flight_acoustic_consequence_is_admitted_once_with_exact_transport(
+    monkeypatch,
+) -> None:
+    pressure = struct.pack("<3h", 7, -11, 13)
+    body = struct.pack("<12h", *range(12))
+    native_advance = lambda *_args: None
+    organism = SimpleNamespace(
+        in_flight_acoustic_source_tick=41,
+        in_flight_acoustic_pressure_s16le=pressure,
+        in_flight_acoustic_body_s16le=body,
+        advance_in_flight_self_hearing_unsealed=native_advance,
+    )
+    admitted: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        production,
+        "_mono_pcm_hop_episodes",
+        lambda **kwargs: (("episode", ((1, 2),)),),
+    )
+
+    def commit(_organism, episodes, intervals, **kwargs):
+        admitted.update(
+            episodes=episodes,
+            intervals=intervals,
+            kwargs=kwargs,
+        )
+        return {"exact": "hop"}
+
+    monkeypatch.setattr(production, "_commit_admitted_hop", commit)
+
+    result = production._admit_in_flight_acoustic_consequence(organism)
+
+    assert result is not None
+    hop, audio, hop_count = result
+    assert hop == {"exact": "hop"}
+    assert hop_count == 1
+    assert audio["pcm_s16le"] == pressure
+    assert audio["organism_tick"] == 41
+    assert admitted["episodes"] == ("episode",)
+    assert admitted["intervals"] == (((1, 2),),)
+    assert admitted["kwargs"] == {
+        "purpose": "in_flight_self_hearing",
+        "native_advance": native_advance,
+        "native_advance_tail": (pressure, body),
+    }
 
 
 def _retain_articulation(

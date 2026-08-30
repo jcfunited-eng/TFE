@@ -8900,6 +8900,8 @@ def _commit_admitted_hop(
     external_participant_action_receipt: str | None = None,
     purpose: str = "primary",
     coexisting: bool = False,
+    native_advance: Any | None = None,
+    native_advance_tail: tuple[Any, ...] = (),
 ) -> dict[str, Any]:
     """Prepare and commit one admitted hop or one ordered native trajectory.
 
@@ -8917,12 +8919,18 @@ def _commit_admitted_hop(
         else (maximum_causal_intervals,)
     )
     _stage_started = time.perf_counter()
-    advance = (
+    if native_advance is not None and coexisting:
+        raise RuntimeError("a specialized native advance cannot be coexisting")
+    advance = native_advance or (
         organism.advance_coexisting_admitted_interval_unsealed
         if coexisting
         else organism.advance_admitted_trajectory_unsealed
     )
-    evidence: ResidentPrepareEvidence = advance(sources, intervals)
+    evidence: ResidentPrepareEvidence = advance(
+        sources,
+        intervals,
+        *native_advance_tail,
+    )
     _elapsed_ms = (time.perf_counter() - _stage_started) * 1000.0
     _transport_stage_wall_ms["native_settlement"] = (
         _transport_stage_wall_ms.get("native_settlement", 0.0) + _elapsed_ms
@@ -9066,6 +9074,54 @@ def _commit_admitted_hop(
         "causal_transition_sha256": evidence.causal_transition_sha256,
         "state_sha256": evidence.prepared_state_sha256,
     }
+
+
+def _admit_in_flight_acoustic_consequence(
+    organism: Any,
+) -> tuple[dict[str, Any], dict[str, Any], int] | None:
+    """Admit the resident sound in flight exactly once through hearing."""
+
+    pressure = organism.in_flight_acoustic_pressure_s16le
+    body = organism.in_flight_acoustic_body_s16le
+    source_tick = organism.in_flight_acoustic_source_tick
+    if (pressure is None) != (body is None) or (pressure is None) != (
+        source_tick is None
+    ):
+        raise RuntimeError("native in-flight acoustic state lost cardinality")
+    if pressure is None:
+        return None
+    pressure = bytes(pressure)
+    body = bytes(body)
+    if len(pressure) % struct.calcsize("<h"):
+        raise RuntimeError("native in-flight pressure changed sample width")
+    samples = struct.unpack(f"<{len(pressure) // 2}h", pressure)
+    episodes = tuple(
+        _mono_pcm_hop_episodes(
+            assembly_prefix=f"native-in-flight-articulation-{source_tick}",
+            samples=samples,
+            sample_rate_hz=COCHLEAR_SAMPLE_RATE_HZ,
+            articulatory_body=body,
+        )
+    )
+    hop = _commit_admitted_hop(
+        organism,
+        tuple(episode for episode, _ in episodes),
+        tuple(admissions for _, admissions in episodes),
+        purpose="in_flight_self_hearing",
+        native_advance=organism.advance_in_flight_self_hearing_unsealed,
+        native_advance_tail=(pressure, body),
+    )
+    return (
+        hop,
+        {
+            "organism_tick": int(source_tick),
+            "pcm_s16le": pressure,
+            "pressure_sha256": hashlib.sha256(pressure).hexdigest(),
+            "sample_count": len(samples),
+            "sample_rate_hz": COCHLEAR_SAMPLE_RATE_HZ,
+        },
+        len(episodes),
+    )
 
 
 def _commit_vestibular_trajectory(
@@ -10655,8 +10711,8 @@ def _abort_lived_trajectory(organism: Any) -> None:
 
 
 def _retain_already_lived_intake_after_refusal(
+    organism: Any,
     predecessor: Any,
-    lived_organism_tick: int | None,
     intake: str,
     error: BaseException,
 ) -> bool:
@@ -10671,10 +10727,8 @@ def _retain_already_lived_intake_after_refusal(
 
     global _pending_unsealed_intervals, _pending_chain_predecessor_sha
 
-    if (
-        lived_organism_tick is None
-        or lived_organism_tick <= predecessor.organism_tick
-    ):
+    lived_organism_tick = int(organism.live_organism_tick)
+    if lived_organism_tick <= predecessor.organism_tick:
         return False
     if _pending_chain_predecessor_sha is None:
         _pending_chain_predecessor_sha = predecessor.state_sha256
@@ -11255,8 +11309,99 @@ def _perform_admitted_intake_locked(
     causal_observation_hops: list[
         tuple[dict[str, Any], tuple[tuple[Any, ...], ...]]
     ] = []
+    consumed_in_flight_acoustic: list[dict[str, Any]] = []
     intake_error: Exception | None = None
     try:
+        admitted_in_flight = _admit_in_flight_acoustic_consequence(organism)
+        if admitted_in_flight is not None:
+            last_hop, consumed_acoustic, in_flight_hop_count = (
+                admitted_in_flight
+            )
+            consumed_in_flight_acoustic.append(consumed_acoustic)
+            affective_balance_trajectories = (
+                _advance_bounded_affective_balance_evidence(
+                    affective_balance_trajectories,
+                    last_hop,
+                )
+            )
+            causal_observation_hops.append(
+                (last_hop, affective_balance_trajectories)
+            )
+            (
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+            ) = _advance_bounded_frontier_evidence(
+                physical_frontier_routes,
+                preceding_distinct_physical_frontier_routes,
+                reached_and_foregone_physical_frontier_routes,
+                last_hop,
+            )
+            attention_motor_bindings = _advance_bounded_attention_motor_bindings(
+                attention_motor_bindings,
+                last_hop,
+            )
+            (
+                working_causal_continuations,
+                settled_working_frontier,
+            ) = _advance_bounded_working_causal_evidence(
+                working_causal_continuations,
+                settled_working_frontier,
+                last_hop,
+            )
+            (
+                physical_prediction_alternatives,
+                body_consequence_transfers,
+            ) = _advance_bounded_prediction_evidence(
+                physical_prediction_alternatives,
+                body_consequence_transfers,
+                last_hop,
+            )
+            localized_fluid_chemistry = (
+                _advance_bounded_localized_fluid_chemistry_evidence(
+                    localized_fluid_chemistry,
+                    last_hop,
+                )
+            )
+            (
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+            ) = _advance_bounded_localized_metabolic_strain_evidence(
+                localized_metabolic_strain_evaluated_body_receptor_lineages,
+                localized_metabolic_strain,
+                last_hop,
+            )
+            committed_hop_count += in_flight_hop_count
+            motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
+            root_yaw_unit_recruitments.extend(
+                last_hop["root_yaw_unit_recruitments"]
+            )
+            root_translation_unit_recruitments.extend(
+                last_hop["root_translation_unit_recruitments"]
+            )
+            articulatory_unit_recruitments.extend(
+                last_hop["articulatory_unit_recruitments"]
+            )
+            # Any vocal action caused by hearing this sound is already the
+            # native successor's one in-flight acoustic consequence. Do not
+            # fold it into the current intake's immediate self-hearing path.
+            retain_articulated_body_evidence(last_hop)
+            emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
+            organic_mosaic_relations.extend(
+                last_hop["organic_mosaic_relations"]
+            )
+            for key in totals:
+                totals[key] += last_hop[key]
+            for sense, count in last_hop[
+                "receptor_ingress_sense_counts"
+            ].items():
+                receptor_ingress_sense_counts[sense] += count
+            receptor_ingress_changing_count += last_hop[
+                "receptor_ingress_changing_count"
+            ]
+            receptor_ingress_quiescent_count += last_hop[
+                "receptor_ingress_quiescent_count"
+            ]
         if vestibular_yaw is not None:
             heading, signed_steps = vestibular_yaw
             last_hop = _commit_vestibular_trajectory(
@@ -11490,76 +11635,15 @@ def _perform_admitted_intake_locked(
                 interval[9] for interval in articulatory_intervals
             )
             relaxation_sample_count = 0
-            self_hearing_episodes = tuple(_mono_pcm_hop_episodes(
-                assembly_prefix=(
-                    f"native-self-articulation-{last_hop['organism_tick']}"
-                ),
-                samples=pressure_pcm,
-                sample_rate_hz=sample_rate_hz,
-                articulatory_body=articulatory_body_trajectories,
-            ))
-            self_hearing_hop_count = len(self_hearing_episodes)
+            # The pressure has left the vocal tract at this interval's end.
+            # Native state now owns it as an exact in-flight consequence; it
+            # reaches the ears at the next lived interval, never recursively
+            # inside the request that emitted it.
+            self_hearing_hop_count = 0
             self_hearing_transitioned_neuron_count = 0
             self_hearing_fractal_count = 0
             self_articulatory_body_perturbed_neuron_count = 0
-            deferred_recurrent_articulation_count = 0
-            if self_hearing_episodes:
-                last_hop = _commit_admitted_hop(
-                    organism,
-                    tuple(episode for episode, _ in self_hearing_episodes),
-                    tuple(admissions for _, admissions in self_hearing_episodes),
-                    purpose="self_hearing",
-                )
-                affective_balance_trajectories = (
-                    _advance_bounded_affective_balance_evidence(
-                        affective_balance_trajectories,
-                        last_hop,
-                    )
-                )
-                causal_observation_hops.append(
-                    (last_hop, affective_balance_trajectories)
-                )
-                committed_hop_count += self_hearing_hop_count
-                self_hearing_transitioned_neuron_count = last_hop[
-                    "physically_transitioned_neuron_count"
-                ]
-                self_hearing_fractal_count = last_hop[
-                    "complete_neuron_fractal_count"
-                ]
-                self_articulatory_body_perturbed_neuron_count = last_hop[
-                    "externally_perturbed_body_receptor_count"
-                ]
-                deferred_recurrent_articulation_count = len(
-                    last_hop["articulatory_unit_recruitments"]
-                )
-                motor_unit_recruitments.extend(
-                    last_hop["motor_unit_recruitments"]
-                )
-                root_yaw_unit_recruitments.extend(
-                    last_hop["root_yaw_unit_recruitments"]
-                )
-                root_translation_unit_recruitments.extend(
-                    last_hop["root_translation_unit_recruitments"]
-                )
-                retain_articulated_body_evidence(last_hop)
-                emitted_neuron_fractals.extend(
-                    last_hop["emitted_neuron_fractals"]
-                )
-                organic_mosaic_relations.extend(
-                    last_hop["organic_mosaic_relations"]
-                )
-                for key in totals:
-                    totals[key] += last_hop[key]
-                for sense, count in last_hop[
-                    "receptor_ingress_sense_counts"
-                ].items():
-                    receptor_ingress_sense_counts[sense] += count
-                receptor_ingress_changing_count += last_hop[
-                    "receptor_ingress_changing_count"
-                ]
-                receptor_ingress_quiescent_count += last_hop[
-                    "receptor_ingress_quiescent_count"
-                ]
+            in_flight_recurrent_articulation_count = 1
             native_pressure_s16le = struct.pack(
                 f"<{len(pressure_pcm)}h", *pressure_pcm
             )
@@ -11604,16 +11688,16 @@ def _perform_admitted_intake_locked(
                 "articulatory_body_perturbed_neuron_count": (
                     self_articulatory_body_perturbed_neuron_count
                 ),
-                "deferred_recurrent_articulation_count": (
-                    deferred_recurrent_articulation_count
+                "in_flight_recurrent_articulation_count": (
+                    in_flight_recurrent_articulation_count
                 ),
             }
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if intake_error is not None:
         retained = _retain_already_lived_intake_after_refusal(
+            organism,
             predecessor,
-            None if last_hop is None else int(last_hop["organism_tick"]),
             intake,
             intake_error,
         )
@@ -11653,8 +11737,8 @@ def _perform_admitted_intake_locked(
         )
     except BaseException as error:
         retained = _retain_already_lived_intake_after_refusal(
+            organism,
             predecessor,
-            int(last_hop["organism_tick"]),
             intake,
             error,
         )
@@ -12435,6 +12519,14 @@ def _perform_admitted_intake_locked(
             "predecessor_state_sha256": predecessor.state_sha256,
             "state_sha256": _sealed_pointer.state_sha256,
         }
+    if consumed_in_flight_acoustic:
+        _native_pressure_audio_cache = (
+            *_native_pressure_audio_cache,
+            *(
+                {**entry, "intake": intake}
+                for entry in consumed_in_flight_acoustic
+            ),
+        )[-NATIVE_PRESSURE_AUDIO_CACHE_COUNT:]
     if articulation is not None:
         _last_tested_articulation_evidence = {
             **articulation,

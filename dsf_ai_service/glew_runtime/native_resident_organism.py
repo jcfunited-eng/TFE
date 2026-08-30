@@ -2528,6 +2528,69 @@ class NativeResidentOrganism:
                 self.__unsealed_tick = None
             raise
 
+    def advance_in_flight_self_hearing_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+        pressure_s16le: bytes,
+        body_s16le: bytes,
+    ) -> ResidentPrepareEvidence:
+        """Consume the exact resident acoustic consequence through hearing."""
+
+        if not isinstance(sources, tuple):
+            raise TypeError("in-flight hearing sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "in-flight hearing intervals must match the source tuple"
+            )
+        if not isinstance(pressure_s16le, bytes) or not isinstance(
+            body_s16le, bytes
+        ):
+            raise TypeError("in-flight acoustic transport must be exact bytes")
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None),
+                "in-flight hearing source port count",
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            candidate = self.__runtime.advance_in_flight_self_hearing_unsealed(
+                list(sources),
+                [list(value) for value in intervals],
+                pressure_s16le,
+                body_s16le,
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
     def advance_coexisting_admitted_interval_unsealed(
         self,
         sources: object,
@@ -2645,6 +2708,36 @@ class NativeResidentOrganism:
         if not isinstance(axes, list) or len(axes) != 45:
             raise RuntimeError("resident live articulated body axis count changed")
         return tuple(axes)
+
+    @property
+    def live_organism_tick(self) -> int:
+        return _nonnegative_integer(
+            self.__runtime.live_organism_tick,
+            "live organism tick",
+        )
+
+    @property
+    def in_flight_acoustic_source_tick(self) -> int | None:
+        value = self.__runtime.in_flight_acoustic_source_tick
+        return (
+            None
+            if value is None
+            else _nonnegative_integer(value, "in-flight acoustic source tick")
+        )
+
+    @property
+    def in_flight_acoustic_pressure_s16le(self) -> bytes | None:
+        value = self.__runtime.in_flight_acoustic_pressure_s16le
+        if value is not None and not isinstance(value, bytes):
+            raise RuntimeError("in-flight acoustic pressure changed format")
+        return value
+
+    @property
+    def in_flight_acoustic_body_s16le(self) -> bytes | None:
+        value = self.__runtime.in_flight_acoustic_body_s16le
+        if value is not None and not isinstance(value, bytes):
+            raise RuntimeError("in-flight acoustic body changed format")
+        return value
 
     def commit_vestibular_trajectory_direct(
         self,
