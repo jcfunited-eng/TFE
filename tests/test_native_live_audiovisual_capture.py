@@ -264,3 +264,4 @@ def test_read_only_observation_never_blocks_the_live_microphone_clock() -> None:
 
     assert "void refreshObservation(true)" in microphone_sender
     assert "await refreshObservation(true)" not in microphone_sender
+    assert "await refreshObservation(true)" not in page
