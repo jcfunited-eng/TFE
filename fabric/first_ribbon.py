@@ -590,7 +590,7 @@ def standing(gs):
                 said_to_be=[head(g) for g in gs[1:]])
 
 
-def nesting(gs):
+def nesting(gs, forbids=False):
     """The finished nesting: which group is the doing, and what role
     each of the others hangs under it in.
 
@@ -603,7 +603,7 @@ def nesting(gs):
     out identical — same doing, same subjects, in the same order in
     the list. A reading that cannot tell those apart has not read
     either of them."""
-    d = doing_of(gs)
+    d = doing_of(gs, forbids=forbids)
     if d is None:
         return dict(doing=None, doer=None, done_to=None, rest=[])
     before = [i for i in range(len(gs)) if i < d]
@@ -719,7 +719,7 @@ def regroup(gs):
     return out
 
 
-def doing_of(gs, why=False):
+def doing_of(gs, why=False, forbids=False):
     """Which group the sentence turns on. 174: the doing is the group
     that arrived alone, and where the sentence gives no contrast — all
     alone, or all carried in — the writing decides among whatever is
@@ -747,8 +747,14 @@ def doing_of(gs, why=False):
     # groups that follow — an order hands over a thing to work on.
     # This is the shape the fabric is told what to make in, and every
     # other rule here looks anywhere but first.
+    # ...or by a constraint hung off it. "keep food cold WITHOUT
+    # electricity" has no pointer in it at all, and a thing said about
+    # the world does not come with a rule about what may be used to
+    # bring it about — only an order does.
     if (gs[0] and gs[0][0] not in C.frame
-            and any(any(w in C.pointers for w in g) for g in gs[1:])):
+            and (forbids
+                 or any(any(w in C.pointers for w in g)
+                        for g in gs[1:]))):
         how = ("an order — it names no doer, so the doing is the "
                "first thing said, and a pointer after it hands over "
                "what to do it to")

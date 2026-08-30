@@ -69,7 +69,8 @@ def want(sentence, F=None):
     gs = FR.groups(head)
     turns_on, settled_by = None, None
     if gs:
-        d, settled_by = FR.doing_of(gs, why=True)
+        d, settled_by = FR.doing_of(gs, why=True,
+                                    forbids=bool(forbidden))
         turns_on = FR.head(gs[d]) if d is not None else None
     kind, asked_with = None, None
     for g in gs:
@@ -105,7 +106,7 @@ def want(sentence, F=None):
             continue
         if w != turns_on and w not in about:
             about.append(w)
-    nest = FR.nesting(gs) if gs else dict(doing=None, doer=None,
+    nest = FR.nesting(gs, forbids=bool(forbidden)) if gs else dict(doing=None, doer=None,
                                           done_to=None, rest=[])
     # THE SENSE, produced not fetched. Each word that carries the
     # sentence is read against the company standing with it HERE —

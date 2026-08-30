@@ -280,8 +280,14 @@ ESSENCE: a turn may be an ORDER, and an order names no doer. Nobody
 ROOT: this file / a sentence needs a doer and a doing, and where the
   doer is the one being spoken to it is not said at all.
 HOLDS: an order holds when its first group brings a content word in
-  with no frame word carrying it, and some group after it is opened
-  by a pointer. Its doing is that first group and it has no doer.
+  with no frame word carrying it, and either some group after it is
+  opened by a pointer OR a constraint is hung off it. Its doing is
+  that first group and it has no doer.
+  The constraint is the second mark and it is a strong one: "keep food
+  cold without electricity" has no pointer in it anywhere, and a thing
+  said about the world does not come with a rule about what may be
+  used to bring it about. Only an order does, because only an order is
+  going to be carried out.
 MINE, ON TRIAL: the pointer-after test is my construct. Measured on
   fifteen instructions a person would actually give: 11 read against
   3 without it, and the ordinary reading of statements goes UP, from
