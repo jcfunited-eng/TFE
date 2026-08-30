@@ -66,7 +66,7 @@ def want(sentence, F=None):
     # the capped list made the true doing the last group in "Eyes
     # painted on a wall raise honeybox takings" and the between-rule
     # then refused it for sitting at an end.
-    gs = FR.groups(head)
+    gs = FR.groups(head, forbids=bool(forbidden))
     turns_on, settled_by = None, None
     if gs:
         d, settled_by = FR.doing_of(gs, why=True,
@@ -100,7 +100,7 @@ def want(sentence, F=None):
     # horizon from a question about the horizon.
     C = FR.company()
     about = []
-    for g in FR.groups(head):
+    for g in FR.groups(head, forbids=bool(forbidden)):
         w = FR.head(g)
         if w in asks or w in C.asking:
             continue

@@ -301,6 +301,13 @@ HOLDS: an order holds when its first group brings a content word in
   anywhere, and a thing said about the world does not come with a rule
   about what may be used to bring it about. Only an order does, because only an order is
   going to be carried out.
+  An order's command is its own part and a carried chunk must not
+  swallow it. Where a constraint has marked a sentence an order and
+  its first group carries more than one content word, the command is
+  the first word and the rest is what to do it to: a two-word order
+  that the writing also happens to use as a phrase was being taken
+  whole and left with no doing at all. Only where the constraint has
+  already marked it, so nothing said about the world is touched.
 MINE, ON TRIAL: the pointer-after test is my construct. Measured on
   fifteen instructions a person would actually give: 11 read against
   3 without it, and the ordinary reading of statements goes UP, from

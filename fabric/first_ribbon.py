@@ -321,7 +321,7 @@ def company():
 # ---------------------------------------------------------------
 # grouping: a run of words that behave as one
 # ---------------------------------------------------------------
-def groups(sentence):
+def groups(sentence, forbids=False):
     C = company()
     ws = re.findall(r"[a-z']+", sentence.lower())
     if not ws:
@@ -362,6 +362,16 @@ def groups(sentence):
     if cur:
         out.append(cur)
     if out:
+        # An order's command is its own part. A carried chunk must not
+        # swallow it: "clean water" is a real phrase in this writing,
+        # seen eight times, so the grouping took the whole order as one
+        # thing and it had no doing at all. Only where a constraint has
+        # already marked the sentence an order, so nothing said about
+        # the world is touched.
+        if (forbids and out and len(out[0]) > 1
+                and sum(1 for w in out[0]
+                        if w not in C.frame) > 1):
+            out = [[out[0][0]], out[0][1:]] + out[1:]
         return out
     out, cur = [], [ws[0]]
     for a, b in zip(ws, ws[1:]):
