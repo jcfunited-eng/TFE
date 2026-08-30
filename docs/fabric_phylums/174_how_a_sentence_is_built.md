@@ -313,6 +313,12 @@ HOLDS: an order holds when its first group brings a content word in
   later the sentence is an order whose object is a question — being
   told to explain, or to show why a thing happens. The asking words
   are already held in 171 and nothing new is listed for this.
+  And a fourth: any later group opened by a frame word at all, not
+  only by a pointer. An order hands a thing over and the handing shows
+  in a small word — ground into flour, made from soot — where a plain
+  statement of bare words has no small word anywhere in it. This one
+  costs a statement to buy two orders, which is the trade taken here
+  because being told what to do is what the ribbon is for.
 MINE, ON TRIAL: the pointer-after test is my construct. Measured on
   fifteen instructions a person would actually give: 11 read against
   3 without it, and the ordinary reading of statements goes UP, from

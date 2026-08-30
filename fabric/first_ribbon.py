@@ -789,7 +789,8 @@ def doing_of(gs, why=False, forbids=False):
             and (forbids
                  or any(any(w in C.pointers for w in g)
                         for g in gs[1:])
-                 or any(set(g) & C.asking for g in gs[1:]))):
+                 or any(set(g) & C.asking for g in gs[1:])
+                 or any(g and g[0] in C.frame for g in gs[1:]))):
         how = ("an order — it names no doer, so the doing is the "
                "first thing said, and a pointer after it hands over "
                "what to do it to")
