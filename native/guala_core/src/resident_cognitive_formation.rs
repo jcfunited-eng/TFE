@@ -7228,6 +7228,7 @@ impl ResidentCognitiveFormationState {
         let mut externally_reached_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_perturbed_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_energized_neuron_lineages = Vec::<[u8; 16]>::new();
+        let mut palmar_contact_onset_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut transition_neuron_predecessors =
             BTreeMap::<[u8; 16], TransitionNeuronPredecessor>::new();
         let mut externally_reached_receptor_places = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
@@ -8380,6 +8381,14 @@ impl ResidentCognitiveFormationState {
                         .source_site_member(&reached_source_sites[coordinate_index])
                         .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
                     let lineage = cohort.anatomy.neuron_lineages()[resident_index];
+                    let (source_site, port) = &reached_sources[coordinate_index];
+                    if carries_palmar_contact_onset(
+                        source_site,
+                        &port.exact_normalized_sources,
+                    ) && !palmar_contact_onset_receptor_lineages.contains(&lineage)
+                    {
+                        palmar_contact_onset_receptor_lineages.push(lineage);
+                    }
                     if !externally_reached_neuron_lineages.contains(&lineage) {
                         externally_reached_neuron_lineages.push(lineage);
                         externally_reached_receptor_places
@@ -8395,6 +8404,8 @@ impl ResidentCognitiveFormationState {
             }
         }
         let source_physics_wall = settlement_stopwatch.elapsed();
+        palmar_contact_onset_receptor_lineages.sort_unstable();
+        palmar_contact_onset_receptor_lineages.dedup();
         let mut electrical_fabric = predecessor_electrical_fabric;
         let predecessor_active_electrical_frontier =
             predecessor_active_electrical_frontier.into_vec();
@@ -8498,6 +8509,7 @@ impl ResidentCognitiveFormationState {
                 .unwrap_or(0),
             residency,
             &pre_source_membranes,
+            &palmar_contact_onset_receptor_lineages,
             initial_vocal_tract_calibration,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
@@ -14082,6 +14094,20 @@ fn is_palmar_contact_receptor_site(source_site: &NeuronSourceSite) -> bool {
         && source_site.physical_quantity() == CONTACT_SITE_OCCUPANCY_QUANTITY
 }
 
+/// A grasp reflex is caused by contact arriving, not by contact continuing.
+/// The palmar receptor remains physically active throughout a hold, but its
+/// exact steady occupancy must not prepare a fresh closing motor on every
+/// interval and thereby make native release impossible.
+fn carries_palmar_contact_onset(
+    source_site: &NeuronSourceSite,
+    exact_normalized_sources: &[BigRational],
+) -> bool {
+    is_palmar_contact_receptor_site(source_site)
+        && exact_normalized_sources
+            .windows(2)
+            .any(|pair| pair[0].is_zero() && pair[1] > BigRational::zero())
+}
+
 fn is_closing_grip_terminal(terminal: BodyEffectorTerminal) -> bool {
     matches!(
         terminal.axis(),
@@ -17157,12 +17183,14 @@ fn exact_motor_preparation_transfers(
 /// Resolve the exact layer-8 reflex regulation for this motor terminal.
 /// Reacted joint load prepares only its opposing motor. The current virtual
 /// body's singular, unhanded palmar surface prepares both closing grip
-/// terminals symmetrically. Tonic antagonist-length receptors and every other
-/// tactile site remain excluded: unchanged pose or unrelated touch cannot
-/// become motor drive.
+/// terminals symmetrically only when that receptor carries an exact contact
+/// onset. Continued occupancy remains touch but is not a new grasp command.
+/// Tonic antagonist-length receptors and every other tactile site remain
+/// excluded: unchanged pose or unrelated touch cannot become motor drive.
 fn exact_articulated_body_preparation_regulations(
     motor_terminal: BodyEffectorTerminal,
     paths: &[MotorBodyAfferentPath],
+    palmar_contact_onset_receptor_lineages: &[[u8; 16]],
 ) -> Vec<[u8; 16]> {
     let mut regulations = paths
         .iter()
@@ -17170,6 +17198,9 @@ fn exact_articulated_body_preparation_regulations(
             let receptor_site = &path.receptor_site;
             if is_palmar_contact_receptor_site(receptor_site)
                 && is_closing_grip_terminal(motor_terminal)
+                && palmar_contact_onset_receptor_lineages
+                    .binary_search(&path.receptor_lineage)
+                    .is_ok()
             {
                 return Some(path.body_regulation_lineage);
             }
@@ -17548,6 +17579,7 @@ fn settle_internal_contact_interval(
             u128,
         ),
     >,
+    palmar_contact_onset_receptor_lineages: &[[u8; 16]],
     initial_vocal_tract_calibration: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
@@ -18590,7 +18622,11 @@ fn settle_internal_contact_interval(
             {
                 exact_initial_vocal_tract_calibration_regulations(motor_terminal, &paths)
             } else {
-                exact_articulated_body_preparation_regulations(motor_terminal, &paths)
+                exact_articulated_body_preparation_regulations(
+                    motor_terminal,
+                    &paths,
+                    palmar_contact_onset_receptor_lineages,
+                )
             };
             if !regulations.is_empty() {
                 body_regulations_by_motor.insert(motor_lineage, regulations);
@@ -21087,6 +21123,21 @@ mod tests {
                 palmar_contact_source_site(),
             );
         assert!(is_palmar_contact_receptor_site(&palmar_site));
+        assert!(carries_palmar_contact_onset(
+            &palmar_site,
+            &[BigRational::zero(), BigRational::from_integer(1.into())],
+        ));
+        assert!(!carries_palmar_contact_onset(
+            &palmar_site,
+            &[
+                BigRational::from_integer(1.into()),
+                BigRational::from_integer(1.into()),
+            ],
+        ));
+        assert!(!carries_palmar_contact_onset(
+            &palmar_site,
+            &[BigRational::from_integer(1.into()), BigRational::zero()],
+        ));
         assert!(!is_palmar_contact_receptor_site(
             &NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Touch, 26)
         ));
@@ -21130,8 +21181,14 @@ mod tests {
                 &topology.neighbours_by_flat,
             )
             .unwrap();
-            let regulations = exact_articulated_body_preparation_regulations(closing, &paths);
+            let regulations = exact_articulated_body_preparation_regulations(
+                closing,
+                &paths,
+                &[palmar_receptor],
+            );
             assert!(regulations.contains(&palmar_regulation));
+            assert!(exact_articulated_body_preparation_regulations(closing, &paths, &[])
+                .is_empty());
             assert!(paths.iter().any(|path| {
                 path.receptor_lineage == palmar_receptor
                     && path.receptor_site == palmar_site
@@ -25144,6 +25201,7 @@ mod tests {
                 0,
                 &mut None,
                 &BTreeMap::new(),
+                &[],
                 false,
             )
             .unwrap();
@@ -25581,12 +25639,14 @@ mod tests {
             exact_articulated_body_preparation_regulations(
                 loaded_terminal.opposing_effector(),
                 &paths,
+                &[],
             ),
             vec![load_regulation],
         );
         assert!(exact_articulated_body_preparation_regulations(
             loaded_terminal.paired_effector(),
             &paths,
+            &[],
         )
         .is_empty());
         assert!(exact_articulated_body_preparation_regulations(
@@ -25595,6 +25655,7 @@ mod tests {
                 BodyEffectorDirection::TowardMinimum,
             ),
             &paths,
+            &[],
         )
         .is_empty());
     }
@@ -26223,6 +26284,7 @@ mod tests {
                 0,
                 &mut residency,
                 &BTreeMap::new(),
+                &[],
                 false,
             )
             .unwrap();
@@ -26288,6 +26350,7 @@ mod tests {
                 0,
                 &mut residency,
                 &BTreeMap::new(),
+                &[],
                 false,
             )
             .unwrap();

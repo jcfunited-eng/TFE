@@ -1288,3 +1288,30 @@ This closes only the human-audible environmental expression surface. L-009
 remains active until Guala's own native action manipulates/releases/advances
 the physical book and the changed page light returns through the same resident
 organism.
+
+## Native held-contact release obstruction
+
+The next source trace found one exact physical obstruction rather than an
+absent opening motor. Both grip directions are mounted and live observations
+showed the articulated motor population being recruited, but the singular
+palmar held-contact receptor was allowed to prepare both closing grip terminals
+on every interval for which contact occupancy remained nonzero. A held object
+therefore produced a fresh squeeze reflex continuously. This made native
+opening fight an artificial repeated grasp command even though no new contact
+had occurred.
+
+The correction is confined to the native receptor-to-reflex boundary in
+`resident_cognitive_formation.rs`. Palmar touch remains exact tactile input and
+continues to reach cognition while the book is held. The closing reflex is now
+eligible only when that same receptor carries an exact `0 -> positive` contact
+onset. Exact steady occupancy is still felt but is not another grasp command;
+contact loss is not reclassified as grasp. Reacted-load reflexes and all other
+body regulation remain unchanged. No object identity, book rule, timer,
+threshold, observer authority, scripted action, reduced DSF field, or Python
+decision path was added.
+
+The acceptance boundary is correspondingly narrow: a `0 -> 1` palmar
+transition must still reach both closing grip reflexes, while `1 -> 1` and
+`1 -> 0` must not. The live L-009 acceptance remains unchanged: Guala's own
+native opening action must release or advance the held book, and the resulting
+changed world light must return through the same resident visual receptors.
