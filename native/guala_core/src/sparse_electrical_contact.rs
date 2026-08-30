@@ -1161,7 +1161,7 @@ fn settle_energy_component(
     predecessor_contacts: &SparseElectricalState,
     capacitances: &[MembraneCapacitance],
     predecessor_membranes: &[ElementaryChargeMembraneState],
-    available_carriers: &[u128],
+    _available_carriers: &[u128],
     interval_microseconds: u32,
     component_contacts: &[usize],
     transitions: &mut [ElectricalContactTransition],
@@ -1346,23 +1346,8 @@ fn settle_energy_component(
             .ok_or(SparseElectricalError::ArithmeticWidth)?,
     )?;
     for contact_index in component_contacts {
-        let contact = anatomy.contacts[*contact_index];
         let predecessor = predecessor_contacts.contacts[*contact_index].clone();
         let transition = &transitions[*contact_index];
-        let left = ContactEndpoint::new(
-            predecessor_membranes[contact.left_neuron]
-                .potential_millivolts(capacitances[contact.left_neuron])?,
-            predecessor_membranes[contact.left_neuron],
-            capacitances[contact.left_neuron],
-            available_carriers[contact.left_neuron],
-        );
-        let right = ContactEndpoint::new(
-            predecessor_membranes[contact.right_neuron]
-                .potential_millivolts(capacitances[contact.right_neuron])?,
-            predecessor_membranes[contact.right_neuron],
-            capacitances[contact.right_neuron],
-            available_carriers[contact.right_neuron],
-        );
         // Scale the exact current, not its already-quantized whole-carrier
         // count.  The old integer floor discarded every sub-carrier share and
         // retained the predecessor phase, permanently starving small lawful
@@ -1372,13 +1357,30 @@ fn settle_energy_component(
         let scaled_current = transition
             .outward_current_from_left_picoamperes
             .checked_mul(scale)?;
-        transitions[*contact_index] = settle_contact_at_current(
-            predecessor,
-            left,
-            right,
+        let carrier = settle_elementary_charge_transfer(
+            predecessor.carrier_phase,
             scaled_current,
             interval_microseconds,
         )?;
+        if carrier.outward_elementary_charges.unsigned_abs()
+            > transition.outward_elementary_charges_from_left.unsigned_abs()
+            || (carrier.outward_elementary_charges != 0
+                && carrier.outward_elementary_charges.signum()
+                    != transition.outward_elementary_charges_from_left.signum())
+        {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        transitions[*contact_index] = ElectricalContactTransition {
+            successor: ElectricalContactState {
+                carrier_phase: carrier.successor_phase,
+                ..predecessor
+            },
+            outward_current_from_left_picoamperes: scaled_current,
+            outward_elementary_charges_from_left: carrier.outward_elementary_charges,
+            released_work_zeptojoules: BigRational::zero(),
+            exported_heat_zeptojoules: BigRational::zero(),
+            conductance_changed: false,
+        };
     }
     let (scaled_component_neurons, scaled_outward) =
         outward_by_contact_indices(anatomy, transitions, component_contacts)?;
