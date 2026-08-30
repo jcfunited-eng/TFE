@@ -968,7 +968,6 @@ fn jointly_carrier_bound_transitions(
     available_carriers: &[u128],
     interval_microseconds: u32,
     provisional: Vec<ElectricalContactTransition>,
-    potentials: &[ExactRational],
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
     // A neuron's per-contact demands are individually bounded whole-carrier
     // values, but their transient sum across a real fan-out need not fit the
@@ -1020,47 +1019,44 @@ fn jointly_carrier_bound_transitions(
                 return Ok(transition);
             }
             let demand = transition.outward_elementary_charges_from_left.unsigned_abs();
-            let (allocated_wide, _) = crate::fast_charge_math::U256::mul_u128(
-                demand, available,
-            )
-            .div_rem(total_demand)
-            .ok_or(SparseElectricalError::ArithmeticWidth)?;
-            let allocated = allocated_wide
-                .to_u128()
-                .ok_or(SparseElectricalError::ArithmeticWidth)?;
+            let allocated = proportional_carrier_allocation(demand, available, total_demand)?;
             let bounded_current = current_limited_by_available_carriers(
                 predecessor.carrier_phase,
                 transition.outward_current_from_left_picoamperes,
                 interval_microseconds,
                 allocated,
             )?;
-            let left_available = if sender == contact.left_neuron {
-                allocated
-            } else {
-                available_carriers[contact.left_neuron]
-            };
-            let right_available = if sender == contact.right_neuron {
-                allocated
-            } else {
-                available_carriers[contact.right_neuron]
-            };
-            settle_contact_at_current(
-                predecessor,
-                ContactEndpoint::new(
-                    potentials[contact.left_neuron],
-                    predecessor_membranes[contact.left_neuron],
-                    capacitances[contact.left_neuron],
-                    left_available,
-                ),
-                ContactEndpoint::new(
-                    potentials[contact.right_neuron],
-                    predecessor_membranes[contact.right_neuron],
-                    capacitances[contact.right_neuron],
-                    right_available,
-                ),
+            // The provisional transition already proved the contact's driven
+            // direction and full proposed transfer strictly energy-descending.
+            // This shared-sender allocation can only reduce that transfer.
+            // Re-entering settle_contact_at_current here repeated the same
+            // pair-energy proof and carrier integration, then applied the same
+            // material limit a second time. Integrate the exact bounded current
+            // once; the component-wide energy proof below remains authoritative
+            // for simultaneous shared-neuron interaction.
+            let carrier = settle_elementary_charge_transfer(
+                predecessor.carrier_phase,
                 bounded_current,
                 interval_microseconds,
-            )
+            )?;
+            if carrier.outward_elementary_charges.unsigned_abs() > allocated
+                || (carrier.outward_elementary_charges != 0
+                    && carrier.outward_elementary_charges.signum()
+                        != transition.outward_elementary_charges_from_left.signum())
+            {
+                return Err(SparseElectricalError::ArithmeticWidth);
+            }
+            Ok(ElectricalContactTransition {
+                successor: ElectricalContactState {
+                    carrier_phase: carrier.successor_phase,
+                    ..predecessor
+                },
+                outward_current_from_left_picoamperes: bounded_current,
+                outward_elementary_charges_from_left: carrier.outward_elementary_charges,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            })
         })
         .collect::<Result<Vec<_>, _>>()?;
     component_energy_descending_transitions(
@@ -1072,6 +1068,45 @@ fn jointly_carrier_bound_transitions(
         interval_microseconds,
         transitions,
     )
+}
+
+fn gcd_u128(mut left: u128, mut right: u128) -> u128 {
+    while right != 0 {
+        let remainder = left % right;
+        left = right;
+        right = remainder;
+    }
+    left
+}
+
+/// Exact floor of `demand * available / total_demand`. Native u128 division is
+/// used after cancelling every lawful common factor; the existing U256 path is
+/// retained for the uncommon product that remains wider than u128.
+fn proportional_carrier_allocation(
+    demand: u128,
+    available: u128,
+    total_demand: crate::fast_charge_math::U256,
+) -> Result<u128, SparseElectricalError> {
+    if let Some(total) = total_demand.to_u128() {
+        if total == 0 {
+            return Err(SparseElectricalError::ArithmeticWidth);
+        }
+        let demand_divisor = gcd_u128(demand, total);
+        let reduced_demand = demand / demand_divisor;
+        let reduced_total = total / demand_divisor;
+        let available_divisor = gcd_u128(available, reduced_total);
+        let reduced_available = available / available_divisor;
+        let reduced_total = reduced_total / available_divisor;
+        if let Some(product) = reduced_demand.checked_mul(reduced_available) {
+            return Ok(product / reduced_total);
+        }
+    }
+    let (allocated, _) = crate::fast_charge_math::U256::mul_u128(demand, available)
+        .div_rem(total_demand)
+        .ok_or(SparseElectricalError::ArithmeticWidth)?;
+    allocated
+        .to_u128()
+        .ok_or(SparseElectricalError::ArithmeticWidth)
 }
 
 /// Settle simultaneous sparse currents on the exact minimum of each connected
@@ -2301,7 +2336,6 @@ pub(crate) fn settle_sparse_electrical_transfers(
         available_carriers,
         interval_microseconds,
         provisional,
-        &potentials,
     )?;
     let jointly_wall = solver_stopwatch.elapsed();
     attach_contact_local_released_work(
@@ -2438,7 +2472,6 @@ pub(crate) fn settle_sparse_electrical_transfers_reached(
         available_carriers,
         interval_microseconds,
         provisional,
-        &potentials,
     )?;
     attach_contact_local_released_work(
         anatomy,
