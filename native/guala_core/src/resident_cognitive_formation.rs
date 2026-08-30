@@ -20114,7 +20114,18 @@ fn exact_rational_binary64(value: ExactRational) -> Result<f64, FormationError> 
 
 fn contact_components(neuron_count: usize, anatomy: &SparseElectricalAnatomy) -> Vec<Vec<usize>> {
     let mut visited = vec![false; neuron_count];
-    let endpoints = anatomy.contact_endpoints().collect::<Vec<_>>();
+    // Build the exact sparse incidence surface once. The former traversal
+    // rescanned every contact for every neuron reached by a component, making
+    // one physical interval O(neurons * contacts). Contacts are appended to
+    // each endpoint in canonical contact order, so the breadth-first member
+    // order remains identical to the former contact-order scan.
+    let mut neighbours = std::iter::repeat_with(Vec::new)
+        .take(neuron_count)
+        .collect::<Vec<Vec<usize>>>();
+    for (left, right) in anatomy.contact_endpoints() {
+        neighbours[left].push(right);
+        neighbours[right].push(left);
+    }
     let mut groups = Vec::new();
     for start in 0..neuron_count {
         if visited[start] {
@@ -20125,19 +20136,10 @@ fn contact_components(neuron_count: usize, anatomy: &SparseElectricalAnatomy) ->
         let mut cursor = 0usize;
         while cursor < group.len() {
             let member = group[cursor];
-            for (left, right) in &endpoints {
-                let neighbour = if *left == member {
-                    Some(*right)
-                } else if *right == member {
-                    Some(*left)
-                } else {
-                    None
-                };
-                if let Some(neighbour) = neighbour {
-                    if !visited[neighbour] {
-                        visited[neighbour] = true;
-                        group.push(neighbour);
-                    }
+            for neighbour in neighbours[member].iter().copied() {
+                if !visited[neighbour] {
+                    visited[neighbour] = true;
+                    group.push(neighbour);
                 }
             }
             cursor += 1;
@@ -20857,6 +20859,25 @@ mod real_body_migration_probe;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sparse_contact_components_preserve_canonical_breadth_first_order() {
+        let contacts = [(2, 3), (0, 2), (1, 3)]
+            .into_iter()
+            .map(|(left, right)| {
+                ElectricalContactAnatomy::new(
+                    left,
+                    right,
+                    ExactRational::integer(1),
+                    5,
+                )
+                .unwrap()
+            })
+            .collect();
+        let anatomy = SparseElectricalAnatomy::new(5, contacts).unwrap();
+
+        assert_eq!(contact_components(5, &anatomy), vec![vec![0, 2, 3, 1], vec![4]]);
+    }
 
     /// Quiet (dark, silent) episodes appended after a presentation so the
     /// cohort can descend all the way to electrical rest.  Since the
