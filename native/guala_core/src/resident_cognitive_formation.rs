@@ -156,7 +156,8 @@ use crate::virtual_material_neuron_genesis::{
     reach_quiescent_virtual_material_neuron, VirtualMaterialGenesisError,
 };
 use crate::virtual_articulated_body::{
-    BodyEffectorTerminal, ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
+    BodyAxis, BodyEffectorDirection, BodyEffectorTerminal,
+    ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
     ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
     BODY_AXES, BODY_EFFECTOR_TERMINAL_COUNT, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
     LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
@@ -271,6 +272,12 @@ const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// cochlear, tactile, and growth-DNA paths.  Internal specialization reuses
 /// that exact physical contact; it is not a fitted learning coefficient.
 const DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS: i128 = 500;
+/// The one current virtual palmar surface is deliberately unhanded anatomy.
+/// Its reflection-symmetric grasp reflex therefore reaches both fixed closing
+/// grip terminals; learned experience may later differentiate their use.
+const PALMAR_CONTACT_TOPOLOGY_INDEX: u32 = 27;
+const PALMAR_CONTACT_SENSOR_ID: &str = "native-palmar-contact";
+const PALMAR_CONTACT_SUBSTREAM_ID: &str = "held-contact";
 /// The pre-proprioceptive served receptor roster's widest declared local
 /// projection is sound layer 1, topology 33. Its Cantor territory is 629, so
 /// indices 0..628 remain the unchanged projection geography and the 74 fixed
@@ -14065,6 +14072,21 @@ fn body_regulation_place(
     ))
 }
 
+fn is_palmar_contact_receptor_site(source_site: &NeuronSourceSite) -> bool {
+    source_site.sense() == PhysicalSourceSense::Touch
+        && source_site.topology_index() == PALMAR_CONTACT_TOPOLOGY_INDEX
+        && source_site.sensor_id() == PALMAR_CONTACT_SENSOR_ID
+        && source_site.substream_id() == PALMAR_CONTACT_SUBSTREAM_ID
+        && source_site.physical_quantity() == CONTACT_SITE_OCCUPANCY_QUANTITY
+}
+
+fn is_closing_grip_terminal(terminal: BodyEffectorTerminal) -> bool {
+    matches!(
+        terminal.axis(),
+        BodyAxis::LeftGripAperture | BodyAxis::RightGripAperture
+    ) && terminal.direction() == BodyEffectorDirection::TowardMinimum
+}
+
 /// Mount one new source-independent neuron at the first quiescent place in a
 /// projection layer.  This is reached-frontier growth: it claims one compactly
 /// declared cell and never scans or materializes the resting population.
@@ -14402,22 +14424,40 @@ fn mount_reached_body_regulation(
                 .iter()
                 .find(|(candidate, mount)| {
                     candidate == lineage
-                        && mount.source_site().is_some()
-                        && mount.place().layer() == 5
+                        && mount.source_site().is_some_and(|source_site| {
+                            mount.place().layer() == 5
+                                || is_palmar_contact_receptor_site(source_site)
+                        })
                 })
                 .map(|(_, mount)| {
-                    let effector = mount.source_site().and_then(|source_site| {
+                    let effectors = mount.source_site().map_or_else(Vec::new, |source_site| {
+                        if is_palmar_contact_receptor_site(source_site) {
+                            return [
+                                BodyAxis::LeftGripAperture,
+                                BodyAxis::RightGripAperture,
+                            ]
+                            .into_iter()
+                            .map(|axis| {
+                                DevelopedMotorTerminal::Articulated(
+                                    BodyEffectorTerminal::new(
+                                        axis,
+                                        BodyEffectorDirection::TowardMinimum,
+                                    ),
+                                )
+                            })
+                            .collect();
+                        }
                         if let Some(terminal) = source_site.body_proprioceptor_terminal() {
                             return match source_site.physical_quantity() {
-                                ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY => Some(
+                                ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY => vec![
                                     DevelopedMotorTerminal::Articulated(terminal.paired_effector()),
-                                ),
-                                EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY => Some(
+                                ],
+                                EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY => vec![
                                     DevelopedMotorTerminal::Articulated(
                                         terminal.opposing_effector(),
                                     ),
-                                ),
-                                _ => None,
+                                ],
+                                _ => Vec::new(),
                             };
                         }
                         source_site
@@ -14430,14 +14470,16 @@ fn mount_reached_body_regulation(
                                     .map(RootTranslationProprioceptorTerminal::paired_effector)
                                     .map(DevelopedMotorTerminal::RootTranslation)
                             })
+                            .into_iter()
+                            .collect()
                     });
-                    (*lineage, mount.place(), effector)
+                    (*lineage, mount.place(), effectors)
                 })
         })
         .collect::<Vec<_>>();
 
     let mut reached_regulation = Vec::new();
-    for (receptor_lineage, receptor_place, effector_terminal) in reached_body_receptors {
+    for (receptor_lineage, receptor_place, effector_terminals) in reached_body_receptors {
         let integration_place = local_integration_place(receptor_place)?;
         let integration = mounted
             .iter()
@@ -14468,7 +14510,7 @@ fn mount_reached_body_regulation(
                 )
                 .map_err(FormationError::ResidentElectricalUnavailable)?;
         }
-        if let Some(terminal) = effector_terminal {
+        for terminal in effector_terminals {
             match terminal {
                 DevelopedMotorTerminal::Articulated(terminal) => {
                     mount_fixed_articulated_motor_terminal(
@@ -17110,12 +17152,12 @@ fn exact_motor_preparation_transfers(
     preparation_transfers
 }
 
-/// Resolve the one layer-8 reacted-load regulation line whose typed
-/// articulated-body receptor opposes this exact motor terminal. A motor that
-/// reaches a joint stop raises load at that motor's proprioceptor; the lawful
-/// release is therefore the antagonist effector, never the effector that is
-/// already pushing into the stop. Tonic antagonist-length receptors are
-/// excluded: unchanged pose cannot become motor drive.
+/// Resolve the exact layer-8 reflex regulation for this motor terminal.
+/// Reacted joint load prepares only its opposing motor. The current virtual
+/// body's singular, unhanded palmar surface prepares both closing grip
+/// terminals symmetrically. Tonic antagonist-length receptors and every other
+/// tactile site remain excluded: unchanged pose or unrelated touch cannot
+/// become motor drive.
 fn exact_articulated_body_preparation_regulations(
     motor_terminal: BodyEffectorTerminal,
     paths: &[MotorBodyAfferentPath],
@@ -17124,6 +17166,11 @@ fn exact_articulated_body_preparation_regulations(
         .iter()
         .filter_map(|path| {
             let receptor_site = &path.receptor_site;
+            if is_palmar_contact_receptor_site(receptor_site)
+                && is_closing_grip_terminal(motor_terminal)
+            {
+                return Some(path.body_regulation_lineage);
+            }
             let load_terminal = receptor_site.body_proprioceptor_terminal()?;
             (receptor_site.physical_quantity() == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
                 && load_terminal.opposing_effector() == motor_terminal)
@@ -17414,7 +17461,9 @@ fn exact_motor_body_afferent_paths(
                 let Some(receptor_site) = receptor_mount.source_site() else {
                     continue;
                 };
-                if receptor_mount.place().layer() != 5 {
+                if receptor_mount.place().layer() != 5
+                    && !is_palmar_contact_receptor_site(receptor_site)
+                {
                     continue;
                 }
                 paths.push(MotorBodyAfferentPath {
@@ -20855,6 +20904,56 @@ mod tests {
         lineage
     }
 
+    fn palmar_contact_source_site() -> NeuronSourceSite {
+        NeuronSourceSite::from_source_port(
+            &crate::joint_source_episode::JointSourcePortView {
+                sense: PhysicalSourceSense::Touch.declared_layer(),
+                topology_index: PALMAR_CONTACT_TOPOLOGY_INDEX,
+                body_proprioceptor_terminal: None,
+                root_yaw_proprioceptor_terminal: None,
+                root_translation_proprioceptor_terminal: None,
+                sensor_id: PALMAR_CONTACT_SENSOR_ID.into(),
+                substream_id: PALMAR_CONTACT_SUBSTREAM_ID.into(),
+                coordinates: vec![crate::joint_source_episode::JointSourceCoordinate {
+                    axis_id: "body-surface".into(),
+                    coordinate_id: "palmar".into(),
+                }],
+                physical_quantity: CONTACT_SITE_OCCUPANCY_QUANTITY.into(),
+                physical_unit: CONTACT_REFERENCE_OCCUPANCY_UNIT.into(),
+                relevance_rule: "source-only".into(),
+                relevance_origin: None,
+                input_map_id: "palmar-contact-test-map".into(),
+                source_min: BigRational::from_integer(BigInt::from(0)),
+                source_max: BigRational::from_integer(BigInt::from(1)),
+                field_offset: BigRational::from_integer(BigInt::from(0)),
+                field_scale: BigRational::from_integer(BigInt::from(1)),
+                input_map_profile: vec![1],
+                input_map_group_receipt: [0; 32],
+                source_times: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                exact_normalized_sources: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                reported_phase_turns: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(0)),
+                ],
+                source_relevances: vec![
+                    BigRational::from_integer(BigInt::from(1)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                dimensionless_fields: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+            },
+        )
+        .unwrap()
+    }
+
     #[test]
     fn transient_bond_index_preserves_exact_parallel_ordinals() {
         let left = local_lineage(1);
@@ -20953,6 +21052,89 @@ mod tests {
         .unwrap();
         assert_eq!(regulation.len(), 1);
         (regulation[0], receptor_lineage, receptor_site)
+    }
+
+    #[test]
+    fn singular_palmar_contact_mounts_only_the_two_closing_grip_reflexes() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+
+        for axis in [BodyAxis::LeftGripAperture, BodyAxis::RightGripAperture] {
+            for direction in [
+                BodyEffectorDirection::TowardMinimum,
+                BodyEffectorDirection::TowardMaximum,
+            ] {
+                mount_body_regulation_fixture(
+                    &mut cohorts,
+                    &mut population,
+                    &mut next_lineage,
+                    &mut fabric,
+                    axis,
+                    direction,
+                );
+            }
+        }
+        let (palmar_regulation, palmar_receptor, palmar_site) =
+            mount_body_regulation_from_site_fixture(
+                &mut cohorts,
+                &mut population,
+                &mut next_lineage,
+                &mut fabric,
+                palmar_contact_source_site(),
+            );
+        assert!(is_palmar_contact_receptor_site(&palmar_site));
+        assert!(!is_palmar_contact_receptor_site(
+            &NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Touch, 26)
+        ));
+
+        let mut motors = BTreeMap::new();
+        for (mount, lineage) in cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            if let Some(terminal) = mount.body_effector_terminal() {
+                motors.insert(terminal, *lineage);
+            }
+        }
+        for axis in [BodyAxis::LeftGripAperture, BodyAxis::RightGripAperture] {
+            let closing = BodyEffectorTerminal::new(
+                axis,
+                BodyEffectorDirection::TowardMinimum,
+            );
+            let opening = BodyEffectorTerminal::new(
+                axis,
+                BodyEffectorDirection::TowardMaximum,
+            );
+            assert!(fabric.contains_contact(palmar_regulation, motors[&closing]));
+            assert!(!fabric.contains_contact(palmar_regulation, motors[&opening]));
+        }
+
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        for axis in [BodyAxis::LeftGripAperture, BodyAxis::RightGripAperture] {
+            let closing = BodyEffectorTerminal::new(
+                axis,
+                BodyEffectorDirection::TowardMinimum,
+            );
+            let motor_flat = topology.flat_for_lineage(motors[&closing]).unwrap();
+            let paths = exact_motor_body_afferent_paths(
+                motor_flat,
+                &topology.flat_locations,
+                &cohorts,
+                &topology.neighbours_by_flat,
+            )
+            .unwrap();
+            let regulations = exact_articulated_body_preparation_regulations(closing, &paths);
+            assert!(regulations.contains(&palmar_regulation));
+            assert!(paths.iter().any(|path| {
+                path.receptor_lineage == palmar_receptor
+                    && path.receptor_site == palmar_site
+            }));
+        }
     }
 
     fn mount_receptor_local_integration_fixture(

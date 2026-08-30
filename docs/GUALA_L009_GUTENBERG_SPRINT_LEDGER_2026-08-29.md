@@ -1027,3 +1027,39 @@ median. The latest complete transport interval was 25.15 seconds, of which
 runaway was observed. The organism remained non-exhausted. This is a bounded
 post-release sample, not a claim that the still-open whole-experience timing
 work is complete.
+
+## Palmar-contact grasp reflex — candidate
+
+The placed book reached Guala's exact `native-palmar-contact/held-contact`
+receptor and settled in the resident organism, but later ordinary intervals
+still produced no grip movement. A read-only inspection of the authenticated
+resident body found the cause: all retained receptor-to-motor paths terminated
+at body-position, reacted-load, or vocal receptors. The palmar receptor had no
+native path to either grip, so experience alone could never bootstrap the first
+grasp.
+
+The candidate adds one developmental, reflection-symmetric palmar grasp reflex
+inside the existing neuron/contact physics. The singular virtual palmar surface
+is deliberately unhanded, so its exact touch receptor grows one local
+integration neuron, one layer-8 body-regulation neuron, and contacts to only the
+two already-mounted closing grip terminals. Opening grips, every other tactile
+site, object identity, language, attention, reward, and observer state remain
+excluded. The full seven-field DSF, receptor transduction, membrane/contact
+settlement, carrier accounting, body action, persistent-world grasp law, and
+returned proprioceptive/tactile consequences remain the authorities.
+
+The focused native proof executed one test and passed. It proves that the exact
+palmar source reaches both closing grips, reaches neither opening grip, that an
+unrelated touch receptor cannot enter the reflex, and that each closing motor's
+afferent preparation resolves the same exact receptor-to-integration-to-
+regulation path. `git diff --check` passes. Repository-wide formatter drift is
+pre-existing across untouched native files and was not rewritten (RF-013 and
+RF-026).
+
+Live closure requires the same resident identity to exhibit the complete
+physical response in production: palmar touch, native regulation transfer,
+negative grip-aperture displacement, book custody, and returned palmar plus
+grip proprioception. A mounted contact or passing HTTP response alone cannot
+close this item. Named dopamine, oxytocin, or other molecular claims remain
+forbidden unless their exact simulated chemistry is independently present and
+observed.
