@@ -794,16 +794,35 @@ def doing_of(gs, why=False, forbids=False):
     # were reading two statements in five as orders. A constraint
     # fires on 0 per cent and catches a third of real orders, and the
     # learned class adds one more at no cost.
+    # A bare number is a third precise mark. This writing sets down
+    # what is true of the world and almost never a bare count: 1 of
+    # 600 of its own sentences holds one, so a number is a task
+    # arriving, not a thing being described.
     # The rest of an order cannot be told from a statement by anything
     # measured here, and that is the finding rather than a gap: an
     # order of bare words IS a statement of bare words, and the corpus
     # holds no orders to learn the difference from.
     if (gs[0] and gs[0][0] not in C.frame
             and (forbids
-                 or acts_like_doing(head(gs[0])) is True)):
+                 or acts_like_doing(head(gs[0])) is True
+                 or any(head(g).isdigit() for g in gs[1:]))):
         how = ("an order — it names no doer, so the doing is the "
                "first thing said, and a pointer after it hands over "
                "what to do it to")
+        # ...except that the command of a task sits NEXT TO what it
+        # acts on. "please add 45 and 47" is an order whose first
+        # group is politeness, and taking the first group blindly made
+        # the doing "please". Where a group is followed by a number,
+        # that group is the command.
+        bare = [i for i in range(len(gs))
+                if gs[i] and gs[i][0] not in C.frame
+                and not head(gs[i]).isdigit()]
+        beside = [i for i in bare
+                  if i + 1 < len(gs) and head(gs[i + 1]).isdigit()]
+        if beside:
+            how = ("an order — the command sits next to what it "
+                   "acts on")
+            return (beside[0], how) if why else beside[0]
         return (0, how) if why else 0
     if not any(is_doing_group(g) for g in regroup(gs)[1:]):
         how = ("no doing — no group after the first brings a content "
