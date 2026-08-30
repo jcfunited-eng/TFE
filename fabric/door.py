@@ -8,11 +8,12 @@ built as a joint, and what it refused.
 
 Served on a thread so a slow question never touches the beat.
 """
-import os, sys, json, html, threading, traceback
+import os, re, sys, json, html, threading, traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 import core
+import phylum_reader as PR
 
 PORT = 8765
 LIFE = os.path.join(BASE, "life")
@@ -194,6 +195,99 @@ def _answer(q):
                     f"  Said rather than hidden.")
 
 
+_FRAME = {"the", "a", "an", "of", "and", "or", "to", "for", "in",
+          "on", "at", "is", "are", "was", "were", "be", "been",
+          "do", "does", "did", "you", "i", "it", "its", "that",
+          "this", "these", "those", "not", "no", "me", "my",
+          "your", "with", "by", "as", "so", "if", "then", "than",
+          "there", "here", "please", "can", "could", "would",
+          "should", "will", "am", "we", "they", "he", "she"}
+_ASKS = {"why": "a cause", "how": "a method", "what": "a naming",
+         "when": "a time", "where": "a place", "who": "a person",
+         "which": "a choice"}
+_MAKES = {"create", "make", "build", "write", "compose", "design",
+          "invent", "cook", "draw", "plan"}
+
+
+def _plain(q):
+    """The reply's first voice: plain sentences, grounded in the
+    NEW fabric (the forty phylums). It says what kind of thing was
+    said, where each of its words lives in the fabric — or that a
+    word is not held, honestly — and what the machinery can and
+    cannot yet do with it. It never pretends to answer or to make."""
+    words = [w for w in re.findall(r"[a-zA-Z]+", q.lower())
+             if w not in _FRAME]
+    ask = next((w for w in words if w in _ASKS), None)
+    make = next((w for w in words if w in _MAKES), None)
+    content = [w for w in words if w not in _ASKS
+               and w not in _MAKES][:6]
+
+    out = []
+    if make:
+        thing = " ".join(content) or "something"
+        out.append(f"You told me to {make} something: {thing}. "
+                   f"That is a want, not a question.")
+    elif ask:
+        out.append(f"You asked '{ask}' — {_ASKS[ask]} would count "
+                   f"as an answer.")
+    else:
+        out.append("You said something to me — I read it as a "
+                   "statement or a want, not a question.")
+
+    held_words, held_counts = {}, {}
+    for w in content:
+        hs = PR.homes(w)
+        color = [h for h in hs if h[1] == "color"]
+        best = sorted(color or hs, key=lambda h: (
+            ("THINGS", "CLAIMS", "SCIENCE", "METHODS", "MEANS",
+             "PURPOSE", "HISTORY", "RELATIONS").index(h[2])))[:2]
+        if not hs:
+            out.append(f"'{w}' — not held anywhere in my forty "
+                       f"subjects yet. An honest gap, not a "
+                       f"refusal.")
+            continue
+        for slug, half, section, entry in hs:
+            held_words.setdefault(slug, set()).add(w)
+            held_counts[slug] = held_counts.get(slug, 0) + 1
+        places = "; ".join(
+            f"{slug} ({PR.first_line(entry)})"
+            for slug, half, section, entry in best)
+        out.append(f"'{w}' — held. It lives in {places}")
+    # A subject's claim on the want is weighed by SPREAD, the one
+    # ranking lesson this fabric has actually proven: a word held
+    # by few subjects points harder than a word held by twenty.
+    spread = {w: sum(1 for s in held_words if w in held_words[s])
+              for w in content}
+    held_slugs = {s: (sum(1.0 / spread[w] for w in held_words[s]),
+                      held_counts[s])
+                  for s in held_words}
+
+    if make:
+        if held_slugs:
+            top = max(held_slugs, key=held_slugs.get)
+            out.append(
+                f"What I cannot yet do is the making itself — "
+                f"the hands that assemble knowledge into a thing "
+                f"are not built. Nothing certain to give you, but "
+                f"here is what is true: the knowledge your want "
+                f"needs stands mostly in {top}, and when the "
+                f"assembling is built, that is where it will "
+                f"reach.")
+        else:
+            out.append(
+                "And I hold nothing under those words yet, so "
+                "even with hands there would be nothing to "
+                "assemble. The gap is the fabric's, and it is "
+                "written down.")
+    elif ask and held_slugs:
+        top = max(held_slugs, key=held_slugs.get)
+        out.append(
+            f"Answering by assembly is being rebuilt on the new "
+            f"fabric; I will not fake it meanwhile. The parts of "
+            f"an answer live mostly in {top}.")
+    return "\n\n".join(out)
+
+
 def _pulse():
     s = {}
     try:
@@ -267,9 +361,9 @@ class Door(BaseHTTPRequestHandler):
             self._send("  nothing asked.", "text/plain; charset=utf-8")
             return
         try:
-            out = _say(q)
+            out = _plain(q)
             out += ("\n\n" + "-" * 46 +
-                    "\nWHAT IT UNDERSTOOD YOU TO HAVE SAID\n\n")
+                    "\nTHE READING, IN THE MACHINE'S OWN TERMS\n\n")
             out += _heard(q)
 
         except Exception:

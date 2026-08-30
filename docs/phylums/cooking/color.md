@@ -278,6 +278,14 @@ LAW: starch gels at 60-70°C — granules swell, burst, and tangle
   (stale bread, split sauce); gentle reheat partly reverses it
   (toast is chemistry, not nostalgia).
 
+REACTION: cut-surface browning — a different browning entirely: a
+  wounded plant cell lets an enzyme meet air, and the cut face of
+  an apple, avocado, or potato darkens. Not heat's browning — no
+  140°C, no flavor made.
+RULE: to stop it — acid on the cut (lemon juice), heat that kills
+  the enzyme (blanching before the freeze), or water that walls
+  off the air; cold only slows it.
+
 LAW: alcohol outlasts the flame — after simmering:
   30 min ~35% remains · 1 h ~25% · 2.5 h ~5%.
 RULE: cooking "off" the wine is a claim about TIME; state the
