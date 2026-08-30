@@ -18694,6 +18694,7 @@ fn settle_internal_contact_interval(
         if selected_members.is_empty() {
             return Ok(None);
         }
+        let cohort_stopwatch = std::time::Instant::now();
         let mut required_positions = cohort
             .anatomy
             .neuron_anatomies()
@@ -18893,7 +18894,7 @@ fn settle_internal_contact_interval(
             // vector was redundant and is deliberately absent.
             outward_elementary_charges_by_neuron: Box::new([]),
         };
-                let input =
+        let input =
                     ReachedCohortIntervalInput::from_resident_indices_with_precomputed_contacts(
             inputs,
             resident_indices,
@@ -18901,6 +18902,7 @@ fn settle_internal_contact_interval(
             precomputed_local,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let preparation_wall = cohort_stopwatch.elapsed();
         let predecessor_neurons = &comparison_predecessors;
         // This interval is a native cross-cohort electrical consequence, not
         // a second externally admitted experience. Its retained changes join
@@ -18913,6 +18915,7 @@ fn settle_internal_contact_interval(
                     input,
                 )
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let settlement_wall = cohort_stopwatch.elapsed();
         // A mounted motor terminal is a second, neuron-local physical path.
         // Incoming contact carriers only prepare it by leaving retained
         // membrane displacement; they are never relabelled as the action.
@@ -19186,6 +19189,7 @@ fn settle_internal_contact_interval(
                 )
             })
             .collect::<Vec<_>>();
+        let effector_wall = cohort_stopwatch.elapsed();
         let mut retained_interval_deltas = Vec::new();
         for (neuron_index, _, predecessor) in &comparison_predecessors {
             if let Some(delta) = sparse_retained_physical_state_delta(
@@ -19258,6 +19262,7 @@ fn settle_internal_contact_interval(
                 &active_electrical_contacts,
             )?);
         }
+        let evidence_wall = cohort_stopwatch.elapsed();
                 let mut changed_predecessors = Vec::new();
                 for (neuron_index, predecessor_anatomy, predecessor) in predecessor_neurons {
             let successor = &cohort.state.neurons()[*neuron_index];
@@ -19267,8 +19272,21 @@ fn settle_internal_contact_interval(
                             anatomy: predecessor_anatomy.clone(),
                             state: predecessor.clone(),
                         });
-            }
+                }
         }
+        eprintln!(
+            "guala-cohort-phases cohort={} members={} local_contacts={} prepare_ms={} \
+             settle_ms={} effector_ms={} evidence_ms={} tail_ms={} total_ms={}",
+            cohort_index,
+            selected_members.len(),
+            cohort.anatomy.contact_count(),
+            preparation_wall.as_millis(),
+            (settlement_wall - preparation_wall).as_millis(),
+            (effector_wall - settlement_wall).as_millis(),
+            (evidence_wall - effector_wall).as_millis(),
+            (cohort_stopwatch.elapsed() - evidence_wall).as_millis(),
+            cohort_stopwatch.elapsed().as_millis(),
+        );
         Ok(Some((
             changed_predecessors,
             motor_unit_recruitments,
