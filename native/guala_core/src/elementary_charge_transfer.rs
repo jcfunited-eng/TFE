@@ -241,6 +241,60 @@ pub(crate) fn settle_elementary_charge_transfer(
     if interval_microseconds == 0 {
         return Err(ChargeTransferError::InvalidDuration);
     }
+    if let Some(settled) = fixed_width_elementary_charge_transfer(
+        predecessor_phase,
+        outward_current_picoamperes,
+        interval_microseconds,
+    ) {
+        return Ok(settled);
+    }
+    settle_elementary_charge_transfer_wide(
+        predecessor_phase,
+        outward_current_picoamperes,
+        interval_microseconds,
+    )
+}
+
+fn fixed_width_elementary_charge_transfer(
+    predecessor_phase: ChargeCarrierPhase,
+    outward_current_picoamperes: ExactRational,
+    interval_microseconds: u32,
+) -> Option<ElementaryChargeTransition> {
+    let ideal = SignedRatio::from_external(outward_current_picoamperes)
+        .ok()?
+        .checked_mul_unsigned(u128::from(interval_microseconds))
+        .ok()?
+        .checked_mul_unsigned(ELEMENTARY_CHARGE_FEMTOCOULOMB_DENOMINATOR)
+        .ok()?
+        .checked_div_unsigned(MICROSECONDS_PER_MILLISECOND)
+        .ok()?
+        .checked_div_unsigned(ELEMENTARY_CHARGE_FEMTOCOULOMB_NUMERATOR)
+        .ok()?;
+    let accumulated = ideal.checked_add(predecessor_phase.ratio()).ok()?;
+    let whole_magnitude = accumulated.numerator.unsigned_abs() / accumulated.denominator;
+    let outward_elementary_charges =
+        signed_from_magnitude(accumulated.numerator.is_negative(), whole_magnitude).ok()?;
+    let unresolved_magnitude = accumulated.numerator.unsigned_abs() % accumulated.denominator;
+    let unresolved_numerator = signed_from_magnitude(
+        accumulated.numerator.is_negative(),
+        unresolved_magnitude,
+    )
+    .ok()?;
+    let successor_phase =
+        ChargeCarrierPhase::new(unresolved_numerator, accumulated.denominator).ok()?;
+    Some(ElementaryChargeTransition {
+        successor_phase,
+        outward_elementary_charges,
+        interval_microseconds,
+        resident_state_bytes: ChargeCarrierPhase::resident_bytes(),
+    })
+}
+
+fn settle_elementary_charge_transfer_wide(
+    predecessor_phase: ChargeCarrierPhase,
+    outward_current_picoamperes: ExactRational,
+    interval_microseconds: u32,
+) -> Result<ElementaryChargeTransition, ChargeTransferError> {
     let (current_numerator, current_denominator) = outward_current_picoamperes.parts();
     let (phase_numerator, phase_denominator) = predecessor_phase.parts();
     let ideal_carrier_transfer = BigRational::new(
@@ -480,6 +534,55 @@ mod tests {
             (-29_077_778, 267_029_439)
         );
         assert_eq!(transition.interval_microseconds, 1_000);
+    }
+
+    #[test]
+    fn fixed_width_one_clock_settlement_matches_arbitrary_precision_law() {
+        let current_numerators = [
+            -1_000_000_i128,
+            -801_088_317,
+            -12,
+            -1,
+            0,
+            1,
+            12,
+            801_088_317,
+            1_000_000,
+        ];
+        let current_denominators = [1_u128, 3, 997, 5_000_000_000_000];
+        let phase_numerators = [-998_i128, -1, 0, 1, 998];
+        let durations = [1_u32, 250, 1_000, 250_000, u32::MAX];
+        let mut fixed_width_cases = 0_usize;
+        for current_numerator in current_numerators {
+            for current_denominator in current_denominators {
+                let canonical =
+                    SignedRatio::canonical(current_numerator, current_denominator).unwrap();
+                let current =
+                    ExactRational::new(canonical.numerator, canonical.denominator).unwrap();
+                for phase_numerator in phase_numerators {
+                    let phase = ChargeCarrierPhase::new(phase_numerator, 999).unwrap();
+                    for duration in durations {
+                        let expected = settle_elementary_charge_transfer_wide(
+                            phase,
+                            current,
+                            duration,
+                        )
+                        .unwrap();
+                        let observed = settle_elementary_charge_transfer(phase, current, duration)
+                            .unwrap();
+                        assert_eq!(
+                            observed, expected,
+                            "current={current_numerator}/{current_denominator} phase={phase_numerator}/999 duration={duration}"
+                        );
+                        fixed_width_cases += usize::from(
+                            fixed_width_elementary_charge_transfer(phase, current, duration)
+                                .is_some(),
+                        );
+                    }
+                }
+            }
+        }
+        assert!(fixed_width_cases > 500);
     }
 
     #[test]
