@@ -53,6 +53,29 @@ TELLING = [
 ]
 
 
+# HELD OUT. Written after the order rules were settled and never
+# looked at while settling them. Fifteen-of-fifteen on the set above
+# is a score on instructions I chose; if these read much worse, the
+# rules are fitted to my own phrasing.
+HELD_OUT = [
+    ("dig a well without a machine", "dig", ["well"], ["machine"]),
+    ("show me how a lock works", "show", ["lock"], []),
+    ("keep a wound clean on a long walk", "keep", ["wound", "walk"], []),
+    ("grind grain into flour", "grind", ["grain", "flour"], []),
+    ("cross a river without a boat", "cross", ["river"], ["boat"]),
+    ("work out the height of a tree", "work", ["height", "tree"], []),
+    ("preserve fish through the summer", "preserve", ["fish", "summer"], []),
+    ("warm a bed without a fire", "warm", ["bed"], ["fire"]),
+    ("split a log with a wedge", "split", ["log", "wedge"], []),
+    ("tell me why iron rusts", "tell", ["iron"], []),
+    ("raise a heavy beam alone", "raise", ["beam"], []),
+    ("make ink from soot", "make", ["ink", "soot"], []),
+    ("find north without a compass", "find", ["north"], ["compass"]),
+    ("cool a drink in a stream", "cool", ["drink", "stream"], []),
+    ("mend a torn sail at sea", "mend", ["sail", "sea"], []),
+]
+
+
 def same(a, b):
     a, b = core.stem((a or "").lower()), core.stem((b or "").lower())
     if not a or not b:
@@ -60,10 +83,10 @@ def same(a, b):
     return a.startswith(b) or b.startswith(a)
 
 
-def grade(F=None):
+def grade(F=None, cases=None):
     F = F or core.fabric()
     rows, good = [], 0
-    for sent, wants, about, forbid in TELLING:
+    for sent, wants, about, forbid in (cases or TELLING):
         w = wanting.want(sent, F)
         got = w.get("turns_on")
         ab = w.get("about") or []
@@ -85,7 +108,13 @@ def grade(F=None):
 
 
 if __name__ == "__main__":
-    rows, good = grade()
-    for sent, ok, why in rows:
-        print(f"  {'ok  ' if ok else 'FAIL'}  {sent:<48} {why}")
-    print(f"\n  TOLD WHAT TO DO: {good}/{len(TELLING)}")
+    F = core.fabric()
+    tot = [0, 0]
+    for name, cs in (("SETTLED ON", TELLING), ("HELD OUT", HELD_OUT)):
+        rows, good = grade(F, cs)
+        print(f"\n{name}")
+        for sent, ok, why in rows:
+            print(f"  {'ok  ' if ok else 'FAIL'}  {sent:<44} {why}")
+        print(f"  {good}/{len(cs)}")
+        tot[0] += good; tot[1] += len(cs)
+    print(f"\n  TOLD WHAT TO DO: {tot[0]}/{tot[1]}")

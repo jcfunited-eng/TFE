@@ -308,6 +308,11 @@ HOLDS: an order holds when its first group brings a content word in
   that the writing also happens to use as a phrase was being taken
   whole and left with no doing at all. Only where the constraint has
   already marked it, so nothing said about the world is touched.
+  There is a third mark, and it is an asking word that is not first.
+  In a question the asking word opens the sentence; where it sits
+  later the sentence is an order whose object is a question — being
+  told to explain, or to show why a thing happens. The asking words
+  are already held in 171 and nothing new is listed for this.
 MINE, ON TRIAL: the pointer-after test is my construct. Measured on
   fifteen instructions a person would actually give: 11 read against
   3 without it, and the ordinary reading of statements goes UP, from

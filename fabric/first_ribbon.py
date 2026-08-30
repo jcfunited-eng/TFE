@@ -781,10 +781,15 @@ def doing_of(gs, why=False, forbids=False):
     # electricity" has no pointer in it at all, and a thing said about
     # the world does not come with a rule about what may be used to
     # bring it about — only an order does.
+    # ...or by an asking word that is not first. In a question the
+    # asking word opens the sentence; where it sits later the sentence
+    # is an order whose object is a question — being told to explain
+    # or to show why something happens.
     if (gs[0] and gs[0][0] not in C.frame
             and (forbids
                  or any(any(w in C.pointers for w in g)
-                        for g in gs[1:]))):
+                        for g in gs[1:])
+                 or any(set(g) & C.asking for g in gs[1:]))):
         how = ("an order — it names no doer, so the doing is the "
                "first thing said, and a pointer after it hands over "
                "what to do it to")
