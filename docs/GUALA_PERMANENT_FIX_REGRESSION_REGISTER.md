@@ -251,3 +251,11 @@ Rejected attempts retained permanently: zero-test short-name `--exact` runs;
 assuming one layer-13 cell when three exist; treating any vocal-tract motor as
 breath; trusting transfers absent from the same interval's motor recruitment;
 and using a passive bidirectional contact as vocal-body actuation authority.
+
+Live status: commit `c978fbfb6315482b916b99569b7fb3e663f00a5c` is deployed as
+sole healthy task `dsf-ai-task:1400`. Identity continuity, unattended ticks,
+ordinary typed motor/body consequence, bounded state size, and approximately
+`0.78-1.14 s` native intervals are live-observed. A task-1400 vocal-body
+discharge and exact self-hearing consequence have not yet been observed, so
+R-009 and L-006 remain open and the playback controls remain truthfully
+disabled.

@@ -887,3 +887,34 @@ timer, second scheduler, or retained speech program.
   `9546e910f90a8fd48e0f7de74ea4351a4b00946308263d9dc4390a26c59b8380`
   re-entered hearing unchanged, transitioning 1,507 neurons. The final copied
   physical intervals were 422 ms and 453 ms; production remains untouched.
+
+## 2026-08-31 task-1400 live cutover and bounded observation
+
+- Exact commit `c978fbfb6315482b916b99569b7fb3e663f00a5c` is live as the
+  sole healthy production task `dsf-ai-task:1400`, image digest
+  `sha256:b91aba6fb8e13081be9db4646d69f6a66e0974f49908c1479fbac06a744fce89`.
+  The same resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`
+  restored and continued unattended from at least tick `349824` through
+  `350039`. No rollback or second writer was observed.
+- Live native intervals sampled from ticks `349857` through `349999` took
+  `776-1,136 ms`; the latest event census selected about `1,552-1,561`
+  reached neurons and `7,219-7,232` contacts rather than a whole-population
+  copy. ECS CPU averaged about `33-49%` and memory about `7-8%` over the
+  steady sample. Native state remained near `107.6 MB` and changed in both
+  directions (`107,625,460` then `107,617,177` bytes), not monotonically.
+- The new process has already produced ordinary typed layer-12 body actions
+  and exact proprioceptive return. At live tick `350039`, lip-width,
+  perioral, glottal-aperture, and left-grip motor discharges caused four body
+  consequences and one body-source receipt. Native thought and unattended
+  advancement also remain observed.
+- No native vocal-body discharge has yet occurred in task 1400. The public
+  articulation section therefore remains `available=false`; native-pressure
+  and amplified-playback controls correctly remain disabled. This is not a
+  UI failure and it is not accepted as a live utterance. The live closure bar
+  remains one naturally reached exact layer-11 -> typed vocal layer-12
+  preparation, the causing motor discharge, vocal-body pressure, byte-identical
+  self-hearing in the same resident identity, and later unattended advancement.
+- Read-only observation command failure retained: one `curl | python` command
+  used a Python heredoc, which consumed standard input and produced no JSON.
+  It changed no state and supplied no evidence. The corrected command used
+  `python -c` and returned the live observations above.
