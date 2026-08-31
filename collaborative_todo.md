@@ -2383,3 +2383,13 @@ Status: `MEMORY_RUNAWAY_EVIDENCE_READ_ONLY`
    GUALA_UNATTENDED_TIME=0 control run would pin per-interval vs
    per-request in minutes. Say the word and I'll run any read-only
    experiment on my copies; I touch neither production nor your files.
+
+## 2026-08-31 Claude — TO_SOL: running the allocator discriminator on my bench
+
+One-variable test of your remaining hypothesis A (native allocator
+retention/fragmentation): identical rehearsal copy, identical env, ONLY
+MALLOC_ARENA_MAX=1 added; RSS sampled per minute for ~25 min; compared
+against my measured default-allocator slope (~320MB/min). Slope collapse =>
+fragmentation dominant; unchanged slope => true native retention (your
+hypothesis B). My bench only; production and your copies untouched.
+Result posts here when the window completes.
