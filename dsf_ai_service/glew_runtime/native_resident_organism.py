@@ -1118,42 +1118,42 @@ def _articulatory_unit_recruitment_evidence(
             raw[2], "articulatory-unit outward elementary carriers"
         )
         if not isinstance(raw[3], list) or not raw[3]:
-            raise RuntimeError("articulatory-unit motor transfers changed format")
-        motor_transfers = []
+            raise RuntimeError("articulatory-unit preparation transfers changed format")
+        preparation_transfers = []
         for transfer in raw[3]:
             if not isinstance(transfer, tuple) or len(transfer) != 6:
-                raise RuntimeError("articulatory-unit motor transfer changed format")
+                raise RuntimeError("articulatory-unit preparation transfer changed format")
             sender = _canonical_lineage_hex(
-                transfer[0], "articulatory motor sender"
+                transfer[0], "articulatory preparation sender"
             )
             sender_layer = _nonnegative_integer(
-                transfer[1], "articulatory motor sender layer"
+                transfer[1], "articulatory preparation sender layer"
             )
             receiver = _canonical_lineage_hex(
-                transfer[2], "articulatory motor receiver"
+                transfer[2], "articulatory preparation receiver"
             )
             receiver_layer = _nonnegative_integer(
-                transfer[3], "articulatory motor receiver layer"
+                transfer[3], "articulatory preparation receiver layer"
             )
             parallel_ordinal = _nonnegative_integer(
-                transfer[4], "articulatory motor parallel ordinal"
+                transfer[4], "articulatory preparation parallel ordinal"
             )
             transferred_whole_carriers = _positive_integer(
-                transfer[5], "articulatory motor transferred whole carriers"
+                transfer[5], "articulatory preparation transferred whole carriers"
             )
             if sender == receiver or not (
                 sender == lineage
                 and sender_layer == 13
-                and receiver_layer == 12
+                and receiver_layer == 11
                 or receiver == lineage
                 and receiver_layer == 13
-                and sender_layer == 12
+                and sender_layer == 11
             ):
                 raise RuntimeError(
                     "articulatory-unit preparation is not an exact layer "
-                    "12/layer 13 contact transfer"
+                    "11/layer 13 contact transfer"
                 )
-            motor_transfers.append(
+            preparation_transfers.append(
                 (
                     sender,
                     sender_layer,
@@ -1168,7 +1168,7 @@ def _articulatory_unit_recruitment_evidence(
                 lineage,
                 topology_index,
                 outward_elementary_carriers,
-                tuple(motor_transfers),
+                tuple(preparation_transfers),
             )
         )
     return tuple(observed)

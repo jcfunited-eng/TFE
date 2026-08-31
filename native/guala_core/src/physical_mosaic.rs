@@ -115,7 +115,11 @@ impl AdmittedPhysicalMosaic {
     /// original bonds no longer physically connect the member lineages:
     /// a disconnected relationship is retired, not preserved as active
     /// cognition — the underlying learned neuronal state lives on in the
-    /// cohorts untouched by this operation.
+    /// cohorts untouched by this operation. A recognized formation is also
+    /// retired when removing an invalid bond disconnects its latest recurrence
+    /// witness. Keeping the original while preserving a now-impossible
+    /// recurrence claim would make the encoded memory lie about the route that
+    /// physically reassembled it.
     pub(crate) fn without_invalid_bonds(
         &self,
         invalid: &std::collections::BTreeSet<StablePhysicalBondReference>,
@@ -143,6 +147,15 @@ impl AdmittedPhysicalMosaic {
                 &self.member_lineages,
                 &original,
             )?;
+        }
+        if !self.original_only
+            && !mosaic_lineages_connect(
+                &self.member_lineages,
+                &recurrence,
+                &self.partial_cue_lineages,
+            )
+        {
+            return None;
         }
         Some(Self {
             original_only: self.original_only,
@@ -2267,6 +2280,30 @@ mod codec_tests {
         )
         .unwrap();
         assert_eq!(recognized.recurrence_bonds(), bonds);
+    }
+
+    #[test]
+    fn invalidated_recurrence_route_retires_instead_of_encoding_false_recognition() {
+        let intermediate = lineage(4);
+        let original = topology();
+        let recurrence = vec![
+            StablePhysicalBondReference::new(lineage(1), intermediate, 0).unwrap(),
+            StablePhysicalBondReference::new(intermediate, lineage(3), 0).unwrap(),
+        ];
+        let recognized = AdmittedPhysicalMosaic {
+            original_only: false,
+            exact_pattern_recognition: true,
+            member_lineages: neuron_lineages().into(),
+            retained_fractals: vec![fractal(1, 3), fractal(-7, 11), fractal(5, 7)]
+                .into_boxed_slice(),
+            retained_excitation_zeptojoules: Box::new([]),
+            original_bonds: original.into_boxed_slice(),
+            recurrence_bonds: recurrence.clone().into_boxed_slice(),
+            partial_cue_lineages: vec![lineage(1)].into_boxed_slice(),
+            recurrence_origin: Some(PhysicalMosaicRecurrenceOrigin::ExternallyObserved),
+        };
+        let invalid = [recurrence[0]].into_iter().collect();
+        assert_eq!(recognized.without_invalid_bonds(&invalid), None);
     }
 
     #[test]

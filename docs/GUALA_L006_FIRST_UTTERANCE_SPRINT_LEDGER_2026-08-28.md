@@ -548,3 +548,233 @@ timer, second scheduler, or retained speech program.
   7.26%.
 - R-008 and F-004 are live-closed again. Learned-word utterance remains open
   and must be established again through sparse exact-axis experience.
+
+## Post-V38 vocal-development deadlock — 2026-08-31
+
+- Two independently custodied task-1398 successors and the later exact raw
+  generation at tick `345645` all retain zero layer-11 -> layer-12 vocal
+  contacts while preserving the fixed 26-contact layer-12 -> layer-13 vocal
+  anatomy. Production continued unattended for more than one hundred ticks,
+  but current self-hearing remained zero and no lawful exact-axis route grew.
+- The failure is physical rather than observational. The body consumed its
+  one bounded vocal-tract calibration on the V3 body, before V38 removed the
+  unprovable learned routes. V38 then correctly retired all 26 false contacts
+  but left the already-consumed body flag unchanged. No learned vocal route
+  can drive a motor, and no new vocal movement can return the exact-axis
+  proprioception required to author a corrected route: the repaired organism
+  is left in a first-movement deadlock.
+- The existing calibration is the accepted non-semantic escape from that
+  deadlock. One complete current-body position admission may prepare only the
+  eight vocal-tract-section antagonist motors through each terminal's own
+  mounted position regulation. It cannot prepare an ordinary body motor, a
+  sparse consequence cannot qualify, and the current body records that the
+  opportunity was consumed so restart cannot repeat it.
+- Rejected candidate: crossing one same-width body version and reopening the
+  existing calibration once was implemented locally, then exercised on the
+  exact production body. The first interval produced 18 native motor
+  recruitments, moved two exact tract axes and returned one exact
+  proprioceptive source. The consumed flag survived cold restore. However,
+  twelve consecutive returned-consequence intervals—both alone and beside a
+  simultaneous physical light source—continued to recruit 1–8 motors while
+  producing zero layer-11 -> layer-12 routes and zero articulatory discharge.
+  This would create a reflexive tract-motion chain without learning; the code
+  was removed and will not be deployed.
+- Rejected mechanisms: restoring any V37/V38 vocal contact; teacher-selected
+  motor targets; random or scheduled babbling; phoneme/word tables; TTS;
+  scripted pressure; recurring tonic pose; broad sound-to-motor coincidence;
+  or an observer-owned trigger.
+- The remaining defect is now narrower: exact vocal movement and exact
+  proprioception exist, but `mount_reached_motor_effector_with_root` never
+  finds the ordered association/affective ancestry needed to join that
+  returned axis to one ordering cell. Closure requires correcting that causal
+  join against one real moved axis while preserving zero ambiguous fan-out,
+  then proving fresh native phonation/self-hearing and sparse route growth.
+  This item does not itself claim a learned word.
+- Deeper exact-axis audit: the production caller passed an empty moved-axis
+  set, and `mount_reached_motor_effector_with_root` named but ignored that
+  parameter. A frozen-body diagnostic consequently treated 38 and then 42
+  transitioned vocal regulation paths as terminal candidates after only one
+  exact tract movement; neither interval had a proved vocal ordering path.
+  The earlier “exact terminal” description was therefore false at this
+  boundary. The GLJSRC04 body occurrence already carries the winning
+  terminal's discharged carriers, signed displacement, opposed carriers,
+  applied displacement and stall in its authenticated GLBPEV01 profile. The
+  current correction reads that existing physical evidence and admits only
+  the one terminal whose carrier imbalance exactly equals the returned signed
+  movement. It adds no label, action target, history, score or observer input.
+  This correction is source-local and not yet deployed; it does not by itself
+  claim that the still-missing ordering ancestry has been repaired.
+- Focused proof for that source-local correction now exists and passes in the
+  release build: one real seven-carrier vocal-tract movement resolves from all
+  four returned endings to exactly its one winning antagonist motor terminal;
+  equal opposed drives resolve to no terminal; changing the authenticated axis
+  byte while leaving the typed ending unchanged is refused. This closes only
+  the false 38--42-terminal candidate expansion. It has not been committed or
+  deployed, and the ordering/affective ancestry deadlock remains open.
+- The ancestry audit then found a distinct interval-boundary omission. The
+  resident state already retains active, preceding, and older exact electrical
+  frontiers, but motor learning read only the first two. A delayed returned
+  body consequence can therefore settle its current affective-to-regulation
+  transfer one interval after the exact ordering-to-association and
+  association-to-affective pair has shifted into preceding/older. The third
+  frontier was available and validated elsewhere, but silently ignored here.
+- The current candidate now accepts only either the original adjacent pair or
+  that one exact one-interval-shifted pair. A focused falsifier proves the
+  shifted case adds nothing when the older ordering transfer is absent and
+  adds exactly one ordering contact to exactly the GLBPEV01-proved moved vocal
+  terminal when it is present. The general directed-chain test and the V38
+  ambiguous returned-sound/whole-tract refusal both remain green. No new
+  history, scheduler, observer, label, target, or DSF reduction was added.
+- Exact production-body replay rejected that ancestry correction as
+  sufficient. The GLBPEV01 terminal filter worked: each returned movement
+  named only its actual antagonist terminal instead of the former 38--42
+  possible terminals. Across six successive returned-body intervals,
+  however, every one of those exact regulations had **zero layer-10 affective
+  neighbours**. Consequently there was no regulation/affective transfer for
+  either the adjacent or shifted frontier join to use, and no learned motor
+  route or articulation formed. Waiting longer or retaining another frontier
+  would be downstream of absent anatomy and is rejected.
+- Repair history correction: the source-local exact-terminal work remains
+  valid, but the third-frontier work is only a unit-proven boundary and does
+  not repair the real body. The missing connection was introduced by the
+  occurrence-local affective guard in `6e6d220b`: it correctly killed the old
+  body-wide Cartesian fan-out, but it also requires a newly mounted
+  association and regulation to have transferred carriers before their
+  connecting anatomy can be mounted. New cells cannot have settled a contact
+  that does not exist yet. In addition, exact articulated consequences and
+  the coexisting world/sensory occurrence arrive as separate source
+  occurrences inside one physical interval, so an occurrence-only join can
+  never bind them.
+- The next correction is therefore confined to the developmental layer-10
+  boundary: use the already-shared physical interval, accept only one
+  unambiguous association physically derived from its settled integrations,
+  and pair it only with the regulation belonging to a GLBPEV01-proved moved
+  terminal. Static GLJSRC03 pose, body-only input, multiple ambiguous
+  associations, and every non-moved regulation must author nothing. This is
+  sparse physical developmental anatomy, not an observer record or history.
+- The local layer-10 correction is now source-present and has passed its first
+  two focused release falsifiers. One unambiguous association may pair across
+  the coexisting world/body source occurrences only with the exact moved
+  regulation; static pose and two competing associations add zero. A separate
+  topology fixture proves the resolver selects the moved terminal's
+  reacted-load regulation while the neighboring position regulation and the
+  opposite load ending author nothing. These are local source/test results
+  only; production remains task 1398 and no learned route is yet claimed.
+- Restored-body attempt 1 loaded the candidate extension against exact raw
+  production generation tick `345645`, SHA-256
+  `a1d7b4c6aabac00650d64a739530c6851468772d9f7d34ec3fce5902196828c4`.
+  It refused before commit with `resident neuron lineage authority changed`.
+  The exact diagnostic was a proved `LipAperture/TowardMinimum` movement with
+  two reached body regulations and zero matching reacted-load regulation.
+  The candidate had incorrectly required every moved joint in the body record
+  to have crossed its load receptor's gate in that interval. This attempt was
+  not deployed.
+- The corrected rule iterates the regulations that actually reached layer 8
+  and retains one only when its load-ending anatomy maps to a GLBPEV01-proved
+  moved terminal. A moved terminal whose receptor did not reach regulation
+  authors nothing; two reached regulations claiming the same terminal remain
+  an authority conflict. The focused release test passes after this change.
+- Restored-body attempt 2 loaded that corrected candidate against the same raw
+  production generation. One 1 ms whole-roster sensory occurrence coexisted
+  with the exact returned body source. The successor added exactly one
+  layer-10 neuron, one layer-7 -> layer-10 contact, and one layer-8 -> layer-10
+  contact. A fresh restore receiving the identical body source alone added
+  zero layer-10 neurons and zero contacts in either layer pair. No articulation
+  occurred in this proof, so this closes the missing sparse layer-10 anatomy
+  boundary only. The learned motor route, native utterance, and self-hearing
+  remain open; production is still unchanged on task 1398.
+- Restored-body attempt 3 continued that exact successor for 64 unsealed
+  physical intervals. Exactly one layer-11 ordering cell and its founding
+  layer-7 and layer-10 contacts formed, but layer-11 -> layer-12 remained zero
+  and no articulatory pressure appeared. The candidate resolver had required
+  the affective cell to retain exactly one layer-8 neighbour forever. That was
+  false: later proved body consequences lawfully widen the same affective cell.
+  This attempt was not deployed, and widening a frontier or waiting longer is
+  not an accepted response to this recorded failure.
+- Restored-body attempt 4 follows only the affective cell's persisted founding
+  association/body-regulation pair; later body contacts cannot rewrite it.
+  A release falsifier includes a later unrelated body regulation and still
+  requires one idempotent route to the original exact vocal terminal. On the
+  same raw production body, the 64-interval replay added exactly one
+  layer-11 -> layer-12 contact, one layer-7 -> layer-11 contact, one layer-10
+  -> layer-11 contact, and one layer-11 neuron. The fresh body-only falsifier
+  again added zero layer-10 anatomy. No articulatory discharge or pressure
+  appeared, so the remaining open defect is now downstream of the learned
+  thought-to-vocal-motor contact. Production remains unchanged on task 1398.
+- Restored-body attempt 5 removed the non-physical
+  `causal_seed_lineages.contains(sender)` admission from the already-mounted
+  exact motor boundary. The same learned ordering route that had transferred
+  carriers without output then produced four to five carriers of the motor's
+  own outward membrane discharge on repeated intervals. This closes only the
+  learned thought -> typed vocal-motor discharge boundary. It does not claim
+  sound: the fixed layer-12 -> layer-13 convergence hub still produced no
+  articulatory recruitment or pressure.
+- Architecture reconciliation found that the fixed hub contradicted the
+  declared whole-brain segmentation law: layer 13 receives ordered
+  language/action formation plus breath/body capacity, while layer 12 owns
+  typed antagonist motor preparation. V39 therefore removes every layer-12 ->
+  layer-13 bridge and permits one sparse layer-11 -> layer-13 route only when
+  the same ordering lineage already owns an exact learned layer-11 -> typed
+  vocal layer-12 route. A motor coincidence, observer fact, label, timer, or
+  unproved ordering cell cannot create breath or sound.
+- V39 migration attempt 1 passed the synthetic ambiguity and idempotence
+  falsifiers but refused the real post-learning body with
+  `RecurrenceDidNotReachFormation`. The refusal was correct: one retained
+  recurrence witness named an old hub bond, and removing that bond left the
+  witness disconnected. The general contact-retirement path had removed the
+  bond without retiring the now-impossible recurrence claim. This candidate
+  was not deployed.
+- The migration correction now retires a recognized formation when removal of
+  a rejected contact disconnects its latest recurrence witness. It preserves
+  all resident neurons and original neuronal state; it does not translate an
+  old conducting bond into a new one or claim that an untraversed route carried
+  the historical recurrence. A focused falsifier proves that disconnected
+  recurrence cannot survive as encoded learned truth.
+- Restored-body attempt 6 migrated the exact post-learning candidate
+  successfully. The sparse learned anatomy was `11->12 = 1`, the rejected hub
+  was `12->13 = 0`, and the derived respiratory route was `11->13 = 1`.
+  A second migration was byte-identical. On the first continued physical
+  interval the same body produced four motor events, one native layer-13
+  recruitment, and sixteen pressure samples, seven nonzero. This is local
+  restored-body evidence only. Same-organism cochlear return, cold restart of
+  the emitted consequence, production cutover, and live verification remain
+  open.
+- Restored-body attempt 7 exposed the existing R-007 loss point precisely.
+  The native seal encoded the in-flight acoustic consequence into its envelope
+  but omitted assignment of that same consequence to the active resident
+  owner. A subsequent lived-state snapshot therefore contained no sound. The
+  correction is one ownership assignment at the seal boundary; it introduces
+  no observer, scheduler, label, synthetic sound, or cognitive authority. A
+  focused test proves the consequence remains in both the active resident and
+  a fresh cold restore.
+- Restored-body attempt 8 completed the local causal chain. The exact emitted
+  pressure survived seal and cold restore as 32 bytes with SHA-256
+  `ee4407568b3fcfaaef1d07f1f9d003d7e0c5bb73d72d40e1839f33f0ba29c952`.
+  Cochlear admission consumed that identical hash, reached 34 sound receptors,
+  changed 35 receptor inputs, and physically transitioned 1,301 neurons in the
+  same resident identity. The hearing interval also produced one subsequent
+  native articulation; its 8,000 pressure bytes remained in flight after the
+  next cold restore. This is restored-production-body evidence, not live
+  production closure. Production remains task 1398 until cutover verification.
+
+## 2026-08-31 release preflight
+
+- The exact candidate worktree passed `git diff --check` and the production
+  target census before commit: service `dsf-ai-service-lb`, task definition
+  `dsf-ai-task:1398`, desired/running/pending `1/1/0`, one healthy task, 4 vCPU,
+  16 GiB, and both public pages returned HTTP 200.
+- RF-003/RF-036 passed on the final source through a fresh exact wheel install.
+  RF-004/RF-005/RF-010/RF-012/RF-018/RF-020/RF-027/RF-028/RF-038 passed on
+  the authenticated production predecessor copy: one learned route produced
+  typed motor discharge, direct respiratory/articulatory preparation, emitted
+  pressure, byte-identical cochlear return, and cold-restored acoustic custody.
+- Deterministic serial native comparison is candidate `550 passed, 9 failed,
+  11 ignored` versus the untouched base's same nine failure identities. There
+  are zero candidate-introduced deterministic failures. Parallel-only extra
+  failures were shared-test-state interference and disappeared under the
+  deterministic serial boundary; they are not represented as a green full
+  suite.
+- Remaining closure is production evidence only: one immutable cutover, V39
+  migration with no layer-12/layer-13 hub after restart, one actual live learned
+  utterance and exact self-hearing consequence, continued unattended ticks,
+  and bounded CPU, RAM, state bytes, contacts, and calls.

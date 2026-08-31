@@ -64,8 +64,70 @@ fixture alone. If it cannot be checked, the candidate remains open.
 | R-006 | **Closed live on task 1389 after two bridge refusals during the temporal-articulation cutover.** The first candidate migrated the native body to 265 bytes while Python still required 195. The recovery candidate then exposed that the Python causal-interval record omitted all nine newly returned vocal fields, causing unattended and audiovisual publication failures despite completed native physics. | Hard-coded duplicate native-body widths; extending a Rust/Python tuple or named record on only one side; accepting startup health without one real post-start interval; repeatedly treating a bridge mismatch as a physics defect. | The native core is the sole body-width authority; both readiness and causal-interval checks call it. The interval record explicitly carries and validates pressure, body trajectory, sample rate, four mechanical measures, applied work, and stalled work. Live closure requires one autonomous articulation, self-hearing, later unattended advancement, and successful real audiovisual POSTs on the exact production task. |
 | R-007 | **Open — directly reproduced on production task 1391 at tick 343291.** The first lawful learned-ordering articulation emitted pressure and self-heard it. That self-hearing hop then caused another layer-13 discharge, which Rust physically settled into the resident vocal body, but the Python boundary recorded only `deferred_recurrent_articulation_count = 1`; it did not retain that hop's articulatory interval evidence or return its emitted pressure through hearing. | Calling the recurrence safely deferred while dropping its exact acoustic consequence; recursively draining an indefinitely self-exciting chain inside one request; stretching one discharge beyond F-029's exact 1 ms event; using the observer pressure cache, TTS, phonemes, scripted waveforms, or an arbitrary repetition cap as causal authority. | Preserve F-029. Require every recurrent body emission to become exactly one subsequent physical acoustic occurrence in the same organism, with no loss, duplication, observer authority, or synchronous run-until-quiet loop. The current propagating sound state must be bounded, cold-restorable, and cleared by physical passage rather than a software timeout. Prove a two-event causal sequence, restart between emission and hearing, eventual quiescence under depleted input, and bounded CPU/RAM/storage before live cutover. |
 | R-008 | **Closed live on task 1398, 2026-08-31.** Task 1397 at tick 344995 had all 26 vocal antagonist terminals attached to only two ordering cells, 23 plus 3. This was the same forbidden fan-out class as F-004, reintroduced by V37's general whole-tract returned-sound branch. | Letting general breath, glottis, mouth, perioral or self-hearing evidence identify every vocal motor that discharged nearby in time; preserving unprovable contacts or their dependent formations as learned truth; restoring them after restart. | Commit `fce1ae2c` deleted the ambiguous branch and V38 retired the 26 contacts plus five dependent false formations. Frozen migration was idempotent. Live custodied ticks 345534 and 345558 both report `11->12 = 0`, fixed `12->13 = 26`, 7,353 total contacts, 1,809 neurons, 160 formations and continued 12,000-sample native phonation; the latest current self-hearing counters were zero, so no new self-hearing event is inferred from those samples. One writer remained healthy; startup/settlement CPU averaged 39.6% and memory 7.26%. |
+| R-009 | **Open — reproduced on task 1398 through exact raw tick 345645; two candidates rejected locally.** The corrected V38 body preserved zero ambiguous vocal contacts for more than one hundred unattended ticks, but produced no fresh self-hearing and formed no exact-axis layer-11 -> layer-12 route. Reopening the old calibration once was falsified: the exact production body moved and returned precise proprioception for twelve consecutive intervals but produced zero learned vocal routes and zero articulatory discharge, creating reflex motion rather than learning. That code was removed. A deeper diagnostic then proved the supposed exact-axis boundary ignored its moved-axis input: one movement exposed 38–42 transitioned vocal terminal candidates. The source-local correction now derives exactly one moved terminal from authenticated GLBPEV01 arithmetic and passes its focused falsifiers. Adding the already-retained third exact frontier also passed its unit falsifier, but exact production-body replay rejected it as the repair: over six returned-body intervals every exact moved regulation had zero layer-10 affective neighbours, so no frontier width could complete the join. The absence traces to the `6e6d220b` anti-fan-out guard: it requires newly mounted association/regulation cells to have already transferred carriers and restricts pairing to one source occurrence, although the exact body consequence and coexisting world source are separate occurrences in the same physical interval. | Restoring contaminated contacts; reopening calibration on restart; recurring tonic or reflexive body input; treating every transitioned regulation as a moved terminal; retaining more frontiers downstream of absent anatomy; restoring body-wide association/regulation Cartesian pairing; teacher-selected or random motor targets; TTS, phonemes, word tables, scripted pressure, or observer authority. | Preserve the exact-terminal, missing-older-frontier, directed-chain, and ambiguous whole-tract/sound falsifiers. Correct only the layer-10 developmental join: one unambiguous association physically derived in the shared interval may pair only with the exact GLBPEV01-moved terminal's regulation. Static pose, body-only input, ambiguous associations, and non-moved regulations must add zero. Then require one sparse route, fresh native articulation/self-hearing, and cold restore without fan-out or resurrection before R-009 can close. |
 | R-004 | **Closed live 2026-08-29 on task 1331.** The bounded read-only causal trace keeps an external or internal retained-formation origin through its later motor and layer-13 events, then discards it immediately after exact articulation completion. | Letting motor completion erase the origin before a later articulation can join it; retaining completed origins indefinitely; or allowing the observer trace to admit, select, delay, or alter any organism transition. | Preserve the motor-then-later-articulation falsifier and the completion-discard falsifier; inspect the changed call graph for observation-only mutation; require unattended ticks to advance when the public observer is stale or unavailable. Commit `e6aa0f86`, task 1331, same identity. Native settlement continued independently while the public snapshot lagged, proving the trace has no cognition authority. |
 | R-005 | **Corrected diagnosis; open only for sustained real-time cadence.** Task-1382 ALB windows of 49.580 and 44.347 seconds contained 19 and 16 total native moments, but 8 and 6 of those were separate unattended intakes that started while the audiovisual request waited. One capture itself carries four ordered 250 ms audiovisual moments, plus only physically caused action/self-hearing consequences. Task 1383 removed the server-side starvation; task 1384 and the live S3/CloudFront page removed the read-only observer wait from the browser sender. | Reintroducing route-only admission as sufficient; making camera/microphone transport await `refreshObservation`; counting unrelated unattended moments inside an HTTP wall window as capture expansion; serializing coexisting consequence sources; dropping sensory or consequence physics to improve a timing number. | Keep F-023 through F-026 and F-028 locked. After one hard refresh of the already-open browser, measure consecutive real-device requests: observer refresh must not delay the next bounded four-hop capture, no unattended intake may start after an arrived request, the page retains only the newest complete one-second window, and CPU/RAM/storage remain bounded. Native per-moment settlement remains a separate measured speed item until sustained real-time capture is achieved. |
+
+### R-009 candidate-attempt history — 2026-08-31
+
+- Attempt 1, restored production tick `345645`: rejected before commit. The
+  first sparse layer-10 resolver demanded a reached reacted-load regulation
+  for every terminal whose authenticated body record reported movement. Real
+  production anatomy showed why that was false: a joint may move while its
+  load receptor does not cross enough gate work to reach layer 8 in the same
+  interval. The exact refusal was `LipAperture/TowardMinimum`, two reached
+  regulations, zero matching load regulation. Nothing was deployed.
+- Attempt 2, same restored production generation: accepted locally. The rule
+  now considers only regulations that physically reached layer 8 and maps
+  each through its exact source integration/load ending to a proved moved
+  terminal. One unambiguous coexisting sensory/body interval added exactly one
+  layer-10 neuron plus one `7->10` and one `8->10` contact. The identical body
+  source without the sensory association added zero of all three. This is not
+  an utterance claim and not a production closure: layer-11 ordering, exact
+  motor discharge, emitted pressure, and self-hearing still must be proved.
+- Attempt 3, same restored production generation: rejected locally after 64
+  intervals. One exact ordering cell formed, but `11->12` stayed zero because
+  the candidate incorrectly demanded that a developmental affective cell keep
+  exactly one layer-8 neighbour forever. Later proved body experience had
+  lawfully widened that cell. No pressure or articulation occurred.
+- Attempt 4, same restored production generation: accepted locally for the
+  thought-to-motor boundary. The resolver now follows only the persisted
+  founding association/body-regulation pair and ignores later widening for
+  route identity. The replay added exactly one `11->12`, one `7->11`, one
+  `10->11`, and one layer-11 neuron; the body-only falsifier stayed zero.
+  Articulation and pressure remained zero, so R-009 and L-006 remain open at
+  the downstream vocal-motor discharge boundary. Nothing was deployed.
+- Permanent regression condition: no candidate may restore body-wide
+  association/regulation pairing, require an unreached receptor to exist, use
+  static pose as movement, or treat a missing load response as authority to
+  guess another terminal. The positive sparse delta and the body-only zero
+  delta must both remain true on the restored production body.
+- Attempt 5, same restored production lineage: accepted locally for the exact
+  learned motor boundary. Removing the leftover software seed-membership gate
+  allowed the prepared typed motor to discharge four to five of its own
+  carriers repeatedly. The old layer-12 -> layer-13 hub still emitted no
+  pressure, so this attempt is not an utterance or R-009 closure.
+- Attempt 6, exact post-learning body: the first V39 migration refused because
+  deleting the rejected hub edge disconnected a retained recurrence witness.
+  The repair does not fabricate a replacement history edge. Contact retirement
+  now removes any latest recurrence claim that no longer has a physical path,
+  while leaving neuronal state and unrelated learned structure resident.
+  Focused proof passes.
+- Attempt 7, exact post-learning body: accepted locally. V39 retained one exact
+  `11->12` vocal-motor route, removed all `12->13` hub contacts, derived one
+  parallel `11->13` respiratory route, and a second migration was byte-exact.
+  The first continued interval produced four motor events, one articulatory
+  recruitment, and 7 nonzero samples among 16 physical pressure samples. The
+  candidate is not deployed and R-009 remains open until that pressure returns
+  through the resident cochlea and survives cold restart without fan-out.
+- Attempt 8, exact post-learning body: accepted locally for consequence
+  continuity. The seal had encoded emitted sound but failed to retain it in the
+  active resident owner; the resulting snapshot dropped the consequence. One
+  ownership assignment fixes that already-recorded R-007 class. The exact
+  32-byte pressure hash survived cold restore, entered 34 sound receptors,
+  changed 35 inputs, and transitioned 1,301 neurons. A resulting 8,000-byte
+  vocal consequence also survived the following cold restore. Live production
+  evidence remains required before R-009 or L-006 can close.
 
 ## Latest correction closure
 

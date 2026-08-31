@@ -2061,7 +2061,7 @@ impl NativeResidentOrganismPrepare {
     }
 
     /// Transient native layer-13 efferent events. Each event is projected
-    /// only with the exact direct layer-12 contact transfers that physically
+    /// only with the exact direct layer-11 contact transfers that physically
     /// prepared it; no label, phoneme, word, or stored program is introduced.
     #[getter]
     fn articulatory_unit_recruitments(
@@ -2080,14 +2080,14 @@ impl NativeResidentOrganismPrepare {
                     event.topology_index,
                     event.outward_elementary_carriers,
                     event
-                        .motor_transfers
+                        .preparation_transfers
                         .iter()
                         .map(|transfer| {
                             let (sender_layer, receiver_layer) =
                                 if transfer.sender == event.neuron_lineage {
-                                    (13, 12)
+                                    (13, 11)
                                 } else {
-                                    (12, 13)
+                                    (11, 13)
                                 };
                             (
                                 hex_bytes(&transfer.sender),
@@ -3541,6 +3541,7 @@ impl ResidentOrganismRuntime {
         self.active.cognitive = unsealed.cognitive;
         self.active.vestibular = unsealed.vestibular;
         self.active.articulated_body = unsealed.articulated_body;
+        self.active.in_flight_acoustic = unsealed.in_flight_acoustic;
         self.active.observation = observation.clone();
         self.direct_predecessor = Some(UnacknowledgedDirectPredecessor {
             token,
@@ -7803,14 +7804,14 @@ fn project_articulatory_unit_recruitments(
                 event.topology_index,
                 event.outward_elementary_carriers,
                 event
-                    .motor_transfers
+                    .preparation_transfers
                     .iter()
                     .map(|transfer| {
                         let (sender_layer, receiver_layer) =
                             if transfer.sender == event.neuron_lineage {
-                                (13, 12)
+                                (13, 11)
                             } else {
-                                (12, 13)
+                                (11, 13)
                             };
                         (
                             hex_bytes(&transfer.sender),
@@ -9344,6 +9345,44 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn lived_seal_keeps_emitted_acoustic_consequence_in_resident_and_cold_state() {
+        let source = source("unsealed-lived-acoustic-consequence");
+        let episode = vec![(
+            source.clone(),
+            vec![(5, 1); source.joint_source_occurrences().len()],
+        )];
+        let consequence = InFlightAcousticConsequence::new(
+            1,
+            vec![0, 7, -11, 0],
+            [
+                vec![1, 2, 3, 4],
+                vec![5, 6, 7, 8],
+                vec![9, 10, 11, 12],
+                vec![13, 14, 15, 16],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        runtime
+            .advance_admitted_trajectory_unsealed(&episode)
+            .unwrap();
+        runtime.unsealed.as_mut().unwrap().in_flight_acoustic = Some(consequence.clone());
+
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.acknowledge_direct_commit(token).unwrap();
+        assert_eq!(runtime.active.in_flight_acoustic, Some(consequence.clone()));
+
+        let cold = ResidentOrganismRuntime::restore_envelope(
+            runtime.active_envelope().to_vec(),
+            budget(),
+        )
+        .unwrap();
+        assert_eq!(cold.active.in_flight_acoustic, Some(consequence));
     }
 
     #[test]

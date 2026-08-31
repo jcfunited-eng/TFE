@@ -10,15 +10,17 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{One, ToPrimitive, Zero};
 
-use crate::joint_source_episode::{decode_native_joint_source_episode, NativeJointSourceEpisode};
+use crate::joint_source_episode::{
+    decode_native_joint_source_episode, JointSourcePortView, NativeJointSourceEpisode,
+};
 use crate::joint_uf_source_adapter::SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE;
 use crate::proprioceptive_receptor_work::{
     ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
     DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT, EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
 };
 use crate::virtual_articulated_body::{
-    ArticulatedBodyState, BodyEffectorDirection, BodyProprioceptiveConsequence,
-    BodyProprioceptorTerminal, BODY_AXES,
+    ArticulatedBodyState, BodyEffectorDirection, BodyEffectorTerminal,
+    BodyProprioceptiveConsequence, BodyProprioceptorTerminal, BODY_AXES,
 };
 
 const VERSION: u16 = 3;
@@ -40,6 +42,88 @@ pub(crate) enum ArticulatedBodyJointSourceError {
     ArithmeticWidth,
     NonFiniteCoordinate,
     Carrier(String),
+}
+
+/// Recover the one motor terminal that actually won and moved an articulated
+/// axis from the source's own exact GLBPEV01 consequence evidence. The four
+/// position/load endings for an axis carry the same body consequence, so the
+/// caller deduplicates the returned terminal. Merely changing a receptor or
+/// settling its downstream regulation is not motor-cause evidence.
+pub(crate) fn exact_moved_effector_terminal(
+    port: &JointSourcePortView,
+) -> Result<Option<BodyEffectorTerminal>, ArticulatedBodyJointSourceError> {
+    let evidence = port.input_map_profile.as_slice();
+    if evidence.get(..EVIDENCE_MAGIC.len()) != Some(EVIDENCE_MAGIC) {
+        return Ok(None);
+    }
+    const FIXED_PREFIX: usize = 8 + 8 + 8 + 1 + 1 + 4 + 4 + 4;
+    const EVIDENCE_BYTES: usize = FIXED_PREFIX + 5 * 16;
+    if evidence.len() != EVIDENCE_BYTES {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    let terminal = port
+        .body_proprioceptor_terminal
+        .ok_or(ArticulatedBodyJointSourceError::NoncanonicalConsequences)?;
+    if evidence[24] != terminal.axis() as u8 || evidence[25] != terminal.direction() as u8 {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    let read_i32 = |offset: usize| {
+        i32::from_le_bytes(
+            evidence[offset..offset + 4]
+                .try_into()
+                .expect("checked body-evidence width"),
+        )
+    };
+    let read_u128 = |offset: usize| {
+        u128::from_le_bytes(
+            evidence[offset..offset + 16]
+                .try_into()
+                .expect("checked body-evidence width"),
+        )
+    };
+    let predecessor = read_i32(26);
+    let successor = read_i32(30);
+    let signed_displacement = read_i32(34);
+    let toward_minimum = read_u128(38);
+    let toward_maximum = read_u128(54);
+    let opposed = read_u128(70);
+    let applied = read_u128(86);
+    let stalled = read_u128(102);
+    if successor.checked_sub(predecessor) != Some(signed_displacement)
+        || opposed != toward_minimum.min(toward_maximum)
+        || applied != u128::from(signed_displacement.unsigned_abs())
+    {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    let (direction, net) = match toward_minimum.cmp(&toward_maximum) {
+        core::cmp::Ordering::Greater => (
+            BodyEffectorDirection::TowardMinimum,
+            toward_minimum - toward_maximum,
+        ),
+        core::cmp::Ordering::Less => (
+            BodyEffectorDirection::TowardMaximum,
+            toward_maximum - toward_minimum,
+        ),
+        core::cmp::Ordering::Equal => {
+            if signed_displacement != 0 || applied != 0 || stalled != 0 {
+                return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+            }
+            return Ok(None);
+        }
+    };
+    if net != applied
+        .checked_add(stalled)
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?
+        || (signed_displacement < 0) != (direction == BodyEffectorDirection::TowardMinimum)
+        || applied == 0
+    {
+        return if applied == 0 && signed_displacement == 0 {
+            Ok(None)
+        } else {
+            Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences)
+        };
+    }
+    Ok(Some(BodyEffectorTerminal::new(terminal.axis(), direction)))
 }
 
 pub(crate) fn admit_articulated_body_proprioceptive_source(
@@ -618,6 +702,88 @@ mod tests {
         assert_eq!(
             toward_maximum_load.exact_normalized_sources,
             vec![BigRational::one(), BigRational::one()]
+        );
+    }
+
+    #[test]
+    fn exact_body_evidence_names_only_the_effector_that_moved_the_axis() {
+        let terminal = BodyEffectorTerminal::new(
+            BodyAxis::VocalTractSection3Area,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let transition = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: 7,
+            }])
+            .unwrap(),
+        )
+        .unwrap();
+        let episode = admit_articulated_body_consequence_source(
+            44,
+            &transition.proprioceptive_consequences,
+        )
+        .unwrap();
+
+        let mut moved = episode
+            .joint_source_ports()
+            .iter()
+            .map(exact_moved_effector_terminal)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+        moved.sort_unstable();
+        moved.dedup();
+
+        assert_eq!(moved, vec![terminal]);
+    }
+
+    #[test]
+    fn exact_body_evidence_refuses_coincidence_and_corruption() {
+        let axis = BodyAxis::VocalTractSection3Area;
+        let transition = settle_body_effector_drives(
+            &ArticulatedBodyState::at_neutral(),
+            &AdmittedBodyEffectorDrives::admit(vec![
+                BodyEffectorDrive {
+                    terminal: BodyEffectorTerminal::new(
+                        axis,
+                        BodyEffectorDirection::TowardMinimum,
+                    ),
+                    outward_elementary_carriers: 7,
+                },
+                BodyEffectorDrive {
+                    terminal: BodyEffectorTerminal::new(
+                        axis,
+                        BodyEffectorDirection::TowardMaximum,
+                    ),
+                    outward_elementary_carriers: 7,
+                },
+            ])
+            .unwrap(),
+        )
+        .unwrap();
+        let episode = admit_articulated_body_consequence_source(
+            45,
+            &transition.proprioceptive_consequences,
+        )
+        .unwrap();
+        assert!(episode
+            .joint_source_ports()
+            .iter()
+            .map(exact_moved_effector_terminal)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .into_iter()
+            .all(|terminal| terminal.is_none()));
+
+        let mut corrupted = episode.joint_source_ports()[0].clone();
+        corrupted.input_map_profile[24] = BodyAxis::JawOpening as u8;
+        assert_eq!(
+            exact_moved_effector_terminal(&corrupted),
+            Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences)
         );
     }
 
