@@ -527,3 +527,118 @@ refused transaction. The next rehearsal must start from a newly populated
 volume with the four original hashes and must prove interval-local motor/body
 ownership, publication, exact pressure custody, restart, recurrence, and
 quiescence before any production action or human device request.
+
+## Post-analysis repair attempt 27 — interval fix passes; speech proof refuses
+
+Commit `5f0df59481cc9c2e47c9b70d19949879ccd474b9` packaged as verified archive
+SHA-256 `882f176eee3bf4af3f92590a5f45d49d6599a05aa736fe347eb7b667acac6583`
+and local image
+`sha256:2dda998b5c368b4b83fc41b5a80d5c6437e3491b753221b32c9de16e2552ca34`.
+A fresh volume contained exactly the four original copied-production files
+and hashes. The interval-scoped repair crossed the former `354145-354148`
+failure and continued monotonically through `354182` with no refusal or
+rollback; the attempt-26 defect is closed on the mature body.
+
+The candidate is nevertheless rejected as speech proof. At tick `354158` the
+public record exposed nonzero 12000-sample pressure SHA-256
+`cdb9c197b47ebfc2a86e6adabea602353d9490a04f54bb39fdeae1474f2fd15b`
+and four nonquiescent body ports, while the same record exposed zero layer-13
+recruitments, zero applied motor quanta, zero self-hearing hops, zero
+self-hearing transitions, and zero self-hearing fractals. It still labelled
+the event `native_articulation_and_self_hearing_committed` and described
+self-hearing before persistence. All nine completed transport records through
+shutdown reported `native_self_hearing=0.0ms`. That observation claim is
+false and no speech or self-hearing credit is allowed.
+
+The stopped copied body is preserved at authenticated tick `354182`, state
+bytes `107639965`, pointer SHA-256
+`416a651e8b9f68fa8a4fdd6eb4f8616d00e9f9a59c17fa2b9a90b028b88dd8ba`,
+raw current SHA-256
+`a5f4e5bc323dd12d39a8eabe3bfa5d4b571c3ee628ebdd4976db9616a6c5b0f6`,
+raw predecessor SHA-256
+`705c3fa2d0fb19ec0b1f64a2c5b27c6fed253a9cde11615cf74abba39d2911da`,
+and world SHA-256
+`0cb24f9dbb463243b685f2f4911ddf46c60a7db23fe85ce02c71d91b8df8fc65`.
+Production remained unchanged.
+
+The deliberately reduced repair target is prelinguistic embodiment, not
+learned speech: one existing layer-8 reached-load closing-glottis discharge
+may recruit the dedicated vocal body. Layer-11 learned ordering, a word,
+meaning, curriculum, and conversation are not prerequisites for this boundary.
+The required causal chain is therefore layer 8 -> typed glottal motor ->
+dedicated vocal body -> exact pressure -> the same organism's cochlea and the
+human speaker. Calling this reduced boundary learned speech remains forbidden.
+
+Cold inspection of an exact clone of the stopped tick-`354182` body proved
+that its current native envelope retained an in-flight occurrence from tick
+`354180`: 40,000 pressure bytes (20,000 samples), SHA-256
+`96b9644dbcb2c36e5cc935f4755f7e82328cd6507ed5ddd6f624e2427b61b556`,
+and 160,000 articulated-body bytes, SHA-256
+`8bf4af3c1ded996fbc16d76361cb2ef777c9a8a5408e562ac053c577c0f7cc87`.
+This proves exact emitted/in-flight custody only; it is not hearing evidence.
+
+Restart attempt 27 then resumed the original stopped volume from tick
+`354182`. Its first native successor was `354183`, so it did not resurrect the
+original tick-`354137` production copy. Nevertheless, every completed
+transport through at least generation `354225` reported
+`native_self_hearing=0.0ms`; the retained occurrence was not admitted through
+the cochlea. Shutdown was requested after the failure was established. The
+ten-second graceful deadline expired while unsealed work continued through
+`354250`, so Docker terminated the isolated process and only checkpoint
+`354225` is authoritative. Its `CURRENT` SHA-256 is
+`4d57aa352a03ce71695edb251570440f6277b58184d591771f50b30beacc45d9`,
+current raw state SHA-256
+`1777ec33deffca349aa06971ee35c93a53e86be243b77a23ab851dfcdb161035`,
+predecessor raw SHA-256
+`c886d63cde21c2b1c04b41395f99e9f23731be908cd50aad9ba3c64e85dd2446`,
+and world SHA-256
+`5297e993c1a532445edecb8374b7fd88c0c1284273dc45187907807e6d274683`.
+The isolated volume is preserved; production remained untouched. This is a
+restart-consumption failure, and repeating unattended intervals cannot close
+it.
+
+The restart-consumption failure is now exactly localized on another untouched
+clone of the authenticated tick-`354182` body. Before startup, `CURRENT` was
+SHA-256 `416a651e...`, state bytes were `107639965`, raw state SHA-256 was
+`a5f4e5bc...`, and the source-`354180` consequence had the exact pressure and
+body hashes above. Calling the real production `_startup()` with
+`GUALA_CURRENT_FORMAT_MIGRATION=1` returned no boot error and retained identity
+and tick, but published a different tick-`354182` body: pointer SHA-256
+`4579bd979188d09de44ecd6b8d7320c6769125f35055826a5890cfd74c1048dc`,
+state bytes `107439953`, raw state SHA-256
+`3637dc55d062e69b0610ad5310257f0e527cf8494f08401f8d28a6486969645c`,
+and all three in-flight accessors returned `None`. The exact byte loss is
+`200012`: the 12-byte in-flight header plus five signed-16 channels over 20,000
+samples. This is exact copied-production-body proof that migration deletes the
+complete retained occurrence before unattended intake can see it.
+
+The causal source is one argument in
+`migrate_resident_organism_exact_energy_envelope`. The parser already decodes
+`parsed.in_flight_acoustic`; the migration tuple preserves identity, tick,
+fabric generation, joint, migrated cognition, vestibular body, and articulated
+body, but omits that decoded field and passes literal `None` to
+`encode_fabric`. Startup always invokes this current-format migration when the
+release switch is `1`. The later intake correctly checks the resident
+in-flight field first and returns immediately when it is `None`. Thus neither
+the cochlear admission code nor waiting is the first failure.
+
+The bounded repair surface is one native migration owner: carry the already
+validated `Option<InFlightAcousticConsequence>` through the same re-encode.
+Legacy/pre-acoustic bodies continue to decode `None`; current bodies retain
+their exact bounded field; migration performs no hearing and does not consume,
+duplicate, synthesize, scale, or interpret pressure. Required proof is: a
+current-format envelope with nonzero in-flight pressure migrates with identical
+source tick, pressure samples, four body trajectories, organism identity,
+lived tick, fabric generation, joint, cognition, vestibular body, and
+articulated body; an exact copied tick-`354182` clone then retains the two exact
+hashes after real migration startup and consumes them exactly once through the
+existing cochlear admission path. No L0-L4, DSF, neuron, contact, learned
+route, curriculum, world, browser, or persistence schema change is admitted.
+
+Verification command attempt 1 supplied a repository-wide `cargo fmt --check`
+before the focused test. Existing formatting drift outside the changed file
+made that check exit first, so no test executed. The unexecuted suffix also
+repeated the already-recorded invalid short-name-plus-`--exact` form. It is not
+evidence. No formatter was run and no unrelated file was changed. The test
+must be invoked by its resolved fully qualified name without that failed
+precondition.

@@ -5912,6 +5912,7 @@ fn migrate_resident_organism_exact_energy_envelope(
         migrated_cognitive,
         vestibular,
         articulated_body,
+        in_flight_acoustic,
     ) = {
         let parsed = parse_current_envelope(&current_envelope, budget)?;
         let cognitive = parsed
@@ -5951,6 +5952,7 @@ fn migrate_resident_organism_exact_energy_envelope(
                     .articulated_body
                     .unwrap_or_else(ArticulatedBodyState::at_neutral)
             },
+            parsed.in_flight_acoustic,
         )
     };
     let fabric = encode_fabric(
@@ -5959,7 +5961,7 @@ fn migrate_resident_organism_exact_energy_envelope(
         &migrated_cognitive,
         &vestibular,
         &articulated_body,
-        None,
+        in_flight_acoustic.as_ref(),
         budget,
     )?;
     let migrated_envelope = encode_envelope(identity, organism_tick, &fabric, budget)?;
@@ -8176,6 +8178,63 @@ mod tests {
         .unwrap();
         let restored = ResidentOrganismRuntime::restore_envelope(envelope, budget()).unwrap();
         assert_eq!(restored.active.in_flight_acoustic, Some(consequence));
+    }
+
+    #[test]
+    fn current_format_migration_preserves_in_flight_acoustic_consequence() {
+        let joint = genesis_joint();
+        let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+            &genesis_cognitive(),
+            cognitive_budget_after_joint(joint.len(), budget()).unwrap(),
+        )
+        .unwrap();
+        let vestibular = genesis_vestibular();
+        let articulated_body = ArticulatedBodyState::at_neutral();
+        let consequence = InFlightAcousticConsequence::new(
+            17,
+            vec![2, -3, 5],
+            [
+                vec![7, 11, 13],
+                vec![17, 19, 23],
+                vec![29, 31, 37],
+                vec![41, 43, 47],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let fabric = encode_fabric(
+            17,
+            &joint,
+            &cognitive,
+            &vestibular,
+            &articulated_body,
+            Some(&consequence),
+            budget(),
+        )
+        .unwrap();
+        let envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            109,
+            &fabric,
+            budget(),
+        )
+        .unwrap();
+
+        let migrated =
+            migrate_resident_organism_exact_energy_envelope(envelope, budget()).unwrap();
+        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
+        assert_eq!(parsed.identity, canonical_identity(IDENTITY).unwrap());
+        assert_eq!(parsed.organism_tick, 109);
+        assert_eq!(parsed.fabric_generation, 17);
+        assert_eq!(parsed.joint_bytes, joint);
+        assert_eq!(parsed.cognitive_bytes, Some(cognitive.as_slice()));
+        assert_eq!(parsed.vestibular, Some(vestibular));
+        assert_eq!(parsed.articulated_body, Some(articulated_body));
+        assert_eq!(parsed.in_flight_acoustic, Some(consequence));
+        assert_eq!(
+            migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
+            migrated
+        );
     }
 
     #[test]

@@ -1226,3 +1226,54 @@ timer, second scheduler, or retained speech program.
   These bytes are forensic evidence and cannot seed the next rehearsal.
 - No pressure, self-hearing, recurrence, restart custody, quiescence, audible
   output, or conversation is credited. Attempt 26 is rejected.
+
+### Repair attempt 27 — interval pass, false self-hearing observation
+
+- Exact commit `5f0df594`, verified local image `sha256:2dda998b...`, and a
+  fresh four-hash copied body crossed the former `354145-354148` refusal and
+  advanced monotonically through `354182`. Attempt 26's interval-flattening
+  defect is closed; there was no refusal or rollback.
+- Tick `354158` exposed pressure SHA-256 `cdb9c197...`, 12000 samples, and four
+  nonquiescent body ports, but also zero layer-13 recruitment, applied motor
+  work, self-hearing hops, self-hearing transitions, and self-hearing
+  fractals. The UI record nevertheless claimed committed self-hearing. All
+  nine transport records reported `native_self_hearing=0.0ms`.
+- The candidate is rejected as speech proof. Pressure without exact causal
+  recruitment and hearing is not speech, and the false observation label is
+  an additional truth failure. Production was untouched; the stopped
+  tick-`354182` body and exact hashes are preserved.
+- The repair was deliberately scaled back to the prelinguistic embodiment
+  boundary: existing layer-8 reached-load closing-glottis discharge -> typed
+  motor -> dedicated vocal body -> exact pressure -> same-organism cochlea and
+  human speaker. It does not wait for layer-11 learned ordering, a word,
+  meaning, curriculum, or conversation, and it may not be described as learned
+  speech.
+- Exact cold inspection of a clone of tick `354182` found the persisted
+  tick-`354180` in-flight consequence: 40,000 pressure bytes with SHA-256
+  `96b9644dbcb2c36e5cc935f4755f7e82328cd6507ed5ddd6f624e2427b61b556`
+  and 160,000 articulated-body bytes with SHA-256
+  `8bf4af3c1ded996fbc16d76361cb2ef777c9a8a5408e562ac053c577c0f7cc87`.
+- Restart began at the correct successor `354183`, not the original copied
+  tick `354137`, but through authoritative checkpoint `354225` every completed
+  transport still reported `native_self_hearing=0.0ms`. Shutdown exceeded its
+  ten-second graceful deadline while unsealed computation reached `354250`;
+  only tick `354225` persisted. Its pointer SHA-256 is `4d57aa35...`, current
+  raw SHA-256 `1777ec33...`, predecessor raw SHA-256 `c886d63c...`, and world
+  SHA-256 `5297e993...`. The isolated candidate remains rejected and preserved.
+- Migration-isolation attempt 27 reproduced the erasure on a fresh exact
+  tick-`354182` clone without starting unattended work. Real `_startup()` with
+  current-format migration enabled retained identity and tick but changed raw
+  state `a5f4e5bc...`/`107639965` bytes to
+  `3637dc55...`/`107439953` bytes and changed the source tick, pressure, and
+  body accessors to `None`. The exact `200012`-byte loss equals the encoded
+  12-byte occurrence header plus five signed-16 20,000-sample channels.
+- Source localization is exact: migration decodes `parsed.in_flight_acoustic`
+  and then omits it from the preservation tuple, passing literal `None` into
+  the current-fabric encoder. Startup performs that migration before restore;
+  the existing first intake therefore sees no consequence to admit. The
+  bounded repair is to preserve that already-validated field through migration
+  and then prove exact one-time cochlear consumption on another copied body.
+- Verification invocation 1 is rejected: an inherited repository-wide format
+  check exited before the test, and the unexecuted test suffix used the already
+  prohibited short name with `--exact`. No test result or formatter change
+  occurred; only the resolved fully qualified test may supply evidence.

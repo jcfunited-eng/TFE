@@ -483,3 +483,39 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   It is evidence, not an admissible future candidate seed.
 - R-009 and L-006 remain open. No pressure or speech claim survives this
   refusal, and deployment remains prohibited.
+
+### R-009 repair attempt 27 — pressure cannot be called self-hearing
+
+- Commit `5f0df594` on a fresh exact copied body passed the attempt-26 boundary
+  and advanced monotonically from `354137` through `354182` with no refusal.
+- A public tick-`354158` record paired nonzero pressure and four moving body
+  ports with zero layer-13 recruitment, zero applied motor quanta, and zero
+  self-hearing evidence, yet labelled self-hearing committed. Nine transport
+  records independently reported zero native self-hearing time.
+- Permanent rule: nonzero residual pressure is not a layer-13 discharge;
+  emitted pressure is not heard pressure; and an observation may claim
+  self-hearing only after the exact in-flight bytes cause a later ordinary
+  cochlear/body interval. Attempt 27 is rejected as speech proof.
+- Scope rule: the immediate repair is deliberately reduced to prelinguistic
+  embodiment. An existing layer-8 reached-load closing-glottis discharge may
+  drive the typed motor and dedicated vocal body without first requiring a
+  layer-11 learned ordering route. That removes the repeatedly failing learned
+  route from this gate; it does not authorize calling reflex phonation learned
+  speech.
+- The tick-`354182` envelope cold-restored an exact tick-`354180` in-flight
+  consequence: pressure SHA-256 `96b9644d...` over 40,000 bytes and body SHA-256
+  `8bf4af3c...` over 160,000 bytes. Normal restart continued at `354183`, but
+  every completed transport through persisted checkpoint `354225` still
+  reported `native_self_hearing=0.0ms`. Repeating intervals did not consume the
+  occurrence. The stopped isolated checkpoint has pointer SHA-256 `4d57aa35...`,
+  current raw SHA-256 `1777ec33...`, predecessor raw SHA-256 `c886d63c...`, and
+  world SHA-256 `5297e993...`. This restart-consumption failure remains open.
+- Exact migration-isolation proof: real migration startup on a fresh
+  tick-`354182` clone changed raw state `a5f4e5bc...` at `107639965` bytes to
+  `3637dc55...` at `107439953` bytes while retaining identity and tick, and
+  changed source tick/pressure/body to `None`. The `200012` lost bytes are
+  exactly the encoded 12-byte header plus five signed-16 channels over 20,000
+  samples. Source parses this bounded field, omits it from the migration tuple,
+  and passes literal `None` to the encoder. Permanent rule: every structural
+  migration preserves a current in-flight acoustic consequence byte-for-byte;
+  only the later authenticated cochlear admission may consume it exactly once.
