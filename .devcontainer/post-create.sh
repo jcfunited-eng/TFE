@@ -27,3 +27,18 @@ if [ "${#native_wheels[@]}" -ne 1 ]; then
 fi
 pip install --no-cache-dir --force-reinstall "${native_wheels[0]}"
 python3 -c 'import guala_core; print("native Guala core installed")'
+
+# ── TFE keepalive (2026-08-31): both long-running TFE loops died in a
+# weekend container restart and trading silently stopped for two days.
+# Revive them on every container start; never fail the Guala setup.
+(
+  cd /workspaces/Tao_Financial_Engine 2>/dev/null || exit 0
+  pgrep -f tools/ch4_spring_daily_runner.sh >/dev/null 2>&1 \
+    || nohup bash tools/ch4_spring_daily_runner.sh >/dev/null 2>&1 &
+  pgrep -f tools/ch6_loop.sh >/dev/null 2>&1 \
+    || nohup bash tools/ch6_loop.sh >> artifacts/vtvr_observer/ch6_runner.log 2>&1 &
+  pgrep -f tools/ch3_shadow_loop.sh >/dev/null 2>&1 \
+    || nohup bash tools/ch3_shadow_loop.sh >/dev/null 2>&1 &
+  pgrep -f tools/channel_book_publication_loop.sh >/dev/null 2>&1 \
+    || nohup bash tools/channel_book_publication_loop.sh >/dev/null 2>&1 &
+) || true
