@@ -294,9 +294,10 @@ const MAGIC_V39: &[u8; 8] = b"GLCOG039";
 /// with one explicit resident vocal-body effector lineage. The migrated
 /// lineage is taken only from V39's already-validated unique bridge target;
 /// every contact incident to layer 13 is then retired. Ordinary cognition can
-/// co-recruit that body cell only after an exact learned layer-11 -> typed
-/// vocal layer-12 motor transfer and a real motor discharge in the same
-/// interval. The marker is anatomy, not a command, score, or speech label.
+/// co-recruit that body cell only after a physically prepared closing-glottis
+/// layer-12 motor emits a real discharge. Preparation may be learned ordering
+/// or the terminal's exact reached-load reflex; the marker is anatomy, not a
+/// command, score, or speech label.
 const MAGIC_V40: &[u8; 8] = b"GLCOG040";
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
@@ -1500,6 +1501,10 @@ pub(crate) struct MotorUnitRecruitment {
     /// than relabelled as excitation. This is transient causal evidence, not a
     /// plan, score, command, or retained action object.
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
+    /// The true mounted layer of each transfer sender, in identical order.
+    /// This prevents the Python evidence bridge from calling a layer-8 body
+    /// reflex a layer-11 learned ordering arrival.
+    pub(crate) preparation_sender_layers: Vec<u32>,
 }
 
 /// One transient discharge through a retained root-yaw effector mount.  Its
@@ -1535,9 +1540,9 @@ pub(crate) struct MotorBodyAfferentPath {
 }
 
 /// One transient respiratory efferent event produced by the resident
-/// layer-13 body effector after an exact learned layer-11 -> typed vocal
-/// layer-12 motor has itself discharged. `preparation_transfers` are those
-/// exact ordering-to-motor transfers; they are never relabelled as carrier
+/// layer-13 body effector after an exactly prepared closing-glottis layer-12
+/// motor has itself discharged. `preparation_transfers` preserve the actual
+/// ordering or reached-load arrival and are never relabelled as carrier
 /// transport into layer 13. The layer-13 cell supplies and settles its own
 /// carriers and work. This is not speech, phoneme identity, meaning, a
 /// retained motor program, or an action selector.
@@ -1547,6 +1552,7 @@ pub(crate) struct ArticulatoryUnitRecruitment {
     pub(crate) topology_index: u32,
     pub(crate) outward_elementary_carriers: u128,
     pub(crate) preparation_transfers: Vec<DirectedPhysicalTransferObservation>,
+    pub(crate) preparation_sender_layers: Vec<u32>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -4799,8 +4805,8 @@ fn validate_v39_passive_vocal_articulatory_route(
 /// The persisted lineage names one body part; it does not activate it. Layer
 /// 13 must have no electrical contacts, so neither a restored passive bridge
 /// nor unrelated activity can excite or suppress breath. Actual recruitment
-/// remains governed by a same-interval learned ordering transfer into a typed
-/// vocal motor followed by that motor's own carrier discharge.
+/// remains governed by a physically prepared closing-glottis motor followed
+/// by that motor's own carrier discharge.
 fn validate_motor_coupled_vocal_articulatory_route(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
@@ -18024,6 +18030,19 @@ fn exact_prepared_efferent_carriers(
         .then_some(local_outward_elementary_charges.unsigned_abs())
 }
 
+/// Fixed laryngeal/respiratory body coordination for the first unscripted
+/// vocal pressure. Only an actually prepared, actually discharged closing
+/// glottal motor can recruit breath. This is prelinguistic anatomy: it names
+/// no sound or meaning and gives no jaw, lip, tract, limb or observer event
+/// respiratory authority.
+fn recruits_prelinguistic_respiratory_effector(event: &MotorUnitRecruitment) -> bool {
+    event.body_effector_terminal.axis() == BodyAxis::GlottalAperture
+        && event.body_effector_terminal.direction() == BodyEffectorDirection::TowardMinimum
+        && event.outward_elementary_carriers > 0
+        && !event.preparation_transfers.is_empty()
+        && event.preparation_transfers.len() == event.preparation_sender_layers.len()
+}
+
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -19836,6 +19855,10 @@ fn settle_internal_contact_interval(
                     local_outward_for(*neuron_index),
                     preparation_transfers.len(),
                 )?;
+                let preparation_sender_layers = preparation_transfers
+                    .iter()
+                    .map(|transfer| layer_of(transfer.sender))
+                    .collect::<Option<Vec<_>>>()?;
                 (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
                     MotorUnitRecruitment {
                         neuron_lineage: motor_lineage,
@@ -19844,6 +19867,7 @@ fn settle_internal_contact_interval(
                         body_effector_terminal,
                         body_afferent_paths: Vec::new(),
                         preparation_transfers,
+                        preparation_sender_layers,
                     },
                 )
             })
@@ -20136,47 +20160,41 @@ fn settle_internal_contact_interval(
             recruitment.body_afferent_paths = paths;
         }
     }
-    // A vocal motor that actually discharged co-recruits the one resident
-    // respiratory effector. This is the fixed embodied motor coordination
-    // that the retired passive layer-11 -> layer-13 contact tried to stand in
-    // for. The contact was electrically bidirectional and therefore made
-    // speech depend on incidental endpoint voltage. Here the causal authority
-    // is narrower and physical: an exact learned ordering transfer must first
-    // prepare a typed vocal motor, that motor must emit its own carriers, and
-    // only then may layer 13 settle an independent local carrier discharge
-    // from its own retained membrane and recovery reservoir.
+    // One actual glottal-closing motor discharge co-recruits the one resident
+    // respiratory effector. This is fixed laryngeal/respiratory body
+    // coordination, not learned meaning: it permits prelinguistic phonation
+    // before self-hearing can teach a speech route. Jaw, lip, tract, limb and
+    // opening-only glottal activity cannot manufacture breath. The causing
+    // glottal motor must still have been prepared by an exact physical contact
+    // arrival and must emit its own carriers; layer 13 then settles its own
+    // independent local carriers and recovery work.
     let mut co_recruited_articulatory_flats = Vec::new();
-    let mut vocal_preparation_transfers = motor_unit_recruitments
+    let glottal_closing_recruitments = motor_unit_recruitments
         .iter()
-        .filter(|event| event.body_effector_terminal.axis().is_vocal_articulator())
-        .flat_map(|event| {
-            event
-                .preparation_transfers
-                .iter()
-                .copied()
-                .filter(move |transfer| {
-                    transfer.receiver == event.neuron_lineage
-                        && layer_of(transfer.sender) == Some(11)
-                })
-        })
+        .filter(|event| recruits_prelinguistic_respiratory_effector(event))
         .collect::<Vec<_>>();
-    vocal_preparation_transfers.sort_unstable();
-    vocal_preparation_transfers.dedup();
-    if !vocal_preparation_transfers.is_empty() {
-        let prepared_carriers = motor_unit_recruitments
+    if !glottal_closing_recruitments.is_empty() {
+        let prepared_carriers = glottal_closing_recruitments
             .iter()
-            .filter(|event| {
-                event.body_effector_terminal.axis().is_vocal_articulator()
-                    && event.preparation_transfers.iter().any(|transfer| {
-                        transfer.receiver == event.neuron_lineage
-                            && layer_of(transfer.sender) == Some(11)
-                    })
-            })
             .try_fold(0_u128, |total, event| {
                 total
                     .checked_add(event.outward_elementary_carriers)
                     .ok_or(FormationError::ArithmeticOverflow)
             })?;
+        let mut causal_preparations = glottal_closing_recruitments
+            .iter()
+            .flat_map(|event| {
+                event
+                    .preparation_transfers
+                    .iter()
+                    .copied()
+                    .zip(event.preparation_sender_layers.iter().copied())
+            })
+            .collect::<Vec<_>>();
+        causal_preparations.sort_unstable();
+        causal_preparations.dedup();
+        let (vocal_preparation_transfers, vocal_preparation_sender_layers):
+            (Vec<_>, Vec<_>) = causal_preparations.into_iter().unzip();
         let articulatory_flats = flat_locations
             .iter()
             .enumerate()
@@ -20246,6 +20264,7 @@ fn settle_internal_contact_interval(
                         .topology_index(),
                     outward_elementary_carriers: outward_carriers,
                     preparation_transfers: vocal_preparation_transfers,
+                    preparation_sender_layers: vocal_preparation_sender_layers,
                 });
             }
         }
@@ -28302,6 +28321,63 @@ mod tests {
         assert_eq!(exact_prepared_efferent_carriers(0, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(-3, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(3, 0), None);
+    }
+
+    #[test]
+    fn only_a_prepared_closing_glottal_motor_recruits_prelinguistic_breath() {
+        let sender = [8_u8; 16];
+        let motor = [12_u8; 16];
+        let transfer = DirectedPhysicalTransferObservation {
+            sender,
+            receiver: motor,
+            bond: StablePhysicalBondReference::new(sender, motor, 0).unwrap(),
+            transferred_whole_carriers: 2,
+        };
+        let event = |
+            axis: BodyAxis,
+            direction: BodyEffectorDirection,
+            carriers: u128,
+            prepared: bool,
+        | MotorUnitRecruitment {
+            neuron_lineage: motor,
+            topology_index: 18,
+            outward_elementary_carriers: carriers,
+            body_effector_terminal: BodyEffectorTerminal::new(axis, direction),
+            body_afferent_paths: Vec::new(),
+            preparation_transfers: prepared.then_some(transfer).into_iter().collect(),
+            preparation_sender_layers: prepared.then_some(8).into_iter().collect(),
+        };
+
+        assert!(recruits_prelinguistic_respiratory_effector(&event(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            2,
+            true,
+        )));
+        assert!(!recruits_prelinguistic_respiratory_effector(&event(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMaximum,
+            2,
+            true,
+        )));
+        assert!(!recruits_prelinguistic_respiratory_effector(&event(
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMinimum,
+            2,
+            true,
+        )));
+        assert!(!recruits_prelinguistic_respiratory_effector(&event(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            0,
+            true,
+        )));
+        assert!(!recruits_prelinguistic_respiratory_effector(&event(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            2,
+            false,
+        )));
     }
 
     #[test]
