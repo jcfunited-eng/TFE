@@ -462,5 +462,19 @@ timer, second scheduler, or retained speech program.
   restore initializes neither value; one real discharge initializes them;
   later intervals apply zero additional motor quanta while the body's 100 Hz
   glottal cycles continue; the activation reaches exact zero after 16,000
-  samples. The focused native body gate passes 11/11. Production remains
-  unchanged pending immutable commit and cutover.
+  samples. The focused native body gate passes 11/11.
+- The first candidate was committed as
+  `bd3f0ca407766cd6df9df5d890b09ef235e486ec` and registered as task 1396,
+  but it never became healthy. Startup rejected the live V4 body as
+  `InvalidLength`: the inner body decoder lawfully accepted both 265-byte V4
+  and 270-byte V5 records, while the outer organism decoder sliced 270 bytes
+  unconditionally and consumed five bytes belonging to the following field.
+  The service was immediately returned to task 1395; its public endpoint
+  recovered at generation 344255.
+- The correction puts the body-version-to-width mapping under one authority in
+  `virtual_articulated_body.rs`; `organism_runtime.rs` asks that authority
+  before slicing. A current organism envelope containing the exact predecessor
+  V4 body now parses and migrates to V5 without consuming the following
+  acoustic-length, joint, or cognitive fields. That outer-envelope falsifier,
+  the 15 articulated-body tests, and the 11 articulatory-body tests pass.
+  Production remains on task 1395 pending the corrected cutover.

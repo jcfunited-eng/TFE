@@ -13,7 +13,7 @@ pub(crate) const BODY_MAGIC: &[u8; 8] = b"GLBODY01";
 const LEGACY_BODY_VERSION: u16 = 1;
 const PREVIOUS_BODY_VERSION: u16 = 2;
 pub(crate) const PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION: u16 = 3;
-const PREVIOUS_ACOUSTIC_BODY_VERSION: u16 = 4;
+pub(crate) const PREVIOUS_ACOUSTIC_BODY_VERSION: u16 = 4;
 const BODY_VERSION: u16 = 5;
 pub(crate) const LEGACY_BODY_AXIS_COUNT: usize = 37;
 pub(crate) const BODY_AXIS_COUNT: usize = 45;
@@ -57,7 +57,7 @@ pub(crate) const PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTE
     + BODY_AXIS_COUNT * size_of::<i32>()
     + size_of::<u32>()
     + size_of::<u8>();
-const PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES: usize =
+pub(crate) const PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES: usize =
     PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES;
 pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize =
     PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + ARTICULATORY_ACOUSTIC_STATE_BYTES;
@@ -1020,6 +1020,41 @@ impl ArticulatedBodyState {
         ARTICULATED_BODY_STATE_BYTES
     }
 
+    /// Return the exact encoded width declared by the body's own header.
+    ///
+    /// The resident-organism envelope calls this before slicing the body out
+    /// of a larger fabric. Keeping the version-to-width mapping here prevents
+    /// an outer format migration from mistaking a lawful predecessor body for
+    /// the current wider body and consuming bytes that belong to the next
+    /// field.
+    pub(crate) fn encoded_length_from_prefix(
+        encoded: &[u8],
+    ) -> Result<usize, ArticulatedBodyError> {
+        if encoded.len() < HEADER_BYTES {
+            return Err(ArticulatedBodyError::InvalidLength);
+        }
+        if &encoded[..BODY_MAGIC.len()] != BODY_MAGIC {
+            return Err(ArticulatedBodyError::InvalidMagic);
+        }
+        let version = u16::from_be_bytes(
+            encoded[BODY_MAGIC.len()..HEADER_BYTES]
+                .try_into()
+                .expect("fixed version width"),
+        );
+        match version {
+            LEGACY_BODY_VERSION
+            | PREVIOUS_BODY_VERSION
+            | PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION => {
+                Ok(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
+            }
+            PREVIOUS_ACOUSTIC_BODY_VERSION => {
+                Ok(PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES)
+            }
+            BODY_VERSION => Ok(ARTICULATED_BODY_STATE_BYTES),
+            _ => Err(ArticulatedBodyError::UnsupportedVersion(version)),
+        }
+    }
+
     pub(crate) fn encode(
         &self,
     ) -> Result<[u8; ARTICULATED_BODY_STATE_BYTES], ArticulatedBodyError> {
@@ -1067,10 +1102,7 @@ impl ArticulatedBodyState {
     }
 
     pub(crate) fn decode(encoded: &[u8]) -> Result<Self, ArticulatedBodyError> {
-        if encoded.len() != ARTICULATED_BODY_STATE_BYTES
-            && encoded.len() != PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES
-            && encoded.len() != PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
-        {
+        if encoded.len() != Self::encoded_length_from_prefix(encoded)? {
             return Err(ArticulatedBodyError::InvalidLength);
         }
         let mut cursor = 0usize;

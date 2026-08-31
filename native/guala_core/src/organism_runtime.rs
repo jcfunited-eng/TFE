@@ -68,7 +68,6 @@ use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
     ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
-    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES,
 };
 use crate::root_yaw_terminal::RootYawDirection;
 use crate::root_translation_terminal::{RootTranslationAxis, RootTranslationDirection};
@@ -7022,11 +7021,12 @@ fn parse_current_fabric(
         None
     };
     let articulated_body = if current || pre_acoustic_flight || pre_phonatory {
-        let body_state_bytes = if current || pre_acoustic_flight {
-            ARTICULATED_BODY_STATE_BYTES
-        } else {
-            PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
-        };
+        let body_state_bytes = ArticulatedBodyState::encoded_length_from_prefix(
+            fabric
+                .get(offset..)
+                .ok_or(RuntimeError::EnvelopeEndedEarly)?,
+        )
+        .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
         let body_end = offset
             .checked_add(body_state_bytes)
             .ok_or(RuntimeError::FabricLengthOverflow)?;
@@ -8232,6 +8232,70 @@ mod tests {
     }
 
     #[test]
+    fn current_fabric_migrates_previous_acoustic_body_without_consuming_following_fields() {
+        let joint = genesis_joint();
+        let cognitive = ResidentCognitiveFormationState::migrate_to_current_format(
+            &genesis_cognitive(),
+            cognitive_budget_after_joint(joint.len(), budget()).unwrap(),
+        )
+        .unwrap();
+        let vestibular = genesis_vestibular();
+        let body = ArticulatedBodyState::at_neutral();
+        let current = encode_fabric(
+            23,
+            &joint,
+            &cognitive,
+            &vestibular,
+            &body,
+            None,
+            budget(),
+        )
+        .unwrap();
+        let body_offset = FABRIC_MAGIC.len()
+            + std::mem::size_of::<u16>()
+            + std::mem::size_of::<u64>()
+            + 2 * std::mem::size_of::<u32>()
+            + VESTIBULAR_BODY_BYTES;
+        let current_body_end = body_offset + ARTICULATED_BODY_STATE_BYTES;
+        let mut previous_body = body.encode().unwrap().to_vec();
+        previous_body[crate::virtual_articulated_body::BODY_MAGIC.len()
+            ..crate::virtual_articulated_body::HEADER_BYTES]
+            .copy_from_slice(
+                &crate::virtual_articulated_body::PREVIOUS_ACOUSTIC_BODY_VERSION.to_be_bytes(),
+            );
+        previous_body.truncate(
+            crate::virtual_articulated_body::PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES,
+        );
+        let added_body_state_bytes = ARTICULATED_BODY_STATE_BYTES
+            - crate::virtual_articulated_body::PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES;
+        let mut previous_fabric = Vec::with_capacity(current.len() - added_body_state_bytes);
+        previous_fabric.extend_from_slice(&current[..body_offset]);
+        previous_fabric.extend_from_slice(&previous_body);
+        previous_fabric.extend_from_slice(&current[current_body_end..]);
+        let previous_envelope = encode_envelope(
+            canonical_identity(IDENTITY).unwrap(),
+            109,
+            &previous_fabric,
+            budget(),
+        )
+        .unwrap();
+
+        let parsed = parse_current_envelope(&previous_envelope, budget()).unwrap();
+        assert_eq!(parsed.articulated_body, Some(body.clone()));
+        assert_eq!(parsed.in_flight_acoustic, None);
+        assert_eq!(parsed.joint_bytes, joint);
+        assert_eq!(parsed.cognitive_bytes, Some(cognitive.as_slice()));
+
+        let migrated =
+            migrate_resident_organism_exact_energy_envelope(previous_envelope, budget()).unwrap();
+        let migrated = parse_current_envelope(&migrated, budget()).unwrap();
+        assert_eq!(migrated.articulated_body, Some(body));
+        assert_eq!(migrated.in_flight_acoustic, None);
+        assert_eq!(migrated.joint_bytes, joint);
+        assert_eq!(migrated.cognitive_bytes, Some(cognitive.as_slice()));
+    }
+
+    #[test]
     fn repeated_destination_cue_projects_once_without_losing_thought_causes() {
         let cue = InternallyReassembledFormationCueObservation {
             formation_receipt: [1; 32],
@@ -8622,7 +8686,9 @@ mod tests {
                 &crate::virtual_articulated_body::PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
                     .to_be_bytes(),
             );
-        old_body.truncate(PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES);
+        old_body.truncate(
+            crate::virtual_articulated_body::PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES,
+        );
         let mut output = Vec::new();
         output.extend_from_slice(PRE_PHONATORY_FABRIC_MAGIC);
         output.extend_from_slice(&PRE_PHONATORY_FABRIC_VERSION.to_le_bytes());
