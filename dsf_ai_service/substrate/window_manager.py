@@ -50,6 +50,28 @@ WINDOW_CACHE_DEFAULT_MB = 256
 # resident), keeping the cache honest against the <2GB process target.
 CACHE_RESIDENT_MULTIPLIER = 5
 
+# Retained-window memory is optional in production, but when enabled it must
+# have an explicit physical owner.  These are operational byte allocations,
+# not learning thresholds: crossing one refuses the write before any durable
+# memory or atlas mirror changes.  Existing memory is never evicted.
+WINDOW_STORE_MB_ENV = "GUALA_WINDOW_STORE_MB"
+WINDOW_STORE_DEFAULT_MB = 128
+WINDOW_MAX_RECORD_MB_ENV = "GUALA_WINDOW_MAX_RECORD_MB"
+WINDOW_MAX_RECORD_DEFAULT_MB = 64
+
+
+def _positive_mebibyte_budget(env_name: str, default_mb: int) -> int:
+    raw = os.environ.get(env_name)
+    if raw is None:
+        return default_mb * 1024 * 1024
+    try:
+        mb = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{env_name} must be an integer MiB value") from exc
+    if mb <= 0:
+        raise ValueError(f"{env_name} must be greater than zero")
+    return mb * 1024 * 1024
+
 # Appended to every named integrity-halt message so the 03:00 operator knows
 # the sanctioned recovery path without reading the spec.
 RESTORE_HINT = (
@@ -184,6 +206,22 @@ class WindowStoreIntegrityHalt(WindowIntegrityError):
     prefix digest mismatches, committed records are missing, or a located
     record cannot be read back from its segment.  Boot must HALT on this —
     it must never be swallowed into recover-and-continue paths."""
+
+
+class WindowCapacityRefusal(WindowIntegrityError):
+    """A typed pre-write refusal from the window memory resource owner."""
+
+    def __init__(self, *, scope: str, current_bytes: int,
+                 attempted_bytes: int, budget_bytes: int):
+        self.scope = str(scope)
+        self.current_bytes = int(current_bytes)
+        self.attempted_bytes = int(attempted_bytes)
+        self.budget_bytes = int(budget_bytes)
+        super().__init__(
+            f"{self.scope} capacity refused: attempted "
+            f"{self.attempted_bytes} canonical bytes with "
+            f"{self.current_bytes} already owned; budget is "
+            f"{self.budget_bytes} bytes")
 
 
 class _WindowsContentView(collections.abc.Mapping):
@@ -464,6 +502,8 @@ class WindowManager:
         get_needs_fn: Optional[Callable[[], dict]] = None,
         retain_closed_windows: bool = True,
         settle_window_fn: Optional[Callable[[Mapping[str, Any]], Any]] = None,
+        max_store_bytes: Optional[int] = None,
+        max_window_bytes: Optional[int] = None,
     ):
         # ``quiet_timeout_sec`` is accepted for constructor compatibility only.
         # It has no authority over an experience boundary.
@@ -476,6 +516,24 @@ class WindowManager:
         self._get_needs = get_needs_fn or (lambda: {})
         self._retain_closed_windows = bool(retain_closed_windows)
         self._settle_window = settle_window_fn
+        self._max_store_bytes = (
+            _positive_mebibyte_budget(
+                WINDOW_STORE_MB_ENV, WINDOW_STORE_DEFAULT_MB)
+            if max_store_bytes is None else int(max_store_bytes))
+        self._max_window_bytes = (
+            _positive_mebibyte_budget(
+                WINDOW_MAX_RECORD_MB_ENV, WINDOW_MAX_RECORD_DEFAULT_MB)
+            if max_window_bytes is None else int(max_window_bytes))
+        if self._max_store_bytes <= 0:
+            raise ValueError("window max_store_bytes must be greater than zero")
+        if self._max_window_bytes <= 0:
+            raise ValueError("window max_window_bytes must be greater than zero")
+        self._retained_store_bytes = 0
+        self._reserved_store_bytes = 0
+        self._open_context_bytes: dict[str, int] = {}
+        self._open_context_total_bytes = 0
+        self._capacity_refusal_count = 0
+        self._last_capacity_refusal: Optional[dict] = None
         self._lock = threading.RLock()
         self._bound_context = contextvars.ContextVar(
             f"binding_window_context_{id(self)}", default=None)
@@ -698,6 +756,56 @@ class WindowManager:
                 "budget_bytes": self._content_cache_budget,
             }
 
+    @staticmethod
+    def _closed_record_line_bytes(record: Mapping[str, Any]) -> int:
+        record_hash = _sha256_hex(_canonical_wal_bytes(record))
+        return len(_canonical_wal_bytes(
+            {"record": record, "sha256": record_hash})) + 1
+
+    def _refuse_capacity(
+            self, *, scope: str, current_bytes: int,
+            attempted_bytes: int, budget_bytes: int):
+        refusal = WindowCapacityRefusal(
+            scope=scope,
+            current_bytes=current_bytes,
+            attempted_bytes=attempted_bytes,
+            budget_bytes=budget_bytes,
+        )
+        self._capacity_refusal_count += 1
+        self._last_capacity_refusal = {
+            "scope": refusal.scope,
+            "current_bytes": refusal.current_bytes,
+            "attempted_bytes": refusal.attempted_bytes,
+            "budget_bytes": refusal.budget_bytes,
+        }
+        self._log_event(
+            "window_capacity_refused",
+            **self._last_capacity_refusal)
+        raise refusal
+
+    def resource_stats(self) -> dict:
+        """Truthful current ownership and hard resource boundaries."""
+        with self._lock:
+            return {
+                "retention_enabled": self._retain_closed_windows,
+                "retained_store_bytes": self._retained_store_bytes,
+                "reserved_store_bytes": self._reserved_store_bytes,
+                "open_context_bytes": self._open_context_total_bytes,
+                "total_owned_bytes": (
+                    self._retained_store_bytes
+                    + self._reserved_store_bytes
+                    + self._open_context_total_bytes),
+                "store_budget_bytes": self._max_store_bytes,
+                "max_window_bytes": self._max_window_bytes,
+                "resident_window_metadata": len(self._window_meta),
+                "resident_window_locators": len(self._window_locator),
+                "resident_chi_locations": sum(
+                    len(locations) for locations in self._chi_index.values()),
+                "capacity_refusal_count": self._capacity_refusal_count,
+                "last_capacity_refusal": copy.deepcopy(
+                    self._last_capacity_refusal),
+            }
+
     def _read_located_record(self, location: WindowLocation) -> dict:
         """Read + hash-verify one located record line from its segment."""
         with open(location.path, "rb") as handle:
@@ -890,7 +998,32 @@ class WindowManager:
             if window is None:
                 window = self._new_window(
                     context_id, trigger_reason, _origin, context_detail)
+                initial_bytes = len(_canonical_wal_bytes(window.to_record()))
+                attempted_open_bytes = (
+                    self._retained_store_bytes
+                    + self._reserved_store_bytes
+                    + self._open_context_total_bytes
+                    + initial_bytes)
+                if initial_bytes > self._max_window_bytes:
+                    self._refuse_capacity(
+                        scope="new_open_window",
+                        current_bytes=0,
+                        attempted_bytes=initial_bytes,
+                        budget_bytes=self._max_window_bytes,
+                    )
+                if attempted_open_bytes > self._max_store_bytes:
+                    self._refuse_capacity(
+                        scope="open_window_store",
+                        current_bytes=(
+                            self._retained_store_bytes
+                            + self._reserved_store_bytes
+                            + self._open_context_total_bytes),
+                        attempted_bytes=attempted_open_bytes,
+                        budget_bytes=self._max_store_bytes,
+                    )
                 self._contexts[context_id] = window
+                self._open_context_bytes[context_id] = initial_bytes
+                self._open_context_total_bytes += initial_bytes
                 opened = True
             self._bound_context.set(context_id)
             window_id = window.window_id
@@ -1156,6 +1289,8 @@ class WindowManager:
                 context_id, trigger_reason, atlas_kwargs)
             entry_index = len(window.entries)
             position = None
+            prior_language_positions = dict(window._language_positions)
+            prior_next_language_position = window._next_language_position
             if modality == "word":
                 position = window.language_position_for(
                     actual_tick, source_tag, language_position)
@@ -1176,7 +1311,39 @@ class WindowManager:
                 language_position=position)
             # Build/validate the record before the compatibility write so a
             # non-JSON fact cannot leave a mirrored binding without memory.
-            entry.to_record(entry_index)
+            entry_record = entry.to_record(entry_index)
+            proposed_record = window.to_record()
+            proposed_record["entries"].append(entry_record)
+            proposed_bytes = len(_canonical_wal_bytes(proposed_record))
+            current_window_bytes = self._open_context_bytes[window.context_id]
+            if proposed_bytes > self._max_window_bytes:
+                window._language_positions = prior_language_positions
+                window._next_language_position = prior_next_language_position
+                self._refuse_capacity(
+                    scope="open_window",
+                    current_bytes=len(_canonical_wal_bytes(
+                        window.to_record())),
+                    attempted_bytes=proposed_bytes,
+                    budget_bytes=self._max_window_bytes,
+                )
+            attempted_total_bytes = (
+                self._retained_store_bytes
+                + self._reserved_store_bytes
+                + self._open_context_total_bytes
+                - current_window_bytes
+                + proposed_bytes)
+            if attempted_total_bytes > self._max_store_bytes:
+                window._language_positions = prior_language_positions
+                window._next_language_position = prior_next_language_position
+                self._refuse_capacity(
+                    scope="open_window_store",
+                    current_bytes=(
+                        self._retained_store_bytes
+                        + self._reserved_store_bytes
+                        + self._open_context_total_bytes),
+                    attempted_bytes=attempted_total_bytes,
+                    budget_bytes=self._max_store_bytes,
+                )
 
             mirror_kwargs = dict(atlas_kwargs)
             if salience is not None:
@@ -1192,6 +1359,9 @@ class WindowManager:
                 self._atlas_record(
                     str(section), motif_id, chi, actual_tick, **mirror_kwargs)
             index = window.add_entry(entry)
+            self._open_context_bytes[window.context_id] = proposed_bytes
+            self._open_context_total_bytes += (
+                proposed_bytes - current_window_bytes)
             event = {
                 "window_id": window.window_id,
                 "context_id": window.context_id,
@@ -1232,6 +1402,7 @@ class WindowManager:
                     *,
                     return_settlement: bool = False):
         """Close and settle one immutable context without holding the global lock."""
+        reserved_store_bytes = 0
         with self._lock:
             window = self._contexts.get(context_id)
             if window is None:
@@ -1240,11 +1411,54 @@ class WindowManager:
                 raise WindowIntegrityError(
                     "binding context settlement is already in progress")
             if window.closed_tick is None:
-                window.closed_tick = int(self._get_tick())
-                window.closed_wall_clock = time.time()
-                window.close_reason = str(reason)
-            record = window.to_record()
+                proposed_closed_tick = int(self._get_tick())
+                proposed_closed_wall_clock = time.time()
+                proposed_close_reason = str(reason)
+                record = window.to_record()
+                record["closed_tick"] = proposed_closed_tick
+                record["closed_wall_clock"] = proposed_closed_wall_clock
+                record["close_reason"] = proposed_close_reason
+            else:
+                proposed_closed_tick = window.closed_tick
+                proposed_closed_wall_clock = window.closed_wall_clock
+                proposed_close_reason = window.close_reason
+                record = window.to_record()
             self._validate_window_record(record, closed=True)
+            record_bytes = len(_canonical_wal_bytes(record))
+            prior_open_bytes = self._open_context_bytes[context_id]
+            if record_bytes > self._max_window_bytes:
+                self._refuse_capacity(
+                    scope="closed_window",
+                    current_bytes=prior_open_bytes,
+                    attempted_bytes=record_bytes,
+                    budget_bytes=self._max_window_bytes,
+                )
+            if self._retain_closed_windows:
+                reserved_store_bytes = self._closed_record_line_bytes(record)
+                attempted_store_bytes = (
+                    self._retained_store_bytes
+                    + self._reserved_store_bytes
+                    + self._open_context_total_bytes
+                    - prior_open_bytes
+                    + reserved_store_bytes)
+                if attempted_store_bytes > self._max_store_bytes:
+                    self._refuse_capacity(
+                        scope="retained_window_store",
+                        current_bytes=(
+                            self._retained_store_bytes
+                            + self._reserved_store_bytes
+                            + self._open_context_total_bytes
+                            - prior_open_bytes),
+                        attempted_bytes=attempted_store_bytes,
+                        budget_bytes=self._max_store_bytes,
+                    )
+                self._reserved_store_bytes += reserved_store_bytes
+            window.closed_tick = proposed_closed_tick
+            window.closed_wall_clock = proposed_closed_wall_clock
+            window.close_reason = proposed_close_reason
+            self._open_context_bytes[context_id] = record_bytes
+            self._open_context_total_bytes += (
+                record_bytes - prior_open_bytes)
             window_id = window.window_id
             window._settlement_in_progress = True
 
@@ -1257,6 +1471,8 @@ class WindowManager:
                     current = self._contexts.get(context_id)
                     if current is window:
                         window._settlement_in_progress = False
+                    if reserved_store_bytes:
+                        self._reserved_store_bytes -= reserved_store_bytes
                 self._log_event(
                     "window_settlement_failed",
                     window_id=window_id,
@@ -1267,27 +1483,38 @@ class WindowManager:
                 raise
 
         with self._lock:
-            current = self._contexts.get(context_id)
-            if current is not window or not window._settlement_in_progress:
-                raise WindowIntegrityError(
-                    "binding context changed during atomic settlement")
-            if window.to_record() != record:
-                window._settlement_in_progress = False
-                raise WindowIntegrityError(
-                    "closed binding context mutated during settlement")
-            removed = self._contexts.pop(context_id, None)
-            if removed is not window:
-                raise WindowIntegrityError(
-                    "binding context changed during atomic settlement")
-            if self._retain_closed_windows:
-                # Disk-resident store: the record parks in _pending (readable
-                # immediately) and moves to the durable locator once its WAL
-                # append lands (_wal_on_close below, outside this lock).  RAM
-                # keeps only locator + metadata + chi index afterwards.
-                self._pending[window.window_id] = record
-                self._window_meta[window.window_id] = (
-                    self._window_metadata_from_record(record))
-                self._index_closed_window(record)
+            try:
+                current = self._contexts.get(context_id)
+                if current is not window or not window._settlement_in_progress:
+                    raise WindowIntegrityError(
+                        "binding context changed during atomic settlement")
+                if window.to_record() != record:
+                    window._settlement_in_progress = False
+                    raise WindowIntegrityError(
+                        "closed binding context mutated during settlement")
+                removed = self._contexts.pop(context_id, None)
+                if removed is not window:
+                    raise WindowIntegrityError(
+                        "binding context changed during atomic settlement")
+                owned_open_bytes = self._open_context_bytes.pop(context_id)
+                self._open_context_total_bytes -= owned_open_bytes
+                if self._retain_closed_windows:
+                    # Disk-resident store: the record parks in _pending
+                    # (readable immediately) and moves to the durable locator
+                    # once its WAL append lands.  The reserved bytes become
+                    # owned only in the same transaction that installs it.
+                    self._pending[window.window_id] = record
+                    self._window_meta[window.window_id] = (
+                        self._window_metadata_from_record(record))
+                    self._index_closed_window(record)
+                    self._reserved_store_bytes -= reserved_store_bytes
+                    self._retained_store_bytes += reserved_store_bytes
+                    reserved_store_bytes = 0
+            except Exception:
+                if reserved_store_bytes:
+                    self._reserved_store_bytes -= reserved_store_bytes
+                    reserved_store_bytes = 0
+                raise
             # GL-AUDIT-RAM-6GB / GL-RPT-WAL-BLOAT F1 (2026-07-15): the Atlas
             # compatibility mirror is no longer populated.  Its content was a
             # full deepcopy of every closed record (~1.7 GB at production
@@ -1344,6 +1571,8 @@ class WindowManager:
             if removed is not window:
                 raise WindowIntegrityError(
                     "binding context changed during failed-capture discard")
+            owned_open_bytes = self._open_context_bytes.pop(context_id)
+            self._open_context_total_bytes -= owned_open_bytes
             if self._bound_context.get() == context_id:
                 self._bound_context.set(None)
             event = {
@@ -1493,6 +1722,37 @@ class WindowManager:
             int(chi): copy.deepcopy(locations)
             for chi, locations in safe_snapshot["chi_index"].items()
         }
+        retained_store_bytes = sum(
+            self._closed_record_line_bytes(record)
+            for record in closed.values())
+        if retained_store_bytes > self._max_store_bytes:
+            self._refuse_capacity(
+                scope="restored_window_store",
+                current_bytes=0,
+                attempted_bytes=retained_store_bytes,
+                budget_bytes=self._max_store_bytes,
+            )
+        open_context_bytes = {}
+        for context_id, window in contexts.items():
+            open_bytes = len(_canonical_wal_bytes(window.to_record()))
+            if open_bytes > self._max_window_bytes:
+                self._refuse_capacity(
+                    scope="restored_open_window",
+                    current_bytes=0,
+                    attempted_bytes=open_bytes,
+                    budget_bytes=self._max_window_bytes,
+                )
+            open_context_bytes[context_id] = open_bytes
+        open_context_total_bytes = sum(open_context_bytes.values())
+        restored_total_bytes = (
+            retained_store_bytes + open_context_total_bytes)
+        if restored_total_bytes > self._max_store_bytes:
+            self._refuse_capacity(
+                scope="restored_total_window_memory",
+                current_bytes=0,
+                attempted_bytes=restored_total_bytes,
+                budget_bytes=self._max_store_bytes,
+            )
         next_window_sequence = int(safe_snapshot["next_window_sequence"])
         next_context_sequence = int(safe_snapshot["next_context_sequence"])
         with self._lock:
@@ -1512,6 +1772,10 @@ class WindowManager:
             self._chi_index_seen = self._seen_from_chi_index(chi_index)
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
+            self._retained_store_bytes = retained_store_bytes
+            self._reserved_store_bytes = 0
+            self._open_context_bytes = open_context_bytes
+            self._open_context_total_bytes = open_context_total_bytes
             # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
             # preserved for the registry.
             self._compatibility_windows.clear()
@@ -1689,9 +1953,19 @@ class WindowManager:
         record_hash = _sha256_hex(_canonical_wal_bytes(record))
         line = _canonical_wal_bytes(
             {"record": record, "sha256": record_hash}) + b"\n"
-        with self._wal_lock:
-            if self._wal_enabled:
-                self._wal_append_line(line, record_hash)
+        with self._lock:
+            with self._wal_lock:
+                if self._wal_enabled:
+                    attempted = self._retained_store_bytes + len(line)
+                    if attempted > self._max_store_bytes:
+                        self._refuse_capacity(
+                            scope="direct_wal_append",
+                            current_bytes=self._retained_store_bytes,
+                            attempted_bytes=attempted,
+                            budget_bytes=self._max_store_bytes,
+                        )
+                    self._wal_append_line(line, record_hash)
+                    self._retained_store_bytes = attempted
         return line
 
     def _wal_on_close(self, record: Mapping[str, Any]) -> None:
@@ -1945,6 +2219,7 @@ class WindowManager:
         self._window_locator = new_locator
         self._window_meta = new_meta
         self._pending.clear()
+        self._retained_store_bytes = total_bytes
         self._cache_clear()
         # Older generations are now fully superseded by this base and safe to
         # drop.  The PREVIOUS generation is kept until the caller's manifest
@@ -2467,6 +2742,36 @@ class WindowManager:
             checkpoint_context_sequence)
 
         last_index = segments[-1][0] if segments else -1
+        retained_store_bytes = sum(
+            location.length for location in locator.values())
+        if retained_store_bytes > self._max_store_bytes:
+            self._refuse_capacity(
+                scope="restored_wal_store",
+                current_bytes=0,
+                attempted_bytes=retained_store_bytes,
+                budget_bytes=self._max_store_bytes,
+            )
+        open_context_bytes = {}
+        for context_id, window in open_contexts.items():
+            open_bytes = len(_canonical_wal_bytes(window.to_record()))
+            if open_bytes > self._max_window_bytes:
+                self._refuse_capacity(
+                    scope="restored_wal_open_window",
+                    current_bytes=0,
+                    attempted_bytes=open_bytes,
+                    budget_bytes=self._max_window_bytes,
+                )
+            open_context_bytes[context_id] = open_bytes
+        open_context_total_bytes = sum(open_context_bytes.values())
+        restored_total_bytes = (
+            retained_store_bytes + open_context_total_bytes)
+        if restored_total_bytes > self._max_store_bytes:
+            self._refuse_capacity(
+                scope="restored_wal_total_window_memory",
+                current_bytes=0,
+                attempted_bytes=restored_total_bytes,
+                budget_bytes=self._max_store_bytes,
+            )
 
         with self._lock:
             self._window_locator = locator
@@ -2480,6 +2785,10 @@ class WindowManager:
             self._chi_index_seen = chi_seen
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
+            self._retained_store_bytes = retained_store_bytes
+            self._reserved_store_bytes = 0
+            self._open_context_bytes = open_context_bytes
+            self._open_context_total_bytes = open_context_total_bytes
             # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
             # preserved for the registry.
             self._compatibility_windows.clear()

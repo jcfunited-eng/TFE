@@ -10,6 +10,7 @@ from dsf_ai_service.substrate.immutable_generation_store import (
     CURRENT_NAME,
     GENERATIONS_DIRECTORY,
     ImmutableGenerationStore,
+    PhysicalByteCeilingError,
 )
 from dsf_ai_service.substrate.live_recovery_generation import (
     LIVE_RECOVERY_LINEAGE_FILE,
@@ -228,3 +229,47 @@ def test_live_recovery_retention_is_bounded(tmp_path) -> None:
     generations = root / GENERATIONS_DIRECTORY
     assert len(tuple(generations.iterdir())) <= 3
     assert manager.load_current().tick == 16
+
+
+def test_live_recovery_commit_uses_shared_physical_byte_ceiling(
+        tmp_path) -> None:
+    baseline = _baseline(tmp_path)
+    scope = tmp_path / "shared-physical-scope"
+    scope.mkdir()
+    root = scope / "live"
+    active = scope / "active"
+    active.mkdir()
+    (active / "events.log").write_bytes(b"history")
+    ceiling = 1_000_000
+    manager = LiveRecoveryGenerationStore(
+        root,
+        baseline=baseline,
+        hot_files=HOT_FILES,
+        hmac_key=HMAC_KEY,
+        physical_byte_ceiling=ceiling,
+        physical_byte_scope=scope,
+    )
+    first = manager.commit_hot_state(
+        tick=11, files=_hot_sources(tmp_path, tick=11, label="first"))
+    status = manager.physical_byte_status()
+    assert status is not None
+    filler = active / "continued.events.log"
+    filler.write_bytes(b"x" * (status["remaining_bytes"] - 1))
+
+    restarted = LiveRecoveryGenerationStore(
+        root,
+        baseline=baseline,
+        hot_files=HOT_FILES,
+        hmac_key=HMAC_KEY,
+        physical_byte_ceiling=ceiling,
+        physical_byte_scope=scope,
+    )
+    with pytest.raises(PhysicalByteCeilingError) as captured:
+        restarted.commit_hot_state(
+            tick=12,
+            files=_hot_sources(tmp_path, tick=12, label="second"),
+        )
+
+    assert captured.value.receipt["remaining_bytes"] == 1
+    assert restarted.load_current().generation_uuid == first.generation_uuid
+    assert filler.exists()

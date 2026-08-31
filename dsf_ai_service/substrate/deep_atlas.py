@@ -17,6 +17,7 @@ import os
 import sys
 from collections import defaultdict
 from collections.abc import MutableMapping
+from dataclasses import dataclass
 
 # Use same constants as working atlas
 DECAY_LAMBDA = 0.0001 / 25.0   # 1/25th of working (0.000004)
@@ -56,6 +57,49 @@ _CO_PRUNE_THRESH = FORGETTING_THRESHOLD ** 2  # 0.0004
 # gualaloom_v6_living_atlas.py's match_score uses, for the same working
 # atlas band (working_atlas is that same LivingAtlas class).
 CHI_DISTANCE_DECAY = 0.5
+
+# Deep memory is intentionally long-lived, so decay cannot be its resource
+# owner: with continuing novel experience, the set can grow faster than decay
+# retires it forever.  The owner is an explicit canonical-byte budget.  This
+# bounds persisted bytes and, because every resident scalar/container must
+# contribute bytes to its canonical record, also bounds resident object count.
+# The default is an operational resource allocation, not cognition physics;
+# operators may lower or raise it explicitly without changing meaning.
+DEEP_ATLAS_BUDGET_MB_ENV = "GUALA_DEEP_ATLAS_BUDGET_MB"
+DEEP_ATLAS_DEFAULT_BUDGET_MB = 128
+
+
+def _deep_atlas_budget_bytes():
+    raw = os.environ.get(DEEP_ATLAS_BUDGET_MB_ENV)
+    if raw is None:
+        return DEEP_ATLAS_DEFAULT_BUDGET_MB * 1024 * 1024
+    try:
+        mb = int(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"{DEEP_ATLAS_BUDGET_MB_ENV} must be an integer MiB value"
+        ) from exc
+    if mb <= 0:
+        raise ValueError(
+            f"{DEEP_ATLAS_BUDGET_MB_ENV} must be greater than zero")
+    return mb * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class DeepAtlasCapacityRefusal:
+    """Typed, inspectable refusal of one growth-producing deep write."""
+
+    chi: int
+    section: str
+    motif: int
+    current_bytes: int
+    attempted_bytes: int
+    budget_bytes: int
+    operation: str
+
+
+class DeepAtlasCapacityExceeded(RuntimeError):
+    """Persisted deep state is larger than its declared resource owner."""
 
 
 def _section_fingerprint(values):
@@ -203,7 +247,7 @@ def _deep_prior_enabled():
 class DeepAtlas:
     """Near-zero-decay atlas. Write = dream only. Read = on-attention prior."""
 
-    def __init__(self):
+    def __init__(self, max_bytes=None):
         # chi_value -> list of deep entries
         self.entries = defaultdict(list)
         # Exact content-addressed section dictionaries shared by entries.
@@ -216,9 +260,77 @@ class DeepAtlas:
         self.promotions_episodic = 0
         self.reinstatements = 0
         self.gate_rejects = []  # recent rejects for diagnostics (capped)
+        self.max_bytes = (
+            _deep_atlas_budget_bytes()
+            if max_bytes is None else int(max_bytes))
+        if self.max_bytes <= 0:
+            raise ValueError("deep atlas max_bytes must be greater than zero")
+        self._logical_bytes = 0
+        self.capacity_refusals = []
         # Cache env-var reads at init time — these flags don't change at runtime.
         self._prior_enabled = _deep_prior_enabled()
         self._atlas_enabled = _deep_atlas_enabled()
+
+    @staticmethod
+    def _plain_co_occurrence(co_occurrence):
+        return {
+            str(section): dict(co_occurrence[section])
+            for section in co_occurrence
+        }
+
+    @classmethod
+    def _plain_entry(cls, entry):
+        plain = {
+            key: copy_value
+            for key, copy_value in entry.items()
+            if key != "co_occurrence"
+        }
+        plain["co_occurrence"] = cls._plain_co_occurrence(
+            entry.get("co_occurrence", {}))
+        return plain
+
+    @classmethod
+    def _entry_logical_bytes(cls, entry):
+        return len(json.dumps(
+            cls._plain_entry(entry),
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8"))
+
+    def _install_plain_co_occurrence(self, entry):
+        entry["co_occurrence"] = _CoOccurrenceMap(
+            self._co_occurrence_registry,
+            values=entry.get("co_occurrence", {}),
+        )
+        return entry
+
+    def _record_capacity_refusal(
+            self, *, chi, section, motif, attempted_bytes, operation):
+        refusal = DeepAtlasCapacityRefusal(
+            chi=int(chi),
+            section=str(section),
+            motif=int(motif),
+            current_bytes=self._logical_bytes,
+            attempted_bytes=int(attempted_bytes),
+            budget_bytes=self.max_bytes,
+            operation=str(operation),
+        )
+        self.capacity_refusals.append(refusal)
+        if len(self.capacity_refusals) > 200:
+            self.capacity_refusals = self.capacity_refusals[-200:]
+        if len(self.gate_rejects) < 200:
+            self.gate_rejects.append({
+                "tick": self.tick,
+                "chi": refusal.chi,
+                "section": refusal.section,
+                "motif": refusal.motif,
+                "failed": (
+                    "deep_atlas_capacity:"
+                    f"{refusal.attempted_bytes}>{refusal.budget_bytes}"),
+            })
+        return refusal
 
     def promote(self, entry, source_path, tick, working_atlas=None):
         """Promote a working atlas entry into deep storage.
@@ -232,23 +344,46 @@ class DeepAtlas:
         section = entry.get("section", "")
         motif = entry.get("motif", 0)
 
-        # Check if already in deep — reinforce + update invariant
+        # Check if already in deep — transactionally reinforce + update
+        # invariant.  The live entry is untouched until the complete proposed
+        # record fits the declared resource budget.
         for de in self.entries[chi_k]:
             if de["section"] == section and de["motif"] == motif:
-                de["strength"] = min(STRENGTH_CAP,
-                                     de["strength"] + entry["strength"] * TRANSFER_RATIO)
-                de["last_tick"] = tick
+                old_bytes = self._entry_logical_bytes(de)
+                candidate = self._plain_entry(de)
+                candidate["strength"] = min(
+                    STRENGTH_CAP,
+                    candidate["strength"] + entry["strength"] * TRANSFER_RATIO)
+                candidate["last_tick"] = tick
                 # GL-CLARITY: update clarity (max of existing and incoming)
-                de["clarity"] = max(de.get("clarity", 0.3),
-                                    entry.get("clarity", 0.3))
+                candidate["clarity"] = max(
+                    candidate.get("clarity", 0.3),
+                    entry.get("clarity", 0.3))
                 # GL-METADATA-PIPELINE: propagate affect (max) + source (last-write-wins) + polarity
-                de["arousal"] = max(de.get("arousal", 0.5), entry.get("arousal", 0.5))
-                de["valence"] = max(de.get("valence", 0.0), entry.get("valence", 0.0))
-                de["surprise"] = max(de.get("surprise", 0.0), entry.get("surprise", 0.0))
-                de["source"] = entry.get("source", "corpus")
+                candidate["arousal"] = max(
+                    candidate.get("arousal", 0.5),
+                    entry.get("arousal", 0.5))
+                candidate["valence"] = max(
+                    candidate.get("valence", 0.0),
+                    entry.get("valence", 0.0))
+                candidate["surprise"] = max(
+                    candidate.get("surprise", 0.0),
+                    entry.get("surprise", 0.0))
+                candidate["source"] = entry.get("source", "corpus")
                 # GL-CLARITY: update co_occurrence invariant on re-promotion
                 if working_atlas:
-                    self._update_invariant(de, chi_k, working_atlas)
+                    self._update_invariant(candidate, chi_k, working_atlas)
+                new_bytes = self._entry_logical_bytes(candidate)
+                attempted = self._logical_bytes - old_bytes + new_bytes
+                if attempted > self.max_bytes:
+                    self._record_capacity_refusal(
+                        chi=chi_k, section=section, motif=motif,
+                        attempted_bytes=attempted,
+                        operation="reinforce")
+                    return False
+                de.clear()
+                de.update(self._install_plain_co_occurrence(candidate))
+                self._logical_bytes = attempted
                 return True
 
         # New deep entry — carry response links on promotion (GL-BRIEF-028 Amendment A)
@@ -285,7 +420,17 @@ class DeepAtlas:
         # GL-CLARITY: initialize co_occurrence from current atlas neighborhood
         if working_atlas:
             self._update_invariant(deep_entry, chi_k, working_atlas)
+        new_bytes = self._entry_logical_bytes(deep_entry)
+        attempted = self._logical_bytes + new_bytes
+        if attempted > self.max_bytes:
+            self._record_capacity_refusal(
+                chi=chi_k, section=section, motif=motif,
+                attempted_bytes=attempted,
+                operation="promote")
+            return False
+        self._install_plain_co_occurrence(deep_entry)
         self.entries[chi_k].append(deep_entry)
+        self._logical_bytes = attempted
 
         if source_path == "survival":
             self.promotions_survival += 1
@@ -394,19 +539,45 @@ class DeepAtlas:
         working atlas (efd39dd). rate_scale=0 when DECAY_PAUSED=1 keeps
         last_tick current with bit-identical strength.
         max_dt caps effective decay window per call."""
-        self.tick = max(self.tick, current_tick)
+        updates = []
+        attempted_bytes = self._logical_bytes
         for entries in self.entries.values():
             for e in entries:
                 dt = min(max_dt, max(0, current_tick - e["last_tick"]))
                 if dt > 0:
-                    e["strength"] *= math.exp(-DECAY_LAMBDA * rate_scale * dt)
-                    e["last_tick"] = current_tick
+                    old_bytes = self._entry_logical_bytes(e)
+                    candidate = self._plain_entry(e)
+                    candidate["strength"] *= math.exp(
+                        -DECAY_LAMBDA * rate_scale * dt)
+                    candidate["last_tick"] = current_tick
+                    new_bytes = self._entry_logical_bytes(candidate)
+                    attempted_bytes += new_bytes - old_bytes
+                    updates.append((
+                        e, candidate["strength"], candidate["last_tick"]))
+        if attempted_bytes > self.max_bytes:
+            self._record_capacity_refusal(
+                chi=0, section="*", motif=0,
+                attempted_bytes=attempted_bytes,
+                operation="decay")
+            return False
+        self.tick = max(self.tick, current_tick)
+        for entry, strength, last_tick in updates:
+            entry["strength"] = strength
+            entry["last_tick"] = last_tick
+        self._logical_bytes = attempted_bytes
+        return True
 
     def prune(self):
         """Remove entries below forgetting threshold."""
         for chi_k in list(self.entries.keys()):
+            removed = [
+                e for e in self.entries[chi_k]
+                if e["strength"] < FORGETTING_THRESHOLD
+            ]
             survivors = [e for e in self.entries[chi_k]
                          if e["strength"] >= FORGETTING_THRESHOLD]
+            self._logical_bytes -= sum(
+                self._entry_logical_bytes(e) for e in removed)
             if survivors:
                 self.entries[chi_k] = survivors
             else:
@@ -462,11 +633,13 @@ class DeepAtlas:
                     recent = history[-SURVIVAL_CONSECUTIVE:]
                     if (len(recent) >= SURVIVAL_CONSECUTIVE
                             and all(s >= SURVIVAL_THETA for s in recent)):
-                        self.promote(e, "survival", tick,
-                                     working_atlas=working_atlas)
-                        promoted.append(("survival", chi_k,
-                                         e.get("section"), e.get("motif")))
-                        continue  # don't double-promote
+                        admitted = self.promote(
+                            e, "survival", tick,
+                            working_atlas=working_atlas)
+                        if admitted:
+                            promoted.append(("survival", chi_k,
+                                             e.get("section"), e.get("motif")))
+                        continue  # never evaluate the same evidence twice
 
                 # --- Path B: Episodic (compound gate) ---
                 enc_str = e.get("encoded_strength")
@@ -478,10 +651,12 @@ class DeepAtlas:
                 # dwell-earning (gualaloom_v6_living_atlas.py line 108).
                 grounded = e.get("bundle_id") is not None
                 if enc_str is not None and enc_str >= ENCODE_GATE and (dwell >= DWELL_GATE or grounded):
-                    self.promote(e, "episodic", tick,
-                                 working_atlas=working_atlas)
-                    promoted.append(("episodic", chi_k,
-                                     e.get("section"), e.get("motif")))
+                    admitted = self.promote(
+                        e, "episodic", tick,
+                        working_atlas=working_atlas)
+                    if admitted:
+                        promoted.append(("episodic", chi_k,
+                                         e.get("section"), e.get("motif")))
                 else:
                     # Log gate reject (capped for memory)
                     if enc_str is not None and len(self.gate_rejects) < 200:
@@ -521,6 +696,13 @@ class DeepAtlas:
             "enabled": _deep_atlas_enabled(),
             "prior_enabled": _deep_prior_enabled(),
             "recent_gate_rejects": self.gate_rejects[-5:],
+            "logical_bytes": self._logical_bytes,
+            "budget_bytes": self.max_bytes,
+            "capacity_refusals": len(self.capacity_refusals),
+            "recent_capacity_refusals": [
+                refusal.__dict__
+                for refusal in self.capacity_refusals[-5:]
+            ],
         }
 
     # --- Persistence (separate table) ---
@@ -573,6 +755,8 @@ class DeepAtlas:
         self.reinstatements = data.get("reinstatements", 0)
         self.entries = defaultdict(list)
         self._co_occurrence_registry = {}
+        self._logical_bytes = 0
+        self.capacity_refusals = []
         if schema == "deep_atlas_v2":
             raw_tables = data.get("co_occurrence_tables")
             if not isinstance(raw_tables, dict):
@@ -615,4 +799,14 @@ class DeepAtlas:
                     )
                     restored_entries.append(entry)
                 self.entries[int(k)] = restored_entries
+        self._logical_bytes = sum(
+            self._entry_logical_bytes(entry)
+            for entries in self.entries.values()
+            for entry in entries
+        )
+        if self._logical_bytes > self.max_bytes:
+            raise DeepAtlasCapacityExceeded(
+                "persisted deep atlas requires "
+                f"{self._logical_bytes} canonical bytes but its declared "
+                f"budget is {self.max_bytes}; no learned state was discarded")
         return data.get("saved_n_entries", self.live_count())

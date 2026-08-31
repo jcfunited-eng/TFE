@@ -1,0 +1,398 @@
+{
+ "ABEO": {
+  "symbol": "ABEO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 5.96,
+   "store_peak": 536.25,
+   "crush": 90.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "AEVA": {
+  "symbol": "AEVA",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.4,
+   "price": 18.87,
+   "store_peak": 80.8,
+   "crush": 4.3,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "ALGS": {
+  "symbol": "ALGS",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.8,
+   "price": 6.44,
+   "store_peak": 873.5,
+   "crush": 135.6,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "AMN": {
+  "symbol": "AMN",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 9.8,
+   "price": 34.79,
+   "store_peak": 127.04,
+   "crush": 3.7,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "AOUT": {
+  "symbol": "AOUT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.0,
+   "price": 11.17,
+   "store_peak": 36.03,
+   "crush": 3.2,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "ARCT": {
+  "symbol": "ARCT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 8.8,
+   "price": 10.99,
+   "store_peak": 123.66,
+   "crush": 11.3,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "BALY": {
+  "symbol": "BALY",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.8,
+   "price": 9.82,
+   "store_peak": 73.63,
+   "crush": 7.5,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "BHC": {
+  "symbol": "BHC",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 8.1,
+   "price": 6.81,
+   "store_peak": 34.38,
+   "crush": 5.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "BNTX": {
+  "symbol": "BNTX",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.9,
+   "price": 110.89,
+   "store_peak": 447.23,
+   "crush": 4.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "BRBR": {
+  "symbol": "BRBR",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.8,
+   "price": 10.45,
+   "store_peak": 79.39,
+   "crush": 7.6,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "BTGO": {
+  "symbol": "BTGO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 6.6,
+   "store_peak": 6.25,
+   "crush": 0.9,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "COE": {
+  "symbol": "COE",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.4,
+   "price": 15.5,
+   "store_peak": 92.0,
+   "crush": 5.9,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "FDMT": {
+  "symbol": "FDMT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.7,
+   "price": 16.1,
+   "store_peak": 52.67,
+   "crush": 3.3,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "FRPT": {
+  "symbol": "FRPT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 74.13,
+   "store_peak": 184.82,
+   "crush": 2.5,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "IEP": {
+  "symbol": "IEP",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 6.65,
+   "store_peak": 80.32,
+   "crush": 12.1,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "KEP": {
+  "symbol": "KEP",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 11.23,
+   "store_peak": 28.31,
+   "crush": 2.5,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "LEE": {
+  "symbol": "LEE",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 8.44,
+   "store_peak": 43.21,
+   "crush": 5.1,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "MEI": {
+  "symbol": "MEI",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 14.47,
+   "store_peak": 50.45,
+   "crush": 3.5,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "NAKA": {
+  "symbol": "NAKA",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 6.3,
+   "store_peak": 6.06,
+   "crush": 1.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "NXRT": {
+  "symbol": "NXRT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 24.19,
+   "store_peak": 95.0,
+   "crush": 3.9,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "OESX": {
+  "symbol": "OESX",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 19.07,
+   "store_peak": 116.7,
+   "crush": 6.1,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "OLED": {
+  "symbol": "OLED",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 86.5,
+   "store_peak": 260.29,
+   "crush": 3.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "PFSI": {
+  "symbol": "PFSI",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 75.74,
+   "store_peak": 159.46,
+   "crush": 2.1,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "PSNL": {
+  "symbol": "PSNL",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 16.88,
+   "store_peak": 15.81,
+   "crush": 0.9,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "PURR": {
+  "symbol": "PURR",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 10.08,
+   "store_peak": 10.97,
+   "crush": 1.1,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "QMCO": {
+  "symbol": "QMCO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.5,
+   "price": 20.49,
+   "store_peak": 189.0,
+   "crush": 9.2,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "SOPH": {
+  "symbol": "SOPH",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 8.33,
+   "store_peak": 8.28,
+   "crush": 1.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "STLA": {
+  "symbol": "STLA",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.6,
+   "price": 5.26,
+   "store_peak": 29.4,
+   "crush": 5.6,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "TGLS": {
+  "symbol": "TGLS",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 40.58,
+   "store_peak": 88.42,
+   "crush": 2.2,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "TSQ": {
+  "symbol": "TSQ",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 5.76,
+   "store_peak": 14.75,
+   "crush": 2.6,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "WEAV": {
+  "symbol": "WEAV",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 0.2,
+   "price": 7.29,
+   "store_peak": 7.43,
+   "crush": 1.0,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "XPER": {
+  "symbol": "XPER",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 9.5,
+   "price": 6.15,
+   "store_peak": 41.0,
+   "crush": 6.7,
+   "as_of_close": "2026-08-20"
+  }
+ },
+ "ZIM": {
+  "symbol": "ZIM",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.6,
+   "price": 27.16,
+   "store_peak": 88.62,
+   "crush": 3.3,
+   "as_of_close": "2026-08-20"
+  }
+ }
+}

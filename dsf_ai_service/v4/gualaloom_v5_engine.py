@@ -1686,6 +1686,147 @@ SECTION_COMMITS_MAX = 5000
 # own prior comment (above) treated as the intended ceiling.
 SECTION_MODE_CAP = 5000
 
+# SECTION_MODE_CAP bounds the currently active vocabulary, but tombstone-in-
+# place identity preservation means the physical arrays can otherwise append
+# forever.  A separate canonical-byte owner bounds that lifetime history
+# without deleting, renumbering, or reusing any learned motif identity.
+SECTION_MODE_STORAGE_MB_ENV = "GUALA_SECTION_MODE_STORAGE_MB"
+SECTION_MODE_STORAGE_DEFAULT_MB = 64
+
+
+def _section_mode_storage_budget_bytes():
+    raw = os.environ.get(SECTION_MODE_STORAGE_MB_ENV)
+    if raw is None:
+        return SECTION_MODE_STORAGE_DEFAULT_MB * 1024 * 1024
+    try:
+        mb = int(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"{SECTION_MODE_STORAGE_MB_ENV} must be an integer MiB value"
+        ) from exc
+    if mb <= 0:
+        raise ValueError(
+            f"{SECTION_MODE_STORAGE_MB_ENV} must be greater than zero")
+    return mb * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class SectionModeCapacityRefusal:
+    """Typed proof that a novel mode could not be physically admitted."""
+
+    section: str
+    word: object
+    chi: int
+    current_bytes: int
+    attempted_bytes: int
+    budget_bytes: int
+    tick: int
+
+
+SOURCE_IDENTITY_KEY_KIB_ENV = "GUALA_SOURCE_IDENTITY_KEY_KIB"
+SOURCE_IDENTITY_KEY_DEFAULT_KIB = 1024
+
+
+def _source_identity_key_budget_bytes():
+    raw = os.environ.get(SOURCE_IDENTITY_KEY_KIB_ENV)
+    if raw is None:
+        return SOURCE_IDENTITY_KEY_DEFAULT_KIB * 1024
+    try:
+        kib = int(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"{SOURCE_IDENTITY_KEY_KIB_ENV} must be an integer KiB value"
+        ) from exc
+    if kib <= 0:
+        raise ValueError(
+            f"{SOURCE_IDENTITY_KEY_KIB_ENV} must be greater than zero")
+    return kib * 1024
+
+
+class SourceIdentityCapacityRefusal(RuntimeError):
+    """A source identity key cannot be admitted without exceeding memory."""
+
+    def __init__(self, *, current_bytes, attempted_bytes, budget_bytes):
+        self.current_bytes = int(current_bytes)
+        self.attempted_bytes = int(attempted_bytes)
+        self.budget_bytes = int(budget_bytes)
+        super().__init__(
+            "source identity capacity refused: "
+            f"{self.attempted_bytes}>{self.budget_bytes} canonical key bytes")
+
+
+class BoundedSourceMap(dict):
+    """Dict-compatible owner whose distinct source-key population is bounded."""
+
+    def __init__(self, default_factory=None, initial=None, max_key_bytes=None):
+        self.default_factory = default_factory
+        self.max_key_bytes = (
+            _source_identity_key_budget_bytes()
+            if max_key_bytes is None else int(max_key_bytes))
+        if self.max_key_bytes <= 0:
+            raise ValueError("source-map max_key_bytes must be greater than zero")
+        self.key_bytes = 0
+        self.capacity_refusals = 0
+        super().__init__()
+        for key, value in dict(initial or {}).items():
+            # Restore is preservation, never a chance to discard historical
+            # identities merely because an older state predates the owner.
+            # An overcommitted restored map remains readable and refuses every
+            # further distinct key until causal expiry releases enough space.
+            self.key_bytes += self._key_bytes(key)
+            dict.__setitem__(self, key, value)
+
+    @staticmethod
+    def _key_bytes(key):
+        if not isinstance(key, str):
+            raise TypeError("source identity keys must be strings")
+        return len(json.dumps(
+            key, ensure_ascii=True, separators=(",", ":")).encode("ascii"))
+
+    def __setitem__(self, key, value):
+        if key not in self:
+            key_bytes = self._key_bytes(key)
+            attempted = self.key_bytes + key_bytes
+            if attempted > self.max_key_bytes:
+                self.capacity_refusals += 1
+                raise SourceIdentityCapacityRefusal(
+                    current_bytes=self.key_bytes,
+                    attempted_bytes=attempted,
+                    budget_bytes=self.max_key_bytes,
+                )
+            self.key_bytes = attempted
+        super().__setitem__(key, value)
+
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        value = self.default_factory()
+        self[key] = value
+        return value
+
+    def setdefault(self, key, default=None):
+        if key not in self:
+            self[key] = default
+        return self[key]
+
+    def __delitem__(self, key):
+        key_bytes = self._key_bytes(key)
+        super().__delitem__(key)
+        self.key_bytes -= key_bytes
+
+    def clear(self):
+        super().clear()
+        self.key_bytes = 0
+
+    def resource_snapshot(self):
+        return {
+            "identities": len(self),
+            "key_bytes": self.key_bytes,
+            "budget_bytes": self.max_key_bytes,
+            "overcommitted": self.key_bytes > self.max_key_bytes,
+            "capacity_refusals": self.capacity_refusals,
+        }
+
 # GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: Section.receive()'s
 # similarity-scan fallback (for any word that misses the O(1)
 # word-identity fast path) previously scanned EVERY alive mode in the
@@ -1710,7 +1851,8 @@ class Section:
     """A region in the substrate. Has trit register, mode bank, gamma,
     dead zone modulated by familiarity feedback."""
 
-    def __init__(self, name, role_class=None, n_trits=24):
+    def __init__(self, name, role_class=None, n_trits=24,
+                 max_mode_storage_bytes=None):
         self.name = name
         self.role_class = role_class  # "subject" | "verb" | "object" | "modifier" | None
         self.trits = TritRegister(n_trits)
@@ -1791,6 +1933,64 @@ class Section:
         # below) so this doesn't accumulate empty entries forever across
         # a section's full lifetime chi range.
         self._chi_buckets = {}
+        self._max_mode_storage_bytes = (
+            _section_mode_storage_budget_bytes()
+            if max_mode_storage_bytes is None
+            else int(max_mode_storage_bytes))
+        if self._max_mode_storage_bytes <= 0:
+            raise ValueError(
+                "section max_mode_storage_bytes must be greater than zero")
+        self._mode_storage_bytes = 0
+        self.mode_capacity_refusals = 0
+        self.last_mode_capacity_refusal = None
+
+    @staticmethod
+    def _mode_record_bytes(dsf, chi, word, last_active_tick, alive):
+        record = {
+            "dsf": list(dsf.to_array().tolist()),
+            "chi": chi,
+            "word": word,
+            "last_active_tick": int(last_active_tick),
+            "alive": bool(alive),
+        }
+        return len(json.dumps(
+            record, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=True, allow_nan=False).encode("ascii"))
+
+    def _mode_bytes_at(self, mode_idx):
+        dsf, chi, word = self.modes[mode_idx]
+        return self._mode_record_bytes(
+            dsf, chi, word,
+            self._mode_last_active_tick[mode_idx],
+            self._mode_alive[mode_idx])
+
+    def mode_resource_snapshot(self):
+        return {
+            "physical_modes": len(self.modes),
+            "logical_bytes": self._mode_storage_bytes,
+            "budget_bytes": self._max_mode_storage_bytes,
+            "overcommitted": (
+                self._mode_storage_bytes > self._max_mode_storage_bytes),
+            "capacity_refusals": self.mode_capacity_refusals,
+            "last_capacity_refusal": (
+                None if self.last_mode_capacity_refusal is None
+                else self.last_mode_capacity_refusal.__dict__),
+        }
+
+    def _record_mode_capacity_refusal(
+            self, *, word, chi, attempted_bytes, tick):
+        refusal = SectionModeCapacityRefusal(
+            section=self.name,
+            word=word,
+            chi=int(chi),
+            current_bytes=self._mode_storage_bytes,
+            attempted_bytes=int(attempted_bytes),
+            budget_bytes=self._max_mode_storage_bytes,
+            tick=int(tick),
+        )
+        self.last_mode_capacity_refusal = refusal
+        self.mode_capacity_refusals += 1
+        return refusal
 
     def _chi_bucket_add(self, chi, mode_idx):
         """Add mode_idx to its exact-chi bucket. See self._chi_buckets."""
@@ -1889,6 +2089,8 @@ class Section:
         self._chi_buckets = {}
         for i in self._alive_indices:
             self._chi_bucket_add(self.modes[i][1], i)
+        self._mode_storage_bytes = sum(
+            self._mode_bytes_at(i) for i in range(len(self.modes)))
         self._modes_dirty = True
 
     def _get_modes_matrix(self):
@@ -1943,6 +2145,7 @@ class Section:
             if not self._mode_alive[i]:
                 continue
             if current_tick - self._mode_last_active_tick[i] > self.MODE_FORGET_TICKS:
+                old_bytes = self._mode_bytes_at(i)
                 self._mode_alive[i] = False
                 word = self.modes[i][2]
                 if word and self._word_to_mode_idx.get(word.lower()) == i:
@@ -1950,6 +2153,8 @@ class Section:
                 self._n_alive -= 1
                 self._alive_indices.discard(i)
                 self._chi_bucket_discard(self.modes[i][1], i)
+                self._mode_storage_bytes += (
+                    self._mode_bytes_at(i) - old_bytes)
                 changed = True
         if changed:
             self._modes_dirty = True
@@ -2005,6 +2210,7 @@ class Section:
                 weakest_idx = i
         if weakest_idx is None:
             return None
+        old_bytes = self._mode_bytes_at(weakest_idx)
         self._mode_alive[weakest_idx] = False
         word = self.modes[weakest_idx][2]
         if word and self._word_to_mode_idx.get(word.lower()) == weakest_idx:
@@ -2012,6 +2218,8 @@ class Section:
         self._n_alive -= 1
         self._alive_indices.discard(weakest_idx)
         self._chi_bucket_discard(self.modes[weakest_idx][1], weakest_idx)
+        self._mode_storage_bytes += (
+            self._mode_bytes_at(weakest_idx) - old_bytes)
         self._modes_dirty = True
         return weakest_idx
 
@@ -2034,6 +2242,32 @@ class Section:
         Always appends to self.modes itself (never shrinks/reorders --
         mode_idx is load-bearing elsewhere, same invariant as
         forget_stale_modes)."""
+        candidate_bytes = self._mode_record_bytes(
+            dsf, chi, word_label, atlas_tick, True)
+        evictions_needed = max(
+            0, self._n_alive - SECTION_MODE_CAP + 1)
+        eviction_growth = 0
+        if evictions_needed:
+            weakest = sorted(
+                self._alive_indices,
+                key=lambda i: (self._mode_last_active_tick[i], i),
+            )[:evictions_needed]
+            for mode_idx in weakest:
+                old_bytes = self._mode_bytes_at(mode_idx)
+                old_dsf, old_chi, old_word = self.modes[mode_idx]
+                eviction_growth += (
+                    self._mode_record_bytes(
+                        old_dsf, old_chi, old_word,
+                        self._mode_last_active_tick[mode_idx], False)
+                    - old_bytes)
+        attempted_bytes = (
+            self._mode_storage_bytes + candidate_bytes + eviction_growth)
+        if attempted_bytes > self._max_mode_storage_bytes:
+            self._record_mode_capacity_refusal(
+                word=word_label, chi=chi,
+                attempted_bytes=attempted_bytes, tick=atlas_tick)
+            return None
+
         while self._n_alive >= SECTION_MODE_CAP:
             if self._evict_weakest_mode() is None:
                 break  # nothing left to evict (cap <= 0) -- avoid infinite loop
@@ -2041,6 +2275,7 @@ class Section:
         mode_idx = len(self.modes) - 1
         self._mode_last_active_tick.append(atlas_tick)
         self._mode_alive.append(True)
+        self._mode_storage_bytes += candidate_bytes
         self._n_alive += 1
         self._alive_indices.add(mode_idx)
         self._chi_bucket_add(chi, mode_idx)
@@ -2104,9 +2339,23 @@ class Section:
 
         if word_match_idx is not None:
             # Word identity match — reinforce this exact mode
+            old_mode_bytes = self._mode_bytes_at(word_match_idx)
             old_dsf, old_chi, old_word = self.modes[word_match_idx]
             avg = (old_dsf.to_array() * 0.9 + dsf.to_array() * 0.1)
             new_dsf = DSF(*avg)
+            new_mode_bytes = self._mode_record_bytes(
+                new_dsf, old_chi, old_word, atlas_tick,
+                self._mode_alive[word_match_idx])
+            attempted_bytes = (
+                self._mode_storage_bytes
+                - old_mode_bytes
+                + new_mode_bytes)
+            if attempted_bytes > self._max_mode_storage_bytes:
+                self._record_mode_capacity_refusal(
+                    word=word_label, chi=chi,
+                    attempted_bytes=attempted_bytes, tick=atlas_tick)
+                emit_ready = self.tcl.structural_lock(dsf)
+                return False, None, emit_ready
             self.modes[word_match_idx] = (new_dsf, old_chi, old_word)
             # GL-BUG-MODES-MATRIX-THRASH (Joe, 2026-07-06): this used to
             # mark the whole cached similarity matrix dirty on every
@@ -2158,18 +2407,20 @@ class Section:
             mode_idx = word_match_idx
             if word_match_idx < len(self._mode_last_active_tick):
                 self._mode_last_active_tick[word_match_idx] = atlas_tick
+            self._mode_storage_bytes += (
+                self._mode_bytes_at(word_match_idx) - old_mode_bytes)
             committed = True
         elif len(self.modes) < 24:
             # Bootstrap — new word, accept liberally
             mode_idx = self._append_new_mode(dsf, chi, word_label, atlas_tick)
-            committed = True
+            committed = mode_idx is not None
         else:
             # Post-bootstrap: new word, decide by dead-zone gate
             novel_thresh = self.gamma["novel_dist"] + self.dead_zone * 0.2
             if best_sim < (1.0 - novel_thresh) or word_label:
                 # word labels always get a chance to take root
                 mode_idx = self._append_new_mode(dsf, chi, word_label, atlas_tick)
-                committed = True
+                committed = mode_idx is not None
 
         if committed:
             if window_manager is not None:
@@ -2403,7 +2654,7 @@ class Coordinator:
 
         # 60-K: continuous pair-bond strength — relationships are gradients, not flags
         # source -> list of (tick, salience) for last 2000 ticks (pruned on write)
-        self._source_interaction_log = {}
+        self._source_interaction_log = BoundedSourceMap(list)
 
     @property
     def pair_bond_active(self):
@@ -2530,10 +2781,23 @@ class Coordinator:
     def _record_interaction(self, source, salience, tick):
         """Record one sentence-level interaction for continuous strength tracking."""
         source = self._bond_identity(source)
+        cutoff = tick - 2000
+        if source not in self._source_interaction_log:
+            # The interaction law below already declares anything older than
+            # this cutoff causally unavailable.  Release those expired keys
+            # before admitting a distinct source, preserving every still-live
+            # relationship and preventing dead source names from accumulating.
+            expired = [
+                identity
+                for identity, interactions
+                in self._source_interaction_log.items()
+                if not interactions or interactions[-1][0] < cutoff
+            ]
+            for identity in expired:
+                del self._source_interaction_log[identity]
         log = self._source_interaction_log.setdefault(source, [])
         log.append((tick, salience))
         # Prune to last 2000 ticks (1000-tick window + safety margin)
-        cutoff = tick - 2000
         if len(log) > 200 or (log and log[0][0] < cutoff):
             self._source_interaction_log[source] = [
                 (t, s) for t, s in log if t >= cutoff]
@@ -3022,7 +3286,7 @@ class Guala:
         # pair-bond boost (set by sourced input, decayed by coordinator)
         self.recent_connection_boost = 0.0
         # source memory for introspection — who's talked to her, how often
-        self.source_history = defaultdict(int)
+        self.source_history = BoundedSourceMap(int)
 
         # GL-CMD-DYNAMICS-EMISSION-RESTORATION: assemblage System for emission settling
         self._emission_system = None  # lazy-built on first dynamics emission
@@ -18669,7 +18933,8 @@ class Guala:
         self.tick = int(core.get("tick", 0))
         self.read_count = int(core.get("read_count", 0))
         self.vocab = set(core.get("vocab", []))
-        self.source_history = defaultdict(int, core.get("source_history", {}))
+        self.source_history = BoundedSourceMap(
+            int, core.get("source_history", {}))
         self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
         self.dream_log = core.get("dream_log", [])
         self.open_response_windows = core.get("open_response_windows", [])
@@ -18881,7 +19146,8 @@ class Guala:
             combined = merged_log.get("joe", []) + voice_log
             combined.sort(key=lambda t_s: t_s[0])
             merged_log["joe"] = combined
-        self.coordinator._source_interaction_log = merged_log
+        self.coordinator._source_interaction_log = BoundedSourceMap(
+            list, merged_log)
 
     def _apply_atlas(self, ad, *, exact=False):
         if not isinstance(ad, dict):
@@ -19743,6 +20009,9 @@ class Guala:
             states[nm] = {
                 "modes": len(s.modes),
                 "modes_alive": sum(1 for a in s._mode_alive if a),
+                "mode_storage_bytes": s._mode_storage_bytes,
+                "mode_storage_budget_bytes": s._max_mode_storage_bytes,
+                "mode_capacity_refusals": s.mode_capacity_refusals,
                 "commits": len(s.commits),
                 "tick": s.tick,
                 "dead_zone": round(s.dead_zone, 3),
@@ -19752,6 +20021,9 @@ class Guala:
         return {
             "sections": states,
             "vocab": len(self.vocab),
+            "source_history_resource": self.source_history.resource_snapshot(),
+            "source_interaction_resource": (
+                self.coordinator._source_interaction_log.resource_snapshot()),
             "atlas_entries": sum(len(v) for v in self.atlas.entries.values()),
             "cross_modal_bindings": len(self.atlas.cross_modal_bindings()),
             "cross_modal_bundle": len(self.atlas.bundle_grouped_bindings()),

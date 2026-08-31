@@ -1,15 +1,26 @@
 {
   "name": "Tao Financial Engine (Python 3.11)",
-  "image": "python:3.11-slim",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined"
+  ],
   "mounts": [
     "source=E:\\TFEBackup,target=/mnt/tfebackup,type=bind,consistency=cached",
     "source=E:\\TFEBackup\\CodexHome,target=/root/.codex,type=bind,consistency=cached",
     "source=E:\\TFEBackup\\ClaudeHome,target=/root/.claude,type=bind,consistency=cached",
     "source=C:\\Users\\joeta\\.aws,target=/root/.aws,type=bind,consistency=cached,readonly"
   ],
+  "postCreateCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [
+        "openai.chatgpt",
         "anthropic.claude-code"
       ]
     }

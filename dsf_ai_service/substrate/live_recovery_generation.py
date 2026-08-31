@@ -220,7 +220,9 @@ class LiveRecoveryGenerationStore:
 
     def __init__(
             self, root, *, baseline, hot_files: Sequence[str], hmac_key,
-            keep_generations: int = 3):
+            keep_generations: int = 3,
+            physical_byte_ceiling: int | None = None,
+            physical_byte_scope=None):
         self.root = Path(root)
         self.baseline = BaselineIdentity.from_generation(baseline)
         self.hot_files = _validated_hot_files(hot_files)
@@ -231,6 +233,9 @@ class LiveRecoveryGenerationStore:
             raise LiveRecoveryError(
                 "at least two live recovery generations must be retained")
         self.keep_generations = keep_generations
+        self.physical_byte_ceiling = physical_byte_ceiling
+        self.physical_byte_scope = (
+            None if physical_byte_scope is None else Path(physical_byte_scope))
 
     @property
     def required_files(self) -> tuple[str, ...]:
@@ -241,7 +246,13 @@ class LiveRecoveryGenerationStore:
             self.root,
             identity=self.baseline.identity,
             required_files=self.required_files,
+            physical_byte_ceiling=self.physical_byte_ceiling,
+            physical_byte_scope=self.physical_byte_scope,
         )
+
+    def physical_byte_status(self) -> dict | None:
+        """Return the exact global scope status used by hot-state commits."""
+        return self._store().physical_byte_status()
 
     def _validated_generation(self, generation: LoadedGeneration) -> LoadedGeneration:
         try:
@@ -390,6 +401,8 @@ class LiveRecoveryGenerationStore:
             hot_files=self.hot_files,
             hmac_key=self.hmac_key,
             keep_generations=self.keep_generations,
+            physical_byte_ceiling=self.physical_byte_ceiling,
+            physical_byte_scope=self.physical_byte_scope,
         )
         if replacement.baseline.identity != self.baseline.identity:
             raise LiveRecoveryError(

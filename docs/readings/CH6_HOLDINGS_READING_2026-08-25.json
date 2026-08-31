@@ -1,0 +1,50 @@
+{
+ "DV": {
+  "symbol": "DV",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.3,
+   "price": 13.3,
+   "store_peak": 47.06,
+   "crush": 3.5,
+   "as_of_close": "2026-08-24"
+  }
+ },
+ "LI": {
+  "symbol": "LI",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.1,
+   "price": 12.48,
+   "store_peak": 46.65,
+   "crush": 3.7,
+   "as_of_close": "2026-08-24"
+  }
+ },
+ "PHR": {
+  "symbol": "PHR",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 7.1,
+   "price": 11.69,
+   "store_peak": 80.61,
+   "crush": 6.9,
+   "as_of_close": "2026-08-24"
+  }
+ },
+ "PTEN": {
+  "symbol": "PTEN",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.6,
+   "price": 11.86,
+   "store_peak": 29.47,
+   "crush": 2.5,
+   "as_of_close": "2026-08-24"
+  }
+ }
+}
