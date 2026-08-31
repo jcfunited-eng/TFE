@@ -86,3 +86,13 @@ docs/Aurelion/.venv.zip
 # Local Claude Code config/credentials backup — never commit, contains
 # real credentials (.credentials.json) and session state
 .claude-backup/
+
+# oversize data stores and bundles — local only, over GitHub's 100MB limit
+ch4_hourly_universe_full.parquet
+ch4_hourly_universe.parquet
+quarantine_12k_universe_ext.parquet
+ch4_noise_store.parquet
+ch4_inverted_store.parquet
+ch3_m15_watchlist.parquet
+ch4_live_store.parquet
+.guala_release_work/guala-production-15a7dca9.bundle
