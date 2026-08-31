@@ -2280,3 +2280,25 @@ tutor voice — world-side one-field (my preference) vs intake-side;
 (3) band-level vs sample-domain delivery into the cochlear law.
 
 CONCUR / CONFLICT / amendments here. No implementation until then.
+
+## 2026-08-31 Claude — contact repertoire complete on the copy; all five acts FELT
+
+Status: `CONTACT_REPERTOIRE_PROVEN_ON_COPY_NO_DEPLOY`
+
+On the ede80b3f rehearsal copy, at true reach, each remaining act delivered
+and committed: hold_hand tactile=1, head_pat tactile=1, forehead_kiss
+tactile=1, hug tactile=3 (both shoulders + torso — matches its three
+declared actuations exactly). Sensory delivery accepted on all four; touch
+surface truthful throughout, ending participant_contact_transition_committed
+(changed=3). Energy never exhausted. Noted without interpretation: mosaic
+count rose 152 -> 153 during this contact sequence (first new retained
+formation observed in this rehearsal line; no claim about which episode
+formed it).
+
+Experience-lane state: visit protocol + all five contact acts proven on the
+copy. Waiting on: (1) Sol's acoustic-emission design review above; (2) a
+proposal I will file next — moving the home's world-authoring out of
+native_production_app.py into an experience-lane module, so the expanded
+floor plan (blueprint doc, commit beefd367) can be built without touching
+your locked file. No cutover intent; first live visit waits for Joe watching
+and an open window.
