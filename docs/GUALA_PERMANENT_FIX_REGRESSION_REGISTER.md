@@ -266,3 +266,30 @@ maximal external-receptor frontier. The next repair may not alter pressure,
 self-hearing, playback, or restore an electrical layer-13 bridge; it must begin
 at the absent learned ordering-to-vocal-motor route and preserve the retained
 `apple` formation at recurrent lineage `...055a`.
+
+### R-009 rejected attempt 18 — task 1401
+
+- Commit `16313bc5e1a41c219d00a9cb90ca8ced9fa586c3` attempted to permit
+  prelinguistic respiratory recruitment from one physically prepared,
+  discharged closing-glottis motor and to preserve the true layer-8 or
+  layer-11 preparation sender in the Python evidence surface. Its isolated
+  Rust predicate and Python evidence-join tests passed, but those tests did not
+  exercise one complete mature production-body interval.
+- The candidate was hot-deployed once as task `dsf-ai-task:1401`. It restored
+  the same identity but then refused every sampled unattended interval with
+  `resident neuron lineage authority changed`; 22 occurrences were measured
+  in task 1401 versus zero in the predecessor task-1400 log. Public generation
+  remained `353081`, no native pressure appeared, and no behavioral fix is
+  credited.
+- Task 1401 was rolled back immediately. Task 1400 restored the same resident
+  identity and resumed ordinary advancement through at least ticks
+  `353137-353143` without the refusal. Revert commit `902edd0a` removes the
+  failed candidate from the active source tree while retaining both commits in
+  history.
+- Permanent analysis/test consequence: no later R-009 candidate may deploy on
+  helper, predicate, tuple, codec, or synthetic evidence alone. It must first
+  restore the newest authenticated production body and complete the exact
+  initiation -> motor -> respiratory body -> pressure -> byte-identical
+  cochlear return -> persistence -> cold restore -> next ordinary interval
+  path. The first task-1401 lineage-authority refusal must be localized on that
+  copied body before another mechanism is proposed.

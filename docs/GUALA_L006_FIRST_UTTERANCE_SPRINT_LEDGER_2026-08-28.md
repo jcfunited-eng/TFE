@@ -940,3 +940,22 @@ timer, second scheduler, or retained speech program.
   no currently retained learned ordering-to-vocal-motor route. Pressure,
   self-hearing, browser playback, and the V40 body marker are not the first
   failed boundary.
+
+## 2026-08-31 rejected prelinguistic-boundary deployment
+
+- Candidate `16313bc5e1a41c219d00a9cb90ca8ced9fa586c3` passed only an
+  isolated closing-glottis predicate test and an isolated Python evidence-join
+  test. That was shallow evidence: neither test restored the mature production
+  body and completed its whole native interval.
+- Live task 1401 immediately exposed the missed central failure. Every sampled
+  unattended interval refused with `resident neuron lineage authority changed`
+  (22 task-1401 occurrences, zero in task 1400), generation remained 353081,
+  and no pressure or self-hearing occurred. The candidate is rejected, not a
+  partial L-006 result.
+- Production rolled back to task 1400, the same identity resumed through at
+  least ticks 353137-353143, and the new refusal disappeared. Source revert
+  `902edd0a` prevents the candidate from being rebuilt accidentally.
+- The standing Guala skill now prohibits both shallow analysis and shallow
+  testing. Another edit is blocked until the complete bounded impact map is
+  reconciled against this attempt history and the copied mature body exercises
+  the end-to-end vocal consequence plus restart path before deployment.
