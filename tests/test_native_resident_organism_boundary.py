@@ -1099,7 +1099,7 @@ def test_motor_boundary_accepts_only_the_exact_palmar_grasp_afferent() -> None:
             motor,
             3,
             9,
-            [(motor, 12, ordering, 11, 0, 4)],
+            [(ordering, 11, motor, 12, 0, 4)],
             [
                 (
                     regulation,
@@ -1302,6 +1302,33 @@ def test_articulatory_recruitment_requires_the_same_discharged_vocal_motor() -> 
         [(respiratory_effector, 2, 4, [preparation])],
         motors,
     ) == ((respiratory_effector, 2, 4, (preparation,)),)
+
+    regulation = "08" * 16
+    integration = "06" * 16
+    receptor = "05" * 16
+    reached_load = (regulation, 8, motor, 12, 1, 3)
+    afferent = (
+        regulation,
+        integration,
+        receptor,
+        5,
+        17,
+        "articulated-body-effector-load-receptor",
+        "glottal-aperture-toward-maximum-load",
+    )
+    reflex_motors = boundary._motor_unit_recruitment_evidence(
+        [(motor, 7, 3, [reached_load], [afferent])]
+    )
+    assert boundary._articulatory_unit_recruitment_evidence(
+        [(respiratory_effector, 2, 3, [reached_load])],
+        reflex_motors,
+    ) == ((respiratory_effector, 2, 3, (reached_load,)),)
+
+    unrelated_reached_load = ("09" * 16, 8, motor, 12, 2, 3)
+    with pytest.raises(RuntimeError, match="mounted layer 8 reached-load reflex"):
+        boundary._motor_unit_recruitment_evidence(
+            [(motor, 7, 3, [unrelated_reached_load], [afferent])]
+        )
 
     with pytest.raises(RuntimeError, match="discharged typed vocal motor"):
         boundary._articulatory_unit_recruitment_evidence(

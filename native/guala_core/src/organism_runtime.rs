@@ -2060,10 +2060,11 @@ impl NativeResidentOrganismPrepare {
             .collect()
     }
 
-    /// Transient native layer-13 efferent events. Each event is projected
-    /// only with the exact layer-11 to typed layer-12 motor transfers whose
-    /// actual motor discharge co-recruited the resident vocal body; no label,
-    /// phoneme, word, or stored program is introduced.
+    /// Transient native layer-13 efferent events. Each event is projected with
+    /// the exact physical arrival into the closing-glottis layer-12 motor whose
+    /// discharge co-recruited the resident vocal body. The true layer-8 reflex
+    /// or layer-11 learned sender is retained; no label, phoneme, word, or
+    /// stored program is introduced.
     #[getter]
     fn articulatory_unit_recruitments(
         &self,
@@ -2083,10 +2084,11 @@ impl NativeResidentOrganismPrepare {
                     event
                         .preparation_transfers
                         .iter()
-                        .map(|transfer| {
+                        .map(|preparation| {
+                            let transfer = preparation.transfer;
                             (
                                 hex_bytes(&transfer.sender),
-                                11,
+                                preparation.sender_layer,
                                 hex_bytes(&transfer.receiver),
                                 12,
                                 transfer.bond.parallel_ordinal(),
@@ -7706,18 +7708,13 @@ fn project_motor_unit_recruitments(
                 event
                     .preparation_transfers
                     .iter()
-                    .map(|transfer| {
-                        let (sender_layer, receiver_layer) =
-                            if transfer.sender == event.neuron_lineage {
-                                (12, 11)
-                            } else {
-                                (11, 12)
-                            };
+                    .map(|preparation| {
+                        let transfer = preparation.transfer;
                         (
                             hex_bytes(&transfer.sender),
-                            sender_layer,
+                            preparation.sender_layer,
                             hex_bytes(&transfer.receiver),
-                            receiver_layer,
+                            12,
                             transfer.bond.parallel_ordinal(),
                             transfer.transferred_whole_carriers,
                         )
@@ -7801,10 +7798,11 @@ fn project_articulatory_unit_recruitments(
                 event
                     .preparation_transfers
                     .iter()
-                    .map(|transfer| {
+                    .map(|preparation| {
+                        let transfer = preparation.transfer;
                         (
                             hex_bytes(&transfer.sender),
-                            11,
+                            preparation.sender_layer,
                             hex_bytes(&transfer.receiver),
                             12,
                             transfer.bond.parallel_ordinal(),

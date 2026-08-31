@@ -959,3 +959,233 @@ timer, second scheduler, or retained speech program.
   testing. Another edit is blocked until the complete bounded impact map is
   reconciled against this attempt history and the copied mature body exercises
   the end-to-end vocal consequence plus restart path before deployment.
+
+## 2026-08-31 task-1401 causal-localization continuation
+
+- This continuation is anchored at clean detached commit
+  `faff9e06b575d56a5845adb4d8a2c2410d28b02f`, uses one agent only, and has
+  made no organism-code change and no deployment. Production was rechecked
+  read-only as the sole healthy task `dsf-ai-task:1400`, exact commit
+  `c978fbfb6315482b916b99569b7fb3e663f00a5c`, exact image digest
+  `sha256:b91aba6fb8e13081be9db4646d69f6a66e0974f49908c1479fbac06a744fce89`.
+  The same identity continued beyond the rollback through copied generations
+  `354129` and `354137`; the substrate was not stalled or restored over by the
+  rejected task.
+- Rejected-attempt source reconciliation found that task 1401 did not repair
+  the first task-1400 failure, the absent learned layer-11 -> typed vocal
+  layer-12 route. It broadened respiratory co-recruitment from a same-interval
+  layer-11 ordering arrival to a prepared closing-glottis motor whose sender
+  could instead be a layer-8 reached-load reflex. Its added Rust proof built a
+  synthetic `MotorUnitRecruitment`; its Python proof joined synthetic tuples.
+  Neither test restored a mature body, executed the production interval,
+  committed `CURRENT`, cold-restored it, or advanced the next ordinary
+  interval. This downstream mechanism remains rejected and may not be retried
+  under a different name.
+- Causal-localization attempt 19 ran the exact historical task-1401 commit
+  `16313bc5e1a41c219d00a9cb90ca8ced9fa586c3`, unchanged, against the exact
+  previously copied task-1400 body at tick `352577`, `107627298` bytes,
+  SHA-256 `e4c2b4f0400d8f81d02a125cd96fe291837ce45f7bd4c959ffcba924ff0043c4`.
+  The fully-qualified production-body probe ran one test and settled one full
+  native contact interval, but its maximal-external-receptor input changed
+  `1,366` neurons and recruited zero motors. It therefore never entered the
+  task-1401 glottal branch and did not reproduce the refusal. This is a failed
+  reproduction and not green evidence. The falsified assumption is that a
+  maximal external-receptor frontier represents the ordinary unattended
+  production input.
+- The same unchanged candidate and probe were repeated on two newly captured,
+  exact task-1400 raw bodies: tick `353993`, `107621933` bytes, SHA-256
+  `6c0d3bde37289d31ec04e4dcc2a84987df9651c6bbc13c16d76c927ee47d0fd1`,
+  and tick `354001`, `107621646` bytes, SHA-256
+  `5e847ce18770f8df5d272aec3bb7f8f1a2437e3b391668f5a9f619f868bed225`.
+  They changed `1,339` and `1,341` neurons respectively and again recruited
+  zero motors. Their successful returns do not falsify the live failure; they
+  confirm only that the wrong input shape bypasses it.
+- Exact CloudWatch history for the rejected task-1401 container
+  `b769fcd1f6164c7690d9cd06760e12ff` localizes the repeated production input:
+  every refused interval began from the unchanged generation, reported
+  `external=106`, `regulation=3`, `frontier=4310`, selected `1,538` members and
+  `7,197` contacts, completed cohort settlement, then failed before aggregate
+  interval evidence/commit with `resident neuron lineage authority changed`.
+  The current maximal probe uses `293` external receptors and zero motor
+  recruitment, so it is not an admissible substitute.
+- The exact raw generation that task 1401 left at tick `353081` is no longer
+  present in the bounded two-generation remote store; an exact-key head and
+  version census returned no object. Its public receipt is not being
+  represented as body proof. New read-only captures instead preserve exact
+  current task-1400 bodies at ticks `354129` and `354137`, with SHA-256
+  `0bb634a4519e46f5cb6efec89b2cf472bd1cf300e8fbe303e106a78573959540`
+  and `619c8615a464266334a6aa75644c209fc625a918b13490d5739b982315a921cf`,
+  plus one exact production world body of `939163` bytes and SHA-256
+  `be1cb8b166324d4188c6bf7d1dce0def98961a0f75ea5538b4eb873941cf6b4e`.
+  These are inputs for localization only; no copied-body speech result is yet
+  claimed.
+- Next analysis remains singular: reproduce the logged `106 external + 3
+  regulation` ordinary production interval on one exact copied current body,
+  identify the first exact lineage assertion that refuses, and trace its
+  predecessor/input/successor and restart consequences. No repair mechanism,
+  code change, packaging, or deployment is admissible before that result and
+  the complete causal-impact map are recorded here.
+- Causal-localization attempt 20 started the exact rejected task-1401 image in
+  a bounded, network-disabled local container, but the Docker daemon could not
+  see the IDE container's `/tmp` bind source. The image therefore received an
+  empty store and lawfully created a fresh genesis; logs began at generation
+  `1` rather than restored generation `354137`. The run was stopped and is not
+  copied-body evidence. The verified source artifacts remained byte-identical.
+  Permanent correction: transfer the exact files into a Docker-managed volume
+  and require the first observation/logged generation to equal the copied
+  predecessor before accepting any interval result.
+- Causal-localization attempt 21 is the first valid reproduction. The exact
+  rejected task-1401 production image
+  `sha256:85b7e82a66e970bb877b9a3cd65c0689e7e4764c7da50748caad000d3f47d637`
+  restored an exact copied task-1400 `CURRENT` at tick `354137`, raw byte count
+  `107623717`, raw SHA-256
+  `619c8615a464266334a6aa75644c209fc625a918b13490d5739b982315a921cf`,
+  and unchanged identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The image
+  ran network-disabled with four CPUs, 16 GiB, a private local object mirror,
+  and no production S3 authority.
+- Its first and every repeated ordinary interval reproduced the live refusal.
+  The first frontier reported `external=106`, `regulation=3`, `frontier=4338`,
+  `total=746`, selected `1550` members and `7210` contacts, completed cohort
+  settlement, then returned `resident neuron lineage authority changed`
+  before interval evidence/commit. The counts differ slightly from the older
+  tick-353081 body because this is a later exact production body; the causal
+  shape and first failed boundary are the same.
+- Post-refusal observation proved generation, mounted generation, fabric
+  generation, and organism tick all remained `354137`; public identity came
+  from the restored raw body; `CURRENT` SHA-256 remained
+  `18316fbf42c8f8e37c2468f35c7c3ea800019f6bd6c2a47a7b3194321df93839`;
+  and the compact current generation retained stored SHA-256
+  `d0fe3016834564baea2bb074e0fe58c38add2e4dffe23ef7e9cc5c8667af1537`.
+  No candidate successor was published and no predecessor overwrote current.
+  The copied world advanced independently from exact SHA-256
+  `be1cb8b166324d4188c6bf7d1dce0def98961a0f75ea5538b4eb873941cf6b4e`
+  to `919d592e7426041e506069ed0ce39cf8e55f74df698933fe31495c4bfd519b0b`,
+  matching production's world-before-native ordering. Sampled container memory
+  was about `939.5 MiB` of 16 GiB and it was stopped after capture.
+- This closes reproduction only, not causal localization or copied-body speech
+  proof. The exact first lineage assertion, its causing glottal recruitment,
+  all downstream consumers, and the full persistence/restart impact remain to
+  be proved before any code or deployment.
+
+- Causal-localization attempt 22 is the identical-input task-1400 control. A
+  fresh Docker-managed volume was populated with the same tick-`354137`
+  `CURRENT`, current and predecessor compact bodies, and production world used
+  by attempt 21; all four stored SHA-256 values matched before startup. The
+  exact task-1400 image
+  `sha256:b91aba6fb8e13081be9db4646d69f6a66e0974f49908c1479fbac06a744fce89`
+  identified commit `c978fbfb6315482b916b99569b7fb3e663f00a5c` and ran with
+  the same no-network, four-CPU, 16-GiB envelope.
+- The control's first ordinary interval exactly matched task 1401's copied-body
+  causal census: `external=106`, `regulation=3`, `frontier=4338`, `total=746`,
+  `selected=1550`, and `contacts=7210`. Task 1400 then crossed
+  `guala-contact-phases`, committed generation `354138`, and continued through
+  `354163` without one lineage-authority refusal. Task 1401, from the same
+  starting bytes and first causal census, refused after cohort settlement and
+  left generation `354137` current. The task-1401 change set, not the mature
+  body, world, causal input, or resource envelope, therefore causes the
+  refusal. The first exact assertion inside that change set remains open.
+- User-facing completion is broader than native pressure. Speech is not done
+  until a person can conduct a live, causally related exchange with this same
+  resident substrate: microphone PCM and its capture-time camera frame enter
+  in one synchronized sequence; learned organism state causes vocal-body
+  action; the exact emitted body is both self-heard and heard through the
+  speaker; and the next turn depends on the prior shared experience. Prior
+  camera/microphone timing corrections F-023 through F-028 and acoustic/body
+  corrections F-029/F-030 remain mandatory regressions. A pressure hash,
+  playback control, isolated sound, or local utterance is insufficient.
+
+- Causal-localization attempt 23 cold-started the accepted task-1400 control
+  from the successor produced in attempt 22, without reseeding its volume.
+  The prior run had published through generation `354163`; the first new
+  interval after process restart was `354164`, followed by `354165-354167`.
+  No lineage refusal, genesis, tick-`354137` restoration, or predecessor
+  overwrite occurred. Post-stop `CURRENT` SHA-256 was
+  `447df664d12c1ecb3a3f921cc686e8a6670c67b3894ab9f339c39010aef42d70`,
+  and exactly two bounded generation objects remained. This proves the
+  accepted control's current-only restart behavior, not a speech candidate's
+  emitted/self-heard custody.
+- Read-only public comparison found production `gualaloom.html` byte-identical
+  to this worktree at SHA-256
+  `0fdeeb566979b553d1a4f5e71fb0c2162d22588747ecbb1d248c25c41cfcf574`.
+  It contains the prior audio-worklet, synchronized camera pairing, bounded
+  retry, and continuous speaker-listening mechanisms. Current live observation
+  at generation `354809` reported `committed_in_process=false` for camera and
+  microphone and `articulation.available=false`; those mechanisms are present
+  but have not completed a live human conversation in the current process.
+
+### Causal-localization attempt 24 — first exact assertion and complete impact map
+
+- Exact byte inspection of copied raw tick `354137` found cognitive magic
+  `GLCOG040` at raw offset `684`. The V40 vocal-effector marker is cognitive
+  offset `26`, raw offset `710`, and its exact value is `0`: the persisted
+  `vocal_articulatory_effector_lineage` is `None`. The same absent marker was
+  verified on copied task-1400 bodies at ticks `353993`, `354001`, and
+  `354129`.
+- The mature body nevertheless contains three historical intrinsic layer-13
+  neurons, lineages ending `...0064`, `...0072`, and `...0080`, at topologies
+  `0`, `1`, and `2`. They are uncontacted, quiescent, and none is named by the
+  marker. Choosing the lowest topology or a historically used lineage would
+  invent body authority and is prohibited.
+- Task 1400 reaches respiratory co-recruitment only through a same-interval
+  learned layer-11 -> typed vocal layer-12 preparation, which this body lacks.
+  Task 1401 newly admits the ordinary interval's exact layer-8 reached-load
+  transfer into its discharged closing-glottis motor. The branch then filters
+  layer-13 cells for equality with the absent marker, producing zero matches.
+  Its pre-existing exact-one assertion returns
+  `FormationError::NeuronLineageAuthorityChanged`.
+- The exact rejected native binary independently proves that compiled branch:
+  `0x37683f` compares the match-vector length with `1`; the non-one jump reaches
+  `0x376b34`, which writes enum discriminant `0x19`, the source/display variant
+  `NeuronLineageAuthorityChanged`. This is the first refusal after cohort
+  settlement and before contact phases, aggregate evidence, pressure, seal, or
+  publication.
+- The full task-1401 comparison contains three production runtime files, one
+  measurement probe, one test, and three ledgers. The production effect is
+  completely traced: Rust admits the reflex and preserves true sender layers;
+  Rust projection exposes those transient layers; Python accepts only the
+  exact same motor's mounted regulation or learned ordering transfer. There is
+  no persistence-format or L0-L4 change in task 1401. The synthetic tests never
+  restored the marker-absent mature body.
+- The complete causal impact, restart, recurrence, resource, anti-resurrection,
+  camera/microphone/speaker path, and exact copied-body acceptance matrix are
+  now recorded in
+  `docs/GUALA_TASK1401_COMPLETE_CAUSAL_IMPACT_ANALYSIS_2026-08-31.md`. This
+  closes the pre-code causal-analysis and copied-failure-proof gate. It does
+  not credit speech or authorize deployment. The next candidate must first
+  establish one dedicated persisted vocal-body lineage without choosing any
+  ambiguous historical layer-13 cell, then pass every copied-body row before
+  production is touched.
+
+### Repair attempt 25 — V41 dedicated vocal-body identity
+
+- V41 crosses one bounded anatomy boundary for a marker-absent mature V40
+  body. It mounts one new intrinsic layer-13 cell from unclaimed resting
+  anatomy, persists that exact lineage as the dedicated vocal-body identity,
+  authors no electrical contact, and never selects one of the three ambiguous
+  historical layer-13 cells. A marker-present body retains its exact lineage;
+  a pre-embodied body with no vocal anatomy remains unmounted.
+- The exact copied tick-`354137` production body passed the isolated-binary
+  migration proof: cognitive bytes `107623033 -> 107625626`, complete neurons
+  `1810 -> 1811`, historical layer-13 count `3`, and new dedicated lineage
+  `474c4e4c494e4531000000000000008e`. Every pre-existing cohort, neuron,
+  physical state, contact, frontier, mosaic, and hippocampal entry remained
+  exact; the second migration was byte-identical.
+- A synthetic three-historical-cell body independently proved the new marker
+  names none of those cells, total contacts remain zero, all prior anatomy and
+  state remain exact, and repeated migration is the identity.
+- The first apparent focused pass was rejected because a clean-control
+  worktree and the candidate had shared Cargo output, allowing the wrong test
+  binary to be reused and reporting zero matching tests. After isolating the
+  build outputs, both new tests executed and passed. This false-green hazard is
+  now part of the repair history and shared build output is not acceptable for
+  candidate/control comparison.
+- The complete serial library suite was then run from distinct binaries.
+  Untouched `faff9e06` produced `549 passed, 16 failed, 11 ignored`; V41
+  produced `551 passed, 16 failed, 11 ignored`. The exact same 16 test names
+  failed in both runs. The two additional candidate passes are the two V41
+  tests, so this slice introduces zero suite regressions. The inherited red
+  tests remain visible and are not called green.
+- This closes only the dedicated vocal-body identity row of the acceptance
+  matrix. It proves no pressure, self-hearing, recurrence, restart-in-flight,
+  quiescence, learned speech, audible output, or conversation, and authorizes
+  no deployment.

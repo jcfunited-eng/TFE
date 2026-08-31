@@ -18,6 +18,101 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
+fn real_v40_production_body_mounts_one_new_dedicated_vocal_effector() {
+    let Some(path) = std::env::var_os("GUALA_REAL_BODY") else {
+        return;
+    };
+    let body = fs::read(PathBuf::from(path)).expect("real V40 body readable");
+    let (organism_tick, cognitive) = super::reservoir_probe::parse_envelope(&body);
+    let budget = 2_147_483_590usize;
+    let predecessor = ResidentCognitiveFormationState::decode_for_one_way_migration(
+        &cognitive,
+        budget,
+    )
+    .expect("exact V40 body enters only the authenticated migration boundary");
+    assert_eq!(
+        predecessor.vocal_articulatory_effector_lineage,
+        None,
+        "this proof is specific to the marker-absent mature production body",
+    );
+    let historical_layer_thirteen = predecessor
+        .cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter_map(|(mount, lineage)| {
+            (mount.source_site().is_none() && mount.place().layer() == 13)
+                .then_some(*lineage)
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(historical_layer_thirteen.len(), 3);
+    let predecessor_cohort_count = predecessor.cohorts.len();
+    let predecessor_neuron_count = predecessor.summary().complete_neuron_count;
+    let predecessor_contacts = predecessor.electrical_fabric.clone();
+    let predecessor_frontiers = (
+        predecessor.older_active_electrical_frontier.clone(),
+        predecessor.preceding_active_electrical_frontier.clone(),
+        predecessor.active_electrical_frontier.clone(),
+    );
+    let predecessor_mosaics = predecessor.mosaics.clone();
+    let predecessor_hippocampal = predecessor.hippocampal;
+
+    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(
+        &cognitive,
+        budget,
+    )
+    .expect("exact V40 body gains one dedicated V41 effector");
+    let restored = ResidentCognitiveFormationState::decode(&migrated, budget)
+        .expect("dedicated V41 body cold decodes");
+    let dedicated = restored
+        .vocal_articulatory_effector_lineage
+        .expect("V41 persists one exact vocal-body lineage");
+    assert!(!historical_layer_thirteen.contains(&dedicated));
+    assert_eq!(
+        &restored.cohorts[..predecessor_cohort_count],
+        predecessor.cohorts.as_ref(),
+        "every pre-existing neuron, anatomy, and physical state changed",
+    );
+    assert_eq!(restored.cohorts.len(), predecessor_cohort_count + 1);
+    assert_eq!(restored.summary().complete_neuron_count, predecessor_neuron_count + 1);
+    assert_eq!(restored.electrical_fabric, predecessor_contacts);
+    assert_eq!(
+        (
+            restored.older_active_electrical_frontier.clone(),
+            restored.preceding_active_electrical_frontier.clone(),
+            restored.active_electrical_frontier.clone(),
+        ),
+        predecessor_frontiers,
+    );
+    assert_eq!(restored.mosaics, predecessor_mosaics);
+    assert_eq!(restored.hippocampal, predecessor_hippocampal);
+    assert_eq!(
+        ResidentCognitiveFormationState::migrate_to_current_format(&migrated, budget)
+            .expect("V41 migration is exact on repetition"),
+        migrated,
+    );
+
+    println!(
+        "REAL_V41_VOCAL_BODY tick={} old_cognitive_bytes={} new_cognitive_bytes={} old_neurons={} new_neurons={} old_layer13={} dedicated={}",
+        organism_tick,
+        cognitive.len(),
+        migrated.len(),
+        predecessor_neuron_count,
+        restored.summary().complete_neuron_count,
+        historical_layer_thirteen.len(),
+        dedicated
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>(),
+    );
+}
+
+#[test]
 fn real_production_body_migrates_losslessly() {
     let Some(path) = std::env::var_os("GUALA_REAL_BODY") else {
         return;
