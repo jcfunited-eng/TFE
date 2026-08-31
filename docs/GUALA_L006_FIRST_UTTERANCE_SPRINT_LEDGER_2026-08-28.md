@@ -918,3 +918,25 @@ timer, second scheduler, or retained speech program.
   used a Python heredoc, which consumed standard input and produced no JSON.
   It changed no state and supplied no evidence. The corrected command used
   `python -c` and returned the live observations above.
+- Extended live observation through generation `352577` still contained no
+  vocal-body discharge. The exact authenticated CURRENT body was copied
+  read-only from remote custody for a source-level diagnostic; production
+  continued as the sole task throughout.
+- Diagnostic attempt 16 fed the compact `GLCMP001` remote representation
+  directly to the raw-`GLORUN01` reservoir probe and correctly failed on the
+  envelope magic. A first correction attempt also ran from the Rust subfolder
+  without the repository on `PYTHONPATH`; it did not decode the wrapper and
+  repeated the same raw-envelope refusal. Neither attempt touched production
+  or supplied cognitive evidence. Permanent procedure: reconstruct the exact
+  raw body through `native_organism_binary_store._decode_stored_state`, verify
+  its SHA-256 equals CURRENT, and only then invoke the raw probe.
+- The corrected diagnostic reconstructed `107,627,298` exact raw bytes with
+  SHA-256 `e4c2b4f0400d8f81d02a125cd96fe291837ce45f7bd4c959ffcba924ff0043c4`.
+  The fully-qualified probe ran exactly one test and passed. On that current
+  body, reaching all 293 mounted external receptors changed 1,366 neurons but
+  emitted zero motor recruitments. The persisted fabric contained zero
+  layer-11 -> layer-12 contacts and zero contacts incident to layer 13. The
+  first live failure is therefore before vocal-body settlement: task 1400 has
+  no currently retained learned ordering-to-vocal-motor route. Pressure,
+  self-hearing, browser playback, and the V40 body marker are not the first
+  failed boundary.

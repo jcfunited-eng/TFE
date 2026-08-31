@@ -259,3 +259,10 @@ ordinary typed motor/body consequence, bounded state size, and approximately
 discharge and exact self-hearing consequence have not yet been observed, so
 R-009 and L-006 remain open and the playback controls remain truthfully
 disabled.
+
+Current-body diagnostic at tick `352577`: zero layer-11 -> layer-12 contacts,
+zero contacts incident to layer 13, and zero motor recruitments under a
+maximal external-receptor frontier. The next repair may not alter pressure,
+self-hearing, playback, or restore an electrical layer-13 bridge; it must begin
+at the absent learned ordering-to-vocal-motor route and preserve the retained
+`apple` formation at recurrent lineage `...055a`.

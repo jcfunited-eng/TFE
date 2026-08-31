@@ -692,6 +692,54 @@ fn reservoir_probe_dump() {
                     })
                 })
                 .collect::<Vec<_>>();
+            let lineage_hex = |lineage: [u8; 16]| {
+                lineage
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect::<String>()
+            };
+            let retained_mosaics = state
+                .mosaics
+                .iter()
+                .map(|retained| {
+                    json!({
+                        "recurrent_lineage": retained.recurrent_lineage.map(lineage_hex),
+                        "member_lineages": retained
+                            .mosaic
+                            .member_lineages()
+                            .iter()
+                            .copied()
+                            .map(lineage_hex)
+                            .collect::<Vec<_>>(),
+                        "original_bonds": retained
+                            .mosaic
+                            .original_bonds()
+                            .iter()
+                            .map(|bond| {
+                                let (left, right) = bond.endpoints();
+                                json!({
+                                    "left": lineage_hex(left),
+                                    "right": lineage_hex(right),
+                                    "parallel_ordinal": bond.parallel_ordinal(),
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                        "recurrence_bonds": retained
+                            .mosaic
+                            .recurrence_bonds()
+                            .iter()
+                            .map(|bond| {
+                                let (left, right) = bond.endpoints();
+                                json!({
+                                    "left": lineage_hex(left),
+                                    "right": lineage_hex(right),
+                                    "parallel_ordinal": bond.parallel_ordinal(),
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                    })
+                })
+                .collect::<Vec<_>>();
             json!({
                 "file": path.file_name().unwrap().to_string_lossy(),
                 "organism_tick": organism_tick,
@@ -699,6 +747,7 @@ fn reservoir_probe_dump() {
                 "unexpressed_electrical_seed_count": state.unexpressed_electrical_seeds.len(),
                 "dormant_lineage_seed_count": state.dormant_lineage_seeds.len(),
                 "electrical_fabric": electrical_fabric,
+                "retained_mosaics": retained_mosaics,
                 "motor_reachability": motor_reachability,
                 "cohorts": cohorts,
             })

@@ -14,6 +14,22 @@ different retained recurrent route.
 This closes lexical recognition only; no claim is made that the emitted
 pressure itself says `apple` or that sentence language is complete.
 
+## 2026-08-31 current-body retention check
+
+- Read-only decoding of task-1400 CURRENT at tick `352577` found the exact
+  retained formation whose recurrent endpoint is
+  `474c4e4c494e4531000000000000055a`. It still contains visual lineage
+  `...0001`, auditory lineages `...002c` through `...0031`, and its retained
+  cross-sensory bonds. The latest vocal-anatomy migrations therefore did not
+  delete the narrow apple recognition memory.
+- This retention fact does not by itself re-run recognition on task 1400 and
+  does not prove speech. The historical live claim remains specifically that
+  a different human pronunciation reassembled this already-existing
+  visual-auditory formation while the `bee` control selected a different
+  recurrent formation. A fresh current-task claim would still require a new
+  physical changed-cue reassembly; the card image, its filename, and the Loom
+  caption are never recognition evidence.
+
 ## Varied live apple experience on task 1340
 
 - Production task `dsf-ai-task:1340`, source commit
