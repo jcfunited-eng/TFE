@@ -477,4 +477,23 @@ timer, second scheduler, or retained speech program.
   V4 body now parses and migrates to V5 without consuming the following
   acoustic-length, joint, or cognitive fields. That outer-envelope falsifier,
   the 15 articulated-body tests, and the 11 articulatory-body tests pass.
-  Production remains on task 1395 pending the corrected cutover.
+- Corrected commit `a8ba50cfd68b7c195b9cfbb77c5ba0ced6d27179`
+  cut over as the sole production task `dsf-ai-task:1397` at 01:04 UTC. It
+  restored identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at or beyond tick
+  344709 and continued unattended through ticks 344756 and 344772 without a
+  restart or logged error.
+- The first captured live act on task 1397 contains 24,000 exact 16-kHz PCM
+  samples. Its first five 4,000-sample intervals contain 1,646, 1,647, 1,724,
+  1,725, and 1,748 nonzero pressure samples instead of task 1395's 22, 22, and
+  27. Pressure occupies 126 consecutive complete 160-sample laryngeal cycles,
+  then reaches exact zero for the remaining 24 cycles. The PCM SHA-256 is
+  `3e04a2c034c9b6ae91cfa1c8f8f5af9960ad9a164298756837df550205fb8b57`,
+  exactly matching the live report. The same committed transition reports 34
+  transported auditory consequences; the following resident interval reports
+  442 sound receptor ingresses.
+- Immediate boundedness after cutover: one running task, no pending task, one
+  deployment, 41.9% service CPU, 7.18% service memory, and resident state
+  93,809,679 bytes at tick 344756 and 94,047,001 bytes at tick 344772. The body
+  format adds exactly five resident bytes; no parallel process or error loop
+  appeared. This closes the click-duration defect, not learned-word or
+  intelligible-speech proof.
