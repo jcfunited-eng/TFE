@@ -497,3 +497,42 @@ timer, second scheduler, or retained speech program.
   format adds exactly five resident bytes; no parallel process or error loop
   appeared. This closes the click-duration defect, not learned-word or
   intelligible-speech proof.
+
+## Recurrent vocal-motor fan-out defect — 2026-08-31
+
+- Exact production body `4450e438...489` at tick `344995` contains 26 learned
+  layer-11 -> layer-12 vocal contacts: all 13 vocal axes and both antagonist
+  terminals. They belong to only two ordering neurons, split 23 and 3. One
+  recurrence can therefore activate most of the opposing tract motors as a
+  dense chord instead of selecting a learned articulatory gesture.
+- The source is the V37 general whole-tract consequence branch. Returned
+  breath, glottis, mouth or perioral evidence cannot name one causing motor,
+  but that branch joined the proved ordering neuron to every vocal motor that
+  happened to discharge in the preceding interval. Repetition accumulated a
+  union of motor routes and reintroduced F-004 fan-out in a narrower form.
+- The V38 candidate deletes that contact-authorship branch. General returned
+  sound and mechanics remain ordinary sensory evidence. Only one exact
+  proprioceptive axis terminal can name one learned motor route through the
+  existing ordinary causal-chain law; fixed layer-12 -> layer-13 vocal anatomy
+  remains untouched.
+- The one-way V37 -> V38 migration retires all 26 contacts because their
+  per-edge provenance was never persisted and cannot be guessed. It also
+  retires five retained formations whose original topology depended on those
+  false contacts rather than preserving them as learned truth. No surviving
+  formation changes.
+- Frozen exact-body result: layer-11 -> layer-12 `26 -> 0`; fixed layer-12 ->
+  layer-13 `26 -> 26`; total contacts `7,379 -> 7,353`; all `1,809` neurons and
+  every layer count unchanged; retained formations `165 -> 160`; identity,
+  tick `344995`, and fabric generation unchanged; a second migration is
+  byte-identical. Auditory lineage `...0031`, used in the live `apple`
+  recognition evidence, remains resident in 28 retained formations after the
+  cleanup. This preserves sensory learning but withdraws the old claim that
+  the contaminated vocal fan-out was a learned apple vocal form.
+- Focused falsifiers pass: ambiguous returned whole-tract mechanics plus
+  self-hearing cannot author or accumulate a motor contact; a persisted V37
+  false contact is removed once; the fixed motor-to-articulatory bridge
+  survives; the general exact causal-chain motor law and both outer body
+  migrations remain green.
+- Status: source and frozen production-body correction complete; production
+  remains task 1397 until the single cutover. Learned-word utterance remains
+  open and must be established again through sparse exact-axis experience.
