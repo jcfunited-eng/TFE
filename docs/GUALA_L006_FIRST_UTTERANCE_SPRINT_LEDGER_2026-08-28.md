@@ -420,3 +420,47 @@ timer, second scheduler, or retained speech program.
   state, not history or cognition; it survives cold restart, cannot duplicate,
   and disappears only by physical propagation/loss. The next implementation
   contract must name that current-state owner before source code changes.
+
+## Human-timescale phonation defect — 2026-08-31
+
+- Production task `dsf-ai-task:1395`, commit
+  `4525cf4cc0306fe7a63d819f02bf5b457269ef37`, preserves recurrent emitted
+  pressure and self-hearing. A direct read of generation `343479` returned an
+  exact 12,000-sample, 16 kHz pressure body. It contains three 250 ms physical
+  intervals, but only 22, 22, and 27 nonzero samples respectively. Each
+  pressure burst ends within about 2.5 ms.
+- This falsifies the claim that the old 1 ms motor event is still being held
+  for 250 ms. F-029 remains intact: the layer-13 discharge itself is one exact
+  1 ms event. The new defect is downstream. The discharge directly creates a
+  breath-flow impulse, and the body has no retained respiratory/laryngeal
+  contraction state capable of continuing phonation after that impulse.
+- Requested architecture: a transient native discharge changes the one
+  resident vocal body's bounded activation; the body's lung, glottis,
+  laryngeal cycle, tract geometry, wall loss, and depletion then determine the
+  emitted pressure until the activation physically exhausts. Later motor
+  events may reshape or reinforce that same body. No discharge is stretched
+  and no pressure is scripted.
+- Current code reality: `settle_native_articulatory_interval` sets flow only
+  while `interval_sample_index < 16`. Its acoustic state persists traveling
+  pressure, previous flow, and phase, but not the causal muscle/airflow
+  activation that generated them.
+- Conflict: yes. The mounted body can emit clicks and buzzes, but cannot yet
+  sustain a human-timescale voiced act.
+- Mechanisms not extended: the retired Python phonation program, TTS, phoneme
+  or word tables, stored waveforms, observer playback, the old 250 ms held
+  motor event, or any reduced DSF authority.
+- Single exact item: retain one bounded native phonatory activation in the
+  articulated body, initiated once by the exact layer-13 discharge and
+  exhausted by the body's already-declared one-second neutral exhalation
+  anatomy; preserve it across interval and cold-restart boundaries and prove
+  that no further discharge is manufactured while the physical consequence
+  continues.
+- DSF scope remains the unchanged complete joint seven-field delivery; no
+  field structure is reduced or lost.
+- Candidate source now adds five bytes to the one resident articulated-body
+  state: bounded drive strength and remaining exhalation samples. V4 cold
+  restore initializes neither value; one real discharge initializes them;
+  later intervals apply zero additional motor quanta while the body's 100 Hz
+  glottal cycles continue; the activation reaches exact zero after 16,000
+  samples. The focused native body gate passes 11/11. Production remains
+  unchanged pending immutable commit and cutover.

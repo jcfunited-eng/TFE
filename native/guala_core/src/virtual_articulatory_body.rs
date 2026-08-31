@@ -14,7 +14,8 @@ use crate::virtual_articulated_body::{
     ArticulatedBodyState, ArticulatoryAcousticState, BodyAxis, LARYNGEAL_CYCLE_SAMPLES,
     MAX_LUNG_AIR_MICROLITRES,
     MAX_TRACT_AREA_SQUARE_MILLIMETRES, MIN_TRACT_AREA_SQUARE_MILLIMETRES,
-    NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES, VOCAL_TRACT_SECTION_COUNT,
+    NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES, PHONATORY_EXHALATION_SAMPLES,
+    VOCAL_TRACT_SECTION_COUNT,
 };
 
 pub(crate) const ARTICULATORY_SAMPLE_RATE_HZ: u32 = 16_000;
@@ -58,12 +59,11 @@ pub(crate) struct ArticulatoryBodyTransition {
 
 /// Advance the vocal body across one exact causal source interval.
 ///
-/// A layer-13 discharge drives exactly the first one-millisecond motor window;
-/// it is never stretched across the sensory episode that preceded it. The
-/// remainder is passive tube settlement. Traveling pressure, breath flow and
-/// laryngeal phase are ordinary resident body state, so a shorter source
-/// interval continues the same wave instead of restarting a synthetic 100-Hz
-/// recording at phase zero.
+/// A layer-13 discharge is accepted exactly once as a one-millisecond motor
+/// event; it is never repeated or stretched across the preceding sensory
+/// episode. That event changes bounded resident phonatory activation. The
+/// body's exhalation, laryngeal cycle, lung, tract and wall loss then produce
+/// the consequence across interval and restart boundaries.
 pub(crate) fn settle_native_articulatory_interval(
     articulated_body: ArticulatedBodyState,
     recruitments: &[(u32, u128)],
@@ -80,20 +80,33 @@ pub(crate) fn settle_native_articulatory_interval(
                 .ok_or(ArticulatoryBodyError::ArithmeticWidth)
         },
     )?;
-    let applied = min(magnitude, 8);
+    let mut acoustic = articulated_body.articulatory_acoustic_state();
+    let available_drive_quanta = 8_u128
+        .checked_sub(u128::from(acoustic.phonatory_drive_quanta))
+        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+    let applied = min(magnitude, available_drive_quanta);
     let stalled = magnitude - applied;
-    let applied_i32 = i32::try_from(applied)
-        .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
+    if applied > 0 {
+        acoustic.phonatory_drive_quanta = acoustic
+            .phonatory_drive_quanta
+            .checked_add(
+                u8::try_from(applied)
+                    .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+            )
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        acoustic.phonatory_exhalation_samples_remaining =
+            PHONATORY_EXHALATION_SAMPLES;
+    }
+    let drive_i32 = i32::from(acoustic.phonatory_drive_quanta);
     let glottal_apex = glottal_open_samples(&articulated_body)?;
     let areas = articulated_vocal_tract_areas(&articulated_body)?;
     let peak_flow = round_div(
         i64::from(RESPIRATORY_PEAK_VOLUME_VELOCITY_PCM)
-            * i64::from(applied_i32)
+            * i64::from(drive_i32)
             * i64::from(articulated_body.lung_air_microlitres()),
         8 * i64::from(MAX_LUNG_AIR_MICROLITRES),
     )?;
     let body_channels = articulated_body_channels(&articulated_body)?;
-    let mut acoustic = articulated_body.articulatory_acoustic_state();
     let mut radiated = Vec::new();
     radiated
         .try_reserve_exact(interval_sample_count)
@@ -105,11 +118,10 @@ pub(crate) fn settle_native_articulatory_interval(
             .map_err(|_| ArticulatoryBodyError::ResourceUnavailable)?;
     }
 
-    for interval_sample_index in 0..interval_sample_count {
+    for _interval_sample_index in 0..interval_sample_count {
         let phase = usize::from(acoustic.laryngeal_phase_sample);
-        let motor_drive_present =
-            magnitude != 0 && interval_sample_index < NATIVE_ARTICULATORY_INTERVAL_SAMPLES;
-        let flow = if motor_drive_present
+        let phonation_active = acoustic.phonatory_exhalation_samples_remaining > 0;
+        let flow = if phonation_active
             && phase
                 < usize::try_from(glottal_apex)
                     .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
@@ -150,6 +162,12 @@ pub(crate) fn settle_native_articulatory_interval(
         body_mechanics[3].push(body_channels[2]);
         acoustic.laryngeal_phase_sample =
             (acoustic.laryngeal_phase_sample + 1) % LARYNGEAL_CYCLE_SAMPLES;
+        if phonation_active {
+            acoustic.phonatory_exhalation_samples_remaining -= 1;
+            if acoustic.phonatory_exhalation_samples_remaining == 0 {
+                acoustic.phonatory_drive_quanta = 0;
+            }
+        }
     }
     if acoustic.is_quiescent() {
         acoustic.laryngeal_phase_sample = 0;
@@ -563,7 +581,7 @@ mod tests {
     }
 
     #[test]
-    fn long_sensory_interval_does_not_stretch_one_motor_event() {
+    fn one_motor_event_changes_bounded_body_phonation_without_repeating_discharge() {
         let settled = settle_native_articulatory_interval(
             ArticulatedBodyState::at_neutral(),
             &[(0, 8)],
@@ -575,14 +593,64 @@ mod tests {
         assert!(settled.body_mechanical_trajectories[0]
             [NATIVE_ARTICULATORY_INTERVAL_SAMPLES..]
             .iter()
-            .all(|flow| *flow == 0));
+            .any(|flow| *flow != 0));
+        assert_eq!(settled.applied_motor_quanta, 8);
+        assert_eq!(settled.stalled_motor_quanta, 0);
         assert_eq!(
-            settled.successor_body.articulatory_acoustic_state(),
-            ArticulatoryAcousticState::at_rest()
+            settled
+                .successor_body
+                .articulatory_acoustic_state()
+                .phonatory_exhalation_samples_remaining,
+            PHONATORY_EXHALATION_SAMPLES - 4_000
         );
-        assert_ne!(
-            &settled.radiated_pressure_pcm[..160],
-            &settled.radiated_pressure_pcm[160..320]
+        assert!(settled.radiated_pressure_pcm[160..320]
+            .iter()
+            .any(|sample| *sample != 0));
+        assert!(settled
+            .radiated_pressure_pcm
+            .chunks_exact(usize::from(LARYNGEAL_CYCLE_SAMPLES))
+            .all(|cycle| cycle.iter().any(|sample| *sample != 0)));
+    }
+
+    #[test]
+    fn body_owned_phonation_cold_restores_and_exhausts_without_another_discharge() {
+        let first = settle_native_articulatory_interval(
+            ArticulatedBodyState::at_neutral(),
+            &[(0, 3)],
+            4_000,
+        )
+        .unwrap();
+        let restored = ArticulatedBodyState::decode(
+            &first.successor_body.encode().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            restored
+                .articulatory_acoustic_state()
+                .phonatory_exhalation_samples_remaining,
+            PHONATORY_EXHALATION_SAMPLES - 4_000
+        );
+
+        let second = settle_native_articulatory_interval(restored, &[], 4_000).unwrap();
+        let third = settle_native_articulatory_interval(second.successor_body, &[], 4_000).unwrap();
+        let fourth = settle_native_articulatory_interval(third.successor_body, &[], 4_000).unwrap();
+
+        assert_eq!(second.applied_motor_quanta, 0);
+        assert_eq!(third.applied_motor_quanta, 0);
+        assert_eq!(fourth.applied_motor_quanta, 0);
+        assert_eq!(
+            fourth
+                .successor_body
+                .articulatory_acoustic_state()
+                .phonatory_exhalation_samples_remaining,
+            0
+        );
+        assert_eq!(
+            fourth
+                .successor_body
+                .articulatory_acoustic_state()
+                .phonatory_drive_quanta,
+            0
         );
     }
 
