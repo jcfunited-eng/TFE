@@ -269,6 +269,15 @@ def settle_completed_closes(
         if gain <= -ANOMALY_STOP_PCT:
             close_position(book, symbol, position, mark, "ANOMALY-CUT", now)
             settled += 1
+        elif gain >= SWEEP_PCT:
+            # the day-end sweep's backstop (2026-08-31 receipt: the
+            # 3:55 sweep silently skipped 8 positions that finished
+            # +2.2% to +3.6% — quotes missing at sweep time, no print).
+            # Joseph's fast-cash law applied at the completed close:
+            # any position whose close shows the bank-level gain banks
+            # at that close, whether or not the live sweep saw it.
+            close_position(book, symbol, position, mark, "HARVEST", now)
+            settled += 1
         elif age >= HOLD_SESSIONS:
             close_position(book, symbol, position, mark, "TIME", now)
             settled += 1
@@ -711,6 +720,12 @@ def evaluate_live_marks(action: str) -> None:
         position = positions(book)[symbol]
         price = marks.get(symbol)
         if price is None:
+            # a skipped position must be LOUD (2026-08-31: the 3:55
+            # sweep silently skipped 8 bankable winners on missing
+            # quotes; the close-settle backstop now catches them, but
+            # silence is never allowed to hide the miss again)
+            print(f"  NO QUOTE {symbol}: unpriced this pass — skipped "
+                  f"({action})")
             continue
         pending = position.get("rules_cut_pending")
         if pending:
