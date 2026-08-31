@@ -245,13 +245,13 @@ def _with_articulation(
     }
     transition["articulation"] = {
         "applied_motor_quanta": 8,
-        "articulatory_body_nonquiescent_port_count": 4,
+        "articulatory_body_nonquiescent_port_count": 3,
         "articulatory_body_perturbed_neuron_count": 12,
         "articulatory_body_port_count": 4,
         "glottal_open_samples_at_apex": 144,
         "layer_13_recruitment_count": 1,
         "mouth_area_square_millimetres_at_apex": 305,
-        "peak_breath_flow_pcm": 4000,
+        "peak_transducer_surface_velocity_pcm": 4000,
         "perioral_area_displacement_square_millimetres": 40,
         "pressure_sample_count": 16000,
         "pressure_sha256": pressure_sha256,

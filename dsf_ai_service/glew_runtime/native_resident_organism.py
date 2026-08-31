@@ -449,7 +449,7 @@ class ResidentCausalIntervalEvidence:
     articulatory_pressure_pcm: tuple[int, ...]
     articulatory_body_trajectories: bytes
     articulatory_sample_rate_hz: int
-    articulatory_peak_breath_flow_pcm: int
+    articulatory_peak_transducer_surface_velocity_pcm: int
     articulatory_glottal_open_samples_at_apex: int
     articulatory_mouth_area_square_millimetres_at_apex: int
     articulatory_perioral_area_displacement_square_millimetres: int
@@ -1313,7 +1313,7 @@ def _causal_interval_evidence(
             "articulatory_pressure_pcm",
             "articulatory_body_trajectories",
             "articulatory_sample_rate_hz",
-            "articulatory_peak_breath_flow_pcm",
+            "articulatory_peak_transducer_surface_velocity_pcm",
             "articulatory_glottal_open_samples_at_apex",
             "articulatory_mouth_area_square_millimetres_at_apex",
             "articulatory_perioral_area_displacement_square_millimetres",
@@ -1340,7 +1340,9 @@ def _causal_interval_evidence(
         raw_articulatory_pressure = raw.articulatory_pressure_pcm
         raw_articulatory_body_trajectories = raw.articulatory_body_trajectories
         raw_articulatory_sample_rate = raw.articulatory_sample_rate_hz
-        raw_articulatory_peak_breath_flow = raw.articulatory_peak_breath_flow_pcm
+        raw_articulatory_peak_transducer_surface_velocity = (
+            raw.articulatory_peak_transducer_surface_velocity_pcm
+        )
         raw_articulatory_glottal_open = (
             raw.articulatory_glottal_open_samples_at_apex
         )
@@ -1392,9 +1394,9 @@ def _causal_interval_evidence(
             raw_articulatory_sample_rate,
             "causal interval articulatory sample rate",
         )
-        articulatory_peak_breath_flow = _signed_integer(
-            raw_articulatory_peak_breath_flow,
-            "causal interval articulatory peak breath flow",
+        articulatory_peak_transducer_surface_velocity = _signed_integer(
+            raw_articulatory_peak_transducer_surface_velocity,
+            "causal interval articulatory peak transducer surface velocity",
         )
         articulatory_glottal_open = _signed_integer(
             raw_articulatory_glottal_open,
@@ -1418,7 +1420,7 @@ def _causal_interval_evidence(
         )
         if not articulatory_pressure and any(
             (
-                articulatory_peak_breath_flow,
+                articulatory_peak_transducer_surface_velocity,
                 articulatory_glottal_open,
                 articulatory_mouth_area,
                 articulatory_perioral_area,
@@ -1524,8 +1526,8 @@ def _causal_interval_evidence(
                     raw_articulatory_body_trajectories
                 ),
                 articulatory_sample_rate_hz=articulatory_sample_rate,
-                articulatory_peak_breath_flow_pcm=(
-                    articulatory_peak_breath_flow
+                articulatory_peak_transducer_surface_velocity_pcm=(
+                    articulatory_peak_transducer_surface_velocity
                 ),
                 articulatory_glottal_open_samples_at_apex=(
                     articulatory_glottal_open
@@ -4368,7 +4370,7 @@ def exact_articulatory_interval_trajectory(
         sample_rate_hz,
         radiated_pressure_pcm,
         body_mechanical_trajectories,
-        peak_breath_flow_pcm,
+        peak_transducer_surface_velocity_pcm,
         glottal_open_samples_at_apex,
         mouth_area_square_millimetres_at_apex,
         perioral_area_displacement_square_millimetres,
@@ -4380,7 +4382,7 @@ def exact_articulatory_interval_trajectory(
         int(sample_rate_hz),
         tuple(int(value) for value in radiated_pressure_pcm),
         bytes(body_mechanical_trajectories),
-        int(peak_breath_flow_pcm),
+        int(peak_transducer_surface_velocity_pcm),
         int(glottal_open_samples_at_apex),
         int(mouth_area_square_millimetres_at_apex),
         int(perioral_area_displacement_square_millimetres),

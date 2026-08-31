@@ -703,7 +703,7 @@ def test_cold_restore_requires_exact_native_articulation_when_active() -> None:
         "glottal_open_samples_at_apex": 144,
         "layer_13_recruitment_count": 78,
         "mouth_area_square_millimetres_at_apex": 305,
-        "peak_breath_flow_pcm": 12_000,
+        "peak_transducer_surface_velocity_pcm": 12_000,
         "perioral_area_displacement_square_millimetres": -40,
         "pressure_sample_count": 16_000,
         "pressure_sha256": "e" * 64,

@@ -947,7 +947,7 @@ def _rehearse_articulation_and_self_hearing(
         sample_rate_hz,
         pressure_pcm,
         articulatory_body_trajectories,
-        peak_breath_flow_pcm,
+        peak_transducer_surface_velocity_pcm,
         glottal_open_samples_at_apex,
         mouth_area_square_millimetres_at_apex,
         perioral_area_displacement_square_millimetres,
@@ -983,7 +983,9 @@ def _rehearse_articulation_and_self_hearing(
         "mouth_area_square_millimetres_at_apex": (
             mouth_area_square_millimetres_at_apex
         ),
-        "peak_breath_flow_pcm": peak_breath_flow_pcm,
+        "peak_transducer_surface_velocity_pcm": (
+            peak_transducer_surface_velocity_pcm
+        ),
         "perioral_area_displacement_square_millimetres": (
             perioral_area_displacement_square_millimetres
         ),

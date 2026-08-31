@@ -1036,11 +1036,13 @@ impl NativeCausalIntervalEvidence {
     }
 
     #[getter]
-    fn articulatory_peak_breath_flow_pcm(&self) -> i32 {
+    fn articulatory_peak_transducer_surface_velocity_pcm(&self) -> i32 {
         self.interval
             .articulatory_body_transition
             .as_ref()
-            .map_or(0, |transition| transition.peak_breath_flow_pcm)
+            .map_or(0, |transition| {
+                transition.peak_transducer_surface_velocity_pcm
+            })
     }
 
     #[getter]
@@ -5844,8 +5846,12 @@ fn exact_articulatory_interval_trajectory<'py>(
         stalled = stalled
             .checked_add(settled.stalled_motor_quanta)
             .ok_or_else(|| PyValueError::new_err("articulatory motor width exceeded"))?;
-        if settled.peak_breath_flow_pcm.unsigned_abs() >= strongest_peak.unsigned_abs() {
-            strongest_peak = settled.peak_breath_flow_pcm;
+        if settled
+            .peak_transducer_surface_velocity_pcm
+            .unsigned_abs()
+            >= strongest_peak.unsigned_abs()
+        {
+            strongest_peak = settled.peak_transducer_surface_velocity_pcm;
             strongest_glottis = settled.glottal_open_samples_at_apex;
             strongest_mouth = settled.mouth_area_square_millimetres_at_apex;
         }

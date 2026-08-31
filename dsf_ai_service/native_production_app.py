@@ -4419,10 +4419,13 @@ def _body_owned_laughter_episode_from_transition(
         or int(
             articulation.get("articulatory_body_nonquiescent_port_count", 0)
         )
-        != 4
+        != 3
         or int(articulation.get("articulatory_body_perturbed_neuron_count", 0)) <= 0
         or int(articulation.get("pressure_sample_count", 0)) <= 0
-        or int(articulation.get("peak_breath_flow_pcm", 0)) <= 0
+        or int(
+            articulation.get("peak_transducer_surface_velocity_pcm", 0)
+        )
+        <= 0
         or int(articulation.get("glottal_open_samples_at_apex", 0)) <= 0
         or int(articulation.get("mouth_area_square_millimetres_at_apex", 0)) <= 0
         or int(
@@ -4440,7 +4443,7 @@ def _body_owned_laughter_episode_from_transition(
         "affective_body_trajectory_receipt_sha256": affective[
             "trajectory_receipt_sha256"
         ],
-        "articulatory_body_nonquiescent_port_count": 4,
+        "articulatory_body_nonquiescent_port_count": 3,
         "body_axis_count": len({row[1] for row in body_displacements}),
         "body_displacement_receipt_sha256": _receipt(
             tuple(displacement[1:] for displacement in body_displacements)
@@ -4459,7 +4462,9 @@ def _body_owned_laughter_episode_from_transition(
             "mouth_area_square_millimetres_at_apex"
         ],
         "origin_organism_tick": origin_tick,
-        "peak_breath_flow_pcm": articulation["peak_breath_flow_pcm"],
+        "peak_transducer_surface_velocity_pcm": articulation[
+            "peak_transducer_surface_velocity_pcm"
+        ],
         "perioral_area_displacement_square_millimetres": articulation[
             "perioral_area_displacement_square_millimetres"
         ],
@@ -8857,8 +8862,8 @@ def _causal_interval_hops(
             "articulatory_sample_rate_hz": (
                 interval.articulatory_sample_rate_hz
             ),
-            "articulatory_peak_breath_flow_pcm": (
-                interval.articulatory_peak_breath_flow_pcm
+            "articulatory_peak_transducer_surface_velocity_pcm": (
+                interval.articulatory_peak_transducer_surface_velocity_pcm
             ),
             "articulatory_glottal_open_samples_at_apex": (
                 interval.articulatory_glottal_open_samples_at_apex
@@ -11266,7 +11271,11 @@ def _perform_admitted_intake_locked(
                     pressure,
                     body_trajectories,
                     interval["articulated_body_state"],
-                    int(interval["articulatory_peak_breath_flow_pcm"]),
+                    int(
+                        interval[
+                            "articulatory_peak_transducer_surface_velocity_pcm"
+                        ]
+                    ),
                     int(interval["articulatory_glottal_open_samples_at_apex"]),
                     int(
                         interval[
@@ -11626,7 +11635,7 @@ def _perform_admitted_intake_locked(
                 articulatory_intervals,
                 key=lambda interval: abs(interval[4]),
             )
-            peak_breath_flow_pcm = strongest_interval[4]
+            peak_transducer_surface_velocity_pcm = strongest_interval[4]
             glottal_open_samples_at_apex = strongest_interval[5]
             mouth_area_square_millimetres_at_apex = strongest_interval[6]
             perioral_area_displacement_square_millimetres = (
@@ -11661,7 +11670,9 @@ def _perform_admitted_intake_locked(
                 "pressure_sha256": hashlib.sha256(
                     native_pressure_s16le
                 ).hexdigest(),
-                "peak_breath_flow_pcm": peak_breath_flow_pcm,
+                "peak_transducer_surface_velocity_pcm": (
+                    peak_transducer_surface_velocity_pcm
+                ),
                 "glottal_open_samples_at_apex": (
                     glottal_open_samples_at_apex
                 ),
