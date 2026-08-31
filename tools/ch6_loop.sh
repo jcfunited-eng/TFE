@@ -14,6 +14,7 @@ set -a; source .env 2>/dev/null; set +a
 echo "[ch6-loop] started $(date -u +%FT%TZ) pid $$"
 last_sweep=""; last_pmc=""
 while true; do
+  date -u +%FT%TZ > artifacts/vtvr_observer/.hb_ch6_loop  # heartbeat
   hm=$((10#$(date -u +%H%M)))
   if [ $hm -ge 1300 ] && [ $hm -le 1330 ] && [ "$last_pmc" != "$(date -u +%F)" ]; then
     last_pmc="$(date -u +%F)"

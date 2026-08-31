@@ -15,6 +15,7 @@ flock -n 9 || { echo "[spring-runner] another instance holds the lock; exiting";
 set -a; source .env 2>/dev/null; set +a
 echo "[spring-runner] started $(date -u +%FT%TZ) pid $$"
 while true; do
+  date -u +%FT%TZ > artifacts/vtvr_observer/.hb_spring_runner  # heartbeat
   now_h=$(date -u +%H); now_m=$(date -u +%M); dow=$(date -u +%u)
   if [ "$dow" -le 5 ] && [ "$now_h" = "21" ] && [ "$now_m" -ge 10 ] && [ "$now_m" -lt 25 ]; then
     echo "[spring-runner] close pass $(date -u +%FT%TZ)"

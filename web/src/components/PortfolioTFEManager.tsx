@@ -172,6 +172,7 @@ export default function PortfolioTFEManager() {
   const [error, setError] = useState<string | null>(null);
   const [closedSortKey, setClosedSortKey] = useState<keyof ClosedTrade>("closed_at");
   const [closedSortDesc, setClosedSortDesc] = useState(true);
+  const [pulses, setPulses] = useState<{ key: string; label: string; minutes_ago: number | null; stale: boolean }[]>([]);
   // Frozen delisted remnants (broker-held, awaiting corporate-action
   // settlement) are real but unactionable — they collapse to one
   // footnote instead of standing rows. Custody stays truthful; the
@@ -200,6 +201,10 @@ export default function PortfolioTFEManager() {
         readJson<PEE1Config>(configResponse),
       ]);
       setSummary(summaryValue);
+      fetch("/api/portfolio/heartbeats", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((h) => setPulses(Array.isArray(h?.rows) ? h.rows : []))
+        .catch(() => setPulses([]));
       setPositions(positionsValue.positions);
       setConfig(configValue);
       setFundedInput((current) => current || String(configValue.vault_funded_amount ?? 0));
@@ -290,6 +295,16 @@ export default function PortfolioTFEManager() {
         </div>
       </div>
 
+      {pulses.length ? (
+        <div className="tfe-panel" style={{ padding: "10px 16px", display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", fontSize: ".76rem" }}>
+          <strong style={{ fontSize: ".78rem" }}>Machinery pulse</strong>
+          {pulses.map((p) => (
+            <span key={p.key} style={{ color: p.stale ? "#dc2626" : "#15803d", fontWeight: 600 }}>
+              {p.stale ? "\u25cf" : "\u25cf"} {p.label}: {p.minutes_ago === null ? "no signal" : p.minutes_ago < 60 ? `${p.minutes_ago}m ago` : `${Math.round(p.minutes_ago / 60)}h ago`}{p.stale ? " — STALE" : ""}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="tfe-panel" style={{ padding: "12px 16px", borderColor: discrepancy ? "rgba(220,38,38,.45)" : "rgba(21,128,61,.35)" }}>
         <strong style={{ color: discrepancy ? "#dc2626" : "#15803d" }}>
           Custody {summary?.broker_status === "available" ? "observed" : "incomplete"}: {custody?.brokerPositions ?? "—"} broker positions · {custody?.ledgerSymbols ?? "—"} ledger symbols · {custody?.discrepancies ?? "—"} discrepancies

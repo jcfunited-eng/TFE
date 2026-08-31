@@ -9,5 +9,6 @@ set +a
 echo "[channel-book-publication] started $(date -u +%FT%TZ) pid $$"
 while true; do
   python tools/publish_channel_books.py
+  python tools/publish_heartbeats.py
   sleep 60
 done

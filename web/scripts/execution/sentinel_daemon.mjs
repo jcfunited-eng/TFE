@@ -18,6 +18,63 @@
  */
 
 import { runSentinel, closeSentinelPool } from "./sentinel_monitor.mjs";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+
+// ── Machinery pulse alerts (Joseph, 2026-08-31) ───────────────────────
+// The local research machine's loops died in a weekend restart and
+// trading stopped silently for two days. The local side publishes a
+// pulse sheet beside the channel books every minute; production — the
+// only piece with real uptime — checks it every cycle, around the
+// clock, and emails when any pulse has been silent 3x its expected
+// interval. One email per pulse per 12 hours.
+const PULSE_BUCKET = "tfe-codebuild-src-418384447921-us-east-1";
+const PULSE_KEY = "runtime-refresh-checkpoints/channel-books/heartbeats.json";
+const PULSE_TOPIC = "arn:aws:sns:us-east-1:418384447921:tfe-machinery-alerts";
+const pulseAlertLast = new Map();
+
+async function checkMachineryPulse() {
+  const now = Date.now();
+  let body = null;
+  try {
+    const s3 = new S3Client({ region: "us-east-1" });
+    const res = await s3.send(new GetObjectCommand({ Bucket: PULSE_BUCKET, Key: PULSE_KEY }));
+    body = JSON.parse(await res.Body.transformToString());
+  } catch {
+    body = null;
+  }
+  const stale = [];
+  const genAt = body ? new Date(body.generated_at ?? 0).getTime() : NaN;
+  if (!Number.isFinite(genAt) || now - genAt > 30 * 60 * 1000) {
+    stale.push(["publisher", "pulse sheet itself", Number.isFinite(genAt) ? Math.round((now - genAt) / 60000) : null]);
+  }
+  for (const [key, p] of Object.entries(body?.pulses ?? {})) {
+    const t = p?.last ? new Date(p.last).getTime() : NaN;
+    const expect = Number(p?.expect_minutes ?? 60);
+    const ageMin = Number.isFinite(t) ? (now - t) / 60000 : null;
+    if (ageMin === null || ageMin > 3 * expect) {
+      stale.push([key, String(p?.label ?? key), ageMin === null ? null : Math.round(ageMin)]);
+    }
+  }
+  if (!stale.length) return;
+  const fresh = stale.filter(([key]) => (now - (pulseAlertLast.get(key) ?? 0)) > 12 * 60 * 60 * 1000);
+  if (!fresh.length) return;
+  const lines = fresh.map(([, label, age]) =>
+    `- ${label}: ${age === null ? "no signal at all" : `silent for ${age >= 120 ? Math.round(age / 60) + " hours" : age + " minutes"}`}`);
+  try {
+    const sns = new SNSClient({ region: "us-east-1" });
+    await sns.send(new PublishCommand({
+      TopicArn: PULSE_TOPIC,
+      Subject: "TFE machinery alert: " + fresh.map(([, l]) => l).join(", "),
+      Message: "The following TFE programs have gone silent:\n\n" + lines.join("\n") +
+        "\n\nThe research machine's loops may need restarting. Checked " + new Date(now).toISOString(),
+    }));
+    for (const [key] of fresh) pulseAlertLast.set(key, now);
+    console.log(`[PULSE-ALERT] emailed: ${fresh.map(([, l]) => l).join(", ")}`);
+  } catch (err) {
+    console.error(`[PULSE-ALERT] publish failed: ${err.message}`);
+  }
+}
 import { getCh3Signals, closeCh3StrategistPool } from "./ch3_scalp_strategist.mjs";
 import { get3WASignals, closeStrategistPool } from "./3wa_strategist.mjs";
 import { getCh2Signals, closeCh2StrategistPool } from "./ch2_strategist.mjs";
@@ -400,6 +457,8 @@ async function main() {
   await loadEntryPassDate();
 
   while (running) {
+    await checkMachineryPulse().catch(() => {});
+
     if (!isTradingDay()) {
       const holiday = getHolidayName();
       console.log(`[SENTINEL-DAEMON] Market holiday${holiday ? ` (${holiday})` : ""} — no trading today.`);
