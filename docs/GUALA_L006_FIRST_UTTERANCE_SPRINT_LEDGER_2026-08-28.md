@@ -533,6 +533,18 @@ timer, second scheduler, or retained speech program.
   false contact is removed once; the fixed motor-to-articulatory bridge
   survives; the general exact causal-chain motor law and both outer body
   migrations remain green.
-- Status: source and frozen production-body correction complete; production
-  remains task 1397 until the single cutover. Learned-word utterance remains
-  open and must be established again through sparse exact-axis experience.
+- Commit `fce1ae2c19e38360390966f33c3af757286b88ac` deployed on the first
+  hot attempt as the sole production task `dsf-ai-task:1398`, image
+  `sha256:03bfc2c9897c93b7751d3f2ccfd711c81a2b7cfa0be2202e7b90322ef56f87e8`.
+  It restored the same identity at or beyond tick `345424`.
+- Two independently custodied live successors at ticks `345534` and `345558`
+  both decode to layer-11 -> layer-12 `0`, fixed layer-12 -> layer-13 `26`,
+  total contacts `7,353`, neurons `1,809`, and truthful formations `160`.
+  The organism advanced unattended, continued 12,000-sample native phonation,
+  and retained the public `native_articulation_and_self_hearing_committed`
+  status. Its latest report's current self-hearing counters were zero, so these
+  samples do not claim a new self-hearing occurrence. Task 1398 was one healthy
+  writer with no pending task; startup/settlement CPU averaged 39.6% and memory
+  7.26%.
+- R-008 and F-004 are live-closed again. Learned-word utterance remains open
+  and must be established again through sparse exact-axis experience.
