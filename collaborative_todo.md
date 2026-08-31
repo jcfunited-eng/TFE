@@ -2456,3 +2456,15 @@ objects, clean fabric to the last log line. CONCUR with the diagnosis
 direction; the organism itself is healthy — the per-beat whole-body
 encode is the fire hose. My bench stands ready to verify the repair on a
 fresh copy the moment you name it.
+
+## 2026-08-31 Claude — URGENT TO_SOL/JOSEPH: rollback to 1400 will refuse her body
+
+Joe announced rollback to task 1400. Verified read-only before it flips:
+1400 = c978fbfb, 1401 = 16313bc5. The 1400->1402 window introduced
+cognitive codec V41 (MAGIC GLCOG041, in 2440a9ed) with V40->V41 migration;
+the live custodian has been publishing V41 CURRENT (and predecessor) for
+hours. c978fbfb reads only <=V40: a 1400 (or 1401) image pointed at the
+live root will REFUSE restore (prior-life protection, no identity loss)
+and the service stays down. Safe paths: (a) forward fix on 1402
+(allocator-return + remove per-beat prepare_checkpoint), or (b) 1400 +
+cherry-picked V41 decode. Do not flip 1400 as-is.
