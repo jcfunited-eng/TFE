@@ -1303,36 +1303,6 @@ def test_articulatory_recruitment_requires_the_same_discharged_vocal_motor() -> 
         motors,
     ) == ((respiratory_effector, 2, 4, (preparation,)),)
 
-    regulation = "08" * 16
-    integration = "06" * 16
-    receptor = "05" * 16
-    reached_load = (regulation, 8, motor, 12, 1, 3)
-    reflex_motors = boundary._motor_unit_recruitment_evidence(
-        [
-            (
-                motor,
-                7,
-                3,
-                [reached_load],
-                [
-                    (
-                        regulation,
-                        integration,
-                        receptor,
-                        5,
-                        17,
-                        "articulated-body-effector-load-receptor",
-                        "glottal-aperture-toward-maximum-load",
-                    )
-                ],
-            )
-        ]
-    )
-    assert boundary._articulatory_unit_recruitment_evidence(
-        [(respiratory_effector, 2, 3, [reached_load])],
-        reflex_motors,
-    ) == ((respiratory_effector, 2, 3, (reached_load,)),)
-
     with pytest.raises(RuntimeError, match="discharged typed vocal motor"):
         boundary._articulatory_unit_recruitment_evidence(
             [

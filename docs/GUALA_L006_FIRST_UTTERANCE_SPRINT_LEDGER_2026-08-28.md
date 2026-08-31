@@ -911,11 +911,9 @@ timer, second scheduler, or retained speech program.
   articulation section therefore remains `available=false`; native-pressure
   and amplified-playback controls correctly remain disabled. This is not a
   UI failure and it is not accepted as a live utterance. The live closure bar
-  remains one naturally reached exact physical preparation of the closing
-  glottal layer-12 motor, its own discharge, vocal-body pressure,
-  byte-identical self-hearing in the same resident identity, and later
-  unattended advancement. A layer-11 learned route is required for learned
-  speech, not for the organism's first prelinguistic phonation.
+  remains one naturally reached exact layer-11 -> typed vocal layer-12
+  preparation, the causing motor discharge, vocal-body pressure, byte-identical
+  self-hearing in the same resident identity, and later unattended advancement.
 - Read-only observation command failure retained: one `curl | python` command
   used a Python heredoc, which consumed standard input and produced no JSON.
   It changed no state and supplied no evidence. The corrected command used
@@ -942,42 +940,3 @@ timer, second scheduler, or retained speech program.
   no currently retained learned ordering-to-vocal-motor route. Pressure,
   self-hearing, browser playback, and the V40 body marker are not the first
   failed boundary.
-
-## 2026-08-31 prelinguistic glottal/respiratory correction in progress
-
-- Screenshot interpretation correction: the supplied live-page image was
-  evidence only that current articulation/self-hearing reported `not_mounted`;
-  Joseph did not present it as a recognition claim. Recognition and
-  articulation remain separate evidence questions.
-- Attempt 17 rejected the already-recorded shortcut “any vocal motor is
-  breath.” The copied body’s learned vocal motors were tract-shape terminals,
-  not glottal or respiratory authority. Jaw, lip, tract, limb, observer state,
-  and coincident activity remain unable to recruit the respiratory body.
-- Source review then exposed the circular production boundary: V40 required a
-  learned layer-11 speech preparation before the first native breath/pressure,
-  although prelinguistic self-hearing is itself required to develop speech.
-  The active correction permits only an actually prepared and actually
-  discharged `glottal_aperture/toward_minimum` motor to co-recruit the resident
-  respiratory effector. Layer 13 still settles its own carriers and recovery
-  work; no pressure, waveform, sound, word, or meaning is scripted.
-- The same review found an evidence-only truth defect: Rust admitted both
-  exact layer-11 learned preparation and the terminal-paired reached layer-8
-  load reflex, but projected both to Python as layer 11. The candidate retains
-  the true sender layer beside every transient preparation, and Python accepts
-  layer 8 only when that lineage is the motor’s own mounted body-regulation
-  ancestry. This report correction has no cognition authority.
-- Tool-attempt history: one focused Python invocation omitted repository
-  `PYTHONPATH` and supplied no result; its corrected fully qualified invocation
-  passed. A root-level `cargo fmt` correctly refused because the repository
-  root is not a Cargo crate. The follow-up crate-wide formatter touched
-  unrelated Rust formatting; that complete mechanical diff was reversed
-  before commit, and the four intended files were reapplied. Neither event
-  touched production or organism state.
-- A later combined verification command invoked Cargo from the repository root
-  rather than `native/guala_core`; Cargo found no manifest, changed nothing,
-  and supplied no evidence. The corrected crate-scoped command compiled and
-  ran exactly one named Rust falsifier successfully. This invocation error is
-  retained so it is not mistaken for a substrate failure or repeated.
-- Current status: Rust compiles; the exact glottal-closing rule and Python
-  layer-8/layer-11 bridge proof pass. This is not yet a copied-current-body
-  pressure proof, commit, deployment, utterance, or L-006 closure.

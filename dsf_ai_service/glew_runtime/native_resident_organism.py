@@ -943,16 +943,6 @@ def _motor_unit_recruitment_evidence(
         if not isinstance(raw[3], list) or not raw[3]:
             raise RuntimeError("motor-unit preparation transfers changed format")
         preparation_transfers = []
-        body_regulation_lineages: set[str] = set()
-        if not isinstance(raw[4], list) or not raw[4]:
-            raise RuntimeError("motor-unit body afferent paths changed format")
-        for path in raw[4]:
-            if isinstance(path, tuple) and len(path) == 7:
-                body_regulation_lineages.add(
-                    _canonical_lineage_hex(
-                        path[0], "motor body-regulation lineage"
-                    )
-                )
         for transfer in raw[3]:
             if not isinstance(transfer, tuple) or len(transfer) != 6:
                 raise RuntimeError("motor-unit preparation transfer changed format")
@@ -974,7 +964,7 @@ def _motor_unit_recruitment_evidence(
             transferred_whole_carriers = _positive_integer(
                 transfer[5], "motor preparation transferred whole carriers"
             )
-            learned_ordering = (
+            if sender == receiver or not (
                 (
                     sender == lineage
                     and sender_layer == 12
@@ -985,17 +975,9 @@ def _motor_unit_recruitment_evidence(
                     and receiver_layer == 12
                     and sender_layer == 11
                 )
-            )
-            reached_load_reflex = (
-                receiver == lineage
-                and receiver_layer == 12
-                and sender_layer == 8
-                and sender in body_regulation_lineages
-            )
-            if sender == receiver or not (learned_ordering or reached_load_reflex):
+            ):
                 raise RuntimeError(
-                    "motor-unit preparation is neither an exact layer 11 ordering "
-                    "arrival nor its mounted layer 8 reached-load reflex"
+                    "motor-unit preparation is not an exact layer 11/layer 12 contact transfer"
                 )
             preparation_transfers.append(
                 (
@@ -1186,15 +1168,14 @@ def _articulatory_unit_recruitment_evidence(
             causing_motor = motor_by_lineage.get(receiver)
             if (
                 sender == receiver
+                or sender_layer != 11
                 or receiver_layer != 12
                 or causing_motor is None
                 or canonical_transfer not in causing_motor[3]
-                or sender_layer not in (8, 11)
             ):
                 raise RuntimeError(
-                    "articulatory-unit preparation is not an exact layer 8 "
-                    "reached-load or layer 11 learned arrival into the same "
-                    "discharged typed vocal motor"
+                    "articulatory-unit preparation is not an exact layer "
+                    "11/layer 12 transfer into a discharged typed vocal motor"
                 )
             preparation_transfers.append(canonical_transfer)
             causing_motor_lineages.add(receiver)

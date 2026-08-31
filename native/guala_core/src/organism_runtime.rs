@@ -2061,10 +2061,9 @@ impl NativeResidentOrganismPrepare {
     }
 
     /// Transient native layer-13 efferent events. Each event is projected
-    /// with the exact contact arrivals into the closing-glottis layer-12 motor
-    /// whose actual discharge co-recruited the resident vocal body; the true
-    /// layer-8 reflex or layer-11 learned source is retained without a label,
-    /// phoneme, word, or stored program.
+    /// only with the exact layer-11 to typed layer-12 motor transfers whose
+    /// actual motor discharge co-recruited the resident vocal body; no label,
+    /// phoneme, word, or stored program is introduced.
     #[getter]
     fn articulatory_unit_recruitments(
         &self,
@@ -7707,13 +7706,18 @@ fn project_motor_unit_recruitments(
                 event
                     .preparation_transfers
                     .iter()
-                    .zip(event.preparation_sender_layers.iter())
-                    .map(|(transfer, sender_layer)| {
+                    .map(|transfer| {
+                        let (sender_layer, receiver_layer) =
+                            if transfer.sender == event.neuron_lineage {
+                                (12, 11)
+                            } else {
+                                (11, 12)
+                            };
                         (
                             hex_bytes(&transfer.sender),
-                            *sender_layer,
+                            sender_layer,
                             hex_bytes(&transfer.receiver),
-                            12,
+                            receiver_layer,
                             transfer.bond.parallel_ordinal(),
                             transfer.transferred_whole_carriers,
                         )
@@ -7797,11 +7801,10 @@ fn project_articulatory_unit_recruitments(
                 event
                     .preparation_transfers
                     .iter()
-                    .zip(event.preparation_sender_layers.iter())
-                    .map(|(transfer, sender_layer)| {
+                    .map(|transfer| {
                         (
                             hex_bytes(&transfer.sender),
-                            *sender_layer,
+                            11,
                             hex_bytes(&transfer.receiver),
                             12,
                             transfer.bond.parallel_ordinal(),
@@ -8344,7 +8347,6 @@ mod tests {
             body_effector_terminal: terminal,
             body_afferent_paths: paths,
             preparation_transfers: Vec::new(),
-            preparation_sender_layers: Vec::new(),
         };
 
         let predecessor = ArticulatedBodyState::at_neutral();

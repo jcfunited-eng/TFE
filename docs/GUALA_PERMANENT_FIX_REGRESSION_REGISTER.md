@@ -242,7 +242,7 @@ architecture authority.
 |---|---|
 | No passive vocal hub | Current cognition has zero contacts incident to layer 13; any layer-11 -> 13 or layer-12 -> 13 contact is refused. |
 | Exact anatomical identity | One persisted resident lineage names the vocal-body effector; migration derives it only from the predecessor's validated unique target. |
-| No motor coincidence | Layer 13 can discharge only after the exact glottal-closing layer-12 motor is physically prepared by either its own reached-load regulation or learned layer-11 ordering, and that motor emits its own carriers. Jaw, lip, tract, limb, glottal opening, and unprepared coincidence remain insufficient. |
+| No motor coincidence | Layer 13 can discharge only after an exact same-interval layer-11 -> typed vocal layer-12 transfer and that motor's own discharge. |
 | Bounded physical output | Vocal-body output is positive and cannot exceed the causing motor output; carriers and work come from its own neuron and reservoir. |
 | Same-organism return | Pressure survives seal/restart and returns through ordinary cochlear ingress to the same identity. |
 | No resurrection | Ordinary growth cannot author a layer-13 contact, the V39 route author is deleted, and a second V40 migration is byte-identical. |
@@ -262,31 +262,7 @@ disabled.
 
 Current-body diagnostic at tick `352577`: zero layer-11 -> layer-12 contacts,
 zero contacts incident to layer 13, and zero motor recruitments under a
-maximal external-receptor frontier. Later source reconciliation rejected the
-conclusion that first phonation must wait for the absent learned route: doing
-so requires learned speech before the self-heard babble from which speech can
-develop. The retained `apple` formation at recurrent lineage `...055a` remains
-protected, but it is not made a prerequisite for prelinguistic breath.
-
-### R-009 attempt 18 — prelinguistic glottal/respiratory boundary
-
-- The task-1400 circular rule is reproduced in source: the resident layer-13
-  respiratory body could discharge only after an exact learned layer-11
-  arrival into a vocal motor. That blocks the first unscripted phonation and
-  self-hearing needed before a learned speech route exists.
-- Rejected again: any vocal motor recruits breath. Only an actually prepared,
-  actually discharged `glottal_aperture/toward_minimum` motor may co-recruit
-  the one resident respiratory effector. Glottal opening, jaw, lip, tract,
-  limb, observer state, labels, pressure fixtures, and coincidence remain
-  insufficient. Layer 13 still supplies and settles its own carriers and work.
-- Observation-truth defect found in the same boundary: Rust accepted either an
-  exact layer-8 reached-load arrival or a layer-11 learned arrival but projected
-  both to Python as layer 11. The candidate carries each sender's true layer;
-  Python accepts layer 8 only when it is the discharged motor's own mounted
-  body-regulation ancestor. This evidence correction has no cognition authority.
-- Focused source evidence: native compilation passed; exactly one Rust
-  glottal-boundary falsifier passed; exactly one Python evidence-join falsifier
-  passed. A Cargo command first ran from the non-crate repository root and
-  supplied no result; the corrected native-crate invocation supplied the
-  accepted result. Production remains task 1400 until copied-body/live proof
-  and cutover.
+maximal external-receptor frontier. The next repair may not alter pressure,
+self-hearing, playback, or restore an electrical layer-13 bridge; it must begin
+at the absent learned ordering-to-vocal-motor route and preserve the retained
+`apple` formation at recurrent lineage `...055a`.
