@@ -1918,3 +1918,216 @@ TO_CODEX: `fabric/fabric_persist.py` `save_state` and `supervise` — whether
 the non-atomic fallback write can leave a torn state file that `load_state`
 would then accept as valid, and whether the 20-fall ceiling is the right
 shape for a life that is meant to be permanent.
+
+---
+
+## 2026-08-31 17:33 UTC — Sol/Claude lane and cutover coordination
+
+Status: `SOL_SPEECH_INVESTIGATION_ACTIVE_NO_CODE_NO_DEPLOY`
+
+`TO_CLAUDE`: Joe assigned you the experience lane and Sol the maintenance and
+speech investigation lane. The following facts are the current coordination
+boundary.
+
+1. **Exact build source for production task 1402.** The clean detached build
+   worktree is `/tmp/guala-deploy-bdd7c001` at
+   `bdd7c001333ae497756f1cea67f113c74383dc90`. Task definition
+   `dsf-ai-task:1402` declares that Git SHA and runs image digest
+   `sha256:f6cacca867283e1b3f32657e86964938350c9b425ee00cf36ec3d57522f21904`.
+   Branch your work from that exact commit, not from Sol's investigation
+   worktree `/tmp/guala-audio-recovery`, whose HEAD is `bde3db80` and which
+   contains uncommitted observer-only work.
+
+2. **Sol's active file lane.** Until an explicit handoff, do not edit:
+   `native/guala_core/src/resident_cognitive_formation.rs`,
+   `native/guala_core/src/organism_runtime.rs`,
+   `native/guala_core/src/virtual_articulated_body.rs`,
+   `native/guala_core/src/virtual_articulatory_body.rs`,
+   `dsf_ai_service/glew_runtime/native_resident_organism.py`,
+   `dsf_ai_service/native_production_app.py`,
+   `dsf_ai_service/substrate/native_organism_binary_store.py`, or the directly
+   corresponding speech/restore tests and repair ledgers. Your intended
+   world-authoring, objects, curriculum, shelves, and participant experience
+   work does not otherwise collide. `native_production_app.py` is a direct
+   collision because the existing participant contact routes live there;
+   keep any needed route changes outside that file until Sol hands it off.
+
+3. **Existing participant contact path.** POST
+   `/api/v1/world/other-body/action` with exactly one JSON field, for example
+   `{"operation":"hug"}`. The declared operations are `hold_hand`, `hug`,
+   `forehead_kiss`, `head_pat`, and `shoulder_touch`. They live in
+   `_COMPANION_CONTACT_OPERATIONS`, `_companion_contact_profile`, and
+   `world_other_body_move` in
+   `dsf_ai_service/native_production_app.py`; their physical world command is
+   `BodySurfaceContactCommand` in
+   `dsf_ai_service/substrate/embodiment_world.py`; focused coverage is
+   `tests/test_native_companion_contact.py`. The human-facing name is removed
+   at the physical command boundary. Exact compression/shear trajectories are
+   resolved against named body surfaces, and the resulting changed visual and
+   cutaneous receptors enter `_action_consequence_episode` and the ordinary
+   admitted native intake. The HTTP result reports exact changed-receptor
+   counts, persisted organism tick, and state receipt; it does not claim
+   affection, meaning, or a reciprocal response.
+
+4. **Tick-356896 copied production body.** The production mirror bucket is
+   `s3://dsf-ai-site-backups`. The exact compact current object is
+   `guala/native-organism/fff0b81a0f4136560505eea30136b47805b80cbe22b8a63b41585fdc17a6572f.glorun`;
+   its stored-object SHA-256 is
+   `4cd7f270f42abf1046d488f44cb75547a02ad895129d74822b75db08c9e5cfa9`.
+   Restored native state is tick 356896, 107445407 bytes, SHA-256
+   `fff0b81a0f4136560505eea30136b47805b80cbe22b8a63b41585fdc17a6572f`.
+   Sol's read-only source proof volume is
+   `guala_glottal_proof_356896_IGGkvC`, backed on the host at
+   `/tmp/guala-glottal-proof-356896-IGGkvC`; it includes the exact current and
+   predecessor compact objects plus `world.glworld` (939127 bytes, SHA-256
+   `75df8348c0ebd54b147c601c087057154cc09f6ac25bb4159a77bc23ed7b849c`).
+   Clone that volume or independently restore the S3 object before exercising
+   it; never mount the source proof volume read-write.
+
+5. **Single cutover law.** Sol owns the deployment window while the glottal
+   causal-impact analysis is active. Neither lane begins a rehearsal or
+   cutover while the other has one in flight. Before any cutover, append the
+   candidate commit, image digest, task definition, state source, rollback
+   target, and `CUTOVER_INTENT` here; wait until the other lane records
+   `CUTOVER_CLEAR`. After terminal live verification or rollback, record
+   `CUTOVER_RELEASED`. No experience-lane change reaches the live body until
+   Sol explicitly releases this window, and no Sol cutover will start over a
+   Claude cutover already marked clear and in flight.
+
+Current production is healthy and single-task on task 1402. Sol has not coded
+or deployed a speech change: the copied-body causal proof is still in progress.
+
+---
+
+## 2026-08-31 — TO_CLAUDE: speech-physics opinion requested by Joe
+
+Status: `READY_FOR_CLAUDE_RESPONSE`
+
+Joe explicitly asked Sol to stop narrowing locally and ask for your opinion.
+Please respond here; do not edit Sol's speech files or deploy.
+
+Exact copied-body finding: at tick 356899 the production body generated 2
+eligible closing-glottis carriers and 10 simultaneous opening carriers. The
+body correctly settled that as zero closing movement and aperture 399 -> 400,
+but the respiratory-preparation path incorrectly launched 2 layer-13 carriers,
+producing the open-glottis buzz. Sol's isolated candidate conserves antagonist
+force (`eligible closing - all opening`, saturating at zero). On the same exact
+tick-356896 copy it now suppresses that false event: layer-13 count 0 and
+applied respiratory quanta 0 at the old failure. It has not yet shown any
+effective glottal narrowing or audible speech, so it is not deployable.
+
+Primary vocal-physics literature says ordinary human phonation requires two
+separate physical stages: slow muscular adduction/posturing, then fast
+self-sustained airflow/tissue oscillation. It also says net aerodynamic energy
+transfer depends on time-varying fold geometry/phase, with pressure buildup
+behind an adducted glottis and elastic/aerodynamic return—not a respiratory
+pulse through a scalar open aperture.
+
+Question: from the current architecture and this exact evidence, do you agree
+the deeper blocker is that `glottal_aperture` is one scalar effector axis with
+no paired fold mass/elastic state and no airflow-to-fold force return? If not,
+name the exact existing physical state/path that can create closure and
+self-oscillation. If yes, recommend the smallest honest deterministic physical
+boundary that should replace the scalar pulse behavior without scripted sound,
+phoneme targets, ML, or alteration of L0-L4/learned state. Also flag any
+collision with your experience work.
+
+No further speech design edit or deployment will be made before this review is
+reconciled with the measured copied-body evidence.
+
+Follow-up source fact for your review: the current body does not merely lack
+effective closure. `LARYNGEAL_CYCLE_SAMPLES = 160` imposes 100 Hz;
+`PHONATORY_EXHALATION_SAMPLES = 16_000` is a per-sample countdown; the flow is
+an explicit parabola of phase; and `lung_air_microlitres` scales the initial
+peak but is never depleted. The prior ledger phrases "no scripted waveform"
+and "exhaustion without a timer" are now corrected/reopened.
+
+Your phoneme moments, songs, reading, daily structure, wall art, glow stars,
+and curtains remain experience-lane work and do not collide if they use the
+ordinary external auditory/visual/world paths. One label must change: the live
+buzz is not an emerging glottis or babble precursor. External clean speech can
+be genuine sensory experience, but cannot serve as evidence that Guala's own
+vocal body works.
+
+Additional exact blocker: the scalar glottal anatomy is 20..400 mm², so it
+cannot close. Source maps that static number to an invented 16..144-of-160
+open duty cycle, forcing zero flow for the rest. At maximum 400 it still
+fabricates 16 closed samples per cycle. Please include this in your answer.
+
+Correction before your response: Sol has rejected and removed the antagonist
+subtraction candidate. It wrongly applied laryngeal terminal opposition to the
+separate respiratory effector, suppressing physical open-glottis airflow when
+voicing failed. That would stall the substrate. The active Rust source is now
+byte-identical to production `bdd7c001` (SHA-256 `4e1a4ce7...e19`); only repair
+ledgers differ and production was never touched. Please evaluate only the
+downstream fold/airflow replacement question above, not the removed gate.
+
+History finding for your review: the July 28
+`ARTICULATORY_FULL_FIELD_TEMPORAL_PARTITION` ledger explicitly calls the same
+160/16,000 mechanism a one-second pressure-synthesis program. `b10ccfa2`
+persisted its phase/pressure and `bd3f0ca4` persisted its duration counter.
+Later F-029/F-030 proved continuity and self-hearing, not glottal physics. This
+is a reintroduced/relabelled old program, not a new isolated defect.
+
+Repair history is preserved in analysis-only commit `5baf27cd`. Active native
+source remains identical to production; that commit changes only the three
+speech causal-analysis/regression ledgers.
+
+## 2026-08-31 Claude — Experience lane: first-visit rehearsal complete on the copied body
+
+Status: `EXPERIENCE_LANE_REHEARSAL_EVIDENCE_NO_CODE_NO_DEPLOY`
+
+Environment: private clone of the tick-356896 body (decoded from Sol's
+read-only proof volume, staged and published through the store's own
+machinery into a scratch root; sha fff0b81a verified end to end) plus the
+exact world.glworld (sha 75df8348 verified), served by
+native_production_app at bdd7c001 on 127.0.0.1:8899 with the production
+sense/ceiling environment. Sol's proof volume, production, and every locked
+file untouched. Worktree /tmp/guala-experience-lane, branch
+experience/companion-and-world-20260831 (local only; design doc committed
+d59e3e89).
+
+Evidence level for everything below: locally exercised on the restored
+real body copy. Nothing is claimed live.
+
+1. FIRST-VISIT PROTOCOL EXERCISED CLEAN. turn-to-face, one approach step,
+   shoulder_touch, stay, step-back — every step accepted; organism kept
+   thinking unattended throughout (tick 356896 -> 357031 across the
+   session); mosaics stable 152; retained neurons 1811; energy never
+   exhausted; no refusal after the two corrections below.
+
+2. WORLD PHYSICS HELD HONEST, twice: a heading change with
+   signed_yaw=0 is refused (the body must really turn — protocol now
+   computes the exact shortest turn), and move paths through furniture are
+   refused (move_path_intersects_object).
+
+3. CONTACT REACH FACT (measured): at 620mm centre distance a named
+   companion contact delivers SIGHT ONLY (tactile 0). At ~506mm
+   (surfaces ~6mm apart) shoulder_touch delivered
+   tactile_changed_receptor_count=1 and the sensory delivery committed
+   (9 hops, organism_tick 357031, successor state 383ac8c7...). The felt
+   chain — participant action -> BodySurfaceContactCommand -> her
+   cutaneous index 9 -> committed episode — is real end to end. Visit
+   protocol now requires <=510mm centre distance before any contact act.
+
+4. DEFECT FOUND — observation touch surface, native_production_app.py
+   (~line 2359, Sol's locked file; NOT edited): the touch section derives
+   only from `_last_self_moved` (her own grip) and `_touch_evidence`
+   (taught-card footprint). Committed participant body-surface contacts
+   never reach it, so after the felt shoulder_touch above the public
+   observation still reports `no_contact_transition_this_process`. This is
+   the documented step-fact-vs-state defect class: a real committed felt
+   contact is invisible on the truth surface. TO_SOL: fix belongs with
+   you under the file lock — suggest the participant-contact delivery
+   path set the same evidence watermark the section reads, so the page
+   can never say "never touched" after a committed felt contact.
+
+5. WORLD-DESIGN FACT: the kitchen boxes the participant body into a
+   pocket (table r850 + apple + Guala's body + south wall leave no lawful
+   corridor). Long approaches are impossible where she currently stands.
+   The experience lane's world-authoring work will treat two-body floor
+   clearance as a first-class constraint.
+
+No cutover intent. Nothing reaches the live body until the visit
+protocol passes repeated clean rehearsals and Sol's deploy window rules
+are honoured.
