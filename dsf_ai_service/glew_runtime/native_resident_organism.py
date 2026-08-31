@@ -1095,6 +1095,16 @@ def _root_translation_unit_recruitment_evidence(
 
 def _articulatory_unit_recruitment_evidence(
     value: object,
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ],
 ) -> tuple[
     tuple[
         str,
@@ -1106,6 +1116,11 @@ def _articulatory_unit_recruitment_evidence(
 ]:
     if not isinstance(value, list):
         raise RuntimeError("articulatory-unit recruitments changed format")
+    motor_by_lineage = {
+        recruitment[0]: recruitment for recruitment in motor_unit_recruitments
+    }
+    if len(motor_by_lineage) != len(motor_unit_recruitments):
+        raise RuntimeError("motor-unit recruitment repeated a lineage")
     observed = []
     for raw in value:
         if not isinstance(raw, tuple) or len(raw) != 4:
@@ -1120,6 +1135,7 @@ def _articulatory_unit_recruitment_evidence(
         if not isinstance(raw[3], list) or not raw[3]:
             raise RuntimeError("articulatory-unit preparation transfers changed format")
         preparation_transfers = []
+        causing_motor_lineages: set[str] = set()
         for transfer in raw[3]:
             if not isinstance(transfer, tuple) or len(transfer) != 6:
                 raise RuntimeError("articulatory-unit preparation transfer changed format")
@@ -1141,27 +1157,35 @@ def _articulatory_unit_recruitment_evidence(
             transferred_whole_carriers = _positive_integer(
                 transfer[5], "articulatory preparation transferred whole carriers"
             )
-            if sender == receiver or not (
-                sender == lineage
-                and sender_layer == 13
-                and receiver_layer == 11
-                or receiver == lineage
-                and receiver_layer == 13
-                and sender_layer == 11
+            canonical_transfer = (
+                sender,
+                sender_layer,
+                receiver,
+                receiver_layer,
+                parallel_ordinal,
+                transferred_whole_carriers,
+            )
+            causing_motor = motor_by_lineage.get(receiver)
+            if (
+                sender == receiver
+                or sender_layer != 11
+                or receiver_layer != 12
+                or causing_motor is None
+                or canonical_transfer not in causing_motor[3]
             ):
                 raise RuntimeError(
                     "articulatory-unit preparation is not an exact layer "
-                    "11/layer 13 contact transfer"
+                    "11/layer 12 transfer into a discharged typed vocal motor"
                 )
-            preparation_transfers.append(
-                (
-                    sender,
-                    sender_layer,
-                    receiver,
-                    receiver_layer,
-                    parallel_ordinal,
-                    transferred_whole_carriers,
-                )
+            preparation_transfers.append(canonical_transfer)
+            causing_motor_lineages.add(receiver)
+        available_motor_carriers = sum(
+            motor_by_lineage[motor_lineage][2]
+            for motor_lineage in causing_motor_lineages
+        )
+        if outward_elementary_carriers > available_motor_carriers:
+            raise RuntimeError(
+                "articulatory-unit discharge exceeds its causing vocal motor discharge"
             )
         observed.append(
             (
@@ -1371,6 +1395,11 @@ def _causal_interval_evidence(
                 "causal thought transition left its destination formation cue"
             )
         predecessor_tick = predecessor_organism_tick + index
+        motor_unit_recruitments = _motor_unit_recruitment_evidence(raw_motors)
+        articulatory_unit_recruitments = _articulatory_unit_recruitment_evidence(
+            raw_articulatory,
+            motor_unit_recruitments,
+        )
         intervals.append(
             ResidentCausalIntervalEvidence(
                 predecessor_organism_tick=predecessor_tick,
@@ -1385,7 +1414,7 @@ def _causal_interval_evidence(
                         raw_external_frontiers
                     )
                 ),
-                motor_unit_recruitments=_motor_unit_recruitment_evidence(raw_motors),
+                motor_unit_recruitments=motor_unit_recruitments,
                 root_yaw_unit_recruitments=(
                     _root_yaw_unit_recruitment_evidence(raw_root_yaw)
                 ),
@@ -1395,7 +1424,7 @@ def _causal_interval_evidence(
                     )
                 ),
                 articulatory_unit_recruitments=(
-                    _articulatory_unit_recruitment_evidence(raw_articulatory)
+                    articulatory_unit_recruitments
                 ),
                 articulatory_pressure_pcm=articulatory_pressure,
                 articulatory_body_trajectories=(
@@ -3616,7 +3645,8 @@ class NativeResidentOrganism:
         )
         articulatory_unit_recruitments = (
             _articulatory_unit_recruitment_evidence(
-                raw_articulatory_recruitments
+                raw_articulatory_recruitments,
+                tuple(motor_unit_recruitments),
             )
         )
         # A mounted joint cohort exists only where at least two ports share

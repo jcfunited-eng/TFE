@@ -1291,6 +1291,49 @@ def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> N
         boundary._causal_interval_evidence([tuple(range(12))], 41)
 
 
+def test_articulatory_recruitment_requires_the_same_discharged_vocal_motor() -> None:
+    ordering = "11" * 16
+    motor = "12" * 16
+    respiratory_effector = "13" * 16
+    preparation = (ordering, 11, motor, 12, 0, 4)
+    motors = ((motor, 7, 4, (preparation,), ()),)
+
+    assert boundary._articulatory_unit_recruitment_evidence(
+        [(respiratory_effector, 2, 4, [preparation])],
+        motors,
+    ) == ((respiratory_effector, 2, 4, (preparation,)),)
+
+    with pytest.raises(RuntimeError, match="discharged typed vocal motor"):
+        boundary._articulatory_unit_recruitment_evidence(
+            [
+                (
+                    respiratory_effector,
+                    2,
+                    4,
+                    [(ordering, 11, "22" * 16, 12, 0, 4)],
+                )
+            ],
+            motors,
+        )
+    with pytest.raises(RuntimeError, match="discharged typed vocal motor"):
+        boundary._articulatory_unit_recruitment_evidence(
+            [
+                (
+                    respiratory_effector,
+                    2,
+                    4,
+                    [(ordering, 11, respiratory_effector, 13, 0, 4)],
+                )
+            ],
+            motors,
+        )
+    with pytest.raises(RuntimeError, match="exceeds its causing"):
+        boundary._articulatory_unit_recruitment_evidence(
+            [(respiratory_effector, 2, 5, [preparation])],
+            motors,
+        )
+
+
 def test_internal_reassembly_refuses_the_retired_two_field_shape(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

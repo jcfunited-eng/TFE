@@ -2061,8 +2061,9 @@ impl NativeResidentOrganismPrepare {
     }
 
     /// Transient native layer-13 efferent events. Each event is projected
-    /// only with the exact direct layer-11 contact transfers that physically
-    /// prepared it; no label, phoneme, word, or stored program is introduced.
+    /// only with the exact layer-11 to typed layer-12 motor transfers whose
+    /// actual motor discharge co-recruited the resident vocal body; no label,
+    /// phoneme, word, or stored program is introduced.
     #[getter]
     fn articulatory_unit_recruitments(
         &self,
@@ -2083,17 +2084,11 @@ impl NativeResidentOrganismPrepare {
                         .preparation_transfers
                         .iter()
                         .map(|transfer| {
-                            let (sender_layer, receiver_layer) =
-                                if transfer.sender == event.neuron_lineage {
-                                    (13, 11)
-                                } else {
-                                    (11, 13)
-                                };
                             (
                                 hex_bytes(&transfer.sender),
-                                sender_layer,
+                                11,
                                 hex_bytes(&transfer.receiver),
-                                receiver_layer,
+                                12,
                                 transfer.bond.parallel_ordinal(),
                                 transfer.transferred_whole_carriers,
                             )
@@ -7807,17 +7802,11 @@ fn project_articulatory_unit_recruitments(
                     .preparation_transfers
                     .iter()
                     .map(|transfer| {
-                        let (sender_layer, receiver_layer) =
-                            if transfer.sender == event.neuron_lineage {
-                                (13, 11)
-                            } else {
-                                (11, 13)
-                            };
                         (
                             hex_bytes(&transfer.sender),
-                            sender_layer,
+                            11,
                             hex_bytes(&transfer.receiver),
-                            receiver_layer,
+                            12,
                             transfer.bond.parallel_ordinal(),
                             transfer.transferred_whole_carriers,
                         )

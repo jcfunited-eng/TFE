@@ -129,6 +129,43 @@ fixture alone. If it cannot be checked, the candidate remains open.
   vocal consequence also survived the following cold restore. Live production
   evidence remains required before R-009 or L-006 can close.
 
+- Task-1399 live recurrence, commit `9fd774385`: V39 hub retirement survived
+  cutover and cold custody (`12->13 = 0`), but eight real audiovisual windows
+  and one grounded world-voice occurrence produced neither an exact
+  `11->12` learned vocal route nor native pressure. The two playback controls
+  remained disabled because the current process had no native pressure bytes;
+  this is the visible consequence of R-009, not a separate control defect.
+  The page's `not_mounted` wording is observationally inaccurate and may be
+  corrected only to `mounted, no utterance observed`; it may never enable
+  playback, infer articulation, or alter cognition.
+- Diagnostic attempt 9: a copied-live-body reservoir probe produced no report
+  because `cargo test <short-name> -- --exact` did not match the test's fully
+  qualified name. The envelope remained intact and production was untouched.
+  Earliest deterministic check: require a nonempty report containing exactly
+  one record before interpreting any probe output; use the fully qualified
+  test name and never repeat the short exact filter.
+- Diagnostic attempt 10: the corrected probe at live tick `347243` found the
+  mature upstream route intact (62 exact layer-7/layer-8/layer-10 cells and
+  273 layer-7/layer-10/layer-11 ordering cells) but zero motor events and zero
+  `11->12`. Root cause: `mount_reached_ordering_reach` evaluated the exact
+  founding regulation-to-motor path only inside `newly_mounted`, permanently
+  excluding an existing ordering cell after V39 route retirement. Regression
+  condition: the same exact active founding bond must produce the same one
+  typed route on first use and after cold restore/route retirement; an inactive
+  or ambiguous bond must still produce none, and no `12->13` contact may exist.
+- Diagnostic attempt 11 repeated the short-name-plus-`--exact` Cargo error on
+  the first focused candidate proof and ran zero tests. It is explicitly not a
+  pass. Permanent command gate: obtain the fully qualified name from
+  `cargo test -- --list`, then require output containing `running 1 test` and
+  `1 passed`; a zero-test exit code is failure even when Cargo returns zero.
+- Candidate attempt 12 passed its exact one-test recurrence falsifier and the
+  mature copied production body restored two sparse `11->12` routes plus one
+  direct `11->13` route over 64 intervals, with `12->13 = 0`. It produced no
+  articulation or pressure. This closes only the existing-ordering lifecycle
+  omission; it is not deployable or an L-006 pass. The next diagnostic must
+  inspect the exact electrical state of those new route endpoints rather than
+  widening history, replaying more lessons, or restoring the old hub.
+
 ## Latest correction closure
 
 | ID | Status | Regression scope |
@@ -198,3 +235,19 @@ silently promoted here. Each older claim will be added only when its current
 source reachability and, where relevant, live production evidence have been
 rechecked. This prevents a stale historical `complete` label from becoming
 architecture authority.
+
+## R-009 motor-coupled vocal-body boundary — 2026-08-31
+
+| Requirement | Current regression bar |
+|---|---|
+| No passive vocal hub | Current cognition has zero contacts incident to layer 13; any layer-11 -> 13 or layer-12 -> 13 contact is refused. |
+| Exact anatomical identity | One persisted resident lineage names the vocal-body effector; migration derives it only from the predecessor's validated unique target. |
+| No motor coincidence | Layer 13 can discharge only after an exact same-interval layer-11 -> typed vocal layer-12 transfer and that motor's own discharge. |
+| Bounded physical output | Vocal-body output is positive and cannot exceed the causing motor output; carriers and work come from its own neuron and reservoir. |
+| Same-organism return | Pressure survives seal/restart and returns through ordinary cochlear ingress to the same identity. |
+| No resurrection | Ordinary growth cannot author a layer-13 contact, the V39 route author is deleted, and a second V40 migration is byte-identical. |
+
+Rejected attempts retained permanently: zero-test short-name `--exact` runs;
+assuming one layer-13 cell when three exist; treating any vocal-tract motor as
+breath; trusting transfers absent from the same interval's motor recruitment;
+and using a passive bidirectional contact as vocal-body actuation authority.

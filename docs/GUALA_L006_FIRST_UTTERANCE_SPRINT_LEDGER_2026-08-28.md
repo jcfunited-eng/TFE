@@ -778,3 +778,112 @@ timer, second scheduler, or retained speech program.
   migration with no layer-12/layer-13 hub after restart, one actual live learned
   utterance and exact self-hearing consequence, continued unattended ticks,
   and bounded CPU, RAM, state bytes, contacts, and calls.
+
+## 2026-08-31 task-1399 live recurrence and current diagnostic
+
+- Commit `9fd774385b2309e947c41a256c384a6eb4f5e1b5` is live as the sole healthy
+  production task `dsf-ai-task:1399`. V39 migrated the same resident identity
+  without restoring the rejected shared vocal hub. Exact cold inspection of
+  the custodied live body at ticks `347072` through `347243` found
+  `layer-12 -> layer-13 = 0` after restart. This keeps the hub-removal
+  predecessor closed; it does not close R-009 or L-006.
+- Live camera and microphone ingress committed eight bounded audiovisual
+  batches (32 camera frames, four synchronized 250 ms pressure hops per
+  batch). A grounded world-voice occurrence also reached 307 changing input
+  coordinates and physically transitioned 14,201 neurons. Unattended thought
+  and body actions continued, but production formed no `layer-11 -> layer-12`
+  learned vocal route, no parallel `layer-11 -> layer-13` route, and emitted
+  no native pressure. The public page therefore truthfully disables `Native
+  pressure bytes` and `Amplified playback`; its `not_mounted` caption is an
+  inaccurate label for `mounted, no utterance observed in this process` and
+  must not be interpreted as a second defect or used to infer organism state.
+- This live evidence rejects waiting, repeating a lesson, restoring the hub,
+  or treating the disabled controls as a UI-only repair. The local simple-case
+  proof is insufficient for the mature production body. The first live causal
+  failure remains the absence of the sparse learned vocal route after rich
+  real sensory/body activity.
+- Read-only diagnostic attempt 1 used the exact copied live envelope and
+  invoked `reservoir_probe_dump` with the short filter plus Cargo's `--exact`
+  flag. Cargo matched no fully qualified test, so no `report.json` was
+  produced. Production was untouched. The correction is to invoke the exact
+  fully qualified test name once; repeating the short exact filter is
+  prohibited.
+- The corrected probe then succeeded at exact live tick `347243`: 293 external
+  receptors reached 1,330 changed neurons and produced zero motor events.
+  Static resident anatomy contains 62 layer-10 cells with both layer-7 and
+  layer-8 neighbours; all 62 reach layer 11, and 273 layer-11 cells retain
+  their founding layer-7/layer-10 routes. The missing boundary is therefore
+  not absent association, affective, or ordering tissue.
+- Source inspection found the exact recurrent-lifecycle defect in
+  `mount_reached_ordering_reach`: an exact active association/affective bond
+  resolved its founding body regulation and typed motor only when the matching
+  ordering cell was newly mounted. An already resident ordering cell whose
+  rejected route was removed by V39 could recur indefinitely but could never
+  regain the exact `11->12` motor route or the required parallel `11->13`
+  respiratory route. The correction is confined to applying the same exact
+  founding-route proof on both first use and recurrence. Ambiguous anatomy,
+  inactive bonds, non-vocal motors, old `12->13` hubs, labels, and observers
+  gain no authority.
+- Focused-proof command attempt 1 compiled the correction but repeated the
+  already-recorded short-name-plus-`--exact` mistake and therefore ran zero
+  tests. No result from that command is accepted. The fully qualified name was
+  resolved before retry as
+  `resident_cognitive_formation::tests::new_ordering_route_follows_one_exact_retained_body_motor`.
+- The fully qualified focused proof then ran exactly one test and passed. The
+  recurrent fixture removed an existing ordering cell's exact `11->12` and
+  `11->13` routes, replayed the same active founding bond, restored both once,
+  remained idempotent, and retained zero `12->13` hub contacts.
+- Copied-live-body attempt 9 restored exact task-1399 tick `347243` under the
+  candidate and advanced 64 bounded coexisting sensory/body intervals. V39
+  migration remained byte-idempotent. The mature body grew from `11->12 = 0,
+  11->13 = 0` to `11->12 = 2, 11->13 = 1` while `12->13` stayed zero. This
+  proves the recurrent-lifecycle correction reaches mature anatomy. It did not
+  yet emit: the final interval reported seven ordinary motor events, zero
+  articulatory recruitment and zero pressure. R-009/L-006 remain open at the
+  now-downstream learned-route electrical discharge boundary; the candidate is
+  not deployable until that first failure is resolved on the same copied body.
+
+## 2026-08-31 motor-coupled vocal-body correction
+
+- Diagnostic attempt 13 measured the two learned layer-12 terminals on the
+  copied production body as `vocal_tract_section_1_area/toward_minimum` and
+  `vocal_tract_section_3_area/toward_maximum`. Neither is a glottal or breath
+  terminal. The shortcut “any learned vocal motor is breath” was rejected.
+- Diagnostic attempt 14 corrected an earlier inference: the copied body has
+  three historical layer-13 neurons, and only lineage suffix `...0080` was the
+  unique V39 vocal-body target. Choosing an unmarked layer-13 cell would have
+  been ambiguous.
+- Tooling failures retained: the temporary terminal census first failed to
+  compile after a four-field tuple was read through a three-field pattern; its
+  JSON reader then assumed a list although the probe writes `{records: [...]}`.
+  A later Rust proof again used a short name with `--exact` and ran zero tests.
+  None is evidence. The temporary terminal field was removed from the probe.
+- Candidate attempt 15 made a real layer-13 recruitment, but Python refused it
+  because the transport boundary still demanded the rejected layer-11 ->
+  layer-13 transfer. The corrected boundary requires the same interval's exact
+  layer-11 -> typed layer-12 motor transfer, requires that transfer in the
+  motor's recruitment, and refuses vocal-body discharge greater than its
+  causing motor discharge. Its focused Python test ran one test and passed.
+- V40 retains the unique validated vocal-body lineage, removes every electrical
+  contact incident to layer 13, and refuses current encoding if one returns.
+
+- Ordinary growth no longer authors layer-13 contacts; the old route-authoring
+  migration was deleted.
+- Test invocation correction: a repeated short-name invocation combined with
+  Rust's `--exact` flag selected zero tests and is not evidence. The four
+  focused codec/anatomy checks were immediately rerun without `--exact`; three
+  passed and the V27 legacy fixture remains separately open.
+- Authoritative copied-production proof: `11->12 = 2`, `11->13 = 0`,
+  `12->13 = 0`; second migration byte-identical; 10 typed motor discharges;
+  one vocal-body discharge; 16 pressure samples, seven nonzero. Seal retained
+  32 pressure bytes and 128 body bytes. One cochlear return interval consumed
+  the same pressure hash, transitioned 1,507 neurons, and formed one neuronal
+  fractal. Production was untouched; live closure remains open.
+- Final-artifact repeat after the codec budget and absent-body corrections:
+  migration again produced `11->12 = 2`, `11->13 = 0`, `12->13 = 0`; the
+  second migration was byte-identical; the first hop emitted ten typed motor
+  discharges, one vocal-body discharge and 16 pressure samples with seven
+  nonzero. The exact pressure hash
+  `9546e910f90a8fd48e0f7de74ea4351a4b00946308263d9dc4390a26c59b8380`
+  re-entered hearing unchanged, transitioning 1,507 neurons. The final copied
+  physical intervals were 422 ms and 453 ms; production remains untouched.

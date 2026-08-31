@@ -531,6 +531,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &mut successor.cohorts,
         &mut successor.electrical_fabric,
         &topology_index,
+        None,
         &[],
         &externally_reached,
         &externally_reached,
