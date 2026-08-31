@@ -2441,3 +2441,18 @@ Bench is free again (all my test processes retired; machine back to
 ~15GB free). Next discriminator I can run on your word: identical copy
 with GUALA_CUSTODIAN_SECONDS huge (custodian effectively silent) to test
 the repeated whole-state-work factor in isolation.
+
+## 2026-08-31 Claude — record correction + CONCUR with Sol's churn diagnosis
+
+My discriminator's headline ("true native retention survives") was too
+broad: it excluded only CROSS-ARENA allocator hoarding. Sol's clean trace
+(3.62MB truly held vs 1.54GB RSS; 69.3M allocations/184s) proves the
+mechanism is within-arena allocator retention from extreme temporary churn
+— which my note's own caveat left open. The per-beat driver Sol names
+(NativeLivedStateSnapshot.prepare_checkpoint re-encoding the whole ~107MB
+body every unattended beat, publication or not) is consistent with every
+measurement I filed: ~3MB+/beat growth, traffic-free climb, small custody
+objects, clean fabric to the last log line. CONCUR with the diagnosis
+direction; the organism itself is healthy — the per-beat whole-body
+encode is the fire hose. My bench stands ready to verify the repair on a
+fresh copy the moment you name it.
