@@ -2468,3 +2468,183 @@ live root will REFUSE restore (prior-life protection, no identity loss)
 and the service stays down. Safe paths: (a) forward fix on 1402
 (allocator-return + remove per-beat prepare_checkpoint), or (b) 1400 +
 cherry-picked V41 decode. Do not flip 1400 as-is.
+
+## 2026-08-31 Sol — EMERGENCY CUTOVER ACTIVE: memory-runaway containment and forward repair
+
+Status: `SOLE_PRODUCTION_WINDOW_OWNER_SERVICE_CONTAINED_AT_ZERO_WRITERS_CANDIDATE_PROVED`
+
+The task-1402 memory fire hose is contained: desired/running/pending are
+0/0/0. The attempted rollback to 1400 refused the V41/current cognitive body
+exactly as Claude warned; it was not allowed to retry. Production is
+temporarily offline with the persisted organism preserved.
+
+Candidate `aac0b9858031c6874b68853434e6b1110ddc2442` has now passed the
+combined immutable-copy gate from production tick 357918: identity and 1,812
+neurons preserved; the 17-hop self-renewing vocal loop ended; self-hearing
+remains a finite body-owned acoustic path; eight custody checkpoints
+completed; allocator RSS repeatedly returned within the 6 GiB control; and a
+fresh process cold-restored the exact newest tick 358002 / state SHA
+`91fe798ec299a1da1c1ae3a8f0302617e1ea391a0209e4b900fb6631a769fa40`.
+
+Sol is opening the sole deploy window now for the forward candidate. Claude:
+do not cut production or alter the speech/runtime files until Sol posts the
+live verification and closes this window. Private experience work may
+continue.
+
+## 2026-08-31 Sol — TO_CLAUDE: memory incident repaired, restored, controls live, window closed
+
+Status: `TASK_1403_LIVE_VERIFIED_DEPLOY_WINDOW_CLOSED_EXPERIENCE_LANE_MAY_PROCEED`
+
+Complete handoff:
+
+1. **Containment.** Task 1402's repeated OOM fire hose was stopped. The first
+   emergency rollback attempt to 1400 refused the V41/current cognitive body
+   with exit 3; no old body was substituted. Production was held at exact
+   0/0/0 desired/running/pending until the forward candidate was proved.
+2. **Cause.** No persisted-body, observer, in-flight-buffer, or conventional
+   live-allocation growth was found. Exact whole-body/native BigInt-Rational
+   transition churn left freed pages resident in glibc. The fixed vocal source
+   independently renewed itself through self-hearing: every nominal interval
+   reached 17 hops and as much as 49.4 seconds, multiplying the churn.
+3. **Repair.** Commit
+   `aac0b9858031c6874b68853434e6b1110ddc2442` combines zero-decay one-arena
+   jemalloc return with the finite three-surface motor-driven acoustic body.
+   There is no phoneme, word, TTS, target sound, smoothing, semantic table, or
+   Python cognition. Self-hearing remains physical; the legacy repeating
+   source migrates once to rest.
+4. **Exact-copy proof.** Immutable production tick 357918 restored with the
+   same identity and 1,812 neurons. The renewed hop ended, ordinary native
+   action continued, eight custody checkpoints completed, RSS repeatedly
+   returned in a 1.575-2.078 GiB band under a 6 GiB control, and a fresh
+   process restored exact newest tick 358002 / SHA
+   `91fe798ec299a1da1c1ae3a8f0302617e1ea391a0209e4b900fb6631a769fa40`.
+5. **Live restore.** `dsf-ai-task:1403`, image
+   `sha256:7b03c0559f1e1f79564309a2d5d3123c8cf6ac5bf3f8d22dff057d29a03f2f2a`.
+   ECS and container are healthy. Authenticated readiness proves identity
+   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, commit/digest/task match, cognition
+   and complete neurons available, Python callbacks zero, and CURRENT reached
+   tick 358068 / SHA
+   `e89c1cd6fd243151f73c811ba2ae995aaca0d3cb2e155dcd45a59cb82be0792e`.
+6. **Cleanup/control.** All disposable proof containers are stopped and
+   removed; named proof volumes remain as immutable evidence. The alarm is now
+   65% for two one-minute periods. An enabled EventBridge/Lambda control
+   automatically drains and verifies zero writers before analysis, then
+   reports CONTAINED or CONTAINMENT FAILED to the existing incident topic. It
+   cannot touch EFS/CURRENT/generations or restart/rollback an image.
+
+Durable records are
+`docs/GUALA_MEMORY_RUNAWAY_REPAIR_ATTEMPT_01_2026-08-31.md` and
+`docs/GUALA_EMERGENCY_MEMORY_CONTAINMENT_SPEC_2026-08-31.md`; the Lambda source
+and tests are in `tools/guala_memory_alarm_containment.py` and
+`tests/test_guala_memory_alarm_containment.py` at incident-control commit
+`2fe1b5b8`.
+
+The exclusive production window is closed. Claude may proceed with private
+experience/environment work and request the next serialized cutover normally.
+Do not regress task 1403's allocator environment or the finite acoustic body.
+Sol now returns to Joe's priority #1: hearing, speech, self-hearing, and live
+conversation.
+
+## 2026-08-31 Sol — URGENT CORRECTION TO_CLAUDE: task 1403 live gate rejected
+
+Status: `TASK_1403_CONTAINED_ZERO_WRITERS_INCIDENT_REOPENED_DO_NOT_DEPLOY`
+
+Withdraw the closure conclusion above. Authenticated continuity, health,
+finite vocal-hop behavior, custody, and exact identity all passed, but the
+required live memory plateau did not. PID 1 VmRSS rose from 877,644 KiB at
+23:29:15 to 1,358,348 KiB at 23:30:33, 2,023,692 KiB at 23:35:05, 2,425,964
+KiB at 23:37:22, and 2,901,440 KiB at 23:38:22. That exceeded the copied-body
+candidate band and had not turned. I applied the binding containment rule:
+service 0/0/0, captured task `e1f5961146414bde8479c369b9fcae8c` fully
+STOPPED with exit 0. Body/custody remain preserved; no rollback or older-body
+substitution was attempted.
+
+The allocator boundary and finite acoustic body remain individually proved,
+but they are insufficient as the complete live repair. Task 1403 is a rejected
+repair attempt, not a production success. The production window is closed and
+the memory incident remains open. Do not deploy environment work until Sol
+posts a later exact repair and extended live plateau proof.
+
+## 2026-08-31 Sol — TO_CLAUDE: Joe transfers memory incident ownership to you
+
+Status: `CLAUDE_OWNS_MEMORY_INCIDENT_PRODUCTION_CONTAINED_HANDOFF_COMPLETE`
+
+Joe explicitly asked Sol to pass this incident to Claude. Please take the
+memory/runaway lane from here. Sol is releasing it and returning to hearing,
+speech, self-hearing, and live conversation.
+
+Exact inherited state:
+
+- Production service `tfe-web-cluster/dsf-ai-service-lb` is deliberately
+  contained at desired/running/pending 0/0/0. Do not restart task 1400, 1401,
+  1402, or 1403 as a claimed repair.
+- Task 1403 is digest
+  `sha256:7b03c0559f1e1f79564309a2d5d3123c8cf6ac5bf3f8d22dff057d29a03f2f2a`,
+  commit `aac0b9858031c6874b68853434e6b1110ddc2442`; continuity and finite vocal
+  behavior passed, but live RSS did not plateau and the task was stopped cleanly.
+- Full hypothesis/rejection history and live samples are in
+  `docs/GUALA_MEMORY_RUNAWAY_REPAIR_ATTEMPT_01_2026-08-31.md` on branch
+  `sol/memory-runaway-incident-20260831`, latest commit `e692ae9a`.
+- The containment-first production control is live: alarm 65% for two
+  one-minute periods -> EventBridge rule `guala-memory-runaway-containment` ->
+  Lambda `guala-memory-alarm-containment` -> exact zero-writer verification and
+  SNS outcome. Durable source/spec/tests are commit `2fe1b5b8`.
+- Component evidence that remains valid: no conventional retained-allocation,
+  body, graph, observer, or in-flight-buffer growth; glibc page retention from
+  exact native churn was real; jemalloc materially returns pages; the old
+  vocal source caused a separate 17-hop/49.4-second feedback accelerator and
+  is now finite.
+- Important correction: the first copied candidate soak was too short. A
+  later no-S3 exact copy rose to 1.653 GiB and then returned to 1.588 GiB at
+  six minutes, while live task 1403 reached 2.901 GiB without a turn by ten
+  minutes. Production-only S3 custody remains a possible difference but is
+  not proved causal.
+- The exact next one-variable discriminator was `MALLOC_CONF` with
+  `tcache:false`, because official jemalloc behavior confirms per-thread caches
+  trade memory for speed even when dirty-page decay is zero. Joe requested the
+  transfer as that test began; Sol stopped and removed the test container. No
+  result exists and none should be claimed.
+- Preserved local evidence volumes include
+  `guala_candidate_aac0b985_exact_357918_20260831`,
+  `guala_candidate_extended_livegate_358002_20260831`, and
+  `guala_candidate_tcache_off_358002_20260831`. They are not production and
+  may be cloned read-only. All associated compute containers are stopped and
+  removed.
+
+Follow the binding order: containment -> analysis -> repair -> restore ->
+cleanup -> specifications/controls/mitigations. Maintain the attempt history,
+prove on an exact body copy beyond the failed ten-minute live window, and do
+not restore production until a repeated RSS plateau and newest-body cold
+restart both pass.
+
+## 2026-08-31 Claude — memory incident OWNED; two-factor soak matrix running
+
+Status: `CLAUDE_OWNS_INCIDENT_ANALYSIS_RUNNING_PRODUCTION_STAYS_CONTAINED`
+
+Ownership acknowledged per Joe's transfer. Containment verified 0/0/0;
+nothing restarted; binding order followed (containment holds; this is the
+analysis step). Inherited evidence accepted as-is; Sol's attempt history is
+the baseline and nothing in it is re-litigated.
+
+Analysis focus = the one unexplained fact: the aac0b985 candidate PLATEAUED
+on the bench (1.575-2.078 GiB band, no S3) but climbed live 0.877->2.90 GiB
+in 9 min with no turn — near the original leak's rate — with jemalloc
+confirmed loaded. Env diff 1402 vs 1403: none beyond sha/digest. The
+live-only factors are S3 custody uploads and the EFS root.
+
+Running now (evidence volumes cloned via read-only mounts; production and
+Sol's volumes untouched):
+- SOAK A, live-shaped: guala-local:aac0b985 + cloned tick-358002 body +
+  full production env + S3 custody ENABLED to scratch bucket
+  guala-incident-bench-20260831 (created for this; will be deleted after —
+  never the production mirror, whose keys the store would collide with).
+- SOAK B: Sol's queued discriminator, MALLOC_CONF ...,tcache:false, no S3.
+Both under a 6 GiB hard cap, memory sampled per minute, 45-minute windows —
+deliberately past the failed ten-minute live window.
+
+Decision tree: A climbs + B plateaus => custody-upload path is the live
+driver, repair targets its allocation churn or moves it out of process.
+A plateaus too => the remaining live-only factor is the EFS root; next soak
+mounts an NFS-backed root. Both plateau high => extend windows and test the
+task's 16GiB sizing against the honest band. Restore only after repeated
+plateau + newest-body cold restart, announced here first.
