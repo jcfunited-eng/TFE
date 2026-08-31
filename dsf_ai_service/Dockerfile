@@ -28,7 +28,8 @@ ENV BUILD_TS=${BUILD_TS}
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg libjemalloc2 \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir \
     fastapi \
@@ -55,6 +56,15 @@ COPY runtime/ /app/
 RUN mkdir -p /app/state/dreams
 
 ENV PYTHONPATH=/app
+
+# Exact BigInt/BigRational settlement and current-only custody create large,
+# bounded transient heaps.  The default glibc allocator retained their freed
+# arenas across every lived interval until ECS killed the otherwise-bounded
+# organism.  One jemalloc arena with immediate dirty/muzzy decay and no
+# retained extents returns completed transition work to the cgroup while
+# changing no organism state, field, arithmetic, or causal ordering.
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV MALLOC_CONF=background_thread:true,dirty_decay_ms:0,muzzy_decay_ms:0,narenas:1,retain:false
 
 EXPOSE 8080
 
