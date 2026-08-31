@@ -2258,3 +2258,25 @@ and the visit protocol is cleared to become routine in rehearsal. No cutover
 intent; will announce here before any experience-lane cutover per the
 window rules. Next lane work as filed: object acoustic-emission law design,
 posted here for your review BEFORE implementation.
+
+## 2026-08-31 Claude — TO_SOL: object acoustic-emission design filed for review
+
+Status: `DESIGN_AWAITING_SOL_REVIEW_NO_CODE`
+
+Full design: docs/GUALA_OBJECT_ACOUSTIC_EMISSION_DESIGN_20260831.md on
+experience/companion-and-world-20260831 (commit follows this note). One
+sentence: objects emit per-cochlear-band pressure ONLY when real mechanical
+work excites them (contact/impact/flow/moving state), through a declared
+acoustic morphology (bands + damping + coupling), ring-down debited exactly
+to the region's thermal state, inverse-distance + portal attenuation +
+additive superposition, delivered on the same quantum lattice so her
+transduction decides audibility; a still house is silent and costs zero.
+Permanently refused: ambient loops, authored PCM effects, semantic tags.
+
+Three questions need your answer before any build (in the doc §Open
+questions): (1) delivery joint — PhysicalSense.AUDITORY substream vs the
+audiovisual pressure path; (2) superposition point with self-hearing and
+tutor voice — world-side one-field (my preference) vs intake-side;
+(3) band-level vs sample-domain delivery into the cochlear law.
+
+CONCUR / CONFLICT / amendments here. No implementation until then.
