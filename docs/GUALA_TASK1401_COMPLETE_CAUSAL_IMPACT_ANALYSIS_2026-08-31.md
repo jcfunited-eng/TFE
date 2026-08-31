@@ -452,3 +452,78 @@ This evidence satisfies only the lawful body identity and bounded one-time
 migration rows. All pressure, self-hearing, recurrence, restart-in-flight,
 quiescence, resource, learned-speech, synchronized-device, audible-speaker,
 and related-next-turn rows remain mandatory before deployment.
+
+## Post-analysis repair attempt 26 — copied-body aggregate/interval refusal
+
+The first copied-production-body rehearsal of local commit
+`2440a9ed56834afeca70ed19e41680608f63b57e` is rejected. The exact local-only
+image was `sha256:685153cbf504cef24bdfa2f4377301386e09c3a86b554d1f9f00d0ec647a3b16`,
+its embedded native extension SHA-256 was
+`838704df5ac27ff277533b227c43ffa58b4986efe2dbda63a08792edfe66bc71`,
+and its verified release archive SHA-256 was
+`dfd6409662c8eb72020b064b2971d742f9a35df14025ce9b586af08f90912947`.
+It ran locally with no network, four CPUs, 16 GiB RAM, and the unchanged
+production identity. Nothing was pushed, registered, deployed, or written to
+production.
+
+Before startup, Docker volume `guala_candidate_2440a9ed_354137_a` contained
+only the exact copied tick-`354137` authority: `CURRENT` SHA-256
+`18316fbf42c8f8e37c2468f35c7c3ea800019f6bd6c2a47a7b3194321df93839`,
+current compact-object SHA-256
+`d0fe3016834564baea2bb074e0fe58c38add2e4dffe23ef7e9cc5c8667af1537`,
+predecessor compact-object SHA-256
+`588f5a81efec88247a3a7c155137be96d2a8d2874e399170b6c5414891d090c2`,
+and world SHA-256
+`be1cb8b166324d4188c6bf7d1dce0def98961a0f75ea5538b4eb873941cf6b4e`.
+The candidate therefore did not start from genesis or a substituted body.
+
+V41 identity migration succeeded and the prior lineage-authority failure did
+not recur. Native then completed in-process physical transitions through
+generations `354138-354140`, then `354141-354144`, and then
+`354145-354148`. Python refused the third aggregate before commit with the
+exact first error `RuntimeError: motor-unit recruitment repeated a lineage`.
+The error occurred twice. Immediately after each refusal, the next native
+sequence began again at generation `354138`, rather than `354149` or
+`354145`. This is direct evidence that the refusal discarded the whole
+unsealed trajectory back to the persisted tick-`354137` body and allowed the
+unattended loop to recompute previously covered intervals while the world had
+already advanced. This is the restart/resurrection failure shape the repair
+history is intended to prevent.
+
+The exact source boundary is now localized. Rust retains each interval's
+`motor_unit_recruitments` and `articulatory_unit_recruitments` inside its
+corresponding `CausalIntervalEvidence`, and Python already validates motor to
+articulatory causality independently inside each interval. Rust also extends
+the same interval events into top-level presentation aggregates. Python then
+re-validates that flattened multi-interval motor aggregate by constructing a
+single lineage map and incorrectly requires one lineage to occur at most once
+across the entire unsealed trajectory. A motor lineage may discharge again in
+a later physical interval; global uniqueness therefore destroys interval
+identity. Removing the guard alone is forbidden because it would allow an
+articulatory event to borrow a matching motor discharge from a different
+interval. The admissible repair is interval-scoped causality plus exact proof
+that the top-level presentation sequence equals the ordered concatenation of
+those already validated interval records.
+
+The stopped forensic volume is preserved. Its post-stop authenticated
+`CURRENT` is 158 bytes, SHA-256
+`a99c8b6c93a6fba3c8cacad0a75808c04cc16425331a9131852e4843bc00c713`,
+and names tick `354144`, raw state byte count `107551779`, raw state SHA-256
+`3d8247510e90eb8bba9276e1340810785fa4184365bea4c7ed2d4f01fe3c4cd6`,
+and predecessor raw SHA-256
+`6e6d2001836e7ac6c329855d441a40fd6873e145b23ea2c81e0ae3c3ed17f784`.
+Exactly two compact generation objects remain; their stored SHA-256 values are
+`fc1ef234fbd650d5a908ed826d85a5a1e1020a426eb0d95d8ede6aa9aef289f5`
+and `3e7ff2fc59d0832c7012ad8153fe8dccdaea6cb99f8dff7ef29603339537804b`.
+The world is 939123 bytes with changed SHA-256
+`0e4b4989010348c50e0218250e6bea12e62d75ed203983b5d981ed36deb18bde`.
+Those post-stop bytes are failure evidence and will not be reused as a clean
+candidate input.
+
+Attempt 26 proves neither native pressure nor self-hearing. The visible
+transport stopwatch reported `native_self_hearing=0.0ms` on the completed
+pre-failure calls, and no exact pressure/body hash was captured through the
+refused transaction. The next rehearsal must start from a newly populated
+volume with the four original hashes and must prove interval-local motor/body
+ownership, publication, exact pressure custody, restart, recurrence, and
+quiescence before any production action or human device request.

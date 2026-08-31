@@ -1099,18 +1099,8 @@ def _root_translation_unit_recruitment_evidence(
     return tuple(observed)
 
 
-def _articulatory_unit_recruitment_evidence(
+def _articulatory_unit_recruitment_shape_evidence(
     value: object,
-    motor_unit_recruitments: tuple[
-        tuple[
-            str,
-            int,
-            int,
-            tuple[tuple[str, int, str, int, int, int], ...],
-            tuple[tuple[str, str, str, int, int, str, str], ...],
-        ],
-        ...,
-    ],
 ) -> tuple[
     tuple[
         str,
@@ -1122,11 +1112,6 @@ def _articulatory_unit_recruitment_evidence(
 ]:
     if not isinstance(value, list):
         raise RuntimeError("articulatory-unit recruitments changed format")
-    motor_by_lineage = {
-        recruitment[0]: recruitment for recruitment in motor_unit_recruitments
-    }
-    if len(motor_by_lineage) != len(motor_unit_recruitments):
-        raise RuntimeError("motor-unit recruitment repeated a lineage")
     observed = []
     for raw in value:
         if not isinstance(raw, tuple) or len(raw) != 4:
@@ -1141,7 +1126,6 @@ def _articulatory_unit_recruitment_evidence(
         if not isinstance(raw[3], list) or not raw[3]:
             raise RuntimeError("articulatory-unit preparation transfers changed format")
         preparation_transfers = []
-        causing_motor_lineages: set[str] = set()
         for transfer in raw[3]:
             if not isinstance(transfer, tuple) or len(transfer) != 6:
                 raise RuntimeError("articulatory-unit preparation transfer changed format")
@@ -1171,6 +1155,51 @@ def _articulatory_unit_recruitment_evidence(
                 parallel_ordinal,
                 transferred_whole_carriers,
             )
+            preparation_transfers.append(canonical_transfer)
+        observed.append(
+            (
+                lineage,
+                topology_index,
+                outward_elementary_carriers,
+                tuple(preparation_transfers),
+            )
+        )
+    return tuple(observed)
+
+
+def _articulatory_unit_recruitment_evidence(
+    value: object,
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ],
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    motor_by_lineage = {
+        recruitment[0]: recruitment for recruitment in motor_unit_recruitments
+    }
+    if len(motor_by_lineage) != len(motor_unit_recruitments):
+        raise RuntimeError("motor-unit recruitment repeated a lineage in one interval")
+    observed = _articulatory_unit_recruitment_shape_evidence(value)
+    for _lineage, _topology, outward_elementary_carriers, transfers in observed:
+        causing_motor_lineages: set[str] = set()
+        for canonical_transfer in transfers:
+            sender, sender_layer, receiver, receiver_layer, _ordinal, _carriers = (
+                canonical_transfer
+            )
             causing_motor = motor_by_lineage.get(receiver)
             if (
                 sender == receiver
@@ -1184,7 +1213,6 @@ def _articulatory_unit_recruitment_evidence(
                     "reached-load or layer 11 learned arrival into the same "
                     "discharged typed vocal motor"
                 )
-            preparation_transfers.append(canonical_transfer)
             causing_motor_lineages.add(receiver)
         available_motor_carriers = sum(
             motor_by_lineage[motor_lineage][2]
@@ -1194,15 +1222,73 @@ def _articulatory_unit_recruitment_evidence(
             raise RuntimeError(
                 "articulatory-unit discharge exceeds its causing vocal motor discharge"
             )
-        observed.append(
-            (
-                lineage,
-                topology_index,
-                outward_elementary_carriers,
-                tuple(preparation_transfers),
-            )
+    return observed
+
+
+def _causal_interval_recruitment_aggregate_evidence(
+    raw_articulatory_unit_recruitments: object,
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ],
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...],
+    root_translation_unit_recruitments: tuple[
+        tuple[str, int, int, str, str], ...
+    ],
+    causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...],
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    if not causal_interval_evidence:
+        return _articulatory_unit_recruitment_evidence(
+            raw_articulatory_unit_recruitments,
+            motor_unit_recruitments,
         )
-    return tuple(observed)
+    interval_motors = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.motor_unit_recruitments
+    )
+    interval_root_yaw = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.root_yaw_unit_recruitments
+    )
+    interval_root_translation = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.root_translation_unit_recruitments
+    )
+    interval_articulatory = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.articulatory_unit_recruitments
+    )
+    aggregate_articulatory = _articulatory_unit_recruitment_shape_evidence(
+        raw_articulatory_unit_recruitments
+    )
+    if (
+        motor_unit_recruitments != interval_motors
+        or root_yaw_unit_recruitments != interval_root_yaw
+        or root_translation_unit_recruitments != interval_root_translation
+        or aggregate_articulatory != interval_articulatory
+    ):
+        raise RuntimeError(
+            "top-level recruitment aggregate changed causal interval order"
+        )
+    return aggregate_articulatory
 
 
 def _causal_interval_evidence(
@@ -3651,9 +3737,12 @@ class NativeResidentOrganism:
             candidate, "articulatory_unit_recruitments", []
         )
         articulatory_unit_recruitments = (
-            _articulatory_unit_recruitment_evidence(
+            _causal_interval_recruitment_aggregate_evidence(
                 raw_articulatory_recruitments,
                 tuple(motor_unit_recruitments),
+                tuple(root_yaw_unit_recruitments),
+                tuple(root_translation_unit_recruitments),
+                causal_interval_evidence,
             )
         )
         # A mounted joint cohort exists only where at least two ports share

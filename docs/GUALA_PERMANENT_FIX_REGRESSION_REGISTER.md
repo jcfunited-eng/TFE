@@ -452,3 +452,34 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   discharge, pressure, same-organism hearing, recurrence, restart custody,
   physical rest, speaker audibility, or conversation. No deployment is
   authorized.
+
+### R-009 repair attempt 26 — flattened multi-interval recruitment refusal
+
+- The first exact copied-body rehearsal of local commit
+  `2440a9ed56834afeca70ed19e41680608f63b57e` is permanently rejected. Its
+  image and extension hashes were recorded before startup, its input matched
+  all four original tick-`354137` production-copy hashes, it had no network,
+  and it made no production or registry change.
+- Native crossed the V41 migration and ran generations `354138-354148`, then
+  Python refused the third aggregate with
+  `motor-unit recruitment repeated a lineage`. The refusal happened twice.
+  Each time the next native calculation restarted at `354138`, not the reached
+  frontier, proving rollback of the whole unsealed trajectory and repeated
+  computation over a world that had already advanced.
+- Cause: interval evidence retains lawful temporal boundaries and validates
+  motor/articulatory ownership within each one; the top-level transport also
+  concatenates those events for presentation. Python incorrectly requires
+  lineage uniqueness across that flattened multi-interval aggregate. The
+  permanent regression rule is: repeated lineage is forbidden within one
+  interval, lawful across distinct intervals, and every aggregate event must
+  equal the ordered concatenation of the independently validated interval
+  events. Cross-interval lookup or carrier borrowing remains forbidden.
+- The stopped failure volume is retained with post-stop `CURRENT` tick
+  `354144`, pointer SHA-256
+  `a99c8b6c93a6fba3c8cacad0a75808c04cc16425331a9131852e4843bc00c713`,
+  raw state SHA-256 `3d824751...`, predecessor raw SHA-256 `6e6d2001...`,
+  exactly two generation objects, and changed world SHA-256
+  `0e4b4989010348c50e0218250e6bea12e62d75ed203983b5d981ed36deb18bde`.
+  It is evidence, not an admissible future candidate seed.
+- R-009 and L-006 remain open. No pressure or speech claim survives this
+  refusal, and deployment remains prohibited.

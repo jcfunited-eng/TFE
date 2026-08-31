@@ -1189,3 +1189,40 @@ timer, second scheduler, or retained speech program.
   matrix. It proves no pressure, self-hearing, recurrence, restart-in-flight,
   quiescence, learned speech, audible output, or conversation, and authorizes
   no deployment.
+
+### Repair attempt 26 — rejected copied-body interval synchronization
+
+- Local commit `2440a9ed56834afeca70ed19e41680608f63b57e`, local image
+  `sha256:685153cbf504cef24bdfa2f4377301386e09c3a86b554d1f9f00d0ec647a3b16`,
+  and native extension SHA-256
+  `838704df5ac27ff277533b227c43ffa58b4986efe2dbda63a08792edfe66bc71`
+  ran only against a Docker-managed volume populated with the exact original
+  tick-`354137` `CURRENT`, two compact bodies, and world hashes. No production
+  system or registry was changed.
+- V41 migration passed and native advanced through `354148`, but Python
+  refused the third multi-interval aggregate with
+  `motor-unit recruitment repeated a lineage`. The exact error occurred
+  twice. After each refusal native restarted at `354138`, proving the complete
+  unsealed trajectory had fallen back to persisted tick `354137` and was being
+  recomputed while the world advanced.
+- Each causal interval already carries and validates its own motor and
+  articulatory events. The false invariant is applied only after Rust flattens
+  those lawful interval records into a top-level presentation aggregate:
+  Python turns that aggregate into one lineage-keyed map and forbids the same
+  motor from acting in a later interval. Deleting the duplicate guard would be
+  equally wrong because it could match articulation to a motor event from the
+  wrong interval. The next repair must retain same-interval causality and
+  require the aggregate to equal the ordered concatenation of validated
+  interval records.
+- The failed volume was stopped and retained. Its post-stop `CURRENT` names
+  tick `354144`, has SHA-256
+  `a99c8b6c93a6fba3c8cacad0a75808c04cc16425331a9131852e4843bc00c713`,
+  raw state SHA-256
+  `3d8247510e90eb8bba9276e1340810785fa4184365bea4c7ed2d4f01fe3c4cd6`,
+  and predecessor raw SHA-256
+  `6e6d2001836e7ac6c329855d441a40fd6873e145b23ea2c81e0ae3c3ed17f784`.
+  The world changed from `be1cb8...` to
+  `0e4b4989010348c50e0218250e6bea12e62d75ed203983b5d981ed36deb18bde`.
+  These bytes are forensic evidence and cannot seed the next rehearsal.
+- No pressure, self-hearing, recurrence, restart custody, quiescence, audible
+  output, or conversation is credited. Attempt 26 is rejected.

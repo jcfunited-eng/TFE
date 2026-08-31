@@ -1361,6 +1361,73 @@ def test_articulatory_recruitment_requires_the_same_discharged_vocal_motor() -> 
         )
 
 
+def test_recruitment_aggregate_preserves_distinct_causal_intervals() -> None:
+    @dataclass(frozen=True)
+    class _IntervalRecruitments:
+        motor_unit_recruitments: tuple[tuple[object, ...], ...]
+        root_yaw_unit_recruitments: tuple[tuple[object, ...], ...]
+        root_translation_unit_recruitments: tuple[tuple[object, ...], ...]
+        articulatory_unit_recruitments: tuple[tuple[object, ...], ...]
+
+    ordering = "11" * 16
+    motor = "12" * 16
+    respiratory_effector = "13" * 16
+    regulation = "08" * 16
+    integration = "06" * 16
+    receptor = "05" * 16
+    afferent = (
+        regulation,
+        integration,
+        receptor,
+        5,
+        17,
+        "articulated-body-effector-load-receptor",
+        "glottal-aperture-toward-maximum-load",
+    )
+    first_preparation = (ordering, 11, motor, 12, 0, 3)
+    second_preparation = (ordering, 11, motor, 12, 1, 2)
+    first_motor = (motor, 7, 3, (first_preparation,), (afferent,))
+    second_motor = (motor, 7, 2, (second_preparation,), (afferent,))
+    first_articulatory = boundary._articulatory_unit_recruitment_evidence(
+        [(respiratory_effector, 2, 3, [first_preparation])],
+        (first_motor,),
+    )
+    second_articulatory = boundary._articulatory_unit_recruitment_evidence(
+        [(respiratory_effector, 2, 2, [second_preparation])],
+        (second_motor,),
+    )
+    intervals = (
+        _IntervalRecruitments((first_motor,), (), (), first_articulatory),
+        _IntervalRecruitments((second_motor,), (), (), second_articulatory),
+    )
+    raw_aggregate = [
+        (respiratory_effector, 2, 3, [first_preparation]),
+        (respiratory_effector, 2, 2, [second_preparation]),
+    ]
+
+    assert boundary._causal_interval_recruitment_aggregate_evidence(
+        raw_aggregate,
+        (first_motor, second_motor),
+        (),
+        (),
+        intervals,
+    ) == first_articulatory + second_articulatory
+
+    with pytest.raises(RuntimeError, match="repeated a lineage in one interval"):
+        boundary._articulatory_unit_recruitment_evidence(
+            raw_aggregate,
+            (first_motor, second_motor),
+        )
+    with pytest.raises(RuntimeError, match="changed causal interval order"):
+        boundary._causal_interval_recruitment_aggregate_evidence(
+            list(reversed(raw_aggregate)),
+            (first_motor, second_motor),
+            (),
+            (),
+            intervals,
+        )
+
+
 def test_internal_reassembly_refuses_the_retired_two_field_shape(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
