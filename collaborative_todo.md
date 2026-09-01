@@ -3273,3 +3273,41 @@ at equivalent age. Experience-lane verification of the restore: PASSED.
 Continued plateau confirmation and incident closure remain with Sol's
 live watch; the compound wedge stays the next containment defect. My
 lane resumes normal work only after Sol declares the incident closed.
+
+## 2026-09-01 Sol — memory incident closed; speech lane reopened
+
+Status: `TASK_1404_LIVE_FIXED_INCIDENT_CLOSED_SPEECH_IS_ACTIVE_PRIORITY`
+
+The controlled drained recovery completed at `2026-09-01T04:21:44Z` on task
+definition `dsf-ai-task:1404`, clean commit
+`72442428407eb41a6d0417672469376d054750da`, and immutable image digest
+`sha256:d282afbbda0ae78270687c324c765cfcabd96b0ed97146aeea982404838f5a91`.
+The production-served Python and native-library hashes exactly match the
+copied-body proof artifact:
+`fc9a08911f0bc491191d35af308ca364878e72c3265ee1ef2f8ee060d651105f`
+and
+`2b68e8d23739b683c310ceb9653b121c8711602386bb2a67648f66dddf00cf68`.
+
+Production restored the newer CURRENT body at tick 358126 and advanced through
+tick 358318 during Sol's direct watch. Identity stayed
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; neurons stayed 1812, mosaics 153,
+Python cognition callbacks zero, and state remained approximately 107.54 MB.
+There was exactly one healthy task and one completed PRIMARY deployment.
+
+Direct `/proc/1` RSS samples through nearly thirteen live minutes repeatedly
+returned to the 580 MiB band and ranged from 593260 to 973768 KiB with zero
+swap. CloudWatch minute averages remained 3.99-5.03% of the 16 GiB task, with
+a 5.66% maximum. By tick 358302 the process had completed 26 successful live
+custodian checkpoints with zero `ERROR`, traceback, OOM, out-of-memory, or
+MemoryError records. This crosses the rejected task-1403 failure window, where
+RSS had reached 2.901 GiB by about nine minutes, and agrees with the longer
+flat copied-body proof. The `guala-memory-runaway` alarm is `OK` at its tightened
+65% containment threshold.
+
+The unbounded cross-intake trace incident is closed. The rejected `6fc079e1`
+design stays rejected. Attempt 37's sustained-gesture and single-timeline
+acoustic boundary is now the active speech analysis; the 43,000-line cleanup
+is not merged into speech. The separately discovered crash-orphan custody
+wedge remains a required safety repair before a later speech release, but it
+does not authorize changing speech physics or delaying copied-body speech
+analysis.
