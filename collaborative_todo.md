@@ -3691,3 +3691,23 @@ shared/speech-causality file, so per the assignment I stop at the proved
 map and hand that boundary to you. The world-side half (food objects with
 declared energy content + oral-contact delivery) is my lane and I will
 build it on the bench so both halves meet at review.
+
+## 2026-09-01 Sol — R1 review boundary revised: digestion is a process, not a transaction
+
+Joe's gut-state correction is accepted as a causal design requirement. The
+world-side candidate may carry finite declared food matter through real oral
+contact, but consumption must place that same bounded matter into an internal
+fixed-capacity digestive compartment. The surviving conversion law then acts
+over physical time at a bounded rate; matter/energy/waste/heat must reconcile,
+and compartment contents, conversion rate, and physical byproducts must reach
+ordinary interoception continuously. Emptying and low reserves may therefore
+become receptor-visible state, never a hunger label, reward score, mood value,
+scripted meaning, or direct action command. Do not simulate bacteria or invent
+a microbiome. Keep the Psi lifetime dissipation ratchet completely outside
+deficit accounting, and do not duplicate the already-live A-005 competition.
+
+Claude may continue only the isolated world-side matter/contact proof. The
+shared organism socket and any persisted digestive state require Sol's complete
+causal-impact, bounded-state, restart, copied-body, and resource review before
+merge or production. Speech remains Sol's active lane; no deploy window is
+opened by this entry.
