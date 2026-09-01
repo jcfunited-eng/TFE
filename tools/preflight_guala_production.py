@@ -38,6 +38,7 @@ CONTROL_ORIGIN = "https://dsf-ai.com"
 ALB_DNS = "dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
 CONTROL_SECRET_ID = "gualaloom/api-key/prod"
 RELEASE_MANIFEST = "deploy/guala_release_manifest.json"
+NATIVE_TEST_BASELINE = "deploy/guala_native_test_baseline.json"
 DEPLOY_CONTROLLER = "tools/deploy_dsf_ai.sh"
 # How long the read-only readiness capture may WAIT behind a lesson in flight.
 # It bounds patience, never correctness: see ``_read_live_readiness``.
@@ -59,6 +60,7 @@ READ_ONLY_AWS_CALLS = frozenset({
 })
 
 REQUIRED_BUILD_CONTROL = frozenset({
+    "deploy/guala_native_test_baseline.json",
     "deploy/guala_release_manifest.json",
     "dsf_ai_service/Dockerfile",
     "dsf_ai_service/buildspec.yml",
@@ -166,6 +168,7 @@ def _task_definition_name(value: str) -> str:
 class CommandResult:
     stdout: str
     stderr: str
+    returncode: int = 0
 
 
 class Commands:
@@ -197,7 +200,33 @@ class Commands:
                     rendered = rendered.replace(secret, "<redacted>")
                     detail = detail.replace(secret, "<redacted>")
             raise PreflightError(f"command failed: {rendered}: {detail}")
-        return CommandResult(completed.stdout, completed.stderr)
+        return CommandResult(
+            completed.stdout,
+            completed.stderr,
+            completed.returncode,
+        )
+
+    def observe(
+        self,
+        arguments: Sequence[str],
+        *,
+        cwd: Path | None = None,
+        timeout: int = 300,
+    ) -> CommandResult:
+        """Run one local falsifier while preserving its nonzero test result."""
+        completed = subprocess.run(
+            list(arguments),
+            cwd=cwd,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=timeout,
+        )
+        return CommandResult(
+            completed.stdout,
+            completed.stderr,
+            completed.returncode,
+        )
 
     def aws(self, service: str, operation: str, *arguments: str) -> object:
         if (service, operation) not in READ_ONLY_AWS_CALLS:
@@ -389,18 +418,159 @@ def validate_controller(root: Path) -> dict[str, object]:
     }
 
 
+def _native_test_baseline(root: Path) -> tuple[str, frozenset[str]]:
+    path = root / NATIVE_TEST_BASELINE
+    value = _strict_json_file(path)
+    if not isinstance(value, dict) or set(value) != {
+        "failures",
+        "first_proven_commit",
+        "production_baseline_commit",
+        "schema",
+    }:
+        raise PreflightError("native test baseline fields are invalid")
+    if value.get("schema") != "guala.native-test-baseline.v1":
+        raise PreflightError("native test baseline schema changed")
+    production_commit = _require_commit(
+        value.get("production_baseline_commit"),
+        "native test production baseline commit",
+    )
+    _require_commit(
+        value.get("first_proven_commit"),
+        "native test first-proven commit",
+    )
+    failures = value.get("failures")
+    if (
+        not isinstance(failures, list)
+        or not failures
+        or any(
+            not isinstance(name, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)+", name)
+            is None
+            for name in failures
+        )
+        or len(set(failures)) != len(failures)
+        or failures != sorted(failures)
+    ):
+        raise PreflightError("native test baseline failure list is invalid")
+    return production_commit, frozenset(failures)
+
+
+def _listed_native_tests(output: str) -> frozenset[str]:
+    return frozenset(
+        match.group(1)
+        for match in re.finditer(
+            r"(?m)^([A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)+): test$",
+            output,
+        )
+    )
+
+
+def _failed_native_tests(output: str) -> frozenset[str]:
+    failures: set[str] = set()
+    result_markers = list(
+        re.finditer(r"(?m)^test result: FAILED\.", output)
+    )
+    previous_result_end = 0
+    for marker in result_markers:
+        prefix = output[previous_result_end:marker.start()]
+        header = prefix.rfind("\nfailures:\n")
+        if header < 0:
+            raise PreflightError(
+                "failed native test result has no exact failure roster"
+            )
+        roster = prefix[header + len("\nfailures:\n"):]
+        names = {
+            line.strip()
+            for line in roster.splitlines()
+            if re.fullmatch(
+                r"    [A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)+", line
+            )
+        }
+        if not names:
+            raise PreflightError("native failure roster is empty")
+        failures.update(names)
+        previous_result_end = marker.end()
+    return frozenset(failures)
+
+
+def verify_native_tests(
+    *,
+    root: Path,
+    manifest_path: Path,
+    expected_commit: str,
+    commands: Commands,
+    target_dir: Path | None = None,
+) -> dict[str, object]:
+    """Reject every new failure without re-litigating named baseline debt."""
+    baseline_commit, known_failures = _native_test_baseline(root)
+    commands.run([
+        "git",
+        "-C",
+        str(root),
+        "merge-base",
+        "--is-ancestor",
+        baseline_commit,
+        expected_commit,
+    ])
+    cargo = ["cargo", "test", "--locked", "--manifest-path", str(manifest_path)]
+    if target_dir is not None:
+        cargo.extend(["--target-dir", str(target_dir)])
+    listed = commands.run([*cargo, "--", "--list"], cwd=manifest_path.parent)
+    present_tests = _listed_native_tests(listed.stdout)
+    absent_baseline = sorted(known_failures - present_tests)
+    if absent_baseline:
+        raise PreflightError(
+            "known native baseline tests were removed or renamed: "
+            f"{absent_baseline}"
+        )
+
+    tested = commands.observe(
+        [*cargo, "--", "--format", "terse"],
+        cwd=manifest_path.parent,
+        timeout=1800,
+    )
+    combined = tested.stdout + "\n" + tested.stderr
+    if tested.returncode == 0:
+        if "test result: FAILED." in combined:
+            raise PreflightError(
+                "native test command returned success with a failed result"
+            )
+        failures = frozenset()
+    elif tested.returncode == 101:
+        failures = _failed_native_tests(combined)
+        if not failures:
+            raise PreflightError(
+                "native build or test runner failed without a test roster"
+            )
+    else:
+        detail = tested.stderr.strip() or tested.stdout.strip()
+        raise PreflightError(
+            f"native test command exited {tested.returncode}: {detail}"
+        )
+    new_failures = sorted(failures - known_failures)
+    if new_failures:
+        raise PreflightError(
+            f"candidate introduces native test failures: {new_failures}"
+        )
+    return {
+        "baseline_commit": baseline_commit,
+        "known_failure_count": len(known_failures),
+        "remaining_known_failures": sorted(failures),
+        "status": "no_new_failures",
+    }
+
+
 def verify_package_and_native_build(
     root: Path,
     expected_commit: str,
     commands: Commands,
 ) -> dict[str, object]:
-    commands.run([
-        "cargo",
-        "test",
-        "--locked",
-        "--manifest-path",
-        str(root / "native/guala_core/Cargo.toml"),
-    ], cwd=root, timeout=1800)
+    source_native_tests = verify_native_tests(
+        root=root,
+        manifest_path=root / "native/guala_core/Cargo.toml",
+        expected_commit=expected_commit,
+        commands=commands,
+    )
     with tempfile.TemporaryDirectory(prefix="guala-preflight-") as temporary:
         temporary_root = Path(temporary)
         stage = temporary_root / "stage"
@@ -451,18 +621,18 @@ def verify_package_and_native_build(
             raise PreflightError(
                 f"packaged candidate omits native runtime files: {absent}"
             )
-        commands.run([
-            "cargo",
-            "test",
-            "--locked",
-            "--manifest-path",
-            str(stage / "native/guala_core/Cargo.toml"),
-            "--target-dir",
-            str(temporary_root / "packaged-native-target"),
-        ], cwd=stage, timeout=1800)
+        packaged_native_tests = verify_native_tests(
+            root=root,
+            manifest_path=stage / "native/guala_core/Cargo.toml",
+            expected_commit=expected_commit,
+            commands=commands,
+            target_dir=temporary_root / "packaged-native-target",
+        )
         return {
             "archive_sha256": receipt.get("archive_sha256"),
             "git_commit": receipt.get("git_commit"),
+            "native_tests": source_native_tests,
+            "packaged_native_tests": packaged_native_tests,
             "receipt_sha256": receipt.get("receipt_sha256"),
             "source_file_count": receipt.get("source_file_count"),
         }

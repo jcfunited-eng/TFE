@@ -363,3 +363,128 @@ def test_command_failure_redacts_deployment_credential() -> None:
         )
     assert secret not in str(captured.value)
     assert "<redacted>" in str(captured.value)
+
+
+def test_native_failure_parser_collects_every_failed_binary_roster() -> None:
+    output = """
+failures:
+
+    organism_runtime::tests::first_known_failure
+
+test result: FAILED. 1 passed; 1 failed
+
+failures:
+
+    resident_cognitive_formation::tests::second_known_failure
+
+test result: FAILED. 2 passed; 1 failed
+"""
+    assert preflight._failed_native_tests(output) == frozenset({
+        "organism_runtime::tests::first_known_failure",
+        "resident_cognitive_formation::tests::second_known_failure",
+    })
+
+
+def test_native_failure_parser_refuses_failed_result_without_roster() -> None:
+    with pytest.raises(preflight.PreflightError, match="failure roster"):
+        preflight._failed_native_tests("test result: FAILED. 0 passed\n")
+
+
+def test_native_test_list_parser_requires_exact_test_identifiers() -> None:
+    output = (
+        "organism_runtime::tests::one: test\n"
+        "not a test line\n"
+        "resident_cognitive_formation::tests::two: test\n"
+    )
+    assert preflight._listed_native_tests(output) == frozenset({
+        "organism_runtime::tests::one",
+        "resident_cognitive_formation::tests::two",
+    })
+
+
+class _NativeTestCommands:
+    def __init__(
+        self,
+        *,
+        listed: set[str],
+        failed: set[str],
+        returncode: int = 101,
+    ) -> None:
+        self.listed = listed
+        self.failed = failed
+        self.returncode = returncode
+
+    def run(self, arguments, **kwargs):
+        if "--list" in arguments:
+            return preflight.CommandResult(
+                "".join(f"{name}: test\n" for name in sorted(self.listed)),
+                "",
+            )
+        return preflight.CommandResult("", "")
+
+    def observe(self, arguments, **kwargs):
+        roster = "".join(f"    {name}\n" for name in sorted(self.failed))
+        output = (
+            f"\nfailures:\n\n{roster}\n"
+            "test result: FAILED. 0 passed; 1 failed\n"
+        )
+        return preflight.CommandResult(output, "", self.returncode)
+
+
+def _write_native_test_baseline(root: Path, failures: set[str]) -> None:
+    path = root / preflight.NATIVE_TEST_BASELINE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({
+            "failures": sorted(failures),
+            "first_proven_commit": COMMIT,
+            "production_baseline_commit": COMMIT,
+            "schema": "guala.native-test-baseline.v1",
+        }),
+        encoding="utf-8",
+    )
+
+
+def test_native_gate_accepts_only_named_present_baseline_failures(
+    tmp_path: Path,
+) -> None:
+    known = {"organism_runtime::tests::known_failure"}
+    _write_native_test_baseline(tmp_path, known)
+    commands = _NativeTestCommands(listed=known, failed=known)
+    result = preflight.verify_native_tests(
+        root=tmp_path,
+        manifest_path=tmp_path / "native/guala_core/Cargo.toml",
+        expected_commit=COMMIT,
+        commands=commands,
+    )
+    assert result["remaining_known_failures"] == sorted(known)
+
+
+def test_native_gate_rejects_new_failure(tmp_path: Path) -> None:
+    known = {"organism_runtime::tests::known_failure"}
+    new = "organism_runtime::tests::new_failure"
+    _write_native_test_baseline(tmp_path, known)
+    commands = _NativeTestCommands(
+        listed=known | {new},
+        failed=known | {new},
+    )
+    with pytest.raises(preflight.PreflightError, match="introduces"):
+        preflight.verify_native_tests(
+            root=tmp_path,
+            manifest_path=tmp_path / "native/guala_core/Cargo.toml",
+            expected_commit=COMMIT,
+            commands=commands,
+        )
+
+
+def test_native_gate_rejects_removed_baseline_test(tmp_path: Path) -> None:
+    known = {"organism_runtime::tests::known_failure"}
+    _write_native_test_baseline(tmp_path, known)
+    commands = _NativeTestCommands(listed=set(), failed=set())
+    with pytest.raises(preflight.PreflightError, match="removed or renamed"):
+        preflight.verify_native_tests(
+            root=tmp_path,
+            manifest_path=tmp_path / "native/guala_core/Cargo.toml",
+            expected_commit=COMMIT,
+            commands=commands,
+        )

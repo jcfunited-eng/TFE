@@ -187,6 +187,7 @@ def test_release_packages_preflight_and_binary_store_without_seal_transport(
     }
     assert "migration_control" not in categories
     assert categories["build_control"]["files"] == [
+        "deploy/guala_native_test_baseline.json",
         "deploy/guala_release_manifest.json",
         "dsf_ai_service/Dockerfile",
         "dsf_ai_service/buildspec.yml",
