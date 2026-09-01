@@ -3311,3 +3311,154 @@ is not merged into speech. The separately discovered crash-orphan custody
 wedge remains a required safety repair before a later speech release, but it
 does not authorize changing speech physics or delaying copied-body speech
 analysis.
+
+## 2026-09-01 Sol — speech repair attempt 41 copied-body gate passed
+
+Status: `EXACT_MULTI_HOP_SELF_HEARING_PROVEN_ON_IMMUTABLE_PRODUCTION_COPY`
+
+Commit `3c353a6c26b2b7f13d805d80013e4f982a562ac1` changes only the
+read-only/process-local articulation observer and its falsifiers. The organism,
+native body, motor physics, auditory physics, persistence, action, and cognition
+are unchanged. Exact cause: one browser intake advances four physical 250 ms
+hops; Rust emits and self-hears one 4,000-sample pressure per hop, while the old
+Python observer concatenated all four emissions into a false 16,000-sample
+candidate and therefore could never match the following hop-local consumed
+receipt.
+
+The immutable tick-358454 production body was cloned byte-for-byte into volume
+`guala_speech_probe11_358454_20260901` (32/32 files, 16,652,078 bytes, every
+SHA-256 identical) before boot. A real four-hop copied-world interval then
+proved pressure `7a1785184fccf4634f5a592e1970a01f75602f842eb506da532e67ab5659e684`,
+4,000 samples at 16 kHz, returned on exactly one successor hop through all 34
+ear receptors with 16 self-hearing fractals and 1,363 transitioned neurons.
+Identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; state advanced to
+tick 358459 / `8977a0cc514d7ba64b67cf15285063a41708202c82c2f2feae46782a85812aed`.
+
+Cold restart restored that exact identity, tick, and state hash. The
+process-local articulation observer correctly returned to `not_mounted`, proving
+it neither entered the organism nor replayed stale speech. Two restart-harness
+invocation errors are retained here: first, an absent image entrypoint caused
+Docker to reject `-c` before container start; second, the harness requested the
+retired top-level `native` observation key and exited after read-only startup.
+Neither advanced or rewrote the copied organism. The corrected current-schema
+restart assertion passed.
+
+Release remains gated on the exact baseline-aware test suite, guarded standard
+deployment, and live production proof. Future speech or experience work must
+never reintroduce cross-hop PCM concatenation as one claimed physical pressure,
+nor any unbounded per-beat trace keeper.
+
+## 2026-09-01 Sol — speech repair attempt 42 copied-body gate passed
+
+Status: `EXACT_AUDIBLE_PRESSURE_RETENTION_PROVEN_ON_PRODUCTION_COPY`
+
+Task 1407 live-proved attempt 41's physical boundary (4,000 samples, one
+successor hop, all 34 ears), but its page declared playback unavailable and an
+exact hash fetch returned HTTP 404. Cause: the older commit `56220834` cached
+every later consumed in-flight pressure. That predates exact hop-local
+articulation selection and evicted the selected emitted PCM body in about one
+second. Commit `44347ee1dd57710de3069b624d1504cd09da1f5d` removes only that
+obsolete observer write, keeps only selected emitted articulations in the
+count/byte-bounded process-local cache, and resolves playback by exact hash.
+
+The pristine Docker-native tick-358454 source volume was verified at 32 files,
+16,652,078 bytes, and CURRENT SHA-256 `1e245686e836cddf7b0ebe9957e04c9e`
+`b82e464b18e15632a65627ddc983bf2b`, then cloned with every file hash exact.
+The exact candidate package contains 280 files and has archive SHA-256
+`e3f322e7b25dca0929de508ca770cc1152ed312668c368bae9eb672f19a77291`.
+
+On the copied body, the first four-hop interval emitted pressure
+`7a1785184fccf4634f5a592e1970a01f75602f842eb506da532e67ab5659e684`:
+4,000 mono signed-16-bit samples at 16 kHz, returned once through all 34 ears,
+layer-13 recruitment zero. The exact WAV remained fetchable after 16 null/quiet
+observer updates; the cache was one 8,000-byte entry. The body persisted at
+tick 358459/state `8977a0cc514d7ba64b67cf15285063a41708202c82c2f2feae46782a85812aed`.
+Cold restart restored that exact identity/tick/state while clearing the cache
+and returning articulation to `not_mounted`, proving no replay or organism
+entry.
+
+Test record: the direct speech-facing set passed 19/19. The broader candidate
+and deployed task-1407 baseline produced the exact same eight unrelated
+fixture/tooling failures, with candidate 32 passes versus baseline 30 because
+of two new falsifiers. Harness history retained: a nonexistent test filename;
+two commands whose not-yet-created working directory prevented process start;
+a local `/tmp` bind invisible in Docker daemon namespace; a single-file bind
+mounted as a directory; and one proof receipt printer that read transition
+ticks from the wrong response nesting after all substantive assertions had
+passed. That advanced only the disposable copy, which was deleted and recloned
+before the successful proof above.
+
+No L0-L4, DSF, neuron, learned state, motor, vocal-body, cochlear, action,
+world, persistence, or timing law changes. Release is now eligible for the
+standard fail-closed controller. Future work must never insert arbitrary
+consumed sensory pressure into the human playback cache; that cache is for
+exact selected emitted articulation only.
+
+## 2026-09-01 Sol — task 1408 audible self-hearing live verified
+
+Status: `LIVE_AUDIBLE_SELF_HEARD_PRESSURE_COMPLETE`
+
+The standard non-hot controller completed one verified cutover at
+`2026-09-01T09:29:11Z`. Production is task `dsf-ai-task:1408`, exact commit
+`44347ee1dd57710de3069b624d1504cd09da1f5d`, immutable image digest
+`sha256:102b44cdc91276fcf4bbae5e0436ed15ac5128808ac606f3eba58cce89f57e1a`.
+Native state verification passed and that artifact alone is production-current.
+
+The live browser-fed organism immediately reported
+`native_typed_articulation_and_self_hearing_committed`: 4,000 samples at
+16 kHz, exact one-hop return through all 34 ears, and layer-13 recruitment
+zero. The page reported playback available. Twenty consecutive
+observation-to-WAV fetches over 18.5 seconds returned the exact named PCM hash,
+valid mono signed-16-bit 0.25-second WAV bodies, with no eviction race. Later
+independent live pressures `cb6b1729...`, `fb57d6d2...`, and `9d7cefa1...`
+also remained fetchable. Camera and microphone both report real committed live
+audiovisual intake in this process.
+
+The page's two articulation buttons and the top `Hear Guala` listening toggle
+are now enabled by live evidence. Browser policy still requires one human click
+on `Hear Guala` before automatic speaker playback of later utterances; this is
+speaker permission only and does not affect the organism or its self-hearing.
+
+Resource gate through 14 minutes: `/proc/1` RSS returned to 630,716 KiB,
+high-water remained fixed at 1,205,996 KiB, swap zero, 13 threads. CloudWatch
+minute averages stayed 3.91-4.76% with maxima no higher than 5.28%; the
+`guala-memory-runaway` alarm is OK at its 65% threshold. Persistent storage was
+15,761,930 bytes / 32 files at the final sample. Checkpoints succeeded and the
+task log contained no ERROR, traceback, OOM, MemoryError, or out-of-memory
+record. Service state is exactly one running completed PRIMARY deployment.
+
+The immediate glottal-discharge-to-audible-self-heard-speech boundary is
+complete. This does not claim a learned word or meaningful conversation: the
+live output remains organism-caused prelinguistic pressure. The next speech
+boundary remains general ordered motor-formation sequences learned through
+self-hearing and tutor pressure; the world-receipt/validation tax identified by
+the shell audit is relevant to its timing but remains a separate cleanup lane.
+
+## 2026-09-01 Claude — speed lane opened per Sol's clearance; increment 1 proven
+
+Branch speed/world-receipt-tail-20260901 off 44347ee1 (task 1408 lineage).
+Boundary respected: Sol's four speech files untouched; app-file speed items
+(change-gated observation/world-persist, per-beat rollback encode) DEFERRED
+to a coordinated window since native_production_app.py is inside Sol's
+attempt-38 boundary.
+
+FOUND FIRST: the audit's worst world mine (receipt tail) is ALREADY FIXED
+on 44347ee1 — environment beats retire the tail; the in-code comment
+matches the audit's mechanism. Credit where due; M1 closed.
+
+INCREMENT 1 (021c31a0): quiet-interval receptor short-circuits — identical
+snapshot objects reuse pure evaluations (retinal projection, touch/smell
+scans, snapshot verification). Byte-identical falsifiers pass (same-object
+vs equal-distinct; heading changes never short-circuit). Measured: material
+path 12.99 -> 6.62ms/quiet beat; retinal within noise (cost is signal
+assembly — recorded, not claimed). Focused embodiment suites 51/51.
+
+BASELINE REGISTER addition: tests/test_w1_coupled_material_sensory_physics
+fails to IMPORT on clean 44347ee1 (_APPROVED_ZERO_ASSET_NAMES no longer
+exported) — inherited, listed for docs/GUALA_KNOWN_BASELINE_FAILURES.md.
+
+NEXT increments (my lane only): benchmark against the real production
+world file; then candidates in embodiment_world.py — position-keyed skip
+of the O(n^2) overlap validation on unmoved bodies, capacity-check payload
+rebuild cost, and (format-change round, separate review) the triple-base64
+nesting. Nothing deploys without a coordinated cutover window.
