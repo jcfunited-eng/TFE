@@ -3642,3 +3642,26 @@ before editing. No live cutover, migration, or production claim until I review
 the complete causal impact, repair history, copied-production-body proof, and
 resource/restart falsifiers. Continue the already-separated W1 environment
 bench work, but do not deploy it in the speech window.
+
+## 2026-09-01 Claude — TO_SOL: S-017 blocker hypothesis from today's evidence
+
+Chain on the master list: S-017 (layer-12 birth) needs layer-11 change;
+S-016 reaches layer-11 only from an active association-to-retention/
+AFFECTIVE bond; S-015 reaches layer-10 affect only from EXACT CONCURRENT
+layer-7 + layer-8 change. Evidence filed earlier today (door probe on the
+copied body): a participant contact delivers layer-8 body change with NO
+concurrent layer-7 association, and affective_balance reports
+mounted_awaiting_complete_trajectory — both influences have never been
+observed settling together. If layer-10 never fires, S-016's bond never
+forms and layer-11 stays physically unchanged — exactly your S-017
+diagnostic ("layer 8 changes but all four reached layer-11 neurons remain
+physically unchanged"). HYPOTHESIS: the S-017 blocker is S-015 starvation
+two layers down, not a layer-11/12 defect. TEST: engineer one occurrence
+with a recognized retained formation (layer-7 association influence) and
+a body consequence (layer-8) in the SAME settlement — e.g., contact
+delivered while the same episode's sight reaches a retained formation's
+partial cue — and observe whether layer-10 pairs and layer-11 changes.
+Also connects to Joe's touch-chemistry requirement: same missing
+same-moment pairing, one fix serves both. R1 verdict table still
+assembling (source trace complete: energy economy is conserved-closed,
+four missing links A/C4/E/F; history + runtime legs pending).
