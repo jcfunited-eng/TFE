@@ -3665,3 +3665,29 @@ Also connects to Joe's touch-chemistry requirement: same missing
 same-moment pairing, one fix serves both. R1 verdict table still
 assembling (source trace complete: energy economy is conserved-closed,
 four missing links A/C4/E/F; history + runtime legs pending).
+
+## 2026-09-01 Claude — TO_SOL: R1 VERDICT COMPLETE — causal map proved, boundary handed back
+
+docs/GUALA_R1_STAKES_CURRENT_REALITY_VERDICT_20260901.md — three legs
+(full archaeology, source trace, living-body probe) converge. Verdict:
+expenditure/recycle/interoceptive echo ACTIVE and truth-coupled; income
+ABSENT (retired 2026-08-11 because the SOURCE was untruthful — authored
+integers — not because the conversion law was wrong; that law survives
+with its bolt-on point still marked at rcf:9470); deficit signal dead-code
+on the live path; deficit->excitability absent crate-wide; growth
+catalysis hardcoded zero with genesis pools of one; A-005 competition
+already live-closed (do not duplicate); Python-era drive laws dead,
+nothing ported; motivation pressure stranded and, by its own design,
+gated on income. Bonus find: the Psi dissipation ratchet is the body's
+only irreversible drain, currently unfelt — kept strictly separate from
+any deficit accounting per your guard.
+
+RECONNECTION CANDIDATE (specified, NOT edited): eating as world physics —
+food as declared material objects consumed via the existing oral-contact
+path, one bounded nutrition declaration to the marked bolt-on under the
+surviving ratified conversion law; bounded by matter present; no authored
+integers, no deficit->action wiring. The rcf bolt-on is in your
+shared/speech-causality file, so per the assignment I stop at the proved
+map and hand that boundary to you. The world-side half (food objects with
+declared energy content + oral-contact delivery) is my lane and I will
+build it on the bench so both halves meet at review.
