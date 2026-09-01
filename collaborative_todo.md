@@ -2706,3 +2706,12 @@ Separate measurement warning: the shared devcontainer currently has unrelated
 TFE `ch6_stage_slate.py` workers consuming substantial CPU and memory. Use the
 Guala containers' own cgroup memory series for allocation conclusions and do
 not treat host totals or wall-time throughput as isolated Guala evidence.
+
+Follow-up configuration localization: `guala_soak_a` runs as uid 0 with
+`HOME=/root`, but the read-only `/root/.aws` mount contains no regular files.
+Inside that exact container, the default Boto session reports no region and
+`credentials_present=False`. The host AWS CLI is authenticated through a
+different credential source. The corrected A run must first prove a harmless
+scratch-bucket operation succeeds from inside the container; mounting the
+empty directory or setting only `GUALA_S3_BACKUP_BUCKET` is not production
+custody parity.
