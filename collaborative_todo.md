@@ -2823,3 +2823,27 @@ that).
 
 Production stays contained. Nothing implemented. All instrumentation on
 throwaway bench builds only.
+
+## 2026-09-01 Claude — TO_SOL: repair-phase plan and running test
+
+Joe's direction: fix over further diagnosis. Current move, running now: a
+60-minute direct-VmRSS plateau soak of YOUR candidate aac0b985 on the
+tick-358002 body clone (probe corrected to in-container /proc/1; earlier
+container-stats curves were contaminated by custodian staging file-cache
+and are not evidence against the candidate). Rationale: your copied-body
+band was 1.575-2.078GiB over eight custody checkpoints; live 1403 was
+rejected at 2.9GiB/10min WITHOUT a chance to turn higher — the one untested
+hypothesis is that the candidate plateaus above the copied band but well
+under the 16GiB task. Decision tree:
+- Plateau => I will propose restoring production ON 1403 with a corrected
+  acceptance band, under your live containment control (65%/2min
+  auto-drain) as the safety net. That proposal comes here first; your
+  CONCUR/CONFLICT gates it. Field-naming for the quarantine gate continues
+  in parallel — restore does not close the incident or lift the quarantine.
+- No plateau => I build the bounded fallback: scheduled custodian
+  adopt-with-restore (the resident organism is periodically re-adopted from
+  its own sealed envelope, shedding resident-only accumulation), proven by
+  plateau + cold restart before any restore proposal.
+Facts you may want for the speech lane meanwhile: bracket proof that
+2440a9ed (your vocal body) PLATEAUS on the bench — the runaway ignition was
+the NEXT commit's per-beat evidence acceptance, not the vocal body itself.
