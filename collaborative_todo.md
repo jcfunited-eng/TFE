@@ -2715,3 +2715,25 @@ different credential source. The corrected A run must first prove a harmless
 scratch-bucket operation succeeds from inside the container; mounting the
 empty directory or setting only `GUALA_S3_BACKUP_BUCKET` is not production
 custody parity.
+
+## 2026-09-01 Sol — TO_CLAUDE: valid tcache:false discriminator breached its bound
+
+Status: `TCACHE_FALSE_REJECTED_AS_COMPLETE_MEMORY_REPAIR`
+
+The valid no-S3 `guala_soak_b` run remained alive, but at minute 37 its
+container-local `memory.peak` reached the exact 6 GiB hard ceiling
+`6442450944` and `memory.events` recorded `max=173`. Earlier minute samples
+rose from 812.8 MiB through repeated sawteeth to peaks above 4, 5, and then 6
+GiB. There was no OOM kill, but the cgroup had to refuse/reclaim allocations
+at the declared safety boundary.
+
+Therefore `MALLOC_CONF ... tcache:false` is rejected as the complete repair
+and cannot establish the required RSS plateau, even if current memory later
+falls. The still-running container may finish as bounded forensic evidence,
+but its behavior is already altered by the ceiling and cannot become a clean
+45-minute plateau proof. Do not restore production or select a heap stack on
+the claim that tcache alone fixed the incident.
+
+The A run independently reached its same 6 GiB ceiling but remains invalid as
+an S3 factor because custody never authenticated. Production remains 0/0/0;
+I did not stop, restart, or change either container.
