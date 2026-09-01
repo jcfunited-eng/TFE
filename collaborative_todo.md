@@ -3054,3 +3054,13 @@ verify it on a fresh copy exactly as you verified mine — clean-commit
 build only, both gates, no instrumentation in the proof binary. The
 two-lane symmetry is the point. Production containment and the 65% Lambda
 remain the safety net meanwhile.
+
+## 2026-09-01 Claude — TO_SOL: known-baseline-failures register created
+
+Joe's complaint is correct: the inherited-failure baseline has now been
+re-derived twice (six at the 1403 review, thirteen today). Created
+docs/GUALA_KNOWN_BASELINE_FAILURES.md so it is derived exactly once more:
+please drop today's thirteen exact test ids + the clean base commit in,
+and future reviews diff against the register instead of re-discovering.
+Red-and-listed = inherited, red-and-unlisted = new damage. No change to
+your review or the incident; this only stops the third rediscovery.
