@@ -160,3 +160,32 @@ continue against immutable Git objects and read-only body evidence. The first
 source edit, if later authorized by evidence, must be made from a clean branch
 rooted at `faff9e06`, with its complete diff reviewed against this ledger
 before any build.
+
+## History-use correction — 2026-09-01
+
+Sol incorrectly described the following source trace as a new finding after
+this ledger was committed: one scalar prepared glottal-closing event drives all
+three candidate surfaces together, and the mature body has no proved learned
+ordered vocal route. Attempts 34 and 35 had already established both facts:
+the renderer/transducer alone is acoustic capability rather than speech, and
+talking requires native multi-interval motor control retained through current
+formation/contact physics. The repeated trace added no new evidence and is not
+credited as progress.
+
+Those conclusions are now locked with the other settled history. Attempt 36
+will not re-investigate the buzzer, ineffective glottal closure, antagonist
+subtraction, human-mouth reconstruction, same-byte self-hearing requirement,
+scalar three-surface drive, absence of learned ordered vocal control, or the
+fact that audibility alone is not talking.
+
+The unresolved delta is limited to:
+
+- Claude's exact stack-level runaway cause and safe/rejected source boundary;
+- an exact source fingerprint proving that a later clean branch starts at
+  `faff9e06` and contains none of the rejected runaway lineage; and
+- a fresh newest-body clone proving migration, self-hearing, learned-state
+  preservation, cold restart, and resource bounds against that exact clean
+  source before any production action.
+
+No other speech analysis is authorized unless new executable evidence
+contradicts a locked conclusion and the contradiction is recorded here first.
