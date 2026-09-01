@@ -9239,6 +9239,121 @@ def _commit_one_timeline_hop(
     )
 
 
+def _articulation_candidate_from_hop(
+    intervals: tuple[tuple[Any, ...], ...],
+    recruitments: tuple[tuple[Any, ...], ...],
+) -> tuple[dict[str, Any], bytes] | None:
+    """Project one emitted hop without merging it with adjacent lived time."""
+
+    if not intervals or not any(
+        any(sample != 0 for sample in interval[1]) for interval in intervals
+    ):
+        return None
+    pressure_pcm = tuple(
+        sample for interval in intervals for sample in interval[1]
+    )
+    body_channels = [array("h") for _ in range(ARTICULATORY_BODY_PORT_COUNT)]
+    for interval in intervals:
+        pressure = interval[1]
+        raw = array("h")
+        raw.frombytes(interval[2])
+        if sys.byteorder != "little":
+            raw.byteswap()
+        for channel_index, channel in enumerate(body_channels):
+            start = channel_index * len(pressure)
+            channel.extend(raw[start : start + len(pressure)])
+    body_trajectories = b"".join(channel.tobytes() for channel in body_channels)
+    strongest = max(intervals, key=lambda interval: abs(interval[4]))
+    pressure_s16le = struct.pack(f"<{len(pressure_pcm)}h", *pressure_pcm)
+    return (
+        {
+            "layer_13_recruitment_count": len(recruitments),
+            "recruitments": recruitments,
+            "sample_rate_hz": COCHLEAR_SAMPLE_RATE_HZ,
+            "pressure_sample_count": len(pressure_pcm),
+            "pressure_sha256": hashlib.sha256(pressure_s16le).hexdigest(),
+            "peak_transducer_surface_velocity_pcm": strongest[4],
+            "glottal_open_samples_at_apex": strongest[5],
+            "mouth_area_square_millimetres_at_apex": strongest[6],
+            "perioral_area_displacement_square_millimetres": intervals[-1][7],
+            "applied_motor_quanta": sum(interval[8] for interval in intervals),
+            "stalled_motor_quanta": sum(interval[9] for interval in intervals),
+            "relaxation_sample_count": 0,
+            "self_hearing_hop_count": 0,
+            "self_hearing_transitioned_neuron_count": 0,
+            "self_hearing_fractal_count": 0,
+            "articulatory_body_port_count": ARTICULATORY_BODY_PORT_COUNT,
+            "articulatory_body_nonquiescent_port_count": (
+                _articulatory_body_nonquiescent_port_count(
+                    body_trajectories,
+                    len(pressure_pcm),
+                )
+            ),
+            "articulatory_body_receptor_ingress_count": 0,
+            "articulatory_body_perturbed_neuron_count": 0,
+            "in_flight_recurrent_articulation_count": 1,
+        },
+        pressure_s16le,
+    )
+
+
+def _newest_exact_self_heard_articulation(
+    candidates: tuple[tuple[dict[str, Any], bytes], ...],
+    consumed: tuple[dict[str, Any], ...],
+) -> tuple[dict[str, Any], bytes] | None:
+    """Select the newest emitted hop with one exact all-ear return receipt."""
+
+    if not candidates:
+        return None
+    for candidate, pressure_s16le in reversed(candidates):
+        matching = tuple(
+            entry
+            for entry in consumed
+            if entry["pressure_sha256"] == candidate["pressure_sha256"]
+            and entry["sample_count"] == candidate["pressure_sample_count"]
+            and entry["remaining_sample_count"] == 0
+            and entry["receptor_ingress_sound_count"] == EAR_PORT_COUNT
+        )
+        if len(matching) != 1:
+            continue
+        match = matching[0]
+        return (
+            {
+                **candidate,
+                "self_hearing_hop_count": 1,
+                "self_hearing_pressure_sha256": candidate["pressure_sha256"],
+                "self_hearing_receptor_ingress_count": EAR_PORT_COUNT,
+                "self_hearing_transitioned_neuron_count": match[
+                    "coexisting_transitioned_neuron_count"
+                ],
+                "self_hearing_fractal_count": match[
+                    "coexisting_emitted_neuron_fractal_count"
+                ],
+                "coexisting_transitioned_neuron_count": match[
+                    "coexisting_transitioned_neuron_count"
+                ],
+                "coexisting_emitted_neuron_fractal_count": match[
+                    "coexisting_emitted_neuron_fractal_count"
+                ],
+                "articulatory_body_receptor_ingress_count": (
+                    ARTICULATORY_BODY_PORT_COUNT
+                ),
+            },
+            pressure_s16le,
+        )
+    candidate, pressure_s16le = candidates[-1]
+    return (
+        {
+            **candidate,
+            "self_hearing_pressure_sha256": None,
+            "self_hearing_receptor_ingress_count": 0,
+            "coexisting_transitioned_neuron_count": 0,
+            "coexisting_emitted_neuron_fractal_count": 0,
+        },
+        pressure_s16le,
+    )
+
+
 def _commit_vestibular_trajectory(
     organism: Any,
     predecessor_heading_millidegrees: int,
@@ -11357,6 +11472,9 @@ def _perform_admitted_intake_locked(
             int,
         ]
     ] = []
+    articulatory_hop_ranges: list[
+        tuple[int, int, tuple[tuple[Any, ...], ...]]
+    ] = []
     body_effector_bindings: list[tuple[int, str, str, str, int]] = []
     articulated_body_consequences: list[
         tuple[int, str, str, int, int, int, int, int, int, int, int]
@@ -11457,6 +11575,7 @@ def _perform_admitted_intake_locked(
 
     articulation: dict[str, Any] | None = None
     native_pressure_s16le: bytes | None = None
+    articulation_candidates: list[tuple[dict[str, Any], bytes]] = []
     emitted_neuron_fractals: list[dict[str, Any]] = []
     organic_mosaic_relations: list[dict[str, Any]] = []
     physical_frontier_routes: tuple[tuple[Any, ...], ...] = ()
@@ -11581,10 +11700,18 @@ def _perform_admitted_intake_locked(
         root_translation_unit_recruitments.extend(
             hop["root_translation_unit_recruitments"]
         )
-        articulatory_unit_recruitments.extend(
+        hop_articulatory_recruitments = tuple(
             hop["articulatory_unit_recruitments"]
         )
+        articulatory_unit_recruitments.extend(hop_articulatory_recruitments)
+        articulatory_interval_start = len(articulatory_intervals)
         retain_articulatory_interval_evidence(hop)
+        if len(articulatory_intervals) > articulatory_interval_start:
+            articulatory_hop_ranges.append((
+                articulatory_interval_start,
+                len(articulatory_intervals),
+                hop_articulatory_recruitments,
+            ))
         retain_articulated_body_evidence(hop)
         emitted_neuron_fractals.extend(hop["emitted_neuron_fractals"])
         organic_mosaic_relations.extend(hop["organic_mosaic_relations"])
@@ -11661,10 +11788,20 @@ def _perform_admitted_intake_locked(
                 last_hop,
             )
             committed_vestibular_tick_count = len(signed_steps)
-            articulatory_unit_recruitments.extend(
+            vestibular_articulatory_recruitments = tuple(
                 last_hop["articulatory_unit_recruitments"]
             )
+            articulatory_unit_recruitments.extend(
+                vestibular_articulatory_recruitments
+            )
+            vestibular_articulatory_start = len(articulatory_intervals)
             retain_articulatory_interval_evidence(last_hop)
+            if len(articulatory_intervals) > vestibular_articulatory_start:
+                articulatory_hop_ranges.append((
+                    vestibular_articulatory_start,
+                    len(articulatory_intervals),
+                    vestibular_articulatory_recruitments,
+                ))
             motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
             root_yaw_unit_recruitments.extend(
                 last_hop["root_yaw_unit_recruitments"]
@@ -11719,101 +11856,17 @@ def _perform_admitted_intake_locked(
                 raise RuntimeError(
                     "native articulatory intervals lost recruitment order"
                 )
-            sample_rate_hz = COCHLEAR_SAMPLE_RATE_HZ
-            pressure_pcm = tuple(
-                sample
-                for _recruitments, pressure, *_rest in articulatory_intervals
-                for sample in pressure
-            )
-            body_channels = [array("h") for _ in range(ARTICULATORY_BODY_PORT_COUNT)]
-            for interval in articulatory_intervals:
-                pressure = interval[1]
-                raw = array("h")
-                raw.frombytes(interval[2])
-                if sys.byteorder != "little":
-                    raw.byteswap()
-                for channel_index, channel in enumerate(body_channels):
-                    start = channel_index * len(pressure)
-                    channel.extend(raw[start : start + len(pressure)])
-            articulatory_body_trajectories = b"".join(
-                channel.tobytes() for channel in body_channels
-            )
-            strongest_interval = max(
-                articulatory_intervals,
-                key=lambda interval: abs(interval[4]),
-            )
-            peak_transducer_surface_velocity_pcm = strongest_interval[4]
-            glottal_open_samples_at_apex = strongest_interval[5]
-            mouth_area_square_millimetres_at_apex = strongest_interval[6]
-            perioral_area_displacement_square_millimetres = (
-                articulatory_intervals[-1][7]
-            )
-            applied_motor_quanta = sum(
-                interval[8] for interval in articulatory_intervals
-            )
-            stalled_motor_quanta = sum(
-                interval[9] for interval in articulatory_intervals
-            )
-            relaxation_sample_count = 0
-            # The pressure has left the vocal tract at this interval's end.
-            # Native state now owns it as an exact in-flight consequence; it
-            # reaches the ears at the next lived interval, never recursively
-            # inside the request that emitted it.
-            self_hearing_hop_count = 0
-            self_hearing_transitioned_neuron_count = 0
-            self_hearing_fractal_count = 0
-            self_articulatory_body_perturbed_neuron_count = 0
-            in_flight_recurrent_articulation_count = 1
-            native_pressure_s16le = struct.pack(
-                f"<{len(pressure_pcm)}h", *pressure_pcm
-            )
-            articulation = {
-                "layer_13_recruitment_count": len(
-                    articulatory_unit_recruitments
-                ),
-                "recruitments": tuple(articulatory_unit_recruitments),
-                "sample_rate_hz": sample_rate_hz,
-                "pressure_sample_count": len(pressure_pcm),
-                "pressure_sha256": hashlib.sha256(
-                    native_pressure_s16le
-                ).hexdigest(),
-                "peak_transducer_surface_velocity_pcm": (
-                    peak_transducer_surface_velocity_pcm
-                ),
-                "glottal_open_samples_at_apex": (
-                    glottal_open_samples_at_apex
-                ),
-                "mouth_area_square_millimetres_at_apex": (
-                    mouth_area_square_millimetres_at_apex
-                ),
-                "perioral_area_displacement_square_millimetres": (
-                    perioral_area_displacement_square_millimetres
-                ),
-                "applied_motor_quanta": applied_motor_quanta,
-                "stalled_motor_quanta": stalled_motor_quanta,
-                "relaxation_sample_count": relaxation_sample_count,
-                "self_hearing_hop_count": self_hearing_hop_count,
-                "self_hearing_transitioned_neuron_count": (
-                    self_hearing_transitioned_neuron_count
-                ),
-                "self_hearing_fractal_count": self_hearing_fractal_count,
-                "articulatory_body_port_count": ARTICULATORY_BODY_PORT_COUNT,
-                "articulatory_body_nonquiescent_port_count": (
-                    _articulatory_body_nonquiescent_port_count(
-                        articulatory_body_trajectories,
-                        len(pressure_pcm),
-                    )
-                ),
-                "articulatory_body_receptor_ingress_count": (
-                    ARTICULATORY_BODY_PORT_COUNT * self_hearing_hop_count
-                ),
-                "articulatory_body_perturbed_neuron_count": (
-                    self_articulatory_body_perturbed_neuron_count
-                ),
-                "in_flight_recurrent_articulation_count": (
-                    in_flight_recurrent_articulation_count
-                ),
-            }
+            for start, end, recruitments in articulatory_hop_ranges:
+                candidate = _articulation_candidate_from_hop(
+                    tuple(articulatory_intervals[start:end]),
+                    recruitments,
+                )
+                if candidate is not None:
+                    articulation_candidates.append(candidate)
+            if not articulation_candidates:
+                raise RuntimeError(
+                    "native articulatory pressure lost its per-hop evidence"
+                )
     except (RuntimeError, TypeError, ValueError) as error:
         intake_error = error
     if intake_error is not None:
@@ -12097,33 +12150,12 @@ def _perform_admitted_intake_locked(
             organism=organism, pointer=published.pointer
         )
     _sealed_pointer = published.pointer if published is not None else predecessor
-    if articulation is not None:
-        matching_self_hearing = tuple(
-            entry
-            for entry in consumed_in_flight_acoustic
-            if entry["pressure_sha256"] == articulation["pressure_sha256"]
-            and entry["sample_count"] == articulation["pressure_sample_count"]
-            and entry["remaining_sample_count"] == 0
-            and entry["receptor_ingress_sound_count"] == EAR_PORT_COUNT
-        )
-        articulation["self_hearing_hop_count"] = len(matching_self_hearing)
-        articulation["self_hearing_pressure_sha256"] = (
-            matching_self_hearing[0]["pressure_sha256"]
-            if len(matching_self_hearing) == 1
-            else None
-        )
-        articulation["self_hearing_receptor_ingress_count"] = sum(
-            entry["receptor_ingress_sound_count"]
-            for entry in matching_self_hearing
-        )
-        articulation["coexisting_transitioned_neuron_count"] = sum(
-            entry["coexisting_transitioned_neuron_count"]
-            for entry in matching_self_hearing
-        )
-        articulation["coexisting_emitted_neuron_fractal_count"] = sum(
-            entry["coexisting_emitted_neuron_fractal_count"]
-            for entry in matching_self_hearing
-        )
+    selected_articulation = _newest_exact_self_heard_articulation(
+        tuple(articulation_candidates),
+        tuple(consumed_in_flight_acoustic),
+    )
+    if selected_articulation is not None:
+        articulation, native_pressure_s16le = selected_articulation
     (
         active_causal_motor_traces,
         completed_causal_motor_traces,
