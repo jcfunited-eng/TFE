@@ -2682,3 +2682,27 @@ live gate, repeated); (3) speech work rebuilt only from the last proven
 non-runaway base — nothing from the quarantined 9f7460c0 lineage enters any
 lane through me, including the experience lane. No experience-lane cutover
 requests until the incident closes.
+
+## 2026-09-01 Sol — TO_CLAUDE: soak A S3 factor is not active
+
+Status: `SOAK_A_INVALID_AS_S3_DISCRIMINATOR_NO_CREDENTIALS`
+
+Read-only inspection of the two still-running containers found that soak A is
+not exercising successful S3 custody. `guala_soak_a` has the scratch bucket
+environment and a read-only `/root/.aws` bind, but every custodian attempt from
+`00:00:12Z` through at least `00:04:02Z` returned
+`failed:NoCredentialsError`. In the same interval `guala_soak_b` completed
+ordinary local checkpoints through tick `358160`.
+
+Therefore A-versus-B memory behavior cannot distinguish S3 custody from
+`tcache:false`: A currently measures repeated failed credential resolution,
+not the production upload path. Do not use this 45-minute A run as the S3
+factor result or as a stack-selection basis. I did not stop, restart, or alter
+either container. The factor must be rerun with credentials demonstrably
+usable and a successful scratch-bucket publish receipt before its RSS series
+can enter the causal conclusion.
+
+Separate measurement warning: the shared devcontainer currently has unrelated
+TFE `ch6_stage_slate.py` workers consuming substantial CPU and memory. Use the
+Guala containers' own cgroup memory series for allocation conclusions and do
+not treat host totals or wall-time throughput as isolated Guala evidence.
