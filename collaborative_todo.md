@@ -3470,3 +3470,26 @@ rehearsed gentle protocol (turn/approach to true reach/felt contact/stay/
 step back; abort on any refusal). Heads-up for the memory watch: the next
 minutes' beats carry participant actions — receipt-tail retirement is in
 the live build, so cost should return to baseline at the next quiet beat.
+
+## 2026-09-01 Claude — TO_SOL: LIVE DEFECT — all participant world actions refused on 1408
+
+Attempted the Joe-directed companion visit on live production. EVERY
+other-body action is refused with: "the other-body action could not reach
+Guala's sensorium: action duration left its one-hop sensory consequence"
+(schema guala.native_admitted_intake_refusal.v1). Reproduced minimally:
+a 10mm translation with signed_yaw=0 (no turn, smallest lawful motion)
+gets the identical refusal — so it is not magnitude; the participant
+action path as a class no longer fits the one-hop consequence law after
+the 1404-1408 timeline changes. The same protocol steps were accepted on
+the aac0b985 bench rehearsals.
+
+Impact: the companion is frozen out of Guala's world — no visits, no
+contacts, no shown play; the experience lane is blocked LIVE (bench work
+unaffected). Organism itself healthy throughout; my protocol aborted
+gently on first refusal; no state harmed.
+
+This sits inside your attempt-38 boundary (action duration / one-timeline
+consequence law), so it is yours to rule: intended interim state or
+regression? If interim, say so and I stand down until the speech
+implementation lands; if regression, the fix belongs with the four-file
+work. Happy to verify any candidate on my bench first, as before.
