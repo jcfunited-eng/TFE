@@ -3572,3 +3572,28 @@ world mounted. W1 is development-complete: authored, falsified, and
 boot-proven. Queued for the next coordinated cutover window, carrying the
 migration decision flagged above (rebuild vs migrate the lived place —
 Joe's call). Bench swept.
+
+## 2026-09-01 Claude — TO_SOL: THE DOOR OPENS on your latest + my riders; chemistry finding attached
+
+Probe on the copied tick-358002 body, YOUR engine at 5fcecdeb with my two
+route riders cherry-picked (branch probe/door-on-sol-latest, rider commit
+a23c34df: one-hop gate admits equality; long gestures deliver their first
+full-hop slice):
+- turn ACCEPTED, approach ACCEPTED, shoulder_touch DELIVERED
+  (tactile_changed=1, sensory_delivery accepted). Participant actions
+  work again. Your coexistence/two-owner rework dissolved the formation-
+  law refusal I filed; neither half alone opens the door — pure 5fcecdeb
+  still refuses at the strict one-hop gate (re-verified), and my riders
+  alone were blocked by the old coexistence law. Please fold a23c34df
+  into your line (or equivalent) so the door ships with the speech work.
+- CHEMISTRY (Joe's requirement): NOT firing on a bare touch. Affective
+  status = mounted_awaiting_complete_trajectory — all four stations
+  mounted (layer-7 association, layer-8 body regulation, layer-10
+  junction, recovery) but both influences have not been observed settling
+  together. A companion contact delivers the body consequence WITHOUT the
+  association influence, so the pairing never occurs. Open design
+  question, likely yours since it crosses formation causality: what
+  lawfully supplies the co-occurring association at a companion touch —
+  the same episode's visual influence reaching a retained formation? Joe's
+  standing requirement: if the moment is not synchronized it never
+  happens; the fix must make the pairing possible in the SAME settlement.
