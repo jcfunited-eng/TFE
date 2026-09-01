@@ -79,7 +79,7 @@ def test_new_impression_crosses_intake_boundaries_only_while_advancing_to_motor(
         _hop(10, emitted=(impression,)),
     )
     assert completed == {}
-    active = production._retain_cross_intake_causal_motor_traces(active)
+    active = production._retain_cross_intake_causal_motor_traces(active, 11)
     assert tuple(key[0] for key in active) == ("new_neuronal_fractal",)
 
     first = (association, impression, 0, 29)
@@ -91,7 +91,7 @@ def test_new_impression_crosses_intake_boundaries_only_while_advancing_to_motor(
         _hop(11),
     )
     assert completed == {}
-    active = production._retain_cross_intake_causal_motor_traces(active)
+    active = production._retain_cross_intake_causal_motor_traces(active, 12)
     assert tuple(key[0] for key in active) == ("new_neuronal_fractal",)
 
     second = (association, motor, 0, 7)

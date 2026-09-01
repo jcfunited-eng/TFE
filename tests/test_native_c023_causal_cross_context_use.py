@@ -59,8 +59,9 @@ def _hop(
     articulations: tuple[
         tuple[str, int, int, tuple[object, ...]], ...
     ] = (),
+    frontier: tuple[tuple[str, str, int, int, str], ...] | None = None,
 ) -> dict[str, object]:
-    return {
+    hop: dict[str, object] = {
         "predecessor_organism_tick": predecessor_tick,
         "organism_tick": predecessor_tick + 1,
         "internally_reassembled_formation_cues": cues,
@@ -68,6 +69,9 @@ def _hop(
         "motor_unit_recruitments": motors,
         "articulatory_unit_recruitments": articulations,
     }
+    if frontier is not None:
+        hop["causal_frontier_advances"] = frontier
+    return hop
 
 
 def test_exact_changed_endpoint_path_reaches_a_motor_only_on_a_later_interval() -> None:
@@ -376,7 +380,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         ),
     )
     assert completed == {}
-    active = production._retain_cross_intake_causal_motor_traces(active)
+    active = production._retain_cross_intake_causal_motor_traces(active, 61)
 
     observer.transfers = ((*cue_to_recurrent, recurrent),)
     active, completed = production._advance_causal_motor_traces(
@@ -386,7 +390,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         _hop(61),
     )
     assert completed == {}
-    active = production._retain_cross_intake_causal_motor_traces(active)
+    active = production._retain_cross_intake_causal_motor_traces(active, 62)
 
     observer.transfers = ((*recurrent_to_motor, motor),)
     active, completed = production._advance_causal_motor_traces(
@@ -396,7 +400,7 @@ def test_external_partial_cue_reassembly_reaches_later_articulation_from_its_rec
         _hop(62),
     )
     assert completed == {}
-    active = production._retain_cross_intake_causal_motor_traces(active)
+    active = production._retain_cross_intake_causal_motor_traces(active, 63)
 
     observer.transfers = ()
     active, completed = production._advance_causal_motor_traces(
@@ -658,20 +662,20 @@ def test_external_reassembly_does_not_bind_an_unrelated_articulatory_path() -> N
 def test_only_exact_cross_context_causes_cross_an_intake_boundary() -> None:
     paths = {"02" * 16: (("01" * 16, "02" * 16, 0, 7),)}
     active = {
-        ("external_participant_sensory", "11" * 32, ("01" * 16,), 10): paths,
+        ("external_participant_sensory", "11" * 32, ("01" * 16,), 12): paths,
         (
             "externally_reassembled_retained_formation",
             "22" * 32,
             ("02" * 16, "03" * 16),
-            11,
+            13,
         ): paths,
-        ("retained_formation", "33" * 32, ("04" * 16,), 12): paths,
+        ("retained_formation", "33" * 32, ("04" * 16,), 14): paths,
         ("retained_formation", "34" * 32, ("07" * 16,), 15): paths,
         ("new_neuronal_fractal", "", ("05" * 16,), 13): paths,
         ("affective_gradient", "44" * 32, ("06" * 16,), 14): paths,
     }
 
-    retained = production._retain_cross_intake_causal_motor_traces(active)
+    retained = production._retain_cross_intake_causal_motor_traces(active, 15)
 
     assert tuple(key[0] for key in retained) == (
         "external_participant_sensory",
@@ -684,3 +688,68 @@ def test_only_exact_cross_context_causes_cross_an_intake_boundary() -> None:
         "33" * 32,
         "34" * 32,
     )
+
+
+def test_native_frontier_horizon_is_invariant_to_transport_grouping() -> None:
+    cue = "01" * 16
+    recurrent = "02" * 16
+    association = "03" * 16
+    motor = "04" * 16
+    later = "05" * 16
+    articulation = "06" * 16
+    receipt = "11" * 32
+    intervals = (
+        _hop(60, external_reassemblies=((receipt, (cue,), recurrent),)),
+        _hop(61, frontier=((cue, recurrent, 0, 9, recurrent),)),
+        _hop(62, frontier=((recurrent, association, 0, 7, association),)),
+        _hop(63, frontier=((association, motor, 0, 5, motor),)),
+        _hop(64, frontier=((motor, later, 0, 4, later),)),
+        _hop(
+            65,
+            articulations=(
+                (
+                    articulation,
+                    6,
+                    3,
+                    ((later, 12, articulation, 13, 0, 3),),
+                ),
+            ),
+        ),
+    )
+
+    split_active = {}
+    split_completed = {}
+    for interval in intervals:
+        split_active, split_completed = production._advance_causal_motor_traces(
+            None,
+            split_active,
+            split_completed,
+            interval,
+        )
+        split_active = production._retain_cross_intake_causal_motor_traces(
+            split_active,
+            int(interval["organism_tick"]),
+        )
+
+    combined_active, combined_completed = production._advance_causal_motor_traces(
+        None,
+        {},
+        {},
+        {"causal_interval_evidence": intervals},
+    )
+
+    assert "externally_reassembled_retained_formation_articulation" not in (
+        split_completed
+    )
+    assert "externally_reassembled_retained_formation_articulation" not in (
+        combined_completed
+    )
+    assert split_active == combined_active
+
+
+def test_expired_exact_trace_key_cannot_be_resurrected() -> None:
+    key = ("retained_formation", "aa" * 32, ("01" * 16,), 7)
+    active = {key: {"02" * 16: ()}}
+
+    assert production._retain_cross_intake_causal_motor_traces(active, 11) == {}
+    assert production._retain_cross_intake_causal_motor_traces(active, 12) == {}

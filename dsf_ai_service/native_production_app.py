@@ -1995,6 +1995,11 @@ _CROSS_INTAKE_CAUSAL_TRACE_KINDS = frozenset(
         "retained_formation",
     }
 )
+# The native organism retains exactly three completed electrical frontiers in
+# addition to the interval being settled. A transient observer origin cannot
+# remain causally witnessable after those three native intervals have passed.
+# This is an organism-tick horizon, never a Python intake/request count.
+_CAUSAL_MOTOR_TRACE_RETAINED_FRONTIERS = 3
 _MULTI_PATH_CAUSAL_TRACE_KINDS = frozenset(
     {
         "externally_reassembled_retained_formation",
@@ -9830,6 +9835,14 @@ def _advance_causal_motor_traces(
     organism_tick = int(hop["organism_tick"])
     if organism_tick != predecessor_tick + 1:
         return {}, completed
+    active = {
+        key: active[key]
+        for key in sorted(active)
+        if _causal_motor_trace_may_complete_in_native_interval(
+            key,
+            organism_tick,
+        )
+    }
     prior_changed = completed.get("_changed_contact_channel_states", {})
     changed_by_bond = {
         tuple(entry[1:4]): (int(observed_tick), tuple(entry))
@@ -10425,21 +10438,66 @@ def _advance_causal_motor_traces(
     return advanced, next_completed
 
 
+def _causal_motor_trace_native_interval_age(
+    key: tuple[str, str, tuple[str, ...], int],
+    current_organism_tick: int,
+) -> int:
+    """Return exact native intervals elapsed from one transient origin."""
+
+    origin_organism_tick = int(key[3])
+    native_interval_age = int(current_organism_tick) - origin_organism_tick
+    if native_interval_age < 0:
+        raise RuntimeError(
+            "causal motor trace origin is later than the committed native "
+            "interval"
+        )
+    return native_interval_age
+
+
+def _causal_motor_trace_may_complete_in_native_interval(
+    key: tuple[str, str, tuple[str, ...], int],
+    current_organism_tick: int,
+) -> bool:
+    """Allow three predecessor frontiers to meet the current interval."""
+
+    return _causal_motor_trace_native_interval_age(
+        key,
+        current_organism_tick,
+    ) <= (_CAUSAL_MOTOR_TRACE_RETAINED_FRONTIERS + 1)
+
+
+def _causal_motor_trace_may_cross_intake(
+    key: tuple[str, str, tuple[str, ...], int],
+    current_organism_tick: int,
+) -> bool:
+    """Carry an origin only if the next interval can still witness it."""
+
+    return _causal_motor_trace_native_interval_age(
+        key,
+        current_organism_tick,
+    ) <= _CAUSAL_MOTOR_TRACE_RETAINED_FRONTIERS
+
+
 def _retain_cross_intake_causal_motor_traces(
     active: dict[
         tuple[str, str, tuple[str, ...], int],
         dict[str, tuple[tuple[str, str, int, int], ...]],
     ],
+    current_organism_tick: int,
 ) -> dict[
     tuple[str, str, tuple[str, ...], int],
     dict[str, tuple[tuple[str, str, int, int], ...]],
 ]:
-    """Retain every exact cause still advancing at the intake boundary."""
+    """Retain only causes still witnessable by the native frontier window."""
 
     return {
         key: active[key]
         for key in sorted(active)
         if key[0] in _CROSS_INTAKE_CAUSAL_TRACE_KINDS
+        and _causal_motor_trace_may_cross_intake(
+            key,
+            current_organism_tick,
+        )
     }
 
 
@@ -12227,7 +12285,10 @@ def _perform_admitted_intake_locked(
             )
         )
     _active_cross_intake_causal_motor_traces = (
-        _retain_cross_intake_causal_motor_traces(active_causal_motor_traces)
+        _retain_cross_intake_causal_motor_traces(
+            active_causal_motor_traces,
+            int(last_hop["organism_tick"]),
+        )
     )
     receptor_ingress = {
         "changing_count": receptor_ingress_changing_count,
