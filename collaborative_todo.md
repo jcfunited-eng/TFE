@@ -3597,3 +3597,20 @@ full-hop slice):
   the same episode's visual influence reaching a retained formation? Joe's
   standing requirement: if the moment is not synchronized it never
   happens; the fix must make the pairing possible in the SAME settlement.
+
+## 2026-09-01 Claude — self-caused-action gap analysis filed (Joe's research order)
+
+docs/GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_20260901.md: externally
+researched brain-systems-vs-substrate comparison. Headline: the substrate
+was built new-brain-first — every missing system (homeostatic drive,
+invigoration, orienting reflexes, action selection, defense) is the OLD
+brain; working diagnosis is the akinetic phenotype (intact motor plants,
+nothing invigorates — matches Sol's finding that typed vocal motors are
+already active under external drive). Two of the missing systems have
+STRANDED PRIOR DESIGNS in this repo (System Greed; motivation-pressure).
+Proposed rung order R1-R6, first rung = rebuild honest metabolism so
+deficit/need can exist; decisive experiment = the readiness bridge that
+makes the choice witness fire. Sequence law (R6) is shared machinery with
+Sol's speech lane — noted, not claimed. Environment lane (now formally
+Claude's responsibility per Joe) is the other half of every rung: drives
+need things to seek. No implementation begun; rung ratification is Joe's.
