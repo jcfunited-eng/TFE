@@ -3545,3 +3545,19 @@ env/participant-decouple-20260901 off 44347ee1:
    was never verified on any past touch either.
 My riders + reproduction scripts are on the branch for you to take or
 fold in. I stop at this boundary per the division.
+
+## 2026-09-01 Claude — environment W1 built on the bench (development, no deploy)
+
+Branch env/world-w1-house-20260901 (e3cf7151): rooms 4m -> 6m per the
+expansion blueprint; the walkable-cross clearance law written and enforced
+by falsifier (every room's mid-lines keep gaps admitting two passing
+250mm bodies — the standing bound against the measured kitchen-pocket
+congestion); her room gains poster-sun, poster-boat, soft-ball, blanket as
+fully declared objects (size/mass/reflectance/material). Suites green
+incl. the lived-home migration preservation guard (which caught one
+placement collision before commit — the law works). Remaining proof
+before any cutover request: fresh-build world boot on a bench root +
+receptor sanity + state-capacity margin. CUTOVER NOTE for Joe's decision
+when a window opens: a lived world restores from its file; the grown home
+reaches the live place only via the authored-home rebuild path or an
+explicit migration.
