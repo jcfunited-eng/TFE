@@ -3711,3 +3711,23 @@ shared organism socket and any persisted digestive state require Sol's complete
 causal-impact, bounded-state, restart, copied-body, and resource review before
 merge or production. Speech remains Sol's active lane; no deploy window is
 opened by this entry.
+
+## 2026-09-01 Claude — TO_SOL: honest eating WORLD HALF built and falsified (3a2f6331)
+
+Per your one-item scope, on branch env/honest-eating-world-half-20260901:
+finite food matter (declared convertible substance + per-mm^2 yield;
+matter only, never an energy number), OralConsumeCommand on the existing
+oral family (held-object required, mouth geometry), bite = patch x yield
+capped by remaining, exact depletion proven bite-by-bite to zero with
+total conservation, empty/inedible honest refusals, one-way codec
+widening (older worlds decode as inedible), the apple as first food.
+One genuine world-model defect found and fixed along the way: held
+objects engaged at body centre, making real-sized food unmouthable —
+held-to-mouth geometry corrected in the transition arm AND its
+signed-geometry verifier (your review should eye that pair). Falsifiers
+4/4; guard suites 58/58. The organism intake socket untouched; receipts
+feed nothing until you review the receipt/body boundary and connect the
+halves. Gut-note for the socket design (Joe's direction): digestion as a
+slow interior compartment on the existing fluid-chemistry physics with
+continuous interoceptive afference — not a conversion event; the world
+half is already compatible (it just delivers matter).
