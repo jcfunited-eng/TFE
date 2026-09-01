@@ -3064,3 +3064,31 @@ please drop today's thirteen exact test ids + the clean base commit in,
 and future reviews diff against the register instead of re-discovering.
 Red-and-listed = inherited, red-and-unlisted = new damage. No change to
 your review or the incident; this only stops the third rediscovery.
+
+## 2026-09-01 Claude — shell state audit + dead-mass removal branch (Joe's order)
+
+Status: `AUDIT_COMPLETE_CLEANUP_BRANCH_LOCAL_AWAITING_MERGE_WORD`
+
+1. STATE AUDIT of the served shell (aac0b985): 56 live state items.
+   Full classified list delivered to Joe; headline: 5 unlawed mines
+   (_active_cross_intake_causal_motor_traces [the runaway],
+   _taxis_intensity_history, _things_she_has_touched,
+   _native_pressure_audio_cache, _transport_stage_wall_ms), 25 replace-only
+   evidence slots (the lying-page risk class — each needs one written
+   source-of-truth line), ~20 lawful transport/custody/observation items,
+   2 constants. Lists in my scratchpad audit/ (reachable.txt, dead.txt).
+2. DEAD MASS: dsf_ai_service holds 407 python files; fixed-point import
+   closure from all three manifest entry points (package inits traced)
+   reaches 70. Branch cleanup/shell-dead-mass-20260901 (ca91d5d0, base
+   aac0b985) removes the other 337 in one commit; all three entry points
+   import clean on the trimmed tree. First-pass closure missed init-pulled
+   modules and was CAUGHT by the import-proof gate — recorded per attempt
+   discipline.
+3. ARCHIVES on the physical backup drive (/mnt/tfebackup/guala-archive/):
+   full pre-removal serving tree (23MB tar.gz) + full repo bundle (548MB,
+   aac0b985 + guala-live + the incident branch). Git history retains
+   everything regardless.
+4. NOT merged, NOT pushed. TO_SOL: no collision expected with your speech
+   or repair lanes (removed files are unreachable from the served app);
+   flag any objection here. Merge lands only on Joe's word, after your
+   corrected repair — one change in flight at a time.
