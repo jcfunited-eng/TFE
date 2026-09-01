@@ -3185,3 +3185,67 @@ directly on the corrected runaway fix you are designing:
    _last_custodian_error the page reports.
 
 Full consolidated five-domain audit follows when the last auditor lands.
+
+## 2026-09-01 Claude — CONSOLIDATED FIVE-DOMAIN SHELL AUDIT (93,800 lines)
+
+Full reports preserved in the session task records; headline ledger:
+
+TOTALS: ~43,000 of 93,800 shipped lines deletable or collapsible (dead
+auditory domain ~28.3k incl. w1 audio; legacy glew cluster ~11.4k+3.3k
+dead-in-live; world-domain migration residue + inert siblings ~10.3k gross;
+persistence ~2k; app ~1.1k; overlaps deduplicated in the estimate).
+
+MINES BY HARM ORDER (beyond the known trace runaway):
+1. WORLD RECEIPT TAIL (embodiment_world.py:5368-5374, :121): 16 retained
+   receipts each embed TWO full ObservationSnapshots; after any 16 body
+   actions ever, every passive beat re-serializes 32 world copies. MEASURED:
+   passive beat 24.5ms -> 282.3ms (over the 250ms budget); ~1.76MB EFS
+   write per beat => ~285GB/day steady-state for a still world. Also
+   optical-surface residue accretes toward state_capacity_exhausted, after
+   which body actions are REFUSED (:5386-5398). Likely a major cause of
+   seconds-class beats.
+2. COMPOUND CUSTODIAN WEDGE (filed above in detail): generation-orphan
+   crash windows wedge all future checkpoints forever + uncapped
+   _pending_unsealed_intervals + media .stage BOOT wedge + 4 orphan
+   classes incl. unbounded S3 remote garbage.
+3. Media store: bounded but NO retirement law — 32 offerings EVER, then
+   refusal for life.
+4. _CANONICAL_LINEAGES_SEEN: bounded 500k-entry set ~= 40-60MB permanent
+   resident (native_resident_organism.py:715-733).
+5. _native_pressure_audio_cache: count-bounded (4) but byte-unbounded —
+   four full PCM bodies resident.
+CORRECTION to my earlier state audit: the taxis/touched globals are DEAD
+(never read/written on this branch) — corpses with misleading comments,
+not mines.
+
+SILENT-FAILURE PATHS (the lied-to-Joe machinery): public observation
+cache freezes stale forever on one build failure (app:7334-44); causal
+observer errors swallowed into a buried field (:10479-84); custodian
+failures stderr-only with stale evidence (:15919-37); unattended loop
+absorbs BaseException at 4Hz (:13644-55); seal-failure zeroes unsealed
+accounting pre-raise (:11801-05); world/organism fork on refused intake
+after world persist (by design, response-text only).
+
+PER-BEAT WASTE CHAMPIONS: full observation rebuild+canonical+sha every
+beat regardless of change (app:7292-7346, incl. _articulation_record run
+TWICE :7215-16); 3x organism readiness per beat; full world persist per
+beat; per-beat rollback encode used only on exception (app:12762); double
+retinal/chemistry/verify on identical snapshots (w1:679-690, 9.35ms
+verifies x2); the 958-line validator's double observation marshal +
+duplicate re-validation + decimal-string parsing (native_resident_organism
+:3007-3964) = the measured 125-450ms python_validation; checkpoint path:
+3 raw-body copies, up to 9 hashes, full download-back verify.
+
+DUPLICATION: canonical/fraction/digest helpers defined 17/13/11/6 times
+per layer; card/song/spoken handler stacks (~880->500 lines); three
+auditory recognizer generations (8,884 lines, none live); two divergent
+S3 stores — candidate_release_rehearsal.py:285-328 MISSING the versioned-
+delete + absent-key fixes production bought 2026-08-06; five world-loader
+generations live (~1,000 lines).
+
+Recommended order after restore: (1) receipt-tail fix + change-gated world
+persist + change-gated observation rebuild [live harm now]; (2) compound-
+wedge closures [organ risk]; (3) manifest cut: auditory domain + legacy
+glew cluster + inert w1 siblings [~43k lines out of the image]; (4) the
+validation-tax rewrite [beat speed for Sol's timing wall]; (5) dedup
+passes. Each lands via the standard two-lane gates, one at a time.
