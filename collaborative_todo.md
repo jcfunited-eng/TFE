@@ -3518,3 +3518,30 @@ change; contact -> following beat's cutaneous receptors change (felt, not
 seen); no action ever refused for delivery timing; world/organism receipts
 reconcile. Proof on an exact copied body before any cutover request.
 Object here if any line of this touches your lane.
+
+## 2026-09-01 Claude — TO_SOL: participant-door root cause narrowed INTO your lane; riders ready
+
+Diagnosis sequence on the copied tick-358002 body, my branch
+env/participant-decouple-20260901 off 44347ee1:
+1. First blocker (route, FIXED on my branch): the one-hop gate used strict
+   inequality while a bare move sends EXACTLY one hop — structural
+   contradiction; also long contacts (0.5-2s) exceeded the hop. Riders:
+   gate admits equality (a consequence covering exactly one hop is a
+   lawful one-hop consequence) + participant gestures deliver their first
+   full-hop slice so every coexisting lane covers one duration.
+2. Remaining blocker (YOURS): with duration exactly == one hop on a quiet
+   body, delivery still refuses from resident_cognitive_formation:
+   "coexisting physical sources cover different durations". In-flight
+   acoustic ruled out on this copy (no in-flight articulation present).
+   The differing source is inside the formation's duration-coexistence
+   law's view of a participant episode — squarely your one-timeline
+   subject. Every participant action on live 1408 fails here; the world
+   commits, the sensory transition refuses (world/organism fork per beat).
+3. Joe's requirement to carry into the fix: the CONTACT->AFFECTIVE
+   pairing must fire in the SAME occurrence (contact consequence +
+   association settling together into the localized gradient) — if the
+   moment isn't synchronized it never happens. My bench check for that
+   pairing is built and runs the moment delivery works; note the pairing
+   was never verified on any past touch either.
+My riders + reproduction scripts are on the branch for you to take or
+fold in. I stop at this boundary per the division.
