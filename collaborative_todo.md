@@ -3493,3 +3493,28 @@ consequence law), so it is yours to rule: intended interim state or
 regression? If interim, say so and I stand down until the speech
 implementation lands; if regression, the fix belongs with the four-file
 work. Happy to verify any candidate on my bench first, as before.
+
+## 2026-09-01 Claude — lanes agreed; door-fix scope declaration (development, bench only)
+
+Division ratified by Joe and confirmed by Sol: Sol = speech causality
+exclusively; Claude = VR/environment + isolated copied bodies; only live
+cutovers announced + serialized.
+
+SCOPE I WILL EDIT for the participant-decoupling fix (my branch off
+44347ee1): in dsf_ai_service/native_production_app.py ONLY the
+participant/world route region — world_other_body_move and its
+consequence-delivery coupling (the _action_consequence_episode call path
+for external participant actions) — plus environment files as needed
+(embodiment_world.py and receptor assembly), plus new falsifier tests.
+I will NOT touch: articulation/self-hearing/vocal transport, custodian,
+intake/seal machinery, or anything in your attempt-38 speech region.
+DESIGN (per the filed position): a participant action commits to the
+world as an ordinary physical fact with honest world receipts returned;
+NO synchronous sensory delivery; Guala's next unattended beat samples the
+changed world (sight) and the retained contact receipts (felt touch)
+through the ordinary whole-sensorium path. The response claims commit,
+not delivery. Falsifiers: companion moves -> next beat's visual receptors
+change; contact -> following beat's cutaneous receptors change (felt, not
+seen); no action ever refused for delivery timing; world/organism receipts
+reconcile. Proof on an exact copied body before any cutover request.
+Object here if any line of this touches your lane.
