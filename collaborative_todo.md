@@ -3561,3 +3561,14 @@ receptor sanity + state-capacity margin. CUTOVER NOTE for Joe's decision
 when a window opens: a lived world restores from its file; the grown home
 reaches the live place only via the authored-home rebuild path or an
 explicit migration.
+
+## 2026-09-01 Claude — W1 grown home BOOT-PROVEN on bench
+
+Fresh-build proof passed on the copied body (world file withheld so the
+place rebuilt from the new authoring): four 6m x 6m rooms standing, 19
+objects including poster-sun/poster-boat/soft-ball/blanket, both bodies
+present, identity kept, ticks advancing (358,112+), energy not exhausted,
+world mounted. W1 is development-complete: authored, falsified, and
+boot-proven. Queued for the next coordinated cutover window, carrying the
+migration decision flagged above (rebuild vs migrate the lived place —
+Joe's call). Bench swept.
