@@ -109,6 +109,57 @@ def test_native_pressure_cache_is_bounded_by_count_and_exact_pcm_bytes() -> None
     ) == ()
 
 
+def test_quiet_or_self_hearing_intake_cannot_evict_last_audible_articulation(
+) -> None:
+    prior = ({
+        "pcm_s16le": b"\x01\x00\xff\xff",
+        "pressure_sha256": PRESSURE_SHA256,
+        "sample_count": 2,
+        "sample_rate_hz": 16_000,
+    },)
+
+    retained = production._retain_native_articulation_audio(prior, None)
+
+    assert retained == prior
+
+
+def test_articulation_playback_finds_its_hash_inside_bounded_history(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        production,
+        "_last_tested_articulation_evidence",
+        {
+            "pressure_sample_count": 2,
+            "pressure_sha256": PRESSURE_SHA256,
+            "sample_rate_hz": 16_000,
+        },
+    )
+    monkeypatch.setattr(
+        production,
+        "_native_pressure_audio_cache",
+        (
+            {
+                "pcm_s16le": b"\x01\x00\xff\xff",
+                "pressure_sha256": PRESSURE_SHA256,
+                "sample_count": 2,
+                "sample_rate_hz": 16_000,
+            },
+            {
+                "pcm_s16le": b"\x02\x00\xfe\xff",
+                "pressure_sha256": "b" * 64,
+                "sample_count": 2,
+                "sample_rate_hz": 16_000,
+            },
+        ),
+    )
+
+    playback = production._articulation_record()["native_pressure_playback"]
+
+    assert playback["available"] is True
+    assert playback["pressure_sha256"] == PRESSURE_SHA256
+
+
 def test_gualaloom_plays_only_the_exact_native_pressure_endpoint() -> None:
     page = PAGE.read_text(encoding="utf-8")
 

@@ -1918,6 +1918,20 @@ def _bounded_native_pressure_audio_cache(
     retained.reverse()
     return tuple(retained)
 
+
+def _retain_native_articulation_audio(
+    retained: tuple[dict[str, Any], ...],
+    articulation_audio: dict[str, Any] | None,
+) -> tuple[dict[str, Any], ...]:
+    """Retain only selected emitted speech, unchanged by later ear intake."""
+
+    if articulation_audio is None:
+        return retained
+    return _bounded_native_pressure_audio_cache((
+        *retained,
+        articulation_audio,
+    ))
+
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
 # actual persistent world and presents one exact 250 ms physical interval at
@@ -6063,10 +6077,13 @@ def _articulation_record() -> dict[str, object]:
         and articulation.get("self_hearing_receptor_ingress_count")
         == EAR_PORT_COUNT
     )
-    playback = (
-        _native_pressure_audio_cache[-1]
-        if _native_pressure_audio_cache
-        else None
+    playback = next(
+        (
+            item
+            for item in reversed(_native_pressure_audio_cache)
+            if item.get("pressure_sha256") == pressure_sha256
+        ),
+        None,
     )
     playback_record = _section(
         bool(
@@ -12686,14 +12703,6 @@ def _perform_admitted_intake_locked(
             "predecessor_state_sha256": predecessor.state_sha256,
             "state_sha256": _sealed_pointer.state_sha256,
         }
-    if consumed_in_flight_acoustic:
-        _native_pressure_audio_cache = _bounded_native_pressure_audio_cache((
-            *_native_pressure_audio_cache,
-            *(
-                {**entry, "intake": intake}
-                for entry in consumed_in_flight_acoustic
-            ),
-        ))
     if articulation is not None:
         _last_tested_articulation_evidence = {
             **articulation,
@@ -12714,10 +12723,10 @@ def _perform_admitted_intake_locked(
             "sample_count": articulation["pressure_sample_count"],
             "sample_rate_hz": articulation["sample_rate_hz"],
         }
-        _native_pressure_audio_cache = _bounded_native_pressure_audio_cache((
-            *_native_pressure_audio_cache,
+        _native_pressure_audio_cache = _retain_native_articulation_audio(
+            _native_pressure_audio_cache,
             next_pressure_audio,
-        ))
+        )
     if (
         len(physical_prediction_alternatives) == 2
         and body_consequence_transfers
