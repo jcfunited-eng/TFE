@@ -56,6 +56,55 @@ learned skills.
   approximately 700-byte-per-call deposit, that multiplier is prohibited from
   returning in speech or environment work.
 
+## Exact call-level cause of the hop multiplier
+
+The multiplier is not an unavoidable cost of hearing and is not caused merely
+by having 16 kHz PCM:
+
+1. `_perform_admitted_intake_locked` calls
+   `_admit_in_flight_acoustic_consequence` **before** it advances the primary
+   world intake.
+2. `_admit_in_flight_acoustic_consequence` expands the entire pending pressure
+   span into successive 250 ms `_mono_pcm_hop_episodes` and passes all of them
+   through `advance_in_flight_self_hearing_unsealed`.
+3. The native method consumes the old pending consequence, advances the vocal
+   body once for every resulting episode, and installs all pressure emitted
+   during those advances as a new pending consequence.
+4. The later primary-world advance does not consume that new pending sound.
+   `advance_admitted_intervals_unsealed` carries it forward and
+   `InFlightAcousticConsequence::followed_by` concatenates any further body
+   emission behind it.
+5. The next intake therefore hears the concatenated backlog as more causal
+   hops. On the rejected fixed-phonation body, hearing renewed motor discharge,
+   so the backlog became the measured steady 17-hop feedback regime.
+
+This is a synchronization defect, not a reason to accelerate the neuronal or
+body interval law. Finite gesture mechanics remove the fixed self-renewal, but
+they do not by themselves make concatenating unheard physical intervals
+truthful. A legitimately babbling organism could otherwise recreate the same
+backlog.
+
+## Required acoustic interval invariant
+
+The accepted transport must enforce one physical timeline:
+
+- the prior interval's emitted pressure is heard during the next ordinary
+  whole-sensorium/world interval;
+- the acoustic body advances once for that interval, not once for self-hearing
+  and again for the same world time;
+- consumption of the predecessor consequence and installation of the newly
+  emitted successor are one native transition;
+- the successor is bounded to that one physical interval;
+- producing a successor while an earlier consequence remains unconsumed is a
+  synchronization failure and must refuse; it must neither append the two in
+  time nor silently replace/erase either one; and
+- self-pressure and simultaneous external pressure require an exact physical
+  coexistence/superposition proof before implementation. Two sequential
+  episodes cannot be called simultaneous hearing.
+
+`InFlightAcousticConsequence::followed_by` therefore cannot remain on the
+accepted speech path. Its append semantics are the direct backlog mechanism.
+
 ## Accepted consequence
 
 Joseph's sustained-gesture proposal clears the false requirement that an
@@ -70,8 +119,10 @@ This is not yet implementation clearance. The following remain unproved:
   impulse;
 - a general retained ordered-action path that replays distinct motor events;
 - exact timing custody for a second gesture while the first remains active;
-- pressure-only cochlear return plus bounded native proprioception without
-  promoting every renderer sample into a causal settlement event; and
+- exact same-interval coexistence of self-pressure and microphone/world
+  pressure;
+- bounded native proprioception without promoting every renderer sample into a
+  separate causal settlement event; and
 - a copied newest production body showing a flat resource line beyond every
   failed window.
 
@@ -84,6 +135,7 @@ Do not extend or reintroduce:
 - `9f7460c0`'s scalar all-surfaces impulse;
 - sample-by-sample waveform history as cognition or sequence memory;
 - a recursive drain-until-quiet self-hearing loop;
+- in-flight pressure concatenation across world intervals;
 - phoneme, word, target-frequency, or target-waveform tables;
 - Python action, timing, cognition, or meaning authority; or
 - any bare task-1400 or voice-lineage source before Claude's certified clean
@@ -102,18 +154,21 @@ Do not extend or reintroduce:
 5. Consume one emitted pressure consequence: it must enter both ordinary
    cochleae exactly once; restart must neither erase an unconsumed consequence
    nor replay a consumed one.
-6. Compare renderer sample count, receptor gate count, neuron-settlement call
+6. Present simultaneous external and self-pressure: the admitted cochlear field
+   must equal the exact declared acoustic coexistence law, and the body and
+   cognition must advance only one shared interval.
+7. Compare renderer sample count, receptor gate count, neuron-settlement call
    count, RSS, CPU, and persisted bytes. None may grow recursively with
    self-hearing or accumulate per lived beat.
-7. Cold restore during an active gesture: identity, all existing neurons,
+8. Cold restore during an active gesture: identity, all existing neurons,
    contacts, formations, full seven-field DSF state, learned sensory state,
    tissue state, and the remaining finite pressure consequence must be exact.
 
 ## Single next item
 
-Complete the file-and-call-level proof for one emission becoming one later
-ordinary cochlear occurrence while sustained tissue continues independently.
-The proof must identify and remove every route by which 16 kHz renderer/body
-samples or recurrent self-hearing can multiply native neuron-settlement calls.
-No implementation follows until that transport proof and Claude's clean-base
+Prove the exact same-interval acoustic coexistence boundary using the mounted
+whole-sensorium source format: how predecessor self-pressure and simultaneous
+microphone/world pressure become one truthful cochlear field while the native
+runtime authenticates exact once-only consumption and advances cognition/body
+once. No implementation follows until that proof and Claude's clean-base
 certificate both exist.
