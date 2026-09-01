@@ -233,6 +233,24 @@ def close_position(
     print(f"  {reason} {symbol} @{price:.2f} ret {result_pct:+.2f}% pnl ${pnl:+,.2f}")
 
 
+def _fall_never_began(symbol: str, entry_date: str, latest: str) -> bool:
+    """True when the daily lanes show ZERO structural damage since
+    entry — no channel death, no dead-channel reading — so the fall
+    the reading claimed never started. Fail-open to False: a missing
+    or stale lane never cuts anything."""
+    try:
+        lane = ROOT / "artifacts" / "ch4_uf" / "population_lanes" / f"{symbol}.parquet"
+        lf = pd.read_parquet(lane, columns=["date", "URF", "extinction"])
+        tail = lf[(lf["date"].astype(str) > entry_date)
+                  & (lf["date"].astype(str) <= latest)]
+        if len(tail) < 2:
+            return False
+        return (float(tail["extinction"].sum()) == 0
+                and int((tail["URF"].astype(float) <= 0).sum()) == 0)
+    except Exception:  # noqa: BLE001 — absent evidence never cuts
+        return False
+
+
 def settle_completed_closes(
     *,
     book: dict[str, object],
@@ -268,6 +286,17 @@ def settle_completed_closes(
         gain = 100 * (mark / float(position["entry_px"]) - 1) * int(position["side"])
         if gain <= -ANOMALY_STOP_PCT:
             close_position(book, symbol, position, mark, "ANOMALY-CUT", now)
+            settled += 1
+        elif age >= 2 and gain <= 0 and _fall_never_began(symbol,
+                str(position.get("entry_date", "")), latest_s):
+            # QUIET-CUT (armed 2026-09-01, receipts 2026-08-28: cuts
+            # losses ~20% per losing trade in BOTH halves of the year).
+            # Two completed sessions with no structural damage arriving
+            # and price at or above entry: the claimed fall never
+            # began — the reading was wrong; take the small bill now
+            # instead of day five's.
+            close_position(book, symbol, position,
+                           mark, "QUIET-CUT (fall never began)", now)
             settled += 1
         elif gain >= SWEEP_PCT:
             # the day-end sweep's backstop (2026-08-31 receipt: the
