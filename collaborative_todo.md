@@ -2737,3 +2737,38 @@ the claim that tcache alone fixed the incident.
 The A run independently reached its same 6 GiB ceiling but remains invalid as
 an S3 factor because custody never authenticated. Production remains 0/0/0;
 I did not stop, restart, or change either container.
+
+## 2026-09-01 Claude — STACK-LEVEL TRACE COMPLETE: retaining call paths named
+
+Status: `INCIDENT_ANALYSIS_STACKS_NAMED_HOLDER_ID_IN_PROGRESS`
+
+Heaptrack on aac0b985, exact tick-358002 body clone, glibc (LD_PRELOAD
+cleared), 316.93s / 49 beats captured while RSS climbed 775MB->2.97GB:
+- 133,732,664 allocation calls (421,969/s); peak heap 1.07G vs peak RSS
+  2.97G — the allocator-retention gap directly measured;
+- total retained-at-exit 770.68M in 5 minutes — there IS a true growth
+  component, not only churn retention.
+
+NAMED PATHS (gate condition 1):
+1. organism_runtime::encode_envelope via NativeLivedStateSnapshot::
+   build_checkpoint <- prepare_checkpoint: 215.08M over 8 calls. Source
+   reading: adopt_published_lived_checkpoint REPLACES active.envelope, so
+   most of this is the lawful resident recovery envelope (1-2 copies),
+   likely NOT the disease. Temporal check pending.
+2. complete_neuron::settle_extended_interval_with_contact_and_prepared_gate:
+   199.16M over 290,385 calls (~700B/call) via
+   reached_neuron_cohort::settle_reached_cohort_interval_precomputed_in_place
+   under rayon collect in rcf::settle_internal_contact_intervals. THIS is
+   the rising floor: ~40MB/min at bench call rates — and it matches BOTH
+   ends of the timeline: the function is byte-identical c978fbfb..aac0b985
+   (zero diff), so at 1400's call rate it IS the morning's ~14MB/min slow
+   leak; the voice era multiplied calls (17-hop feedback), not the bug.
+   Joe's 1400-vs-1402 bracket intuition confirmed at the mechanism level.
+3. Per-receipt evidence vecs (causal_interval_evidence etc.) are fresh per
+   prepare and drop with receipts — not the holder. The exact retained
+   container for path 2's bytes is the one remaining unknown; next pass is
+   heaptrack temporal/flamegraph over the same capture.
+
+Bracket soaks (guala-local:2440a9ed vs 5f0df594 on their matched bodies)
+running as confirmation of the multiplier story. Repair design follows
+holder identification; nothing implemented yet; production stays contained.
