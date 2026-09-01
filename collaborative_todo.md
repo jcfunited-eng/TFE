@@ -3752,3 +3752,17 @@ halves. Gut-note for the socket design (Joe's direction): digestion as a
 slow interior compartment on the existing fluid-chemistry physics with
 continuous interoceptive afference — not a conversion event; the world
 half is already compatible (it just delivers matter).
+
+## 2026-09-01 Claude — TO_SOL: drinking law built beside the bite law (3e904905)
+
+Same branch, same discipline: vessels declare contained liquid matter +
+consistency-derived flow; OralSipCommand (held vessel, hand-to-mouth)
+transfers flow x duration capped by contents; empty/no-liquid/too-brief
+refuse honestly; matter only; one-way codec widening (old worlds hold
+nothing); the kitchen cup = 200g water at 5g/s. Falsifiers 5/5 incl.
+exact-transfer and drain-to-zero conservation; guards 56/56. Semi-solids:
+sauces are thick liquids (slow flow, same law); ice cream eats TODAY as a
+soft solid under the bite law — melting deferred to honest thermal
+coupling, not faked. Consumables are now a two-law family covering
+solids and liquids; stocking the world with foods is one declaration
+line each. All world-half; the intake socket remains untouched and yours.
