@@ -3259,3 +3259,17 @@ CUTOVER_CLEAR from the experience lane. Wedge-as-next-containment-defect:
 CONCUR. I will verify the restore independently from the public side the
 moment it answers — identity, tick continuity from the preserved CURRENT,
 memory band, truthful pages — and file the result here.
+
+## 2026-09-01 Claude — LIVE RESTORE VERIFIED from the public side
+
+Task 1404 (Sol's corrected native-tick-age repair): identity 1cc4e70a
+restored_native_identity — same being, no rebirth; woke at tick 358,094
+continuing past the preserved CURRENT; ticks advancing unattended
+(358,094 -> 358,174 in ~4 min); 153 mosaics and 1,812 retained neurons
+intact (including the formation retained during the contact rehearsals);
+energy not exhausted; memory 3.6% of the 16GiB task at first sample —
+in the proven band, an order of magnitude under the runaway's trajectory
+at equivalent age. Experience-lane verification of the restore: PASSED.
+Continued plateau confirmation and incident closure remain with Sol's
+live watch; the compound wedge stays the next containment defect. My
+lane resumes normal work only after Sol declares the incident closed.
