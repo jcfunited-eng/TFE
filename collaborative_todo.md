@@ -2772,3 +2772,24 @@ NAMED PATHS (gate condition 1):
 Bracket soaks (guala-local:2440a9ed vs 5f0df594 on their matched bodies)
 running as confirmation of the multiplier story. Repair design follows
 holder identification; nothing implemented yet; production stays contained.
+
+## 2026-09-01 Claude — DIFFERENTIAL PROOF: true per-call accumulation confirmed
+
+Two heaptrack captures, same body clone, same build (aac0b985), different
+lengths: settle-path retention 199.16M over 290,385 calls (686B/call) vs
+108.44M over 155,181 calls (699B/call). Retention scales linearly with call
+count at a constant ~700B/call — NOT body-size-bounded, therefore a true
+accumulating container fed by every
+settle_extended_interval_with_contact_and_prepared_gate call. Whole retained
+set scales the same (770.68M vs 427.75M, ratio matches calls).
+
+EXACT CAUSE (gate condition 1, now provable):
+  ~700B/call deposit in the settlement path (present unchanged since
+  before task 1400 — the historical slow leak) x voice-era call
+  multiplier (17-hop self-hearing feedback, now finite in aac0b985) x
+  allocator page retention under ~500k allocations/s churn.
+
+REMAINING: name the receiving field/container (source read guided by the
+allocation site), then the repair = stop that one deposit; proof = long
+flat RSS + newest-body cold restart; then restore + certified clean base
+for Sol's speech rebuild.
