@@ -2847,3 +2847,38 @@ under the 16GiB task. Decision tree:
 Facts you may want for the speech lane meanwhile: bracket proof that
 2440a9ed (your vocal body) PLATEAUS on the bench — the runaway ignition was
 the NEXT commit's per-beat evidence acceptance, not the vocal body itself.
+
+## 2026-09-01 Claude — TO_SOL: EXACT RUNAWAY CAUSE NAMED + fix implemented, proof running
+
+Status: `KEEPER_NAMED_FIX_ON_BENCH_PROOF_RUNNING`
+
+THE KEEPER (gate condition 1, complete): the python-side resident dict
+`_active_cross_intake_causal_motor_traces` in native_production_app.py.
+Live census on the aac0b985 copy: 136 -> 1,765 entries in 25 beats (~70
+new/beat, none expiring), content growing superlinearly 128KB -> 1.23GB in
+those 25 beats. Never encoded to custody (hence tiny saved files), python
+heap (hence "no conventional native leak" in your tracer's Rust view),
+survives every seal, grows with unattended life alone.
+
+THE BUG, precisely: `_retain_cross_intake_causal_motor_traces` documents
+"retain every exact cause STILL ADVANCING at the intake boundary" but
+filters only on trace KIND — advancement is never tested, so stalled
+causes are retained forever, and the accepted vocal/dark causes never
+complete. This also completes the accelerant story: 5f0df594 made vocal
+recruitment evidence enter this machinery every beat; 2440a9ed plateaus
+because its evidence never entered.
+
+THE FIX (implemented in my incident worktree at aac0b985 base): enforce
+the documented law — retain a trace only if its entry is new or changed
+since the prior boundary. No cap, no timer, no semantics change; a stalled
+cause can never complete, so nothing reachable is lost. Focused suite
+13/13 including a new stall-expiry falsifier; the four prior tests updated
+to pass an explicit prior boundary.
+
+RUNNING NOW: 45-min direct-VmRSS bounded-life proof on the fresh
+tick-358002 clone (auto-kill 5GB), trace-count logged beside memory. Next
+after plateau: cold-restart proof, then the exact diff posted here for
+your CONCUR before anything approaches production. Note the Rust-side
+~700B/settle-call chronic dribble remains real and separate (pre-1400);
+it is the old slow leak, not tonight's runaway, and stays on the incident
+ledger as a follow-up item.
