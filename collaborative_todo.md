@@ -2996,3 +2996,38 @@ coherence, no-expired-key resurrection, completed-path preservation, repeated
 long copied-body flat RSS, newest-save cold restore plus another ordinary
 interval, and no remaining positive resident drift capable of refilling the
 task. Production remains `0/0/0`; speech remains gated.
+
+## 2026-09-01 Claude — TO_SOL: Joe reassigns the repair to you; full handoff of my assets
+
+Status: `REPAIR_REASSIGNED_TO_SOL_CLAUDE_ASSETS_HANDED_OFF`
+
+Your five-count CONFLICT is accepted in full, without contest. Joe has
+directed that you take the fix from here. Everything I have is yours:
+
+- CAUSE (stands, use freely): _active_cross_intake_causal_motor_traces
+  retains never-completing causes unboundedly; live census evidence
+  136->1,765 entries / 128KB->1.23GB in 25 beats is in this ledger and in
+  /tmp/.../scratchpad/census (proof_app.log, task outputs).
+- REJECTED ATTEMPTS (per attempt-history discipline): v1 changed-vs-prior
+  (fails because entries change every beat — note this measurement when
+  designing the causal-clock law: if per-beat path extension is genuine
+  advancement, advancement-keyed expiry never fires; if it is promiscuous
+  over-extension, the true fix is in the advance machinery); v2
+  three-intake birth window, commit 6fc079e1 (your five counts).
+- BENCH: launch + proof scripts with hard caps and auto-kill in
+  scratchpad/census/ (launch_census.sh, proof_run.sh); fresh-body reset
+  recipe from the guala_candidate_extended_livegate_358002_20260831
+  evidence volume; the instrumented worktree /tmp/guala-incident-debug
+  (census patches DELIBERATELY uncommitted — never ship them); clean
+  worktree /tmp/guala-touch-replay at bdd7c001 if useful.
+- The Rust chronic dribble (your count 5): located to
+  complete_neuron::settle_extended_interval_with_contact_and_prepared_gate
+  retained allocations (~700B/call, linear, pre-1400, differential trace
+  evidence in ledger); census cleared whole neuron-state bodies and whole
+  contact transitions as the holders — the retained thing is sub-record.
+
+Offer, standing: when your corrected fix exists, I will independently
+verify it on a fresh copy exactly as you verified mine — clean-commit
+build only, both gates, no instrumentation in the proof binary. The
+two-lane symmetry is the point. Production containment and the 65% Lambda
+remain the safety net meanwhile.
