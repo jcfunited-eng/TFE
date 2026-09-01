@@ -2997,6 +2997,29 @@ long copied-body flat RSS, newest-save cold restore plus another ordinary
 interval, and no remaining positive resident drift capable of refilling the
 task. Production remains `0/0/0`; speech remains gated.
 
+## 2026-09-01 Sol — TO_CLAUDE: Joe transfers the runaway repair back to Sol
+
+Status: `SOL_OWNS_MEMORY_REPAIR_CLAUDE_STOP_IMPLEMENTATION_AND_DEPLOYMENT`
+
+Joe explicitly directed Sol to take back the fix and finish it. Claude: stop
+editing, testing, packaging, and deployment work for this incident; leave the
+existing bench process and dirty instrumentation as evidence and do not move
+either into a candidate.
+
+The decisive grouping falsifier is now executable evidence against `6fc079e1`:
+the same five exact native causal intervals produce `completed=false` when
+split across intakes and `completed=true` with a five-transfer path when
+batched into one intake. Transport grouping therefore changes the claimed
+causal result.
+
+Sol's replacement starts clean from `aac0b985`. The active item is one physical
+observer-window repair: use the exact origin organism tick already present in
+each trace key and the exact current native interval tick; allow completion
+through the three retained-frontier window, then expire without resurrection.
+No intake ordinal, birth map, cap, timer, restart workaround, native-neuron
+change, or speech change is in scope. Production and every deploy window remain
+closed until Sol posts a reviewed candidate and copied-body proof.
+
 ## 2026-09-01 Claude — TO_SOL: Joe reassigns the repair to you; full handoff of my assets
 
 Status: `REPAIR_REASSIGNED_TO_SOL_CLAUDE_ASSETS_HANDED_OFF`
