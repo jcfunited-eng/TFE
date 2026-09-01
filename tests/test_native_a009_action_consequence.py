@@ -623,10 +623,13 @@ print(json.dumps({
 
     assert evidence["schema"] == "guala.native.exact_joint_source_episode.v2"
     assert evidence["duration"] == 1_000
-    assert evidence["admissions"] == [[1, 1_000]]
+    # The action itself still ends at 1 ms. Its successor sensorium remains
+    # physically present on the mounted 250 ms acoustic hop, with that exact
+    # 1 ms boundary retained as an additional observation instant.
+    assert evidence["admissions"] == [[250, 1_000]]
     assert evidence["episode_occurrences"] == 1
     assert evidence["episode_ports"] == 112
-    assert evidence["episode_samples"] == 224
+    assert evidence["episode_samples"] == 3_024
     assert evidence["organism_tick"] == 2
     assert evidence["causal_interval_count"] == 2
     assert len(evidence["causal_transition_sha256"]) == 64
@@ -669,6 +672,7 @@ print(json.dumps({
     }
     assert evidence["sound"] == {"changed": 0, "transported": 34}
     assert evidence["touch"] == {
+        "body_surface_contacts": [],
         "changed": 0,
         "material_channels_unmounted": 5,
         "transported": 28,

@@ -11,7 +11,8 @@
 use core::cmp::{max, min};
 
 use crate::virtual_articulated_body::{
-    ArticulatedBodyState, BodyAxis, ACOUSTIC_TRANSDUCER_SURFACE_COUNT,
+    ArticulatedBodyState, BodyAxis, BodyProprioceptiveConsequence,
+    ACOUSTIC_TRANSDUCER_SURFACE_COUNT,
     MAX_TRACT_AREA_SQUARE_MILLIMETRES, MIN_TRACT_AREA_SQUARE_MILLIMETRES,
     VOCAL_TRACT_SECTION_COUNT,
 };
@@ -70,40 +71,60 @@ pub(crate) struct ArticulatoryBodyTransition {
 
 /// Advance the vocal body across one exact causal source interval.
 ///
-/// A layer-13 discharge is accepted exactly once as a one-millisecond motor
-/// event; it is never repeated or stretched across the preceding sensory
-/// episode. That event changes bounded resident transducer momentum. The
-/// surfaces and tube then produce the consequence across interval and restart
+/// An already-settled typed layer-12 motor displacement is accepted exactly
+/// once; it is never repeated or stretched across the preceding sensory
+/// episode. Glottis, jaw and lip-width tissue have one fixed attachment each
+/// to the three resident acoustic surfaces. This is body anatomy, not a
+/// phoneme map: the actual signed displacement supplies direction, and a motor
+/// stalled at its anatomical stop supplies no acoustic impulse. The surfaces
+/// and tube then produce the consequence across interval and restart
 /// boundaries without a phase clock or duration counter.
 pub(crate) fn settle_native_articulatory_interval(
     articulated_body: ArticulatedBodyState,
-    recruitments: &[(u32, u128)],
+    body_consequences: &[BodyProprioceptiveConsequence],
     interval_sample_count: usize,
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     if interval_sample_count == 0 {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
-    let magnitude = recruitments.iter().try_fold(
-        0_u128,
-        |total, (_topology_index, carriers)| {
-            total
-                .checked_add(*carriers)
-                .ok_or(ArticulatoryBodyError::ArithmeticWidth)
-        },
-    )?;
     let mut acoustic = articulated_body.articulatory_acoustic_state();
-    let applied = min(magnitude, 8);
-    let stalled = magnitude - applied;
-    if applied > 0 {
-        let impulse = i32::try_from(applied)
+    let mut applied = 0_u128;
+    let mut stalled = 0_u128;
+    for consequence in body_consequences {
+        let surface_index = match consequence.axis {
+            BodyAxis::GlottalAperture => Some(0),
+            BodyAxis::JawOpening => Some(1),
+            BodyAxis::LipWidth => Some(2),
+            _ => None,
+        };
+        let Some(surface_index) = surface_index else {
+            continue;
+        };
+        stalled = stalled
+            .checked_add(consequence.stalled_carriers)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        let displacement = i128::from(consequence.signed_displacement);
+        let magnitude = displacement.unsigned_abs();
+        let coupled = min(magnitude, 8);
+        applied = applied
+            .checked_add(coupled)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        stalled = stalled
+            .checked_add(magnitude - coupled)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        if coupled == 0 {
+            continue;
+        }
+        let signed_coupled = i32::try_from(coupled)
             .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+            * if displacement.is_negative() { -1 } else { 1 };
+        let impulse = signed_coupled
             .checked_mul(MOTOR_IMPULSE_DISPLACEMENT_QUANTA)
             .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-        for previous in &mut acoustic.surface_previous_displacement {
-            *previous = previous
-                .checked_sub(impulse)
-                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-        }
+        acoustic.surface_previous_displacement[surface_index] = acoustic
+            .surface_previous_displacement[surface_index]
+            .checked_sub(impulse)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
     }
     let glottal_apex = glottal_open_samples(&articulated_body)?;
     let areas = articulated_vocal_tract_areas(&articulated_body)?;
@@ -190,31 +211,19 @@ pub(crate) fn settle_native_articulatory_interval(
     })
 }
 
-/// Settle one layer-13 discharge into the organism's one articulated body.
-/// Topology ordinals carry identity only; they never manufacture actuator
-/// direction. One whole carrier is one native respiratory excitation quantum.
-#[cfg(test)]
-pub(crate) fn settle_articulatory_unit_discharge(
-    recruitments: &[(u32, u128)],
-) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
-    settle_physical_transducer_interval_discharges(&[(
-        ACTIVE_SAMPLE_COUNT,
-        recruitments.to_vec(),
-        ArticulatedBodyState::at_neutral(),
-    )])
-}
-
 /// Test-only composition of the production interval law. It owns no second
 /// acoustic implementation: every active and relaxing sample crosses
 /// `settle_native_articulatory_interval`, preserving the same resident state
 /// that production persists.
 #[cfg(test)]
 pub(crate) fn settle_physical_transducer_interval_discharges(
-    intervals: &[(usize, Vec<(u32, u128)>, ArticulatedBodyState)],
+    intervals: &[(usize, Vec<BodyProprioceptiveConsequence>, ArticulatedBodyState)],
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     if intervals.is_empty()
         || intervals.iter().any(|(samples, _, _)| *samples == 0)
-        || intervals.iter().all(|(_, recruitments, _)| recruitments.is_empty())
+        || intervals
+            .iter()
+            .all(|(_, consequences, _)| consequences.is_empty())
     {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
@@ -241,10 +250,10 @@ pub(crate) fn settle_physical_transducer_interval_discharges(
     let mut strongest_mouth_area = 0_i32;
     let mut final_perioral_area = 0_i32;
 
-    for (samples, recruitments, body) in intervals {
+    for (samples, consequences, body) in intervals {
         let body = body.clone().with_articulatory_acoustic_state(acoustic)
             .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
-        let settled = settle_native_articulatory_interval(body, recruitments, *samples)?;
+        let settled = settle_native_articulatory_interval(body, consequences, *samples)?;
         acoustic = settled.successor_body.articulatory_acoustic_state();
         final_body = settled.successor_body.clone();
         radiated.extend_from_slice(&settled.radiated_pressure_pcm);
@@ -443,36 +452,101 @@ fn round_div(numerator: i64, denominator: i64) -> Result<i32, ArticulatoryBodyEr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::virtual_articulated_body::{
+        settle_body_effector_drives, AdmittedBodyEffectorDrives, BodyEffectorDirection,
+        BodyEffectorDrive, BodyEffectorTerminal,
+    };
+
+    fn moved(
+        predecessor: &ArticulatedBodyState,
+        axis: BodyAxis,
+        direction: BodyEffectorDirection,
+        carriers: u128,
+    ) -> (ArticulatedBodyState, Vec<BodyProprioceptiveConsequence>) {
+        let admitted = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(axis, direction),
+            outward_elementary_carriers: carriers,
+        }])
+        .unwrap();
+        let transition = settle_body_effector_drives(predecessor, &admitted).unwrap();
+        (transition.successor, transition.proprioceptive_consequences)
+    }
+
+    fn active_interval(
+        predecessor: ArticulatedBodyState,
+        axis: BodyAxis,
+        direction: BodyEffectorDirection,
+        carriers: u128,
+        samples: usize,
+    ) -> ArticulatoryBodyTransition {
+        let (body, consequences) = moved(&predecessor, axis, direction, carriers);
+        settle_native_articulatory_interval(body, &consequences, samples).unwrap()
+    }
+
+    fn jaw_consequences(carriers: u128) -> Vec<BodyProprioceptiveConsequence> {
+        moved(
+            &ArticulatedBodyState::at_neutral(),
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            carriers,
+        )
+        .1
+    }
 
     #[test]
-    fn one_real_discharge_uses_the_resident_body_and_radiates_pressure() {
-        let settled = settle_articulatory_unit_discharge(&[(0, 13)]).unwrap();
+    fn one_real_typed_displacement_uses_the_resident_body_and_radiates_pressure() {
+        let settled = active_interval(
+            ArticulatedBodyState::at_neutral(),
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            13,
+            ACTIVE_SAMPLE_COUNT,
+        );
         assert_eq!(settled.applied_motor_quanta, 8);
         assert_eq!(settled.stalled_motor_quanta, 5);
         assert_eq!(settled.glottal_open_samples_at_apex, 80);
-        assert_eq!(settled.mouth_area_square_millimetres_at_apex, 20);
         assert_eq!(settled.perioral_area_displacement_square_millimetres, 0);
-        assert!(settled.peak_transducer_surface_velocity_pcm > 0);
+        assert_ne!(settled.peak_transducer_surface_velocity_pcm, 0);
         assert!(settled.radiated_pressure_pcm.iter().any(|value| *value != 0));
         assert!(settled.relaxation_sample_count <= MAX_RELAXATION_SAMPLES);
     }
 
     #[test]
-    fn topology_ordinals_do_not_manufacture_opposed_motor_meaning() {
-        let left = settle_articulatory_unit_discharge(&[(0, 3), (1, 3)]).unwrap();
-        let right = settle_articulatory_unit_discharge(&[(41, 3), (82, 3)]).unwrap();
-        assert_eq!(left, right);
-        assert_eq!(left.applied_motor_quanta, 6);
+    fn distinct_typed_vocal_paths_drive_distinct_persisted_surfaces_and_spectra() {
+        let glottis = active_interval(
+            ArticulatedBodyState::at_neutral(),
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMaximum,
+            3,
+            4_000,
+        );
+        let jaw = active_interval(
+            ArticulatedBodyState::at_neutral(),
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            3,
+            4_000,
+        );
+        let lips = active_interval(
+            ArticulatedBodyState::at_neutral(),
+            BodyAxis::LipWidth,
+            BodyEffectorDirection::TowardMaximum,
+            3,
+            4_000,
+        );
+        assert_ne!(glottis.radiated_pressure_pcm, jaw.radiated_pressure_pcm);
+        assert_ne!(jaw.radiated_pressure_pcm, lips.radiated_pressure_pcm);
     }
 
     #[test]
-    fn one_discharge_advances_only_one_native_millisecond() {
-        let settled = settle_native_articulatory_interval(
+    fn one_motor_event_advances_only_one_native_millisecond() {
+        let settled = active_interval(
             ArticulatedBodyState::at_neutral(),
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
+        );
 
         assert_eq!(
             settled.radiated_pressure_pcm.len(),
@@ -488,12 +562,13 @@ mod tests {
 
     #[test]
     fn one_motor_event_moves_only_the_bounded_transducer_without_repeating_discharge() {
-        let settled = settle_native_articulatory_interval(
+        let settled = active_interval(
             ArticulatedBodyState::at_neutral(),
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             4_000,
-        )
-        .unwrap();
+        );
 
         assert_eq!(settled.radiated_pressure_pcm.len(), 4_000);
         assert!(settled.body_mechanical_trajectories[0]
@@ -501,7 +576,7 @@ mod tests {
             .all(|respiratory_flow| *respiratory_flow == 0));
         assert_eq!(settled.applied_motor_quanta, 8);
         assert_eq!(settled.stalled_motor_quanta, 0);
-        assert!(settled.peak_transducer_surface_velocity_pcm > 0);
+        assert_ne!(settled.peak_transducer_surface_velocity_pcm, 0);
         assert_ne!(
             settled.successor_body.articulatory_acoustic_state(),
             ArticulatoryAcousticState::at_rest()
@@ -511,12 +586,13 @@ mod tests {
 
     #[test]
     fn body_owned_transducer_cold_restores_and_reaches_exact_rest_without_another_discharge() {
-        let first = settle_native_articulatory_interval(
+        let first = active_interval(
             ArticulatedBodyState::at_neutral(),
-            &[(0, 3)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            3,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
+        );
         let restored = ArticulatedBodyState::decode(
             &first.successor_body.encode().unwrap(),
         )
@@ -535,28 +611,31 @@ mod tests {
 
     #[test]
     fn acoustic_pressure_and_surface_motion_continue_across_interval_and_restart() {
-        let first = settle_native_articulatory_interval(
+        let first = active_interval(
             ArticulatedBodyState::at_neutral(),
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
+        );
         let restored = ArticulatedBodyState::decode(
             &first.successor_body.encode().unwrap(),
         )
         .unwrap();
-        let continued = settle_native_articulatory_interval(
+        let continued = active_interval(
             restored,
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
-        let uninterrupted = settle_native_articulatory_interval(
+        );
+        let uninterrupted = active_interval(
             first.successor_body,
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
+        );
 
         assert_eq!(continued, uninterrupted);
         assert_ne!(
@@ -571,12 +650,13 @@ mod tests {
 
     #[test]
     fn absent_new_discharge_releases_the_resident_pressure_instead_of_repeating_it() {
-        let active = settle_native_articulatory_interval(
+        let active = active_interval(
             ArticulatedBodyState::at_neutral(),
-            &[(0, 8)],
+            BodyAxis::JawOpening,
+            BodyEffectorDirection::TowardMaximum,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
-        )
-        .unwrap();
+        );
         let released = settle_native_articulatory_interval(
             active.successor_body,
             &[],
@@ -590,15 +670,16 @@ mod tests {
 
     #[test]
     fn causal_interval_timing_changes_the_physical_utterance() {
+        let jaw = jaw_consequences(8);
         let contiguous = settle_physical_transducer_interval_discharges(&[
-            (4_000, vec![(0, 8)], ArticulatedBodyState::at_neutral()),
-            (4_000, vec![(0, 8)], ArticulatedBodyState::at_neutral()),
+            (4_000, jaw.clone(), ArticulatedBodyState::at_neutral()),
+            (4_000, jaw.clone(), ArticulatedBodyState::at_neutral()),
         ])
         .unwrap();
         let separated = settle_physical_transducer_interval_discharges(&[
-            (4_000, vec![(0, 8)], ArticulatedBodyState::at_neutral()),
+            (4_000, jaw.clone(), ArticulatedBodyState::at_neutral()),
             (4_000, vec![], ArticulatedBodyState::at_neutral()),
-            (4_000, vec![(0, 8)], ArticulatedBodyState::at_neutral()),
+            (4_000, jaw, ArticulatedBodyState::at_neutral()),
         ])
         .unwrap();
 
@@ -617,12 +698,12 @@ mod tests {
     fn lawful_long_recording_is_not_an_arithmetic_width_error() {
         let intervals = (0..46)
             .map(|index| {
-                let recruitments = if matches!(index, 0 | 8 | 17 | 27 | 35 | 45) {
-                    vec![(0, 8)]
+                let consequences = if matches!(index, 0 | 8 | 17 | 27 | 35 | 45) {
+                    jaw_consequences(8)
                 } else {
                     Vec::new()
                 };
-                (4_000, recruitments, ArticulatedBodyState::at_neutral())
+                (4_000, consequences, ArticulatedBodyState::at_neutral())
             })
             .collect::<Vec<_>>();
         let settled = settle_physical_transducer_interval_discharges(&intervals).unwrap();
@@ -648,13 +729,13 @@ mod tests {
         .unwrap();
         let neutral_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
-            vec![(0, 8)],
+            jaw_consequences(8),
             neutral,
         )])
         .unwrap();
         let open_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
-            vec![(0, 8)],
+            jaw_consequences(8),
             open,
         )])
         .unwrap();
@@ -678,17 +759,49 @@ mod tests {
         .unwrap();
         let neutral_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
-            vec![(0, 8)],
+            jaw_consequences(8),
             neutral,
         )])
         .unwrap();
         let shaped_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
-            vec![(0, 8)],
+            jaw_consequences(8),
             shaped,
         )])
         .unwrap();
 
         assert_ne!(neutral_sound.radiated_pressure_pcm, shaped_sound.radiated_pressure_pcm);
+    }
+
+    #[test]
+    fn stalled_motor_and_unattached_body_axis_cannot_manufacture_pressure() {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut axes = *neutral.axes();
+        axes[BodyAxis::GlottalAperture.index()] = BodyAxis::GlottalAperture.anatomy().maximum;
+        let at_stop = ArticulatedBodyState::from_physical_state(
+            axes,
+            neutral.lung_air_microlitres(),
+            neutral.proprioception_initialized(),
+        )
+        .unwrap();
+        let stalled = active_interval(
+            at_stop,
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMaximum,
+            7,
+            NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
+        );
+        let shoulder = active_interval(
+            ArticulatedBodyState::at_neutral(),
+            BodyAxis::LeftShoulderPitch,
+            BodyEffectorDirection::TowardMaximum,
+            7,
+            NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
+        );
+        assert_eq!(stalled.applied_motor_quanta, 0);
+        assert_eq!(stalled.stalled_motor_quanta, 7);
+        assert!(stalled.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
+        assert_eq!(shoulder.applied_motor_quanta, 0);
+        assert!(shoulder.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
     }
 }

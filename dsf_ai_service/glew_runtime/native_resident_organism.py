@@ -2658,6 +2658,8 @@ class NativeResidentOrganism:
         maximum_causal_intervals: object,
         pressure_s16le: bytes,
         body_s16le: bytes,
+        coexisting_sources: bool = False,
+        consumed_sample_count: int | None = None,
     ) -> ResidentPrepareEvidence:
         """Consume the exact resident acoustic consequence through hearing."""
 
@@ -2674,6 +2676,14 @@ class NativeResidentOrganism:
             body_s16le, bytes
         ):
             raise TypeError("in-flight acoustic transport must be exact bytes")
+        if not isinstance(coexisting_sources, bool):
+            raise TypeError("in-flight acoustic coexistence must be boolean")
+        if consumed_sample_count is None:
+            consumed_sample_count = len(pressure_s16le) // 2
+        consumed_sample_count = _positive_integer(
+            consumed_sample_count,
+            "in-flight acoustic consumed sample count",
+        )
         intervals = tuple(
             _validated_causal_intervals(value)
             for value in maximum_causal_intervals
@@ -2694,6 +2704,8 @@ class NativeResidentOrganism:
                 [list(value) for value in intervals],
                 pressure_s16le,
                 body_s16le,
+                coexisting_sources,
+                consumed_sample_count,
             )
             _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()
@@ -2701,9 +2713,10 @@ class NativeResidentOrganism:
                 candidate,
                 source_port_count,
                 active_before,
-                causal_interval_count=len(sources),
+                causal_interval_count=(1 if coexisting_sources else len(sources)),
                 candidate_committed=False,
                 expected_sealed=False,
+                initial_body_coexists=coexisting_sources,
             )
             _record_runtime_phase("python_validation", _validation_started)
             return validated

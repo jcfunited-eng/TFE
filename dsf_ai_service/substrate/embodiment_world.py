@@ -5365,8 +5365,14 @@ class EmbodimentWorldAuthority:
                 before=before,
                 after=after,
             )
+            # Applied body receipts are transaction authorities, not material
+            # world state.  The next ordinary environment boundary retires
+            # the bounded observation tail after every committed body action;
+            # retaining it unchanged made each later quiet beat re-encode two
+            # complete historical worlds per receipt forever.  A caller that
+            # still holds a receipt can continue to verify it independently.
             retained = (
-                before_state.recent_applied_receipts
+                ()
                 if environment_port
                 else (
                     before_state.recent_applied_receipts + (receipt,)
@@ -5452,8 +5458,7 @@ class EmbodimentWorldAuthority:
                 raise ValueError("prepared body-surface consequence changed")
         environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
         receipt_custody_valid = (
-            prepared._candidate_state.recent_applied_receipts
-            == prepared._prior_state.recent_applied_receipts
+            not prepared._candidate_state.recent_applied_receipts
             if environment_interval
             else (
                 bool(prepared._candidate_state.recent_applied_receipts)

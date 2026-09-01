@@ -316,3 +316,106 @@ causal speech change would obscure proof and rollback.
 Implement the four-file typed spectral-body and one-timeline boundary on this
 task-1404 worktree, then run every falsifier above against a fresh clone of the
 immutable tick-358454 body before any package or deployment action.
+
+## Implementation discovery — wrapper impact correction
+
+The first current-wheel copied-body run disproved the four-file/no-wrapper
+claim before any package or deployment. At tick 358455 the primary unattended
+world hop produced real pressure and an ordinary autonomous body action. The
+action's returned world/body sources are a second authored physical interval
+and must remain coexisting. The existing authenticated self-hearing wrapper
+can consume pending pressure only as an ordered trajectory; using it would
+turn simultaneous action-consequence sources into false time order. Calling
+the ordinary coexisting advance is also correctly refused while self-pressure
+is pending.
+
+Therefore the causal boundary is **five** production files, not four. The
+fifth is
+`dsf_ai_service/glew_runtime/native_resident_organism.py`: it must transport
+one explicit `coexisting` boolean through the already-authenticated pending
+pressure consume call and validate the same native evidence. Native runtime
+uses that boolean only to choose its existing simultaneous-source settlement;
+it does not select sound, motor, meaning or cognition. The app supplies true
+only for the already-declared coexisting action-consequence interval. No new
+method, fallback or second advance is introduced.
+
+The copied-body refusal is retained as a successful falsifier: the candidate
+advanced only the disposable clone, refused before seal/publication, and then
+repeated exact tick 358455 from its durable predecessor. It exposed the missing
+caller impact instead of stalling production. Implementation cannot proceed
+honestly without this wrapper correction.
+
+The corrected wrapper then exposed the exact clock mismatch instead of
+silently stretching it: `_pcm_hops` lawfully pads every acoustic occurrence to
+the mounted 250 ms hop, while the action consequence still declared only the
+two instants 0 and 1 ms. Thus a pending 250 ms self-pressure field cannot be
+composed into that episode without changing its source clock. The accepted
+repair is not to slow the action. Its world transition remains at exactly
+1 ms, but its complete post-action sensorium covers the ordinary 250 ms hop:
+the before value is retained at 0, the exact successor begins at 1 ms, and the
+successor world/body values remain physically present through the rest of the
+hop. Raw pressure keeps all 4,000 samples and the 1 ms transition instant is an
+additional retained index. This is the same distinction already used for a
+fast gesture inside a longer acoustic observation window; it changes neither
+the action duration nor its displacement.
+
+## Copied-body falsifiers after the clock correction
+
+Two more refusals were preserved rather than routed around:
+
+1. The first full-hop action build supplied the four displacement coordinates
+   as if they were one time trajectory. The mounted source correctly refused
+   the changed anatomy. The corrected source keeps four typed coordinates;
+   each carries its exact 1 ms movement followed by zero displacement through
+   the remainder of the sensorium. Position-like world, optical, chemical and
+   thermal successor values remain held after 1 ms; displacement does not.
+2. The next copy proved that one 250 ms world sensorium and its exact 1 ms
+   proprioceptive sources cannot be declared as equal-duration sources. They
+   are instead nested events from the same causal boundary: the motor and
+   proprioceptive change completes at 1 ms, while its successor sensorium
+   remains present to 250 ms. Native coexistence now settles that set once and
+   derives articulatory tissue duration from the longest source. It does not
+   repeat the short source, stretch its samples, or create a second cognitive
+   turn.
+
+That native settlement then succeeded, but the Python evidence validator still
+expected one causal interval per supplied source even in explicit coexistence.
+The organism correctly reported one. The wrapper now expects one only when its
+authenticated `coexisting_sources` value is true. The failed copy returned to
+the exact durable predecessor before the corrected run.
+
+Fresh copy 6 then advanced continuously from tick 358454 through tick 358678
+without an intake refusal. Each observed intake used one primary transition and
+one coexisting action-consequence transition; the latter consumed the exact
+4,000-sample in-flight pressure inside the complete sensorium. RSS remained in
+the 1.3 GiB band during this short causal run. This is functional evidence, not
+the required long resource soak or restart proof.
+
+The run also caught an observer lie: articulation was assembled before its
+coexisting action consequence and therefore published zero self-hearing counts
+under a "committed" status. Observation now requires an exact emitted-pressure
+SHA/sample-count match, complete consumption, zero remaining tail, and ingress
+through all mounted ear ports before it may say self-hearing committed. Aggregate
+coexisting neuron changes are labelled aggregate; they are not mislabelled as
+sound-only neurons.
+
+## Sequence-law correction after reading the retained history
+
+The initial claim that a new retained sequence level must be added before
+speech was incomplete and is withdrawn.  The canonical progression law
+forbids an ordered-member array or sequence database, and the closed C-011 and
+C-012 sprints already delivered the organism's bounded physical ordering law:
+
+- exact directed sparse transfers may continue across adjacent frontiers;
+- a later physical path may recur over the same retained formation route;
+- layer-11 ordering transfers are already the only learned preparation that
+  can discharge a typed layer-12 motor; and
+- the three predecessor frontiers expire rather than accumulating history.
+
+That is sufficient machinery for successive vocal gestures to unfold across
+successive lived intervals while persistent tissue motion overlaps them.  It
+does not prove that a word has been learned, but it removes the alleged need
+for a speech-specific sequence store.  Python causal-motor traces remain
+read-only observation and are not promoted into cognition.  No new formation,
+tapestry, word, phoneme, grammar, or sequence object will be introduced by
+this repair.

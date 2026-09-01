@@ -238,6 +238,25 @@ def test_interrupted_stage_is_never_mistaken_for_committed_media(tmp_path) -> No
     with pytest.raises(BoundedSourceMediaStoreError, match="requires recovery"):
         store.inventory()
 
+    assert store.reconcile_interrupted_admission() == (1, len(b"unfinished"))
+    assert store.inventory() == ()
+    assert store.reconcile_interrupted_admission() == (0, 0)
+
+
+def test_interrupted_stage_reconciliation_refuses_unknown_artifact(
+    tmp_path,
+) -> None:
+    store = BoundedSourceMediaStore(tmp_path / "source-media")
+    store.stage.mkdir(parents=True)
+    (store.stage / "unexpected").write_bytes(b"do-not-delete")
+
+    with pytest.raises(
+        BoundedSourceMediaStoreError,
+        match="stage shape changed",
+    ):
+        store.reconcile_interrupted_admission()
+    assert (store.stage / "unexpected").read_bytes() == b"do-not-delete"
+
 
 def test_gutenberg_provenance_must_be_complete_and_public_domain(tmp_path) -> None:
     store = BoundedSourceMediaStore(tmp_path / "source-media")

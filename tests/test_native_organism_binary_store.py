@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import os
 from pathlib import Path
 
 import pytest
@@ -748,6 +749,43 @@ def test_cold_reconciliation_preserves_stage_as_damage_evidence_without_current(
 
     assert store.reconcile_orphaned_staged_native_organisms(tmp_path) == (0, 0)
     assert staged.path.exists()
+
+
+def test_cold_reconciliation_retires_crash_placed_unpublished_generation(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    remote = _ObjectStore()
+    _resident, published_stage = _stage(
+        tmp_path, _concrete_native_boundary, "current", 1
+    )
+    published = _publish(published_stage, remote)
+    _next, orphan = _stage(
+        tmp_path, _concrete_native_boundary, "crash-candidate", 2
+    )
+    orphan_generation = store._generation_path(
+        tmp_path, orphan.state_sha256
+    )
+    os.replace(orphan.path, orphan_generation)
+    orphan_generation.chmod(0o444)
+
+    retired = store.reconcile_orphaned_staged_native_organisms(tmp_path)
+
+    assert retired == (1, orphan.stored_bytes)
+    assert not orphan_generation.exists()
+    assert store._read_current(tmp_path) == published.pointer
+    assert _restore(tmp_path).pointer == published.pointer
+
+    successor, successor_stage = _stage(
+        tmp_path, _concrete_native_boundary, "successor", 2
+    )
+    successor_publication = _publish(
+        successor_stage,
+        remote,
+        published.pointer.state_sha256,
+    )
+    assert _restore(tmp_path).organism.save() == successor.save()
+    assert successor_publication.pointer.organism_tick == 2
 
 
 def test_module_has_no_forbidden_or_provisional_persistence_surface() -> None:

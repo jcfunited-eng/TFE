@@ -18122,30 +18122,6 @@ fn exact_prepared_efferent_carriers(
         .then_some(local_outward_elementary_charges.unsigned_abs())
 }
 
-/// Fixed laryngeal/respiratory coordination for unscripted prelinguistic
-/// pressure. The motor must close the glottis, must have discharged its own
-/// carriers, and must have been prepared by an exact incoming layer-11
-/// ordering transfer or by its own mounted layer-8 reached-load reflex. This
-/// names no sound or meaning and gives no jaw, lip, tract, limb, unrelated
-/// regulation, or observer event respiratory authority.
-fn recruits_prelinguistic_respiratory_effector(event: &MotorUnitRecruitment) -> bool {
-    event.body_effector_terminal.axis() == BodyAxis::GlottalAperture
-        && event.body_effector_terminal.direction() == BodyEffectorDirection::TowardMinimum
-        && event.outward_elementary_carriers > 0
-        && !event.preparation_transfers.is_empty()
-        && event.preparation_transfers.iter().all(|preparation| {
-            let transfer = preparation.transfer;
-            transfer.receiver == event.neuron_lineage
-                && match preparation.sender_layer {
-                    11 => true,
-                    8 => event.body_afferent_paths.iter().any(|path| {
-                        path.body_regulation_lineage == transfer.sender
-                    }),
-                    _ => false,
-                }
-        })
-}
-
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -20266,105 +20242,11 @@ fn settle_internal_contact_interval(
             recruitment.body_afferent_paths = paths;
         }
     }
-    // One actual glottal-closing motor discharge co-recruits the one resident
-    // respiratory effector. This fixed body coordination permits
-    // prelinguistic phonation whose returned consequence can later become
-    // lived experience. The causing motor must have been prepared by an exact
-    // physical arrival and must emit its own carriers; the dedicated layer-13
-    // cell then settles independent local carriers and recovery work. There is
-    // no electrical motor-to-respiratory contact and no sound identity here.
-    let mut co_recruited_articulatory_flats = Vec::new();
-    let glottal_closing_recruitments = motor_unit_recruitments
-        .iter()
-        .filter(|event| recruits_prelinguistic_respiratory_effector(event))
-        .collect::<Vec<_>>();
-    if !glottal_closing_recruitments.is_empty() {
-        let prepared_carriers = glottal_closing_recruitments
-            .iter()
-            .try_fold(0_u128, |total, event| {
-                total
-                    .checked_add(event.outward_elementary_carriers)
-                    .ok_or(FormationError::ArithmeticOverflow)
-            })?;
-        let mut vocal_preparation_transfers = glottal_closing_recruitments
-            .iter()
-            .flat_map(|event| event.preparation_transfers.iter().copied())
-            .collect::<Vec<_>>();
-        vocal_preparation_transfers.sort_unstable();
-        vocal_preparation_transfers.dedup();
-        let articulatory_flats = flat_locations
-            .iter()
-            .enumerate()
-            .filter_map(|(flat, (cohort_index, neuron_index, _))| {
-                let mount = &cohorts[*cohort_index].anatomy.mounts()[*neuron_index];
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 13
-                    && Some(flat_locations[flat].2)
-                        == vocal_articulatory_effector_lineage)
-                .then_some(flat)
-            })
-            .collect::<Vec<_>>();
-        let [articulatory_flat] = articulatory_flats.as_slice() else {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
-        };
-        let (cohort_index, neuron_index, articulatory_lineage) = flat_locations[*articulatory_flat];
-        let predecessor = TransitionNeuronPredecessor {
-            lineage: articulatory_lineage,
-            anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].clone(),
-            state: cohorts[cohort_index].state.neurons()[neuron_index].clone(),
-        };
-        if let Some((successor_neuron, outward_carriers, released_work)) =
-            crate::complete_neuron::settle_efferent_terminal_transport(
-                &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
-                &cohorts[cohort_index].state.neurons()[neuron_index],
-                prepared_carriers,
-                interval_microseconds,
-            )
-            .map_err(|error| {
-                FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                    neuron_index,
-                    error,
-                })
-            })?
-        {
-            let released_exact = ExactRational::new(
-                i128::try_from(released_work.numer().clone())
-                    .map_err(|_| FormationError::ArithmeticOverflow)?,
-                u128::try_from(released_work.denom().clone())
-                    .map_err(|_| FormationError::ArithmeticOverflow)?,
-            )
-            .map_err(|_| FormationError::ArithmeticOverflow)?;
-            if let Some(successor_reservoir) =
-                crate::metabolic_feeding::deposit_passive_return_work(
-                    cohorts[cohort_index]
-                        .anatomy
-                        .recovery_fluid_reservoir_anatomy(),
-                    cohorts[cohort_index].state.recovery_fluid(),
-                    released_exact,
-                )
-                .map_err(|_| FormationError::ArithmeticOverflow)?
-            {
-                Arc::make_mut(&mut cohorts[cohort_index].state)
-                    .apply_local_membrane_transport(
-                        neuron_index,
-                        successor_neuron,
-                        successor_reservoir,
-                    )
-                    .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                physically_transitioned_neuron_lineages.insert(articulatory_lineage);
-                retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
-                co_recruited_articulatory_flats.push(*articulatory_flat);
-                articulatory_unit_recruitments.push(ArticulatoryUnitRecruitment {
-                    neuron_lineage: articulatory_lineage,
-                    topology_index: cohorts[cohort_index].anatomy.mounts()[neuron_index]
-                        .place()
-                        .topology_index(),
-                    outward_elementary_carriers: outward_carriers,
-                    preparation_transfers: vocal_preparation_transfers,
-                });
-            }
-        }
-    }
+    // Layer-13 remains preserved resident anatomy, but it is electrically
+    // isolated and is not a software permission gate for acoustic actuation.
+    // The already-settled typed layer-12 motor consequences are the sole
+    // authority for vocal tissue motion and its pressure consequence.
+    let co_recruited_articulatory_flats = Vec::<usize>::new();
     let mut affective_balance_trajectories = Vec::new();
     for gradient in reached_layer_ten_gradient_settlements {
         let interval_successor_separated_elementary_charges = flat_locations
@@ -28417,96 +28299,6 @@ mod tests {
         assert_eq!(exact_prepared_efferent_carriers(0, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(-3, preparation.len()), None);
         assert_eq!(exact_prepared_efferent_carriers(3, 0), None);
-    }
-
-    #[test]
-    fn only_a_physically_prepared_closing_glottal_motor_recruits_breath() {
-        let regulation = [8_u8; 16];
-        let unrelated_regulation = [9_u8; 16];
-        let ordering = [11_u8; 16];
-        let motor = [12_u8; 16];
-        let preparation = |sender, sender_layer| MotorPreparationTransfer {
-            transfer: DirectedPhysicalTransferObservation {
-                sender,
-                receiver: motor,
-                bond: StablePhysicalBondReference::new(sender, motor, 0).unwrap(),
-                transferred_whole_carriers: 2,
-            },
-            sender_layer,
-        };
-        let path = MotorBodyAfferentPath {
-            body_regulation_lineage: regulation,
-            integration_lineage: [6_u8; 16],
-            receptor_lineage: [5_u8; 16],
-            receptor_site: NeuronSourceSite::fixture_in_sense(
-                PhysicalSourceSense::Body,
-                0,
-            ),
-        };
-        let event = |
-            axis: BodyAxis,
-            direction: BodyEffectorDirection,
-            carriers: u128,
-            preparation_transfers: Vec<MotorPreparationTransfer>,
-            paths: Vec<MotorBodyAfferentPath>,
-        | MotorUnitRecruitment {
-            neuron_lineage: motor,
-            topology_index: 18,
-            outward_elementary_carriers: carriers,
-            body_effector_terminal: BodyEffectorTerminal::new(axis, direction),
-            body_afferent_paths: paths,
-            preparation_transfers,
-        };
-
-        assert!(recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            2,
-            vec![preparation(regulation, 8)],
-            vec![path.clone()],
-        )));
-        assert!(recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            2,
-            vec![preparation(ordering, 11)],
-            vec![path.clone()],
-        )));
-        assert!(!recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            2,
-            vec![preparation(unrelated_regulation, 8)],
-            vec![path.clone()],
-        )));
-        assert!(!recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMaximum,
-            2,
-            vec![preparation(regulation, 8)],
-            vec![path.clone()],
-        )));
-        assert!(!recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::JawOpening,
-            BodyEffectorDirection::TowardMinimum,
-            2,
-            vec![preparation(regulation, 8)],
-            vec![path.clone()],
-        )));
-        assert!(!recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            0,
-            vec![preparation(regulation, 8)],
-            vec![path.clone()],
-        )));
-        assert!(!recruits_prelinguistic_respiratory_effector(&event(
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            2,
-            Vec::new(),
-            vec![path],
-        )));
     }
 
     #[test]

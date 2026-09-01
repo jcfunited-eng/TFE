@@ -784,7 +784,8 @@ def reconcile_orphaned_staged_native_organisms(
     """
 
     root = _store_root(store_root)
-    if _read_current(root) is None:
+    current = _read_current(root)
+    if current is None:
         return (0, 0)
     stages = sorted(root.glob(f".stage-*{STATE_SUFFIX}"))
     retired_bytes = 0
@@ -797,9 +798,32 @@ def reconcile_orphaned_staged_native_organisms(
         information = _regular_file(path, "orphan stage")
         retired_bytes += information.st_size
         path.unlink()
-    if stages:
+    referenced_generations = {current.state_sha256}
+    if current.predecessor_state_sha256 is not None:
+        referenced_generations.add(current.predecessor_state_sha256)
+    orphan_generations = []
+    for path in sorted(
+        (root / GENERATIONS_DIRECTORY).glob(f"*{STATE_SUFFIX}")
+    ):
+        digest = path.name[: -len(STATE_SUFFIX)]
+        _canonical_digest(digest, "generation filename")
+        if digest in referenced_generations:
+            continue
+        # A crash after candidate placement but before CURRENT publication
+        # leaves an immutable generation that has no authority.  Prove its
+        # own content-addressed identity before retiring exactly that file;
+        # otherwise preserve the artifact and fail closed.
+        _stored_state_raw_bytes(path, digest)
+        information = _regular_file(path, "orphan generation")
+        retired_bytes += information.st_size
+        orphan_generations.append(path)
+    for path in orphan_generations:
+        path.unlink()
+    if stages or orphan_generations:
         _sync_directory(root)
-    return (len(stages), retired_bytes)
+        if orphan_generations:
+            _sync_directory(root / GENERATIONS_DIRECTORY)
+    return (len(stages) + len(orphan_generations), retired_bytes)
 
 
 def _verify_remote(

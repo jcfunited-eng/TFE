@@ -146,6 +146,32 @@ class BoundedSourceMediaStore:
         self.max_total_bytes = max_total_bytes
         self._lock = threading.Lock()
 
+    def reconcile_interrupted_admission(self) -> tuple[int, int]:
+        """Retire one unpublished private stage at cold single-writer boot."""
+
+        with self._lock:
+            if not self.stage.exists():
+                return (0, 0)
+            if self.stage.is_symlink() or not self.stage.is_dir():
+                raise BoundedSourceMediaStoreError(
+                    "source-media stage is not a private directory"
+                )
+            children = tuple(self.stage.iterdir())
+            if any(
+                child.name not in {"record.json", "source.bin"}
+                or child.is_symlink()
+                or not child.is_file()
+                for child in children
+            ):
+                raise BoundedSourceMediaStoreError(
+                    "source-media interrupted stage shape changed"
+                )
+            retired_bytes = sum(child.stat().st_size for child in children)
+            shutil.rmtree(self.stage)
+            self.entries.mkdir(exist_ok=True)
+            _fsync_directory(self.root)
+            return (1, retired_bytes)
+
     def _decode_entry(
         self,
         directory: Path,

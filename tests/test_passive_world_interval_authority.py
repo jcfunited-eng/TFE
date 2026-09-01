@@ -29,8 +29,21 @@ def _odorant_total(observation) -> tuple[int, ...]:
 
 def test_world_owned_interval_has_no_body_actor_or_retained_action_tail():
     world = EmbodimentWorldAuthority(authority_key=b"passive-world-test-key")
+    first = world.observation_snapshot()
+    moved = world.execute_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(
+            MoveCommand(
+                target_pose=PoseMM(PositionMM(1000, 1200, 0), 0),
+                duration_microseconds=200_000,
+            )
+        ),
+        causal_intent_receipt_sha256="3" * 64,
+        expected_revision=first.revision,
+    )
+    assert moved.disposition == "applied"
+    assert world.recent_applied_receipts() == (moved,)
     before = world.observation_snapshot()
-    retained_before = world.recent_applied_receipts()
 
     execution = world.execute_port_command(
         port_id=ENVIRONMENT_PORT_ID,
@@ -45,7 +58,7 @@ def test_world_owned_interval_has_no_body_actor_or_retained_action_tail():
     assert execution.actor_body_id is None
     assert execution.after.revision == before.revision + 1
     assert _odorant_total(execution.before) == _odorant_total(execution.after)
-    assert world.recent_applied_receipts() == retained_before
+    assert world.recent_applied_receipts() == ()
     world.verify_execution_receipt(execution)
     assert world.execution_receipt_from_record(execution.as_record()) == execution
 
@@ -107,7 +120,7 @@ def test_sparse_body_action_tail_restores_across_unretained_world_time():
         assert receipt.disposition == "applied"
 
     retained = world.recent_applied_receipts()
-    assert tuple(receipt.before.revision for receipt in retained) == (0, 2)
+    assert tuple(receipt.before.revision for receipt in retained) == (2,)
     encoded = world.encoded_snapshot()
 
     restored = EmbodimentWorldAuthority(authority_key=key)
@@ -115,3 +128,42 @@ def test_sparse_body_action_tail_restores_across_unretained_world_time():
 
     assert restored.encoded_snapshot() == encoded
     assert restored.recent_applied_receipts() == retained
+
+
+def test_next_environment_boundary_retires_full_sixteen_receipt_tail():
+    world = EmbodimentWorldAuthority(
+        authority_key=b"passive-world-full-tail-test-key"
+    )
+    for ordinal in range(16):
+        before = world.observation_snapshot()
+        x_mm, y_mm = (
+            (1000, 1200) if ordinal % 2 == 0 else (1000, 1000)
+        )
+        receipt = world.execute_port_command(
+            port_id=PORT_ID,
+            command_payload=encode_command(
+                MoveCommand(
+                    target_pose=PoseMM(PositionMM(x_mm, y_mm, 0), 0),
+                    duration_microseconds=200_000,
+                )
+            ),
+            causal_intent_receipt_sha256=f"{ordinal + 1:064x}",
+            expected_revision=before.revision,
+        )
+        assert receipt.disposition == "applied"
+    assert len(world.recent_applied_receipts()) == 16
+    bloated_bytes = len(world.encoded_snapshot())
+
+    before = world.observation_snapshot()
+    retired = world.execute_port_command(
+        port_id=ENVIRONMENT_PORT_ID,
+        command_payload=encode_command(
+            AdvancePhysicalTimeCommand(duration_microseconds=250_000)
+        ),
+        causal_intent_receipt_sha256="f" * 64,
+        expected_revision=before.revision,
+    )
+
+    assert retired.disposition == "applied"
+    assert world.recent_applied_receipts() == ()
+    assert len(world.encoded_snapshot()) < bloated_bytes

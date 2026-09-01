@@ -89,6 +89,24 @@ def test_articulation_cannot_offer_pressure_from_a_different_event(
     assert playback["endpoint"] is None
 
 
+def test_native_pressure_cache_is_bounded_by_count_and_exact_pcm_bytes() -> None:
+    extent = production.NATIVE_PRESSURE_AUDIO_CACHE_MAX_ENTRY_BYTES
+    candidates = tuple(
+        {"ordinal": ordinal, "pcm_s16le": bytes([ordinal]) * extent}
+        for ordinal in range(6)
+    )
+
+    retained = production._bounded_native_pressure_audio_cache(candidates)
+
+    assert [entry["ordinal"] for entry in retained] == [2, 3, 4, 5]
+    assert sum(len(entry["pcm_s16le"]) for entry in retained) == (
+        production.NATIVE_PRESSURE_AUDIO_CACHE_MAX_BYTES
+    )
+    assert production._bounded_native_pressure_audio_cache(
+        ({"pcm_s16le": b"x" * (extent + 1)},)
+    ) == ()
+
+
 def test_gualaloom_plays_only_the_exact_native_pressure_endpoint() -> None:
     page = PAGE.read_text(encoding="utf-8")
 

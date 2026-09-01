@@ -66,7 +66,8 @@ use crate::vestibular_neuron_path::{
 };
 use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
-    ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
+    ArticulatedBodyTransition, BodyAxis, BodyEffectorDirection, BodyEffectorDrive,
+    BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
 };
 use crate::root_yaw_terminal::RootYawDirection;
@@ -759,33 +760,65 @@ impl InFlightAcousticConsequence {
             )
     }
 
-    fn followed_by(
-        mut self,
-        successor: Option<InFlightAcousticConsequence>,
+    fn after_consuming_and_superposing(
+        self,
+        consumed_sample_count: usize,
+        successor_tick: u64,
+        emitted: Option<InFlightAcousticConsequence>,
     ) -> Result<Option<Self>, RuntimeError> {
-        let Some(successor) = successor else {
-            return Ok(Some(self));
-        };
-        let combined_count = self
-            .pressure_pcm
-            .len()
-            .checked_add(successor.pressure_pcm.len())
-            .ok_or(RuntimeError::FabricLengthOverflow)?;
-        if combined_count > MAX_IN_FLIGHT_ACOUSTIC_SAMPLES {
+        if consumed_sample_count == 0 || consumed_sample_count > self.pressure_pcm.len() {
             return Err(RuntimeError::ArticulatedBody(
-                "current radiated acoustic span exceeded the admitted sensory interval".into(),
+                "in-flight acoustic consumption left its exact sample span".into(),
             ));
         }
-        self.pressure_pcm.extend(successor.pressure_pcm);
-        for (retained, following) in self
-            .body_mechanical_trajectories
-            .iter_mut()
-            .zip(successor.body_mechanical_trajectories)
-        {
-            retained.extend(following);
+        let retained_pressure = &self.pressure_pcm[consumed_sample_count..];
+        let retained_body: [&[i16]; IN_FLIGHT_ACOUSTIC_BODY_CHANNELS] =
+            std::array::from_fn(|channel| {
+                &self.body_mechanical_trajectories[channel][consumed_sample_count..]
+            });
+        let successor_len = emitted
+            .as_ref()
+            .map_or(retained_pressure.len(), |value| {
+                retained_pressure.len().max(value.pressure_pcm.len())
+            });
+        if successor_len == 0 {
+            return Ok(None);
         }
-        Ok(Some(self))
+
+        fn exact_sum(left: i16, right: i16) -> Result<i16, RuntimeError> {
+            i16::try_from(i32::from(left) + i32::from(right)).map_err(|_| {
+                RuntimeError::ArticulatedBody(
+                    "overlapping acoustic consequences exceeded signed-16 anatomy".into(),
+                )
+            })
+        }
+
+        let mut pressure_pcm = Vec::with_capacity(successor_len);
+        let mut body_mechanical_trajectories: [Vec<i16>;
+            IN_FLIGHT_ACOUSTIC_BODY_CHANNELS] =
+            std::array::from_fn(|_| Vec::with_capacity(successor_len));
+        for index in 0..successor_len {
+            let retained = retained_pressure.get(index).copied().unwrap_or(0);
+            let radiated = emitted
+                .as_ref()
+                .and_then(|value| value.pressure_pcm.get(index))
+                .copied()
+                .unwrap_or(0);
+            pressure_pcm.push(exact_sum(retained, radiated)?);
+            for channel in 0..IN_FLIGHT_ACOUSTIC_BODY_CHANNELS {
+                let retained = retained_body[channel].get(index).copied().unwrap_or(0);
+                let radiated = emitted
+                    .as_ref()
+                    .and_then(|value| value.body_mechanical_trajectories[channel].get(index))
+                    .copied()
+                    .unwrap_or(0);
+                body_mechanical_trajectories[channel]
+                    .push(exact_sum(retained, radiated)?);
+            }
+        }
+        Self::new(successor_tick, pressure_pcm, body_mechanical_trajectories)
     }
+
 }
 
 fn in_flight_acoustic_from_receipt(
@@ -3266,7 +3299,7 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, false, false)
+        self.advance_admitted_intervals_unsealed(episodes, false, None)
     }
 
     fn current_in_flight_acoustic(&self) -> Option<&InFlightAcousticConsequence> {
@@ -3293,6 +3326,8 @@ impl ResidentOrganismRuntime {
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         pressure_s16le: &[u8],
         body_s16le: &[u8],
+        coexisting_sources: bool,
+        consumed_sample_count: usize,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let pending = self
             .current_in_flight_acoustic()
@@ -3300,7 +3335,16 @@ impl ResidentOrganismRuntime {
         if !pending.matches_transport(pressure_s16le, body_s16le) {
             return Err(RuntimeError::MountedSourceSubstitution);
         }
-        self.advance_admitted_intervals_unsealed(episodes, false, true)
+        if consumed_sample_count == 0 || consumed_sample_count > pending.pressure_pcm.len() {
+            return Err(RuntimeError::ArticulatedBody(
+                "in-flight acoustic consumption left its exact sample span".into(),
+            ));
+        }
+        self.advance_admitted_intervals_unsealed(
+            episodes,
+            coexisting_sources,
+            Some(consumed_sample_count),
+        )
     }
 
     /// Advance independently authenticated sources as one simultaneous
@@ -3311,20 +3355,27 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, true, false)
+        self.advance_admitted_intervals_unsealed(episodes, true, None)
     }
 
     fn advance_admitted_intervals_unsealed(
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         coexisting_sources: bool,
-        consume_in_flight_acoustic: bool,
+        consume_in_flight_acoustic_samples: Option<usize>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
         {
             return Err(RuntimeError::PendingCandidateExists);
+        }
+        if consume_in_flight_acoustic_samples.is_none()
+            && self.current_in_flight_acoustic().is_some()
+        {
+            return Err(RuntimeError::ArticulatedBody(
+                "pending self-pressure must be composed into the current physical hop".into(),
+            ));
         }
         let prior = self.unsealed.take();
         let (
@@ -3363,10 +3414,10 @@ impl ResidentOrganismRuntime {
             current_observation,
             initial_vestibular,
             initial_articulated_body,
-            if consume_in_flight_acoustic {
+            if consume_in_flight_acoustic_samples.is_some() {
                 None
             } else {
-                carried_in_flight_acoustic
+                carried_in_flight_acoustic.clone()
             },
             false,
             &mut residency,
@@ -3381,10 +3432,37 @@ impl ResidentOrganismRuntime {
                 return Err(error);
             }
         };
-        let emitted_acoustic = in_flight_acoustic_from_receipt(&receipt)?;
-        pending.in_flight_acoustic = match pending.in_flight_acoustic.take() {
-            Some(in_flight) => in_flight.followed_by(emitted_acoustic)?,
-            None => emitted_acoustic,
+        let successor_in_flight_acoustic = (|| {
+            let emitted_acoustic = in_flight_acoustic_from_receipt(&receipt)?;
+            if pending.in_flight_acoustic.is_some() {
+                return Err(RuntimeError::ArticulatedBody(
+                    "consumed acoustic predecessor remained in the successor".into(),
+                ));
+            }
+            match (
+                consume_in_flight_acoustic_samples,
+                carried_in_flight_acoustic,
+            ) {
+                (Some(consumed), Some(carried)) => carried.after_consuming_and_superposing(
+                    consumed,
+                    receipt.observation.organism_tick,
+                    emitted_acoustic,
+                ),
+                (Some(_), None) => Err(RuntimeError::ArticulatedBody(
+                    "authenticated acoustic consumption lost its resident predecessor".into(),
+                )),
+                (None, _) => Ok(emitted_acoustic),
+            }
+        })();
+        pending.in_flight_acoustic = match successor_in_flight_acoustic {
+            Ok(value) => value,
+            Err(error) => {
+                self.causal_event_residency = None;
+                let restored = Self::restore_envelope(self.active.envelope.clone(), self.budget)?;
+                self.active = restored.active;
+                self.next_prepare_ordinal = predecessor_next_prepare_ordinal;
+                return Err(error);
+            }
         };
         receipt.observation.predecessor_state_receipt = Some(predecessor.state_receipt);
         self.unsealed = Some(UnsealedResidentOrganismState {
@@ -3737,13 +3815,10 @@ impl ResidentOrganismRuntime {
                         consequence,
                     }),
             );
-            let articulatory_recruitments = observation
-                .articulatory_unit_recruitments
-                .iter()
-                .map(|event| (event.topology_index, event.outward_elementary_carriers))
-                .collect::<Vec<_>>();
             let body_successor = body_transition.successor;
-            let articulatory_transition = if articulatory_recruitments.is_empty()
+            let articulatory_transition = if body_transition
+                .proprioceptive_consequences
+                .is_empty()
                 && body_successor.articulatory_acoustic_state().is_quiescent()
             {
                 None
@@ -3751,7 +3826,7 @@ impl ResidentOrganismRuntime {
                 Some(
                     settle_native_articulatory_interval(
                         body_successor.clone(),
-                        &articulatory_recruitments,
+                        &body_transition.proprioceptive_consequences,
                         source_duration_samples,
                     )
                     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
@@ -4139,28 +4214,30 @@ impl ResidentOrganismRuntime {
                     residency,
                 )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-            let articulatory_recruitments = observation
-                .articulatory_unit_recruitments
-                .iter()
-                .map(|event| (event.topology_index, event.outward_elementary_carriers))
-                .collect::<Vec<_>>();
-            let articulatory_transition = if articulatory_recruitments.is_empty()
-                && articulated_body.articulatory_acoustic_state().is_quiescent()
+            let body_transition = settle_motor_recruitments_into_articulated_body(
+                &articulated_body,
+                &observation.motor_unit_recruitments,
+            )?;
+            let body_successor = body_transition.successor;
+            let articulatory_transition = if body_transition
+                .proprioceptive_consequences
+                .is_empty()
+                && body_successor.articulatory_acoustic_state().is_quiescent()
             {
                 None
             } else {
                 Some(
                     settle_native_articulatory_interval(
-                        articulated_body.clone(),
-                        &articulatory_recruitments,
+                        body_successor.clone(),
+                        &body_transition.proprioceptive_consequences,
                         source_duration_samples_at_articulatory_rate(source)?,
                     )
                     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
                 )
             };
-            if let Some(transition) = articulatory_transition.as_ref() {
-                articulated_body = transition.successor_body.clone();
-            }
+            articulated_body = articulatory_transition
+                .as_ref()
+                .map_or(body_successor, |transition| transition.successor_body.clone());
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate:
                     source_duration_samples_at_articulatory_rate(source)?,
@@ -4804,22 +4881,22 @@ fn source_duration_samples_at_articulatory_rate(
         .ok_or(RuntimeError::OrganismTickOverflow)
 }
 
-/// Require every source admitted beside another source to cover the same
-/// physical duration. Different source clocks may use different origins, but
-/// they cannot silently describe different spans and still claim one causal
-/// interval.
+/// Return the complete outer duration of sources sharing one causal boundary.
+///
+/// Every source begins at that boundary on its own clock. A shorter source is
+/// a completed physical event inside the longer sensorium, not a second
+/// cognitive turn: for example, a one-millisecond motor/proprioceptive change
+/// followed by 249 milliseconds of its successor world state. The outer
+/// interval therefore ends with the longest source. Requiring equal spans
+/// made that exact nested event impossible and forced either duplicated turns
+/// or a false stretching of the short physical event.
 fn coexisting_source_duration_samples_at_articulatory_rate(
     sources: &[(&NativeJointSourceEpisode, &[(i64, i64)])],
 ) -> Result<usize, RuntimeError> {
     let mut duration = None;
     for (source, _) in sources {
         let current = source_duration_samples_at_articulatory_rate(source)?;
-        if duration.is_some_and(|expected| expected != current) {
-            return Err(RuntimeError::CognitiveFormation(
-                "coexisting physical sources cover different durations".into(),
-            ));
-        }
-        duration = Some(current);
+        duration = Some(duration.map_or(current, |held: usize| held.max(current)));
     }
     duration.ok_or(RuntimeError::AdmittedSourceRequired)
 }
@@ -5218,6 +5295,8 @@ impl NativeResidentOrganismRuntime {
         maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
         pressure_s16le: &[u8],
         body_s16le: &[u8],
+        coexisting_sources: bool,
+        consumed_sample_count: usize,
     ) -> PyResult<NativeResidentOrganismPrepare> {
         if sources.len() != maximum_causal_intervals.len() {
             return Err(PyValueError::new_err(
@@ -5235,6 +5314,8 @@ impl NativeResidentOrganismRuntime {
                     &episodes,
                     pressure_s16le,
                     body_s16le,
+                    coexisting_sources,
+                    consumed_sample_count,
                 )
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
@@ -5830,7 +5911,38 @@ fn exact_articulatory_interval_trajectory<'py>(
         let body = body
             .with_articulatory_acoustic_state(resident_acoustic)
             .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-        let settled = settle_native_articulatory_interval(body, &recruitments, samples)
+        let admitted = AdmittedBodyEffectorDrives::admit(
+            recruitments
+                .into_iter()
+                .map(|(surface, carriers)| {
+                    let axis = match surface {
+                        0 => BodyAxis::JawOpening,
+                        1 => BodyAxis::GlottalAperture,
+                        2 => BodyAxis::LipWidth,
+                        _ => {
+                            return Err(PyValueError::new_err(
+                                "articulatory evidence surface must be 0, 1, or 2",
+                            ))
+                        }
+                    };
+                    Ok(BodyEffectorDrive {
+                        terminal: BodyEffectorTerminal::new(
+                            axis,
+                            BodyEffectorDirection::TowardMaximum,
+                        ),
+                        outward_elementary_carriers: carriers,
+                    })
+                })
+                .collect::<PyResult<Vec<_>>>()?,
+        )
+        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+        let body_transition = settle_body_effector_drives(&body, &admitted)
+            .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+        let settled = settle_native_articulatory_interval(
+            body_transition.successor,
+            &body_transition.proprioceptive_consequences,
+            samples,
+        )
             .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
         resident_acoustic = settled.successor_body.articulatory_acoustic_state();
         pressure.extend_from_slice(&settled.radiated_pressure_pcm);
@@ -8122,33 +8234,63 @@ mod tests {
     }
 
     #[test]
-    fn sequential_radiated_consequences_join_in_physical_order() {
-        let first = InFlightAcousticConsequence::new(
+    fn consumed_prefix_shifts_tail_and_superposes_new_pressure_without_growth() {
+        let carried = InFlightAcousticConsequence::new(
             9,
-            vec![1, 2],
-            [vec![3, 4], vec![5, 6], vec![7, 8], vec![9, 10]],
-        )
-        .unwrap()
-        .unwrap();
-        let second = InFlightAcousticConsequence::new(
-            10,
-            vec![11, 12],
-            [vec![13, 14], vec![15, 16], vec![17, 18], vec![19, 20]],
-        )
-        .unwrap()
-        .unwrap();
-        let joined = first.followed_by(Some(second)).unwrap().unwrap();
-        assert_eq!(joined.source_tick, 9);
-        assert_eq!(joined.pressure_pcm, vec![1, 2, 11, 12]);
-        assert_eq!(
-            joined.body_mechanical_trajectories,
+            vec![10, 20, 30, 40],
             [
-                vec![3, 4, 13, 14],
-                vec![5, 6, 15, 16],
-                vec![7, 8, 17, 18],
-                vec![9, 10, 19, 20],
-            ]
+                vec![1, 2, 3, 4],
+                vec![5, 6, 7, 8],
+                vec![9, 10, 11, 12],
+                vec![13, 14, 15, 16],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let emitted = InFlightAcousticConsequence::new(
+            10,
+            vec![-3, 7],
+            [
+                vec![10, 20],
+                vec![30, 40],
+                vec![50, 60],
+                vec![70, 80],
+            ],
+        )
+        .unwrap()
+        .unwrap();
+        let successor = carried
+            .after_consuming_and_superposing(2, 10, Some(emitted))
+            .unwrap()
+            .unwrap();
+        assert_eq!(successor.source_tick, 10);
+        assert_eq!(successor.pressure_pcm, vec![27, 47]);
+        assert_eq!(
+            successor.body_mechanical_trajectories,
+            [vec![13, 24], vec![37, 48], vec![61, 72], vec![85, 96]]
         );
+    }
+
+    #[test]
+    fn acoustic_superposition_refuses_signed_width_overflow() {
+        let carried = InFlightAcousticConsequence::new(
+            9,
+            vec![1, i16::MAX],
+            [vec![0, 0], vec![0, 0], vec![0, 0], vec![0, 0]],
+        )
+        .unwrap()
+        .unwrap();
+        let emitted = InFlightAcousticConsequence::new(
+            10,
+            vec![1],
+            [vec![0], vec![0], vec![0], vec![0]],
+        )
+        .unwrap()
+        .unwrap();
+        assert!(matches!(
+            carried.after_consuming_and_superposing(1, 10, Some(emitted)),
+            Err(RuntimeError::ArticulatedBody(_))
+        ));
     }
 
     #[test]
@@ -8610,16 +8752,40 @@ mod tests {
     }
 
     fn source(episode: &str) -> NativeJointSourceEpisode {
+        source_spanning(episode, 1, 2)
+    }
+
+    fn source_spanning(
+        episode: &str,
+        source_start_seconds: i64,
+        source_end_seconds: i64,
+    ) -> NativeJointSourceEpisode {
         let mut body = b"GLJSRC02".to_vec();
         body.extend_from_slice(&2_u16.to_le_bytes());
         text(&mut body, episode);
         body.extend_from_slice(&[0, 1, 1, 1, 1, 1]);
         body.extend_from_slice(&2_u32.to_le_bytes());
-        source_port(&mut body, 0, [(1, 0.0), (2, 1.0)]);
-        source_port(&mut body, 1, [(1, 1.0), (2, 0.0)]);
+        source_port(
+            &mut body,
+            0,
+            [(source_start_seconds, 0.0), (source_end_seconds, 1.0)],
+        );
+        source_port(
+            &mut body,
+            1,
+            [(source_start_seconds, 1.0), (source_end_seconds, 0.0)],
+        );
         body.extend_from_slice(&2_u32.to_le_bytes());
-        source_occurrence(&mut body, 0, [1, 2]);
-        source_occurrence(&mut body, 1, [1, 2]);
+        source_occurrence(
+            &mut body,
+            0,
+            [source_start_seconds, source_end_seconds],
+        );
+        source_occurrence(
+            &mut body,
+            1,
+            [source_start_seconds, source_end_seconds],
+        );
         decode_native_joint_source_episode(&body, 2, 4, 2, 4).unwrap()
     }
 
@@ -9555,6 +9721,30 @@ mod tests {
             .unwrap();
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 2);
         assert_eq!(admitted.causal_interval_evidence.len(), 2);
+    }
+
+    #[test]
+    fn shorter_event_nests_once_inside_longer_coexisting_sensorium() {
+        let short = source_spanning("one-second-body-event", 7, 8);
+        let long = source_spanning("two-second-world-sensorium", 19, 21);
+        let short_intervals = vec![(1, 1); short.joint_source_occurrences().len()];
+        let long_intervals = vec![(2, 1); long.joint_source_occurrences().len()];
+        let episodes = vec![(short, short_intervals), (long, long_intervals)];
+
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor_tick = runtime.observation().organism_tick;
+        let admitted = runtime
+            .advance_coexisting_admitted_interval_unsealed(&episodes)
+            .unwrap();
+
+        assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
+        assert_eq!(admitted.causal_interval_evidence.len(), 1);
+        assert_eq!(
+            admitted.causal_interval_evidence[0]
+                .source_duration_samples_at_articulatory_rate,
+            ARTICULATORY_SAMPLE_RATE_HZ as usize * 2,
+        );
     }
 
     #[test]

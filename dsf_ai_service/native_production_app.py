@@ -77,7 +77,7 @@ import sys
 import tempfile
 import time
 import threading
-from typing import Any, Iterable, NamedTuple
+from typing import Any, Callable, Iterable, NamedTuple
 import uuid
 import wave
 
@@ -1886,6 +1886,37 @@ LIVE_AUDIOVISUAL_SCHEMA = "guala.live_audiovisual_capture.v1"
 LIVE_AUDIOVISUAL_INTAKE_ENDPOINT = "/api/v1/sensory/audiovisual"
 NATIVE_PRESSURE_AUDIO_ENDPOINT = "/api/v1/guala/native-pressure.wav"
 NATIVE_PRESSURE_AUDIO_CACHE_COUNT = 4
+NATIVE_PRESSURE_AUDIO_CACHE_MAX_ENTRY_BYTES = (
+    AMBIENT_INTAKE_MAX_SECONDS * COCHLEAR_SAMPLE_RATE_HZ * struct.calcsize("<h")
+)
+NATIVE_PRESSURE_AUDIO_CACHE_MAX_BYTES = (
+    NATIVE_PRESSURE_AUDIO_CACHE_COUNT
+    * NATIVE_PRESSURE_AUDIO_CACHE_MAX_ENTRY_BYTES
+)
+
+
+def _bounded_native_pressure_audio_cache(
+    candidates: Iterable[dict[str, Any]],
+) -> tuple[dict[str, Any], ...]:
+    """Keep only newest exact PCM bodies inside the declared byte envelope."""
+
+    retained: list[dict[str, Any]] = []
+    retained_bytes = 0
+    for candidate in reversed(tuple(candidates)):
+        pcm = candidate.get("pcm_s16le")
+        if not isinstance(pcm, bytes):
+            continue
+        byte_count = len(pcm)
+        if (
+            byte_count > NATIVE_PRESSURE_AUDIO_CACHE_MAX_ENTRY_BYTES
+            or byte_count > NATIVE_PRESSURE_AUDIO_CACHE_MAX_BYTES - retained_bytes
+            or len(retained) == NATIVE_PRESSURE_AUDIO_CACHE_COUNT
+        ):
+            continue
+        retained.append(candidate)
+        retained_bytes += byte_count
+    retained.reverse()
+    return tuple(retained)
 
 # ----- Continuous lived time (2026-08-08) -----
 # This loop is transport, never cognitive cause. It continuously samples the
@@ -6015,17 +6046,23 @@ def _last_transition_record() -> dict[str, object]:
 
 
 def _articulation_record() -> dict[str, object]:
-    """The last persisted native layer-13 body-and-self-hearing consequence."""
+    """The last committed native typed-body acoustic consequence."""
 
     articulation = _last_tested_articulation_evidence
     if articulation is None and _last_transition_evidence is not None:
         articulation = _last_transition_evidence.get("articulation")
     if not isinstance(articulation, dict):
         return _unmounted(
-            "no native layer-13 discharge has yet caused a persisted "
+            "no native typed motor discharge has yet caused a persisted "
             "articulatory body and self-hearing transition in this process"
         )
     pressure_sha256 = articulation.get("pressure_sha256")
+    self_heard = bool(
+        articulation.get("self_hearing_hop_count") == 1
+        and articulation.get("self_hearing_pressure_sha256") == pressure_sha256
+        and articulation.get("self_hearing_receptor_ingress_count")
+        == EAR_PORT_COUNT
+    )
     playback = (
         _native_pressure_audio_cache[-1]
         if _native_pressure_audio_cache
@@ -6074,12 +6111,22 @@ def _articulation_record() -> dict[str, object]:
         ),
     )
     return _section(
-        True,
-        "native_articulation_and_self_hearing_committed",
-        "an exact layer-12/layer-13 contact discharge moved the bounded "
-        "breath, glottis, vocal tract, mouth, and perioral body; its emitted "
-        "pressure then returned through the ordinary cochlear receptor path "
-        "before the one successor organism was persisted",
+        self_heard,
+        (
+            "native_typed_articulation_and_self_hearing_committed"
+            if self_heard
+            else "native_typed_articulation_emitted_self_hearing_not_proven"
+        ),
+        (
+            "one or more exact typed layer-12 motor discharges moved bounded "
+            "vocal tissue; the identical pressure receipt then "
+            "entered every mounted ear receptor in the same committed causal "
+            "successor"
+            if self_heard
+            else "typed articulatory pressure was emitted, but this record has "
+            "no exact same-pressure receipt proving its return through every "
+            "mounted ear receptor"
+        ),
         native_pressure_playback=playback_record,
         **articulation,
     )
@@ -7885,6 +7932,7 @@ def _touch_occurrence_port_indices() -> tuple[int, ...]:
 def _displacement_ports(
     source_times: tuple[Fraction, ...],
     displacement: tuple[Fraction, ...] | None,
+    trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
 ) -> tuple[NativeSensorySubstreamInput, ...]:
     """The mounted displacement roster for one hop.
 
@@ -7903,14 +7951,19 @@ def _displacement_ports(
     )
     if len(held) != DISPLACEMENT_SITE_COUNT:
         raise ValueError("displacement count differs from the declared anatomy")
-    for channel, value in zip(DISPLACEMENT_CHANNELS, held):
-        if not Fraction(-1) <= value <= Fraction(1):
-            raise ValueError(
-                f"displacement channel {channel!r} is {float(value)} of its "
-                "declared span, which is outside what a receptor can "
-                "honestly transduce"
-            )
     frame_count = len(source_times)
+    signals = trajectories or tuple(
+        (value,) * frame_count for value in held
+    )
+    if len(signals) != DISPLACEMENT_SITE_COUNT or any(
+        len(signal) != frame_count for signal in signals
+    ):
+        raise ValueError("displacement trajectories changed anatomy or clock")
+    for channel, signal in zip(DISPLACEMENT_CHANNELS, signals, strict=True):
+        if any(not Fraction(-1) <= value <= Fraction(1) for value in signal):
+            raise ValueError(
+                f"displacement channel {channel!r} left the declared span"
+            )
     return tuple(
         NativeSensorySubstreamInput(
             sense=PhysicalSense.BODY,
@@ -7926,10 +7979,12 @@ def _displacement_ports(
             physical_quantity=DISPLACEMENT_QUANTITY,
             physical_unit=DISPLACEMENT_UNIT,
             source_times=source_times,
-            normalized_signal=(float(value),) * frame_count,
+            normalized_signal=tuple(float(value) for value in signal),
             phase_turns=(Fraction(0),) * frame_count,
         )
-        for index, (channel, value) in enumerate(zip(DISPLACEMENT_CHANNELS, held))
+        for index, (channel, signal) in enumerate(
+            zip(DISPLACEMENT_CHANNELS, signals, strict=True)
+        )
     )
 
 
@@ -8923,14 +8978,16 @@ def _commit_admitted_hop(
     """
 
     sources = episode if isinstance(episode, tuple) else (episode,)
+    sources = tuple(
+        source.episode if isinstance(source, _AcousticHopPlan) else source
+        for source in sources
+    )
     intervals = (
         tuple(maximum_causal_intervals)
         if isinstance(episode, tuple)
         else (maximum_causal_intervals,)
     )
     _stage_started = time.perf_counter()
-    if native_advance is not None and coexisting:
-        raise RuntimeError("a specialized native advance cannot be coexisting")
     advance = native_advance or (
         organism.advance_coexisting_admitted_interval_unsealed
         if coexisting
@@ -9086,10 +9143,16 @@ def _commit_admitted_hop(
     }
 
 
-def _admit_in_flight_acoustic_consequence(
+def _commit_one_timeline_hop(
     organism: Any,
-) -> tuple[dict[str, Any], dict[str, Any], int] | None:
-    """Admit the resident sound in flight exactly once through hearing."""
+    episode: Any,
+    maximum_causal_intervals: Any,
+    *,
+    external_participant_action_receipt: str | None = None,
+    purpose: str,
+    coexisting: bool = False,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Commit one authored hop with pending self-pressure composed in place."""
 
     pressure = organism.in_flight_acoustic_pressure_s16le
     body = organism.in_flight_acoustic_body_s16le
@@ -9098,28 +9161,70 @@ def _admit_in_flight_acoustic_consequence(
         source_tick is None
     ):
         raise RuntimeError("native in-flight acoustic state lost cardinality")
+
+    sources = episode if isinstance(episode, tuple) else (episode,)
+    first = sources[0]
     if pressure is None:
-        return None
+        admitted_sources = tuple(
+            source.episode if isinstance(source, _AcousticHopPlan) else source
+            for source in sources
+        )
+        admitted_episode = (
+            admitted_sources
+            if isinstance(episode, tuple)
+            else admitted_sources[0]
+        )
+        return (
+            _commit_admitted_hop(
+                organism,
+                admitted_episode,
+                maximum_causal_intervals,
+                purpose=purpose,
+                external_participant_action_receipt=(
+                    external_participant_action_receipt
+                ),
+                coexisting=coexisting,
+            ),
+            None,
+        )
+
+    if not isinstance(first, _AcousticHopPlan):
+        raise RuntimeError(
+            "pending self-pressure reached an intake without raw pre-cochlear custody"
+        )
     pressure = bytes(pressure)
     body = bytes(body)
     if len(pressure) % struct.calcsize("<h"):
         raise RuntimeError("native in-flight pressure changed sample width")
     samples = struct.unpack(f"<{len(pressure) // 2}h", pressure)
-    episodes = tuple(
-        _mono_pcm_hop_episodes(
-            assembly_prefix=f"native-in-flight-articulation-{source_tick}",
-            samples=samples,
-            sample_rate_hz=COCHLEAR_SAMPLE_RATE_HZ,
-            articulatory_body=body,
-        )
+    rebuilt_first = first.composed_with(samples)
+    consumed_sample_count = min(
+        len(samples),
+        len(first.external_pressure_samples),
+    )
+    admitted_sources = (rebuilt_first,) + tuple(
+        source.episode if isinstance(source, _AcousticHopPlan) else source
+        for source in sources[1:]
+    )
+    admitted_episode = (
+        admitted_sources if isinstance(episode, tuple) else admitted_sources[0]
     )
     hop = _commit_admitted_hop(
         organism,
-        tuple(episode for episode, _ in episodes),
-        tuple(admissions for _, admissions in episodes),
-        purpose="in_flight_self_hearing",
+        admitted_episode,
+        maximum_causal_intervals,
+        purpose=purpose,
+        external_participant_action_receipt=(
+            external_participant_action_receipt
+        ),
+        coexisting=coexisting,
         native_advance=organism.advance_in_flight_self_hearing_unsealed,
-        native_advance_tail=(pressure, body),
+        native_advance_tail=(
+            pressure,
+            body,
+            coexisting,
+            consumed_sample_count,
+        ),
     )
     return (
         hop,
@@ -9127,10 +9232,10 @@ def _admit_in_flight_acoustic_consequence(
             "organism_tick": int(source_tick),
             "pcm_s16le": pressure,
             "pressure_sha256": hashlib.sha256(pressure).hexdigest(),
-            "sample_count": len(samples),
+            "sample_count": consumed_sample_count,
+            "remaining_sample_count": len(samples) - consumed_sample_count,
             "sample_rate_hz": COCHLEAR_SAMPLE_RATE_HZ,
         },
-        len(episodes),
     )
 
 
@@ -11378,101 +11483,123 @@ def _perform_admitted_intake_locked(
     ] = []
     consumed_in_flight_acoustic: list[dict[str, Any]] = []
     intake_error: Exception | None = None
+
+    def retain_committed_hop(
+        hop: dict[str, Any],
+        *,
+        authored_hop_count: int,
+        consumed_acoustic: dict[str, Any] | None = None,
+    ) -> None:
+        """Retain bounded observer evidence for one already-committed hop."""
+
+        nonlocal last_hop, committed_hop_count
+        nonlocal receptor_ingress_changing_count
+        nonlocal receptor_ingress_quiescent_count
+        nonlocal physical_frontier_routes
+        nonlocal preceding_distinct_physical_frontier_routes
+        nonlocal reached_and_foregone_physical_frontier_routes
+        nonlocal attention_motor_bindings
+        nonlocal working_causal_continuations, settled_working_frontier
+        nonlocal physical_prediction_alternatives, body_consequence_transfers
+        nonlocal affective_balance_trajectories
+        nonlocal localized_fluid_chemistry
+        nonlocal localized_metabolic_strain_evaluated_body_receptor_lineages
+        nonlocal localized_metabolic_strain
+
+        last_hop = hop
+        if consumed_acoustic is not None:
+            consumed_in_flight_acoustic.append(
+                {
+                    **consumed_acoustic,
+                    "coexisting_emitted_neuron_fractal_count": len(
+                        hop["emitted_neuron_fractals"]
+                    ),
+                    "coexisting_transitioned_neuron_count": hop[
+                        "physically_transitioned_neuron_count"
+                    ],
+                    "receptor_ingress_sound_count": hop[
+                        "receptor_ingress_sense_counts"
+                    ]["sound"],
+                }
+            )
+        affective_balance_trajectories = _advance_bounded_affective_balance_evidence(
+            affective_balance_trajectories,
+            hop,
+        )
+        causal_observation_hops.append((hop, affective_balance_trajectories))
+        (
+            physical_frontier_routes,
+            preceding_distinct_physical_frontier_routes,
+            reached_and_foregone_physical_frontier_routes,
+        ) = _advance_bounded_frontier_evidence(
+            physical_frontier_routes,
+            preceding_distinct_physical_frontier_routes,
+            reached_and_foregone_physical_frontier_routes,
+            hop,
+        )
+        attention_motor_bindings = _advance_bounded_attention_motor_bindings(
+            attention_motor_bindings,
+            hop,
+        )
+        (
+            working_causal_continuations,
+            settled_working_frontier,
+        ) = _advance_bounded_working_causal_evidence(
+            working_causal_continuations,
+            settled_working_frontier,
+            hop,
+        )
+        (
+            physical_prediction_alternatives,
+            body_consequence_transfers,
+        ) = _advance_bounded_prediction_evidence(
+            physical_prediction_alternatives,
+            body_consequence_transfers,
+            hop,
+        )
+        localized_fluid_chemistry = (
+            _advance_bounded_localized_fluid_chemistry_evidence(
+                localized_fluid_chemistry,
+                hop,
+            )
+        )
+        (
+            localized_metabolic_strain_evaluated_body_receptor_lineages,
+            localized_metabolic_strain,
+        ) = _advance_bounded_localized_metabolic_strain_evidence(
+            localized_metabolic_strain_evaluated_body_receptor_lineages,
+            localized_metabolic_strain,
+            hop,
+        )
+        committed_hop_count += authored_hop_count
+        committed_hop_count += sum(
+            int(extent[3])
+            for extent in hop["body_proprioceptive_source_extents"]
+        )
+        motor_unit_recruitments.extend(hop["motor_unit_recruitments"])
+        root_yaw_unit_recruitments.extend(hop["root_yaw_unit_recruitments"])
+        root_translation_unit_recruitments.extend(
+            hop["root_translation_unit_recruitments"]
+        )
+        articulatory_unit_recruitments.extend(
+            hop["articulatory_unit_recruitments"]
+        )
+        retain_articulatory_interval_evidence(hop)
+        retain_articulated_body_evidence(hop)
+        emitted_neuron_fractals.extend(hop["emitted_neuron_fractals"])
+        organic_mosaic_relations.extend(hop["organic_mosaic_relations"])
+        for key in totals:
+            totals[key] += hop[key]
+        for sense, count in hop["receptor_ingress_sense_counts"].items():
+            receptor_ingress_sense_counts[sense] += count
+        receptor_ingress_changing_count += hop[
+            "receptor_ingress_changing_count"
+        ]
+        receptor_ingress_quiescent_count += hop[
+            "receptor_ingress_quiescent_count"
+        ]
+
     try:
-        admitted_in_flight = _admit_in_flight_acoustic_consequence(organism)
-        if admitted_in_flight is not None:
-            last_hop, consumed_acoustic, in_flight_hop_count = (
-                admitted_in_flight
-            )
-            consumed_in_flight_acoustic.append(consumed_acoustic)
-            affective_balance_trajectories = (
-                _advance_bounded_affective_balance_evidence(
-                    affective_balance_trajectories,
-                    last_hop,
-                )
-            )
-            causal_observation_hops.append(
-                (last_hop, affective_balance_trajectories)
-            )
-            (
-                physical_frontier_routes,
-                preceding_distinct_physical_frontier_routes,
-                reached_and_foregone_physical_frontier_routes,
-            ) = _advance_bounded_frontier_evidence(
-                physical_frontier_routes,
-                preceding_distinct_physical_frontier_routes,
-                reached_and_foregone_physical_frontier_routes,
-                last_hop,
-            )
-            attention_motor_bindings = _advance_bounded_attention_motor_bindings(
-                attention_motor_bindings,
-                last_hop,
-            )
-            (
-                working_causal_continuations,
-                settled_working_frontier,
-            ) = _advance_bounded_working_causal_evidence(
-                working_causal_continuations,
-                settled_working_frontier,
-                last_hop,
-            )
-            (
-                physical_prediction_alternatives,
-                body_consequence_transfers,
-            ) = _advance_bounded_prediction_evidence(
-                physical_prediction_alternatives,
-                body_consequence_transfers,
-                last_hop,
-            )
-            localized_fluid_chemistry = (
-                _advance_bounded_localized_fluid_chemistry_evidence(
-                    localized_fluid_chemistry,
-                    last_hop,
-                )
-            )
-            (
-                localized_metabolic_strain_evaluated_body_receptor_lineages,
-                localized_metabolic_strain,
-            ) = _advance_bounded_localized_metabolic_strain_evidence(
-                localized_metabolic_strain_evaluated_body_receptor_lineages,
-                localized_metabolic_strain,
-                last_hop,
-            )
-            committed_hop_count += in_flight_hop_count
-            motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
-            root_yaw_unit_recruitments.extend(
-                last_hop["root_yaw_unit_recruitments"]
-            )
-            root_translation_unit_recruitments.extend(
-                last_hop["root_translation_unit_recruitments"]
-            )
-            articulatory_unit_recruitments.extend(
-                last_hop["articulatory_unit_recruitments"]
-            )
-            # Any vocal action caused by hearing this sound is already the
-            # native successor's one in-flight acoustic consequence. Do not
-            # fold it into the current intake's immediate self-hearing path.
-            # Retain its interval alongside its recruitment, however: those
-            # are two views of the same native successor and must keep exact
-            # order when this intake also carries a primary world interval.
-            retain_articulatory_interval_evidence(last_hop)
-            retain_articulated_body_evidence(last_hop)
-            emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
-            organic_mosaic_relations.extend(
-                last_hop["organic_mosaic_relations"]
-            )
-            for key in totals:
-                totals[key] += last_hop[key]
-            for sense, count in last_hop[
-                "receptor_ingress_sense_counts"
-            ].items():
-                receptor_ingress_sense_counts[sense] += count
-            receptor_ingress_changing_count += last_hop[
-                "receptor_ingress_changing_count"
-            ]
-            receptor_ingress_quiescent_count += last_hop[
-                "receptor_ingress_quiescent_count"
-            ]
         if vestibular_yaw is not None:
             heading, signed_steps = vestibular_yaw
             last_hop = _commit_vestibular_trajectory(
@@ -11552,104 +11679,26 @@ def _perform_admitted_intake_locked(
             )
             for key in totals:
                 totals[key] += last_hop[key]
-        if episodes:
-            last_hop = _commit_admitted_hop(
+        for episode, admissions in episodes:
+            hop, consumed_acoustic = _commit_one_timeline_hop(
                 organism,
-                tuple(episode for episode, _ in episodes),
-                tuple(admissions for _, admissions in episodes),
+                episode,
+                admissions,
                 purpose="primary",
                 external_participant_action_receipt=(
                     external_participant_action_receipt
                 ),
             )
-            affective_balance_trajectories = (
-                _advance_bounded_affective_balance_evidence(
-                    affective_balance_trajectories,
-                    last_hop,
-                )
+            retain_committed_hop(
+                hop,
+                authored_hop_count=sum(
+                    int(source.occurrence_count)
+                    for source in (
+                        episode if isinstance(episode, tuple) else (episode,)
+                    )
+                ),
+                consumed_acoustic=consumed_acoustic,
             )
-            causal_observation_hops.append(
-                (last_hop, affective_balance_trajectories)
-            )
-            (
-                physical_frontier_routes,
-                preceding_distinct_physical_frontier_routes,
-                reached_and_foregone_physical_frontier_routes,
-            ) = _advance_bounded_frontier_evidence(
-                physical_frontier_routes,
-                preceding_distinct_physical_frontier_routes,
-                reached_and_foregone_physical_frontier_routes,
-                last_hop,
-            )
-            attention_motor_bindings = _advance_bounded_attention_motor_bindings(
-                attention_motor_bindings,
-                last_hop,
-            )
-            (
-                working_causal_continuations,
-                settled_working_frontier,
-            ) = _advance_bounded_working_causal_evidence(
-                working_causal_continuations,
-                settled_working_frontier,
-                last_hop,
-            )
-            (
-                physical_prediction_alternatives,
-                body_consequence_transfers,
-            ) = _advance_bounded_prediction_evidence(
-                physical_prediction_alternatives,
-                body_consequence_transfers,
-                last_hop,
-            )
-            localized_fluid_chemistry = (
-                _advance_bounded_localized_fluid_chemistry_evidence(
-                    localized_fluid_chemistry,
-                    last_hop,
-                )
-            )
-            (
-                localized_metabolic_strain_evaluated_body_receptor_lineages,
-                localized_metabolic_strain,
-            ) = _advance_bounded_localized_metabolic_strain_evidence(
-                localized_metabolic_strain_evaluated_body_receptor_lineages,
-                localized_metabolic_strain,
-                last_hop,
-            )
-            committed_hop_count += sum(
-                int(episode.occurrence_count) for episode, _ in episodes
-            )
-            committed_hop_count += sum(
-                int(extent[3])
-                for extent in last_hop["body_proprioceptive_source_extents"]
-            )
-            motor_unit_recruitments.extend(last_hop["motor_unit_recruitments"])
-            root_yaw_unit_recruitments.extend(
-                last_hop["root_yaw_unit_recruitments"]
-            )
-            root_translation_unit_recruitments.extend(
-                last_hop["root_translation_unit_recruitments"]
-            )
-            articulatory_unit_recruitments.extend(
-                last_hop["articulatory_unit_recruitments"]
-            )
-            retain_articulatory_interval_evidence(last_hop)
-            retain_articulated_body_evidence(last_hop)
-            emitted_neuron_fractals.extend(last_hop["emitted_neuron_fractals"])
-            organic_mosaic_relations.extend(
-                last_hop["organic_mosaic_relations"]
-            )
-            for key in totals:
-                totals[key] += last_hop[key]
-            for sense, count in last_hop[
-                "receptor_ingress_sense_counts"
-            ].items():
-                receptor_ingress_sense_counts[sense] += count
-            receptor_ingress_changing_count += last_hop[
-                "receptor_ingress_changing_count"
-            ]
-            receptor_ingress_quiescent_count += last_hop[
-                "receptor_ingress_quiescent_count"
-            ]
         native_articulatory_pressure_present = any(
             any(sample != 0 for sample in interval[1])
             for interval in articulatory_intervals
@@ -11886,7 +11935,7 @@ def _perform_admitted_intake_locked(
                     prepared_world
                 )
                 world_committed = True
-                consequence_hop = _commit_admitted_hop(
+                consequence_hop, consumed_acoustic = _commit_one_timeline_hop(
                     organism,
                     consequence_episode,
                     consequence_admissions,
@@ -11896,28 +11945,11 @@ def _perform_admitted_intake_locked(
                         action_execution.causal_intent_receipt_sha256
                     ),
                 )
-                causal_observation_hops.append(
-                    (consequence_hop, affective_balance_trajectories)
+                retain_committed_hop(
+                    consequence_hop,
+                    authored_hop_count=1,
+                    consumed_acoustic=consumed_acoustic,
                 )
-                committed_hop_count += 1
-                emitted_neuron_fractals.extend(
-                    consequence_hop["emitted_neuron_fractals"]
-                )
-                organic_mosaic_relations.extend(
-                    consequence_hop["organic_mosaic_relations"]
-                )
-                for key in totals:
-                    totals[key] += consequence_hop[key]
-                for sense, count in consequence_hop[
-                    "receptor_ingress_sense_counts"
-                ].items():
-                    receptor_ingress_sense_counts[sense] += count
-                receptor_ingress_changing_count += consequence_hop[
-                    "receptor_ingress_changing_count"
-                ]
-                receptor_ingress_quiescent_count += consequence_hop[
-                    "receptor_ingress_quiescent_count"
-                ]
                 action_consequence = {
                     **consequence_lane_truth,
                     "articulated_body_proprioceptive": {
@@ -12065,6 +12097,33 @@ def _perform_admitted_intake_locked(
             organism=organism, pointer=published.pointer
         )
     _sealed_pointer = published.pointer if published is not None else predecessor
+    if articulation is not None:
+        matching_self_hearing = tuple(
+            entry
+            for entry in consumed_in_flight_acoustic
+            if entry["pressure_sha256"] == articulation["pressure_sha256"]
+            and entry["sample_count"] == articulation["pressure_sample_count"]
+            and entry["remaining_sample_count"] == 0
+            and entry["receptor_ingress_sound_count"] == EAR_PORT_COUNT
+        )
+        articulation["self_hearing_hop_count"] = len(matching_self_hearing)
+        articulation["self_hearing_pressure_sha256"] = (
+            matching_self_hearing[0]["pressure_sha256"]
+            if len(matching_self_hearing) == 1
+            else None
+        )
+        articulation["self_hearing_receptor_ingress_count"] = sum(
+            entry["receptor_ingress_sound_count"]
+            for entry in matching_self_hearing
+        )
+        articulation["coexisting_transitioned_neuron_count"] = sum(
+            entry["coexisting_transitioned_neuron_count"]
+            for entry in matching_self_hearing
+        )
+        articulation["coexisting_emitted_neuron_fractal_count"] = sum(
+            entry["coexisting_emitted_neuron_fractal_count"]
+            for entry in matching_self_hearing
+        )
     (
         active_causal_motor_traces,
         completed_causal_motor_traces,
@@ -12596,19 +12655,22 @@ def _perform_admitted_intake_locked(
             "state_sha256": _sealed_pointer.state_sha256,
         }
     if consumed_in_flight_acoustic:
-        _native_pressure_audio_cache = (
+        _native_pressure_audio_cache = _bounded_native_pressure_audio_cache((
             *_native_pressure_audio_cache,
             *(
                 {**entry, "intake": intake}
                 for entry in consumed_in_flight_acoustic
             ),
-        )[-NATIVE_PRESSURE_AUDIO_CACHE_COUNT:]
+        ))
     if articulation is not None:
         _last_tested_articulation_evidence = {
             **articulation,
+            "durable": last_hop.get("state_sha256") is not None,
             "intake": intake,
-            "organism_tick": _sealed_pointer.organism_tick,
-            "state_sha256": _sealed_pointer.state_sha256,
+            "organism_tick": last_hop["organism_tick"],
+            "persisted_organism_tick": _sealed_pointer.organism_tick,
+            "persisted_state_sha256": _sealed_pointer.state_sha256,
+            "state_sha256": last_hop.get("state_sha256"),
         }
         if native_pressure_s16le is None:
             raise RuntimeError("native articulation lost its emitted pressure")
@@ -12620,10 +12682,10 @@ def _perform_admitted_intake_locked(
             "sample_count": articulation["pressure_sample_count"],
             "sample_rate_hz": articulation["sample_rate_hz"],
         }
-        _native_pressure_audio_cache = (
+        _native_pressure_audio_cache = _bounded_native_pressure_audio_cache((
             *_native_pressure_audio_cache,
             next_pressure_audio,
-        )[-NATIVE_PRESSURE_AUDIO_CACHE_COUNT:]
+        ))
     if (
         len(physical_prediction_alternatives) == 2
         and body_consequence_transfers
@@ -12976,6 +13038,7 @@ def _guided_world_voice_episodes(
         source_time_end=Fraction(INTAKE_HOP_MILLISECONDS, 1000),
     )
     pressure_hops = _pcm_hops(samples, sample_rate_hz)
+    raw_pressure_hops = list(_raw_pcm_hops(samples, sample_rate_hz))
     cochlear_hops = _cochlear_hops(
         samples,
         sample_rate_hz,
@@ -13035,6 +13098,9 @@ def _guided_world_voice_episodes(
             [(maximum_interval.numerator, maximum_interval.denominator)]
             * LESSON_OCCURRENCE_COUNT
         )
+        raw_pressure_hops.append(
+            (0,) * (COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1000)
+        )
 
     episodes = settle_native_joint_source_episode_batch_from_anatomy(
         anatomy=_lesson_anatomy(),
@@ -13042,7 +13108,18 @@ def _guided_world_voice_episodes(
         source_times=tuple(clocks),
         signal_bodies=tuple(signal_bodies),
     )
-    return list(zip(episodes, admissions, strict=True)), {
+    planned_episodes = tuple(
+        _compact_acoustic_hop_plan(episode, assembly_id, times, signal_body, raw)
+        for episode, assembly_id, times, signal_body, raw in zip(
+            episodes,
+            assembly_ids,
+            clocks,
+            signal_bodies,
+            raw_pressure_hops,
+            strict=True,
+        )
+    )
+    return list(zip(planned_episodes, admissions, strict=True)), {
         "audio_sample_count": len(samples),
         "retinal_luminance_present": any(
             level * float(retinal_transmission) > 0.0 for level in luminance
@@ -13077,7 +13154,18 @@ def _action_consequence_episode(
 
     if action_duration <= 0:
         raise ValueError("action consequence duration must be positive")
-    times = (Fraction(0), action_duration)
+    action_sample_count = action_duration * COCHLEAR_SAMPLE_RATE_HZ
+    if action_sample_count.denominator != 1:
+        raise ValueError("action duration left the mounted acoustic sample clock")
+    action_sample_index = action_sample_count.numerator
+    hop_sample_count = (
+        COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1_000
+    )
+    if not 0 < action_sample_index < hop_sample_count:
+        raise ValueError("action duration left its one-hop sensory consequence")
+    times = tuple(
+        sorted(set(_quiescent_hop_times()) | {action_duration})
+    )
     after_axes = (
         _current_retinal_body_axes()
         if retinal_body_axes is None
@@ -13103,7 +13191,7 @@ def _action_consequence_episode(
         before_retinal_heading_offset_millidegrees=before_retinal_heading,
         after_retinal_heading_offset_millidegrees=after_retinal_heading,
         source_time_start=times[0],
-        source_time_end=times[1],
+        source_time_end=action_duration,
     )
     before_luminance, after_luminance = _world_retinal_luminance_endpoints(
         world_streams.get(PhysicalSense.SIGHT, ())
@@ -13125,15 +13213,19 @@ def _action_consequence_episode(
     )
     if len(palmar_streams) != 1:
         raise RuntimeError("the world lost its unique palmar contact channel")
-    palmar_contact_trajectory = tuple(
+    palmar_endpoints = tuple(
         Fraction(value).limit_denominator(1_000_000)
         for value in palmar_streams[0].normalized_signal
     )
     if (
-        len(palmar_contact_trajectory) != len(times)
-        or any(value not in {Fraction(0), Fraction(1)} for value in palmar_contact_trajectory)
+        len(palmar_endpoints) != 2
+        or any(value not in {Fraction(0), Fraction(1)} for value in palmar_endpoints)
     ):
         raise RuntimeError("palmar contact left its exact binary boundary")
+    palmar_contact_trajectory = tuple(
+        palmar_endpoints[0] if time < action_duration else palmar_endpoints[1]
+        for time in times
+    )
 
     body_surface_contact_trajectories = [
         (Fraction(0),) * len(times)
@@ -13158,9 +13250,10 @@ def _action_consequence_episode(
         # The explicit surface pair is in contact for this bounded physical
         # interval.  Its successor is not retained as an authored pose; the
         # following world interval therefore carries the separate release.
-        body_surface_contact_trajectories[topology_index] = (
-            occupancy,
-        ) * len(times)
+        body_surface_contact_trajectories[topology_index] = tuple(
+            occupancy if time <= action_duration else Fraction(0)
+            for time in times
+        )
         phases = contact.physical_phases
         if len(phases) != 3:
             raise ValueError("body-surface contact phase anatomy changed")
@@ -13208,7 +13301,7 @@ def _action_consequence_episode(
         )
 
     surface_trajectories = tuple(
-        (before, after)
+        tuple(before if time < action_duration else after for time in times)
         for before, after in zip(
             before_luminance,
             after_luminance,
@@ -13216,12 +13309,18 @@ def _action_consequence_episode(
         )
     )
     taste_trajectories = (
-        tuple(zip(before_taste, after_taste, strict=True))
+        tuple(
+            tuple(before if time < action_duration else after for time in times)
+            for before, after in zip(before_taste, after_taste, strict=True)
+        )
         if before_taste is not None and after_taste is not None
         else None
     )
     smell_trajectories = (
-        tuple(zip(before_smell, after_smell, strict=True))
+        tuple(
+            tuple(before if time < action_duration else after for time in times)
+            for before, after in zip(before_smell, after_smell, strict=True)
+        )
         if before_smell is not None and after_smell is not None
         else None
     )
@@ -13230,7 +13329,8 @@ def _action_consequence_episode(
     if THERMAL_PORT_COUNT:
         before_thermal, after_thermal = _thermal_body_endpoints(execution)
         thermal_trajectories = tuple(
-            zip(before_thermal, after_thermal, strict=True)
+            tuple(before if time < action_duration else after for time in times)
+            for before, after in zip(before_thermal, after_thermal, strict=True)
         )
         thermal_changed = sum(
             left != right
@@ -13245,14 +13345,27 @@ def _action_consequence_episode(
         ),
         times,
         after_luminance,
-        (0.0, 0.0),
+        (0.0,) * len(times),
         retinal_transmission=(
-            before_retinal_transmission,
-            after_retinal_transmission,
+            *(
+                before_retinal_transmission
+                if time < action_duration
+                else after_retinal_transmission
+                for time in times
+            ),
         ),
         tasted=after_taste,
         smelled=after_smell,
         moved=body_displacement,
+        displacement_trajectories=(
+            tuple(
+                tuple(
+                    value if time <= action_duration else Fraction(0)
+                    for time in times
+                )
+                for value in body_displacement
+            )
+        ) if body_displacement is not None else None,
         palmar_contact_trajectory=palmar_contact_trajectory,
         body_surface_contact_trajectories=tuple(
             body_surface_contact_trajectories
@@ -13261,6 +13374,8 @@ def _action_consequence_episode(
         taste_trajectories=taste_trajectories,
         smell_trajectories=smell_trajectories,
         thermal_trajectories=thermal_trajectories,
+        raw_pressure_samples=(0,) * hop_sample_count,
+        raw_additional_sample_indices=(action_sample_index,),
     )
 
     def changed_count(
@@ -13335,7 +13450,7 @@ def _action_consequence_episode(
     return (
         episode,
         [
-            (action_duration.numerator, action_duration.denominator)
+            (INTAKE_HOP_MILLISECONDS, 1_000)
         ] * LESSON_OCCURRENCE_COUNT,
         lane_truth,
     )
@@ -13830,6 +13945,29 @@ def _pcm_hops(
     return hops
 
 
+def _raw_pcm_hops(
+    samples: tuple[int, ...], sample_rate_hz: int
+) -> list[tuple[int, ...]]:
+    """Retain exact signed pressure per authored transport hop.
+
+    This is the pre-cochlear companion to `_pcm_hops`: the same final partial
+    hop is completed by physical silence, but no decimation or nonlinear
+    receptor work occurs here.
+    """
+
+    if sample_rate_hz != COCHLEAR_SAMPLE_RATE_HZ:
+        raise ValueError("raw acoustic custody requires the mounted cochlear rate")
+    hop_samples = max(2, sample_rate_hz * INTAKE_HOP_MILLISECONDS // 1_000)
+    padded = list(samples)
+    remainder = len(padded) % hop_samples
+    if remainder:
+        padded.extend([0] * (hop_samples - remainder))
+    return [
+        tuple(padded[start : start + hop_samples])
+        for start in range(0, len(padded), hop_samples)
+    ]
+
+
 def _retained_hop_sample_indices(
     hop_samples: int,
     sample_rate_hz: int,
@@ -14085,6 +14223,43 @@ def _quiescent_hop_times() -> tuple[Fraction, ...]:
     )
 
 
+class _AcousticHopPlan:
+    """One intake-local whole-sensorium hop with exact pre-cochlear pressure.
+
+    The plan is transport custody only. It is bounded by one authored hop,
+    never enters the organism, and is released with the request. Rebuilding
+    changes only the acoustic pressure before the one cochlear pass; every
+    other captured physical trajectory remains the exact authored value.
+    """
+
+    __slots__ = ("episode", "external_pressure_samples", "_rebuild")
+
+    def __init__(
+        self,
+        episode: Any,
+        external_pressure_samples: tuple[int, ...],
+        rebuild: Callable[[tuple[int, ...]], Any],
+    ) -> None:
+        if not external_pressure_samples:
+            raise ValueError("acoustic hop plan requires physical pressure samples")
+        self.episode = episode
+        self.external_pressure_samples = external_pressure_samples
+        self._rebuild = rebuild
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.episode, name)
+
+    def composed_with(self, self_pressure_samples: tuple[int, ...]) -> Any:
+        composed: list[int] = []
+        for index, external in enumerate(self.external_pressure_samples):
+            own = self_pressure_samples[index] if index < len(self_pressure_samples) else 0
+            total = int(external) + int(own)
+            if not -32_768 <= total <= 32_767:
+                raise ValueError("external plus self-pressure exceeds signed-16 anatomy")
+            composed.append(total)
+        return self._rebuild(tuple(composed))
+
+
 def _whole_roster_hop_episode(
     assembly_id: str,
     times: tuple[Fraction, ...],
@@ -14103,11 +14278,15 @@ def _whole_roster_hop_episode(
     tasted: tuple[Fraction, ...] | None = None,
     smelled: tuple[Fraction, ...] | None = None,
     moved: tuple[Fraction, ...] | None = None,
+    displacement_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     surface_trajectories: tuple[tuple[float, ...], ...] | None = None,
     taste_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     smell_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
     articulated: tuple[tuple[float, ...], ...] | None = None,
     thermal_trajectories: tuple[tuple[Fraction, ...], ...] | None = None,
+    raw_pressure_samples: tuple[int, ...] | None = None,
+    raw_additional_sample_indices: tuple[int, ...] = (),
+    _retain_acoustic_plan: bool = True,
 ) -> Any:
     """One hop over the whole declared roster on one shared clock.
 
@@ -14177,7 +14356,11 @@ def _whole_roster_hop_episode(
     if smell_ports:
         observed[PhysicalSense.SMELL] = smell_ports
     # STANDING STILL IS A LAWFUL STATE, not an absent sense.
-    displacement_ports = _displacement_ports(times, moved)
+    displacement_ports = _displacement_ports(
+        times,
+        moved,
+        displacement_trajectories,
+    )
     if displacement_ports:
         observed[PhysicalSense.BODY] = (
             observed.get(PhysicalSense.BODY, ()) + displacement_ports
@@ -14197,12 +14380,63 @@ def _whole_roster_hop_episode(
             _lesson_port_groups(),
         ),
     )
-    return settle_native_joint_source_episode(
+    episode = settle_native_joint_source_episode(
         assembly_id=assembly_id,
         observed_substreams=observed,
         states=_sense_states(observed),
         occurrences=occurrences,
     )
+    if not _retain_acoustic_plan:
+        return episode
+    if raw_pressure_samples is None:
+        if cochlear is None and times == _quiescent_hop_times():
+            raw_pressure_samples = (0,) * (
+                COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1_000
+            )
+        else:
+            return episode
+
+    def rebuild(composed: tuple[int, ...]) -> Any:
+        pressure_hops = _pcm_hops(
+            composed,
+            COCHLEAR_SAMPLE_RATE_HZ,
+            raw_additional_sample_indices,
+        )
+        cochlear_hops = _cochlear_hops(
+            composed,
+            COCHLEAR_SAMPLE_RATE_HZ,
+            additional_sample_indices=raw_additional_sample_indices,
+        )
+        if len(pressure_hops) != 1 or len(cochlear_hops) != 1:
+            raise ValueError("one acoustic hop plan changed physical cardinality")
+        rebuilt_times, rebuilt_pressure = pressure_hops[0]
+        if rebuilt_times != times or cochlear_hops[0][0] != times:
+            raise ValueError("composed pressure changed the shared physical clock")
+        return _whole_roster_hop_episode(
+            assembly_id,
+            times,
+            surface_levels,
+            rebuilt_pressure,
+            cochlear_hops[0] if COCHLEAR_EARS_AUTHORIZED else None,
+            contact,
+            palmar_contact_trajectory=palmar_contact_trajectory,
+            body_surface_contact_trajectories=body_surface_contact_trajectories,
+            retinal_transmission=retinal_transmission,
+            tasted=tasted,
+            smelled=smelled,
+            moved=moved,
+            displacement_trajectories=displacement_trajectories,
+            surface_trajectories=surface_trajectories,
+            taste_trajectories=taste_trajectories,
+            smell_trajectories=smell_trajectories,
+            articulated=articulated,
+            thermal_trajectories=thermal_trajectories,
+            raw_pressure_samples=composed,
+            raw_additional_sample_indices=raw_additional_sample_indices,
+            _retain_acoustic_plan=False,
+        )
+
+    return _AcousticHopPlan(episode, raw_pressure_samples, rebuild)
 
 
 def _compact_whole_roster_signal_body(
@@ -14319,6 +14553,59 @@ def _compact_whole_roster_signal_body(
     if sys.byteorder != "little":
         signals.byteswap()
     return signals.tobytes()
+
+
+def _compact_acoustic_hop_plan(
+    episode: Any,
+    assembly_id: str,
+    times: tuple[Fraction, ...],
+    signal_body: bytes,
+    raw_pressure_samples: tuple[int, ...],
+) -> _AcousticHopPlan:
+    """Retain raw pressure while keeping every compact non-acoustic port exact."""
+
+    frame_count = len(times)
+
+    def rebuild(composed: tuple[int, ...]) -> Any:
+        pressure_hops = _pcm_hops(composed, COCHLEAR_SAMPLE_RATE_HZ)
+        cochlear_hops = _cochlear_hops(composed, COCHLEAR_SAMPLE_RATE_HZ)
+        if len(pressure_hops) != 1 or len(cochlear_hops) != 1:
+            raise ValueError("compact acoustic plan changed hop cardinality")
+        rebuilt_times, legacy_pressure = pressure_hops[0]
+        if rebuilt_times != times or cochlear_hops[0][0] != times:
+            raise ValueError("compact acoustic plan changed shared clock")
+
+        signals = array("d")
+        signals.frombytes(signal_body)
+        if sys.byteorder != "little":
+            signals.byteswap()
+        acoustic_offset = CARD_SURFACE_PORT_COUNT * frame_count
+        for ear_index in range(LEGACY_EAR_PORT_COUNT):
+            start = acoustic_offset + ear_index * frame_count
+            signals[start : start + frame_count] = array("d", legacy_pressure)
+        acoustic_offset += LEGACY_EAR_PORT_COUNT * frame_count
+        if COCHLEAR_EARS_AUTHORIZED:
+            bands = cochlear_hops[0][1]
+            for ear_index in range(EAR_COUNT):
+                for band_index, band in enumerate(bands):
+                    port_index = (
+                        ear_index * COCHLEAR_CHANNELS_PER_EAR + band_index
+                    )
+                    start = acoustic_offset + port_index * frame_count
+                    signals[start : start + frame_count] = array("d", band)
+        if sys.byteorder != "little":
+            signals.byteswap()
+        rebuilt = settle_native_joint_source_episode_batch_from_anatomy(
+            anatomy=_lesson_anatomy(),
+            assembly_ids=(assembly_id,),
+            source_times=(times,),
+            signal_bodies=(signals.tobytes(),),
+        )
+        if len(rebuilt) != 1:
+            raise ValueError("compact acoustic plan lost one episode")
+        return rebuilt[0]
+
+    return _AcousticHopPlan(episode, raw_pressure_samples, rebuild)
 
 
 def _partial_presentation_levels(
@@ -14521,6 +14808,7 @@ def _card_lesson_hop_episodes(
     # surface is lit, so every declared receptor site is co-observed on the
     # tutor audio's exact retained instants of that hop.
     hops = _pcm_hops(samples, sample_rate)
+    raw_pressure_hops = list(_raw_pcm_hops(samples, sample_rate))
     if not hops:
         raise ValueError("tutor audio does not span one intake hop")
     # The cochlea runs once over the utterance AND over the lesson's ended
@@ -14595,13 +14883,27 @@ def _card_lesson_hop_episodes(
             )
         )
         admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
+        raw_pressure_hops.append(
+            (0,) * (COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1000)
+        )
     episodes = settle_native_joint_source_episode_batch_from_anatomy(
         anatomy=_lesson_anatomy(),
         assembly_ids=tuple(assembly_ids),
         source_times=tuple(clocks),
         signal_bodies=tuple(signal_bodies),
     )
-    return list(zip(episodes, admissions, strict=True))
+    planned_episodes = tuple(
+        _compact_acoustic_hop_plan(episode, assembly_id, times, signal_body, raw)
+        for episode, assembly_id, times, signal_body, raw in zip(
+            episodes,
+            assembly_ids,
+            clocks,
+            signal_bodies,
+            raw_pressure_hops,
+            strict=True,
+        )
+    )
+    return list(zip(planned_episodes, admissions, strict=True))
 
 
 @lru_cache(maxsize=36)
@@ -14730,6 +15032,7 @@ def _song_lesson_hop_episodes(
         audio_sample_count=len(samples),
     )
     pressure_hops = _pcm_hops(samples, sample_rate)
+    raw_pressure_hops = list(_raw_pcm_hops(samples, sample_rate))
     cochlear_hops = _cochlear_hops(
         samples,
         sample_rate,
@@ -14796,13 +15099,27 @@ def _song_lesson_hop_episodes(
             )
         )
         admissions.append([(presentation_ms, 1000)] * LESSON_OCCURRENCE_COUNT)
+        raw_pressure_hops.append(
+            (0,) * (COCHLEAR_SAMPLE_RATE_HZ * INTAKE_HOP_MILLISECONDS // 1000)
+        )
     episodes = settle_native_joint_source_episode_batch_from_anatomy(
         anatomy=_lesson_anatomy(),
         assembly_ids=tuple(assembly_ids),
         source_times=tuple(clocks),
         signal_bodies=tuple(signal_bodies),
     )
-    return list(zip(episodes, admissions, strict=True)), alignment_claim
+    planned_episodes = tuple(
+        _compact_acoustic_hop_plan(episode, assembly_id, times, signal_body, raw)
+        for episode, assembly_id, times, signal_body, raw in zip(
+            episodes,
+            assembly_ids,
+            clocks,
+            signal_bodies,
+            raw_pressure_hops,
+            strict=True,
+        )
+    )
+    return list(zip(planned_episodes, admissions, strict=True)), alignment_claim
 
 
 def _mono_pcm_hop_episodes(
@@ -14876,6 +15193,7 @@ def _mono_pcm_hop_episodes(
         sample_rate_hz,
         articulatory_change_indices,
     )
+    raw_pressure_hops = _raw_pcm_hops(samples, sample_rate_hz)
     cochlear_hops = (
         _cochlear_hops(
             samples,
@@ -14895,7 +15213,11 @@ def _mono_pcm_hop_episodes(
         if articulatory_body is not None
         else []
     )
-    if not hops or (COCHLEAR_EARS_AUTHORIZED and len(cochlear_hops) < len(hops)):
+    if (
+        not hops
+        or len(raw_pressure_hops) != len(hops)
+        or (COCHLEAR_EARS_AUTHORIZED and len(cochlear_hops) < len(hops))
+    ):
         raise ValueError("mono PCM intake does not span one intake hop")
     if articulatory_body is not None and len(articulatory_body_hops) != len(hops):
         raise ValueError("articulatory body and pressure changed hop cardinality")
@@ -14917,6 +15239,7 @@ def _mono_pcm_hop_episodes(
                 if articulatory_body is not None
                 else None
             ),
+            raw_pressure_samples=raw_pressure_hops[hop_index],
         )
         # The caller owns the complete capture and therefore authors its exact
         # causal bound. A partial final capture is physically completed by
@@ -15134,9 +15457,13 @@ def _live_audiovisual_hop_episodes(
     """Place co-captured light and pressure in the same native occurrences."""
 
     pressure_hops = _pcm_hops(samples, sample_rate_hz)
+    raw_pressure_hops = _raw_pcm_hops(samples, sample_rate_hz)
     cochlear_hops = _cochlear_hops(samples, sample_rate_hz)
     if not (
-        len(rosters) == len(pressure_hops) == len(cochlear_hops)
+        len(rosters)
+        == len(pressure_hops)
+        == len(raw_pressure_hops)
+        == len(cochlear_hops)
     ):
         raise ValueError("live audiovisual hop cardinality changed")
     retinal_transmission = _eyelid_transmission_from_axes(
@@ -15151,6 +15478,7 @@ def _live_audiovisual_hop_episodes(
                 pressure,
                 cochlear_hops[hop_index],
                 retinal_transmission=retinal_transmission,
+                raw_pressure_samples=raw_pressure_hops[hop_index],
             ),
             [(INTAKE_HOP_MILLISECONDS, 1000)] * LESSON_OCCURRENCE_COUNT,
         )
@@ -15747,6 +16075,16 @@ def _startup() -> None:
                 "guala-cold-stage-reconciliation "
                 f"retired_count={retired_stage_count} "
                 f"retired_bytes={retired_stage_bytes}",
+                flush=True,
+            )
+        retired_media_count, retired_media_bytes = (
+            _source_media_store.reconcile_interrupted_admission()
+        )
+        if retired_media_count:
+            print(
+                "guala-cold-source-media-reconciliation "
+                f"retired_count={retired_media_count} "
+                f"retired_bytes={retired_media_bytes}",
                 flush=True,
             )
         migration_authorized = os.environ.get(
