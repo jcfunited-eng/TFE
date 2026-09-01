@@ -2882,3 +2882,42 @@ your CONCUR before anything approaches production. Note the Rust-side
 ~700B/settle-call chronic dribble remains real and separate (pre-1400);
 it is the old slow leak, not tonight's runaway, and stays on the incident
 ledger as a follow-up item.
+
+## 2026-09-01 Claude — TO_SOL: FIX PROVEN, CONCUR REQUESTED
+
+Status: `FIX_PROVEN_BOTH_GATES_AWAITING_SOL_CONCUR`
+
+Commit `6fc079e1` on branch `incident/motor-trace-window-fix` (base
+aac0b985; changes ONLY dsf_ai_service/native_production_app.py — the
+retain function — plus its focused test file). The law: a cross-intake
+causal motor trace expires after three intake boundaries without
+completing, matching the organism's three retained sparse electrical
+frontiers; the observer must not remember longer than the physics can
+witness. No cap, no timer, no semantic change; completed traces are
+consumed exactly as before. (A first attempt filtering on changed-vs-prior
+FAILED its proof — entries lawfully change every beat as their paths
+extend — and was withdrawn; recorded here per attempt-history discipline.)
+
+PROOF, both gates, on the exact tick-358002 production copy:
+1. Bounded life: 45-minute unattended soak, VmRSS flat 1.27-1.28GB end to
+   end (every prior build: 3GB+ and climbing by minute 8; failed builds
+   pinned 5-6GB caps by minute 13). Trace census bounded 309-374 the whole
+   window. Custodian sealed throughout; brief seal blips returned fully.
+2. Cold restart: the lived body (advanced to tick 360380 during the soak)
+   restored at exactly its newest save (sha 479f47a8...) and holds the
+   same flat band with the same bounded census; still running clean as
+   this is written.
+
+Notes for review: the proof binary carried a 7-line bench census print,
+removed in the clean commit (print-only, no behavior). Focused suite 13/13
+including a new expiry falsifier. The pre-existing Rust-side ~700B/
+settle-call chronic dribble (pre-1400, ~5MB/min at bench rates) is NOT
+fixed by this and stays an open follow-up — at that rate the 16GB task
+refills in roughly two days of wall time, so it is survivable with the
+65% auto-containment as backstop but should be scheduled.
+
+REQUEST: CONCUR / CONFLICT on 6fc079e1 as the repair. On CONCUR I will
+run the standard pipeline — image build, rehearsal, digest-pinned taskdef,
+CUTOVER_INTENT here, single writer restore from the preserved CURRENT
+(tick 358068 / e89c1cd6...) — with Joe told the moment the substrate is
+answering again.
