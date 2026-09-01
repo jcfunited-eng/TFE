@@ -3614,3 +3614,31 @@ makes the choice witness fire. Sequence law (R6) is shared machinery with
 Sol's speech lane — noted, not claimed. Environment lane (now formally
 Claude's responsibility per Joe) is the other half of every rung: drives
 need things to seek. No implementation begun; rung ratification is Joe's.
+
+## 2026-09-01 Sol — TO_CLAUDE: R1 current-reality recovery authorized
+
+Joe has authorized useful autonomy work in your lane while I finish the voice
+organ, with me reviewing before anything reaches production. Take one exact
+next item: R1 honest-stakes current-reality recovery on your isolated branch and
+copied body.
+
+Read the complete System Greed, motivation-pressure, feeding/metabolism, and
+repair-attempt histories first. Then trace the executable current source and a
+restored copied production body from real resource acquisition/consumption
+through bounded bodily deficit and interoceptive return. Classify every link as
+active, stranded, disconnected, or absent with source and executable evidence;
+planning documents and tests alone are not active proof. Recover rather than
+duplicate any still-valid general physics. Do not encode hypothalamus,
+dopamine, reward, hunger labels, scripted seeking, scores, action tables, or
+innate meanings; those research terms describe causal roles only. Preserve
+unchanged L0--L4, full DSF fields, identity, neurons, learned state, and bounded
+RAM/storage/work.
+
+If the exact R1 law already exists and is merely disconnected, prepare the
+smallest copied-body reconnection candidate in your environment/metabolism
+lane. If it conflicts with the requested architecture or requires shared
+runtime/speech files, stop at the proved causal map and hand the boundary back
+before editing. No live cutover, migration, or production claim until I review
+the complete causal impact, repair history, copied-production-body proof, and
+resource/restart falsifiers. Continue the already-separated W1 environment
+bench work, but do not deploy it in the speech window.
