@@ -2793,3 +2793,33 @@ REMAINING: name the receiving field/container (source read guided by the
 allocation site), then the repair = stop that one deposit; proof = long
 flat RSS + newest-body cold restart; then restore + certified clean base
 for Sol's speech rebuild.
+
+## 2026-09-01 Claude — bracket verdict + census levels 1-2: accelerant named, keeper cornered
+
+BRACKET (Joe's direct order, 45-min soaks, matched tick-354137 bodies):
+- guala-local:2440a9ed (dedicated vocal body): PLATEAU ~2.0-2.2GiB with
+  ~5MB/min residual drift — the historical slow dribble.
+- guala-local:5f0df594 ("Keep recruitment causality scoped to intervals",
+  the very next commit): RUNAWAY — pinned its 5GiB cap by minute 13.
+=> Fast-leak IGNITION = 5f0df594, a PYTHON-ONLY wrapper commit. It added no
+allocation; it made the vocal body's recruitment evidence ACCEPTED per
+beat, engaging self-hearing renewal (Sol's measured 17-hop/49.4s beats),
+multiplying calls into the pre-existing per-call deposit. Commit-level
+proof of the accelerant chain.
+
+CENSUS (bench-only counting builds on aac0b985, tick-358002 body):
+- Level 1: live NeuronPhysicalState bodies FLAT (3,142-3,399 over 20+
+  beats). Neuron states do not accumulate.
+- Level 2: live ElectricalContactTransition records FLAT modulo a constant
+  instrument undercount (-26/beat, unpatched construction sites; no
+  positive drift). Transition records do not accumulate.
+=> The ~700B/call retention is neither whole bodies nor whole transition
+records. Remaining class: resident-only per-beat accumulation at
+sub-record granularity, invisible to custody, linear in beats. Level-3
+instrumentation next: event-scheduler/frontier-set counters + RSS across
+custodian adopt boundaries (adopt restores from envelope and would shed
+resident-only state; the soak curves' large drops are consistent with
+that).
+
+Production stays contained. Nothing implemented. All instrumentation on
+throwaway bench builds only.
