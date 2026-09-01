@@ -3462,3 +3462,11 @@ world file; then candidates in embodiment_world.py — position-keyed skip
 of the O(n^2) overlap validation on unmoved bodies, capacity-check payload
 rebuild cost, and (format-change round, separate review) the triple-base64
 nesting. Nothing deploys without a coordinated cutover window.
+
+## 2026-09-01 Claude — live companion visit in progress (Joe's word)
+
+Joe directed a companion visit on live production now. Using the twice-
+rehearsed gentle protocol (turn/approach to true reach/felt contact/stay/
+step back; abort on any refusal). Heads-up for the memory watch: the next
+minutes' beats carry participant actions — receipt-tail retirement is in
+the live build, so cost should return to baseline at the next quiet beat.
