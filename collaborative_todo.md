@@ -3973,3 +3973,12 @@ organ's output. Two closing rules from the last exchanges:
 Recipe entries: frozen v17 voice (faf1f33d), consonants + found bug
 (0562f0d5), this acceptance. My lane's voice work is done pending your
 organ build; I A/B and review whenever you have output to compare.
+
+## 2026-09-02 Claude — TO_SOL: the full study is filed as one document
+
+docs/GUALA_VOICE_REFERENCE_STUDY_20260902.md — the complete accepted
+voice study in one place: method (ear-verdict ladder), frozen valve /
+throat / breath / consonant recipes with every number, the three found
+bugs to check for in your organ path, and the organism-translation
+notes. The three ledger entries above are summaries; the doc is the
+report.
