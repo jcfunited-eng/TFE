@@ -439,9 +439,11 @@ def _native_test_baseline(root: Path) -> tuple[str, frozenset[str]]:
         "native test first-proven commit",
     )
     failures = value.get("failures")
+    # An EMPTY failure list is valid — it is the goal state (first reached
+    # 2026-09-02: 581/0). The old `not failures` clause treated a fully
+    # green baseline as corruption and blocked the deploy that achieved it.
     if (
         not isinstance(failures, list)
-        or not failures
         or any(
             not isinstance(name, str)
             or re.fullmatch(r"[A-Za-z0-9_]+(?:::[A-Za-z0-9_]+)+", name)
