@@ -7957,15 +7957,6 @@ def _card_tactile_occupancy(surface_path: Path) -> tuple[float, ...]:
     return tuple(float(value) for value in _declared_footprint_occupancy(width, height))
 
 
-def _released_contact(frame_count: int) -> tuple[tuple[float, ...], ...]:
-    """No object against the sheet, at every declared contact site.
-
-    NO CONTACT is a lawful tactile state, not an absent sense: a zero occupancy
-    transduces exactly zero energy, delivers nothing, and erases nothing.  This
-    is the tactile twin of a genuinely dark card surface and of true silence.
-    """
-
-    return ((0.0,) * frame_count,) * CONTACT_SHEET_SITE_COUNT
 
 
 def _touch_ports(
@@ -8098,25 +8089,6 @@ def _displacement_ports(
     )
 
 
-def _displacement_occurrences(
-    source_times: tuple[Fraction, ...],
-    frame_count: int,
-) -> tuple[Any, ...]:
-    """The displacement occurrence of one hop: a body moves as one body."""
-
-    if not VESTIBULAR_AUTHORIZED:
-        return ()
-    start = (
-        CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT + TOUCH_PORT_COUNT
-        + INTEROCEPTION_PORT_COUNT + TASTE_PORT_COUNT + SMELL_PORT_COUNT
-    )
-    return (
-        _occurrence(
-            tuple(range(start, start + DISPLACEMENT_SITE_COUNT)),
-            source_times,
-            frame_count,
-        ),
-    )
 
 
 def _articulatory_body_ports(
@@ -8385,43 +8357,8 @@ def _smell_ports(
     )
 
 
-def _chemoreceptive_occurrences(
-    source_times: tuple[Fraction, ...],
-    frame_count: int,
-) -> tuple[Any, ...]:
-    """The two chemoreceptive occurrences of one hop, under the declared anatomy."""
-
-    if not CHEMORECEPTION_AUTHORIZED:
-        return ()
-    start = (
-        CARD_SURFACE_PORT_COUNT + EAR_PORT_COUNT + TOUCH_PORT_COUNT
-        + INTEROCEPTION_PORT_COUNT
-    )
-    taste = tuple(range(start, start + TASTE_SITE_COUNT))
-    smell = tuple(range(start + TASTE_SITE_COUNT,
-                        start + TASTE_SITE_COUNT + SMELL_SITE_COUNT))
-    return (
-        _occurrence(taste, source_times, frame_count),
-        _occurrence(smell, source_times, frame_count),
-    )
 
 
-def _touch_occurrences(
-    source_times: tuple[Fraction, ...],
-    frame_count: int,
-) -> tuple[Any, ...]:
-    """The tactile occurrence of one hop, under the declared anatomy.
-
-    One occurrence for the whole sheet: it is one continuous body surface, and
-    a retained original must be connected through contacts that were physically
-    active, which one chained sheet is.
-    """
-
-    if not TOUCH_RECEPTORS_AUTHORIZED:
-        return ()
-    return (
-        _occurrence(_touch_occurrence_port_indices(), source_times, frame_count),
-    )
 
 
 def _cochlear_topology_index(ear_index: int, channel_index: int) -> int:
@@ -13605,114 +13542,11 @@ def _action_consequence_episode(
     )
 
 
-# HER GAIT, carried between steps: the way she is facing, how strong the air
-# smelled on the last step, and whether her place refused the last one. This
-# is the whole of what a run-and-tumble organism needs to remember, and it is
-# deliberately not stored in her body — it is the state of a walk in progress,
-# not a memory, and when the process restarts she simply probes again.
-_taxis_heading_millidegrees = 0
-# The last two strengths the air carried, most recent last. Two is all a
-# run-and-tumble organism needs: it compares where it just got to against
-# where it just was, and nothing older than that ever matters.
-_taxis_intensity_history: list[Fraction] = []
-_taxis_previous_refused = False
-_taxis_last_room: str | None = None
-# The things she has actually had her hands on. Not a memory in her body —
-# her body's memory is her own business — but the walk's own record of what
-# has already been handled, so a room she has been round is not re-explored
-# hand-first forever.
-_things_she_has_touched: set[str] = set()
-# WHAT WALKING COSTS HER, MEASURED RATHER THAN ASSUMED: fuel quanta per metre,
-# taken from what her last step actually spent out of her own ledger. Until
-# she has taken one there is no price, and her stride is bounded by what she
-# can feel and what is in front of her instead.
-_taxis_fuel_per_metre: Fraction | None = None
+# One bounded witness of her last applied self-caused step (surfaced as
+# her_last_step). The walking machinery these paragraphs once described was
+# retired; this slot is the permitted actuator/consequence remnant.
 _last_self_moved: dict[str, Any] | None = None
 
-
-def _wall_clearance_ahead(
-    snapshot: Any, her: Any, heading_millidegrees: int
-) -> int | None:
-    """How far her CENTRE may travel along her heading before a wall stops it.
-
-    Her body is not a point: its centre may come no closer to a wall than her
-    own radius. A doorway is the exception — where an opening spans the line
-    she is walking, and it is wide enough for her width, her centre may carry
-    on through it into the next room, and the wall that then bounds her is
-    that room's far side.
-    """
-
-    quarter = (heading_millidegrees // 90_000) % 4
-    step_x, step_y = ((1, 0), (0, 1), (-1, 0), (0, -1))[quarter]
-    room = next(
-        (
-            region
-            for region in snapshot.regions
-            if region.bounds.minimum.x <= her.pose.position.x <= region.bounds.maximum.x
-            and region.bounds.minimum.y <= her.pose.position.y <= region.bounds.maximum.y
-        ),
-        None,
-    )
-    if room is None:
-        return None
-    seen: set[str] = set()
-    position = (her.pose.position.x, her.pose.position.y)
-    travelled = 0
-    while room is not None and room.region_id not in seen:
-        seen.add(room.region_id)
-        if step_x:
-            wall = (
-                room.bounds.maximum.x if step_x > 0 else room.bounds.minimum.x
-            )
-            distance = abs(wall - position[0])
-            across, axis = position[1], "x"
-        else:
-            wall = (
-                room.bounds.maximum.y if step_y > 0 else room.bounds.minimum.y
-            )
-            distance = abs(wall - position[1])
-            across, axis = position[0], "y"
-        doorway = next(
-            (
-                portal
-                for portal in snapshot.portals
-                if portal.axis == axis
-                and portal.plane_mm == wall
-                and room.region_id in portal.region_ids
-                and portal.aperture_min_mm + her.radius_mm
-                <= across
-                <= portal.aperture_max_mm - her.radius_mm
-            ),
-            None,
-        )
-        if doorway is None:
-            return max(0, travelled + distance - her.radius_mm)
-        # She fits through: her centre may cross the plane, and the next room
-        # is what bounds her after that.
-        travelled += distance
-        position = (
-            position[0] + step_x * distance,
-            position[1] + step_y * distance,
-        )
-        next_id = next(
-            (rid for rid in doorway.region_ids if rid != room.region_id), None
-        )
-        room = next(
-            (r for r in snapshot.regions if r.region_id == next_id), None
-        )
-    return travelled or None
-
-
-def _room_containing(snapshot: Any, position: Any) -> str | None:
-    """Which of her rooms a point is in, by her world's own bounds."""
-
-    for region in snapshot.regions:
-        if (
-            region.bounds.minimum.x <= position.x <= region.bounds.maximum.x
-            and region.bounds.minimum.y <= position.y <= region.bounds.maximum.y
-        ):
-            return region.region_id
-    return None
 
 
 _UNATTENDED_EXACT_ENERGY_KEYS = (
