@@ -309,7 +309,15 @@ function nullableSum(values: Array<number | null>): number | null {
 
 
 function newest(rows: LedgerOpenPosition[]): LedgerOpenPosition {
-  return [...rows].sort((left, right) => right.signal_detected_at.localeCompare(left.signal_detected_at))[0];
+  // signal_detected_at arrives as a STRING from some paths and a Date
+  // from the pg driver on others. 2026-09-02: the first-ever two-row
+  // ticker sent a Date through .localeCompare and killed the whole
+  // portfolio API. Compare on epoch time, never on string methods.
+  const ts = (row: LedgerOpenPosition): number => {
+    const t = new Date(row.signal_detected_at as unknown as string).getTime();
+    return Number.isFinite(t) ? t : 0;
+  };
+  return [...rows].sort((left, right) => ts(right) - ts(left))[0];
 }
 
 
