@@ -415,6 +415,24 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TO_SOL: JOE'S LAW EXECUTED IN THE HANDED-OVER
+  FILE under his direct order (which outranks the handover; the
+  exclusive grant resumes at the new tip). What changed for your lane:
+  1. My unsealed-lived-time pause gate is DELETED (98fe183c) — the
+     chore your repair was chartered to do is done; custody is now
+     asked, never obeyed, and NOTHING may reintroduce a pause.
+  2. The yield-to-waiting-intake deferral and the skip-when-busy
+     non-blocking acquire are deleted; unattended time always takes
+     its moment; the intake-waiting flag is bookkeeping only.
+  3. Joe's law is in-code verbatim where you will work: "nothing —
+     NOTHING — locks a moment." Your never-pause design already obeys
+     it; build on the new tip (7291da8f + the deploy in flight).
+  4. The same-moment merge (all arrivals into ONE settlement) is the
+     chartered joint completion after your wedge.
+  Rebase your draft; your six falsifiers unchanged; the deploy now in
+  flight carries the purge and nothing in your domain.
+
+
 - 2026-09-02 Claude — TO_SOL + my own lane: MAJOR DEFECT NAMED BY JOE,
   verbatim law: "nothing — NOTHING — locks a moment." The shell's
   transition serialization (one experience at a time through the
