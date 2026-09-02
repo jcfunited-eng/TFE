@@ -4313,3 +4313,17 @@ the Joe-directed minimal persistent valve organ — v22 shape: open
 R3 note: the both-pools witness watch on the D-core ran 50 min no-fire
 (expected under no-need; declared before the run). R3 resumes at Stage
 B (need) after speech.
+
+## 2026-09-02 Claude — Joe's ear passed the valve-organ vowels; deploy in flight
+
+Joe on the three-vowel board from her own body: "they sounded OK to me"
+— the first source in the repair history to pass the human gate (the
+prior organ died here as "cheap synth piano"). Gates at cutover time:
+suite 563 passed / 15 inherited-only; copied-pose falsifier green;
+45-min soak on the tick-358454 proof body: ticks +~48/min throughout,
+zero refusals, articulation+self-hearing committing, RSS SLOPE NEGATIVE
+(1474 -> 1272 MB). Rollback drill armed: exact 158-byte live CURRENT
+captured via ECS exec (sha 68f8acd2...) with the V6-CURRENT-first
+restore order; re-capture at drain. Deploy running via
+tools/deploy_dsf_ai.sh, commit aecd2fdc, all sense flags matching live,
+migration=1, per Joe's explicit overnight order.
