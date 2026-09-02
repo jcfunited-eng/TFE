@@ -27173,6 +27173,153 @@ mod tests {
         );
     }
 
+    // The variant grid of the ordering->motor bridge campaign: each case
+    // that must NOT author a contact returns lawful no-growth (Ok with the
+    // fabric untouched), never a refusal dressed as growth.
+    fn motor_bridge_grid_fixture() -> (
+        Vec<ResidentReachedCohort>,
+        Option<DevelopmentalRestingPopulation>,
+        u64,
+        ResidentElectricalFabric,
+        [u8; 16],
+        [u8; 16],
+    ) {
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let (regulation, _, _) = mount_body_regulation_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            BodyAxis::LeftElbowFlexion,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        let ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        mount_local_motor_bridge_fixture(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            regulation,
+            ordering,
+            0,
+        );
+        (cohorts, population, next_lineage, fabric, regulation, ordering)
+    }
+
+    fn ordering_motor_contact_exists(
+        cohorts: &[ResidentReachedCohort],
+        fabric: &ResidentElectricalFabric,
+        ordering: [u8; 16],
+    ) -> bool {
+        cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 12)
+            .any(|(_, lineage)| fabric.contains_contact(ordering, *lineage))
+    }
+
+    #[test]
+    fn static_pose_authors_no_ordering_motor_contact() {
+        let (mut cohorts, mut population, mut next_lineage, mut fabric, regulation, ordering) =
+            motor_bridge_grid_fixture();
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        let contact_count = fabric.contact_count();
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+            &prior_frontier,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert!(!ordering_motor_contact_exists(&cohorts, &fabric, ordering));
+    }
+
+    #[test]
+    fn body_only_movement_without_regulation_authors_no_ordering_motor_contact() {
+        let (mut cohorts, mut population, mut next_lineage, mut fabric, _regulation, ordering) =
+            motor_bridge_grid_fixture();
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        let contact_count = fabric.contact_count();
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[],
+            &active_bonds,
+            &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert!(!ordering_motor_contact_exists(&cohorts, &fabric, ordering));
+    }
+
+    #[test]
+    fn absent_ordering_frontier_authors_no_ordering_motor_contact() {
+        let (mut cohorts, mut population, mut next_lineage, mut fabric, regulation, ordering) =
+            motor_bridge_grid_fixture();
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let contact_count = fabric.contact_count();
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+            &[],
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert!(!ordering_motor_contact_exists(&cohorts, &fabric, ordering));
+    }
+
+    #[test]
+    fn zero_carrier_transfer_authors_no_ordering_motor_contact() {
+        let (mut cohorts, mut population, mut next_lineage, mut fabric, regulation, ordering) =
+            motor_bridge_grid_fixture();
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        let contact_count = fabric.contact_count();
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &[],
+            &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+        )
+        .unwrap();
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert!(!ordering_motor_contact_exists(&cohorts, &fabric, ordering));
+    }
+
     #[test]
     fn reacted_load_reaches_the_opposing_motor_terminal() {
         let mut cohorts = Vec::new();
