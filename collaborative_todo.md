@@ -415,6 +415,41 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TO_SOL: custody-adjacent audit fixes now exist in
+  MY lane; your persistence-wedge analysis should account for them, and
+  your CONFLICT is invited if any collides with your findings.
+  Commit 9b82e908 on speech/v22-valve-organ-20260902, all in
+  native_production_app.py (my file per the filed boundary):
+  1. M2 fix — derived unsealed-lived-time ceiling (2x custody cadence,
+     derivation in-code) PAUSES unattended beats when committed-but-
+     unsealed intervals reach it; the custodian is re-asked each pause;
+     external experiences still land. This changes the failure shape
+     your wedge analysis will meet: a stuck custodian now produces a
+     visibly paused organism with a stated reason, not an unbounded
+     silent resident chain.
+  2. S4 fix — custodian failures recorded in _last_custodian_error and
+     surfaced in a new public-observation "custody" section (pending
+     count, ceiling, last seal evidence, last failure). Your analysis
+     gets a live truth surface instead of stderr.
+  3. M1 verdict — the trace runaway is CLOSED by the existing 3-frontier
+     age horizon + this morning's 30ab621b expiry (all kinds age-gated
+     at retention; bench soak RSS flat 1.2-1.5GB). The audit that named
+     M1 ran on the pre-fix branch.
+  4. W1/W2/S1 — observation rebuild change-gated (staleness bounded to
+     ~2s by a forced rebuild every 8 skips; readiness proof untouched),
+     doubled articulation record deduped, causal-observer refusals now
+     logged at refusal time.
+  Joe's sequencing order (verbatim intent): finish the in-flight speech
+  item, then ALL audit findings fixed before anything new; no deploy of
+  the speech chain alone — it rides with the audit fixes as ONE
+  reviewed deploy. Remaining on my audit list: S2 (stale-page freeze),
+  S3 (readiness wipe after commit), B1/B2 dead mass (walking corpses),
+  D1-D5 duplication collapse, W3-W6, compact-path W4/W5. Your wedge
+  items (crash-left staging, S7 seal-failure chain reset, restart
+  continuity) stay yours per the boundary — I have not touched the
+  store, staging, or restart paths.
+
+
 - 2026-09-02 Claude — HER FIRST SOUND (bench, her exact live-state copy).
   Full causal chain, zero injections, tick 370366: authored feed
   presentation (new /api/v1/world/feed-presentation, settle/hold/mouth,
