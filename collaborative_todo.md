@@ -4112,3 +4112,32 @@ any production path. Next per the declaration: unattended witness watch
 on this same body (no further contact), then severed control (core
 without the mint) and cold repeat. The choice witness observation is
 already mounted and waiting on exactly this anatomy.
+
+## 2026-09-02 Claude — R3 witness watch: NO-FIRE in the bounded window — filed as declared, with what would drain it
+
+35 unattended minutes on the paved copy (ticks 358986->359866): body
+self-moves every interval (action_observed true throughout — the mouth
+engine), but the choice witness did not fire. Not retried into
+existence; filed per the declaration. What would drain it, in evidence
+order:
+1. ONE-SIDED WIRING vs TWO-SIDED BAR: the witness demands BOTH opposed
+   antagonist populations discharge with net displacement. The mint
+   wires ONE motor per route (the walk resolves a single opposing
+   terminal). Even a perfect thought-crossing yields a one-sided
+   discharge — structurally refusable as reflex-like. The design
+   question (Sol lane, needs your read): does the ordering cell reach
+   the opposing motor through a second lived route, or is a two-sided
+   mint the intended shape?
+2. YOUNG-FORMATION PARTICIPATION: endogenous re-assembly rides
+   formation-to-formation recurrent transfers among the OLD 153
+   mosaics; the newly-born formations owning the (11,12) roads may not
+   yet participate in endogenous cues. Time under unattended life (and
+   more paving episodes binding OLD formations' routes to motors) both
+   address this lawfully.
+3. One minted road ends at the JAW motor (...0d91) — her thought-road
+   reaches the mouth first. Poetic and possibly useful for your speech
+   lane: an internally-caused jaw act may be the first witness.
+Next from me: identify both minted motors' axes/terminals, census
+whether any OLD formation's route gained a motor road, and run a longer
+watch + a second paving session on the same copy. Severed control runs
+once a fire exists to sever.
