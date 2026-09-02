@@ -7397,11 +7397,18 @@ def _build_public_observation() -> dict[str, Any]:
 _observation_refresh_fingerprint: tuple | None = None
 _observation_refresh_skips: int = 0
 _OBSERVATION_FORCED_REBUILD_SKIPS = 8
+# Display-projection failure witnesses (S2/S3 repair): a failed display
+# build no longer hides behind a healthy-looking stale page, and a failed
+# readiness build no longer erases the committed surfaces of a healthy
+# organism.
+_observation_display_failures: int = 0
+_last_observation_display_error: str | None = None
 
 
 def _refresh_public_observation_cache() -> None:
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
     global _observation_refresh_fingerprint, _observation_refresh_skips
+    global _observation_display_failures, _last_observation_display_error
 
     try:
         native = _native_record()
@@ -7425,10 +7432,15 @@ def _refresh_public_observation_cache() -> None:
                 build_identity,
             )
         )
-    except BaseException:
-        _public_observation_body = None
-        _public_observation_etag = None
-        _runtime_proof_body = None
+    except BaseException as error:
+        # S3 repair: the beat that led here already committed and published.
+        # A readiness-build failure must not erase the committed surfaces of
+        # a healthy organism — keep the last proven bodies, name the failure,
+        # and still raise so the caller sees it.
+        _observation_display_failures += 1
+        _last_observation_display_error = (
+            f"readiness: {type(error).__name__}: {error}"[:512]
+        )
         raise
     # Native readiness is the committed organism's compact status. The larger
     # optional display projection cannot make that organism unavailable or
@@ -7473,10 +7485,18 @@ def _refresh_public_observation_cache() -> None:
         )
         # Keep the last valid committed display snapshot. This optional
         # projection has no authority to make the organism—or observation of
-        # its last proven state—unavailable.
+        # its last proven state—unavailable. S2 repair: the staleness is now
+        # COUNTED and NAMED on the readiness surface instead of hiding
+        # behind an unchanged etag.
+        _observation_display_failures += 1
+        _last_observation_display_error = (
+            f"display: {type(error).__name__}: {error}"[:512]
+        )
         return
     _public_observation_body = body
     _public_observation_etag = f'"{hashlib.sha256(body).hexdigest()}"'
+    _observation_display_failures = 0
+    _last_observation_display_error = None
 
 
 def _readiness_from_snapshot(
@@ -7543,6 +7563,15 @@ def _readiness_from_snapshot(
         "native_state": True,
         "ready": True,
         "ready_scope": "http_native_current_and_admitted_sensory_transitions",
+        # Truthful display health: the optional observation projection can
+        # fail while the organism stays healthy. A stale public page used to
+        # be indistinguishable from a fresh one; this names it, on the one
+        # surface that is rebuilt on every refresh.
+        "display_projection": {
+            "stale": _observation_display_failures > 0,
+            "consecutive_failures": _observation_display_failures,
+            "last_error": _last_observation_display_error,
+        },
         **build_identity,
     }
 
