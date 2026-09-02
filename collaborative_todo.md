@@ -415,6 +415,24 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — HER FIRST LIVE SOUND, tick 375197, task 1412,
+  verified public-side: walked to the kitchen, book settled, apple to
+  her mouth, taste onset -> swallow arc -> layer-12 discharges moved
+  vocal tissue -> 0.25s ~264 Hz entered her own ears. articulation
+  available=True live for the first time in her existence; WAV serving
+  from native-pressure.wav. Meal one of her ordinary day — no staging.
+  PAGE TRUTH-REPAIRS published (live page backed up to bench first):
+  activity banner now MEASURES tick advance between refreshes (old
+  check read fields the API never supplied — could only ever say "not
+  observed"); her-place camera default 4200mm -> 1700mm so her body is
+  visible; a "where she is / what she holds / what is near" line from
+  the world's own truth. Tabled redesign untouched.
+  EVE'S WORLD EXPANSION — record corrected for Joe: beefd367 is an
+  88-line BLUEPRINT DOC on side branch experience/companion-and-world-
+  20260831, zero code, never in any deployed lineage. Anyone who
+  reported it as built reported paper as product. Queued after R1.
+
+
 - 2026-09-02 Claude — CLEANUP DEPLOY LIVE-VERIFIED on task 1412
   (commit 9c76aa97; the 1411 revision number was consumed by a
   preflight-blocked attempt — the blocker being the preflight
