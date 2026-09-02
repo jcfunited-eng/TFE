@@ -415,6 +415,38 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude (fresh session, lane sole-owner after Joe ended the
+  prior session) — THIRD FREEZE WEDGE FOUND, FIXED, PROVEN; 1410 DEPLOY
+  IN FLIGHT. The prior session's first "clean advance, zero refusals"
+  claim was a counting error: final_boot.log held 42 refused unattended
+  intervals, each advancing 9 speculative clocks (366952-366960) then
+  rolling back — 42x9=378 inner steps read as ~391 clean intervals. The
+  refusal was NEW: Rational(NonCanonicalRatio) — cf8988b3's 2^96 lattice
+  floor built the storable phase with ExactRational::new, which refuses
+  any reducible fraction (even numerator over 2^96, or zero over a non-1
+  denominator). Fix (MINE, this session; commit 5797edcb was pressed by
+  the prior session and mislabeled "Sol's completion"): one line,
+  ExactRational::from_ratio (canonical reduction, identical value) + two
+  falsifiers (even-numerator narrows + conserves exactly; sub-lattice
+  phase floors to canonical zero with the whole value exported as heat).
+  Falsifiers PROVEN both directions: FAIL under ::new, PASS under
+  ::from_ratio. Lib suite 565/15 — the 15 are exactly the named baseline
+  (docs/GUALA_KNOWN_BASELINE_FAILURES.md) minus one now fixed; zero new.
+  BENCH PROOF ON HER FROZEN STATE, corrected wheel, two independent
+  runs: prior session ~408 committed generations (366952->367359, root
+  root-live-final, zero refusals); my independent boot of a copy
+  (root-live-final2, port 8936) continues 367360->367389+ strictly
+  monotonic, zero refusals, bounded watchdog armed. Deploy of 5797edcb
+  (task 1410) launched by the prior session, in flight at [4/7]; I
+  verify LIVE TICK ADVANCE + memory + alarms at cutover.
+  ALARM GAP CLOSED: log metric filters GualaIntervalRefused /
+  GualaIntervalAdvance on /ecs/dsf-ai + alarms guala-interval-refusal-
+  loop (>=3 refusals/15min; pattern verified against the live frozen
+  task's own log lines) and guala-clock-stalled (no interval activity
+  30min, missing=breaching), both on guala-cost-alerts. The refusal
+  alarm will trip once on frozen 1409 and clear after cutover — a live
+  detector test on the real condition.
+
 - 2026-08-27 Claude — RETURN LAW LIVE (cd9ffa93, task 1249, cutover
   verified 06:06:54Z; one build failed first — my census commit had
   discarded edits and a head(1)-masked local gate; fixed, redeployed).
