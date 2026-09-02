@@ -170,3 +170,36 @@ retained ordering — not canned phonemes or another renderer.
 HANDOFF REASON: the executing session's error rate rose late (wrong
 directories, one botched splice, a check-vs-test miss) — the campaign
 deserves fresh execution; everything above is staged for it.
+
+## APPENDED C — campaign + R1 state at deploy staging (supersedes "start state")
+
+Branch speech/v22-valve-organ-20260902 @ /tmp/guala-speed-lane now carries
+EVERYTHING and is reconverged (631ba6d5 retina + be228bb4 Sol wedge +
+d7232c3d test-double repair cherry-picked). Rust 588/0.
+
+BRIDGE CAMPAIGN EVIDENCE (all on her exact copy root-bridge, port 8940 rig,
+pyenv-feed + wheel-feed):
+- before census 11->12 = 0 (tick 372643) -> after paving = 2 (tick 373327),
+  contacts L11 0x5f6 -> L12 0xc5 and L11 0x6ba -> L12 0x4fb, nonzero and
+  MOVING carrier phases; cold restore preserved both exactly; three repeat
+  episodes = pure reuse (still 2, same pairs); unit grid green (static pose,
+  body-only, no-ordering-frontier, zero-carrier, severing+regrow, both
+  founding orders, repeat-reuse). OPEN: endogenous discharge witness
+  (quanta/away-from-neutral watch; quiet beats alone insufficient so far).
+  Vocal terminals stay GATED behind the full chain.
+- Census instrument: reservoir_probe.rs boundary_contact_counts; unwrap
+  GLCMP001 via lzma FORMAT_RAW/FILTER_LZMA2/preset 0 at offset 55.
+
+R1 PAIR (depletion 3de3ecb2 + eating weld 5fe45cb1+13745473): falsifiers
+F1/F3/F5/F6 green, F2 weak-form, F4 structural — details in the ledger
+entry "R1 falsifier round complete". Key repairs: mounted-order allocation
+across settling cohorts (mouth-only absorption failed F3), tastant mass =
+lived depleting state in material migration (bitten apple wedged boot —
+F6 caught a production wedge), feed transfer receipt in the response.
+
+DEPLOY 1416 STAGED: baseline banked (task 1415, 1/1, five alarms OK, tick
+379875). Post-deploy harness: tick ADVANCE, alarms, custody, RAM/CPU,
+state size, identity, TFE_ENTRIES_HALTED=0, one care gesture (hold_hand),
+one real meal with nonzero real_transfer, page panels. Full python suite
+tally pending in /tmp/guala-r3-bench/full_suite_predeploy.log (compare
+against the inherited 166-name baseline, not zero).
