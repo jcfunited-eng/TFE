@@ -95,8 +95,19 @@ class _Organism:
 
 
 @dataclass
+class _Pointer:
+    state_sha256: str = "aa" * 32
+    predecessor_state_sha256: str = "bb" * 32
+    organism_tick: int = 7
+
+
+@dataclass
 class _Restored:
     organism: _Organism = field(default_factory=_Organism)
+    # The real restored handle carries its durable CURRENT pointer; the
+    # matched body/world custody surface (be228bb4) reads it for the
+    # durable-vs-resident truth. The double must carry it too.
+    pointer: _Pointer = field(default_factory=_Pointer)
 
 
 @dataclass
