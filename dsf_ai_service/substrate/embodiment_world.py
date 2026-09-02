@@ -3626,8 +3626,16 @@ class EmbodimentWorldAuthority:
                     )
                 elif item.material != replace(
                     mounted,
+                    # Depleting reservoirs are lived physical state: odour
+                    # leaves through the air at its declared rate, and
+                    # tastant mass leaves through real bites. A restart
+                    # preserves what genuinely remains; only immutable
+                    # material anatomy must match the declaration.
                     odorant_reservoir_nanograms=(
                         item.material.odorant_reservoir_nanograms
+                    ),
+                    tastant_mass_micrograms=(
+                        item.material.tastant_mass_micrograms
                     ),
                 ):
                     raise ValueError(

@@ -18448,6 +18448,18 @@ def world_feed_presentation(payload: dict[str, Any] = Body(...)) -> JSONResponse
                     "object_id": object_id,
                     "ok": True,
                     "phase": phase,
+                    # The world's own measured transfer for this exact
+                    # contact: matter that left the object, and the energy
+                    # it carried at her declared extraction density. Zero
+                    # when nothing was bitten.
+                    "real_transfer": {
+                        "tastant_micrograms": (
+                            0
+                            if phase != "mouth"
+                            else transferred_micrograms
+                        ),
+                        "intake_zeptojoules": real_intake_zeptojoules or 0,
+                    },
                     "revision": execution.after.revision,
                     "schema": "guala.native_feed_presentation.v1",
                     "sensory_delivery": {

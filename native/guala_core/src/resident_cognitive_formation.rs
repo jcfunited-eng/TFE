@@ -18574,7 +18574,6 @@ fn settle_internal_contact_interval(
     real_nutrition_intake_zeptojoules: ExactRational,
     initial_vocal_tract_calibration: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
-    let nutrition_delivered = std::sync::atomic::AtomicBool::new(false);
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
         events.matches_shape(
             topology_index.flat_locations.len(),
@@ -18918,6 +18917,60 @@ fn settle_internal_contact_interval(
         members.dedup();
     }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
+    // THE DOORWAY'S ALLOCATION (R1 eating): the bite entered at the mouth,
+    // but digestion feeds the body — the intake is allocated across the
+    // cohorts genuinely settling this lived interval, in mounted order,
+    // each taking no more than its own spent energy and capacity headroom
+    // (the same bounds the per-cohort nutrition law re-enforces). Whatever
+    // no settling cohort can absorb is waste; nothing is stored, nothing
+    // is typed, and the sum of shares never exceeds the real transfer.
+    let mut cohort_intake_shares =
+        vec![ExactRational::integer(0); cohorts.len()];
+    if {
+        let (n, _) = real_nutrition_intake_zeptojoules.parts();
+        n > 0
+    } {
+        let wide = |v: ExactRational| {
+            let (n, d) = v.parts();
+            num_rational::BigRational::new(n.into(), d.into())
+        };
+        let zero = num_rational::BigRational::from_integer(0.into());
+        let mut remaining = wide(real_nutrition_intake_zeptojoules);
+        for cohort_index in selected_cohort_indices.iter().copied() {
+            if remaining <= zero {
+                break;
+            }
+            let anatomy = cohorts[cohort_index]
+                .anatomy
+                .recovery_fluid_reservoir_anatomy();
+            let (available_capacity, _, _) = anatomy.capacities();
+            let (available, spent, _) = cohorts[cohort_index]
+                .state
+                .recovery_fluid()
+                .physical_parts();
+            let headroom = wide(available_capacity) - wide(available);
+            let share = remaining
+                .clone()
+                .min(wide(spent))
+                .min(headroom);
+            if share <= zero {
+                continue;
+            }
+            let (n, d) = (share.numer(), share.denom());
+            let Ok(numerator) = i128::try_from(n.clone()) else {
+                continue;
+            };
+            let Ok(denominator) = u128::try_from(d.clone()) else {
+                continue;
+            };
+            let Ok(exact_share) = ExactRational::new(numerator, denominator)
+            else {
+                continue;
+            };
+            cohort_intake_shares[cohort_index] = exact_share;
+            remaining -= share;
+        }
+    }
     // Cohort reservoirs are physically independent. Prepare their exact pump
     // successors concurrently, but retain canonical cohort order for the
     // deterministic resident commit and observation stream.
@@ -18926,27 +18979,12 @@ fn settle_internal_contact_interval(
         .copied()
         .map(|cohort_index| {
             let reached_indices = pump_members_by_cohort[cohort_index].clone();
-            // THE DOORWAY'S ENTRY COHORT: real nutrition enters the body
-            // through the mouth's own cohort — the one mounting gustatory
-            // receptor sites — and nowhere else. Every other cohort's
-            // exchange sees zero intake.
-            let cohort_intake = if {
-                let (n, _) = real_nutrition_intake_zeptojoules.parts();
-                n > 0
-            } && cohorts[cohort_index].anatomy.mounts().iter().any(|mount| {
-                mount.source_site().is_some_and(is_gustatory_contact_receptor_site)
-            }) && !nutrition_delivered.swap(true, std::sync::atomic::Ordering::SeqCst)
-            {
-                real_nutrition_intake_zeptojoules
-            } else {
-                ExactRational::integer(0)
-            };
             let prepared = prepare_reached_cohort_membrane_pumps(
                 &cohorts[cohort_index].anatomy,
                 cohorts[cohort_index].state.as_ref(),
                 &reached_indices,
                 interval_microseconds,
-                cohort_intake,
+                cohort_intake_shares[cohort_index],
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
             Ok((cohort_index, reached_indices, prepared))

@@ -847,6 +847,85 @@ mod tests {
     use super::*;
 
     #[test]
+    fn real_nutrition_intake_regenerates_spent_exactly_and_wastes_the_rest() {
+        // R1 eating falsifier (unit half of falsifier 3): one real intake
+        // moves spent back to available bounded by spent present and
+        // capacity headroom; the remainder is waste OUT of the body; the
+        // body's internal total (available + spent + thermal) never grows
+        // by more than what was genuinely absorbed; a full body refuses.
+        use crate::recovery_fluid_contact::{
+            RecoveryFluidReservoirAnatomy, RecoveryFluidReservoirState,
+        };
+        let cap = ExactRational::integer(1_000_000);
+        let anatomy = RecoveryFluidReservoirAnatomy::new(cap, cap, cap).unwrap();
+        let state = RecoveryFluidReservoirState::new(
+            anatomy,
+            ExactRational::integer(900_000),
+            ExactRational::integer(50_000),
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        // Intake larger than both bounds: absorption capped by the tighter
+        // one (spent = 50_000 < headroom = 100_000), the rest is waste.
+        let settled = settle_real_nutrition_intake(
+            anatomy,
+            state,
+            ExactRational::integer(400_000),
+        )
+        .unwrap();
+        let wide = |v: ExactRational| {
+            let (n, d) = v.parts();
+            num_rational::BigRational::new(n.into(), d.into())
+        };
+        assert_eq!(
+            wide(settled.regenerated_energy_zeptojoules),
+            num_rational::BigRational::from_integer(50_000.into()),
+        );
+        assert_eq!(
+            wide(settled.unabsorbed_waste_zeptojoules),
+            num_rational::BigRational::from_integer(350_000.into()),
+        );
+        let (a1, s1, t1) = settled.successor_reservoir.physical_parts();
+        assert_eq!(wide(a1), num_rational::BigRational::from_integer(950_000.into()));
+        assert_eq!(wide(s1), num_rational::BigRational::from_integer(0.into()));
+        assert_eq!(wide(t1), num_rational::BigRational::from_integer(0.into()));
+
+        // A body with nothing spent refuses the whole intake honestly.
+        let full = RecoveryFluidReservoirState::new(
+            anatomy,
+            ExactRational::integer(1_000_000),
+            ExactRational::integer(0),
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        assert!(matches!(
+            settle_real_nutrition_intake(
+                anatomy,
+                full,
+                ExactRational::integer(400_000),
+            ),
+            Err(MetabolicError::NothingToRegenerate)
+        ));
+
+        // Negative intake breaks material continuity and is refused.
+        let state = RecoveryFluidReservoirState::new(
+            anatomy,
+            ExactRational::integer(900_000),
+            ExactRational::integer(50_000),
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        assert!(matches!(
+            settle_real_nutrition_intake(
+                anatomy,
+                state,
+                ExactRational::integer(-1),
+            ),
+            Err(MetabolicError::MaterialContinuity)
+        ));
+    }
+
+    #[test]
     fn pump_stalls_before_an_unrepresentable_exact_reservoir_successor() {
         let maximum = ExactRational::integer(i128::MAX);
         let anatomy = RecoveryFluidReservoirAnatomy::new(
