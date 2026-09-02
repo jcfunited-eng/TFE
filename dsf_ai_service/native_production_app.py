@@ -530,6 +530,7 @@ WORLD_STATE_FILE = "world.glworld"
 WORLD_MOVE_ENDPOINT = "/api/v1/world/move"
 WORLD_OTHER_BODY_MOVE_ENDPOINT = "/api/v1/world/other-body/move"
 WORLD_OTHER_BODY_ACTION_ENDPOINT = "/api/v1/world/other-body/action"
+WORLD_FEED_PRESENTATION_ENDPOINT = "/api/v1/world/feed-presentation"
 WORLD_OBSERVATION_ENDPOINT = "/api/v1/world/observation"
 # The declared span a displacement is reported as a fraction of.  A body that
 # crosses more than this in one move is refused rather than saturated.
@@ -17265,6 +17266,17 @@ def world_observation() -> JSONResponse:
                     "y_mm": item.pose.position.y,
                     "heading_millidegrees": item.pose.heading_millidegrees,
                     "radius_mm": item.radius_mm,
+                    "held_object_id": getattr(item, "held_object_id", None),
+                    "active_contact_kind": (
+                        item.active_contact.kind
+                        if getattr(item, "active_contact", None) is not None
+                        else None
+                    ),
+                    "active_contact_object_id": (
+                        item.active_contact.object_id
+                        if getattr(item, "active_contact", None) is not None
+                        else None
+                    ),
                 }
                 for item in snapshot.bodies
             ],
@@ -17330,7 +17342,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     x = y = heading = signed_yaw = None
     object_id = None
     surface_actuations: tuple[Any, ...] = ()
-    surface_duration_microseconds = INTAKE_HOP_MILLISECONDS * 1_000
+    surface_duration_microseconds = WORLD_BODY_ACTION_MILLISECONDS * 1_000
     if operation == "move":
         try:
             x = int(payload["x_mm"])
@@ -17377,7 +17389,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             surface_duration_microseconds = int(
                 payload.get(
                     "duration_microseconds",
-                    INTAKE_HOP_MILLISECONDS * 1_000,
+                    WORLD_BODY_ACTION_MILLISECONDS * 1_000,
                 )
             )
         except (TypeError, ValueError):
@@ -17504,7 +17516,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             successor_heading, _trajectory = exact_native_yaw_trajectory(
                 predecessor_heading_millidegrees=other.pose.heading_millidegrees,
                 signed_displacement_millidegrees=signed_yaw,
-                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             )
             if successor_heading != heading:
                 return _refusal(
@@ -17523,7 +17535,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             }
             command = MoveCommand(
                 target_pose=PoseMM(PositionMM(x, y, 0), heading),
-                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             )
             action_detail = {
                 "heading_millidegrees": heading,
@@ -17560,7 +17572,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             }
             command = PickCommand(
                 object_id=object_id,
-                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             )
             action_detail = {"object_id": object_id}
         elif operation == "take":
@@ -17570,7 +17582,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                 "operation": operation,
             }
             command = TakeContactHeldObjectCommand(
-                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             )
             action_detail = {}
         else:
@@ -17588,7 +17600,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
             command = PlaceCommand(
                 object_id=object_id,
                 target_position=PositionMM(x, y, 0),
-                duration_microseconds=INTAKE_HOP_MILLISECONDS * 1_000,
+                duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
             )
             action_detail = {
                 "object_id": object_id,
@@ -17650,7 +17662,7 @@ def world_other_body_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                             operation == "surface_contact"
                             or operation in _COMPANION_CONTACT_OPERATIONS
                         )
-                        else INTAKE_HOP_MILLISECONDS * 1_000
+                        else WORLD_BODY_ACTION_MILLISECONDS * 1_000
                     ),
                     1_000_000,
                 ),
@@ -18239,6 +18251,208 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
                     "world_action_duration_microseconds": (
                         WORLD_BODY_ACTION_MILLISECONDS * 1_000
                     ),
+                    "sensory_delivery": {
+                        "accepted": True,
+                        "hop_count": result["hop_count"],
+                        "organism_tick": result["persisted"]["organism_tick"],
+                        "state_sha256": result["persisted"]["state_sha256"],
+                    },
+                    "receptor_ingress": result.get("receptor_ingress"),
+                    "totals": result.get("totals"),
+                },
+            )
+    finally:
+        _end_external_intake()
+
+
+@app.post(WORLD_FEED_PRESENTATION_ENDPOINT)
+def world_feed_presentation(payload: dict[str, Any] = Body(...)) -> JSONResponse:
+    """Hold one real world object in her hands, or guide it to her mouth.
+
+    A person feeds her, exactly as a person presents a card or moves her:
+    authored presentation, never a claim that she chose to eat. Phase
+    "hold" closes her hands around the named object (the world's own
+    custody law); phase "mouth" brings the held object to her oral
+    receptor surface, where the world's declared tastant chemistry — not
+    this endpoint — decides what she tastes. Everything that follows
+    (taste onset, any born reflex it prepares) happens inside her own
+    physics or not at all.
+    """
+
+    if not WORLD_AUTHORIZED:
+        return _refusal(
+            503,
+            "no world is mounted: there is nothing real to feed her, and a "
+            f"tastant with no object behind it would be a fabrication ({WORLD_ENV})",
+        )
+    if not CHEMORECEPTION_AUTHORIZED:
+        return _refusal(
+            503,
+            "her gustatory receptors are not mounted, so food at her mouth "
+            "would reach nothing she can taste",
+        )
+    if not isinstance(payload, dict):
+        return _refusal(422, "a feed presentation requires a JSON body")
+    phase = payload.get("phase")
+    if phase not in ("settle", "hold", "mouth"):
+        return _refusal(
+            422, "a feed presentation phase must be 'settle', 'hold' or 'mouth'"
+        )
+    object_id = payload.get("object_id")
+    if not isinstance(object_id, str) or not object_id:
+        return _refusal(422, "a feed presentation requires a nonempty object_id")
+    settle_x = settle_y = None
+    if phase == "settle":
+        try:
+            settle_x = int(payload["x_mm"])
+            settle_y = int(payload["y_mm"])
+        except (KeyError, TypeError, ValueError):
+            return _refusal(
+                422,
+                "settling a held thing requires integer x_mm and y_mm to set "
+                "it down at",
+            )
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt,
+        OralContactCommand,
+        PORT_ID,
+        PickCommand,
+        PlaceCommand,
+        PositionMM,
+        PreparedActionExecution,
+        encode_command,
+    )
+
+    _begin_external_intake()
+    try:
+        with _transition_lock:
+            try:
+                authority = _world()
+                before = authority.observation_snapshot()
+                intent = _receipt({
+                    "actor_body_id": before.self_body_id,
+                    "expected_world_revision": before.revision,
+                    "object_id": object_id,
+                    "operation": f"feed-{phase}",
+                })
+                if phase == "settle":
+                    command = PlaceCommand(
+                        object_id=object_id,
+                        target_position=PositionMM(settle_x, settle_y, 0),
+                        duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+                    )
+                elif phase == "hold":
+                    command = PickCommand(
+                        object_id=object_id,
+                        duration_microseconds=WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+                    )
+                else:
+                    command = OralContactCommand(
+                        object_id,
+                        WORLD_BODY_ACTION_MILLISECONDS * 1_000,
+                    )
+                prepared = authority.prepare_port_command(
+                    port_id=PORT_ID,
+                    command_payload=encode_command(command),
+                    causal_intent_receipt_sha256=intent,
+                    expected_revision=before.revision,
+                )
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                return _refusal(422, f"her place refused that feeding: {error}")
+
+            # HER PLACE HAS ITS OWN PHYSICS AND IT SAYS NO FOR REAL REASONS:
+            # the object out of reach, already held elsewhere, or not hers to
+            # mouth without holding it first. A refusal reaches nobody.
+            if isinstance(prepared, ActionExecutionReceipt):
+                return _refusal(
+                    409,
+                    f"her place refused that feeding: {prepared.reason}. "
+                    "Nothing reached her, because nothing happened to her body",
+                )
+            if not isinstance(prepared, PreparedActionExecution):
+                return _refusal(503, "her place lost its prepared feeding")
+            execution = prepared.execution_receipt
+            try:
+                moved = _world_displacement(execution.before, execution.after)
+                consequence, admissions, _lane_truth = (
+                    _action_consequence_episode(
+                        execution,
+                        action_duration=Fraction(
+                            WORLD_BODY_ACTION_MILLISECONDS,
+                            1_000,
+                        ),
+                        body_displacement=moved,
+                    )
+                )
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                authority.discard_prepared_action(prepared)
+                return _refusal(422, f"that feeding could not reach her: {error}")
+
+            predecessor_world = authority.encoded_snapshot()
+            committed = False
+            persisted = False
+            try:
+                with authority.prepared_action_visibility_transaction(prepared):
+                    execution = authority.commit_prepared_action(prepared)
+                    committed = True
+                    successor_world = authority.encoded_committed_prepared_action(
+                        prepared
+                    )
+                    _persist_world_body(successor_world)
+                    persisted = True
+            except BaseException as error:
+                if committed:
+                    with authority.committed_prepared_action_rollback_transaction(
+                        prepared
+                    ) as rollback_world:
+                        rollback_world()
+                    if persisted:
+                        _persist_world_body(predecessor_world)
+                else:
+                    authority.discard_prepared_action(prepared)
+                return _refusal(
+                    503,
+                    "her feeding could not persist: "
+                    f"{type(error).__name__}: {error}",
+                )
+
+            try:
+                result = _perform_admitted_intake_locked(
+                    [(consequence, admissions)],
+                    f"world-feed-{phase}:{intent}",
+                )
+            except HTTPException:
+                raise
+            except (RuntimeError, TypeError, ValueError) as error:
+                _refresh_public_observation_cache()
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "accepted": True,
+                        "chose_to_eat": False,
+                        "ok": False,
+                        "phase": phase,
+                        "reason": (
+                            "the feeding happened and persisted, but its exact "
+                            "sensory transition was refused; do not repeat the "
+                            f"action ({type(error).__name__}: {error})"
+                        ),
+                        "revision": execution.after.revision,
+                        "schema": "guala.native_feed_presentation.v1",
+                        "sensory_delivery": {"accepted": False},
+                    },
+                )
+            _refresh_public_observation_cache()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "accepted": True,
+                    "chose_to_eat": False,
+                    "object_id": object_id,
+                    "ok": True,
+                    "phase": phase,
+                    "revision": execution.after.revision,
+                    "schema": "guala.native_feed_presentation.v1",
                     "sensory_delivery": {
                         "accepted": True,
                         "hop_count": result["hop_count"],

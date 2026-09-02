@@ -4111,11 +4111,6 @@ class EmbodimentWorldAuthority:
                     raise ValueError(
                         "oral contact is not a reciprocal held relation"
                     )
-                object_position = (
-                    item.position
-                    if item.position is not None
-                    else body.pose.position
-                )
                 offset = (
                     geometry.oral_offset_mm
                     if contact.kind == "oral"
@@ -4127,6 +4122,16 @@ class EmbodimentWorldAuthority:
                     else geometry.touch_radius_mm
                 )
                 receptor_position = _receptor_position(body, offset)
+                # A held object has no floor position: it is in the body's
+                # hands and, during a contact, brought TO the receptor. Its
+                # contact position is the receptor's own; anything else would
+                # leave an object that must be held (the oral custody law
+                # above) forever separated from the mouth it must touch.
+                object_position = (
+                    item.position
+                    if item.position is not None
+                    else receptor_position
+                )
                 expected_patch = (
                     _derived_contact_patch_square_mm(
                         receptor_position=receptor_position,
@@ -4577,11 +4582,6 @@ class EmbodimentWorldAuthority:
                 and item.held_by_body_id != body.body_id
             ):
                 return None, "contact_object_unavailable"
-            object_position = (
-                item.position
-                if item.position is not None
-                else body.pose.position
-            )
             offset = (
                 geometry.oral_offset_mm
                 if isinstance(command, OralContactCommand)
@@ -4595,6 +4595,16 @@ class EmbodimentWorldAuthority:
             receptor_position = _receptor_position(body, offset)
             if receptor_position is None:
                 return None, "contact_heading_geometry_unresolved"
+            # A held object has no floor position: it is in the body's hands
+            # and, during a contact, brought TO the receptor. Its contact
+            # position is the receptor's own; anything else would leave an
+            # object that must be held (the oral custody law) forever
+            # separated from the mouth it must touch.
+            object_position = (
+                item.position
+                if item.position is not None
+                else receptor_position
+            )
             patch = _derived_contact_patch_square_mm(
                 receptor_position=receptor_position,
                 receptor_radius_mm=receptor_radius,

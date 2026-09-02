@@ -36,6 +36,11 @@ PALMAR_CONTACT_SENSE_LAYER = 2
 PALMAR_CONTACT_TOPOLOGY_INDEX = 27
 PALMAR_CONTACT_SENSOR_ID = "native-palmar-contact"
 PALMAR_CONTACT_SUBSTREAM_ID = "held-contact"
+# The gustatory intake surface carries the born airway-protection reflex
+# (glottal closing), exactly as the palmar surface carries the born grasp.
+GUSTATORY_CONTACT_SENSE_LAYER = 4
+GUSTATORY_CONTACT_SENSOR_ID = "organism-gustatory-surface"
+GUSTATORY_CONTACT_SITE_COUNT = 5
 
 DirectedPhysicalTransferEvidence = tuple[str, str, int, int]
 TimedDirectedPhysicalTransferEvidence = tuple[int, DirectedPhysicalTransferEvidence]
@@ -969,8 +974,19 @@ def _motor_unit_recruitment_evidence(
                 and sensor_id == PALMAR_CONTACT_SENSOR_ID
                 and substream_id == PALMAR_CONTACT_SUBSTREAM_ID
             )
+            exact_gustatory_contact = (
+                sense_layer == GUSTATORY_CONTACT_SENSE_LAYER
+                and receptor_topology < GUSTATORY_CONTACT_SITE_COUNT
+                and sensor_id == GUSTATORY_CONTACT_SENSOR_ID
+                and isinstance(substream_id, str)
+                and substream_id.startswith(f"{GUSTATORY_CONTACT_SENSOR_ID}-")
+            )
             if (
-                (sense_layer != 5 and not exact_palmar_contact)
+                (
+                    sense_layer != 5
+                    and not exact_palmar_contact
+                    and not exact_gustatory_contact
+                )
                 or len({lineage, regulation, integration, receptor}) != 4
                 or not isinstance(sensor_id, str)
                 or not sensor_id
