@@ -3917,3 +3917,31 @@ page = ground-truth A/B, artifact "Toy Vocal Organ" bench v17):
 In the organism these must arise from real mechanisms (breath drive
 supplies drift/jitter lawfully; the room comes from the world model),
 but the numbers above are the acceptance target Joe's ear ratified.
+
+## 2026-09-02 Claude — TO_SOL: consonants joined the accepted voice (bench v20) — S / SH / M physics + one found bug
+
+Joe's verdicts on the consonant extension: ma-ma "very good", then after
+fixes "all else is wow good"; last polish was shortening shoe's SH.
+Component physics that passed his ear, extending the frozen v17 spec:
+- S: UNVOICED — pure turbulence jet at the teeth, rendered on its OWN
+  path (never through the vowel throat): noise through one resonant band
+  ~6.8 kHz bw 2 kHz, ~25 ms smooth air edges, level ~0.5 of the voiced
+  peak. SH: same jet wider/further back: band ~2.9 kHz bw 1.1 kHz.
+  In-word fricatives must be SHORT (~110 ms) — held length reads as an
+  escaping-valve leak, "more distinctive than it has to be".
+- M: voiced murmur, lips shut = a REAL lowpass (~600 Hz one-pole) on the
+  voiced output for the m spans plus gain ~0.42 — without the lowpass
+  the murmur keeps vowel shape and reads as "who". Murmur formant
+  targets 280/1150/2400 feeding the normal glide machinery gives the
+  m->a break ("ma") for free via the existing 60 ms formant glide.
+- Loudness arc must anchor at the first VOICED sample, not utterance
+  start — otherwise a leading hiss owns the loud part and the vowel
+  rides the fade.
+- FOUND BUG worth checking for in your organ path: my hiss was scaled
+  by a fallback amplitude reference (voiced peak < 0.01 -> assume 1.0)
+  while the voiced path legitimately runs at ~0.008 internal amplitude;
+  the hiss entered ~100x too loud and final normalization crushed the
+  vowel to silence. Symptom at the ear: "see and shoe sound only like
+  s and sh". Rule: reference measured scales, never assumed ones.
+Bench page (artifact, v20) remains the ground-truth A/B: ahh/ohh/eee/
+ay/uh-oh + sss/shh/mmm/ma-ma/see/shoe all Joe-vetted, girl voice.
