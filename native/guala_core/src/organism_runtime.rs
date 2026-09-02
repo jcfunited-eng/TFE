@@ -3253,6 +3253,7 @@ impl ResidentOrganismRuntime {
             self.active.in_flight_acoustic.clone(),
             true,
             &mut residency,
+            crate::exact_rational::ExactRational::integer(0),
         );
         self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, receipt, next_prepare_ordinal) = match built {
@@ -3299,7 +3300,29 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, false, None)
+        self.advance_admitted_intervals_unsealed(
+            episodes,
+            false,
+            None,
+            crate::exact_rational::ExactRational::integer(0),
+        )
+    }
+
+    /// Advance one lived feed intake: the same unsealed admitted trajectory,
+    /// carrying the real nutrition the world's bite genuinely transferred.
+    /// Absorption happens inside the first settlement interval; the amount is
+    /// bounded by the body's own conversion law, never typed energy.
+    fn advance_admitted_feed_trajectory_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        self.advance_admitted_intervals_unsealed(
+            episodes,
+            false,
+            None,
+            real_nutrition_intake_zeptojoules,
+        )
     }
 
     fn current_in_flight_acoustic(&self) -> Option<&InFlightAcousticConsequence> {
@@ -3328,6 +3351,7 @@ impl ResidentOrganismRuntime {
         body_s16le: &[u8],
         coexisting_sources: bool,
         consumed_sample_count: usize,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let pending = self
             .current_in_flight_acoustic()
@@ -3344,6 +3368,7 @@ impl ResidentOrganismRuntime {
             episodes,
             coexisting_sources,
             Some(consumed_sample_count),
+            real_nutrition_intake_zeptojoules,
         )
     }
 
@@ -3355,7 +3380,12 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(episodes, true, None)
+        self.advance_admitted_intervals_unsealed(
+            episodes,
+            true,
+            None,
+            crate::exact_rational::ExactRational::integer(0),
+        )
     }
 
     fn advance_admitted_intervals_unsealed(
@@ -3363,6 +3393,7 @@ impl ResidentOrganismRuntime {
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         coexisting_sources: bool,
         consume_in_flight_acoustic_samples: Option<usize>,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
@@ -3421,6 +3452,7 @@ impl ResidentOrganismRuntime {
             },
             false,
             &mut residency,
+            real_nutrition_intake_zeptojoules,
         );
         self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (mut pending, mut receipt, next_prepare_ordinal) = match built {
@@ -3685,6 +3717,7 @@ impl ResidentOrganismRuntime {
         initial_in_flight_acoustic: Option<InFlightAcousticConsequence>,
         seal_successor: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -3775,6 +3808,14 @@ impl ResidentOrganismRuntime {
             }
             let source_duration_samples =
                 coexisting_source_duration_samples_at_articulatory_rate(sources)?;
+            // Real nutrition is absorbed inside the feed's own first lived
+            // settlement interval; every later interval of the same
+            // trajectory carries zero, so one bite is one intake.
+            let interval_intake = if processed_interval_count == 0 {
+                real_nutrition_intake_zeptojoules.clone()
+            } else {
+                crate::exact_rational::ExactRational::integer(0)
+            };
             let (successor, observation) = cognitive
                 .take()
                 .expect("trajectory cognition is restored after every interval")
@@ -3783,6 +3824,7 @@ impl ResidentOrganismRuntime {
                     cognitive_budget,
                     interval_terminal,
                     residency,
+                    interval_intake,
                 )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             let source_tick = predecessor
@@ -5291,6 +5333,15 @@ impl NativeResidentOrganismRuntime {
             .map(|body| PyBytes::new(py, &body))
     }
 
+    #[pyo3(signature = (
+        sources,
+        maximum_causal_intervals,
+        pressure_s16le,
+        body_s16le,
+        coexisting_sources,
+        consumed_sample_count,
+        real_nutrition_intake_zeptojoules = None,
+    ))]
     fn advance_in_flight_self_hearing_unsealed(
         &mut self,
         py: Python<'_>,
@@ -5300,12 +5351,24 @@ impl NativeResidentOrganismRuntime {
         body_s16le: &[u8],
         coexisting_sources: bool,
         consumed_sample_count: usize,
+        real_nutrition_intake_zeptojoules: Option<i128>,
     ) -> PyResult<NativeResidentOrganismPrepare> {
         if sources.len() != maximum_causal_intervals.len() {
             return Err(PyValueError::new_err(
                 "in-flight self-hearing source and interval counts differ",
             ));
         }
+        let intake = match real_nutrition_intake_zeptojoules {
+            None => crate::exact_rational::ExactRational::integer(0),
+            Some(value) if value > 0 => {
+                crate::exact_rational::ExactRational::integer(value)
+            }
+            Some(_) => {
+                return Err(PyValueError::new_err(
+                    "a feed hop requires positive real transferred nutrition",
+                ))
+            }
+        };
         let episodes = sources
             .iter()
             .zip(maximum_causal_intervals)
@@ -5319,6 +5382,7 @@ impl NativeResidentOrganismRuntime {
                     body_s16le,
                     coexisting_sources,
                     consumed_sample_count,
+                    intake,
                 )
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
@@ -5359,6 +5423,61 @@ impl NativeResidentOrganismRuntime {
             .allow_threads(|| {
                 self.runtime
                     .advance_admitted_trajectory_unsealed(&episodes)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
+            root_translation_unit_recruitments:
+                prepared.root_translation_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    /// Continue the one resident causal intake carrying one real feed's
+    /// transferred nutrition. Identical to
+    /// `advance_admitted_trajectory_unsealed` except that the world-measured
+    /// intake (exact integer zeptojoules, from real transferred tastant mass
+    /// times the body's declared extraction density) is absorbed inside the
+    /// first lived settlement interval. Zero is refused: a feed with nothing
+    /// transferred is the plain trajectory, not a special case.
+    fn advance_admitted_feed_trajectory_unsealed(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+        real_nutrition_intake_zeptojoules: i128,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "admitted trajectory source and interval counts differ",
+            ));
+        }
+        if real_nutrition_intake_zeptojoules <= 0 {
+            return Err(PyValueError::new_err(
+                "a feed trajectory requires positive real transferred nutrition",
+            ));
+        }
+        let intake = crate::exact_rational::ExactRational::integer(
+            real_nutrition_intake_zeptojoules,
+        );
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime
+                    .advance_admitted_feed_trajectory_unsealed(&episodes, intake)
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {

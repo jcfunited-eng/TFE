@@ -9483,6 +9483,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         observe_relations: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
@@ -9497,8 +9498,7 @@ impl ResidentCognitiveFormationState {
             false,
             observe_relations,
             residency,
-        
-            ExactRational::integer(0),
+            real_nutrition_intake_zeptojoules,
         )?;
         Ok((prepared.successor, prepared.observation))
     }

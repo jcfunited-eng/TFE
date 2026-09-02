@@ -2668,6 +2668,77 @@ class NativeResidentOrganism:
                 self.__unsealed_tick = None
             raise
 
+    def advance_admitted_feed_trajectory_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+        real_nutrition_intake_zeptojoules: object,
+    ) -> ResidentPrepareEvidence:
+        """Advance one lived feed hop carrying real transferred nutrition.
+
+        The intake is the world's own measured transfer (exact integer
+        zeptojoules); the body's conversion law bounds absorption and the
+        remainder is honest waste. Zero or negative intake is refused —
+        a feed with nothing transferred is the plain trajectory.
+        """
+
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        if (
+            isinstance(real_nutrition_intake_zeptojoules, bool)
+            or not isinstance(real_nutrition_intake_zeptojoules, int)
+            or real_nutrition_intake_zeptojoules <= 0
+        ):
+            raise ValueError(
+                "a feed trajectory requires a positive integer count of "
+                "really transferred zeptojoules"
+            )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            candidate = self.__runtime.advance_admitted_feed_trajectory_unsealed(
+                list(sources),
+                [list(value) for value in intervals],
+                real_nutrition_intake_zeptojoules,
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
     def advance_in_flight_self_hearing_unsealed(
         self,
         sources: object,
@@ -2676,6 +2747,7 @@ class NativeResidentOrganism:
         body_s16le: bytes,
         coexisting_sources: bool = False,
         consumed_sample_count: int | None = None,
+        real_nutrition_intake_zeptojoules: int | None = None,
     ) -> ResidentPrepareEvidence:
         """Consume the exact resident acoustic consequence through hearing."""
 
@@ -2715,6 +2787,15 @@ class NativeResidentOrganism:
         candidate: object | None = None
         try:
             _rust_started = time.perf_counter()
+            if real_nutrition_intake_zeptojoules is not None and (
+                isinstance(real_nutrition_intake_zeptojoules, bool)
+                or not isinstance(real_nutrition_intake_zeptojoules, int)
+                or real_nutrition_intake_zeptojoules <= 0
+            ):
+                raise ValueError(
+                    "a feed hop requires a positive integer count of "
+                    "really transferred zeptojoules"
+                )
             candidate = self.__runtime.advance_in_flight_self_hearing_unsealed(
                 list(sources),
                 [list(value) for value in intervals],
@@ -2722,6 +2803,7 @@ class NativeResidentOrganism:
                 body_s16le,
                 coexisting_sources,
                 consumed_sample_count,
+                real_nutrition_intake_zeptojoules,
             )
             _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()

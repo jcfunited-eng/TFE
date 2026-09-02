@@ -725,6 +725,19 @@ class ObjectOpticalSurface:
         return verified.canonical_fragment
 
 
+# Authored body matter, the same authority class as the saturation roster
+# below: the chemical energy her digestion can extract from one microgram
+# of transferred tastant mass. 17 kJ/g is carbohydrate oxidation — real
+# food chemistry, not a tuned constant — expressed in her body's own
+# zeptojoule energy unit (17 kJ/g = 17 mJ/ug = 1.7e19 zJ/ug). Absorption
+# is bounded downstream by the body's own conversion law (never past
+# spent-plus-headroom; the remainder is honest waste), so this density
+# states what the food carries, not what the body must take.
+NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM = (
+    17_000_000_000_000_000_000
+)
+
+
 @dataclass(frozen=True, slots=True)
 class BodyReceptorGeometry:
     retinal_offset_mm: PositionMM

@@ -9208,6 +9208,7 @@ def _commit_one_timeline_hop(
     external_participant_action_receipt: str | None = None,
     purpose: str,
     coexisting: bool = False,
+    real_nutrition_intake_zeptojoules: int | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     """Commit one authored hop with pending self-pressure composed in place."""
 
@@ -9231,6 +9232,15 @@ def _commit_one_timeline_hop(
             if isinstance(episode, tuple)
             else admitted_sources[0]
         )
+        feed_advance: Any | None = None
+        feed_tail: tuple[Any, ...] = ()
+        if real_nutrition_intake_zeptojoules is not None:
+            if coexisting:
+                raise RuntimeError(
+                    "a feed hop is one temporal trajectory, never coexisting"
+                )
+            feed_advance = organism.advance_admitted_feed_trajectory_unsealed
+            feed_tail = (real_nutrition_intake_zeptojoules,)
         return (
             _commit_admitted_hop(
                 organism,
@@ -9241,6 +9251,8 @@ def _commit_one_timeline_hop(
                     external_participant_action_receipt
                 ),
                 coexisting=coexisting,
+                native_advance=feed_advance,
+                native_advance_tail=feed_tail,
             ),
             None,
         )
@@ -9281,6 +9293,9 @@ def _commit_one_timeline_hop(
             body,
             coexisting,
             consumed_sample_count,
+            # A meal lands even while her own voice is mid-flight: nothing
+            # about her moment gates real transferred nutrition.
+            real_nutrition_intake_zeptojoules,
         ),
     )
     return (
@@ -11453,6 +11468,7 @@ def _perform_admitted_intake_locked(
     vestibular_yaw: tuple[int, tuple[int, ...]] | None = None,
     external_participant_action_receipt: str | None = None,
     defer_seal: bool | None = None,
+    real_nutrition_intake_zeptojoules: int | None = None,
 ) -> dict[str, Any]:
     """Body of ``_perform_admitted_intake``; caller holds ``_transition_lock``."""
 
@@ -11888,7 +11904,7 @@ def _perform_admitted_intake_locked(
             )
             for key in totals:
                 totals[key] += last_hop[key]
-        for episode, admissions in episodes:
+        for episode_index, (episode, admissions) in enumerate(episodes):
             hop, consumed_acoustic = _commit_one_timeline_hop(
                 organism,
                 episode,
@@ -11896,6 +11912,13 @@ def _perform_admitted_intake_locked(
                 purpose="primary",
                 external_participant_action_receipt=(
                     external_participant_action_receipt
+                ),
+                # One bite is one intake: the really transferred nutrition
+                # rides the feed's own first lived hop and nothing after.
+                real_nutrition_intake_zeptojoules=(
+                    real_nutrition_intake_zeptojoules
+                    if episode_index == 0
+                    else None
                 ),
             )
             retain_committed_hop(
@@ -18354,10 +18377,46 @@ def world_feed_presentation(payload: dict[str, Any] = Body(...)) -> JSONResponse
                     f"{type(error).__name__}: {error}",
                 )
 
+            # THE BRIDGE ARITHMETIC (R1 eating): the world's own before and
+            # after object records say how much tastant mass this exact
+            # mouth contact really removed; her declared extraction density
+            # turns that matter into energy in her body's own unit. Zero
+            # transfer is the plain sensory hop — no feed lane, no intake.
+            real_intake_zeptojoules: int | None = None
+            if phase == "mouth":
+                from dsf_ai_service.substrate.embodiment_world import (
+                    NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
+                )
+
+                def _tastant_total(snapshot: Any) -> int:
+                    for candidate in snapshot.objects:
+                        if candidate.object_id == object_id:
+                            material = candidate.material
+                            if material is None:
+                                return 0
+                            return sum(material.tastant_mass_micrograms)
+                    return 0
+
+                transferred_micrograms = _tastant_total(
+                    execution.before
+                ) - _tastant_total(execution.after)
+                if transferred_micrograms < 0:
+                    return _refusal(
+                        503,
+                        "the bite created tastant mass from nothing; the "
+                        "world's conservation is broken and nothing was fed",
+                    )
+                if transferred_micrograms > 0:
+                    real_intake_zeptojoules = (
+                        transferred_micrograms
+                        * NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM
+                    )
+
             try:
                 result = _perform_admitted_intake_locked(
                     [(consequence, admissions)],
                     f"world-feed-{phase}:{intent}",
+                    real_nutrition_intake_zeptojoules=real_intake_zeptojoules,
                 )
             except HTTPException:
                 raise
