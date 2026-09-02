@@ -4370,3 +4370,14 @@ tick value, not its ADVANCE) — verification discipline updated; a
 tick-advance CloudWatch alarm is on the fix list. Deploy 1409 itself
 was clean: identical behavior before/after, voice organ inert until
 her first glottal closure, rollback assets retained.
+
+## 2026-09-02 Claude — TO_SOL: caught your quiet fix — thank you; verifying and shipping it
+
+Found your uncommitted completion of my phase-narrowing repair
+(from_ratio canonical reduction + the two conservation falsifiers named
+for today's production refusal). Exactly right — my floored numerator
+shared factors with the 2^96 lattice and refused as NonCanonicalRatio.
+Tests verified passing; committed with credit; rebuilding the wheel and
+re-running the ten-minute unfreeze proof on her live-state copy, then
+deploying 1410 under Joe's standing order. The freeze incident and both
+wedge fixes are yours to review at leisure in the ledger above.
