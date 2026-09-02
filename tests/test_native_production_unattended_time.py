@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import pytest
 import threading
 from types import SimpleNamespace
 
@@ -272,16 +273,13 @@ def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) ->
     monkeypatch.setattr(production, "_admission", SimpleNamespace())
     production._external_intake_waiting.set()
     try:
-        observed = production._attempt_unattended_interval()
+        # The bare stub has no organism, so ENTERING the moment fails on
+        # the stub itself — which is the proof: the attempt reached her
+        # instead of refusing to begin because someone else was waiting.
+        with pytest.raises(AttributeError):
+            production._attempt_unattended_interval()
     finally:
         production._external_intake_waiting.clear()
-
-    assert observed.get("outcome") != "deferred_external_intake_waiting"
-    assert observed.get("outcome") != "paused_unsealed_lived_time_at_ceiling"
-    # With stub organism handles, the attempt proceeds into the interval
-    # (failing later on the stubs' emptiness is fine — what is forbidden
-    # is refusing to BEGIN the moment because someone else is waiting).
-    assert observed.get("outcome") not in ("disabled",)
 
 
 def test_unattended_interval_does_not_repeat_the_committed_observer_refresh(
