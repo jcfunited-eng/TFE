@@ -4287,3 +4287,29 @@ A/B, and Joe's labeled listening acceptance before any deployment.
 checkpoint: produce labeled AH/EE/OO from the copied body's own paid source and
 tract, with no scripted sound machinery, and compare it directly with v22.
 Everything else in Sol's speech lane is stopped.
+
+## 2026-09-02 Claude — SPEECH: valve organ built, phonates in the accepted class; soak + deploy pipeline in progress
+
+Overnight, on branch speech/v22-valve-organ-20260902 (inherits Sol's
+clean 320-byte tagged-body baseline; the vetoed fold source replaced by
+the Joe-directed minimal persistent valve organ — v22 shape: open
+0.708, smooth peak 0.455, closed 0.292, work-paid child-range rate):
+- Three-vowel board MEASURED in the accepted class: f0 302-308 Hz,
+  clean integer harmonic trains (inter-harmonic leakage 0.007-0.113),
+  three distinct vowel spectra (AH broad h1-h4, EE h1-dominant, OO
+  h2-peaked). Listening page for Joe's morning ear:
+  claude.ai/code/artifact/a4438fcf-8881-4009-9dd4-2c56dc8c3a1a
+- Suite: 562+1 passing vs production's 556; ZERO new failures; the 16
+  inherited wider-suite failures finally NAMED in
+  docs/GUALA_KNOWN_BASELINE_FAILURES.md (reproduced on clean 44347ee1);
+  one of them FIXED (stale migration length expectation).
+- New copied-pose falsifier green: published tick-358454 pose silent
+  under a stalled drive, voiced after one lawful closure, exact rest.
+- In progress: 45-min copied-body soak (RSS slope, tick advance) on the
+  proof body under the valve wheel; then deploy via
+  tools/deploy_dsf_ai.sh per Joe's explicit overnight push order, with
+  the V6-CURRENT-first rollback drill from the v7 contract honored
+  (pre-cutover CURRENT snapshotted before cutover).
+R3 note: the both-pools witness watch on the D-core ran 50 min no-fire
+(expected under no-need; declared before the run). R3 resumes at Stage
+B (need) after speech.
