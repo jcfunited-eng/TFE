@@ -7405,7 +7405,13 @@ _observation_display_failures: int = 0
 _last_observation_display_error: str | None = None
 
 
-def _refresh_public_observation_cache() -> None:
+def _refresh_public_observation_cache(*, quiet_beat: bool = False) -> None:
+    """Rebuild the public observation. Only the 4 Hz unattended beat may
+    pass quiet_beat=True to use the change gate; every explicit refresh —
+    an intake, a world action, a custodian seal, a test — rebuilds
+    unconditionally, so a request for fresh truth can never be answered
+    with a fingerprint's guess."""
+
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
     global _observation_refresh_fingerprint, _observation_refresh_skips
     global _observation_display_failures, _last_observation_display_error
@@ -7460,7 +7466,8 @@ def _refresh_public_observation_cache() -> None:
         id(_curriculum_invitation),
     )
     if (
-        _public_observation_body is not None
+        quiet_beat
+        and _public_observation_body is not None
         and fingerprint == _observation_refresh_fingerprint
         and _observation_refresh_skips < _OBSERVATION_FORCED_REBUILD_SKIPS
     ):
@@ -13810,7 +13817,8 @@ def _attempt_unattended_interval() -> dict[str, Any]:
         # Publish one observation only after the unattended evidence is
         # complete.  The inner transition performs no observer work: every
         # lived caller owns exactly one correctly ordered cache refresh.
-        _refresh_public_observation_cache()
+        # The 4 Hz beat is the ONE caller allowed to use the change gate.
+        _refresh_public_observation_cache(quiet_beat=True)
         return {"delivered": True, "outcome": category, **_last_unattended_evidence}
     finally:
         _transition_lock.release()

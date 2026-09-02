@@ -99,5 +99,7 @@ def test_native_serving_does_not_import_retired_cognition_or_old_app() -> None:
         "speechSynthesis",
     ):
         assert forbidden not in source
-    assert '"articulation": _articulation_record()' in source
+    # The articulation section must come from the truth-coupled builder;
+    # since the W2 dedup it is computed once and shared with "expression".
+    assert '"articulation": (articulation_record := _articulation_record())' in source
     assert "def _articulation_record()" in source
