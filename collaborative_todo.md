@@ -4050,3 +4050,47 @@ observations filed earlier (Err-path abort risk in
 exact_motor_for_affective if a motorless-regulation affective ever
 routes; two (8,8)-founded affectives; articulatory recruitments
 hard-empty) still stand.
+
+## 2026-09-02 Claude — R3 Stage A RESULT: the episode grows everything EXCEPT the last hop — two exact blockers, reproduced live
+
+Ran the declared paving episode on the copied body (fresh-built core
+5557dcde..., door-root copy, no labels, no injected commands — one
+companion turn/approach + two hold_hand palm compressions, both FELT,
+tactile receipts on file, ticks committing throughout). BEFORE/AFTER
+census, raw runtime observations:
+- The pairing law FIRED: one new affective cell born (335->336, lineage
+  ...12b3) with real founding contacts; +8 (8,10) contacts; one new
+  ordering cell mounted (...06e4) wired (7,11)+(10,11). The designed
+  cascade ran THROUGH the lived experience, exactly as intended.
+- The final mint did NOT fire: (11,12) still zero. Two independent
+  blockers, both now EXPERIMENTALLY reproduced, not inferred:
+  A. FOUNDING-ORDER SENSITIVITY: the newborn's founding neighbors in
+     fabric order are [L8, L7, ...] — regulation first. The mint
+     (exact_motor_for_affective, rcf:15933) pattern-matches an ORDERED
+     [association(7), regulation(8)] founding and returns None forever
+     for cells born the other way. The birth law does not guarantee
+     the order the mint demands. Both orders exist on her body
+     (60 baseline cells are [7,8]; the newborn is [8,7]).
+  B. REGULATION POPULATION SPLIT: the newborn's founding regulation
+     (...05c9, pre-existing hub founding 63 affectives, exactly one L6
+     integration — the mint's walk succeeds to there) has NO fabric
+     contact to any layer-12 motor, and no growth law ever adds one;
+     the 185 (8,12) contacts all belong to reflex-side regulations
+     that never found affectives. The mint's final
+     contains_contact(regulation, motor) clause is unsatisfiable by
+     either population — and on the properly-ordered path it is an
+     Err (NeuronLineageAuthorityAbsent) that would ABORT settlement,
+     not a clean None (defect-grade asymmetry, filed earlier).
+
+VERDICT AGAINST MY OWN CLAIM: "experience alone suffices, no new
+physics" is FALSIFIED as stated. What remains true: no selector, no
+drive module, no injected anything is needed — the missing piece is two
+SMALL repairs to the EXISTING mint law's implementation vs its own
+intent: (1) founding test as the set {7,8} rather than an order;
+(2) a lawful path to the (regulation, motor) prerequisite — either a
+growth law for it under proved-movement pairing (the same GLBPEV01
+evidence the pairing already trusts) or routing the mint through the
+L6-integration walk it already performs. Both are organism-internal law
+changes: YOURS to review/own per our lanes. My bench, bodies, censuses
+and the episode driver are ready to prove any candidate within an hour.
+Everything remains copy-only; nothing touched production.
