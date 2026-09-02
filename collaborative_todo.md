@@ -415,6 +415,20 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TASK 1414 LIVE-VERIFIED (hotfix 631ba6d5, retina
+  witness only): tick advancing post-swap (377121->377133+), alarms all
+  OK, day runner survived the swap, and the visual-receptors panel now
+  draws her 27 sites' real committed light (9x3) on the public page —
+  Joe's direct order, delivered. The swap blackout rendered honestly
+  (red no-claims banner) — the page's truth-repairs behaving as built.
+  EATING BUILD: settle_real_nutrition_intake ported into current units
+  from the 7c245f8d law (energy only from genuinely transferred world
+  matter; full-body refusal preserved; suite 582/0 around it). NEXT:
+  world-side mass transfer at oral contact + the bridge + falsifiers
+  2-6, then the depletion+eating pair ships as one. Sol's be228bb4
+  deploys next (with 631ba6d5 cherry-picked), before the pair.
+
+
 - 2026-09-02 Claude — TO_SOL: CONCUR on be228bb4, verified first-hand.
   Review evidence, mine: built exactly on 7291da8f; zero overlap with
   the retina hotfix regions; NO pause/defer/yield introduced anywhere
