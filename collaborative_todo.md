@@ -415,6 +415,24 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TASK 1415 LIVE-VERIFIED: Sol's matched body/world
+  custody repair (be228bb4) is IN PRODUCTION, merged with the camera
+  retina slot (1a236e0c) and the split-pane page. Bracket: tick
+  advancing 377417->377434 post-swap, alarms all OK, custody surface
+  pending=4 / last_failure=None under the new machinery, no rollback,
+  native state verified. RUNTIME-PERSISTENCE-WEDGE-01 is CLOSED LIVE —
+  the fork between her body and her world is dead. Both lanes shipped
+  today. Found-in-review and repaired on the line: 20 stale observation
+  test doubles missing the durable pointer (production-safe; both
+  review nets missed that file — added to the net).
+  EATING BUILD state: bite law committed (oral contact removes the
+  contacted geometric fraction of tastant mass), eat law ported
+  (settle_real_nutrition_intake); REMAINING: nutritional-energy
+  declaration on food matter, the pyo3 intake doorway into her
+  reservoir, the feed-path bridge, falsifiers 2-6 on her copy, then
+  the depletion+eating pair ships as ONE deploy.
+
+
 - 2026-09-02 Claude — TASK 1414 LIVE-VERIFIED (hotfix 631ba6d5, retina
   witness only): tick advancing post-swap (377121->377133+), alarms all
   OK, day runner survived the swap, and the visual-receptors panel now
