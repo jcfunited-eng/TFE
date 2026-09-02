@@ -138,3 +138,35 @@ Also accepted from the diagnosis, on the truth-surface list: witness
 persistence across restarts (or "since restart" labels), articulation
 record names the discharging motor lineage, choice observer accepts
 reciprocal activation.
+
+## APPENDED FINAL — the bridge campaign spec VERBATIM (Joe-ratified) + start state
+
+Seeds ABOARD the speech branch (suite 582/0 after each): port 1/3 =
+9e8d9787+c8ac6115 (A+B), port 2/3 = 4194b155 (C). Seed D (c8184a7a,
+both-pools fan-out) deliberately EXCLUDED — forbidden by the spec.
+Port 3/3 = the campaign itself, verbatim requirements:
+1. Treat the L7/L8 affective founding pair as an unordered physical set.
+2. Grow or reuse one regulation->motor prerequisite only from exact
+   same-episode movement/contact evidence.
+3. Connect the ordering cell only to that exact terminal — never fan
+   out across motors.
+4. Treat a lawful unmet prerequisite as "no growth", while continuing
+   to reject genuinely corrupt anatomy.
+5. Prove on an exact copied production body that an established
+   endogenous formation reassembles, transfers carriers across
+   L11->L12, discharges a motor, moves the body, and receives its
+   exact sensory consequence.
+6. Repeat after cold restoration and fail when the learned contact is
+   severed.
+7. Exercise both founding orders, timing relationships, carrier
+   ranges, wrong terminals, static pose, unrelated sound, body-only
+   input, and repeated episodes — not another one-value guess.
+8. Include ECS health, tick advancement, alarms, RAM, CPU, state
+   size, contact growth, persistence, and identity checks in the
+   harness.
+Only after that chain passes: the same law for exact vocal terminals;
+speech then needs sustained articulatory gestures, self-hearing, and
+retained ordering — not canned phonemes or another renderer.
+HANDOFF REASON: the executing session's error rate rose late (wrong
+directories, one botched splice, a check-vs-test miss) — the campaign
+deserves fresh execution; everything above is staged for it.
