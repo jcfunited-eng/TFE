@@ -95,3 +95,13 @@ mount — survives. Config backup: /mnt/tfebackup/root-claude.json.
 - Git lock errors: shared .git — wait/retry first; only remove
   index.lock if hours-old and 0 bytes.
 - Every ship states its bound; report only what actually ran.
+
+## NEVER edit a running shell script (third violation 2026-09-02)
+Bash reads script files INCREMENTALLY: editing a .sh while a process
+is executing it corrupts that run at the next read (receipt: the
+nightly door died mid-run at the exact step boundary where the file
+was patched; the picking pulse went STALE and only the heartbeat line
+caught it). The order is always: kill the process by PID (never
+pkill with a pattern that matches your own shell), edit, restart,
+verify the heartbeat stamp. Python tools invoked fresh per cycle are
+safe to edit; the .sh loops and any long-running script are not.
