@@ -15,7 +15,8 @@ const PREVIOUS_BODY_VERSION: u16 = 2;
 pub(crate) const PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION: u16 = 3;
 pub(crate) const PREVIOUS_ACOUSTIC_BODY_VERSION: u16 = 4;
 pub(crate) const PREVIOUS_PHONATORY_BODY_VERSION: u16 = 5;
-const BODY_VERSION: u16 = 6;
+pub(crate) const PREVIOUS_SPECTRAL_BODY_VERSION: u16 = 6;
+const BODY_VERSION: u16 = 7;
 pub(crate) const LEGACY_BODY_AXIS_COUNT: usize = 37;
 pub(crate) const BODY_AXIS_COUNT: usize = 45;
 pub(crate) const LEGACY_BODY_EFFECTOR_TERMINAL_COUNT: usize = LEGACY_BODY_AXIS_COUNT * 2;
@@ -52,9 +53,15 @@ const PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
         + size_of::<u16>();
 const PREVIOUS_PHONATORY_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
     PREVIOUS_ARTICULATORY_ACOUSTIC_STATE_BYTES + size_of::<u8>() + size_of::<u32>();
-const ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+const PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
     2 * VOCAL_TRACT_SECTION_COUNT * size_of::<i32>()
         + 2 * ACOUSTIC_TRANSDUCER_SURFACE_COUNT * size_of::<i32>();
+pub(crate) const SPECTRAL_MODE_COUNT: usize = 5;
+pub(crate) const SPECTRAL_FLUID_CELL_COUNT: usize = VOCAL_TRACT_SECTION_COUNT;
+pub(crate) const MAX_SPECTRAL_RESPIRATORY_WORK: i64 = 8_192_000;
+const SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES: usize = 31 * size_of::<i32>();
+const ARTICULATORY_ACOUSTIC_STATE_BYTES: usize =
+    size_of::<u8>() + SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES;
 pub(crate) const HEADER_BYTES: usize = BODY_MAGIC.len() + size_of::<u16>();
 pub(crate) const PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize = HEADER_BYTES
     + BODY_AXIS_COUNT * size_of::<i32>()
@@ -65,6 +72,9 @@ pub(crate) const PREVIOUS_ACOUSTIC_ARTICULATED_BODY_STATE_BYTES: usize =
 pub(crate) const PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES: usize =
     PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
         + PREVIOUS_PHONATORY_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+pub(crate) const PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES: usize =
+    PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES
+        + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
 pub(crate) const ARTICULATED_BODY_STATE_BYTES: usize =
     PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES + ARTICULATORY_ACOUSTIC_STATE_BYTES;
 
@@ -76,23 +86,26 @@ pub(crate) const MAX_TRACT_AREA_SQUARE_MILLIMETRES: i32 = 1_000;
 pub(crate) const NEUTRAL_TRACT_AREAS_SQUARE_MILLIMETRES: [i32; VOCAL_TRACT_SECTION_COUNT] =
     [125, 145, 165, 185, 205, 225, 245, 265];
 
-/// The exact short-lived state of the organism's developmental acoustic
-/// transducer.
-///
-/// The three surface coordinates are current mechanical displacement and
-/// prior displacement, not phase clocks, target tones, or audio history. The
-/// tube coordinates are current traveling pressure. Together they let finite
-/// motor work ring, radiate, damp, and cross an interval or restart without a
-/// timer or a prescribed waveform.
+fn take_body_i32(encoded: &[u8], cursor: &mut usize) -> i32 {
+    let value = i32::from_be_bytes(
+        encoded[*cursor..*cursor + size_of::<i32>()]
+            .try_into()
+            .expect("fixed articulated-body coordinate width"),
+    );
+    *cursor += size_of::<i32>();
+    value
+}
+
+/// Exact task-1408 acoustic state retained during the non-erasing transition.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct ArticulatoryAcousticState {
+pub(crate) struct LegacyV6AcousticState {
     pub(crate) right_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
     pub(crate) left_traveling_pressure: [i32; VOCAL_TRACT_SECTION_COUNT],
     pub(crate) surface_displacement: [i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
     pub(crate) surface_previous_displacement: [i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT],
 }
 
-impl ArticulatoryAcousticState {
+impl LegacyV6AcousticState {
     pub(crate) const fn at_rest() -> Self {
         Self {
             right_traveling_pressure: [0; VOCAL_TRACT_SECTION_COUNT],
@@ -110,6 +123,78 @@ impl ArticulatoryAcousticState {
                 .surface_previous_displacement
                 .iter()
                 .all(|value| *value == 0)
+    }
+}
+
+/// The fixed present state of the bounded spectral organ. These are mechanical
+/// and fluid coordinates only: no phase clock, waveform, sound label, or
+/// gesture duration is retained.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct SpectralAcousticState {
+    pub(crate) fold_displacement: [i32; 2],
+    pub(crate) fold_previous_displacement: [i32; 2],
+    pub(crate) respiratory_work_remaining: i64,
+    pub(crate) previous_volume_flow: i32,
+    pub(crate) source_loss: [i32; 2],
+    pub(crate) mode_displacement: [i32; SPECTRAL_MODE_COUNT],
+    pub(crate) mode_previous_displacement: [i32; SPECTRAL_MODE_COUNT],
+    pub(crate) fluid_cells: [i32; SPECTRAL_FLUID_CELL_COUNT],
+    pub(crate) lip_low_pass: [i32; 2],
+    pub(crate) band_limit: [i32; 2],
+}
+
+impl SpectralAcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self {
+            fold_displacement: [0; 2],
+            fold_previous_displacement: [0; 2],
+            respiratory_work_remaining: 0,
+            previous_volume_flow: 0,
+            source_loss: [0; 2],
+            mode_displacement: [0; SPECTRAL_MODE_COUNT],
+            mode_previous_displacement: [0; SPECTRAL_MODE_COUNT],
+            fluid_cells: [0; SPECTRAL_FLUID_CELL_COUNT],
+            lip_low_pass: [0; 2],
+            band_limit: [0; 2],
+        }
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        self.fold_displacement.iter().all(|value| *value == 0)
+            && self
+                .fold_previous_displacement
+                .iter()
+                .all(|value| *value == 0)
+            && self.respiratory_work_remaining == 0
+            && self.previous_volume_flow == 0
+            && self.source_loss.iter().all(|value| *value == 0)
+            && self.mode_displacement.iter().all(|value| *value == 0)
+            && self
+                .mode_previous_displacement
+                .iter()
+                .all(|value| *value == 0)
+            && self.fluid_cells.iter().all(|value| *value == 0)
+            && self.lip_low_pass.iter().all(|value| *value == 0)
+            && self.band_limit.iter().all(|value| *value == 0)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ArticulatoryAcousticState {
+    LegacyV6(LegacyV6AcousticState),
+    Spectral(SpectralAcousticState),
+}
+
+impl ArticulatoryAcousticState {
+    pub(crate) const fn at_rest() -> Self {
+        Self::Spectral(SpectralAcousticState::at_rest())
+    }
+
+    pub(crate) fn is_quiescent(self) -> bool {
+        match self {
+            Self::LegacyV6(state) => state.is_quiescent(),
+            Self::Spectral(state) => state.is_quiescent(),
+        }
     }
 }
 
@@ -846,6 +931,9 @@ pub(crate) enum ArticulatedBodyError {
     InvalidLength,
     InvalidMagic,
     UnsupportedVersion(u16),
+    InvalidAcousticVariant,
+    InvalidAcousticPadding,
+    RespiratoryWorkOutsideAnatomy,
     AxisOutsideAnatomy(BodyAxis),
     LungAirOutsideAnatomy,
     VocalTractOutsideAnatomy(usize),
@@ -1057,6 +1145,9 @@ impl ArticulatedBodyState {
             PREVIOUS_PHONATORY_BODY_VERSION => {
                 Ok(PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
             }
+            PREVIOUS_SPECTRAL_BODY_VERSION => {
+                Ok(PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES)
+            }
             BODY_VERSION => Ok(ARTICULATED_BODY_STATE_BYTES),
             _ => Err(ArticulatedBodyError::UnsupportedVersion(version)),
         }
@@ -1081,21 +1172,53 @@ impl ArticulatedBodyState {
         cursor += size_of::<u32>();
         encoded[cursor] = u8::from(self.proprioception_initialized);
         cursor += size_of::<u8>();
-        for value in self.articulatory_acoustic.right_traveling_pressure {
-            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
-            cursor += size_of::<i32>();
-        }
-        for value in self.articulatory_acoustic.left_traveling_pressure {
-            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
-            cursor += size_of::<i32>();
-        }
-        for value in self.articulatory_acoustic.surface_displacement {
-            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
-            cursor += size_of::<i32>();
-        }
-        for value in self.articulatory_acoustic.surface_previous_displacement {
-            encoded[cursor..cursor + size_of::<i32>()].copy_from_slice(&value.to_be_bytes());
-            cursor += size_of::<i32>();
+        match self.articulatory_acoustic {
+            ArticulatoryAcousticState::LegacyV6(state) => {
+                encoded[cursor] = 0;
+                cursor += size_of::<u8>();
+                for value in state
+                    .right_traveling_pressure
+                    .into_iter()
+                    .chain(state.left_traveling_pressure)
+                    .chain(state.surface_displacement)
+                    .chain(state.surface_previous_displacement)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+                cursor += SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES
+                    - PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+            }
+            ArticulatoryAcousticState::Spectral(state) => {
+                encoded[cursor] = 1;
+                cursor += size_of::<u8>();
+                for value in state
+                    .fold_displacement
+                    .into_iter()
+                    .chain(state.fold_previous_displacement)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+                encoded[cursor..cursor + size_of::<i64>()]
+                    .copy_from_slice(&state.respiratory_work_remaining.to_be_bytes());
+                cursor += size_of::<i64>();
+                for value in [state.previous_volume_flow]
+                    .into_iter()
+                    .chain(state.source_loss)
+                    .chain(state.mode_displacement)
+                    .chain(state.mode_previous_displacement)
+                    .chain(state.fluid_cells)
+                    .chain(state.lip_low_pass)
+                    .chain(state.band_limit)
+                {
+                    encoded[cursor..cursor + size_of::<i32>()]
+                        .copy_from_slice(&value.to_be_bytes());
+                    cursor += size_of::<i32>();
+                }
+            }
         }
         debug_assert_eq!(cursor, ARTICULATED_BODY_STATE_BYTES);
         Ok(encoded)
@@ -1117,6 +1240,8 @@ impl ArticulatedBodyState {
         );
         cursor += size_of::<u16>();
         if (version == BODY_VERSION && encoded.len() != ARTICULATED_BODY_STATE_BYTES)
+            || (version == PREVIOUS_SPECTRAL_BODY_VERSION
+                && encoded.len() != PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES)
             || (version == PREVIOUS_PHONATORY_BODY_VERSION
                 && encoded.len() != PREVIOUS_PHONATORY_ARTICULATED_BODY_STATE_BYTES)
             || (version == PREVIOUS_ACOUSTIC_BODY_VERSION
@@ -1133,6 +1258,7 @@ impl ArticulatedBodyState {
             | PREVIOUS_PROPRIOCEPTIVE_BODY_VERSION
             | PREVIOUS_ACOUSTIC_BODY_VERSION
             | PREVIOUS_PHONATORY_BODY_VERSION
+            | PREVIOUS_SPECTRAL_BODY_VERSION
             | BODY_VERSION => BODY_AXIS_COUNT,
             _ => return Err(ArticulatedBodyError::UnsupportedVersion(version)),
         };
@@ -1171,49 +1297,121 @@ impl ArticulatedBodyState {
         };
         cursor += size_of::<u8>();
         let articulatory_acoustic = if version == BODY_VERSION {
+            let variant = encoded[cursor];
+            cursor += size_of::<u8>();
+            if variant == 0 {
+                let mut right_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                for value in &mut right_traveling_pressure {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut left_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
+                for value in &mut left_traveling_pressure {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut surface_displacement =
+                    [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                for value in &mut surface_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut surface_previous_displacement =
+                    [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
+                for value in &mut surface_previous_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let padding = SPECTRAL_ARTICULATORY_ACOUSTIC_PAYLOAD_BYTES
+                    - PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES;
+                if encoded[cursor..cursor + padding]
+                    .iter()
+                    .any(|value| *value != 0)
+                {
+                    return Err(ArticulatedBodyError::InvalidAcousticPadding);
+                }
+                cursor += padding;
+                ArticulatoryAcousticState::LegacyV6(LegacyV6AcousticState {
+                    right_traveling_pressure,
+                    left_traveling_pressure,
+                    surface_displacement,
+                    surface_previous_displacement,
+                })
+            } else if variant == 1 {
+                let mut fold_displacement = [0_i32; 2];
+                for value in &mut fold_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut fold_previous_displacement = [0_i32; 2];
+                for value in &mut fold_previous_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let respiratory_work_remaining = i64::from_be_bytes(
+                    encoded[cursor..cursor + size_of::<i64>()]
+                        .try_into()
+                        .expect("fixed respiratory-work width"),
+                );
+                cursor += size_of::<i64>();
+                let previous_volume_flow = take_body_i32(encoded, &mut cursor);
+                let mut source_loss = [0_i32; 2];
+                for value in &mut source_loss {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut mode_displacement = [0_i32; SPECTRAL_MODE_COUNT];
+                for value in &mut mode_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut mode_previous_displacement = [0_i32; SPECTRAL_MODE_COUNT];
+                for value in &mut mode_previous_displacement {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut fluid_cells = [0_i32; SPECTRAL_FLUID_CELL_COUNT];
+                for value in &mut fluid_cells {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut lip_low_pass = [0_i32; 2];
+                for value in &mut lip_low_pass {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                let mut band_limit = [0_i32; 2];
+                for value in &mut band_limit {
+                    *value = take_body_i32(encoded, &mut cursor);
+                }
+                ArticulatoryAcousticState::Spectral(SpectralAcousticState {
+                    fold_displacement,
+                    fold_previous_displacement,
+                    respiratory_work_remaining,
+                    previous_volume_flow,
+                    source_loss,
+                    mode_displacement,
+                    mode_previous_displacement,
+                    fluid_cells,
+                    lip_low_pass,
+                    band_limit,
+                })
+            } else {
+                return Err(ArticulatedBodyError::InvalidAcousticVariant);
+            }
+        } else if version == PREVIOUS_SPECTRAL_BODY_VERSION {
             let mut right_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
             for value in &mut right_traveling_pressure {
-                *value = i32::from_be_bytes(
-                    encoded[cursor..cursor + size_of::<i32>()]
-                        .try_into()
-                        .expect("fixed pressure width"),
-                );
-                cursor += size_of::<i32>();
+                *value = take_body_i32(encoded, &mut cursor);
             }
             let mut left_traveling_pressure = [0_i32; VOCAL_TRACT_SECTION_COUNT];
             for value in &mut left_traveling_pressure {
-                *value = i32::from_be_bytes(
-                    encoded[cursor..cursor + size_of::<i32>()]
-                        .try_into()
-                        .expect("fixed pressure width"),
-                );
-                cursor += size_of::<i32>();
+                *value = take_body_i32(encoded, &mut cursor);
             }
             let mut surface_displacement = [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
             for value in &mut surface_displacement {
-                *value = i32::from_be_bytes(
-                    encoded[cursor..cursor + size_of::<i32>()]
-                        .try_into()
-                        .expect("fixed acoustic-surface displacement width"),
-                );
-                cursor += size_of::<i32>();
+                *value = take_body_i32(encoded, &mut cursor);
             }
             let mut surface_previous_displacement =
                 [0_i32; ACOUSTIC_TRANSDUCER_SURFACE_COUNT];
             for value in &mut surface_previous_displacement {
-                *value = i32::from_be_bytes(
-                    encoded[cursor..cursor + size_of::<i32>()]
-                        .try_into()
-                        .expect("fixed prior acoustic-surface displacement width"),
-                );
-                cursor += size_of::<i32>();
+                *value = take_body_i32(encoded, &mut cursor);
             }
-            ArticulatoryAcousticState {
+            ArticulatoryAcousticState::LegacyV6(LegacyV6AcousticState {
                 right_traveling_pressure,
                 left_traveling_pressure,
                 surface_displacement,
                 surface_previous_displacement,
-            }
+            })
         } else if version >= PREVIOUS_ACOUSTIC_BODY_VERSION {
             // V4/V5 persisted the rejected fixed-phase/fixed-countdown source.
             // Validate and consume that exact legacy body before retiring the
@@ -1292,6 +1490,15 @@ impl ArticulatedBodyState {
             .contains(&self.lung_air_microlitres)
         {
             return Err(ArticulatedBodyError::LungAirOutsideAnatomy);
+        }
+        if matches!(
+            self.articulatory_acoustic,
+            ArticulatoryAcousticState::Spectral(SpectralAcousticState {
+                respiratory_work_remaining,
+                ..
+            }) if !(0..=MAX_SPECTRAL_RESPIRATORY_WORK).contains(&respiratory_work_remaining)
+        ) {
+            return Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy);
         }
         for (index, area) in self
             .vocal_tract_areas_square_millimetres()
@@ -1435,6 +1642,83 @@ mod tests {
         let current = migrated.encode().unwrap();
         assert_eq!(current.len(), ARTICULATED_BODY_STATE_BYTES);
         assert_eq!(ArticulatedBodyState::decode(&current), Ok(migrated));
+    }
+
+    #[test]
+    fn task_1408_v6_nonrest_acoustic_tail_is_preserved_without_reinterpretation() {
+        let coordinates: [i32; 22] = [
+            -45, -166, 9, 17, 28, 39, 137, 139, 20, 186, 45, 42, 41, 26, -80, -99,
+            0, 56, 0, 0, 101, 0,
+        ];
+        let current = ArticulatedBodyState::at_neutral().encode().unwrap();
+        let mut v6 = current[..PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES].to_vec();
+        v6[BODY_MAGIC.len()..HEADER_BYTES]
+            .copy_from_slice(&PREVIOUS_SPECTRAL_BODY_VERSION.to_be_bytes());
+        for coordinate in coordinates {
+            v6.extend_from_slice(&coordinate.to_be_bytes());
+        }
+        assert_eq!(v6.len(), PREVIOUS_SPECTRAL_ARTICULATED_BODY_STATE_BYTES);
+
+        let decoded = ArticulatedBodyState::decode(&v6).unwrap();
+        let ArticulatoryAcousticState::LegacyV6(legacy) =
+            decoded.articulatory_acoustic_state()
+        else {
+            panic!("a non-rest task-1408 tail was reinterpreted")
+        };
+        assert_eq!(legacy.right_traveling_pressure, coordinates[0..8]);
+        assert_eq!(legacy.left_traveling_pressure, coordinates[8..16]);
+        assert_eq!(legacy.surface_displacement, coordinates[16..19]);
+        assert_eq!(legacy.surface_previous_displacement, coordinates[19..22]);
+
+        let migrated = decoded.encode().unwrap();
+        assert_eq!(migrated.len(), ARTICULATED_BODY_STATE_BYTES);
+        let acoustic = &migrated[PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES..];
+        assert_eq!(acoustic[0], 0);
+        let retained = acoustic[1..1 + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES]
+            .chunks_exact(size_of::<i32>())
+            .map(|bytes| i32::from_be_bytes(bytes.try_into().unwrap()))
+            .collect::<Vec<_>>();
+        assert_eq!(retained, coordinates);
+        assert!(acoustic[1 + PREVIOUS_SPECTRAL_ARTICULATORY_ACOUSTIC_STATE_BYTES..]
+            .iter()
+            .all(|byte| *byte == 0));
+        assert_eq!(ArticulatedBodyState::decode(&migrated), Ok(decoded));
+    }
+
+    #[test]
+    fn current_acoustic_union_refuses_unknown_tag_padding_and_excess_work() {
+        let neutral = ArticulatedBodyState::at_neutral().encode().unwrap();
+        let acoustic_offset = PRE_PHONATORY_ARTICULATED_BODY_STATE_BYTES;
+
+        let mut unknown = neutral.clone();
+        unknown[acoustic_offset] = 2;
+        assert_eq!(
+            ArticulatedBodyState::decode(&unknown),
+            Err(ArticulatedBodyError::InvalidAcousticVariant)
+        );
+
+        let legacy = ArticulatedBodyState::at_neutral()
+            .with_articulatory_acoustic_state(ArticulatoryAcousticState::LegacyV6(
+                LegacyV6AcousticState::at_rest(),
+            ))
+            .unwrap()
+            .encode()
+            .unwrap();
+        let mut padded = legacy;
+        let final_padding_byte = padded.len() - 1;
+        padded[final_padding_byte] = 1;
+        assert_eq!(
+            ArticulatedBodyState::decode(&padded),
+            Err(ArticulatedBodyError::InvalidAcousticPadding)
+        );
+
+        let mut excess = SpectralAcousticState::at_rest();
+        excess.respiratory_work_remaining = MAX_SPECTRAL_RESPIRATORY_WORK + 1;
+        assert_eq!(
+            ArticulatedBodyState::at_neutral()
+                .with_articulatory_acoustic_state(ArticulatoryAcousticState::Spectral(excess)),
+            Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy)
+        );
     }
 
     #[test]

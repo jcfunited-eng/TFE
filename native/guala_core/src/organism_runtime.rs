@@ -5928,7 +5928,11 @@ fn exact_articulatory_interval_trajectory<'py>(
                     Ok(BodyEffectorDrive {
                         terminal: BodyEffectorTerminal::new(
                             axis,
-                            BodyEffectorDirection::TowardMaximum,
+                            if axis == BodyAxis::GlottalAperture {
+                                BodyEffectorDirection::TowardMinimum
+                            } else {
+                                BodyEffectorDirection::TowardMaximum
+                            },
                         ),
                         outward_elementary_carriers: carriers,
                     })
