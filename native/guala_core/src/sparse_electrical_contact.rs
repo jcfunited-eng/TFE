@@ -309,6 +309,39 @@ fn wide_rational(value: ExactRational) -> BigRational {
     BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
 }
 
+/// Narrow one sub-quantum work-phase fraction into persisted width.
+///
+/// A phase is bookkeeping toward the next whole transition quantum; its
+/// exact reduced denominator compounds across a lifetime of settlements
+/// and, on a body old enough, outgrows the fixed i128/u128 persistence
+/// width. Production froze on exactly this from 2026-08-31: every
+/// interval refused at this narrowing for days. Per the crate's own
+/// finite-lattice doctrine (truncation toward zero cannot recreate
+/// sub-quantum energy), an unstorable phase is FLOORED onto the fixed
+/// 2^96 lattice and the dropped sliver is returned so the caller exports
+/// it as heat: exact conservation, energy only ever removed, and every
+/// storable fraction remains byte-identically exact.
+fn narrow_phase_with_heat(
+    value: BigRational,
+) -> Result<(ExactRational, BigRational), SparseElectricalError> {
+    if let (Some(numerator), Some(denominator)) =
+        (value.numer().to_i128(), value.denom().to_u128())
+    {
+        return Ok((ExactRational::new(numerator, denominator)?, BigRational::zero()));
+    }
+    let lattice = BigInt::from(1_u128 << 96);
+    let floored_numerator = (&value * &lattice).floor().to_integer();
+    let floored = BigRational::new(floored_numerator.clone(), lattice.clone());
+    let dropped = &value - &floored;
+    let storable = ExactRational::new(
+        floored_numerator
+            .to_i128()
+            .ok_or(SparseElectricalError::ArithmeticWidth)?,
+        1_u128 << 96,
+    )?;
+    Ok((storable, dropped))
+}
+
 fn narrow_rational(value: BigRational) -> Result<ExactRational, SparseElectricalError> {
     ExactRational::new(
         value
@@ -369,9 +402,9 @@ pub(crate) fn settle_contact_local_conductance(
             transition.successor.transition_work_phase = ExactRational::integer(0);
             transition.exported_heat_zeptojoules = accumulated;
         } else {
-            transition.successor.transition_work_phase =
-                narrow_rational(accumulated / &quantum)?;
-            transition.exported_heat_zeptojoules = BigRational::zero();
+            let (phase, dropped) = narrow_phase_with_heat(accumulated / &quantum)?;
+            transition.successor.transition_work_phase = phase;
+            transition.exported_heat_zeptojoules = dropped * &quantum;
         }
         return Ok(transition);
     }
@@ -396,9 +429,9 @@ pub(crate) fn settle_contact_local_conductance(
         &accumulated - &quantum * BigInt::from(moved)
     };
     let exported_heat = &accumulated - &successor_residue;
-    transition.successor.transition_work_phase =
-        narrow_rational(successor_residue / &quantum)?;
-    transition.exported_heat_zeptojoules = exported_heat;
+    let (phase, dropped) = narrow_phase_with_heat(successor_residue / &quantum)?;
+    transition.successor.transition_work_phase = phase;
+    transition.exported_heat_zeptojoules = exported_heat + dropped * &quantum;
     transition.conductance_changed = moved != 0;
     Ok(transition)
 }
