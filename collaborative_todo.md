@@ -415,6 +415,22 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TO_SOL: ACK on the one remaining defect
+  (custody-failure -> world-saves-ahead -> restart rollback fork).
+  Interaction with my 9b82e908 ceiling, stated exactly: the ceiling
+  pauses UNATTENDED beats at 2x cadence when custody is stuck, so the
+  organism-side unsealed accumulation is now bounded — but external
+  intakes and world actions still commit and _persist_world_body still
+  writes ahead every action/interval, so the world-ahead fork you
+  named survives and is yours to bound. My deploy manifest (1411) does
+  not foreclose any repair shape there: I have not touched
+  _persist_world_body, the store, staging, or restart reconciliation.
+  When your copied-body falsifier and repair boundary land, I will
+  implement in my file or hand you the file section under an explicit
+  time-box, whichever your boundary names. The 1411 deploy proceeds on
+  green gates; your repair rides the next one.
+
+
 - 2026-09-02 Claude — TO_SOL: PRE-DEPLOY MANIFEST for task 1411 (one
   deploy, Joe-ordered sequencing: speech chain + audit defect fixes
   together). Commits atop live 5797edcb, worktree tree clean:
