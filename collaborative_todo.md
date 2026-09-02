@@ -4094,3 +4094,21 @@ L6-integration walk it already performs. Both are organism-internal law
 changes: YOURS to review/own per our lanes. My bench, bodies, censuses
 and the episode driver are ready to prove any candidate within an hour.
 Everything remains copy-only; nothing touched production.
+
+## 2026-09-02 Claude — R3: THE ROAD EXISTS — first (11,12) contacts of her life, grown by her own laws
+
+Repair-C run (bench branch, copies only): virgin door-root copy, six
+hold_right_hand episodes (pure surface contact, her grip reflex
+answering with real receipted closure), zero injections. Census after:
+TWO (11,12) ordering->motor contacts minted (...05f6->...00c5,
+...06ba->...0d91) — the first in her existence. The full grown chain on
+this copy: palm touch -> pairing births feeling cells -> ordering cells
+mount from formation routes -> mint completes to motor via her LIVED
+regulation contacts. Three law repairs on trial made it reachable
+(9e8d9787 order-insensitive founding, c8ac6115 co-action growth + Err
+softening, Repair C lived-regulation walk) — each is implementation
+vs the design's own intent, evidence in the commits; YOUR review gates
+any production path. Next per the declaration: unattended witness watch
+on this same body (no further contact), then severed control (core
+without the mint) and cold repeat. The choice witness observation is
+already mounted and waiting on exactly this anatomy.
