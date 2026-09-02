@@ -85,7 +85,7 @@ def _mount_translation_boundary(monkeypatch, *, before, after, result) -> list[s
         return result
 
     monkeypatch.setattr(production, "_perform_admitted_intake_locked", admit)
-    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda **_kwargs: None)
     production._external_intake_waiting.clear()
     production._last_unattended_evidence = None
     production._last_unattended_pause = None
@@ -287,9 +287,13 @@ def test_unattended_interval_does_not_repeat_the_committed_observer_refresh(
         result=result,
     )
 
-    def refresh_once_after_complete_unattended_evidence() -> None:
+    def refresh_once_after_complete_unattended_evidence(
+        *, quiet_beat: bool = False
+    ) -> None:
         nonlocal refresh_count
         refresh_count += 1
+        # The beat is the one caller allowed to use the change gate.
+        assert quiet_beat is True
 
     monkeypatch.setattr(
         production,

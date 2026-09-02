@@ -53,7 +53,7 @@ def test_unattended_interval_preserves_native_recovered_neuron_count(
             },
         },
     )
-    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda: None)
+    monkeypatch.setattr(production, "_refresh_public_observation_cache", lambda **_kwargs: None)
     production._external_intake_waiting.clear()
 
     result = production._attempt_unattended_interval()
