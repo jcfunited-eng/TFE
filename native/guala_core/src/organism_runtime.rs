@@ -9023,6 +9023,9 @@ mod tests {
         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
         let mut v34_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
         v34_cognitive[..8].copy_from_slice(b"GLCOG034");
+        // A true V34 layout has no V40 vocal-body marker byte; strip it from
+        // the stamped current bytes or the V34 decode misparses one byte off.
+        assert_eq!(v34_cognitive.remove(26), 0);
 
         let mut stopped_axes = [0_i32; crate::virtual_articulated_body::BODY_AXIS_COUNT];
         for axis in BODY_AXES {
@@ -9062,8 +9065,13 @@ mod tests {
         assert_eq!(parsed.vestibular, predecessor.vestibular);
         assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
         let corrected_cognitive = parsed.cognitive_bytes.unwrap();
-        assert_eq!(&corrected_cognitive[..8], b"GLCOG038");
-        assert_eq!(&corrected_cognitive[8..], &v34_cognitive[8..]);
+        // Migration lands on the CURRENT boundary (V41), reinserting the
+        // None vocal-body marker at offset 26; every other cognitive byte
+        // is untouched — the pose correction changes no cognition.
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG041");
+        assert_eq!(&corrected_cognitive[8..26], &v34_cognitive[8..26]);
+        assert_eq!(corrected_cognitive[26], 0);
+        assert_eq!(&corrected_cognitive[27..], &v34_cognitive[26..]);
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(corrected.clone(), budget()).unwrap(),
             corrected,
