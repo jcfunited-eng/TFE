@@ -333,7 +333,7 @@ fn narrow_phase_with_heat(
     let floored_numerator = (&value * &lattice).floor().to_integer();
     let floored = BigRational::new(floored_numerator.clone(), lattice.clone());
     let dropped = &value - &floored;
-    let storable = ExactRational::new(
+    let storable = ExactRational::from_ratio(
         floored_numerator
             .to_i128()
             .ok_or(SparseElectricalError::ArithmeticWidth)?,
@@ -4219,5 +4219,43 @@ mod tests {
             decode_sparse_electrical_cell(&impossible),
             Err(SparseElectricalError::ArithmeticWidth)
         );
+    }
+
+    #[test]
+    fn lattice_floored_phase_with_even_numerator_narrows_canonically() {
+        // Production refusal 2026-09-02: a floored numerator sharing a
+        // factor of 2 with the 2^96 lattice must reduce, not refuse.
+        let huge_denominator = BigInt::from(3_u8).pow(82);
+        let numerator = BigInt::from(2_u8) * BigInt::from(3_u8).pow(81) + 1;
+        let value = BigRational::new(numerator, huge_denominator);
+        assert!(value.denom().to_u128().is_none(), "fixture must be unstorable");
+        let lattice = BigInt::from(1_u128 << 96);
+        let floored = (&value * &lattice).floor().to_integer();
+        assert!(
+            (&floored % BigInt::from(2_u8)).is_zero() && !floored.is_zero(),
+            "fixture must exercise the even nonzero floored numerator"
+        );
+        let (storable, dropped) = narrow_phase_with_heat(value.clone()).unwrap();
+        assert!(!dropped.is_negative(), "heat sliver may only remove energy");
+        assert!(
+            &dropped * &lattice < BigRational::from_integer(BigInt::from(1_u8)),
+            "sliver must stay below one lattice step"
+        );
+        assert_eq!(
+            wide_rational(storable) + dropped,
+            value,
+            "floored phase plus exported sliver must conserve the exact value"
+        );
+    }
+
+    #[test]
+    fn lattice_floored_phase_below_one_step_narrows_to_zero() {
+        // Sub-lattice phase on an unstorable denominator floors to the
+        // canonical integer zero; the whole value leaves as heat.
+        let value = BigRational::new(BigInt::from(1_u8), BigInt::from(3_u8).pow(81));
+        assert!(value.denom().to_u128().is_none(), "fixture must be unstorable");
+        let (storable, dropped) = narrow_phase_with_heat(value.clone()).unwrap();
+        assert_eq!(storable, ExactRational::integer(0));
+        assert_eq!(dropped, value);
     }
 }
