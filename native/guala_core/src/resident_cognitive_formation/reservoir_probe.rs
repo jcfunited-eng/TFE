@@ -646,6 +646,33 @@ fn reservoir_probe_dump() {
                 .expect("decode cognitive state");
             let cohorts: Vec<Value> = state.cohorts.iter().map(cohort_json).collect();
             let motor_reachability = motor_reachability_json(&state);
+            // BOUNDARY CENSUS (bridge campaign): contact counts by exact
+            // layer pair — the L11->L12 number is the bridge's scoreboard.
+            let mut boundary_counts = std::collections::BTreeMap::<String, u64>::new();
+            {
+                let layer_of = |lineage: [u8; 16]| {
+                    state.cohorts.iter().find_map(|cohort| {
+                        cohort
+                            .anatomy
+                            .mounts()
+                            .iter()
+                            .zip(cohort.anatomy.neuron_lineages())
+                            .find_map(|(mount, candidate)| {
+                                (*candidate == lineage).then(|| mount.place().layer())
+                            })
+                    })
+                };
+                for (left, right) in state.electrical_fabric.contact_endpoints() {
+                    let a = layer_of(state.electrical_fabric.lineages()[left]);
+                    let b = layer_of(state.electrical_fabric.lineages()[right]);
+                    if let (Some(a), Some(b)) = (a, b) {
+                        let (low, high) = if a <= b { (a, b) } else { (b, a) };
+                        *boundary_counts
+                            .entry(format!("{low}->{high}"))
+                            .or_default() += 1;
+                    }
+                }
+            }
             let mounted = state
                 .cohorts
                 .iter()
@@ -752,6 +779,7 @@ fn reservoir_probe_dump() {
                 "electrical_fabric": electrical_fabric,
                 "retained_mosaics": retained_mosaics,
                 "motor_reachability": motor_reachability,
+                "boundary_contact_counts": boundary_counts.iter().map(|(k,v)| (k.clone(), json!(v))).collect::<serde_json::Map<_,_>>(),
                 "cohorts": cohorts,
             })
         };
