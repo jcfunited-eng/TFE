@@ -262,6 +262,12 @@ def test_unattended_observer_never_copies_unbounded_energy_coordinates(
 
 
 def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) -> None:
+    # JOE'S LAW (2026-09-02): "nothing — NOTHING — locks a moment." This
+    # test once pinned the opposite — unattended time yielding to a waiting
+    # external experience. Now it pins the law: a flagged external waiter
+    # must NOT make unattended time defer, skip, or pause; her moments flow
+    # and arrivals take the next settlement in physical order. (The name is
+    # retained by registry rule; its meaning is the preemption's absence.)
     monkeypatch.setattr(production, "_restored", SimpleNamespace())
     monkeypatch.setattr(production, "_admission", SimpleNamespace())
     production._external_intake_waiting.set()
@@ -270,9 +276,12 @@ def test_external_intake_preempts_without_advancing_the_organism(monkeypatch) ->
     finally:
         production._external_intake_waiting.clear()
 
-    assert observed == production._last_unattended_pause
-    assert observed["delivered"] is False
-    assert observed["outcome"] == "deferred_external_intake_waiting"
+    assert observed.get("outcome") != "deferred_external_intake_waiting"
+    assert observed.get("outcome") != "paused_unsealed_lived_time_at_ceiling"
+    # With stub organism handles, the attempt proceeds into the interval
+    # (failing later on the stubs' emptiness is fine — what is forbidden
+    # is refusing to BEGIN the moment because someone else is waiting).
+    assert observed.get("outcome") not in ("disabled",)
 
 
 def test_unattended_interval_does_not_repeat_the_committed_observer_refresh(

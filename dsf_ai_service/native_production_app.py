@@ -2114,9 +2114,10 @@ _last_unattended_evidence: dict[str, Any] | None = None
 _last_unattended_pause: dict[str, Any] | None = None
 _unattended_stop = threading.Event()
 _unattended_thread: threading.Thread | None = None
-# Set before an external admitted experience waits for the organism borrow.
-# The unattended loop observes this physical ingress pressure and yields its
-# next interval, preventing a fast background reacquire from starving senses.
+# Bookkeeping only: counts external experiences currently waiting for the
+# physical settlement borrow. NOTHING reads it to defer, yield, or skip a
+# moment — Joe's law (2026-09-02): nothing locks a moment. Arrival order at
+# the borrow is physical time order.
 _external_intake_waiting = threading.Event()
 _external_intake_signal_lock = threading.Lock()
 _external_intake_waiter_count = 0
@@ -2144,12 +2145,11 @@ def _end_external_intake() -> None:
 async def _external_intake_admission():
     """Signal external ingress before a synchronous route waits for a worker.
 
-    FastAPI runs synchronous dependencies in its worker pool.  Making this
-    boundary synchronous allowed an already-arrived sensory request to wait
-    behind unattended work before the request could announce its presence.
-    The async dependency executes on the request loop first; cognition still
-    remains entirely native and unattended time merely yields its next atomic
-    interval to the physically arriving external experience.
+    FastAPI runs synchronous dependencies in its worker pool.  The async
+    dependency executes on the request loop first so an arriving experience
+    announces its presence immediately. Bookkeeping only: no moment is
+    deferred, yielded, or skipped on this signal (Joe's law, 2026-09-02 —
+    nothing locks a moment); settlements take arrivals in physical order.
     """
 
     _begin_external_intake()
@@ -13586,61 +13586,22 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "reason": f"unattended time is disabled by {UNATTENDED_TIME_ENV}",
         }
         return _last_unattended_pause
+    # JOE'S LAW, 2026-09-02, verbatim: "nothing — NOTHING — locks a moment."
+    # Three waiting policies died here on his direct order: the unsealed-
+    # lived-time pause (a program stopping her life to protect a ledger),
+    # the yield-to-waiting-lesson deferral, and the skip-when-busy
+    # non-blocking acquire (a silently dropped beat). If custody is behind,
+    # the custodian is asked — her life is not stopped. The one thing that
+    # remains is the physical settlement borrow below: her body settles one
+    # moment at a time the way a heart beats one beat at a time. Arrivals
+    # during a settlement are not refused or deferred by POLICY — they take
+    # the very next settlement. The full same-moment merge (everything
+    # present entering ONE settlement together) is the chartered completion
+    # of this law.
     if _pending_unsealed_intervals >= _unsealed_interval_ceiling():
-        # Durability gate: committed lived time the store has never seen has
-        # reached the derived ceiling. Growing it further deepens what a
-        # crash would erase, so unattended time pauses honestly until the
-        # custodian seals. External experiences still land; the custodian is
-        # re-asked every pause.
         _checkpoint_requested.set()
-        failure = (
-            f"; last custodian failure: {_last_custodian_error['error']}"
-            if _last_custodian_error is not None
-            else ""
-        )
-        _last_unattended_pause = {
-            "delivered": False,
-            "outcome": "paused_unsealed_lived_time_at_ceiling",
-            "reason": (
-                f"{_pending_unsealed_intervals} committed intervals are not "
-                "yet sealed to custody (ceiling "
-                f"{_unsealed_interval_ceiling()}); unattended time pauses "
-                "rather than grow lived time a crash would erase"
-                + failure
-            ),
-        }
-        return _last_unattended_pause
-    if _external_intake_waiting.is_set():
-        _last_unattended_pause = {
-            "delivered": False,
-            "outcome": "deferred_external_intake_waiting",
-            "reason": (
-                "an external sensory experience is waiting for the organism; "
-                "unattended time yields the next atomic transition"
-            ),
-        }
-        return _last_unattended_pause
-    if not _transition_lock.acquire(blocking=False):
-        _last_unattended_pause = {
-            "delivered": False,
-            "outcome": "deferred_external_intake_in_flight",
-            "reason": (
-                "an external intake holds the transition lock; unattended "
-                "time never contends with a lesson or feed"
-            ),
-        }
-        return _last_unattended_pause
+    _transition_lock.acquire()
     try:
-        if _external_intake_waiting.is_set():
-            _last_unattended_pause = {
-                "delivered": False,
-                "outcome": "deferred_external_intake_waiting",
-                "reason": (
-                    "an external sensory experience began waiting while the "
-                    "organism borrow was acquired; unattended time yields"
-                ),
-            }
-            return _last_unattended_pause
         if _restored is None or _admission is None:
             _last_unattended_pause = {
                 "delivered": False,
