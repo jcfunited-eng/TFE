@@ -41,6 +41,7 @@
   <div class="place-strip" id="place-strip" style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:10px;border:1px solid rgba(128,128,128,.35);border-radius:10px;min-width:420px;flex:1 1 420px">
     <strong style="font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:#91aab4">Her place</strong>
     <canvas id="place-view" width="920" height="620" style="width:100%;max-width:920px;aspect-ratio:920/620;border:1px solid #24434f;border-radius:10px;background:#0a0705;cursor:grab;touch-action:none"></canvas>
+    <small style="font-size:.72rem;color:#b9d6df;text-align:center;display:block" id="where-she-is">Reading her place…</small>
     <small style="font-size:.66rem;color:#7f98a3;text-align:center">Drag to walk the camera round her · wheel or pinch to come closer</small>
     <div id="place-summary" style="font-size:.75rem;color:#91aab4;text-align:center">No place is mounted</div>
     <small id="place-note" style="font-size:.68rem;color:#91aab4;text-align:center;max-width:380px"></small>
@@ -377,6 +378,18 @@ function bandColour(r){
 function drawPlace(w){
  const c=document.getElementById("place-view");if(!c)return;
  LASTWORLD=w;
+ // Name where she is and what she holds, from the world's own truth.
+ try{
+  const sheIs=(w.bodies||[]).find(b=>b.is_her);
+  if(sheIs){
+   const room=(w.regions||[]).find(r=>sheIs.x_mm>=r.min_x_mm&&sheIs.x_mm<=r.max_x_mm&&sheIs.y_mm>=r.min_y_mm&&sheIs.y_mm<=r.max_y_mm);
+   const near=(w.objects||[]).filter(o=>o.x_mm!=null&&Math.hypot(o.x_mm-sheIs.x_mm,o.y_mm-sheIs.y_mm)<900).map(o=>o.object_id);
+   const held=sheIs.held_object_id?` · holding the ${sheIs.held_object_id}`:"";
+   const nearText=near.length?` · near: ${near.join(", ")}`:"";
+   const el=document.getElementById("where-she-is");
+   if(el)el.textContent=`She is in the ${room?room.region_id.replace("-"," "):"open"}${held}${nearText}`;
+  }
+ }catch(e){}
  let gl=GL;if(!gl){try{gl=initGL(c)}catch(e){gl=null}
   if(!gl){const g=c.getContext("2d");g.fillStyle="#0a0705";g.fillRect(0,0,c.width,c.height);
    g.fillStyle="#c9b89a";g.font="13px system-ui";
