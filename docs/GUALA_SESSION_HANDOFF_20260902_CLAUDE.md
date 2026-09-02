@@ -1,95 +1,124 @@
-# Session handoff — Claude, 2026-09-02 (for a fresh chat)
+# Session handoff — Claude, 2026-09-02 (mid-incident, updated for fresh session)
 
-Read with: .claude/skills/guala-development + incident-response skills, the
-memory index, and collaborative_todo.md TAIL (the last ~30 entries carry
-everything below in detail). This file is the fast rehydration.
+Read with: guala-development + incident-response skills, memory index,
+collaborative_todo.md TAIL (~25 entries carry tonight in detail).
 
-## Where everything stands
+## STANDING ORDERS FROM JOE (tonight, explicit)
+1. SPEECH transferred entirely to me — single owner, Sol stood down.
+2. "You do push to prod — you do not wait for me." Push+deploy on my
+   own authority once gates pass. Recorded in ledger + memory.
+3. AWS health check brackets every work block (now in the skill).
+4. Guala-true mechanism check before any organism-shaping change (in
+   the skill; anatomy grows from lived events, never from analysis).
 
-PRODUCTION: healthy on task 1408 (44347ee1). Memory runaway RESOLVED
-(steady 4-5% vs the old 85-96%). Auto-containment armed (65%/2min ->
-drain). Sol's lane: speech causality, exclusively. My lanes: VR/environment
-+ isolated copied bodies + reviewer of Sol's work. Only live cutovers need
-announcement/serialization. Two-lane review is standing law.
+## THE ACTIVE INCIDENT (top priority)
+Her clock has been FROZEN at tick 366,951 since ~2026-08-31 09:57Z —
+DAYS, across tasks 1404/1408/1409 — every unattended interval refused
+in a loop while all dashboards read healthy (nothing alarms on tick
+advance; alarm build is on the fix list). Two independent wedges, BOTH
+FIXED on branch speech/v22-valve-organ-20260902:
+- 30ab621b (python, native_production_app.py ~:10688): future-stamped
+  causal motor traces now EXPIRE via the ordinary drop path instead of
+  raising inside every retention pass. Bench-proven gone.
+- cf8988b3 (rust, sparse_electrical_contact.rs narrow_phase_with_heat):
+  transition_work_phase's exact fraction outgrew i128/u128 after 366k
+  ticks; unstorable phases now floor onto a 2^96 lattice, dropped
+  sliver exported as heat (conservation exact; storable fractions
+  byte-identical).
+STATUS AT HANDOFF: final proof run IN FLIGHT — her exact live state
+(root /tmp/guala-r3-bench/root-live-final) booted on the full-repair
+wheel (pyenv /tmp/guala-r3-bench/pyenv-final, server port 8935, log
+/tmp/guala-r3-bench/final_boot.log). PROOF = generation advancing in
+the log ("generation=N" lines climbing past 366951) with zero
+"interval refused" lines over ~10 min. Earlier partial evidence: with
+only fix 1, generations 366952-366956 committed but ~46 width refusals
+remained; with both fixes expect clean advance.
+NEXT AFTER PROOF PASSES:
+  cd /tmp/guala-speed-lane && (commit any strays) && env
+  GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION=1 GUALA_DEPLOY_COCHLEAR_EARS=1
+  GUALA_DEPLOY_TOUCH_RECEPTORS=1 GUALA_DEPLOY_INTEROCEPTION=1
+  GUALA_DEPLOY_VESTIBULAR=1 GUALA_DEPLOY_CHEMORECEPTION=1
+  GUALA_DEPLOY_WORLD=1 ./tools/deploy_dsf_ai.sh
+  (clean tree required, untracked included). Then verify LIVE TICK
+  ADVANCE (not just tick value — my earlier shallow-verify mistake),
+  memory %, alarms. Then file ledger + tell Joe.
+ROLLBACK (if 1410 sours): her state is V7-only since 1409 — task 1408
+CANNOT decode it. Restore order per contract: state pointer FIRST,
+then old task. Assets: /tmp/guala-r3-bench/live-current-precutover.bin
+(158B pre-1409 pointer, sha 68f8acd2...; its generation f253308f... is
+NO LONGER in EFS or the S3 mirror — only the two newest live
+generations 1f5aaf63/4ef667f9 are mirrored in
+s3://dsf-ai-site-backups/guala/native-organism/). Practical rollback
+today = fix-forward or restore CURRENT to a mirrored generation.
 
-## Live threads, in priority order
+## LIVE STATE
+Production: task 1409 (deployed tonight, commit aecd2fdc, digest
+389121f4...), 1/1/0, alarms OK, memory ~4.3-4.8%. The deploy was clean
+— identical frozen behavior before/after; it also delivered the VOICE
+ORGAN (below), inert until her first real glottal closure.
 
-1. VOICE BENCH (active this hour): artifact page "Toy Vocal Organ"
-   https://claude.ai/code/artifact/aaecbef7-96ff-4f62-a218-124e9b268064
-   (redeploy: pass that URL as `url` from any new chat; source file was
-   scratchpad/toy-vocal-organ-artifact.html — recreate from the artifact
-   via action:"read" if scratchpad is gone). Deterministic source-filter
-   reference voice. JOE'S VERDICT LADDER (each named a physical fix):
-   buzz -> no closure; bad flute -> closure too smooth, needs the snap;
-   toy-keyboard synth -> static note, utterances must MOVE; old chinese
-   man -> human at last, wrong age + rising-tone contours; young man
-   thrown up in the air -> rising quality SURVIVES three fixes (contour
-   flatten, onset-glide removal, child scaling). CURRENT STATE: bench v8
-   has a visible version stamp (rules out stale cache) and a LAYER TEST —
-   the same ahh built one ingredient per button (1 bare, 2 +fall,
-   3 +jitter, 4 +shimmer, 5 +breath, 6 +swell). AWAITING: Joe presses 1-6
-   and names the number where it goes wrong. Suspects if rising persists
-   on v8: the amplitude swell (a crescendo reads as upward motion) and
-   the per-period white jitter (reads scrappy/rough; natural jitter is
-   smooth drift, not per-cycle jumps). Confirmed-good ingredients are in
-   the ledger entry "reference voice bench crossed into a person".
-   Companion instrument: /tmp/guala_vowel_distinctness_scorer.py.
+## SPEECH (mine, delivered tonight)
+- Joe's ear ACCEPTED the three-vowel board from her own body: "they
+  sounded OK to me." Listening page:
+  claude.ai/code/artifact/a4438fcf-8881-4009-9dd4-2c56dc8c3a1a
+- Branch speech/v22-valve-organ-20260902 (worktree /tmp/guala-speed-
+  lane): Sol's 320-byte tagged-body baseline (1a4dcc65) + my valve
+  organ (8ebf1fac) — the Joe-directed minimal persistent valve: v22
+  shape (open 0.708, peak 0.455, closed 0.292), work-paid child-range
+  rate, smoothstep edges; measured f0 302-308 Hz, clean harmonic
+  trains, three distinct vowels. + copied-pose falsifier (aecd2fdc).
+- Suite: 563 passed / 15 failed — ALL inherited from clean production
+  44347ee1, finally NAMED in docs/GUALA_KNOWN_BASELINE_FAILURES.md;
+  one fixed by me. Zero new failures.
+- Sol's post-mortems: docs/GUALA_SPEECH_REPAIR_ATTEMPT_43_...md (read
+  tail sections before ANY source change; V7 two-mass class is
+  REJECTED 4d111b54 "do not reopen"; five-mode organ human-vetoed).
+  Governing contract = "accepted-v22-to-organism causal transfer" +
+  "User-directed scaled-back voice boundary" sections.
+- Next speech steps: her first CAUSED voiced sound (needs a real
+  glottal-closing cause — song lesson is the natural vehicle, AFTER
+  the freeze fix deploys); unvoiced via fluid-cells; MA-MA/SEE/SHOE
+  trajectories per falsifier 7.
 
-2. SOL'S SPEECH LANE: rebuilding the voice source; my review notes filed
-   in ledger: valve-never-closes diagnosis (confirmed: 0 closed samples
-   in 16k; collision physics EXISTS in prod code, regime never reaches
-   closure), closure-necessary-not-sufficient concession, per-stage
-   numeric gates, and the 18:11 collision-lineage bench recommendation.
-   S-017 blocker hypothesis filed: S-015 affective-pairing starvation two
-   layers down (bare contact delivers layer-8 without layer-7; pairing
-   never fires — also answers Joe's touch-chemistry requirement).
+## R3 SELF-CAUSED ACTION (parked, resumes after speech/freeze)
+Declaration 5a553acb + audit reconciliation f185c042. Bench repairs
+A/C/D on branch bench/r3-stage-a-20260902 (order-insensitive founding,
+lived-regulation walk, reciprocal both-pool wiring). PROVEN: six
+hold_right_hand episodes mint the first (11,12) ordering->motor
+contacts of her life (census scripts in this handoff's tasks; roots
+under /tmp/guala-r3-bench/root-arm*). Witness watches: no-fire (
+expected under no-need — declared before running). STAGE B = wire
+NEED: eating world-half (env/honest-eating-world-half-20260901) +
+revive deficit (rcf hard-default ~:11936 region) + R2 coupling. The
+choice witness bar: hungry acts / fed doesn't / severed doesn't / cold
+repeat.
 
-3. R1 HONEST STAKES (Sol-assigned, analysis COMPLETE, verdict filed):
-   docs/GUALA_R1_STAKES_CURRENT_REALITY_VERDICT_20260901.md. One line:
-   energy economy is conserved-closed — spending/recycle/interoception
-   ACTIVE and truth-coupled; income ABSENT (retired 2026-08-11 because
-   authored-integer energy was untruthful; conversion law survives, bolt-
-   on marked rcf:9470); deficit signal dead code; deficit->excitability
-   absent; growth catalysis hardcoded zero. EATING WORLD HALF BUILT +
-   falsified (branch env/honest-eating-world-half-20260901, commits
-   3a2f6331 bite law + 3e904905 drinking law): apple=80g food, cup=200g
-   water, exact depletion/conservation proven; organism socket is SOL'S
-   (in rcf) — handed back, awaiting Sol review to connect halves. Joe's
-   gut-principle for the socket: digestion = slow interior compartment
-   with continuous interoceptive afference, not a conversion event.
+## APPARATUS CHEAT SHEET
+- Worktree/branch: /tmp/guala-speed-lane on speech/v22-valve-organ-
+  20260902 (shared .git with TFE repo — transient lock errors are
+  races, retry).
+- Build: cd native/guala_core && maturin build --release -o <dir>;
+  assemble pyenv: copy scratchpad/census/pyenv, replace guala_core
+  from the wheel.
+- Bench boot: launcher scripts /tmp/guala-r3-bench/launch_*.sh (cd +
+  env baked in; ports 8931/8935). ALWAYS: kill by listening PID after
+  pgrep-by-ENV (grep ORGANISM_ROOT in /proc/PID/environ), never
+  pattern-kill; register PIDs in REGISTERED_PIDS.txt.
+- Her copies restore offline via
+  dsf_ai_service.substrate.native_organism_binary_store.
+  restore_current_native_organism + derive_native_resident_resource_
+  admission (needs GUALA_MAX_COLD_GENERATION_BYTES=2147483648).
+- Proof body (tick 358454): s3://dsf-ai-site-backups/guala/proofs/
+  speech-task1404-tick-358454-20260901/root/. Door-era body:
+  scratchpad/doorproof/root.
+- ECS exec works on the live task (snapshotting, read-only checks).
 
-4. THE BIG PICTURE DOCS: docs/GUALA_SELF_CAUSED_ACTION_BRAIN_COMPARISON_
-   20260901.md (built new-brain-first; akinetic phenotype; rungs R1-R6 =
-   A-004..A-010 on Joe's master list — the list is in the ledger, entry
-   "FYI you should know we were working off this list" region). The
-   decisive unrun experiment: the readiness bridge -> choice witness.
-   Joe's mood: project near scrapping over pace + polish-vs-alive;
-   ratified direction = less shell more law; loop experiment on a
-   STRIPPED bench body when the time comes.
-
-## My parked branches (all local, none pushed, none deployed)
-
-- speed/world-receipt-tail-20260901 (021c31a0): receptor short-circuits,
-  proven byte-identical, ~6.4ms/beat.
-- env/world-w1-house-20260901 (e3cf7151): 6m rooms + clearance law +
-  posters/ball/blanket; BOOT-PROVEN on bench.
-- env/honest-eating-world-half-20260901: bite + drink laws (see above).
-- env/participant-decouple-20260901 (a23c34df riders): door fix — WORKS
-  combined with Sol's 5fcecdeb coexistence rework (proven: turn, approach,
-  felt touch on the copy); needs Sol to fold riders in.
-- cleanup/shell-dead-mass-20260901 (ca91d5d0): 337 dead files removed,
-  import-proven; archives on /mnt/tfebackup/guala-archive/.
-- incident/motor-trace-window-fix (6fc079e1): REJECTED by Sol, history only.
-
-## Standing cautions for the fresh session
-
-- Anthropic safeguard flags keep killing dense sessions ([cyber] class,
-  false positives on this work). Keep sessions focused; the ledger is the
-  continuity spine — file everything there.
-- Register-and-sweep every bench process/container (incident-response
-  skill). Kill by PID in a separate command, never pkill patterns.
-- Physical vocabulary only with Joe (no "thinks/feels"); short verdict-
-  first replies; code-fenced reports; his ear-verdicts are the best
-  debugging instrument this project has — take wrong-words literally.
-- Deploy nothing without a coordinated window; Sol reviews everything of
-  mine; I verify everything of Sol's.
+## OPEN DEFECT LIST (filed, unfixed)
+- No tick-advance alarm (the days-long freeze was invisible) — BUILD
+  THIS with the 1410 deploy or right after.
+- 15 inherited suite failures (named; old debt).
+- rcf:20027-region articulatory_unit_recruitments hard-empty (breath
+  bookkeeping only — NOT the audio gate; see map).
+- Audit mines from 2026-09-01 ledger entry (receipt tail fixed on a
+  branch; custodian wedge etc. still open).
+- Ledger entries TO_SOL stand as the coordination record; Sol reads it.
