@@ -2003,6 +2003,24 @@ def _checkpoint_every_intervals() -> int:
     return max(1, value)
 
 
+# One bounded record of the custodian's most recent failure, cleared by the
+# next successful seal. Transport health evidence only — it never schedules,
+# decides, or touches organism state; it exists so a stuck custodian is a
+# visible fact on the public observation instead of a stderr whisper.
+_last_custodian_error: dict[str, object] | None = None
+
+
+def _unsealed_interval_ceiling() -> int:
+    """Derived, not heuristic: the durability contract bounds loss to one
+    custody cadence. One full cadence may lawfully be pending and a second
+    may commit while the custodian's cycle is in flight; a third means the
+    contract is already broken, so lived time pauses instead of deepening
+    the loss (the 2026-08-31 freeze hid behind exactly this kind of
+    unbounded silent accumulation)."""
+
+    return _checkpoint_every_intervals() * 2
+
+
 # Transport stopwatch: cumulative wall-clock milliseconds per pipeline stage.
 # Written only under _transition_lock, read for per-interval deltas and a log
 # line. Pure transport measurement; no organism state, no cognitive authority.
@@ -7282,8 +7300,14 @@ def _build_public_observation_from_snapshot(
         "body": _body_record(native),
         "autonomy": _autonomy_record(),
         "play": _sensorimotor_play_record(),
-        "articulation": _articulation_record(),
-        "expression": _articulation_record(),
+        "articulation": (articulation_record := _articulation_record()),
+        "expression": articulation_record,
+        "custody": {
+            "pending_unsealed_intervals": _pending_unsealed_intervals,
+            "unsealed_interval_ceiling": _unsealed_interval_ceiling(),
+            "last_seal": _last_custodian_evidence,
+            "last_failure": _last_custodian_error,
+        },
         "curriculum": _curriculum_media_record(),
         "last_transition": last,
         "last_card_lesson_receipt": _card_lesson_receipt_record(),
@@ -7359,8 +7383,25 @@ def _build_public_observation() -> dict[str, Any]:
     )
 
 
+# Change gate for the display projection. The full observation rebuild +
+# canonical JSON + sha256 ran every 250 ms beat even when nothing observable
+# changed — the audit's largest steady waste. The fingerprint covers the
+# committed state sha, tick, the unsealed counter, and the identity of every
+# rebound "_last_*" evidence slot (module convention: surfaced transport
+# evidence is rebound, never mutated in place, on quiet beats). Because an
+# id() can in principle be reused after collection, a rebuild is FORCED at
+# least every 8 skipped beats, bounding any conceivable staleness to ~2
+# seconds — far inside the page's own refresh cadence. The readiness proof
+# is still rebuilt on every call; only the optional display projection is
+# gated.
+_observation_refresh_fingerprint: tuple | None = None
+_observation_refresh_skips: int = 0
+_OBSERVATION_FORCED_REBUILD_SKIPS = 8
+
+
 def _refresh_public_observation_cache() -> None:
     global _public_observation_body, _public_observation_etag, _runtime_proof_body
+    global _observation_refresh_fingerprint, _observation_refresh_skips
 
     try:
         native = _native_record()
@@ -7393,6 +7434,28 @@ def _refresh_public_observation_cache() -> None:
     # optional display projection cannot make that organism unavailable or
     # turn an already-committed transition into a reported failure.
     _runtime_proof_body = runtime_proof_body
+    fingerprint = (
+        native.get("state_sha256"),
+        native.get("organism_tick"),
+        _pending_unsealed_intervals,
+        tuple(
+            sorted(
+                (name, id(value))
+                for name, value in globals().items()
+                if name.startswith("_last_")
+            )
+        ),
+        id(_curriculum_invitation),
+    )
+    if (
+        _public_observation_body is not None
+        and fingerprint == _observation_refresh_fingerprint
+        and _observation_refresh_skips < _OBSERVATION_FORCED_REBUILD_SKIPS
+    ):
+        _observation_refresh_skips += 1
+        return
+    _observation_refresh_fingerprint = fingerprint
+    _observation_refresh_skips = 0
     try:
         body = _canonical(
             _build_public_observation_from_snapshot(
@@ -10780,6 +10843,14 @@ def _derive_causal_motor_observation_after_publication(
                 affective,
             )
     except Exception as error:
+        # The refusal is preserved in evidence AND logged: a silently frozen
+        # trace observer hid the 2026-08-31 freeze family for days.
+        print(
+            "guala-causal-observer-refused "
+            f"error={type(error).__name__}: {error}",
+            file=sys.stderr,
+            flush=True,
+        )
         return (
             dict(prior_active),
             {},
@@ -13645,6 +13716,30 @@ def _attempt_unattended_interval() -> dict[str, Any]:
             "reason": f"unattended time is disabled by {UNATTENDED_TIME_ENV}",
         }
         return _last_unattended_pause
+    if _pending_unsealed_intervals >= _unsealed_interval_ceiling():
+        # Durability gate: committed lived time the store has never seen has
+        # reached the derived ceiling. Growing it further deepens what a
+        # crash would erase, so unattended time pauses honestly until the
+        # custodian seals. External experiences still land; the custodian is
+        # re-asked every pause.
+        _checkpoint_requested.set()
+        failure = (
+            f"; last custodian failure: {_last_custodian_error['error']}"
+            if _last_custodian_error is not None
+            else ""
+        )
+        _last_unattended_pause = {
+            "delivered": False,
+            "outcome": "paused_unsealed_lived_time_at_ceiling",
+            "reason": (
+                f"{_pending_unsealed_intervals} committed intervals are not "
+                "yet sealed to custody (ceiling "
+                f"{_unsealed_interval_ceiling()}); unattended time pauses "
+                "rather than grow lived time a crash would erase"
+                + failure
+            ),
+        }
+        return _last_unattended_pause
     if _external_intake_waiting.is_set():
         _last_unattended_pause = {
             "delivered": False,
@@ -16362,10 +16457,18 @@ def _custodian_loop() -> None:
         if _custodian_stop.is_set():
             return
         started = time.perf_counter()
+        global _last_custodian_error
         try:
             outcome = _custodian_cycle()
+            if outcome == "checkpointed":
+                _last_custodian_error = None
         except BaseException as error:
             outcome = f"failed:{type(error).__name__}"
+            _last_custodian_error = {
+                "error": f"{type(error).__name__}: {error}",
+                "failed_at_unix_seconds": int(time.time()),
+                "pending_unsealed_intervals": _pending_unsealed_intervals,
+            }
             if _restored is not None:
                 _checkpoint_requested.set()
         detail = ""
