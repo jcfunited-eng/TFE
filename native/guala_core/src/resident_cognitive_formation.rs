@@ -9083,6 +9083,12 @@ impl ResidentCognitiveFormationState {
                 &reached_body_regulations_by_occurrence,
                 &exact_moved_body_effectors_by_occurrence,
             )?;
+        mount_moved_regulation_motor_reach(
+            &cohorts,
+            &topology_index,
+            &mut electrical_fabric,
+            &exact_moved_body_regulations_by_occurrence,
+        )?;
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
             &reached_body_regulations_by_occurrence,
@@ -15618,6 +15624,107 @@ fn mount_fixed_root_translation_motor_terminal(
 /// winning effector's discharged carriers; only the latter may bind a learned
 /// motor consequence. The result remains occurrence-aligned and bounded by
 /// the admitted source, not by the resident population.
+/// Grow the reflex-convergence contact from LIVED CO-ACTION (bench,
+/// MINE-on-trial, 2026-09-02): when a feeling-side body regulation's own
+/// load terminal PROVABLY moved inside this physical interval (the same
+/// GLBPEV01 movement proof the affective pairing already trusts), the
+/// regulation and the unique layer-12 motor of that terminal fired for
+/// one movement together — and only then does their contact grow, at the
+/// same developmental conductance as every founding contact. Anatomy is
+/// never minted from a topology walk or census; this is the lived event
+/// the ordering mint's contains_contact prerequisite honestly waits for.
+fn mount_moved_regulation_motor_reach(
+    cohorts: &[ResidentReachedCohort],
+    topology: &ResidentTopologyIndex,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    moved_regulations_by_occurrence: &[Vec<[u8; 16]>],
+) -> Result<(), FormationError> {
+    let mount_for = |lineage: [u8; 16]| {
+        let flat = topology.flat_for_lineage(lineage)?;
+        let (cohort_index, neuron_index, _) = topology.flat_locations[flat];
+        cohorts
+            .get(cohort_index)
+            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+    };
+    let load_terminal_for_regulation = |regulation: [u8; 16]| {
+        let regulation_flat = topology.flat_for_lineage(regulation)?;
+        let integrations = topology.neighbours_by_flat[regulation_flat]
+            .iter()
+            .map(|flat| topology.flat_locations[*flat].2)
+            .filter(|lineage| {
+                topology.layer_of(*lineage) == Some(6)
+                    && mount_for(*lineage).is_ok_and(|mount| mount.source_site().is_none())
+            })
+            .collect::<Vec<_>>();
+        let [integration] = integrations.as_slice() else {
+            return Ok(None);
+        };
+        let integration_flat = topology.flat_for_lineage(*integration)?;
+        let mut effectors = topology.neighbours_by_flat[integration_flat]
+            .iter()
+            .filter_map(|flat| {
+                let lineage = topology.flat_locations[*flat].2;
+                let source_site = mount_for(lineage).ok()?.source_site()?;
+                let terminal = source_site.body_proprioceptor_terminal()?;
+                (source_site.physical_quantity() == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
+                    .then_some(terminal.opposing_effector())
+            })
+            .collect::<Vec<_>>();
+        effectors.sort_unstable();
+        effectors.dedup();
+        match effectors.as_slice() {
+            [terminal] => Ok(Some(*terminal)),
+            _ => Ok(None),
+        }
+    };
+    let mut new_contacts = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
+    for regulation in moved_regulations_by_occurrence.iter().flatten().copied() {
+        let Some(terminal) = load_terminal_for_regulation(regulation)? else {
+            continue;
+        };
+        let motors = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 12
+                    && mount.body_effector_terminal() == Some(terminal))
+                .then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        let [motor] = motors.as_slice() else {
+            continue;
+        };
+        if electrical_fabric.contains_contact(regulation, *motor) {
+            continue;
+        }
+        if new_contacts
+            .iter()
+            .any(|(left, right, _)| *left == regulation && right == motor)
+        {
+            continue;
+        }
+        new_contacts.push((
+            regulation,
+            *motor,
+            ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+        ));
+    }
+    if !new_contacts.is_empty() {
+        *electrical_fabric = electrical_fabric
+            .append_contacts(&new_contacts)
+            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    }
+    Ok(())
+}
+
 fn exact_moved_body_regulations_by_occurrence(
     cohorts: &[ResidentReachedCohort],
     topology: &ResidentTopologyIndex,
@@ -16042,16 +16149,26 @@ fn mount_reached_ordering_reach(
             })
             .take(2)
             .collect::<Vec<_>>();
-        let [founding_association, regulation] = founding.as_slice() else {
+        // REPAIR A (bench, MINE-on-trial): the founding pair is a SET, not an
+        // order. The birth law appends the association and regulation contacts
+        // in whichever order the lived interval delivered them; demanding
+        // [association, regulation] specifically made half of all births
+        // permanently unmintable (reproduced on the copied body 2026-09-02:
+        // newborn ...12b3 founded [L8, L7] and the mint returned None forever).
+        let [founding_left, founding_right] = founding.as_slice() else {
             return Ok(None);
         };
-        if *founding_association != association
-            || topology_index.layer_of(*founding_association) != Some(7)
-            || topology_index.layer_of(*regulation) != Some(8)
-        {
+        let (founding_association, regulation) = match (
+            topology_index.layer_of(*founding_left),
+            topology_index.layer_of(*founding_right),
+        ) {
+            (Some(7), Some(8)) => (*founding_left, *founding_right),
+            (Some(8), Some(7)) => (*founding_right, *founding_left),
+            _ => return Ok(None),
+        };
+        if founding_association != association {
             return Ok(None);
         }
-        let regulation = *regulation;
         let regulation_flat = topology_index.flat_for_lineage(regulation)?;
         let integrations = topology_index.neighbours_by_flat[regulation_flat]
             .iter()
@@ -16091,8 +16208,17 @@ fn mount_reached_ordering_reach(
         let [motor] = motors.as_slice() else {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         };
+        // REPAIR B' (bench, MINE-on-trial): the regulation->motor contact is
+        // NOT minted here from this topology walk — anatomy is never derived
+        // from analysis. It grows only from lived co-action
+        // (mount_moved_regulation_motor_reach): an interval in which this
+        // regulation's own terminal PROVABLY moved. Until the body has lived
+        // that, the mint honestly reports no motor — a clean None. The old
+        // Err (NeuronLineageAuthorityAbsent) aborted whole-interval
+        // settlement for any properly-founded route, a reproduced
+        // defect-grade trap.
         if !electrical_fabric.contains_contact(regulation, *motor) {
-            return Err(FormationError::NeuronLineageAuthorityAbsent);
+            return Ok(None);
         }
         Ok(Some(*motor))
     };

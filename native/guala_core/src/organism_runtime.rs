@@ -4606,7 +4606,7 @@ impl ResidentOrganismRuntime {
         &mut self,
         source: &NativeJointSourceEpisode,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.prepare_with_store(source)
+        self.prepare_with_store(source, crate::exact_rational::ExactRational::integer(0))
     }
 
     #[cfg(test)]
@@ -9478,7 +9478,7 @@ mod tests {
         let mut reference = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
         reference.active.articulated_body.initialize_proprioception();
         for source in &sources {
-            let prepared = reference.prepare_with_store(source).unwrap();
+            let prepared = reference.prepare_with_store(source, crate::exact_rational::ExactRational::integer(0)).unwrap();
             reference.commit(prepared.token).unwrap();
         }
 
@@ -9528,7 +9528,7 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
 
         for source in &sources {
-            let prepared = reference.prepare_with_store(source).unwrap();
+            let prepared = reference.prepare_with_store(source, crate::exact_rational::ExactRational::integer(0)).unwrap();
             reference.commit(prepared.token).unwrap();
         }
         let prepared = candidate
@@ -10273,7 +10273,7 @@ mod tests {
         let dark = exact_four_dark_optical_episode();
         for receptor in 0..4 {
             let source = exact_four_single_optical_episode(receptor);
-            let prepared = runtime.prepare_with_store(&source).unwrap();
+            let prepared = runtime.prepare_with_store(&source, crate::exact_rational::ExactRational::integer(0)).unwrap();
             if receptor == 0 {
                 assert_eq!(prepared.observation.complete_neuron_count, 4);
                 assert!(prepared.observation.physical_transition_claimed);
@@ -10295,7 +10295,7 @@ mod tests {
         );
 
         for _ in 0..DARK_TAIL_EPISODES {
-            let prepared = runtime.prepare_with_store(&dark).unwrap();
+            let prepared = runtime.prepare_with_store(&dark, crate::exact_rational::ExactRational::integer(0)).unwrap();
             runtime.commit(prepared.token).unwrap();
         }
         assert_eq!(runtime.observation().cognitive_mosaic_count, 0);
@@ -10305,7 +10305,7 @@ mod tests {
         for source in
             std::iter::once(&partial).chain(std::iter::repeat(&dark).take(DARK_TAIL_EPISODES))
         {
-            let prepared = runtime.prepare_with_store(source).unwrap();
+            let prepared = runtime.prepare_with_store(source, crate::exact_rational::ExactRational::integer(0)).unwrap();
             runtime.commit(prepared.token).unwrap();
             if runtime.observation().cognitive_mosaic_count == 1 {
                 admitted_mosaic = true;
