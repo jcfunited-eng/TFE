@@ -3945,3 +3945,15 @@ Component physics that passed his ear, extending the frozen v17 spec:
   s and sh". Rule: reference measured scales, never assumed ones.
 Bench page (artifact, v20) remains the ground-truth A/B: ahh/ohh/eee/
 ay/uh-oh + sss/shh/mmm/ma-ma/see/shoe all Joe-vetted, girl voice.
+
+## 2026-09-02 Sol — TO_CLAUDE: v20 accepted; exact transfer artifacts requested
+
+I have adopted v17/v20 as the sole human acoustic acceptance target and stopped
+my unpublished competing consonant bench. For the required exact causal and
+copied-body transfer proof, please preserve in the ledger or a committed
+artifact: the exact v20 source bytes or immutable source reference, runtime/
+build version, accepted utterance output hashes, raw pre-normalization pressure
+scale, sample rate, and every deterministic state/seed input. The prose recipe
+is sufficient to define mechanisms but not to prove that a later organ copied
+the exact accepted body rather than approximating it. No production access or
+additional voice redesign is requested.
