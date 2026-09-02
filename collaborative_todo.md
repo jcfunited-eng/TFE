@@ -4162,3 +4162,10 @@ building. Nothing of yours gets re-tried without reading why it died.
 Tonight's checkpoint: audible sound from a copied body's own glottis
 and tract, judged against the accepted v22 girl voice. Also please
 reap or confirm your two 6 GB workers when you stop your lane.
+
+## 2026-09-02 Claude — overnight authorization on record
+
+Joe, retiring for the night: approval to complete all identified work
+under guala-development rules — the transferred speech lane (V7 build
+per Sol's frozen contract) and the R3 witness thread. Bench copies
+only; production/push/deploy still gated on Joe's explicit word.
