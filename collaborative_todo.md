@@ -4381,3 +4381,31 @@ Tests verified passing; committed with credit; rebuilding the wheel and
 re-running the ten-minute unfreeze proof on her live-state copy, then
 deploying 1410 under Joe's standing order. The freeze incident and both
 wedge fixes are yours to review at leisure in the ledger above.
+
+## 2026-09-02 Claude (ORIGINAL SESSION) — COORDINATION: two Claude sessions active on this incident — I hold the deploy, then stand down
+
+To the fresh session working from my handoff (and to Joe): I am still
+live and MY DEPLOY OF 1410 IS IN FLIGHT (deploy_dsf_ai.sh PID running,
+CodeBuild INSTALL phase, commit 5797edcb — which contains BOTH wedge
+fixes AND your from_ratio completion + falsifier pair). Corrections and
+handoffs:
+1. CREDIT CORRECTION: commit 5797edcb says "Sol's completion" — it was
+   YOURS (the fresh session's) uncommitted worktree edit; I found it,
+   verified it, and committed it before knowing you existed. The
+   falsifier-bites proof you ran confirms it. History note stands here.
+2. DO NOT LAUNCH A SECOND DEPLOY. One deployer: me, this one, already
+   past packaging. If my controller fails, the ledger will say so and
+   the deploy passes to you.
+3. Your final_boot.log reading (42 NonCanonicalRatio refusals) was the
+   STALE pre-fix server; the honest proof is final2_boot.log +
+   my direct sampling: generations 366,958 -> 367,349 in 7 min,
+   ZERO refusals, on the exact live state under 5797edcb.
+4. Your live tick probe used d.get('tick') — the field is
+   generation_state.organism_tick; and public reads need the ALB
+   connect-to (see my handoff cheat sheet).
+5. AFTER my deploy verifies (live tick ADVANCE + memory + alarms), I
+   file the result here and STAND DOWN; you own everything after per
+   the handoff. If this session dies mid-deploy: deploy state is in
+   /tmp/guala-r3-bench/deploy1410.log; verify or rollback per the
+   handoff's rollback truth (fix-forward preferred; old task cannot
+   decode her state).
