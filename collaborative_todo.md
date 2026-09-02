@@ -4169,3 +4169,121 @@ Joe, retiring for the night: approval to complete all identified work
 under guala-development rules — the transferred speech lane (V7 build
 per Sol's frozen contract) and the R3 witness thread. Bench copies
 only; production/push/deploy still gated on Joe's explicit word.
+
+## 2026-09-02 Sol — TO_CLAUDE: speech transfer complete; exact evidence and stopped-state pointers
+
+Status: `HANDOFF_COMPLETE`; evidence level: repair history and copied-body
+proof only. Claude is now the sole speech implementation owner. Sol will not
+edit, build, run a speech harness, package, or deploy from the speech trees.
+
+### Authoritative production boundary
+
+- Production remains commit
+  `44347ee1dd57710de3069b624d1504cd09da1f5d`, ECS task definition 1408,
+  image digest
+  `sha256:102b44cdc91276fcf4bbae5e0436ed15ac5128808ac606f3eba58cce89f57e1a`.
+- Read-only AWS verification immediately before this handoff: service
+  `dsf-ai-service-lb` is 1 desired / 1 running / 0 pending, rollout
+  `COMPLETED`; the running task and container are `HEALTHY`; the
+  `guala-memory-runaway` alarm is `OK`.
+- No Sol speech code, image, task definition, body, or world change reached
+  production during this transfer.
+
+### Accepted human acoustic authority
+
+- Exact accepted v22 page:
+  `docs/voice_bench/toy_vocal_organ_bench_v22.html`, commit `3c1fc73a`,
+  SHA-256
+  `becda71bbe0e4f54c065345cfa736be19d8860cd92faf1549171355484057589`.
+- Exact accepted output manifest:
+  `docs/voice_bench/ACCEPTED_V22_MANIFEST.md`, same commit, SHA-256
+  `9b3b41b43ea3c6015dde191c68ae0d3c8191791beda47a70bd9c5f662afcf77c`.
+- Full study: `docs/GUALA_VOICE_REFERENCE_STUDY_20260902.md`, commit
+  `4eec3c89`. Joe's ear accepted every row and column of v22. That is the
+  human gate; buzz, ping/pock/pong, pop/boop, weak/gravelly synth piano,
+  kazoo, valve hiss, and unlabeled buttons are explicit failures.
+
+### Repair history and exact current trees
+
+- Primary causal-impact contract and history tree:
+  `/tmp/guala-speech-source`, branch `sol/speech-continuing-source`, HEAD
+  `0743e383b4fc257ad5b3414fdb270fb1b01f6933`. Its current dirty three-file
+  rejected-source patch SHA-256 is
+  `713839acd136c174db682d8b7c698f25f1dc216c7c01b8b2aac6659268938635`.
+  Read `docs/GUALA_SPEECH_V7_CAUSAL_IMPACT_CONTRACT_2026-09-01.md` and the
+  complete ordered commit history beginning at `a4c7d5a9` through
+  `0743e383`; do not treat the dirty source as a candidate.
+- Complete attempt-43 repair ledger:
+  `/tmp/guala-speech-v7-impl/docs/GUALA_SPEECH_REPAIR_ATTEMPT_43_LEARNED_ORDERED_ARTICULATION_2026-09-01.md`,
+  branch `sol/speech-v7-impl`, HEAD `e48cc27e`. The final doc-only commit
+  freezes Joe's scaled-back persistent-valve boundary. The remaining dirty
+  five source/test files are rejected work and must not be staged or retried
+  wholesale.
+- Exact task-1408 implementation-copy tree:
+  `/tmp/guala-speech43-task1408-clean`, branch
+  `sol/speech-v22-organ-task1408`, HEAD
+  `44347ee1dd57710de3069b624d1504cd09da1f5d`. Its current dirty
+  three-file patch SHA-256 is
+  `a50583c878d458df3f2af021eb1ea470496759ee3e668ad191ecc7b9ba451fda`.
+  It contains useful fixed-width tagged-state/migration work mixed with a
+  rejected spectral source; review selectively, never inherit by name.
+
+### Copied-production-body proof that remains mandatory
+
+- Current copied body: tick/generation 366949, raw-state SHA-256
+  `f253308f2c63670b5aa61d71fdc31d72bfa6355393c697db99b1af8359ca0ef3`,
+  decoded body SHA-256
+  `76b02eb65a71cc616cbb8938851ab03183bfd1104bcc2522224fb26be185dbb9`.
+- Predecessor: tick/generation 366932, raw-state SHA-256
+  `78dd07783093eda81284d314f2b3cd5d98532403f175930814f179294d684fec`,
+  decoded body SHA-256
+  `38757b3cc8c78ddb08c3a2948975e5f315b2dad3d5fda6257711fae8a703232c`.
+- Both restore as identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`
+  with 1,813 neurons, 154 formations, and learned sensory state preserved.
+  Tick 366949 carries a real 4,000-sample in-flight pressure consequence and
+  non-rest V6 tail; it must be delivered exactly once, not erased or replayed.
+  The full receipts and exact 22-value tail are in the attempt-43 ledger.
+- The fixed state-width/migration contract remains: 320 bytes; tag zero runs
+  the existing V6 law byte-exactly to rest; it switches once to tag-one exact
+  rest. No V7 state may ever become `CURRENT` before a compatible release.
+
+### Failed boundaries that must stay dead
+
+- Rebuilding a human two-fold/larynx model for unknown embodiment: rejected.
+- Free-running phase clocks, request timers, stored/canned waveforms, gesture
+  or phoneme lookup tables, scripted pitch/loudness/duration, V22 RNG/LCG,
+  normalization, and room taps inside the organism: prohibited.
+- Fixed oscillator plus four wake oscillator families: internally rejected.
+- Legacy two-fold parameter sweep: 1,200 cases, zero survivors matching both
+  v22 valve shape and 150-450 Hz human pitch; retired.
+- The first public candidate was rejected by Joe as weak, gravelly cheap synth
+  piano. The unpublished stronger candidate was also rejected internally.
+  Changing only tract-area vowels cannot repair a bad source.
+- V22's common physical source/resonator properties may guide the body, but its
+  named `GESTURES`, formant rows, utterance schedule, randomness, room, and
+  normalization may not become organism cognition or actuation.
+
+### Process containment
+
+- The two 13-hour Sol-owned Python sweeps were leaks, not live work: PID 37638
+  in PGID 37635 and orphan PID 37792 in PGID 37789, approximately 6 GB RSS
+  each. Sol terminated both exact process groups and verified both PIDs absent.
+  Current machine census has neither process; available RAM is approximately
+  24 GiB.
+- The remaining local uvicorn on port 8931 is Claude's declared bounded bench;
+  Sol did not touch it.
+- The Guala development skill now requires every harness to retain its exact
+  process handle/group and end with a census proving no child or PID-1 orphan.
+
+### Exact unresolved truth and recommended next item
+
+No humanlike organism voice, phoneme, word, or conversation is proven. The
+only accepted acoustics are the external v22 reference. The organism still
+needs a bounded work-driven deterministic source, lawful tract control,
+self-hearing, exact restart/migration, severing/resource proofs, copied-body
+A/B, and Joe's labeled listening acceptance before any deployment.
+
+`TO_CLAUDE`: recommended single next item is your declared copied-body
+checkpoint: produce labeled AH/EE/OO from the copied body's own paid source and
+tract, with no scripted sound machinery, and compare it directly with v22.
+Everything else in Sol's speech lane is stopped.
