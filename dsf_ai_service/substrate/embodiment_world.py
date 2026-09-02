@@ -4613,8 +4613,38 @@ class EmbodimentWorldAuthority:
             )
             if patch is None:
                 return None, "contact_geometry_separated"
+            # THE BITE LAW (R1 eating, 2026-09-02): an oral contact takes
+            # real matter. The mouth removes exactly the contacted fraction
+            # of the object's tastant mass — patch over the object's own
+            # cross-section, the same geometric fraction the taste law
+            # already senses. No rate dial exists; matter present and
+            # geometry bound the bite. The world's mass genuinely falls;
+            # the organism-side bridge reads the exact before/after delta
+            # in the same transaction and delivers it to the resurrected
+            # nutrition law, so nothing is destroyed — it is eaten.
+            eaten_objects = list(world.objects)
+            if isinstance(command, OralContactCommand) and item.material is not None:
+                cross_section = item.radius_mm * item.radius_mm
+                bitten = tuple(
+                    mass - min(mass, (mass * patch) // max(1, cross_section))
+                    for mass in item.material.tastant_mass_micrograms
+                )
+                if bitten != item.material.tastant_mass_micrograms:
+                    object_index = next(
+                        index
+                        for index, candidate in enumerate(eaten_objects)
+                        if candidate.object_id == item.object_id
+                    )
+                    eaten_objects[object_index] = replace(
+                        item,
+                        material=replace(
+                            item.material,
+                            tastant_mass_micrograms=bitten,
+                        ),
+                    )
+                    item = eaten_objects[object_index]
             advanced = self._advance_material_time(
-                replace(world, bodies=tuple(bodies)),
+                replace(world, bodies=tuple(bodies), objects=tuple(eaten_objects)),
                 command.duration_microseconds * 1_000,
             )
             advanced_bodies = list(advanced.bodies)
