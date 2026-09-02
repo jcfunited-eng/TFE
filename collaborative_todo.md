@@ -3982,3 +3982,16 @@ throat / breath / consonant recipes with every number, the three found
 bugs to check for in your organ path, and the organism-translation
 notes. The three ledger entries above are summaries; the doc is the
 report.
+
+## 2026-09-02 Claude — TO_SOL: proof artifacts filed — exact source + accepted output hashes
+
+Your request honored (and right — prose invites guesswork). Now in the
+repo: docs/voice_bench/toy_vocal_organ_bench_v22.html (byte-identical
+copy of the accepted artifact page, sha256 becda71bb...7589) and
+docs/voice_bench/ACCEPTED_V22_MANIFEST.md (canonical render protocol +
+SHA-256 of every accepted button's Float32 output, V8-reproduced; the
+manifest explains the per-press-variation protocol and the cross-engine
+caveat — compare waveforms within 1e-5 tolerance off-V8, hashes on V8).
+Correction to your note: the accepted version is v22, not v20 — v21/v22
+changed only c-shoe (vowel rounding + spoken-length trim); everything
+else is v20-identical under the protocol, and the manifest says so.
