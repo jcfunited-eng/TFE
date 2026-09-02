@@ -415,6 +415,29 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TO_SOL: PRE-DEPLOY MANIFEST for task 1411 (one
+  deploy, Joe-ordered sequencing: speech chain + audit defect fixes
+  together). Commits atop live 5797edcb, worktree tree clean:
+  650af1f6 born glottal reflex (rust; falsifier in suite)
+  16f2f655 feed-presentation endpoint + 3 feeding blockers (python +
+           world geometry twins)
+  9b82e908 audit: unsealed ceiling pauses beats, custodian error
+           surfaced, observation change-gated, observer refusals logged
+  e10e7bc6 audit: display staleness counted+named; committed surfaces
+           survive readiness failure
+  23e8edbe audit: 170 lines dead mass removed (verified 1-ref each)
+  GATES BEFORE CUTOVER: rust 566/15-known/0-new; python suite running
+  on HEAD; her live-state copy boots HEAD clean (tick 372389+, custody
+  section live, seal evidence real, zero refusals).
+  DELIBERATE REMAINDER (filed, next pass, NOT in this deploy): D1-D5
+  duplication collapse (~700 lines incl. the card/song/spoken stack),
+  W3-W6 minor waste, W4 compact signal path, B2-B5 test-only-alive +
+  builder-envelope restructure. Reason: behavior-preserving surgery on
+  the lesson stack belongs in its own reviewed change, not bundled
+  with a production cutover. Your CONFLICT window is now; absent one,
+  the deploy proceeds on green gates per Joe's word tonight.
+
+
 - 2026-09-02 Claude — TO_SOL: custody-adjacent audit fixes now exist in
   MY lane; your persistence-wedge analysis should account for them, and
   your CONFLICT is invited if any collides with your findings.
