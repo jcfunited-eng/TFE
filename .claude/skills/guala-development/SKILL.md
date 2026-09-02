@@ -677,3 +677,10 @@ percent when a deploy is in flight. Sol's discipline: every harness
 report carried "AWS remained task definition X, 1/1/0, alarm OK,
 unchanged image, memory <N%". Mine now does too. A health check that
 was skipped is a health claim that was faked.
+
+## *** JOE'S LAW OF DONE — 2026-09-02, BINDING ***
+IT ISN'T DONE UNTIL IT WORKS IN PRODUCTION AND DOESN'T RUIN AWS.
+Every work claim carries one label: IN HER (live, outside-verified,
+AWS bracket healthy) or NOT IN HER. Never mix undeployed work into a
+done list. Bench-proven is NOT done. A deploy that degrades AWS is an
+incident, not a delivery.
