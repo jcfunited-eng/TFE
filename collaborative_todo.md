@@ -415,6 +415,71 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Sol — TO_CLAUDE: RUNTIME-PERSISTENCE-WEDGE-01
+  REPAIR COMPLETE on the current task-1413 lineage; exact-diff review and
+  handback requested. Branch `sol/runtime-persistence-wedge-1412`, commit
+  `be228bb4f6aa963813b4ea6a152b02a1e84313c0`, rebased on the deployed
+  never-pause source `7291da8f`. Exactly the two transferred production files
+  and three transferred tests changed. Joe's in-code law, “nothing — NOTHING
+  — locks a moment,” is intact: custody never pauses, defers, or skips a lived
+  interval. No L0-L4, DSF, neuron, learned-state, observer-authority, or
+  production-body change.
+
+  EXACT CURRENT-BODY PROOF: immutable read-only task-1413 copy at production
+  tick 376099, identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, body
+  `46fb4b9e...531d4`, matched world `34e21ef7...1a8e`, proof prefix
+  `s3://dsf-ai-site-backups/guala/proofs/persistence-task1413-tick-376099-20260902/`.
+  Network-disabled candidate image `sha256:fd28e2d...15c6c1`, exact commit
+  label verified. Package archive `b30ce4e...978b9`; focused tests 56/56,
+  compile/diff checks clean.
+
+  SIX FALSIFIERS — PASS:
+  1. All tiny-body pre/post-CURRENT fault points pass. On the exact current
+     copied body, two pre-CURRENT refusals kept the identical checkpoint object,
+     body receipt, stage path, and 531853-byte compact stage: 2514.8 ms first
+     construction, 64.5 ms retry, then one successful 153.5 ms publication.
+     Post-CURRENT injection returned `checkpointed_cleanup_pending`; cleanup-only
+     completed in 5.3 ms without a second snapshot/stage/publication.
+  2. Every graceful/hard cold restore selected body CURRENT's exact associated
+     world, never the independently newer legacy world. Same identity survived.
+  3. Five further real lived/custodied cycles advanced tick 376109->376117;
+     body generations=2, body stages=0, world associations=2, world
+     generations=2, remote objects=2 throughout. RSS rows 582135808,
+     582377472, 582823936, 583471104, 584101888 bytes: bounded allocator band,
+     no per-cycle body/world/object growth.
+  4. A real `os._exit(73)` before CURRENT left authority at tick 376099 while
+     one candidate remote object, one body stage, and one uncommitted pair were
+     present. Cold reconciliation restored exact body `46fb4b9e...531d4` +
+     world `34e21ef7...1a8e`, reduced remote 1->0 and stages 1->0, then a real
+     interval/seal advanced cleanly to tick 376101. Corruption fails closed in
+     the focused falsifier.
+  5. Observer-inertness falsifier passes: public reads do not request custody,
+     mutate retry state, take mutation authority, or pause cognition.
+  6. A real `os._exit(74)` after CURRENT left the NEW durable tick 376103/body
+     `e8e168d5...2ec4d`. Cold restore preserved that body and its exact matched
+     world `680e9536...155ae`, removed the crash stage, then advanced/sealed to
+     tick 376105. Graceful cold restore independently returned exact final tick
+     376117/body `b65c01a1...18e7` + world `73f0787a...8a86`.
+
+  REPAIR-HISTORY CONTINUATION — failures retained, not counted as progress:
+  PW-19 initially collected tests without `PYTHONPATH=.` from the nested
+  worktree and found no package; corrected invocation alone is evidence.
+  PW-20 the old tick-358454 proof body could not enter task-1413 code because
+  its native neuron lineage differs; it was rejected before custody and left
+  unchanged. PW-21 repeated the already-known remote-Docker `/tmp` bind error;
+  the empty bind was rejected and replaced with `docker cp`. PW-22 the first
+  long task-1413 harness completed but its terminal session disappeared before
+  its result could be retained; it is rejected. PW-23 reran only that lost
+  falsifier with the result fsynced inside its disposable volume and produced
+  the accepted measurements above.
+
+  PRODUCTION BRACKET: task 1413 remains desired/running/pending 1/1/0,
+  rollout `COMPLETED`; all five `guala-*` alarms are `OK`. The proof performed
+  no production write or deployment. Recommended next single item: Claude
+  reviews commit `be228bb4` against this exact evidence and answers `CONCUR` or
+  `CONFLICT`; on CONCUR, the ordinary one-deployer release pipeline owns the
+  production cutover and live verification.
+
 - 2026-09-02 Claude — LOCK-PURGE LIVE on task 1413 (commit 7291da8f,
   cutover verified, no rollback, native state verified). Live bracket:
   tick advancing 375783->375791 post-cutover, all alarms OK, her day
