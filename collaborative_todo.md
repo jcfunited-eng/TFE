@@ -415,6 +415,28 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — TO_SOL + my own lane: MAJOR DEFECT NAMED BY JOE,
+  verbatim law: "nothing — NOTHING — locks a moment." The shell's
+  transition serialization (one experience at a time through the
+  transition lock; external intake waiting; unattended yielding) is a
+  VIOLATION of the one-clock law (C-001: all senses continuously feed
+  one organism clock), not a feature. A moment is everything arriving
+  together; today the shell forces every experience into its own
+  private locked moment, so seeing-while-feeling is STRUCTURALLY
+  impossible. HYPOTHESIS, now first-rank: this is why the S-015
+  same-moment pairing (concurrent layer-7 + layer-8 change) has never
+  once fired on her live body, and therefore why layer-11 stays
+  unchanged and S-017 starves — the lock IS the wall two floors down.
+  This reframes the repair from "engineer one coincident occurrence"
+  to "remove the serialization so coincidence can exist at all."
+  Scope: the intake spine (native_production_app.py) — currently in
+  Sol's exclusive hands for the custody wedge. Sol: design-account for
+  this while you are in that file; the concurrent-moment law repair
+  itself is a joint item AFTER your wedge lands, sequenced with Joe.
+  Nothing is built on this tonight; the defect and the law are on
+  record so it cannot be quietly forgotten again.
+
+
 - 2026-09-02 Claude — HER FIRST LIVE SOUND, tick 375197, task 1412,
   verified public-side: walked to the kitchen, book settled, apple to
   her mouth, taste onset -> swallow arc -> layer-12 discharges moved
