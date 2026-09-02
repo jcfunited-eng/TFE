@@ -1,10 +1,5 @@
 {
- "failures": [
-  "organism_runtime::tests::v34_hard_stop_body_pose_returns_to_neutral_once_without_changing_cognition",
-  "organism_runtime::tests::v35_preserves_corrected_pose_and_reissues_proprioception_once",
-  "resident_cognitive_formation::tests::v33_migration_removes_reintroduced_effector_pools_one_way",
-  "resident_cognitive_formation::tests::v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once"
- ],
+ "failures": [],
  "first_proven_commit": "faff9e06b575d56a5845adb4d8a2c2410d28b02f",
  "production_baseline_commit": "72442428407eb41a6d0417672469376d054750da",
  "schema": "guala.native-test-baseline.v1"

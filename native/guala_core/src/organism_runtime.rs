@@ -9065,13 +9065,38 @@ mod tests {
         assert_eq!(parsed.vestibular, predecessor.vestibular);
         assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
         let corrected_cognitive = parsed.cognitive_bytes.unwrap();
-        // Migration lands on the CURRENT boundary (V41), reinserting the
-        // None vocal-body marker at offset 26; every other cognitive byte
-        // is untouched — the pose correction changes no cognition.
+        // Migration lands on the CURRENT boundary (V41). For this body the
+        // crossing lawfully changes exactly two things beyond the magic: it
+        // reinserts the V40 vocal-body marker as None (this body carries no
+        // vocal anatomy, so the V41 boundary mounts nothing), and it admits
+        // the compact resting population once -- the same explicit admission
+        // law genesis uses -- which advances the lineage authority and
+        // inserts the encoded population. Every other cognitive byte is
+        // untouched: the pose correction changes no lived cognition.
         assert_eq!(&corrected_cognitive[..8], b"GLCOG041");
-        assert_eq!(&corrected_cognitive[8..26], &v34_cognitive[8..26]);
+        assert_eq!(&corrected_cognitive[8..18], &v34_cognitive[8..18]);
+        let predecessor_next_lineage =
+            u64::from_le_bytes(v34_cognitive[18..26].try_into().unwrap());
+        let corrected_next_lineage =
+            u64::from_le_bytes(corrected_cognitive[18..26].try_into().unwrap());
+        assert!(corrected_next_lineage > predecessor_next_lineage);
         assert_eq!(corrected_cognitive[26], 0);
-        assert_eq!(&corrected_cognitive[27..], &v34_cognitive[26..]);
+        assert_eq!(&corrected_cognitive[27..43], &v34_cognitive[26..42]);
+        assert_eq!(u64::from_le_bytes(v34_cognitive[42..50].try_into().unwrap()), 0);
+        let population_bytes = usize::try_from(u64::from_le_bytes(
+            corrected_cognitive[43..51].try_into().unwrap(),
+        ))
+        .unwrap();
+        assert!(population_bytes > 0);
+        assert_eq!(
+            &corrected_cognitive[51 + population_bytes..],
+            &v34_cognitive[50..],
+        );
+        let restored =
+            ResidentOrganismRuntime::restore_envelope(corrected.clone(), budget()).unwrap();
+        assert!(restored.observation().developmental_resting_neuron_count > 0);
+        assert_eq!(restored.observation().complete_neuron_count, 0);
+        assert_eq!(restored.observation().cognitive_mosaic_count, 0);
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(corrected.clone(), budget()).unwrap(),
             corrected,
@@ -9084,6 +9109,9 @@ mod tests {
         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
         let mut v35_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
         v35_cognitive[..8].copy_from_slice(b"GLCOG035");
+        // A true V35 layout has no V40 vocal-body marker byte; strip it from
+        // the stamped current bytes or the V35 decode misparses one byte off.
+        assert_eq!(v35_cognitive.remove(26), 0);
 
         let mut axes = *ArticulatedBodyState::at_neutral().axes();
         axes[crate::virtual_articulated_body::BodyAxis::NeckYaw.index()] = 1_234;
@@ -9122,8 +9150,27 @@ mod tests {
         );
         assert!(!observed_body.proprioception_initialized());
         let migrated_cognitive = parsed.cognitive_bytes.unwrap();
-        assert_eq!(&migrated_cognitive[..8], b"GLCOG038");
-        assert_eq!(&migrated_cognitive[8..], &v35_cognitive[8..]);
+        // Same lawful cognitive deltas as the V34 crossing: current magic,
+        // None vocal-body marker reinserted, the once-only resting-population
+        // admission (lineage authority + population section); nothing else.
+        assert_eq!(&migrated_cognitive[..8], b"GLCOG041");
+        assert_eq!(&migrated_cognitive[8..18], &v35_cognitive[8..18]);
+        assert!(
+            u64::from_le_bytes(migrated_cognitive[18..26].try_into().unwrap())
+                > u64::from_le_bytes(v35_cognitive[18..26].try_into().unwrap())
+        );
+        assert_eq!(migrated_cognitive[26], 0);
+        assert_eq!(&migrated_cognitive[27..43], &v35_cognitive[26..42]);
+        assert_eq!(u64::from_le_bytes(v35_cognitive[42..50].try_into().unwrap()), 0);
+        let population_bytes = usize::try_from(u64::from_le_bytes(
+            migrated_cognitive[43..51].try_into().unwrap(),
+        ))
+        .unwrap();
+        assert!(population_bytes > 0);
+        assert_eq!(
+            &migrated_cognitive[51 + population_bytes..],
+            &v35_cognitive[50..],
+        );
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
             migrated,

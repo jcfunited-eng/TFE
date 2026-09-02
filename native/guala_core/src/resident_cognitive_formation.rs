@@ -27755,12 +27755,17 @@ mod tests {
         };
         validate_lineage_state(&state).unwrap();
         state.validate_current_motor_effectors().unwrap();
-        let current = state.encode(MAX_BYTES).unwrap();
-        assert_eq!(&current[..MAGIC_V41.len()], MAGIC_V41);
-
-        // Simulate the deployed predecessor: identical layout under V32.
-        let mut legacy = current.clone();
+        // Simulate the deployed predecessor under V32. The CURRENT encoder
+        // refuses this deliberately contaminated pre-V40 anatomy (layer-13
+        // contacts violate the motor-coupled vocal invariant), so the body
+        // is written through the historical V26-layout codec -- V27-V33
+        // share that exact byte layout -- and stamped with its own boundary.
+        let mut legacy = state
+            .encode_with_format(CognitiveCodecFormat::V26, MAX_BYTES)
+            .unwrap();
         legacy[..MAGIC_V32.len()].copy_from_slice(MAGIC_V32);
+        legacy[MAGIC_V32.len()..MAGIC_V32.len() + std::mem::size_of::<u16>()]
+            .copy_from_slice(&VERSION_V30.to_le_bytes());
         assert!(ResidentCognitiveFormationState::decode(&legacy, MAX_BYTES).is_err());
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, MAX_BYTES)
@@ -27779,7 +27784,39 @@ mod tests {
         assert!(!restored
             .electrical_fabric
             .contains_contact(ordering_a, articulatory));
-        assert_eq!(restored.cohorts.len(), cohort_count);
+        // One new cohort: the fixture's bare layer-13 cell is vocal-body
+        // anatomy, so the V41 boundary mounts the dedicated vocal effector
+        // from unclaimed resting anatomy instead of adopting a historical
+        // layer-13 cell. Both layer-13 cells stay electrically isolated.
+        assert_eq!(restored.cohorts.len(), cohort_count + 1);
+        let effector = restored
+            .vocal_articulatory_effector_lineage
+            .expect("dedicated vocal effector mounted at the V41 boundary");
+        assert_ne!(effector, articulatory);
+        let layer_thirteen = restored
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.source_site().is_none() && mount.place().layer() == 13)
+                    .then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(layer_thirteen.len(), 2);
+        assert!(layer_thirteen.contains(&articulatory));
+        assert!(layer_thirteen.contains(&effector));
+        for cell in &layer_thirteen {
+            for (left, right) in restored.electrical_fabric.contact_endpoints() {
+                assert_ne!(restored.electrical_fabric.lineages()[left], *cell);
+                assert_ne!(restored.electrical_fabric.lineages()[right], *cell);
+            }
+        }
         assert!(
             restored.mosaics.is_empty(),
             "a formation disconnected by losing its invalid bond must retire"
@@ -29079,13 +29116,17 @@ mod tests {
             topology_index,
             formation_index: ResidentFormationIndex::default(),
         };
-        let mut v32 = state.encode(MAX_BYTES).unwrap();
-        let vocal_body_marker_offset = MAGIC_V40.len()
-            + std::mem::size_of::<u16>()
-            + std::mem::size_of::<u64>()
-            + std::mem::size_of::<u64>();
-        assert_eq!(v32.remove(vocal_body_marker_offset), 0);
+        // The CURRENT encoder refuses this deliberately contaminated
+        // pre-V40 anatomy (contacts incident to layer 13 violate the
+        // motor-coupled vocal invariant), so the body is written through
+        // the historical V26-layout codec -- V27-V33 share that exact byte
+        // layout, marker-free -- and stamped with its own boundary.
+        let mut v32 = state
+            .encode_with_format(CognitiveCodecFormat::V26, MAX_BYTES)
+            .unwrap();
         v32[..MAGIC_V32.len()].copy_from_slice(MAGIC_V32);
+        v32[MAGIC_V32.len()..MAGIC_V32.len() + std::mem::size_of::<u16>()]
+            .copy_from_slice(&VERSION_V30.to_le_bytes());
         assert!(ResidentCognitiveFormationState::decode(&v32, MAX_BYTES).is_err());
 
         let migrated =
@@ -29093,15 +29134,45 @@ mod tests {
                 .unwrap();
         assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
+        // V40/V41 law supersedes the V34 fixed-route bridge this test once
+        // pinned: the V33 boundary retires the contaminated broad-pool
+        // contacts, V40 removes every remaining electrical contact incident
+        // to layer 13 (motor->articulatory included -- the vocal body is
+        // addressed through the retained effector lineage, never through a
+        // contact), and V41 mounts one NEW dedicated vocal-body cell from
+        // unclaimed resting anatomy. Only the lawful non-vocal contact
+        // survives.
         assert!(!restored.electrical_fabric.contains_contact(acoustic, articulatory));
         assert!(!restored.electrical_fabric.contains_contact(regulation, articulatory));
-        assert!(restored.electrical_fabric.contains_contact(motor, articulatory));
+        assert!(!restored.electrical_fabric.contains_contact(motor, articulatory));
         assert!(restored.electrical_fabric.contains_contact(acoustic, regulation));
+        assert_eq!(restored.electrical_fabric.contact_count(), 1);
         assert!(restored
             .cohorts
             .iter()
             .flat_map(|cohort| cohort.anatomy.neuron_lineages())
             .any(|lineage| *lineage == articulatory));
+        let effector = restored
+            .vocal_articulatory_effector_lineage
+            .expect("dedicated vocal effector mounted at the V41 boundary");
+        assert_ne!(effector, articulatory);
+        let layer_thirteen = restored
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.source_site().is_none() && mount.place().layer() == 13)
+                    .then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(layer_thirteen.len(), 2);
+        assert!(layer_thirteen.contains(&effector));
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
