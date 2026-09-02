@@ -131,23 +131,38 @@ pub(crate) fn settle_powered_environment_exchange(
     }
     let (available_capacity, _, _) = anatomy.capacities();
     let (available, spent, thermal) = predecessor.physical_parts();
-    let delivered_wide = wide_rational(maximum_interval_energy_zeptojoules)
-        .min(wide_rational(spent))
-        .min(wide_rational(available_capacity) - wide_rational(available));
+    // R1 DEPLETION LAW (Joe's directed shape, 2026-09-02): recycling is no
+    // longer perfect. Converting one quantum of spent material back to
+    // available costs one quantum of conversion heat, paid from the same
+    // bounded external energy and moved spent -> thermal, where the
+    // existing heat export carries it OUT of the body. The one-for-one
+    // split is the unique parameter-free honest form; no efficiency dial
+    // exists to tune. Consequence: her usable total genuinely falls under
+    // sustained activity, at a slope her own anatomy sets — the physical
+    // precondition for hunger, need, and eating meaning anything.
+    let delivered_wide = (wide_rational(maximum_interval_energy_zeptojoules)
+        / num_bigint::BigInt::from(2))
+    .min(wide_rational(spent) / num_bigint::BigInt::from(2))
+    .min(wide_rational(available_capacity) - wide_rational(available));
     let delivered = match narrow_rational(delivered_wide) {
         Ok(value) => value,
         Err(RecoveryFluidError::ArithmeticWidth) => zero,
         Err(error) => return Err(error),
     };
     let delivered = if representable_reservoir_change(available, delivered, 1, false)
-        && representable_reservoir_change(spent, delivered, 1, true)
+        && representable_reservoir_change(spent, delivered, 2, true)
     {
         delivered
     } else {
         zero
     };
-    let exported_heat_wide =
-        wide_rational(maximum_interval_energy_zeptojoules).min(wide_rational(thermal));
+    // The conversion toll: one quantum of spent becomes heat for every
+    // quantum delivered back as available. Spent falls by BOTH; the toll
+    // waits in the thermal channel for the export below — the one door out
+    // of her body. This is where irreversibility enters her economy.
+    let conversion_heat = delivered;
+    let exported_heat_wide = wide_rational(maximum_interval_energy_zeptojoules)
+        .min(wide_rational(thermal) + wide_rational(conversion_heat));
     let exported_heat = match narrow_rational(exported_heat_wide) {
         Ok(value) => value,
         Err(RecoveryFluidError::ArithmeticWidth) => zero,
@@ -161,8 +176,8 @@ pub(crate) fn settle_powered_environment_exchange(
     let successor = RecoveryFluidReservoirState::new(
         anatomy,
         wide_add(available, delivered)?,
-        wide_sub(spent, delivered)?,
-        wide_sub(thermal, exported_heat)?,
+        wide_sub(spent, wide_add(delivered, conversion_heat)?)?,
+        wide_sub(wide_add(thermal, conversion_heat)?, exported_heat)?,
     )?;
     Ok(PoweredEnvironmentExchange {
         successor,
@@ -1191,6 +1206,57 @@ impl<'a> Reader<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn powered_exchange_pays_an_irreversible_conversion_toll() {
+        // R1 depletion falsifier 1: recycling is lossy and CONSERVED.
+        // Every delivered quantum costs one spent quantum moved to heat,
+        // and sustained cycles strictly shrink the usable total
+        // (available + spent) as heat leaves through the export door —
+        // with in/out accounting exact at every step and no cliff.
+        let cap = ExactRational::integer(1_000_000);
+        let anatomy = RecoveryFluidReservoirAnatomy::new(cap, cap, cap).unwrap();
+        let mut state = RecoveryFluidReservoirState::new(
+            anatomy,
+            ExactRational::integer(0),
+            ExactRational::integer(600_000),
+            ExactRational::integer(0),
+        )
+        .unwrap();
+        let budget = ExactRational::integer(100_000);
+        let mut previous_usable = num_rational::BigRational::from_integer(600_000.into());
+        for _ in 0..5 {
+            let before = state.physical_parts();
+            let exchange =
+                settle_powered_environment_exchange(anatomy, state, budget).unwrap();
+            let (a1, s1, t1) = exchange.successor.physical_parts();
+            let (a0, s0, t0) = before;
+            let wide = |v: ExactRational| {
+                let (n, d) = v.parts();
+                num_rational::BigRational::new(n.into(), d.into())
+            };
+            let delivered = wide(exchange.delivered_energy_zeptojoules);
+            let exported = wide(exchange.exported_heat_zeptojoules);
+            // Toll equals delivery, spent pays both, heat balances export.
+            assert_eq!(wide(a1.clone()) - wide(a0.clone()), delivered.clone());
+            assert_eq!(wide(s0.clone()) - wide(s1.clone()), delivered.clone() * num_rational::BigRational::from_integer(2.into()));
+            assert_eq!(
+                wide(t1.clone()) - wide(t0.clone()),
+                delivered.clone() - exported.clone()
+            );
+            // Total body energy change equals exactly what left as heat.
+            let total0 = wide(a0) + wide(s0) + wide(t0);
+            let total1 = wide(a1.clone()) + wide(s1.clone()) + wide(t1.clone());
+            assert_eq!(total0 - total1.clone(), exported);
+            // Usable total strictly falls while any spent remains to convert.
+            let usable = wide(a1) + wide(s1);
+            if delivered > num_rational::BigRational::from_integer(0.into()) {
+                assert!(usable < previous_usable, "usable total must fall");
+            }
+            previous_usable = usable;
+            state = exchange.successor;
+        }
+    }
 
     fn lane_anatomy() -> RecoveryLaneAnatomy {
         RecoveryLaneAnatomy::new(1, 1, 1, 1, 1, 1, 1).unwrap()
