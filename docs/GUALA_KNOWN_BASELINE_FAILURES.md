@@ -43,3 +43,38 @@ The machine-readable deployment authority is
 1404 is an ancestor of the candidate, every named test remains present, and no
 unlisted failure occurs in either source or packaged code. This is not a green
 suite claim and does not alter organism physics.
+
+
+## Repairs — 2026-09-02 catch-up campaign
+
+Twelve of the sixteen entries above have left this registry with named
+repair commits, per this file's own rule:
+
+- `5138983603...` era: `pre_articulated_live_format_migrates_once...`
+  (repaired before this campaign; recorded here for completeness).
+- `ec341515` genesis-reserve regression (81d15b57's V35 guard skipped
+  resting-population admission for fresh geneses): repairs
+  `native_genesis_has_resting_anatomy...`,
+  `resident_growth_dna_genesis_is_structurally_empty...`,
+  `resident_optical_step_reports...`, `body_balance_tick_claims...`,
+  `exact_quarter_turn_reuses...`, `one_seal_trajectory_is_byte_exact...`.
+- `2b1aaedf` V26 codec shim contract (strip the V40 vocal marker byte;
+  refuse states with a dedicated vocal lineage): repairs
+  `ambiguous_returned_vocal_consequence...`, `v27_unlearned_affective...`,
+  and (with expectations moved to the V40/V41 isolation law)
+  `v33_body_without_speech_anatomy...`.
+- `d9997a5a` (with `2b1aaedf`): expectations moved to current law for
+  `coincident_body_regulation_and_ordering...` (terminal mounted with its
+  regulation route; proof reuses, claims no cell) and
+  `non_simultaneous_body_and_sensory_activity...` (one retention-founded
+  layer-11 route is lawful; its contacts are law-checked to touch only
+  layer-7/9 material).
+
+REMAINING (4), all one family — old-format fixtures stamped onto the
+current byte layout across the V39-V41 vocal boundaries; fixture
+redesign in progress:
+`v34_hard_stop_body_pose...`, `v35_preserves_corrected_pose...`,
+`v33_migration_removes_reintroduced_effector_pools...`,
+`v34_replaces_broad_articulatory_pool...`.
+The machine-readable authority (deploy/guala_native_test_baseline.json)
+now lists exactly these four.

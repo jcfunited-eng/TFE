@@ -1,23 +1,11 @@
 {
-  "failures": [
-    "organism_runtime::tests::body_balance_tick_claims_receptor_and_integration_cells_and_cold_restores",
-    "organism_runtime::tests::exact_quarter_turn_reuses_the_specialized_pair_across_every_millisecond",
-    "organism_runtime::tests::native_genesis_has_resting_anatomy_and_no_synthetic_experience",
-    "organism_runtime::tests::one_seal_trajectory_is_byte_exact_with_per_interval_sealing",
-    "organism_runtime::tests::pre_articulated_live_format_migrates_once_without_changing_existing_state",
-    "organism_runtime::tests::resident_growth_dna_genesis_is_structurally_empty_and_carries_only_authored_seeds",
-    "organism_runtime::tests::resident_optical_step_reports_only_the_physical_cells_that_changed",
-    "organism_runtime::tests::v34_hard_stop_body_pose_returns_to_neutral_once_without_changing_cognition",
-    "organism_runtime::tests::v35_preserves_corrected_pose_and_reissues_proprioception_once",
-    "resident_cognitive_formation::tests::ambiguous_returned_vocal_consequence_cannot_author_motor_contact",
-    "resident_cognitive_formation::tests::coincident_body_regulation_and_ordering_mount_one_reusable_motor_effector",
-    "resident_cognitive_formation::tests::non_simultaneous_body_and_sensory_activity_does_not_manufacture_effectors",
-    "resident_cognitive_formation::tests::v27_unlearned_affective_and_ordering_growth_is_retired_once",
-    "resident_cognitive_formation::tests::v33_body_without_speech_anatomy_gains_only_the_fixed_vocal_bridge",
-    "resident_cognitive_formation::tests::v33_migration_removes_reintroduced_effector_pools_one_way",
-    "resident_cognitive_formation::tests::v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once"
-  ],
-  "first_proven_commit": "faff9e06b575d56a5845adb4d8a2c2410d28b02f",
-  "production_baseline_commit": "72442428407eb41a6d0417672469376d054750da",
-  "schema": "guala.native-test-baseline.v1"
+ "failures": [
+  "organism_runtime::tests::v34_hard_stop_body_pose_returns_to_neutral_once_without_changing_cognition",
+  "organism_runtime::tests::v35_preserves_corrected_pose_and_reissues_proprioception_once",
+  "resident_cognitive_formation::tests::v33_migration_removes_reintroduced_effector_pools_one_way",
+  "resident_cognitive_formation::tests::v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once"
+ ],
+ "first_proven_commit": "faff9e06b575d56a5845adb4d8a2c2410d28b02f",
+ "production_baseline_commit": "72442428407eb41a6d0417672469376d054750da",
+ "schema": "guala.native-test-baseline.v1"
 }
