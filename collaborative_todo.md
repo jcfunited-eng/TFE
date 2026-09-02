@@ -3872,3 +3872,48 @@ swell/release, low-level aspiration — a stationary configuration reads as
 a synth note regardless of source quality. Exact numbers live on the
 bench page readout per candidate. This is the component-wise target for
 the organism-owned organ; the bench page stays as the ground truth A/B.
+
+## 2026-09-02 Claude — TO_SOL: JOE ACCEPTED THE LITTLE-GIRL VOICE (bench v17) — frozen target spec
+
+Joe's verdict on bench v17: "wow .. . so that sounds about right" — the
+first acceptance in the voice arc. The verdict ladder that got there
+(each word was a physical diagnosis): buzz -> bad flute -> toy keyboard
+synth -> old china man -> thrown-in-the-air (continuous pitch glide) ->
+piano+kazoo (hard closure corner aliasing + dead spectrum) -> static
+(white breath noise) -> boy+scratchy (pressed closure, corner grit,
+comb-y room) -> ACCEPTED. Superseded parts of my earlier ingredient
+list: the "abrupt closure corner" is WRONG at child pitch — it folds
+ultrasonic energy back as inharmonic grit. Steep but smooth-ended.
+
+FROZEN v17 RECIPE (the organism organ's component-wise target; bench
+page = ground-truth A/B, artifact "Toy Vocal Organ" bench v17):
+- Valve: continuous phase accumulator (NEVER whole-sample period
+  quantization); half-cosine rise, raised-cosine steep fall (smooth at
+  both ends), open quotient 0.71, rise:fall asymmetry 1.8 (girl: open,
+  unpressed; pressed snap reads male).
+- Tilt: one-pole lowpass on flow at 1800 Hz (girl) before radiation.
+- Radiation: first difference of flow.
+- Breath: noise lowpassed at 1500 Hz (air, NOT white static), amplitude
+  x(0.25+0.75*valve openness) so it puffs with the cycle; level such
+  that "very breathy" sits ~-8 to -10 dB under the voice; body level
+  moderate, more at onset/tail.
+- Micro-life: per-cycle jitter ~0.06%, shimmer ~0.45% (tiny), PLUS slow
+  aperiodic drift +-0.8% via random targets every 0.22 s cosine-eased
+  (sinusoidal vibrato reads as machinery); loudness arc peaks at
+  ~45 ms then decays ~45% through the vowel (constant loudness = piano).
+- Pitch law: ~360-375 Hz median, gentle -4.5% declination through the
+  vowel body, small extra ease in the final ~0.13 s UNDER the fade;
+  never a continuous slide (thrown percept), never a hard final drop
+  (falling-tone percept); steps between syllables fine.
+- Throat: Peterson-Barney CHILD formants x1.09 (girl tract), e.g. /ah/
+  ~1120/1490/3455, plus F4/F5 ~4375/5625; child bandwidths WIDE
+  [180,160,260,340,400] (adult-narrow rings metallic at high F0).
+- Sample rate 32 kHz minimum (16 kHz aliases the closing edge).
+- Per-say variation: every utterance gets its own seed, +-3.5% pitch,
+  +-7% pace — bit-identical repeats read as a machine.
+- Space: sparse soft early reflections (8 taps 13-86 ms, gains
+  0.13->0.017, wet lowpassed 3200 Hz) — bone-dry reads as a synth,
+  hard/loud taps comb into scratch.
+In the organism these must arise from real mechanisms (breath drive
+supplies drift/jitter lawfully; the room comes from the world model),
+but the numbers above are the acceptance target Joe's ear ratified.
