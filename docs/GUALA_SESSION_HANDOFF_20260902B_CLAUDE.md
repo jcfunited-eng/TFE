@@ -109,3 +109,32 @@ later ship. Sol's three guards bind all of it.
   claude.ai settings; nothing tonight needed them.
 - Two inherited page/UI test failures remain by name (owner-word scan,
   AudioContext) — old debt, listed in the 166.
+
+## APPENDED — the bridge resequencing (supersedes queue items 3-4 order)
+
+THE SINGLE NEXT BUILD: the ordering->motor developmental bridge
+(L11->L12 = ZERO on the 1415 copy; census + two named growth-law
+defects + 8-point repair spec in the ledger entry "RESEQUENCED ON THE
+1415 CENSUS DIAGNOSIS"). Seeds: branch bench/r3-stage-a-20260902 —
+9e8d9787 (A+B: order-insensitive founding + grown regulation-motor
+contact), c8ac6115 (B rebuilt Guala-true), 4194b155 (C: motor path via
+any LIVED regulation). REWORK 4194b155's sibling c8184a7a (D:
+reciprocal both-pools innervation) — the diagnosis forbids fan-out:
+single exact terminal from same-episode movement evidence only.
+Port order: diff each against current tip (the coincident-law test now
+expects terminal REUSE — reconcile), apply A/B/C shapes, implement the
+audit's requirements 1-4, then the falsifier grid 5-8 (full chain on
+her copy: endogenous reassembly -> L11->L12 carriers -> discharge ->
+body moves -> sensed consequence; cold restore; severing; both
+founding orders; wrong terminals; static pose; unrelated sound;
+body-only; repeats; AWS harness).
+THEN hunger resumes at 4bedb131 (doorway WIP compiles; remaining: the
+live-lane pyo3 connection from the trajectory entries — note the
+prepare_with_store thread dead-ends in a test fixture; the live lane
+is advance_admitted_intervals_unsealed at organism_runtime ~3361 —
+apply intake on FIRST episode only; then bridge arithmetic in the
+feed path with declared extraction density; then falsifiers 2-6).
+Also accepted from the diagnosis, on the truth-surface list: witness
+persistence across restarts (or "since restart" labels), articulation
+record names the discharging motor lineage, choice observer accepts
+reciprocal activation.
