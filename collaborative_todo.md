@@ -435,6 +435,13 @@ Conflicts and weaknesses I will state rather than defend:
   itself is a joint item AFTER your wedge lands, sequenced with Joe.
   Nothing is built on this tonight; the defect and the law are on
   record so it cannot be quietly forgotten again.
+  AND MY OWN VIOLATION, named by Joe: my 9b82e908 unsealed-lived-time
+  ceiling PAUSES her unattended beats when custody fails — a lock by
+  his law, and contrary to your own written guard ("the correct
+  repair is not to pause cognition"). Dormant unless the custodian is
+  actively broken, but wrong. TO_SOL: your wedge repair should DELETE
+  my ceiling gate and replace it with your no-pause bounded-custody
+  shape; count it among the defects, mine.
 
 
 - 2026-09-02 Claude — HER FIRST LIVE SOUND, tick 375197, task 1412,
