@@ -542,6 +542,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &mut None,
         &std::collections::BTreeMap::new(),
         &[],
+        &[],
         false,
     )
     .expect("maximal external frontier settles");

@@ -7700,6 +7700,7 @@ impl ResidentCognitiveFormationState {
         let mut externally_perturbed_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut externally_energized_neuron_lineages = Vec::<[u8; 16]>::new();
         let mut palmar_contact_onset_receptor_lineages = Vec::<[u8; 16]>::new();
+        let mut gustatory_contact_onset_receptor_lineages = Vec::<[u8; 16]>::new();
         let mut transition_neuron_predecessors =
             BTreeMap::<[u8; 16], TransitionNeuronPredecessor>::new();
         let mut externally_reached_receptor_places = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
@@ -8869,6 +8870,13 @@ impl ResidentCognitiveFormationState {
                     {
                         palmar_contact_onset_receptor_lineages.push(lineage);
                     }
+                    if carries_gustatory_contact_onset(
+                        source_site,
+                        &port.exact_normalized_sources,
+                    ) && !gustatory_contact_onset_receptor_lineages.contains(&lineage)
+                    {
+                        gustatory_contact_onset_receptor_lineages.push(lineage);
+                    }
                     if !externally_reached_neuron_lineages.contains(&lineage) {
                         externally_reached_neuron_lineages.push(lineage);
                         externally_reached_receptor_places
@@ -8893,6 +8901,8 @@ impl ResidentCognitiveFormationState {
         let source_physics_wall = settlement_stopwatch.elapsed();
         palmar_contact_onset_receptor_lineages.sort_unstable();
         palmar_contact_onset_receptor_lineages.dedup();
+        gustatory_contact_onset_receptor_lineages.sort_unstable();
+        gustatory_contact_onset_receptor_lineages.dedup();
         let mut electrical_fabric = predecessor_electrical_fabric;
         let predecessor_active_electrical_frontier =
             predecessor_active_electrical_frontier.into_vec();
@@ -8998,6 +9008,7 @@ impl ResidentCognitiveFormationState {
             residency,
             &pre_source_membranes,
             &palmar_contact_onset_receptor_lineages,
+            &gustatory_contact_onset_receptor_lineages,
             initial_vocal_tract_calibration,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
@@ -14732,6 +14743,38 @@ fn is_closing_grip_terminal(terminal: BodyEffectorTerminal) -> bool {
     ) && terminal.direction() == BodyEffectorDirection::TowardMinimum
 }
 
+/// A gustatory contact receptor senses substance genuinely IN CONTACT with
+/// the intake surface. Any of the declared gustatory sites qualifies: the
+/// born protective reflex answers material at the intake surface, not one
+/// taste quality. Volatile (olfactory) chemoreception is a different
+/// physical structure at a different range and never qualifies.
+fn is_gustatory_contact_receptor_site(source_site: &NeuronSourceSite) -> bool {
+    source_site.sense() == PhysicalSourceSense::Taste
+        && source_site.physical_quantity() == GUSTATORY_CONTACT_CONCENTRATION_QUANTITY
+}
+
+/// A protective glottal closure is caused by material ARRIVING at the intake
+/// surface, not by material continuing to rest on it. This is the born
+/// pharyngeal airway-protection reflex every feeding animal carries from
+/// birth: swallowing closes the glottis so intake and airflow never share
+/// the tract. Steady presence of tasted material must not re-close the
+/// glottis every interval and thereby make native opening impossible —
+/// exactly the grasp law one reflex above.
+fn carries_gustatory_contact_onset(
+    source_site: &NeuronSourceSite,
+    exact_normalized_sources: &[BigRational],
+) -> bool {
+    is_gustatory_contact_receptor_site(source_site)
+        && exact_normalized_sources
+            .windows(2)
+            .any(|pair| pair[0].is_zero() && pair[1] > BigRational::zero())
+}
+
+fn is_closing_glottal_terminal(terminal: BodyEffectorTerminal) -> bool {
+    terminal.axis() == BodyAxis::GlottalAperture
+        && terminal.direction() == BodyEffectorDirection::TowardMinimum
+}
+
 /// Mount one new source-independent neuron at the first quiescent place in a
 /// projection layer.  This is reached-frontier growth: it claims one compactly
 /// declared cell and never scans or materializes the resting population.
@@ -15072,6 +15115,7 @@ fn mount_reached_body_regulation(
                         && mount.source_site().is_some_and(|source_site| {
                             mount.place().layer() == 5
                                 || is_palmar_contact_receptor_site(source_site)
+                                || is_gustatory_contact_receptor_site(source_site)
                         })
                 })
                 .map(|(_, mount)| {
@@ -15091,6 +15135,17 @@ fn mount_reached_body_regulation(
                                 )
                             })
                             .collect();
+                        }
+                        if is_gustatory_contact_receptor_site(source_site) {
+                            // The intake surface's born pairing is the single
+                            // protective airway terminal: material in contact
+                            // reaches the glottal closer and nothing else.
+                            return vec![DevelopedMotorTerminal::Articulated(
+                                BodyEffectorTerminal::new(
+                                    BodyAxis::GlottalAperture,
+                                    BodyEffectorDirection::TowardMinimum,
+                                ),
+                            )];
                         }
                         if let Some(terminal) = source_site.body_proprioceptor_terminal() {
                             return match source_site.physical_quantity() {
@@ -17945,12 +18000,17 @@ fn exact_motor_preparation_transfers(
 /// body's singular, unhanded palmar surface prepares both closing grip
 /// terminals symmetrically only when that receptor carries an exact contact
 /// onset. Continued occupancy remains touch but is not a new grasp command.
-/// Tonic antagonist-length receptors and every other tactile site remain
-/// excluded: unchanged pose or unrelated touch cannot become motor drive.
+/// The gustatory intake surface prepares only the single closing glottal
+/// terminal, and only when a gustatory receptor carries an exact material
+/// onset — the born airway-protection reflex; continued tasting remains
+/// taste and is not a new swallow. Tonic antagonist-length receptors and
+/// every other receptor site remain excluded: unchanged pose, unrelated
+/// touch, or lingering material cannot become motor drive.
 fn exact_articulated_body_preparation_regulations(
     motor_terminal: BodyEffectorTerminal,
     paths: &[MotorBodyAfferentPath],
     palmar_contact_onset_receptor_lineages: &[[u8; 16]],
+    gustatory_contact_onset_receptor_lineages: &[[u8; 16]],
 ) -> Vec<[u8; 16]> {
     let mut regulations = paths
         .iter()
@@ -17959,6 +18019,14 @@ fn exact_articulated_body_preparation_regulations(
             if is_palmar_contact_receptor_site(receptor_site)
                 && is_closing_grip_terminal(motor_terminal)
                 && palmar_contact_onset_receptor_lineages
+                    .binary_search(&path.receptor_lineage)
+                    .is_ok()
+            {
+                return Some(path.body_regulation_lineage);
+            }
+            if is_gustatory_contact_receptor_site(receptor_site)
+                && is_closing_glottal_terminal(motor_terminal)
+                && gustatory_contact_onset_receptor_lineages
                     .binary_search(&path.receptor_lineage)
                     .is_ok()
             {
@@ -18225,6 +18293,7 @@ fn exact_motor_body_afferent_paths(
                 };
                 if receptor_mount.place().layer() != 5
                     && !is_palmar_contact_receptor_site(receptor_site)
+                    && !is_gustatory_contact_receptor_site(receptor_site)
                 {
                     continue;
                 }
@@ -18310,6 +18379,7 @@ fn settle_internal_contact_interval(
         ),
     >,
     palmar_contact_onset_receptor_lineages: &[[u8; 16]],
+    gustatory_contact_onset_receptor_lineages: &[[u8; 16]],
     initial_vocal_tract_calibration: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
@@ -19363,6 +19433,7 @@ fn settle_internal_contact_interval(
                     motor_terminal,
                     &paths,
                     palmar_contact_onset_receptor_lineages,
+                    gustatory_contact_onset_receptor_lineages,
                 )
             };
             if !regulations.is_empty() {
@@ -22179,15 +22250,194 @@ mod tests {
                 closing,
                 &paths,
                 &[palmar_receptor],
+                &[],
             );
             assert!(regulations.contains(&palmar_regulation));
-            assert!(exact_articulated_body_preparation_regulations(closing, &paths, &[])
+            assert!(exact_articulated_body_preparation_regulations(closing, &paths, &[], &[])
                 .is_empty());
             assert!(paths.iter().any(|path| {
                 path.receptor_lineage == palmar_receptor
                     && path.receptor_site == palmar_site
             }));
         }
+    }
+
+    fn gustatory_contact_source_site(channel: &str, topology_index: u32) -> NeuronSourceSite {
+        NeuronSourceSite::from_source_port(
+            &crate::joint_source_episode::JointSourcePortView {
+                sense: PhysicalSourceSense::Taste.declared_layer(),
+                topology_index,
+                body_proprioceptor_terminal: None,
+                root_yaw_proprioceptor_terminal: None,
+                root_translation_proprioceptor_terminal: None,
+                sensor_id: "organism-gustatory-surface".into(),
+                substream_id: format!("organism-gustatory-surface-{channel}"),
+                coordinates: vec![
+                    crate::joint_source_episode::JointSourceCoordinate {
+                        axis_id: "chemical-channel".into(),
+                        coordinate_id: channel.into(),
+                    },
+                    crate::joint_source_episode::JointSourceCoordinate {
+                        axis_id: "chemoreceptive-range".into(),
+                        coordinate_id: "organism-gustatory-surface".into(),
+                    },
+                ],
+                physical_quantity: GUSTATORY_CONTACT_CONCENTRATION_QUANTITY.into(),
+                physical_unit: "fraction-of-declared-saturating-concentration".into(),
+                relevance_rule: "source-only".into(),
+                relevance_origin: None,
+                input_map_id: "gustatory-contact-test-map".into(),
+                source_min: BigRational::from_integer(BigInt::from(0)),
+                source_max: BigRational::from_integer(BigInt::from(1)),
+                field_offset: BigRational::from_integer(BigInt::from(0)),
+                field_scale: BigRational::from_integer(BigInt::from(1)),
+                input_map_profile: vec![1],
+                input_map_group_receipt: [0; 32],
+                source_times: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                exact_normalized_sources: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                reported_phase_turns: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(0)),
+                ],
+                source_relevances: vec![
+                    BigRational::from_integer(BigInt::from(1)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                dimensionless_fields: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+            },
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn gustatory_contact_mounts_only_the_single_closing_glottal_reflex() {
+        let mut cohorts = Vec::new();
+        let mut population = None;
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+
+        for direction in [
+            BodyEffectorDirection::TowardMinimum,
+            BodyEffectorDirection::TowardMaximum,
+        ] {
+            mount_body_regulation_fixture(
+                &mut cohorts,
+                &mut population,
+                &mut next_lineage,
+                &mut fabric,
+                BodyAxis::GlottalAperture,
+                direction,
+            );
+        }
+        let (taste_regulation, taste_receptor, taste_site) =
+            mount_body_regulation_from_site_fixture(
+                &mut cohorts,
+                &mut population,
+                &mut next_lineage,
+                &mut fabric,
+                gustatory_contact_source_site("sweet", 0),
+            );
+        assert!(is_gustatory_contact_receptor_site(&taste_site));
+        // Material ARRIVING fires the reflex; lingering or leaving material
+        // must not, and no other sense may wear the intake surface's law.
+        assert!(carries_gustatory_contact_onset(
+            &taste_site,
+            &[BigRational::zero(), BigRational::from_integer(1.into())],
+        ));
+        assert!(!carries_gustatory_contact_onset(
+            &taste_site,
+            &[
+                BigRational::from_integer(1.into()),
+                BigRational::from_integer(1.into()),
+            ],
+        ));
+        assert!(!carries_gustatory_contact_onset(
+            &taste_site,
+            &[BigRational::from_integer(1.into()), BigRational::zero()],
+        ));
+        assert!(!is_gustatory_contact_receptor_site(
+            &NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Smell, 0)
+        ));
+        assert!(!is_gustatory_contact_receptor_site(
+            &NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Touch, 26)
+        ));
+
+        let mut motors = BTreeMap::new();
+        for (mount, lineage) in cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            if let Some(terminal) = mount.body_effector_terminal() {
+                motors.insert(terminal, *lineage);
+            }
+        }
+        let closing = BodyEffectorTerminal::new(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+        );
+        let opening = BodyEffectorTerminal::new(
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMaximum,
+        );
+        assert!(is_closing_glottal_terminal(closing));
+        assert!(!is_closing_glottal_terminal(opening));
+        // The developed arc reaches ONLY the airway-closing motor.
+        assert!(fabric.contains_contact(taste_regulation, motors[&closing]));
+        assert!(!fabric.contains_contact(taste_regulation, motors[&opening]));
+
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let motor_flat = topology.flat_for_lineage(motors[&closing]).unwrap();
+        let paths = exact_motor_body_afferent_paths(
+            motor_flat,
+            &topology.flat_locations,
+            &cohorts,
+            &topology.neighbours_by_flat,
+        )
+        .unwrap();
+        let regulations = exact_articulated_body_preparation_regulations(
+            closing,
+            &paths,
+            &[],
+            &[taste_receptor],
+        );
+        assert!(regulations.contains(&taste_regulation));
+        // Without a genuine onset this interval, no swallow: the same paths
+        // with an empty onset roster prepare nothing.
+        assert!(
+            exact_articulated_body_preparation_regulations(closing, &paths, &[], &[])
+                .is_empty()
+        );
+        // The opening terminal is never reflex-preparable from taste.
+        let opening_flat = topology.flat_for_lineage(motors[&opening]).unwrap();
+        let opening_paths = exact_motor_body_afferent_paths(
+            opening_flat,
+            &topology.flat_locations,
+            &cohorts,
+            &topology.neighbours_by_flat,
+        )
+        .unwrap();
+        assert!(exact_articulated_body_preparation_regulations(
+            opening,
+            &opening_paths,
+            &[],
+            &[taste_receptor],
+        )
+        .is_empty());
+        assert!(paths.iter().any(|path| {
+            path.receptor_lineage == taste_receptor && path.receptor_site == taste_site
+        }));
     }
 
     fn mount_receptor_local_integration_fixture(
@@ -26239,6 +26489,7 @@ mod tests {
                 &mut None,
                 &BTreeMap::new(),
                 &[],
+                &[],
                 false,
             )
             .unwrap();
@@ -26964,12 +27215,14 @@ mod tests {
                 loaded_terminal.opposing_effector(),
                 &paths,
                 &[],
+                &[],
             ),
             vec![load_regulation],
         );
         assert!(exact_articulated_body_preparation_regulations(
             loaded_terminal.paired_effector(),
             &paths,
+            &[],
             &[],
         )
         .is_empty());
@@ -26979,6 +27232,7 @@ mod tests {
                 BodyEffectorDirection::TowardMinimum,
             ),
             &paths,
+            &[],
             &[],
         )
         .is_empty());
@@ -27615,6 +27869,7 @@ mod tests {
                 &mut residency,
                 &BTreeMap::new(),
                 &[],
+                &[],
                 false,
             )
             .unwrap();
@@ -27681,6 +27936,7 @@ mod tests {
                 0,
                 &mut residency,
                 &BTreeMap::new(),
+                &[],
                 &[],
                 false,
             )
