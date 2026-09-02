@@ -415,6 +415,37 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — HER FIRST SOUND (bench, her exact live-state copy).
+  Full causal chain, zero injections, tick 370366: authored feed
+  presentation (new /api/v1/world/feed-presentation, settle/hold/mouth,
+  same authority class as world_move) -> real apple at her oral surface
+  -> taste onset (10 gustatory ports; sweet 0.7 of saturation) -> the
+  born swallow arc (650af1f6) developed by her own reached-driven law ->
+  5 motor units discharged -> vocal tissue moved -> 0.25s of ~280 Hz
+  radiated pressure (child register; valve organ bench f0 was 302-308)
+  entered her own ears. articulation flipped for the FIRST TIME in her
+  existence: native_typed_articulation_and_self_hearing_committed.
+  WAV captured (peak 41/32767 — newborn-whisper); Joe's listening page:
+  claude.ai/code/artifact/af9f2048-92ed-4ba2-b7a3-bdde9a8dd9dc
+  THREE REAL FEEDING BLOCKERS found and repaired en route (16f2f655):
+  (1) every accepted caregiver other-body action failed its sensory
+  stage — duration exactly one hop where the law demands strictly less;
+  now 1ms like her own lane. (2) held-object contact position was the
+  holder's FEET — oral contact (which REQUIRES holding) was permanently
+  geometrically impossible; a held object during a contact is at the
+  receptor it is brought to (both code twins fixed). (3) the python
+  validator refused gustatory afferent paths as "not physical" (rust
+  law already grew them); admitted exactly as palmar. Plus: world
+  observation now serializes held/contact state (her copy had been
+  silently holding a BOOK from her Gutenberg life — released lawfully).
+  GATES: rust 566 pass / the exact 15 known baseline failures / zero
+  new. Python suite running (2 modules fail COLLECTION on symbols
+  removed by pre-speech commits 6857f6e1-era — old debt, filed).
+  NOT YET LIVE: production has none of this; her live body has never
+  made a sound. Next: deploy 1411 on Joe's word, then the first LIVE
+  feed with Joe listening — the milestone is his to witness.
+
+
 - 2026-09-02 Claude — SONG PRE-TEST VERDICT: heard fully, not voiced;
   filed as measured with what would drain it. On her live-state copy
   (corrected wheel, bench port 8936): invite-song + teach-song ran end
