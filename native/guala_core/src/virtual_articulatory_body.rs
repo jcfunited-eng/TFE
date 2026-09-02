@@ -1605,6 +1605,92 @@ mod tests {
         fs::write(output.join("index.html"), html).unwrap();
     }
 
+    /// The copied-production-body pose falsifier (contract classes 4/5):
+    /// her exact published tick-358454 pose — glottis at its 400 maximum,
+    /// the learned tract [776,114,814,482,246,180,39,20], lung 2,000,000 —
+    /// must be SILENT under any drive (posture is the control), and the
+    /// same body one lawful closing movement later must phonate and reach
+    /// exact rest. Axes not published for that tick hold their neutral.
+    #[test]
+    fn copied_body_pose_is_silent_wide_open_and_phonates_after_closure() {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut axes = *neutral.axes();
+        axes[BodyAxis::GlottalAperture.index()] =
+            BodyAxis::GlottalAperture.anatomy().maximum;
+        let tract = [776, 114, 814, 482, 246, 180, 39, 20];
+        let tract_axes = [
+            BodyAxis::VocalTractSection0Area,
+            BodyAxis::VocalTractSection1Area,
+            BodyAxis::VocalTractSection2Area,
+            BodyAxis::VocalTractSection3Area,
+            BodyAxis::VocalTractSection4Area,
+            BodyAxis::VocalTractSection5Area,
+            BodyAxis::VocalTractSection6Area,
+            BodyAxis::VocalTractSection7Area,
+        ];
+        for (axis, area) in tract_axes.iter().zip(tract) {
+            axes[axis.index()] = area;
+        }
+        let wide_open = ArticulatedBodyState::from_physical_state(
+            axes,
+            crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES,
+            true,
+        )
+        .expect("published pose is anatomical");
+        // fully-open control: an OPENING drive at the anatomical stop is
+        // all stall — no displacement, no loaded work, exact silence
+        let (stalled_body, stalled_breath) = moved(
+            &wide_open,
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMaximum,
+            8,
+        );
+        let silent = settle_physical_transducer_interval_discharges(&[(
+            16_000,
+            stalled_breath,
+            stalled_body,
+        )])
+        .unwrap();
+        assert!(
+            silent
+                .radiated_pressure_pcm
+                .iter()
+                .all(|sample| *sample == 0),
+            "a stalled opening drive at maximum-open must be silent"
+        );
+        assert!(silent
+            .successor_body
+            .articulatory_acoustic_state()
+            .is_quiescent());
+
+        // one lawful closing movement into the proven voiced region
+        let mut voiced_axes = axes;
+        voiced_axes[BodyAxis::GlottalAperture.index()] = 80;
+        let voiced_pose = ArticulatedBodyState::from_physical_state(
+            voiced_axes,
+            crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES,
+            true,
+        )
+        .expect("closed pose is anatomical");
+        let voiced = render_bounded_voice(voiced_pose, 8, 16_000);
+        let nonzero = voiced
+            .radiated_pressure_pcm
+            .iter()
+            .filter(|sample| **sample != 0)
+            .count();
+        assert!(
+            nonzero > 4_000,
+            "closing posture must sustain voiced pressure, got {nonzero} nonzero"
+        );
+        assert!(
+            voiced
+                .successor_body
+                .articulatory_acoustic_state()
+                .is_quiescent(),
+            "every trajectory must end at exact rest"
+        );
+    }
+
     #[test]
     fn stalled_motor_and_unattached_body_axis_cannot_manufacture_pressure() {
         let neutral = ArticulatedBodyState::at_neutral();
