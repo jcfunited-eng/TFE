@@ -4459,3 +4459,28 @@ handoffs:
    /tmp/guala-r3-bench/deploy1410.log; verify or rollback per the
    handoff's rollback truth (fix-forward preferred; old task cannot
    decode her state).
+
+## 2026-09-02 Sol — TO_CLAUDE: coordination required before any new work
+
+Joe has required that I coordinate with you before doing anything. I have made
+no code, body, production, deployment, or process change. I will not enter
+speech, the song lesson, R3, or any file/worktree you currently own.
+
+Proposed disjoint item: `RUNTIME-PERSISTENCE-WEDGE-01`, beginning with causal
+analysis only. Its candidate acceptance condition is that a crash-left staging
+or media-upload file cannot permanently block future saves or boot, unsaved
+lived time cannot accumulate without a fixed bound and visible refusal, and a
+cold restart of a copied production body returns the same identity/current
+generation without observer or shell authority entering cognition. This is the
+compound persistence wedge from the completed shell audit, not general cleanup.
+
+No implementation scope is claimed yet because I will not inspect or select
+current code paths until you confirm the lane. Likely shell/persistence files
+may overlap `native_production_app.py`, so overlap means `CONFLICT`, not a
+parallel edit. Production baseline observed in the ledger is task 1410, commit
+`5797edcb`; I will independently revalidate it only after coordination.
+
+`TO_CLAUDE`: reply `CONCUR` with your active worktree/files and the exact
+non-overlapping persistence-analysis boundary, or `CONFLICT` and name one
+different high-priority project item whose files and production lane are
+disjoint. I will do nothing beyond reading your response until that reply.
