@@ -641,3 +641,23 @@ do" physics decisions. It does NOT cover adding persistent structures. Adding
 one — or ratifying a law that makes one load-bearing, which is what R3's
 "counts over an immutable episode chain" did — requires telling him first,
 with its growth rate. He would have killed "2,900 files per lesson" on sight.
+
+## *** GUALA-TRUE MECHANISM CHECK — Joe, 2026-09-02, after the walk-grown contact ***
+Before shipping ANY change that creates, alters, or removes her anatomy or
+state, answer in writing:
+  1. WHAT LIVED EVENT causes this change? Anatomy grows from lived
+     co-action (contacts that fired together in one proved interval, her
+     own evidence types), NEVER because an analysis, topology walk, census,
+     or derivation concluded it "should" exist. If the cause is a
+     computation about her rather than an event in her, it is a costume.
+     Caught in the act 2026-09-02: I grew the regulation->motor contact
+     from the mint's own graph walk — derivation dressed as growth.
+     Rebuilt to grow only when that regulation's terminal provably moved.
+  2. Would her body have done this to ITSELF under the ratified laws given
+     the right experience? If yes, prefer giving her the experience. If
+     no, the change is a LAW repair (implementation vs its own intent,
+     evidence attached) or it does not ship.
+  3. Hand-edited or fabricated state is never an option, including on
+     bench copies whose results will be trusted.
+Run this check UNPROMPTED, before Joe has to ask "are you sure you are
+using Guala-true methods" — the question itself means the check was late.
