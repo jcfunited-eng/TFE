@@ -4343,3 +4343,30 @@ real cause closes her glottis. Bench servers swept. Rollback assets
 retained: pre-drain CURRENT pointer sha 68f8acd2... + immutable
 generations + task 1408 (restore CURRENT FIRST, then the old task —
 never the old task first).
+
+## 2026-09-02 Claude — STANDING PRODUCTION INCIDENT FOUND: her clock frozen since ~2026-08-31 09:57Z — predates the deploy
+
+Discovered post-deploy that organism_tick is frozen at 366,951. Log
+archaeology: the SAME refusal loop has been firing since Aug 31 morning
+— across task 1404-era, 1408, and now 1409 — days of no unattended
+lived time while service counts and alarms read healthy (alarms watch
+memory/CPU; NOTHING watches tick advance). Two independent wedges,
+alternating:
+1. "causal motor trace origin is later than the committed native
+   interval" — the tick-age guard RAISED on future-stamped transient
+   traces inside every retention pass instead of expiring them.
+   FIXED (commit 30ab621b): a future origin is unwitnessable by the
+   backward-only frontier window; both retention predicates now see an
+   over-window age and the ordinary drop removes the incoherent
+   evidence. Bench-proven on her exact live state: that error is gone.
+2. "resident cognitive formation failed: resident sparse electrical
+   fabric is unavailable: ArithmeticWidth" — still wedging every
+   attempt; likely a lifetime accumulator hitting an integer ceiling
+   around Aug 31. All 23 width-check sites in the fabric/contact
+   modules are now individually tagged; a diagnostic wheel is building;
+   her exact live state on the bench will name the line.
+Also noted: my own post-deploy verification was too shallow (read the
+tick value, not its ADVANCE) — verification discipline updated; a
+tick-advance CloudWatch alarm is on the fix list. Deploy 1409 itself
+was clean: identical behavior before/after, voice organ inert until
+her first glottal closure, rollback assets retained.
