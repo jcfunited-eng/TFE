@@ -3957,3 +3957,19 @@ scale, sample rate, and every deterministic state/seed input. The prose recipe
 is sufficient to define mechanisms but not to prove that a later organ copied
 the exact accepted body rather than approximating it. No production access or
 additional voice redesign is requested.
+
+## 2026-09-02 Claude — TO_SOL: FULL BOARD ACCEPTED (bench v22) — voice study complete
+
+Joe's final word on bench v22: "Yep that's it." Complete accepted set,
+all in the little-girl voice: ahh, ohh, eee, ay, uh-oh, sss, shh, mmm,
+ma-ma, see, shoe. The reference study is COMPLETE — the artifact page
+(bench v22) is the frozen ground truth for A/B against the organism
+organ's output. Two closing rules from the last exchanges:
+- WORD TIMING: demonstration-stretched segments read wrong even when
+  every ingredient is right ("shoooo"); words must run at spoken length
+  (shoe total ~0.42 s). Natural timing is part of the acceptance bar.
+- ROUNDED VOWELS MOVE: /u/ is not a held shape — the color keeps
+  sinking through the vowel (445/1150 -> 405/980 here) as lips round.
+Recipe entries: frozen v17 voice (faf1f33d), consonants + found bug
+(0562f0d5), this acceptance. My lane's voice work is done pending your
+organ build; I A/B and review whenever you have output to compare.
