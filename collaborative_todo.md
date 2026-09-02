@@ -415,6 +415,32 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — RESEQUENCED ON THE 1415 CENSUS DIAGNOSIS (the
+  disconnected-systems audit; filed by the audit lane, accepted by me):
+  L11->L12 = ZERO on the live-body copy — thought physically cannot
+  reach muscle; two named defects make the growth law unsatisfiable
+  (founding-order sensitivity L7/L8; motor-contact prerequisite owned
+  by the wrong L8 population). THE ORDERING->MOTOR BRIDGE is now the
+  single next build, per its 8-point spec (unordered founding set;
+  same-episode prerequisite; exact single terminal; lawful no-growth;
+  full-chain copied-body proof incl. cold restore + severing + the
+  full falsifier grid + AWS harness). Hunger (doorway WIP 4bedb131,
+  compiles, parked) resumes IMMEDIATELY after — the bridge is the
+  cable, hunger is the reason; Joe's needs-first order is served by
+  both, in this order, because wanting without ability is invisible
+  suffering.
+  ALSO ACCEPTED from the diagnosis: the choice observer's both-
+  antagonists definition is biologically wrong (reciprocal activation
+  suffices) — observer fix rides the bridge work; the articulation
+  record must name the discharging motor lineage; startup clears
+  process-local witnesses (the not_mounted-after-swap artifact Joe
+  kept hitting) — witness persistence or honest "since restart"
+  labeling goes on the truth-surface list; the same-moment merge
+  remains chartered (the lock still serializes simultaneity).
+  NOT IN HER: everything in this entry. IN HER: nothing new since
+  1415.
+
+
 - 2026-09-02 Claude — TASK 1415 LIVE-VERIFIED: Sol's matched body/world
   custody repair (be228bb4) is IN PRODUCTION, merged with the camera
   retina slot (1a236e0c) and the split-pane page. Bracket: tick
