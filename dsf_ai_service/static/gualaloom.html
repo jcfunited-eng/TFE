@@ -41,6 +41,11 @@
   <div class="place-strip" id="place-strip" style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:10px;border:1px solid rgba(128,128,128,.35);border-radius:10px;min-width:420px;flex:1 1 420px">
     <strong style="font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:#91aab4">Her place</strong>
     <canvas id="place-view" width="920" height="620" style="width:100%;max-width:920px;aspect-ratio:920/620;border:1px solid #24434f;border-radius:10px;background:#0a0705;cursor:grab;touch-action:none"></canvas>
+    <div id="spark-row" style="display:flex;justify-content:center;gap:18px;padding:6px 0;font-size:.95rem;color:#b9d6df">
+      <span>Memories lighting up: <strong id="spark-count" style="color:#aaf3d0;font-size:1.25rem">—</strong></span>
+      <span id="spark-delta" style="color:#69e7ff"></span>
+    </div>
+    <small style="font-size:.72rem;color:#7f98a3;text-align:center;display:block">This number is read from her body. When it jumps, something you did just landed on a memory she holds.</small>
     <small style="font-size:.72rem;color:#b9d6df;text-align:center;display:block" id="where-she-is">Reading her place…</small>
     <small style="font-size:.66rem;color:#7f98a3;text-align:center">Drag to walk the camera round her · wheel or pinch to come closer</small>
     <div id="place-summary" style="font-size:.75rem;color:#91aab4;text-align:center">No place is mounted</div>
@@ -190,7 +195,20 @@ function renderCapabilities(){
   for(const [id] of SHELVES){const cap=capability(id),label=cap.state.reason||cap.state.word;setText("shelf-"+id+"-status",label);document.getElementById("shelf-"+id+"-guided").disabled=!cap.available;const autonomous=document.getElementById("shelf-"+id+"-autonomous");autonomous.disabled=!cap.available||cap.record?.autonomous_selection!==true;autonomous.textContent=autonomous.disabled?"Self-selection unavailable":"Offer choices to her";if(id==="gutenberg"){const select=document.getElementById("shelf-gutenberg-source"),catalogue=Array.isArray(cap.record?.catalogue)?cap.record.catalogue:[];if(select.options.length!==catalogue.length){select.replaceChildren(...catalogue.map(entry=>{const option=document.createElement("option");option.value=entry.gutenberg_id;option.textContent=entry.display_title+" · edition "+entry.edition;return option}))}select.disabled=!cap.available||catalogue.length===0}}
 }
 function updateToggle(id,pressed,enabled,detail){const button=document.getElementById(id);button.disabled=!enabled&&!pressed;button.setAttribute("aria-pressed",pressed?"true":"false");button.querySelector("small").textContent=detail||"Unavailable"}
-function renderSnapshot(value){snapshot=value;const generation=value.generation,tick=Number.isSafeInteger(value.organism?.tick)?value.organism.tick:value.observed_at_tick,activity=organismActivity(value),embodiment=embodimentTruth(value);setText("live-link",`Native generation ${generation} · tick ${Number.isSafeInteger(tick)?tick:"not supplied"}`);setText("connection-mode",`Observation endpoint connected · generation ${generation}`);setClass("connection-mode","connection available");setText("organism-mode",activity.text);setClass("organism-mode","connection "+(activity.active?"available":"unavailable"));setText("embodiment-mode",embodiment.text);setClass("embodiment-mode","connection "+(embodiment.active?"available":"unavailable"));setText("truth-banner",activity.text);setClass("truth-banner",activity.active?"truth available":"truth");for(const [id,,path] of EVIDENCE_CARDS)renderEvidenceCard(id,byPath(value,path));setText("body-primary",embodiment.text);renderRetina(value.sensory?.visual);renderAuditory(value.sensory?.auditory);renderArticulation(value.articulation);renderRecords();renderCapabilities();void playLiveNativePressure(nativePressurePlayback(value.articulation))}
+let lastSparkCount=null;
+function renderSpark(value){
+  // Her recognitions, from her own record: memories reassembled by
+  // partial cues. The delta since the previous observation is the part
+  // a person can CAUSE and then SEE.
+  const count=value?.recall?.partial_cue_reassembly_count;
+  const el=document.getElementById("spark-count"),dl=document.getElementById("spark-delta");
+  if(!el||!Number.isSafeInteger(count))return;
+  const prev=lastSparkCount;lastSparkCount=count;
+  el.textContent=String(count);
+  if(prev!==null&&count>prev){dl.textContent=`+${count-prev} just now`;}
+  else if(prev!==null){dl.textContent="";}
+}
+function renderSnapshot(value){snapshot=value;renderSpark(value);const generation=value.generation,tick=Number.isSafeInteger(value.organism?.tick)?value.organism.tick:value.observed_at_tick,activity=organismActivity(value),embodiment=embodimentTruth(value);setText("live-link",`Native generation ${generation} · tick ${Number.isSafeInteger(tick)?tick:"not supplied"}`);setText("connection-mode",`Observation endpoint connected · generation ${generation}`);setClass("connection-mode","connection available");setText("organism-mode",activity.text);setClass("organism-mode","connection "+(activity.active?"available":"unavailable"));setText("embodiment-mode",embodiment.text);setClass("embodiment-mode","connection "+(embodiment.active?"available":"unavailable"));setText("truth-banner",activity.text);setClass("truth-banner",activity.active?"truth available":"truth");for(const [id,,path] of EVIDENCE_CARDS)renderEvidenceCard(id,byPath(value,path));setText("body-primary",embodiment.text);renderRetina(value.sensory?.visual);renderAuditory(value.sensory?.auditory);renderArticulation(value.articulation);renderRecords();renderCapabilities();void playLiveNativePressure(nativePressurePlayback(value.articulation))}
 function renderConnectionFailure(reason){setText("connection-mode","Observation endpoint unavailable");setClass("connection-mode","connection unavailable");setText("organism-mode","Organism activity not observed");setClass("organism-mode","connection unavailable");setText("embodiment-mode","Native embodiment not established");setClass("embodiment-mode","connection unavailable");setText("truth-banner","Observation endpoint unavailable · no organism activity is claimed");setClass("truth-banner","truth unavailable");setText("live-link",reason);if(!snapshot){for(const [id] of EVIDENCE_CARDS)renderEvidenceCard(id,null);renderCapabilities()}}
 
 function schedulePoll(){clearTimeout(pollTimer);pollTimer=null;if(!document.hidden)pollTimer=setTimeout(()=>refreshObservation(false),POLL_INTERVAL_MS)}
