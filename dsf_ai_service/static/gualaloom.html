@@ -126,18 +126,22 @@ function resetEncounter(channel,reason){const ledger=encounterLedgers[channel];l
 function beginEncounter(channel,subject){const ledger=encounterLedgers[channel];ledger.subject=subject;for(const [stage] of EXPERIENCE_STAGES)ledger.stages[stage]={available:false,status:"unavailable",detail:"no evidence supplied for this encounter",evidence:"none"};renderEncounter(channel)}
 function setEncounterStage(channel,stage,status,detail,evidence="none"){encounterLedgers[channel].stages[stage]={available:true,status,detail,evidence};renderEncounter(channel)}
 function applyEncounterAdmission(channel,result){setEncounterStage(channel,"admission","accepted","Server accepted this bounded request",evidenceReference(result));const supplied=isRecord(result?.experience_stage_ledger?.stages)?result.experience_stage_ledger.stages:null;for(const [stage] of EXPERIENCE_STAGES.slice(3)){const value=supplied?.[stage];if(isRecord(value)&&value.available===true){const state=sectionState(value);setEncounterStage(channel,stage,state.word,value.summary||value.reason||"explicit encounter evidence supplied",stageEvidence(value))}}}
-let lastObservedTick=null;
+let lastObservedTick=null,unchangedObservations=0;
 function organismActivity(value){
   // Truth-coupled: activity is MEASURED by this page as her organism tick
-  // advancing between its own refreshes — never a server-side label. The
-  // old check read fields the observation never supplies, so the banner
-  // could not say anything but "not observed" over a living organism.
+  // advancing across its own refreshes — never a server-side label. Her
+  // settlements are longer than this page's refresh, so a single unchanged
+  // pair means "between moments", not "frozen"; HOLDING is declared only
+  // after several consecutive unchanged observations.
   const tick=Number.isSafeInteger(value?.organism?.tick)?value.organism.tick:null;
   if(tick===null)return {active:false,text:"Endpoint connected · organism tick not supplied"};
   const previous=lastObservedTick;lastObservedTick=tick;
-  if(previous===null)return {active:false,text:`Organism tick ${tick} · awaiting second observation to measure activity`};
-  if(tick>previous)return {active:true,text:`Organism ALIVE · tick advanced ${previous} → ${tick} between observations`};
-  return {active:false,text:`Organism tick holding at ${tick} · no advance since last observation`};
+  if(previous===null)return {active:false,text:`Organism tick ${tick} · awaiting further observations to measure activity`};
+  if(tick>previous){unchangedObservations=0;
+    return {active:true,text:`Organism ALIVE · tick advanced ${previous} → ${tick}`}}
+  unchangedObservations+=1;
+  if(unchangedObservations>=5)return {active:false,text:`Organism tick holding at ${tick} across ${unchangedObservations+1} observations · investigate`};
+  return {active:true,text:`Organism ALIVE · tick ${tick} · mid-moment (advance measured across observations)`};
 }
 function embodimentTruth(value){const body=value?.body;if(body?.native_embodiment_active===true)return {active:true,text:"Native embodiment explicitly active"};const candidates=[body?.world_id,body?.world,body?.region,body?.location,body?.current_state].filter(item=>typeof item==="string");if(body?.simulated===true||body?.world_kind==="simulated"||candidates.some(item=>item.includes("W1")))return {active:false,text:"Simulated W1 record · native embodiment not established"};return {active:false,text:"Native embodiment activity not supplied"}}
 
