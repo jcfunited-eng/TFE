@@ -661,3 +661,14 @@ state, answer in writing:
      bench copies whose results will be trusted.
 Run this check UNPROMPTED, before Joe has to ask "are you sure you are
 using Guala-true methods" — the question itself means the check was late.
+
+## *** ROUTINE AWS HEALTH CHECK — Joe, 2026-09-02 ***
+Bracket every work block (and every deploy, before AND after) with the
+read-only production health check, and record the numbers in the run's
+evidence: `aws ecs describe-services --cluster tfe-web-cluster --services
+dsf-ai-service-lb` -> task definition revision, desired/running/pending,
+rollout state; CloudWatch alarm state for the memory alarm; live memory
+percent when a deploy is in flight. Sol's discipline: every harness
+report carried "AWS remained task definition X, 1/1/0, alarm OK,
+unchanged image, memory <N%". Mine now does too. A health check that
+was skipped is a health claim that was faked.
