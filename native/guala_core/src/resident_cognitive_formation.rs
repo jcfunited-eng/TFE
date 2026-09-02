@@ -26925,9 +26925,14 @@ mod tests {
             .map(|(_, lineage)| *lineage)
             .collect::<Vec<_>>();
         assert_eq!(motor.len(), 1);
+        // Current law (6e6d220b era): the fixed articulated motor terminal
+        // is mounted once WITH its typed regulation route; a later proven
+        // coincidence REUSES that terminal and authors only contacts, so
+        // the resting population is untouched here. The old expectation
+        // (resting_before - 1) pinned proof-time terminal manufacture.
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
-            resting_before - 1
+            resting_before
         );
         assert!(fabric.contains_contact(regulation, motor[0]));
         assert!(fabric.contains_contact(ordering, motor[0]));
@@ -26966,9 +26971,11 @@ mod tests {
         .unwrap();
         assert_eq!(cohorts.len(), cohort_count);
         assert_eq!(fabric.contact_count(), contact_count);
+        // Reuse on repetition, and no cell was ever claimed at proof time
+        // (the terminal was mounted with its regulation route above).
         assert_eq!(
             population.as_ref().unwrap().resting_cell_count(),
-            resting_before - 1
+            resting_before
         );
     }
 
@@ -30361,24 +30368,65 @@ mod tests {
         // With the exact advancing endpoint retained, this non-simultaneous
         // specimen must not manufacture a layer-10 association/body relation.
         assert_eq!(layer_ten, 0);
-        let layer_eleven = state
+        // The separated episodes must not become a same-interval association
+        // (layer_ten == 0 above holds). The current delayed-ordering law
+        // lawfully mounts ONE retention-founded layer-11 route when a
+        // retained mosaic's layer-9 cell carries a direct bond from
+        // association material — the repeated identical episodes here admit
+        // one mosaic, so one such route may exist. What remains forbidden
+        // is any BODY-founded ordering: a layer-11 cell whose contacts
+        // reach beyond layer-7 association and layer-9 retention material
+        // would be manufactured coincidence, and stays refused.
+        let layer_eleven_lineages = state
             .cohorts
             .iter()
-            .flat_map(|cohort| cohort.anatomy.mounts())
-            .filter(|mount| mount.place().layer() == 11)
-            .count();
-        // The separated episodes must not become a same-interval association
-        // or author permanent delayed-ordering anatomy. Their changing physical
-        // frontier remains observable below, but without a retained formation
-        // there is no learned bond with authority to become resident structure.
-        assert_eq!(layer_eleven, 0);
-        let layer_counts = state.observe_reached_neuron_count_by_layer();
-        assert_eq!(
-            layer_counts
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.place().layer() == 11).then_some(*lineage)
+            })
+            .collect::<Vec<_>>();
+        assert!(layer_eleven_lineages.len() <= 1);
+        let layer_of = |lineage: [u8; 16]| {
+            state
+                .cohorts
                 .iter()
-                .find_map(|(layer, count)| (*layer == 11).then_some(*count)),
-            None
-        );
+                .flat_map(|cohort| {
+                    cohort
+                        .anatomy
+                        .mounts()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                })
+                .find_map(|(mount, candidate)| {
+                    (*candidate == lineage).then_some(mount.place().layer())
+                })
+        };
+        let fabric_lineages = state.electrical_fabric.lineages().to_vec();
+        for ordering in &layer_eleven_lineages {
+            for (left_index, right_index) in state.electrical_fabric.contact_endpoints() {
+                let left = fabric_lineages[left_index];
+                let right = fabric_lineages[right_index];
+                let partner = if left == *ordering {
+                    right
+                } else if right == *ordering {
+                    left
+                } else {
+                    continue;
+                };
+                assert!(
+                    matches!(layer_of(partner), Some(7) | Some(9)),
+                    "retention-founded ordering may touch only association \
+                     and retention material"
+                );
+            }
+        }
+        let layer_counts = state.observe_reached_neuron_count_by_layer();
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 12));
         assert!(!layer_counts.iter().any(|(layer, _)| *layer == 13));
         assert!(motor_recruitments.is_empty());
