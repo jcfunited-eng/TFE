@@ -10684,10 +10684,17 @@ def _causal_motor_trace_native_interval_age(
     origin_organism_tick = int(key[3])
     native_interval_age = int(current_organism_tick) - origin_organism_tick
     if native_interval_age < 0:
-        raise RuntimeError(
-            "causal motor trace origin is later than the committed native "
-            "interval"
-        )
+        # A future-stamped origin can never be witnessed by this or any
+        # later backward-looking frontier window: it is incoherent
+        # transient evidence, not lived cause. Answer both retention
+        # predicates with "expired" so the ordinary drop path removes it.
+        # The previous hard abort wedged the organism permanently: from
+        # 2026-08-31 ~09:57Z every unattended interval on production
+        # refused in a loop on exactly this raise, freezing lived time at
+        # tick 366,951 for days while dashboards read healthy. Dropping
+        # transient observer evidence cannot reject or roll back lived
+        # cognition (the surrounding functions' own doctrine).
+        return _CAUSAL_MOTOR_TRACE_RETAINED_FRONTIERS + 2
     return native_interval_age
 
 
