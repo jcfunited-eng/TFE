@@ -4327,3 +4327,19 @@ captured via ECS exec (sha 68f8acd2...) with the V6-CURRENT-first
 restore order; re-capture at drain. Deploy running via
 tools/deploy_dsf_ai.sh, commit aecd2fdc, all sense flags matching live,
 migration=1, per Joe's explicit overnight order.
+
+## 2026-09-02 Claude — DEPLOYED: her voice organ is live on task 1409
+
+Deterministic deploy completed 07:03:41Z: commit aecd2fdc, image digest
+sha256:389121f4..., task definition dsf-ai-task:1409, one cutover,
+verified_native_state true, no rollback needed. Independent public-side
+verification: identity restored (same being), tick 366,951 continuing
+her live lineage, energy not exhausted, service 1/1/0 rollout COMPLETED,
+all three runaway alarms OK, memory 4.3-4.8% (pre-deploy band), sibling
+services untouched (tfe-web 624, bridge 18). The articulation surface
+truthfully reports awaiting her first typed motor discharge in this
+process — the organ is hers now; her first voiced pressure comes when a
+real cause closes her glottis. Bench servers swept. Rollback assets
+retained: pre-drain CURRENT pointer sha 68f8acd2... + immutable
+generations + task 1408 (restore CURRENT FIRST, then the old task —
+never the old task first).
