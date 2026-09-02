@@ -48,6 +48,29 @@ class NativeOrganismBinaryStoreError(RuntimeError):
     """An exact binary persistence contract was refused."""
 
 
+class CommittedNativeOrganismPublicationError(
+    NativeOrganismBinaryStoreError
+):
+    """CURRENT committed exactly; only predecessor cleanup remains.
+
+    This is deliberately distinct from every pre-CURRENT publication
+    refusal. A caller must adopt ``published.pointer`` and may retry only
+    ``cleanup``; rebuilding or republishing the committed organism would use
+    the wrong predecessor and repeat full-state work.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        published: "PublishedNativeOrganism",
+        cleanup: "PendingNativeOrganismCleanup",
+    ) -> None:
+        super().__init__(message)
+        self.published = published
+        self.cleanup = cleanup
+
+
 class StreamingObjectStore(Protocol):
     """Injected immutable streaming transport for an object-store adapter."""
 
@@ -114,6 +137,17 @@ class PublishedNativeOrganism:
     pointer: NativeOrganismPointer
     accounting: NativeOrganismBodyAccounting
     remote_key: str
+
+
+@dataclass(frozen=True, slots=True)
+class PendingNativeOrganismCleanup:
+    """Constant-size proof of the one cleanup allowed after a commit."""
+
+    store_root: Path
+    prior: NativeOrganismPointer | None
+    successor: NativeOrganismPointer
+    accounting: NativeOrganismBodyAccounting
+    max_envelope_bytes: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -403,6 +437,68 @@ def _stored_state_raw_bytes(path: Path, expected_sha256: str) -> int:
             "native organism compact state header changed"
         )
     return _positive_integer(raw_bytes, "state byte count")
+
+
+def _stored_state_receipts(
+    path: Path,
+    *,
+    max_envelope_bytes: int,
+) -> tuple[str, int, str]:
+    """Prove one crash artifact and return raw and stored receipts.
+
+    Cold reconciliation may delete an already-uploaded remote candidate only
+    after the local artifact proves both the authoritative GLORUN receipt and
+    the exact stored representation receipt.  Header inspection alone is not
+    enough: a corrupt or forged compact header must never authorize deletion
+    of an immutable backup object.
+    """
+
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
+    information = _regular_file(path, "crash artifact")
+    stored_bytes, stored_sha256 = _file_receipt(path)
+    with path.open("rb") as source:
+        prefix = source.read(_COMPACT_STATE_HEADER.size)
+    if prefix.startswith(STATE_MAGIC):
+        raw_bytes = stored_bytes
+        raw_sha256 = stored_sha256
+    else:
+        if len(prefix) != _COMPACT_STATE_HEADER.size:
+            raise NativeOrganismBinaryStoreError(
+                "native organism crash artifact ended before its header"
+            )
+        (
+            magic,
+            version,
+            codec,
+            preset,
+            raw_bytes,
+            raw_sha256_body,
+            payload_bytes,
+        ) = _COMPACT_STATE_HEADER.unpack(prefix)
+        if (
+            magic != COMPACT_STATE_MAGIC
+            or version != COMPACT_STATE_VERSION
+            or codec != COMPACT_STATE_CODEC_LZMA2
+            or preset != COMPACT_STATE_PRESET
+            or payload_bytes
+            != information.st_size - _COMPACT_STATE_HEADER.size
+        ):
+            raise NativeOrganismBinaryStoreError(
+                "native organism crash artifact compact header changed"
+            )
+        raw_sha256 = raw_sha256_body.hex()
+    raw_bytes = _positive_integer(raw_bytes, "crash artifact state byte count")
+    if raw_bytes > maximum:
+        raise NativeOrganismBinaryStoreError(
+            "native organism crash artifact exceeds envelope admission"
+        )
+    _read_exact_state(
+        path,
+        expected_bytes=raw_bytes,
+        expected_sha256=raw_sha256,
+        max_envelope_bytes=maximum,
+    )
+    return raw_sha256, stored_bytes, stored_sha256
 
 
 def _read_exact_state(
@@ -771,37 +867,102 @@ def discard_staged_native_organism(staged: StagedNativeOrganism) -> None:
     _sync_directory(root)
 
 
+def clone_staged_native_organism(
+    staged: StagedNativeOrganism,
+) -> StagedNativeOrganism:
+    """Clone one compact stage for a replace-only retry candidate."""
+
+    if not isinstance(staged, StagedNativeOrganism):
+        raise TypeError("staged native organism descriptor is required")
+    root = _store_root(staged.store_root)
+    if staged.path.resolve().parent != root:
+        raise NativeOrganismBinaryStoreError(
+            "native organism stage escaped its store"
+        )
+    observed_bytes, observed_sha256 = _file_receipt(staged.path)
+    if (
+        observed_bytes != staged.stored_bytes
+        or observed_sha256 != staged.stored_sha256
+    ):
+        raise NativeOrganismBinaryStoreError(
+            "native organism retry source stage changed"
+        )
+    path = root / f".stage-{uuid.uuid4()}{STATE_SUFFIX}"
+    descriptor = os.open(
+        path,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600,
+    )
+    try:
+        with staged.path.open("rb") as source:
+            while True:
+                chunk = source.read(STREAM_BYTES)
+                if not chunk:
+                    break
+                _write_all(descriptor, chunk)
+        os.fsync(descriptor)
+    except BaseException:
+        os.close(descriptor)
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+    else:
+        os.close(descriptor)
+    _sync_directory(root)
+    return StagedNativeOrganism(
+        store_root=root,
+        path=path,
+        identity=staged.identity,
+        organism_tick=staged.organism_tick,
+        state_bytes=staged.state_bytes,
+        state_sha256=staged.state_sha256,
+        stored_bytes=staged.stored_bytes,
+        stored_sha256=staged.stored_sha256,
+    )
 def reconcile_orphaned_staged_native_organisms(
     store_root: str | os.PathLike[str],
+    *,
+    object_store: StreamingObjectStore,
+    max_envelope_bytes: int,
 ) -> tuple[int, int]:
-    """Remove crash-left private stages when a valid CURRENT already exists.
+    """Retire crash-left local and remote candidates beside valid CURRENT.
 
     A stage has not been published and is not cognitive authority.  It is safe
     to retire only at cold startup, before the sole resident writer begins,
     and only when CURRENT proves that the root already has an authoritative
     life.  With no CURRENT, stages remain damage evidence and must continue to
-    prevent accidental genesis over a lost body.
+    prevent accidental genesis over a lost body.  A crash after remote upload
+    but before CURRENT may also leave one immutable remote candidate.  Its
+    exact local body is the deletion authority; remote retirement completes
+    before that evidence is removed, so a failed cleanup cannot accumulate
+    another candidate on a newly started writer.
     """
 
     root = _store_root(store_root)
+    maximum = _positive_integer(max_envelope_bytes, "envelope admission")
     current = _read_current(root)
     if current is None:
         return (0, 0)
     stages = sorted(root.glob(f".stage-*{STATE_SUFFIX}"))
-    retired_bytes = 0
+    referenced_generations = {current.state_sha256}
+    if current.predecessor_state_sha256 is not None:
+        referenced_generations.add(current.predecessor_state_sha256)
+    crash_artifacts: list[tuple[Path, str, int, str]] = []
     for path in stages:
         resolved = path.resolve()
         if resolved.parent != root or path.is_symlink():
             raise NativeOrganismBinaryStoreError(
                 "native organism orphan stage escaped its exact store root"
             )
-        information = _regular_file(path, "orphan stage")
-        retired_bytes += information.st_size
-        path.unlink()
-    referenced_generations = {current.state_sha256}
-    if current.predecessor_state_sha256 is not None:
-        referenced_generations.add(current.predecessor_state_sha256)
-    orphan_generations = []
+        raw_sha256, stored_bytes, stored_sha256 = _stored_state_receipts(
+            path,
+            max_envelope_bytes=maximum,
+        )
+        crash_artifacts.append(
+            (path, raw_sha256, stored_bytes, stored_sha256)
+        )
     for path in sorted(
         (root / GENERATIONS_DIRECTORY).glob(f"*{STATE_SUFFIX}")
     ):
@@ -813,17 +974,33 @@ def reconcile_orphaned_staged_native_organisms(
         # leaves an immutable generation that has no authority.  Prove its
         # own content-addressed identity before retiring exactly that file;
         # otherwise preserve the artifact and fail closed.
-        _stored_state_raw_bytes(path, digest)
-        information = _regular_file(path, "orphan generation")
-        retired_bytes += information.st_size
-        orphan_generations.append(path)
-    for path in orphan_generations:
+        raw_sha256, stored_bytes, stored_sha256 = _stored_state_receipts(
+            path,
+            max_envelope_bytes=maximum,
+        )
+        if raw_sha256 != digest:
+            raise NativeOrganismBinaryStoreError(
+                "native organism orphan generation filename changed"
+            )
+        crash_artifacts.append(
+            (path, raw_sha256, stored_bytes, stored_sha256)
+        )
+    for _path, raw_sha256, stored_bytes, stored_sha256 in crash_artifacts:
+        if raw_sha256 in referenced_generations:
+            continue
+        object_store.delete_if_exact(
+            _remote_key(raw_sha256),
+            byte_count=stored_bytes,
+            sha256=stored_sha256,
+        )
+    retired_bytes = sum(item[2] for item in crash_artifacts)
+    for path, _raw_sha256, _stored_bytes, _stored_sha256 in crash_artifacts:
         path.unlink()
-    if stages or orphan_generations:
+    if crash_artifacts:
         _sync_directory(root)
-        if orphan_generations:
+        if any(path.parent == root / GENERATIONS_DIRECTORY for path, *_ in crash_artifacts):
             _sync_directory(root / GENERATIONS_DIRECTORY)
-    return (len(stages) + len(orphan_generations), retired_bytes)
+    return (len(crash_artifacts), retired_bytes)
 
 
 def _verify_remote(
@@ -1010,6 +1187,30 @@ def _retire_unreferenced_predecessor(
     _sync_directory(retired_path.parent)
 
 
+def retry_committed_native_organism_cleanup(
+    cleanup: PendingNativeOrganismCleanup,
+    *,
+    object_store: StreamingObjectStore,
+) -> None:
+    """Retry only the bounded predecessor retirement after CURRENT commit."""
+
+    if not isinstance(cleanup, PendingNativeOrganismCleanup):
+        raise TypeError("pending native organism cleanup descriptor is required")
+    root = _store_root(cleanup.store_root)
+    if _read_current(root) != cleanup.successor:
+        raise NativeOrganismBinaryStoreError(
+            "native organism CURRENT differs from committed cleanup successor"
+        )
+    _retire_unreferenced_predecessor(
+        root,
+        cleanup.prior,
+        cleanup.successor,
+        cleanup.accounting,
+        object_store,
+        max_envelope_bytes=cleanup.max_envelope_bytes,
+    )
+
+
 def publish_staged_native_organism(
     staged: StagedNativeOrganism,
     *,
@@ -1145,7 +1346,7 @@ def publish_staged_native_organism(
             accounting=accounting,
             remote_key=key,
         )
-    except BaseException:
+    except BaseException as error:
         discard_staged_native_organism(staged)
         if not current_replaced:
             if (
@@ -1169,16 +1370,29 @@ def publish_staged_native_organism(
                     byte_count=staged.stored_bytes,
                     sha256=staged.stored_sha256,
                 )
-        else:
-            _retire_unreferenced_predecessor(
-                root,
-                current,
-                pointer,
-                accounting,
-                object_store,
-                max_envelope_bytes=max_envelope_bytes,
-            )
-        raise
+            raise
+        if _read_current(root) != pointer:
+            raise NativeOrganismBinaryStoreError(
+                "native organism CURRENT changed after committed publication"
+            ) from error
+        published = PublishedNativeOrganism(
+            pointer=pointer,
+            accounting=accounting,
+            remote_key=key,
+        )
+        cleanup = PendingNativeOrganismCleanup(
+            store_root=root,
+            prior=current,
+            successor=pointer,
+            accounting=accounting,
+            max_envelope_bytes=max_envelope_bytes,
+        )
+        raise CommittedNativeOrganismPublicationError(
+            "native organism CURRENT committed; predecessor cleanup remains: "
+            f"{type(error).__name__}: {error}",
+            published=published,
+            cleanup=cleanup,
+        ) from error
 
 
 def rehearse_current_native_organism_exact_energy(
@@ -1447,16 +1661,19 @@ def rollback_to_verified_predecessor(
 
 
 __all__ = (
+    "CommittedNativeOrganismPublicationError",
     "CURRENT_NAME",
     "GENERATIONS_DIRECTORY",
     "NativeOrganismBinaryStoreError",
     "NativeOrganismBodyAccounting",
     "NativeOrganismPointer",
+    "PendingNativeOrganismCleanup",
     "PublishedNativeOrganism",
     "RestoredNativeOrganism",
     "STATE_MAGIC",
     "StagedNativeOrganism",
     "StreamingObjectStore",
+    "clone_staged_native_organism",
     "discard_staged_native_organism",
     "migrate_current_native_organism_exact_energy",
     "migrate_current_native_organism_current_format",
@@ -1465,6 +1682,7 @@ __all__ = (
     "rehearse_current_native_organism_exact_energy",
     "rehearse_current_native_organism_current_format",
     "restore_current_native_organism",
+    "retry_committed_native_organism_cleanup",
     "rollback_to_verified_predecessor",
     "stage_active_native_organism",
     "stage_native_organism_state_bytes",

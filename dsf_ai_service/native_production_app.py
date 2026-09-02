@@ -116,14 +116,18 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SenseBoundaryState,
 )
 from dsf_ai_service.substrate.native_organism_binary_store import (
+    CommittedNativeOrganismPublicationError,
     NativeOrganismBinaryStoreError,
+    PendingNativeOrganismCleanup,
     RestoredNativeOrganism,
     _read_current,
+    clone_staged_native_organism,
     discard_staged_native_organism,
     migrate_current_native_organism_current_format,
     publish_staged_native_organism,
     reconcile_orphaned_staged_native_organisms,
     restore_current_native_organism,
+    retry_committed_native_organism_cleanup,
     stage_active_native_organism,
     stage_native_organism_state_bytes,
 )
@@ -527,6 +531,19 @@ CONTACT_SHEET_SENSOR_ID = "organism-contact-sheet"
 
 WORLD_ENV = "GUALA_WORLD"
 WORLD_STATE_FILE = "world.glworld"
+WORLD_RECOVERY_GENERATIONS_DIRECTORY = "world-generations"
+WORLD_RECOVERY_ASSOCIATIONS_DIRECTORY = "world-associations"
+WORLD_RECOVERY_MARKER_FILE = "WORLD_RECOVERY_V1"
+WORLD_RECOVERY_GENERATION_SUFFIX = ".glworld"
+WORLD_RECOVERY_ASSOCIATION_SUFFIX = ".worldref"
+WORLD_RECOVERY_MARKER_BODY = b"GLWRCV01\n"
+WORLD_RECOVERY_ASSOCIATION_MAGIC = b"GLWREF01"
+WORLD_RECOVERY_ASSOCIATION_VERSION = 1
+WORLD_RECOVERY_MAX_BYTES = 4 * 1024 * 1024
+_WORLD_RECOVERY_ASSOCIATION_BODY = struct.Struct("<8sH32s32sQ")
+WORLD_RECOVERY_ASSOCIATION_BYTES = (
+    _WORLD_RECOVERY_ASSOCIATION_BODY.size + hashlib.sha256().digest_size
+)
 WORLD_MOVE_ENDPOINT = "/api/v1/world/move"
 WORLD_OTHER_BODY_MOVE_ENDPOINT = "/api/v1/world/other-body/move"
 WORLD_OTHER_BODY_ACTION_ENDPOINT = "/api/v1/world/other-body/action"
@@ -1185,10 +1202,19 @@ def _world() -> Any:
         max_regions=4,
     )
     path = STATE_ROOT / WORLD_STATE_FILE
-    stored_body = None
-    if path.is_file():
+    matched_recovery = _world_recovery_marker_present()
+    if matched_recovery:
+        if _restored is None:
+            raise RuntimeError(
+                "matched world recovery requires the restored CURRENT body"
+            )
+        stored_body = _read_world_recovery_pair(
+            _restored.pointer.state_sha256
+        )
+    else:
+        stored_body = path.read_bytes() if path.is_file() else None
+    if stored_body is not None:
         try:
-            stored_body = path.read_bytes()
             authority.restore_encoded(
                 stored_body,
                 allow_authenticated_physical_manifest_migration=True,
@@ -1223,11 +1249,24 @@ def _world() -> Any:
             "the persisted book page has no immutable source custody"
         )
     current_body = authority.encoded_snapshot()
+    if matched_recovery and stored_body != current_body:
+        raise RuntimeError(
+            "ordinary matched world restore changed its canonical bytes"
+        )
     if stored_body != current_body:
         # A new home and the one authorized bare-world-to-thermal migration
         # become durable before the authority is made reachable.  A restart
         # therefore cannot reset body heat to authored genesis.
         _persist_world_body(current_body)
+    if not matched_recovery and _restored is not None:
+        # One release-boundary bootstrap converts the legacy independently
+        # named world into a CURRENT-selected recovery pair. The marker is
+        # written last, so a crash before it leaves the old recovery law in
+        # force and a crash after it has a complete verified pair.
+        _complete_world_recovery_bootstrap(
+            _restored.pointer.state_sha256,
+            current_body,
+        )
     _world_authority = authority
     return authority
 
@@ -1238,13 +1277,347 @@ def _persist_world(authority: Any) -> None:
     _persist_world_body(authority.encoded_snapshot())
 
 
+def _canonical_world_recovery_digest(value: object, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise RuntimeError(f"{label} is not a canonical SHA-256 receipt")
+    return value
+
+
+def _sync_world_recovery_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _world_recovery_directories() -> tuple[Path, Path]:
+    generations = STATE_ROOT / WORLD_RECOVERY_GENERATIONS_DIRECTORY
+    associations = STATE_ROOT / WORLD_RECOVERY_ASSOCIATIONS_DIRECTORY
+    for path in (generations, associations):
+        path.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if path.is_symlink() or not path.is_dir():
+            raise RuntimeError("world recovery custody path is not a real directory")
+    return generations, associations
+
+
+def _durably_write_immutable_world_recovery_body(
+    destination: Path,
+    body: bytes,
+) -> None:
+    if destination.exists():
+        if destination.is_symlink() or not destination.is_file():
+            raise RuntimeError("world recovery immutable path changed type")
+        existing = destination.read_bytes()
+        if not hmac.compare_digest(existing, body):
+            raise RuntimeError("world recovery immutable body changed")
+        return
+    stage = destination.parent / f".stage-{uuid.uuid4()}"
+    descriptor = os.open(
+        stage,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600,
+    )
+    try:
+        view = memoryview(body)
+        offset = 0
+        while offset < len(view):
+            written = os.write(descriptor, view[offset:])
+            if written <= 0:
+                raise RuntimeError("world recovery write ended early")
+            offset += written
+        os.fsync(descriptor)
+    except BaseException:
+        os.close(descriptor)
+        try:
+            stage.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+    else:
+        os.close(descriptor)
+    try:
+        if destination.exists():
+            existing = destination.read_bytes()
+            if not hmac.compare_digest(existing, body):
+                raise RuntimeError("world recovery immutable body raced")
+        else:
+            os.replace(stage, destination)
+            os.chmod(destination, 0o444)
+        _sync_world_recovery_directory(destination.parent)
+    finally:
+        try:
+            stage.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _encode_world_recovery_association(
+    body_state_sha256: str,
+    world_state_sha256: str,
+    world_state_bytes: int,
+) -> bytes:
+    body_digest = bytes.fromhex(
+        _canonical_world_recovery_digest(
+            body_state_sha256, "world recovery body receipt"
+        )
+    )
+    world_digest = bytes.fromhex(
+        _canonical_world_recovery_digest(
+            world_state_sha256, "world recovery world receipt"
+        )
+    )
+    if (
+        isinstance(world_state_bytes, bool)
+        or not isinstance(world_state_bytes, int)
+        or not 0 < world_state_bytes <= WORLD_RECOVERY_MAX_BYTES
+    ):
+        raise RuntimeError("world recovery world byte count is outside its bound")
+    core = _WORLD_RECOVERY_ASSOCIATION_BODY.pack(
+        WORLD_RECOVERY_ASSOCIATION_MAGIC,
+        WORLD_RECOVERY_ASSOCIATION_VERSION,
+        body_digest,
+        world_digest,
+        world_state_bytes,
+    )
+    return core + hashlib.sha256(core).digest()
+
+
+def _decode_world_recovery_association(
+    body: bytes,
+) -> tuple[str, str, int]:
+    if len(body) != WORLD_RECOVERY_ASSOCIATION_BYTES:
+        raise RuntimeError("world recovery association changed byte count")
+    core = body[: _WORLD_RECOVERY_ASSOCIATION_BODY.size]
+    receipt = body[_WORLD_RECOVERY_ASSOCIATION_BODY.size :]
+    if not hmac.compare_digest(receipt, hashlib.sha256(core).digest()):
+        raise RuntimeError("world recovery association receipt changed")
+    magic, version, body_digest, world_digest, world_bytes = (
+        _WORLD_RECOVERY_ASSOCIATION_BODY.unpack(core)
+    )
+    if (
+        magic != WORLD_RECOVERY_ASSOCIATION_MAGIC
+        or version != WORLD_RECOVERY_ASSOCIATION_VERSION
+    ):
+        raise RuntimeError("world recovery association schema changed")
+    if not 0 < world_bytes <= WORLD_RECOVERY_MAX_BYTES:
+        raise RuntimeError("world recovery association exceeds its byte bound")
+    return body_digest.hex(), world_digest.hex(), world_bytes
+
+
+def _publish_world_recovery_pair(
+    body_state_sha256: str,
+    world_body: bytes,
+) -> dict[str, object]:
+    """Make one content-verified world pair durable before body CURRENT."""
+
+    body_receipt = _canonical_world_recovery_digest(
+        body_state_sha256, "world recovery body receipt"
+    )
+    if (
+        not isinstance(world_body, bytes)
+        or not world_body
+        or len(world_body) > WORLD_RECOVERY_MAX_BYTES
+    ):
+        raise RuntimeError("world recovery body is outside its exact byte bound")
+    world_receipt = hashlib.sha256(world_body).hexdigest()
+    generations, associations = _world_recovery_directories()
+    generation = (
+        generations
+        / f"{world_receipt}{WORLD_RECOVERY_GENERATION_SUFFIX}"
+    )
+    association = (
+        associations
+        / f"{body_receipt}{WORLD_RECOVERY_ASSOCIATION_SUFFIX}"
+    )
+    _durably_write_immutable_world_recovery_body(generation, world_body)
+    association_body = _encode_world_recovery_association(
+        body_receipt,
+        world_receipt,
+        len(world_body),
+    )
+    _durably_write_immutable_world_recovery_body(association, association_body)
+    return {
+        "body_state_sha256": body_receipt,
+        "world_state_sha256": world_receipt,
+        "world_state_bytes": len(world_body),
+    }
+
+
+def _read_world_recovery_pair(body_state_sha256: str) -> bytes:
+    body_receipt = _canonical_world_recovery_digest(
+        body_state_sha256, "world recovery body receipt"
+    )
+    generations, associations = _world_recovery_directories()
+    association = (
+        associations
+        / f"{body_receipt}{WORLD_RECOVERY_ASSOCIATION_SUFFIX}"
+    )
+    if association.is_symlink() or not association.is_file():
+        raise RuntimeError("CURRENT has no matched world recovery association")
+    associated_body, world_receipt, world_bytes = (
+        _decode_world_recovery_association(association.read_bytes())
+    )
+    if associated_body != body_receipt:
+        raise RuntimeError("world recovery association names a different body")
+    generation = (
+        generations
+        / f"{world_receipt}{WORLD_RECOVERY_GENERATION_SUFFIX}"
+    )
+    if generation.is_symlink() or not generation.is_file():
+        raise RuntimeError("matched world recovery generation is absent")
+    if generation.stat().st_size != world_bytes:
+        raise RuntimeError("matched world recovery generation changed byte count")
+    world_body = generation.read_bytes()
+    if not hmac.compare_digest(
+        hashlib.sha256(world_body).hexdigest(), world_receipt
+    ):
+        raise RuntimeError("matched world recovery generation receipt changed")
+    return world_body
+
+
+def _world_recovery_marker_present() -> bool:
+    marker = STATE_ROOT / WORLD_RECOVERY_MARKER_FILE
+    if not marker.exists():
+        return False
+    if marker.is_symlink() or not marker.is_file():
+        raise RuntimeError("world recovery marker changed type")
+    if marker.read_bytes() != WORLD_RECOVERY_MARKER_BODY:
+        raise RuntimeError("world recovery marker changed")
+    return True
+
+
+def _complete_world_recovery_bootstrap(
+    body_state_sha256: str,
+    world_body: bytes,
+) -> None:
+    _publish_world_recovery_pair(body_state_sha256, world_body)
+    marker = STATE_ROOT / WORLD_RECOVERY_MARKER_FILE
+    _durably_write_immutable_world_recovery_body(
+        marker,
+        WORLD_RECOVERY_MARKER_BODY,
+    )
+    _sync_world_recovery_directory(STATE_ROOT)
+
+
+def _reconcile_world_recovery_store(pointer: Any) -> tuple[int, int]:
+    """Retain only CURRENT and its explicit predecessor's matched worlds."""
+
+    if not _world_recovery_marker_present():
+        return 0, 0
+    current = _canonical_world_recovery_digest(
+        pointer.state_sha256, "CURRENT body receipt"
+    )
+    predecessor = pointer.predecessor_state_sha256
+    expected_bodies = {current}
+    if predecessor is not None:
+        expected_bodies.add(
+            _canonical_world_recovery_digest(
+                predecessor, "CURRENT predecessor receipt"
+            )
+        )
+    generations, associations = _world_recovery_directories()
+    retired_count = 0
+    retired_bytes = 0
+    for path in tuple(STATE_ROOT.glob(".world-*.stage")):
+        if path.is_symlink() or not path.is_file():
+            raise RuntimeError("persistent world stage changed type")
+        retired_bytes += path.stat().st_size
+        retired_count += 1
+        path.unlink()
+    referenced_worlds: set[str] = set()
+    current_found = False
+    for path in tuple(associations.iterdir()):
+        if path.name.startswith(".stage-"):
+            retired_bytes += path.stat().st_size
+            retired_count += 1
+            path.unlink()
+            continue
+        if path.is_symlink() or not path.is_file() or not path.name.endswith(
+            WORLD_RECOVERY_ASSOCIATION_SUFFIX
+        ):
+            raise RuntimeError("world recovery associations contain an unknown artifact")
+        named_body = path.name[: -len(WORLD_RECOVERY_ASSOCIATION_SUFFIX)]
+        _canonical_world_recovery_digest(named_body, "world association filename")
+        associated_body, world_receipt, _world_bytes = (
+            _decode_world_recovery_association(path.read_bytes())
+        )
+        if associated_body != named_body:
+            raise RuntimeError("world recovery association filename changed")
+        if named_body not in expected_bodies:
+            retired_bytes += path.stat().st_size
+            retired_count += 1
+            path.unlink()
+            continue
+        referenced_worlds.add(world_receipt)
+        current_found = current_found or named_body == current
+    if not current_found:
+        raise RuntimeError("CURRENT has no retained matched world association")
+    for path in tuple(generations.iterdir()):
+        if path.name.startswith(".stage-"):
+            retired_bytes += path.stat().st_size
+            retired_count += 1
+            path.unlink()
+            continue
+        if path.is_symlink() or not path.is_file() or not path.name.endswith(
+            WORLD_RECOVERY_GENERATION_SUFFIX
+        ):
+            raise RuntimeError("world recovery generations contain an unknown artifact")
+        receipt = path.name[: -len(WORLD_RECOVERY_GENERATION_SUFFIX)]
+        _canonical_world_recovery_digest(receipt, "world generation filename")
+        body = path.read_bytes()
+        if len(body) > WORLD_RECOVERY_MAX_BYTES or hashlib.sha256(body).hexdigest() != receipt:
+            raise RuntimeError("world recovery generation content changed")
+        if receipt not in referenced_worlds:
+            retired_bytes += len(body)
+            retired_count += 1
+            path.unlink()
+    _sync_world_recovery_directory(associations)
+    _sync_world_recovery_directory(generations)
+    _sync_world_recovery_directory(STATE_ROOT)
+    return retired_count, retired_bytes
+
+
 def _persist_world_body(body: bytes) -> None:
     """Atomically write one already-authenticated world persistence body."""
 
     path = STATE_ROOT / WORLD_STATE_FILE
     stage = STATE_ROOT / f".world-{uuid.uuid4()}.stage"
-    stage.write_bytes(body)
+    if (
+        not isinstance(body, bytes)
+        or not body
+        or len(body) > WORLD_RECOVERY_MAX_BYTES
+    ):
+        raise RuntimeError("persistent world body is outside its exact byte bound")
+    descriptor = os.open(
+        stage,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+        0o600,
+    )
+    try:
+        view = memoryview(body)
+        offset = 0
+        while offset < len(view):
+            written = os.write(descriptor, view[offset:])
+            if written <= 0:
+                raise RuntimeError("persistent world write ended early")
+            offset += written
+        os.fsync(descriptor)
+    except BaseException:
+        os.close(descriptor)
+        try:
+            stage.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+    else:
+        os.close(descriptor)
     os.replace(stage, path)
+    _sync_world_recovery_directory(STATE_ROOT)
 
 
 def _world_retinal_luminance(substreams: tuple[Any, ...]) -> tuple[float, ...]:
@@ -1995,6 +2368,8 @@ _custodian_stop = threading.Event()
 _custodian_thread: threading.Thread | None = None
 _custody_trajectory_epoch = 0
 _last_custodian_evidence: dict[str, object] | None = None
+_pending_custody_cleanup: PendingNativeOrganismCleanup | None = None
+_pending_custody_candidate: dict[str, Any] | None = None
 
 
 def _checkpoint_every_intervals() -> int:
@@ -7336,8 +7711,31 @@ def _build_public_observation_from_snapshot(
         "articulation": (articulation_record := _articulation_record()),
         "expression": articulation_record,
         "custody": {
+            "durable_body_state_sha256": (
+                None if _restored is None else _restored.pointer.state_sha256
+            ),
+            "durable_organism_tick": (
+                None if _restored is None else _restored.pointer.organism_tick
+            ),
+            "resident_organism_tick": native["organism_tick"],
             "pending_unsealed_intervals": _pending_unsealed_intervals,
             "unsealed_interval_ceiling": _unsealed_interval_ceiling(),
+            "post_current_cleanup_pending": (
+                _pending_custody_cleanup is not None
+            ),
+            "pre_current_candidate_pending": (
+                _pending_custody_candidate is not None
+            ),
+            "pre_current_candidate_state_bytes": (
+                None
+                if _pending_custody_candidate is None
+                else _pending_custody_candidate["checkpoint"].state_bytes
+            ),
+            "pre_current_retry_stage_bytes": (
+                None
+                if _pending_custody_candidate is None
+                else _pending_custody_candidate["retry_stage"].stored_bytes
+            ),
             "last_seal": _last_custodian_evidence,
             "last_failure": _last_custodian_error,
         },
@@ -16065,6 +16463,9 @@ def _prior_life_evidence(root: Path) -> tuple[str, ...]:
             CARD_LESSON_RECEIPT_FILE,
             SONG_LESSON_RECEIPT_FILE,
             SOURCE_MEDIA_ROOT.name,
+            WORLD_RECOVERY_MARKER_FILE,
+            WORLD_RECOVERY_GENERATIONS_DIRECTORY,
+            WORLD_RECOVERY_ASSOCIATIONS_DIRECTORY,
         )
         if (root / name).exists()
     )
@@ -16092,6 +16493,7 @@ def _startup() -> None:
     global _reciprocal_social_play_candidate
     global _last_reciprocal_social_play_evidence
     global _active_cross_intake_causal_motor_traces
+    global _pending_custody_cleanup, _pending_custody_candidate
     _last_tested_prediction_evidence = None
     _last_tested_affective_balance_evidence = None
     _last_tested_localized_fluid_chemistry_evidence = None
@@ -16108,12 +16510,18 @@ def _startup() -> None:
     _reciprocal_social_play_candidate = None
     _last_reciprocal_social_play_evidence = None
     _active_cross_intake_causal_motor_traces = {}
+    _pending_custody_cleanup = None
+    _pending_custody_candidate = None
     _curriculum_invitation = None
     _runtime_build_identity = None
     try:
         admission = derive_native_resident_resource_admission(STATE_ROOT)
         retired_stage_count, retired_stage_bytes = (
-            reconcile_orphaned_staged_native_organisms(STATE_ROOT)
+            reconcile_orphaned_staged_native_organisms(
+                STATE_ROOT,
+                object_store=_object_store(),
+                max_envelope_bytes=admission.max_envelope_bytes,
+            )
         )
         if retired_stage_count:
             print(
@@ -16212,6 +16620,16 @@ def _startup() -> None:
             )
         _admission = admission
         _restored = restored
+        retired_world_count, retired_world_bytes = (
+            _reconcile_world_recovery_store(restored.pointer)
+        )
+        if retired_world_count:
+            print(
+                "guala-cold-world-reconciliation "
+                f"retired_count={retired_world_count} "
+                f"retired_bytes={retired_world_bytes}",
+                flush=True,
+            )
         _boot_error = None
         _runtime_build_identity = _build_identity()
         try:
@@ -16244,19 +16662,140 @@ def _startup() -> None:
         raise
 
 
-def _custodian_cycle() -> str:
-    """Publish one exact resident checkpoint outside lived-time work.
-
-    The transition boundary is borrowed once to clone a bounded native
-    snapshot and once to atomically join the already-staged checkpoint to
-    CURRENT and the resident recovery predecessor. Expensive sealing,
-    compression, and read-back happen between those borrows. This is the sole
-    ordinary CURRENT writer; no fourth-moment seal remains in cognition.
-    """
+def _publish_pending_custody_candidate(
+    candidate: dict[str, Any],
+    staged_attempt: Any,
+) -> str:
+    """Publish or retry one replace-only prepared checkpoint candidate."""
 
     global _restored, _boot_error
     global _pending_unsealed_intervals, _pending_chain_predecessor_sha
     global _last_custodian_evidence
+    global _pending_custody_cleanup, _pending_custody_candidate
+
+    organism = candidate["organism"]
+    predecessor = candidate["predecessor"]
+    checkpoint = candidate["checkpoint"]
+    admission = candidate["admission"]
+    retry_stage = candidate["retry_stage"]
+    cleanup_pending = False
+    try:
+        with _transition_lock:
+            current = _restored
+            if (
+                current is None
+                or current.organism is not organism
+                or current.pointer != predecessor
+                or _custody_trajectory_epoch != candidate["trajectory_epoch"]
+            ):
+                discard_staged_native_organism(staged_attempt)
+                discard_staged_native_organism(retry_stage)
+                _pending_custody_candidate = None
+                _reconcile_world_recovery_store(predecessor)
+                return "superseded"
+            organism.validate_lived_checkpoint(checkpoint)
+            publish_started = time.perf_counter()
+            try:
+                published = publish_staged_native_organism(
+                    staged_attempt,
+                    expected_predecessor_sha256=predecessor.state_sha256,
+                    object_store=_object_store(),
+                    max_envelope_bytes=admission.max_envelope_bytes,
+                    max_fabric_bytes=admission.max_fabric_bytes,
+                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
+                )
+            except CommittedNativeOrganismPublicationError as committed:
+                published = committed.published
+                _pending_custody_cleanup = committed.cleanup
+                cleanup_pending = True
+            try:
+                organism.adopt_published_lived_checkpoint(checkpoint)
+            except BaseException as error:
+                _restored = None
+                _boot_error = (
+                    "published custodian checkpoint could not be adopted by "
+                    f"the resident recovery boundary: {type(error).__name__}: {error}"
+                )
+                raise RuntimeError(_boot_error) from error
+            publish_wall_ms = (time.perf_counter() - publish_started) * 1000.0
+            _restored = RestoredNativeOrganism(
+                organism=organism,
+                pointer=published.pointer,
+            )
+            discard_staged_native_organism(retry_stage)
+            _pending_custody_candidate = None
+            _reconcile_world_recovery_store(published.pointer)
+            _pending_unsealed_intervals = max(
+                0,
+                _pending_unsealed_intervals
+                - candidate["captured_interval_count"],
+            )
+            _pending_chain_predecessor_sha = None
+            if cleanup_pending:
+                _checkpoint_requested.set()
+            else:
+                _checkpoint_requested.clear()
+            if _pending_unsealed_intervals >= _checkpoint_every_intervals():
+                _checkpoint_requested.set()
+            _last_custodian_evidence = {
+                "checkpoint_tick": published.pointer.organism_tick,
+                "state_sha256": published.pointer.state_sha256,
+                "world_state_sha256": candidate["world_pair"][
+                    "world_state_sha256"
+                ],
+                "world_state_bytes": candidate["world_pair"][
+                    "world_state_bytes"
+                ],
+                "captured_interval_count": candidate[
+                    "captured_interval_count"
+                ],
+                "remaining_interval_count": _pending_unsealed_intervals,
+                "snapshot_wall_ms": round(candidate["snapshot_wall_ms"], 1),
+                "encode_wall_ms": round(candidate["encode_wall_ms"], 1),
+                "stage_wall_ms": round(candidate["stage_wall_ms"], 1),
+                "publish_and_adopt_wall_ms": round(publish_wall_ms, 1),
+            }
+    except BaseException:
+        discard_staged_native_organism(staged_attempt)
+        current_pointer = _read_current(STATE_ROOT)
+        if current_pointer != predecessor:
+            discard_staged_native_organism(retry_stage)
+            _pending_custody_candidate = None
+            if current_pointer is not None and _world_recovery_marker_present():
+                _reconcile_world_recovery_store(current_pointer)
+        raise
+    _refresh_public_observation_cache()
+    return "checkpointed_cleanup_pending" if cleanup_pending else "checkpointed"
+
+
+def _custodian_cycle() -> str:
+    """Publish one exact resident checkpoint outside lived-time work.
+
+    A pre-CURRENT refusal retains one exact prepared candidate and one compact
+    retry stage. Later cycles retry that candidate without another native
+    snapshot, envelope encode, or compression pass. A post-CURRENT fault adopts
+    once and retains only its constant-size cleanup descriptor.
+    """
+
+    global _pending_custody_cleanup, _pending_custody_candidate
+
+    if _pending_custody_cleanup is not None:
+        retry_committed_native_organism_cleanup(
+            _pending_custody_cleanup,
+            object_store=_object_store(),
+        )
+        _pending_custody_cleanup = None
+        if _pending_unsealed_intervals < _checkpoint_every_intervals():
+            _checkpoint_requested.clear()
+        return "cleanup_completed"
+    if _pending_custody_candidate is not None:
+        staged_attempt = clone_staged_native_organism(
+            _pending_custody_candidate["retry_stage"]
+        )
+        return _publish_pending_custody_candidate(
+            _pending_custody_candidate,
+            staged_attempt,
+        )
 
     with _transition_lock:
         if _pending_unsealed_intervals == 0:
@@ -16268,6 +16807,7 @@ def _custodian_cycle() -> str:
         captured_interval_count = _pending_unsealed_intervals
         snapshot_started = time.perf_counter()
         snapshot = organism.snapshot_lived_state()
+        world_body = bytes(_world().encoded_snapshot())
         snapshot_wall_ms = (time.perf_counter() - snapshot_started) * 1000.0
 
     encode_started = time.perf_counter()
@@ -16290,65 +16830,37 @@ def _custodian_cycle() -> str:
     )
     del envelope
     stage_wall_ms = (time.perf_counter() - stage_started) * 1000.0
-
+    retry_stage = None
     try:
-        with _transition_lock:
-            current = _restored
-            if (
-                current is None
-                or current.organism is not organism
-                or current.pointer != predecessor
-                or _custody_trajectory_epoch != trajectory_epoch
-            ):
-                discard_staged_native_organism(staged)
-                return "superseded"
-            organism.validate_lived_checkpoint(checkpoint)
-            publish_started = time.perf_counter()
-            published = publish_staged_native_organism(
-                staged,
-                expected_predecessor_sha256=predecessor.state_sha256,
-                object_store=_object_store(),
-                max_envelope_bytes=admission.max_envelope_bytes,
-                max_fabric_bytes=admission.max_fabric_bytes,
-                max_logical_peak_bytes=admission.max_logical_peak_bytes,
-            )
-            try:
-                organism.adopt_published_lived_checkpoint(checkpoint)
-            except BaseException as error:
-                _restored = None
-                _boot_error = (
-                    "published custodian checkpoint could not be adopted by "
-                    f"the resident recovery boundary: {type(error).__name__}: {error}"
-                )
-                raise RuntimeError(_boot_error) from error
-            publish_wall_ms = (time.perf_counter() - publish_started) * 1000.0
-            _restored = RestoredNativeOrganism(
-                organism=organism,
-                pointer=published.pointer,
-            )
-            _pending_unsealed_intervals = max(
-                0,
-                _pending_unsealed_intervals - captured_interval_count,
-            )
-            _pending_chain_predecessor_sha = None
-            _checkpoint_requested.clear()
-            if _pending_unsealed_intervals >= _checkpoint_every_intervals():
-                _checkpoint_requested.set()
-            _last_custodian_evidence = {
-                "checkpoint_tick": published.pointer.organism_tick,
-                "state_sha256": published.pointer.state_sha256,
-                "captured_interval_count": captured_interval_count,
-                "remaining_interval_count": _pending_unsealed_intervals,
-                "snapshot_wall_ms": round(snapshot_wall_ms, 1),
-                "encode_wall_ms": round(encode_wall_ms, 1),
-                "stage_wall_ms": round(stage_wall_ms, 1),
-                "publish_and_adopt_wall_ms": round(publish_wall_ms, 1),
-            }
+        retry_stage = clone_staged_native_organism(staged)
+        world_pair = _publish_world_recovery_pair(
+            checkpoint.state_sha256,
+            world_body,
+        )
+        candidate = {
+            "admission": admission,
+            "captured_interval_count": captured_interval_count,
+            "checkpoint": checkpoint,
+            "encode_wall_ms": encode_wall_ms,
+            "organism": organism,
+            "predecessor": predecessor,
+            "retry_stage": retry_stage,
+            "snapshot_wall_ms": snapshot_wall_ms,
+            "stage_wall_ms": stage_wall_ms,
+            "trajectory_epoch": trajectory_epoch,
+            "world_pair": world_pair,
+        }
+        _pending_custody_candidate = candidate
+        return _publish_pending_custody_candidate(candidate, staged)
     except BaseException:
-        discard_staged_native_organism(staged)
+        if _pending_custody_candidate is None:
+            discard_staged_native_organism(staged)
+            if retry_stage is not None:
+                discard_staged_native_organism(retry_stage)
+            current_pointer = _read_current(STATE_ROOT)
+            if current_pointer is not None and _world_recovery_marker_present():
+                _reconcile_world_recovery_store(current_pointer)
         raise
-    _refresh_public_observation_cache()
-    return "checkpointed"
 
 
 def _custodian_loop() -> None:
@@ -16361,8 +16873,15 @@ def _custodian_loop() -> None:
         global _last_custodian_error
         try:
             outcome = _custodian_cycle()
-            if outcome == "checkpointed":
+            if outcome in {"checkpointed", "cleanup_completed"}:
                 _last_custodian_error = None
+            elif outcome == "checkpointed_cleanup_pending":
+                _last_custodian_error = {
+                    "error": "CURRENT committed; predecessor cleanup pending",
+                    "failed_at_unix_seconds": int(time.time()),
+                    "pending_unsealed_intervals": _pending_unsealed_intervals,
+                    "phase": "post_current_cleanup",
+                }
         except BaseException as error:
             outcome = f"failed:{type(error).__name__}"
             _last_custodian_error = {
@@ -16373,7 +16892,7 @@ def _custodian_loop() -> None:
             if _restored is not None:
                 _checkpoint_requested.set()
         detail = ""
-        if outcome == "checkpointed" and _last_custodian_evidence is not None:
+        if outcome.startswith("checkpointed") and _last_custodian_evidence is not None:
             detail = " " + " ".join(
                 f"{key}={value}"
                 for key, value in _last_custodian_evidence.items()

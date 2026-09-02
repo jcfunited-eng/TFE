@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import inspect
 import json
-import pytest
+from pathlib import Path
 import threading
 from types import SimpleNamespace
+
+import pytest
 
 from dsf_ai_service import native_production_app as production
 from dsf_ai_service.substrate.embodiment_world import (
@@ -129,6 +131,69 @@ def test_unattended_transport_advances_and_persists_world_owned_time(
     assert execution.after.revision == before.revision + 1
     assert persisted == [world.encoded_snapshot()]
     assert world.recent_applied_receipts() == ()
+
+
+def test_current_body_receipt_selects_its_exact_world_and_retires_orphans(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    body_one = "11" * 32
+    body_two = "22" * 32
+    orphan_body = "33" * 32
+    world_one = b"authenticated-world-one"
+    world_two = b"authenticated-world-two"
+    independently_newer = b"independently-newer-world-must-not-win"
+
+    production._complete_world_recovery_bootstrap(body_one, world_one)
+    production._publish_world_recovery_pair(body_two, world_two)
+    production._publish_world_recovery_pair(orphan_body, independently_newer)
+    production._persist_world_body(independently_newer)
+    pointer = SimpleNamespace(
+        state_sha256=body_two,
+        predecessor_state_sha256=body_one,
+    )
+
+    retired_count, retired_bytes = production._reconcile_world_recovery_store(
+        pointer
+    )
+
+    assert retired_count == 2
+    assert retired_bytes > len(independently_newer)
+    assert production._read_world_recovery_pair(body_two) == world_two
+    assert production._read_world_recovery_pair(body_one) == world_one
+    assert (tmp_path / production.WORLD_STATE_FILE).read_bytes() == independently_newer
+    orphan_association = (
+        tmp_path
+        / production.WORLD_RECOVERY_ASSOCIATIONS_DIRECTORY
+        / f"{orphan_body}{production.WORLD_RECOVERY_ASSOCIATION_SUFFIX}"
+    )
+    assert not orphan_association.exists()
+
+
+def test_matched_world_corruption_refuses_instead_of_using_legacy_world(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
+    body_receipt = "44" * 32
+    world_body = b"matched-world"
+    production._complete_world_recovery_bootstrap(body_receipt, world_body)
+    production._persist_world_body(b"legacy-world")
+    association = (
+        tmp_path
+        / production.WORLD_RECOVERY_ASSOCIATIONS_DIRECTORY
+        / f"{body_receipt}{production.WORLD_RECOVERY_ASSOCIATION_SUFFIX}"
+    )
+    association.chmod(0o600)
+    association.write_bytes(b"corrupt")
+
+    try:
+        production._read_world_recovery_pair(body_receipt)
+    except RuntimeError as error:
+        assert "association changed byte count" in str(error)
+    else:
+        raise AssertionError("corrupt matched world association was accepted")
 
 
 def test_continuous_world_interval_reaches_native_action_and_sensed_return(
@@ -328,6 +393,9 @@ def test_unattended_transport_yields_after_one_physical_hop() -> None:
 
 def test_public_observation_read_is_inert(monkeypatch) -> None:
     attempted = threading.Event()
+    checkpoint_requested = threading.Event()
+    cleanup = object()
+    candidate = object()
     monkeypatch.setattr(
         production,
         "_attempt_unattended_interval",
@@ -335,12 +403,18 @@ def test_public_observation_read_is_inert(monkeypatch) -> None:
     )
     monkeypatch.setattr(production, "_public_observation_body", b"{}")
     monkeypatch.setattr(production, "_public_observation_etag", '"test"')
+    monkeypatch.setattr(production, "_checkpoint_requested", checkpoint_requested)
+    monkeypatch.setattr(production, "_pending_custody_cleanup", cleanup)
+    monkeypatch.setattr(production, "_pending_custody_candidate", candidate)
 
     response = production.native_observation()
 
     assert response.status_code == 200
     assert json.loads(response.body) == {}
     assert attempted.is_set() is False
+    assert checkpoint_requested.is_set() is False
+    assert production._pending_custody_cleanup is cleanup
+    assert production._pending_custody_candidate is candidate
 
 
 def test_one_process_thread_delivers_and_stops(monkeypatch) -> None:

@@ -96,7 +96,9 @@ class _ObjectStore:
         byte_count: int,
         sha256: str,
     ) -> None:
-        body = self.objects[key]
+        body = self.objects.get(key)
+        if body is None:
+            return
         assert len(body) == byte_count
         assert hashlib.sha256(body).hexdigest() == sha256
         del self.objects[key]
@@ -242,6 +244,32 @@ def test_already_encoded_lived_checkpoint_stages_exactly_once(tmp_path: Path) ->
     assert staged.state_bytes == len(body)
     assert staged.state_sha256 == hashlib.sha256(body).hexdigest()
     assert _decode(staged.path.read_bytes(), body) == body
+
+
+def test_compact_retry_clone_is_exact_and_independently_discardable(
+    tmp_path: Path,
+) -> None:
+    body = _state("replace-only-retry")
+    staged = store.stage_native_organism_state_bytes(
+        tmp_path,
+        body,
+        identity=IDENTITY,
+        organism_tick=42,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
+
+    retry = store.clone_staged_native_organism(staged)
+
+    assert retry != staged
+    assert retry.path != staged.path
+    assert retry.path.read_bytes() == staged.path.read_bytes()
+    assert retry.state_sha256 == staged.state_sha256
+    assert retry.stored_sha256 == staged.stored_sha256
+    store.discard_staged_native_organism(staged)
+    assert retry.path.is_file()
+    assert _decode(retry.path.read_bytes(), body) == body
+    store.discard_staged_native_organism(retry)
+    assert not retry.path.exists()
 
 
 def test_stage_fsync_failure_cleans_only_its_private_stage(
@@ -424,13 +452,26 @@ def test_failure_after_current_replace_reports_new_durable_current(
         if step == "after_current_replace":
             raise RuntimeError("injected committed publication")
 
-    with pytest.raises(RuntimeError, match="committed publication"):
+    with pytest.raises(
+        store.CommittedNativeOrganismPublicationError,
+        match="CURRENT committed",
+    ) as captured:
         _publish(
             third_stage,
             remote,
             second_publication.pointer.state_sha256,
             inject,
         )
+
+    committed = captured.value
+    assert committed.published.pointer.state_sha256 == (
+        hashlib.sha256(third.save()).hexdigest()
+    )
+    assert committed.cleanup.successor == committed.published.pointer
+    store.retry_committed_native_organism_cleanup(
+        committed.cleanup,
+        object_store=remote,
+    )
 
     restored = _restore(tmp_path)
     assert restored.organism.save() == third.save()
@@ -452,6 +493,62 @@ def test_failure_after_current_replace_reports_new_durable_current(
         for key, body in remote.objects.items()
     } == {second.save(), third.save()}
     assert first_publication.pointer.state_sha256 not in remote.objects
+
+
+def test_predecessor_cleanup_failure_is_committed_and_retries_cleanup_only(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    class OneDeleteFailureStore(_ObjectStore):
+        def __init__(self) -> None:
+            super().__init__()
+            self.fail_next_delete = False
+
+        def delete_if_exact(self, key: str, *, byte_count: int, sha256: str) -> None:
+            if self.fail_next_delete:
+                self.fail_next_delete = False
+                raise OSError("injected predecessor cleanup failure")
+            super().delete_if_exact(key, byte_count=byte_count, sha256=sha256)
+
+    remote = OneDeleteFailureStore()
+    first, first_publication, _second, second_publication = _publish_pair(
+        tmp_path, _concrete_native_boundary, remote
+    )
+    third, third_stage = _stage(
+        tmp_path, _concrete_native_boundary, "third-cleanup", 12
+    )
+    remote.fail_next_delete = True
+
+    with pytest.raises(
+        store.CommittedNativeOrganismPublicationError,
+        match="cleanup remains",
+    ) as captured:
+        _publish(
+            third_stage,
+            remote,
+            second_publication.pointer.state_sha256,
+        )
+
+    committed = captured.value
+    assert _restore(tmp_path).organism.save() == third.save()
+    assert committed.published.pointer == store._read_current(tmp_path)
+    retired_key = store._remote_key(first_publication.pointer.state_sha256)
+    assert retired_key in remote.objects
+
+    store.retry_committed_native_organism_cleanup(
+        committed.cleanup,
+        object_store=remote,
+    )
+
+    assert retired_key not in remote.objects
+    assert {
+        path.stem
+        for path in (tmp_path / store.GENERATIONS_DIRECTORY).glob("*.glorun")
+    } == {
+        second_publication.pointer.state_sha256,
+        committed.published.pointer.state_sha256,
+    }
+    assert first.save() != third.save()
 
 
 def test_expected_predecessor_is_mandatory_and_exact(
@@ -730,7 +827,11 @@ def test_cold_reconciliation_removes_only_orphan_stages_when_current_exists(
     sentinel = tmp_path / "not-a-stage.glorun"
     sentinel.write_bytes(b"retained")
 
-    retired = store.reconcile_orphaned_staged_native_organisms(tmp_path)
+    retired = store.reconcile_orphaned_staged_native_organisms(
+        tmp_path,
+        object_store=remote,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
 
     assert retired == (1, orphan.stored_bytes)
     assert not orphan.path.exists()
@@ -747,7 +848,11 @@ def test_cold_reconciliation_preserves_stage_as_damage_evidence_without_current(
         tmp_path, _concrete_native_boundary, "unpublished-life", 1
     )
 
-    assert store.reconcile_orphaned_staged_native_organisms(tmp_path) == (0, 0)
+    assert store.reconcile_orphaned_staged_native_organisms(
+        tmp_path,
+        object_store=_ObjectStore(),
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    ) == (0, 0)
     assert staged.path.exists()
 
 
@@ -769,7 +874,11 @@ def test_cold_reconciliation_retires_crash_placed_unpublished_generation(
     os.replace(orphan.path, orphan_generation)
     orphan_generation.chmod(0o444)
 
-    retired = store.reconcile_orphaned_staged_native_organisms(tmp_path)
+    retired = store.reconcile_orphaned_staged_native_organisms(
+        tmp_path,
+        object_store=remote,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
 
     assert retired == (1, orphan.stored_bytes)
     assert not orphan_generation.exists()
@@ -786,6 +895,79 @@ def test_cold_reconciliation_retires_crash_placed_unpublished_generation(
     )
     assert _restore(tmp_path).organism.save() == successor.save()
     assert successor_publication.pointer.organism_tick == 2
+
+
+def test_cold_reconciliation_retires_exact_crash_uploaded_remote_candidate(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    remote = _ObjectStore()
+    _resident, published_stage = _stage(
+        tmp_path, _concrete_native_boundary, "current", 1
+    )
+    published = _publish(published_stage, remote)
+    _next, orphan = _stage(
+        tmp_path, _concrete_native_boundary, "uploaded-before-current", 2
+    )
+    remote.put_if_absent(
+        store._remote_key(orphan.state_sha256),
+        store._stream_file(orphan.path),
+        byte_count=orphan.stored_bytes,
+        sha256=orphan.stored_sha256,
+    )
+    retry_stage = store.clone_staged_native_organism(orphan)
+    orphan_generation = store._generation_path(tmp_path, orphan.state_sha256)
+    os.replace(orphan.path, orphan_generation)
+    orphan_generation.chmod(0o444)
+
+    retired = store.reconcile_orphaned_staged_native_organisms(
+        tmp_path,
+        object_store=remote,
+        max_envelope_bytes=MAX_ENVELOPE_BYTES,
+    )
+
+    assert retired == (2, orphan.stored_bytes + retry_stage.stored_bytes)
+    assert store._remote_key(orphan.state_sha256) not in remote.objects
+    assert not orphan_generation.exists()
+    assert not retry_stage.path.exists()
+    assert store._read_current(tmp_path) == published.pointer
+
+
+def test_cold_remote_cleanup_failure_preserves_crash_evidence_and_current(
+    tmp_path: Path,
+    _concrete_native_boundary,
+) -> None:
+    class RefusingDeleteStore(_ObjectStore):
+        def delete_if_exact(
+            self, key: str, *, byte_count: int, sha256: str
+        ) -> None:
+            raise OSError("injected cold remote cleanup refusal")
+
+    remote = RefusingDeleteStore()
+    _resident, published_stage = _stage(
+        tmp_path, _concrete_native_boundary, "current", 1
+    )
+    published = _publish(published_stage, remote)
+    _next, orphan = _stage(
+        tmp_path, _concrete_native_boundary, "unretired-remote", 2
+    )
+    remote.put_if_absent(
+        store._remote_key(orphan.state_sha256),
+        store._stream_file(orphan.path),
+        byte_count=orphan.stored_bytes,
+        sha256=orphan.stored_sha256,
+    )
+
+    with pytest.raises(OSError, match="cold remote cleanup refusal"):
+        store.reconcile_orphaned_staged_native_organisms(
+            tmp_path,
+            object_store=remote,
+            max_envelope_bytes=MAX_ENVELOPE_BYTES,
+        )
+
+    assert orphan.path.exists()
+    assert store._remote_key(orphan.state_sha256) in remote.objects
+    assert store._read_current(tmp_path) == published.pointer
 
 
 def test_module_has_no_forbidden_or_provisional_persistence_surface() -> None:
