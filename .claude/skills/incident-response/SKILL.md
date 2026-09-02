@@ -54,6 +54,12 @@ description: Emergency and runaway-process discipline for Guala/TFE work — the
   twice tonight (the command text contains the pattern) and killed my own
   ledger write mid-commit. Find the PID in one command, kill it in the
   NEXT command.
+- REGISTER THE LISTENING PID, NOT `$!`: the backgrounded-launcher PID is
+  not reliably the server's. After every launch, capture the pid that
+  actually owns the port (`pgrep -f "uvicorn.*<port>"` or `ss -tlnp`)
+  and register THAT. 2026-09-02: three "kills" left an old server
+  squatting on 8931 silently answering probes with stale physics — a
+  fresh-code bench was graded on a stale process for two rounds.
 - LAUNCH VIA SCRIPT FILES with `cd` baked in — I dropped the cd four
   consecutive times re-pasting an inline launch and ran the wrong code.
 - REGISTER AND SWEEP: before ending any work block, list what you started
