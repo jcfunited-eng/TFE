@@ -2103,6 +2103,11 @@ _mounted_lesson_anatomy: Any | None = None
 # through, which a plain lock could not do.
 _transition_lock = threading.RLock()
 _live_sight_evidence: dict[str, Any] | None = None
+# Bounded witness of the light that last reached her 27 retinal sites.
+# Pending is written at episode construction; the public witness is
+# PROMOTED only after that intake genuinely commits (state vs step honesty).
+_pending_reached_retina: dict[str, Any] | None = None
+_last_reached_retina: dict[str, Any] | None = None
 # Truth-coupling for live hearing: written ONLY after a concurrent audiovisual
 # intake has really committed and persisted, under the same lock as sight.
 _live_hearing_evidence: dict[str, Any] | None = None
@@ -2961,6 +2966,31 @@ def _sensory_record(native: dict[str, Any] | None = None) -> dict[str, object]:
             "reported mounted only from a real committed live-sight "
             "transition (see live_camera)",
             live_camera=live_sight,
+            # The light that last reached her 27 retinal sites, promoted
+            # only from a genuinely committed intake (9 columns x 3 rows,
+            # values scaled 0-255 for display; the exact floats are the
+            # committed episode's own).
+            retina_luminance=(
+                [
+                    max(0, min(255, round(255 * value)))
+                    for value in _last_reached_retina["values"]
+                ]
+                if _last_reached_retina is not None
+                and len(_last_reached_retina["values"]) == 27
+                else None
+            ),
+            retina_rows=3 if _last_reached_retina is not None else None,
+            retina_columns=9 if _last_reached_retina is not None else None,
+            retina_source=(
+                _last_reached_retina.get("assembly_id")
+                if _last_reached_retina is not None
+                else None
+            ),
+            retina_organism_tick=(
+                _last_reached_retina.get("organism_tick")
+                if _last_reached_retina is not None
+                else None
+            ),
         ),
         "auditory": _section(
             True,
@@ -12657,6 +12687,14 @@ def _perform_admitted_intake_locked(
         articulation["externally_reassembled_formation_causal_path"] = (
             externally_reassembled_articulation_causal_use
         )
+    global _last_reached_retina
+    if _pending_reached_retina is not None:
+        _last_reached_retina = {
+            **_pending_reached_retina,
+            "organism_tick": persisted_tick
+            if (persisted_tick := last_hop.get("organism_tick")) is not None
+            else None,
+        }
     _last_transition_evidence = {
         **last_hop,
         "organism_identity": _sealed_pointer.identity,
@@ -14307,6 +14345,11 @@ def _whole_roster_hop_episode(
     groups retain the separate receptor anatomies without evaluating the full
     joint field once per organ.
     """
+    global _pending_reached_retina
+    _pending_reached_retina = {
+        "values": tuple(float(v) for v in surface_levels),
+        "assembly_id": assembly_id,
+    }
 
     frame_count = len(times)
     incident_retinal_signals = surface_trajectories or tuple(
