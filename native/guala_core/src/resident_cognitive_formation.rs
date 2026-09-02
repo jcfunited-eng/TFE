@@ -10171,8 +10171,23 @@ impl ResidentCognitiveFormationState {
     ) -> Result<Vec<u8>, FormationError> {
         if format == CognitiveCodecFormat::V26 {
             // Historical V26--V33 bodies share the current compact byte
-            // layout but predate the V34 fixed vocal-anatomy invariant.
+            // layout EXCEPT the V40 vocal-body marker field, which
+            // postdates them (c978fbfb): a V26-family decode consumes no
+            // marker byte, so leaving it in shifted every later field by
+            // one and broke this shim's own documented contract. A state
+            // carrying a dedicated vocal effector lineage has no V26
+            // representation at all and is refused rather than guessed.
+            if self.vocal_articulatory_effector_lineage.is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
             let (mut encoded, _) = self.encode_current(max_encoded_bytes, false, false)?;
+            let marker_offset = MAGIC_V26.len()
+                + std::mem::size_of::<u16>()
+                + 2 * std::mem::size_of::<u64>();
+            if encoded.get(marker_offset) != Some(&0) {
+                return Err(FormationError::NoncanonicalState);
+            }
+            encoded.remove(marker_offset);
             encoded[..MAGIC_V26.len()].copy_from_slice(MAGIC_V26);
             encoded[MAGIC_V26.len()..MAGIC_V26.len() + std::mem::size_of::<u16>()]
                 .copy_from_slice(&VERSION_V26.to_le_bytes());
@@ -29198,16 +29213,29 @@ mod tests {
                     .then_some(*lineage)
             })
             .collect::<Vec<_>>();
-        assert_eq!(articulatory.len(), 1);
+        // V40/V41 law supersedes the contact bridge these asserts once
+        // pinned. The V34 boundary mounts the historical fixed-route cell;
+        // V41 deliberately mounts one NEW dedicated vocal-body cell from
+        // unclaimed resting anatomy "instead of choosing among historical
+        // layer-13 cells" (its own doc), so this body lawfully carries TWO
+        // layer-13 cells — both electrically isolated, the vocal body
+        // addressed directly through the dedicated effector lineage.
+        assert_eq!(articulatory.len(), 2);
+        let effector = restored
+            .vocal_articulatory_effector_lineage
+            .expect("dedicated vocal effector mounted at the V41 boundary");
+        assert!(articulatory.contains(&effector));
         for motor in vocal_motors {
-            assert!(restored
-                .electrical_fabric
-                .contains_contact(motor, articulatory[0]));
+            for cell in &articulatory {
+                assert!(!restored.electrical_fabric.contains_contact(motor, *cell));
+            }
         }
-        assert!(!restored
-            .electrical_fabric
-            .contains_contact(non_vocal_motor, articulatory[0]));
-        assert_eq!(restored.electrical_fabric.contact_count(), 10);
+        for cell in &articulatory {
+            assert!(!restored
+                .electrical_fabric
+                .contains_contact(non_vocal_motor, *cell));
+        }
+        assert_eq!(restored.electrical_fabric.contact_count(), 0);
         assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
