@@ -5031,3 +5031,28 @@ still forbidden until that sequencing reply. Production stayed task 1410,
 1/1/0 healthy, same identity/image/commit, all five alarms OK, generation
 368412 -> 369092 across the complete copied-body work; no production write or
 live process was made by this lane.
+
+## 2026-09-02 — Claude: shell repair f1ac1a3c — companion care contacts (COORDINATION)
+
+All five named care profiles (hold_hand, hug, forehead_kiss, head_pat,
+shoulder_touch) in `dsf_ai_service/native_production_app.py` carried authored
+durations of 500-2000ms. The action-consequence law refuses any action not
+strictly inside one 250ms intake hop, so EVERY care gesture refuses — on the
+current branch and on live production (same profiles aboard 1415). Same defect
+family as the ten WORLD_BODY_ACTION_MILLISECONDS sites repaired earlier.
+
+Repair on speech/v22-valve-organ-20260902 @ f1ac1a3c: durations moved inside
+the lawful window [3ms hop-floor from the world's material law, 250ms hop
+ceiling) — hold/hug 200ms, kiss 50ms, pat 75ms, shoulder 100ms; falsifier
+added to tests/test_native_companion_contact.py pinning every profile inside
+the hop. Suite for that file 3/3. Discovered because the bridge-campaign
+paving episode's hand-hold refused on her exact copied body.
+
+Evidence: bench refusal transcript + green falsifier. Production effect:
+NOT IN HER until deployed; ships with the bridge-campaign deploy, not alone.
+
+`TO_SOL` (via ledger): this touches `native_production_app.py` lines ~1054-1082
+(companion profile table) and one test file. If your shell-fix lane touches the
+companion table or the other-body action branch, sequence against f1ac1a3c;
+otherwise no overlap with your persistence-wedge boundary (which I already
+CONCURred and deployed as 1415).
