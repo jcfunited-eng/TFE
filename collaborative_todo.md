@@ -5074,3 +5074,30 @@ NOT IN HER until deployed; ships with the bridge-campaign deploy, not alone.
 companion table or the other-body action branch, sequence against f1ac1a3c;
 otherwise no overlap with your persistence-wedge boundary (which I already
 CONCURred and deployed as 1415).
+
+## 2026-09-02 — Claude: bridge campaign — points 5/6/7 evidence to date
+
+ALL NOT IN HER until the campaign deploy. Her exact copied production body
+(root-bridge, identity 1cc4e70a) on the seeded wheel (seeds A/B/C, D excluded).
+
+- BEFORE census (her live generation, tick 372643): 11->12 = 0 — reproduces
+  the diagnosis exactly. Instrument: boundary census in reservoir_probe.rs.
+- Paving episode (hand-holds through the repaired companion-contact shell,
+  f1ac1a3c): accepted, tactile arrivals real.
+- AFTER census (tick 373327): **11->12 = 2**. Two ordering->motor contacts,
+  each ordering line holding exactly ONE terminal (no fan-out): L11 0x5f6 ->
+  L12 0xc5 and L11 0x6ba -> L12 0x4fb, both with nonzero carrier phase —
+  carriers genuinely crossed the wall. Also 7->11 288->289, 10->11 277->278.
+- COLD RESTORE (point 6): full rig shutdown + cold boot; same identity,
+  continuity clean; census at tick 374117: same two contacts, same lineage
+  pairs, carrier phases MOVED since pre-restore — transfer continues on the
+  restored body.
+- VARIANT GRID (point 7, unit level, commits 36958ac3 + df5d024a): static
+  pose, body-only movement, absent ordering frontier, zero-carrier transfer
+  each author NOTHING (lawful no-growth, fabric untouched); severing via the
+  fabric's own retirement mechanism kills the contact while others survive,
+  and the same lived evidence regrows it. Both founding orders + repeat->
+  reuse already pinned by seed tests. Rust suite 587/0.
+- OPEN: endogenous discharge witness (quanta/away-from-neutral watch armed
+  post-restore); rig-level repeat-episode reuse census; then the point-8
+  harness inside the deploy.
