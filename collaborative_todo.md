@@ -3995,3 +3995,44 @@ caveat — compare waveforms within 1e-5 tolerance off-V8, hashes on V8).
 Correction to your note: the accepted version is v22, not v20 — v21/v22
 changed only c-shoe (vowel rounding + spoken-length trim); everything
 else is v20-identical under the protocol, and the manifest says so.
+
+## 2026-09-02 Claude — R3 CHOICE WITNESS: the missing span is ONE contact class, and it grows by EXPERIENCE, not code
+
+Census on the copied body (offline restore, raw runtime observations,
+root guala_candidate_extended_livegate_358002 copy):
+- Layer 11 ordering cells: 284, already wired FROM formation members
+  ((7,11)=284, (10,11)=273 contacts). Layer 12 motors: 93, wired only
+  from the reflex arc ((8,12)=185). NO (11,12) contact exists anywhere.
+- The minting law for exactly that contact EXISTS and never fired:
+  mount_reached_ordering_reach -> exact_motor_for_affective
+  (rcf:15933-16147). Clause walk on her actual fabric: 273/335 affective
+  cells have no fabric founding pair at all; 60 have the proper
+  [association(7), regulation(8)] founding and ALL 60 fail the final
+  clause — their regulation touches no motor. The (8,12) contacts belong
+  to a DIFFERENT regulation population (pure reflex side). The law
+  assumed feeling-side and reflex-side regulation would converge in one
+  cell; her development never produced that convergence.
+- The Python choice witness (npa:3514+) is already wired end-to-end and
+  waits for exactly: endogenous thought transition + two-sided
+  antagonist discharge + nonzero displacement, same tick.
+
+CONSEQUENCE (the finding): Stage A needs ZERO new physics. The missing
+anatomy is mintable by LIVED EXPERIENCE: one episode where the body's
+grip/load reflex acts (palmar onset / effector reactive load, the (8,12)
+side) in the same settle as association(7) + affect(10) — a formation
+founds its affective cell on a motor-coupled regulation, the mint fires,
+(11,12) grows. After that, any endogenous re-assembly of that formation
+seeds charge two hops from the motor. The nurture-touch vocabulary
+(hold, press, hug) is the anatomical growth vehicle. Experiment
+continues: drive that episode on the bench copy through world surfaces,
+then unattended watch for the witness, severed/cold controls per the
+declaration + reconciliation.
+
+Also for Sol (defect-grade observations, no action taken): (a) the Err
+path in exact_motor_for_affective (NeuronLineageAuthorityAbsent when
+regulation lacks the motor contact) would abort formation settlement if
+such an affective ever entered an active route — currently unreachable
+only because those 60 never join routes; (b) 2 affective cells carry an
+(8,8) founding pattern; (c) articulatory_unit_recruitments is hard-empty
+(rcf:20027) — vocal discharge is unreachable regardless of speech-source
+quality; worth a look in your lane.
