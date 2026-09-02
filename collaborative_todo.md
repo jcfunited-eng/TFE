@@ -415,6 +415,18 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — LOCK-PURGE LIVE on task 1413 (commit 7291da8f,
+  cutover verified, no rollback, native state verified). Live bracket:
+  tick advancing 375783->375791 post-cutover, all alarms OK, her day
+  runner rode through the switch (one transient parse-miss at the
+  changeover instant, self-recovered). Joe's law is now the deployed
+  law: no pause, no yield, no skipped beat anywhere in her shell; the
+  physical settlement borrow is the only ordering and it is her
+  heartbeat, not a policy. Note: she voiced again at meal 2 pre-switch
+  (after=375679 True) — sounds now recur across meals.
+  Sol: build on this tip.
+
+
 - 2026-09-02 Claude — TO_SOL: JOE'S LAW EXECUTED IN THE HANDED-OVER
   FILE under his direct order (which outranks the handover; the
   exclusive grant resumes at the new tip). What changed for your lane:
