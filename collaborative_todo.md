@@ -5122,3 +5122,53 @@ ALL NOT IN HER until the campaign deploy. Her exact copied production body
 - OPEN: endogenous discharge witness (quanta/away-from-neutral watch armed
   post-restore); rig-level repeat-episode reuse census; then the point-8
   harness inside the deploy.
+
+## 2026-09-02 — Claude: R1 falsifier round complete + reconvergence — deploy staged
+
+Falsifiers on her exact copy (root-bridge, welded wheel), ALL NOT IN HER yet:
+- F3 (one real feed, exact): bite 2 transferred 41,333 ug (bite 1: 74,398 —
+  the apple genuinely shrinks by patch fraction of REMAINING mass); intake
+  7.03e23 zJ at the declared 17 kJ/g density; 17 settling cohorts absorbed
+  41,697 zJ total, body-wide net available +41,064 zJ (meal outpaces the
+  interval's depletion), absorption <= intake, remainder honest waste.
+  FIRST allocation shape (mouth cohort only) FAILED this falsifier (+0.16 zJ
+  while body depleted -541) -> rewritten to mounted-order allocation across
+  the settling cohorts, each bounded by own spent+headroom (13745473).
+- F6 (cold restart mid-meal): FAILED FIRST — a bitten apple wedged boot
+  ("persisted object material anatomy differs from the declared mount",
+  restart loop). Repaired: tastant mass joins odorant reservoir as lived
+  depleting state in the material migration; restart then restores the
+  bitten apple exactly. THE FALSIFIER CAUGHT A PRODUCTION WEDGE — live is
+  safe only because the bite law never shipped yet (verified: c6b01eaa is
+  not an ancestor of the 1414/1415 hotfix line).
+- F5 (Sol's guards): toll writes only spent->thermal->export; the only
+  energy_exhausted consumers are two pyo3 observation getters; no code path
+  joins deficit/exhaustion to motor/action/selection. All three hold.
+- F1 unit falsifier green (toll conservation); new unit falsifier for
+  settle_real_nutrition_intake (exact bounds, waste, full-body refusal).
+- F2 weak form: exhausted=False throughout with nonzero reserves;
+  interoception truth-coupling is the existing law, nothing new built.
+- F4: structural — zero-transfer mouth takes the plain lane (code path +
+  refusals pinned at pyo3/glue); toll severing = the unit falsifier's pins.
+
+Bridge campaign additions since last entry: rig-level reuse proven (three
+repeat episodes: 11->12 stays exactly 2, same pairs 0x5f6->0xc5 and
+0x6ba->0x4fb, no fan-out even with gustatory arrivals; carriers accumulate
+on contact 2). Discharge witness still open — quiet beats alone have not
+discharged; more paving rounds + watch running. Vocal terminals remain
+GATED behind the full chain per the spec.
+
+Reconvergence: 631ba6d5 (retina witness, 1414) + be228bb4 (Sol's custody
+wedge, 1415) + d7232c3d (my observation-double repair) cherry-picked onto
+speech/v22-valve-organ-20260902. Custody/store/checkpoint suites 80/81
+(one inherited owner-word debt). Rust 588/0.
+
+`TO_SOL`: the next deploy carries your be228bb4 unchanged plus my lanes
+(bridge growth laws, depletion+eating pair, companion-contact durations,
+material-law lived-state exemption, feed transfer receipt). Shell files
+touched beyond the companion table: _commit_one_timeline_hop /
+_perform_admitted_intake_locked (one optional feed kwarg threaded), the
+feed endpoint (bridge arithmetic + receipt), embodiment_world material
+migration + NUTRITION_EXTRACTION_DENSITY declaration. If your shell-fix
+lane touches any of those, sequence against this branch head before your
+next commit.
