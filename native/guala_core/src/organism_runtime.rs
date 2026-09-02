@@ -3211,7 +3211,7 @@ impl ResidentOrganismRuntime {
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         // The mandatory-admission law: a bare source episode carries no
         // occurrence admissions, so the cognitive boundary refuses it below.
-        self.prepare_typed(source, None, None, false)
+        self.prepare_typed(source, None, None, false, crate::exact_rational::ExactRational::integer(0))
     }
 
     fn prepare_articulated_body_observation(
@@ -3225,7 +3225,7 @@ impl ResidentOrganismRuntime {
         let intervals = vec![(1_i64, 1_000_i64); BODY_AXES.len()];
         let admitted = admitted_episode_with_authored_intervals(&source, &intervals)
             .map_err(RuntimeError::CognitiveFormation)?;
-        self.prepare_typed(&source, Some(&admitted), None, true)
+        self.prepare_typed(&source, Some(&admitted), None, true, crate::exact_rational::ExactRational::integer(0))
     }
 
     fn commit_admitted_trajectory_direct(
@@ -4408,6 +4408,7 @@ impl ResidentOrganismRuntime {
         admitted_source: Option<&AdmittedJointSourceEpisode>,
         vestibular: Option<&ResidentVestibularIngress>,
         initialize_articulated_body_proprioception: bool,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.unsealed.is_some()
             || self.pending.is_some()
@@ -4462,6 +4463,7 @@ impl ResidentOrganismRuntime {
                     admitted_source,
                     cognitive_budget,
                     &mut self.causal_event_residency,
+                    real_nutrition_intake_zeptojoules,
                 ),
             (None, None) => self
                 .active
@@ -4611,9 +4613,10 @@ impl ResidentOrganismRuntime {
     fn prepare_with_store(
         &mut self,
         source: &NativeJointSourceEpisode,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         let admitted_source = admitted_fixture_episode(source);
-        self.prepare_typed(source, Some(&admitted_source), None, false)
+        self.prepare_typed(source, Some(&admitted_source), None, false, real_nutrition_intake_zeptojoules)
     }
 
     fn commit(&mut self, token: [u8; 32]) -> Result<(), RuntimeError> {

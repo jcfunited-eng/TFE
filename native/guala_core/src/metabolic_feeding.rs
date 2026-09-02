@@ -53,6 +53,9 @@ pub(crate) enum MetabolicError {
     Membrane(MembraneChargeError),
     Neuron(NeuronPhysicalError),
     RecoveryFluid(RecoveryFluidError),
+    /// A full body cannot absorb; the intake is refused, never silently
+    /// accepted as nourishment (resurrected eat-law clause).
+    NothingToRegenerate,
 }
 
 impl From<NeuronPhysicalError> for MetabolicError {
@@ -152,6 +155,76 @@ impl DarkRestNeuronSettlement {
 /// physically depleted recovery lane.  A dark interval is the
 /// stimulus-boundary law's own truth signal (an interval carrying zero
 /// exogenous energy); it is not itself a membrane path or pump.
+/// The exact consequence of one real nutrition intake on the shared body
+/// reservoir — the resurrected 7c245f8d eat law in current units, with the
+/// one dishonest clause removed: its energy no longer comes from a typed
+/// request but from MATTER genuinely transferred out of a world object at
+/// her mouth (the bridge supplies intake_energy_zeptojoules from that
+/// transfer alone).
+///
+/// Conservation, all exact:
+///   * material: available + spent is unchanged — regeneration moves
+///     energy back, never creates it;
+///   * intake: intake == regenerated + unabsorbed waste — every delivered
+///     zeptojoule is absorbed or honestly wasted;
+///   * heat stays on its own existing path, untouched here.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct NutritionIntakeSettlement {
+    pub(crate) successor_reservoir: crate::recovery_fluid_contact::RecoveryFluidReservoirState,
+    pub(crate) regenerated_energy_zeptojoules: ExactRational,
+    pub(crate) unabsorbed_waste_zeptojoules: ExactRational,
+}
+
+pub(crate) fn settle_real_nutrition_intake(
+    reservoir_anatomy: crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy,
+    predecessor: crate::recovery_fluid_contact::RecoveryFluidReservoirState,
+    intake_energy_zeptojoules: ExactRational,
+) -> Result<NutritionIntakeSettlement, MetabolicError> {
+    let wide = |v: ExactRational| {
+        let (n, d) = v.parts();
+        num_rational::BigRational::new(n.into(), d.into())
+    };
+    let zero = num_rational::BigRational::from_integer(0.into());
+    let intake = wide(intake_energy_zeptojoules);
+    if intake < zero {
+        return Err(MetabolicError::MaterialContinuity);
+    }
+    let (available_capacity, _, _) = reservoir_anatomy.capacities();
+    let (available, spent, thermal) = predecessor.physical_parts();
+    // One zeptojoule of real intake restores one spent zeptojoule to
+    // available; never past capacity, never more than spent exists.
+    let regenerated = intake
+        .clone()
+        .min(wide(spent))
+        .min(wide(available_capacity) - wide(available));
+    if regenerated <= zero {
+        // Honest refusal: a full body wastes the whole intake; it is not
+        // silently accepted as nourishment.
+        return Err(MetabolicError::NothingToRegenerate);
+    }
+    let unabsorbed = intake - regenerated.clone();
+    let narrow = |v: &num_rational::BigRational| -> Result<ExactRational, MetabolicError> {
+        use num_traits::ToPrimitive;
+        ExactRational::from_ratio(
+            v.numer().to_i128().ok_or(MetabolicError::ArithmeticWidth)?,
+            v.denom().to_u128().ok_or(MetabolicError::ArithmeticWidth)?,
+        )
+        .map_err(|_| MetabolicError::ArithmeticWidth)
+    };
+    let successor = crate::recovery_fluid_contact::RecoveryFluidReservoirState::new(
+        reservoir_anatomy,
+        narrow(&(wide(available) + regenerated.clone()))?,
+        narrow(&(wide(spent) - regenerated.clone()))?,
+        thermal,
+    )
+    .map_err(MetabolicError::RecoveryFluid)?;
+    Ok(NutritionIntakeSettlement {
+        successor_reservoir: successor,
+        regenerated_energy_zeptojoules: narrow(&regenerated)?,
+        unabsorbed_waste_zeptojoules: narrow(&unabsorbed)?,
+    })
+}
+
 pub(crate) fn settle_dark_rest_neuron(
     recovery_anatomy: &ReachedRecoveryFluidAnatomy,
     neuron_index: usize,

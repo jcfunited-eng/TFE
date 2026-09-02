@@ -3273,6 +3273,7 @@ pub(crate) fn prepare_reached_cohort_membrane_pumps(
     state: &ReachedCohortState,
     reached_neuron_indices: &[usize],
     interval_microseconds: u32,
+    real_nutrition_intake_zeptojoules: ExactRational,
 ) -> Result<PreparedReachedCohortMembranePumps, ReachedCohortError> {
     if state.neurons.len() != anatomy.neurons.len()
         || anatomy.recovery_fluid.neuron_count() != anatomy.neurons.len()
@@ -3337,6 +3338,27 @@ pub(crate) fn prepare_reached_cohort_membrane_pumps(
     )?;
 
     let mut reservoir = environment.successor;
+    // THE DOORWAY (R1 eating): energy from genuinely transferred world
+    // matter enters the same reservoir inside this lived settlement,
+    // through the resurrected nutrition law. Zero intake settles nothing;
+    // a full body refuses honestly and the intake is reported unabsorbed
+    // by the caller's own accounting.
+    if {
+        let (n, _) = real_nutrition_intake_zeptojoules.parts();
+        n > 0
+    } {
+        match crate::metabolic_feeding::settle_real_nutrition_intake(
+            anatomy.recovery_fluid.reservoir_anatomy(),
+            reservoir,
+            real_nutrition_intake_zeptojoules,
+        ) {
+            Ok(settled) => {
+                reservoir = settled.successor_reservoir;
+            }
+            Err(crate::metabolic_feeding::MetabolicError::NothingToRegenerate) => {}
+            Err(_) => return Err(ReachedCohortError::AnatomyStateWidth),
+        }
+    }
     let mut settled_neurons = Vec::new();
     settled_neurons
         .try_reserve_exact(reached_neuron_indices.len())
@@ -3533,6 +3555,7 @@ pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
         state,
         reached_neuron_indices,
         interval_microseconds,
+        ExactRational::integer(0),
     )?;
     Ok(apply_prepared_reached_cohort_membrane_pumps(
         state, prepared,

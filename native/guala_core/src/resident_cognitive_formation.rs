@@ -7475,6 +7475,7 @@ impl ResidentCognitiveFormationState {
             admitted_source,
             max_encoded_bytes,
             &mut None,
+            ExactRational::integer(0),
         )
     }
 
@@ -7483,12 +7484,15 @@ impl ResidentCognitiveFormationState {
         admitted_source: &AdmittedJointSourceEpisode,
         max_encoded_bytes: usize,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         self.prepare_typed_admitted_transition(
             admitted_source,
             None,
             max_encoded_bytes,
             residency,
+        
+            real_nutrition_intake_zeptojoules,
         )
     }
 
@@ -7527,6 +7531,7 @@ impl ResidentCognitiveFormationState {
             Some(ingress),
             max_encoded_bytes,
             residency,
+            ExactRational::integer(0),
         )
     }
 
@@ -7536,6 +7541,7 @@ impl ResidentCognitiveFormationState {
         vestibular: Option<&ResidentVestibularIngress>,
         max_encoded_bytes: usize,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         // Historical topology corrections execute only at the explicit
         // migration boundary. Re-running them during ordinary cognition made
@@ -7551,6 +7557,8 @@ impl ResidentCognitiveFormationState {
             true,
             true,
             residency,
+        
+            real_nutrition_intake_zeptojoules,
         )
     }
 
@@ -7564,6 +7572,7 @@ impl ResidentCognitiveFormationState {
         seal_successor: bool,
         observe_relations: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
         let settlement_stopwatch = std::time::Instant::now();
         let Self {
@@ -9009,6 +9018,7 @@ impl ResidentCognitiveFormationState {
             &pre_source_membranes,
             &palmar_contact_onset_receptor_lineages,
             &gustatory_contact_onset_receptor_lineages,
+            real_nutrition_intake_zeptojoules,
             initial_vocal_tract_calibration,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
@@ -9408,6 +9418,8 @@ impl ResidentCognitiveFormationState {
             false,
             true,
             residency,
+        
+            ExactRational::integer(0),
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -9417,12 +9429,14 @@ impl ResidentCognitiveFormationState {
         admitted_source: &AdmittedJointSourceEpisode,
         max_encoded_bytes: usize,
         observe_relations: bool,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         self.advance_admitted_transition_with_residency(
             admitted_source,
             max_encoded_bytes,
             observe_relations,
             &mut None,
+            real_nutrition_intake_zeptojoules,
         )
     }
 
@@ -9432,6 +9446,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         observe_relations: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
+        real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
@@ -9445,6 +9460,8 @@ impl ResidentCognitiveFormationState {
             false,
             observe_relations,
             residency,
+        
+            real_nutrition_intake_zeptojoules,
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -9474,6 +9491,8 @@ impl ResidentCognitiveFormationState {
             false,
             observe_relations,
             residency,
+        
+            ExactRational::integer(0),
         )?;
         Ok((prepared.successor, prepared.observation))
     }
@@ -18396,8 +18415,10 @@ fn settle_internal_contact_interval(
     >,
     palmar_contact_onset_receptor_lineages: &[[u8; 16]],
     gustatory_contact_onset_receptor_lineages: &[[u8; 16]],
+    real_nutrition_intake_zeptojoules: ExactRational,
     initial_vocal_tract_calibration: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
+    let nutrition_delivered = std::sync::atomic::AtomicBool::new(false);
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
         events.matches_shape(
             topology_index.flat_locations.len(),
@@ -18749,11 +18770,27 @@ fn settle_internal_contact_interval(
         .copied()
         .map(|cohort_index| {
             let reached_indices = pump_members_by_cohort[cohort_index].clone();
+            // THE DOORWAY'S ENTRY COHORT: real nutrition enters the body
+            // through the mouth's own cohort — the one mounting gustatory
+            // receptor sites — and nowhere else. Every other cohort's
+            // exchange sees zero intake.
+            let cohort_intake = if {
+                let (n, _) = real_nutrition_intake_zeptojoules.parts();
+                n > 0
+            } && cohorts[cohort_index].anatomy.mounts().iter().any(|mount| {
+                mount.source_site().is_some_and(is_gustatory_contact_receptor_site)
+            }) && !nutrition_delivered.swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                real_nutrition_intake_zeptojoules
+            } else {
+                ExactRational::integer(0)
+            };
             let prepared = prepare_reached_cohort_membrane_pumps(
                 &cohorts[cohort_index].anatomy,
                 cohorts[cohort_index].state.as_ref(),
                 &reached_indices,
                 interval_microseconds,
+                cohort_intake,
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
             Ok((cohort_index, reached_indices, prepared))
@@ -26506,6 +26543,7 @@ mod tests {
                 &BTreeMap::new(),
                 &[],
                 &[],
+                ExactRational::integer(0),
                 false,
             )
             .unwrap();
@@ -27930,6 +27968,7 @@ mod tests {
                 &BTreeMap::new(),
                 &[],
                 &[],
+                ExactRational::integer(0),
                 false,
             )
             .unwrap();
@@ -27998,6 +28037,7 @@ mod tests {
                 &BTreeMap::new(),
                 &[],
                 &[],
+                ExactRational::integer(0),
                 false,
             )
             .unwrap();
