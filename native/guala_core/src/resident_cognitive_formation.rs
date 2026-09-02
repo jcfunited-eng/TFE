@@ -15679,8 +15679,16 @@ fn mount_moved_regulation_motor_reach(
         }
     };
     let mut new_contacts = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
+    let moved_in = moved_regulations_by_occurrence
+        .iter()
+        .map(|v| v.len())
+        .sum::<usize>();
+    if moved_in != 0 {
+        eprintln!("R3-TRACE moved_regulations_in={moved_in}");
+    }
     for regulation in moved_regulations_by_occurrence.iter().flatten().copied() {
         let Some(terminal) = load_terminal_for_regulation(regulation)? else {
+            eprintln!("R3-TRACE regulation without unique load terminal");
             continue;
         };
         let motors = cohorts
@@ -15700,11 +15708,14 @@ fn mount_moved_regulation_motor_reach(
             })
             .collect::<Vec<_>>();
         let [motor] = motors.as_slice() else {
+            eprintln!("R3-TRACE terminal without unique motor: {}", motors.len());
             continue;
         };
         if electrical_fabric.contains_contact(regulation, *motor) {
+            eprintln!("R3-TRACE contact already present");
             continue;
         }
+        eprintln!("R3-TRACE GROWING regulation-motor contact");
         if new_contacts
             .iter()
             .any(|(left, right, _)| *left == regulation && right == motor)
@@ -15775,6 +15786,11 @@ fn exact_moved_body_regulations_by_occurrence(
         }
     };
 
+    let regs_in = body_regulations.iter().map(|v| v.len()).sum::<usize>();
+    let moved_in = moved_effectors.iter().map(|v| v.len()).sum::<usize>();
+    if regs_in != 0 || moved_in != 0 {
+        eprintln!("R3-TRACE derive regs_in={regs_in} moved_effectors_in={moved_in}");
+    }
     body_regulations
         .iter()
         .zip(moved_effectors)
@@ -16147,28 +16163,35 @@ fn mount_reached_ordering_reach(
                 matches!(topology_index.layer_of(lineage), Some(7) | Some(8))
                     .then_some(lineage)
             })
-            .take(2)
             .collect::<Vec<_>>();
-        // REPAIR A (bench, MINE-on-trial): the founding pair is a SET, not an
-        // order. The birth law appends the association and regulation contacts
-        // in whichever order the lived interval delivered them; demanding
-        // [association, regulation] specifically made half of all births
-        // permanently unmintable (reproduced on the copied body 2026-09-02:
-        // newborn ...12b3 founded [L8, L7] and the mint returned None forever).
-        let [founding_left, founding_right] = founding.as_slice() else {
-            return Ok(None);
-        };
-        let (founding_association, regulation) = match (
-            topology_index.layer_of(*founding_left),
-            topology_index.layer_of(*founding_right),
-        ) {
-            (Some(7), Some(8)) => (*founding_left, *founding_right),
-            (Some(8), Some(7)) => (*founding_right, *founding_left),
-            _ => return Ok(None),
-        };
-        if founding_association != association {
+        // REPAIR A+C (bench, MINE-on-trial). A: the founding pair is a SET,
+        // not an order — the birth law appends association and regulation in
+        // whichever order the lived interval delivered them (reproduced:
+        // newborn ...12b3 founded [L8, L7], unmintable under the ordered
+        // rule). C: the affective's identity stays its FIRST layer-7 contact,
+        // but the motor path may ride ANY of its LIVED layer-8 regulation
+        // contacts, in contact order — not only the founding one. Every such
+        // contact is persisted anatomy grown by the pairing law from real
+        // proved-body evidence; restricting the walk to the birth regulation
+        // made motor-capable lived regulations invisible (reproduced: four
+        // affectives carry real contacts to the motor-coupled palmar
+        // regulation ...19a3, none as their founding).
+        let first_association = founding
+            .iter()
+            .copied()
+            .find(|lineage| topology_index.layer_of(*lineage) == Some(7));
+        if first_association != Some(association) {
             return Ok(None);
         }
+        let candidate_regulations = founding
+            .iter()
+            .copied()
+            .filter(|lineage| topology_index.layer_of(*lineage) == Some(8))
+            .collect::<Vec<_>>();
+        if candidate_regulations.is_empty() {
+            return Ok(None);
+        }
+        let walk_regulation = |regulation: [u8; 16]| -> Result<Option<[u8; 16]>, FormationError> {
         let regulation_flat = topology_index.flat_for_lineage(regulation)?;
         let integrations = topology_index.neighbours_by_flat[regulation_flat]
             .iter()
@@ -16179,7 +16202,7 @@ fn mount_reached_ordering_reach(
             })
             .collect::<Vec<_>>();
         let [integration] = integrations.as_slice() else {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
+            return Ok(None);
         };
         let integration_flat = topology_index.flat_for_lineage(*integration)?;
         let terminals = topology_index.neighbours_by_flat[integration_flat]
@@ -16206,7 +16229,7 @@ fn mount_reached_ordering_reach(
             })
             .collect::<Vec<_>>();
         let [motor] = motors.as_slice() else {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
+            return Ok(None);
         };
         // REPAIR B' (bench, MINE-on-trial): the regulation->motor contact is
         // NOT minted here from this topology walk — anatomy is never derived
@@ -16217,10 +16240,17 @@ fn mount_reached_ordering_reach(
         // Err (NeuronLineageAuthorityAbsent) aborted whole-interval
         // settlement for any properly-founded route, a reproduced
         // defect-grade trap.
-        if !electrical_fabric.contains_contact(regulation, *motor) {
-            return Ok(None);
+            if !electrical_fabric.contains_contact(regulation, *motor) {
+                return Ok(None);
+            }
+            Ok(Some(*motor))
+        };
+        for regulation in candidate_regulations {
+            if let Some(motor) = walk_regulation(regulation)? {
+                return Ok(Some(motor));
+            }
         }
-        Ok(Some(*motor))
+        Ok(None)
     };
     let mut active_routes = Vec::<[[u8; 16]; 2]>::new();
     for bond in active_bonds {
