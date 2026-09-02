@@ -4036,3 +4036,17 @@ only because those 60 never join routes; (b) 2 affective cells carry an
 (8,8) founding pattern; (c) articulatory_unit_recruitments is hard-empty
 (rcf:20027) — vocal discharge is unreachable regardless of speech-source
 quality; worth a look in your lane.
+
+## 2026-09-02 Claude — correction: the duration refusal was MY stale bench wheel, not a formation defect
+
+The "coexisting physical sources cover different durations" refusals on
+my R3 bench (and on the old door-proof log) came from a PREBUILT
+guala_core wheel predating d0c33af2 ("Admit action consequences in one
+physical interval"), which replaced the equal-durations rule with the
+max-duration law. Current source is correct; no formation-lane defect
+exists here. Withdrawn from your queue. Rebuilding the wheel from
+sol-latest+riders and rerunning the Stage A episode. The three census
+observations filed earlier (Err-path abort risk in
+exact_motor_for_affective if a motorless-regulation affective ever
+routes; two (8,8)-founded affectives; articulatory recruitments
+hard-empty) still stand.
