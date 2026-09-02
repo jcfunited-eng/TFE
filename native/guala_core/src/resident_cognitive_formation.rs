@@ -27300,6 +27300,70 @@ mod tests {
     }
 
     #[test]
+    fn severed_ordering_motor_contact_is_gone_and_regrows_only_from_lived_evidence() {
+        let (mut cohorts, mut population, mut next_lineage, mut fabric, regulation, ordering) =
+            motor_bridge_grid_fixture();
+        let active_bonds = directed_transfers_from_bonds(&cohorts, &fabric);
+        let prior_frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+            &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+        )
+        .unwrap();
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter(|(mount, _)| mount.place().layer() == 12)
+            .map(|(_, lineage)| *lineage)
+            .collect::<Vec<_>>();
+        assert_eq!(motor.len(), 1);
+        assert!(fabric.contains_contact(ordering, motor[0]));
+        assert!(fabric.contains_contact(regulation, motor[0]));
+        let contact_count = fabric.contact_count();
+
+        // Sever exactly the learned ordering->motor contact through the
+        // fabric's own retirement mechanism; every other contact survives.
+        fabric = fabric
+            .without_contact_pairs(&BTreeSet::from([canonical_lineage_pair(
+                ordering, motor[0],
+            )]))
+            .unwrap();
+        assert!(!fabric.contains_contact(ordering, motor[0]));
+        assert!(fabric.contains_contact(regulation, motor[0]));
+        assert_eq!(fabric.contact_count(), contact_count - 1);
+
+        // No contact, no carrier path: ordering cannot prepare this motor
+        // through an absent bond, so the full chain fails at the severed
+        // link. The same lived two-interval evidence, and only that
+        // evidence, may regrow the exact contact.
+        mount_reached_motor_effector(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[ordering, regulation],
+            &active_bonds,
+            &prior_frontier,
+            &[BodyAxis::LeftElbowFlexion, BodyAxis::LeftGripAperture],
+        )
+        .unwrap();
+        assert!(fabric.contains_contact(ordering, motor[0]));
+        assert_eq!(fabric.contact_count(), contact_count);
+    }
+
+    #[test]
     fn zero_carrier_transfer_authors_no_ordering_motor_contact() {
         let (mut cohorts, mut population, mut next_lineage, mut fabric, regulation, ordering) =
             motor_bridge_grid_fixture();
