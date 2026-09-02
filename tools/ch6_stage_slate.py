@@ -48,6 +48,12 @@ def main() -> None:
     c_prev = {str(r["Symbol"]): float(r["Close"])
               for _, r in prev_rows.iterrows()}
 
+    # Joseph 2026-09-01: the reading study graded at zero selection
+    # skill (243 readings, picks == rejects) and is OFF. Candidates =
+    # the whole damaged pool, freshest damage first; every law still
+    # governs. If a readings directory exists for tonight it is used
+    # (allows future re-tests); otherwise the pool file is the slate
+    # source.
     readings = {}
     for day, carry in ((prev, True), (latest, False)):
         rdir = os.path.join(DOOR, "readings", day)
@@ -66,6 +72,15 @@ def main() -> None:
                 readings[sym] = r  # tonight's overwrites a carry
             except Exception:  # noqa: BLE001 — fail closed
                 continue
+
+    if not readings:
+        import os as _os
+        pool_path = _os.path.join(DOOR, f"pool_{latest}.json")
+        if _os.path.exists(pool_path):
+            pool = json.load(open(pool_path))
+            for _sym in pool.get("admitted", []):
+                readings[_sym] = {"symbol": _sym, "prediction": "RELAX",
+                                  "family": "POOL", "confidence": 0.5}
 
     book = load_book()
     if book.get("staged_entries") and not dry:

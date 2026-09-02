@@ -39,3 +39,14 @@ verify SHA/revision first.
 Work is FILED only when committed AND on origin
 (github.com/jcfunited-eng/TFE, branch guala-live). No force-push.
 Verify the push landed before reporting it.
+
+## The trade switch — EVERY deploy, no exceptions (Joseph 2026-09-02)
+After ANY production deploy, verify the live task definition carries
+TFE_ENTRIES_HALTED=0 (CH2's buying) before reporting the deploy done:
+  aws ecs describe-task-definition --task-definition tfe-web-task \
+    --query "taskDefinition.containerDefinitions[0].environment[?name=='TFE_ENTRIES_HALTED'].value | [0]" --output text
+The wrapper inherits the live value since 2026-08-26, but inheritance
+is not verification: four deploys once re-armed the halt and CH2 sat
+silent for days with Joe discovering it himself. CH3_ENTRIES_HALTED
+stays 1 (separate standing halt). A deploy report that omits the
+switch state is incomplete.

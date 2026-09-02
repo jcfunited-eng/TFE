@@ -180,6 +180,36 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
     return { ok: false, reason: "same_day_exit" };
   }
 
+  // ── The entry door gets a memory (Joseph 2026-09-02) ─────────────
+  // Receipt: RAL bought three times in three weeks — once on top of
+  // an open lot (broker 79 vs ledger 40, custody mismatch), twice
+  // within days of a losing stop-out. CH2 scope only.
+  if (String(channelTag ?? "").toUpperCase().includes("CH2")) {
+    // one position per stock, ever — the ledger is built one lot per
+    // ticker; a second lot breaks custody by construction
+    const held = await pool.query(
+      `SELECT id FROM personal_trade_ledger
+       WHERE UPPER(TRIM(ticker)) = $1 AND signal_class = 'CH2'
+         AND status IN ('submitted','filled') LIMIT 1`, [ticker]);
+    if (held.rows.length > 0) {
+      console.log(`[DAILY-ENTRY] ${ticker} excluded: already held (one position per stock)`);
+      return { ok: false, reason: "already_held" };
+    }
+    // cooling-off: a stock that stopped us out at a loss is not
+    // re-entered on the same class of signal for 14 calendar days
+    // (~10 sessions) — no more averaging down into our own rejects
+    const cooled = await pool.query(
+      `SELECT id FROM personal_trade_ledger
+       WHERE UPPER(TRIM(ticker)) = $1 AND signal_class = 'CH2'
+         AND exit_filled_at >= NOW() - INTERVAL '14 days'
+         AND exit_filled_price IS NOT NULL AND entry_filled_price IS NOT NULL
+         AND exit_filled_price < entry_filled_price LIMIT 1`, [ticker]);
+    if (cooled.rows.length > 0) {
+      console.log(`[DAILY-ENTRY] ${ticker} excluded: cooling off after a losing exit (14 days)`);
+      return { ok: false, reason: "cooling_off" };
+    }
+  }
+
   // Invested cap: projected invested after this order must not exceed funded capital
   const dollarAllocation = signal.ch3_trade_amount ?? budget.perTrade;
   if (!Number.isFinite(dollarAllocation) || dollarAllocation <= 0) {

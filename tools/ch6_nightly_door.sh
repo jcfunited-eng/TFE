@@ -21,9 +21,10 @@ SCAN_SYMBOLS_FILE="$POOL" SCAN_DAYS=130 SCAN_KEEP=25 \
   python tools/ch6_month_scan.py 8 >> "$LOG" 2>&1 \
   || { echo "[ch6-door] FINE SCAN FAILED — nothing stages" >> "$LOG"; exit 1; }
 
-CH6_FINE_LANES=artifacts/ch6_harvest/month_lanes \
-  python tools/ch6_read_pool.py "$POOL" >> "$LOG" 2>&1 \
-  || { echo "[ch6-door] READING PASS FAILED — nothing stages" >> "$LOG"; exit 1; }
+# READING PASS OFF (Joseph 2026-09-01): graded against outcomes —
+# 243 readings, picks moved identically to rejects. The study earned
+# nothing; it spends nothing. Staging now takes the whole damaged
+# pool under the rules alone, freshest damage first.
 
 python tools/ch6_stage_slate.py >> "$LOG" 2>&1 \
   || { echo "[ch6-door] STAGING FAILED — book untouched" >> "$LOG"; exit 1; }
