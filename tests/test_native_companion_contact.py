@@ -33,6 +33,11 @@ def test_named_care_profiles_end_at_physical_surface_commands_only() -> None:
         record = command_record(
             BodySurfaceContactCommand(actuations, duration)
         )
+        hop_microseconds = production.INTAKE_HOP_MILLISECONDS * 1_000
+        assert 0 < duration < hop_microseconds, (
+            "a companion contact must land strictly inside one intake hop "
+            "or the sensory law refuses every care gesture"
+        )
         assert record["operation"] == "body_surface_contact"
         assert len(record["actuations"]) == width
         encoded = repr(record).lower()

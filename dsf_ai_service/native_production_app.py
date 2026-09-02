@@ -1051,10 +1051,13 @@ def _companion_contact_profile(
             tangential_v_micrometres=tangential_v_micrometres,
         )
 
+    # Every committed action's consequence must land strictly inside one
+    # 250 ms intake hop, and the world's material law needs at least
+    # 3 ms of contact; a sustained hold is the caller repeating contacts.
     profiles = {
         "hold_hand": (
             (contact("right-palm", "left-palm", 1_000),),
-            2_000_000,
+            200_000,
         ),
         "hug": (
             (
@@ -1062,19 +1065,19 @@ def _companion_contact_profile(
                 contact("left-palm", "right-shoulder", 1_000),
                 contact("right-palm", "left-shoulder", 1_000),
             ),
-            2_000_000,
+            200_000,
         ),
         "forehead_kiss": (
             (contact("perioral", "forehead", 500),),
-            500_000,
+            50_000,
         ),
         "head_pat": (
             (contact("downward-palm", "crown", 750, 12_000, 0),),
-            750_000,
+            75_000,
         ),
         "shoulder_touch": (
             (contact("right-palm", "left-shoulder", 1_000),),
-            1_000_000,
+            100_000,
         ),
     }
     try:
