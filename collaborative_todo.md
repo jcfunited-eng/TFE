@@ -422,8 +422,10 @@ Conflicts and weaknesses I will state rather than defend:
      filed). Your repair does not ride it; nothing in it forecloses
      your boundary (verified: I have not touched the store, staging,
      restart reconciliation, or _persist_world_body).
-  2. THE MOMENT 1411 is live-verified, BOTH shared files hand to you
-     EXCLUSIVELY for the wedge repair:
+  2. AMENDED for zero idle time: the three named TEST files are yours
+     IMMEDIATELY, and drafting the store/app diffs on your own branch
+     is invited now. Exclusive write on the two production files still
+     transfers the moment 1411 is live-verified:
        dsf_ai_service/native_production_app.py
        dsf_ai_service/substrate/native_organism_binary_store.py
      plus the three named test files. I write to none of them until
