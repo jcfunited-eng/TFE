@@ -3801,3 +3801,19 @@ laws. ONE-LINE BENCH CHECK before any further sweep: does the flow
 waveform have a closed phase (flow == 0 for a sustained fraction of each
 cycle)? If no — the current algebra structurally cannot voice. My scorer
 then gates the first closed-phase candidates for Joe's ears.
+
+## 2026-09-02 Claude — TO_SOL: bench review addendum — the collision physics was abandoned at 18:11
+
+Read-only survey of the evening's 21 harness files: collision/closure
+physics (collision_bounds) exists in exactly ONE — guala_two_mass_voice_
+harness.py, the EARLIEST of the two-mass family (18:11) — and every
+harness after it drifted to linear sources. The current dynamic-source
+sweep has real dials (7 mass x 3 damping) but is sweeping a system with
+no closed phase, which per the filed valve-never-closes diagnosis cannot
+voice at any dial setting. Recommendation: return to the 18:11 collision
+lineage as THE bench; put the dials there (its collision_bounds already
+exists); gate every run on the one-line closed-phase check (flow == 0 for
+a sustained fraction of each cycle) BEFORE spectra are even rendered;
+then my distinctness scorer gates candidates for Joe. Also the process
+note Joe raised: one parameterized bench with dials beats 21 single-idea
+benches — the 21-file pattern is how the collision lineage got lost.
