@@ -11656,13 +11656,14 @@ impl ResidentCognitiveFormationState {
         } else {
             state.into_dedicated_vocal_articulatory_effector()?
         };
-        // A V34 body is already a complete cognitive body.  V35 is only the
-        // outer articulated-pose correction marker, so do not admit resting
-        // population or perform any other cognitive migration while crossing
-        // this boundary.
-        if current_v34 {
-            return state.encode(max_encoded_bytes);
-        }
+        // A body that already carries its resting population is complete —
+        // this guard alone protects every V34/V35 boundary crossing (a
+        // migrated body's population rode in at the V15 boundary). A
+        // current-format body WITHOUT a population is a fresh genesis, and
+        // the documented genesis law requires the same explicit admission a
+        // migrated predecessor receives. The former `current_v34` early
+        // return (81d15b57) sat above this check and silently stripped
+        // every fresh genesis of its compact developmental reserve.
         if state.resting_population.is_some() {
             return state.encode(max_encoded_bytes);
         }
