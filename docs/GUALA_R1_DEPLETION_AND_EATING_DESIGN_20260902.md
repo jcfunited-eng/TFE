@@ -99,3 +99,33 @@ override), on her copies only. Ships as ONE deploy after all six
 falsifiers pass on her exact restored body. File collision: none with
 Sol's wedge (this touches the rust crate and embodiment_world;
 Sol holds the shell spine and the store).
+
+## The doorway decision (appended after mapping, pre-weld)
+
+Three honest routes for carrying the bite's energy into the reservoir,
+mapped against the real call graph:
+
+A. EXPLICIT THREAD (CHOSEN): add `real_nutrition_intake_zeptojoules:
+   ExactRational` beside the gustatory onset roster through the same
+   already-touched spine: _perform_admitted_intake(_locked) →
+   commit path → settle_internal_contact_interval →
+   prepare_reached_cohort_membrane_pumps → applied at the powered
+   exchange via settle_real_nutrition_intake, default zero at every
+   caller except the feed path. No new persisted state, no codec
+   bump, absorption inside the feed's own lived settlement.
+   (~15 signatures touched, all mechanical; the roster thread from
+   98fe183c-era work is the template.)
+B. Bespoke micro-trajectory like the vestibular lane — full receipt
+   machinery for one scalar; over-built for v1.
+C. Persisted stomach (gut reservoir, absorption over subsequent
+   intervals) — the physiologically richest form; requires a codec
+   boundary (V42) and restart proofs; deliberately deferred to v2
+   once the pair is live.
+
+Bridge arithmetic (python, feed path): transferred micrograms =
+sum over channels of (before − after) tastant mass read from the
+same transaction's world endpoints; intake zeptojoules = transferred
+× her declared extraction density (a body anatomy constant declared
+beside tastant_saturation_micrograms — authored body matter, same
+authority class as the saturation roster; value derivation to be
+stated in-code from the fuel-quantum scale, not tuned).
