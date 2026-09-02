@@ -45,6 +45,20 @@ const RADIATION_LOAD_AREA_SQUARE_MILLIMETRES: i32 = 265;
 const MAX_ARTICULATORY_INTERVAL_SAMPLES: usize = 480_000;
 const FIXED_ONE: i64 = 1_i64 << 30;
 const RESPIRATORY_WORK_PER_CLOSING_CARRIER: i64 = 512_000;
+// ---- Joe-directed minimal persistent valve organ (2026-09-02) ----------
+// One virtual organ oscillator, not simulated fold anatomy. The cycle
+// advances only while paid respiratory work remains; its shape is the
+// human-accepted v22 source class: open ~0.708 of the cycle, conductance
+// peaking smoothly at ~0.455, closing faster with smooth ends, exactly
+// zero for the closed ~0.292. Rate spans the accepted child range and
+// declines with the same finite work that supplies pressure. These are
+// common organ properties, not a phoneme, pitch arc, or target table.
+const VALVE_CYCLE_ONE: i64 = 1_048_576;
+const VALVE_PEAK_POSITION: i64 = 477_102; // 0.455 of the unit cycle
+const VALVE_OPEN_END_POSITION: i64 = 742_392; // 0.708 of the unit cycle
+const VALVE_RATE_FLOOR_HZ: i64 = 260;
+const VALVE_RATE_CEILING_HZ: i64 = 380;
+const VALVE_CONDUCTANCE_ONE: i64 = FOLD_POSITION_SCALE;
 const RESPIRATORY_REST_LOSS_PER_SAMPLE: i64 = 256;
 const FOLD_POSITION_SCALE: i64 = 1_536;
 const FOLD_COLLISION_LIMIT: i64 = 3_072;
@@ -498,65 +512,73 @@ fn advance_spectral_organ(
         0
     };
     let mut strongest_fold_velocity = 0_i32;
-    let old_folds = state.fold_displacement;
-    for fold in 0..2 {
-        if !work_active {
-            let prior = state.fold_displacement[fold];
-            let _ = advance_spectral_mode(
-                0,
-                &mut state.fold_displacement[fold],
-                &mut state.fold_previous_displacement[fold],
-                360,
-                120,
-            )?;
-            let velocity = state.fold_displacement[fold]
-                .checked_sub(prior)
-                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-            if velocity.unsigned_abs() > strongest_fold_velocity.unsigned_abs() {
-                strongest_fold_velocity = velocity;
-            }
-            continue;
-        }
-        let current = i64::from(state.fold_displacement[fold]);
-        let previous = i64::from(state.fold_previous_displacement[fold]);
-        let velocity = current - previous;
-        let other = i64::from(old_folds[1 - fold]);
-        let frequency_hz = 360_i64;
-        let angular_numerator = 2_i128 * 355_i128 * i128::from(frequency_hz);
-        let angular_denominator = 113_i128 * i128::from(ARTICULATORY_SAMPLE_RATE_HZ);
-        let omega_q30 = angular_numerator * i128::from(FIXED_ONE) / angular_denominator;
-        let stiffness_q30 = omega_q30 * omega_q30 / i128::from(FIXED_ONE);
-        let amplitude_square = i128::from(FOLD_POSITION_SCALE * FOLD_POSITION_SCALE);
-        let displacement_square = i128::from(current) * i128::from(current);
-        let nonlinear_extent = amplitude_square - displacement_square;
-        let directional_gain = if velocity < 0 { 22_000_000_i128 } else { 13_000_000_i128 };
-        let active_gain_q30 =
-            i128::from(work_fraction) * directional_gain / i128::from(FIXED_ONE);
-        let aerodynamic = i128::from(velocity)
-            * active_gain_q30
-            * nonlinear_extent
-            / amplitude_square
-            / i128::from(FIXED_ONE);
-        let passive_loss =
-            i128::from(velocity) * 1_500_000_i128 / i128::from(FIXED_ONE);
-        let coupling =
-            i128::from(other - current) * 32_000_000_i128 / i128::from(FIXED_ONE);
-        let restoring = -(stiffness_q30 * i128::from(current) / i128::from(FIXED_ONE));
-        let acceleration = restoring + aerodynamic - passive_loss + coupling;
-        let mut next = i128::from(current) + i128::from(velocity) + acceleration;
-        if next > i128::from(FOLD_COLLISION_LIMIT) {
-            next = i128::from(FOLD_COLLISION_LIMIT);
-        } else if next < -i128::from(FOLD_COLLISION_LIMIT) {
-            next = -i128::from(FOLD_COLLISION_LIMIT);
-        }
-        let next = i32::try_from(next).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
-        state.fold_previous_displacement[fold] = state.fold_displacement[fold];
-        state.fold_displacement[fold] = next;
-        let next_velocity = next
-            .checked_sub(i32::try_from(current).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?)
+    // State reuse in the rejected candidate's exact 16-byte slot:
+    //   fold_displacement[0]          valve cycle position, 0..VALVE_CYCLE_ONE
+    //   fold_displacement[1]          exact fractional-step remainder, 0..SR-1
+    //   fold_previous_displacement[0] present valve conductance
+    //   fold_previous_displacement[1] prior valve conductance
+    if work_active {
+        let rate_hz = VALVE_RATE_FLOOR_HZ
+            + (VALVE_RATE_CEILING_HZ - VALVE_RATE_FLOOR_HZ) * i64::from(work_fraction)
+                / i64::from(FIXED_ONE);
+        let sample_rate = i64::from(ARTICULATORY_SAMPLE_RATE_HZ);
+        let step_numerator = rate_hz
+            .checked_mul(VALVE_CYCLE_ONE)
+            .and_then(|value| value.checked_add(i64::from(state.fold_displacement[1])))
             .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-        if next_velocity.unsigned_abs() > strongest_fold_velocity.unsigned_abs() {
-            strongest_fold_velocity = next_velocity;
+        let mut position = i64::from(state.fold_displacement[0])
+            .checked_add(step_numerator / sample_rate)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        let remainder = step_numerator % sample_rate;
+        position %= VALVE_CYCLE_ONE;
+        // Smooth rise to the peak, faster smooth fall to closure, exact
+        // zero through the closed span. smoothstep t*t*(3-2t) has zero
+        // slope at both ends: no hard corner sprays fold-over grit.
+        let conductance = |pos: i64| -> Result<i64, ArticulatoryBodyError> {
+            let (span_pos, span_len) = if pos < VALVE_PEAK_POSITION {
+                (pos, VALVE_PEAK_POSITION)
+            } else if pos < VALVE_OPEN_END_POSITION {
+                (
+                    VALVE_OPEN_END_POSITION - pos,
+                    VALVE_OPEN_END_POSITION - VALVE_PEAK_POSITION,
+                )
+            } else {
+                return Ok(0);
+            };
+            let t = i128::from(span_pos) * 32_768 / i128::from(span_len);
+            let smooth = t * t * (3 * 32_768 - 2 * t) / (32_768_i128 * 32_768);
+            i64::try_from(i128::from(VALVE_CONDUCTANCE_ONE) * smooth / 32_768)
+                .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)
+        };
+        let next_conductance = conductance(position)?;
+        let prior_conductance = state.fold_previous_displacement[0];
+        state.fold_displacement[0] =
+            i32::try_from(position).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
+        state.fold_displacement[1] =
+            i32::try_from(remainder).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
+        state.fold_previous_displacement[1] = prior_conductance;
+        state.fold_previous_displacement[0] =
+            i32::try_from(next_conductance).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
+        let velocity = state.fold_previous_displacement[0]
+            .checked_sub(prior_conductance)
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        if velocity.unsigned_abs() > strongest_fold_velocity.unsigned_abs() {
+            strongest_fold_velocity = velocity;
+        }
+    } else {
+        // Zero work stops further cycling. Ordinary loss returns every
+        // coordinate to exact zero; a later motor act begins from rest.
+        for slot in 0..2 {
+            let decayed = i64::from(state.fold_displacement[slot]) * 985 / 1_000;
+            state.fold_displacement[slot] =
+                i32::try_from(if decayed.unsigned_abs() <= 1 { 0 } else { decayed })
+                    .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
+            let conductance_decayed =
+                i64::from(state.fold_previous_displacement[slot]) * 985 / 1_000;
+            state.fold_previous_displacement[slot] = i32::try_from(
+                if conductance_decayed.unsigned_abs() <= 1 { 0 } else { conductance_decayed },
+            )
+            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
         }
     }
 
@@ -568,19 +590,19 @@ fn advance_spectral_organ(
         .checked_sub(glottal_area_square_millimetres)
         .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
     let anatomical_gate = max(0, min(distance_from_closed, distance_from_open));
-    let fold_opening = (i64::from(state.fold_displacement[0])
-        + i64::from(state.fold_displacement[1]))
-        / 2;
+    // The valve's conductance modulates the entire airway: the closed
+    // span passes exactly zero flow, which is what carries the harmonic
+    // train (the accepted closed-phase physics).
     let opening = if anatomical_gate == 0 {
         0
     } else {
-        max(
-            0_i64,
-            i64::from(anatomical_gate)
-                .checked_mul(16)
-                .and_then(|value| value.checked_add(fold_opening))
-                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?,
-        )
+        i64::from(anatomical_gate)
+            .checked_mul(16)
+            .map(|value| {
+                value * i64::from(state.fold_previous_displacement[0])
+                    / VALVE_CONDUCTANCE_ONE
+            })
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?
     };
     let breath_pressure = if work_active {
         512_i64

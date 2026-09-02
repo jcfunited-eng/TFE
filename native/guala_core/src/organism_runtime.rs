@@ -9004,7 +9004,12 @@ mod tests {
         );
         assert_eq!(
             migrated.len(),
-            old_fabric.len() + FIXED_BYTES + ARTICULATED_BODY_STATE_BYTES
+            // the current fabric also carries the u32 in-flight acoustic
+            // length field the pre-articulated layout lacked
+            old_fabric.len()
+                + FIXED_BYTES
+                + ARTICULATED_BODY_STATE_BYTES
+                + std::mem::size_of::<u32>()
         );
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
