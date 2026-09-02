@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 from urllib.parse import urlparse
 
+import pytest
+
+# The browser suite needs playwright; an environment without it must
+# SKIP these tests, never fail collection for the whole run.
+pytest.importorskip("playwright")
 from playwright.sync_api import Browser, Page, Route, sync_playwright
 
 

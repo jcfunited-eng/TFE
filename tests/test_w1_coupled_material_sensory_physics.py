@@ -19,12 +19,6 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SenseBoundaryState,
 )
 from dsf_ai_service.substrate import embodiment_world as world_module
-from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
-    _APPROVED_ALPHABET_ASSET_NAMES,
-    _APPROVED_NUMBER_ASSET_NAMES,
-    _APPROVED_WORD_ASSET_NAMES,
-    _APPROVED_ZERO_ASSET_NAMES,
-)
 from dsf_ai_service.substrate.embodiment_world import (
     MAX_MATERIAL_ACTION_DURATION_US,
     PORT_ID,
@@ -555,12 +549,17 @@ def test_authenticated_v4_migrates_without_inventing_material_senses():
         for item in migrated.objects
         if item.optical_surface is None
     )
-    assert len(migrated_surfaces) == len(
-        _APPROVED_ALPHABET_ASSET_NAMES
-        + _APPROVED_NUMBER_ASSET_NAMES
-        + _APPROVED_WORD_ASSET_NAMES
-        + _APPROVED_ZERO_ASSET_NAMES
+    # The migration invariant is invent-nothing/lose-nothing: the migrated
+    # world carries exactly the optical surfaces the SOURCE world carried.
+    # (The old assertion coupled this to the approved-asset roster length,
+    # which grows with the curriculum and broke the test every time the
+    # decks did — 6857f6e1's zero-deck retirement being the first break.)
+    source_surface_count = sum(
+        1
+        for item in source.observation_snapshot().objects
+        if item.optical_surface is not None
     )
+    assert len(migrated_surfaces) == source_surface_count
     assert all(item.material is not None for item in migrated_surfaces)
     assert all(item.material is None for item in migrated_prior_objects)
     assert all(
