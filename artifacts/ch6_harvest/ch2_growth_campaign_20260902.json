@@ -1,0 +1,46 @@
+{
+ "campaign": "ch2 growth derivation 2026-09-02",
+ "verdict": "NO WINNER \u2014 no confirm shot fired",
+ "per_trade_results_derive_half": [
+  {
+   "law": "ignition_advance",
+   "trades": 159,
+   "wr": 54.1,
+   "per_trade": 102.69,
+   "control": 70.48,
+   "note": "beats control but under the 1,000-trade floor \u2014 disqualified by the declared rule"
+  },
+  {
+   "law": "direction_run",
+   "trades": 25010,
+   "wr": 56.3,
+   "per_trade": 38.28,
+   "control": 70.48,
+   "note": "loses"
+  },
+  {
+   "law": "fuel_charge",
+   "trades": 4854,
+   "wr": 55.2,
+   "per_trade": 38.0,
+   "control": 75.75,
+   "note": "loses"
+  },
+  {
+   "law": "confirmed_breakout",
+   "trades": 61,
+   "wr": 50.8,
+   "per_trade": 75.0,
+   "control": 70.5,
+   "note": "tie, tiny sample"
+  },
+  {
+   "law": "joint_word",
+   "trades": 76781,
+   "wr": 56.0,
+   "per_trade": 36.54,
+   "control": 70.48,
+   "note": "loses"
+  }
+ ]
+}

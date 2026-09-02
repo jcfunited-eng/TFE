@@ -1,0 +1,38 @@
+{
+ "picks": 40314,
+ "control": 144785,
+ "split": "2021-10-05",
+ "derive": {
+  "trades": 20139,
+  "win_rate_pct": 51.5,
+  "profit_per_2500": 2.78,
+  "total_profit_usd": 55904.5,
+  "control_win_rate_pct": 48.9,
+  "control_profit_per_2500": 0.49,
+  "exits": {
+   "EXIT_A": 8279,
+   "EXIT_B": 5310,
+   "TP": 3447,
+   "SL": 3101,
+   "CAP": 2
+  },
+  "beats_control": true
+ },
+ "confirm": {
+  "trades": 20175,
+  "win_rate_pct": 49.5,
+  "profit_per_2500": 1.01,
+  "total_profit_usd": 20474.75,
+  "control_win_rate_pct": 52.7,
+  "control_profit_per_2500": 4.74,
+  "exits": {
+   "EXIT_A": 8485,
+   "EXIT_B": 5354,
+   "TP": 3216,
+   "SL": 3114,
+   "CAP": 6
+  },
+  "beats_control": false
+ },
+ "VERDICT": "FAIL"
+}

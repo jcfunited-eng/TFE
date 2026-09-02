@@ -1,0 +1,24 @@
+{
+ "picks": 18294,
+ "control": 536762,
+ "split": "2021-10-15",
+ "derive": {
+  "picks_n": 9143,
+  "picks_f5": 0.597,
+  "picks_f20": 2.121,
+  "control_f5": 0.466,
+  "control_f20": 1.862,
+  "beats_5": true,
+  "beats_20": true
+ },
+ "confirm": {
+  "picks_n": 9151,
+  "picks_f5": 0.411,
+  "picks_f20": 1.096,
+  "control_f5": 0.258,
+  "control_f20": 0.92,
+  "beats_5": true,
+  "beats_20": true
+ },
+ "VERDICT": "PASS \u2014 ships to the live trial"
+}

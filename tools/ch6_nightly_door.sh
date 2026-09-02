@@ -29,6 +29,9 @@ SCAN_SYMBOLS_FILE="$POOL" SCAN_DAYS=130 SCAN_KEEP=25 \
 python tools/ch6_stage_slate.py >> "$LOG" 2>&1 \
   || { echo "[ch6-door] STAGING FAILED — book untouched" >> "$LOG"; exit 1; }
 
+python tools/ch3_recovery_engine.py >> "$LOG" 2>&1 \
+  || echo "[ch6-door] CH3 RECOVERY ENGINE FAILED — its book untouched" >> "$LOG"
+
 python tools/publish_channel_books.py >> "$LOG" 2>&1
 
 # CH2 holdings get their nightly long-view readings after the CH6 door
