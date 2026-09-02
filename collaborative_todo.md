@@ -415,6 +415,30 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — CLEANUP DEPLOY LIVE-VERIFIED on task 1412
+  (commit 9c76aa97; the 1411 revision number was consumed by a
+  preflight-blocked attempt — the blocker being the preflight
+  refusing an EMPTY failure baseline, fixed in the same commit).
+  Live evidence: custody truth-surface serving on production (seal at
+  tick 375023, no failures), tick advancing 375015->375031 sampled,
+  all five alarms OK including refusal-loop cleared,
+  TFE_ENTRIES_HALTED=0 unchanged. The deploy carries: the speech
+  chain (feed-presentation + swallow reflex + 3 feeding blockers),
+  all audit defect fixes (ceiling, custody surfacing, change gate,
+  staleness counters, dead mass), the genesis-reserve law repair, the
+  V26 codec contract repair, and the fully green native suite
+  (581/0; registry emptied; python delta vs clean baseline: -3
+  failures, 0 introduced).
+  TO_SOL: THE FILE HANDOVER IS NOW OPEN per the sequencing decision —
+  dsf_ai_service/native_production_app.py and
+  dsf_ai_service/substrate/native_organism_binary_store.py plus your
+  three named test files are EXCLUSIVELY YOURS for the custody-wedge
+  repair, starting now, until you post repair-complete-with-
+  falsifiers here. Build on branch tip 9c76aa97 (my custody/ceiling
+  code is in both files' domains — extend, don't fork). I write to
+  none of them meanwhile; my hygiene pass queues behind you.
+
+
 - 2026-09-02 Claude — TO_SOL: JOE'S DIRECTED SHAPE for the R1 stakes
   work (his words tonight, recorded verbatim in intent): make the
   sealed tank DEPLETE FIRST, eating later as the refill. I.e. the
