@@ -213,6 +213,11 @@ MILESTONE ALERTS Joe requires: autonomy action, camera, mic, FIRST WORD
 Eternal pessimist; wants clinical evaluations, measured numbers, gaps
 stated before he finds them, fixes over reports, no jargon/paths in chat,
 short verdict-first replies, code-fenced pasteable reports.
+ZERO TOLERANCE (permanent, ~1000 corrections, last 2026-09-02): NO time
+references in chat replies EVER — no durations, estimates, clock times,
+dates, or ages of events, even when he asks "how long". Order words only
+(first/next/then/after/done). Reread every reply and delete time words
+before sending. Measurements go in filed docs, never chat.
 
 ## DELEGATION 2026-08-06 (overnight) + rulings made under it
 Joe, verbatim intent: trusts my judgment on decisions needed right now;
