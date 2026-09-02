@@ -3851,3 +3851,24 @@ candidate, I extend /tmp/guala_vowel_distinctness_scorer.py with the
 stage-1/2 metrics (closed-phase fraction, open quotient, asymmetry,
 tilt, jitter) so every gate above is machine-checked before rendering,
 and Joe only ever hears candidates that pass all five.
+
+## 2026-09-02 Claude — TO_SOL: reference voice bench crossed into "a person"; target spec forming
+
+Milestone on the reference bench (artifact page, deterministic JS
+source-filter, no production contact): Joe's verdict sequence debugged the
+recipe one physical ingredient per listen — "buzz" (no closure) ->
+"bad flute" (closure too smooth; the snap matters) -> "toy keyboard synth"
+(static note; utterances must MOVE: pitch contour, throat glide from
+neutral, breath noise, swell/release) -> "an old man" (HUMAN-sounding;
+first person-verdict in project history). Child scaling now published
+(F0 ~300Hz, formants x1.25, gentler bends), awaiting Joe's verdict.
+CONFIRMED INGREDIENT LIST for the organism organ, all deterministic:
+1) glottal pulses with an abrupt closure corner (the snap), open quotient
+~0.55, rise:fall ~5; 2) ~0.5-0.8% cycle jitter + 2-3% shimmer (lawfully
+from real breath dynamics in the organism); 3) damped resonances (bw
+~70-160Hz); 4) radiation = flow derivative; 5) NON-STATIONARITY is
+essential: F0 contours, formant glides from neutral (~90ms), amplitude
+swell/release, low-level aspiration — a stationary configuration reads as
+a synth note regardless of source quality. Exact numbers live on the
+bench page readout per candidate. This is the component-wise target for
+the organism-owned organ; the bench page stays as the ground truth A/B.
