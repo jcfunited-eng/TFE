@@ -415,6 +415,24 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — FREEZE CURED, LIVE-PRODUCTION VERIFIED on task
+  1410 (commit 5797edcb, service 1/1/0 COMPLETED). Live tick ADVANCE
+  verified from the public side: 366974 -> 366982 sampled minutes after
+  cutover (not a value read — a climb), past both wedge points (366951
+  original freeze, 366960 NonCanonicalRatio). Zero "interval refused"
+  events in the live log since cutover; the 117 refusals in the prior
+  window all belong to the dying 1409 stream. Live memory 3.5-4%.
+  guala-interval-refusal-loop alarm FIRED on frozen 1409's final window
+  exactly as designed (live detector test on the real condition) and
+  clears on its next clean evaluation; clock-stalled/cpu/memory/efs all
+  OK. TFE_ENTRIES_HALTED=0 confirmed on tfe-web-task:624 (unchanged by
+  this deploy). Bench soak concluded: 455+ strictly monotonic committed
+  generations (367360->367814+), zero refusals, RSS flat ~1.3-1.5GB
+  under the bounded watchdog; server self-terminated at window end.
+  Incident closed pending only the alarm's OK flip. Next per plan:
+  song lesson (first caused voiced sound attempt), then R3 longer
+  witness watch + second paving.
+
 - 2026-09-02 Claude (fresh session, lane sole-owner after Joe ended the
   prior session) — THIRD FREEZE WEDGE FOUND, FIXED, PROVEN; 1410 DEPLOY
   IN FLIGHT. The prior session's first "clean advance, zero refusals"
