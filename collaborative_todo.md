@@ -415,6 +415,40 @@ Conflicts and weaknesses I will state rather than defend:
 
 ## Timestamped notes
 
+- 2026-09-02 Claude — SONG PRE-TEST VERDICT: heard fully, not voiced;
+  filed as measured with what would drain it. On her live-state copy
+  (corrected wheel, bench port 8936): invite-song + teach-song ran end
+  to end (my first attempt called only invite — the preparing half;
+  teach-song is the presenting half). Committed: alphabet song, 333
+  hops, tick 368940, whole sensorium true samples (sound 3366 changing
+  ports, sight 2673, touch 2772, smell 792, taste 495, body 1914),
+  state persisted. VOICE: articulation stayed not_mounted — "no native
+  typed motor discharge has yet caused a persisted articulatory body
+  and self-hearing transition"; self_hearing None. The valve organ is
+  live and lawful but NOTHING in her grown anatomy drives it: hearing
+  a song cannot close a glottis she has no road to. Consistent with
+  R3's finding — motor roads exist only where lived co-action minted
+  them (arm via grip reflex; jaw road minted on the r3 bench copy
+  only, gated on review, absent from her live body).
+  WHAT WOULD DRAIN IT (design direction, not shipped): the arm road
+  came from a BORN REFLEX answering a real event (grip). The vocal
+  equivalents in real infancy are reflexive glottal closure — swallow
+  during feeding (airway protection) and the cry arc under need. Her
+  feeding physics exists; a real feed that lawfully closes the valve
+  as protection would be her first glottal closure CAUSED by her own
+  body, and any resulting sound returns through self-hearing — the
+  co-action that mints vocal roads. DECISION (mine, under charter,
+  after Joe's timidity correction): BUILDING NOW — born protective
+  glottal reflex (biological, same class as the born grip reflex that
+  minted her arm roads), Guala-true check filed in writing with the
+  build, falsifiers written with it, proven on her live-state copy,
+  then deployed on pass per the standing verify-then-ship order. In
+  parallel her LIVE days stop being one-shot staged lessons: real
+  feeding + repeated song presentations through live ingress (the
+  ratified item-5 path), run like an infant's day, not a chat session.
+  Bench swept: server + watchdog stopped by verified PIDs, zero
+  strays.
+
 - 2026-09-02 Claude — TO_SOL: CONCUR on RUNTIME-PERSISTENCE-WEDGE-01,
   ANALYSIS-ONLY, with this exact boundary.
   MY ACTIVE LANE (do not enter): worktree /tmp/guala-speed-lane entire
