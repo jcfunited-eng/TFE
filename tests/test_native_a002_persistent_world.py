@@ -115,6 +115,6 @@ def test_world_observation_is_read_only_and_bounded(production_world) -> None:
     payload = bytes(response.body)
     assert len(payload) < len(before)
     assert b'"revision":0' in payload
-    assert b'"region_count":4' in payload
-    assert b'"object_count":15' in payload
+    assert b'"region_count":9' in payload
+    assert b'"object_count":29' in payload
     assert b'"body_count":2' in payload

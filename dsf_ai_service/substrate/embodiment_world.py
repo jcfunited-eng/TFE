@@ -3141,11 +3141,13 @@ class EmbodimentWorldAuthority:
         body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
     ) -> None:
         self._key = _authority_key(authority_key)
+        # Twelve places and sixteen doors bound the renovated home; the
+        # authority still validates every declared plan inside these caps.
         self._max_regions = _bounded_integer(
-            max_regions, "region capacity", minimum=3, maximum=4
+            max_regions, "region capacity", minimum=3, maximum=12
         )
         self._max_portals = _bounded_integer(
-            max_portals, "portal capacity", minimum=2, maximum=6
+            max_portals, "portal capacity", minimum=2, maximum=16
         )
         self._max_bodies = _bounded_integer(
             max_bodies, "body capacity", minimum=2, maximum=DEFAULT_MAX_BODIES
@@ -3341,10 +3343,26 @@ class EmbodimentWorldAuthority:
         self._declared_object_material = tuple(
             (item.object_id, item.material) for item in objects
         )
+        genesis_self = next(
+            body for body in embodied_bodies
+            if body.body_id == canonical_self_body_id
+        )
+        genesis_region = next(
+            (
+                region for region in physical_regions
+                if region.bounds.minimum.x
+                <= genesis_self.pose.position.x
+                < region.bounds.maximum.x
+                and region.bounds.minimum.y
+                <= genesis_self.pose.position.y
+                < region.bounds.maximum.y
+            ),
+            physical_regions[0],
+        )
         world = _WorldState(
             revision=0,
-            room_id=physical_regions[0].region_id,
-            room_bounds=bounds,
+            room_id=genesis_region.region_id,
+            room_bounds=genesis_region.bounds,
             regions=physical_regions,
             portals=physical_portals,
             self_body_id=canonical_self_body_id,
@@ -3356,6 +3374,12 @@ class EmbodimentWorldAuthority:
             physical_portals,
         )
         self._validate_world(world)
+        # The exact declared home, retained for the one authenticated
+        # topology migration a renovation release may perform.
+        self._declared_genesis_world = world
+        # True once this process's restore genuinely renovated the home;
+        # recovery custody re-pairs at exactly that boundary.
+        self._home_renovation_performed = False
         self._physical_body_mount_observation_receipt = (
             self._derive_physical_body_mount_observation_receipt(world)
         )
@@ -3579,6 +3603,204 @@ class EmbodimentWorldAuthority:
             self._encoded_state_for(candidate)
             self._commit_authority_state(candidate)
             return True
+
+    def migrate_declared_home_topology(self) -> bool:
+        """Carry a lived world into a grown declared home — the renovation.
+
+        One authenticated release boundary may enlarge the home: the
+        declared genesis topology (regions, portals, authored objects)
+        replaces the persisted one while every piece of LIVED state is
+        preserved exactly — body poses, held objects, and each object's
+        lived material (a bitten apple stays bitten). An object keeps its
+        lived floor position when that position is lawful inside the new
+        plan; otherwise the renovation stands it at its authored place.
+        Room air restarts from the declared derivation: the renovation
+        airs the house out through its open doors, and the receipt says
+        so. The migration refuses to shrink: every persisted body must
+        stand lawfully inside the new plan, and every persisted object
+        must exist in the declaration.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "home topology cannot migrate during an action"
+                )
+            prior = self._state
+            declared = self._declared_genesis_world
+            prior_topology = self._topology_sha256(
+                prior.world.regions, prior.world.portals
+            )
+            if prior_topology == self._declared_topology_sha256:
+                return False
+            declared_objects = {
+                item.object_id: item for item in declared.objects
+            }
+            prior_objects = {
+                item.object_id: item for item in prior.world.objects
+            }
+            missing = sorted(set(prior_objects) - set(declared_objects))
+            if missing:
+                raise ValueError(
+                    "the renovation may not discard lived things: "
+                    + ", ".join(missing)
+                )
+
+            def region_containing(
+                x: int, y: int, radius: int = 0
+            ) -> PhysicalRegion | None:
+                for region in declared.regions:
+                    if (
+                        region.bounds.minimum.x + radius <= x
+                        and x + radius <= region.bounds.maximum.x
+                        and region.bounds.minimum.y + radius <= y
+                        and y + radius <= region.bounds.maximum.y
+                    ):
+                        return region
+                return None
+
+            for body in prior.world.bodies:
+                home = region_containing(body.pose.position.x, body.pose.position.y)
+                if home is None:
+                    raise ValueError(
+                        "a lived body stands outside the declared home; "
+                        "the renovation refuses"
+                    )
+
+            migrated_objects = []
+            for object_id in sorted(declared_objects):
+                authored = declared_objects[object_id]
+                lived = prior_objects.get(object_id)
+                if lived is None:
+                    migrated_objects.append(authored)
+                    continue
+                position = authored.position
+                if lived.position is None:
+                    # Held things stay in the hand that holds them.
+                    position = None
+                elif region_containing(
+                    lived.position.x, lived.position.y, authored.radius_mm
+                ) is not None:
+                    position = lived.position
+                migrated_objects.append(
+                    replace(
+                        authored,
+                        position=position,
+                        held_by_body_id=lived.held_by_body_id,
+                        material=(
+                            lived.material
+                            if lived.material is not None
+                            else authored.material
+                        ),
+                    )
+                )
+            # A carried lived position may collide with the renovation's
+            # new furniture. Deterministically stand the later-named of any
+            # colliding pair at its authored place instead; two authored
+            # placements colliding is a declaration defect and refuses.
+            def collides(left, right) -> bool:
+                if left.position is None or right.position is None:
+                    return False
+                dx = left.position.x - right.position.x
+                dy = left.position.y - right.position.y
+                span = left.radius_mm + right.radius_mm
+                return dx * dx + dy * dy < span * span
+
+            settled = {item.object_id: item for item in migrated_objects}
+            moved = True
+            while moved:
+                moved = False
+                ordered = sorted(settled)
+                for index, left_id in enumerate(ordered):
+                    for right_id in ordered[index + 1 :]:
+                        left, right = settled[left_id], settled[right_id]
+                        if not collides(left, right):
+                            continue
+                        authored_right = declared_objects[right_id]
+                        if right.position != authored_right.position:
+                            settled[right_id] = replace(
+                                right, position=authored_right.position
+                            )
+                            moved = True
+                            continue
+                        authored_left = declared_objects[left_id]
+                        if left.position != authored_left.position:
+                            settled[left_id] = replace(
+                                left, position=authored_left.position
+                            )
+                            moved = True
+                            continue
+                        raise ValueError(
+                            "the declared home stands two things in one "
+                            f"place: {left_id} and {right_id}"
+                        )
+            migrated_objects = list(settled.values())
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("home renovation exhausted world revision")
+            self_body = next(
+                body for body in prior.world.bodies
+                if body.body_id == prior.world.self_body_id
+            )
+            her_region = region_containing(
+                self_body.pose.position.x,
+                self_body.pose.position.y,
+                self_body.radius_mm,
+            )
+            if her_region is None:
+                raise ValueError(
+                    "her lived stance does not fit the declared home; "
+                    "the renovation refuses"
+                )
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                room_id=her_region.region_id,
+                room_bounds=her_region.bounds,
+                regions=declared.regions,
+                portals=declared.portals,
+                objects=tuple(
+                    sorted(migrated_objects, key=lambda item: item.object_id)
+                ),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=prior_topology,
+                resulting_topology_sha256=self._declared_topology_sha256,
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            self._home_renovation_performed = True
+            return True
+
+    @property
+    def home_renovation_performed(self) -> bool:
+        return self._home_renovation_performed
 
     def migrate_declared_material_transport(self) -> bool:
         """Mount declared material/air state omitted by an older live body.
@@ -6550,7 +6772,14 @@ class EmbodimentWorldAuthority:
             world.regions,
             world.portals,
         )
-        if current_topology_sha256 != self._declared_topology_sha256:
+        if (
+            require_current_manifest
+            and current_topology_sha256 != self._declared_topology_sha256
+        ):
+            # Under the authenticated-migration authorization a restored
+            # world may still carry its pre-renovation topology; the home
+            # renovation that immediately follows brings it to the
+            # declared plan or the boot refuses there.
             raise ValueError("world topology differs from its declared anatomy")
         if (
             receipt.resulting_topology_sha256
@@ -7675,8 +7904,24 @@ class EmbodimentWorldAuthority:
             "max_objects": self._max_objects,
             "receipt_capacity": self._receipt_capacity,
         }
-        if decoded.get("limits") != expected_limits:
-            raise ValueError("embodiment state limits changed")
+        recorded_limits = decoded.get("limits")
+        if recorded_limits != expected_limits:
+            # A renovation release may grow the home; a snapshot recorded
+            # under smaller caps restores into an authority granting at
+            # least as much of every capacity, and only under the same
+            # authenticated-migration authorization that geometry uses.
+            if not (
+                allow_authenticated_physical_manifest_migration
+                and isinstance(recorded_limits, Mapping)
+                and set(recorded_limits) == set(expected_limits)
+                and all(
+                    isinstance(recorded_limits[name], int)
+                    and not isinstance(recorded_limits[name], bool)
+                    and 0 < recorded_limits[name] <= expected_limits[name]
+                    for name in expected_limits
+                )
+            ):
+                raise ValueError("embodiment state limits changed")
         if decoded.get("actor_ports") != [item.as_record() for item in self._actor_ports]:
             raise ValueError("embodiment actor port topology changed")
         catalog = self._optical_surface_catalog_from_record(decoded.get("optical_surface_catalog"))
@@ -7708,8 +7953,29 @@ class EmbodimentWorldAuthority:
             recent_applied_receipts=receipts,
             migration_receipt=migration,
         )
-        if self._encoded_state_for(candidate) != encoded:
-            raise ValueError("embodiment state is not canonical")
+        candidate_encoded = self._encoded_state_for(candidate)
+        if candidate_encoded != encoded:
+            # Under the accepted limits relaxation the re-encoding differs
+            # ONLY in the limits stanza (the new authority grants more);
+            # every other field must still reproduce exactly.
+            if recorded_limits == expected_limits:
+                raise ValueError("embodiment state is not canonical")
+            candidate_payload, _ = self._decode_authenticated_envelope(
+                candidate_encoded,
+                envelope_schema=ENVELOPE_SCHEMA,
+                domain=STATE_DOMAIN,
+                limit=self._max_encoded_state_bytes,
+            )
+            if {
+                key: value
+                for key, value in candidate_payload.items()
+                if key != "limits"
+            } != {
+                key: value
+                for key, value in decoded.items()
+                if key != "limits"
+            }:
+                raise ValueError("embodiment state is not canonical")
         if (
             allow_authenticated_physical_manifest_migration
             and migration is not None

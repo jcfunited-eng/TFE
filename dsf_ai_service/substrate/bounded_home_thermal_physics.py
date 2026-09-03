@@ -19,8 +19,12 @@ from dataclasses import dataclass
 from fractions import Fraction
 
 
-MAX_THERMAL_NODES = 8
-MAX_THERMAL_EDGES = 16
+# Twelve nodes: nine home places plus skin, core and one headroom —
+# the exact settle remains cheap at this count; this is the bound.
+MAX_THERMAL_NODES = 12
+# Twenty-four edges: nine doors, the core-skin bridge, one skin-air
+# contact per place, and headroom — the settle stays exact and cheap.
+MAX_THERMAL_EDGES = 24
 MAX_DURATION_MICROSECONDS = 5_000_000
 MAX_ENERGY_MICROJOULES = (1 << 63) - 1
 MAX_CAPACITY_MICROJOULES_PER_MILLIKELVIN = (1 << 48) - 1

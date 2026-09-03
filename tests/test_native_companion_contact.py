@@ -114,7 +114,8 @@ def test_surface_morphology_migration_preserves_the_lived_home_exactly(
         "regions": regions,
         "portals": portals,
         "initial_objects": objects,
-        "max_regions": 4,
+        "max_regions": 12,
+        "max_portals": 16,
     }
     bare = ThermallyCoupledEmbodimentWorldAuthority(**common)
     declared_bodies = (

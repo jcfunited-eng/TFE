@@ -572,10 +572,20 @@ WORLD_TURN_SPAN_MILLIDEGREES = 180_000
 # standing there.
 HOME_ROOM_SPAN_MM = 4_000
 HOME_CEILING_MM = 2_600
+# The backyard has no ceiling but the sky; this is the honest
+# bound of the modelled air column above it, not a room lid.
+BACKYARD_SKY_MM = 8_000
 
 
 def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
-    """Her four rooms, their doorways, and the things standing in them."""
+    """Her home, delivered from Eve's map (docs/GUALA_WORLD_EXPANSION_
+    BLUEPRINT_20260831.md): a 20m x 16m lot — nine places including a
+    full-width backyard under a high sky, a hallway spine wide enough
+    for three bodies abreast, her own room with window wall, curtains,
+    wall art and a toy chest, a library, a television room, a dining
+    room, and the two absence rooms with an address. Every corridor
+    keeps the five-body law (>= 1500mm clear); every thing is declared
+    physically in all of her senses; nothing is mimed."""
 
     from dsf_ai_service.substrate.embodiment_world import (
         AirVolumeState,
@@ -587,126 +597,139 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         RoomBoundsMM,
     )
 
-    span = HOME_ROOM_SPAN_MM
-    # A FLOOR PLAN, not a corridor: two rooms across and two deep, so the
-    # place reads as a home and every doorway is a real opening in a wall
-    # two rooms actually share.
-    #   bedroom | study
-    #   living  | kitchen
+    # (id, min_x, min_y, max_x, max_y, ceiling, light)
     plan = (
-        ("bedroom", 0, 0, 700_000),
-        ("study", 1, 0, 850_000),
-        ("living-room", 0, 1, 780_000),
-        ("kitchen", 1, 1, 900_000),
+        ("kitchen",       0,      0,  7_000,  5_000, HOME_CEILING_MM, 900_000),
+        ("dining",        7_000,  0, 12_000,  5_000, HOME_CEILING_MM, 820_000),
+        ("daddys-room",  12_000,  0, 16_000,  5_000, HOME_CEILING_MM, 700_000),
+        ("wcs-room",     16_000,  0, 20_000,  5_000, HOME_CEILING_MM, 700_000),
+        ("her-room",      0,  5_000,  5_600, 10_000, HOME_CEILING_MM, 780_000),
+        ("hallway",       5_600, 5_000, 9_000, 10_000, HOME_CEILING_MM, 760_000),
+        ("library",       9_000, 5_000, 14_000, 10_000, HOME_CEILING_MM, 800_000),
+        ("tv-room",      14_000, 5_000, 20_000, 10_000, HOME_CEILING_MM, 740_000),
+        # The backyard's ceiling is the sky: tall, bright, outdoors.
+        ("backyard",      0, 10_000, 20_000, 16_000, BACKYARD_SKY_MM, 950_000),
     )
     regions = [
         PhysicalRegion(
             region_id=name,
             bounds=RoomBoundsMM(
-                minimum=PositionMM(col * span, row * span, 0),
-                maximum=PositionMM((col + 1) * span, (row + 1) * span, HOME_CEILING_MM),
+                minimum=PositionMM(min_x, min_y, 0),
+                maximum=PositionMM(max_x, max_y, ceiling),
             ),
-            ceiling_height_mm=HOME_CEILING_MM,
-            reflectance_ppm=(620_000,) * 6,
+            ceiling_height_mm=ceiling,
+            reflectance_ppm=(
+                (480_000,) * 6 if name == "backyard" else (620_000,) * 6
+            ),
             illumination_ppm=(light,) * 6,
         )
-        for name, col, row, light in plan
+        for name, min_x, min_y, max_x, max_y, ceiling, light in plan
     ]
+    # Doors 1.4m wide minimum; the hallway connects everything and the
+    # backyard opens from the hallway, exactly as the blueprint says.
     portals = [
         PhysicalPortal(
             portal_id=f"door-{index}",
             region_ids=tuple(sorted(pair)),
             axis=axis,
-            plane_mm=span,
-            # An opening only exists along the wall the two rooms ACTUALLY
-            # share, so each doorway's span is offset to that wall.
-            aperture_min_mm=offset + 1_400,
-            aperture_max_mm=offset + 2_600,
+            plane_mm=plane,
+            aperture_min_mm=ap_min,
+            aperture_max_mm=ap_max,
             height_mm=2_050,
         )
-        for index, (pair, axis, offset) in enumerate((
-            (("bedroom", "study"), "x", 0),
-            (("kitchen", "living-room"), "x", span),
-            (("bedroom", "living-room"), "y", 0),
-            (("kitchen", "study"), "y", span),
+        for index, (pair, axis, plane, ap_min, ap_max) in enumerate((
+            (("kitchen", "dining"),        "x",  7_000, 1_800, 3_200),
+            (("dining", "daddys-room"),    "x", 12_000, 1_800, 3_200),
+            (("daddys-room", "wcs-room"),  "x", 16_000, 1_800, 3_200),
+            (("her-room", "hallway"),      "x",  5_600, 6_900, 8_300),
+            (("hallway", "library"),       "x",  9_000, 6_900, 8_300),
+            (("library", "tv-room"),       "x", 14_000, 6_900, 8_300),
+            (("kitchen", "hallway"),       "y",  5_000, 5_600, 7_000),
+            (("dining", "hallway"),        "y",  5_000, 7_300, 8_700),
+            (("hallway", "backyard"),      "y", 10_000, 6_000, 7_400),
         ))
     ]
-    room_origin = {name: (col * span, row * span) for name, col, row, _ in plan}
-    order = [name for name, _, _, _ in plan]
-    # (id, room index, x within room, y, radius, mass, reflectance)
-    # NOTHING OVERLAPS: her world refuses a layout where a body or a thing
-    # intersects another thing, which is correct — two objects cannot occupy
-    # the same space. The spacing below is checked against every radius.
+    # (id, absolute x, y, radius, mass, reflectance) — clearances are
+    # pre-checked against every neighbouring radius and wall.
     furniture = (
-        ("bed",           0,  1_200, 1_200, 900, 40_000, (760_000, 720_000, 690_000, 640_000, 600_000, 560_000)),
-        ("pillow",        0,  1_200, 2_600, 260,  1_200, (900_000, 890_000, 880_000, 860_000, 840_000, 820_000)),
-        ("toy-bear",      0,  3_200, 3_200, 180,    400, (520_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
-        ("desk",          1,  1_600, 1_200, 800, 32_000, (430_000, 330_000, 260_000, 220_000, 200_000, 190_000)),
-        ("desk-chair",    1,  1_600, 2_600, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
-        ("book",          1,  3_200, 1_000, 140,    900, (640_000, 520_000, 420_000, 360_000, 330_000, 310_000)),
-        ("lamp",          1,  3_200, 2_000, 180,  2_200, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
-        ("television",    2,  1_200,   800, 700, 12_000, (140_000, 140_000, 150_000, 160_000, 170_000, 180_000)),
-        ("sofa",          2,  1_600, 3_000, 950, 45_000, (360_000, 330_000, 380_000, 420_000, 430_000, 420_000)),
-        ("rug",           2,  3_400, 2_000, 600,  5_000, (540_000, 420_000, 360_000, 330_000, 320_000, 310_000)),
-        ("table",         3,  1_600, 1_600, 850, 28_000, (700_000, 620_000, 520_000, 450_000, 410_000, 390_000)),
-        ("table-chair",   3,  1_600, 3_000, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
-        ("bowl",          3,  3_200, 1_200, 160,    700, (920_000, 910_000, 900_000, 880_000, 860_000, 840_000)),
-        ("apple",         3,  3_200, 1_800,  90,    180, (820_000, 260_000, 190_000, 170_000, 160_000, 150_000)),
-        ("cup",           3,  3_200, 2_400, 110,    300, (880_000, 870_000, 860_000, 840_000, 820_000, 800_000)),
+        # kitchen, relaid uncluttered: a clear ring around the table.
+        ("table",           2_000,  1_500, 850, 28_000, (700_000, 620_000, 520_000, 450_000, 410_000, 390_000)),
+        ("table-chair",     2_000,  3_000, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
+        ("bowl",            4_500,    800, 160,    700, (920_000, 910_000, 900_000, 880_000, 860_000, 840_000)),
+        ("cup",             5_200,    800, 110,    300, (880_000, 870_000, 860_000, 840_000, 820_000, 800_000)),
+        ("apple",           5_650,    900,  90,    180, (820_000, 260_000, 190_000, 170_000, 160_000, 150_000)),
+        # her room: bed wall, soft things, desk corner, art at eye height.
+        ("bed",             1_200,  8_800, 900, 40_000, (760_000, 720_000, 690_000, 640_000, 600_000, 560_000)),
+        ("pillow",          1_200,  7_600, 260,  1_200, (900_000, 890_000, 880_000, 860_000, 840_000, 820_000)),
+        ("blanket",         3_400,  9_300, 300,    900, (860_000, 620_000, 540_000, 500_000, 470_000, 450_000)),
+        ("toy-bear",        4_800,  9_200, 180,    400, (520_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
+        ("toy-chest",       1_000,  5_600, 500,  8_000, (560_000, 430_000, 340_000, 300_000, 280_000, 260_000)),
+        ("desk",            4_400,  6_400, 800, 32_000, (430_000, 330_000, 260_000, 220_000, 200_000, 190_000)),
+        ("desk-chair",      4_400,  7_800, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
+        ("curtains",        2_800,  9_700, 250,  1_500, (930_000, 760_000, 620_000, 540_000, 500_000, 470_000)),
+        ("wall-art-shapes", 300,    7_000, 150,    600, (950_000, 300_000, 850_000, 200_000, 750_000, 250_000)),
+        ("wall-art-weather", 300,   6_100, 150,    600, (350_000, 550_000, 900_000, 400_000, 650_000, 300_000)),
+        ("glow-stars",      3_300,  7_200, 120,    300, (940_000, 930_000, 700_000, 400_000, 300_000, 260_000)),
+        # library: shelves on the north wall, the reading lamp, a book home.
+        ("shelf-a",        10_000,  9_500, 400, 30_000, (500_000, 400_000, 330_000, 290_000, 270_000, 250_000)),
+        ("shelf-b",        12_500,  9_500, 400, 30_000, (500_000, 400_000, 330_000, 290_000, 270_000, 250_000)),
+        ("book",           12_000,  7_500, 140,    900, (640_000, 520_000, 420_000, 360_000, 330_000, 310_000)),
+        ("lamp",           13_500,  5_400, 180,  2_200, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
+        # tv room: the watching place.
+        ("television",     17_000,  9_200, 700, 12_000, (140_000, 140_000, 150_000, 160_000, 170_000, 180_000)),
+        ("sofa",           17_000,  6_800, 950, 45_000, (360_000, 330_000, 380_000, 420_000, 430_000, 420_000)),
+        ("rug",            15_000,  6_000, 600,  5_000, (540_000, 420_000, 360_000, 330_000, 320_000, 310_000)),
+        # dining room.
+        ("dining-table",    9_500,  2_500, 900, 30_000, (700_000, 620_000, 520_000, 450_000, 410_000, 390_000)),
+        ("dining-chair",    9_500,  4_200, 320,  6_000, (300_000, 260_000, 240_000, 220_000, 210_000, 200_000)),
+        # backyard: slide, swing, sandbox, garden patch under the sky.
+        ("slide",           3_000, 13_500, 900, 25_000, (700_000, 720_000, 740_000, 700_000, 650_000, 600_000)),
+        ("swing",           7_000, 14_000, 700, 15_000, (480_000, 430_000, 380_000, 340_000, 320_000, 300_000)),
+        ("sandbox",        11_500, 13_500, 1_100, 60_000, (820_000, 780_000, 700_000, 620_000, 560_000, 520_000)),
+        ("garden-patch",   16_500, 13_500, 1_200, 80_000, (300_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
     )
-    # WHAT EACH THING IS MADE OF (Joe, 2026-08-08: "objects as presented in
-    # the VR environment have all 6").  Her world already carried the physics
-    # for odour, taste, temperature and the three touch qualities, and every
-    # object here was declared with light and nothing else — so a thing she
-    # could SEE reached none of her other senses.  These are declarations of
-    # what each thing IS, in the world's own units, exactly like reflectance.
-    #
-    # Odour is eight channels because her olfactory receptors are eight; the
-    # world does not name them, so they are used as eight volatile classes:
-    #   0 fruit ester · 1 cooked savoury · 2 dairy fat · 3 wood
-    #   4 fabric dust · 5 paper ink · 6 warm electronics · 7 soap
-    # Taste is her five: sweet, salt, sour, bitter, umami.
-    #
-    # THE SIXTH SENSE IS NOT HERE AND IS NOT FAKED: her world has no acoustic
-    # emission law, so nothing in a room can make a noise yet. Sight, touch,
-    # taste, smell and body are real from this point on; sound needs an
-    # emission-and-propagation law written the way odour transport already is.
-    #
-    # (release ng/s per odour channel, tastants µg, surface mK, compliance
-    #  ppm, roughness µm, moisture ppm)
+    # (release ng/s per odour channel, tastants ug, surface mK, compliance
+    #  ppm, roughness um, moisture ppm) — same channel meanings as before:
+    #  0 fruit ester - 1 cooked savoury - 2 dairy fat - 3 wood/earth
+    #  4 fabric dust - 5 paper ink - 6 warm electronics - 7 soap
     material_of = {
-        "bed":         ((0, 0, 0, 0, 900, 0, 0, 120),   (0, 300, 0, 800, 0),        294_000, 600_000, 200, 55_000),
-        "pillow":      ((0, 0, 0, 0, 600, 0, 0, 300),   (0, 300, 0, 800, 0),        294_000, 900_000, 120, 48_000),
-        "toy-bear":    ((0, 0, 0, 0, 1_200, 0, 0, 60),  (0, 300, 0, 900, 0),        294_000, 800_000, 300, 42_000),
-        "desk":        ((0, 0, 0, 700, 60, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
-        "desk-chair":  ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
-        "book":        ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
-        "lamp":        ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
-        "television":  ((0, 0, 0, 0, 40, 0, 700, 0),    (0, 0, 0, 400, 0),          306_000, 20_000, 5, 1_000),
-        "sofa":        ((0, 0, 0, 120, 1_500, 0, 0, 90), (0, 300, 0, 800, 0),       294_000, 700_000, 400, 52_000),
-        "rug":         ((0, 0, 0, 0, 2_200, 0, 0, 40),  (0, 300, 0, 900, 0),        294_000, 500_000, 800, 46_000),
-        "table":       ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
-        "table-chair": ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
-        "bowl":        ((0, 300, 120, 0, 0, 0, 0, 200), (400, 900, 100, 200, 1_200), 294_000, 30_000, 8, 90_000),
-        "apple":       ((4_200, 0, 0, 0, 0, 0, 0, 0),   (140_000, 200, 26_000, 900, 300), 292_000, 120_000, 15, 850_000),
-        "cup":         ((0, 60, 40, 0, 0, 0, 0, 400),   (0, 0, 0, 0, 0),            291_000, 25_000, 6, 900_000),
+        "bed":             ((0, 0, 0, 0, 900, 0, 0, 120),   (0, 300, 0, 800, 0),        294_000, 600_000, 200, 55_000),
+        "pillow":          ((0, 0, 0, 0, 600, 0, 0, 300),   (0, 300, 0, 800, 0),        294_000, 900_000, 120, 48_000),
+        "blanket":         ((0, 0, 0, 0, 1_000, 0, 0, 150), (0, 300, 0, 800, 0),        294_000, 850_000, 150, 50_000),
+        "toy-bear":        ((0, 0, 0, 0, 1_200, 0, 0, 60),  (0, 300, 0, 900, 0),        294_000, 800_000, 300, 42_000),
+        "toy-chest":       ((0, 0, 0, 600, 80, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 50_000, 60, 20_000),
+        "desk":            ((0, 0, 0, 700, 60, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
+        "desk-chair":      ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "curtains":        ((0, 0, 0, 0, 700, 0, 0, 100),   (0, 0, 0, 600, 0),          293_000, 800_000, 120, 45_000),
+        "wall-art-shapes": ((0, 0, 0, 30, 20, 700, 0, 0),   (0, 0, 0, 1_800, 0),        294_000, 60_000, 50, 18_000),
+        "wall-art-weather": ((0, 0, 0, 30, 20, 700, 0, 0),  (0, 0, 0, 1_800, 0),        294_000, 60_000, 50, 18_000),
+        "glow-stars":      ((0, 0, 0, 0, 10, 0, 120, 0),    (0, 0, 0, 900, 0),          294_000, 30_000, 10, 3_000),
+        "book":            ((0, 0, 0, 40, 30, 900, 0, 0),   (0, 0, 0, 2_000, 0),        294_000, 60_000, 60, 18_000),
+        "shelf-a":         ((0, 0, 0, 900, 70, 300, 0, 0),  (0, 0, 0, 1_500, 0),        294_000, 40_000, 45, 20_000),
+        "shelf-b":         ((0, 0, 0, 900, 70, 300, 0, 0),  (0, 0, 0, 1_500, 0),        294_000, 40_000, 45, 20_000),
+        "lamp":            ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
+        "television":      ((0, 0, 0, 0, 40, 0, 700, 0),    (0, 0, 0, 400, 0),          306_000, 20_000, 5, 1_000),
+        "sofa":            ((0, 0, 0, 120, 1_500, 0, 0, 90), (0, 300, 0, 800, 0),       294_000, 700_000, 400, 52_000),
+        "rug":             ((0, 0, 0, 0, 2_200, 0, 0, 40),  (0, 300, 0, 900, 0),        294_000, 500_000, 800, 46_000),
+        "table":           ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
+        "table-chair":     ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "dining-table":    ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
+        "dining-chair":    ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "bowl":            ((0, 300, 120, 0, 0, 0, 0, 200), (400, 900, 100, 200, 1_200), 294_000, 30_000, 8, 90_000),
+        "apple":           ((4_200, 0, 0, 0, 0, 0, 0, 0),   (140_000, 200, 26_000, 900, 300), 292_000, 120_000, 15, 850_000),
+        "cup":             ((0, 60, 40, 0, 0, 0, 0, 400),   (0, 0, 0, 0, 0),            291_000, 25_000, 6, 900_000),
+        "slide":           ((0, 0, 0, 0, 30, 0, 80, 0),     (0, 0, 0, 300, 0),          288_000, 15_000, 8, 10_000),
+        "swing":           ((0, 0, 0, 300, 400, 0, 0, 0),   (0, 200, 0, 900, 0),        288_000, 250_000, 300, 30_000),
+        "sandbox":         ((0, 0, 0, 100, 600, 0, 0, 0),   (0, 100, 0, 400, 0),        290_000, 400_000, 900, 25_000),
+        "garden-patch":    ((0, 0, 0, 1_600, 300, 0, 0, 0), (0, 100, 200, 700, 100),    289_000, 450_000, 700, 320_000),
     }
-    # A reservoir is a real finite stock: what it off-gasses runs out. Ten
-    # days of its own declared rate — an apple in a bowl stops smelling.
     reservoir_seconds = 864_000
     objects = [
         EmbodiedObject(
             name,
             radius,
             mass,
-            PositionMM(
-                room_origin[order[room]][0] + x,
-                room_origin[order[room]][1] + y,
-                # Her world records a thing's position as where it stands on
-                # the floor, and refuses any other height, so this is zero by
-                # the world's own rule rather than by choice.
-                0,
-            ),
+            PositionMM(x, y, 0),
             reflectance_ppm=reflectance,
             material=ObjectMaterialState(
                 odorant_reservoir_nanograms=tuple(
@@ -720,24 +743,33 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
                 moisture_ppm=material_of[name][5],
             ),
         )
-        for name, room, x, y, radius, mass, reflectance in furniture
+        for name, x, y, radius, mass, reflectance in furniture
     ]
-    # THE AIR IN EACH ROOM IS NOT INVENTED, IT IS DERIVED: a room that has
-    # existed holds what the things standing in it have been giving off. Each
-    # room starts with one hour of its OWN objects' declared release rates, so
-    # the kitchen smells of the apple in it and the bedroom does not. Doorways
-    # then carry air between rooms at their declared flow, which is what makes
-    # a gradient she could follow rather than a set of sealed boxes.
+    # Each room's air is derived from what stands in it, exactly as before,
+    # with room membership resolved from each thing's authored position.
+    def room_of(x: int, y: int) -> str:
+        for name, min_x, min_y, max_x, max_y, _c, _l in plan:
+            if min_x <= x < max_x and min_y <= y < max_y:
+                return name
+        raise RuntimeError(f"authored thing stands outside every room ({x},{y})")
+
     settled_seconds = 3_600
-    room_air = {name: [0] * len(material_of["apple"][0]) for name in order}
-    for name, room, *_rest in furniture:
+    channel_count = len(material_of["apple"][0])
+    room_air = {name: [0] * channel_count for name, *_rest in plan}
+    for name, x, y, *_rest in furniture:
         for channel, rate in enumerate(material_of[name][0]):
-            room_air[order[room]][channel] += rate * settled_seconds
+            room_air[room_of(x, y)][channel] += rate * settled_seconds
+    bounds_of = {name: (min_x, min_y, max_x, max_y, ceiling)
+                 for name, min_x, min_y, max_x, max_y, ceiling, _l in plan}
     regions = [
         replace(
             region,
             air=AirVolumeState(
-                volume_cubic_mm=span * span * HOME_CEILING_MM,
+                volume_cubic_mm=(
+                    (bounds_of[region.region_id][2] - bounds_of[region.region_id][0])
+                    * (bounds_of[region.region_id][3] - bounds_of[region.region_id][1])
+                    * bounds_of[region.region_id][4]
+                ),
                 odorant_mass_nanograms=tuple(room_air[region.region_id]),
             ),
         )
@@ -814,7 +846,10 @@ def _home_thermal_anatomy(
             "body:core",
         ),
         initial_temperatures_millikelvin=(
-            *((296_150,) * len(ordered_regions)),
+            *(
+                (293_150 if region.region_id == "backyard" else 296_150)
+                for region in ordered_regions
+            ),
             303_150,
             309_950,
         ),
@@ -834,9 +869,15 @@ def _home_thermal_anatomy(
         skin_node_index=skin_index,
         core_node_index=core_index,
         skin_air_conductance_microwatts_per_kelvin=5_928_571,
+        # Indoor rooms couple to the authored HVAC boundary; the backyard
+        # is outdoors and couples hard to the open sky's own ambient.
         bath_edges=tuple(
-            ThermalBathEdge(index, 296_150, 250_000_000)
-            for index in range(len(ordered_regions))
+            (
+                ThermalBathEdge(index, 293_150, 2_500_000_000)
+                if region.region_id == "backyard"
+                else ThermalBathEdge(index, 296_150, 250_000_000)
+            )
+            for index, region in enumerate(ordered_regions)
         ),
         power_sources=(ThermalPowerSource(core_index, metabolic_power),),
         parameter_provenance=(
@@ -1172,8 +1213,8 @@ def _world() -> Any:
         bodies=(
             EmbodiedBody(
                 "guala-body-1",
-                # She starts in the bedroom, beside the bed.
-                PoseMM(PositionMM(3_200, 1_200, 0), 0),
+                # She starts in her own room, beside the bed.
+                PoseMM(PositionMM(2_600, 7_600, 0), 0),
                 radius_mm=250,
                 reach_mm=800,
                 receptor_geometry=her_receptors,
@@ -1183,7 +1224,8 @@ def _world() -> Any:
             # occupies when they are in the room. It does nothing on its own.
             EmbodiedBody(
                 "person-body-1",
-                PoseMM(PositionMM(3_500, HOME_ROOM_SPAN_MM + 3_600, 0), 180_000),
+                # The companion starts in the hallway spine.
+                PoseMM(PositionMM(7_300, 7_500, 0), 180_000),
                 radius_mm=250,
                 reach_mm=800,
             ),
@@ -1199,7 +1241,9 @@ def _world() -> Any:
             () if home_book_sequence is None else (home_book_sequence,)
         ),
         body_surface_sites=_companion_body_surface_sites(),
-        max_regions=4,
+        # Nine places and nine doors; the caps state the lean bound.
+        max_regions=12,
+        max_portals=16,
     )
     path = STATE_ROOT / WORLD_STATE_FILE
     matched_recovery = _world_recovery_marker_present()
@@ -1220,6 +1264,10 @@ def _world() -> Any:
                 allow_authenticated_physical_manifest_migration=True,
                 allow_legacy_thermal_genesis=True,
             )
+            # The renovation runs FIRST: a lived four-room world grows into
+            # the declared home while every lived thing is preserved; the
+            # geometry and material migrations then act on the grown plan.
+            authority.migrate_declared_home_topology()
             authority.migrate_declared_body_receptor_geometry()
             authority.migrate_declared_material_transport()
         except (ValueError, TypeError, RuntimeError) as error:
@@ -1250,8 +1298,23 @@ def _world() -> Any:
         )
     current_body = authority.encoded_snapshot()
     if matched_recovery and stored_body != current_body:
-        raise RuntimeError(
-            "ordinary matched world restore changed its canonical bytes"
+        if not authority.home_renovation_performed:
+            raise RuntimeError(
+                "ordinary matched world restore changed its canonical bytes"
+            )
+        # The home renovation is the one authorized byte change under
+        # matched custody: the release boundary retires the stale pair
+        # and re-pairs the recovery store with the renovated world
+        # before anything is reachable.
+        _generations_dir, _associations_dir = _world_recovery_directories()
+        stale_association = _associations_dir / (
+            _restored.pointer.state_sha256 + WORLD_RECOVERY_ASSOCIATION_SUFFIX
+        )
+        if stale_association.is_file():
+            stale_association.unlink()
+        _publish_world_recovery_pair(
+            _restored.pointer.state_sha256,
+            current_body,
         )
     if stored_body != current_body:
         # A new home and the one authorized bare-world-to-thermal migration

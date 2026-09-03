@@ -283,7 +283,10 @@ class CoupledThermalAnatomy:
 
     def verify(self, region_ids: Sequence[str]) -> None:
         if (
-            not 1 <= len(self.node_ids) <= 8
+            # Bounded at twelve nodes: nine home places plus skin, core
+            # and headroom for one more — the exact settle stays cheap at
+            # this count and the bound is the lean statement of that.
+            not 1 <= len(self.node_ids) <= 12
             or len(set(self.node_ids)) != len(self.node_ids)
             or any(_identifier(item, "thermal node id") != item for item in self.node_ids)
             or len(self.initial_temperatures_millikelvin) != len(self.node_ids)
@@ -850,6 +853,27 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             self.encoded_snapshot()
             return True
 
+    def migrate_declared_home_topology(self) -> bool:
+        """Atomically bind a renovated home to thermal custody."""
+
+        with self._thermal_lock:
+            changed = super().migrate_declared_home_topology()
+            if not changed:
+                return False
+            observation = super().observation_snapshot()
+            self._thermal_anatomy.verify(
+                tuple(item.region_id for item in observation.regions)
+            )
+            self._thermal_world_revision = observation.revision
+            self._thermal_world_observation_receipt_sha256 = (
+                observation.authority_receipt_sha256
+            )
+            self._latest_thermal_transition = None
+            self._pending_thermal = None
+            self._committed_thermal_tail = None
+            self.encoded_snapshot()
+            return True
+
     def migrate_declared_material_transport(self) -> bool:
         """Atomically bind restored material and air to thermal custody."""
 
@@ -987,6 +1011,8 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                         allow_authenticated_physical_manifest_migration
                     ),
                 )
+                if allow_authenticated_physical_manifest_migration:
+                    super().migrate_declared_home_topology()
                 observation = super().observation_snapshot()
                 self._thermal_anatomy.verify(
                     tuple(item.region_id for item in observation.regions)
@@ -1042,7 +1068,11 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             raise ValueError("coupled thermal payload fields changed")
         if payload.get("schema") != envelope_schema:
             raise ValueError("coupled thermal schemas disagree")
-        if payload.get("anatomy_receipt_sha256") != self._thermal_anatomy.receipt_sha256:
+        renovation = (
+            payload.get("anatomy_receipt_sha256")
+            != self._thermal_anatomy.receipt_sha256
+        )
+        if renovation and not allow_authenticated_physical_manifest_migration:
             raise ValueError("coupled thermal anatomy changed")
         try:
             world_encoded = base64.b64decode(
@@ -1081,10 +1111,58 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     allow_authenticated_physical_manifest_migration
                 ),
             )
-            observation = super().observation_snapshot()
-            self._thermal_anatomy.verify(
-                tuple(item.region_id for item in observation.regions)
-            )
+            if renovation:
+                prior_region_ids = tuple(
+                    item.region_id
+                    for item in super().observation_snapshot().regions
+                )
+                if not super().migrate_declared_home_topology():
+                    raise ValueError(
+                        "coupled thermal anatomy changed without a declared "
+                        "home renovation"
+                    )
+                observation = super().observation_snapshot()
+                self._thermal_anatomy.verify(
+                    tuple(item.region_id for item in observation.regions)
+                )
+                # The prior anatomy's node order is its own convention:
+                # room airs sorted by region id, then skin, then core. The
+                # renovation carries the LIVED body heat exactly and any
+                # room whose name survives; new rooms start at their
+                # declared genesis and the receipt-bearing world says so.
+                prior_order = (
+                    *(f"air:{region_id}" for region_id in sorted(prior_region_ids)),
+                    "body:cutaneous-shell",
+                    "body:core",
+                )
+                if len(state.nodes) != len(prior_order):
+                    raise ValueError(
+                        "prior thermal state does not match its own anatomy"
+                    )
+                prior_energy = dict(zip(prior_order, state.nodes))
+                genesis = self._thermal_anatomy.genesis_state()
+                carried_nodes = []
+                for node_id, node in zip(
+                    self._thermal_anatomy.node_ids, genesis.nodes
+                ):
+                    lived = prior_energy.get(node_id)
+                    if (
+                        lived is not None
+                        and lived.capacity_microjoules_per_millikelvin
+                        == node.capacity_microjoules_per_millikelvin
+                    ):
+                        carried_nodes.append(lived)
+                    else:
+                        carried_nodes.append(node)
+                state = replace(genesis, nodes=tuple(carried_nodes))
+                revision = observation.revision
+                receipt = observation.authority_receipt_sha256
+                latest = None
+            else:
+                observation = super().observation_snapshot()
+                self._thermal_anatomy.verify(
+                    tuple(item.region_id for item in observation.regions)
+                )
             state.verify(
                 self._thermal_anatomy.conductive_edges(observation.room_id),
                 self._thermal_anatomy.bath_edges,
