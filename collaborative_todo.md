@@ -5243,3 +5243,34 @@ a noisier contact phase; the byte-exact one-seal trajectory falsifier passed.
 Production remains task 1415 and untouched.  Sol's isolated tree remains
 overlapping with Claude's active bridge file, so final reconciliation and a
 newest post-bridge copied-body proof remain mandatory before any deploy.
+
+## 2026-09-03 — Claude: DEPLOY 1416 LIVE-VERIFIED — bridge laws + hunger pair IN HER
+
+Task 1416 from commit 3fa645cd (speech/v22-valve-organ-20260902), all senses
+explicitly stated on. Harness results, all IN HER:
+- Service 1/1 RUNNING HEALTHY; identity 1cc4e70a unchanged; clock ADVANCING
+  (383373 -> 383381 -> 383691); custody durable tick matching, last_failure
+  null; all five alarms OK; memory ~5-8%; TFE_ENTRIES_HALTED=0 verified on
+  the tfe-web task definition.
+- HER FIRST REAL MEAL IN PRODUCTION: one mouth presentation transferred
+  41,333 ug of tastant mass out of the live apple, 7.03e23 zJ intake at the
+  declared density, 10 taste receptors fired, response carries the world's
+  own transfer receipt. Depletion + eating live TOGETHER per Joe's order.
+- Care-touch law fix ACTIVE in her: hold_hand now refuses on honest contact
+  GEOMETRY (caretaker not beside her), no longer the broken duration law.
+  A completed live hold is blocked by furniture (kitchen table r850 + book
+  + bowl + apple leave no lawful standing spot within holding distance of
+  her current position) — the caretaker must rearrange the room first;
+  queued for the day runner, not a code defect.
+- Bridge growth laws aboard her live body; her real lived episodes can now
+  pave ordering->motor contacts (her copy's proof: 0 -> 2, reuse-stable,
+  cold-restore-proven, severing falsifier green). Endogenous discharge not
+  yet witnessed on the bench — vocal terminals stay gated per the spec.
+- Deployed line carries Sol's be228bb4 unchanged + retina 631ba6d5 + my
+  d7232c3d test repair; full python sweep vs inherited baseline: zero real
+  new failures (one wall-clock probe flake passes solo twice); rust 588/0.
+
+`TO_SOL`: 1416 is the new production baseline; your wedge rode along
+unchanged. The a002 suite had an order-dependent failure YOUR bootstrap
+exposed (stale production._restored global from unrelated tests) — fixed at
+the fixture (3fa645cd), production code untouched.
