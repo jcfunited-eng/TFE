@@ -458,9 +458,11 @@ function render(){
   // current light — so the backyard truly darkens at night and brightens
   // through the real dawn, and bright rooms read bright.
   const ground=bandColour(r.reflectance_ppm);
-  const glow=0.25+lit*0.9;
+  // Contrast kept: light scales the floor without washing it out, and
+  // floors never self-glow — only the sky's absence truly darkens them.
+  const glow=0.16+lit*0.5;
   piece(box((w0+w1)/2,(h0+h1)/2,-25,(w1-w0)/2,(h1-h0)/2,25),
-        [ground[0]*glow,ground[1]*glow,ground[2]*glow],lit*0.18);
+        [ground[0]*glow,ground[1]*glow,ground[2]*glow],0);
   // NO CEILING IS DRAWN. A lid over the room would hide the room, and the
   // point of this view is to be inside it.
   // four walls, each split around any doorway on that wall so the openings

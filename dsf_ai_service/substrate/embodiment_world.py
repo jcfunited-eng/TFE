@@ -3712,6 +3712,56 @@ class EmbodimentWorldAuthority:
             self._commit_authority_state(candidate)
             return True
 
+    def admit_authored_arrival(self, item: EmbodiedObject) -> str:
+        """Admit one authored thing at the world's boundary — groceries.
+
+        Matter inside the world is conserved absolutely; the boundary is
+        where authored events (a caregiver's card, a song, a delivery)
+        lawfully enter. The arrival is validated like genesis authoring:
+        a fresh identity, a lawful standing spot, every cap respected —
+        then committed with a revision like any real change. Returns the
+        world state sha after the arrival.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("an arrival cannot land during an action")
+            prior = self._state
+            item.verify()
+            if item.position is None or item.held_by_body_id is not None:
+                raise ValueError("an arrival must stand on the floor")
+            if any(
+                existing.object_id == item.object_id
+                for existing in prior.world.objects
+            ):
+                raise ValueError("an arrival requires a fresh identity")
+            if len(prior.world.objects) + 1 > self._max_objects:
+                raise ValueError("the home holds no room for another thing")
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("arrival exhausted world revision")
+            candidate_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                objects=tuple(
+                    sorted(
+                        (*prior.world.objects, item),
+                        key=lambda entry: entry.object_id,
+                    )
+                ),
+            )
+            self._validate_world(candidate_world)
+            observation = self._observation_for(candidate_world)
+            candidate = _AuthorityState(
+                world=candidate_world,
+                observation=observation,
+                recent_applied_receipts=prior.recent_applied_receipts,
+                migration_receipt=prior.migration_receipt,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return observation.state_sha256
+
     def migrate_declared_home_topology(self) -> bool:
         """Carry a lived world into a grown declared home — the renovation.
 

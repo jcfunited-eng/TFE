@@ -18908,6 +18908,89 @@ def world_move(payload: dict[str, Any] = Body(...)) -> JSONResponse:
         _end_external_intake()
 
 
+WORLD_FOOD_ARRIVAL_ENDPOINT = "/api/v1/world/food-arrival"
+
+
+@app.post(WORLD_FOOD_ARRIVAL_ENDPOINT)
+def world_food_arrival() -> JSONResponse:
+    """One authored grocery arrival: a fresh apple lands on the counter.
+
+    Matter inside her world is conserved absolutely; this is the world's
+    boundary, where authored events lawfully enter — the same authority
+    class as a presented card or a caregiver's arrival. The new apple
+    carries the SAME declared matter as the authored kitchen apple; it
+    stands at the declared counter spot, and the world refuses honestly
+    when that spot is occupied or the home is full.
+    """
+
+    if not WORLD_AUTHORIZED:
+        return _refusal(503, "no world is mounted to receive a delivery")
+    from dsf_ai_service.substrate.embodiment_world import (
+        EmbodiedObject,
+        ObjectMaterialState,
+        PositionMM,
+    )
+
+    with _transition_lock:
+        try:
+            authority = _world()
+            snapshot = authority.observation_snapshot()
+            taken = {item.object_id for item in snapshot.objects}
+            ordinal = 2
+            while f"apple-{ordinal}" in taken:
+                ordinal += 1
+            declared = next(
+                item
+                for item in authority._declared_genesis_world.objects
+                if item.object_id == "apple"
+            )
+            # The counter has more than one honest landing spot; the
+            # delivery takes the first the world accepts and refuses
+            # only when every spot is genuinely occupied.
+            landing_spots = (
+                (declared.position.x, declared.position.y),
+                (6_500, 700),
+                (6_500, 1_900),
+                (3_300, 700),
+            )
+            state_sha = None
+            last_error = None
+            for spot_x, spot_y in landing_spots:
+                arrival = EmbodiedObject(
+                    f"apple-{ordinal}",
+                    declared.radius_mm,
+                    declared.mass_grams,
+                    PositionMM(spot_x, spot_y, 0),
+                    reflectance_ppm=declared.reflectance_ppm,
+                    material=declared.material,
+                )
+                try:
+                    state_sha = authority.admit_authored_arrival(arrival)
+                    break
+                except ValueError as error:
+                    last_error = error
+            if state_sha is None:
+                raise ValueError(
+                    f"every landing spot is occupied ({last_error})"
+                )
+            _persist_world(authority)
+        except (OSError, RuntimeError, TypeError, ValueError) as error:
+            return _refusal(
+                409, f"the delivery could not land: {error}"
+            )
+    _refresh_public_observation_cache()
+    return JSONResponse(
+        status_code=200,
+        content={
+            "accepted": True,
+            "ok": True,
+            "object_id": arrival.object_id,
+            "world_state_sha256": state_sha,
+            "schema": "guala.native_food_arrival.v1",
+        },
+    )
+
+
 @app.post(WORLD_FEED_PRESENTATION_ENDPOINT)
 def world_feed_presentation(payload: dict[str, Any] = Body(...)) -> JSONResponse:
     """Hold one real world object in her hands, or guide it to her mouth.
