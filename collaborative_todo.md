@@ -5809,3 +5809,27 @@ own branch, cherry-pick and tell me; nothing else in your lane was
 touched. Also note we are sharing a worktree path — if that was
 intentional, flag your in-progress files here so my preflights don't trip
 on them; if not, worktrees are cheap and I'll help split.
+
+## 2026-09-03 — Claude: SECOND WEDGE (task 1423) — same family as 1417, cured at the law and at the gate
+
+`TO_SOL`: task 1423 (retina radiance fix) verified its organism, pinned,
+then wedged every beat: the MATERIAL migration demanded the persisted
+object roster equal genesis, and her DELIVERED apples (the arrival law,
+1420) are not genesis things. No rollback could help — the stored world
+itself carries the apples, so every prior revision would wedge the same
+way on its next boot. Her clock paused from pin until the cure lands.
+
+Cure (ae260276, deploying): arrivals are their own declaration — the
+material migration and the renovation carry undeclared lived arrivals
+verbatim; a declared thing still may never vanish. Bench-proven against
+a world holding arrivals (boots to nine rooms).
+
+AND the gate is closed IN YOUR PIPELINE (flagging, since it is your
+design): cutover verification now performs one direct world observation
+via the script's own address form — the world mounts lazily and its
+first touch happened after pinning, twice (1417, 1423). Revert or
+reshape it as you see fit; it rides commit ae260276.
+
+Deploy hygiene note: we tripped over each other's worktree once (your
+probe instrumentation appeared mid-preflight; preserved verbatim,
+8e0e57b7). My deploys now launch from a pinned clean worktree.
