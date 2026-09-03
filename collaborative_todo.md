@@ -5725,3 +5725,72 @@ AWS pre-harness baseline: ECS task definition 1420, desired/running/pending
 1/1/0, rollout completed, task health healthy, image digest
 `sha256:b96eb1f1772078b8ddd1c1d8d895760d05efa3e389bc9a1ea9d7bee7f66f0d77`,
 and zero `guala-*` metric alarms in ALARM. No production mutation occurred.
+
+## 2026-09-03 — Sol: `TIMING-IMPACT-4` copied task-1420 range proof — intrinsic tissue is non-excitable
+
+Status: `ARCHITECTURE_CONFLICT_PROVEN; NO MOTOR REPAIR MAY DEPLOY AS A CONDITION PATCH`.
+
+The measurement-only reservoir probe was extended in Sol's exact task-1420
+worktree to expose each mounted cell's exact capacitance, potential, reversal,
+gate population, gate-open population, and one-clock active pump bound. It was
+then run networkless against the authenticated raw body SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`.
+The first runner command did not start because this container has no
+`/usr/bin/time`; the corrected ordinary bounded invocation ran one filtered
+test (1/1) and completed the two-route, 0-through-8-clock range in 3.94 seconds.
+
+Exact initial motor-route potentials:
+
+- ordering `...05f6`: `-875404479079773/8180000000000000` mV (about -0.1070),
+  motor `...00c5`: `-5911764750021/110000000000000` mV (about -0.0537);
+- ordering `...06ba`: `-4854996546266817/41225000000000000` mV (about -0.1178),
+  motor `...04fb`: `-425476430189991/11852500000000000` mV (about -0.0359).
+
+Both pairs therefore physically drive positive carriers from motor back into
+ordering. Every cell's sole gate reversal is -1 mV. The active gradient pump
+can depolarize each ordering cell by only five or six inward carriers per
+millisecond clock in its present anatomy.
+
+Two range modes were falsified. First, each layer-11 ordering cell itself was
+declared the sole current causal seed for eight consecutive clocks. Second,
+the exact founding layer-7 plus layer-10 pair feeding each ordering cell was
+declared causal for the same range. The outcomes were identical at the motor
+boundary: zero forward layer-11-to-layer-12 transfers, zero motor recruitment,
+zero open layer-11 gates, and zero open layer-12 gates at every point. Reverse
+transfers continued at 5--128 whole carriers per clock. Eight is already well
+beyond the organism's retained three-frontier causal span, so sustained labels
+cannot rescue the existing tissue.
+
+Whole-body census: all intrinsic layer 6, 7, 8, 9, 11, 12, and 13 cells have
+gate population one and zero currently open gates. Forty-three layer-10 cells
+are open only because layer 10 owns a special contact-modulated external
+gate-work path. Source proves the general cause: quiescent intrinsic cells are
+born with one 1-pS gate, zero gating charge, zero chemical bias, and no Psi
+contacts. Their gate is physically disconnected from membrane voltage,
+chemistry, and their own DSF/Psi state. The body scales membrane capacitance
+exactly with declared geometric territory (the two ordering cells are 6544 and
+8245 pF), but does not supply excitable channel anatomy. Passive current and
+gap-junction equalization exist; regenerative neuronal excitation does not.
+
+This is not new ground. `GUALA_A013_NATIVE_ROOT_YAW_SPRINT_LEDGER_2026-08-27.md`
+recorded the same exact blocker on 2026-08-28: an intrinsic effector had zero
+gating charge, zero chemical drive, no Psi contact, and could not open in an
+ordinary internal-contact interval. Subsequent work added a distinct terminal
+discharge for already-positive motor displacement and later broadened retained
+layer-11 current into preparation. Those are downstream workarounds; neither
+made ordering or motor tissue excitable. Restoring the old causal-seed check or
+tuning a terminal condition would repeat that failed repair family.
+
+Biological comparison: resting ionic current and electrical coupling do not
+replace excitability. Biological neurons use voltage-sensitive depolarizing
+and repolarizing conductances; chemical synapses use a presynaptic electrical
+event to gate finite release and a postsynaptic current; some electrical
+synapses obtain directionality from asymmetric/rectifying junctions. Guala's
+ratified current contact is explicitly a symmetric Cx36-like gap junction, and
+its directed chemical-synapse specification explicitly remains unavailable.
+Therefore the next honest repair is an excitable-neuron specialization with
+finite, energy/material-priced depolarizing and restorative channel paths.
+Its coefficients and deterministic transition law must be explicitly
+ratified; they cannot be manufactured from a motor label, endpoint order,
+threshold, score, or observer condition. Until that law is selected, no source
+change can truthfully claim to fix autonomous motor initiation.
