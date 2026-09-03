@@ -76,7 +76,16 @@ def confirmations_and_control(latest: str) -> tuple[list, list]:
         if n < 40 or str(lf["date"].iloc[-1])[:10] != latest:
             continue
         c = lf["close"].to_numpy(float)
-        if c[-1] <= 1:
+        # the CLEAN frame the law passed under (ch3_recovery_clean_retest
+        # 2026-09-03): $5 floor, no destroyed shells, no 25%-day pump
+        # names in the last 10 sessions. Fillability/ceiling applied
+        # below from the store.
+        if c[-1] < 5:
+            continue
+        if float(np.max(c)) / c[-1] >= 1000:
+            continue
+        w = c[-11:]
+        if any(a > 0 and b / a >= 1.25 for a, b in zip(w, w[1:])):
             continue
         urf = lf["URF"].to_numpy(float)
         suf = lf["S_UF"].to_numpy(float)
@@ -123,11 +132,15 @@ def confirmations_and_control(latest: str) -> tuple[list, list]:
 
 def main() -> None:
     store = pd.read_parquet(os.path.join(ROOT, "ch4_live_store.parquet"),
-                            columns=["Date", "Symbol", "Close"])
+                            columns=["Date", "Symbol", "Close", "Volume"])
     store["d"] = store["Date"].astype(str).str[:10]
     days = sorted(store["d"].unique())
     latest = days[-1]
     px = store[store["d"] == latest].set_index("Symbol")["Close"].to_dict()
+    med20 = {}
+    for sym, g in store.groupby("Symbol"):
+        g = g.sort_values("d").tail(21).head(20)
+        med20[sym] = float((g["Close"] * g["Volume"]).median())
 
     book = _load()
     if book.get("last_processed") == latest:
@@ -141,6 +154,9 @@ def main() -> None:
         p = px.get(sym)
         if not p or sym in book["positions"] or book["cash"] < SLICE:
             continue
+        nd = med20.get(sym, 0.0)
+        if not (200_000 <= nd < 100_000_000):
+            continue  # fillability floor and poison ceiling (clean frame)
         shares = int(SLICE // p)
         if shares < 1:
             continue

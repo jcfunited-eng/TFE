@@ -1,0 +1,24 @@
+{
+ "picks": 13071,
+ "control": 396466,
+ "split": "2021-08-26",
+ "derive": {
+  "picks_n": 6532,
+  "win_rate_pct": 56.2,
+  "picks_f20": 1.805,
+  "profit_per_2500": 45.12,
+  "control_f20": 1.486,
+  "control_profit_per_2500": 37.16,
+  "beats": true
+ },
+ "confirm": {
+  "picks_n": 6539,
+  "win_rate_pct": 51.1,
+  "picks_f20": 0.855,
+  "profit_per_2500": 21.37,
+  "control_f20": 0.801,
+  "control_profit_per_2500": 20.03,
+  "beats": true
+ },
+ "VERDICT": "SURVIVES CLEAN \u2014 CH3 trial proceeds"
+}
