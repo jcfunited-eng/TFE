@@ -9107,7 +9107,7 @@ impl ResidentCognitiveFormationState {
             &externally_energized_neuron_lineages,
             &reached_body_regulation_lineages,
         )?;
-        mount_reached_motor_effector_with_root(
+        mount_reached_motor_effector_with_reach_index(
             &mut cohorts,
             &mut resting_population,
             &mut next_lineage_ordinal,
@@ -9120,6 +9120,8 @@ impl ResidentCognitiveFormationState {
             &exact_moved_body_effectors,
             &root_yaw_continuations,
             &root_translation_continuations,
+        
+            Some(&topology_index),
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
@@ -16636,6 +16638,73 @@ fn mount_reached_motor_effector_with_root(
     root_translation_continuations:
         &BTreeMap<[u8; 16], Vec<RootTranslationEffectorTerminal>>,
 ) -> Result<(), FormationError> {
+    mount_reached_motor_effector_with_reach_index(
+        cohorts,
+        resting_population,
+        next_lineage_ordinal,
+        electrical_fabric,
+        physically_transitioned_lineages,
+        settled_directed_transfers,
+        predecessor_frontier,
+        preceding_predecessor_frontier,
+        older_predecessor_frontier,
+        moved_effectors,
+        root_yaw_continuations,
+        root_translation_continuations,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn mount_reached_motor_effector_with_reach_index(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    physically_transitioned_lineages: &[[u8; 16]],
+    settled_directed_transfers: &[DirectedPhysicalTransferObservation],
+    predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    older_predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    moved_effectors: &[BodyEffectorTerminal],
+    root_yaw_continuations: &BTreeMap<[u8; 16], Vec<RootYawEffectorTerminal>>,
+    root_translation_continuations:
+        &BTreeMap<[u8; 16], Vec<RootTranslationEffectorTerminal>>,
+    topology: Option<&ResidentTopologyIndex>,
+) -> Result<(), FormationError> {
+    // THE LEAN GATE: this law may only author anatomy when the interval
+    // carries BOTH halves of its evidence — a reached layer-8 regulation
+    // (or a root continuation) AND a layer-11 ordering lineage in the
+    // retained frontiers. When either half is absent nothing can grow,
+    // so nothing is scanned, mapped, cloned or sorted: quiescent
+    // structure sleeps. The full path below is byte-identical whenever
+    // growth is possible.
+    if let Some(topology) = topology {
+        let any_regulation = !root_yaw_continuations.is_empty()
+            || !root_translation_continuations.is_empty()
+            || physically_transitioned_lineages
+                .iter()
+                .any(|lineage| topology.layer_of(*lineage) == Some(8));
+        if !any_regulation {
+            return Ok(());
+        }
+        let ordering_in = |entries: &[ActiveElectricalFrontierEntry]| {
+            entries.iter().any(|entry| {
+                entry
+                    .sender()
+                    .is_some_and(|lineage| topology.layer_of(lineage) == Some(11))
+                    || topology.layer_of(entry.receiver()) == Some(11)
+            })
+        };
+        let any_ordering = !root_yaw_continuations.is_empty()
+            || !root_translation_continuations.is_empty()
+            || ordering_in(predecessor_frontier)
+            || ordering_in(preceding_predecessor_frontier)
+            || ordering_in(older_predecessor_frontier);
+        if !any_ordering {
+            return Ok(());
+        }
+    }
     // Articulated motor terminals are fixed body anatomy mounted with their
     // typed regulation routes. Learned growth here is only an exact sparse
     // ordering contact proved either by the direct two-interval ordering ->
@@ -16644,6 +16713,10 @@ fn mount_reached_motor_effector_with_root(
     // retained predecessor frontiers. Root yaw follows the same authorship
     // law; guided movement alone, coincident activity, stillness, and an
     // unjoined frontier author nothing.
+    // Cloned because rare authoring arms below mutate cohorts while these
+    // reads live; the two-phase read-then-author refactor that removes the
+    // clone is registered and waits on the churn repair, after which this
+    // path runs only on genuine growth moments.
     let mounted = cohorts
         .iter()
         .flat_map(|cohort| {
