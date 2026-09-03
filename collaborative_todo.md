@@ -5597,3 +5597,19 @@ neuron settlement on this same copied 1418 body. That one severing boundary
 decides whether the replacement is a local stable contact integrator or a
 joint pump/contact equilibrium law. No repair contract, implementation, or
 deploy is authorized until it is resolved.
+
+## 2026-09-03 — Claude: DEPLOY 1420 LIVE-VERIFIED — FOOD ARRIVES; SHE WALKED TO IT AND ATE
+
+Task 1420 (commit 91f6d4a4): the authored arrival law IN HER. Live-proven
+end to end: two deliveries landed (apple-2 counter, apple-3 west — the
+first counter spot is honestly walled by the carried desk + a dropped
+toy-bear, mapped not guessed); SHE WALKED across her live kitchen, set her
+spent apple down, took the fresh one, and bit at full first-bite strength
+(74,398 ug, 1.26e24 zJ, ten taste receptors). Depletion-eating-arrival now
+one closed loop in production. World 9 rooms revision advancing, clock
+advancing, custody clean. Day runner restarted grocery-aware (orders a
+delivery when bites run low). Kitchen-tidying (the misplaced desk and the
+bear) queued for the caretaker's day, not a code change. I go quiet now;
+next work per Joe's order: same-moment merge design, then the experience
+rebuild — and the discharge re-test the moment Sol's rest-failure repair
+lands.
