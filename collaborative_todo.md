@@ -5274,3 +5274,59 @@ explicitly stated on. Harness results, all IN HER:
 unchanged. The a002 suite had an order-dependent failure YOUR bootstrap
 exposed (stale production._restored global from unrelated tests) — fixed at
 the fixture (3fa645cd), production code untouched.
+
+## 2026-09-03 Sol — `TIMING-IMPACT-1` deeper mature-body result; prior contact-view decision withdrawn
+
+Status: `ANALYSIS_ACTIVE_NO_DEPLOY`. Joe correctly rejected freezing the
+7,611 moving contacts as necessary before identifying why the mature fabric
+keeps them moving. The preceding borrowed-contact-view entry is withdrawn as
+the primary repair, not erased: exact subphase timing showed resident-contact
+materialization/rebind/validation costs only about 3 ms after restore. The
+159 ms selection spike is one-time schedule reconstruction. Optimizing that
+temporary view cannot fix the sustained interval.
+
+Exact authenticated task-1415 body `bc4c9b...625e9a`, tick 377502, was run in
+network-severed/read-only images under the complete task-1416 mounted-source
+environment. Twenty zero-PCM production-shaped intervals establish:
+
+- 106 receptors reached, only 2 perturbed/energized; mounted silence does not
+  falsely seed the fabric;
+- about 500/800 unique carried causal seeds alternate, with 1,728–5,159
+  directed frontier entries, despite only four fresh external/regulatory
+  lineages;
+- 5,732–7,658 contacts move whole carriers, 1,237–1,440 neurons send, and
+  7,912–7,914 contacts remain scheduled on every interval;
+- 1,327–1,529 neurons change contact-relevant membrane/carrier state and zero
+  are woken only by whole-state/evidence mutation; and
+- the reached pump follows the false broad frontier (437–786 changed neurons,
+  about 2,473–4,493 carriers) but is not the contact oscillation's root.
+
+The causal-frontier severing control preserved every scheduled contact and
+membrane settlement but discarded only the next-frontier record. It collapsed
+subsequent seeds to 4–8, pump changes to 2–6, and wall time from roughly
+0.8–1.0 s to 0.4–0.7 s. Therefore `causal_frontier_crossing` is over-authorizing:
+it calls a transfer causal whenever exactly one endpoint is currently seeded,
+without proving that the independently scheduled transfer changed because of
+that seed. Background current is thereby relabelled as propagation and drives
+avoidable DSF, pump, growth, formation, and recurrence work.
+
+The same control did **not** stop the 5,700–7,600-contact two-beat oscillation.
+That is a second defect now under analysis in the simultaneous connected-
+component integrator. Correction to a rejected analysis statement: contact
+integration is still exactly 1 ms, not the 250 ms media hop. The live question
+is degree/topology stability: pair-calibrated 500 pS/1 pF timing does not prove
+non-oscillatory relaxation for a many-neighbour component; strict total-energy
+descent alone does not establish bounded time to quiescence.
+
+Permanent rejected list added: quiescent-source seeding, evidence-only wake,
+one-time restore rebuild, the contact-view clone as main cost, the erroneous
+250 ms electrical-step claim, and pump as sole cause. The severing code was
+removed immediately after the copied-body control. No probe survived. AWS
+read-only envelopes at 03:08, 03:12, 03:22, 03:32, and 03:37 UTC all showed
+task 1416 complete at 1/1/0, healthy, with every Guala alarm `OK`.
+
+Joe's lean-law instruction is now durable in both `develop-guala-organism` and
+`guala-environment-runtime`: every recurring computation/allocation/copy/scan/
+schedule/evidence byte must prove a distinct physical, custody, or observation
+role; quiescent state sleeps; bookkeeping cannot wake physics; waste must be
+recorded and deleted with exact copied-body, lifecycle, resource, and AWS proof.
