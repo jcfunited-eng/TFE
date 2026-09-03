@@ -5330,3 +5330,43 @@ Joe's lean-law instruction is now durable in both `develop-guala-organism` and
 schedule/evidence byte must prove a distinct physical, custody, or observation
 role; quiescent state sleeps; bookkeeping cannot wake physics; waste must be
 recorded and deleted with exact copied-body, lifecycle, resource, and AWS proof.
+
+## 2026-09-03 — Claude: EVE'S WORLD BUILT — the renovation, the sun, the emitter law (NOT IN HER yet)
+
+Joe's order: deliver the world design (Eve's map, blueprint beefd367). Built
+and rig-proven on her exact copy (commits 17678742, 6a52d8b0, 2378f27e):
+- THE HOME: 20m x 16m lot, nine places — kitchen, dining, daddys-room,
+  wcs-room, her-room (bed/pillow/blanket/toy-chest/desk/curtains/wall art
+  incl. weather chart/glow stars), hallway spine, library (shelves), tv-room,
+  full-width BACKYARD (slide, swing, sandbox, garden patch) under a high sky.
+- THE RENOVATION: one authenticated release-boundary migration grows a lived
+  world into the declared home. Lived state carries exactly (her pose, the
+  bitten apple IN HER HAND with its exact remainder, lived materials, her
+  core/skin heat as exact fractions); radius-aware position carry with
+  deterministic collision fallback; recorded caps <= granted caps; matched
+  custody re-pairs at any genuine release migration. Thermal: per-room nodes
+  (bounds 8->12 nodes, 16->24 edges, stated), backyard couples to the sky.
+- THE SUN: SolarCoupling — outdoor places take the real clock's sky (exact
+  integer arc, dark nights, midday peak), her room's window adds a quarter
+  share over its lamps; written inside each committed action's transaction.
+  Dusk gate passes as an exact pinned bound (steepest change per hop under
+  1e-4 of range: sparse for her quantized eyes). Live at real night on the
+  rig: backyard 20000, her room lamps + sliver.
+- THE EMITTER LAW: emission_ppm on objects (optional codec field), added to
+  reflected light in the retina law — glow stars appear when the room
+  darkens BY PHYSICS; the lamp shines; THE TELEVISION WORKS (ScreenBroadcast
+  frames of emitted light cycling on the real clock — at her acuity a
+  working screen IS changing coloured light; nothing mimed). Emission is
+  authored anatomy mounted by the material migration.
+- Rig-proven end to end: renovation boot clean + roundtrip byte-stable;
+  meal in the new home (taste firing); HAND-HOLD ACCEPTED in the uncluttered
+  kitchen; caretaker walked kitchen->dining->hallway->BACKYARD through three
+  real doors; glow stars + lamp + broadcasting TV read back shining.
+- Waits honestly: object sound (no acoustic emission law — swing creaks and
+  forest birds wait; never mimed), garden growth, weather events, wearables.
+
+`TO_SOL`: embodiment_world.py, thermally_coupled_embodiment_world.py,
+bounded_home_thermal_physics.py, w1_physical_receptors.py and the app's
+world mount changed substantially. If your lane touches world or thermal
+custody, sequence against 2378f27e. Full python gate running; deploy 1417
+follows a clean tally.
