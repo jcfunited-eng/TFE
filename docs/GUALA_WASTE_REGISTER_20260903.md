@@ -49,3 +49,10 @@ stopwatch (guala-native-physics-stopwatch / guala-event-phases lines).
   her beats queue behind a caregiver HTTP call; measure hold time and
   consider chunked composition through the normal beat path.
 - observation JSON rebuild cadence vs the quiet-beat cache hit rate.
+
+## Round two measurement (while deploy 1418 built)
+- SONG LOCK — RESOLVED, NOT A LEAK. Measured on her copy: one full
+  song = ~95s wall of genuine hop-by-hop settlement, but the lock is
+  taken per hop: a public observation during the song answered in
+  45ms and a competing world action queued only ~3.2s (one hop),
+  not the whole song. The suspicion is closed with numbers; no repair.
