@@ -309,7 +309,7 @@ let placeSeen=false;
 //   * a thing's COLOUR is its own declared reflectance across her six optical
 //     bands, collapsed to screen colour — so what you see is what her eyes
 //     are given, not a palette chosen to look nice.
-let GL=null,PROG=null,BUF=null,CYL=null,CYLN=0,CAM={yaw:-2.3,pitch:0.30,dist:1700,tx:0,ty:0},DRAG=null,LASTWORLD=null;
+let GL=null,PROG=null,BUF=null,CYL=null,CYLN=0,CAM={yaw:-2.3,pitch:0.34,dist:3400,tx:0,ty:0},DRAG=null,LASTWORLD=null;
 
 const VERT=`attribute vec3 p;attribute vec3 n;uniform mat4 mvp;uniform mat4 model;
 varying vec3 vn;varying vec3 vp;
@@ -454,8 +454,13 @@ function render(){
  for(const r of rooms){
   const w0=r.min_x_mm,w1=r.max_x_mm,h0=r.min_y_mm,h1=r.max_y_mm;
   const lit=bandMean(r.illumination_ppm);
-  // floorboards
-  piece(box((w0+w1)/2,(h0+h1)/2,-25,(w1-w0)/2,(h1-h0)/2,25),[0.26+lit*0.06,0.155,0.085],0);
+  // The floor is painted by the room's OWN declared surface under its OWN
+  // current light — so the backyard truly darkens at night and brightens
+  // through the real dawn, and bright rooms read bright.
+  const ground=bandColour(r.reflectance_ppm);
+  const glow=0.25+lit*0.9;
+  piece(box((w0+w1)/2,(h0+h1)/2,-25,(w1-w0)/2,(h1-h0)/2,25),
+        [ground[0]*glow,ground[1]*glow,ground[2]*glow],lit*0.18);
   // NO CEILING IS DRAWN. A lid over the room would hide the room, and the
   // point of this view is to be inside it.
   // four walls, each split around any doorway on that wall so the openings
@@ -490,9 +495,13 @@ function render(){
  // because her world declares radius and mass and no height.
  for(const o of (w.objects||[])){
   const rr=o.radius_mm,col=bandColour(o.reflectance_ppm);
-  const hot=(o.warmth_millikelvin||294000)>300000; // a lamp or a screen glows
-  piece(box(o.x_mm,o.y_mm,rr/2,rr,rr,rr/2),col,hot?0.5:0,true);
-  if(hot)piece(box(o.x_mm,o.y_mm,rr+70,rr*0.42,rr*0.42,70),[1.0,0.86,0.55],1.2,true)}
+  const em=o.emission_ppm&&o.emission_ppm.length?o.emission_ppm:null;
+  const emStrength=em?bandMean(em):0;
+  piece(box(o.x_mm,o.y_mm,rr/2,rr,rr,rr/2),col,emStrength*0.7,true);
+  if(emStrength>0.01){
+   // The thing's own emitted light, in its own emitted colour.
+   const ec=bandColour(em);
+   piece(box(o.x_mm,o.y_mm,rr+70,rr*0.5,rr*0.5,70),ec,1.4,true)}}
 
  // THE BODIES. Hers is drawn facing the way her world says she is facing.
  for(const b of (w.bodies||[])){
@@ -518,7 +527,7 @@ function bindCamera(c){
   CAM.pitch=Math.max(0.06,Math.min(1.45,CAM.pitch+(p[1]-DRAG[1])*0.006));
   DRAG=p;render()});
  c.addEventListener("wheel",e=>{e.preventDefault();
-  CAM.dist=Math.max(1400,Math.min(16000,CAM.dist*(1+Math.sign(e.deltaY)*0.12)));render()},{passive:false});
+  CAM.dist=Math.max(1400,Math.min(26000,CAM.dist*(1+Math.sign(e.deltaY)*0.12)));render()},{passive:false});
 }
 
 async function refreshPlace(){const cap=capability("world");const ep=cap.record&&cap.record.observation_endpoint;
