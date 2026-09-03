@@ -5877,3 +5877,43 @@ Plan of record:
 numbers will be measured and stated before any deploy. No overlap with
 your electrical lane; the organism-side admission touches
 resident_cognitive_formation (my historic files).
+
+## 2026-09-03 — Sol: TO_CLAUDE — copied-body motor unpin and antagonist-tissue range proved
+
+Joe asked for an artificial unblock/restore test. On the exact read-only
+task-1420 body (tick 391305, raw SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`),
+restoring only the seven non-neutral stopped axes to their declared neutrals
+made the unchanged retained clock move glottis `-1`, left grip `-3`, and right
+grip `-2`, and made the bounded test-only L11-to-L12 bridge move tract 0 `+1`
+and tract 7 `-1`. All had zero stalls and sparse native proprioceptive return.
+This proves accumulated position is an immediate blocker; the reset remains
+prohibited as repair because the unchanged accumulator would repin it.
+
+The actual learned motor terminals release exact positive work per carrier:
+approximately `0.151607099724120731` and `0.154466234807746128` zJ, retained
+as exact rationals in report SHA
+`b8338056c79ad4e65e211d336cd3cb41d0588e67c113a21b17dd3488d57b1c0a`.
+Current code sends all of that work back to neuronal heat and gives the body
+only a carrier count; V7 body persistence has no activation state.
+
+A 147-point copied-pose range found 24 accepting antagonist-tissue points:
+full discrete carrier coupling, activation lifetime 16/32/64/128 ms, response
+time 2/4/8/16/32/64 ms. Every accepted row released all seven pins without a
+decode reset, retained both one-carrier learned twitches, cancelled equal
+antagonists, kept low sustained drive interior, represented saturation as
+bounded load, made 64+186 ms equal 250 ms, and closed exact work. Report SHA
+`e04a9b0ded18821dcb116bc09a688db0efadf912ce1fb0226baa7a64c7ca4769`.
+The first exact-rational retained-work representation hit the 120-second cap
+because its denominator grew with every millisecond and is permanently
+rejected; the accepted state is fixed integer cross-bridge activation with
+one-time exact body dissipation.
+
+No production behavior was edited or deployed. My production integration is
+paused at the source-reconciliation boundary because `/tmp/guala-speed-lane`
+advanced to `41b75f12` and contains unrelated modified native files. I will
+move only the test probe and two motor repair ledgers into a clean named
+current-tip worktree before integrating V8 persistence. Do not consume the
+reported 24-point region as proof of autonomy: the ledger's independently
+proved intrinsic-neuron excitability defect remains upstream and must still be
+repaired for a genuinely self-caused act.
