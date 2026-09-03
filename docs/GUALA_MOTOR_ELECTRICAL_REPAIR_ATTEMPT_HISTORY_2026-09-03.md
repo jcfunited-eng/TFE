@@ -353,3 +353,122 @@ witness while visible movement remains a separate developmental outcome.
 
 The post-harness AWS checks reported one desired/running task, zero pending,
 rollout `COMPLETED`, task definition 1420, and zero `guala-*` alarms in ALARM.
+
+## Body-limit audit — the motor plant is a permanent position accumulator
+
+The stalled learned-motor result triggered a complete 45-axis census rather
+than treating two vocal axes as an isolated speech defect. The measurement is
+test-build-only and read-only. It decoded the same authenticated task-1420 raw
+envelope SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`
+at tick `391305`; it neither rewrote nor advanced the copy. Report:
+`/tmp/sol-axis-census/task1420-axis-census.json`, SHA-256
+`b55c2d98cbfd0f73be56b37fa0b7f6835a6268a22304c19a72cb146d49c26174`.
+
+Ten of 45 positions equal an anatomical limit. Three are not pathological
+because the declared neutral itself equals that limit: right-cheek raise, jaw
+opening, and lip aperture. Seven are non-neutral end stops:
+
+- right brow `5000/5000`;
+- glottis `20/20` (neutral `80`);
+- left and right grip `0/0` (neutral `60000`);
+- vocal-tract section 0 `1000/1000` (neutral `125`);
+- vocal-tract sections 6 and 7 `20/20` (neutral `245`, `265`).
+
+The source cause is exact. `settle_body_effector_drives` models every axis as
+a clamped position accumulator: it clones the persisted predecessor, adds the
+net terminal-carrier count to each reached position, clamps at the declared
+minimum/maximum, and retains that position. It contains no passive elasticity,
+muscle relaxation, damping, inertia, or antagonist resting force. Its focused
+quiescence test passes specifically by requiring the successor body to equal
+the predecessor exactly. Running that same quiescent settlement on the copied
+production body produced zero reached terminals, zero consequences, and an
+exactly equal successor. Therefore an unpowered extreme can never recover.
+
+The condition is not historical residue alone. A second copied-body run
+followed only the production body's own retained frontier for three clocks,
+with the one-carrier candidate disabled and no synthetic seed. Report:
+`/tmp/sol-production-body-range/task1420-production-body-range.json`, SHA-256
+`eb4076fe1cf3306448764625323bec04d77a6f5ecb64ebc809771b26038bba81`.
+It produced nine ordinary layer-8-prepared motor discharges. Eight stalled
+against existing stops: glottal closing twice, right-grip closing twice,
+left-grip closing once, and section-0 opening by sixteen carriers. Only the
+two-carrier right-hip discharge changed position. Thus current retained
+sensorimotor traffic is still doing work against the pins.
+
+The direction defect is also exact. Reacted-load anatomy calls
+`load_terminal.opposing_effector()` and permanently binds that antagonist to a
+layer-12 motor. Later motor preparation checks the retained terminal and an
+arriving carrier but never evaluates current axis position, distance from
+neutral, velocity, or whether the intended load has already been relieved.
+With no passive plant, delayed negative-load feedback can overshoot and drive
+the antagonist all the way to the opposite stop. A learned route can then
+replay that stale direction at the stop indefinitely whenever its electrical
+contact is reached.
+
+The recovery-fluid energy reservoir is not the directional cause. It remains
+present, but task-1420 source has already replaced perfect recycling with the
+lossy, food-refilled R1 law. That reservoir pays or recovers neuronal work; it
+does not select an effector terminal, compute a direction, or mutate an
+articulated-body position. Removing it would starve neural settlement while
+leaving every persisted extreme unchanged. The lingering artifacts are the
+exact body positions accumulated under the defective plant and any learned
+motor contacts formed from those load episodes, not a hidden reservoir command.
+
+Task-1400 and task-1420 raw bodies independently show the progression. At
+task-1400 tick `352577`, the right brow, maximally open glottis, and left grip
+were already stopped. At task-1420 tick `391305`, the glottis had crossed to
+its opposite stop, the right grip had joined the left, and tract sections 0,
+6, and 7 had reached stops. This opposite-stop history is the expected shape
+of an undamped position accumulator driven by delayed antagonist feedback,
+not healthy developmental stress.
+
+Harness corrections retained to prevent repetition: invoking Cargo from the
+worktree root failed before a test because the crate manifest lives under
+`native/guala_core`; a process-absence shell guard matched its own command and
+prevented the first launch; and an over-specific `--exact` unit-test filter ran
+zero tests. The corrected crate-local census passed one filtered test, the
+corrected substring filter passed the quiescent body test 1/1, and no runner
+survived either pre-start failure.
+
+Disposition: do not deploy the electrical bridge into this plant yet. The
+bridge proof remains valid as conserved electrical transduction, but its two
+available learned outputs are currently stopped and were learned through a
+plant missing ordinary tissue recovery. The causal-impact gate must now define
+and falsify a body-owned passive mechanical law, identify whether existing
+stop-era learned motor contacts remain truthful, and prove the exact copied
+body leaves the stops without a reset, scripted pose, timer, controller, or
+loss of learned state. Only then can bounded continuation/cold restore close
+the combined thought-to-action release gate.
+
+## Complete articulated-body causal-impact gate
+
+The full source, state, biological-equivalent, caller, persistence, learning,
+observation, timing, energy, and resource impact is now fixed in
+`docs/GUALA_ARTICULATED_BODY_PLANT_CAUSAL_IMPACT_2026-09-03.md`, 332 lines,
+SHA-256
+`a0e728f97bc53c859d60e1142dafe9a8e54274b0bbe9193b0e0b65c9e4d506b3`.
+
+The analysis adds two adjacent defects that a position-only patch would hide.
+First, the motor neuron's exact released electrical work is currently deposited
+entirely as neuronal heat; `MotorUnitRecruitment` carries only terminal identity
+and carrier count, and the articulated body creates displacement without a
+named mechanical-work transfer. Second, the body settlement has no elapsed-time
+input even though native mechanics has a 1 ms clock, 250 ms sensory transport
+spans exist, and event residency can skip silent clocks. A decay coefficient
+per function call is therefore prohibited.
+
+The earlier speech attempt-37 timing decision was re-read before closing this
+gate: 250 ms is transport batching, not the actuator clock; sparse typed motor
+events must launch bounded body-owned mechanics that continue on the 1 ms clock.
+The new body analysis does not reverse that decision. It proves that general
+articulated positions never received those continuing mechanics even though the
+acoustic state did.
+
+Disposition: causal-impact analysis is complete; production code remains
+unchanged and deployment remains prohibited. The sole next attempt is a
+test-build-only dynamic range on the exact copied task-1420 body. It must vary
+the physical parameters and elapsed duration, preserve every neuron and learned
+byte, expose the rejecting boundaries, and pass the AWS health precheck before
+execution. Another reset, stop suppression, per-call leak, tonic shell command,
+or learned-contact deletion is not an admissible candidate.

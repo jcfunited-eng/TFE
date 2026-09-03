@@ -790,6 +790,24 @@ if (
 ):
     raise SystemExit("candidate does not present a living cognitive body")
 ' || return 1
+    # THE WORLD MUST MOUNT TOO (2026-09-03): the world attaches lazily,
+    # so a candidate can prove its organism and still refuse every beat
+    # the moment the world is first touched — this happened twice (1417,
+    # 1423). One direct world observation is now part of verification.
+    if ! curl -fsS \
+        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+        --connect-timeout 10 --max-time 120 \
+        "${CONTROL_ORIGIN}/api/v1/world/observation" \
+        | python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+count = value.get("region_count")
+if not isinstance(count, int) or count < 1:
+    raise SystemExit("the world did not mount on the candidate")
+'; then
+        echo "      candidate world mount FAILED" >&2
+        return 1
+    fi
     printf '%s' "${task_arns}"
 }
 

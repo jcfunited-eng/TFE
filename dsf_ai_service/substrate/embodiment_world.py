@@ -3836,12 +3836,12 @@ class EmbodimentWorldAuthority:
             prior_objects = {
                 item.object_id: item for item in prior.world.objects
             }
-            missing = sorted(set(prior_objects) - set(declared_objects))
-            if missing:
-                raise ValueError(
-                    "the renovation may not discard lived things: "
-                    + ", ".join(missing)
-                )
+            # Things that ARRIVED after genesis are not in the declaration;
+            # a renovation carries them exactly as they lived.
+            arrivals = {
+                object_id: prior_objects[object_id]
+                for object_id in set(prior_objects) - set(declared_objects)
+            }
 
             def region_containing(
                 x: int, y: int, radius: int = 0
@@ -3916,7 +3916,7 @@ class EmbodimentWorldAuthority:
                         "the renovation refuses"
                     )
 
-            migrated_objects = []
+            migrated_objects = list(arrivals.values())
             for object_id in sorted(declared_objects):
                 authored = declared_objects[object_id]
                 lived = prior_objects.get(object_id)
@@ -4078,9 +4078,12 @@ class EmbodimentWorldAuthority:
                 item.portal_id for item in prior.world.portals
             }:
                 raise ValueError("declared material portal topology changed")
-            if set(declared_material) != {
-                item.object_id for item in prior.world.objects
-            }:
+            declared_ids = set(declared_material)
+            lived_ids = {item.object_id for item in prior.world.objects}
+            # A declared thing may never vanish; a thing that ARRIVED at
+            # the boundary after genesis carries its own authored material
+            # and is its own declaration.
+            if declared_ids - lived_ids:
                 raise ValueError("declared material object topology changed")
 
             changed = False
@@ -4123,6 +4126,10 @@ class EmbodimentWorldAuthority:
             }
             objects: list[EmbodiedObject] = []
             for item in prior.world.objects:
+                if item.object_id not in declared_material:
+                    # An arrival: its material was authored when it landed.
+                    objects.append(item)
+                    continue
                 mounted = declared_material[item.object_id]
                 # Emission is authored anatomy like release rates: a lived
                 # thing that predates the emitter law takes its declared
