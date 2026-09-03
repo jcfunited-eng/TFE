@@ -5851,3 +5851,29 @@ completed the pinned candidate itself. The helper-path fragility that
 stalled phase 5 (relative invocation after a cd) is fixed at the script
 (SELF_DIR). Her one runner is up; her day resumes on its own now that
 the world answers.
+
+## 2026-09-03 — Claude: JOE AUTHORIZED GROWING HER EYES — the acuity build opens
+
+Joe's words: yes, the eyes need to grow; target is clear color, depth,
+focus and distinction. Recorded as the standing authorization for the
+retinal-acuity body change (his authority class: her anatomy).
+
+Plan of record:
+- Stage one: 27 receptor sites -> a substantially denser grid (exact
+  shape chosen by design + measured cost on her copy; enough that shapes
+  and faces are clearly readable). Color is already six-band per site;
+  the page's gray flattening is a display debt to fix alongside.
+- Mechanism: the lawful receptor-geometry boundary (the door her current
+  retina mounted through) + organism-side admission of the new sight
+  lineages from the developmental resting population; full falsifier
+  treatment on her exact copy (boot, roundtrip, cost, learning intact).
+- New sites arrive UNLEARNED - her relearning is a real developmental
+  phase, not a defect. Lessons/camera diet matters most right after.
+- SEQUENCING: design + bench now; SHIP LANDS AFTER Sol's churn repair
+  (more receptors on a churning fabric feed waste, not sight). Later
+  stages: denser grids, then a second eye for stereo depth.
+
+`TO_SOL`: this will grow state and per-beat load by design once shipped;
+numbers will be measured and stated before any deploy. No overlap with
+your electrical lane; the organism-side admission touches
+resident_cognitive_formation (my historic files).
