@@ -5659,3 +5659,69 @@ repo-wide `cargo fmt --check` remains blocked by pre-existing task-1418 format
 drift; a redundant package verifier used obsolete flag `--context-root` after
 the package command had already returned `verified`. None touched the body or
 production.
+
+## 2026-09-03 — Sol: `TIMING-IMPACT-3` correction — lawful rest separated from false causal motor credit
+
+Status: `CAUSAL_IMPACT_COMPLETE; COPIED-BODY RANGE FALSIFIER NEXT; NO REPAIR EDIT OR DEPLOY YET`.
+
+The source-coordinate split from `TIMING-IMPACT-2` did not prove an electrical
+source defect. The completed reversal audit showed that every changing source
+membrane moved toward its authored reversal, none crossed it, the maximum local
+step ratio was at most `3/32`, and no gate work was invented. That motion is
+lawful ionic-gradient housekeeping. It may change electrostatic energy while
+the exact reservoir/thermal accounting pays for it; it must not be deleted or
+called a thought.
+
+The actual causal defect is downstream. A due symmetric gap-junction crossing
+is scheduled because material is still moving, then the frontier code credits
+the crossing as caused whenever exactly one endpoint already carries a causal
+label. It does not prove that the causal endpoint changed the transfer. The
+motor boundary is broader still: any whole-carrier arrival from a retained
+layer-11 ordering cell prepares layer 12 even when that layer-11 cell was not
+active in this occurrence. Therefore ordinary resting equalization can become
+a thought, formation/growth authority, and bodily action. Conversely, if the
+instantaneous potential gradient points from motor to ordering, a real thought
+cannot act through that same contact.
+
+Exact current-production proof is from an authenticated read-only task-1420
+mirror copied at tick/generation 391305. Compact object SHA-256 is
+`0bcfe4443844c2e1467c460b45275acf697f0e0983fa81de14e72e24f97bd54e`; its
+lossless raw GLORUN SHA-256 is
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`,
+112238742 bytes. It contains 1702 reached cohorts and 8684 fabric contacts,
+but only two layer-11/layer-12 contacts. All 93 layer-12 motor gates are
+closed. Both motor contacts retain negative left-to-right carrier phase:
+`-847258067/1753530240` and `-139478289697/280065093000`, i.e. their physical
+history is motor-to-ordering, not ordering-to-motor. The linked layer-11 cells
+are nevertheless anatomically reachable: each has its founding layer-7 and
+layer-10 contacts, and the two layer-10 neighbours participate in 12 and 13
+retained formations respectively. Memory anatomy exists; forward excitation
+has not been demonstrated.
+
+Repair-attempt history that must not recur: commit `1aebe5e0` required a current
+causal layer-11 sender for motor preparation; commit `9fd77438` removed that
+requirement to regain vocal discharge, asserting that retained anatomy was
+itself a cause. The first boundary was causally necessary, but restoring it
+alone would merely stop false actions and can leave genuine actions impossible.
+The range proof must establish the missing forward excitation before that gate
+is restored and shipped.
+
+Frozen repair contract: continuous resting settlement remains; background
+equalization cannot enter causal frontier, formation/growth authority, or motor
+preparation. A learned action requires the exact layer-11 neuron to be active
+in this occurrence and real whole carriers to travel from it into its exact
+layer-12 motor. No command, meaning/emotion label, timer, lock, cadence control,
+score, reduced DSF, or inferred endpoint direction is permitted. The immediate
+dynamic copied-body harness sweeps the two real task-1420 routes across their
+lawfully reachable layer-11 excitation states and repeats quiet, unrelated,
+severed, resource, and cold-restart controls. If existing neuron excitation can
+produce forward transmission, the repair remains a causal-credit correction.
+If it cannot, the symmetric Cx36-like gap junction ratified for present contacts
+is the wrong biological organ for a directional ordering-to-motor boundary;
+rectifying electrical or complete chemical synapse physics requires explicit
+architecture ratification and may not be smuggled in as a code exception.
+
+AWS pre-harness baseline: ECS task definition 1420, desired/running/pending
+1/1/0, rollout completed, task health healthy, image digest
+`sha256:b96eb1f1772078b8ddd1c1d8d895760d05efa3e389bc9a1ea9d7bee7f66f0d77`,
+and zero `guala-*` metric alarms in ALARM. No production mutation occurred.
