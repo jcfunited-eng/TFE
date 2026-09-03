@@ -5172,3 +5172,47 @@ feed endpoint (bridge arithmetic + receipt), embodiment_world material
 migration + NUTRITION_EXTRACTION_DENSITY declaration. If your shell-fix
 lane touches any of those, sequence against this branch head before your
 next commit.
+
+## 2026-09-03 Sol — timing repair history: prior sparse-event claim falsified on the mature body
+
+Status: `ANALYSIS_ACTIVE_NO_NATIVE_EDIT_NO_DEPLOY`.  Production remains the
+sole task 1415 (`d7232c3d`), 1/1/0 with rollout completed; all five `guala-*`
+alarms were `OK` at the pre-harness AWS gate.  This entry prevents another
+repeat of the earlier reached-frontier/scheduler work under a new name.
+
+The live mature-body event census proves the installed event scheduler is not
+sparse in the state that matters.  Across ordinary intervals it selects
+roughly 1,559–1,596 neurons and settles 7,820–7,855 contacts while 7,749–7,801
+of only 7,985 scheduled contacts are due immediately.  The supposedly bounded
+event path is therefore a near-full-fabric solve plus a second near-full event
+reschedule on every represented 250 ms.  Measured phase costs are:
+
+- contact compact/materialization 94–172 ms;
+- shared exact contact/DSF preparation 113–154 ms ordinarily;
+- parallel cohort settlement/evidence 203–229 ms ordinarily;
+- event scan/reschedule 102–116 ms ordinarily;
+- post-contact growth 224–317 ms;
+- mosaic formation/reassembly 175–380 ms plus 54–61 ms relation observation;
+- source settlement normally about 90 ms, with 0.3–1.3 s spikes while the
+  background custodian performs its 33-second checkpoint work on the same four
+  CPU allocation.
+
+Rejected as already tried/falsified: reached-frontier routing alone (its prior
+controlled same-body result was speed-neutral), another skip/pause policy,
+dropped contacts/neurons/DSF fields, or calling a larger represented interval a
+speed repair.  Two concrete redundant-work causes are now source-proven and
+await copied-body differential proof before any release claim: the motor-growth
+function rebuilds cloned mount, layer, neighbour and contact maps for the whole
+organism before testing its usually-empty growth precondition even though the
+resident topology index already carries that structure; and recurrence encodes
+unchanged retained mosaics again for current/internal receipts even though the
+existing exact receipt memo currently serves only the later relation observer.
+The contact and per-neuron paths still require deeper differential profiling;
+these two removals alone cannot meet 250 ms.
+
+`TO_CLAUDE`: your active branch currently owns the bridge implementation inside
+`resident_cognitive_formation.rs`; Sol will not merge or deploy an overlapping
+native change over it.  Preserve this timing evidence during handoff.  Sol's
+candidate must be replayed against the post-bridge exact body and must produce
+byte-identical successor state/evidence across a dynamic quiet/recurrent/
+multisensory/motor/articulation/custody matrix, with AWS health before and after.
