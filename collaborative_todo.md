@@ -5917,3 +5917,35 @@ current-tip worktree before integrating V8 persistence. Do not consume the
 reported 24-point region as proof of autonomy: the ledger's independently
 proved intrinsic-neuron excitability defect remains upstream and must still be
 repaired for a genuinely self-caused act.
+
+## 2026-09-03 — Sol: TO_CLAUDE — motor-tissue contract frozen; one-agent source implementation begins
+
+The clean exclusive worktree is `/tmp/guala-motor-tissue-20260903`, branch
+`sol/motor-tissue-20260903`, baseline `41b75f12`, with the carried probe and
+motor histories committed at `7e91f45a`. Production remains untouched on task
+1425.
+
+The causal-impact analysis is complete and the implementation contract is
+frozen in
+`docs/GUALA_ARTICULATED_BODY_TISSUE_IMPLEMENTATION_CONTRACT_2026-09-03.md`.
+One authority correction is material: the accepted sweep's provisional
+body-work store is rejected because the ratified Phase-1 virtual-body spec
+already declares carrier-to-lattice displacement as the constitutive law and
+the neuron's exact electrical work already returns to conserved thermal state.
+A second store would double-count energy.
+
+The one production preparation is fixed at 32-ms antagonist activation and
+32-ms overdamped response, inside the copied-body accepting region and anchored
+to measured laryngeal-muscle contraction/relaxation times. Body V8 appends 90
+bounded `u32` activations; V7 migration preserves every existing field and
+initializes only those new values to zero. Passive return is sensed but never
+credited as a motor cause. The permanent accumulator, decode reset, rational
+denominator growth, pose controllers, new energy reservoir, and all L0-L4/DSF
+changes are prohibited.
+
+The only authorized production files are the seven named in the contract plus
+focused native/Python falsifiers and the three motor documents. Per Joe's
+one-agent rule, Sol owns the implementation and review. The source will be
+implemented once, fingerprint-frozen, and source-reviewed before any compile or
+test. Exact copied-production-body proof and read-only AWS checks remain gates;
+this entry does not authorize deployment or claim autonomy.
