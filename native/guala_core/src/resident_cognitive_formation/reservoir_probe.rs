@@ -1802,12 +1802,17 @@ fn articulated_body_axis_census_json(body: Option<&ArticulatedBodyState>) -> Val
             axis["at_minimum"].as_bool() == Some(true) || axis["at_maximum"].as_bool() == Some(true)
         })
         .count();
+    let quiescent = settle_body_effector_drives(body, &AdmittedBodyEffectorDrives::quiescent())
+        .expect("copied-body quiescent settlement");
     json!({
         "axis_count": axes.len(),
         "limit_count": limit_count,
         "lung_air_microlitres": body.lung_air_microlitres(),
         "proprioception_initialized": body.proprioception_initialized(),
         "acoustic_state_quiescent": body.articulatory_acoustic_state().is_quiescent(),
+        "quiescent_successor_equals_predecessor": quiescent.successor == *body,
+        "quiescent_reached_terminal_count": quiescent.reached_terminal_count,
+        "quiescent_consequence_count": quiescent.proprioceptive_consequences.len(),
         "axes": axes,
     })
 }
@@ -1842,17 +1847,21 @@ fn reservoir_probe_dump() {
             let motor_reachability = motor_reachability_json(&state);
             let skip_ranges = std::env::var_os("GUALA_PROBE_SKIP_RANGES").is_some();
             let body_return_only = std::env::var_os("GUALA_PROBE_BODY_RETURN_ONLY").is_some();
-            let motor_bridge_active_range =
-                (!skip_ranges).then(|| motor_bridge_active_range_json(&state));
-            let motor_bridge_gradient_population_range =
-                (!skip_ranges).then(|| motor_bridge_gradient_population_range_json(&state));
-            let retained_frontier_motor_range = (!skip_ranges)
+            let production_body_range_only =
+                std::env::var_os("GUALA_PROBE_PRODUCTION_BODY_RANGE_ONLY").is_some();
+            let motor_bridge_active_range = (!skip_ranges && !production_body_range_only)
+                .then(|| motor_bridge_active_range_json(&state));
+            let motor_bridge_gradient_population_range = (!skip_ranges
+                && !production_body_range_only)
+                .then(|| motor_bridge_gradient_population_range_json(&state));
+            let retained_frontier_motor_range = (!skip_ranges || production_body_range_only)
                 .then(|| retained_frontier_motor_range_json(&state, articulated_body.as_ref(), 3));
             let motor_inward_preparation_energy_range =
                 motor_inward_preparation_energy_range_json(&state);
-            let integrated_motor_transduction_falsifier = (!body_return_only).then(|| {
-                integrated_motor_transduction_falsifier_json(&state, articulated_body.as_ref())
-            });
+            let integrated_motor_transduction_falsifier =
+                (!body_return_only && !production_body_range_only).then(|| {
+                    integrated_motor_transduction_falsifier_json(&state, articulated_body.as_ref())
+                });
             let one_clock_body_return_falsifier = body_return_only
                 .then(|| one_clock_body_return_falsifier_json(&state, articulated_body.as_ref()));
             // BOUNDARY CENSUS (bridge campaign): contact counts by exact
