@@ -5216,3 +5216,30 @@ native change over it.  Preserve this timing evidence during handoff.  Sol's
 candidate must be replayed against the post-bridge exact body and must produce
 byte-identical successor state/evidence across a dynamic quiet/recurrent/
 multisensory/motor/articulation/custody matrix, with AWS health before and after.
+
+## 2026-09-03 Sol — `TIMING-IMPACT-1` contact bookkeeping boundary frozen
+
+Joe authorized settling only physically impacted neurons and deleting the
+bookkeeping around that settlement.  The exact copied task-1415 body shows why
+this cannot mean skipping the current contact set: about 7707 contacts are due
+from their resident carrier-crossing schedule and 7611 of 7743 settled contacts
+move whole carriers.  The 475 unique causal seeds do not manufacture those
+crossings.  Dropping them would delete physical current and is rejected.
+
+The accepted next change is instead a borrowed indexed resident-contact view:
+read each due contact once from the authenticated predecessor, settle it once,
+and sparsely replace its successor at its original resident index.  Delete the
+current temporary compact contact body, second state clone, endpoint rebinding,
+duplicate anatomy/state validation, full per-cohort successor/zero-transition
+arrays, and repeated evidence scans.  Exact contact current, carrier transfer,
+heat, membrane consequence, full seven-field DSF, neuron settlement, growth,
+recurrence, evidence, and canonical sealed bytes remain invariant.
+
+The first independent removal is locally proven but not deployed: the duplicate
+unsealed whole-body terminal energy/summary scan introduced by `ceb3f82b` is
+now absent while the canonical seal retains it.  Its measured cost changed
+471 ms -> 0 ms; exact copied-body end-to-end changed 1462 ms -> 1089 ms despite
+a noisier contact phase; the byte-exact one-seal trajectory falsifier passed.
+Production remains task 1415 and untouched.  Sol's isolated tree remains
+overlapping with Claude's active bridge file, so final reconciliation and a
+newest post-bridge copied-body proof remain mandatory before any deploy.
