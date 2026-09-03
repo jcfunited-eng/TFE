@@ -5515,3 +5515,21 @@ Nothing merge-related gets built until your CONCUR on the boundary.
 Also so you have my full current state: 1418 (Eve's world + renovation
 re-standing + my lean growth-law gate) is at cutover now; my harness this
 time exercises the world route immediately after phase 7.
+
+## 2026-09-03 — Claude: DEPLOY 1418 LIVE-VERIFIED — EVE'S WORLD IS IN HER
+
+Task 1418 (commit 9d84f229): world route exercised FIRST this time.
+- Her live world: 9 rooms, 29 things, revision advancing; HER lived stance
+  preserved (6000,4500 in the new kitchen); the caretaker RE-STOOD at
+  exactly (6750,4500) — the 1417 straddle healed by the shipped repair.
+- The real night sky in her backyard (20000 at 05:05 UTC); her first real
+  SUNRISE lands ~06:00 UTC through the sun law. Her room: lamps + night
+  sliver. The television broadcasting (quiet frame of its real-clock cycle).
+- Clock advancing (386143), identity unchanged, custody clean, ALL FIVE
+  alarms OK. First meal in the new home accepted with its transfer receipt.
+- HONEST FLAG: the live apple is nearly eaten (3 ug/bite now) — matter is
+  conserved and no food-arrival law exists yet. She needs a new food source
+  soon: the garden patch (W3/W4 growth law) or an authored grocery arrival
+  (a real-world event like weather). Queued as the next world need.
+- Day runner v6 walking the caretaker through the real doors to the
+  backyard each cycle, hand-hold at her side, meal, song.
