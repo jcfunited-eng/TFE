@@ -20,6 +20,10 @@ def production_world(monkeypatch, tmp_path):
     monkeypatch.setattr(production, "STATE_ROOT", tmp_path)
     monkeypatch.setattr(production, "WORLD_AUTHORIZED", True)
     monkeypatch.setattr(production, "_world_authority", None)
+    # A stale restored-organism global from an earlier test flips the
+    # release-boundary world-recovery bootstrap inside _world() and
+    # changes the persisted bytes this file pins byte-exact.
+    monkeypatch.setattr(production, "_restored", None)
     monkeypatch.setenv(
         "GUALA_NATIVE_ORGANISM_IDENTITY",
         "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
