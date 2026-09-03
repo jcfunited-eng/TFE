@@ -5533,3 +5533,67 @@ Task 1418 (commit 9d84f229): world route exercised FIRST this time.
   (a real-world event like weather). Queued as the next world need.
 - Day runner v6 walking the caretaker through the real doors to the
   backyard each cycle, hand-hold at her side, meal, song.
+
+## 2026-09-03 — Sol: `TIMING-IMPACT-1` current-production energy/topology proof; repair not yet frozen
+
+Status: `ANALYSIS_ACTIVE_NO_REPAIR_EDIT_NO_DEPLOY`. Correction to attribution:
+Claude owned and performed the 1417 rollback and 1418 repair/deploy. Sol's only
+production action was read-only incident detection and the world-route
+verification concurrence.
+
+The production baseline is now independently reconciled as task 1418, commit
+`9d84f229`, image
+`sha256:f9e299697a0bfe609b780492c6f80d9f7cc0f41c83a578fa1134de64e1315a78`,
+one desired/running healthy task, zero pending/failed, identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advancing clock and mounted world.
+Every Guala alarm was `OK` in the read-only 05:37 and 05:40 UTC health
+envelopes. No Sol harness process or container survived.
+
+The replace-only S3 mirror changed between listing and first download; that
+attempt returned 404 and changed nothing. A subsequent exact current object
+was copied and decoded only inside the exact task-1418 image: raw SHA-256
+`b7273541f970c415f23da633a0add8b364efc02abc9fab8889bbf0e7f85d4bae`,
+111,487,356 bytes, tick 386533, 1,874 reached neurons, 8,391 resident contacts.
+A host bind again appeared as a directory in the Docker daemon namespace and
+failed before decode; the already-proven embedded-input route replaced it.
+
+Two identical eight-interval zero-PCM runs reproduced the same first causal
+transition SHA and every electrical SHA. Exact carrier custody remained
+`6,919,731,682,134` throughout. The body nevertheless alternated across
+1,247–1,517 changed neurons and roughly 449k/715k absolute charge movement per
+interval. Exact capacitance-weighted electrostatic energy alternated increase,
+decrease, increase, decrease across all eight intervals; each adjacent pair
+descended overall. This is bounded numerical zig-zag, not runaway carrier or
+energy creation.
+
+The mature topology explains why pair calibration is insufficient: one
+connected component contains 1,570 neurons and 8,270 contacts; maximum degree
+is 174, p95 degree 42. For the actual effective conductances and capacitances,
+nine neurons have the exact 1 ms aggregate `dt*sum(g)/C` ratio above one, five
+are above two, and the maximum is exactly `1804/57` (about 31.65). The current
+component-wide energy reconciliation may keep the contact-only proposal
+descending, but the whole pump/source/contact interval still zig-zags; the
+whole-interval result alone does not yet assign the positive half-cycle to the
+contact solver or to lawful pump work.
+
+This preserves the previously proved second defect: the frontier rule credits
+any crossing with exactly one seeded endpoint without proving the scheduled
+transfer changed because of that seed. Its severing control collapsed later
+causal seeds and downstream pump/growth/formation work while leaving the
+electrical zig-zag. Therefore the active root is the numerical rest failure;
+false causal attribution is its downstream multiplier.
+
+Permanent rejected paths, not to be repeated: dropping due/moving contacts;
+calling carrier motion mere bookkeeping; optimizing the roughly 3 ms
+materialize/rebind path as the main repair; blaming quiescent mounted sources,
+evidence-only mutation, restore reconstruction, or the pump alone; treating
+the 250 ms source hop as the electrical step; reducing full DSF; adding a
+cache, batch, lock, controller, cadence change, or observer gate; or accepting
+speed without exact successor/custody proof.
+
+Single next discriminator: measure the exact electrostatic/material successor
+immediately before and after contact settlement versus after the local pump and
+neuron settlement on this same copied 1418 body. That one severing boundary
+decides whether the replacement is a local stable contact integrator or a
+joint pump/contact equilibrium law. No repair contract, implementation, or
+deploy is authorized until it is resolved.
