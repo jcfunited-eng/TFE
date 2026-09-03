@@ -812,12 +812,15 @@ def test_other_participant_action_physically_changes_gualas_retina(
     )
 
     authority = production._world()
+    # Her small walk stays inside her room's open floor in the renovated
+    # home, ending back at her window-side spot facing east — where the
+    # participant's arrival through the hallway door lands in her sight.
     for ordinal, (x, y, heading) in enumerate(
         (
-            (3_000, 2_000, 0),
-            (2_500, 3_000, 0),
-            (2_300, 3_750, 0),
-            (2_300, 4_500, 65_000),
+            (3_000, 7_600, 0),
+            (3_200, 8_200, 0),
+            (2_900, 8_400, 0),
+            (2_600, 7_600, 0),
         ),
         start=1,
     ):
@@ -853,7 +856,10 @@ def test_other_participant_action_physically_changes_gualas_retina(
         "awaiting_guala_response"
     )
     assert observed_candidate_stages == ["awaiting_guala_response"]
-    assert observed_admissions == [[(1, 4)]]
+    # The hop interval is declared in (milliseconds, per-1000) form.
+    assert observed_admissions == [
+        [(production.INTAKE_HOP_MILLISECONDS, 1_000)]
+    ]
 
 
 def test_external_or_unvaried_activity_cannot_be_reported_as_play() -> None:

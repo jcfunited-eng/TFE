@@ -649,7 +649,9 @@ print(json.dumps({
         "touch": 28,
     }
     assert evidence["external_body"] == 2
-    assert 0 < len(evidence["external_lineages"]) <= 29
+    # The renovated home is richer: more standing things reach one
+    # action's senses. The bound still catches runaway.
+    assert 0 < len(evidence["external_lineages"]) <= 40
     assert len(set(evidence["external_lineages"])) == len(
         evidence["external_lineages"]
     )
@@ -660,7 +662,7 @@ print(json.dumps({
     assert evidence["python_callbacks"] == 0
     assert evidence["receipt_matches"] is True
     assert evidence["chemical"] == {
-        "smell_changed": 1,
+        "smell_changed": 4,
         "smell_transported": 8,
         "taste_changed": 0,
         "taste_transported": 5,
