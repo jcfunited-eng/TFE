@@ -951,3 +951,41 @@ ordinary proprioceptive source and advance physical world time, but it must
 never be refused, named a motor act, or invoke a grip command. A focused shell
 falsifier is required, followed by the complete test and newest copied-body
 proof sequence on a new frozen fingerprint.
+
+## Passive-shell correction — focused gate passed
+
+The shell now distinguishes three physical facts that the accumulator had
+collapsed: new motor discharge, new activation that moved in its own direction,
+and passive or retained-activation travel. A passive body consequence remains
+in the ordinary world-time/proprioceptive return, but it does not become a
+motor-action record and cannot select grasp, release, or page advance. New
+activation that is overcome by retained opposing tissue is likewise not used
+as grip-command authority. Corrupt negative counts or stall exceeding net
+discharge refuse explicitly.
+
+The focused action-consequence plus choice boundary passed `37/37` in `2.28 s`.
+That run includes passive grip return with zero motor recruitment and retained
+closing motion opposing a new opening signal. No process survived.
+
+## Exact-live ancestry correction
+
+The first implementation worktree was descended from live commit `ae260276`
+but also carried two later commits: one deploy-helper correction and one
+unreleased eye-growth design document. Neither belongs to the body repair.
+The candidate was therefore not packaged.
+
+The first worktree-add command then attempted the planned cherry-picks from the
+shared checkout rather than the new worktree. Git entered sequencer state but
+created no commit and changed no working-tree bytes; the only index delta was a
+delete/re-add split of the already committed ledger tail. The sequencer was
+quit without aborting or rewriting files, and the index was reset to the same
+HEAD blob already present in the working tree. Claude's and the user's dirty
+files remained untouched.
+
+The corrected isolated worktree is
+`/tmp/guala-motor-task1425-exact`, branch
+`sol/motor-tissue-task1425-exact`. It starts exactly at live-reported commit
+`ae260276a8bbf3afd018c149871b21fa8ba185e2` and cherry-picks only the test-only
+copied-body probe/history commit plus the motor-tissue implementation. The
+unreleased eye document and deploy-helper change are absent from its candidate
+diff. All further proofs and any artifact must originate only here.

@@ -264,3 +264,63 @@ and this complete mature copied-body proof may a deployment candidate exist.
 The upstream intrinsic L11-to-L12 excitability defect remains separate: this
 plant makes valid motor discharge move; it does not manufacture the discharge
 or prove autonomous initiation.
+
+## Active delivery and recurrence gate
+
+Stable delivery ID: `MOTOR-TISSUE-V8-01`. The closed predecessor is live task
+1425 at commit `ae260276a8bbf3afd018c149871b21fa8ba185e2`. Acceptance is one
+newest authenticated production body whose existing motor discharge produces
+bounded tissue movement and truthful sensory return, whose unpowered displaced
+tissue releases without reset, and whose exact successor survives persistence,
+cold restore, and another ordinary interval with flat resources. No speech or
+autonomy claim is part of this release.
+
+The following previously observed recurrence failures are active preflight
+gates. `closed` means direct evidence already exists on this candidate;
+`pre-artifact` and `live` must close at those later gates.
+
+| ID | State | Required evidence for this release |
+|---|---|---|
+| RF-001 | closed | Exact worktree is first on `PYTHONPATH`; 37 focused shell tests executed. |
+| RF-002 | pre-artifact | Export the observed task-1425 environment before first candidate-image import. |
+| RF-003 | pre-artifact | Build/install one exact wheel and print its loaded extension path and provenance. |
+| RF-004 | closed | Pristine fixtures and two authenticated production bodies pass; cold repeats are byte-identical. |
+| RF-005 | closed | Exact motor, body, receptor, DSF, severance, and passive-return evidence is enumerated in this contract. |
+| RF-006 | closed | Probe ceilings are 3 GiB/300 s; fixed V8 growth is 360 bytes; no runner survives. |
+| RF-007 | closed | Missing `/usr/bin/time` attempt is recorded; available `prlimit`/`timeout` invocation passes. |
+| RF-010 | pre-artifact | Candidate successor must become exact `CURRENT`; cold restore then advances one ordinary interval. |
+| RF-012 | live | Require actual body release/movement/sensory evidence, not health counters. |
+| RF-013 | closed | Changed-file formatting only; inherited formatting is not a release gate. |
+| RF-015 | pre-artifact | Detect environment and use an explicit freshly built wheel, never assumed `maturin develop`. |
+| RF-016 | closed | One item, one exact live baseline, complete diff reconciled above. |
+| RF-017 | closed | Every constructor, codec, wrapper, body-source consumer, observer, and world-action caller was enumerated; the missed passive shell caller was corrected before packaging. |
+| RF-019 | pre-artifact | Map every candidate-rehearsal assertion to this item and remove no valid assertion to force passage. |
+| RF-021 | pre-artifact | Evaluate the exact successor produced by the declared motor/body input. |
+| RF-022 | closed | V7 preserves every old field; V8 activation encodes, restores, and remains bounded. |
+| RF-023 | pre-artifact | Fetch task environment unfiltered, validate names, then filter locally. |
+| RF-024 | closed | All focused targets were resolved in this exact worktree and executed nonzero. |
+| RF-026 | closed | Rust formatter expansion was detected and removed; disposable reformat proves semantic identity. |
+| RF-027 | pre-artifact | Bind evidence to its satisfying interval and cold-replay that same predecessor/input. |
+| RF-028 | pre-artifact | Ordinary multi-interval aggregation must retain body/action evidence after interval one. |
+| RF-029 | live | Read the moving predecessor immediately before any bounded acceptance action; never blind-retry. |
+| RF-030 | pre-artifact | Validate full V8 body/consequence shapes through controller and observer boundaries. |
+| RF-031 | closed | Focused native/Python outputs report nonzero test counts; zero-match is failure. |
+| RF-032 | closed | Rust and Python commands use their proven manifest/repository roots. |
+| RF-033 | pre-artifact | Re-enumerate account, region, cluster, service, task, ECR, bucket, and distribution before release. |
+| RF-034 | pre-artifact | Historical speech/autonomy witnesses are reported only; they cannot gate this tissue item. |
+| RF-035 | closed | Mature proof uses the exact task-1425 body and its own retained motor frontier, zero synthetic seeds. |
+| RF-036 | pre-artifact | Fresh wheel directory plus `--no-cache-dir --force-reinstall`; assert candidate symbol/path. |
+| RF-037 | pre-artifact | Rehearsal must use only the factory production boundary handle. |
+| RF-038 | pre-artifact | Decisive body event in a special first branch must survive later ordinary hops. |
+| RF-041 | pre-artifact | Multi-boundary returned neuron lineages remain unique with signed deltas composed. |
+| RF-042 | closed | Both signed motor directions and zero/cancellation are directly falsified. |
+| RF-043 | closed | Equal antagonists and retained-opposition cases do not become false movement causes. |
+| RF-044 | closed | Settlement is fixed 45 axes x at most 250 ms, 90 terminals, 45 consequences, and 360 persistent bytes. |
+| RF-046 | pre-artifact | Applied action, sensed consequence, cold restore, and one later real interval all pass. |
+| RF-047 | pre-artifact | Require exact ECR digest manifest pullability before one rehearsal task. |
+| RF-050 | pre-artifact | Mixed body/world/vestibular continuation appends to one unsealed trajectory and seals once. |
+| RF-053 | pre-artifact | One-seal parity, later-dark fractal, and non-simultaneous no-effector invariants remain unchanged. |
+| RF-054 | pre-artifact | Mixed moved plus stalled-zero body rows retain only actual displacement. |
+| RF-055 | pre-artifact | Action/consequence replay preserves one contact owner and lawful next wake. |
+| RF-056 | live | Same identity and restored tick at or beyond the exact predecessor before image pinning. |
+| RF-057 | pre-artifact | Compound world/body consequence remains top-level and produces both world and organism successors. |
