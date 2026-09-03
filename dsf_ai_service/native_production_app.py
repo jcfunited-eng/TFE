@@ -1163,6 +1163,7 @@ def _world() -> Any:
         SECOND_BODY_PORT_ID,
         PoseMM,
         PositionMM,
+        SolarCoupling,
     )
     from dsf_ai_service.substrate.thermally_coupled_embodiment_world import (
         ThermallyCoupledEmbodimentWorldAuthority,
@@ -1244,6 +1245,13 @@ def _world() -> Any:
         # Nine places and nine doors; the caps state the lean bound.
         max_regions=12,
         max_portals=16,
+        # The real sun: the backyard lives under the open sky, and her
+        # room's window wall takes a quarter share of it through the
+        # curtained north wall. The day flows on the real clock.
+        solar_coupling=SolarCoupling(
+            outdoor_region_ids=("backyard",),
+            window_share_ppm_by_region_id=(("her-room", 250_000),),
+        ),
     )
     path = STATE_ROOT / WORLD_STATE_FILE
     matched_recovery = _world_recovery_marker_present()

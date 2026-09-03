@@ -21,7 +21,9 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import threading
+import time
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
@@ -439,6 +441,39 @@ def _positive_channels(
     if any(item == 0 for item in result):
         raise ValueError(f"{name} must contain positive receptor capacities")
     return result
+
+
+@dataclass(frozen=True, slots=True)
+class SolarCoupling:
+    """The real sun's schedule entering declared outdoor places.
+
+    Outdoor illumination follows the real clock continuously; indoor
+    places with a declared window share receive that fraction of the
+    outdoor light on top of their authored lamps. The light is written
+    into the world inside each committed action's own transaction, so
+    every snapshot stays exact and restorable; between actions the sky
+    holds its last written value, and her quantized optical law turns
+    the slow flow into sparse discrete receptor events."""
+
+    outdoor_region_ids: tuple[str, ...]
+    window_share_ppm_by_region_id: tuple[tuple[str, int], ...]
+    peak_ppm: int = 950_000
+    night_ppm: int = 20_000
+    sunrise_second_of_day: int = 6 * 3_600
+    sunset_second_of_day: int = 20 * 3_600
+
+    def sky_ppm(self, second_of_day: int) -> int:
+        span = self.sunset_second_of_day - self.sunrise_second_of_day
+        if span <= 0:
+            raise ValueError("the declared day has no daylight span")
+        position = second_of_day - self.sunrise_second_of_day
+        if position < 0 or position > span:
+            return self.night_ppm
+        # An exact integer arc: 4x(span-x)/span^2 peaks at midday.
+        arc_numerator = 4 * position * (span - position)
+        return self.night_ppm + (
+            (self.peak_ppm - self.night_ppm) * arc_numerator
+        ) // (span * span)
 
 
 @dataclass(frozen=True, slots=True)
@@ -3139,6 +3174,7 @@ class EmbodimentWorldAuthority:
             ContactOpticalSurfaceSequence
         ] = (),
         body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
+        solar_coupling: SolarCoupling | None = None,
     ) -> None:
         self._key = _authority_key(authority_key)
         # Twelve places and sixteen doors bound the renovated home; the
@@ -3377,6 +3413,22 @@ class EmbodimentWorldAuthority:
         # The exact declared home, retained for the one authenticated
         # topology migration a renovation release may perform.
         self._declared_genesis_world = world
+        if solar_coupling is not None:
+            region_ids = {region.region_id for region in physical_regions}
+            for region_id in solar_coupling.outdoor_region_ids:
+                if region_id not in region_ids:
+                    raise ValueError(
+                        "solar coupling names an absent outdoor region"
+                    )
+            for region_id, share in (
+                solar_coupling.window_share_ppm_by_region_id
+            ):
+                if region_id not in region_ids or not 0 < share <= 1_000_000:
+                    raise ValueError(
+                        "solar window share names an absent region or an "
+                        "unphysical fraction"
+                    )
+        self._solar_coupling = solar_coupling
         # True once this process's restore genuinely renovated the home;
         # recovery custody re-pairs at exactly that boundary.
         self._home_renovation_performed = False
@@ -4301,7 +4353,57 @@ class EmbodimentWorldAuthority:
             raise AssertionError(
                 "odorant transport violated exact mass conservation"
             )
+        result = self._settle_solar_illumination(result)
         return result
+
+    def _settle_solar_illumination(self, world: _WorldState) -> _WorldState:
+        """Write the real sun's current light into the declared places.
+
+        Runs inside each committed action's own transaction: outdoor
+        places take the sky's value for the real clock's second of day;
+        windowed places add their declared share of the sky on top of
+        their authored lamps. Between actions the light holds its last
+        written value, exactly restorable.
+        """
+
+        coupling = self._solar_coupling
+        if coupling is None:
+            return world
+        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+        if override:
+            second_of_day = int(override) % 86_400
+        else:
+            second_of_day = int(time.time()) % 86_400
+        sky = coupling.sky_ppm(second_of_day)
+        window_share = dict(coupling.window_share_ppm_by_region_id)
+        authored = {
+            region.region_id: region.illumination_ppm
+            for region in self._declared_genesis_world.regions
+        }
+        changed = False
+        regions = []
+        for region in world.regions:
+            if region.region_id in coupling.outdoor_region_ids:
+                lit = (sky,) * len(region.illumination_ppm)
+            elif region.region_id in window_share:
+                base = authored.get(
+                    region.region_id, region.illumination_ppm
+                )
+                share = window_share[region.region_id]
+                lit = tuple(
+                    min(1_000_000, value + (sky * share) // 1_000_000)
+                    for value in base
+                )
+            else:
+                regions.append(region)
+                continue
+            if lit != region.illumination_ppm:
+                region = replace(region, illumination_ppm=lit)
+                changed = True
+            regions.append(region)
+        if not changed:
+            return world
+        return replace(world, regions=tuple(regions))
 
     def _validate_world(self, world: _WorldState) -> None:
         _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
