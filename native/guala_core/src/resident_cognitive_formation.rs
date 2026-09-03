@@ -181,6 +181,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::sync::Arc;
 
+/// Measurement-only switch for the copied-body motor-transduction falsifier.
+/// The symbol and every branch that reads it are absent from production
+/// builds. It cannot become runtime authority or persisted organism state.
+#[cfg(test)]
+static TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 const MAGIC: &[u8; 8] = b"GLCOG012";
 const VERSION: u16 = 12;
 const MAGIC_V13: &[u8; 8] = b"GLCOG013";
@@ -19400,6 +19407,167 @@ fn settle_internal_contact_interval(
         }
     }
 
+    // Copied-body falsifier only: replace each retained L11/L12 gap junction
+    // with the minimum indivisible three-terminal transduction. One carrier
+    // from a real L11 -> founding-L7 outward event is delivered to that
+    // L11 cell's one learned motor while the total carrier count leaving L11
+    // remains unchanged. The complete selected frontier must still strictly
+    // lower its exact membrane-plus-gradient work. No production build
+    // contains this branch or its switch.
+    #[cfg(test)]
+    let mut test_ordering_motor_transductions = Vec::new();
+    #[cfg(test)]
+    if TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        let mut test_ordering_motor_bridges = Vec::new();
+        for position in 0..settled.transitions.len() {
+            let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
+            let left_layer = layer_of(flat_locations[left_flat].2);
+            let right_layer = layer_of(flat_locations[right_flat].2);
+            if !matches!((left_layer, right_layer), (Some(11), Some(12)))
+                && !matches!((left_layer, right_layer), (Some(12), Some(11)))
+            {
+                continue;
+            }
+            let signed = settled.transitions[position].outward_elementary_charges_from_left;
+            let left_coordinate = selected
+                .binary_search(&left_flat)
+                .expect("test bridge left endpoint must be selected");
+            let right_coordinate = selected
+                .binary_search(&right_flat)
+                .expect("test bridge right endpoint must be selected");
+            settled.outward_elementary_charges_by_neuron[left_coordinate] = settled
+                .outward_elementary_charges_by_neuron[left_coordinate]
+                .checked_sub(signed)
+                .expect("test bridge left cancellation width");
+            settled.outward_elementary_charges_by_neuron[right_coordinate] = settled
+                .outward_elementary_charges_by_neuron[right_coordinate]
+                .checked_add(signed)
+                .expect("test bridge right cancellation width");
+            settled.transitions[position] = ElectricalContactTransition {
+                successor: compact_predecessor.contact_states()[position].clone(),
+                outward_current_from_left_picoamperes: ExactRational::integer(0),
+                outward_elementary_charges_from_left: 0,
+                released_work_zeptojoules: BigRational::zero(),
+                exported_heat_zeptojoules: BigRational::zero(),
+                conductance_changed: false,
+            };
+            let (ordering_flat, motor_flat) = if left_layer == Some(11) {
+                (left_flat, right_flat)
+            } else {
+                (right_flat, left_flat)
+            };
+            test_ordering_motor_bridges.push((
+                ordering_flat,
+                motor_flat,
+                compact_bonds[position],
+            ));
+        }
+        settled.successor_contacts = SparseElectricalState::from_contact_states(
+            &compact_anatomy,
+            settled
+                .transitions
+                .iter()
+                .map(|transition| transition.successor.clone())
+                .collect::<Vec<_>>(),
+        )
+        .expect("test bridge successor shape");
+        test_ordering_motor_bridges.sort_unstable();
+        test_ordering_motor_bridges.dedup();
+        for (ordering_flat, motor_flat, motor_bond) in
+            test_ordering_motor_bridges.iter().copied()
+        {
+            let candidate = settled
+                .transitions
+                .iter()
+                .zip(compact_edge_flat_endpoints.iter().copied())
+                .enumerate()
+                .find_map(|(position, (transition, (left_flat, right_flat)))| {
+                    let signed = transition.outward_elementary_charges_from_left;
+                    if signed == 0 {
+                        return None;
+                    }
+                    let (sender_flat, receiver_flat) = if signed > 0 {
+                        (left_flat, right_flat)
+                    } else {
+                        (right_flat, left_flat)
+                    };
+                    (sender_flat == ordering_flat
+                        && layer_of(flat_locations[receiver_flat].2) == Some(7)
+                        && signed.unsigned_abs() >= 2)
+                        .then_some((position, receiver_flat, signed))
+                });
+            let Some((position, founding_flat, signed)) = candidate else {
+                continue;
+            };
+            let founding_coordinate = selected
+                .binary_search(&founding_flat)
+                .expect("test founding receiver must be selected");
+            let motor_coordinate = selected
+                .binary_search(&motor_flat)
+                .expect("test motor receiver must be selected");
+            settled.outward_elementary_charges_by_neuron[founding_coordinate] = settled
+                .outward_elementary_charges_by_neuron[founding_coordinate]
+                .checked_add(1)
+                .expect("test founding carrier adjustment width");
+            settled.outward_elementary_charges_by_neuron[motor_coordinate] = settled
+                .outward_elementary_charges_by_neuron[motor_coordinate]
+                .checked_sub(1)
+                .expect("test motor carrier adjustment width");
+            settled.transitions[position].outward_elementary_charges_from_left = if signed > 0 {
+                signed - 1
+            } else {
+                signed + 1
+            };
+            test_ordering_motor_transductions.push(DirectedPhysicalTransferObservation {
+                sender: flat_locations[ordering_flat].2,
+                receiver: flat_locations[motor_flat].2,
+                bond: motor_bond,
+                transferred_whole_carriers: 1,
+            });
+        }
+        if !test_ordering_motor_transductions.is_empty() {
+            let net_outward = settled
+                .outward_elementary_charges_by_neuron
+                .iter()
+                .try_fold(0_i128, |sum, outward| sum.checked_add(*outward))
+                .expect("test selected carrier sum width");
+            assert_eq!(net_outward, 0, "test transduction must conserve carriers");
+            let mut predecessor_work = BigRational::zero();
+            let mut successor_work = BigRational::zero();
+            for (coordinate, flat) in selected.iter().copied().enumerate() {
+                let (cohort_index, neuron_index, _) = flat_locations[flat];
+                let anatomy = &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index];
+                let predecessor = &cohorts[cohort_index].state.neurons()[neuron_index];
+                predecessor_work +=
+                    crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
+                        anatomy,
+                        predecessor,
+                    )
+                    .expect("test predecessor work");
+                let successor = crate::complete_neuron::settle_membrane_pump_transport(
+                    anatomy,
+                    predecessor,
+                    settled.outward_elementary_charges_by_neuron[coordinate],
+                    None,
+                    interval_microseconds,
+                )
+                .expect("test contact successor");
+                successor_work +=
+                    crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
+                        anatomy,
+                        &successor,
+                    )
+                    .expect("test successor work");
+            }
+            assert!(
+                successor_work < predecessor_work,
+                "test transduction must strictly lower complete selected-frontier work"
+            );
+        }
+    }
+
     // The compact predecessor, compact anatomy, stable bond, and settled
     // successor share one construction order. Project only the sparse reached
     // contacts whose retained channel population or transition-work phase
@@ -19689,6 +19857,14 @@ fn settle_internal_contact_interval(
     }
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
+    #[cfg(test)]
+    if TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        settled_directed_transfers.extend(test_ordering_motor_transductions);
+        settled_directed_transfers.sort_unstable();
+        settled_directed_transfers.dedup();
+    }
 
     // Retain the sparse active set for reached-frontier learning and the next
     // physical settlement. It is scheduling state, not effector authority:

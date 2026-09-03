@@ -661,16 +661,16 @@ def _retinal_projection(
                 emission = surface.emission_ppm or (
                     (0,) * len(reflectance)
                 )
+                # Reflected light keeps the law's distance attenuation;
+                # EMITTED light is surface radiance and does not fade with
+                # distance while the surface is resolved — a lit screen
+                # outshines a lit wall, as it does in a real room.
                 light = tuple(
                     min(
                         Fraction(1),
-                        (
-                            Fraction(
-                                value * illumination, 1_000_000_000_000
-                            )
-                            + Fraction(emitted, 1_000_000)
-                        )
-                        * attenuation,
+                        Fraction(value * illumination, 1_000_000_000_000)
+                        * attenuation
+                        + Fraction(emitted, 1_000_000),
                     )
                     for value, illumination, emitted in zip(
                         reflectance,

@@ -20,6 +20,8 @@
 use core::cmp::Ordering;
 
 use crate::complete_neuron::{PlasticSupportState, PlasticityError};
+#[cfg(test)]
+use crate::complete_neuron::{NeuronPhysicalAnatomy, NeuronPhysicalState};
 use crate::elementary_charge_membrane::{
     settle_membrane_elementary_charges, ElementaryChargeMembraneState, MembraneCapacitance,
     MembraneChargeError,
@@ -560,6 +562,42 @@ fn released_electrostatic_work_zeptojoules(
         -change_numerator * scale_numerator,
         change_denominator * scale_denominator,
     ))
+}
+
+/// Measurement-only access to the exact work law used by a settled contact.
+/// The named sender is treated as the physical left endpoint and the positive
+/// extent as sender-to-receiver transport; swapping endpoints preserves the
+/// same physical work result.
+#[cfg(test)]
+pub(crate) fn probe_directed_contact_work_zeptojoules(
+    sender_anatomy: &NeuronPhysicalAnatomy,
+    sender_state: &NeuronPhysicalState,
+    receiver_anatomy: &NeuronPhysicalAnatomy,
+    receiver_state: &NeuronPhysicalState,
+    transferred_whole_carriers: u128,
+) -> Result<BigRational, SparseElectricalError> {
+    let sender = ContactEndpoint::new(
+        sender_state
+            .membrane_state()
+            .potential_millivolts(sender_anatomy.capacitance())?,
+        sender_state.membrane_state(),
+        sender_anatomy.capacitance(),
+        sender_state.carrier_reservoirs().intracellular(),
+    );
+    let receiver = ContactEndpoint::new(
+        receiver_state
+            .membrane_state()
+            .potential_millivolts(receiver_anatomy.capacitance())?,
+        receiver_state.membrane_state(),
+        receiver_anatomy.capacitance(),
+        receiver_state.carrier_reservoirs().extracellular(),
+    );
+    released_electrostatic_work_zeptojoules(
+        sender,
+        receiver,
+        i128::try_from(transferred_whole_carriers)
+            .map_err(|_| SparseElectricalError::ArithmeticWidth)?,
+    )
 }
 
 /// Largest whole-carrier transfer in the field-driven direction that remains

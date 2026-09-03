@@ -428,6 +428,7 @@ impl ReachedCohortAnatomy {
     pub(crate) fn electrical_anatomy(&self) -> &SparseElectricalAnatomy {
         &self.electrical
     }
+
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

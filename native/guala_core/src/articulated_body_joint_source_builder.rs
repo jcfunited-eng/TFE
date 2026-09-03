@@ -30,6 +30,7 @@ const JOINT_RELEVANCE: &[u8] = b"guala.body.antagonist_pair.present.r(t)=1.exact
 const INPUT_MAP: &str = "antagonist-length-over-articulated-axis-span-v1";
 const EVIDENCE_MAGIC: &[u8; 8] = b"GLBPEV01";
 const CONSEQUENCE_VERSION: u16 = 4;
+
 const CONSEQUENCE_MAGIC: &[u8; 8] = b"GLJSRC04";
 const LOAD_PORT_RELEVANCE: &str = "guala.body.effector_load.present.r(t)=1.exact.v1";
 const LOAD_INPUT_MAP: &str = "reacted-over-discharged-effector-carriers-v1";
@@ -111,9 +112,10 @@ pub(crate) fn exact_moved_effector_terminal(
             return Ok(None);
         }
     };
-    if net != applied
-        .checked_add(stalled)
-        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?
+    if net
+        != applied
+            .checked_add(stalled)
+            .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?
         || (signed_displacement < 0) != (direction == BodyEffectorDirection::TowardMinimum)
         || applied == 0
     {
@@ -182,10 +184,7 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
         ] {
             let terminal = BodyProprioceptorTerminal::new(consequence.axis, direction);
             output.push(5);
-            u32_value(
-                &mut output,
-                terminal.proprioceptor_topology_index(),
-            )?;
+            u32_value(&mut output, terminal.proprioceptor_topology_index())?;
             output.push(1);
             output.push(
                 u8::try_from(consequence.axis.index())
@@ -281,7 +280,10 @@ pub(crate) fn admit_articulated_body_consequence_source(
     if consequences.is_empty() {
         return Err(ArticulatedBodyJointSourceError::EmptyConsequences);
     }
-    if consequences.windows(2).any(|pair| pair[0].axis >= pair[1].axis) {
+    if consequences
+        .windows(2)
+        .any(|pair| pair[0].axis >= pair[1].axis)
+    {
         return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
     }
     for consequence in consequences {
@@ -357,7 +359,10 @@ pub(crate) fn admit_articulated_body_consequence_source(
                 text(
                     &mut output,
                     &if load_ending {
-                        format!("{}-{direction_name}-load", consequence.axis.anatomical_name())
+                        format!(
+                            "{}-{direction_name}-load",
+                            consequence.axis.anatomical_name()
+                        )
                     } else {
                         format!("{}-{direction_name}", consequence.axis.anatomical_name())
                     },
@@ -393,10 +398,21 @@ pub(crate) fn admit_articulated_body_consequence_source(
                 )?;
                 text(
                     &mut output,
-                    if load_ending { LOAD_PORT_RELEVANCE } else { PORT_RELEVANCE },
+                    if load_ending {
+                        LOAD_PORT_RELEVANCE
+                    } else {
+                        PORT_RELEVANCE
+                    },
                 )?;
                 text(&mut output, "")?;
-                text(&mut output, if load_ending { LOAD_INPUT_MAP } else { INPUT_MAP })?;
+                text(
+                    &mut output,
+                    if load_ending {
+                        LOAD_INPUT_MAP
+                    } else {
+                        INPUT_MAP
+                    },
+                )?;
                 rational(&mut output, &BigRational::zero())?;
                 rational(&mut output, &BigRational::one())?;
                 rational(&mut output, &BigRational::zero())?;
@@ -438,7 +454,10 @@ pub(crate) fn admit_articulated_body_consequence_source(
         for time in &times {
             rational(&mut output, time)?;
         }
-        bytes(&mut output, SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE)?;
+        bytes(
+            &mut output,
+            SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE,
+        )?;
         u32_value(&mut output, 1)?;
         u32_value(&mut output, 4)?;
         for group_member in 0..4 {
@@ -528,12 +547,19 @@ fn reactive_load_fraction(
     };
     let reacted = consequence
         .opposed_carriers_per_terminal
-        .checked_add(if carries_stall { consequence.stalled_carriers } else { 0 })
+        .checked_add(if carries_stall {
+            consequence.stalled_carriers
+        } else {
+            0
+        })
         .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
     if reacted > discharged {
         return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
     }
-    Ok(BigRational::new(BigInt::from(reacted), BigInt::from(discharged)))
+    Ok(BigRational::new(
+        BigInt::from(reacted),
+        BigInt::from(discharged),
+    ))
 }
 
 fn exact_evidence(
@@ -665,11 +691,9 @@ mod tests {
             .unwrap(),
         )
         .unwrap();
-        let episode = admit_articulated_body_consequence_source(
-            43,
-            &stopped.proprioceptive_consequences,
-        )
-        .unwrap();
+        let episode =
+            admit_articulated_body_consequence_source(43, &stopped.proprioceptive_consequences)
+                .unwrap();
         assert_eq!(&episode.joint_source_body()[..8], b"GLJSRC04");
         assert_eq!(episode.joint_source_ports().len(), 4);
         assert_eq!(episode.joint_source_occurrences().len(), 1);
@@ -720,11 +744,9 @@ mod tests {
             .unwrap(),
         )
         .unwrap();
-        let episode = admit_articulated_body_consequence_source(
-            44,
-            &transition.proprioceptive_consequences,
-        )
-        .unwrap();
+        let episode =
+            admit_articulated_body_consequence_source(44, &transition.proprioceptive_consequences)
+                .unwrap();
 
         let mut moved = episode
             .joint_source_ports()
@@ -748,28 +770,20 @@ mod tests {
             &ArticulatedBodyState::at_neutral(),
             &AdmittedBodyEffectorDrives::admit(vec![
                 BodyEffectorDrive {
-                    terminal: BodyEffectorTerminal::new(
-                        axis,
-                        BodyEffectorDirection::TowardMinimum,
-                    ),
+                    terminal: BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
                     outward_elementary_carriers: 7,
                 },
                 BodyEffectorDrive {
-                    terminal: BodyEffectorTerminal::new(
-                        axis,
-                        BodyEffectorDirection::TowardMaximum,
-                    ),
+                    terminal: BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum),
                     outward_elementary_carriers: 7,
                 },
             ])
             .unwrap(),
         )
         .unwrap();
-        let episode = admit_articulated_body_consequence_source(
-            45,
-            &transition.proprioceptive_consequences,
-        )
-        .unwrap();
+        let episode =
+            admit_articulated_body_consequence_source(45, &transition.proprioceptive_consequences)
+                .unwrap();
         assert!(episode
             .joint_source_ports()
             .iter()
