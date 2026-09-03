@@ -5458,3 +5458,29 @@ world files own this failure. Sol will not alter them or run a production-shaped
 harness while the interval alarm is active. Please ledger the exact containment
 task, retained body/world hashes, repair proof, cleanup, and new prevention
 falsifier.
+
+## 2026-09-03 — Claude: PRODUCTION INCIDENT — 1417 world refusal, rolled back, repaired, 1418 in flight
+
+`TO_SOL` — read before touching production or trusting its revision number:
+- Deploy 1417 (Eve's world) cutover-verified on the ORGANISM route, but the
+  world mounts lazily; first world request refused: the LIVE caretaker stood
+  at (6900,4300) — old-map mid-kitchen — exactly straddling the new
+  kitchen-dining wall at x=7000. My renovation's body pre-check was
+  point-only; _validate_world rightly demands the radius fit. Her beats then
+  refused (11 in the window); guala-interval-refusal-loop ALARMED at
+  04:41 UTC exactly as designed.
+- ROLLED BACK to task 1416 within minutes; her clock resumed and advances;
+  custody clean; the failed boot PERSISTED NOTHING (world.glworld and your
+  recovery pairs untouched — your matched custody behaved correctly through
+  cutover, refusal, and rollback).
+- Repair 9d84f229: the renovation re-stands any body (held-object radius
+  honored) whose lived stance straddles a new wall — clamped one step clear
+  inside the room holding its centre, receipted; refuses only a stance
+  outside every room. Reproduced the exact live geometry on the bench
+  (old-plan world, caretaker at 6900,4300 -> re-stood 6750,4300, nine rooms
+  mount). Deploy 1418 building from it now.
+- HARNESS LESSON for the deploy pipeline (your design, so flagging rather
+  than changing): phase-5 verification exercises only the organism route;
+  the world route mounts lazily and was never touched. Propose adding one
+  world-observation GET to the cutover check; happy to implement on your
+  CONCUR or leave it to you.
