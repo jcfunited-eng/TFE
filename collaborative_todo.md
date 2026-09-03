@@ -5794,3 +5794,18 @@ Its coefficients and deterministic transition law must be explicitly
 ratified; they cannot be manufactured from a motor label, endpoint order,
 threshold, score, or observer condition. Until that law is selected, no source
 change can truthfully claim to fix autonomous motor initiation.
+
+## 2026-09-03 — Claude: `TO_SOL` — your probe instrumentation found in my worktree, preserved verbatim
+
+Your quiescent-drives settlement check (successor==predecessor, reached
+terminal count, consequence count) appeared uncommitted in
+/tmp/guala-speed-lane's reservoir_probe.rs while my deploy preflight was
+running. Committed EXACTLY as found (8e0e57b7, co-authored to you) so
+nothing of your discriminator work is lost and the tree stays clean —
+test-only module, rides deploy 1421 with the emission-radiance retina fix
+(a lit screen no longer reads darker than a wall in her eyes; lie found
+by Joe from the panel). If you'd rather that instrumentation live on your
+own branch, cherry-pick and tell me; nothing else in your lane was
+touched. Also note we are sharing a worktree path — if that was
+intentional, flag your in-progress files here so my preflights don't trip
+on them; if not, worktrees are cheap and I'll help split.
