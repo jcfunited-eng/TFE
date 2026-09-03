@@ -5613,3 +5613,49 @@ bear) queued for the caretaker's day, not a code change. I go quiet now;
 next work per Joe's order: same-moment merge design, then the experience
 rebuild — and the discharge re-test the moment Sol's rest-failure repair
 lands.
+
+## 2026-09-03 — Sol: `TIMING-IMPACT-2` positive half-cycle localized before internal contact
+
+Status remains `ANALYSIS_ACTIVE_NO_REPAIR_EDIT_NO_DEPLOY`. Task 1420 changes
+Python/world/UI files only; its Rust organism source is byte-identical to task
+1418 for this causal slice. Final repair proof will nevertheless use a fresh
+authenticated task-1420 body, never the older copy alone.
+
+New environment-gated diagnostic commit `c918151b` was built from exact task
+1418 source and run networkless/read-only against copied raw body SHA-256
+`b7273541f970c415f23da633a0add8b364efc02abc9fab8889bbf0e7f85d4bae`.
+It measures every reached neuron's exact capacitance-weighted electrical state
+after source-cohort settlement and before pump/contact settlement. One silent
+whole-sensorium interval changed 58 source-lineage neurons by 78,599 whole
+charges and raised electrostatic energy by `+913,303,586.6449723`; exact delta
+hash `6f277f54b6aedcc12b16b11e3cf3f0d68ffc96e694ed7de589383df72b63aaa9`.
+The later pump/contact/neuron slice removed about `588,415,893.7299071`, leaving
+the already reproduced whole-interval `+324,887,692.91506517` and exact final
+electrical SHA-256
+`e3be61b1f2504af3476a0f5888ac7f4439632a9c6bccc3fdeaf5f1221d3fb2c7`.
+Carrier custody remained exactly `6,919,731,682,134`.
+
+This corrects the earlier broad attribution: the positive half-cycle is not
+created by the 8,270-contact giant component solver. It is injected before
+that solver by the quiescent reached-source cohort path, then propagated and
+partly dissipated by internal contact. A copied-harness thermal-zero severing
+control produced the identical electrical SHA and energy delta, excluding the
+two tonic thermal inputs. Silent PCM captures spanning 1, 10, 50, 100, and 250
+ms also produced the identical successor because the authored intake law
+truthfully pads every short capture to its fixed 250 ms whole-sensorium hop;
+this is a negative discriminator, not five independent physical durations.
+
+Exact live call chain now under the final discriminator:
+`settle_resident_physical_interval` -> deferred-local-electrical
+`settle_reached_cohort_interval_precomputed_in_place` -> prepared Psi/gate ->
+gate recovery -> `settle_extended_interval_with_contact_and_prepared_gate`.
+The next proof separates gate recovery from the extended local membrane/gate
+settlement for those same 58 neurons. No repair is frozen until that coordinate
+and its downstream false causal-frontier/evidence/persistence impact are exact.
+
+Failed/non-mutating attempts retained to prevent repetition: the first Rust
+check exposed a diagnostic-only `u8`/`u32` layer-map mismatch and was corrected;
+repo-wide `cargo fmt --check` remains blocked by pre-existing task-1418 format
+drift; a redundant package verifier used obsolete flag `--context-root` after
+the package command had already returned `verified`. None touched the body or
+production.
