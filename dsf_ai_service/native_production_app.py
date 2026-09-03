@@ -724,12 +724,20 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "garden-patch":    ((0, 0, 0, 1_600, 300, 0, 0, 0), (0, 100, 200, 700, 100),    289_000, 450_000, 700, 320_000),
     }
     reservoir_seconds = 864_000
+    # Things that give off their own light (the emitter law): the lamp
+    # shines warm, the glow stars glow softly — visible when her room
+    # goes dark because emission does not fade with the room's light.
+    emission_of = {
+        "lamp": (620_000, 540_000, 380_000, 220_000, 160_000, 120_000),
+        "glow-stars": (30_000, 90_000, 120_000, 60_000, 20_000, 10_000),
+    }
     objects = [
         EmbodiedObject(
             name,
             radius,
             mass,
             PositionMM(x, y, 0),
+            emission_ppm=emission_of.get(name, ()),
             reflectance_ppm=reflectance,
             material=ObjectMaterialState(
                 odorant_reservoir_nanograms=tuple(
@@ -1164,6 +1172,7 @@ def _world() -> Any:
         PoseMM,
         PositionMM,
         SolarCoupling,
+        ScreenBroadcast,
     )
     from dsf_ai_service.substrate.thermally_coupled_embodiment_world import (
         ThermallyCoupledEmbodimentWorldAuthority,
@@ -1252,8 +1261,26 @@ def _world() -> Any:
             outdoor_region_ids=("backyard",),
             window_share_ppm_by_region_id=(("her-room", 250_000),),
         ),
+        # The television works: declared frames of emitted light cycling
+        # on the real clock. At her acuity a working screen IS changing
+        # coloured light in the corner of the room — nothing is mimed.
+        screen_broadcasts=(
+            ScreenBroadcast(
+                object_id="television",
+                seconds_per_frame=45,
+                frames=(
+                    (850_000, 500_000, 200_000, 120_000, 90_000, 70_000),
+                    (200_000, 350_000, 800_000, 400_000, 150_000, 90_000),
+                    (120_000, 700_000, 300_000, 650_000, 200_000, 110_000),
+                    (600_000, 600_000, 600_000, 600_000, 600_000, 600_000),
+                    (90_000, 120_000, 180_000, 260_000, 500_000, 700_000),
+                    (40_000, 40_000, 50_000, 40_000, 40_000, 40_000),
+                ),
+            ),
+        ),
     )
     path = STATE_ROOT / WORLD_STATE_FILE
+    _release_migrated = False
     matched_recovery = _world_recovery_marker_present()
     if matched_recovery:
         if _restored is None:
@@ -1275,9 +1302,15 @@ def _world() -> Any:
             # The renovation runs FIRST: a lived four-room world grows into
             # the declared home while every lived thing is preserved; the
             # geometry and material migrations then act on the grown plan.
-            authority.migrate_declared_home_topology()
-            authority.migrate_declared_body_receptor_geometry()
-            authority.migrate_declared_material_transport()
+            _release_migrated = authority.migrate_declared_home_topology()
+            _release_migrated = (
+                authority.migrate_declared_body_receptor_geometry()
+                or _release_migrated
+            )
+            _release_migrated = (
+                authority.migrate_declared_material_transport()
+                or _release_migrated
+            )
         except (ValueError, TypeError, RuntimeError) as error:
             # Her pose now changes through native motor discharge. A stored
             # world therefore contains causal organism history and may never
@@ -1306,14 +1339,16 @@ def _world() -> Any:
         )
     current_body = authority.encoded_snapshot()
     if matched_recovery and stored_body != current_body:
-        if not authority.home_renovation_performed:
+        if not (
+            authority.home_renovation_performed or _release_migrated
+        ):
             raise RuntimeError(
                 "ordinary matched world restore changed its canonical bytes"
             )
-        # The home renovation is the one authorized byte change under
-        # matched custody: the release boundary retires the stale pair
-        # and re-pairs the recovery store with the renovated world
-        # before anything is reachable.
+        # A release-boundary migration (renovation, geometry, material or
+        # emission anatomy) is the one authorized byte change under
+        # matched custody: the boundary retires the stale pair and
+        # re-pairs the recovery store before anything is reachable.
         _generations_dir, _associations_dir = _world_recovery_directories()
         stale_association = _associations_dir / (
             _restored.pointer.state_sha256 + WORLD_RECOVERY_ASSOCIATION_SUFFIX
@@ -17856,6 +17891,7 @@ def world_observation() -> JSONResponse:
                     # the screen is what her eyes are given rather than a
                     # palette somebody picked to make the picture look nice.
                     "reflectance_ppm": list(item.reflectance_ppm),
+                    "emission_ppm": list(item.emission_ppm),
                     "warmth_millikelvin": (
                         item.material.surface_temperature_millikelvin
                         if item.material is not None

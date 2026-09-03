@@ -461,6 +461,11 @@ class _OpticalSurface:
     radius_mm: int
     reflectance_ppm: tuple[int, ...]
     optical_surface: ObjectOpticalSurface | None = None
+    # Light the surface gives off by itself (the emitter law): added to
+    # the reflected term, so a glow star or a working screen stays
+    # visible when the room's light fades while ordinary matter goes
+    # dark with it.
+    emission_ppm: tuple[int, ...] = ()
 
 
 def _retinal_projection(
@@ -535,6 +540,7 @@ def _retinal_projection(
                 radius_mm=item.radius_mm,
                 reflectance_ppm=item.reflectance_ppm,
                 optical_surface=item.optical_surface,
+                emission_ppm=getattr(item, "emission_ppm", ()) or (),
             )
         )
 
@@ -652,12 +658,24 @@ def _retinal_projection(
                         row=pattern_row,
                         column=pattern_column,
                     )
+                emission = surface.emission_ppm or (
+                    (0,) * len(reflectance)
+                )
                 light = tuple(
-                    Fraction(value * illumination, 1_000_000_000_000)
-                    * attenuation
-                    for value, illumination in zip(
+                    min(
+                        Fraction(1),
+                        (
+                            Fraction(
+                                value * illumination, 1_000_000_000_000
+                            )
+                            + Fraction(emitted, 1_000_000)
+                        )
+                        * attenuation,
+                    )
+                    for value, illumination, emitted in zip(
                         reflectance,
                         current_region.illumination_ppm,
+                        emission,
                     )
                 )
                 index = row * RETINA_COLUMNS + column

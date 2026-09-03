@@ -477,6 +477,26 @@ class SolarCoupling:
 
 
 @dataclass(frozen=True, slots=True)
+class ScreenBroadcast:
+    """A working screen: declared frames of emitted light cycling on the
+    real clock. Content at her acuity IS changing light — no image is
+    mimed into her senses; the screen genuinely emits, the retina law
+    genuinely sees it, and a dark room makes it more vivid by physics."""
+
+    object_id: str
+    frames: tuple[tuple[int, ...], ...]
+    seconds_per_frame: int = 60
+
+    def emission_at(self, second_of_day: int) -> tuple[int, ...]:
+        if not self.frames:
+            raise ValueError("a screen broadcast requires declared frames")
+        if self.seconds_per_frame <= 0:
+            raise ValueError("a screen broadcast requires a real frame clock")
+        index = (second_of_day // self.seconds_per_frame) % len(self.frames)
+        return self.frames[index]
+
+
+@dataclass(frozen=True, slots=True)
 class AirVolumeState:
     volume_cubic_mm: int
     odorant_mass_nanograms: tuple[int, ...]
@@ -1309,6 +1329,13 @@ class EmbodiedObject:
     )
     material: ObjectMaterialState | None = None
     optical_surface: ObjectOpticalSurface | None = None
+    # THE EMITTER LAW: light a thing gives off by itself, in parts per
+    # million of full retinal luminance per band, added to what it
+    # reflects. Zero for ordinary matter; a lamp, a glow star, or a
+    # working screen genuinely shines — visible in a dark room because
+    # reflection fades with the light while emission does not. Old
+    # persisted worlds decode unchanged.
+    emission_ppm: tuple[int, ...] = ()
 
     def verify(self) -> None:
         _identifier(self.object_id, "object id")
@@ -1321,6 +1348,8 @@ class EmbodiedObject:
         if self.held_by_body_id is not None:
             _identifier(self.held_by_body_id, "holding body id")
         _physical_bands(self.reflectance_ppm, "object reflectance")
+        if self.emission_ppm:
+            _physical_bands(self.emission_ppm, "object emission")
         if self.material is not None:
             self.material.verify()
         if self.optical_surface is not None:
@@ -1345,6 +1374,11 @@ class EmbodiedObject:
                 if self.optical_surface is not None
                 else None
             ),
+            **(
+                {"emission_ppm": list(self.emission_ppm)}
+                if any(self.emission_ppm)
+                else {}
+            ),
         }
 
     def _canonical_record(self) -> dict[str, object]:
@@ -1362,6 +1396,11 @@ class EmbodiedObject:
             "optical_surface": (
                 self.optical_surface._canonical_fragment()
                 if self.optical_surface is not None else None
+            ),
+            **(
+                {"emission_ppm": list(self.emission_ppm)}
+                if any(self.emission_ppm)
+                else {}
             ),
         }
 
@@ -2611,11 +2650,17 @@ def _object_from(value: object) -> EmbodiedObject:
         "held_by_body_id", "mass_grams", "material", "object_id", "position",
         "radius_mm", "reflectance_ppm", "optical_surface"
     }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    if not isinstance(value, Mapping) or not (
+        set(value) == expected
+        or set(value) == expected | {"emission_ppm"}
+    ):
         raise ValueError("object fields changed")
     raw_position = value.get("position")
     raw_material = value.get("material")
     raw_optical_surface = value.get("optical_surface")
+    raw_emission = value.get("emission_ppm", ())
+    if not isinstance(raw_emission, (list, tuple)):
+        raise ValueError("object fields changed")
     result = EmbodiedObject(
         object_id=value.get("object_id"),
         radius_mm=value.get("radius_mm"),
@@ -2638,6 +2683,7 @@ def _object_from(value: object) -> EmbodiedObject:
             if raw_optical_surface is not None
             else None
         ),
+        emission_ppm=tuple(raw_emission),
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -3175,6 +3221,7 @@ class EmbodimentWorldAuthority:
         ] = (),
         body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
         solar_coupling: SolarCoupling | None = None,
+        screen_broadcasts: Sequence[ScreenBroadcast] = (),
     ) -> None:
         self._key = _authority_key(authority_key)
         # Twelve places and sixteen doors bound the renovated home; the
@@ -3429,6 +3476,15 @@ class EmbodimentWorldAuthority:
                         "unphysical fraction"
                     )
         self._solar_coupling = solar_coupling
+        declared_object_ids = {item.object_id for item in objects}
+        for broadcast in screen_broadcasts:
+            if broadcast.object_id not in declared_object_ids:
+                raise ValueError(
+                    "a screen broadcast names an absent object"
+                )
+            for frame in broadcast.frames:
+                _physical_bands(frame, "screen broadcast frame")
+        self._screen_broadcasts = tuple(screen_broadcasts)
         # True once this process's restore genuinely renovated the home;
         # recovery custody re-pairs at exactly that boundary.
         self._home_renovation_performed = False
@@ -3681,11 +3737,49 @@ class EmbodimentWorldAuthority:
                 )
             prior = self._state
             declared = self._declared_genesis_world
+
+            def structural_fingerprint(regions, portals):
+                return (
+                    tuple(
+                        (
+                            region.region_id,
+                            region.bounds.minimum.x,
+                            region.bounds.minimum.y,
+                            region.bounds.maximum.x,
+                            region.bounds.maximum.y,
+                            region.ceiling_height_mm,
+                        )
+                        for region in sorted(
+                            regions, key=lambda item: item.region_id
+                        )
+                    ),
+                    tuple(
+                        (
+                            portal.portal_id,
+                            portal.region_ids,
+                            portal.axis,
+                            portal.plane_mm,
+                            portal.aperture_min_mm,
+                            portal.aperture_max_mm,
+                            portal.height_mm,
+                        )
+                        for portal in sorted(
+                            portals, key=lambda item: item.portal_id
+                        )
+                    ),
+                )
+
+            # The renovation reads STRUCTURE only — walls and doors. Lived
+            # light and air move lawfully all day and are not a topology.
+            if structural_fingerprint(
+                prior.world.regions, prior.world.portals
+            ) == structural_fingerprint(
+                declared.regions, declared.portals
+            ):
+                return False
             prior_topology = self._topology_sha256(
                 prior.world.regions, prior.world.portals
             )
-            if prior_topology == self._declared_topology_sha256:
-                return False
             declared_objects = {
                 item.object_id: item for item in declared.objects
             }
@@ -3920,9 +4014,20 @@ class EmbodimentWorldAuthority:
                     )
                 portals.append(portal)
 
+            declared_emission = {
+                item.object_id: item.emission_ppm
+                for item in self._declared_genesis_world.objects
+            }
             objects: list[EmbodiedObject] = []
             for item in prior.world.objects:
                 mounted = declared_material[item.object_id]
+                # Emission is authored anatomy like release rates: a lived
+                # thing that predates the emitter law takes its declared
+                # shine; a lived nonzero value is preserved.
+                authored_emission = declared_emission.get(item.object_id, ())
+                if not item.emission_ppm and any(authored_emission):
+                    item = replace(item, emission_ppm=authored_emission)
+                    changed = True
                 if item.material is None:
                     if mounted is not None:
                         item = replace(item, material=mounted)
@@ -4367,13 +4472,30 @@ class EmbodimentWorldAuthority:
         """
 
         coupling = self._solar_coupling
-        if coupling is None:
+        if coupling is None and not self._screen_broadcasts:
             return world
         override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
         if override:
             second_of_day = int(override) % 86_400
         else:
             second_of_day = int(time.time()) % 86_400
+        if self._screen_broadcasts:
+            emissions = {
+                broadcast.object_id: broadcast.emission_at(second_of_day)
+                for broadcast in self._screen_broadcasts
+            }
+            objects = []
+            screens_changed = False
+            for item in world.objects:
+                target = emissions.get(item.object_id)
+                if target is not None and item.emission_ppm != target:
+                    item = replace(item, emission_ppm=target)
+                    screens_changed = True
+                objects.append(item)
+            if screens_changed:
+                world = replace(world, objects=tuple(objects))
+        if coupling is None:
+            return world
         sky = coupling.sky_ppm(second_of_day)
         window_share = dict(coupling.window_share_ppm_by_region_id)
         authored = {
@@ -6565,11 +6687,17 @@ class EmbodimentWorldAuthority:
             "held_by_body_id", "mass_grams", "material", "object_id",
             "position", "radius_mm", "reflectance_ppm", "optical_surface",
         }
-        if not isinstance(value, Mapping) or set(value) != expected:
+        if not isinstance(value, Mapping) or not (
+            set(value) == expected
+            or set(value) == expected | {"emission_ppm"}
+        ):
             raise ValueError("compact physical object record changed")
         raw_position = value.get("position")
         raw_material = value.get("material")
         raw_surface = value.get("optical_surface")
+        raw_emission = value.get("emission_ppm", ())
+        if not isinstance(raw_emission, (list, tuple)):
+            raise ValueError("compact physical object record changed")
         surface = None
         if raw_surface is not None:
             if (
@@ -6599,6 +6727,7 @@ class EmbodimentWorldAuthority:
                 else None
             ),
             optical_surface=surface,
+            emission_ppm=tuple(raw_emission),
         )
         result.verify()
         if self._compact_object_record(result, catalog) != dict(value):
@@ -6979,7 +7108,12 @@ class EmbodimentWorldAuthority:
         regions: tuple[PhysicalRegion, ...],
         portals: tuple[PhysicalPortal, ...],
     ) -> str:
-        """Identify immutable room anatomy, never changing air contents."""
+        """Identify immutable room anatomy, never changing air contents.
+
+        Illumination left this identity when the sun entered the world:
+        light is lived state that flows on the real clock, exactly as
+        air contents already were. Walls, bounds, ceilings and paint
+        remain anatomy."""
 
         return _digest(
             {
@@ -6993,7 +7127,6 @@ class EmbodimentWorldAuthority:
                         ),
                         "bounds": item.bounds.as_record(),
                         "ceiling_height_mm": item.ceiling_height_mm,
-                        "illumination_ppm": list(item.illumination_ppm),
                         "reflectance_ppm": list(item.reflectance_ppm),
                         "region_id": item.region_id,
                     }
