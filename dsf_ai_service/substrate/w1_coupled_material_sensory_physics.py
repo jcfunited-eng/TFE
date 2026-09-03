@@ -328,15 +328,23 @@ def _taste_values(
         material.moisture_ppm,
         MAX_PHYSICAL_PPM,
     )
+    # The tongue tastes both what remains in contact AND the mouthful the
+    # bite itself dissolved (matter now in the mouth) — so the contact
+    # that takes an object's last portion still genuinely tastes it.
+    dissolved = contact.dissolved_tastant_micrograms or (
+        (0,) * len(material.tastant_mass_micrograms)
+    )
     return tuple(
         _bounded_fraction(
             Fraction(mass, saturation)
             * contact_fraction
             * solvent_fraction
+            + Fraction(mouthful, saturation)
         )
-        for mass, saturation in zip(
+        for mass, saturation, mouthful in zip(
             material.tastant_mass_micrograms,
             geometry.tastant_saturation_micrograms,
+            dissolved,
         )
     )
 

@@ -1059,6 +1059,12 @@ class BodyContactState:
     object_id: str
     contact_patch_square_mm: int
     duration_microseconds: int
+    # THE BITE'S MOUTHFUL (R1 eating): the tastant mass this exact oral
+    # contact removed from the object, per channel — matter in the mouth
+    # being dissolved, which is what the tongue genuinely tastes even when
+    # the bite took the object's last portion. Empty for touch contacts
+    # and pre-bite records; old persisted worlds decode unchanged.
+    dissolved_tastant_micrograms: tuple[int, ...] = ()
 
     def verify(self) -> None:
         if self.kind not in {"touch", "oral"}:
@@ -1076,15 +1082,32 @@ class BodyContactState:
             minimum=MIN_MATERIAL_ACTION_DURATION_US,
             maximum=MAX_MATERIAL_ACTION_DURATION_US,
         )
+        if self.dissolved_tastant_micrograms:
+            if self.kind != "oral":
+                raise ValueError(
+                    "only an oral contact holds dissolved tastant"
+                )
+            for mass in self.dissolved_tastant_micrograms:
+                _bounded_integer(
+                    mass,
+                    "dissolved tastant mass",
+                    minimum=0,
+                    maximum=1_000_000_000_000,
+                )
 
     def as_record(self) -> dict[str, object]:
         self.verify()
-        return {
+        record: dict[str, object] = {
             "contact_patch_square_mm": self.contact_patch_square_mm,
             "duration_microseconds": self.duration_microseconds,
             "kind": self.kind,
             "object_id": self.object_id,
         }
+        if self.dissolved_tastant_micrograms:
+            record["dissolved_tastant_micrograms"] = list(
+                self.dissolved_tastant_micrograms
+            )
+        return record
 
 
 @dataclass(frozen=True, slots=True)
@@ -2449,7 +2472,16 @@ def _contact_from(value: object) -> BodyContactState:
         "kind",
         "object_id",
     }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    if not isinstance(value, Mapping) or not (
+        set(value) == expected
+        or set(value) == expected | {"dissolved_tastant_micrograms"}
+    ):
+        raise ValueError("body contact fields changed")
+    raw_dissolved = value.get("dissolved_tastant_micrograms", ())
+    if not isinstance(raw_dissolved, (list, tuple)) or any(
+        isinstance(mass, bool) or not isinstance(mass, int)
+        for mass in raw_dissolved
+    ):
         raise ValueError("body contact fields changed")
     result = BodyContactState(
         kind=value.get("kind"),
@@ -2458,6 +2490,7 @@ def _contact_from(value: object) -> BodyContactState:
             "contact_patch_square_mm"
         ),
         duration_microseconds=value.get("duration_microseconds"),
+        dissolved_tastant_micrograms=tuple(raw_dissolved),
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -4644,12 +4677,21 @@ class EmbodimentWorldAuthority:
             # in the same transaction and delivers it to the resurrected
             # nutrition law, so nothing is destroyed — it is eaten.
             eaten_objects = list(world.objects)
+            dissolved_mouthful: tuple[int, ...] = ()
             if isinstance(command, OralContactCommand) and item.material is not None:
                 cross_section = item.radius_mm * item.radius_mm
                 bitten = tuple(
                     mass - min(mass, (mass * patch) // max(1, cross_section))
                     for mass in item.material.tastant_mass_micrograms
                 )
+                dissolved_mouthful = tuple(
+                    before - after
+                    for before, after in zip(
+                        item.material.tastant_mass_micrograms, bitten
+                    )
+                )
+                if not any(dissolved_mouthful):
+                    dissolved_mouthful = ()
                 if bitten != item.material.tastant_mass_micrograms:
                     object_index = next(
                         index
@@ -4683,6 +4725,7 @@ class EmbodimentWorldAuthority:
                     duration_microseconds=(
                         command.duration_microseconds
                     ),
+                    dissolved_tastant_micrograms=dissolved_mouthful,
                 ),
             )
             return replace(

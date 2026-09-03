@@ -9660,15 +9660,18 @@ def _commit_one_timeline_hop(
             if isinstance(episode, tuple)
             else admitted_sources[0]
         )
-        feed_advance: Any | None = None
-        feed_tail: tuple[Any, ...] = ()
+        feed_kwargs: dict[str, Any] = {}
         if real_nutrition_intake_zeptojoules is not None:
             if coexisting:
                 raise RuntimeError(
                     "a feed hop is one temporal trajectory, never coexisting"
                 )
-            feed_advance = organism.advance_admitted_feed_trajectory_unsealed
-            feed_tail = (real_nutrition_intake_zeptojoules,)
+            feed_kwargs = {
+                "native_advance": (
+                    organism.advance_admitted_feed_trajectory_unsealed
+                ),
+                "native_advance_tail": (real_nutrition_intake_zeptojoules,),
+            }
         return (
             _commit_admitted_hop(
                 organism,
@@ -9679,8 +9682,7 @@ def _commit_one_timeline_hop(
                     external_participant_action_receipt
                 ),
                 coexisting=coexisting,
-                native_advance=feed_advance,
-                native_advance_tail=feed_tail,
+                **feed_kwargs,
             ),
             None,
         )
@@ -9716,14 +9718,25 @@ def _commit_one_timeline_hop(
         ),
         coexisting=coexisting,
         native_advance=organism.advance_in_flight_self_hearing_unsealed,
+        # A meal lands even while her own voice is mid-flight: nothing
+        # about her moment gates real transferred nutrition. The intake
+        # rides the tail only when a feed is genuinely present, so the
+        # ordinary self-hearing contract stays byte-identical.
         native_advance_tail=(
-            pressure,
-            body,
-            coexisting,
-            consumed_sample_count,
-            # A meal lands even while her own voice is mid-flight: nothing
-            # about her moment gates real transferred nutrition.
-            real_nutrition_intake_zeptojoules,
+            (
+                pressure,
+                body,
+                coexisting,
+                consumed_sample_count,
+                real_nutrition_intake_zeptojoules,
+            )
+            if real_nutrition_intake_zeptojoules is not None
+            else (
+                pressure,
+                body,
+                coexisting,
+                consumed_sample_count,
+            )
         ),
     )
     return (
