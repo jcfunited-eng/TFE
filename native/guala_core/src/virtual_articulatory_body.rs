@@ -167,16 +167,24 @@ pub(crate) fn settle_native_articulatory_interval(
                 stalled = stalled
                     .checked_add(consequence.stalled_carriers)
                     .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                let moved_toward_closure = min(
-                    consequence.toward_minimum_carriers,
-                    u128::from(consequence.signed_displacement.unsigned_abs()),
-                );
-                let coupled = min(moved_toward_closure, 8);
+                let admitted_closure =
+                    if consequence.toward_minimum_carriers > consequence.toward_maximum_carriers {
+                        (consequence.toward_minimum_carriers - consequence.toward_maximum_carriers)
+                            .checked_sub(consequence.stalled_carriers)
+                            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?
+                    } else {
+                        0
+                    };
+                let coupled = if consequence.signed_displacement < 0 {
+                    min(admitted_closure, 8)
+                } else {
+                    0
+                };
                 applied = applied
                     .checked_add(coupled)
                     .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
                 stalled = stalled
-                    .checked_add(moved_toward_closure - coupled)
+                    .checked_add(admitted_closure - coupled)
                     .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
                 if coupled == 0 {
                     continue;
@@ -1027,7 +1035,7 @@ mod tests {
     use super::*;
     use crate::virtual_articulated_body::{
         settle_body_effector_drives, AdmittedBodyEffectorDrives, BodyEffectorDirection,
-        BodyEffectorDrive, BodyEffectorTerminal,
+        BodyEffectorDrive, BodyEffectorTerminal, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
     };
 
     fn moved(
@@ -1041,7 +1049,9 @@ mod tests {
             outward_elementary_carriers: carriers,
         }])
         .unwrap();
-        let transition = settle_body_effector_drives(predecessor, &admitted).unwrap();
+        let transition =
+            settle_body_effector_drives(predecessor, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .unwrap();
         (transition.successor, transition.proprioceptive_consequences)
     }
 
@@ -1637,8 +1647,9 @@ mod tests {
             true,
         )
         .expect("published pose is anatomical");
-        // fully-open control: an OPENING drive at the anatomical stop is
-        // all stall — no displacement, no loaded work, exact silence
+        // Fully-open control: an opening activation creates no closing-source
+        // work. The off-neutral tissue may still return passively, but that
+        // return cannot be relabeled as a new respiratory discharge.
         let (stalled_body, stalled_breath) = moved(
             &wide_open,
             BodyAxis::GlottalAperture,
@@ -1656,7 +1667,7 @@ mod tests {
                 .radiated_pressure_pcm
                 .iter()
                 .all(|sample| *sample == 0),
-            "a stalled opening drive at maximum-open must be silent"
+            "an opening drive and passive return at maximum-open must be silent"
         );
         assert!(silent
             .successor_body
@@ -1692,7 +1703,7 @@ mod tests {
     }
 
     #[test]
-    fn stalled_motor_and_unattached_body_axis_cannot_manufacture_pressure() {
+    fn opening_activation_and_unattached_body_axis_cannot_manufacture_pressure() {
         let neutral = ArticulatedBodyState::at_neutral();
         let mut axes = *neutral.axes();
         axes[BodyAxis::GlottalAperture.index()] = BodyAxis::GlottalAperture.anatomy().maximum;
@@ -1717,7 +1728,7 @@ mod tests {
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
         assert_eq!(stalled.applied_motor_quanta, 0);
-        assert_eq!(stalled.stalled_motor_quanta, 7);
+        assert_eq!(stalled.stalled_motor_quanta, 0);
         assert!(stalled.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
         assert_eq!(shoulder.applied_motor_quanta, 0);
         assert!(shoulder.radiated_pressure_pcm.iter().all(|sample| *sample == 0));

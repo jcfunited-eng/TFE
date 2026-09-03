@@ -45,11 +45,11 @@ pub(crate) enum ArticulatedBodyJointSourceError {
     Carrier(String),
 }
 
-/// Recover the one motor terminal that actually won and moved an articulated
-/// axis from the source's own exact GLBPEV01 consequence evidence. The four
-/// position/load endings for an axis carry the same body consequence, so the
-/// caller deduplicates the returned terminal. Merely changing a receptor or
-/// settling its downstream regulation is not motor-cause evidence.
+/// Recover the newly discharged motor terminal whose admitted activation
+/// moved an axis in its own direction. Passive tissue return and movement
+/// dominated by retained opposing activation are sensed without being
+/// relabeled as motor causes. The four position/load endings for an axis carry
+/// the same consequence, so the caller deduplicates the returned terminal.
 pub(crate) fn exact_moved_effector_terminal(
     port: &JointSourcePortView,
 ) -> Result<Option<BodyEffectorTerminal>, ArticulatedBodyJointSourceError> {
@@ -106,24 +106,21 @@ pub(crate) fn exact_moved_effector_terminal(
             toward_maximum - toward_minimum,
         ),
         core::cmp::Ordering::Equal => {
-            if signed_displacement != 0 || applied != 0 || stalled != 0 {
+            if stalled != 0 {
                 return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
             }
             return Ok(None);
         }
     };
-    if net
-        != applied
-            .checked_add(stalled)
-            .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?
+    if stalled > net {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    let newly_admitted = net - stalled;
+    if newly_admitted == 0
+        || signed_displacement == 0
         || (signed_displacement < 0) != (direction == BodyEffectorDirection::TowardMinimum)
-        || applied == 0
     {
-        return if applied == 0 && signed_displacement == 0 {
-            Ok(None)
-        } else {
-            Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences)
-        };
+        return Ok(None);
     }
     Ok(Some(BodyEffectorTerminal::new(terminal.axis(), direction)))
 }
@@ -146,8 +143,20 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
         if consequence.unit != anatomy.unit
             || !(anatomy.minimum..=anatomy.maximum).contains(&consequence.predecessor_position)
             || !(anatomy.minimum..=anatomy.maximum).contains(&consequence.successor_position)
-            || consequence.successor_position - consequence.predecessor_position
-                != consequence.signed_displacement
+            || consequence
+                .successor_position
+                .checked_sub(consequence.predecessor_position)
+                != Some(consequence.signed_displacement)
+            || consequence.applied_displacement_quanta
+                != u128::from(consequence.signed_displacement.unsigned_abs())
+            || consequence.opposed_carriers_per_terminal
+                != consequence
+                    .toward_minimum_carriers
+                    .min(consequence.toward_maximum_carriers)
+            || consequence.stalled_carriers
+                > consequence
+                    .toward_minimum_carriers
+                    .abs_diff(consequence.toward_maximum_carriers)
         {
             return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
         }
@@ -625,7 +634,7 @@ mod tests {
     use super::*;
     use crate::virtual_articulated_body::{
         settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState, BodyAxis,
-        BodyEffectorDrive, BodyEffectorTerminal,
+        BodyEffectorDrive, BodyEffectorTerminal, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
     };
 
     #[test]
@@ -641,6 +650,7 @@ mod tests {
                 outward_elementary_carriers: 10,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let episode = admit_articulated_body_proprioceptive_source(
@@ -680,6 +690,7 @@ mod tests {
                 outward_elementary_carriers: 100_000,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let stopped = settle_body_effector_drives(
@@ -689,6 +700,7 @@ mod tests {
                 outward_elementary_carriers: 240,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let episode =
@@ -742,6 +754,7 @@ mod tests {
                 outward_elementary_carriers: 7,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let episode =
@@ -779,6 +792,7 @@ mod tests {
                 },
             ])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let episode =
@@ -799,6 +813,35 @@ mod tests {
             exact_moved_effector_terminal(&corrupted),
             Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences)
         );
+    }
+
+    #[test]
+    fn passive_tissue_return_is_sensed_but_never_named_as_a_motor_cause() {
+        let axis = BodyAxis::GlottalAperture;
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut axes = *neutral.axes();
+        axes[axis.index()] = axis.anatomy().minimum;
+        let predecessor =
+            ArticulatedBodyState::from_physical_state(axes, neutral.lung_air_microlitres(), true)
+                .unwrap();
+        let transition = settle_body_effector_drives(
+            &predecessor,
+            &AdmittedBodyEffectorDrives::quiescent(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert!(transition.proprioceptive_consequences[0].signed_displacement > 0);
+        let episode =
+            admit_articulated_body_consequence_source(46, &transition.proprioceptive_consequences)
+                .unwrap();
+        assert!(episode
+            .joint_source_ports()
+            .iter()
+            .map(exact_moved_effector_terminal)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .into_iter()
+            .all(|terminal| terminal.is_none()));
     }
 
     #[test]

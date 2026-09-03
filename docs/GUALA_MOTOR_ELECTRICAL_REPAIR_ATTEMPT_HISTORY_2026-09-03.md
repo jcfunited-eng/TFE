@@ -744,3 +744,210 @@ gate integrates representative interior points from the accepted region into
 the exact copied cognitive clock and body codec, then tests severance, sparse
 sensory return, cold restore, timing, and resource flatness before one
 production law is authorized.
+
+## Authority reconciliation and single material preparation
+
+The activation sweep's immediate-body-dissipation description is rejected as
+the production energy model. It would both leave activation able to do work
+after declaring all input work dissipated and duplicate the motor neuron's
+already-conserved thermal return. The ratified Phase-1 body specification
+settles the boundary instead: one carrier to one virtual lattice quantum is the
+declared body constitution; detailed electromechanical work belongs to a future
+selected physical body. No new body energy reservoir is authorized.
+
+Primary laryngeal-muscle evidence then resolves the quantitative material
+selection without choosing a pleasant-looking point. Published canine
+posturing-muscle measurements report approximately 30-33 ms mean twitch
+contraction and 19-29 ms half relaxation; vocalis measurements report 22-32 ms
+contraction and 17-37 ms half relaxation. The exact 32-ms activation lifetime
+and 32-ms overdamped response are both inside the copied body's 24-point
+accepting region and map directly onto its existing 1-ms physical clock.
+
+The complete source, transaction, codec, rollback, cold-restore, resource and
+acceptance contract is now fixed in
+`GUALA_ARTICULATED_BODY_TISSUE_IMPLEMENTATION_CONTRACT_2026-09-03.md`.
+Production remains unchanged. The next action is one implementation of that
+contract, followed by a frozen source-only review before any compilation.
+
+### Source-review finding: visible distance is not activation strength
+
+The implementation review found one additional production consumer inside the
+causal boundary. `virtual_articulatory_body.rs` limited spectral respiratory
+work by `abs(signed_displacement)`. That equality was valid only for the
+rejected direct accumulator. With 32-ms overdamped tissue, 1 through 31 newly
+admitted carriers can each produce one visible lattice step in the first
+millisecond while retaining different bounded activation strengths. Leaving
+the old rule would flatten them into the same weak acoustic launch.
+
+That inherited rule is rejected before compilation. The spectral source uses
+only unopposed, unstalled new closure activation, capped by its existing fixed
+eight-carrier acoustic capacity, and still requires actual movement toward
+closure. Persisted glottal position remains the airway-conductance authority.
+Passive return, opposed discharge, opening discharge, and fully stalled
+closure create no new respiratory work. This adds no controller, waveform,
+meaning, or energy store; it preserves the current organ's bounded source
+capacity while removing an accumulator-specific false equality.
+
+## Frozen-candidate compile and integrated test attempt 1
+
+Candidate fingerprint
+`27f9b8b924b45abc0c0da0943d9e63fa195da3c33ac8b60b1a6f5e3451957ebb`
+compiled successfully. The focused tissue-body module passed `22/22` tests.
+The integrated native library then passed `592` tests and failed one, with
+`12` tests deliberately ignored. The sole failure was
+`organism_runtime::tests::derived_budget_reserves_both_envelopes_before_joint_work`:
+its test fixture still admitted a hard-coded `900`-byte fabric, now smaller
+than the body's V8 fixed envelope after the declared `360` activation bytes
+were appended. `RuntimeBudget::new` correctly refused that impossible budget
+before the test reached the two-envelope assertion.
+
+Disposition: no production defect is masked and no runtime budget is enlarged.
+The stale test fixture must derive its minimally valid fabric admission from
+`FABRIC_FIXED_BYTES + 1`, while retaining the exact `2,049`/`2,048` envelope
+boundary it is intended to falsify. After that test-only correction, the full
+native library is rerun from zero failures. Production remains untouched.
+
+The corrected integrated rerun passed `593/593`; `12` explicitly ignored
+diagnostic/listening-board tests stayed ignored. The first Python boundary
+invocation then stopped during collection because the detached worktree was
+not installed on Python's module search path (`ModuleNotFoundError:
+dsf_ai_service`). It executed no candidate code and is not a repair verdict.
+The retry must place this exact worktree at `PYTHONPATH=.`; no source change is
+authorized for an invocation error.
+
+With the worktree correctly mounted, the Python boundary passed `28` tests and
+failed one newly added damped-motion falsifier. The shell did **not** retain the
+old carrier-count-equals-travel rule. The synthetic record changed signed
+travel from `-5` to `-3` but accidentally left its successor position at
+`39,995` instead of the physically required `39,997`; the existing exact
+position-conservation check correctly refused it. Disposition: correct only
+the malformed test record and rerun the complete file.
+
+The corrected Python/native transaction boundary passed `29/29`. The first
+exact-copy command then stopped before Cargo because this development image
+does not contain `/usr/bin/time` (`env: /usr/bin/time: No such file or
+directory`). The copied body was not opened and no process remained. The retry
+keeps the same `3 GiB` address-space and `300 s` hard ceilings through the
+available `prlimit` and `timeout` executables; wall time is captured by the
+execution harness rather than weakening either bound.
+
+## Exact copied-production-body proof — passed and cold-repeated
+
+The candidate was executed twice from the immutable task-1420 production-body
+copy `current.raw.glorun`, `112,238,742` bytes, SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`,
+organism tick `391305`. Each invocation had a `3 GiB` address-space ceiling and
+a `300 s` hard timeout. The first completed in `48.35 s`; the cold repeat
+completed in `47.46 s`. Each passed its sole exact-copy test, no process
+survived, and both emitted the same `159,296`-byte report with SHA-256
+`1357178e4f4ab2959d23deecce83f681b7cec76be9d5f23548202c9202dde7bb`.
+
+The copied V7 body migrated to a fixed `680`-byte V8 body and round-tripped
+exactly. All seven copied stops (`RightBrowHeight`, `GlottalAperture`, both
+grips, and tract sections `0`, `6`, `7`) began passive release in the first
+millisecond without a reset and all reached neutral by `256 ms`. Each of the
+two learned one-carrier tract terminals moved in its correct direction,
+retained `31` activation units after the first millisecond, cold-restored
+exactly, and returned to neutral at `33 ms`. Equal antagonists left position
+unchanged with zero activation. One carrier per millisecond for `1,000 ms`
+stayed interior with zero stall. A `100,000`-carrier overload admitted only
+anatomical capacity and reported `99,125` stalled carriers. `64 + 186 ms` was
+byte-identical to one `250 ms` evolution.
+
+The copied cognitive fabric used `0` synthetic seeds. With its anatomy
+connected, its existing two bridge contacts delivered the learned tract-0 and
+tract-7 actions alongside ordinary glottal/grip traffic. Severing exactly
+those two contacts removed both learned tract actions while unrelated reflex
+glottal/grip/hip traffic remained. This establishes source-specific motor
+causality rather than general motion after an intervention. The first
+connected interval also returned `16` physical receptor samples over `8`
+ports, `9` DSF deliveries, and `2` occurrences; no observer mutation entered
+the organism.
+
+Disposition: the copied-production-body functional, severance, cold-restore,
+composition, saturation, and bounded-resource gates pass. The remaining
+pre-cutover work is post-harness AWS health, final fingerprint/source review,
+production packaging rehearsal, and a rollback procedure that accounts for
+V8's intentionally one-way persisted body schema. Production is still task
+1425 and unchanged.
+
+## Fresh-current preflight attempt 1 — wrong public route, no body read
+
+The first authenticated readiness read used the public `dsf-ai.com` route and
+received HTTP `404` from CloudFront before reaching the organism. No live state
+or credential changed or printed. The existing deployment controller already
+records the deterministic correction: connect the `dsf-ai.com` TLS authority
+directly to the production ALB. The retry uses that exact route and supplies
+the secret through the client's standard-input configuration so it is absent
+from the process command line.
+
+The direct-ALB retry authenticated task 1425, identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick `408109`, raw state bytes
+`112657134`, and state SHA-256
+`1ddab656d186e7772e184781e9d67b1e391abe207a035cbc267556065215e863`.
+The subsequent separate S3 copy received `404`: continuous life advanced far
+enough between tool calls for the bounded two-generation mirror to retire that
+object. No state changed. The deterministic correction is one bounded read
+that authenticates readiness and immediately fetches its content-addressed
+object, retrying the whole read only if that exact key races retirement.
+
+## Fresh task-1425 body gate — passed and cold-repeated
+
+One combined authenticated-read/download operation captured task 1425 at tick
+`408275`: raw state `112,651,490` bytes, SHA-256
+`27555e9d78511e28a956cec3dca282a2509fbc92b8e7c83f1aa16ea63825e8e2`;
+stored mirror `554,044` bytes, SHA-256
+`83317f215d9f646e3b598057146f731d48811ab91a921e6a4895bdd8238e35d8`.
+Lossless reconstruction re-proved the exact raw byte count and digest.
+
+The frozen candidate passed the complete current-body probe in `47.64 s` and
+the cold repeat in `47.28 s`, each within the unchanged `3 GiB` and `300 s`
+ceilings. Both emitted a byte-identical `221,073`-byte report with SHA-256
+`24822786abdfec06542100c0628037caefabb68687a001020e7936e2dda56b8c`.
+All tissue, codec, stop-release, learned-twitch, saturation, opposition,
+composition, and cold-restore assertions remained identical to the task-1420
+proof. The newer body had five rather than two ordering-to-motor bridge
+contacts. Connected, those contacts caused tract-0 and tract-7 movement in all
+three observed clocks; severing exactly five removed every tract action while
+ordinary hip/knee motor traffic remained. Both branches used zero synthetic
+seeds. The first connected consequence returned `24` body samples across `12`
+ports, `13` DSF deliveries, and `3` occurrences.
+
+## RF-026 formatter-noise cleanup
+
+The earlier file-scoped `rustfmt` invocation had rewritten inherited formatting
+through several large Rust files. Before packaging, those unrelated changes
+were removed. For each of the seven touched Rust files, the cleaned source was
+formatted only in a disposable comparison copy and proved byte-identical to
+the already tested formatted candidate. Thus the cleanup changes no Rust
+tokens or behavior while reducing `organism_runtime.rs` from a 573-line review
+diff to 13 lines and `virtual_articulatory_body.rs` from 340 lines to 37. Final
+`git diff --check` passes. Because this operation was semantics-preserving, the
+focused/full/copy results remain source-applicable; a clean compile and focused
+smoke still follow the final fingerprint before packaging.
+
+## Pre-deploy whole-caller audit — passive tissue shell conflict found
+
+The final causal-impact audit followed every production caller beyond the
+native plant and found a release-blocking shell defect before packaging.
+`_prepare_continuous_native_action_consequence` still enforced the retired
+accumulator assumption that every articulated-body consequence must have a
+same-interval motor discharge. V8 lawfully emits proprioceptive consequences
+while retained activation decays and while an off-neutral unpowered axis
+returns toward equilibrium. A purely passive consequence would therefore
+have been refused after the organism had already lived the interval, repeating
+the interval-refusal failure shape.
+
+The same caller classified grip motion from signed displacement alone. Under
+V8, passive grip return could consequently have prepared a grasp, release, or
+page-advance world command despite zero new grip discharge. The native copied-
+body probe did not exercise this Python world-command boundary, so its earlier
+pass does not close this newly identified integration gate.
+
+Disposition: candidate not packaged or deployed. The authorized shell slice
+must distinguish new same-direction admitted motor activation from passive or
+retained-activation movement. Passive movement must still return through its
+ordinary proprioceptive source and advance physical world time, but it must
+never be refused, named a motor act, or invoke a grip command. A focused shell
+falsifier is required, followed by the complete test and newest copied-body
+proof sequence on a new frozen fingerprint.

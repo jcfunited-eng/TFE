@@ -580,7 +580,8 @@ fn decode_body_effector_load_evidence(
         || successor_position > anatomy.maximum
         || successor_position.checked_sub(predecessor_position) != Some(signed_displacement)
         || opposed != toward_minimum.min(toward_maximum)
-        || applied.checked_add(stalled) != Some(net_magnitude)
+        || applied != u128::from(signed_displacement.unsigned_abs())
+        || stalled > net_magnitude
     {
         return Err(ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence);
     }
@@ -624,6 +625,7 @@ mod tests {
     use crate::virtual_articulated_body::{
         settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState, BodyAxis,
         BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
     };
 
     fn exact(numerator: i64, denominator: i64) -> BigRational {
@@ -676,6 +678,7 @@ mod tests {
                 outward_elementary_carriers: 100_000,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap()
         .successor;
@@ -686,6 +689,7 @@ mod tests {
                 outward_elementary_carriers: 240,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let source = admit_articulated_body_consequence_source(

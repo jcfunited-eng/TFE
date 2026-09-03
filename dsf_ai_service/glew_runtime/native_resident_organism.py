@@ -3720,7 +3720,7 @@ class NativeResidentOrganism:
                 or successor_position - predecessor_position != signed_displacement
                 or opposed != min(toward_minimum, toward_maximum)
                 or applied != abs(signed_displacement)
-                or applied + stalled != net
+                or stalled > net
             ):
                 raise RuntimeError("articulated body consequence lost exact mechanics")
             articulated_body_consequences.append(

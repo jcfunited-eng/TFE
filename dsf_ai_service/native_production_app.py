@@ -4009,17 +4009,14 @@ def _physical_choice_evidence_from_transition(
 
     The witness reads the articulated body's own settlement law: on one joint
     axis the two opposed terminal populations discharge ``toward_minimum`` and
-    ``toward_maximum`` carriers; their conserved signed difference is the
-    settled intent; the body applies ``min(|intent|, remaining anatomical
-    travel)`` as the signed displacement and reports the remainder as
-    ``stalled_carriers``. Every check below re-verifies that exact record —
-    nothing is scored, selected, or approximated. A fully stalled intent (the
-    joint already at its stop) is not an applied choice, exactly as the
-    retired whole-body law refused a zero applied yaw. The retired law's
-    even/odd topology partition and ``signed_yaw_millidegrees`` equality are
-    gone with the yaw body that defined them; the antagonist identity now
-    comes from each terminal's declared axis and direction, which is where
-    this body actually keeps it.
+    ``toward_maximum`` carriers; their conserved signed difference is the new
+    activation preparation and capacity rejection is ``stalled_carriers``.
+    Persisted antagonist tissue determines the exact displacement, so carrier
+    count is no longer falsely equated with same-interval travel. Every check
+    below re-verifies the exact record — nothing is scored, selected, or
+    approximated. Fully stalled or direction-opposed movement is not credited
+    as a new motor cause. Terminal identity comes from each terminal's declared
+    axis and direction.
     """
 
     causal = evidence.get("causal_cross_context_use")
@@ -4112,7 +4109,9 @@ def _physical_choice_evidence_from_transition(
         stalled = int(consequence["stalled_carriers"])
         if (signed_displacement > 0) != (settled_signed_intent > 0):
             return None
-        if abs(signed_displacement) + stalled != abs(settled_signed_intent):
+        if stalled > abs(settled_signed_intent):
+            return None
+        if stalled == abs(settled_signed_intent):
             return None
         # The remaining identities are guaranteed by the body's settlement
         # law; a record violating any of them is corrupted evidence and the
@@ -11664,6 +11663,58 @@ def _retain_already_lived_intake_after_refusal(
     return True
 
 
+def _body_consequence_has_new_motor_discharge(
+    consequence: tuple[Any, ...],
+) -> bool:
+    """Distinguish this interval's motor work from retained tissue motion."""
+
+    if len(consequence) != 11:
+        raise RuntimeError("native body consequence changed its exact shape")
+    toward_minimum = int(consequence[6])
+    toward_maximum = int(consequence[7])
+    stalled = int(consequence[10])
+    if toward_minimum < 0 or toward_maximum < 0 or stalled < 0:
+        raise RuntimeError("native body consequence carried negative carrier count")
+    if stalled > abs(toward_maximum - toward_minimum):
+        raise RuntimeError("native body consequence stalled more than its net discharge")
+    return toward_minimum != 0 or toward_maximum != 0
+
+
+def _body_consequence_has_same_direction_new_activation(
+    consequence: tuple[Any, ...],
+) -> bool:
+    """Prove that new admitted activation, rather than relaxation, moved it."""
+
+    if not _body_consequence_has_new_motor_discharge(consequence):
+        return False
+    signed_displacement = int(consequence[5])
+    toward_minimum = int(consequence[6])
+    toward_maximum = int(consequence[7])
+    stalled = int(consequence[10])
+    admitted = abs(toward_maximum - toward_minimum) - stalled
+    return admitted > 0 and (
+        (signed_displacement < 0 and toward_minimum > toward_maximum)
+        or (signed_displacement > 0 and toward_maximum > toward_minimum)
+    )
+
+
+def _native_motor_event_present(
+    articulated_body_consequences: tuple[tuple[Any, ...], ...],
+    signed_root_yaw: int,
+    signed_root_x: int,
+    signed_root_y: int,
+) -> bool:
+    return bool(
+        signed_root_yaw
+        or signed_root_x
+        or signed_root_y
+        or any(
+            _body_consequence_has_new_motor_discharge(consequence)
+            for consequence in articulated_body_consequences
+        )
+    )
+
+
 def _prepare_continuous_native_action_consequence(
     *,
     organism_identity: str,
@@ -11753,15 +11804,26 @@ def _prepare_continuous_native_action_consequence(
         and signed_root_y == 0
     ):
         return None
-    if articulated_body_consequences and not motor_unit_recruitments:
-        raise RuntimeError("native body consequence has no causal motor discharge")
     if any(len(consequence) != 11 for consequence in articulated_body_consequences):
         raise RuntimeError("native body consequence changed its exact shape")
+    body_motor_discharge = any(
+        _body_consequence_has_new_motor_discharge(consequence)
+        for consequence in articulated_body_consequences
+    )
+    if body_motor_discharge and not motor_unit_recruitments:
+        raise RuntimeError("native motor consequence has no causal motor discharge")
+    native_motor_event = _native_motor_event_present(
+        articulated_body_consequences,
+        signed_root_yaw,
+        signed_root_x,
+        signed_root_y,
+    )
     grip_displacement_by_axis = {
         axis: sum(
             consequence[5]
             for consequence in articulated_body_consequences
             if consequence[1] == axis
+            and _body_consequence_has_same_direction_new_activation(consequence)
         )
         for axis in (
             "left_grip_aperture",
@@ -11796,7 +11858,11 @@ def _prepare_continuous_native_action_consequence(
             "signed_root_y_millimetres": signed_root_y,
             "organism_identity": organism_identity,
             "predecessor_state_sha256": predecessor_state_sha256,
-            "schema": "guala.native_action_world_interval_intent.v3",
+            "schema": (
+                "guala.native_action_world_interval_intent.v3"
+                if native_motor_event
+                else "guala.native_passive_body_interval_intent.v1"
+            ),
             "causal_transition_sha256": causal_transition_sha256,
             "world_revision": before.revision,
             "world_state_before_sha256": before.state_sha256,
@@ -12811,7 +12877,12 @@ def _perform_admitted_intake_locked(
         successor_body_observation.articulated_body_state_sha256
     )
     motor_action: dict[str, Any] | None = None
-    if articulated_body_consequences or signed_root_yaw or signed_root_x or signed_root_y:
+    if _native_motor_event_present(
+        tuple(articulated_body_consequences),
+        signed_root_yaw,
+        signed_root_x,
+        signed_root_y,
+    ):
         canonical_bindings = tuple(sorted(set(body_effector_bindings)))
         receipt_material = bytearray(b"guala.native-articulated-body.v1\0")
         receipt_material.extend(bytes.fromhex(predecessor.state_sha256))

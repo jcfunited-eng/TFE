@@ -2,18 +2,19 @@
 
 ## Decision status
 
-This document completes the source-and-state analysis required before a body
-repair candidate may be written. It does **not** authorize deployment. The
-next authorization gate is an exact copied-production-body range proof of the
-replacement mechanics described below.
+This document completes the source-and-state analysis required before the body
+repair can be packaged. It does **not** by itself authorize deployment. The
+native candidate has passed two exact copied-production bodies; the final
+authorization gate is the full shell-integrated proof on an immutable source
+descended directly from the current live release.
 
-Production remains task definition `dsf-ai-task:1420`, release commit
-`91f6d4a4f4694bc850a627ebc64f00bf1d29aea8`. The exact copied production body
-used here is tick `391305`, 112,238,742 bytes, raw SHA-256
-`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`.
-The current investigation branch contains later test instrumentation and
-Claude's disjoint visual-radiance change; none of those later commits is
-claimed live.
+Production is task definition `dsf-ai-task:1425`, release commit
+`ae260276a8bbf3afd018c149871b21fa8ba185e2`. The newest exact copied production
+body is tick `408275`, 112,651,490 bytes, raw SHA-256
+`27555e9d78511e28a956cec3dca282a2509fbc92b8e7c83f1aa16ea63825e8e2`.
+The earlier task-1420 copy at tick `391305`, raw SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`,
+remains the independent historical comparison body.
 
 ## Mandatory architecture honesty gate
 
@@ -110,19 +111,22 @@ proves only that the body on which they were learned was mechanically
 incomplete. They remain preserved until the corrected plant can replay and
 falsify them.
 
-### 3. Electrical work does not cross into the body
+### 3. Electrical work and the Phase-1 virtual lattice boundary
 
 `settle_efferent_terminal_transport` returns both outward carriers and exact
-released electrical work. Resident cognition currently deposits all of that
-released work into the neuronal cohort's thermal reservoir. The transient
-`MotorUnitRecruitment` then carries only a terminal identity and carrier
-count. The articulated body converts that count to displacement without a
-named mechanical-work debit or store.
+released electrical work. Resident cognition deposits that work into the
+neuronal cohort's thermal reservoir and the transient `MotorUnitRecruitment`
+carries terminal identity plus whole-carrier count.
 
-This missing energy coupling did not cause the accumulator algebra, but it is
-inside the same replacement boundary. Adding a spring while continuing to
-create its potential energy from an unpriced count would not satisfy the
-requested physical architecture.
+The later authority reconciliation found that this is not an energy-custody
+defect for the Phase-1 virtual body. Section 6 of
+`GUALA_A013_PHYSICAL_BODY_PART_SELECTION_SPEC_2026-08-16.md` explicitly says
+that the virtual lattice displacement quantum is itself the declared substrate
+physics; detailed torque, transmission, efficiency, spring energy and heat are
+required only for a future selected physical body. Copying the same released
+work into a new body store would double-count it. The electrical work therefore
+remains on its already-conserved neuronal thermal route, while the typed whole
+carrier establishes bounded virtual activation instead of permanent position.
 
 ### 4. The body plant has no duration
 
@@ -233,6 +237,23 @@ like successful articulation. The observation surface must separately expose
 motor work admitted, position changed, stop load, passive return, and acoustic
 pressure. Observation remains read-only and cannot trigger any of them.
 
+### Python world-action boundary
+
+The native body is also a caller of the Python world-action preparation path.
+That path historically assumed every body displacement was caused by new
+same-interval motor carriers and inferred grasp/release from the sign of grip
+travel. Damped tissue invalidates both assumptions: an off-neutral grip can
+move passively, and retained activation can continue motion after the original
+discharge. Leaving that caller unchanged would refuse lawful passive
+proprioception and could turn relaxation into a false world command.
+
+The replacement must therefore keep passive body consequences in the ordinary
+sensory-return interval while excluding them from motor-action identity and
+from grasp/release authority. A grip command may arise only when newly
+admitted, non-stalled grip activation and actual displacement agree in
+direction. Root locomotion remains a separate typed motor path, and the
+world's root pose is never rewritten by passive articulated-body mechanics.
+
 ## Repairs explicitly rejected
 
 - **Another neutral reset:** already disproved by V35 and destroys current
@@ -257,20 +278,20 @@ pressure. Observation remains read-only and cannot trigger any of them.
 The recommended smallest honest plant is a fixed-size damped-equilibrium
 actuator, not a simulated human skeleton:
 
-1. Each of the 90 existing antagonist terminals owns one bounded activation
-   quantity. A real motor discharge transfers its exact available work into
-   that terminal's activation store, subject to a declared conversion loss;
-   only the loss becomes immediate heat.
-2. Activation rises from admitted work and decays over exact elapsed physical
+1. Each of the 90 existing antagonist terminals owns one bounded integer
+   activation quantity. A real motor discharge supplies the already-declared
+   Phase-1 whole-carrier lattice quantum; its electrical work remains on the
+   unchanged neuronal thermal-return route.
+2. Activation rises from admitted carriers and decays over exact elapsed physical
    time. A single discharge therefore becomes a finite twitch. Continued
    posture requires continued organism-owned discharge.
 3. Each axis retains its present position. Net antagonist activation acts
    against a passive elastic equilibrium at the already-declared neutral;
    damping makes the implicit step energy-descending. No target pose or action
    name exists.
-4. Elastic potential, retained activation work, dissipated heat, and stop work
-   close exactly: successor stored work plus dissipated work cannot exceed
-   predecessor stored work plus admitted motor work.
+4. Carrier admission, opposition, activation capacity, displacement and stop
+   load close exactly on the fixed integer lattice. No second energy account
+   is created for the Phase-1 virtual body.
 5. Position and load receptors remain the only return path. Passive movement
    creates position consequences; active force at a true stop creates load.
 6. The codec keeps fixed arrays only. Current positions decode byte-for-byte;

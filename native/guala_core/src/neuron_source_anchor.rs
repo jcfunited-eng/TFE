@@ -1043,7 +1043,7 @@ pub(crate) mod tests {
         use crate::virtual_articulated_body::{
             settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
             BodyAxis, BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
-            BodyProprioceptorTerminal,
+            BodyProprioceptorTerminal, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         };
 
         let terminal = BodyEffectorTerminal::new(
@@ -1057,6 +1057,7 @@ pub(crate) mod tests {
                 outward_elementary_carriers: 25,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let episode = admit_articulated_body_proprioceptive_source(

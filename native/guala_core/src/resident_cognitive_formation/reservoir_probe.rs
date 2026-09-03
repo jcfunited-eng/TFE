@@ -12,7 +12,9 @@
 //! runs are unaffected).
 
 use super::ResidentCognitiveFormationState;
-use crate::articulated_body_joint_source_builder::admit_articulated_body_consequence_source;
+use crate::articulated_body_joint_source_builder::{
+    admit_articulated_body_consequence_source, exact_moved_effector_terminal,
+};
 use crate::complete_neuron::RecoveryLaneAddress;
 use crate::exact_rational::ExactRational;
 use crate::joint_uf_source_adapter::admitted_episode_with_authored_intervals;
@@ -20,7 +22,8 @@ use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
 use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
-    BodyAxis, BodyEffectorDirection, BodyEffectorDrive, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
+    BodyAxis, BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
+    ARTICULATED_BODY_STATE_BYTES, BODY_AXES, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
 };
 use num_bigint::BigInt;
 use num_rational::BigRational;
@@ -1993,8 +1996,12 @@ fn retained_frontier_motor_range_json(
                         .collect(),
                 )
                 .expect("copied-body motor admissions");
-                let transition = settle_body_effector_drives(&body, &admitted)
-                    .expect("copied-body motor settlement");
+                let transition = settle_body_effector_drives(
+                    &body,
+                    &admitted,
+                    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+                )
+                .expect("copied-body motor settlement");
                 let learned_consequences = transition
                     .proprioceptive_consequences
                     .iter()
@@ -2449,6 +2456,233 @@ fn artificial_neutral_unpin_control_json(
     })
 }
 
+/// Exercise the compiled V8 body law on the exact decoded production body.
+/// This changes only disposable in-memory copies. It does not neutralize the
+/// input body, author a motor meaning, or bypass the ordinary body codec and
+/// proprioceptive evidence boundary.
+fn candidate_antagonist_tissue_proof_json(body: Option<&ArticulatedBodyState>) -> Value {
+    let Some(body) = body else {
+        return json!({"error": "copied body absent"});
+    };
+    let stopped_axes = BODY_AXES
+        .into_iter()
+        .filter(|axis| {
+            let anatomy = axis.anatomy();
+            let position = body.axis(*axis);
+            position != anatomy.neutral
+                && (position == anatomy.minimum || position == anatomy.maximum)
+        })
+        .collect::<Vec<_>>();
+    let mut released = body.clone();
+    let mut first_release = std::collections::BTreeMap::new();
+    let mut returned_to_neutral_at_ms = None;
+    for elapsed_ms in 1_u64..=4_096 {
+        let transition = settle_body_effector_drives(
+            &released,
+            &AdmittedBodyEffectorDrives::quiescent(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("candidate copied-body passive settlement");
+        for axis in &stopped_axes {
+            if transition.successor.axis(*axis) != body.axis(*axis) {
+                first_release.entry(*axis).or_insert(elapsed_ms);
+            }
+        }
+        released = transition.successor;
+        if BODY_AXES
+            .iter()
+            .all(|axis| released.axis(*axis) == axis.anatomy().neutral)
+            && BODY_AXES.iter().all(|axis| {
+                [
+                    BodyEffectorDirection::TowardMinimum,
+                    BodyEffectorDirection::TowardMaximum,
+                ]
+                .into_iter()
+                .all(|direction| {
+                    released.antagonist_activation(BodyEffectorTerminal::new(*axis, direction)) == 0
+                })
+            })
+        {
+            returned_to_neutral_at_ms = Some(elapsed_ms);
+            break;
+        }
+    }
+
+    let learned_terminals = [
+        BodyEffectorTerminal::new(
+            BodyAxis::VocalTractSection0Area,
+            BodyEffectorDirection::TowardMaximum,
+        ),
+        BodyEffectorTerminal::new(
+            BodyAxis::VocalTractSection7Area,
+            BodyEffectorDirection::TowardMinimum,
+        ),
+    ];
+    let one_carrier_twitches = learned_terminals.map(|terminal| {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let drive = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal,
+            outward_elementary_carriers: 1,
+        }])
+        .expect("candidate learned one-carrier admission");
+        let first =
+            settle_body_effector_drives(&neutral, &drive, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("candidate learned one-carrier settlement");
+        let source =
+            admit_articulated_body_consequence_source(1, &first.proprioceptive_consequences)
+                .expect("candidate one-carrier body source");
+        let mut exact_motor_causes = source
+            .joint_source_ports()
+            .iter()
+            .map(exact_moved_effector_terminal)
+            .collect::<Result<Vec<_>, _>>()
+            .expect("candidate exact moved-terminal evidence")
+            .into_iter()
+            .flatten()
+            .map(|cause| format!("{cause:?}"))
+            .collect::<Vec<_>>();
+        exact_motor_causes.sort_unstable();
+        exact_motor_causes.dedup();
+        let cold = ArticulatedBodyState::decode(
+            &first.successor.encode().expect("candidate twitch encodes"),
+        )
+        .expect("candidate twitch cold decodes");
+        let cold_exact = cold == first.successor;
+        let first_position = first.successor.axis(terminal.axis());
+        let first_activation = first.successor.antagonist_activation(terminal);
+        let mut successor = cold;
+        let mut returned_at_ms = None;
+        for elapsed_ms in 2_u64..=512 {
+            successor = settle_body_effector_drives(
+                &successor,
+                &AdmittedBodyEffectorDrives::quiescent(),
+                BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+            )
+            .expect("candidate twitch relaxation")
+            .successor;
+            if successor.axis(terminal.axis()) == terminal.axis().anatomy().neutral
+                && successor.antagonist_activation(terminal) == 0
+            {
+                returned_at_ms = Some(elapsed_ms);
+                break;
+            }
+        }
+        json!({
+            "terminal": format!("{terminal:?}"),
+            "first_position": first_position,
+            "first_activation_units": first_activation,
+            "moved_on_first_ms": first_position != terminal.axis().anatomy().neutral,
+            "exact_motor_causes": exact_motor_causes,
+            "cold_restore_exact": cold_exact,
+            "returned_to_neutral_at_ms": returned_at_ms,
+        })
+    });
+
+    let axis = BodyAxis::VocalTractSection0Area;
+    let minimum = BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum);
+    let maximum = BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum);
+    let opposed = settle_body_effector_drives(
+        &ArticulatedBodyState::at_neutral(),
+        &AdmittedBodyEffectorDrives::admit(vec![
+            BodyEffectorDrive {
+                terminal: minimum,
+                outward_elementary_carriers: 8,
+            },
+            BodyEffectorDrive {
+                terminal: maximum,
+                outward_elementary_carriers: 8,
+            },
+        ])
+        .expect("candidate equal-antagonist admission"),
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+    )
+    .expect("candidate equal-antagonist settlement");
+
+    let mut sustained = ArticulatedBodyState::at_neutral();
+    let one_per_ms = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+        terminal: maximum,
+        outward_elementary_carriers: 1,
+    }])
+    .expect("candidate sustained admission");
+    let mut sustained_stall = 0_u128;
+    for _ in 0..1_000 {
+        let transition = settle_body_effector_drives(
+            &sustained,
+            &one_per_ms,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("candidate sustained settlement");
+        sustained_stall = sustained_stall
+            .checked_add(
+                transition
+                    .proprioceptive_consequences
+                    .iter()
+                    .map(|consequence| consequence.stalled_carriers)
+                    .sum::<u128>(),
+            )
+            .expect("candidate sustained stall width");
+        sustained = transition.successor;
+    }
+
+    let saturation = settle_body_effector_drives(
+        &ArticulatedBodyState::at_neutral(),
+        &AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal: maximum,
+            outward_elementary_carriers: 100_000,
+        }])
+        .expect("candidate saturation admission"),
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+    )
+    .expect("candidate saturation settlement");
+
+    let composition_drive = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+        terminal: maximum,
+        outward_elementary_carriers: 1,
+    }])
+    .expect("candidate composition admission");
+    let neutral = ArticulatedBodyState::at_neutral();
+    let whole = settle_body_effector_drives(&neutral, &composition_drive, 250_000)
+        .expect("candidate whole duration")
+        .successor;
+    let first = settle_body_effector_drives(&neutral, &composition_drive, 64_000)
+        .expect("candidate split first duration")
+        .successor;
+    let split =
+        settle_body_effector_drives(&first, &AdmittedBodyEffectorDrives::quiescent(), 186_000)
+            .expect("candidate split second duration")
+            .successor;
+
+    json!({
+        "production_law_compiled_in_test": true,
+        "input_body_encoded_bytes": body.encode().expect("candidate input body encodes").len(),
+        "v8_roundtrip_exact": ArticulatedBodyState::decode(
+            &body.encode().expect("candidate copied body encodes")
+        ).expect("candidate copied body decodes") == *body,
+        "stopped_non_neutral_axes": stopped_axes
+            .iter()
+            .map(|axis| format!("{axis:?}"))
+            .collect::<Vec<_>>(),
+        "all_stops_released_on_first_ms": first_release.len() == stopped_axes.len()
+            && first_release.values().all(|elapsed| *elapsed == 1),
+        "first_release_ms": first_release
+            .into_iter()
+            .map(|(axis, elapsed)| (format!("{axis:?}"), elapsed))
+            .collect::<std::collections::BTreeMap<_, _>>(),
+        "all_axes_returned_to_neutral_at_ms": returned_to_neutral_at_ms,
+        "learned_one_carrier_twitches": one_carrier_twitches,
+        "equal_antagonists_position_unchanged": opposed.successor.axis(axis) == axis.anatomy().neutral,
+        "equal_antagonists_activation_zero": opposed.successor.antagonist_activation(minimum) == 0
+            && opposed.successor.antagonist_activation(maximum) == 0,
+        "sustained_one_per_ms_position": sustained.axis(axis),
+        "sustained_one_per_ms_is_interior": sustained.axis(axis) > axis.anatomy().minimum
+            && sustained.axis(axis) < axis.anatomy().maximum,
+        "sustained_one_per_ms_total_stall": sustained_stall.to_string(),
+        "saturation_stalled_carriers": saturation.proprioceptive_consequences[0]
+            .stalled_carriers.to_string(),
+        "duration_64_plus_186_equals_250": split == whole,
+    })
+}
+
 fn articulated_body_axis_census_json(body: Option<&ArticulatedBodyState>) -> Value {
     let Some(body) = body else {
         return Value::Null;
@@ -2476,8 +2710,12 @@ fn articulated_body_axis_census_json(body: Option<&ArticulatedBodyState>) -> Val
             axis["at_minimum"].as_bool() == Some(true) || axis["at_maximum"].as_bool() == Some(true)
         })
         .count();
-    let quiescent = settle_body_effector_drives(body, &AdmittedBodyEffectorDrives::quiescent())
-        .expect("copied-body quiescent settlement");
+    let quiescent = settle_body_effector_drives(
+        body,
+        &AdmittedBodyEffectorDrives::quiescent(),
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+    )
+    .expect("copied-body quiescent settlement");
     json!({
         "axis_count": axes.len(),
         "limit_count": limit_count,
@@ -2514,7 +2752,23 @@ fn reservoir_probe_dump() {
             std::env::var_os("GUALA_PROBE_MOTOR_WORK_RANGE_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
-        let record = if body_mechanics_range_only {
+        let candidate_tissue_proof_only =
+            std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
+        let record = if candidate_tissue_proof_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for candidate tissue proof");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "candidate_antagonist_tissue_proof":
+                    candidate_antagonist_tissue_proof_json(articulated_body.as_ref()),
+                "connected_and_severed_motor_transduction":
+                    integrated_motor_transduction_falsifier_json(
+                        &state,
+                        articulated_body.as_ref(),
+                    ),
+            })
+        } else if body_mechanics_range_only {
             json!({
                 "file": path.file_name().unwrap().to_string_lossy(),
                 "organism_tick": organism_tick,

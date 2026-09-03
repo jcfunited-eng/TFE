@@ -116,6 +116,131 @@ def test_native_body_feedback_joins_the_next_world_consequence(
     assert isinstance(world.prepared_command, GraspContactCommand)
 
 
+def test_passive_grip_return_is_sensed_without_becoming_a_grip_action(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service.substrate.embodiment_world import (
+        AdvancePhysicalTimeCommand,
+        PreparedActionExecution,
+        decode_command,
+    )
+
+    execution = SimpleNamespace(before=object(), after=object())
+    prepared = PreparedActionExecution(
+        execution_receipt=execution,
+        _prior_state=object(),
+        _candidate_state=object(),
+        _construction_authority=object(),
+    )
+
+    class World:
+        prepared_command = None
+        causal_intent_receipt_sha256 = None
+
+        @staticmethod
+        def observation_snapshot() -> SimpleNamespace:
+            return SimpleNamespace(revision=8, state_sha256="10" * 32)
+
+        @classmethod
+        def prepare_port_command(cls, **kwargs) -> PreparedActionExecution:
+            cls.prepared_command = decode_command(kwargs["command_payload"])
+            cls.causal_intent_receipt_sha256 = kwargs[
+                "causal_intent_receipt_sha256"
+            ]
+            return prepared
+
+        @staticmethod
+        def discard_prepared_action(_prepared) -> None:
+            raise AssertionError("lawful passive body return was discarded")
+
+    world = World()
+    body_source = SimpleNamespace(occurrence_count=1)
+    monkeypatch.setattr(production, "_world", lambda: world)
+    monkeypatch.setattr(
+        production,
+        "_action_consequence_episode",
+        lambda *_args, **_kwargs: ("world-source", [(1, 1_000)], {"world": True}),
+    )
+    monkeypatch.setattr(production, "_world_displacement", lambda *_args: (0, 0, 0, 0))
+    monkeypatch.setattr(
+        production,
+        "restore_native_joint_source_episode",
+        lambda *_args: body_source,
+    )
+
+    passive_grip_return = (
+        9,
+        "right_grip_aperture",
+        "micrometre",
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+    )
+    result = production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="20" * 32,
+        causal_transition_sha256="30" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(),
+        root_yaw_unit_recruitments=(),
+        root_translation_unit_recruitments=(),
+        body_effector_bindings=(),
+        articulated_body_consequences=(passive_grip_return,),
+        body_proprioceptive_sources=(
+            (b"passive-native-body-source", (9, 3, 6, 1, 6)),
+        ),
+        root_yaw_source_tick=9,
+    )
+
+    assert result is not None
+    assert isinstance(world.prepared_command, AdvancePhysicalTimeCommand)
+    assert production._native_motor_event_present(
+        (passive_grip_return,), 0, 0, 0
+    ) is False
+    assert result[2] == ("world-source", body_source)
+    assert result[3] == ([(1, 1_000)], [(1, 1_000)])
+
+    retained_closure_overcomes_new_opening = (
+        10,
+        "right_grip_aperture",
+        "micrometre",
+        2,
+        1,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        0,
+    )
+    production._prepare_continuous_native_action_consequence(
+        organism_identity="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+        predecessor_state_sha256="21" * 32,
+        causal_transition_sha256="31" * 32,
+        predecessor_body_axes=((0, "neck_yaw", 0, 0),),
+        successor_body_axes=((0, "neck_yaw", 0, 0),),
+        motor_unit_recruitments=(("opening-motor",),),
+        root_yaw_unit_recruitments=(),
+        root_translation_unit_recruitments=(),
+        body_effector_bindings=(("opening-effector",),),
+        articulated_body_consequences=(retained_closure_overcomes_new_opening,),
+        body_proprioceptive_sources=(
+            (b"retained-native-body-source", (10, 3, 6, 1, 6)),
+        ),
+        root_yaw_source_tick=10,
+    )
+    assert isinstance(world.prepared_command, AdvancePhysicalTimeCommand)
+    assert production._native_motor_event_present(
+        (retained_closure_overcomes_new_opening,), 0, 0, 0
+    ) is True
+
+
 def test_one_net_native_opening_grip_advances_only_the_contacted_surface(
     monkeypatch,
 ) -> None:

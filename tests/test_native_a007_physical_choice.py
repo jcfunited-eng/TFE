@@ -33,8 +33,9 @@ def _transition() -> dict[str, object]:
     The retired yaw body's ``signed_yaw_millidegrees`` and even/odd topology
     partition are deliberately absent: the antagonist identity lives on each
     terminal's declared axis and direction, and the settled record follows the
-    body's own law — intent = toward_maximum - toward_minimum, applied =
-    min(|intent|, remaining travel), remainder stalled.
+    body's own law — intent = toward_maximum - toward_minimum, stalled is the
+    capacity-rejected part of that intent, and persisted tissue determines the
+    exact same-interval displacement independently of carrier count.
     """
 
     reached = (ORDERING, 11, 0, FLEXOR_MOTOR, 12, 0, 0, 3)
@@ -287,14 +288,24 @@ def test_fully_stalled_intent_is_not_an_applied_choice() -> None:
     assert production._physical_choice_evidence_from_transition(transition) is None
 
 
-def test_settlement_must_decompose_by_the_bodys_own_law() -> None:
-    """|applied| + stalled must equal |intent| exactly, or the record lies."""
+def test_tissue_displacement_need_not_equal_new_carrier_intent() -> None:
+    """A damped body may travel three quanta after five admitted carriers."""
 
     transition = deepcopy(_transition())
     consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
     consequence["signed_displacement"] = -3
     consequence["applied_displacement_quanta"] = 3
     consequence["stalled_carriers"] = 0
+    consequence["successor_position"] = consequence["predecessor_position"] - 3
+    transition["motor_action"]["articulated_body_consequences"] = (consequence,)
+
+    assert production._physical_choice_evidence_from_transition(transition) is not None
+
+
+def test_stall_cannot_exceed_new_carrier_intent() -> None:
+    transition = deepcopy(_transition())
+    consequence = dict(transition["motor_action"]["articulated_body_consequences"][0])
+    consequence["stalled_carriers"] = 6
     transition["motor_action"]["articulated_body_consequences"] = (consequence,)
 
     assert production._physical_choice_evidence_from_transition(transition) is None

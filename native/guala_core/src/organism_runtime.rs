@@ -69,6 +69,7 @@ use crate::virtual_articulated_body::{
     ArticulatedBodyTransition, BodyAxis, BodyEffectorDirection, BodyEffectorDrive,
     BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
+    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
 };
 use crate::root_yaw_terminal::RootYawDirection;
 use crate::root_translation_terminal::{RootTranslationAxis, RootTranslationDirection};
@@ -4875,7 +4876,7 @@ fn settle_motor_recruitments_into_articulated_body(
             .collect(),
     )
     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
-    settle_body_effector_drives(predecessor, &admitted)
+    settle_body_effector_drives(predecessor, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))
 }
 
@@ -6062,8 +6063,9 @@ fn exact_articulatory_interval_trajectory<'py>(
                 .collect::<PyResult<Vec<_>>>()?,
         )
         .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-        let body_transition = settle_body_effector_drives(&body, &admitted)
-            .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
+        let body_transition =
+            settle_body_effector_drives(&body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
         let settled = settle_native_articulatory_interval(
             body_transition.successor,
             &body_transition.proprioceptive_consequences,
@@ -8652,6 +8654,7 @@ mod tests {
                 outward_elementary_carriers: 1,
             }])
             .unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         )
         .unwrap();
         let source =
@@ -8686,7 +8689,7 @@ mod tests {
             &[recruitment(vec![path(typed_site.clone())])],
         )
         .unwrap();
-        assert_eq!(settled.successor.axis(BodyAxis::LeftElbowFlexion), 12);
+        assert_eq!(settled.successor.axis(BodyAxis::LeftElbowFlexion), 1);
         assert_eq!(settled.proprioceptive_consequences.len(), 1);
 
         let untyped = NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Body, 99);
@@ -10263,7 +10266,7 @@ mod tests {
     #[test]
     fn derived_budget_reserves_both_envelopes_before_joint_work() {
         let admitted_envelope = 1_024;
-        let admitted_fabric = 900;
+        let admitted_fabric = FABRIC_FIXED_BYTES + 1;
         let exact = RuntimeBudget::new(admitted_envelope, admitted_fabric, 2_049).unwrap();
         assert_eq!(exact.derive().unwrap().max_joint_working_bytes, 1);
         assert_eq!(
