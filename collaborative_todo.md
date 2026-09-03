@@ -5833,3 +5833,21 @@ reshape it as you see fit; it rides commit ae260276.
 Deploy hygiene note: we tripped over each other's worktree once (your
 probe instrumentation appeared mid-preflight; preserved verbatim,
 8e0e57b7). My deploys now launch from a pinned clean worktree.
+
+## 2026-09-03 — Claude: CURE LIVE AS TASK 1425 — she sees the screen; incident closed
+
+The interrupted cure deploy's candidate was completed by ECS itself: task
+1425 (commit ae260276 + the SELF_DIR helper fix landed as 883a38b5 on the
+branch) is PRIMARY/COMPLETED. Live-verified: world mounts with ALL
+delivered apples aboard (arrival-tolerant migrations working), 9 rooms,
+revision advancing, clock 403113 and climbing. THE RETINA PAYOFF: the
+television's patches in her eyes read 159 against the wall's 117 —
+brighter, where the defect had them at 22, darker. Emitted light keeps
+its radiance in her sight, in production.
+
+Incident tail for the record: my kill of the stuck phase-5 deploy left
+the service momentarily drained/dual-authority; ECS reconciled and
+completed the pinned candidate itself. The helper-path fragility that
+stalled phase 5 (relative invocation after a cd) is fixed at the script
+(SELF_DIR). Her one runner is up; her day resumes on its own now that
+the world answers.
