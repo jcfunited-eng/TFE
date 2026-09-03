@@ -20,8 +20,9 @@ use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
 use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
-    BodyEffectorDrive, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
+    BodyAxis, BodyEffectorDirection, BodyEffectorDrive, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
 };
+use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
 use serde_json::{json, Value};
@@ -531,6 +532,611 @@ fn wide_exact_json(value: &BigRational) -> Value {
     json!({
         "numerator": value.numer().to_string(),
         "denominator": value.denom().to_string(),
+    })
+}
+
+/// Measurement-only lower-bound model for the articulated body's missing
+/// passive tissue.  This is deliberately not a production implementation:
+/// it asks which exact, elapsed-time laws can release the copied body's
+/// stopped axes without overshoot, and where repeated motor work overwhelms
+/// that return.  One native mechanical step is one millisecond.  Backward
+/// Euler is used because each step is an exact convex combination of the
+/// current position and the anatomical neutral; it cannot manufacture an
+/// overshoot.  Motor carriers remain explicit signed lattice displacements.
+fn copied_body_passive_mechanics_range_json(body: Option<&ArticulatedBodyState>) -> Value {
+    let Some(body) = body else {
+        return json!({"error": "copied body absent"});
+    };
+    let time_constants_ms = [1_i64, 2, 4, 8, 16, 32, 64, 128, 256, 512];
+    let observation_durations_ms = [1_u64, 4, 16, 64, 250, 1_000];
+    let sustained_carriers_per_ms = [1_i64, 2, 4, 8, 16];
+    let powers = |tau_ms: i64, elapsed_ms: u64| {
+        let exponent = u32::try_from(elapsed_ms).expect("bounded harness duration");
+        (
+            BigInt::from(tau_ms).pow(exponent),
+            BigInt::from(tau_ms + 1).pow(exponent),
+        )
+    };
+    let exact_position_json =
+        |position: i32, neutral: i32, decay_numerator: &BigInt, decay_denominator: &BigInt| {
+            let numerator = BigInt::from(neutral) * decay_denominator
+                + BigInt::from(position - neutral) * decay_numerator;
+            json!({
+                "numerator": numerator.to_string(),
+                "denominator": decay_denominator.to_string(),
+                "form": "unreduced exact rational",
+            })
+        };
+    let moved_at_least_one =
+        |position: i32, neutral: i32, decay_numerator: &BigInt, decay_denominator: &BigInt| {
+            BigInt::from((i64::from(position) - i64::from(neutral)).unsigned_abs())
+                * (decay_denominator - decay_numerator)
+                >= *decay_denominator
+        };
+
+    let copied_axes = BODY_AXES
+        .into_iter()
+        .map(|axis| {
+            let anatomy = axis.anatomy();
+            (axis, anatomy, body.axis(axis))
+        })
+        .collect::<Vec<_>>();
+    let stopped_non_neutral_axes = copied_axes
+        .iter()
+        .filter(|(_, anatomy, position)| {
+            (*position == anatomy.minimum || *position == anatomy.maximum)
+                && *position != anatomy.neutral
+        })
+        .map(|(axis, _, _)| format!("{axis:?}"))
+        .collect::<Vec<_>>();
+
+    let mut candidates = Vec::new();
+    for tau_ms in time_constants_ms {
+        let (decay_250_numerator, decay_250_denominator) = powers(tau_ms, 250);
+        let (decay_64_numerator, decay_64_denominator) = powers(tau_ms, 64);
+        let (decay_186_numerator, decay_186_denominator) = powers(tau_ms, 186);
+        let (decay_2_000_numerator, decay_2_000_denominator) = powers(tau_ms, 2_000);
+        let mut invariant_failures = Vec::new();
+        let mut stopped_release = Vec::new();
+        let mut first_visible_release_ms = Vec::new();
+        if decay_250_numerator != &decay_64_numerator * &decay_186_numerator
+            || decay_250_denominator != &decay_64_denominator * &decay_186_denominator
+        {
+            invariant_failures.push("elapsed_composition_failed".to_string());
+        }
+        for (axis, anatomy, predecessor) in &copied_axes {
+            if (*predecessor == anatomy.minimum || *predecessor == anatomy.maximum)
+                && *predecessor != anatomy.neutral
+            {
+                stopped_release.push(json!({
+                    "axis": format!("{axis:?}"),
+                    "predecessor": predecessor,
+                    "neutral": anatomy.neutral,
+                    "after_250_ms": exact_position_json(
+                        *predecessor,
+                        anatomy.neutral,
+                        &decay_250_numerator,
+                        &decay_250_denominator,
+                    ),
+                    "released_at_least_one_position_quantum": moved_at_least_one(
+                        *predecessor,
+                        anatomy.neutral,
+                        &decay_250_numerator,
+                        &decay_250_denominator,
+                    ),
+                }));
+                let (at_1_000_numerator, at_1_000_denominator) = powers(tau_ms, 1_000);
+                let first = if !moved_at_least_one(
+                    *predecessor,
+                    anatomy.neutral,
+                    &at_1_000_numerator,
+                    &at_1_000_denominator,
+                ) {
+                    None
+                } else {
+                    let mut below = 0_u64;
+                    let mut at_or_above = 1_000_u64;
+                    while below + 1 < at_or_above {
+                        let midpoint = below + (at_or_above - below) / 2;
+                        let (numerator, denominator) = powers(tau_ms, midpoint);
+                        if moved_at_least_one(
+                            *predecessor,
+                            anatomy.neutral,
+                            &numerator,
+                            &denominator,
+                        ) {
+                            at_or_above = midpoint;
+                        } else {
+                            below = midpoint;
+                        }
+                    }
+                    Some(at_or_above)
+                };
+                first_visible_release_ms.push(json!({
+                    "axis": format!("{axis:?}"),
+                    "first_at_least_one_quantum_ms": first,
+                }));
+            }
+        }
+
+        let zero_toward_maximum_span_axes = BODY_AXES
+            .into_iter()
+            .filter(|axis| axis.anatomy().neutral == axis.anatomy().maximum)
+            .map(|axis| format!("{axis:?}"))
+            .collect::<Vec<_>>();
+        let neutral_pulse = json!({
+            "toward_maximum_zero_span_axes": zero_toward_maximum_span_axes,
+            "shared_nonzero_span_displacement_after_one_ms": {
+                "numerator": tau_ms.to_string(),
+                "denominator": (tau_ms + 1).to_string(),
+            },
+            "shared_nonzero_span_displacement_after_250_ms": {
+                "numerator": decay_250_numerator.to_string(),
+                "denominator": decay_250_denominator.to_string(),
+            },
+            "remains_exactly_nonzero_after_one_ms": true,
+        });
+
+        let mut sustained = Vec::new();
+        for carriers_per_ms in sustained_carriers_per_ms {
+            for direction in [-1_i64, 1_i64] {
+                let mut hit_stop = Vec::new();
+                let mut minimum_positive_span = None::<i32>;
+                for (axis, anatomy, _) in &copied_axes {
+                    let directional_span = if direction.is_negative() {
+                        anatomy.neutral - anatomy.minimum
+                    } else {
+                        anatomy.maximum - anatomy.neutral
+                    };
+                    if directional_span == 0 {
+                        hit_stop.push(format!("{axis:?}:zero_directional_span"));
+                        continue;
+                    }
+                    minimum_positive_span = Some(
+                        minimum_positive_span
+                            .map_or(directional_span, |current| current.min(directional_span)),
+                    );
+                    let displacement_numerator = BigInt::from(tau_ms * carriers_per_ms)
+                        * (&decay_2_000_denominator - &decay_2_000_numerator);
+                    if displacement_numerator
+                        >= BigInt::from(directional_span) * &decay_2_000_denominator
+                    {
+                        hit_stop.push(format!("{axis:?}"));
+                    }
+                }
+                let maximum_normalized_displacement = minimum_positive_span.map(|span| {
+                    json!({
+                        "numerator": (BigInt::from(tau_ms * carriers_per_ms)
+                            * (&decay_2_000_denominator - &decay_2_000_numerator)).to_string(),
+                        "denominator": (BigInt::from(span)
+                            * &decay_2_000_denominator).to_string(),
+                        "minimum_positive_directional_span": span,
+                    })
+                });
+                sustained.push(json!({
+                    "carriers_per_ms": carriers_per_ms,
+                    "direction": if direction.is_negative() { "toward_minimum" } else { "toward_maximum" },
+                    "duration_ms": 2_000,
+                    "would_press_anatomical_stop_axes_without_clamp": hit_stop,
+                    "maximum_normalized_displacement": maximum_normalized_displacement,
+                }));
+            }
+        }
+
+        let duration_samples = observation_durations_ms
+            .into_iter()
+            .map(|elapsed_ms| {
+                let (decay_numerator, decay_denominator) = powers(tau_ms, elapsed_ms);
+                let visibly_released_stops = copied_axes
+                    .iter()
+                    .filter(|(_, anatomy, predecessor)| {
+                        (*predecessor == anatomy.minimum || *predecessor == anatomy.maximum)
+                            && *predecessor != anatomy.neutral
+                    })
+                    .filter(|(_, anatomy, predecessor)| {
+                        moved_at_least_one(
+                            *predecessor,
+                            anatomy.neutral,
+                            &decay_numerator,
+                            &decay_denominator,
+                        )
+                    })
+                    .count();
+                json!({
+                    "elapsed_ms": elapsed_ms,
+                    "visibly_released_stopped_axes": visibly_released_stops,
+                })
+            })
+            .collect::<Vec<_>>();
+        candidates.push(json!({
+            "passive_time_constant_ms": tau_ms,
+            "invariant_failures": invariant_failures,
+            "stopped_release": stopped_release,
+            "first_visible_release": first_visible_release_ms,
+            "duration_samples": duration_samples,
+            "neutral_one_carrier_pulse": neutral_pulse,
+            "sustained_drive": sustained,
+        }));
+    }
+    json!({
+        "production_compiled": false,
+        "model_authority": "measurement-only lower bound; not authorized production mechanics",
+        "native_mechanical_step_microseconds": 1_000,
+        "equation": "q[n+1] = clamp((tau*(q[n]+u[n]) + neutral)/(tau+1))",
+        "evaluation": "exact integer powers and inequalities; no floating point and no rational normalization",
+        "copied_axis_count": copied_axes.len(),
+        "copied_stopped_non_neutral_axes": stopped_non_neutral_axes,
+        "time_constants_ms": time_constants_ms,
+        "observation_durations_ms": observation_durations_ms,
+        "sustained_carriers_per_ms": sustained_carriers_per_ms,
+        "candidate_count": candidates.len(),
+        "candidates": candidates,
+    })
+}
+
+#[derive(Clone)]
+struct ProbeAntagonistTissue {
+    position: i64,
+    minimum: i64,
+    neutral: i64,
+    maximum: i64,
+    activation_units: [u128; 2],
+    admitted_work: BigRational,
+    dissipated_work: BigRational,
+    stopped_load_quanta: u128,
+}
+
+impl ProbeAntagonistTissue {
+    fn from_axis(body: &ArticulatedBodyState, axis: BodyAxis) -> Self {
+        let anatomy = axis.anatomy();
+        Self {
+            position: i64::from(body.axis(axis)),
+            minimum: i64::from(anatomy.minimum),
+            neutral: i64::from(anatomy.neutral),
+            maximum: i64::from(anatomy.maximum),
+            activation_units: [0; 2],
+            admitted_work: BigRational::zero(),
+            dissipated_work: BigRational::zero(),
+            stopped_load_quanta: 0,
+        }
+    }
+
+    fn at_neutral(axis: BodyAxis) -> Self {
+        let anatomy = axis.anatomy();
+        Self {
+            position: i64::from(anatomy.neutral),
+            minimum: i64::from(anatomy.minimum),
+            neutral: i64::from(anatomy.neutral),
+            maximum: i64::from(anatomy.maximum),
+            activation_units: [0; 2],
+            admitted_work: BigRational::zero(),
+            dissipated_work: BigRational::zero(),
+            stopped_load_quanta: 0,
+        }
+    }
+
+    fn direction_index(direction: BodyEffectorDirection) -> usize {
+        match direction {
+            BodyEffectorDirection::TowardMinimum => 0,
+            BodyEffectorDirection::TowardMaximum => 1,
+        }
+    }
+
+    fn directional_span(&self, direction: BodyEffectorDirection) -> u128 {
+        match direction {
+            BodyEffectorDirection::TowardMinimum => (self.neutral - self.minimum) as u128,
+            BodyEffectorDirection::TowardMaximum => (self.maximum - self.neutral) as u128,
+        }
+    }
+
+    fn admit(
+        &mut self,
+        direction: BodyEffectorDirection,
+        carriers: u128,
+        work_per_carrier: &BigRational,
+        activation_lifetime_ms: u128,
+        coupling_numerator: u128,
+        coupling_denominator: u128,
+    ) {
+        let total_work = work_per_carrier * BigInt::from(carriers);
+        self.admitted_work += &total_work;
+        // Work custody closes at this boundary. The terminal activation is a
+        // bounded material conformation (integer cross-bridge quanta), not a
+        // repeatedly divided rational energy reservoir. Retaining a rational
+        // fraction per millisecond was rejected because its denominator grew
+        // with lifetime. The exact released work is therefore dissipated once
+        // by the body transaction while the admitted conformation persists.
+        self.dissipated_work += &total_work;
+        let coupled_carriers = carriers
+            .saturating_mul(coupling_numerator)
+            / coupling_denominator;
+        if coupled_carriers == 0 {
+            self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(carriers);
+            return;
+        }
+        let index = Self::direction_index(direction);
+        let capacity_units = self
+            .directional_span(direction)
+            .saturating_mul(activation_lifetime_ms);
+        let requested_units = coupled_carriers.saturating_mul(activation_lifetime_ms);
+        let available_units = capacity_units.saturating_sub(self.activation_units[index]);
+        let admitted_units = requested_units.min(available_units);
+        self.activation_units[index] = self.activation_units[index]
+            .saturating_add(admitted_units);
+        self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(
+            carriers.saturating_sub(admitted_units / activation_lifetime_ms),
+        );
+    }
+
+    fn step_one_ms(&mut self, activation_lifetime_ms: u128, response_time_ms: u128) {
+        let equivalent = |units: u128| {
+            if units == 0 {
+                0
+            } else {
+                1 + (units - 1) / activation_lifetime_ms
+            }
+        };
+        let toward_minimum = equivalent(self.activation_units[0]);
+        let toward_maximum = equivalent(self.activation_units[1]);
+        let signed_activation = if toward_maximum >= toward_minimum {
+            i128::try_from(toward_maximum - toward_minimum).expect("bounded positive activation")
+        } else {
+            -i128::try_from(toward_minimum - toward_maximum)
+                .expect("bounded negative activation")
+        };
+        let unclamped_target = i128::from(self.neutral) + signed_activation;
+        let target = unclamped_target
+            .clamp(i128::from(self.minimum), i128::from(self.maximum)) as i64;
+        self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(
+            unclamped_target.abs_diff(i128::from(target)),
+        );
+        let gap = self.position.abs_diff(target);
+        if gap != 0 {
+            let response = u64::try_from(response_time_ms).expect("bounded response time");
+            let step = 1 + (gap - 1) / response;
+            if target > self.position {
+                self.position += i64::try_from(step).expect("bounded positive body step");
+            } else {
+                self.position -= i64::try_from(step).expect("bounded negative body step");
+            }
+        }
+        for index in 0..2 {
+            let before_units = self.activation_units[index];
+            if before_units == 0 {
+                continue;
+            }
+            let expired_units = 1 + (before_units - 1) / activation_lifetime_ms;
+            self.activation_units[index] -= expired_units;
+        }
+    }
+
+    fn work_closes(&self) -> bool {
+        self.admitted_work == self.dissipated_work
+    }
+}
+
+fn copied_body_antagonist_activation_range_json(body: Option<&ArticulatedBodyState>) -> Value {
+    let Some(body) = body else {
+        return json!({"error": "copied body absent"});
+    };
+    let activation_lifetimes_ms = [4_u128, 8, 16, 32, 64, 128, 256];
+    let response_times_ms = [1_u128, 2, 4, 8, 16, 32, 64];
+    let coupling_fractions = [(1_u128, 2_u128), (3, 4), (1, 1)];
+    let learned = [
+        (
+            BodyAxis::VocalTractSection0Area,
+            BodyEffectorDirection::TowardMaximum,
+            BigRational::new(
+                BigInt::parse_bytes(b"166767809696532795445407", 10).unwrap(),
+                BigInt::parse_bytes(b"1100000000000000000000000", 10).unwrap(),
+            ),
+        ),
+        (
+            BodyAxis::VocalTractSection7Area,
+            BodyEffectorDirection::TowardMinimum,
+            BigRational::new(
+                BigInt::parse_bytes(b"36616220961176220112151901", 10).unwrap(),
+                BigInt::parse_bytes(b"237050000000000000000000000", 10).unwrap(),
+            ),
+        ),
+    ];
+    let stopped_axes = BODY_AXES
+        .into_iter()
+        .filter(|axis| {
+            let anatomy = axis.anatomy();
+            let position = body.axis(*axis);
+            position != anatomy.neutral
+                && (position == anatomy.minimum || position == anatomy.maximum)
+        })
+        .collect::<Vec<_>>();
+    let mut candidates = Vec::new();
+    let mut accepted_count = 0usize;
+    for activation_lifetime_ms in activation_lifetimes_ms {
+        for response_time_ms in response_times_ms {
+            for (coupling_numerator, coupling_denominator) in coupling_fractions {
+                let mut failures = Vec::new();
+                let mut releases = Vec::new();
+                for axis in &stopped_axes {
+                    let mut tissue = ProbeAntagonistTissue::from_axis(body, *axis);
+                    let predecessor = tissue.position;
+                    tissue.step_one_ms(activation_lifetime_ms, response_time_ms);
+                    let after_one = tissue.position;
+                    let gap = predecessor.abs_diff(tissue.neutral);
+                    if after_one == predecessor {
+                        failures.push(format!("{axis:?}:did_not_release_in_one_ms"));
+                    }
+                    if gap > 1 && after_one == tissue.neutral {
+                        failures.push(format!("{axis:?}:teleported_to_neutral"));
+                    }
+                    for _ in 1..16 {
+                        tissue.step_one_ms(activation_lifetime_ms, response_time_ms);
+                    }
+                    if !tissue.work_closes() {
+                        failures.push(format!("{axis:?}:legacy_release_work_did_not_close"));
+                    }
+                    releases.push(json!({
+                        "axis": format!("{axis:?}"),
+                        "predecessor": predecessor,
+                        "after_one_ms": after_one,
+                        "after_sixteen_ms": tissue.position,
+                    }));
+                }
+
+                let mut pulse_results = Vec::new();
+                for (axis, direction, work) in &learned {
+                    let mut tissue = ProbeAntagonistTissue::at_neutral(*axis);
+                    tissue.admit(
+                        *direction,
+                        1,
+                        work,
+                        activation_lifetime_ms,
+                        coupling_numerator,
+                        coupling_denominator,
+                    );
+                    let mut visible_ms = 0_u64;
+                    let mut first_position = tissue.position;
+                    for elapsed in 0..=512_u64 {
+                        tissue.step_one_ms(activation_lifetime_ms, response_time_ms);
+                        if elapsed == 0 {
+                            first_position = tissue.position;
+                        }
+                        if tissue.position != tissue.neutral {
+                            visible_ms += 1;
+                        }
+                    }
+                    if first_position == tissue.neutral {
+                        failures.push(format!("{axis:?}:one_carrier_twitch_absent"));
+                    }
+                    if !(16..=250).contains(&visible_ms) {
+                        failures.push(format!("{axis:?}:visible_duration_{visible_ms}_outside_16_250"));
+                    }
+                    if tissue.position != tissue.neutral {
+                        failures.push(format!("{axis:?}:did_not_return_by_512_ms"));
+                    }
+                    if !tissue.work_closes() {
+                        failures.push(format!("{axis:?}:pulse_work_did_not_close"));
+                    }
+                    pulse_results.push(json!({
+                        "axis": format!("{axis:?}"),
+                        "direction": format!("{direction:?}"),
+                        "first_position": first_position,
+                        "visible_duration_ms": visible_ms,
+                        "returned_by_512_ms": tissue.position == tissue.neutral,
+                        "work_closed": tissue.work_closes(),
+                    }));
+                }
+
+                let (axis, _, work) = &learned[0];
+                let mut opposed = ProbeAntagonistTissue::at_neutral(*axis);
+                opposed.admit(
+                    BodyEffectorDirection::TowardMinimum,
+                    8,
+                    work,
+                    activation_lifetime_ms,
+                    coupling_numerator,
+                    coupling_denominator,
+                );
+                opposed.admit(
+                    BodyEffectorDirection::TowardMaximum,
+                    8,
+                    work,
+                    activation_lifetime_ms,
+                    coupling_numerator,
+                    coupling_denominator,
+                );
+                opposed.step_one_ms(activation_lifetime_ms, response_time_ms);
+                if opposed.position != opposed.neutral {
+                    failures.push("opposed_drive_moved_axis".to_string());
+                }
+                if !opposed.work_closes() {
+                    failures.push("opposed_drive_work_did_not_close".to_string());
+                }
+
+                let mut sustained = Vec::new();
+                for rate in [1_u128, 2, 4, 8, 16] {
+                    for (axis, direction, work) in &learned {
+                        let mut tissue = ProbeAntagonistTissue::at_neutral(*axis);
+                        for _ in 0..1_000 {
+                            tissue.admit(
+                                *direction,
+                                rate,
+                                work,
+                                activation_lifetime_ms,
+                                coupling_numerator,
+                                coupling_denominator,
+                            );
+                            tissue.step_one_ms(activation_lifetime_ms, response_time_ms);
+                        }
+                        let at_stop = tissue.position == tissue.minimum
+                            || tissue.position == tissue.maximum;
+                        if rate == 1 && at_stop {
+                            failures.push(format!("{axis:?}:one_per_ms_pinned"));
+                        }
+                        if at_stop && tissue.stopped_load_quanta == 0 {
+                            failures.push(format!("{axis:?}:stop_without_load"));
+                        }
+                        if !tissue.work_closes() {
+                            failures.push(format!("{axis:?}:sustained_work_did_not_close"));
+                        }
+                        sustained.push(json!({
+                            "axis": format!("{axis:?}"),
+                            "carriers_per_ms": rate.to_string(),
+                            "position_after_1000_ms": tissue.position,
+                            "at_stop": at_stop,
+                            "stopped_load_quanta": tissue.stopped_load_quanta.to_string(),
+                            "work_closed": tissue.work_closes(),
+                        }));
+                    }
+                }
+
+                let composition_axis = stopped_axes[0];
+                let mut whole = ProbeAntagonistTissue::from_axis(body, composition_axis);
+                let mut split = whole.clone();
+                for _ in 0..250 {
+                    whole.step_one_ms(activation_lifetime_ms, response_time_ms);
+                }
+                for _ in 0..64 {
+                    split.step_one_ms(activation_lifetime_ms, response_time_ms);
+                }
+                for _ in 0..186 {
+                    split.step_one_ms(activation_lifetime_ms, response_time_ms);
+                }
+                if whole.position != split.position
+                    || whole.activation_units != split.activation_units
+                    || whole.dissipated_work != split.dissipated_work
+                {
+                    failures.push("64_plus_186_did_not_equal_250".to_string());
+                }
+                let accepted = failures.is_empty();
+                accepted_count += usize::from(accepted);
+                candidates.push(json!({
+                    "activation_lifetime_ms": activation_lifetime_ms.to_string(),
+                    "response_time_ms": response_time_ms.to_string(),
+                    "coupling": format!("{coupling_numerator}/{coupling_denominator}"),
+                    "accepted": accepted,
+                    "failures": failures,
+                    "legacy_stop_release": releases,
+                    "learned_one_carrier_pulses": pulse_results,
+                    "opposed_drive_position": opposed.position,
+                    "sustained_drive": sustained,
+                    "duration_composition_position": whole.position,
+                }));
+            }
+        }
+    }
+    json!({
+        "production_compiled": false,
+        "model_authority": "test-only bounded antagonist activation range",
+        "native_mechanical_step_microseconds": 1_000,
+        "activation_equation": "input carriers establish bounded terminal tension; ceil(active_units/lifetime) defines equilibrium displacement; active units and exact work decay together",
+        "body_equation": "position advances ceil(|target-position|/response_time) toward clamped neutral-plus-net-antagonist-equilibrium",
+        "work_equation": "admitted exact terminal work = retained activation work + explicit dissipated work",
+        "activation_lifetimes_ms": activation_lifetimes_ms.map(|value| value.to_string()),
+        "response_times_ms": response_times_ms.map(|value| value.to_string()),
+        "coupling_fractions": coupling_fractions.map(|(n, d)| format!("{n}/{d}")),
+        "candidate_count": candidates.len(),
+        "accepted_count": accepted_count,
+        "candidates": candidates,
     })
 }
 
@@ -1338,6 +1944,9 @@ fn retained_frontier_motor_range_json(
                         "terminal_discharged_carriers": terminal
                             .as_ref()
                             .map(|(_, carriers, _)| carriers.to_string()),
+                        "terminal_released_work_zeptojoules": terminal
+                            .as_ref()
+                            .map(|(_, _, work)| wide_exact_json(work)),
                     })
                 })
                 .collect::<Vec<_>>();
@@ -1652,6 +2261,9 @@ fn motor_inward_preparation_energy_range_json(state: &ResidentCognitiveFormation
                         "terminal_discharged_carriers": discharge
                             .as_ref()
                             .map(|(_, carriers, _)| carriers.to_string()),
+                        "terminal_released_work_zeptojoules": discharge
+                            .as_ref()
+                            .map(|(_, _, work)| wide_exact_json(work)),
                     })
                 })
                 .collect::<Vec<_>>();
@@ -1775,6 +2387,68 @@ fn one_clock_body_return_falsifier_json(
     })
 }
 
+fn artificial_neutral_unpin_control_json(
+    state: &ResidentCognitiveFormationState,
+    body: Option<&ArticulatedBodyState>,
+) -> Value {
+    let Some(body) = body else {
+        return json!({"error": "copied body absent"});
+    };
+    let mut neutral_axes = *body.axes();
+    for axis in BODY_AXES {
+        let anatomy = axis.anatomy();
+        let position = body.axis(axis);
+        if (position == anatomy.minimum || position == anatomy.maximum)
+            && position != anatomy.neutral
+        {
+            neutral_axes[axis.index()] = anatomy.neutral;
+        }
+    }
+    let unpinned = ArticulatedBodyState::from_physical_state(
+        neutral_axes,
+        body.lung_air_microlitres(),
+        body.proprioception_initialized(),
+    )
+    .expect("artificial neutral-axis control")
+    .with_articulatory_acoustic_state(body.articulatory_acoustic_state())
+    .expect("preserve copied acoustic state in artificial control");
+    let forced_axis_changes = BODY_AXES
+        .into_iter()
+        .filter_map(|axis| {
+            let before = body.axis(axis);
+            let after = unpinned.axis(axis);
+            (before != after).then(|| {
+                json!({
+                    "axis": format!("{axis:?}"),
+                    "copied_position": before,
+                    "artificial_position": after,
+                })
+            })
+        })
+        .collect::<Vec<_>>();
+    let ordinary_replay = retained_frontier_motor_range_json(state, Some(&unpinned), 1);
+    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    let learned_bridge_replay = retained_frontier_motor_range_json(state, Some(&unpinned), 1);
+    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
+        .store(false, std::sync::atomic::Ordering::Relaxed);
+    json!({
+        "production_compiled": false,
+        "control_only": true,
+        "prohibited_as_repair": true,
+        "purpose": "isolate whether copied retained and one-carrier learned motor traffic move when only pathological accumulated stops are artificially unpinned",
+        "forced_axis_change_count": forced_axis_changes.len(),
+        "forced_axis_changes": forced_axis_changes,
+        "lung_air_preserved": unpinned.lung_air_microlitres() == body.lung_air_microlitres(),
+        "proprioception_flag_preserved":
+            unpinned.proprioception_initialized() == body.proprioception_initialized(),
+        "acoustic_state_preserved":
+            unpinned.articulatory_acoustic_state() == body.articulatory_acoustic_state(),
+        "retained_frontier_replay": ordinary_replay,
+        "one_carrier_learned_bridge_replay": learned_bridge_replay,
+    })
+}
+
 fn articulated_body_axis_census_json(body: Option<&ArticulatedBodyState>) -> Value {
     let Some(body) = body else {
         return Value::Null;
@@ -1833,7 +2507,52 @@ fn reservoir_probe_dump() {
     for path in &entries {
         let bytes = fs::read(path).expect("read envelope");
         let (organism_tick, cognitive, articulated_body) = parse_envelope_with_body(&bytes);
-        let record = if cognitive.is_empty() {
+        let body_mechanics_range_only =
+            std::env::var_os("GUALA_PROBE_BODY_MECHANICS_RANGE_ONLY").is_some();
+        let artificial_unpin_only = std::env::var_os("GUALA_PROBE_ARTIFICIAL_UNPIN_ONLY").is_some();
+        let motor_work_range_only =
+            std::env::var_os("GUALA_PROBE_MOTOR_WORK_RANGE_ONLY").is_some();
+        let antagonist_activation_range_only =
+            std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
+        let record = if body_mechanics_range_only {
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "copied_body_passive_mechanics_range":
+                    copied_body_passive_mechanics_range_json(articulated_body.as_ref()),
+            })
+        } else if antagonist_activation_range_only {
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "copied_body_antagonist_activation_range":
+                    copied_body_antagonist_activation_range_json(articulated_body.as_ref()),
+            })
+        } else if artificial_unpin_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for artificial unpin control");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "artificial_neutral_unpin_control":
+                    artificial_neutral_unpin_control_json(&state, articulated_body.as_ref()),
+            })
+        } else if motor_work_range_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for motor-work range");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "motor_inward_preparation_energy_range":
+                    motor_inward_preparation_energy_range_json(&state),
+                "retained_frontier_motor_work_range":
+                    retained_frontier_motor_range_json(
+                        &state,
+                        articulated_body.as_ref(),
+                        1,
+                    ),
+            })
+        } else if cognitive.is_empty() {
             json!({
                 "file": path.file_name().unwrap().to_string_lossy(),
                 "organism_tick": organism_tick,

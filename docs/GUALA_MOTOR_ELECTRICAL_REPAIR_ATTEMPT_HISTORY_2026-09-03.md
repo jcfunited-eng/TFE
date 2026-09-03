@@ -472,3 +472,275 @@ the physical parameters and elapsed duration, preserve every neuron and learned
 byte, expose the rejecting boundaries, and pass the AWS health precheck before
 execution. Another reset, stop suppression, per-call leak, tonic shell command,
 or learned-contact deletion is not an admissible candidate.
+
+## Copied-body passive-mechanics range — construction attempt 1
+
+The first compilation of the measurement-only range failed before reading the
+copied body. Rust rejected seven double dereferences of already dereferenced
+`i32` axis positions in `reservoir_probe.rs` (`E0614`). No physics executed, no
+runner survived, no production file or organism state changed, and this is not
+a candidate-law result. The correction changes only those seven test-code
+reference depths; the already declared parameter matrix, equation, and
+acceptance observations remain unchanged for the rerun.
+
+The reference-depth correction compiled and the inert probe invocation passed
+1/1 (`599` unit tests filtered). Before the first copied-body invocation, the
+required read-only AWS gate found production had advanced to task definition
+`dsf-ai-task:1425`, expected git SHA `ae260276a8bbf3afd018c149871b21fa8ba185e2`,
+one desired/one running/zero pending, PRIMARY rollout `COMPLETED`, but the
+`guala-interval-refusal-loop` alarm was still ALARM. Investigation therefore
+kept the bench dark until the active task could be separated from the prior
+task's metric window.
+
+The incident evidence is exact. Fifteen-minute refusal sums before and during
+cutover were `25`, `224`, and `102`; ECS memory stayed below 10 percent and CPU
+did not cascade, so this was not a resource runaway. Task 1425 started at
+`2026-09-03T18:53:56.956Z`, was healthy, advanced from generation 403096 through
+at least 403270, and logged neither `refus` nor `ERROR`. Every available
+one-minute `IntervalRefusals` bucket from 18:53 through 19:04 had sum and maximum
+exactly zero across hundreds of samples per minute. Therefore the current task
+contained the refusal loop; the alarm state was retained evidence from its
+15-minute evaluation window, not an active task-1425 refusal. The copied-body
+range may now run offline. This does not authorize a production edit or deploy.
+
+The pre-run resource audit rejected the harness's first exact evaluator before
+execution. It would have iterated 2,000 exact-rational milliseconds for every
+axis/rate/direction candidate, repeatedly constructing denominators thousands
+of digits wide. The recurrence is now evaluated by exact exponentiation by
+squaring in logarithmic steps. This is algebraically identical to the declared
+one-millisecond recurrence and leaves every parameter and acceptance boundary
+unchanged. It also corrects the sustained-drive observation: because passive
+return pulls inward immediately after a clamp, equality with the stop is the
+wrong test; the report now names axes whose exact unconstrained displacement
+would press the anatomical stop. The rejected evaluator never ran.
+
+Copied-body launch attempt 1 exited `127` before Cargo or the body decoder
+started because this development container has no `/usr/bin/time`. No report
+was written and no runner survived. The relaunch retains the same 3 GiB
+virtual-memory ceiling and 120-second hard runtime boundary using tools that
+are actually present; no candidate parameter or acceptance condition changes.
+
+Copied-body launch attempt 2 read the body and entered the range, then aborted
+in 0.18 seconds on an exact-rational zero denominator. The cause was not a
+tissue coefficient: some declared axes place neutral exactly at an anatomical
+boundary, making one directional travel span zero, while the report normalized
+displacement by that span. The rerun classifies such a direction as immediate
+stop pressure and does not divide it. This preserves the anatomy fact rather
+than hiding it, changes no candidate physics, and the aborted run wrote no
+report or successor body.
+
+At Joe's request, the same copied-body run now includes an explicitly
+artificial unpin control. It replaces only the copied axis positions with their
+declared anatomical neutrals, preserves copied lung air, proprioception flag,
+and acoustic state, then replays the unmodified copied cognitive state's own
+retained motor frontier for three clocks. This control may prove whether the
+accumulated positions are the immediate obstruction. It is prohibited as a
+repair because it erases physical history and the unchanged accumulator would
+recreate the pins. Production remains untouched.
+
+The combined passive range plus three-clock cognitive replay reached its
+declared 120-second boundary and was killed with exit `124`; it wrote no report
+and left no accepted result. Combining cheap 45-axis mechanics math with three
+debug-build clones/settlements of all 196,729 neurons was an invalid harness
+shape. The two controls are now disjoint. The passive range does not decode the
+cognitive body. The artificial unpin control decodes it once and replays only
+the first retained motor clock, which is sufficient to falsify or confirm the
+immediate obstruction. The 3 GiB and 120-second ceilings remain unchanged.
+
+The first split passive-only launch also produced no report and left no
+process. Inspection found redundant test bookkeeping: first-visible-quantum
+search recomputed exact powers sequentially up to 1,000 times for each stopped
+axis, and sustained-drive evaluation recomputed the identical 2,000-ms power
+for every axis. The corrected evaluator uses a monotonic binary search and one
+shared exact power per time-constant row. The equation, exactness, copied body,
+parameter grid, memory ceiling, and runtime ceiling are unchanged.
+
+The optimized split still reached the unchanged 120-second ceiling and wrote
+no report. Exact `BigRational` normalization and repeated construction of large
+but equivalent output fractions remained the cost. The evaluator now uses the
+identical closed-form law as integer powers and exact integer inequalities,
+caches each shared duration power, and emits one shared pulse fraction rather
+than 45 duplicates. It uses no floating point or approximation. The physics
+grid and acceptance questions are unchanged; the timed-out process was killed
+and did not survive.
+
+Correction to the artificial-control paragraph above: after the combined
+three-clock timeout, the disjoint control replays one retained motor clock, not
+three. One clock is the predeclared immediate-obstruction question; extending
+it would repeat the already rejected whole-body debug cost without adding a
+different causal boundary.
+
+## Copied-body lower-bound and seven-axis artificial control — proved
+
+The exact passive range completed in 0.23 seconds against raw task-1420 body
+SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`,
+tick 391305. Report
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-passive-range.json`, SHA-256
+`fca6c12f247eced175bd062709cc6cfb8ac2cd4b3c803e7cdbd334f5b82d94b7`,
+766,592 bytes. All ten elapsed-time constants had zero invariant failures and
+released all seven non-neutral stops by 16 ms. The sustained-drive boundary is
+not flat: 1-2 ms had no finite-span stop pressure through 16 carriers/ms; 4 ms
+first pressed the glottal minimum at 16 carriers/ms; slower returns admitted
+progressively more finite-span pressure. Ten additional zero-span directions
+are neutral-at-boundary anatomy and correctly report isometric load, not a
+non-neutral pin. This rejects passive return alone as the complete organ: it
+has no retained activation or mechanical-work custody and its globally safe
+edge is an unrealistically stiff universal return.
+
+The tightened artificial control completed in 30.07 seconds and is stored at
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-seven-axis-unpin.json`, SHA-256
+`61724b4811acf92f4cc9d94faa5333ca89d1bd653838ed4534f56571362dfb14`,
+25,285 bytes. It restored only RightBrowHeight, GlottalAperture, both grips,
+and vocal-tract sections 0, 6, and 7; all other copied body state was preserved.
+Ordinary retained traffic moved glottis `-1`, left grip `-3`, and right grip
+`-2` with zero stalls. The two one-carrier learned L11-to-L12 routes moved
+section 0 `+1` and section 7 `-1` with zero stalls; their consequences re-entered
+native sensory settlement through eight ports, sixteen samples, and nine DSF
+deliveries. Thus the electrical and learned motor paths move when unpinned,
+and the accumulated position plant is the immediate blocker. Artificial reset
+remains a diagnostic only and is explicitly rejected as the repair.
+
+Disposition: the copied-body lower-bound is complete and changes the next
+action. Do not implement a position leak or reset. Extend the test-only range
+with bounded terminal activation and exact motor-work custody, using the proved
+passive rejecting boundary. Production behavior and deployment remain frozen.
+
+The first completed artificial control is preserved at
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-artificial-unpin.json`, SHA-256
+`4f656656070eeb9e9077d545d742945107583079cc3acd03127f6d068328fdb3`,
+17,420 bytes. It neutralized 42 copied axes while preserving lung air,
+proprioception state, and acoustic state. The body's ordinary first retained
+clock then moved the glottis by `-1`, left grip by `-3`, and right grip by `-2`,
+with zero stalled carriers. This proves the motor terminals and body settlement
+move when positions are unpinned. It is overbroad: all displaced axes were
+neutralized and its three preparations were L8 reflex traffic, not learned L11
+traffic. It is evidence, but not the final artificial control.
+
+The tightened control restores only the seven non-neutral stopped axes and
+preserves the other 38 copied axis positions. It runs both the ordinary first
+clock and the already bounded one-carrier L11-to-L12 test bridge on that same
+seven-axis-unpinned copy. No production state is changed, and the artificial
+restoration remains prohibited as a repair.
+
+## Exact copied-body motor-work custody range — measured
+
+The required read-only AWS gate immediately before this harness found ECS task
+definition `dsf-ai-task:1425` at desired `1`, running `1`, pending `0`, with its
+PRIMARY rollout `COMPLETED`. Both `guala-interval-refusal-loop` and
+`guala-memory-runaway` were `OK`; the earlier refusal alarm had formally
+cleared. The bench then ran with no network authority, a 3 GiB virtual-memory
+ceiling, and a 120-second hard runtime boundary. It completed one copied-body
+electrical clock in 8.22 seconds and left no runner.
+
+Input remained the exact read-only task-1420 raw body at tick `391305`, SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`.
+The report is
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-motor-work-range.json`,
+22,061 bytes, SHA-256
+`b8338056c79ad4e65e211d336cd3cb41d0588e67c113a21b17dd3488d57b1c0a`.
+The test build only adds exact terminal-work observations and a narrow
+motor-work-range invocation; production behavior remains unchanged.
+
+Both learned L11-to-L12 vocal motors returned their requested carrier counts
+and strictly positive exact terminal work. For lineage suffix `00c5`, one
+carrier released
+`166767809696532795445407/1100000000000000000000000` zeptojoules
+(approximately `0.151607099724120731`). For suffix `04fb`, one carrier released
+`36616220961176220112151901/237050000000000000000000000`
+zeptojoules (approximately `0.154466234807746128`). Ranges through 64 carriers
+remained positive and discharged the exact requested whole-carrier count. The
+same one-carrier work values reproduced when the copied body's real retained
+L11 frontier was split into its learned L12 terminal, so these are not guessed
+body coefficients.
+
+Source tracing closes the present custody defect. The motor cell's terminal
+settlement computes this exact released work, narrows it losslessly to the
+resident exact-rational type, and currently deposits all of it into the
+neuron's thermal recovery-fluid reservoir. `MotorUnitRecruitment` then carries
+only terminal identity and whole-carrier count. The articulated body therefore
+moves without receiving or pricing the work that physically caused it. Its V7
+codec likewise has no terminal activation or general mechanical-work state;
+restart could not preserve either.
+
+Disposition: do not add a guessed force scalar and do not neutralize the live
+pose. The next test-only matrix transfers these measured rational work values
+into fixed-capacity antagonist activation, includes exact dissipation and
+passive equilibrium over elapsed milliseconds, and rejects any point that
+creates work, pins under bounded drive, erases a one-carrier learned twitch, or
+fails duration composition. A production candidate remains unauthorized until
+that accepting region and its rejecting boundaries are copied-body evidence.
+
+## Antagonist activation range attempt 1 — rejected on boundedness
+
+The pre-run AWS gate again found task 1425 at desired `1`, running `1`, pending
+`0`, rollout `COMPLETED`, with both refusal-loop and memory-runaway alarms `OK`.
+The first exact activation sweep then reached its 120-second hard boundary and
+was killed. It produced no report and left no process. No copied or production
+body was written.
+
+This is not a failed lifetime/response coefficient. The evaluator retained an
+exact rational share of motor work in each activation and removed a
+proportional rational share every millisecond. Repeated normalization made the
+denominators grow with elapsed steps. That state shape would make both runtime
+cost and encoded arithmetic width depend on how long activation had lived;
+therefore it is rejected for production independently of the unfinished
+parameter sweep.
+
+The corrected candidate keeps terminal activation as fixed integer
+cross-bridge quanta, bounded by that direction's anatomical travel and its
+declared lifetime. The motor's exact released work crosses into the body
+transaction and is booked exactly as body dissipation when those cross-bridges
+are admitted; no rational fraction is retained or repeatedly renormalized.
+This preserves work custody without an unbounded denominator. The same copied
+pose, lifetime/response/coupling grid, learned twitches, stop release,
+sustained-drive, opposition, duration-composition, and work-closure gates will
+be rerun.
+
+## Antagonist activation range attempt 2 — accepting region found
+
+The corrected 147-point range completed under the unchanged 3 GiB and
+120-second ceilings in 92.93 seconds. The immediately preceding AWS gate found
+task 1425 at desired `1`, running `1`, pending `0`, rollout `COMPLETED`, and both
+runaway alarms `OK`. No process survived. The report is
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-antagonist-activation-range-v2.json`,
+811,124 bytes, SHA-256
+`e04a9b0ded18821dcb116bc09a688db0efadf912ce1fb0226baa7a64c7ca4769`.
+It decoded the exact task-1420 body at tick `391305`; production behavior and
+state were untouched.
+
+The range crossed seven activation lifetimes (`4, 8, 16, 32, 64, 128, 256`
+ms), seven overdamped response times (`1, 2, 4, 8, 16, 32, 64` ms), three
+discrete coupling fractions (`1/2`, `3/4`, `1/1`), both learned vocal motors,
+all seven copied non-neutral stops, equal antagonist drive, duration
+composition, and sustained rates of `1, 2, 4, 8, 16` carriers/ms. Twenty-four
+points accepted: full `1/1` carrier coupling, activation lifetimes `16, 32, 64,
+128` ms, and response times `2` through `64` ms.
+
+Every accepted point made the copied learned section-0 motor move `125 -> 126`
+and the section-7 motor move `265 -> 264`. Their visible one-carrier lifetimes
+were exactly the candidate activation lifetimes and both returned to neutral
+by 512 ms. All seven legacy pins began monotonic release in the first
+millisecond without changing their predecessor values at decode. Equal
+antagonist activation left the axis at neutral. A sustained rate of one
+carrier/ms stayed inside both learned axes; higher rates could reach declared
+anatomical capacity only with nonzero bounded load. Exact work closed in every
+reported pulse, opposed-drive, and sustained-drive run. Running 64 ms and then
+186 ms produced exactly the same position, activation, and dissipation as one
+250-ms evolution.
+
+The rejecting boundaries are equally explicit. Response time `1` moved each
+legacy stop all the way to neutral in one millisecond and was rejected as a
+teleport. Couplings `1/2` and `3/4` could not admit a single indivisible motor
+carrier and therefore erased both learned twitches. Lifetimes `4` and `8` ms
+fell below the declared 16-ms visibility boundary; `256` ms exceeded the
+250-ms upper boundary and allowed the section-7 low-rate sustained case to pin.
+
+Disposition: this is a test-model accepting region, not production delivery.
+It proves that a fixed integer antagonist activation with exact one-time body
+work custody can release the copied body and preserve learned one-carrier acts
+without a reset, accumulator, rational-growth leak, or controller. The next
+gate integrates representative interior points from the accepted region into
+the exact copied cognitive clock and body codec, then tests severance, sparse
+sensory return, cold restore, timing, and resource flatness before one
+production law is authorized.

@@ -330,3 +330,103 @@ No candidate proceeds to production source until the whole accepted region,
 its rejecting boundaries, the exact copied-body output hash, and every failed
 harness attempt are appended to the repair-attempt history.
 
+## Copied-body lower-bound and artificial-control result
+
+The first completed dynamic lower-bound used raw task-1420 body SHA-256
+`207ced0a3d0d2253a7520e05bf18eeebcf3caf25fd2b83c6450bcaf08ee86e3b`
+at tick 391305. Report
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-passive-range.json`, SHA-256
+`fca6c12f247eced175bd062709cc6cfb8ac2cd4b3c803e7cdbd334f5b82d94b7`,
+766,592 bytes. The exact integer-power evaluator completed the body work in
+0.23 seconds. All ten passive time constants (1, 2, 4, 8, 16, 32, 64, 128,
+256, and 512 ms) preserved neutral, remained inside anatomy, moved every
+off-neutral axis monotonically toward neutral, composed 64+186 ms exactly to
+250 ms, and released all seven copied non-neutral stops by 16 ms or sooner.
+
+This lower bound rejects a passive-only repair. Against sustained rates of 1,
+2, 4, 8, and 16 carriers per millisecond in both directions, slower passive
+return increasingly permits finite-span stop pressure. Time constants 1 and 2
+ms prevent finite-span stop pressure throughout this deliberately severe
+range; 4 ms first fails at 16 carriers/ms toward minimum, and longer constants
+fail at progressively lower rates. A 1-2 ms global return would be a stiff
+universal spring and still supplies no finite retained activation or honest
+motor-work store. It cannot represent a sustained gesture. The dynamic
+activation/work portion of the authorization matrix remains mandatory.
+
+Ten directions have zero travel from neutral to one declared boundary: cheek
+raise, jaw opening, lip aperture, elbow flexion, and knee flexion toward
+minimum; and grip aperture toward maximum, bilaterally where applicable. This
+is not automatically pathological. It describes ordinary relaxed anatomy at
+one end of a one-sided coordinate. Motor work into such a direction is
+isometric stop load and must be sensed and dissipated, not used as evidence
+that the whole axis is pinned.
+
+The precise artificial control is
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-seven-axis-unpin.json`, SHA-256
+`61724b4811acf92f4cc9d94faa5333ca89d1bd653838ed4534f56571362dfb14`,
+25,285 bytes. It changed only the seven copied non-neutral stopped positions to
+their declared neutrals and preserved the other 38 positions, lung air,
+proprioception flag, acoustic state, cognitive body, and learned anatomy. The
+ordinary retained first clock then moved glottis `-1`, left grip `-3`, and
+right grip `-2`, all with zero stall. Under the bounded one-carrier learned
+bridge falsifier, the two exact L11-to-L12 routes additionally moved vocal
+tract section 0 `+1` and section 7 `-1`, both with zero stall. Their two
+consequences produced eight native source ports, sixteen samples, and nine DSF
+deliveries on return.
+
+Therefore accumulated positions are the immediate obstruction to otherwise
+working reflex and learned motor output. Artificial restoration is useful only
+as this causal control. It remains prohibited as the repair because it erases
+physical history and the unchanged accumulator would recreate the pins.
+
+## Exact terminal-work measurement
+
+The copied-body work range is recorded at
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-motor-work-range.json`, SHA-256
+`b8338056c79ad4e65e211d336cd3cb41d0588e67c113a21b17dd3488d57b1c0a`.
+The two learned vocal motors each discharged one requested whole carrier and
+released, respectively,
+`166767809696532795445407/1100000000000000000000000` and
+`36616220961176220112151901/237050000000000000000000000`
+zeptojoules. The retained L11-to-L12 routes reproduced those same terminal
+values exactly. Thus the body candidate does not need an invented work source:
+it must transfer the terminal law's already-computed exact work out of the
+neuron settlement transaction and into bounded terminal activation. Only
+declared conversion loss and later mechanical dissipation may return as heat.
+
+V7 persistence cannot satisfy that law because it stores neither the 90
+terminal activations nor general mechanical work. The production repair, if
+the activation range passes, necessarily includes a fixed-width body version
+migration that decodes every V7 position unchanged and initializes only the
+previously nonexistent activation fields at zero. This is non-erasing: the
+seven stopped positions must leave their stops through lived passive mechanics,
+not through decode-time neutralization.
+
+## Accepted antagonist-activation region
+
+The second copied-body activation matrix is
+`/tmp/sol-task1420-passive-range.U8ZGfM/task1420-antagonist-activation-range-v2.json`,
+SHA-256
+`e04a9b0ded18821dcb116bc09a688db0efadf912ce1fb0226baa7a64c7ca4769`.
+Twenty-four of 147 points pass: discrete coupling `1/1`, activation lifetime
+`16, 32, 64, or 128` ms, and overdamped response time `2, 4, 8, 16, 32, or 64`
+ms. The shared accepting region releases every copied legacy stop without
+decode mutation, retains both learned one-carrier vocal twitches, cancels
+equal antagonists, keeps low sustained drive interior, converts saturation to
+bounded load, composes elapsed duration exactly, and closes work.
+
+The first work-retention representation is permanently rejected: decaying a
+stored exact-rational energy fraction each millisecond grows its denominator
+with lifetime and exhausted the bounded 120-second harness. The accepted model
+instead retains fixed integer terminal cross-bridge activation, while the
+motor's exact released work crosses once into the body transaction and is
+accounted exactly as body dissipation. This changes the future codec impact:
+V8 needs only 90 bounded integer activation quantities in addition to the
+unchanged V7 body, not 90 rational-energy accumulators. No history, event list,
+or per-sample state is introduced.
+
+The region is not yet one authorized material preparation. The next copied
+integration uses representative interior points and must show the exact
+cognitive successor, learned severance control, sparse proprioceptive return,
+current-pose V7-to-V8 migration, V8 cold identity, and flat resource use. Only
+that integrated proof may select the single body material constants.
