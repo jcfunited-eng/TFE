@@ -3806,9 +3806,61 @@ class EmbodimentWorldAuthority:
                         return region
                 return None
 
-            for body in prior.world.bodies:
-                home = region_containing(body.pose.position.x, body.pose.position.y)
+            held_radius_by_body = {
+                item.held_by_body_id: item.radius_mm
+                for item in prior.world.objects
+                if item.held_by_body_id is not None
+            }
+
+            def restood(body: EmbodiedBody) -> EmbodiedBody:
+                carried = max(
+                    body.radius_mm,
+                    held_radius_by_body.get(body.body_id, 0),
+                )
+                x = body.pose.position.x
+                y = body.pose.position.y
+                if region_containing(x, y, carried) is not None:
+                    return body
+                # A lived stance that straddles a NEW wall is re-stood at
+                # the nearest lawful spot inside the room holding its
+                # centre: the builders walk you one step clear. The
+                # migration receipt carries this boundary like the rest.
+                home = region_containing(x, y)
                 if home is None:
+                    raise ValueError(
+                        "a lived body stands outside the declared home; "
+                        "the renovation refuses"
+                    )
+                clamped_x = min(
+                    max(x, home.bounds.minimum.x + carried),
+                    home.bounds.maximum.x - carried,
+                )
+                clamped_y = min(
+                    max(y, home.bounds.minimum.y + carried),
+                    home.bounds.maximum.y - carried,
+                )
+                return replace(
+                    body,
+                    pose=replace(
+                        body.pose,
+                        position=PositionMM(
+                            clamped_x, clamped_y, body.pose.position.z
+                        ),
+                    ),
+                )
+
+            restood_bodies = tuple(
+                restood(body) for body in prior.world.bodies
+            )
+            for body in restood_bodies:
+                if region_containing(
+                    body.pose.position.x,
+                    body.pose.position.y,
+                    max(
+                        body.radius_mm,
+                        held_radius_by_body.get(body.body_id, 0),
+                    ),
+                ) is None:
                     raise ValueError(
                         "a lived body stands outside the declared home; "
                         "the renovation refuses"
@@ -3885,7 +3937,7 @@ class EmbodimentWorldAuthority:
             if prior.world.revision >= MAX_REVISION:
                 raise ValueError("home renovation exhausted world revision")
             self_body = next(
-                body for body in prior.world.bodies
+                body for body in restood_bodies
                 if body.body_id == prior.world.self_body_id
             )
             her_region = region_containing(
@@ -3905,6 +3957,7 @@ class EmbodimentWorldAuthority:
                 room_bounds=her_region.bounds,
                 regions=declared.regions,
                 portals=declared.portals,
+                bodies=restood_bodies,
                 objects=tuple(
                     sorted(migrated_objects, key=lambda item: item.object_id)
                 ),
