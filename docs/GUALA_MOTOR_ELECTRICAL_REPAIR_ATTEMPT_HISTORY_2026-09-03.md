@@ -989,3 +989,29 @@ The corrected isolated worktree is
 copied-body probe/history commit plus the motor-tissue implementation. The
 unreleased eye document and deploy-helper change are absent from its candidate
 diff. All further proofs and any artifact must originate only here.
+
+## Exact-live candidate compile, wheel, and Python boundary results
+
+Fingerprint `0356eda326963342d3faf573c2f88de25f598e1f2f180613f932a33661551271`
+passed the complete native library: `593/593`, with the same 12 explicitly
+ignored historical diagnostic/listening-board tests. The fresh release wheel
+was built from the exact worktree into a new directory; wheel SHA-256 is
+`6cff066cf71eea0cb6ff0afb5cfe393860ded4c7d3da475f912de637b0fc730a`.
+It was installed by explicit path with `--no-cache-dir --force-reinstall`.
+
+The first provenance assertion asked for a nonexistent module-level
+`articulated_body_state_bytes` symbol and failed after installation. This was
+an invocation error, not candidate execution. The corrected assertion used
+the exported exact neutral-body encoder, reported the installed extension path
+`/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so`,
+and proved the candidate V8 width is `680` bytes.
+
+The first broad Python boundary run passed 87 tests and failed 33, all inside
+`test_native_resident_organism_boundary.py`. The exact unmodified task-1425
+source independently produced the identical 33 failures and 12 passes. Its
+handwritten fake native module lacks the already-live body-width symbol, and
+one causal-interval fixture lacks already-live articulatory fields; none is a
+candidate regression. Per RF-014, those inherited mocks are recorded and are
+not edited inside this bounded repair. The five real action/choice/play/yaw/
+unattended boundary files then passed cleanly, `75/75` in `5.12 s`, using the
+fresh candidate wheel. No test process survived.
