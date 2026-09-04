@@ -143,3 +143,33 @@ and human acceptance of the whole word before any sentence claim.
    buttons were valid and native evidence was unaffected. The corrected page
    generator removes only those literal backslashes; the malformed page is not
    an accepted or published artifact.
+4. The final source at commit `af42e97a` passed the native test and all machine
+   falsifiers again. The AWS pre-gate found exactly one healthy task 1429 and
+   all five alarms `OK`. The page and all seven WAVs were published only to the
+   read-only static path
+   `https://dsf-ai.com/speech-proof/attempt46-af42e97a/`; CloudFront
+   invalidation `IELYVSJVBEBLTFA3B89T6YXOY0` completed. Every fetched public
+   byte matched the local artifact. Human auditory acceptance remains the only
+   open control gate.
+
+## Final control evidence awaiting human hearing
+
+- manifest: `/tmp/guala-word-control-publish.tMgHEu/manifest.json`, SHA-256
+  `a37ae7d5515352ed41584be3d7fd42450536f7f2185e29efc92084455a183de9`;
+- page SHA-256
+  `16f95f265f5acff563d2647083220f98630476fa51f3bac1e062201187b8a622`;
+- candidate A/B/D/E public WAV SHA-256 values
+  `cedab627...`, `7a140fdc...`, `faf30f4b...`, and `186f8b1c...`;
+- candidate C is exactly candidate B because the respiratory-work reservoir is
+  already saturated, a lawful negative range result;
+- frozen and reversed control WAV SHA-256 values `5f1b6eb8...` and
+  `ec7e425d...`;
+- accepted V22 16-kHz `ma-ma` comparison SHA-256 `d97526a3...`;
+- raw candidate peaks 665--709, fixed sample spans 12,560--15,600, no clipping,
+  deterministic repeat, exact zero-breath silence, distinct frozen/reversed
+  hashes, and exact rest for every candidate;
+- no harness or native-test process survived publication.
+
+These facts prove a bounded and correctly published physical control. They do
+not prove that any candidate sounds like `ma-ma`; only Joe's hearing verdict
+can accept or reject that requirement.

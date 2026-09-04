@@ -1075,3 +1075,9 @@ they do not override this baseline.
   topology, self-hear the whole word and cold-repeat it before any deployment
   or sentence claim. Full boundary:
   `docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md`.
+- The exact native control at commit `af42e97a` now passes its machine gates:
+  five bounded continuous `ma-ma` candidates, exact deterministic repeats,
+  zero-breath silence, distinct frozen/reversed controls, exact body rest, one
+  healthy AWS task and all alarms clear. The byte-verified listening page is
+  `https://dsf-ai.com/speech-proof/attempt46-af42e97a/`. Human whole-word
+  acceptance is open; no organism speech or production deployment is claimed.
