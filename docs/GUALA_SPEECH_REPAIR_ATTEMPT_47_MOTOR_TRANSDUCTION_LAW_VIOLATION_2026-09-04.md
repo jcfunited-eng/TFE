@@ -26,11 +26,11 @@ by this record.
    table; a replayed trajectory; teacher- or observer-selected motor targets;
    TTS; shell cognition; reduced DSF; and the retired Python articulatory and
    imitation selectors.
-5. **Single exact next item:** map and implement one local state-derived
-   directed transduction law across the existing learned L11/L12 anatomy. It
-   must jointly resolve every currently reached branch from one sender,
-   conserve all carriers and work, and remain unavailable when the local state
-   cannot support a strictly descending transfer.
+5. **Single exact next item:** specify one explicit local field-effect
+   transducer anatomy for learned L11/L12 contacts, with every quantity, unit,
+   state coordinate, conservation relation, recovery path, and migration
+   consequence named before implementation. Its control state may gate a
+   conductance; it may never prescribe an output carrier count.
 6. **DSF evaluation:** the complete joint seven-field L0-L4 result remains
    authoritative and unchanged. This repair is downstream physical transport;
    it does not replace or approximate DSF.
@@ -360,3 +360,77 @@ recoverable work path. If those quantities exist, use them directly. If they
 do not, the mechanism is unavailable until one explicit transducer anatomy is
 specified and ratified. No production code or deployment is authorized before
 that census and implementation contract are complete.
+
+## Existing-anatomy census — the directional transducer is absent
+
+The source census and the exact task-1429 copied body agree. No already-mounted
+directional transducer can be activated by deleting the literal carrier count:
+
+- `NeuronPhysicalAnatomy` owns exactly one `TwoStateGateAnatomy`, and
+  `NeuronPhysicalState` owns exactly one gate state plus
+  `LocalMembraneConductanceState<1>`. The compile-time `1` is one local
+  conductance path, not an inactive bank of excitable channels.
+- Every quiescent intrinsic cell is born with gate population `1`, zero gating
+  charge, zero chemical open/closed drive, no Psi contacts, `1 pS` unit
+  conductance, and `-1 mV` reversal. Reaching a motor terminal preserves that
+  one-gate anatomy; it does not specialize an excitable motor membrane.
+- The task-1429 L11 and L12 cells reproduce that generic anatomy. Their single
+  gates are closed. The learned L11/L12 connection is an ordinary symmetric
+  electrical contact whose current is exactly
+  `g * (V_left - V_right) / 1000`; it has no presynaptic role, postsynaptic
+  role, reversal potential, transmitter/gate reservoir, or directional carrier
+  phase.
+- Gate settlement evaluates the one gate from the predecessor membrane, then
+  integrates only that gate's one local conductance path together with the
+  already-computed inter-neuron carrier consequence. There is no second inward
+  or outward channel hidden in the interval solver.
+- The separately scheduled passive membrane return always moves one carrier
+  toward zero when doing so lowers stored work. It does not read gate open
+  population and is not a voltage-gated restorative channel. It therefore
+  cannot be relabelled as the missing delayed outward phase.
+
+This closes the census required above: the necessary directional gate,
+positive reversal-owned motor gradient path, and contact-local recovery state
+are **absent**. The existing data model cannot express the ordinary biological
+sequence of regenerative inward conductance followed by delayed restorative
+outward conductance. Changing the sign of the one existing reversal would
+replace the only passive receptor-style path; it would not create a complete
+excitable membrane.
+
+The smallest direct architectural mapping is therefore a real three-terminal
+conductance, not carrier redistribution: the reached L11 electrical state is
+the control terminal; a finite contact-local gate is the retained learned
+transducer state; and the L12 cell's finite extracellular/intracellular
+gradient is the power path. The control may alter gate conformation, but it may
+not prescribe output carriers. Output must be the exact integral of the
+resulting open-channel conductance, L12 potential versus its declared reversal,
+elapsed physical time, retained carrier phase, and available L12 material.
+
+That mechanism is an explicit synthetic-AE field-effect synapse. It is not the
+unavailable biological chemical-synapse claim: it introduces no calcium,
+vesicle, transmitter, or receptor kinetics. It is also not yet ratified. Its
+gate energy, gating charge/control coupling, channel population, reversal,
+recovery, codec migration, and learned-growth expression must be specified
+with units and one source of authority before test code may be written. A
+number chosen because it makes `ma-ma` audible would repeat the same violation
+at a lower level.
+
+## Why the violation passed review
+
+The failed review boundary treated three properties as sufficient: a real
+upstream event existed, total carrier count remained zero, and the aggregate
+successor stored less work. None of those properties makes the chosen branch
+magnitude causal. The copied-body test matrix also had only one motor branch
+per ordering sender, so it could not expose iteration order as a selector.
+
+The permanent falsifiers added by this attempt are therefore:
+
+1. output magnitude must change when local control state, conductance,
+   reversal drive, retained phase, available material, or elapsed time changes;
+2. no literal or fixed fraction may directly determine emitted carriers;
+3. contact state, carrier phase, current, work, heat, and endpoint successors
+   must be one atomic transition;
+4. permuting two simultaneous learned motor branches must not change the
+   physical result; and
+5. a topology/conservation/descent pass with invariant output is a rejection,
+   not acceptance.
