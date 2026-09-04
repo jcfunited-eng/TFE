@@ -417,6 +417,34 @@ back and match local SHA-256:
 This does not close the hearing gate. Joe must accept or reject the copied
 organism buttons by ear before any production cutover.
 
+### Human hearing verdict — rejected for articulatory diversity
+
+Joe listened to all four published buttons and reported that they basically
+all sounded the same. This is a rejection of the candidate as speech and a
+narrow acceptance of only the sustained-source boundary: the candidate can
+carry one closed-mouth, `mmm`-like posture without collapsing to the earlier
+buzz/pop, but the copied organism does not produce distinguishable
+articulations. No production cutover is authorized by this result.
+
+The immediately preceding dynamic body measurement explains the audible
+equivalence rather than contradicting it. The exact task-1428 body has jaw and
+lip aperture at their closed bounds and its recurrent learned L11-to-L12
+activity reaches only two tract routes. Perturbing the first tract section
+changes the waveform only slightly, while perturbing the last section is
+acoustically masked by the closed oral outlet. The accepted V22 `mmm`, the
+artificial isolated-breath control, and the complete copied-organism output
+therefore occupy substantially the same closed-mouth acoustic regime.
+
+Disposition: do not revisit respiratory duration, source continuity, or the
+one-shot control as the active defect. The active defect is organism-owned
+articulatory diversity. Before any further production-code change, map the
+complete admissible jaw, lip-aperture, glottal, and tract physical regime on the
+copied body, and census the exact learned motor contacts that can reach those
+axes. This must determine whether the existing organ can make distinct sounds
+when physically moved and separately why the organism is not moving it. No
+phoneme labels, target-pose table, scripted motor command, or observer input may
+enter the organism.
+
 Two local Docker build invocations were rejected before compilation because
 this isolated speech worktree does not contain the two untracked/generated
 deployment-context files `tfe_deploy_metadata.json` and
