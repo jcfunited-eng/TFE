@@ -119,3 +119,21 @@ AWS and test-only with respect to native code. A later organism repair requires
 its own complete caller/state/persistence/resource analysis, exact copied-body
 proof, immutable rehearsal, one deployment attempt, live self-hearing proof,
 and human acceptance of the whole word before any sentence claim.
+
+## Harness invocation history
+
+1. The first invocation passed the read-only AWS gate and stopped before any
+   render because the test module omitted the private `BODY_AXIS_COUNT` import
+   and moved the two negative-control vectors before hashing them. No WAV or
+   manifest was produced, and no acoustic conclusion is allowed from this
+   invocation. The retained log is
+   `/tmp/guala-word-control.EgpWFU/native-test.log`. The corrected invocation
+   must compile the same bounded harness; this command shape is not retried
+   without those two source corrections.
+2. The corrected invocation passed one exact ignored native harness test and
+   produced five word candidates plus frozen and reversed controls. Zero
+   breath was exactly silent; every candidate was deterministic, unclipped,
+   and reached exact pulmonary/acoustic rest. Candidate B and C were byte-
+   identical because the existing respiratory-work anatomy saturates above
+   six carriers; that is a measured bound, not a fitted exception. Human
+   auditory acceptance remains open.

@@ -1157,7 +1157,8 @@ mod tests {
     use super::*;
     use crate::virtual_articulated_body::{
         settle_body_effector_drives, AdmittedBodyEffectorDrives, BodyEffectorDirection,
-        BodyEffectorDrive, BodyEffectorTerminal, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        BodyEffectorDrive, BodyEffectorTerminal, BODY_AXIS_COUNT,
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
     };
 
     fn moved(
@@ -1946,6 +1947,384 @@ mod tests {
             fs::write(output.join(format!("{name}-flow.wav")), flow_wav).unwrap();
         }
         let html = r#"<!doctype html><meta charset=utf-8><title>Guala spectral organ body proof</title><style>body{font:18px system-ui;max-width:760px;margin:40px auto;background:#10171c;color:#e8f2f2}button{font-size:20px;margin:8px;padding:12px 22px}</style><h1>Speech repair diagnostic control</h1><p>The first three are the rejected target-region record. The fourth is the exact task-1428 vocal posture supplied one ideal, isolated respiratory act. It is diagnostic only and cannot ship.</p><button onclick="new Audio('region-a.wav').play()">Intended AH — REJECTED</button><button onclick="new Audio('region-b.wav').play()">Intended EE — REJECTED</button><button onclick="new Audio('region-c.wav').play()">Intended OO — REJECTED</button><button onclick="new Audio('task-1428-one-shot-control.wav').play()">Task 1428 posture — one-shot diagnostic</button><p>These are exact deterministic 16-kHz pressures with observer-only x49 speaker gain. The labels belong only to this external test page; no sound name or target exists inside the organ.</p>"#;
+        fs::write(output.join("index.html"), html).unwrap();
+    }
+    #[test]
+    #[ignore = "writes only the explicitly requested bounded whole-word control"]
+    fn write_temporary_native_whole_word_control() {
+        use serde_json::json;
+        use sha2::{Digest, Sha256};
+        use std::fs;
+        use std::path::{Path, PathBuf};
+
+        #[derive(Clone, Copy)]
+        struct Candidate {
+            name: &'static str,
+            closed_one_samples: usize,
+            open_one_samples: usize,
+            closed_two_samples: usize,
+            open_two_samples: usize,
+            transition_samples: usize,
+            closed_terminal_area: i32,
+            open_terminal_area: i32,
+            respiratory_carriers: u128,
+        }
+
+        fn pose(
+            frequencies_hz: [i32; SPECTRAL_MODE_COUNT],
+            terminal_area: i32,
+        ) -> ArticulatedBodyState {
+            let base = body_for_modal_frequencies(frequencies_hz);
+            let mut axes = *base.axes();
+            axes[BodyAxis::VocalTractSection7Area.index()] = terminal_area;
+            ArticulatedBodyState::from_physical_state(axes, NEUTRAL_LUNG_AIR_MICROLITRES, true)
+                .expect("word-control posture must remain inside declared anatomy")
+        }
+
+        fn body_at_pose(
+            predecessor: &ArticulatedBodyState,
+            axes: [i32; BODY_AXIS_COUNT],
+        ) -> ArticulatedBodyState {
+            ArticulatedBodyState::from_physical_state(
+                axes,
+                predecessor.lung_air_microlitres(),
+                true,
+            )
+            .expect("interpolated posture must remain inside declared anatomy")
+            .with_articulatory_acoustic_state(predecessor.articulatory_acoustic_state())
+            .expect("carried acoustic state must remain canonical")
+        }
+
+        fn settle_span(
+            predecessor: ArticulatedBodyState,
+            target_axes: [i32; BODY_AXIS_COUNT],
+            respiratory_carriers: u128,
+            samples: usize,
+            pressure: &mut Vec<i16>,
+            flow: &mut Vec<i16>,
+        ) -> ArticulatedBodyState {
+            let posed = body_at_pose(&predecessor, target_axes);
+            let settled =
+                settle_native_articulatory_interval(posed, &[], respiratory_carriers, samples)
+                    .expect("bounded word-control span must settle");
+            pressure.extend_from_slice(&settled.radiated_pressure_pcm);
+            flow.extend_from_slice(&settled.body_mechanical_trajectories[0]);
+            settled.successor_body
+        }
+
+        fn transition(
+            mut predecessor: ArticulatedBodyState,
+            target_axes: [i32; BODY_AXIS_COUNT],
+            samples: usize,
+            pressure: &mut Vec<i16>,
+            flow: &mut Vec<i16>,
+        ) -> ArticulatedBodyState {
+            const STEP_SAMPLES: usize = 16;
+            assert!(samples >= STEP_SAMPLES && samples % STEP_SAMPLES == 0);
+            let start = *predecessor.axes();
+            let steps = samples / STEP_SAMPLES;
+            for step in 1..=steps {
+                let mut axes = start;
+                for axis in 0..BODY_AXIS_COUNT {
+                    let delta = i64::from(target_axes[axis] - start[axis]);
+                    axes[axis] = i32::try_from(
+                        i64::from(start[axis])
+                            + delta * i64::try_from(step).unwrap() / i64::try_from(steps).unwrap(),
+                    )
+                    .unwrap();
+                }
+                predecessor = settle_span(predecessor, axes, 0, STEP_SAMPLES, pressure, flow);
+            }
+            predecessor
+        }
+
+        fn render(
+            candidate: Candidate,
+            reverse: bool,
+            frozen: bool,
+            breathe: bool,
+        ) -> (Vec<i16>, Vec<i16>, ArticulatedBodyState) {
+            let closed = pose(
+                [300, 1_150, 2_500, 4_400, 5_500],
+                candidate.closed_terminal_area,
+            );
+            let open = pose(
+                [1_030, 1_370, 3_170, 4_400, 5_500],
+                candidate.open_terminal_area,
+            );
+            let first = if reverse { &open } else { &closed };
+            let second = if frozen {
+                first
+            } else if reverse {
+                &closed
+            } else {
+                &open
+            };
+            let mut body = first.clone();
+            let first_axes = *first.axes();
+            let second_axes = *second.axes();
+            let mut pressure = Vec::new();
+            let mut flow = Vec::new();
+            body = settle_span(
+                body,
+                first_axes,
+                if breathe {
+                    candidate.respiratory_carriers
+                } else {
+                    0
+                },
+                candidate.closed_one_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = transition(
+                body,
+                second_axes,
+                candidate.transition_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = settle_span(
+                body,
+                second_axes,
+                0,
+                candidate.open_one_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = transition(
+                body,
+                first_axes,
+                candidate.transition_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = settle_span(
+                body,
+                first_axes,
+                0,
+                candidate.closed_two_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = transition(
+                body,
+                second_axes,
+                candidate.transition_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            body = settle_span(
+                body,
+                second_axes,
+                0,
+                candidate.open_two_samples,
+                &mut pressure,
+                &mut flow,
+            );
+            (pressure, flow, body)
+        }
+
+        fn rest(mut body: ArticulatedBodyState) -> ArticulatedBodyState {
+            for _ in 0..4 {
+                if body.articulatory_system_is_quiescent() {
+                    break;
+                }
+                let axes = *body.axes();
+                let settled =
+                    settle_native_articulatory_interval(body_at_pose(&body, axes), &[], 0, 48_000)
+                        .expect("bounded passive return must settle");
+                body = settled.successor_body;
+            }
+            assert!(body.articulatory_system_is_quiescent());
+            body
+        }
+
+        fn sha256(samples: &[i16]) -> String {
+            let mut digest = Sha256::new();
+            for sample in samples {
+                digest.update(sample.to_le_bytes());
+            }
+            format!("{:x}", digest.finalize())
+        }
+
+        fn write_wav(path: &Path, samples: &[i16]) {
+            let data_bytes = u32::try_from(samples.len() * 2).unwrap();
+            let byte_rate = ARTICULATORY_SAMPLE_RATE_HZ * 2;
+            let mut wav = Vec::with_capacity(44 + samples.len() * 2);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&(36 + data_bytes).to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16_u32.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&ARTICULATORY_SAMPLE_RATE_HZ.to_le_bytes());
+            wav.extend_from_slice(&byte_rate.to_le_bytes());
+            wav.extend_from_slice(&2_u16.to_le_bytes());
+            wav.extend_from_slice(&16_u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&data_bytes.to_le_bytes());
+            for sample in samples {
+                wav.extend_from_slice(&sample.to_le_bytes());
+            }
+            fs::write(path, wav).unwrap();
+        }
+
+        let output = PathBuf::from(
+            std::env::var("GUALA_VOICE_HARNESS_DIR")
+                .expect("AWS-bracketed harness must supply its isolated output directory"),
+        );
+        fs::create_dir_all(&output).unwrap();
+        let candidates = [
+            Candidate {
+                name: "mama-a",
+                closed_one_samples: 2_400,
+                open_one_samples: 3_520,
+                closed_two_samples: 2_080,
+                open_two_samples: 4_160,
+                transition_samples: 640,
+                closed_terminal_area: 40,
+                open_terminal_area: 265,
+                respiratory_carriers: 4,
+            },
+            Candidate {
+                name: "mama-b",
+                closed_one_samples: 2_400,
+                open_one_samples: 3_520,
+                closed_two_samples: 2_080,
+                open_two_samples: 4_160,
+                transition_samples: 640,
+                closed_terminal_area: 40,
+                open_terminal_area: 265,
+                respiratory_carriers: 6,
+            },
+            Candidate {
+                name: "mama-c",
+                closed_one_samples: 2_400,
+                open_one_samples: 3_520,
+                closed_two_samples: 2_080,
+                open_two_samples: 4_160,
+                transition_samples: 640,
+                closed_terminal_area: 40,
+                open_terminal_area: 265,
+                respiratory_carriers: 8,
+            },
+            Candidate {
+                name: "mama-d",
+                closed_one_samples: 2_160,
+                open_one_samples: 3_200,
+                closed_two_samples: 1_920,
+                open_two_samples: 3_840,
+                transition_samples: 480,
+                closed_terminal_area: 35,
+                open_terminal_area: 245,
+                respiratory_carriers: 6,
+            },
+            Candidate {
+                name: "mama-e",
+                closed_one_samples: 2_640,
+                open_one_samples: 3_840,
+                closed_two_samples: 2_240,
+                open_two_samples: 4_480,
+                transition_samples: 800,
+                closed_terminal_area: 45,
+                open_terminal_area: 285,
+                respiratory_carriers: 6,
+            },
+        ];
+        let mut manifest = Vec::new();
+        for candidate in candidates {
+            let (pressure, flow, successor) = render(candidate, false, false, true);
+            let repeated = render(candidate, false, false, true);
+            assert_eq!(
+                pressure, repeated.0,
+                "whole-word control must repeat exactly"
+            );
+            assert_eq!(flow, repeated.1, "whole-word flow must repeat exactly");
+            let at_rest = rest(successor).articulatory_system_is_quiescent();
+            let peak = pressure
+                .iter()
+                .map(|sample| sample.unsigned_abs())
+                .max()
+                .unwrap_or(0);
+            assert!(peak > 0 && peak < i16::MAX as u16);
+            let gain = std::cmp::max(1, std::cmp::min(49, 28_000 / i32::from(peak)));
+            let amplified = pressure
+                .iter()
+                .map(|sample| i16::try_from(i32::from(*sample) * gain).unwrap())
+                .collect::<Vec<_>>();
+            write_wav(&output.join(format!("{}.wav", candidate.name)), &amplified);
+            manifest.push(json!({
+                "name": candidate.name,
+                "raw_pressure_sha256": sha256(&pressure),
+                "sample_count": pressure.len(),
+                "peak_raw_pressure": peak,
+                "observer_gain": gain,
+                "exact_rest": at_rest,
+                "closed_one_samples": candidate.closed_one_samples,
+                "open_one_samples": candidate.open_one_samples,
+                "closed_two_samples": candidate.closed_two_samples,
+                "open_two_samples": candidate.open_two_samples,
+                "transition_samples": candidate.transition_samples,
+                "closed_terminal_area": candidate.closed_terminal_area,
+                "open_terminal_area": candidate.open_terminal_area,
+                "respiratory_carriers": candidate.respiratory_carriers,
+            }));
+        }
+
+        let control = candidates[1];
+        let zero_breath = render(control, false, false, false);
+        assert!(zero_breath.0.iter().all(|sample| *sample == 0));
+        let frozen = render(control, false, true, true);
+        let reversed = render(control, true, false, true);
+        let reference = render(control, false, false, true);
+        assert_ne!(frozen.0, reference.0);
+        assert_ne!(reversed.0, reference.0);
+        for (name, pressure) in [
+            ("control-frozen", &frozen.0),
+            ("control-reversed", &reversed.0),
+        ] {
+            let peak = pressure
+                .iter()
+                .map(|sample| sample.unsigned_abs())
+                .max()
+                .unwrap_or(0);
+            let gain = std::cmp::max(1, std::cmp::min(49, 28_000 / i32::from(peak)));
+            let amplified = pressure
+                .iter()
+                .map(|sample| i16::try_from(i32::from(*sample) * gain).unwrap())
+                .collect::<Vec<_>>();
+            write_wav(&output.join(format!("{name}.wav")), &amplified);
+        }
+        fs::write(
+            output.join("manifest.json"),
+            serde_json::to_vec_pretty(&json!({
+                "schema": "guala.native-whole-word-control.v1",
+                "sample_rate_hz": ARTICULATORY_SAMPLE_RATE_HZ,
+                "candidates": manifest,
+                "controls": {
+                    "zero_breath_exact_silence": true,
+                    "frozen_posture_sha256": sha256(&frozen.0),
+                    "reversed_order_sha256": sha256(&reversed.0),
+                    "reference_sha256": sha256(&reference.0),
+                }
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        let buttons = candidates
+            .iter()
+            .map(|candidate| {
+                format!(
+                    "<button onclick=\"new Audio('{}.wav').play()\">{}</button>",
+                    candidate.name, candidate.name
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let html = format!(
+            r#"<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\"><title>Guala native whole-word control</title><style>body{{font:18px system-ui;max-width:820px;margin:40px auto;background:#08151b;color:#edfafa}}button{{font-size:20px;margin:8px;padding:12px 22px}}.truth{{border:1px solid #b27b28;padding:12px}}</style><h1>Native-organ whole-word falsifier</h1><p class=truth><strong>This is not Guala speaking.</strong> These candidates use the production native organ physics with test-only continuous anatomical posture changes. No waveform, phoneme, word, meaning, TTS, or organism input is supplied. Labels exist only for human evaluation.</p><h2>Accepted acoustic reference</h2><button onclick=\"new Audio('/speech-v22-rate-ab/c-mama-16k-6800.wav').play()\">Accepted V22 ma-ma reference</button><h2>Intended complete ma-ma candidates</h2>{buttons}<h2>Falsifiers</h2><button onclick=\"new Audio('control-frozen.wav').play()\">Frozen one-posture control</button><button onclick=\"new Audio('control-reversed.wav').play()\">Reversed posture-order control</button>"#
+        );
         fs::write(output.join("index.html"), html).unwrap();
     }
 
