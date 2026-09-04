@@ -66,8 +66,7 @@ use crate::vestibular_neuron_path::{
 };
 use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
-    ArticulatedBodyTransition, BodyAxis, BodyEffectorDirection, BodyEffectorDrive,
-    BodyEffectorTerminal,
+    ArticulatedBodyTransition, BodyEffectorDrive, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, ARTICULATED_BODY_STATE_BYTES, BODY_AXES,
     BODY_SETTLEMENT_CLOCK_MICROSECONDS,
 };
@@ -3842,6 +3841,13 @@ impl ResidentOrganismRuntime {
                 &articulated_body,
                 &observation.motor_unit_recruitments,
             )?;
+            let respiratory_efferent_carriers = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .try_fold(0_u128, |total, recruitment| {
+                    total.checked_add(recruitment.outward_elementary_carriers)
+                })
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
             if let Some((_source, receipt)) = body_proprioceptive_source(
                 source_tick,
                 &body_transition.proprioceptive_consequences,
@@ -3862,7 +3868,8 @@ impl ResidentOrganismRuntime {
             let articulatory_transition = if body_transition
                 .proprioceptive_consequences
                 .is_empty()
-                && body_successor.articulatory_acoustic_state().is_quiescent()
+                && respiratory_efferent_carriers == 0
+                && body_successor.articulatory_system_is_quiescent()
             {
                 None
             } else {
@@ -3870,6 +3877,7 @@ impl ResidentOrganismRuntime {
                     settle_native_articulatory_interval(
                         body_successor.clone(),
                         &body_transition.proprioceptive_consequences,
+                        respiratory_efferent_carriers,
                         source_duration_samples,
                     )
                     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
@@ -4261,11 +4269,19 @@ impl ResidentOrganismRuntime {
                 &articulated_body,
                 &observation.motor_unit_recruitments,
             )?;
+            let respiratory_efferent_carriers = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .try_fold(0_u128, |total, recruitment| {
+                    total.checked_add(recruitment.outward_elementary_carriers)
+                })
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
             let body_successor = body_transition.successor;
             let articulatory_transition = if body_transition
                 .proprioceptive_consequences
                 .is_empty()
-                && body_successor.articulatory_acoustic_state().is_quiescent()
+                && respiratory_efferent_carriers == 0
+                && body_successor.articulatory_system_is_quiescent()
             {
                 None
             } else {
@@ -4273,6 +4289,7 @@ impl ResidentOrganismRuntime {
                     settle_native_articulatory_interval(
                         body_successor.clone(),
                         &body_transition.proprioceptive_consequences,
+                        respiratory_efferent_carriers,
                         source_duration_samples_at_articulatory_rate(source)?,
                     )
                     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
@@ -6011,8 +6028,12 @@ fn exact_articulatory_interval_trajectory<'py>(
                     "articulatory evidence interval has no physical duration",
                 ));
             }
+            let respiratory_efferent_carriers = recruitments
+                .iter()
+                .try_fold(0_u128, |total, (_, carriers)| total.checked_add(*carriers))
+                .ok_or_else(|| PyValueError::new_err("respiratory carrier width exceeded"))?;
             ArticulatedBodyState::decode(&body)
-                .map(|body| (samples, recruitments, body))
+                .map(|body| (samples, respiratory_efferent_carriers, body))
                 .map_err(|error| PyValueError::new_err(format!("{error:?}")))
         })
         .collect::<PyResult<Vec<_>>>()?;
@@ -6030,45 +6051,14 @@ fn exact_articulatory_interval_trajectory<'py>(
     let mut strongest_glottis = 0_i32;
     let mut strongest_mouth = 0_i32;
     let mut final_perioral = 0_i32;
-    for (samples, recruitments, body) in intervals {
+    for (samples, respiratory_efferent_carriers, body) in intervals {
         let body = body
             .with_articulatory_acoustic_state(resident_acoustic)
             .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-        let admitted = AdmittedBodyEffectorDrives::admit(
-            recruitments
-                .into_iter()
-                .map(|(surface, carriers)| {
-                    let axis = match surface {
-                        0 => BodyAxis::JawOpening,
-                        1 => BodyAxis::GlottalAperture,
-                        2 => BodyAxis::LipWidth,
-                        _ => {
-                            return Err(PyValueError::new_err(
-                                "articulatory evidence surface must be 0, 1, or 2",
-                            ))
-                        }
-                    };
-                    Ok(BodyEffectorDrive {
-                        terminal: BodyEffectorTerminal::new(
-                            axis,
-                            if axis == BodyAxis::GlottalAperture {
-                                BodyEffectorDirection::TowardMinimum
-                            } else {
-                                BodyEffectorDirection::TowardMaximum
-                            },
-                        ),
-                        outward_elementary_carriers: carriers,
-                    })
-                })
-                .collect::<PyResult<Vec<_>>>()?,
-        )
-        .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
-        let body_transition =
-            settle_body_effector_drives(&body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
-                .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;
         let settled = settle_native_articulatory_interval(
-            body_transition.successor,
-            &body_transition.proprioceptive_consequences,
+            body,
+            &[],
+            respiratory_efferent_carriers,
             samples,
         )
             .map_err(|error| PyValueError::new_err(format!("{error:?}")))?;

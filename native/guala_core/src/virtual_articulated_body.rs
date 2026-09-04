@@ -143,7 +143,11 @@ pub(crate) struct SpectralAcousticState {
     pub(crate) fold_displacement: [i32; 2],
     pub(crate) fold_previous_displacement: [i32; 2],
     pub(crate) respiratory_work_remaining: i64,
-    pub(crate) previous_volume_flow: i32,
+    /// Exact signed airway volume already moved but not yet reflected by the
+    /// integer lung coordinate. Positive is exhaust and negative is intake;
+    /// one count is one sixteenth microlitre, derived from one
+    /// millilitre/second sampled at 16 kHz.
+    pub(crate) expiratory_volume_remainder_sixteenths_microlitre: i32,
     pub(crate) source_loss: [i32; 2],
     pub(crate) mode_displacement: [i32; SPECTRAL_MODE_COUNT],
     pub(crate) mode_previous_displacement: [i32; SPECTRAL_MODE_COUNT],
@@ -158,7 +162,7 @@ impl SpectralAcousticState {
             fold_displacement: [0; 2],
             fold_previous_displacement: [0; 2],
             respiratory_work_remaining: 0,
-            previous_volume_flow: 0,
+            expiratory_volume_remainder_sixteenths_microlitre: 0,
             source_loss: [0; 2],
             mode_displacement: [0; SPECTRAL_MODE_COUNT],
             mode_previous_displacement: [0; SPECTRAL_MODE_COUNT],
@@ -175,7 +179,7 @@ impl SpectralAcousticState {
                 .iter()
                 .all(|value| *value == 0)
             && self.respiratory_work_remaining == 0
-            && self.previous_volume_flow == 0
+            && self.expiratory_volume_remainder_sixteenths_microlitre == 0
             && self.source_loss.iter().all(|value| *value == 0)
             && self.mode_displacement.iter().all(|value| *value == 0)
             && self
@@ -1199,6 +1203,15 @@ impl ArticulatedBodyState {
         self.articulatory_acoustic
     }
 
+    /// The acoustic body is at rest only after its pressure coordinates have
+    /// settled and a below-equilibrium lung has taken its displaced ambient
+    /// air back in.  This keeps respiration on the native body clock instead
+    /// of making a shell timer or observer responsible for refilling it.
+    pub(crate) fn articulatory_system_is_quiescent(&self) -> bool {
+        self.articulatory_acoustic.is_quiescent()
+            && self.lung_air_microlitres == NEUTRAL_LUNG_AIR_MICROLITRES
+    }
+
     pub(crate) fn antagonist_activation(&self, terminal: BodyEffectorTerminal) -> u32 {
         self.antagonist_activation[terminal.ordinal()]
     }
@@ -1208,6 +1221,20 @@ impl ArticulatedBodyState {
         state: ArticulatoryAcousticState,
     ) -> Result<Self, ArticulatedBodyError> {
         self.articulatory_acoustic = state;
+        self.validate()?;
+        Ok(self)
+    }
+
+    /// Commit the inseparable acoustic and pulmonary successor of one
+    /// respiratory interval. Air volume is body matter, not observer state;
+    /// the same local transition that moved the air owns both successors.
+    pub(crate) fn with_respiratory_successor(
+        mut self,
+        state: ArticulatoryAcousticState,
+        lung_air_microlitres: u32,
+    ) -> Result<Self, ArticulatedBodyError> {
+        self.articulatory_acoustic = state;
+        self.lung_air_microlitres = lung_air_microlitres;
         self.validate()?;
         Ok(self)
     }
@@ -1325,7 +1352,7 @@ impl ArticulatedBodyState {
                 encoded[cursor..cursor + size_of::<i64>()]
                     .copy_from_slice(&state.respiratory_work_remaining.to_be_bytes());
                 cursor += size_of::<i64>();
-                for value in [state.previous_volume_flow]
+                for value in [state.expiratory_volume_remainder_sixteenths_microlitre]
                     .into_iter()
                     .chain(state.source_loss)
                     .chain(state.mode_displacement)
@@ -1475,7 +1502,8 @@ impl ArticulatedBodyState {
                             .expect("fixed respiratory-work width"),
                     );
                     cursor += size_of::<i64>();
-                    let previous_volume_flow = take_body_i32(encoded, &mut cursor);
+                    let expiratory_volume_remainder_sixteenths_microlitre =
+                        take_body_i32(encoded, &mut cursor);
                     let mut source_loss = [0_i32; 2];
                     for value in &mut source_loss {
                         *value = take_body_i32(encoded, &mut cursor);
@@ -1504,7 +1532,7 @@ impl ArticulatedBodyState {
                         fold_displacement,
                         fold_previous_displacement,
                         respiratory_work_remaining,
-                        previous_volume_flow,
+                        expiratory_volume_remainder_sixteenths_microlitre,
                         source_loss,
                         mode_displacement,
                         mode_previous_displacement,
@@ -1642,14 +1670,15 @@ impl ArticulatedBodyState {
         {
             return Err(ArticulatedBodyError::LungAirOutsideAnatomy);
         }
-        if matches!(
-            self.articulatory_acoustic,
-            ArticulatoryAcousticState::Spectral(SpectralAcousticState {
-                respiratory_work_remaining,
-                ..
-            }) if !(0..=MAX_SPECTRAL_RESPIRATORY_WORK).contains(&respiratory_work_remaining)
-        ) {
-            return Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy);
+        if let ArticulatoryAcousticState::Spectral(state) = self.articulatory_acoustic {
+            if !(0..=MAX_SPECTRAL_RESPIRATORY_WORK)
+                .contains(&state.respiratory_work_remaining)
+                || !(-15..=15).contains(
+                    &state.expiratory_volume_remainder_sixteenths_microlitre,
+                )
+            {
+                return Err(ArticulatedBodyError::RespiratoryWorkOutsideAnatomy);
+            }
         }
         for (index, area) in self
             .vocal_tract_areas_square_millimetres()

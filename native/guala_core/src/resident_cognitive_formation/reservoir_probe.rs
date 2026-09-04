@@ -25,6 +25,7 @@ use crate::virtual_articulated_body::{
     BodyAxis, BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
     ARTICULATED_BODY_STATE_BYTES, BODY_AXES, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
 };
+use crate::virtual_articulatory_body::settle_native_articulatory_interval;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::Zero;
@@ -1961,6 +1962,13 @@ fn retained_frontier_motor_range_json(
                 "samples": samples,
             }));
         }
+        let respiratory_efferent_carriers = observation
+            .articulatory_unit_recruitments
+            .iter()
+            .try_fold(0_u128, |total, event| {
+                total.checked_add(event.outward_elementary_carriers)
+            })
+            .expect("copied-body respiratory carrier width");
         let body_transition = match articulated_body.take() {
             None => None,
             Some(body) => {
@@ -2104,11 +2112,32 @@ fn retained_frontier_motor_range_json(
                     "stalled_carriers": consequence.stalled_carriers.to_string(),
                 }))
                 .collect::<Vec<_>>();
-                articulated_body = Some(transition.successor);
+                let acoustic = settle_native_articulatory_interval(
+                    transition.successor,
+                    &transition.proprioceptive_consequences,
+                    respiratory_efferent_carriers,
+                    4_000,
+                )
+                .expect("copied-body acoustic settlement");
+                let acoustic_peak = acoustic
+                    .radiated_pressure_pcm
+                    .iter()
+                    .map(|sample| sample.unsigned_abs())
+                    .max()
+                    .unwrap_or(0);
+                let acoustic_nonzero_samples = acoustic
+                    .radiated_pressure_pcm
+                    .iter()
+                    .filter(|sample| **sample != 0)
+                    .count();
+                articulated_body = Some(acoustic.successor_body);
                 Some(json!({
                     "reached_terminal_count": transition.reached_terminal_count,
                     "consequences": consequences,
                     "sensory_return": sensory_return,
+                    "respiratory_efferent_carriers": respiratory_efferent_carriers.to_string(),
+                    "acoustic_peak_pressure": acoustic_peak,
+                    "acoustic_nonzero_samples": acoustic_nonzero_samples,
                 }))
             }
         };
@@ -2138,6 +2167,30 @@ fn retained_frontier_motor_range_json(
             })
             .collect::<Vec<_>>();
         let next_frontier = observation.next_active_frontier.clone();
+        let articulatory_recruitments = observation
+            .articulatory_unit_recruitments
+            .iter()
+            .map(|event| {
+                json!({
+                    "lineage": lineage_hex(event.neuron_lineage),
+                    "topology_index": event.topology_index,
+                    "outward_elementary_carriers": event.outward_elementary_carriers.to_string(),
+                    "preparation_transfers": event
+                        .preparation_transfers
+                        .iter()
+                        .map(|preparation| json!({
+                            "sender": lineage_hex(preparation.transfer.sender),
+                            "sender_layer": preparation.sender_layer,
+                            "receiver": lineage_hex(preparation.transfer.receiver),
+                            "transferred_whole_carriers": preparation
+                                .transfer
+                                .transferred_whole_carriers
+                                .to_string(),
+                        }))
+                        .collect::<Vec<_>>(),
+                })
+            })
+            .collect::<Vec<_>>();
         clocks.push(json!({
             "clock": active_clock,
             "input_frontier_count": frontier.len(),
@@ -2161,6 +2214,7 @@ fn retained_frontier_motor_range_json(
                 observation.root_translation_unit_recruitments.len(),
             "articulatory_recruitment_count":
                 observation.articulatory_unit_recruitments.len(),
+            "articulatory_recruitments": articulatory_recruitments,
             "next_frontier_count": next_frontier.len(),
         }));
         frontier = next_frontier;
@@ -2291,19 +2345,14 @@ fn motor_inward_preparation_energy_range_json(state: &ResidentCognitiveFormation
     })
 }
 
-/// Run the proposed one-carrier transduction through the complete copied-body
+/// Run the production one-carrier transduction through the complete copied-body
 /// three-clock settlement, then repeat after physically severing every learned
-/// L11/L12 bridge. The switch exists only in the test build; both successors
-/// are disposable in-memory copies.
+/// L11/L12 bridge. Both successors are disposable in-memory copies.
 fn integrated_motor_transduction_falsifier_json(
     state: &ResidentCognitiveFormationState,
     articulated_body: Option<&ArticulatedBodyState>,
 ) -> Value {
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(true, std::sync::atomic::Ordering::Relaxed);
     let connected = retained_frontier_motor_range_json(state, articulated_body, 3);
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(false, std::sync::atomic::Ordering::Relaxed);
 
     let layer_of = |lineage| state.topology_index.layer_of(lineage);
     let removed = state
@@ -2365,16 +2414,135 @@ fn integrated_motor_transduction_falsifier_json(
         super::ResidentTopologyIndex::build(&severed.cohorts, &severed.electrical_fabric)
             .expect("test severed topology"),
     );
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(true, std::sync::atomic::Ordering::Relaxed);
     let disconnected = retained_frontier_motor_range_json(&severed, articulated_body, 3);
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(false, std::sync::atomic::Ordering::Relaxed);
     json!({
-        "production_compiled": false,
+        "production_compiled": true,
         "connected": connected,
         "severed": disconnected,
         "severed_bridge_count": removed.len(),
+    })
+}
+
+/// Sweep the candidate source across the exact copied body's respiratory
+/// carrier extent and the three physical articulator coordinates already
+/// implicated by its learned vocal routes.  This is measurement-only: every
+/// altered posture is a disposable in-memory control and no named sound,
+/// target waveform, or production state is authored.
+fn copied_body_l13_acoustic_range_json(
+    body: Option<&ArticulatedBodyState>,
+) -> Value {
+    let Some(body) = body else {
+        return json!({"error": "copied body absent"});
+    };
+    let current_glottis = body.axis(BodyAxis::GlottalAperture);
+    let section_zero = body.axis(BodyAxis::VocalTractSection0Area);
+    let section_seven = body.axis(BodyAxis::VocalTractSection7Area);
+    let controls = [
+        ("copied", current_glottis, section_zero, section_seven),
+        (
+            "glottis-minimum",
+            BodyAxis::GlottalAperture.anatomy().minimum,
+            section_zero,
+            section_seven,
+        ),
+        (
+            "glottis-neutral",
+            BodyAxis::GlottalAperture.anatomy().neutral,
+            section_zero,
+            section_seven,
+        ),
+        (
+            "glottis-maximum",
+            BodyAxis::GlottalAperture.anatomy().maximum,
+            section_zero,
+            section_seven,
+        ),
+        (
+            "learned-section-0-minus-one",
+            current_glottis,
+            section_zero.saturating_sub(1),
+            section_seven,
+        ),
+        (
+            "learned-section-0-plus-one",
+            current_glottis,
+            section_zero.saturating_add(1),
+            section_seven,
+        ),
+        (
+            "learned-section-7-minus-one",
+            current_glottis,
+            section_zero,
+            section_seven.saturating_sub(1),
+        ),
+        (
+            "learned-section-7-plus-one",
+            current_glottis,
+            section_zero,
+            section_seven.saturating_add(1),
+        ),
+    ];
+    let samples = controls
+        .into_iter()
+        .map(|(name, glottis, section_zero, section_seven)| {
+            let mut axes = *body.axes();
+            axes[BodyAxis::GlottalAperture.index()] = glottis;
+            axes[BodyAxis::VocalTractSection0Area.index()] = section_zero;
+            axes[BodyAxis::VocalTractSection7Area.index()] = section_seven;
+            let control = ArticulatedBodyState::from_physical_state(
+                axes,
+                body.lung_air_microlitres(),
+                body.proprioception_initialized(),
+            )
+            .and_then(|control| {
+                control.with_articulatory_acoustic_state(body.articulatory_acoustic_state())
+            })
+            .expect("copied-body acoustic range posture");
+            let work_range = [0_u128, 1, 2, 4, 8, 16]
+                .into_iter()
+                .map(|carriers| {
+                    let transition = settle_native_articulatory_interval(
+                        control.clone(),
+                        &[],
+                        carriers,
+                        4_000,
+                    )
+                    .expect("copied-body acoustic range settlement");
+                    let peak = transition
+                        .radiated_pressure_pcm
+                        .iter()
+                        .map(|sample| sample.unsigned_abs())
+                        .max()
+                        .unwrap_or(0);
+                    let nonzero = transition
+                        .radiated_pressure_pcm
+                        .iter()
+                        .filter(|sample| **sample != 0)
+                        .count();
+                    json!({
+                        "respiratory_efferent_carriers": carriers.to_string(),
+                        "applied_respiratory_carriers": transition.applied_motor_quanta.to_string(),
+                        "stalled_respiratory_carriers": transition.stalled_motor_quanta.to_string(),
+                        "peak_pressure": peak,
+                        "nonzero_pressure_samples": nonzero,
+                    })
+                })
+                .collect::<Vec<_>>();
+            json!({
+                "control": name,
+                "glottal_aperture": glottis,
+                "learned_section_0_area": section_zero,
+                "learned_section_7_area": section_seven,
+                "work_range": work_range,
+            })
+        })
+        .collect::<Vec<_>>();
+    json!({
+        "measurement_only": true,
+        "input_body_round_trip_exact": ArticulatedBodyState::decode(
+            &body.encode().expect("copied body range encoding")
+        ).expect("copied body range decoding") == *body,
+        "controls": samples,
     })
 }
 
@@ -2382,13 +2550,9 @@ fn one_clock_body_return_falsifier_json(
     state: &ResidentCognitiveFormationState,
     articulated_body: Option<&ArticulatedBodyState>,
 ) -> Value {
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(true, std::sync::atomic::Ordering::Relaxed);
     let connected = retained_frontier_motor_range_json(state, articulated_body, 1);
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(false, std::sync::atomic::Ordering::Relaxed);
     json!({
-        "production_compiled": false,
+        "production_compiled": true,
         "scope": "one connected motor clock plus its exact proprioceptive return",
         "connected": connected,
     })
@@ -2433,14 +2597,9 @@ fn artificial_neutral_unpin_control_json(
             })
         })
         .collect::<Vec<_>>();
-    let ordinary_replay = retained_frontier_motor_range_json(state, Some(&unpinned), 1);
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(true, std::sync::atomic::Ordering::Relaxed);
     let learned_bridge_replay = retained_frontier_motor_range_json(state, Some(&unpinned), 1);
-    super::TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .store(false, std::sync::atomic::Ordering::Relaxed);
     json!({
-        "production_compiled": false,
+        "production_compiled": true,
         "control_only": true,
         "prohibited_as_repair": true,
         "purpose": "isolate whether copied retained and one-carrier learned motor traffic move when only pathological accumulated stops are artificially unpinned",
@@ -2451,7 +2610,6 @@ fn artificial_neutral_unpin_control_json(
             unpinned.proprioception_initialized() == body.proprioception_initialized(),
         "acoustic_state_preserved":
             unpinned.articulatory_acoustic_state() == body.articulatory_acoustic_state(),
-        "retained_frontier_replay": ordinary_replay,
         "one_carrier_learned_bridge_replay": learned_bridge_replay,
     })
 }
@@ -2767,6 +2925,8 @@ fn reservoir_probe_dump() {
                         &state,
                         articulated_body.as_ref(),
                     ),
+                "copied_body_l13_acoustic_range":
+                    copied_body_l13_acoustic_range_json(articulated_body.as_ref()),
             })
         } else if body_mechanics_range_only {
             json!({

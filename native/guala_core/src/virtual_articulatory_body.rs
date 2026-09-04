@@ -2,9 +2,9 @@
 //! discharge.
 //!
 //! This is body mechanics, not language. A transient whole-carrier discharge
-//! gives finite momentum to three persisted acoustic surfaces. Their changing
-//! displacement excites the organism's existing bounded acoustic tube;
-//! resonator damping and tube wall loss return every coordinate to exact rest.
+//! from the resident respiratory effector supplies finite pressure while the
+//! persisted articulated-body posture shapes the airway and acoustic tube.
+//! Resonator damping and tube wall loss return every coordinate to exact rest.
 //! No phoneme, word, target waveform, retained program, or learned meaning is
 //! present here.
 
@@ -14,6 +14,8 @@ use crate::virtual_articulated_body::{
     ArticulatedBodyState, ArticulatoryAcousticState, BodyAxis,
     BodyProprioceptiveConsequence,
     ACOUSTIC_TRANSDUCER_SURFACE_COUNT,
+    MIN_LUNG_AIR_MICROLITRES,
+    NEUTRAL_LUNG_AIR_MICROLITRES,
     MAX_TRACT_AREA_SQUARE_MILLIMETRES, MIN_TRACT_AREA_SQUARE_MILLIMETRES,
     MAX_SPECTRAL_RESPIRATORY_WORK, SPECTRAL_FLUID_CELL_COUNT, SPECTRAL_MODE_COUNT,
     SpectralAcousticState,
@@ -26,7 +28,10 @@ const TRACT_SECTION_COUNT: usize = VOCAL_TRACT_SECTION_COUNT;
 #[cfg(test)]
 const ACTIVE_SAMPLE_COUNT: usize = ARTICULATORY_SAMPLE_RATE_HZ as usize;
 #[cfg(test)]
-const MAX_RELAXATION_SAMPLES: usize = 32_768;
+// Test-only composition may have to observe a complete passive return from
+// residual lung volume (10 s at the declared 150 mL/s return flow) as well as
+// the final acoustic tail. Production never allocates this relaxation buffer.
+const MAX_RELAXATION_SAMPLES: usize = 192_000;
 const NEUTRAL_GLOTTAL_OPEN_SAMPLES: i32 = 80;
 const MIN_GLOTTAL_OPEN_SAMPLES: i32 = 16;
 const MAX_GLOTTAL_OPEN_SAMPLES: i32 = 144;
@@ -44,7 +49,39 @@ const PARTS_PER_MILLION: i64 = 1_000_000;
 const RADIATION_LOAD_AREA_SQUARE_MILLIMETRES: i32 = 265;
 const MAX_ARTICULATORY_INTERVAL_SAMPLES: usize = 480_000;
 const FIXED_ONE: i64 = 1_i64 << 30;
-const RESPIRATORY_WORK_PER_CLOSING_CARRIER: i64 = 512_000;
+#[derive(Clone, Copy)]
+struct SpectralOrganMaterial {
+    respiratory_work_per_efferent_carrier: i64,
+    valve_rate_floor_hz: i64,
+    valve_rate_ceiling_hz: i64,
+    respiratory_rest_loss_per_sample: i64,
+    internal_pressure_per_pcm: i64,
+}
+
+// One carrier starts a finite tissue contraction rather than setting pitch.
+// The laryngeal material owns a narrow child-scale natural-frequency band;
+// falling respiratory pressure bends that frequency only slightly.  The work
+// quantum gives the copied body's ordinary two-carrier act approximately one
+// bounded vocal gesture while larger discharges saturate the existing fixed
+// respiratory-work anatomy.
+const SPECTRAL_ORGAN_MATERIAL: SpectralOrganMaterial = SpectralOrganMaterial {
+    respiratory_work_per_efferent_carrier: 1_536_000,
+    valve_rate_floor_hz: 352,
+    valve_rate_ceiling_hz: 376,
+    respiratory_rest_loss_per_sample: 256,
+    internal_pressure_per_pcm: 1,
+};
+// The mounted body receptor declares a 4,000-unit respiratory volume-
+// velocity span. Native values are millilitres/second; at 16 kHz one raw
+// flow count therefore exhausts exactly one sixteenth microlitre. A retained
+// remainder makes that conversion exact across interval/restart boundaries.
+const RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE: u32 = 16;
+// Quiet tidal measurements in young children put ordinary inspiratory flow
+// near 100-150 mL/s.  The upper measured value is the fixed material return
+// rate here: vocal expiration pushes the virtual chest below its declared
+// neutral volume, and elastic return admits the displaced ambient air at this
+// bounded rate after phonatory work exhausts.
+const PASSIVE_INSPIRATORY_FLOW_MILLILITRES_PER_SECOND: i32 = 150;
 // ---- Joe-directed minimal persistent valve organ (2026-09-02) ----------
 // One virtual organ oscillator, not simulated fold anatomy. The cycle
 // advances only while paid respiratory work remains; its shape is the
@@ -56,14 +93,10 @@ const RESPIRATORY_WORK_PER_CLOSING_CARRIER: i64 = 512_000;
 const VALVE_CYCLE_ONE: i64 = 1_048_576;
 const VALVE_PEAK_POSITION: i64 = 477_102; // 0.455 of the unit cycle
 const VALVE_OPEN_END_POSITION: i64 = 742_392; // 0.708 of the unit cycle
-const VALVE_RATE_FLOOR_HZ: i64 = 260;
-const VALVE_RATE_CEILING_HZ: i64 = 380;
 const VALVE_CONDUCTANCE_ONE: i64 = FOLD_POSITION_SCALE;
-const RESPIRATORY_REST_LOSS_PER_SAMPLE: i64 = 256;
 const FOLD_POSITION_SCALE: i64 = 1_536;
 const FOLD_COLLISION_LIMIT: i64 = 3_072;
 const FLOW_TO_INTERNAL_PRESSURE: i32 = 131_072;
-const INTERNAL_PRESSURE_PER_PCM: i64 = 4;
 const MODE_FREQUENCY_RANGES_HZ: [(i32, i32); SPECTRAL_MODE_COUNT] = [
     (300, 1_200),
     (900, 3_400),
@@ -88,8 +121,8 @@ pub(crate) struct ArticulatoryBodyTransition {
     /// Port-major local body mechanics at the same sample instants as the
     /// radiated pressure: respiratory flow, glottal configuration
     /// displacement, oral aperture displacement, and perioral skin
-    /// displacement. The developmental transducer does not manufacture
-    /// respiratory flow, so port zero remains exact zero.
+    /// displacement. Port zero is the respiratory flow physically funded by
+    /// the resident layer-13 effector; body displacement cannot manufacture it.
     pub(crate) body_mechanical_trajectories: [Vec<i16>; 4],
     pub(crate) peak_transducer_surface_velocity_pcm: i32,
     pub(crate) glottal_open_samples_at_apex: i32,
@@ -103,23 +136,39 @@ pub(crate) struct ArticulatoryBodyTransition {
 
 /// Advance the vocal body across one exact causal source interval.
 ///
-/// An already-settled typed layer-12 motor displacement is accepted exactly
-/// once; it is never repeated or stretched across the preceding sensory
-/// episode. Glottis, jaw and lip-width tissue have one fixed attachment each
-/// to the three resident acoustic surfaces. This is body anatomy, not a
-/// phoneme map: the actual signed displacement supplies direction, and a motor
-/// stalled at its anatomical stop supplies no acoustic impulse. The surfaces
-/// and tube then produce the consequence across interval and restart
-/// boundaries without a phase clock or duration counter.
+/// Already-settled typed layer-12 motor consequences alter only resident body
+/// posture. Respiratory work is admitted independently from actual discharge
+/// of the persisted layer-13 body effector. This is body anatomy, not a phoneme
+/// map: posture shapes the valve and tube, while finite respiratory work pays
+/// for pressure. The persisted organ carries the consequence across interval
+/// and restart boundaries without a shell phase clock or duration counter.
 pub(crate) fn settle_native_articulatory_interval(
     articulated_body: ArticulatedBodyState,
     body_consequences: &[BodyProprioceptiveConsequence],
+    respiratory_efferent_carriers: u128,
     interval_sample_count: usize,
+) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
+    settle_native_articulatory_interval_with_material(
+        articulated_body,
+        body_consequences,
+        respiratory_efferent_carriers,
+        interval_sample_count,
+        SPECTRAL_ORGAN_MATERIAL,
+    )
+}
+
+fn settle_native_articulatory_interval_with_material(
+    articulated_body: ArticulatedBodyState,
+    body_consequences: &[BodyProprioceptiveConsequence],
+    respiratory_efferent_carriers: u128,
+    interval_sample_count: usize,
+    material: SpectralOrganMaterial,
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     if interval_sample_count == 0 || interval_sample_count > MAX_ARTICULATORY_INTERVAL_SAMPLES {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
     let mut acoustic = articulated_body.articulatory_acoustic_state();
+    let mut lung_air_microlitres = articulated_body.lung_air_microlitres();
     let mut applied = 0_u128;
     let mut stalled = 0_u128;
     for consequence in body_consequences {
@@ -160,38 +209,35 @@ pub(crate) fn settle_native_articulatory_interval(
                     .checked_sub(impulse)
                     .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
             }
-            ArticulatoryAcousticState::Spectral(spectral) => {
-                if consequence.axis != BodyAxis::GlottalAperture {
-                    continue;
-                }
-                stalled = stalled
-                    .checked_add(consequence.stalled_carriers)
-                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                let admitted_closure =
-                    if consequence.toward_minimum_carriers > consequence.toward_maximum_carriers {
-                        (consequence.toward_minimum_carriers - consequence.toward_maximum_carriers)
-                            .checked_sub(consequence.stalled_carriers)
-                            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?
-                    } else {
-                        0
-                    };
-                let coupled = if consequence.signed_displacement < 0 {
-                    min(admitted_closure, 8)
-                } else {
-                    0
-                };
-                applied = applied
-                    .checked_add(coupled)
-                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                stalled = stalled
-                    .checked_add(admitted_closure - coupled)
-                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                if coupled == 0 {
-                    continue;
-                }
+            // Spectral articulation reads the already-settled body posture
+            // below. A glottal or tract movement is shape, not respiratory
+            // work. In particular, the gustatory swallowing reflex must close
+            // the airway without manufacturing breath or voiced pressure.
+            ArticulatoryAcousticState::Spectral(_) => {}
+        }
+    }
+    match &mut acoustic {
+        ArticulatoryAcousticState::Spectral(spectral) => {
+            // A below-equilibrium chest is in its physical return stroke.
+            // More expiratory discharge cannot create air or reverse that
+            // stroke; it stalls until the same lung reaches neutral again.
+            let coupled = if lung_air_microlitres == NEUTRAL_LUNG_AIR_MICROLITRES
+                && spectral.expiratory_volume_remainder_sixteenths_microlitre == 0
+            {
+                min(respiratory_efferent_carriers, 8)
+            } else {
+                0
+            };
+            applied = applied
+                .checked_add(coupled)
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+            stalled = stalled
+                .checked_add(respiratory_efferent_carriers - coupled)
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+            if coupled != 0 {
                 let added_work = i64::try_from(coupled)
                     .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
-                    .checked_mul(RESPIRATORY_WORK_PER_CLOSING_CARRIER)
+                    .checked_mul(material.respiratory_work_per_efferent_carrier)
                     .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
                 spectral.respiratory_work_remaining = min(
                     MAX_SPECTRAL_RESPIRATORY_WORK,
@@ -200,25 +246,12 @@ pub(crate) fn settle_native_articulatory_interval(
                         .checked_add(added_work)
                         .ok_or(ArticulatoryBodyError::ArithmeticWidth)?,
                 );
-                let impulse = i32::try_from(coupled)
-                    .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
-                    .checked_mul(96)
-                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                if spectral.fold_displacement == [0; 2]
-                    && spectral.fold_previous_displacement == [0; 2]
-                {
-                    spectral.fold_displacement = [-impulse, -impulse + 1];
-                } else {
-                    spectral.fold_previous_displacement[0] = spectral
-                        .fold_previous_displacement[0]
-                        .checked_add(impulse)
-                        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                    spectral.fold_previous_displacement[1] = spectral
-                        .fold_previous_displacement[1]
-                        .checked_add(impulse - 1)
-                        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
-                }
             }
+        }
+        ArticulatoryAcousticState::LegacyV6(_) => {
+            stalled = stalled
+                .checked_add(respiratory_efferent_carriers)
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
         }
     }
     let glottal_apex = glottal_open_samples(&articulated_body)?;
@@ -292,6 +325,8 @@ pub(crate) fn settle_native_articulatory_interval(
                     spectral,
                     articulated_body.axis(BodyAxis::GlottalAperture),
                     areas,
+                    &mut lung_air_microlitres,
+                    material,
                 )?;
                 respiratory_flow_sample = flow;
                 if fold_velocity.unsigned_abs() > strongest_surface_velocity.unsigned_abs() {
@@ -310,7 +345,7 @@ pub(crate) fn settle_native_articulatory_interval(
         body_mechanics[3].push(body_channels[2]);
     }
     let successor_body = articulated_body
-        .with_articulatory_acoustic_state(acoustic)
+        .with_respiratory_successor(acoustic, lung_air_microlitres)
         .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
     Ok(ArticulatoryBodyTransition {
         radiated_pressure_pcm: radiated,
@@ -332,19 +367,31 @@ pub(crate) fn settle_native_articulatory_interval(
 /// that production persists.
 #[cfg(test)]
 pub(crate) fn settle_physical_transducer_interval_discharges(
-    intervals: &[(usize, Vec<BodyProprioceptiveConsequence>, ArticulatedBodyState)],
+    intervals: &[(
+        usize,
+        u128,
+        Vec<BodyProprioceptiveConsequence>,
+        ArticulatedBodyState,
+    )],
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     if intervals.is_empty()
-        || intervals.iter().any(|(samples, _, _)| *samples == 0)
+        || intervals.iter().any(|(samples, _, _, _)| *samples == 0)
         || intervals
             .iter()
-            .all(|(_, consequences, _)| consequences.is_empty())
+            .all(|(_, respiratory, consequences, _)| {
+                *respiratory == 0 && consequences.is_empty()
+            })
     {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
-    let active_sample_count = intervals.iter().try_fold(0usize, |total, (samples, _, _)| {
-        total.checked_add(*samples).ok_or(ArticulatoryBodyError::ArithmeticWidth)
-    })?;
+    let active_sample_count =
+        intervals
+            .iter()
+            .try_fold(0usize, |total, (samples, _, _, _)| {
+                total
+                    .checked_add(*samples)
+                    .ok_or(ArticulatoryBodyError::ArithmeticWidth)
+            })?;
     let output_capacity = active_sample_count
         .checked_add(MAX_RELAXATION_SAMPLES)
         .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
@@ -356,8 +403,8 @@ pub(crate) fn settle_physical_transducer_interval_discharges(
         trajectory.try_reserve_exact(output_capacity)
             .map_err(|_| ArticulatoryBodyError::ResourceUnavailable)?;
     }
-    let mut acoustic = intervals[0].2.articulatory_acoustic_state();
-    let mut final_body = intervals[0].2.clone();
+    let mut acoustic = intervals[0].3.articulatory_acoustic_state();
+    let mut final_body = intervals[0].3.clone();
     let mut applied_motor_quanta = 0_u128;
     let mut stalled_motor_quanta = 0_u128;
     let mut strongest_surface_velocity = 0_i32;
@@ -365,10 +412,15 @@ pub(crate) fn settle_physical_transducer_interval_discharges(
     let mut strongest_mouth_area = 0_i32;
     let mut final_perioral_area = 0_i32;
 
-    for (samples, consequences, body) in intervals {
+    for (samples, respiratory, consequences, body) in intervals {
         let body = body.clone().with_articulatory_acoustic_state(acoustic)
             .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
-        let settled = settle_native_articulatory_interval(body, consequences, *samples)?;
+        let settled = settle_native_articulatory_interval(
+            body,
+            consequences,
+            *respiratory,
+            *samples,
+        )?;
         acoustic = settled.successor_body.articulatory_acoustic_state();
         final_body = settled.successor_body.clone();
         radiated.extend_from_slice(&settled.radiated_pressure_pcm);
@@ -393,11 +445,11 @@ pub(crate) fn settle_physical_transducer_interval_discharges(
         final_perioral_area = settled.perioral_area_displacement_square_millimetres;
     }
     let mut relaxation_sample_count = 0usize;
-    while !acoustic.is_quiescent() {
+    while !final_body.articulatory_system_is_quiescent() {
         if relaxation_sample_count == MAX_RELAXATION_SAMPLES {
             return Err(ArticulatoryBodyError::RelaxationDidNotQuiesce);
         }
-        let settled = settle_native_articulatory_interval(final_body.clone(), &[], 1)?;
+        let settled = settle_native_articulatory_interval(final_body.clone(), &[], 0, 1)?;
         acoustic = settled.successor_body.articulatory_acoustic_state();
         final_body = settled.successor_body.clone();
         radiated.extend_from_slice(&settled.radiated_pressure_pcm);
@@ -497,13 +549,15 @@ fn articulated_body_channels(
 }
 
 /// Advance the present body-owned voice by one acoustic sample. The only
-/// continuing source is bounded respiratory work loaded by real closing
-/// motion at the glottis. The tract coordinates derive five lossy mechanical
+/// continuing source is bounded respiratory work loaded by the resident
+/// respiratory effector. The tract coordinates derive five lossy mechanical
 /// modes; no sound name, target spectrum, phase clock, or waveform is present.
 fn advance_spectral_organ(
     state: &mut SpectralAcousticState,
     glottal_area_square_millimetres: i32,
     tract_areas: [i32; TRACT_SECTION_COUNT],
+    lung_air_microlitres: &mut u32,
+    material: SpectralOrganMaterial,
 ) -> Result<(i16, i16, i32), ArticulatoryBodyError> {
     let work_active = state.respiratory_work_remaining > 0;
     let work_fraction = if work_active {
@@ -526,8 +580,9 @@ fn advance_spectral_organ(
     //   fold_previous_displacement[0] present valve conductance
     //   fold_previous_displacement[1] prior valve conductance
     if work_active {
-        let rate_hz = VALVE_RATE_FLOOR_HZ
-            + (VALVE_RATE_CEILING_HZ - VALVE_RATE_FLOOR_HZ) * i64::from(work_fraction)
+        let rate_hz = material.valve_rate_floor_hz
+            + (material.valve_rate_ceiling_hz - material.valve_rate_floor_hz)
+                * i64::from(work_fraction)
                 / i64::from(FIXED_ONE);
         let sample_rate = i64::from(ARTICULATORY_SAMPLE_RATE_HZ);
         let step_numerator = rate_hz
@@ -622,13 +677,80 @@ fn advance_spectral_organ(
     } else {
         0
     };
-    let volume_flow = i32::try_from(
-        i128::from(breath_pressure) * i128::from(opening) / i128::from(FOLD_POSITION_SCALE),
+    let candidate_volume_flow = if work_active {
+        i32::try_from(
+            i128::from(breath_pressure) * i128::from(opening)
+                / i128::from(FOLD_POSITION_SCALE),
+        )
+        .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+    } else if *lung_air_microlitres < NEUTRAL_LUNG_AIR_MICROLITRES
+        || state.expiratory_volume_remainder_sixteenths_microlitre > 0
+    {
+        -PASSIVE_INSPIRATORY_FLOW_MILLILITRES_PER_SECOND
+    } else {
+        0
+    };
+    let retained_remainder =
+        i64::from(state.expiratory_volume_remainder_sixteenths_microlitre);
+    let volume_flow = if candidate_volume_flow >= 0 {
+        let available_sixteenths = i64::from(
+            lung_air_microlitres
+                .checked_sub(MIN_LUNG_AIR_MICROLITRES)
+                .and_then(|available| {
+                    available.checked_mul(RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE)
+                })
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?,
+        )
+        .checked_sub(retained_remainder)
+        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        i32::try_from(min(i64::from(candidate_volume_flow), available_sixteenths))
+            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+    } else {
+        let fillable_sixteenths = i64::from(
+            NEUTRAL_LUNG_AIR_MICROLITRES
+                .checked_sub(*lung_air_microlitres)
+                .and_then(|deficit| {
+                    deficit.checked_mul(RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE)
+                })
+                .ok_or(ArticulatoryBodyError::ArithmeticWidth)?,
+        )
+        .checked_add(retained_remainder)
+        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+        -i32::try_from(min(
+            i64::from(candidate_volume_flow).unsigned_abs(),
+            u64::try_from(fillable_sixteenths)
+                .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+        ))
+        .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+    };
+    let accumulated_sixteenths = retained_remainder
+        .checked_add(i64::from(volume_flow))
+        .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+    let whole_microlitres = accumulated_sixteenths
+        / i64::from(RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE);
+    if whole_microlitres >= 0 {
+        *lung_air_microlitres = lung_air_microlitres
+            .checked_sub(
+                u32::try_from(whole_microlitres)
+                    .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+            )
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+    } else {
+        *lung_air_microlitres = lung_air_microlitres
+            .checked_add(
+                u32::try_from(whole_microlitres.unsigned_abs())
+                    .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?,
+            )
+            .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
+    }
+    state.expiratory_volume_remainder_sixteenths_microlitre = i32::try_from(
+        accumulated_sixteenths
+            % i64::from(RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE),
     )
     .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
     if work_active {
         let flow_loss = i64::from(volume_flow).unsigned_abs() / 32;
-        let total_loss = RESPIRATORY_REST_LOSS_PER_SAMPLE
+        let total_loss = material.respiratory_rest_loss_per_sample
             .checked_add(i64::try_from(flow_loss).map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?)
             .ok_or(ArticulatoryBodyError::ArithmeticWidth)?;
         state.respiratory_work_remaining = max(
@@ -723,7 +845,7 @@ fn advance_spectral_organ(
     }
     let emitted = i16::try_from(round_div(
         i64::from(signal),
-        INTERNAL_PRESSURE_PER_PCM,
+        material.internal_pressure_per_pcm,
     )?)
         .map_err(|_| ArticulatoryBodyError::PressureOutsideAudioWidth)?;
     let flow_sample = i16::try_from(volume_flow)
@@ -1059,39 +1181,27 @@ mod tests {
         predecessor: ArticulatedBodyState,
         axis: BodyAxis,
         direction: BodyEffectorDirection,
-        carriers: u128,
+        body_carriers: u128,
+        respiratory_carriers: u128,
         samples: usize,
     ) -> ArticulatoryBodyTransition {
-        let (body, consequences) = moved(&predecessor, axis, direction, carriers);
-        settle_native_articulatory_interval(body, &consequences, samples).unwrap()
-    }
-
-    fn jaw_consequences(carriers: u128) -> Vec<BodyProprioceptiveConsequence> {
-        moved(
-            &ArticulatedBodyState::at_neutral(),
-            BodyAxis::JawOpening,
-            BodyEffectorDirection::TowardMaximum,
-            carriers,
+        let (body, consequences) = moved(&predecessor, axis, direction, body_carriers);
+        settle_native_articulatory_interval(
+            body,
+            &consequences,
+            respiratory_carriers,
+            samples,
         )
-        .1
-    }
-
-    fn breath_consequences(carriers: u128) -> Vec<BodyProprioceptiveConsequence> {
-        moved(
-            &ArticulatedBodyState::at_neutral(),
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
-            carriers,
-        )
-        .1
+        .unwrap()
     }
 
     #[test]
-    fn one_real_typed_displacement_uses_the_resident_body_and_radiates_pressure() {
+    fn one_real_respiratory_discharge_uses_the_resident_body_and_radiates_pressure() {
         let settled = active_interval(
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            13,
             13,
             ACTIVE_SAMPLE_COUNT,
         );
@@ -1117,11 +1227,12 @@ mod tests {
     }
 
     #[test]
-    fn source_is_glottal_work_while_jaw_and_lips_only_shape_it() {
+    fn respiratory_work_is_the_source_while_body_axes_only_shape_it() {
         let voice = active_interval(
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            3,
             3,
             4_000,
         );
@@ -1130,6 +1241,7 @@ mod tests {
             BodyAxis::JawOpening,
             BodyEffectorDirection::TowardMaximum,
             3,
+            0,
             4_000,
         );
         let lips = active_interval(
@@ -1137,6 +1249,7 @@ mod tests {
             BodyAxis::LipWidth,
             BodyEffectorDirection::TowardMaximum,
             3,
+            0,
             4_000,
         );
         assert!(voice.radiated_pressure_pcm.iter().any(|sample| *sample != 0));
@@ -1150,6 +1263,7 @@ mod tests {
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            8,
             8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
@@ -1167,11 +1281,12 @@ mod tests {
     }
 
     #[test]
-    fn one_closing_event_launches_bounded_work_without_repeating_discharge() {
+    fn one_respiratory_event_launches_bounded_work_without_repeating_discharge() {
         let settled = active_interval(
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            8,
             8,
             4_000,
         );
@@ -1191,11 +1306,107 @@ mod tests {
     }
 
     #[test]
+    fn respiratory_flow_debits_the_exact_bounded_lung_and_stops_at_residual_volume() {
+        let neutral = ArticulatedBodyState::at_neutral();
+        let settled = active_interval(
+            neutral.clone(),
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            8,
+            8,
+            4_000,
+        );
+        let emitted_sixteenths = settled.body_mechanical_trajectories[0]
+            .iter()
+            .try_fold(0_u32, |total, flow| {
+                total.checked_add(u32::from(flow.unsigned_abs()))
+            })
+            .unwrap();
+        let ArticulatoryAcousticState::Spectral(acoustic) =
+            settled.successor_body.articulatory_acoustic_state()
+        else {
+            panic!("current respiratory organ changed acoustic variant")
+        };
+        assert!(emitted_sixteenths > 0);
+        assert_eq!(
+            settled.successor_body.lung_air_microlitres(),
+            neutral.lung_air_microlitres()
+                - emitted_sixteenths / RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE,
+        );
+        assert_eq!(
+            acoustic.expiratory_volume_remainder_sixteenths_microlitre,
+            i32::try_from(emitted_sixteenths % RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE)
+                .unwrap(),
+        );
+
+        let one_microlitre = ArticulatedBodyState::from_physical_state(
+            *neutral.axes(),
+            MIN_LUNG_AIR_MICROLITRES + 1,
+            neutral.proprioception_initialized(),
+        )
+        .unwrap();
+        let exhausted = active_interval(
+            one_microlitre,
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            8,
+            8,
+            4_000,
+        );
+        let exhausted_outflow_sixteenths = exhausted.body_mechanical_trajectories[0]
+            .iter()
+            .filter(|flow| **flow > 0)
+            .map(|flow| u32::try_from(*flow).unwrap())
+            .sum::<u32>();
+        assert_eq!(exhausted_outflow_sixteenths, 0);
+        assert_eq!(exhausted.applied_motor_quanta, 0);
+        assert_eq!(exhausted.stalled_motor_quanta, 8);
+        assert!(exhausted.body_mechanical_trajectories[0]
+            .iter()
+            .any(|flow| *flow < 0));
+        assert!(exhausted.successor_body.lung_air_microlitres()
+            > MIN_LUNG_AIR_MICROLITRES);
+        assert!(exhausted.successor_body.lung_air_microlitres()
+            <= NEUTRAL_LUNG_AIR_MICROLITRES);
+
+        let empty = ArticulatedBodyState::from_physical_state(
+            *neutral.axes(),
+            MIN_LUNG_AIR_MICROLITRES,
+            neutral.proprioception_initialized(),
+        )
+        .unwrap();
+        let recovering = active_interval(
+            empty,
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            8,
+            8,
+            4_000,
+        );
+        assert!(recovering.body_mechanical_trajectories[0]
+            .iter()
+            .all(|flow| *flow <= 0));
+        assert!(recovering.body_mechanical_trajectories[0]
+            .iter()
+            .any(|flow| *flow < 0));
+        assert_eq!(recovering.applied_motor_quanta, 0);
+        assert_eq!(recovering.stalled_motor_quanta, 8);
+        assert_eq!(
+            recovering.successor_body.lung_air_microlitres(),
+            MIN_LUNG_AIR_MICROLITRES
+                + (PASSIVE_INSPIRATORY_FLOW_MILLILITRES_PER_SECOND.unsigned_abs()
+                    * 4_000)
+                    / RESPIRATORY_FLOW_SAMPLES_PER_MICROLITRE,
+        );
+    }
+
+    #[test]
     fn body_owned_transducer_cold_restores_and_reaches_exact_rest_without_another_discharge() {
         let first = active_interval(
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            3,
             3,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
@@ -1207,12 +1418,10 @@ mod tests {
             restored.articulatory_acoustic_state(),
             first.successor_body.articulatory_acoustic_state()
         );
-        let released = settle_native_articulatory_interval(restored, &[], 8_000).unwrap();
+        let released =
+            settle_native_articulatory_interval(restored, &[], 0, 184_000).unwrap();
         assert_eq!(released.applied_motor_quanta, 0);
-        assert_eq!(
-            released.successor_body.articulatory_acoustic_state(),
-            ArticulatoryAcousticState::at_rest()
-        );
+        assert!(released.successor_body.articulatory_system_is_quiescent());
     }
 
     #[test]
@@ -1221,6 +1430,7 @@ mod tests {
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            8,
             8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
@@ -1233,6 +1443,7 @@ mod tests {
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
             8,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
         let uninterrupted = active_interval(
@@ -1240,11 +1451,13 @@ mod tests {
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
             8,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
 
         assert_eq!(continued, uninterrupted);
-        assert_eq!(continued.applied_motor_quanta, 8);
+        assert_eq!(continued.applied_motor_quanta, 0);
+        assert_eq!(continued.stalled_motor_quanta, 8);
         assert_ne!(
             continued.successor_body.articulatory_acoustic_state(),
             ArticulatoryAcousticState::at_rest()
@@ -1258,11 +1471,13 @@ mod tests {
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
             8,
+            8,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
         let released = settle_native_articulatory_interval(
             active.successor_body,
             &[],
+            0,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         )
         .unwrap();
@@ -1287,14 +1502,14 @@ mod tests {
             8,
         );
         let contiguous = settle_physical_transducer_interval_discharges(&[
-            (4_000, first_breath.clone(), first_body.clone()),
-            (4_000, second_breath.clone(), second_body.clone()),
+            (4_000, 8, first_breath.clone(), first_body.clone()),
+            (4_000, 8, second_breath.clone(), second_body.clone()),
         ])
         .unwrap();
         let separated = settle_physical_transducer_interval_discharges(&[
-            (4_000, first_breath, first_body.clone()),
-            (4_000, vec![], first_body),
-            (4_000, second_breath, second_body),
+            (4_000, 8, first_breath, first_body.clone()),
+            (4_000, 0, vec![], first_body),
+            (4_000, 8, second_breath, second_body),
         ])
         .unwrap();
 
@@ -1306,7 +1521,8 @@ mod tests {
             separated.radiated_pressure_pcm.len(),
             12_000 + separated.relaxation_sample_count
         );
-        assert_eq!(separated.applied_motor_quanta, 16);
+        assert_eq!(separated.applied_motor_quanta, 8);
+        assert_eq!(separated.stalled_motor_quanta, 8);
     }
 
     #[test]
@@ -1315,6 +1531,7 @@ mod tests {
             ArticulatedBodyState::at_neutral(),
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMinimum,
+            8,
             8,
             184_000,
         );
@@ -1349,12 +1566,14 @@ mod tests {
         );
         let neutral_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
+            8,
             neutral_breath,
             neutral_voice_body,
         )])
         .unwrap();
         let open_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
+            8,
             open_breath,
             open_voice_body,
         )])
@@ -1391,12 +1610,14 @@ mod tests {
         );
         let neutral_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
+            8,
             neutral_breath,
             neutral_voice_body,
         )])
         .unwrap();
         let shaped_sound = settle_physical_transducer_interval_discharges(&[(
             4_000,
+            8,
             shaped_breath,
             shaped_voice_body,
         )])
@@ -1443,13 +1664,95 @@ mod tests {
         carriers: u128,
         samples: usize,
     ) -> ArticulatoryBodyTransition {
-        let (voice_body, breath) = moved(
-            &body,
-            BodyAxis::GlottalAperture,
-            BodyEffectorDirection::TowardMinimum,
+        settle_physical_transducer_interval_discharges(&[(samples, carriers, vec![], body)])
+            .unwrap()
+    }
+
+    fn render_bounded_voice_with_material(
+        body: ArticulatedBodyState,
+        carriers: u128,
+        samples: usize,
+        material: SpectralOrganMaterial,
+    ) -> ArticulatoryBodyTransition {
+        settle_native_articulatory_interval_with_material(
+            body,
+            &[],
             carriers,
+            samples,
+            material,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn dynamic_source_material_range_locates_duration_rate_and_pressure_boundaries() {
+        let body = body_for_modal_frequencies([1_030, 1_370, 3_170, 4_400, 5_500]);
+        let mut accepted_region_count = 0usize;
+        for work_per_carrier in [512_000_i64, 1_024_000, 1_536_000, 2_048_000] {
+            for (rate_floor, rate_ceiling) in [(320_i64, 360_i64), (340, 376), (352, 376)] {
+                for pressure_divisor in [4_i64, 2, 1] {
+                    let material = SpectralOrganMaterial {
+                        respiratory_work_per_efferent_carrier: work_per_carrier,
+                        valve_rate_floor_hz: rate_floor,
+                        valve_rate_ceiling_hz: rate_ceiling,
+                        respiratory_rest_loss_per_sample: 256,
+                        internal_pressure_per_pcm: pressure_divisor,
+                    };
+                    let rendered = render_bounded_voice_with_material(
+                        body.clone(),
+                        2,
+                        16_000,
+                        material,
+                    );
+                    let flow = &rendered.body_mechanical_trajectories[0];
+                    let first_flow = flow.iter().position(|sample| *sample > 0);
+                    let last_flow = flow.iter().rposition(|sample| *sample > 0);
+                    let active_samples = match (first_flow, last_flow) {
+                        (Some(first), Some(last)) => last - first + 1,
+                        _ => 0,
+                    };
+                    let cycle_count = flow
+                        .windows(2)
+                        .filter(|pair| pair[0] == 0 && pair[1] > 0)
+                        .count();
+                    let observed_rate_hz = if active_samples == 0 {
+                        0
+                    } else {
+                        cycle_count * ARTICULATORY_SAMPLE_RATE_HZ as usize / active_samples
+                    };
+                    let peak = rendered
+                        .radiated_pressure_pcm
+                        .iter()
+                        .map(|sample| sample.unsigned_abs())
+                        .max()
+                        .unwrap_or(0);
+                    let duration_in_accepted_gesture_band =
+                        (8_000..=16_000).contains(&active_samples);
+                    let rate_in_accepted_child_source_band =
+                        (340..=390).contains(&observed_rate_hz);
+                    let pressure_is_audible_without_clipping = peak >= 64 && peak < 32_768;
+                    accepted_region_count += usize::from(
+                        duration_in_accepted_gesture_band
+                            && rate_in_accepted_child_source_band
+                            && pressure_is_audible_without_clipping,
+                    );
+                    eprintln!(
+                        "source-range work={work_per_carrier} floor={rate_floor} ceiling={rate_ceiling} divisor={pressure_divisor} active_samples={active_samples} observed_rate_hz={observed_rate_hz} peak={peak}"
+                    );
+                }
+            }
+        }
+        assert!(accepted_region_count > 1, "the material gate collapsed to one guessed point");
+
+        let no_work_predecessor = body;
+        let no_work = render_bounded_voice_with_material(
+            no_work_predecessor.clone(),
+            0,
+            16_000,
+            SPECTRAL_ORGAN_MATERIAL,
         );
-        settle_physical_transducer_interval_discharges(&[(samples, breath, voice_body)]).unwrap()
+        assert!(no_work.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
+        assert_eq!(no_work.successor_body, no_work_predecessor);
     }
 
     #[test]
@@ -1493,7 +1796,8 @@ mod tests {
             let mut axes = *neutral.axes();
             axes[BodyAxis::GlottalAperture.index()] = glottal_area;
             let mut acoustic = SpectralAcousticState::at_rest();
-            acoustic.respiratory_work_remaining = RESPIRATORY_WORK_PER_CLOSING_CARRIER;
+            acoustic.respiratory_work_remaining =
+                SPECTRAL_ORGAN_MATERIAL.respiratory_work_per_efferent_carrier;
             acoustic.fold_displacement = [-384, -383];
             let body = ArticulatedBodyState::from_physical_state(
                 axes,
@@ -1503,7 +1807,7 @@ mod tests {
             .unwrap()
             .with_articulatory_acoustic_state(ArticulatoryAcousticState::Spectral(acoustic))
             .unwrap();
-            let settled = settle_native_articulatory_interval(body, &[], 4_000).unwrap();
+            let settled = settle_native_articulatory_interval(body, &[], 0, 4_000).unwrap();
             assert!(settled.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
         }
     }
@@ -1552,17 +1856,47 @@ mod tests {
                 .expect("AWS-bracketed harness must supply its isolated output directory"),
         );
         fs::create_dir_all(&output).unwrap();
-        let candidates = [
-            ("region-a", [1_030, 1_370, 3_170, 4_400, 5_500]),
-            ("region-b", [370, 3_200, 3_730, 4_400, 5_500]),
-            ("region-c", [580, 1_120, 3_350, 4_400, 5_500]),
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut copied_pose_axes = *neutral.axes();
+        copied_pose_axes[BodyAxis::GlottalAperture.index()] = 39;
+        for (axis, area) in [
+            BodyAxis::VocalTractSection0Area,
+            BodyAxis::VocalTractSection1Area,
+            BodyAxis::VocalTractSection2Area,
+            BodyAxis::VocalTractSection3Area,
+            BodyAxis::VocalTractSection4Area,
+            BodyAxis::VocalTractSection5Area,
+            BodyAxis::VocalTractSection6Area,
+            BodyAxis::VocalTractSection7Area,
+        ]
+        .iter()
+        .zip([125, 145, 165, 185, 205, 225, 245, 265])
+        {
+            copied_pose_axes[axis.index()] = area;
+        }
+        let copied_pose = ArticulatedBodyState::from_physical_state(
+            copied_pose_axes,
+            NEUTRAL_LUNG_AIR_MICROLITRES,
+            true,
+        )
+        .expect("task-1428 copied posture is anatomical");
+        let candidates = vec![
+            (
+                "region-a",
+                body_for_modal_frequencies([1_030, 1_370, 3_170, 4_400, 5_500]),
+            ),
+            (
+                "region-b",
+                body_for_modal_frequencies([370, 3_200, 3_730, 4_400, 5_500]),
+            ),
+            (
+                "region-c",
+                body_for_modal_frequencies([580, 1_120, 3_350, 4_400, 5_500]),
+            ),
+            ("task-1428-one-shot-control", copied_pose),
         ];
-        for (name, frequencies) in candidates {
-            let transition = render_bounded_voice(
-                body_for_modal_frequencies(frequencies),
-                8,
-                16_000,
-            );
+        for (name, body) in candidates {
+            let transition = render_bounded_voice(body, 8, 16_000);
             let samples = transition.radiated_pressure_pcm;
             let flow = transition.body_mechanical_trajectories[0].clone();
             let amplified = samples
@@ -1611,7 +1945,7 @@ mod tests {
             }
             fs::write(output.join(format!("{name}-flow.wav")), flow_wav).unwrap();
         }
-        let html = r#"<!doctype html><meta charset=utf-8><title>Guala spectral organ body proof</title><style>body{font:18px system-ui;max-width:760px;margin:40px auto;background:#10171c;color:#e8f2f2}button{font-size:20px;margin:8px;padding:12px 22px}</style><h1>Attempt 1 rejected — exact intended sounds</h1><p>Joe rejected all three as weak, gravelly cheap-synth piano. They remain here only as the repair record. Each button now says exactly what the organ was intended to produce.</p><button onclick="new Audio('region-a.wav').play()">Intended AH — REJECTED</button><button onclick="new Audio('region-b.wav').play()">Intended EE — REJECTED</button><button onclick="new Audio('region-c.wav').play()">Intended OO — REJECTED</button><p>These are exact deterministic 16-kHz pressures with observer-only x49 speaker gain. The phoneme labels belong only to this external test page; no sound name or target exists inside the organ.</p>"#;
+        let html = r#"<!doctype html><meta charset=utf-8><title>Guala spectral organ body proof</title><style>body{font:18px system-ui;max-width:760px;margin:40px auto;background:#10171c;color:#e8f2f2}button{font-size:20px;margin:8px;padding:12px 22px}</style><h1>Speech repair diagnostic control</h1><p>The first three are the rejected target-region record. The fourth is the exact task-1428 vocal posture supplied one ideal, isolated respiratory act. It is diagnostic only and cannot ship.</p><button onclick="new Audio('region-a.wav').play()">Intended AH — REJECTED</button><button onclick="new Audio('region-b.wav').play()">Intended EE — REJECTED</button><button onclick="new Audio('region-c.wav').play()">Intended OO — REJECTED</button><button onclick="new Audio('task-1428-one-shot-control.wav').play()">Task 1428 posture — one-shot diagnostic</button><p>These are exact deterministic 16-kHz pressures with observer-only x49 speaker gain. The labels belong only to this external test page; no sound name or target exists inside the organ.</p>"#;
         fs::write(output.join("index.html"), html).unwrap();
     }
 
@@ -1647,9 +1981,9 @@ mod tests {
             true,
         )
         .expect("published pose is anatomical");
-        // Fully-open control: an opening activation creates no closing-source
-        // work. The off-neutral tissue may still return passively, but that
-        // return cannot be relabeled as a new respiratory discharge.
+        // Fully-open control: body motion has no respiratory source. The
+        // off-neutral tissue may still return passively, but that return
+        // cannot be relabeled as a new respiratory discharge.
         let (stalled_body, stalled_breath) = moved(
             &wide_open,
             BodyAxis::GlottalAperture,
@@ -1658,6 +1992,7 @@ mod tests {
         );
         let silent = settle_physical_transducer_interval_discharges(&[(
             16_000,
+            0,
             stalled_breath,
             stalled_body,
         )])
@@ -1718,6 +2053,7 @@ mod tests {
             BodyAxis::GlottalAperture,
             BodyEffectorDirection::TowardMaximum,
             7,
+            0,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
         let shoulder = active_interval(
@@ -1725,6 +2061,7 @@ mod tests {
             BodyAxis::LeftShoulderPitch,
             BodyEffectorDirection::TowardMaximum,
             7,
+            0,
             NATIVE_ARTICULATORY_INTERVAL_SAMPLES,
         );
         assert_eq!(stalled.applied_motor_quanta, 0);
@@ -1732,5 +2069,32 @@ mod tests {
         assert!(stalled.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
         assert_eq!(shoulder.applied_motor_quanta, 0);
         assert!(shoulder.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
+    }
+
+    #[test]
+    fn swallowing_closure_without_l13_respiration_is_exact_silence() {
+        let (closed_body, swallowing_consequences) = moved(
+            &ArticulatedBodyState::at_neutral(),
+            BodyAxis::GlottalAperture,
+            BodyEffectorDirection::TowardMinimum,
+            8,
+        );
+        let settled = settle_native_articulatory_interval(
+            closed_body,
+            &swallowing_consequences,
+            0,
+            16_000,
+        )
+        .unwrap();
+
+        assert_eq!(settled.applied_motor_quanta, 0);
+        assert!(settled
+            .radiated_pressure_pcm
+            .iter()
+            .all(|sample| *sample == 0));
+        assert!(settled
+            .successor_body
+            .articulatory_acoustic_state()
+            .is_quiescent());
     }
 }

@@ -181,13 +181,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::sync::Arc;
 
-/// Measurement-only switch for the copied-body motor-transduction falsifier.
-/// The symbol and every branch that reads it are absent from production
-/// builds. It cannot become runtime authority or persisted organism state.
-#[cfg(test)]
-static TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION: std::sync::atomic::AtomicBool =
-    std::sync::atomic::AtomicBool::new(false);
-
 const MAGIC: &[u8; 8] = b"GLCOG012";
 const VERSION: u16 = 12;
 const MAGIC_V13: &[u8; 8] = b"GLCOG013";
@@ -18242,7 +18235,7 @@ fn exact_motor_preparation_transfers(
     motor_lineage: [u8; 16],
     settled_directed_transfers: &[DirectedPhysicalTransferObservation],
     permitted_regulation_lineages: &[[u8; 16]],
-    causal_seed_lineages: &BTreeSet<[u8; 16]>,
+    fresh_seed_lineages: &BTreeSet<[u8; 16]>,
     layer_of: impl Fn([u8; 16]) -> Option<u32>,
 ) -> Vec<DirectedPhysicalTransferObservation> {
     let mut preparation_transfers = settled_directed_transfers
@@ -18254,7 +18247,7 @@ fn exact_motor_preparation_transfers(
             }
             let adjacent_layer = layer_of(transfer.sender);
             matches!(adjacent_layer, Some(11))
-                || causal_seed_lineages.contains(&transfer.sender)
+                || fresh_seed_lineages.contains(&transfer.sender)
                     && matches!(adjacent_layer, Some(8))
                     && permitted_regulation_lineages
                         .binary_search(&transfer.sender)
@@ -19407,20 +19400,18 @@ fn settle_internal_contact_interval(
         }
     }
 
-    // Copied-body falsifier only: replace each retained L11/L12 gap junction
-    // with the minimum indivisible three-terminal transduction. One carrier
-    // from a real L11 -> founding-L7 outward event is delivered to that
-    // L11 cell's one learned motor while the total carrier count leaving L11
-    // remains unchanged. The complete selected frontier must still strictly
-    // lower its exact membrane-plus-gradient work. No production build
-    // contains this branch or its switch.
-    #[cfg(test)]
-    let mut test_ordering_motor_transductions = Vec::new();
-    #[cfg(test)]
-    if TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .load(std::sync::atomic::Ordering::Relaxed)
+    // A learned L11/L12 motor contact is not a symmetric equalizing junction.
+    // It is the body's smallest proved three-terminal transducer: when its
+    // ordering cell is physically sending at least two whole carriers into
+    // that cell's founding L7 route, exactly one of those same carriers enters
+    // the learned L12 motor. The founding route keeps at least one carrier;
+    // total charge is unchanged; and the complete selected frontier must
+    // strictly lower its exact membrane-plus-gradient work. The persisted
+    // learned contact supplies anatomy only—no label, score, timer, command,
+    // or new energy store enters this settlement.
+    let mut ordering_motor_transductions = Vec::new();
     {
-        let mut test_ordering_motor_bridges = Vec::new();
+        let mut ordering_motor_bridges = Vec::new();
         for position in 0..settled.transitions.len() {
             let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
             let left_layer = layer_of(flat_locations[left_flat].2);
@@ -19433,18 +19424,18 @@ fn settle_internal_contact_interval(
             let signed = settled.transitions[position].outward_elementary_charges_from_left;
             let left_coordinate = selected
                 .binary_search(&left_flat)
-                .expect("test bridge left endpoint must be selected");
+                .map_err(|_| FormationError::NoncanonicalState)?;
             let right_coordinate = selected
                 .binary_search(&right_flat)
-                .expect("test bridge right endpoint must be selected");
+                .map_err(|_| FormationError::NoncanonicalState)?;
             settled.outward_elementary_charges_by_neuron[left_coordinate] = settled
                 .outward_elementary_charges_by_neuron[left_coordinate]
                 .checked_sub(signed)
-                .expect("test bridge left cancellation width");
+                .ok_or(FormationError::ArithmeticOverflow)?;
             settled.outward_elementary_charges_by_neuron[right_coordinate] = settled
                 .outward_elementary_charges_by_neuron[right_coordinate]
                 .checked_add(signed)
-                .expect("test bridge right cancellation width");
+                .ok_or(FormationError::ArithmeticOverflow)?;
             settled.transitions[position] = ElectricalContactTransition {
                 successor: compact_predecessor.contact_states()[position].clone(),
                 outward_current_from_left_picoamperes: ExactRational::integer(0),
@@ -19458,7 +19449,7 @@ fn settle_internal_contact_interval(
             } else {
                 (right_flat, left_flat)
             };
-            test_ordering_motor_bridges.push((
+            ordering_motor_bridges.push((
                 ordering_flat,
                 motor_flat,
                 compact_bonds[position],
@@ -19472,11 +19463,11 @@ fn settle_internal_contact_interval(
                 .map(|transition| transition.successor.clone())
                 .collect::<Vec<_>>(),
         )
-        .expect("test bridge successor shape");
-        test_ordering_motor_bridges.sort_unstable();
-        test_ordering_motor_bridges.dedup();
+        .map_err(FormationError::ResidentElectricalUnavailable)?;
+        ordering_motor_bridges.sort_unstable();
+        ordering_motor_bridges.dedup();
         for (ordering_flat, motor_flat, motor_bond) in
-            test_ordering_motor_bridges.iter().copied()
+            ordering_motor_bridges.iter().copied()
         {
             let candidate = settled
                 .transitions
@@ -19494,6 +19485,8 @@ fn settle_internal_contact_interval(
                         (right_flat, left_flat)
                     };
                     (sender_flat == ordering_flat
+                        && is_causal_seed(ordering_flat)
+                        && crosses_new_frontier_bond(ordering_flat, motor_bond)
                         && layer_of(flat_locations[receiver_flat].2) == Some(7)
                         && signed.unsigned_abs() >= 2)
                         .then_some((position, receiver_flat, signed))
@@ -19503,37 +19496,39 @@ fn settle_internal_contact_interval(
             };
             let founding_coordinate = selected
                 .binary_search(&founding_flat)
-                .expect("test founding receiver must be selected");
+                .map_err(|_| FormationError::NoncanonicalState)?;
             let motor_coordinate = selected
                 .binary_search(&motor_flat)
-                .expect("test motor receiver must be selected");
+                .map_err(|_| FormationError::NoncanonicalState)?;
             settled.outward_elementary_charges_by_neuron[founding_coordinate] = settled
                 .outward_elementary_charges_by_neuron[founding_coordinate]
                 .checked_add(1)
-                .expect("test founding carrier adjustment width");
+                .ok_or(FormationError::ArithmeticOverflow)?;
             settled.outward_elementary_charges_by_neuron[motor_coordinate] = settled
                 .outward_elementary_charges_by_neuron[motor_coordinate]
                 .checked_sub(1)
-                .expect("test motor carrier adjustment width");
+                .ok_or(FormationError::ArithmeticOverflow)?;
             settled.transitions[position].outward_elementary_charges_from_left = if signed > 0 {
                 signed - 1
             } else {
                 signed + 1
             };
-            test_ordering_motor_transductions.push(DirectedPhysicalTransferObservation {
+            ordering_motor_transductions.push(DirectedPhysicalTransferObservation {
                 sender: flat_locations[ordering_flat].2,
                 receiver: flat_locations[motor_flat].2,
                 bond: motor_bond,
                 transferred_whole_carriers: 1,
             });
         }
-        if !test_ordering_motor_transductions.is_empty() {
+        if !ordering_motor_transductions.is_empty() {
             let net_outward = settled
                 .outward_elementary_charges_by_neuron
                 .iter()
                 .try_fold(0_i128, |sum, outward| sum.checked_add(*outward))
-                .expect("test selected carrier sum width");
-            assert_eq!(net_outward, 0, "test transduction must conserve carriers");
+                .ok_or(FormationError::ArithmeticOverflow)?;
+            if net_outward != 0 {
+                return Err(FormationError::NoncanonicalState);
+            }
             let mut predecessor_work = BigRational::zero();
             let mut successor_work = BigRational::zero();
             for (coordinate, flat) in selected.iter().copied().enumerate() {
@@ -19545,7 +19540,12 @@ fn settle_internal_contact_interval(
                         anatomy,
                         predecessor,
                     )
-                    .expect("test predecessor work");
+                    .map_err(|error| {
+                        FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                            neuron_index,
+                            error,
+                        })
+                    })?;
                 let successor = crate::complete_neuron::settle_membrane_pump_transport(
                     anatomy,
                     predecessor,
@@ -19553,18 +19553,27 @@ fn settle_internal_contact_interval(
                     None,
                     interval_microseconds,
                 )
-                .expect("test contact successor");
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })?;
                 successor_work +=
                     crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
                         anatomy,
                         &successor,
                     )
-                    .expect("test successor work");
+                    .map_err(|error| {
+                        FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                            neuron_index,
+                            error,
+                        })
+                    })?;
             }
-            assert!(
-                successor_work < predecessor_work,
-                "test transduction must strictly lower complete selected-frontier work"
-            );
+            if successor_work >= predecessor_work {
+                return Err(FormationError::NoncanonicalState);
+            }
         }
     }
 
@@ -19857,11 +19866,8 @@ fn settle_internal_contact_interval(
     }
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
-    #[cfg(test)]
-    if TEST_ONE_CARRIER_ORDERING_MOTOR_TRANSDUCTION
-        .load(std::sync::atomic::Ordering::Relaxed)
-    {
-        settled_directed_transfers.extend(test_ordering_motor_transductions);
+    if !ordering_motor_transductions.is_empty() {
+        settled_directed_transfers.extend(ordering_motor_transductions.iter().cloned());
         settled_directed_transfers.sort_unstable();
         settled_directed_transfers.dedup();
     }
@@ -19877,6 +19883,10 @@ fn settle_internal_contact_interval(
     let causal_seed_lineages = causally_active_lineages
         .iter()
         .copied()
+        .collect::<BTreeSet<_>>();
+    let fresh_seed_lineages = fresh_seed_flats
+        .iter()
+        .map(|flat| flat_locations[*flat].2)
         .collect::<BTreeSet<_>>();
     for (transition, (left_flat, right_flat)) in settled
         .transitions
@@ -20381,7 +20391,7 @@ fn settle_internal_contact_interval(
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
-                    &causal_seed_lineages,
+                    &fresh_seed_lineages,
                     &layer_of,
                 )
             } else {
@@ -20494,7 +20504,7 @@ fn settle_internal_contact_interval(
                         .get(&motor_lineage)
                         .map(Vec::as_slice)
                         .unwrap_or(&[]),
-                    &causal_seed_lineages,
+                    &fresh_seed_lineages,
                     &layer_of,
                 )
                 .into_iter()
@@ -20809,11 +20819,124 @@ fn settle_internal_contact_interval(
             recruitment.body_afferent_paths = paths;
         }
     }
-    // Layer-13 remains preserved resident anatomy, but it is electrically
-    // isolated and is not a software permission gate for acoustic actuation.
-    // The already-settled typed layer-12 motor consequences are the sole
-    // authority for vocal tissue motion and its pressure consequence.
-    let co_recruited_articulatory_flats = Vec::<usize>::new();
+    // A learned vocal motor discharge co-recruits the one resident
+    // respiratory effector. The respiratory cell remains electrically
+    // isolated: the rejected layer-12/layer-13 convergence hub and passive
+    // layer-11/layer-13 bridge do not return. Authority is instead the exact
+    // physical sequence already settled in this interval: layer 11 transfers
+    // whole carriers into one typed vocal layer-12 motor, and that motor emits
+    // its own positive whole-carrier discharge. A layer-8 reflex—including
+    // the born swallowing closure—cannot satisfy this boundary.
+    //
+    // The control occurrence does not become respiratory energy. It limits
+    // how much of the layer-13 cell's own retained membrane-gradient work may
+    // leave through its efferent terminal. Thus cognition selects the act,
+    // while the respiratory body supplies and pays for the work.
+    let mut co_recruited_articulatory_flats = Vec::new();
+    let mut learned_vocal_preparations = motor_unit_recruitments
+        .iter()
+        .filter(|event| event.body_effector_terminal.axis().is_vocal_articulator())
+        .flat_map(|event| {
+            event
+                .preparation_transfers
+                .iter()
+                .copied()
+                .filter(move |preparation| {
+                    preparation.sender_layer == 11
+                        && preparation.transfer.receiver == event.neuron_lineage
+                })
+        })
+        .collect::<Vec<_>>();
+    learned_vocal_preparations.sort_unstable();
+    learned_vocal_preparations.dedup();
+    if !learned_vocal_preparations.is_empty() {
+        let discharge_limit = motor_unit_recruitments
+            .iter()
+            .filter(|event| {
+                event.body_effector_terminal.axis().is_vocal_articulator()
+                    && event.preparation_transfers.iter().any(|preparation| {
+                        preparation.sender_layer == 11
+                            && preparation.transfer.receiver == event.neuron_lineage
+                    })
+            })
+            .try_fold(0_u128, |total, event| {
+                total
+                    .checked_add(event.outward_elementary_carriers)
+                    .ok_or(FormationError::ArithmeticOverflow)
+            })?;
+        let articulatory_flats = flat_locations
+            .iter()
+            .enumerate()
+            .filter_map(|(flat, (cohort_index, neuron_index, lineage))| {
+                let mount = &cohorts[*cohort_index].anatomy.mounts()[*neuron_index];
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 13
+                    && Some(*lineage) == vocal_articulatory_effector_lineage)
+                    .then_some(flat)
+            })
+            .collect::<Vec<_>>();
+        let [articulatory_flat] = articulatory_flats.as_slice() else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let (cohort_index, neuron_index, articulatory_lineage) =
+            flat_locations[*articulatory_flat];
+        let predecessor = TransitionNeuronPredecessor {
+            lineage: articulatory_lineage,
+            anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].clone(),
+            state: cohorts[cohort_index].state.neurons()[neuron_index].clone(),
+        };
+        if let Some((successor_neuron, outward_carriers, released_work)) =
+            crate::complete_neuron::settle_efferent_terminal_transport(
+                &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
+                &cohorts[cohort_index].state.neurons()[neuron_index],
+                discharge_limit,
+                interval_microseconds,
+            )
+            .map_err(|error| {
+                FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                    neuron_index,
+                    error,
+                })
+            })?
+        {
+            let released_exact = ExactRational::new(
+                i128::try_from(released_work.numer().clone())
+                    .map_err(|_| FormationError::ArithmeticOverflow)?,
+                u128::try_from(released_work.denom().clone())
+                    .map_err(|_| FormationError::ArithmeticOverflow)?,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+            if let Some(successor_reservoir) =
+                crate::metabolic_feeding::deposit_passive_return_work(
+                    cohorts[cohort_index]
+                        .anatomy
+                        .recovery_fluid_reservoir_anatomy(),
+                    cohorts[cohort_index].state.recovery_fluid(),
+                    released_exact,
+                )
+                .map_err(|_| FormationError::ArithmeticOverflow)?
+            {
+                Arc::make_mut(&mut cohorts[cohort_index].state)
+                    .apply_local_membrane_transport(
+                        neuron_index,
+                        successor_neuron,
+                        successor_reservoir,
+                    )
+                    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                physically_transitioned_neuron_lineages.insert(articulatory_lineage);
+                retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
+                co_recruited_articulatory_flats.push(*articulatory_flat);
+                articulatory_unit_recruitments.push(ArticulatoryUnitRecruitment {
+                    neuron_lineage: articulatory_lineage,
+                    topology_index: cohorts[cohort_index].anatomy.mounts()[neuron_index]
+                        .place()
+                        .topology_index(),
+                    outward_elementary_carriers: outward_carriers,
+                    preparation_transfers: learned_vocal_preparations,
+                });
+            }
+        }
+    }
     let mut affective_balance_trajectories = Vec::new();
     for gradient in reached_layer_ten_gradient_settlements {
         let interval_successor_separated_elementary_charges = flat_locations
@@ -20960,6 +21083,11 @@ fn settle_internal_contact_interval(
                 .then_some(bond)
         })
         .collect::<Vec<_>>();
+    active_bonds.extend(
+        ordering_motor_transductions
+            .iter()
+            .map(|transfer| transfer.bond),
+    );
     active_bonds.sort_unstable();
     active_bonds.dedup();
     // Electrical settlement includes contacts among two immediate neighbours
@@ -20984,6 +21112,11 @@ fn settle_internal_contact_interval(
                 .then_some(bond)
         })
         .collect::<Vec<_>>();
+    causal_active_bonds.extend(
+        ordering_motor_transductions
+            .iter()
+            .map(|transfer| transfer.bond),
+    );
     causal_active_bonds.sort_unstable();
     causal_active_bonds.dedup();
     let mut frontier_routes = Vec::new();
@@ -20993,6 +21126,12 @@ fn settle_internal_contact_interval(
         .zip(compact_bonds.iter().copied())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
+        if ordering_motor_transductions
+            .iter()
+            .any(|transfer| transfer.bond == bond)
+        {
+            continue;
+        }
         let left_seed = is_causal_seed(left_flat);
         let right_seed = is_causal_seed(right_flat);
         if left_seed == right_seed {
@@ -21022,6 +21161,24 @@ fn settle_internal_contact_interval(
             adjacent_place: cohorts[adjacent_cohort].anatomy.mounts()[adjacent_neuron].place(),
             bond,
             outward_whole_carriers_from_seed,
+        });
+    }
+    for transfer in &ordering_motor_transductions {
+        let seed_flat = lineage_member(transfer.sender)?;
+        let adjacent_flat = lineage_member(transfer.receiver)?;
+        let (seed_cohort, seed_neuron, seed_lineage) = flat_locations[seed_flat];
+        let (adjacent_cohort, adjacent_neuron, adjacent_lineage) =
+            flat_locations[adjacent_flat];
+        frontier_routes.push(PhysicalFrontierRouteObservation {
+            seed_lineage,
+            seed_place: cohorts[seed_cohort].anatomy.mounts()[seed_neuron].place(),
+            adjacent_lineage,
+            adjacent_place: cohorts[adjacent_cohort].anatomy.mounts()[adjacent_neuron].place(),
+            bond: transfer.bond,
+            outward_whole_carriers_from_seed: i128::try_from(
+                transfer.transferred_whole_carriers,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?,
         });
     }
     frontier_routes.sort_unstable_by_key(|route| {
@@ -21084,6 +21241,14 @@ fn settle_internal_contact_interval(
                 transfer.transferred_whole_carriers,
             )?);
         }
+    }
+    for transfer in &ordering_motor_transductions {
+        next_active_frontier.push(ActiveElectricalFrontierEntry::caused(
+            transfer.sender,
+            transfer.receiver,
+            transfer.bond,
+            transfer.transferred_whole_carriers,
+        )?);
     }
     next_active_frontier.sort_unstable();
     next_active_frontier.dedup();
@@ -28052,13 +28217,13 @@ mod tests {
             .find_map(|(candidate, layer)| (candidate == lineage).then_some(layer))
         };
 
-        let causal_seeds = BTreeSet::from([regulation, ordering]);
+        let fresh_body_seeds = BTreeSet::from([regulation, ordering]);
         assert_eq!(
             exact_motor_preparation_transfers(
                 motor,
                 &settled,
                 &[regulation],
-                &causal_seeds,
+                &fresh_body_seeds,
                 layer_of,
             ),
             vec![settled[0], settled[3]],
@@ -28068,11 +28233,11 @@ mod tests {
                 motor,
                 &settled,
                 &[regulation],
-                &BTreeSet::from([regulation]),
+                &BTreeSet::from([ordering]),
                 layer_of,
             ),
-            vec![settled[0], settled[3]],
-            "retained ordering current remains an internal cause without an external label",
+            vec![settled[3]],
+            "retained layer-8 current cannot repeat a reflex without fresh body cause",
         );
         assert_eq!(
             exact_motor_preparation_transfers(
