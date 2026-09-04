@@ -1060,3 +1060,87 @@ Severing exactly those five contacts removed both vocal-tract motor
 recruitments at all three clocks while leaving the unrelated ordinary motor
 activity available. Both connected and severed runs used zero synthetic seeds.
 Production was not touched and no probe process survived.
+
+## Exact copied-store shell, persistence, and restart chain — passed
+
+A fresh wheel built from commit `e8697987` had SHA-256
+`3e2aed09e737707595fb83cd18cca6d20ccccaf19b58894a4913e122a8102b2a`.
+It was installed by explicit path with cache disabled and exposed the 680-byte
+V8 body. A private local CURRENT store was then reconstructed with the
+production binary-store encoder from the authenticated task-1425 body: identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, tick `408275`, raw-state SHA-256
+`27555e9d78511e28a956cec3dca282a2509fbc92b8e7c83f1aa16ea63825e8e2`.
+The exact task-1425 sensory roster and resource bounds were exported before the
+candidate app import; the remote object store was disabled and every write
+remained inside the disposable copy.
+
+The production cold-restore probe migrated the body in memory without replacing
+identity or prior state, ran the ordinary Python/native/world boundary, and
+advanced tick `408275 -> 408278`. It reported a real moved action, continuous
+cognition, all 90 articulated-body receptors transported, 174 retained
+formation reassemblies, zero Python cognition callbacks, and an exact distinct
+successor SHA-256
+`90db38edebf9b878802d63949a520ea20c389f5ee1919b2f8a0eb03735e02df8`.
+Measured wall time for that three-native-interval transaction was 2,980.1 ms;
+the motor jam is corrected, but this is not claimed as a timing repair.
+
+The stronger process-death falsifier then ran twice against one disposable
+writable copy. Process one cold-restored tick `408275`, migrated V7 to V8,
+completed the same ordinary causal action, and made the exact tick-`408278`
+successor CURRENT. After that process exited, a fresh process restored that
+exact SHA and completed a second ordinary action to tick `408281`, persisted as
+SHA-256 `23f4153c64652c468997a47daf33d5bcf02c883b4878394f9001ad0faabbf2ba`.
+The second transition returned all 90 body receptors and 196 retained
+reassemblies. Each in-process successor exactly equalled its persisted CURRENT;
+the world snapshot also changed from SHA-256
+`13da7aa340d1bd35d8fe4a2f599cb19c2e73ab0df5f9e0c3632bb225d36c7057`
+to `55aceb6b7872e19a51bff7326ed5addf2b01c1f623aaf1f50a72ef54679f982a`.
+No process survived either bounded run.
+
+## Deployment controller conditional-reachability defect — corrected locally
+
+The pre-artifact controller audit found that `--rehearse-only` built and ran a
+discarded-state candidate, but the normal non-hot deployment branch skipped
+that rehearsal and proceeded directly to cutover. Its existing source-order
+test saw rehearsal text before drain text and therefore passed without proving
+the branch was reachable. Running rehearsal first and then the normal controller
+would have rebuilt the commit, violating the one-artifact rule.
+
+The controller now makes the normal non-hot path run the cold-restore rehearsal
+and then continue to the fail-closed cutover with the same digest and task
+definition. `--rehearse-only` exits only after that proof; hot and explicitly
+drained recovery modes retain their separate declared behavior. `bash -n` and
+the strengthened cutover/preflight boundary passed `34/34`. The permanent
+deployment recurrence register now carries RF-058 and validates cleanly.
+
+A wider controller test selection passed 53 and failed one inherited L005
+apple fixture because `_validate_proof` no longer accepts its retired keyword.
+The exact unmodified task-1425 baseline fails the same test identically. This
+is recorded rather than hidden or altered inside the motor item.
+
+## Cloud rehearsal restart gate — implemented and locally proven
+
+The cloud cold-restore helper previously ran one ordinary interval in a private
+copy, published its successor, and then deleted the copy without starting a
+fresh process from that successor. That would not catch the historical failure
+where restart reloaded the prior body or the next interval refused. The helper
+now launches exactly two sequential isolated candidate processes against one
+throwaway copied store. Each process is the only writer while it runs. Process
+one cold-restores the authenticated predecessor, acts, publishes organism and
+world successors, and exits. Process two must cold-restore those exact successor
+hashes, act again, publish a second distinct pair, and exit. The runner and
+deployment controller reject any missing link, identity/tick/hash mismatch,
+nonmoving body, missing 90-receptor return, absent retained reassembly, unchanged
+world, or in-process/persisted CURRENT mismatch.
+
+The complete helper was executed locally against the task-1425 copy and passed:
+`408275 -> 408278`, process death, exact restore, then `408278 -> 408281`.
+Organism successor hashes were respectively
+`90db38edebf9b878802d63949a520ea20c389f5ee1919b2f8a0eb03735e02df8`
+and `23f4153c64652c468997a47daf33d5bcf02c883b4878394f9001ad0faabbf2ba`;
+world successor hashes were
+`ec715aeb3f2235acb94f8e7ef5cb1cc22903c13b0271090b1e362cad62bf4510`
+and `2d6bb74377464afe4443c7db252dbbe558f423bd29b31d7536973a1dcbf60e34`.
+Both actions moved, returned all 90 body receptors, retained 174 then 196
+reassemblies, and matched their persisted CURRENT exactly. The canonical proof
+validator accepted the resulting record; no process survived.

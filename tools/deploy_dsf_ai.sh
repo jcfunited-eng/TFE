@@ -929,8 +929,8 @@ fail_candidate_cutover() {
     fail "${reason}; predecessor restored"
 }
 
-if [ "${REHEARSE_ONLY}" = "1" ]; then
-    echo "[5/7] Rehearsing the digest-pinned candidate without cutover."
+if [ "${HOT_DEPLOY}" != "1" ] && [ "${RECOVER_DRAINED}" != "1" ]; then
+    echo "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
     PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
     for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
     # Preflight already read and validated the exact persisted live receipt,
@@ -985,6 +985,31 @@ if (
     )
     or not isinstance(proof.get("a011_retained_formation_reassembly_count"), int)
     or proof["a011_retained_formation_reassembly_count"] <= 0
+    or proof.get("a011_successor_current_exact") is not True
+    or proof.get("a011_cold_next_interval_rehearsed") is not True
+    or proof.get("a011_cold_next_predecessor_tick")
+    != proof.get("a011_successor_tick")
+    or proof.get("a011_cold_next_predecessor_state_sha256")
+    != proof.get("a011_successor_state_sha256")
+    or not isinstance(proof.get("a011_cold_next_successor_tick"), int)
+    or proof["a011_cold_next_successor_tick"]
+    <= proof["a011_cold_next_predecessor_tick"]
+    or not re.fullmatch(
+        r"[0-9a-f]{64}",
+        proof.get("a011_cold_next_successor_state_sha256", ""),
+    )
+    or proof.get("a011_cold_next_successor_current_exact") is not True
+    or proof.get("a011_cold_next_body_moved") is not True
+    or proof.get("a011_cold_next_continuous_cognition") is not True
+    or proof.get("a011_cold_next_articulated_body_receptor_count") != 90
+    or not isinstance(
+        proof.get("a011_cold_next_retained_formation_reassembly_count"), int
+    )
+    or proof["a011_cold_next_retained_formation_reassembly_count"] <= 0
+    or proof.get("a011_cold_next_world_predecessor_state_sha256")
+    != proof.get("a011_world_successor_state_sha256")
+    or proof.get("a011_cold_next_world_successor_state_sha256")
+    == proof.get("a011_cold_next_world_predecessor_state_sha256")
 ):
     raise SystemExit("A-011 ordinary action/consequence rehearsal changed")
 '
@@ -1002,9 +1027,12 @@ print(json.dumps({
     "status": "rehearsed_not_deployed",
 }, separators=(",", ":"), sort_keys=True))
 '
-        exit 0
+        if [ "${REHEARSE_ONLY}" = "1" ]; then
+            exit 0
+        fi
     done
-else
+fi
+if [ "${REHEARSE_ONLY}" = "0" ]; then
     if [ "${HOT_DEPLOY}" = "1" ]; then
         echo "[5/7] Hot-cutting directly to the candidate."
         HOT_PREDECESSOR=$(read_live_organism) \
@@ -1092,10 +1120,10 @@ print(tick)
     echo "[5/7] Starting and verifying the candidate once."
     PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
     for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
-        # There can be only one persistent writer.  Stop the predecessor,
-        # start the candidate once, and use that same restored process as
-        # production.  The former mandatory disposable rehearsal duplicated
-        # this complete restore without strengthening single-writer custody.
+        # There can be only one persistent writer. The exact immutable image
+        # above has already cold-restored a discarded copy of CURRENT. Stop
+        # the predecessor, start that same digest once, and use the restored
+        # process as production.
         drain_live_organism
         if ! aws ecs update-service \
             --region "${AWS_REGION}" \

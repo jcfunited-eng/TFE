@@ -324,3 +324,4 @@ gates. `closed` means direct evidence already exists on this candidate;
 | RF-055 | pre-artifact | Action/consequence replay preserves one contact owner and lawful next wake. |
 | RF-056 | live | Same identity and restored tick at or beyond the exact predecessor before image pinning. |
 | RF-057 | pre-artifact | Compound world/body consequence remains top-level and produces both world and organism successors. |
+| RF-058 | source/test gate passed | Normal non-hot controller path now rehearses and then cuts over the same digest/task definition in one invocation; `bash -n` and the cutover-order contract pass. |

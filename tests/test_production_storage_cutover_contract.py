@@ -73,6 +73,15 @@ def test_candidate_task_removes_every_retired_runtime_authority() -> None:
 
 
 def test_preflight_and_current_rehearsal_complete_before_the_single_cutover() -> None:
+    normal_rehearsal_gate = (
+        'if [ "${HOT_DEPLOY}" != "1" ] '
+        '&& [ "${RECOVER_DRAINED}" != "1" ]; then'
+    )
+    rehearse_only_exit = 'if [ "${REHEARSE_ONLY}" = "1" ]; then\n            exit 0'
+    cutover_gate = 'if [ "${REHEARSE_ONLY}" = "0" ]; then'
+    assert normal_rehearsal_gate in DEPLOY
+    assert rehearse_only_exit in DEPLOY
+    assert cutover_gate in DEPLOY
     registration = DEPLOY.index("CANDIDATE_JSON=")
     preflight = DEPLOY.index("python3 tools/preflight_guala_production.py")
     rehearsal = DEPLOY.index(
@@ -87,6 +96,11 @@ def test_preflight_and_current_rehearsal_complete_before_the_single_cutover() ->
     )
     assert registration < preflight < rehearsal
     assert rehearsal < rehearsal_task < drain < turnover < live < production_tag
+    assert DEPLOY.index(normal_rehearsal_gate) < rehearsal
+    assert DEPLOY.index(rehearse_only_exit, rehearsal_task) < DEPLOY.index(
+        cutover_gate,
+        rehearsal_task,
+    )
     assert '--desired-count 0' in DEPLOY[
         DEPLOY.index("drain_live_organism()"):
         drain

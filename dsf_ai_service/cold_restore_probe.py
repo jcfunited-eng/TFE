@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
@@ -1794,73 +1796,221 @@ def _observe_distributed_recognition(
     }
 
 
+_A011_PROCESS = r"""
+import hashlib
+import json
+import os
+from pathlib import Path
+
+from dsf_ai_service import native_production_app as production
+from dsf_ai_service.substrate.native_organism_binary_store import _read_current
+
+production._startup()
+before = production._native_record()
+world_before = bytes(production._world().encoded_snapshot())
+result = production._attempt_unattended_interval()
+custody = production._custodian_cycle()
+cleanup = None
+if custody == "checkpointed_cleanup_pending":
+    cleanup = production._custodian_cycle()
+after = production._native_record()
+pointer = _read_current(Path(production.STATE_ROOT))
+if pointer is None:
+    raise RuntimeError("A-011 copied process published no CURRENT")
+action = result.get("motor_action")
+consequence = action.get("sensory_consequence") if isinstance(action, dict) else None
+articulated = (
+    consequence.get("articulated_body_proprioceptive")
+    if isinstance(consequence, dict)
+    else None
+)
+measured = result.get("measured")
+world_after = bytes(production._world().encoded_snapshot())
+record = {
+    "before": {
+        "identity": before["identity"],
+        "tick": before["organism_tick"],
+        "sha256": before["state_sha256"],
+        "state_bytes": before["state_bytes"],
+    },
+    "after": {
+        "identity": after["identity"],
+        "tick": after["organism_tick"],
+        "sha256": after["state_sha256"],
+        "state_bytes": after["state_bytes"],
+    },
+    "persisted": {
+        "identity": pointer.identity,
+        "tick": pointer.organism_tick,
+        "sha256": pointer.state_sha256,
+        "state_bytes": pointer.state_bytes,
+        "predecessor_sha256": pointer.predecessor_state_sha256,
+    },
+    "result": {
+        "delivered": result.get("delivered"),
+        "outcome": result.get("outcome"),
+        "moved": action.get("moved") if isinstance(action, dict) else None,
+        "continuous_cognition": (
+            action.get("continuous_cognition") if isinstance(action, dict) else None
+        ),
+        "articulated_body_receptors": (
+            articulated.get("transported") if isinstance(articulated, dict) else None
+        ),
+        "partial_cue_reassembly_count": (
+            measured.get("partial_cue_reassembly_count")
+            if isinstance(measured, dict)
+            else None
+        ),
+    },
+    "custody": custody,
+    "cleanup": cleanup,
+    "world_before_sha256": hashlib.sha256(world_before).hexdigest(),
+    "world_after_sha256": hashlib.sha256(world_after).hexdigest(),
+}
+Path(os.environ["GUALA_A011_PROCESS_REPORT"]).write_text(
+    json.dumps(record, separators=(",", ":"), sort_keys=True),
+    encoding="utf-8",
+)
+"""
+
+
+def _run_a011_process(
+    rehearsal_root: Path,
+    report_path: Path,
+) -> dict[str, object]:
+    environment = dict(os.environ)
+    environment["GUALA_NATIVE_ORGANISM_ROOT"] = str(rehearsal_root)
+    environment["GUALA_S3_BACKUP_BUCKET"] = ""
+    environment["GUALA_A011_PROCESS_REPORT"] = str(report_path)
+    completed = subprocess.run(
+        (sys.executable, "-c", _A011_PROCESS),
+        check=False,
+        capture_output=True,
+        env=environment,
+        text=True,
+        timeout=300,
+    )
+    if completed.returncode != 0 or not report_path.is_file():
+        detail = (completed.stderr + completed.stdout)[-2_000:]
+        raise RuntimeError(
+            f"A-011 copied process failed ({completed.returncode}): {detail}"
+        )
+    value = json.loads(report_path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError("A-011 copied process report changed")
+    return value
+
+
+def _a011_process_valid(value: dict[str, object]) -> bool:
+    before = value.get("before")
+    after = value.get("after")
+    persisted = value.get("persisted")
+    result = value.get("result")
+    return bool(
+        isinstance(before, dict)
+        and isinstance(after, dict)
+        and isinstance(persisted, dict)
+        and isinstance(result, dict)
+        and before.get("identity") == after.get("identity")
+        and after.get("identity") == persisted.get("identity")
+        and isinstance(before.get("tick"), int)
+        and not isinstance(before.get("tick"), bool)
+        and isinstance(after.get("tick"), int)
+        and not isinstance(after.get("tick"), bool)
+        and after["tick"] > before["tick"]
+        and after.get("sha256") != before.get("sha256")
+        and persisted.get("tick") == after.get("tick")
+        and persisted.get("sha256") == after.get("sha256")
+        and persisted.get("state_bytes") == after.get("state_bytes")
+        and persisted.get("predecessor_sha256") == before.get("sha256")
+        and result.get("delivered") is True
+        and result.get("outcome") == "native_causal_action_observed"
+        and result.get("moved") is True
+        and result.get("continuous_cognition") is True
+        and result.get("articulated_body_receptors") == 90
+        and isinstance(result.get("partial_cue_reassembly_count"), int)
+        and not isinstance(result.get("partial_cue_reassembly_count"), bool)
+        and result["partial_cue_reassembly_count"] > 0
+        and value.get("custody") in {
+            "checkpointed",
+            "checkpointed_cleanup_pending",
+        }
+        and (
+            value.get("cleanup") is None
+            or value.get("cleanup") == "cleanup_completed"
+        )
+        and isinstance(value.get("world_before_sha256"), str)
+        and _SHA256.fullmatch(value["world_before_sha256"]) is not None
+        and isinstance(value.get("world_after_sha256"), str)
+        and _SHA256.fullmatch(value["world_after_sha256"]) is not None
+        and value["world_after_sha256"] != value["world_before_sha256"]
+    )
+
+
 def _rehearse_a011_ordinary_interval(
     source_root: str | os.PathLike[str],
 ) -> dict[str, object]:
-    """Run the active A-011 path through the real isolated production boundary."""
+    """Cold-run, persist, restart, and run A-011 again on one private copy."""
 
     with tempfile.TemporaryDirectory(prefix="guala-a011-rehearsal-") as directory:
         rehearsal_root = Path(directory) / "native-organism"
         shutil.copytree(Path(source_root), rehearsal_root)
-        os.environ["GUALA_NATIVE_ORGANISM_ROOT"] = str(rehearsal_root)
-        os.environ["GUALA_S3_BACKUP_BUCKET"] = ""
-        from dsf_ai_service import native_production_app as production
-
-        production._startup()
-        before = production._native_record()
-        result = production._attempt_unattended_interval()
-        # Persistence is off cognition's critical path. Exercise the sole
-        # background-custody cycle directly in this isolated process so the
-        # rehearsal proves the same publish-and-adopt boundary production
-        # uses; the retired synchronous seal is intentionally unreachable.
-        production._custodian_cycle()
-        after = production._native_record()
-    action = result.get("motor_action")
-    consequence = action.get("sensory_consequence") if isinstance(action, dict) else None
-    articulated = (
-        consequence.get("articulated_body_proprioceptive")
-        if isinstance(consequence, dict)
-        else None
-    )
-    measured = result.get("measured")
-    if (
-        result.get("delivered") is not True
-        or result.get("outcome") != "native_causal_action_observed"
-        or not isinstance(action, dict)
-        or action.get("moved") is not True
-        or action.get("continuous_cognition") is not True
-        or not isinstance(consequence, dict)
-        or not isinstance(articulated, dict)
-        or articulated.get("transported") != 90
-        or not isinstance(measured, dict)
-        or int(measured.get("partial_cue_reassembly_count", 0)) <= 0
-        or after["organism_tick"] <= before["organism_tick"]
-        or after["state_sha256"] == before["state_sha256"]
-    ):
-        raise RuntimeError(
-            "A-011 ordinary action/consequence rehearsal changed: "
-            f"delivered={result.get('delivered')!r} "
-            f"outcome={result.get('outcome')!r} "
-            f"moved={action.get('moved') if isinstance(action, dict) else None!r} "
-            "continuous_cognition="
-            f"{action.get('continuous_cognition') if isinstance(action, dict) else None!r} "
-            f"transported={articulated.get('transported') if isinstance(articulated, dict) else None!r} "
-            "reassembly="
-            f"{measured.get('partial_cue_reassembly_count') if isinstance(measured, dict) else None!r} "
-            f"tick={before['organism_tick']}->{after['organism_tick']} "
-            f"sha_changed={after['state_sha256'] != before['state_sha256']}"
+        first = _run_a011_process(
+            rehearsal_root,
+            Path(directory) / "first-process.json",
         )
+        second = _run_a011_process(
+            rehearsal_root,
+            Path(directory) / "cold-next-process.json",
+        )
+    if not _a011_process_valid(first) or not _a011_process_valid(second):
+        raise RuntimeError("A-011 ordinary action/consequence process proof changed")
+    first_before = first["before"]
+    first_after = first["after"]
+    first_result = first["result"]
+    second_before = second["before"]
+    second_after = second["after"]
+    second_result = second["result"]
+    if (
+        second_before != first_after
+        or second.get("world_before_sha256") != first.get("world_after_sha256")
+    ):
+        raise RuntimeError("A-011 cold process did not restore the exact successor pair")
     return {
         "a011_ordinary_interval_rehearsed": True,
-        "a011_predecessor_tick": before["organism_tick"],
-        "a011_successor_tick": after["organism_tick"],
-        "a011_successor_state_sha256": after["state_sha256"],
+        "a011_predecessor_tick": first_before["tick"],
+        "a011_successor_tick": first_after["tick"],
+        "a011_successor_state_sha256": first_after["sha256"],
         "a011_body_moved": True,
         "a011_continuous_cognition": True,
-        "a011_articulated_body_receptor_count": articulated["transported"],
-        "a011_retained_formation_reassembly_count": measured[
+        "a011_articulated_body_receptor_count": first_result[
+            "articulated_body_receptors"
+        ],
+        "a011_retained_formation_reassembly_count": first_result[
             "partial_cue_reassembly_count"
         ],
+        "a011_world_successor_state_sha256": first["world_after_sha256"],
+        "a011_cold_next_interval_rehearsed": True,
+        "a011_cold_next_predecessor_tick": second_before["tick"],
+        "a011_cold_next_predecessor_state_sha256": second_before["sha256"],
+        "a011_cold_next_successor_tick": second_after["tick"],
+        "a011_cold_next_successor_state_sha256": second_after["sha256"],
+        "a011_cold_next_body_moved": True,
+        "a011_cold_next_continuous_cognition": True,
+        "a011_cold_next_articulated_body_receptor_count": second_result[
+            "articulated_body_receptors"
+        ],
+        "a011_cold_next_retained_formation_reassembly_count": second_result[
+            "partial_cue_reassembly_count"
+        ],
+        "a011_cold_next_world_predecessor_state_sha256": second[
+            "world_before_sha256"
+        ],
+        "a011_cold_next_world_successor_state_sha256": second[
+            "world_after_sha256"
+        ],
+        "a011_successor_current_exact": True,
+        "a011_cold_next_successor_current_exact": True,
     }
 
 

@@ -872,6 +872,45 @@ def _validate_proof(
         and isinstance(proof.get("a011_successor_state_sha256"), str)
         and _SHA.fullmatch(proof["a011_successor_state_sha256"]) is not None
         and proof["a011_successor_state_sha256"] != actual_state_sha256
+        and proof.get("a011_successor_current_exact") is True
+        and proof.get("a011_cold_next_interval_rehearsed") is True
+        and proof.get("a011_cold_next_predecessor_tick")
+        == proof.get("a011_successor_tick")
+        and proof.get("a011_cold_next_predecessor_state_sha256")
+        == proof.get("a011_successor_state_sha256")
+        and isinstance(proof.get("a011_cold_next_successor_tick"), int)
+        and not isinstance(proof["a011_cold_next_successor_tick"], bool)
+        and proof["a011_cold_next_successor_tick"]
+        > proof["a011_cold_next_predecessor_tick"]
+        and isinstance(
+            proof.get("a011_cold_next_successor_state_sha256"), str
+        )
+        and _SHA.fullmatch(proof["a011_cold_next_successor_state_sha256"])
+        is not None
+        and proof["a011_cold_next_successor_state_sha256"]
+        != proof["a011_cold_next_predecessor_state_sha256"]
+        and proof.get("a011_cold_next_successor_current_exact") is True
+        and proof.get("a011_cold_next_body_moved") is True
+        and proof.get("a011_cold_next_continuous_cognition") is True
+        and proof.get("a011_cold_next_articulated_body_receptor_count") == 90
+        and isinstance(
+            proof.get("a011_cold_next_retained_formation_reassembly_count"), int
+        )
+        and proof["a011_cold_next_retained_formation_reassembly_count"] > 0
+        and isinstance(proof.get("a011_world_successor_state_sha256"), str)
+        and _SHA.fullmatch(proof["a011_world_successor_state_sha256"])
+        is not None
+        and proof.get("a011_cold_next_world_predecessor_state_sha256")
+        == proof.get("a011_world_successor_state_sha256")
+        and isinstance(
+            proof.get("a011_cold_next_world_successor_state_sha256"), str
+        )
+        and _SHA.fullmatch(
+            proof["a011_cold_next_world_successor_state_sha256"]
+        )
+        is not None
+        and proof["a011_cold_next_world_successor_state_sha256"]
+        != proof["a011_cold_next_world_predecessor_state_sha256"]
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
