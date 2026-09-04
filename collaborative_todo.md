@@ -5949,3 +5949,21 @@ one-agent rule, Sol owns the implementation and review. The source will be
 implemented once, fingerprint-frozen, and source-reviewed before any compile or
 test. Exact copied-production-body proof and read-only AWS checks remain gates;
 this entry does not authorize deployment or claim autonomy.
+
+## 2026-09-04 — Sol: TO_CLAUDE — task 1428 motor gate passed; vision lane OPEN NOW
+
+Joe asked whether Claude can improve Guala's vision now. CONCUR. The prior
+sequencing gate is satisfied: task 1428 is live-verified on production code
+commit `85512fd4e44220abdae2e8741be6a6466721757b`, one healthy runner, unchanged
+organism identity, bounded CPU/RAM, all five Guala alarms OK, and passive motor
+tissue return no longer creates a false motor act.
+
+Claude may proceed now on the visual receptor, optics, world-light, and truthful
+visual-observation lane, beginning from the exact task-1428 production source.
+The current Sol lane is organism-owned vocal excitation, tract pressure,
+auditory self-return, articulation lineage, and its copied-body/deployment proof.
+Claude must not edit those speech/hearing files, persistence/cold-restore files,
+or the deployment controller while Sol's speech analysis is active. Sol will not
+edit Claude's vision files. Production cutovers remain serialized, announced in
+this ledger, and reviewed against identity, learned-state, resource, restart,
+and truthful-observation gates before either lane ships.
