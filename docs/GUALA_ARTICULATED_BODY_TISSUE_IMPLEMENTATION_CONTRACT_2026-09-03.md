@@ -325,3 +325,70 @@ gates. `closed` means direct evidence already exists on this candidate;
 | RF-056 | live | Same identity and restored tick at or beyond the exact predecessor before image pinning. |
 | RF-057 | pre-artifact | Compound world/body consequence remains top-level and produces both world and organism successors. |
 | RF-058 | source/test gate passed | Normal non-hot controller path now rehearses and then cuts over the same digest/task definition in one invocation; `bash -n` and the cutover-order contract pass. |
+
+## Release attempt 1 — cloud rehearsal refused before cutover
+
+Candidate commit `379895010b67094e61abe072c244abf9d33a7021` built once as
+image digest
+`sha256:c14dbc301f50a7fb1a13e829aea65faecdfb15277df4dd74d00582225c27c2af`
+and task definition `dsf-ai-task:1426`. Its discarded-state task
+`25da617a160c4d0ca592e150eb44d1ad` exited before cutover. Production
+remained unchanged and healthy on task 1425.
+
+The exact refusal was `CURRENT has no retained matched world association`.
+The native motor-tissue candidate did not execute and did not fail. Initial
+triage attributed the mismatch to recursively copying a changing EFS root.
+That diagnosis was withdrawn before code changed: the actual causal order is
+stronger and directly reachable even from a coherent copy.
+
+Task 1425 carries a V7 body and a matched world association keyed by that V7
+body receipt. Candidate startup publishes the exact V8 current-format body
+first. The migration changes the body receipt, but it does not publish an
+association from the unchanged world bytes to that V8 receipt. Startup then
+reconciles against V8 `CURRENT` and correctly refuses because only the V7
+receipt has a matched world. The earlier local two-process motor proof had no
+world-recovery marker, so it exercised the permitted bootstrap path and could
+not expose this migration-order defect.
+
+The correction belongs in the existing paired-persistence order: before the
+body-format migration publishes V8 `CURRENT`, read the exact world paired to
+the V7 predecessor and durably publish the same world bytes under the already
+rehearsed V8 body receipt. Then publish V8 `CURRENT`, reconcile, and cold-run
+the next ordinary interval. A pre-body crash leaves an unreferenced immutable
+world pair that the next cold reconciliation can retire; it never changes
+body authority. The production mount remains read-only during rehearsal. No
+motor, neuron, DSF, authored-world, or live-state law may change to satisfy
+this release gate.
+
+## Corrected exact-pair proof
+
+The corrected path was tested locally against one same-instant read-only copy
+of task 1425, not a body-only or reconstructed-world substitute:
+
+- identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`;
+- V7 tick `413543`, state SHA-256
+  `e5f1460431719deb5cc4df5a61a973368b7b6c27c490cbf70db4d686aec01aca`,
+  `112687318` raw bytes;
+- retained predecessor
+  `ad0abe21d7de60580c86cbbf26ad14445b070cdff56484df7e9820df4b036774`;
+- matched world SHA-256
+  `4be74017c1fe5956f9aa96c5ce7c0009a70a6a3ea913a9d7e0d1f35f1b3e1094`,
+  `63395` bytes, with the production world-recovery marker present.
+
+One V8 preparation published the unchanged world under the rehearsed V8
+receipt before publishing body `CURRENT`; the migration was not computed a
+second time. The first fresh process advanced `413543 -> 413546`, moved the
+body, returned all `90` articulated-body receptors, retained `164` formation
+reassemblies, and persisted exact body/world successors. That process exited.
+The second fresh process restored those exact successors, advanced
+`413546 -> 413549`, moved the body, returned all `90` receptors, retained `168`
+reassemblies, and persisted another exact body/world pair. The canonical proof
+file is `/tmp/guala-task1425-full-exact-pair-proof.json`, SHA-256
+`6ea88c72dbac2d0ae3a1b7b28ba9a45890b3cc031880c9c4692c7ddd4d547eaa`.
+
+Two harness refusals preceded the accepted run and remain part of the attempt
+history: a task-1413 world was rejected because its declared thermal authority
+predated the current home; the exact task-1425 pair was then rejected when the
+local child omitted `GUALA_NATIVE_ORGANISM_IDENTITY`, which correctly changed
+the deterministic world-authentication key. Neither refusal changed source or
+production. The accepted run used the exact task-1425 identity and pair.

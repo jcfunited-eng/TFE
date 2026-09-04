@@ -371,7 +371,7 @@ def test_authorized_startup_migrates_before_first_restore(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         production,
-        "migrate_current_native_organism_current_format",
+        "_migrate_current_format_with_world_recovery",
         lambda *_args, **_kwargs: calls.append("migrate"),
     )
     monkeypatch.setattr(
@@ -391,6 +391,71 @@ def test_authorized_startup_migrates_before_first_restore(monkeypatch) -> None:
         production._admission = None
         production._public_observation_body = None
         production._public_observation_etag = None
+
+
+def test_format_migration_publishes_unchanged_world_before_body_current(
+    monkeypatch,
+) -> None:
+    calls: list[tuple[object, ...]] = []
+    predecessor_receipt = "1" * 64
+    successor_receipt = "2" * 64
+    world_body = b"exact retained world"
+    predecessor = _Pointer(
+        state_sha256=predecessor_receipt,
+        predecessor_state_sha256="0" * 64,
+    )
+    successor = _Pointer(
+        state_sha256=successor_receipt,
+        predecessor_state_sha256=predecessor_receipt,
+    )
+    monkeypatch.setattr(production, "_read_current", lambda _root: predecessor)
+    monkeypatch.setattr(production, "_world_recovery_marker_present", lambda: True)
+    monkeypatch.setattr(
+        production,
+        "_read_world_recovery_pair",
+        lambda receipt: calls.append(("read_world", receipt)) or world_body,
+    )
+    monkeypatch.setattr(
+        production,
+        "rehearse_current_native_organism_current_format",
+        lambda *_args, **_kwargs: (
+            calls.append(("rehearse_body",))
+            or _Restored(pointer=successor)
+        ),
+    )
+    monkeypatch.setattr(
+        production,
+        "_publish_world_recovery_pair",
+        lambda receipt, body: calls.append(("publish_world", receipt, body)),
+    )
+    staged = object()
+    monkeypatch.setattr(
+        production,
+        "stage_active_native_organism",
+        lambda *_args, **_kwargs: calls.append(("prepare_body",)) or staged,
+    )
+    monkeypatch.setattr(production, "_object_store", lambda: object())
+
+    def _publish_body_current(prepared, **_kwargs):
+        assert prepared is staged
+        calls.append(("publish_body_current",))
+        return _Restored(pointer=successor)
+
+    monkeypatch.setattr(
+        production,
+        "publish_staged_native_organism",
+        _publish_body_current,
+    )
+
+    production._migrate_current_format_with_world_recovery(_Admission())
+
+    assert calls == [
+        ("read_world", predecessor_receipt),
+        ("rehearse_body",),
+        ("prepare_body",),
+        ("publish_world", successor_receipt, world_body),
+        ("publish_body_current",),
+    ]
 
 
 def test_startup_performs_growth_dna_genesis_when_current_absent(

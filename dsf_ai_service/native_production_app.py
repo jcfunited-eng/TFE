@@ -123,9 +123,9 @@ from dsf_ai_service.substrate.native_organism_binary_store import (
     _read_current,
     clone_staged_native_organism,
     discard_staged_native_organism,
-    migrate_current_native_organism_current_format,
     publish_staged_native_organism,
     reconcile_orphaned_staged_native_organisms,
+    rehearse_current_native_organism_current_format,
     restore_current_native_organism,
     retry_committed_native_organism_cleanup,
     stage_active_native_organism,
@@ -1608,6 +1608,60 @@ def _complete_world_recovery_bootstrap(
         WORLD_RECOVERY_MARKER_BODY,
     )
     _sync_world_recovery_directory(STATE_ROOT)
+
+
+def _migrate_current_format_with_world_recovery(
+    admission: NativeResidentResourceAdmission,
+) -> None:
+    """Publish a format successor only after its unchanged world is durable."""
+
+    predecessor = _read_current(STATE_ROOT)
+    if predecessor is None:
+        raise NativeOrganismBinaryStoreError("native organism CURRENT is absent")
+    paired_world = (
+        _read_world_recovery_pair(predecessor.state_sha256)
+        if _world_recovery_marker_present()
+        else None
+    )
+    rehearsed = rehearse_current_native_organism_current_format(
+        STATE_ROOT,
+        max_envelope_bytes=admission.max_envelope_bytes,
+        max_fabric_bytes=admission.max_fabric_bytes,
+        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+    )
+    if rehearsed.pointer.predecessor_state_sha256 != predecessor.state_sha256:
+        raise NativeOrganismBinaryStoreError(
+            "current-format rehearsal lost its exact predecessor"
+        )
+    successor_receipt = rehearsed.pointer.state_sha256
+    if successor_receipt == predecessor.state_sha256:
+        return
+    staged = stage_active_native_organism(
+        STATE_ROOT,
+        rehearsed.organism,
+        max_envelope_bytes=admission.max_envelope_bytes,
+    )
+    try:
+        if paired_world is not None:
+            _publish_world_recovery_pair(successor_receipt, paired_world)
+        published = publish_staged_native_organism(
+            staged,
+            expected_predecessor_sha256=predecessor.state_sha256,
+            object_store=_object_store(),
+            max_envelope_bytes=admission.max_envelope_bytes,
+            max_fabric_bytes=admission.max_fabric_bytes,
+            max_logical_peak_bytes=admission.max_logical_peak_bytes,
+        )
+    except BaseException:
+        discard_staged_native_organism(staged)
+        retained = _read_current(STATE_ROOT)
+        if retained is not None and _world_recovery_marker_present():
+            _reconcile_world_recovery_store(retained)
+        raise
+    if published.pointer.state_sha256 != successor_receipt:
+        raise NativeOrganismBinaryStoreError(
+            "published current-format body differs from its rehearsed receipt"
+        )
 
 
 def _reconcile_world_recovery_store(pointer: Any) -> tuple[int, int]:
@@ -16745,13 +16799,7 @@ def _startup() -> None:
             # correction. Native migration is idempotent, so execute it first
             # whenever this explicit release switch is on.
             if migration_authorized == "1":
-                migrate_current_native_organism_current_format(
-                    STATE_ROOT,
-                    object_store=_object_store(),
-                    max_envelope_bytes=admission.max_envelope_bytes,
-                    max_fabric_bytes=admission.max_fabric_bytes,
-                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
-                )
+                _migrate_current_format_with_world_recovery(admission)
             restored = restore_current_native_organism(
                 STATE_ROOT,
                 max_envelope_bytes=admission.max_envelope_bytes,
@@ -16762,13 +16810,7 @@ def _startup() -> None:
             if "CURRENT is absent" not in str(error):
                 if migration_authorized != "1":
                     raise
-                migrate_current_native_organism_current_format(
-                    STATE_ROOT,
-                    object_store=_object_store(),
-                    max_envelope_bytes=admission.max_envelope_bytes,
-                    max_fabric_bytes=admission.max_fabric_bytes,
-                    max_logical_peak_bytes=admission.max_logical_peak_bytes,
-                )
+                _migrate_current_format_with_world_recovery(admission)
                 restored = restore_current_native_organism(
                     STATE_ROOT,
                     max_envelope_bytes=admission.max_envelope_bytes,
