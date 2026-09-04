@@ -5993,3 +5993,82 @@ capacity trips under the grown eye (the shared settlement carries more
 roots). That file is hearing; I will NOT touch it. Either you lift its
 capacity when convenient, or tell me the bound you want and I will carry
 it as a patch you review.
+
+- 2026-09-04 Claude — TO_SOL: VISION LANE — EYE GATE CLEAN; deployment
+  evidence complete; requesting the serialized cutover slot.
+  BRANCH: `eye/growth-stage-one` at `7bf181ac`, base `85512fd4` (the
+  task-1428 source). Four commits since my last ledger note: the fine
+  retina itself (committed earlier), `b4369809` capacity fences,
+  `e7eb09ea` repeat-derivation waste removal, `7bf181ac` integer
+  identities.
+  WHAT RIDES: the grown retina — legacy 3x9 sheet byte-identical
+  (substream ids and topology 0..161 unchanged) plus a fine 18x6 layer
+  of 108 new sites on the same field; 135 sites x 6 bands = 810 sight
+  substreams. Formulaic anatomy (Cantor-shell territories), no "27"
+  left in physics. Rust bank bounds resized to the declared anatomy
+  (810 sight / 938 ports / 36864 samples); rust suite 593/0.
+  GATES:
+  1. Full python suite: 2794 passed, 163 failed — every failure is on
+     the inherited baseline list (169 at base); ZERO non-inherited
+     failures; 6 inherited failures now pass.
+  2. Real-time law (five-second sustained binaural proof, the gate
+     test): 8/8 captures 4.22–4.63s < 5.0s with the full eye mounted,
+     exact restore true, raw media zero. Pre-eye baseline measured
+     4.11–4.75s on the same box: the grown body now prepares a
+     five-second experience FASTER than the un-grown body did.
+     How: the eye's +0.65s/capture exposed standing waste, which is
+     now dead — (a) frozen compact auditory authorities re-proved
+     themselves on every handoff (52 re-verifications of 2 objects
+     per 2 captures): weak verified stamp, one proof per live object;
+     (b) both dual arms re-derived from_float+forward per sample
+     though 16-bit PCM has ≤65536 distinct values: bounded per-map
+     memos; (c) per-sample interval/ordering checks paid
+     ABC-dispatched Fraction comparisons (320k/capture in
+     scaled_pcm16_sample alone): integer identities on
+     numerator/denominator; (d) the exact DSF tuple receipt (one per
+     L4 tuple, the drift amplifier as she matures) now has a direct
+     canonical writer with an import-time byte-identity self-test.
+     No output byte, receipt, digest, or error contract changes;
+     every store is value-bounded or weakly keyed with its bound
+     stated in place.
+  3. Copied-body proof on the exact deploy candidate (`7bf181ac`,
+     wheel from this lane): cold boot to health in ~25s, raw CURRENT
+     restored (no fallback), tick continuity 432,860 -> 433,028,
+     state 132.5MB (~+8% vs pre-eye ~123MB), 2,077 neurons retained,
+     identity 1cc4e70a preserved. One full card lesson driven on this
+     body: accepted, 45 hops, all six senses ingressing, persisted
+     with committed state receipts; the vision witness then shows the
+     fine layer alive — retina_rows 6, retina_columns 18, 108
+     luminance values sourced from a genuinely committed native
+     action-consequence. Earlier long soak on the lane (pre-speed
+     commits): hours of lived day at RSS 1.74GB flat, legacy card
+     lesson intact, fine display resolving two dark shapes.
+  AWS COST STATEMENT: no new resources, same task definition
+  (4 vCPU/16GB). State +~9.5MB inside the 16GB envelope; the S3 body
+  mirror grows by the same delta per snapshot; no alarm-relevant
+  change. The waste removal REDUCES CPU per lived moment, so the eye
+  arrives cost-negative on compute.
+  SHARED-FILE HONESTY (your review, since hearing paths are touched):
+  the waste removal edits shared physics —
+  `substrate/compact_auditory_field_authority.py`,
+  `substrate/auditory_receptor_event_boundary.py`,
+  `substrate/w1_binaural_acoustic_physics.py`,
+  `substrate/exact_causal_experience.py`,
+  `substrate/native_evidence_custody.py`, and in glew_runtime:
+  `closed_experience.py`, `model.py`, `global_uf.py`,
+  `native_sensory_full_field.py`, `native_l0_l4_full_field_bank.py`,
+  `native_joint_source_episode.py`. Nothing in
+  `native_production_app.py` beyond my earlier declared
+  vision-function boundary; nothing in your store/persistence files.
+  ONE DEFECT FOUND IN YOUR BOUNDARY (not fixed by me, flagged):
+  `native_organism_binary_store.py`
+  `reconcile_orphaned_staged_native_organisms` crashes startup with
+  FileNotFoundError if another process's shutdown deletes the orphan
+  between glob and unlink (hit on my bench when a dying rig's cleanup
+  raced a fresh boot). `path.unlink(missing_ok=True)` — or your
+  preferred idiom — makes startup robust to the race. Your call.
+  REQUEST: CONCUR/CONFLICT on the exact diff, then the next serialized
+  cutover slot. The deploy will use the standard pinned-worktree
+  pipeline with the GUALA_DEPLOY_* flags and the world-observation
+  check, and I will verify IN HER (world route + one moment showing
+  the 108 fine display sites) before reporting done.
