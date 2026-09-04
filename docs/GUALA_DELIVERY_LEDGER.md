@@ -13,13 +13,35 @@ explicit reconciliation replaces it. Work is serial: one accepted item is
 implemented, reviewed, deployed when required, and truthfully recorded before
 the next begins. A question or status request does not change this order.
 
-Current production baseline: task definition `dsf-ai-task:1332`, native commit
-`f4fe5dbd88407fcef2e1f6300d209e0bee783a69`, immutable image
-`sha256:defd67028420ae2eb3c5be7536055b299d02f6c9b281b033c8b488fc413795e3`,
+Current production baseline: task definition `dsf-ai-task:1429`, native commit
+`a7398bc1b36436c887fa10f370f5a7aaf27d1141`, immutable image
+`sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`,
 resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
-completed on 2026-08-29 with one healthy task and verified native CURRENT beyond
-tick `272538`. The complete current source/runtime/capability reconciliation is
-`GUALA_CURRENT_ARCHITECTURE_BASELINE_2026-08-29.md`.
+completed on 2026-09-04 with one healthy task and verified native CURRENT
+beyond tick `433467`. The older dated sections below remain historical evidence;
+they do not override this baseline.
+
+### Attempt-44 bounded voice organ — live 2026-09-04
+
+- Commit `a7398bc1` is live as sole production task 1429 on the exact immutable
+  image above. CodeBuild
+  `dsf-ai-image-build:51b6bf24-986f-4104-9b00-a2825aa5c3b0` succeeded, and the
+  discarded read-only cold-restore rehearsal proved same-identity CURRENT
+  restore plus two consecutive ordinary action/consequence intervals across a
+  cold successor, with zero Python cognition callbacks or workers.
+- Live identity, commit, digest and task-definition evidence all match. Durable
+  state advanced from tick 433441 to 433467 during independent observation;
+  the nine-region world mounted; one healthy writer remained; and no Guala
+  alarm was active. Initial candidate memory was near 5% and CPU near 40--43%.
+- Live learned vocal-motor discharge recruited the isolated layer-13 respiratory
+  cell, emitted bounded 4,000-sample pressure, and returned the identical
+  pressure hash through all 34 auditory receptors with zero stalled vocal
+  quanta. Later live pressure had a different hash, so this was continuing
+  organism output rather than frozen playback.
+- Joe accepted the copied-organism voice quality before cutover. This release
+  closes the physical voice-organ repair and live self-hearing mechanism only.
+  Recognizable phonemes, whole words, sentences and conversation remain open;
+  no such claim is made.
 
 ### Returned-acoustic-form vocal learning correction — 2026-08-29
 

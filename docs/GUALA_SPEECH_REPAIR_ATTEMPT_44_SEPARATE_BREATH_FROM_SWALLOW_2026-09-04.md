@@ -478,3 +478,72 @@ and archive SHA-256
 `86b2b29f8fa26dd5180f6c7267e58f04b4f4e4ad0cf4071bf012ced866fe1297`.
 Context and archive verification passed. This is packaging preflight only; it
 is not an image, rehearsal, deployment, or live proof.
+
+## Deployment attempt 1 — accepted and live as task 1429
+
+The standard one-artifact controller started from clean commit
+`a7398bc1b36436c887fa10f370f5a7aaf27d1141`. Its governed package contained
+the same 280 reviewed files and selected `dsf_ai_service/Dockerfile`; package
+receipt SHA-256 was
+`f8ddbcf4c08776478d62d8342b6a66d085fb1790c425bb466105b9cafb045878`
+and release archive SHA-256 was
+`d1b127133643111b7edcbaa0594485263a705f282272d070a47232ae52f6e42b`.
+CodeBuild `dsf-ai-image-build:51b6bf24-986f-4104-9b00-a2825aa5c3b0`
+completed successfully at 2026-09-04 17:40:09 UTC. The resulting immutable
+image is
+`sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`;
+ECR tag `production-current` resolves to that exact digest.
+
+The disposable read-only cold-restore rehearsal used task
+`dsf-ai-native-candidate-cold-restore:275` and exited zero. Its single proof
+event has receipt SHA-256
+`54548bceda94d051477982143ac66133c596c86ff6ce912e174369b756eaa4de`.
+It restored the same organism identity from exact baseline tick 433248,
+advanced the read-only source to tick 433259, rehearsed ordinary native action
+and consequence to tick 433261, cold-restored that successor exactly, and
+advanced again to tick 433263. Both intervals moved the body, returned all 90
+articulated-body receptors, retained continuous cognition, and reassembled
+154 then 160 retained formations. Python cognition callbacks and workers were
+both zero. The source mount was read-only and the rehearsal task was discarded.
+
+The controller then drained task 1428 before admitting the candidate, so two
+writers never overlapped. ECS briefly created candidate task
+`6a9052da929b480dace90b00227afdf7` while the old deployment was finishing its
+scale-down; the scheduler stopped it before any container started. It had no
+image digest, no start time and no body access. The controller did not create
+a second deployment attempt. Candidate task
+`71ca18765ef845e48825ff96255f09d5` then started from the reviewed digest and
+became the sole healthy service task. ECS reports the task-1429 rollout
+complete.
+
+Independent live reads prove identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, commit `a7398bc1`, the reviewed image
+digest, and task definition `dsf-ai-task:1429`. Durable state advanced from
+tick 433441/state
+`2c63be58dafb0763c53fa2360bc67605672dd0e8c6d355d28e8533aff71f427b`
+to tick 433467/state
+`80eb7abd07b432971bfe474be1db8eb7f23117a89f883ed5dd54eebe3a0e16d4`
+during the check. The world mounted with nine regions. No Guala CloudWatch
+alarm was active; first candidate samples put memory near 5% and CPU near
+40--43%, with one running task and no pending task.
+
+The live organism produced multiple new exact articulations after restart.
+One observed committed act applied two vocal motor quanta with zero stalled
+quanta, recruited the layer-13 respiratory cell, emitted 4,000 samples, and
+returned the identical pressure SHA-256 through one self-hearing hop and all
+34 mounted auditory receptors. A later observation carried a different
+pressure hash, proving replacement by a new act rather than a frozen playback.
+The current playback endpoint returned a valid 8,044-byte, signed-16, mono,
+16-kHz, 4,000-frame WAV. A fetch for the earlier exact hash returned 404 only
+after newer articulations displaced it from the bounded replace-only observer
+cache; the unqualified current endpoint succeeded immediately. That cache
+event does not alter or enter the organism.
+
+Disposition: attempt 44's accepted bounded voice-organ mechanism is now live.
+This closes breath source, learned vocal-motor transduction, emitted pressure,
+self-hearing, bounded recovery, persistence, and deployment for this organ. It
+does **not** prove distinct phonemes, a whole spoken word, a sentence, or
+conversation. The next separate hard gate is whether organism-owned learned
+ordering can move the live organ through a recognizable multi-posture acoustic
+sequence. Failure at that gate is an ordering-to-vocal-control defect, not
+permission to retune or replace this accepted breath organ.
