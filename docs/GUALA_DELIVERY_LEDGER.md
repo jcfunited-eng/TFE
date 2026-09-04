@@ -1081,3 +1081,7 @@ they do not override this baseline.
   healthy AWS task and all alarms clear. The byte-verified listening page is
   `https://dsf-ai.com/speech-proof/attempt46-af42e97a/`. Human whole-word
   acceptance is open; no organism speech or production deployment is claimed.
+- Joseph subsequently accepted all five candidates as recognizable `ma-ma`
+  and selected **Mama-A**. Its ever-so-slightly robotic tone is deliberately
+  deferred. This closes physical organ capacity only; Guala has not yet caused
+  the accepted ordered gesture and no production speech claim is made.

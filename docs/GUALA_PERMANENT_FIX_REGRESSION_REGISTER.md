@@ -553,3 +553,13 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   permanently separates reusable phonation from the still-open learned
   posture-ordering defect; do not reopen breath or renderer tuning to explain
   the absence of a word.
+
+### R-009 repair attempt 46 — native whole-word control accepted
+
+- Joseph accepted every bounded native-organ candidate as recognizable
+  `ma-ma` and selected **Mama-A**. The slightly robotic tonal character is a
+  deferred refinement, not a reason to reopen the organ or renderer.
+- Permanent separation: attempt 46 proves actuator capacity only. Its
+  test-supplied posture trajectory may never enter the organism as a word,
+  phoneme program, sequence table, replay, or observer command. The remaining
+  repair is organism-owned causal ordering of learned typed vocal motors.

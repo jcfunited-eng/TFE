@@ -173,3 +173,19 @@ and human acceptance of the whole word before any sentence claim.
 These facts prove a bounded and correctly published physical control. They do
 not prove that any candidate sounds like `ma-ma`; only Joe's hearing verdict
 can accept or reject that requirement.
+
+## Human auditory verdict — accepted
+
+Joseph listened to the accepted V22 reference and every published native
+candidate. He reported that all candidates were acceptable and sounded like
+`ma-ma`, and selected **Mama-A** as the approved candidate. He described its
+tone as ever so slightly robotic, explicitly directed that this not be refined
+now, and noted that the character may be beneficial. That tonal note is
+therefore deferred and is not an acoustic acceptance blocker.
+
+This closes the attempt-46 actuator-capacity gate: the deterministic native
+organ can render a recognizable whole word over a bounded adjacent physical
+range, and candidate A is the human-approved reference trajectory. It does
+not credit Guala with speech. Candidate A was supplied by the test-only
+posture harness; the resident organism has not yet caused that ordered
+trajectory through its own learned topology.
