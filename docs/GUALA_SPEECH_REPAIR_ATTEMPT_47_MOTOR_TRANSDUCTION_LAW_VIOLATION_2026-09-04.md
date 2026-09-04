@@ -257,3 +257,106 @@ No production implementation is authorized merely by this defect proof. The
 production rule becomes eligible only after its allocation relation is derived
 from declared physical quantities rather than chosen because one copied sound
 or body happened to pass.
+
+## Exact all-integer reconstruction — the three-terminal substitute has no
+## nonzero constitutive solution
+
+The sampled task-1429 results carry exact rational work values. For every one
+of the 21 route/clock cases, three samples reconstruct one quadratic work curve
+in the motor split, and every remaining sample lies exactly on that curve. The
+reconstruction then evaluated every integer split from zero through one less
+than the real L11 output.
+
+The exact result is decisive: in all 21 cases, released work is greatest at
+**zero** motor carriers and decreases monotonically as more carriers are
+redirected into the motor. The largest still-descending split varies with
+state—for example, the two vocal routes permit exact integer maxima `34/35`,
+then `1/1`, then `33/36` over the three retained clocks—but strict descent
+alone supplies no cause selecting any positive split. Zero is the natural
+energy minimum of the currently modeled network.
+
+Consequences:
+
+- selecting the largest descending split would be a motor-output maximization
+  heuristic, not a consequence of the present contact law;
+- selecting the smallest positive split is the existing fixed-one violation;
+- selecting a sampled midpoint, a speech-sounding point, or a fixed fraction
+  is equally unauthorized; and
+- the task-1429 range proves that a positive allocation can be energetically
+  afforded, but not that the current anatomy contains a physical mechanism
+  that makes it occur.
+
+This rejects the planned "dynamic allocation" repair to the existing
+three-terminal substitute. Its missing element is not a better allocator; it
+is a constitutive directed transducer whose local physical state actually
+causes a nonzero motor current.
+
+## Contact-state and work-accounting inconsistency
+
+The same complete source trace exposes an independent conservation mismatch.
+The ordinary sparse-contact solver first integrates the complete L11/L7
+current and produces that contact's successor carrier phase, released work,
+exported heat, and possible contact-local conductance transition. The
+three-terminal block later decrements only
+`outward_elementary_charges_from_left` on that transition. It does not
+recompute:
+
+- the contact successor carrier phase;
+- the integrated current;
+- released electrical work;
+- exported heat;
+- transition-work phase or conductance consequence; or
+- the already-constructed `successor_contacts` body.
+
+The neuron balance therefore applies one fewer carrier to the founding
+receiver while the persisted contact and work evidence still describe the
+original unbranched settlement. Net neuron charge can remain zero while local
+contact material, fractional phase, and work accounting disagree with that
+charge movement. The existing net-zero and aggregate-energy assertions do not
+test this inconsistency.
+
+## Multi-branch source-order authority
+
+The production block sorts learned motor bridges and processes them one at a
+time. Each branch searches the currently reduced founding transfer and takes
+one carrier while at least two remain. If a future ordering cell has more
+learned motor branches than available carriers, sorted motor lineage/bond order
+decides which muscles are driven. Storage order is thereby acting as a motor
+selector. The current task-1429 body happens to have one motor per ordering
+sender, so its copied-body test cannot expose this future reachable failure.
+
+## Corrected mechanism boundary
+
+The complete three-terminal carrier-redirection block is rejected, not merely
+its literal `1`. A lawful replacement requires a real directed transduction
+class. In the biological equivalent, presynaptic activity changes a local
+synaptic gate and the postsynaptic cell's own finite electrochemical gradient
+supplies a current whose magnitude follows conductance, reversal potential,
+available material, retained phase, and elapsed physical time. The presynaptic
+signal does not donate a developer-selected number of carriers directly to the
+motor.
+
+For a defensible artificial equivalent, the same separation is mandatory:
+
+1. a reached L11 physical event changes only an explicit local learned-contact
+   transducer state;
+2. that state changes a directed L12 conductance through declared anatomy;
+3. current follows the ordinary exact conductance/potential/material law;
+4. carrier phase, work, heat, depletion, recovery, and contact state are
+   committed atomically from one predecessor; and
+5. severing or exhausting any required local material makes the output silent.
+
+The repository's earlier directed-chemical-synapse boundary correctly records
+that its detailed calcium/fusion/transmitter kinetics are not yet ratified. It
+must not be pretended complete. A simpler artificial transducer is eligible
+only if its geometry, units, material inventory, gate energy, conductance law,
+and recovery are explicitly derived; calling the old redistribution a
+"transducer" does not supply those missing physical quantities.
+
+The next diagnostic item is therefore narrower and different from the rejected
+allocation harness: census the existing L11/L12 contact and L12 neuron anatomy
+for an already-mounted directional gate, reversal/material reservoir, and
+recoverable work path. If those quantities exist, use them directly. If they
+do not, the mechanism is unavailable until one explicit transducer anatomy is
+specified and ratified. No production code or deployment is authorized before
+that census and implementation contract are complete.
