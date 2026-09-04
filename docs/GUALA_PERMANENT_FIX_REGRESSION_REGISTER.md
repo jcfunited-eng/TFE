@@ -527,3 +527,22 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   and passes literal `None` to the encoder. Permanent rule: every structural
   migration preserves a current in-flight acoustic consequence byte-for-byte;
   only the later authenticated cochlear admission may consume it exactly once.
+
+### R-009 repair attempt 45 — isolated respiratory thermal deadlock
+
+- The attempt-44 voice organ is not reusable on the later mature task-1429
+  body. Exact tick-434112 copied-body tests produced two simultaneous learned
+  vocal-motor discharges but zero dedicated layer-13 recruitment over three
+  native frontiers and 32 production-shaped intervals.
+- The persisted layer-13 reservoir is at approximately 128.755740 of 129 zJ
+  thermal capacity. Its real two-carrier act releases approximately 0.320140
+  zJ, exceeding its approximately 0.244260-zJ headroom. The thermal deposit is
+  refused, and current code silently omits the entire respiratory act.
+- Permanent rule: every specially co-recruited motor cell must receive its
+  ordinary bounded local metabolic/environment settlement. An electrically
+  isolated effector may not accumulate discharge heat while being unreachable
+  from the only heat-export path. Capacity inflation, state reset, dropping
+  carriers, free heat deletion, or synthetic pressure are prohibited repairs.
+- Attempt 45 does not prove a word. After exact mature-body reuse and cold
+  repeat, the retained vocal controls must still prove ordered multi-posture
+  production rather than their current simultaneous event.

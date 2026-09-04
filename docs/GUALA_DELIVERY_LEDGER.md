@@ -1029,3 +1029,26 @@ they do not override this baseline.
   tests, runtime state, and live browser/API evidence; indirect evidence fails.
 - [ ] **P-013** Mark the Guala goal complete only when every checkbox is checked
   by live evidence and no explicit objective remains incomplete.
+
+### 2026-09-04 — Speech attempt 45: mature respiratory cell cannot cool
+
+- Production remains unchanged on healthy task 1429. The exact tick-434112
+  production copy drove both retained vocal routes in one interval but yielded
+  zero layer-13 recruitment across both the native three-frontier falsifier and
+  the real 32-hop production caller.
+- Exact cause is closed: the two-carrier respiratory discharge releases
+  approximately 0.320140 zJ into a reservoir with only 0.244260 zJ thermal
+  headroom, so the deposit is refused and the act is silently omitted.
+- The dedicated electrically isolated cell accumulated approximately 99.279 zJ
+  across its 620 live discharge carriers because its post-selection
+  co-recruitment bypasses the ordinary reached-cohort environment heat export.
+  Silence cannot select it to cool; restart faithfully preserves the mute
+  state.
+- The bounded repair is ordinary metabolic settlement of the actually
+  co-recruited layer-13 motor unit before its terminal discharge. No reset,
+  capacity change, phoneme/word program, renderer change, topology change or
+  L0-L4/DSF change is authorized. Full evidence and exact fractions are in
+  `docs/GUALA_SPEECH_REPAIR_ATTEMPT_45_RESPIRATORY_THERMAL_REACHABILITY_2026-09-04.md`.
+- This closes the reusable-breath cause, not speech. The next gate after copied-
+  body recovery is a recognizably ordered multi-posture syllable/word; current
+  retained vocal routes still fire simultaneously.
