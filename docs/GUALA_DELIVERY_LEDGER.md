@@ -1059,3 +1059,19 @@ they do not override this baseline.
   while the harness retained its report. The selected vocal pose remained
   identical on every hop, so this is reusable phonation only and explicitly
   not a word.
+
+### 2026-09-04 — Speech attempt 46: whole-word control boundary
+
+- The next accepted result is a recognizable whole `ma-ma`, not another tone.
+  The V22 board proves the compact acoustic reference, but the current native
+  organ has proved only a closed-mouth voice class.
+- A test-only AWS-bracketed dynamic range harness may supply physically valid
+  ordered body postures and finite breath to the unchanged native organ. It
+  supplies no waveform, phoneme, word, meaning, stored program or organism
+  input. Two adjacent settings must pass Joe's ear, with silence, frozen-pose,
+  reversed-order, deterministic-repeat, exact-rest and resource falsifiers.
+- A passing control proves only organ capacity. The exact copied production
+  body must then generate the same ordered postures through its own learned
+  topology, self-hear the whole word and cold-repeat it before any deployment
+  or sentence claim. Full boundary:
+  `docs/GUALA_SPEECH_REPAIR_ATTEMPT_46_WHOLE_WORD_CONTROL_2026-09-04.md`.
