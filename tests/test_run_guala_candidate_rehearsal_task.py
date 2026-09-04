@@ -226,6 +226,90 @@ def test_every_task_proof_is_exactly_receipted(
     ) == proof
 
 
+def test_a011_rehearsal_stays_on_one_authenticated_body_world_pair() -> None:
+    successor_sha = "d" * 64
+    cold_successor_sha = "e" * 64
+    world_successor_sha = "f" * 64
+    record = {
+        "a011_articulated_body_receptor_count": 90,
+        "a011_body_moved": True,
+        "a011_cold_next_articulated_body_receptor_count": 90,
+        "a011_cold_next_body_moved": True,
+        "a011_cold_next_continuous_cognition": True,
+        "a011_cold_next_interval_rehearsed": True,
+        "a011_cold_next_predecessor_state_sha256": successor_sha,
+        "a011_cold_next_predecessor_tick": 23_723_849,
+        "a011_cold_next_retained_formation_reassembly_count": 2,
+        "a011_cold_next_successor_current_exact": True,
+        "a011_cold_next_successor_state_sha256": cold_successor_sha,
+        "a011_cold_next_successor_tick": 23_723_852,
+        "a011_cold_next_world_predecessor_state_sha256": world_successor_sha,
+        "a011_cold_next_world_successor_state_sha256": "1" * 64,
+        "a011_continuous_cognition": True,
+        "a011_ordinary_interval_rehearsed": True,
+        "a011_predecessor_state_sha256": STATE_SHA,
+        "a011_predecessor_tick": 23_723_846,
+        "a011_retained_formation_reassembly_count": 1,
+        "a011_source_world_recovery_marker_present": True,
+        "a011_successor_current_exact": True,
+        "a011_successor_state_sha256": successor_sha,
+        "a011_successor_tick": 23_723_849,
+        "a011_world_successor_state_sha256": world_successor_sha,
+        "baseline_observed_state_sha256": STATE_SHA,
+        "baseline_observed_tick": 23_723_846,
+        "candidate_git_sha": GIT_SHA,
+        "candidate_image_digest": IMAGE,
+        "cold_restore_exact": True,
+        "complete_neuron_count": 217,
+        "current_format_migration_rehearsed": False,
+        "developmental_resting_neuron_count": 196_335,
+        "migration_predecessor_state_sha256": None,
+        "mode": "cold-restore",
+        "motor_action_rehearsed": False,
+        "python_callback_count": 0,
+        "python_cognition_workers_started": 0,
+        "raw_glorun_current_only": True,
+        "resident_state_bytes": 442_430,
+        "resident_state_sha256": STATE_SHA,
+        "schema": "guala.production_native_current_cold_restore.v8",
+        "source_advanced_after_baseline": False,
+        "source_identity": IDENTITY,
+        "source_mount_read_only": True,
+        "tick": 23_723_846,
+    }
+
+    proof = _receipted(record)
+    assert runner._validate_proof(
+        proof,
+        mode="cold-restore",
+        candidate_git_sha=GIT_SHA,
+        candidate_image_digest=IMAGE,
+        expected_identity=IDENTITY,
+        expected_tick=23_723_846,
+        expected_state_sha256=STATE_SHA,
+        expected_a011_ordinary_interval_rehearsal=True,
+    ) == proof
+
+    for field, value in (
+        ("a011_predecessor_tick", 23_723_847),
+        ("a011_predecessor_state_sha256", "2" * 64),
+        ("a011_source_world_recovery_marker_present", False),
+    ):
+        changed = dict(record)
+        changed[field] = value
+        with pytest.raises(RuntimeError, match="proof changed"):
+            runner._validate_proof(
+                _receipted(changed),
+                mode="cold-restore",
+                candidate_git_sha=GIT_SHA,
+                candidate_image_digest=IMAGE,
+                expected_identity=IDENTITY,
+                expected_tick=23_723_846,
+                expected_state_sha256=STATE_SHA,
+                expected_a011_ordinary_interval_rehearsal=True,
+            )
+
+
 GENESIS_ROOT = runner.GENESIS_STORE_PREFIX + "20260805T000000Z"
 
 

@@ -10,7 +10,6 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -1948,13 +1947,43 @@ def _a011_process_valid(value: dict[str, object]) -> bool:
 
 
 def _rehearse_a011_ordinary_interval(
-    source_root: str | os.PathLike[str],
+    restored: object,
+    admission: object,
+    world_body: bytes | None,
 ) -> dict[str, object]:
     """Cold-run, persist, restart, and run A-011 again on one private copy."""
 
+    from dsf_ai_service import native_production_app as production
+
     with tempfile.TemporaryDirectory(prefix="guala-a011-rehearsal-") as directory:
         rehearsal_root = Path(directory) / "native-organism"
-        shutil.copytree(Path(source_root), rehearsal_root)
+        staged = stage_active_native_organism(
+            rehearsal_root,
+            restored.organism,
+            max_envelope_bytes=admission.max_envelope_bytes,
+        )
+        published = publish_staged_native_organism(
+            staged,
+            expected_predecessor_sha256=None,
+            object_store=production._LocalDirectoryObjectStore(
+                Path(directory) / "object-mirror"
+            ),
+            max_envelope_bytes=admission.max_envelope_bytes,
+            max_fabric_bytes=admission.max_fabric_bytes,
+            max_logical_peak_bytes=admission.max_logical_peak_bytes,
+        )
+        if published.pointer.state_sha256 != restored.pointer.state_sha256:
+            raise RuntimeError("A-011 private CURRENT differs from authenticated body")
+        if world_body is not None:
+            original_state_root = production.STATE_ROOT
+            try:
+                production.STATE_ROOT = rehearsal_root
+                production._complete_world_recovery_bootstrap(
+                    published.pointer.state_sha256,
+                    world_body,
+                )
+            finally:
+                production.STATE_ROOT = original_state_root
         first = _run_a011_process(
             rehearsal_root,
             Path(directory) / "first-process.json",
@@ -1979,6 +2008,7 @@ def _rehearse_a011_ordinary_interval(
     return {
         "a011_ordinary_interval_rehearsed": True,
         "a011_predecessor_tick": first_before["tick"],
+        "a011_predecessor_state_sha256": first_before["sha256"],
         "a011_successor_tick": first_after["tick"],
         "a011_successor_state_sha256": first_after["sha256"],
         "a011_body_moved": True,
@@ -2011,7 +2041,26 @@ def _rehearse_a011_ordinary_interval(
         ],
         "a011_successor_current_exact": True,
         "a011_cold_next_successor_current_exact": True,
+        "a011_source_world_recovery_marker_present": world_body is not None,
     }
+
+
+def _read_authenticated_source_world(
+    source_root: str | os.PathLike[str],
+    body_state_sha256: str,
+) -> bytes | None:
+    """Read the world paired to the one already-authenticated source body."""
+
+    from dsf_ai_service import native_production_app as production
+
+    original_state_root = production.STATE_ROOT
+    try:
+        production.STATE_ROOT = Path(source_root)
+        if not production._world_recovery_marker_present():
+            return None
+        return bytes(production._read_world_recovery_pair(body_state_sha256))
+    finally:
+        production.STATE_ROOT = original_state_root
 
 
 def main() -> int:
@@ -2061,6 +2110,14 @@ def main() -> int:
         migration_predecessor = restored.pointer.predecessor_state_sha256
         if migration_predecessor is None:
             raise RuntimeError("current-format rehearsal lost its predecessor")
+    source_world = _read_authenticated_source_world(
+        values.native_store_root,
+        (
+            migration_predecessor
+            if migration_predecessor is not None
+            else restored.pointer.state_sha256
+        ),
+    )
     before = restored.organism.readiness()
     after = restored.organism.readiness()
     motor_proof: dict[str, int | bool | str | tuple[str, ...]] = {
@@ -2093,7 +2150,11 @@ def main() -> int:
         )
     ):
         raise RuntimeError("native CURRENT cold restore changed")
-    a011_proof = _rehearse_a011_ordinary_interval(values.native_store_root)
+    a011_proof = _rehearse_a011_ordinary_interval(
+        restored,
+        admission,
+        source_world,
+    )
     record = {
         "baseline_observed_state_sha256": values.expected_state_sha256,
         "baseline_observed_tick": values.expected_tick,

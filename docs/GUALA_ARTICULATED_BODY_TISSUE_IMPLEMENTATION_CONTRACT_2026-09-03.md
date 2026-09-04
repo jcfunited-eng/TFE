@@ -392,3 +392,62 @@ predated the current home; the exact task-1425 pair was then rejected when the
 local child omitted `GUALA_NATIVE_ORGANISM_IDENTITY`, which correctly changed
 the deterministic world-authentication key. Neither refusal changed source or
 production. The accepted run used the exact task-1425 identity and pair.
+
+## Release attempt 2 — healthy proof from two different predecessors rejected
+
+Candidate commit `cec2047c145e5ea37a457c21e9b7d3c3adb3a76a` built once as
+image digest
+`sha256:9530fb87d1b8b914fc5c87c9e1d07e7bfda9830d8283dc8d694a51e2d217f85e`
+and task definition `dsf-ai-task:1427`. Its isolated rehearsal task
+`2c2d27b1fd54476d9af807fe925fe8b8` exited zero. The candidate migrated the
+body and matched world successfully, ran both fresh processes, moved the body
+twice, returned all 90 receptors twice, persisted both body/world successors,
+and retained 155 then 171 formation reassemblies. Production remained
+unchanged and healthy on task 1425.
+
+The outer validator correctly rejected the otherwise healthy proof because it
+combined two live predecessors. The primary authenticated restore observed
+tick `414087`; `_rehearse_a011_ordinary_interval` later recursively copied the
+still-advancing source and began at tick `414093`. Its first successor was
+`414096` and its cold-next successor was `414099`. The validator requires the
+A-011 predecessor to be the primary authenticated restore, so it refused with
+`native candidate proof changed`.
+
+This attempt retires the second traversal of the live source. The already
+authenticated in-memory organism and the world paired to its exact source
+receipt must be used to construct one disposable coherent store. Both fresh
+A-011 processes then operate only on that store. A validator must never accept
+healthy evidence assembled from two different moments merely because each
+moment is individually valid.
+
+## 2026-09-04 complete attempt accounting and final shell gate
+
+The operator reports seven AWS build/rehearsal invocations during this day's
+delivery work. That aggregate is part of the failed-attempt history even though
+only two immutable candidate artifacts remain recoverable from this worktree:
+task 1426/digest `c14dbc...c2af` and task 1427/digest `9530fb...7f85e` above.
+The other five invocations have no surviving controller log here, so their
+coordinates must not be invented or silently collapsed out of the count. No
+new cloud invocation is permitted merely to reconstruct those missing logs.
+
+The attempt-2 correction deletes the recursive second copy of the advancing
+live source. `_rehearse_a011_ordinary_interval` now receives the one already
+authenticated in-memory organism and its exact matched world, publishes that
+pair once into a disposable local store, and starts both fresh proof processes
+only from that store. The proof emits its first predecessor body SHA as well as
+its tick. The outer validator requires both to equal the primary authenticated
+restore and requires the source world-recovery marker. Widening the validator
+to accept a later live tick remains prohibited.
+
+Two focused anti-recurrence tests pass: one proves that the helper stages the
+authenticated organism and matched world exactly once, and one rejects a
+different predecessor tick, different predecessor SHA, or missing world
+marker. A broader inherited probe-test invocation also ran and failed five
+stale mocks that refer to retired helpers or old native method shapes:
+`test_probe_reads_saves_and_reobserves_without_advancing_state`,
+`test_l005_rehearsal_batches_both_lessons_into_one_native_trajectory`,
+`test_articulation_rehearsal_reads_tick_through_native_observation`,
+`test_physical_rest_reopens_work_and_cold_replays_exactly`, and
+`test_internal_consolidation_changes_one_formation_and_cold_replays`. Those
+tests do not reach the changed A-011 pair constructor and are not repaired or
+misreported as candidate failures in this bounded release.

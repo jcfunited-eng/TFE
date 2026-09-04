@@ -144,6 +144,128 @@ def test_c024_observer_reads_one_disposable_exact_current(
     assert not snapshot_roots[0].exists()
 
 
+def test_a011_rehearsal_uses_the_authenticated_body_and_world_once(
+    monkeypatch,
+) -> None:
+    from dsf_ai_service import native_production_app as production
+
+    successor_sha = "d" * 64
+    cold_successor_sha = "e" * 64
+    world_before_sha = "1" * 64
+    world_successor_sha = "2" * 64
+    cold_world_successor_sha = "3" * 64
+    organism = object()
+    restored = SimpleNamespace(
+        organism=organism,
+        pointer=SimpleNamespace(state_sha256=STATE_SHA),
+    )
+    admission = _Admission()
+    staged = object()
+    published = SimpleNamespace(
+        pointer=SimpleNamespace(state_sha256=STATE_SHA),
+    )
+    operations: list[tuple[object, ...]] = []
+
+    def stage(root, value, *, max_envelope_bytes):
+        operations.append(("stage", Path(root), value, max_envelope_bytes))
+        return staged
+
+    def publish(value, **kwargs):
+        operations.append(("publish", value, kwargs["expected_predecessor_sha256"]))
+        return published
+
+    def process(_root, report_path):
+        if report_path.name == "first-process.json":
+            before = {
+                "identity": IDENTITY,
+                "tick": 100,
+                "sha256": STATE_SHA,
+                "state_bytes": len(STATE),
+            }
+            after = {
+                "identity": IDENTITY,
+                "tick": 103,
+                "sha256": successor_sha,
+                "state_bytes": len(STATE) + 1,
+            }
+            world_before = world_before_sha
+            world_after = world_successor_sha
+        else:
+            before = {
+                "identity": IDENTITY,
+                "tick": 103,
+                "sha256": successor_sha,
+                "state_bytes": len(STATE) + 1,
+            }
+            after = {
+                "identity": IDENTITY,
+                "tick": 106,
+                "sha256": cold_successor_sha,
+                "state_bytes": len(STATE) + 2,
+            }
+            world_before = world_successor_sha
+            world_after = cold_world_successor_sha
+        return {
+            "before": before,
+            "after": after,
+            "persisted": {
+                **after,
+                "predecessor_sha256": before["sha256"],
+            },
+            "result": {
+                "delivered": True,
+                "outcome": "native_causal_action_observed",
+                "moved": True,
+                "continuous_cognition": True,
+                "articulated_body_receptors": 90,
+                "partial_cue_reassembly_count": 4,
+            },
+            "custody": "checkpointed",
+            "cleanup": "cleanup_completed",
+            "world_before_sha256": world_before,
+            "world_after_sha256": world_after,
+        }
+
+    monkeypatch.setattr(probe, "stage_active_native_organism", stage)
+    monkeypatch.setattr(probe, "publish_staged_native_organism", publish)
+    monkeypatch.setattr(probe, "_run_a011_process", process)
+    monkeypatch.setattr(
+        production,
+        "_LocalDirectoryObjectStore",
+        lambda path: ("object-store", Path(path)),
+    )
+    monkeypatch.setattr(
+        production,
+        "_complete_world_recovery_bootstrap",
+        lambda state_sha, world: operations.append(
+            ("world", state_sha, bytes(world), production.STATE_ROOT)
+        ),
+    )
+    original_state_root = production.STATE_ROOT
+
+    proof = probe._rehearse_a011_ordinary_interval(
+        restored,
+        admission,
+        b"authenticated-world",
+    )
+
+    assert proof["a011_predecessor_tick"] == 100
+    assert proof["a011_predecessor_state_sha256"] == STATE_SHA
+    assert proof["a011_successor_state_sha256"] == successor_sha
+    assert proof["a011_cold_next_predecessor_state_sha256"] == successor_sha
+    assert proof["a011_cold_next_successor_state_sha256"] == cold_successor_sha
+    assert proof["a011_source_world_recovery_marker_present"] is True
+    assert operations[0][0] == "stage"
+    assert operations[0][2] is organism
+    assert operations[1] == ("publish", staged, None)
+    assert operations[2][0:3] == (
+        "world",
+        STATE_SHA,
+        b"authenticated-world",
+    )
+    assert production.STATE_ROOT == original_state_root
+
+
 @pytest.mark.parametrize(
     ("field", "value", "message"),
     (

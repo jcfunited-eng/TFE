@@ -861,6 +861,8 @@ def _validate_proof(
     a011_ordinary_interval_rehearsal = (
         proof.get("a011_ordinary_interval_rehearsed") is True
         and proof.get("a011_predecessor_tick") == actual_tick
+        and proof.get("a011_predecessor_state_sha256")
+        == actual_state_sha256
         and isinstance(proof.get("a011_successor_tick"), int)
         and not isinstance(proof["a011_successor_tick"], bool)
         and proof["a011_successor_tick"] > actual_tick
@@ -911,6 +913,7 @@ def _validate_proof(
         is not None
         and proof["a011_cold_next_world_successor_state_sha256"]
         != proof["a011_cold_next_world_predecessor_state_sha256"]
+        and proof.get("a011_source_world_recovery_marker_present") is True
     )
     if (
         proof.get("schema") != PROOF_SCHEMAS[mode]
