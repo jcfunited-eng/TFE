@@ -137,3 +137,9 @@ and human acceptance of the whole word before any sentence claim.
    identical because the existing respiratory-work anatomy saturates above
    six carriers; that is a measured bound, not a fitted exception. Human
    auditory acceptance remains open.
+3. The provenance rerun reproduced every native pressure hash but rejected its
+   generated page before publication because raw-string quotation marks for
+   the reference and two control buttons were unnecessarily escaped. Candidate
+   buttons were valid and native evidence was unaffected. The corrected page
+   generator removes only those literal backslashes; the malformed page is not
+   an accepted or published artifact.
