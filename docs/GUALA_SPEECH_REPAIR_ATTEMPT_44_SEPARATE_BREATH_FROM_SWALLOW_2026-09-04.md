@@ -451,3 +451,30 @@ used plain progress only to expose the previously truncated cause and failed at
 the identical Docker `COPY` boundary. No image was created and nothing was
 deployed. Do not repeat a direct build from this worktree; the production
 packager must stage those governed generated inputs after the hearing gate.
+
+## Deployment-attempt history after human acceptance
+
+The later manually staged local image
+`guala-local:speech-breath-dfed68a3`, image ID
+`sha256:c4c6f902d7b616ceb4531a7b67660ae28f48aa10b3ae9fa9b3067250cb1e73a1`,
+is rejected as Guala deployment evidence. It was accidentally built from
+`web/Dockerfile`, the unrelated TFE web image, rather than the Guala release
+manifest's `dsf_ai_service/Dockerfile`. Its exact copied-body restore command
+therefore stopped before reading the body with `ModuleNotFoundError: No module
+named 'dsf_ai_service'`. The disposable container was removed. Never reuse,
+push, register, or deploy that image.
+
+This exposed the earliest deterministic check: a Guala image rehearsal must
+first prove that the immutable package selected `dsf_ai_service/Dockerfile`
+from `deploy/guala_release_manifest.json` and that the packaged
+`dsf_ai_service` plus candidate `guala_core` module are importable. A generic
+successful Docker build or an image name containing `guala` is insufficient.
+
+The governed release packager then completed locally from clean commit
+`63a2d7dac1a63a13e927762a548455591e56d117`: 280 reviewed files, package
+receipt SHA-256
+`7ee2365f05d93393ffa0babe74c9b277b1fd5040d230b7e5a312bc4603f32e49`,
+and archive SHA-256
+`86b2b29f8fa26dd5180f6c7267e58f04b4f4e4ad0cf4071bf012ced866fe1297`.
+Context and archive verification passed. This is packaging preflight only; it
+is not an image, rehearsal, deployment, or live proof.
