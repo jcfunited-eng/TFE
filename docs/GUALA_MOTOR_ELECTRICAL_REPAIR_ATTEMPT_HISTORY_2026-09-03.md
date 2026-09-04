@@ -1015,3 +1015,48 @@ candidate regression. Per RF-014, those inherited mocks are recorded and are
 not edited inside this bounded repair. The five real action/choice/play/yaw/
 unattended boundary files then passed cleanly, `75/75` in `5.12 s`, using the
 fresh candidate wheel. No test process survived.
+
+## Final copied-body invocation rejected — stale test harness
+
+The first two final task-1425 proof invocations exited zero but produced no
+report. Their output showed `0 passed` and `605 filtered out`: Cargo had selected
+a cached library test executable that did not contain the newly committed
+`reservoir_probe_dump` test. This is not copied-body evidence and is rejected;
+no candidate claim is based on it. The invocation also established that the
+probe must be named with the explicit `--lib` target, but that alone did not
+invalidate the stale executable. The correction is to remove only this isolated
+worktree's compiled Cargo artifacts, rebuild the library test harness from the
+committed source, confirm that its test list contains the probe, and only then
+run the bounded proof twice. Production and the copied input remain unchanged.
+
+## Exact current task-1425 copied-body proof — passed twice identically
+
+After removing only the isolated candidate worktree's Cargo artifacts, the
+fresh release library harness explicitly listed and ran
+`resident_cognitive_formation::reservoir_probe::reservoir_probe_dump`.
+Two independently decoded runs against the same read-only captured production
+body at tick `408275` produced byte-identical 221,073-byte reports, SHA-256
+`24822786abdfec06542100c0628037caefabb68687a001020e7936e2dda56b8c`.
+
+The committed production tissue law, compiled inside the test, proved:
+
+- all seven copied-body axes initially stopped away from neutral released on
+  the first millisecond and every axis returned to neutral by millisecond 256;
+- one learned carrier moved vocal-tract section 0 toward maximum and section 7
+  toward minimum, retained 31 activation units after its first millisecond,
+  returned each axis to neutral by millisecond 33, and round-tripped exactly
+  through cold encoding;
+- equal antagonists cancelled without position or activation drift;
+- one admitted carrier per millisecond remained interior with zero stalls;
+- a 100,000-carrier overload bounded at saturation with 99,125 stalled
+  carriers; and
+- 64 ms plus 186 ms composed exactly to the 250 ms bound.
+
+The live-anatomy differential found five bridge contacts. Connected, the copied
+body produced the same one-carrier section-0 and section-7 motor recruitments
+at each of three clocks and returned the first physical consequence through 24
+samples, 12 receptor ports, 13 full DSF deliveries, and three occurrences.
+Severing exactly those five contacts removed both vocal-tract motor
+recruitments at all three clocks while leaving the unrelated ordinary motor
+activity available. Both connected and severed runs used zero synthetic seeds.
+Production was not touched and no probe process survived.
