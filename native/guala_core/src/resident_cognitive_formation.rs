@@ -20880,11 +20880,94 @@ fn settle_internal_contact_interval(
         };
         let (cohort_index, neuron_index, articulatory_lineage) =
             flat_locations[*articulatory_flat];
+        if selected.binary_search(articulatory_flat).is_ok() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
         let predecessor = TransitionNeuronPredecessor {
             lineage: articulatory_lineage,
             anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].clone(),
             state: cohorts[cohort_index].state.neurons()[neuron_index].clone(),
         };
+
+        // Layer 13 is deliberately electrically isolated, so its learned
+        // motor-coupled recruitment occurs after the contact-selected cohorts
+        // have settled. It is nevertheless a real active motor cell and must
+        // receive the same local powered-environment/recovery settlement as
+        // every other reached neuron before it can discharge. Omitting this
+        // step trapped every prior discharge's returned work as heat: silence
+        // could never select the isolated cohort to export it, and the mature
+        // cell eventually became permanently unable to accept another return.
+        let prepared_articulatory_metabolism = prepare_reached_cohort_membrane_pumps(
+            &cohorts[cohort_index].anatomy,
+            cohorts[cohort_index].state.as_ref(),
+            &[neuron_index],
+            interval_microseconds,
+            ExactRational::integer(0),
+        )
+        .map_err(FormationError::PhysicalSettlementUnavailable)?;
+        let articulatory_metabolic = apply_prepared_reached_cohort_membrane_pumps(
+            Arc::make_mut(&mut cohorts[cohort_index].state),
+            prepared_articulatory_metabolism,
+        );
+        let reached_with_articulatory = selected
+            .len()
+            .checked_add(1)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        let unchanged_with_articulatory = flat_locations
+            .len()
+            .checked_sub(reached_with_articulatory)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        for observation in &mut localized_fluid_chemistry {
+            observation.unchanged_unreached_neuron_count = unchanged_with_articulatory;
+        }
+        for settlement in articulatory_metabolic
+            .localized_fluid_chemistry
+            .iter()
+            .copied()
+        {
+            let LocalizedFluidChemistrySettlement {
+                neuron_index: settled_neuron_index,
+                interval_microseconds,
+                pump_contact_power_zeptojoules_per_microsecond,
+                predecessor_separated_elementary_charges,
+                successor_separated_elementary_charges,
+                predecessor_intracellular_carriers,
+                predecessor_extracellular_carriers,
+                successor_intracellular_carriers,
+                successor_extracellular_carriers,
+                predecessor_reservoir,
+                successor_reservoir,
+                returned_elementary_charges,
+                pumped_elementary_charges,
+                membrane_gradient_work_zeptojoules,
+            } = settlement;
+            localized_fluid_chemistry.push(LocalizedFluidChemistryObservation {
+                cognitive_ordinal,
+                neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()
+                    [settled_neuron_index],
+                neuron_place: cohorts[cohort_index].anatomy.mounts()[settled_neuron_index]
+                    .place(),
+                interval_microseconds,
+                pump_contact_power_zeptojoules_per_microsecond,
+                reached_neuron_count: articulatory_metabolic.reached_neuron_count,
+                changed_reached_neuron_count: articulatory_metabolic.changed_reached_neuron_count,
+                unchanged_unreached_neuron_count: unchanged_with_articulatory,
+                unchanged_developmental_resting_neuron_count,
+                changed_unreached_neuron_count: articulatory_metabolic
+                    .changed_unreached_neuron_count,
+                predecessor_separated_elementary_charges,
+                successor_separated_elementary_charges,
+                predecessor_intracellular_carriers,
+                predecessor_extracellular_carriers,
+                successor_intracellular_carriers,
+                successor_extracellular_carriers,
+                predecessor_reservoir,
+                successor_reservoir,
+                returned_elementary_charges,
+                pumped_elementary_charges,
+                membrane_gradient_work_zeptojoules,
+            });
+        }
         if let Some((successor_neuron, outward_carriers, released_work)) =
             crate::complete_neuron::settle_efferent_terminal_transport(
                 &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],

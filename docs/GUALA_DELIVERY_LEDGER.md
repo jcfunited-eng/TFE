@@ -1052,3 +1052,10 @@ they do not override this baseline.
 - This closes the reusable-breath cause, not speech. The next gate after copied-
   body recovery is a recognizably ordered multi-posture syllable/word; current
   retained vocal routes still fire simultaneously.
+- The bounded candidate now passes the exact mature body for 512 whole-roster
+  hops: 256 layer-13 recruitments, 469 pressure occurrences, 468 self-heard
+  occurrences, constant 112,677,154-byte resident state, exact cold restore,
+  and all AWS alarms clear. Tail RSS growth fell to 2--3 MB per 64-hop block
+  while the harness retained its report. The selected vocal pose remained
+  identical on every hop, so this is reusable phonation only and explicitly
+  not a word.

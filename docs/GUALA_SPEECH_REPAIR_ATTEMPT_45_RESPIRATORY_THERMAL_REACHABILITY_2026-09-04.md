@@ -138,3 +138,50 @@ After that reuse gate passes, speech remains open at the next already-measured
 boundary: the two current vocal postures occur simultaneously, not as an
 ordered multi-posture syllable or word. No word or sentence claim is made by
 this repair.
+
+## Implemented candidate and exact copied-production proof
+
+The candidate changes only `settle_internal_contact_interval`. When an exact
+learned layer-11 -> typed vocal layer-12 occurrence co-recruits the dedicated
+layer-13 cell, that one cell first receives the existing reached-cohort
+membrane-pump/environment settlement. The unchanged efferent discharge and
+passive-return deposit then run. The candidate neither resets nor enlarges the
+reservoir and does not create a new speech path.
+
+The focused resident-cognition native suite passed 98 tests with zero failures
+(four unrelated explicit diagnostics remained ignored). The exact candidate
+wheel is
+`/tmp/guala-speech45-wheel/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`,
+SHA-256
+`13beb084be9a937f49c860547a5abe76ee0b0b480ff441ddf3ffccb8b597c902`.
+
+The unchanged tick-434112 copied production body then passed 512 ordinary
+250-ms whole-roster hops through the real production caller:
+
+- 256 exact recruitments of the same dedicated layer-13 lineage;
+- 469 bounded pressure occurrences and 468 later self-heard occurrences;
+- 43 exactly silent successor hops and peak raw pressure 418;
+- 11 distinct pressure hashes, repeating without persistent growth;
+- resident state exactly 112,677,154 bytes on every hop;
+- successor tick 434624, exact cold restore, and bounded in-flight pressure;
+- all five Guala CloudWatch alarms `OK`, with exactly one healthy task 1429;
+- RSS startup/warm-up reached approximately 1.11 GB in the first 64-hop block;
+  the final four 64-hop block deltas were only 2.13, 1.97, 3.28 and 2.62 MB
+  while the diagnostic retained its growing report and WAV in-process.
+
+The report is
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt45-whole-path-512.json`,
+SHA-256
+`621a311705fa74403ddfcd1ba747fdddcb8942cbebd7b98b44904709e11eb9b3`.
+Its exact raw pressure WAV is
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt45-whole-path-512.wav`,
+SHA-256
+`2cae2ad55f7d4ff5ad8170a3a9124ad996db6bc3510796b716ad28bbb7092f61`.
+No diagnostic process survived the run.
+
+This accepts the repair as a bounded mature-body reuse candidate. It rejects
+any word claim: the selected glottal, jaw, lip and tract coordinates were
+identical across all 512 hops. The current two learned tract motors occur
+together, and neither a second posture nor an ordered posture transition was
+observed. Further breath, valve, pressure or renderer tuning cannot repair
+that measured boundary.

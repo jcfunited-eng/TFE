@@ -196,8 +196,8 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument("--aws-service", default=DEFAULT_SERVICE)
     parser.add_argument("--expected-task-definition", default="1428")
     arguments = parser.parse_args()
-    if arguments.hops < 2 or arguments.hops > 128:
-        parser.error("--hops must be between 2 and 128")
+    if arguments.hops < 2 or arguments.hops > 512:
+        parser.error("--hops must be between 2 and 512")
     return arguments
 
 

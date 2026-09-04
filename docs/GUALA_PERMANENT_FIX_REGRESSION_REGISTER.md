@@ -546,3 +546,10 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
 - Attempt 45 does not prove a word. After exact mature-body reuse and cold
   repeat, the retained vocal controls must still prove ordered multi-posture
   production rather than their current simultaneous event.
+- The candidate passed 512 exact copied-production whole-roster hops with 256
+  dedicated respiratory recruitments, 469 pressure occurrences, 468 later
+  self-heard occurrences, constant resident bytes, exact cold restore and no
+  AWS alarm. The vocal coordinates were identical across all 512 hops. This
+  permanently separates reusable phonation from the still-open learned
+  posture-ordering defect; do not reopen breath or renderer tuning to explain
+  the absence of a word.
