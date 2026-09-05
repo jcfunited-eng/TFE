@@ -1132,3 +1132,54 @@ variable motor strength while making the two learned vocal routes conduct in
 the wrong direction. The missing piece is exactly the directed learned-input
 transduction into the motor's own dynamic settlement. No motor redesign,
 carrier constant, or vocal exception is authorized by this result.
+
+## Candidate 47H — intrinsic one-gate range passes its first boundary
+
+The corrected test-only candidate replaced the mismatched receptor-population
+target with the exact intrinsic gate already present in every motor. A closed
+motor retains its conductance-weighted share of real L11 source work on the
+existing fixed-width input-work residue. The accumulated work is presented to
+the ordinary one-gate free-energy settlement. It is delivered and cleared only
+when that gate physically opens; otherwise it remains residue. Once open, the
+gate's own conductance, reversal, potential, elapsed time, and finite carrier
+material determine local motor discharge. An already-open gate consumes no new
+control work. No carrier crosses the learned bond and no carrier count is
+selected.
+
+The full isolated copied-body matrix completed in 93.46 seconds after a warm
+compile: four actually reached motors, six source strengths (`0`, `1/4`,
+`1/2`, `1`, `2`, `4`), four intervals (`62.5`, `125`, `250`, `500 ms`), 256
+successive events, zero-work, carrier-exhausted, gate-capacity-exhausted,
+severed, order-permutation, untouched-codec, and cold-midpoint controls.
+
+At the real copied source strength and 250 ms, vocal motor `00c5` opened and
+discharged on event 53 with 1,475 carriers; vocal motor `04fb` did so on event
+52 with 1,447 carriers. At one quarter source strength their first discharges
+moved to events 209 and 208; at four times source strength they moved to events
+14 and 13. At a fixed crossing, varying the physical interval changed the
+vocal extents from approximately 360 carriers at 62.5 ms to approximately
+2,900 at 500 ms. The two non-vocal motors crossed at events 6 and 2 under real
+strength, demonstrating current-state variation across the actual motor
+population rather than a vocal exception.
+
+All dynamic and negative-control work/carrier balances closed exactly. Zero
+work, exhausted intracellular carriers, exhausted gate dissipation, and all
+seven severed learned bonds produced no output. Cold encode/decode at events 52
+and 51 preserved the later vocal crossings exactly at events 53 and 52. The
+untouched V41 body round-tripped byte-identically; no persistent schema byte
+was added; retained numerator and denominator widths remained at most 13
+bytes. Artifact:
+`/tmp/guala-speech1429-sequence.dpHRJX/candidate47h-intrinsic-gate-range-v2.json`,
+350,663 bytes, SHA-256
+`55c8f916506c2940fbf2888c7361629005cca3404932921c14d0bb0be70cb8e1`.
+AWS remained task 1429, one running/zero pending, completed rollout, with all
+five Guala alarms `OK` after the run.
+
+This passes the isolated directed-input and dynamic-strength boundary. It is
+not yet production authority: source-work debit and motor preparation must be
+integrated atomically in the real reached-cohort settlement, then the exact
+copied body must prove typed tissue motion, bounded respiratory co-recruitment,
+pressure, all-ear self-hearing, order independence, cold continuation, and
+flat resources. Its measured 52/53-event real-strength vocal latency is also a
+required developmental/timing fact; it may not be hidden by tuning the source
+or lowering the gate.

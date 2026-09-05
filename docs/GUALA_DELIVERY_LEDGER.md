@@ -1238,3 +1238,29 @@ they do not override this baseline.
   transduction into that unchanged dynamic motor settlement; neither a fixed
   carrier count nor the ordinary backward gap-junction current may stand in
   for it.
+
+### 2026-09-05 — Speech attempt 47H: intrinsic-gate dynamic range passes
+
+- The failed receptor-population target was replaced in test-only code with
+  the exact intrinsic one-gate free-energy settlement. Real source work
+  accumulates on the existing fixed-width input residue; only an actual gate
+  opening consumes it, and the unchanged local membrane determines discharge.
+- Across six source strengths, four intervals, four current motors, 256 events,
+  and all negative controls, output was dynamic and every work/carrier balance
+  closed. At real strength/250 ms the two vocal motors first discharged on
+  events 53 and 52 at 1,475 and 1,447 carriers. Quarter and quadruple source
+  strength moved latency to 209/208 and 14/13; 62.5--500 ms varied discharge
+  from about 360 to 2,900 carriers.
+- Zero work, exhausted carriers, exhausted gate capacity, and severing all
+  seven learned bonds were silent. Cold midpoint restore preserved both vocal
+  crossings exactly. Untouched V41 bytes round-tripped exactly; persistent
+  schema growth was zero; rational components remained at most 13 bytes.
+- Artifact: 350,663 bytes, SHA-256
+  `55c8f916506c2940fbf2888c7361629005cca3404932921c14d0bb0be70cb8e1`.
+  Focused run: one passed, 608 filtered, 93.46 seconds. AWS remained healthy
+  task 1429 with every Guala alarm `OK`.
+- This is an isolated-physics pass, not deployment authority. The exact next
+  gate is atomic source debit plus real reached-cohort motor settlement through
+  typed vocal tissue, bounded breath, pressure, self-hearing, restart, and
+  resource controls. The measured 52/53-event latency remains visible and may
+  not be tuned away.

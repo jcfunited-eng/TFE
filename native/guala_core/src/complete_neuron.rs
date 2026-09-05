@@ -5150,6 +5150,169 @@ pub(crate) fn settle_extended_interval_with_contact_and_prepared_gate(
     })
 }
 
+/// Test-only instrument for the candidate-47H receiving-gate boundary.
+///
+/// This is deliberately below organism settlement and is never compiled into
+/// production. It lets the copied-body probe carry one real motor neuron's
+/// complete physical successor across repeated exact work arrivals while
+/// exercising the unchanged population gate, membrane conductance, carrier,
+/// plastic, recovery, and DNA laws. Psi is held at the copied predecessor for
+/// this isolated control; the copied motor anatomy has no Psi gate contacts,
+/// so Psi supplies neither selection nor energy here.
+#[cfg(test)]
+#[derive(Clone, Debug)]
+pub(crate) struct TransducedGateWorkProbeInterval {
+    pub(crate) successor: NeuronPhysicalState,
+    pub(crate) accepted_work_zeptojoules: Exact,
+    pub(crate) source_heat_zeptojoules: Exact,
+    pub(crate) delivered_gate_work_zeptojoules: Exact,
+    pub(crate) residue_narrowing_heat_zeptojoules: Exact,
+    pub(crate) gate_exported_heat_zeptojoules: Exact,
+    pub(crate) local_outward_elementary_charges: i128,
+}
+
+#[cfg(test)]
+pub(crate) fn probe_transduced_gate_work_interval(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    offered_work_zeptojoules: Exact,
+    interval_microseconds: u32,
+    exhaust_intracellular_carriers: bool,
+    exhaust_gate_dissipation: bool,
+) -> Result<TransducedGateWorkProbeInterval, NeuronPhysicalError> {
+    if offered_work_zeptojoules.is_negative() {
+        return Err(GateSettlementError::InvalidAnatomy.into());
+    }
+    let mut physical_predecessor = predecessor.clone();
+    if exhaust_intracellular_carriers {
+        physical_predecessor.carriers.intracellular = 0;
+    }
+    if exhaust_gate_dissipation {
+        physical_predecessor.gate.dissipated_quanta =
+            anatomy.gate.dissipation_capacity_quanta;
+        physical_predecessor.gate.open_population = 0;
+        physical_predecessor.gate.dissipation_residue_zeptojoules =
+            PhysicalEnergyResidue::zero();
+    }
+    let prepared_psi = PsiSettlement {
+        successor: physical_predecessor.psi.clone(),
+        changed_rings: 0,
+        dissipated_quanta: 0,
+    };
+    let predecessor_open_population = physical_predecessor.gate.open_population;
+    let closed_without_dissipation_headroom = predecessor_open_population == 0
+        && physical_predecessor.gate.dissipated_quanta
+            >= anatomy.gate.dissipation_capacity_quanta;
+    let can_accept_control_work = predecessor_open_population == 0
+        && !closed_without_dissipation_headroom;
+    let accumulated_work = if can_accept_control_work {
+        physical_predecessor.receptor_quantum_residue.energy()
+            + &offered_work_zeptojoules
+    } else {
+        physical_predecessor.receptor_quantum_residue.energy().clone()
+    };
+    let gate_work = if can_accept_control_work {
+        GateWorkOccurrence::new(-accumulated_work.clone())
+    } else {
+        GateWorkOccurrence::new(Exact::zero())
+    };
+
+    // Intrinsic motors own one ordinary gate conformation, not an independently
+    // addressable receptor population. Present accumulated control work to that
+    // unchanged free-energy settlement. The work is delivered only if the
+    // physical gate actually opens; otherwise it remains local residue. An
+    // already-open gate needs no additional control work to conduct, so a new
+    // offer remains at the source boundary instead of being silently consumed.
+    let gate_membrane = settle_gate_membrane(
+        &anatomy.gate,
+        &anatomy.plastic,
+        &physical_predecessor.plastic,
+        physical_predecessor.gate.clone(),
+        &prepared_psi.successor,
+        gate_work,
+        anatomy.capacitance,
+        physical_predecessor.membrane,
+        physical_predecessor.carriers,
+        interval_microseconds,
+    )?;
+    let gate_opened = predecessor_open_population == 0
+        && gate_membrane.successor_gate.open_population > 0;
+    let accepted_work = if can_accept_control_work {
+        offered_work_zeptojoules.clone()
+    } else {
+        Exact::zero()
+    };
+    let source_heat = &offered_work_zeptojoules - &accepted_work;
+    let delivered_gate_work = if gate_opened {
+        accumulated_work.clone()
+    } else {
+        Exact::zero()
+    };
+    let retained_residue = if gate_opened {
+        Exact::zero()
+    } else {
+        accumulated_work
+    };
+
+    // Fixed 2^96 retained-energy lattice. Flooring cannot create energy; the
+    // discarded positive sliver is returned explicitly as heat. This is the
+    // same finite-lattice width already used by resident contact phase and is
+    // part of the falsifier precisely so a bounded-energy residue cannot grow
+    // an unbounded rational denominator over a lifetime.
+    let lattice = BigInt::from(1_u128 << 96);
+    let floored_numerator = (&retained_residue * &lattice)
+        .floor()
+        .to_integer();
+    let narrowed_residue = Exact::new(floored_numerator, lattice);
+    let residue_narrowing_heat = &retained_residue - &narrowed_residue;
+    if residue_narrowing_heat.is_negative() {
+        return Err(GateSettlementError::ArithmeticWidth.into());
+    }
+    let local_outward_elementary_charges =
+        gate_membrane.membrane.outward_elementary_charges_by_path[0];
+    let gate_exported_heat_zeptojoules =
+        gate_membrane.exported_heat_zeptojoules.clone();
+    let mut successor = NeuronPhysicalState::new_with_exact_receptor_residue(
+        prepared_psi.successor,
+        gate_membrane.successor_gate,
+        gate_membrane.membrane.successor,
+        gate_membrane.successor_carriers,
+        physical_predecessor.recovery.clone(),
+        physical_predecessor.dna_expression,
+        physical_predecessor.plastic.clone(),
+        narrowed_residue,
+        physical_predecessor.membrane_return_work_residue,
+    );
+    let plastic = settle_plastic_support(
+        &anatomy.plastic,
+        &physical_predecessor.plastic,
+        anatomy.gate.population,
+        successor.gate.open_population,
+    )?;
+    successor.plastic = plastic.successor;
+    let zero_psi_catalysts = vec![0_u128; anatomy.recovery.psi_lanes.len()];
+    let _ = settle_recovery(
+        &anatomy.recovery,
+        &mut successor,
+        RecoveryContact::new(&zero_psi_catalysts, 0, 0),
+    )?;
+    let _ = settle_dna_expression(
+        anatomy.dna_expression,
+        &mut successor.dna_expression,
+        DnaExpressionContact::new(0),
+    )?;
+
+    Ok(TransducedGateWorkProbeInterval {
+        successor,
+        accepted_work_zeptojoules: accepted_work,
+        source_heat_zeptojoules: source_heat,
+        delivered_gate_work_zeptojoules: delivered_gate_work,
+        residue_narrowing_heat_zeptojoules: residue_narrowing_heat,
+        gate_exported_heat_zeptojoules,
+        local_outward_elementary_charges,
+    })
+}
+
 /// Settle only along the supplied exact physical interval sequence. The
 /// sequence is the causal occurrence, not a timeout. If it ends before an
 /// unchanged zero-current interval, no quiescence or fractal is claimed.

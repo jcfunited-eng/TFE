@@ -3020,6 +3020,382 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
     })
 }
 
+fn wide_exact_from_json(value: &Value) -> BigRational {
+    let numerator = value["numerator"]
+        .as_str()
+        .expect("exact JSON numerator")
+        .parse::<BigInt>()
+        .expect("exact JSON numerator integer");
+    let denominator = value["denominator"]
+        .as_str()
+        .expect("exact JSON denominator")
+        .parse::<BigInt>()
+        .expect("exact JSON denominator integer");
+    BigRational::new(numerator, denominator)
+}
+
+fn lineage_from_hex(value: &str) -> [u8; 16] {
+    assert_eq!(value.len(), 32, "lineage hex width");
+    let mut lineage = [0_u8; 16];
+    for (index, byte) in lineage.iter_mut().enumerate() {
+        *byte = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16)
+            .expect("lineage hex byte");
+    }
+    lineage
+}
+
+fn mounted_neuron_location(
+    state: &ResidentCognitiveFormationState,
+    lineage: [u8; 16],
+) -> (usize, usize) {
+    let flat = state
+        .topology_index
+        .flat_for_lineage(lineage)
+        .expect("mounted lineage");
+    let (cohort, neuron, _) = state.topology_index.flat_locations[flat];
+    (cohort, neuron)
+}
+
+fn with_replaced_mounted_neuron(
+    state: &ResidentCognitiveFormationState,
+    lineage: [u8; 16],
+    replacement: crate::complete_neuron::NeuronPhysicalState,
+) -> ResidentCognitiveFormationState {
+    let (cohort_index, neuron_index) = mounted_neuron_location(state, lineage);
+    let mut successor = state.clone();
+    successor.cohorts[cohort_index].state = successor.cohorts[cohort_index]
+        .state
+        .with_replaced_neurons(&[(neuron_index, replacement)])
+        .expect("one in-range neuron replacement")
+        .into();
+    successor
+}
+
+fn transduced_gate_sample_json(
+    anatomy: &crate::complete_neuron::NeuronPhysicalAnatomy,
+    predecessor: &crate::complete_neuron::NeuronPhysicalState,
+    offered_work: &BigRational,
+    interval_microseconds: u32,
+    maximum_events: u32,
+    exhaust_intracellular_carriers: bool,
+    exhaust_gate_dissipation: bool,
+) -> (Value, crate::complete_neuron::NeuronPhysicalState) {
+    let mut current = predecessor.clone();
+    let mut first_open_event = None;
+    let mut first_outward_event = None;
+    let mut peak_outward = 0_i128;
+    let mut all_offer_balances_close = true;
+    let mut all_gate_input_balances_close = true;
+    let mut all_carrier_balances_close = true;
+    let mut maximum_residue_numerator_bytes = 0_usize;
+    let mut maximum_residue_denominator_bytes = 0_usize;
+    let mut total_accepted = BigRational::zero();
+    let mut total_source_heat = BigRational::zero();
+    let mut total_delivered = BigRational::zero();
+    let mut total_residue_narrowing_heat = BigRational::zero();
+    let mut total_gate_exported_heat = BigRational::zero();
+    let mut checkpoints = Vec::new();
+
+    for event in 1..=maximum_events {
+        let predecessor_residue = current.receptor_quantum_residue.energy().clone();
+        let predecessor_carriers = if exhaust_intracellular_carriers {
+            current.carrier_reservoirs().extracellular()
+        } else {
+            current
+                .carrier_reservoirs()
+                .total()
+                .expect("copied motor carrier total")
+        };
+        let settled = crate::complete_neuron::probe_transduced_gate_work_interval(
+            anatomy,
+            &current,
+            offered_work.clone(),
+            interval_microseconds,
+            exhaust_intracellular_carriers,
+            exhaust_gate_dissipation,
+        )
+        .expect("candidate-47H isolated gate settlement");
+        let successor_residue = settled
+            .successor
+            .receptor_quantum_residue
+            .energy()
+            .clone();
+        let successor_carriers = settled
+            .successor
+            .carrier_reservoirs()
+            .total()
+            .expect("candidate motor carrier total");
+        all_offer_balances_close &= *offered_work
+            == &settled.accepted_work_zeptojoules + &settled.source_heat_zeptojoules;
+        all_gate_input_balances_close &= predecessor_residue
+            + &settled.accepted_work_zeptojoules
+            == &settled.delivered_gate_work_zeptojoules
+                + &successor_residue
+                + &settled.residue_narrowing_heat_zeptojoules;
+        all_carrier_balances_close &= predecessor_carriers == successor_carriers;
+        total_accepted += &settled.accepted_work_zeptojoules;
+        total_source_heat += &settled.source_heat_zeptojoules;
+        total_delivered += &settled.delivered_gate_work_zeptojoules;
+        total_residue_narrowing_heat += &settled.residue_narrowing_heat_zeptojoules;
+        total_gate_exported_heat += &settled.gate_exported_heat_zeptojoules;
+        maximum_residue_numerator_bytes = maximum_residue_numerator_bytes.max(
+            successor_residue.numer().to_signed_bytes_le().len(),
+        );
+        maximum_residue_denominator_bytes = maximum_residue_denominator_bytes.max(
+            successor_residue.denom().to_signed_bytes_le().len(),
+        );
+        let open_population = settled.successor.probe_gate_open_population();
+        if open_population > 0 && first_open_event.is_none() {
+            first_open_event = Some(event);
+        }
+        if settled.local_outward_elementary_charges > 0 && first_outward_event.is_none() {
+            first_outward_event = Some(event);
+        }
+        peak_outward = peak_outward.max(settled.local_outward_elementary_charges);
+        if event == 1
+            || event == maximum_events
+            || Some(event) == first_open_event
+            || Some(event) == first_outward_event
+        {
+            checkpoints.push(json!({
+                "event": event,
+                "open_gate_population": open_population.to_string(),
+                "local_outward_elementary_charges":
+                    settled.local_outward_elementary_charges.to_string(),
+                "successor_residue_zeptojoules": wide_exact_json(&successor_residue),
+            }));
+        }
+        current = settled.successor;
+    }
+
+    let final_residue = current.receptor_quantum_residue.energy().clone();
+    (
+        json!({
+            "interval_microseconds": interval_microseconds,
+            "maximum_events": maximum_events,
+            "offered_work_per_event_zeptojoules": wide_exact_json(offered_work),
+            "intracellular_carriers_artificially_exhausted":
+                exhaust_intracellular_carriers,
+            "gate_dissipation_artificially_exhausted": exhaust_gate_dissipation,
+            "first_open_event": first_open_event,
+            "first_positive_outward_event": first_outward_event,
+            "peak_local_outward_elementary_charges": peak_outward.to_string(),
+            "final_open_gate_population": current.probe_gate_open_population().to_string(),
+            "final_residue_zeptojoules": wide_exact_json(&final_residue),
+            "total_accepted_work_zeptojoules": wide_exact_json(&total_accepted),
+            "total_source_heat_zeptojoules": wide_exact_json(&total_source_heat),
+            "total_delivered_gate_work_zeptojoules": wide_exact_json(&total_delivered),
+            "total_residue_narrowing_heat_zeptojoules":
+                wide_exact_json(&total_residue_narrowing_heat),
+            "total_gate_exported_heat_zeptojoules":
+                wide_exact_json(&total_gate_exported_heat),
+            "all_offer_balances_close_exactly": all_offer_balances_close,
+            "all_gate_input_balances_close_exactly": all_gate_input_balances_close,
+            "all_carrier_balances_close_exactly": all_carrier_balances_close,
+            "maximum_residue_numerator_bytes": maximum_residue_numerator_bytes,
+            "maximum_residue_denominator_bytes": maximum_residue_denominator_bytes,
+            "checkpoints": checkpoints,
+        }),
+        current,
+    )
+}
+
+/// Candidate-47H dynamic regime map over the immutable task-1429 body. This
+/// calls only test-compiled neuron physics, carries the exact motor state over
+/// repeated arrivals, and never presents a stimulus to the organism.
+fn temporal_gate_work_range_json(
+    state: &ResidentCognitiveFormationState,
+    original_cognitive_bytes: &[u8],
+) -> Value {
+    let predecessor_bytes = state.encode(usize::MAX).expect("encode untouched V41 body");
+    let untouched_v41_round_trip_exact = predecessor_bytes == original_cognitive_bytes;
+    let source_census = source_work_to_motor_reservoir_range_json(state);
+    let route_results = source_census["route_results"]
+        .as_array()
+        .expect("candidate-47F copied route results");
+    let scales = [(0_i64, 1_i64), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1)];
+    let intervals = [62_500_u32, 125_000, 250_000, 500_000];
+    let mut samples = Vec::new();
+    let mut cold_continuation = Vec::new();
+    let mut cold_tested_motors = std::collections::BTreeSet::new();
+
+    for route in route_results {
+        if route.get("error").is_some() {
+            samples.push(route.clone());
+            continue;
+        }
+        let motor_hex = route["motor_lineage"]
+            .as_str()
+            .expect("candidate motor lineage");
+        let motor = lineage_from_hex(motor_hex);
+        let active_clock = route["active_clock"]
+            .as_u64()
+            .expect("candidate active clock");
+        let source_work = wide_exact_from_json(&route["total_source_work_zeptojoules"]);
+        let (cohort_index, neuron_index) = mounted_neuron_location(state, motor);
+        let cohort = &state.cohorts[cohort_index];
+        let anatomy = &cohort.anatomy.neuron_anatomies()[neuron_index];
+        let predecessor = &cohort.state.neurons()[neuron_index];
+
+        for (scale_numerator, scale_denominator) in scales {
+            let offered = &source_work * BigInt::from(scale_numerator)
+                / BigInt::from(scale_denominator);
+            for interval_microseconds in intervals {
+                let (sample, _) = transduced_gate_sample_json(
+                    anatomy,
+                    predecessor,
+                    &offered,
+                    interval_microseconds,
+                    256,
+                    false,
+                    false,
+                );
+                samples.push(json!({
+                    "active_clock": active_clock,
+                    "motor_lineage": motor_hex,
+                    "source_scale": format!("{scale_numerator}/{scale_denominator}"),
+                    "sample": sample,
+                }));
+            }
+        }
+
+        let (zero_work, _) = transduced_gate_sample_json(
+            anatomy,
+            predecessor,
+            &BigRational::zero(),
+            250_000,
+            256,
+            false,
+            false,
+        );
+        let (exhausted_carriers, _) = transduced_gate_sample_json(
+            anatomy,
+            predecessor,
+            &source_work,
+            250_000,
+            256,
+            true,
+            false,
+        );
+        let (exhausted_gate, _) = transduced_gate_sample_json(
+            anatomy,
+            predecessor,
+            &source_work,
+            250_000,
+            256,
+            false,
+            true,
+        );
+        samples.push(json!({
+            "active_clock": active_clock,
+            "motor_lineage": motor_hex,
+            "controls": {
+                "zero_work": zero_work,
+                "exhausted_intracellular_carriers": exhausted_carriers,
+                "exhausted_gate_dissipation": exhausted_gate,
+            },
+        }));
+
+        let is_vocal = motor_hex.ends_with("00c5") || motor_hex.ends_with("04fb");
+        if is_vocal && cold_tested_motors.insert(motor) {
+            let (uninterrupted, _) = transduced_gate_sample_json(
+                anatomy,
+                predecessor,
+                &source_work,
+                250_000,
+                256,
+                false,
+                false,
+            );
+            let uninterrupted_crossing = uninterrupted["first_positive_outward_event"].as_u64();
+            if let Some(crossing) = uninterrupted_crossing {
+                let split = u32::try_from(crossing.saturating_sub(1)).unwrap();
+                let (_, midpoint_neuron) = transduced_gate_sample_json(
+                    anatomy,
+                    predecessor,
+                    &source_work,
+                    250_000,
+                    split,
+                    false,
+                    false,
+                );
+                let midpoint_state = with_replaced_mounted_neuron(state, motor, midpoint_neuron);
+                let midpoint_bytes = midpoint_state
+                    .encode(usize::MAX)
+                    .expect("encode sub-threshold copied body");
+                let cold_state = ResidentCognitiveFormationState::decode(
+                    &midpoint_bytes,
+                    usize::MAX,
+                )
+                .expect("cold-decode sub-threshold copied body");
+                let (cold_cohort, cold_neuron) = mounted_neuron_location(&cold_state, motor);
+                let cold_anatomy = &cold_state.cohorts[cold_cohort]
+                    .anatomy
+                    .neuron_anatomies()[cold_neuron];
+                let cold_predecessor = &cold_state.cohorts[cold_cohort].state.neurons()[cold_neuron];
+                let (continued, _) = transduced_gate_sample_json(
+                    cold_anatomy,
+                    cold_predecessor,
+                    &source_work,
+                    250_000,
+                    256 - split,
+                    false,
+                    false,
+                );
+                let continued_relative = continued["first_positive_outward_event"].as_u64();
+                cold_continuation.push(json!({
+                    "motor_lineage": motor_hex,
+                    "uninterrupted_first_positive_outward_event": crossing,
+                    "cold_split_after_event": split,
+                    "midpoint_encoded_bytes": midpoint_bytes.len(),
+                    "midpoint_reencode_exact": cold_state
+                        .encode(usize::MAX)
+                        .expect("re-encode cold midpoint") == midpoint_bytes,
+                    "continued_relative_first_positive_outward_event": continued_relative,
+                    "cold_absolute_first_positive_outward_event":
+                        continued_relative.map(|relative| u64::from(split) + relative),
+                    "crossing_preserved_across_cold_restore":
+                        continued_relative.map(|relative| u64::from(split) + relative)
+                            == Some(crossing),
+                }));
+            } else {
+                cold_continuation.push(json!({
+                    "motor_lineage": motor_hex,
+                    "uninterrupted_first_positive_outward_event": Value::Null,
+                    "crossing_preserved_across_cold_restore": false,
+                    "reason": "no outward event within 256 repeated real-work events",
+                }));
+            }
+        }
+    }
+
+    let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
+    let severed_route_count = source_work_to_motor_reservoir_range_json(&severed)
+        ["route_results"]
+        .as_array()
+        .map_or(0, Vec::len);
+    json!({
+        "measurement_only": true,
+        "production_compiled": false,
+        "candidate": "47H intrinsic receiving-gate temporal work integration",
+        "copied_body_cognitive_format": "GLCOG041",
+        "untouched_v41_round_trip_exact": untouched_v41_round_trip_exact,
+        "source_carriers_enter_motor": false,
+        "a0116_transition_work_phase_reused": false,
+        "recovery_material_created": false,
+        "persistent_schema_bytes_added": 0,
+        "maximum_repeated_events": 256,
+        "source_scales": ["0/1", "1/4", "1/2", "1/1", "2/1", "4/1"],
+        "interval_microseconds": intervals,
+        "samples": samples,
+        "cold_continuation": cold_continuation,
+        "severed_bridge_count": severed_bridge_count,
+        "severed_route_count": severed_route_count,
+        "permutation_falsifier_inherited_from_47f":
+            source_census["synthetic_order_invariance"].clone(),
+    })
+}
+
 fn source_work_motor_candidate_falsifier_json(state: &ResidentCognitiveFormationState) -> Value {
     let connected = source_work_to_motor_reservoir_range_json(state);
     let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
@@ -3513,11 +3889,22 @@ fn reservoir_probe_dump() {
         let motor_work_range_only = std::env::var_os("GUALA_PROBE_MOTOR_WORK_RANGE_ONLY").is_some();
         let source_work_motor_range_only =
             std::env::var_os("GUALA_PROBE_SOURCE_WORK_MOTOR_RANGE_ONLY").is_some();
+        let temporal_gate_work_range_only =
+            std::env::var_os("GUALA_PROBE_TEMPORAL_GATE_WORK_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
         let candidate_tissue_proof_only =
             std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
-        let record = if source_work_motor_range_only {
+        let record = if temporal_gate_work_range_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for temporal gate-work range");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "temporal_gate_work_range":
+                    temporal_gate_work_range_json(&state, &cognitive),
+            })
+        } else if source_work_motor_range_only {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state for source-work motor range");
             json!({
