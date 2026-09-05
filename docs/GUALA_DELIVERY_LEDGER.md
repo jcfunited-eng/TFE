@@ -1191,3 +1191,26 @@ they do not override this baseline.
   falsifier history. The next measurement is bounded temporal integration of
   repeated real subthreshold work, after proving whether any existing energy
   residue has compatible authority; no production source changes are allowed.
+
+### 2026-09-05 — Speech attempt 47G: pre-code causal/lifecycle boundary complete
+
+- The existing neuron-local energy residue is compatible only in its original
+  role: integrate transduced physical input on the receiving gate's own energy
+  lattice. It is **not** authorized to pay a pump, become recovery material, or
+  substitute for A-011.6 contact-transition phase.
+- All 96 exact task-1429 layer-12 cells are intrinsic and have residue `0/1`.
+  Candidate 47G can therefore test a V41 identity boundary with no historical
+  motor/receptor energy reclassification and no new persistent state or codec.
+- The exact candidate retains 47F's source/load conductance share but carries
+  its nonzero sub-threshold work into the motor's existing gate-work residue.
+  Only the unchanged gate/conductance/potential/interval/carrier law may produce
+  an outward motor discharge. First-clock vocal silence is expected, not
+  rewritten.
+- Creation, severing, retirement, restart, concurrent settlement, scheduler,
+  evidence, and resource impacts are now specified. The fake one-carrier
+  L11-to-L12 transfer must leave every transfer/frontier/trace surface; learned
+  work preparation gets a separate typed observation.
+- No production code or AWS state changed. The single authorized next item is
+  an AWS-wrapped, test-only dynamic copied-body range carrying true motor state
+  across repeated source events, cold restart, severing, exhaustion,
+  permutation, conservation, and boundedness controls.

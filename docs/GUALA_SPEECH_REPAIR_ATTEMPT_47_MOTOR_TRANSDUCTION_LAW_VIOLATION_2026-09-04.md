@@ -895,3 +895,176 @@ next candidate must investigate lawful bounded temporal integration of repeated
 real subthreshold source work, first against existing energy-residue semantics;
 it may not reuse A-011.6 contact-transition phase, invent material, or tune an
 audible threshold.
+
+## Candidate 47G pre-code causal-impact analysis — postsynaptic gate-work integration
+
+Candidate 47F falsified a **memoryless pump contribution**, not its exact
+source/load coupling. Its two real vocal branches each received approximately
+`0.019 zJ` at the copied body's real state: nonzero physical work, but less than
+the immediate pump shortfall. Treating that one interval as the whole answer
+repeated the one-off-test failure this repair history forbids.
+
+The task-1429 state and the ratified receptor-delivery law expose a smaller,
+causally different candidate. Every complete neuron already owns exactly one
+local `PhysicalEnergyResidue`. It is the receiving gate's bounded transduced-
+work accumulator: physical input work is integrated there until the neuron's
+own gate-energy lattice can settle it. This is not A-011.6 contact-transition
+phase, recovery material, a motor command, or another persistence authority.
+All 96 copied-body layer-12 cells are intrinsic (`source_site = None`) and have
+exactly zero residue, so no historical receptor energy or old motor state would
+be reclassified.
+
+### Exact mechanism eligible for falsification
+
+For each causally settled L11-to-founding-L7 source transition `s`, let `W_s`
+be the nonnegative released work which that transition presently exports as
+heat, and let `g_s` be that source contact's exact predecessor effective
+conductance. For every retained learned L11-to-L12 bond `i` incident to the
+same sending ordering lineage, let `g_i` be its exact predecessor effective
+conductance. Its offered gate work is the already-tested passive-load share:
+
+```text
+D_si = W_s * g_i / (g_s + sum(g_i))
+```
+
+Zero source work, zero conductance, an absent learned bond, or a source
+transition which did not actually settle offers zero. The unoffered part of
+`W_s` remains source heat. If several source transitions or learned bonds
+reach one motor, their offers are summed once by motor lineage before that
+motor settles. No source or branch iteration order can change the sum.
+
+The motor's exact current gate-opening schedule and dissipation window—not a
+speech threshold—set its admissible headroom. If total offered work exceeds
+that physical window, only the admissible proportion is taken and the rest
+remains source heat. The accepted work joins the motor's predecessor local
+gate-work residue and passes through the unchanged
+`quantize_population_receptor_delivery` law. That law either:
+
+- retains a sub-threshold physical remainder;
+- pays the gate's exact ordered activation barrier; or
+- hands already-open gate tissue only the whole work its finite dissipation
+  window admits.
+
+The resulting `GateWorkOccurrence`, open population, one-picosiemens local
+conductance, declared `-1 mV` reversal, actual motor membrane potential,
+represented interval, and finite carrier compartments determine current by
+the ordinary neuron law. No carrier count is selected. A positive local
+outward whole-carrier discharge may reach the already-proved efferent terminal;
+sub-threshold accumulation produces no act.
+
+This is the computationally parsimonious equivalent of postsynaptic temporal
+integration. It does **not** claim calcium, vesicle, transmitter, sodium, or
+potassium kinetics that the substrate does not represent. It preserves the
+capability-bearing facts: a specific learned bond controls a specific motor;
+only real presynaptic work funds the response; weak repeated causes can
+accumulate; the motor's own gate, gradient, carrier inventory, recovery, and
+terminal produce the consequence; and severing the bond prevents new work.
+
+### Why this is not a repeat of earlier rejected attempts
+
+- Motor-repair Attempts 1 and 2 tried to scale an unfunded pump. Candidate
+  47G supplies no pump multiplier and uses real source work.
+- Attempt 3 asked the motor's small metabolic reservoir to pay a gate barrier
+  immediately inside three frontiers. Candidate 47G uses no invented refill
+  and explicitly tests accumulation across the already-persisted gate-work
+  coordinate.
+- Candidate 47C tried to spend A-011.6 channel-transition phase twice. 47G
+  never reads or writes that phase as energy storage.
+- Candidate 47D manufactured recovery material. 47G changes neither
+  `available + spent` nor any material inventory.
+- Candidate 47E directly paid the motor pump in one clock. 47G gives work to
+  the receiving gate and lets unchanged conductance physics determine whether
+  any carrier moves.
+- Candidate 47F declared silence after one sub-threshold clock. 47G preserves
+  that first-clock silence and asks whether repeated real work lawfully crosses
+  the motor's own pre-existing activation lattice.
+
+### Complete state and lifecycle impact
+
+- **Persistent state:** no new field, table, event history, or codec width.
+  The motor-local residue already lives inside `NeuronPhysicalState`, is part
+  of sparse physical deltas, is encoded with its cohort cell, and cold-restores
+  before cognition resumes. Task-1429 is `GLCOG041`; all 96 L12 predecessor
+  residues are `0/1`.
+- **Growth:** a newly specialized motor begins with the ordinary genesis-zero
+  residue. Creating a learned bond does not preload work. It only makes later
+  physical source work eligible to reach that motor.
+- **Severing:** removing a learned bond prevents every future contribution.
+  Work already deposited in the motor remains motor-local physical state; a
+  sever operation may not erase or duplicate it. A sub-threshold residue alone
+  neither opens the gate nor acts.
+- **Retirement/rewire:** ordinary runtime has no learned-contact rewire or
+  neuron retirement. Historical rewires run only during one-way migration and
+  precede V41. Any future operation that retires a motor with nonzero local
+  work must conserve that work or refuse; it may not silently discard it.
+- **Restart:** no migration guesses a residue. V41-to-successor admission is
+  identity for every neuron byte; the changed law first acts only after a new
+  causally settled learned contribution. Re-encoding a quiet copied body must
+  remain byte-identical.
+- **Concurrent settlement:** offers are computed from the one immutable
+  predecessor, grouped by motor before cohort-parallel settlement, and passed
+  as one input per reached motor. No worker mutates shared residue or consumes
+  source heat independently.
+- **Scheduling:** a motor receiving work is already an endpoint of the reached
+  learned contact. Its changed local residue/gate/membrane reschedules only its
+  exact incident contacts through the existing changed-endpoint law. It is not
+  inserted into the electrical causal frontier unless a real carrier later
+  crosses a real contact.
+- **Resource bound:** work is proportional to settled source transitions plus
+  reached learned branches and affected motors, never all neurons or contacts.
+  Persistent byte count is unchanged. Before commit, the accepted residue must
+  be floored onto one fixed finite energy lattice with the positive discarded
+  sliver returned to heat, so repeated rational denominators cannot recreate
+  the prior persistence-width/runaway class.
+
+### Exact code and observation boundary
+
+- `resident_cognitive_formation.rs`: delete the fixed one-carrier redistribution;
+  derive and jointly account source offers; pass one motor-local transduced-
+  work input into the existing gate settlement; never fabricate an L11-to-L12
+  `DirectedPhysicalTransferObservation` or active frontier.
+- `receptor_quantum_delivery.rs`: only if the test proves necessary, expose one
+  fixed-width, energy-conserving residue narrowing operation. Existing sensory
+  delivery arithmetic and thresholds remain unchanged.
+- `complete_neuron.rs`: no new organ or conductance path. The existing residue,
+  population gate settlement, local conductance, carrier, recovery, and
+  efferent laws remain the physical authority. Its documentation must name
+  contact-transduced input as the same receiving-gate use, not a new role.
+- `organism_runtime.rs`: project learned work preparation separately from
+  whole-carrier preparation. Reflex L8-to-L12 carrier evidence remains exactly
+  as it is.
+- `native_resident_organism.py` and `native_production_app.py`: bind and audit a
+  typed learned-work preparation record containing source transfer, learned
+  bond, accepted work, predecessor/successor residue, gate work, and actual
+  local motor discharge. No six-field carrier tuple may claim a carrier crossed
+  the learned bond.
+- L0-L4, all seven joint DSF fields, Psi/Krimelack, A-011.6 contact
+  plasticity, formation identity, sensory state, body/world state, and the
+  reflex motor path are outside the change and must remain byte/behavior exact.
+
+### Dynamic copied-body falsifier required before production implementation
+
+One test-only candidate must now run the exact task-1429 L11 source transitions,
+learned bonds, L12 neuron states, and gate solver across a range—not one point:
+
+1. carry the true successor residue/gate/membrane across repeated real-work
+   events through first gate opening, first local outward carrier, recovery,
+   and return to a bounded state;
+2. vary source work from zero through the copied range, both source and learned
+   conductance, predecessor residue, interval, membrane potential, carrier
+   exhaustion, gate dissipation headroom, and repeated-event count;
+3. require exact source-work = retained residue change + gate settlement +
+   returned heat, and exact carrier/material conservation at every point;
+4. reverse source, branch, and converging-motor order and require identical
+   successors and evidence;
+5. require sever-before-input, motor-only activity, zero work, zero conductance,
+   exhausted carriers, and exhausted gate headroom to produce no learned act;
+6. encode/cold-decode between sub-threshold events and require the same later
+   threshold crossing, while an untouched V41 copy round-trips byte-identically;
+7. show no unrelated motor, formation, frontier, relation, or body terminal is
+   reached; then extend the exact candidate through typed tissue, pressure,
+   self-hearing, and bounded AWS rehearsal before any production cutover.
+
+Candidate 47G is now causally specified but **not accepted**. This analysis
+authorizes only the bounded test-only falsifier. It authorizes no production
+source edit, package, image, task definition, cutover, or speech claim.
