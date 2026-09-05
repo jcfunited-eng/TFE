@@ -20,10 +20,21 @@ class _NativeCausalIntervalEvidence:
     internally_reassembled_formation_cues: list[tuple[object, ...]]
     causal_thought_transitions: list[tuple[object, ...]]
     externally_reassembled_formation_frontiers: list[tuple[object, ...]]
+    learned_motor_work_preparations: list[tuple[object, ...]]
+    articulatory_learned_motor_work_preparations: list[tuple[object, ...]]
     motor_unit_recruitments: list[tuple[object, ...]]
     root_yaw_unit_recruitments: list[tuple[object, ...]]
     root_translation_unit_recruitments: list[tuple[object, ...]]
     articulatory_unit_recruitments: list[tuple[object, ...]]
+    articulatory_pressure_pcm: list[int]
+    articulatory_body_trajectories: bytes
+    articulatory_sample_rate_hz: int
+    articulatory_peak_transducer_surface_velocity_pcm: int
+    articulatory_glottal_open_samples_at_apex: int
+    articulatory_mouth_area_square_millimetres_at_apex: int
+    articulatory_perioral_area_displacement_square_millimetres: int
+    articulatory_applied_motor_quanta: int
+    articulatory_stalled_motor_quanta: int
     emitted_neuron_lineages: list[str]
     changed_contact_channel_states: list[tuple[object, ...]]
     affective_balance_trajectories: list[tuple[object, ...]]
@@ -1270,15 +1281,26 @@ def test_causal_interval_uses_named_native_fields_without_a_tuple_ceiling() -> N
         internally_reassembled_formation_cues=[],
         causal_thought_transitions=[],
         externally_reassembled_formation_frontiers=[],
+        learned_motor_work_preparations=[],
+        articulatory_learned_motor_work_preparations=[],
         motor_unit_recruitments=[],
         root_yaw_unit_recruitments=[],
         root_translation_unit_recruitments=[],
         articulatory_unit_recruitments=[],
+        articulatory_pressure_pcm=[],
+        articulatory_body_trajectories=b"",
+        articulatory_sample_rate_hz=16_000,
+        articulatory_peak_transducer_surface_velocity_pcm=0,
+        articulatory_glottal_open_samples_at_apex=0,
+        articulatory_mouth_area_square_millimetres_at_apex=0,
+        articulatory_perioral_area_displacement_square_millimetres=0,
+        articulatory_applied_motor_quanta=0,
+        articulatory_stalled_motor_quanta=0,
         emitted_neuron_lineages=[],
         changed_contact_channel_states=[],
         affective_balance_trajectories=[],
         causal_frontier_advances=[],
-        articulated_body_state=b"\0" * 195,
+        articulated_body_state=b"\0" * boundary.native_articulated_body_state_width(),
     )
 
     parsed = boundary._causal_interval_evidence([raw], 41)
@@ -1361,6 +1383,118 @@ def test_articulatory_recruitment_requires_the_same_discharged_vocal_motor() -> 
         )
 
 
+def test_learned_motor_work_is_distinct_from_carrier_preparation() -> None:
+    ordering = "11" * 16
+    founding = "07" * 16
+    motor = "12" * 16
+    respiratory = "13" * 16
+    founding_bond = (*sorted((ordering, founding)), 0)
+    learned_bond = (*sorted((ordering, motor)), 1)
+    raw_work = [
+        (
+            motor,
+            [(ordering, founding, founding_bond, learned_bond, ("2", "3"))],
+            (
+                ("2", "3"),
+                ("2", "3"),
+                ("1", "5"),
+                ("13", "15"),
+                ("0", "1"),
+                ("0", "1"),
+                ("0", "1"),
+            ),
+        )
+    ]
+    work = boundary._learned_motor_work_preparation_evidence(raw_work)
+    assert work[0][0] == motor
+    articulatory_work = (
+        boundary._articulatory_learned_motor_work_preparation_evidence(
+            [(respiratory, raw_work)],
+            work,
+        )
+    )
+    learned_work_by_respiratory = {
+        articulatory_work[0][0]: frozenset(
+            preparation[0] for preparation in articulatory_work[0][1]
+        )
+    }
+
+    regulation = "08" * 16
+    integration = "06" * 16
+    receptor = "05" * 16
+    afferent = (
+        regulation,
+        integration,
+        receptor,
+        5,
+        17,
+        "articulated-body-effector-load-receptor",
+        "glottal-aperture-toward-maximum-load",
+    )
+    motors = boundary._motor_unit_recruitment_evidence(
+        [(motor, 7, 5, [], [afferent])],
+        frozenset((motor,)),
+    )
+    assert motors[0][3] == ()
+    assert boundary._articulatory_unit_recruitment_evidence(
+        [(respiratory, 2, 5, [])],
+        motors,
+        learned_work_by_respiratory,
+    ) == ((respiratory, 2, 5, ()),)
+
+    with pytest.raises(RuntimeError, match="no exact causing vocal motor"):
+        boundary._articulatory_unit_recruitment_evidence(
+            [(respiratory, 2, 5, [])],
+            motors,
+            {respiratory: frozenset(("22" * 16,))},
+        )
+    with pytest.raises(RuntimeError, match="left its interval"):
+        boundary._articulatory_learned_motor_work_preparation_evidence(
+            [(respiratory, raw_work)],
+            (),
+        )
+
+    with pytest.raises(RuntimeError, match="no physical preparation"):
+        boundary._motor_unit_recruitment_evidence(
+            [(motor, 7, 5, [], [afferent])]
+        )
+    with pytest.raises(RuntimeError, match="lost source work"):
+        boundary._learned_motor_work_preparation_evidence(
+            [
+                (
+                    motor,
+                    [(ordering, founding, founding_bond, learned_bond, ("2", "3"))],
+                    (
+                        ("2", "3"),
+                        ("1", "3"),
+                        ("1", "5"),
+                        ("8", "15"),
+                        ("0", "1"),
+                        ("0", "1"),
+                        ("0", "1"),
+                    ),
+                )
+            ]
+        )
+
+    with pytest.raises(RuntimeError, match="gate settlement lost exact work"):
+        boundary._learned_motor_work_preparation_evidence(
+            [
+                (
+                    motor,
+                    [(ordering, founding, founding_bond, learned_bond, ("2", "3"))],
+                    (
+                        ("2", "3"),
+                        ("2", "3"),
+                        ("1", "5"),
+                        ("4", "5"),
+                        ("0", "1"),
+                        ("0", "1"),
+                        ("0", "1"),
+                    ),
+                )
+            ]
+        )
 def test_recruitment_aggregate_preserves_distinct_causal_intervals() -> None:
     @dataclass(frozen=True)
     class _IntervalRecruitments:

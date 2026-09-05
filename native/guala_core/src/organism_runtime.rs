@@ -49,8 +49,9 @@ use crate::resident_cognitive_formation::{
     CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
     EmittedNeuronFractal, ExternallyReassembledFormationFrontierObservation,
     InternallyReassembledFormationCueObservation,
-    LocalizedFluidChemistryObservation, LocalizedMetabolicStrainObservation, MotorUnitRecruitment,
-    OrderedPhysicalPathObservation, OrganicMosaicRelationObservation,
+    LearnedMotorWorkPreparation, LocalizedFluidChemistryObservation,
+    LocalizedMetabolicStrainObservation, MotorUnitRecruitment, OrderedPhysicalPathObservation,
+    OrganicMosaicRelationObservation,
     PhysicalFrontierRouteObservation, PreparedCognitiveFormationTransition,
     ResidentCognitiveFormationState, RootTranslationUnitRecruitment, RootYawUnitRecruitment,
 };
@@ -209,6 +210,31 @@ type OrganicMosaicRelationProjection = (
 );
 type PhysicalFrontierRouteProjection = (String, u32, u32, String, u32, u32, u32, i128);
 type ExactRationalProjection = (String, String);
+type StablePhysicalBondProjection = (String, String, u32);
+type LearnedMotorWorkRouteProjection = (
+    String,
+    String,
+    StablePhysicalBondProjection,
+    StablePhysicalBondProjection,
+    ExactRationalProjection,
+);
+type LearnedMotorWorkPreparationProjection = (
+    String,
+    Vec<LearnedMotorWorkRouteProjection>,
+    (
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+        ExactRationalProjection,
+    ),
+);
+type ArticulatoryLearnedMotorWorkProjection = (
+    String,
+    Vec<LearnedMotorWorkPreparationProjection>,
+);
 type ChangedContactChannelStateProjection = (
     u64,
     String,
@@ -933,6 +959,7 @@ struct CausalIntervalEvidence {
     internally_reassembled_formation_cues: Vec<InternallyReassembledFormationCueObservation>,
     externally_reassembled_formation_frontiers:
         Vec<ExternallyReassembledFormationFrontierObservation>,
+    learned_motor_work_preparations: Vec<LearnedMotorWorkPreparation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
@@ -1002,6 +1029,18 @@ impl NativeCausalIntervalEvidence {
         )
     }
 
+    /// Exact directed learned-contact work which reached each mounted motor
+    /// gate in this interval. No carrier is represented as crossing a learned
+    /// bond; later motor discharge remains a separate observation.
+    #[getter]
+    fn learned_motor_work_preparations(
+        &self,
+    ) -> Vec<LearnedMotorWorkPreparationProjection> {
+        project_learned_motor_work_preparations(
+            &self.interval.learned_motor_work_preparations,
+        )
+    }
+
     #[getter]
     fn motor_unit_recruitments(&self) -> Vec<MotorUnitRecruitmentProjection> {
         project_motor_unit_recruitments(&self.interval.motor_unit_recruitments)
@@ -1022,6 +1061,28 @@ impl NativeCausalIntervalEvidence {
     #[getter]
     fn articulatory_unit_recruitments(&self) -> Vec<ArticulatoryUnitRecruitmentProjection> {
         project_articulatory_unit_recruitments(&self.interval.articulatory_unit_recruitments)
+    }
+
+    /// Learned vocal-motor work which caused each respiratory recruitment.
+    /// Kept separate from the legacy carrier-transfer tuple because no
+    /// carrier crosses from layer 11 into either the vocal motor or layer 13.
+    #[getter]
+    fn articulatory_learned_motor_work_preparations(
+        &self,
+    ) -> Vec<ArticulatoryLearnedMotorWorkProjection> {
+        self.interval
+            .articulatory_unit_recruitments
+            .iter()
+            .filter(|recruitment| !recruitment.learned_work_preparations.is_empty())
+            .map(|recruitment| {
+                (
+                    hex_bytes(&recruitment.neuron_lineage),
+                    project_learned_motor_work_preparations(
+                        &recruitment.learned_work_preparations,
+                    ),
+                )
+            })
+            .collect()
     }
 
     #[getter]
@@ -3898,6 +3959,9 @@ impl ResidentOrganismRuntime {
                 externally_reassembled_formation_frontiers: observation
                     .externally_reassembled_formation_frontiers
                     .clone(),
+                learned_motor_work_preparations: observation
+                    .learned_motor_work_preparations
+                    .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
                 root_yaw_unit_recruitments: observation.root_yaw_unit_recruitments.clone(),
                 root_translation_unit_recruitments: observation
@@ -4310,6 +4374,9 @@ impl ResidentOrganismRuntime {
                     .clone(),
                 externally_reassembled_formation_frontiers: observation
                     .externally_reassembled_formation_frontiers
+                    .clone(),
+                learned_motor_work_preparations: observation
+                    .learned_motor_work_preparations
                     .clone(),
                 motor_unit_recruitments: observation.motor_unit_recruitments.clone(),
                 root_yaw_unit_recruitments: observation.root_yaw_unit_recruitments.clone(),
@@ -7973,6 +8040,52 @@ fn project_motor_unit_recruitments(
                         )
                     })
                     .collect(),
+            )
+        })
+        .collect()
+}
+
+fn project_learned_motor_work_preparations(
+    preparations: &[LearnedMotorWorkPreparation],
+) -> Vec<LearnedMotorWorkPreparationProjection> {
+    let rational = |value: &BigRational| {
+        (value.numer().to_string(), value.denom().to_string())
+    };
+    let bond = |value: StablePhysicalBondReference| {
+        let (left, right) = value.endpoints();
+        (
+            hex_bytes(&left),
+            hex_bytes(&right),
+            value.parallel_ordinal(),
+        )
+    };
+    preparations
+        .iter()
+        .map(|preparation| {
+            (
+                hex_bytes(&preparation.motor_lineage),
+                preparation
+                    .routes
+                    .iter()
+                    .map(|route| {
+                        (
+                            hex_bytes(&route.ordering_lineage),
+                            hex_bytes(&route.founding_receiver_lineage),
+                            bond(route.founding_bond),
+                            bond(route.learned_bond),
+                            rational(&route.offered_work_zeptojoules),
+                        )
+                    })
+                    .collect(),
+                (
+                    rational(&preparation.total_offered_work_zeptojoules),
+                    rational(&preparation.accepted_work_zeptojoules),
+                    rational(&preparation.predecessor_residue_zeptojoules),
+                    rational(&preparation.successor_residue_zeptojoules),
+                    rational(&preparation.delivered_gate_work_zeptojoules),
+                    rational(&preparation.retained_source_heat_zeptojoules),
+                    rational(&preparation.residue_narrowing_heat_zeptojoules),
+                ),
             )
         })
         .collect()

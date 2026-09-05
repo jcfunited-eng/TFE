@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+from fractions import Fraction
 from functools import cache
 import sys
 import time
@@ -45,6 +46,31 @@ GUSTATORY_CONTACT_SITE_COUNT = 5
 DirectedPhysicalTransferEvidence = tuple[str, str, int, int]
 TimedDirectedPhysicalTransferEvidence = tuple[int, DirectedPhysicalTransferEvidence]
 ExactRationalEvidence = tuple[int, int]
+StablePhysicalBondEvidence = tuple[str, str, int]
+LearnedMotorWorkRouteEvidence = tuple[
+    str,
+    str,
+    StablePhysicalBondEvidence,
+    StablePhysicalBondEvidence,
+    ExactRationalEvidence,
+]
+LearnedMotorWorkPreparationEvidence = tuple[
+    str,
+    tuple[LearnedMotorWorkRouteEvidence, ...],
+    tuple[
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+    ],
+]
+ArticulatoryLearnedMotorWorkPreparationEvidence = tuple[
+    str,
+    tuple[LearnedMotorWorkPreparationEvidence, ...],
+]
 LocalAffectiveGradientSettlementEvidence = tuple[
     int,
     int,
@@ -427,6 +453,12 @@ class ResidentCausalIntervalEvidence:
     ]
     externally_reassembled_formation_frontiers: tuple[
         tuple[str, tuple[str, ...], str], ...
+    ]
+    learned_motor_work_preparations: tuple[
+        LearnedMotorWorkPreparationEvidence, ...
+    ]
+    articulatory_learned_motor_work_preparations: tuple[
+        ArticulatoryLearnedMotorWorkPreparationEvidence, ...
     ]
     motor_unit_recruitments: tuple[
         tuple[
@@ -922,6 +954,7 @@ def _externally_reassembled_formation_frontier_evidence(
 
 def _motor_unit_recruitment_evidence(
     value: object,
+    learned_work_prepared_motor_lineages: frozenset[str] = frozenset(),
 ) -> tuple[
     tuple[
         str,
@@ -1010,7 +1043,7 @@ def _motor_unit_recruitment_evidence(
         body_regulation_lineages = {
             path[0] for path in body_afferent_paths
         }
-        if not isinstance(raw[3], list) or not raw[3]:
+        if not isinstance(raw[3], list):
             raise RuntimeError("motor-unit preparation transfers changed format")
         preparation_transfers = []
         for transfer in raw[3]:
@@ -1062,6 +1095,8 @@ def _motor_unit_recruitment_evidence(
             )
         if tuple(sorted(set(preparation_transfers))) != tuple(preparation_transfers):
             raise RuntimeError("motor-unit preparation transfers are not canonical")
+        if not preparation_transfers and lineage not in learned_work_prepared_motor_lineages:
+            raise RuntimeError("motor-unit discharge has no physical preparation")
         observed.append(
             (
                 lineage,
@@ -1139,7 +1174,7 @@ def _articulatory_unit_recruitment_shape_evidence(
         outward_elementary_carriers = _positive_integer(
             raw[2], "articulatory-unit outward elementary carriers"
         )
-        if not isinstance(raw[3], list) or not raw[3]:
+        if not isinstance(raw[3], list):
             raise RuntimeError("articulatory-unit preparation transfers changed format")
         preparation_transfers = []
         for transfer in raw[3]:
@@ -1195,6 +1230,7 @@ def _articulatory_unit_recruitment_evidence(
         ],
         ...,
     ],
+    learned_work_by_respiratory_lineage: dict[str, frozenset[str]] | None = None,
 ) -> tuple[
     tuple[
         str,
@@ -1210,7 +1246,12 @@ def _articulatory_unit_recruitment_evidence(
     if len(motor_by_lineage) != len(motor_unit_recruitments):
         raise RuntimeError("motor-unit recruitment repeated a lineage in one interval")
     observed = _articulatory_unit_recruitment_shape_evidence(value)
-    for _lineage, _topology, outward_elementary_carriers, transfers in observed:
+    learned_work_by_respiratory_lineage = (
+        {} if learned_work_by_respiratory_lineage is None
+        else learned_work_by_respiratory_lineage
+    )
+    observed_learned_respiratory_lineages: set[str] = set()
+    for lineage, _topology, outward_elementary_carriers, transfers in observed:
         causing_motor_lineages: set[str] = set()
         for canonical_transfer in transfers:
             sender, sender_layer, receiver, receiver_layer, _ordinal, _carriers = (
@@ -1228,8 +1269,24 @@ def _articulatory_unit_recruitment_evidence(
                     "articulatory-unit preparation is not an exact layer 8 "
                     "reached-load or layer 11 learned arrival into the same "
                     "discharged typed vocal motor"
-                )
+            )
             causing_motor_lineages.add(receiver)
+        if not transfers:
+            causing_motor_lineages.update(
+                learned_work_by_respiratory_lineage.get(lineage, frozenset())
+            )
+            observed_learned_respiratory_lineages.add(lineage)
+        elif lineage in learned_work_by_respiratory_lineage:
+            raise RuntimeError(
+                "articulatory-unit recruitment mixed carrier and learned-work causes"
+            )
+        if not causing_motor_lineages or any(
+            motor_lineage not in motor_by_lineage
+            for motor_lineage in causing_motor_lineages
+        ):
+            raise RuntimeError(
+                "articulatory-unit discharge has no exact causing vocal motor"
+            )
         available_motor_carriers = sum(
             motor_by_lineage[motor_lineage][2]
             for motor_lineage in causing_motor_lineages
@@ -1238,7 +1295,48 @@ def _articulatory_unit_recruitment_evidence(
             raise RuntimeError(
                 "articulatory-unit discharge exceeds its causing vocal motor discharge"
             )
+    if set(learned_work_by_respiratory_lineage) != (
+        observed_learned_respiratory_lineages
+    ):
+        raise RuntimeError(
+            "articulatory learned-work cause left its respiratory discharge"
+        )
     return observed
+
+
+def _articulatory_learned_motor_work_preparation_evidence(
+    value: object,
+    learned_motor_work_preparations: tuple[
+        LearnedMotorWorkPreparationEvidence, ...
+    ],
+) -> tuple[ArticulatoryLearnedMotorWorkPreparationEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError(
+            "articulatory learned motor-work preparations changed format"
+        )
+    retained = set(learned_motor_work_preparations)
+    observed: list[ArticulatoryLearnedMotorWorkPreparationEvidence] = []
+    seen_respiratory_lineages: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 2:
+            raise RuntimeError(
+                "articulatory learned motor-work preparation changed format"
+            )
+        respiratory_lineage = _canonical_lineage_hex(
+            raw[0], "articulatory learned-work respiratory lineage"
+        )
+        preparations = _learned_motor_work_preparation_evidence(raw[1])
+        if (
+            respiratory_lineage in seen_respiratory_lineages
+            or not preparations
+            or any(preparation not in retained for preparation in preparations)
+        ):
+            raise RuntimeError(
+                "articulatory learned motor-work preparation left its interval"
+            )
+        seen_respiratory_lineages.add(respiratory_lineage)
+        observed.append((respiratory_lineage, preparations))
+    return tuple(observed)
 
 
 def _causal_interval_recruitment_aggregate_evidence(
@@ -1322,6 +1420,8 @@ def _causal_interval_evidence(
             "internally_reassembled_formation_cues",
             "causal_thought_transitions",
             "externally_reassembled_formation_frontiers",
+            "learned_motor_work_preparations",
+            "articulatory_learned_motor_work_preparations",
             "motor_unit_recruitments",
             "root_yaw_unit_recruitments",
             "root_translation_unit_recruitments",
@@ -1349,6 +1449,10 @@ def _causal_interval_evidence(
         raw_cues = raw.internally_reassembled_formation_cues
         raw_thought_transitions = raw.causal_thought_transitions
         raw_external_frontiers = raw.externally_reassembled_formation_frontiers
+        raw_learned_motor_work = raw.learned_motor_work_preparations
+        raw_articulatory_learned_motor_work = (
+            raw.articulatory_learned_motor_work_preparations
+        )
         raw_motors = raw.motor_unit_recruitments
         raw_root_yaw = raw.root_yaw_unit_recruitments
         raw_root_translation = raw.root_translation_unit_recruitments
@@ -1506,10 +1610,36 @@ def _causal_interval_evidence(
                 "causal thought transition left its destination formation cue"
             )
         predecessor_tick = predecessor_organism_tick + index
-        motor_unit_recruitments = _motor_unit_recruitment_evidence(raw_motors)
+        learned_motor_work_preparations = (
+            _learned_motor_work_preparation_evidence(raw_learned_motor_work)
+        )
+        learned_work_prepared_motor_lineages = frozenset(
+            preparation[0]
+            for preparation in learned_motor_work_preparations
+            if preparation[2][1][0] > 0
+        )
+        motor_unit_recruitments = _motor_unit_recruitment_evidence(
+            raw_motors,
+            learned_work_prepared_motor_lineages,
+        )
+        articulatory_learned_motor_work_preparations = (
+            _articulatory_learned_motor_work_preparation_evidence(
+                raw_articulatory_learned_motor_work,
+                learned_motor_work_preparations,
+            )
+        )
+        learned_work_by_respiratory_lineage = {
+            respiratory_lineage: frozenset(
+                preparation[0] for preparation in preparations
+            )
+            for respiratory_lineage, preparations in (
+                articulatory_learned_motor_work_preparations
+            )
+        }
         articulatory_unit_recruitments = _articulatory_unit_recruitment_evidence(
             raw_articulatory,
             motor_unit_recruitments,
+            learned_work_by_respiratory_lineage,
         )
         intervals.append(
             ResidentCausalIntervalEvidence(
@@ -1524,6 +1654,12 @@ def _causal_interval_evidence(
                     _externally_reassembled_formation_frontier_evidence(
                         raw_external_frontiers
                     )
+                ),
+                learned_motor_work_preparations=(
+                    learned_motor_work_preparations
+                ),
+                articulatory_learned_motor_work_preparations=(
+                    articulatory_learned_motor_work_preparations
                 ),
                 motor_unit_recruitments=motor_unit_recruitments,
                 root_yaw_unit_recruitments=(
@@ -1698,6 +1834,89 @@ def _exact_rational_evidence(value: object, label: str) -> ExactRationalEvidence
     if denominator <= 0:
         raise RuntimeError(f"resident organism {label} has invalid denominator")
     return numerator, denominator
+
+
+def _learned_motor_work_preparation_evidence(
+    value: object,
+) -> tuple[LearnedMotorWorkPreparationEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("learned motor-work preparations changed format")
+    observed: list[LearnedMotorWorkPreparationEvidence] = []
+    seen_motors: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 3:
+            raise RuntimeError("learned motor-work preparation changed format")
+        motor = _canonical_lineage_hex(raw[0], "learned motor-work motor lineage")
+        if motor in seen_motors or not isinstance(raw[1], list) or not raw[1]:
+            raise RuntimeError("learned motor-work preparation lost its unique route")
+        seen_motors.add(motor)
+        routes: list[LearnedMotorWorkRouteEvidence] = []
+        for raw_route in raw[1]:
+            if not isinstance(raw_route, tuple) or len(raw_route) != 5:
+                raise RuntimeError("learned motor-work route changed format")
+            ordering = _canonical_lineage_hex(
+                raw_route[0], "learned motor-work ordering lineage"
+            )
+            founding = _canonical_lineage_hex(
+                raw_route[1], "learned motor-work founding lineage"
+            )
+            bonds: list[StablePhysicalBondEvidence] = []
+            for label, raw_bond in (
+                ("founding", raw_route[2]),
+                ("learned", raw_route[3]),
+            ):
+                if not isinstance(raw_bond, tuple) or len(raw_bond) != 3:
+                    raise RuntimeError(f"learned motor-work {label} bond changed format")
+                left = _canonical_lineage_hex(
+                    raw_bond[0], f"learned motor-work {label} bond left"
+                )
+                right = _canonical_lineage_hex(
+                    raw_bond[1], f"learned motor-work {label} bond right"
+                )
+                ordinal = _nonnegative_integer(
+                    raw_bond[2], f"learned motor-work {label} bond ordinal"
+                )
+                if left >= right:
+                    raise RuntimeError(f"learned motor-work {label} bond is not canonical")
+                bonds.append((left, right, ordinal))
+            if set(bonds[0][:2]) != {ordering, founding} or set(bonds[1][:2]) != {
+                ordering,
+                motor,
+            }:
+                raise RuntimeError("learned motor-work route left its physical bonds")
+            offered = _exact_rational_evidence(
+                raw_route[4], "learned motor-work route offer"
+            )
+            if offered[0] <= 0:
+                raise RuntimeError("learned motor-work route offer is not positive")
+            routes.append((ordering, founding, bonds[0], bonds[1], offered))
+        if tuple(sorted(set(routes))) != tuple(routes):
+            raise RuntimeError("learned motor-work routes are not canonical")
+        if not isinstance(raw[2], tuple) or len(raw[2]) != 7:
+            raise RuntimeError("learned motor-work energy evidence changed format")
+        energies = tuple(
+            _exact_rational_evidence(part, f"learned motor-work energy {index}")
+            for index, part in enumerate(raw[2])
+        )
+        if any(numerator < 0 for numerator, _denominator in energies):
+            raise RuntimeError("learned motor-work energy became negative")
+        total_offered, accepted, predecessor, successor, delivered, retained, narrowing = (
+            energies
+        )
+        as_fraction = lambda exact: Fraction(exact[0], exact[1])
+        if sum(as_fraction(route[4]) for route in routes) != as_fraction(total_offered):
+            raise RuntimeError("learned motor-work route offers lost total work")
+        if as_fraction(accepted) + as_fraction(retained) != as_fraction(total_offered):
+            raise RuntimeError("learned motor-work acceptance lost source work")
+        if (
+            as_fraction(predecessor) + as_fraction(accepted)
+            != as_fraction(delivered)
+            + as_fraction(successor)
+            + as_fraction(narrowing)
+        ):
+            raise RuntimeError("learned motor-work gate settlement lost exact work")
+        observed.append((motor, tuple(routes), energies))
+    return tuple(observed)
 
 
 def _timed_directed_physical_transfer_evidence(
@@ -3649,8 +3868,23 @@ class NativeResidentOrganism:
             != source_port_count
         ):
             raise RuntimeError("receptor ingress observation lost source ports")
+        raw_motor_unit_recruitments = candidate.motor_unit_recruitments
+        learned_prepared_top_level_lineages = frozenset(
+            raw[0]
+            for raw in (
+                raw_motor_unit_recruitments
+                if isinstance(raw_motor_unit_recruitments, list)
+                else ()
+            )
+            if isinstance(raw, tuple)
+            and len(raw) == 5
+            and isinstance(raw[3], list)
+            and not raw[3]
+            and isinstance(raw[0], str)
+        )
         motor_unit_recruitments = _motor_unit_recruitment_evidence(
-            candidate.motor_unit_recruitments
+            raw_motor_unit_recruitments,
+            learned_prepared_top_level_lineages,
         )
         root_yaw_unit_recruitments = _root_yaw_unit_recruitment_evidence(
             candidate.root_yaw_unit_recruitments
@@ -3843,6 +4077,10 @@ class NativeResidentOrganism:
             and (causal_interval_evidence or causal_interval_count > 1)
         ):
             raise RuntimeError("causal interval evidence lost a physical boundary")
+        if not causal_interval_evidence and learned_prepared_top_level_lineages:
+            raise RuntimeError(
+                "learned motor discharge lost its causal interval work evidence"
+            )
         # Older pure-Python boundary doubles carry no layer-13 observation;
         # absence is exactly an empty transient recruitment list. Native
         # production candidates expose the field explicitly.

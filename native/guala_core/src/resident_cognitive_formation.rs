@@ -1197,6 +1197,9 @@ pub(crate) struct CognitiveFormationObservation {
     /// relation object, count, hierarchy, or history is retained in the
     /// organism.
     pub(crate) organic_mosaic_relations: Vec<OrganicMosaicRelationObservation>,
+    /// Exact learned-contact work accepted or rejected by mounted motor gates
+    /// in this transition. This stays distinct from whole-carrier transfers.
+    pub(crate) learned_motor_work_preparations: Vec<LearnedMotorWorkPreparation>,
     pub(crate) motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     pub(crate) root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     pub(crate) root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
@@ -9388,6 +9391,8 @@ impl ResidentCognitiveFormationState {
                 localized_metabolic_strain_evaluated_body_receptor_lineages,
                 localized_metabolic_strain,
                 organic_mosaic_relations,
+                learned_motor_work_preparations:
+                    internal_contact.learned_motor_work_preparations,
                 motor_unit_recruitments: internal_contact.motor_unit_recruitments,
                 root_yaw_unit_recruitments: internal_contact.root_yaw_unit_recruitments,
                 root_translation_unit_recruitments:
@@ -9954,6 +9959,7 @@ impl ResidentCognitiveFormationState {
                 localized_metabolic_strain_evaluated_body_receptor_lineages: Vec::new(),
                 localized_metabolic_strain: Vec::new(),
                 organic_mosaic_relations: Vec::new(),
+                learned_motor_work_preparations: Vec::new(),
                 motor_unit_recruitments: Vec::new(),
                 root_yaw_unit_recruitments: Vec::new(),
                 root_translation_unit_recruitments: Vec::new(),

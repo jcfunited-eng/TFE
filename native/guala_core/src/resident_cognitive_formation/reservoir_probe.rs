@@ -3469,6 +3469,104 @@ fn production_replayed_motor_discharge_json(
     } else {
         json!({"error": "copied articulated body absent"})
     };
+    let duration_unfolded_body = if let Some(body) = articulated_body {
+        let drives = first_vocal_recruitments
+            .iter()
+            .map(|recruitment| BodyEffectorDrive {
+                terminal: recruitment.body_effector_terminal,
+                outward_elementary_carriers: recruitment.outward_elementary_carriers,
+            })
+            .collect::<Vec<_>>();
+        let respiratory = first_vocal_articulatory_recruitments
+            .iter()
+            .try_fold(0_u128, |total, event| {
+                total.checked_add(event.outward_elementary_carriers)
+            })
+            .expect("duration respiratory carrier width");
+        let admitted = AdmittedBodyEffectorDrives::admit(drives)
+            .expect("duration vocal drives admit");
+
+        let shortcut_body = settle_body_effector_drives(
+            body,
+            &admitted,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("shortcut vocal body settles");
+        let shortcut_acoustic = settle_native_articulatory_interval(
+            shortcut_body.successor,
+            &shortcut_body.proprioceptive_consequences,
+            respiratory,
+            4_000,
+        )
+        .expect("shortcut vocal acoustics settle");
+
+        let mut unfolded_body = body.clone();
+        let mut unfolded_pressure = Vec::with_capacity(4_000);
+        let mut section_zero_positions = Vec::with_capacity(250);
+        let mut section_seven_positions = Vec::with_capacity(250);
+        for millisecond in 0..250 {
+            let step_drives = if millisecond == 0 {
+                &admitted
+            } else {
+                &AdmittedBodyEffectorDrives::quiescent()
+            };
+            let body_step = settle_body_effector_drives(
+                &unfolded_body,
+                step_drives,
+                BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+            )
+            .expect("one millisecond vocal tissue settles");
+            let acoustic_step = settle_native_articulatory_interval(
+                body_step.successor,
+                &body_step.proprioceptive_consequences,
+                if millisecond == 0 { respiratory } else { 0 },
+                16,
+            )
+            .expect("one millisecond vocal acoustics settle");
+            unfolded_pressure.extend_from_slice(&acoustic_step.radiated_pressure_pcm);
+            unfolded_body = acoustic_step.successor_body;
+            section_zero_positions.push(unfolded_body.axis(BodyAxis::VocalTractSection0Area));
+            section_seven_positions.push(unfolded_body.axis(BodyAxis::VocalTractSection7Area));
+        }
+        let pressure_summary = |pressure: &[i16]| {
+            json!({
+                "sample_count": pressure.len(),
+                "nonzero_sample_count": pressure.iter().filter(|sample| **sample != 0).count(),
+                "absolute_peak": pressure
+                    .iter()
+                    .map(|sample| sample.unsigned_abs())
+                    .max()
+                    .unwrap_or(0),
+            })
+        };
+        json!({
+            "composition_control_not_natural_same_occurrence": true,
+            "represented_duration_milliseconds": 250,
+            "body_step_milliseconds": 1,
+            "acoustic_samples_per_body_step": 16,
+            "respiratory_efferent_carriers": respiratory.to_string(),
+            "current_runtime_shortcut_pressure":
+                pressure_summary(&shortcut_acoustic.radiated_pressure_pcm),
+            "duration_unfolded_pressure": pressure_summary(&unfolded_pressure),
+            "section_zero_position": {
+                "predecessor": body.axis(BodyAxis::VocalTractSection0Area),
+                "minimum_during": section_zero_positions.iter().min(),
+                "maximum_during": section_zero_positions.iter().max(),
+                "successor": unfolded_body.axis(BodyAxis::VocalTractSection0Area),
+            },
+            "section_seven_position": {
+                "predecessor": body.axis(BodyAxis::VocalTractSection7Area),
+                "minimum_during": section_seven_positions.iter().min(),
+                "maximum_during": section_seven_positions.iter().max(),
+                "successor": unfolded_body.axis(BodyAxis::VocalTractSection7Area),
+            },
+            "successor_body_cold_round_trip_exact": ArticulatedBodyState::decode(
+                &unfolded_body.encode().expect("duration body encodes"),
+            ).expect("duration body decodes") == unfolded_body,
+        })
+    } else {
+        json!({"error": "copied articulated body absent"})
+    };
 
     json!({
         "controlled_repeated_copied_occurrence": true,
@@ -3483,6 +3581,7 @@ fn production_replayed_motor_discharge_json(
         "first_vocal_recruitment_count": first_vocal_recruitments.len(),
         "articulatory_recruitment_count": first_vocal_articulatory_recruitments.len(),
         "typed_body": typed_body,
+        "duration_unfolded_body": duration_unfolded_body,
         "natural_post_opening_vocal_pulses": sustained_vocal_pulses,
         "natural_post_opening_body": sustained_body.as_ref().map(|body| json!({
             "vocal_tract_section_0": body.axis(BodyAxis::VocalTractSection0Area),

@@ -9551,6 +9551,12 @@ def _causal_interval_hops(
             "externally_reassembled_formation_frontiers": (
                 interval.externally_reassembled_formation_frontiers
             ),
+            "learned_motor_work_preparations": (
+                interval.learned_motor_work_preparations
+            ),
+            "articulatory_learned_motor_work_preparations": (
+                interval.articulatory_learned_motor_work_preparations
+            ),
             "motor_unit_recruitments": interval.motor_unit_recruitments,
             "root_yaw_unit_recruitments": interval.root_yaw_unit_recruitments,
             "root_translation_unit_recruitments": (

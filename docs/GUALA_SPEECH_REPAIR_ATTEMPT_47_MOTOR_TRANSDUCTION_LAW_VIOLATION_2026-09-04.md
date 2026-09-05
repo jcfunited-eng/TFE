@@ -1312,3 +1312,73 @@ span 250 ms. The required dynamic test must unfold the existing 1 ms body law
 over the exact occurrence duration and stream those real postures into the
 16 kHz acoustic organ. It may not invent a target trajectory or retain a named
 gesture.
+
+## Candidate 47K rejected — duration unfolding is not the speech-pressure blocker
+
+The required duration test was run on the immutable tick-434112 copied body.
+It combined the two already-proved five-carrier vocal discharges and the ten
+real respiratory carriers from their separate copied occurrences as an
+explicit composition control; it is not represented as a naturally
+simultaneous organism event. No target pose, named sound, extra carrier, or
+production state entered the run.
+
+The current runtime shortcut advanced the articulated body for one millisecond
+and then held that successor posture across 4,000 acoustic samples. It produced
+3,988 nonzero pressure samples with absolute peak 429. The truthful-duration
+control instead advanced the unchanged one-millisecond tissue law 250 times,
+admitted the motor and respiratory discharge only on the first step, and fed
+each actual successor posture into the next sixteen acoustic samples. It
+produced 3,991 nonzero samples with absolute peak 428. Section 0 traversed
+125..144 from predecessor 141 and ended at 125; section 7 traversed 246..265
+from predecessor 249 and ended at 265. The final body cold-round-tripped
+exactly.
+
+Artifact:
+`/tmp/guala-speech1429-sequence.dpHRJX/candidate47k-duration-unfolded.json`,
+SHA-256
+`cdfff6692d6f297d585ec33b99d2fb0a7302ef7ca8a8c70911003ef3cae41cd7`.
+
+Verdict: the shell's one-step body/acoustic timing is a truthful synchronization
+defect and materially changes the actual tract trajectory, so it remains a
+required later shell repair. It is **not** the cause of the present speech
+silence or weak pressure; pressure amplitude and occupancy were essentially
+unchanged. Repeating body-duration variants as a vocal-amplitude repair is
+prohibited. The remaining vocal boundary is learned spatial and temporal
+control: the mature body has learned routes to only two of twenty-six vocal
+antagonist terminals and retains no learned ordered gesture above individual
+formation recurrence.
+
+## Candidate 47I observation completion — learned work is not a carrier transfer
+
+The production transducer emits a distinct transient
+`LearnedMotorWorkPreparation`, but the runtime boundary previously discarded
+that record. A later motor discharge could therefore contain no old
+carrier-preparation tuple and be rejected by Python, while a read-only observer
+could not establish which L11 source work, founding route, learned bond,
+receiving motor residue, or gate delivery caused it.
+
+The correction carries the already-computed bounded preparation through each
+causal interval as a separately typed projection. It retains the exact source
+and learned bonds, per-route offer, total offer, accepted/retained/narrowing
+work, predecessor/successor residue, and delivered gate work. Python validates
+canonical physical topology and exact work balances before accepting an empty
+carrier-preparation list as learned motor causality. It does not add organism
+state, change a transition, fabricate a carrier crossing, or permit the
+observer to act.
+
+The layer-13 respiratory observation separately names the exact learned vocal
+motor preparations which caused it. Python rejects an unrelated learned motor,
+a preparation absent from the same causal interval, any carrier/learned-cause
+mixture, or respiratory output larger than the named vocal motors' real
+discharge. The exact rational validator closes both conservation identities:
+offered = accepted + source heat, and predecessor residue + accepted = gate
+delivery + successor residue + narrowing heat.
+
+The native release wheel completed and the focused Rust build plus the three
+Python schema/causality falsifiers passed. Wheel SHA-256:
+`d4a1fb752e14a46b4b142422d3d3c77b587b2fe8a3b66700277fc3171be6c2f5`.
+The preceding immutable copied-body replay already exercised the same retained
+work records and closed every work balance; this change only makes those
+records visible without re-running or altering the body. Production remains
+untouched. This closes truthful observation for 47I but does not authorize
+deployment before the remaining learned spatial/temporal vocal-control proof.
