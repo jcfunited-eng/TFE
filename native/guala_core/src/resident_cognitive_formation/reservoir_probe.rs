@@ -15,8 +15,10 @@ use super::ResidentCognitiveFormationState;
 use crate::articulated_body_joint_source_builder::{
     admit_articulated_body_consequence_source, exact_moved_effector_terminal,
 };
+use crate::auditory::{auditory_gammatone_stream_impl, zero_stream_state};
 use crate::complete_neuron::RecoveryLaneAddress;
 use crate::exact_rational::ExactRational;
+use crate::joint_source_episode::decode_native_joint_source_episode;
 use crate::joint_uf_source_adapter::admitted_episode_with_authored_intervals;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
@@ -41,6 +43,14 @@ const PRE_ACOUSTIC_FLIGHT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB10";
 const CURRENT_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB11";
 const CANAL_STATE_BYTES: usize = 32;
 const IDENTITY_BYTES: usize = 36;
+const PROBE_COCHLEAR_CHANNELS_PER_EAR: usize = 16;
+const PROBE_EAR_COUNT: usize = 2;
+const PROBE_LEGACY_EAR_PORT_COUNT: usize = 2;
+const PROBE_COCHLEAR_HOP_SAMPLES: usize = 160;
+const PROBE_ACOUSTIC_SAMPLE_RATE_HZ: usize = 16_000;
+const PROBE_COCHLEAR_PRESSURE_LATTICE: f64 = 16_777_216.0;
+const PROBE_INTERSAMPLE_PROFILE: &[u8] =
+    b"guala.uf.v1.4.sampled_volume_and_relevance_piecewise_linear.v1";
 
 fn take<'a>(bytes: &'a [u8], cursor: &mut usize, count: usize) -> &'a [u8] {
     let slice = &bytes[*cursor..*cursor + count];
@@ -3200,12 +3210,266 @@ fn transduced_gate_sample_json(
     )
 }
 
+fn probe_u16(output: &mut Vec<u8>, value: usize) {
+    output.extend_from_slice(&u16::try_from(value).expect("probe u16 width").to_le_bytes());
+}
+
+fn probe_u32(output: &mut Vec<u8>, value: usize) {
+    output.extend_from_slice(&u32::try_from(value).expect("probe u32 width").to_le_bytes());
+}
+
+fn probe_text(output: &mut Vec<u8>, value: &str) {
+    probe_u16(output, value.len());
+    output.extend_from_slice(value.as_bytes());
+}
+
+fn probe_bytes(output: &mut Vec<u8>, value: &[u8]) {
+    probe_u32(output, value.len());
+    output.extend_from_slice(value);
+}
+
+fn probe_rational(output: &mut Vec<u8>, value: &BigRational) {
+    probe_text(output, &value.numer().to_string());
+    probe_text(output, &value.denom().to_string());
+}
+
+fn probe_lineage_hex(lineage: [u8; 16]) -> String {
+    lineage.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn probe_cochlear_centre_hz(channel_index: usize) -> f64 {
+    fn erb_rate(frequency_hz: f64) -> f64 {
+        21.4 * (1.0 + 4.37e-3 * frequency_hz).log10()
+    }
+    let lower = erb_rate(80.0);
+    let upper = erb_rate(7_500.0);
+    let rate = lower
+        + (upper - lower) * channel_index as f64 / (PROBE_COCHLEAR_CHANNELS_PER_EAR - 1) as f64;
+    (10.0_f64.powf(rate / 21.4) - 1.0) / 4.37e-3
+}
+
+fn probe_acoustic_port(
+    output: &mut Vec<u8>,
+    topology_index: usize,
+    fields: &[f64],
+    cochlear: bool,
+) {
+    let cochlear_location = cochlear.then(|| {
+        let local = topology_index - PROBE_LEGACY_EAR_PORT_COUNT;
+        (
+            local / PROBE_COCHLEAR_CHANNELS_PER_EAR,
+            local % PROBE_COCHLEAR_CHANNELS_PER_EAR,
+        )
+    });
+    output.push(1);
+    probe_u32(output, topology_index);
+    probe_text(output, "organism-ear-pressure");
+    let substream_id = if let Some((ear, channel)) = cochlear_location {
+        format!("cochlea-{ear}-band-{channel:02}")
+    } else {
+        format!("ear-{topology_index}")
+    };
+    probe_text(output, &substream_id);
+    if let Some((ear, channel)) = cochlear_location {
+        probe_u16(output, 3);
+        probe_text(output, "ear");
+        probe_text(output, &ear.to_string());
+        probe_text(output, "cochlear-band");
+        probe_text(output, &channel.to_string());
+        probe_text(output, "centre-frequency-millihertz");
+        probe_text(
+            output,
+            &format!(
+                "{}",
+                (probe_cochlear_centre_hz(channel) * 1_000.0).round() as i64
+            ),
+        );
+    } else {
+        probe_u16(output, 1);
+        probe_text(output, "ear");
+        probe_text(output, &topology_index.to_string());
+    }
+    probe_text(
+        output,
+        if cochlear {
+            "cochlear-band-pressure"
+        } else {
+            "normalized_physical_excitation"
+        },
+    );
+    probe_text(
+        output,
+        if cochlear {
+            "fraction-of-declared-cochlear-reference-pressure"
+        } else {
+            "normalized_binary64"
+        },
+    );
+    probe_text(output, "direct-physical-source");
+    probe_text(output, "");
+    probe_text(output, "identity-binary64");
+    probe_rational(output, &BigRational::from_integer(BigInt::from(-1)));
+    probe_rational(output, &BigRational::from_integer(BigInt::from(1)));
+    probe_rational(output, &BigRational::zero());
+    probe_rational(output, &BigRational::from_integer(BigInt::from(1)));
+    probe_bytes(output, b"identity-binary64-v1");
+    probe_u32(output, fields.len());
+    for (index, field) in fields.iter().copied().enumerate() {
+        probe_rational(
+            output,
+            &BigRational::new(BigInt::from(index), BigInt::from(100)),
+        );
+        output.extend_from_slice(&field.to_bits().to_le_bytes());
+        probe_rational(output, &BigRational::zero());
+        probe_rational(output, &BigRational::from_integer(BigInt::from(1)));
+        probe_rational(
+            output,
+            &BigRational::from_float(field).expect("finite probe acoustic field"),
+        );
+    }
+}
+
+fn probe_acoustic_occurrence(output: &mut Vec<u8>, start: usize, count: usize, frames: usize) {
+    probe_u32(output, count);
+    for port_index in start..start + count {
+        probe_u32(output, port_index);
+    }
+    probe_u32(output, frames);
+    for index in 0..frames {
+        probe_rational(
+            output,
+            &BigRational::new(BigInt::from(index), BigInt::from(100)),
+        );
+    }
+    probe_bytes(output, PROBE_INTERSAMPLE_PROFILE);
+    probe_u32(output, 1);
+    probe_u32(output, count);
+    for local_index in 0..count {
+        probe_u32(output, local_index);
+    }
+    probe_bytes(output, b"explicit-joint-relevance-v1");
+    probe_u32(output, frames);
+    for _ in 0..frames {
+        probe_rational(output, &BigRational::from_integer(BigInt::from(1)));
+    }
+}
+
+fn probe_cochlear_coefficients() -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+    fn erb_width_hz(frequency_hz: f64) -> f64 {
+        24.7 * (4.37e-3 * frequency_hz + 1.0)
+    }
+    let mut pole_real = Vec::new();
+    let mut pole_imag = Vec::new();
+    let mut injection = Vec::new();
+    for index in 0..PROBE_COCHLEAR_CHANNELS_PER_EAR {
+        let centre = probe_cochlear_centre_hz(index);
+        let radius = (-2.0 * std::f64::consts::PI * 1.019 * erb_width_hz(centre)
+            / PROBE_ACOUSTIC_SAMPLE_RATE_HZ as f64)
+            .exp();
+        let angle = 2.0 * std::f64::consts::PI * centre / PROBE_ACOUSTIC_SAMPLE_RATE_HZ as f64;
+        pole_real.push(radius * angle.cos());
+        pole_imag.push(radius * angle.sin());
+        injection.push(1.0 - radius);
+    }
+    (pole_real, pole_imag, injection)
+}
+
+fn probe_self_hearing_episode(
+    pressure: &[i16],
+) -> crate::joint_source_episode::NativeJointSourceEpisode {
+    assert_eq!(pressure.len(), 4_000, "one exact 250 ms pressure interval");
+    let normalized = pressure
+        .iter()
+        .map(|sample| f64::from(*sample) / 32_768.0)
+        .collect::<Vec<_>>();
+    let (pole_real, pole_imag, injection) = probe_cochlear_coefficients();
+    let (state_real, state_imag, previous_real, previous_imag, phase, energy, partial) =
+        zero_stream_state();
+    let stream = auditory_gammatone_stream_impl(
+        &normalized,
+        &pole_real,
+        &pole_imag,
+        &injection,
+        state_real,
+        state_imag,
+        previous_real,
+        previous_imag,
+        phase,
+        energy,
+        partial,
+        0,
+    )
+    .expect("candidate pressure remains within cochlear analytic bound");
+    let envelopes = stream.0;
+    assert_eq!(
+        envelopes.len(),
+        pressure.len() / PROBE_COCHLEAR_HOP_SAMPLES,
+        "complete cochlear frame count",
+    );
+    let legacy = (0..envelopes.len())
+        .map(|index| normalized[(index + 1) * PROBE_COCHLEAR_HOP_SAMPLES - 1])
+        .collect::<Vec<_>>();
+    let bands = (0..PROBE_COCHLEAR_CHANNELS_PER_EAR)
+        .map(|channel| {
+            envelopes
+                .iter()
+                .map(|frame| {
+                    let lattice = (frame[channel] * PROBE_COCHLEAR_PRESSURE_LATTICE).round();
+                    assert!(
+                        (0.0..=PROBE_COCHLEAR_PRESSURE_LATTICE).contains(&lattice),
+                        "candidate cochlear envelope remains inside declared lattice",
+                    );
+                    lattice / PROBE_COCHLEAR_PRESSURE_LATTICE
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let port_count =
+        PROBE_LEGACY_EAR_PORT_COUNT + PROBE_EAR_COUNT * PROBE_COCHLEAR_CHANNELS_PER_EAR;
+    let frames = envelopes.len();
+    let mut output = b"GLJSRC02".to_vec();
+    probe_u16(&mut output, 2);
+    probe_text(&mut output, "candidate-exact-self-pressure");
+    output.extend_from_slice(&[1, 0, 1, 1, 1, 1]);
+    probe_u32(&mut output, port_count);
+    for topology_index in 0..PROBE_LEGACY_EAR_PORT_COUNT {
+        probe_acoustic_port(&mut output, topology_index, &legacy, false);
+    }
+    for ear in 0..PROBE_EAR_COUNT {
+        for channel in 0..PROBE_COCHLEAR_CHANNELS_PER_EAR {
+            probe_acoustic_port(
+                &mut output,
+                PROBE_LEGACY_EAR_PORT_COUNT + ear * PROBE_COCHLEAR_CHANNELS_PER_EAR + channel,
+                &bands[channel],
+                true,
+            );
+        }
+    }
+    probe_u32(&mut output, 3);
+    probe_acoustic_occurrence(&mut output, 0, PROBE_LEGACY_EAR_PORT_COUNT, frames);
+    probe_acoustic_occurrence(
+        &mut output,
+        PROBE_LEGACY_EAR_PORT_COUNT,
+        PROBE_COCHLEAR_CHANNELS_PER_EAR,
+        frames,
+    );
+    probe_acoustic_occurrence(
+        &mut output,
+        PROBE_LEGACY_EAR_PORT_COUNT + PROBE_COCHLEAR_CHANNELS_PER_EAR,
+        PROBE_COCHLEAR_CHANNELS_PER_EAR,
+        frames,
+    );
+    decode_native_joint_source_episode(&output, port_count, port_count * frames, 3, 3 * frames)
+        .expect("candidate self-hearing episode decodes")
+}
+
 /// Candidate-47H dynamic regime map over the immutable task-1429 body. This
 /// calls only test-compiled neuron physics, carries the exact motor state over
 /// repeated arrivals, and never presents a stimulus to the organism.
 fn temporal_gate_work_range_json(
     state: &ResidentCognitiveFormationState,
     original_cognitive_bytes: &[u8],
+    articulated_body: Option<&ArticulatedBodyState>,
 ) -> Value {
     let predecessor_bytes = state.encode(usize::MAX).expect("encode untouched V41 body");
     let untouched_v41_round_trip_exact = predecessor_bytes == original_cognitive_bytes;
@@ -3369,6 +3633,241 @@ fn temporal_gate_work_range_json(
         }
     }
 
+    let typed_vocal_body = if let Some(body) = articulated_body {
+        let mut motor_drives = Vec::new();
+        let mut motor_evidence = Vec::new();
+        let mut respiratory_discharge_limit = 0_u128;
+        let mut tested_vocal_motors = std::collections::BTreeSet::new();
+        for route in route_results {
+            if route.get("error").is_some() {
+                continue;
+            }
+            let motor_hex = route["motor_lineage"]
+                .as_str()
+                .expect("candidate motor lineage");
+            if (!motor_hex.ends_with("00c5") && !motor_hex.ends_with("04fb"))
+                || !tested_vocal_motors.insert(motor_hex)
+            {
+                continue;
+            }
+            let motor = lineage_from_hex(motor_hex);
+            let source_work = wide_exact_from_json(&route["total_source_work_zeptojoules"]);
+            let (cohort_index, neuron_index) = mounted_neuron_location(state, motor);
+            let cohort = &state.cohorts[cohort_index];
+            let anatomy = &cohort.anatomy.neuron_anatomies()[neuron_index];
+            let predecessor = &cohort.state.neurons()[neuron_index];
+            let terminal = cohort.anatomy.mounts()[neuron_index]
+                .body_effector_terminal()
+                .expect("learned vocal motor has typed terminal");
+            let (range, _) = transduced_gate_sample_json(
+                anatomy,
+                predecessor,
+                &source_work,
+                250_000,
+                256,
+                false,
+                false,
+            );
+            let crossing = u32::try_from(
+                range["first_positive_outward_event"]
+                    .as_u64()
+                    .expect("candidate vocal motor crosses"),
+            )
+            .expect("candidate crossing width");
+            let (at_crossing, _) = transduced_gate_sample_json(
+                anatomy,
+                predecessor,
+                &source_work,
+                250_000,
+                crossing,
+                false,
+                false,
+            );
+            let outward = at_crossing["peak_local_outward_elementary_charges"]
+                .as_str()
+                .expect("candidate vocal output")
+                .parse::<u128>()
+                .expect("candidate vocal output width");
+            respiratory_discharge_limit = respiratory_discharge_limit
+                .checked_add(outward)
+                .expect("candidate respiratory limit width");
+            motor_drives.push(BodyEffectorDrive {
+                terminal,
+                outward_elementary_carriers: outward,
+            });
+            motor_evidence.push(json!({
+                "motor_lineage": motor_hex,
+                "terminal": format!("{terminal:?}"),
+                "first_positive_outward_event": crossing,
+                "outward_elementary_carriers": outward.to_string(),
+            }));
+        }
+        let respiratory_lineage = state
+            .vocal_articulatory_effector_lineage
+            .expect("copied body has dedicated respiratory effector");
+        let (respiratory_cohort_index, respiratory_neuron_index) =
+            mounted_neuron_location(state, respiratory_lineage);
+        let respiratory_cohort = &state.cohorts[respiratory_cohort_index];
+        let mut respiratory_state = respiratory_cohort.state.as_ref().clone();
+        let prepared_metabolism = super::prepare_reached_cohort_membrane_pumps(
+            &respiratory_cohort.anatomy,
+            &respiratory_state,
+            &[respiratory_neuron_index],
+            250_000,
+            ExactRational::integer(0),
+        )
+        .expect("candidate respiratory metabolism prepares");
+        let respiratory_metabolism = super::apply_prepared_reached_cohort_membrane_pumps(
+            &mut respiratory_state,
+            prepared_metabolism,
+        );
+        let respiratory_terminal = crate::complete_neuron::settle_efferent_terminal_transport(
+            &respiratory_cohort.anatomy.neuron_anatomies()[respiratory_neuron_index],
+            &respiratory_state.neurons()[respiratory_neuron_index],
+            respiratory_discharge_limit,
+            250_000,
+        )
+        .expect("candidate respiratory terminal settles");
+        let respiratory_efferent_carriers = respiratory_terminal
+            .as_ref()
+            .map_or(0, |(_, carriers, _)| *carriers);
+        let admitted = AdmittedBodyEffectorDrives::admit(motor_drives)
+            .expect("candidate vocal tissue drives admit");
+        let body_transition =
+            settle_body_effector_drives(body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("candidate vocal tissue settles");
+        let acoustic = settle_native_articulatory_interval(
+            body_transition.successor.clone(),
+            &body_transition.proprioceptive_consequences,
+            respiratory_efferent_carriers,
+            4_000,
+        )
+        .expect("candidate vocal pressure settles");
+        let pressure_peak = acoustic
+            .radiated_pressure_pcm
+            .iter()
+            .map(|sample| sample.unsigned_abs())
+            .max()
+            .unwrap_or(0);
+        let nonzero_pressure_samples = acoustic
+            .radiated_pressure_pcm
+            .iter()
+            .filter(|sample| **sample != 0)
+            .count();
+        let self_hearing_episode = probe_self_hearing_episode(&acoustic.radiated_pressure_pcm);
+        let cochlear_locations = self_hearing_episode
+            .joint_source_ports()
+            .iter()
+            .filter(|port| port.physical_quantity == "cochlear-band-pressure")
+            .map(|port| {
+                let site = super::NeuronSourceSite::from_source_port(port)
+                    .expect("candidate cochlear source site");
+                let (cohort_index, neuron_index, lineage) = state
+                    .topology_index
+                    .source_location(&site)
+                    .expect("candidate cochlear topology lookup")
+                    .expect("candidate cochlear receptor is mounted");
+                let neuron = &state.cohorts[cohort_index].state.neurons()[neuron_index];
+                (
+                    cohort_index,
+                    neuron_index,
+                    lineage,
+                    neuron.receptor_quantum_residue.energy().clone(),
+                    neuron.gate.open_population(),
+                )
+            })
+            .collect::<Vec<_>>();
+        let self_hearing_intervals = vec![(1_i64, 4_i64); 3];
+        let self_hearing_admitted = admitted_episode_with_authored_intervals(
+            &self_hearing_episode,
+            &self_hearing_intervals,
+        )
+        .expect("candidate self-hearing admission");
+        let (self_heard_successor, self_hearing_observation) = state
+            .clone()
+            .advance_admitted_transition(
+                &self_hearing_admitted,
+                usize::MAX,
+                false,
+                ExactRational::integer(0),
+            )
+            .expect("candidate exact self-hearing settles");
+        let cochlear_returns = cochlear_locations
+            .into_iter()
+            .map(
+                |(cohort_index, neuron_index, lineage, before_residue, before_gate)| {
+                    let after =
+                        &self_heard_successor.cohorts[cohort_index].state.neurons()[neuron_index];
+                    let after_residue = after.receptor_quantum_residue.energy().clone();
+                    json!({
+                        "lineage": probe_lineage_hex(lineage),
+                        "residue_changed": after_residue != before_residue,
+                        "gate_population_changed": after.gate.open_population() != before_gate,
+                        "externally_perturbed": self_hearing_observation
+                            .externally_perturbed_neuron_lineages
+                            .contains(&lineage),
+                    })
+                },
+            )
+            .collect::<Vec<_>>();
+        let externally_perturbed_cochlear_count = cochlear_returns
+            .iter()
+            .filter(|item| item["externally_perturbed"].as_bool() == Some(true))
+            .count();
+        let changed_cochlear_count = cochlear_returns
+            .iter()
+            .filter(|item| {
+                item["residue_changed"].as_bool() == Some(true)
+                    || item["gate_population_changed"].as_bool() == Some(true)
+            })
+            .count();
+        json!({
+            "motor_evidence": motor_evidence,
+            "respiratory_discharge_limit": respiratory_discharge_limit.to_string(),
+            "respiratory_efferent_carriers": respiratory_efferent_carriers.to_string(),
+            "respiratory_metabolism_changed": respiratory_metabolism.changed(),
+            "reached_terminal_count": body_transition.reached_terminal_count,
+            "proprioceptive_consequences": body_transition
+                .proprioceptive_consequences
+                .iter()
+                .map(|consequence| json!({
+                    "axis": format!("{:?}", consequence.axis),
+                    "predecessor_position": consequence.predecessor_position,
+                    "successor_position": consequence.successor_position,
+                    "signed_displacement": consequence.signed_displacement,
+                    "applied_displacement_quanta": consequence
+                        .applied_displacement_quanta
+                        .to_string(),
+                    "stalled_carriers": consequence.stalled_carriers.to_string(),
+                }))
+                .collect::<Vec<_>>(),
+            "pressure_sample_count": acoustic.radiated_pressure_pcm.len(),
+            "nonzero_pressure_samples": nonzero_pressure_samples,
+            "pressure_peak": pressure_peak,
+            "self_hearing": {
+                "cochlear_port_count": cochlear_returns.len(),
+                "externally_perturbed_cochlear_count": externally_perturbed_cochlear_count,
+                "changed_cochlear_count": changed_cochlear_count,
+                "physically_transitioned_neuron_count":
+                    self_hearing_observation.physically_transitioned_neuron_count,
+                "dsf_delivery_count": self_hearing_observation.dsf_delivery_count,
+                "cochlear_returns": cochlear_returns,
+                "successor_cognitive_body_encodes": self_heard_successor
+                    .encode(usize::MAX)
+                    .is_ok(),
+            },
+            "successor_body_cold_round_trip_exact": ArticulatedBodyState::decode(
+                &acoustic
+                    .successor_body
+                    .encode()
+                    .expect("candidate successor body encodes"),
+            )
+            .expect("candidate successor body decodes") == acoustic.successor_body,
+        })
+    } else {
+        json!({"error": "copied articulated body absent"})
+    };
+
     let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
     let severed_route_count = source_work_to_motor_reservoir_range_json(&severed)
         ["route_results"]
@@ -3389,6 +3888,7 @@ fn temporal_gate_work_range_json(
         "interval_microseconds": intervals,
         "samples": samples,
         "cold_continuation": cold_continuation,
+        "typed_vocal_body": typed_vocal_body,
         "severed_bridge_count": severed_bridge_count,
         "severed_route_count": severed_route_count,
         "permutation_falsifier_inherited_from_47f":
@@ -3902,7 +4402,11 @@ fn reservoir_probe_dump() {
                 "file": path.file_name().unwrap().to_string_lossy(),
                 "organism_tick": organism_tick,
                 "temporal_gate_work_range":
-                    temporal_gate_work_range_json(&state, &cognitive),
+                    temporal_gate_work_range_json(
+                        &state,
+                        &cognitive,
+                        articulated_body.as_ref(),
+                    ),
             })
         } else if source_work_motor_range_only {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)

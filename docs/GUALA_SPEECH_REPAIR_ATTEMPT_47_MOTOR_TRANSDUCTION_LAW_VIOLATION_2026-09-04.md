@@ -1183,3 +1183,44 @@ pressure, all-ear self-hearing, order independence, cold continuation, and
 flat resources. Its measured 52/53-event real-strength vocal latency is also a
 required developmental/timing fact; it may not be hidden by tuning the source
 or lowering the gate.
+
+## Candidate 47H — exact typed vocal body and self-hearing pass
+
+The same isolated dynamic outputs were next connected only to the copied
+task-1429 body's already-mounted typed terminals. Vocal motor `00c5` discharged
+1,475 carriers toward maximum on tract section 0; motor `04fb` discharged 1,446
+carriers toward minimum on tract section 7. The ordinary tissue settlement
+moved section 0 from 141 to 168 and section 7 from 249 to 241. Their combined
+2,921-carrier limit was presented to the body's existing dedicated L13
+respiratory effector after its ordinary membrane metabolism. It paid and
+emitted all 2,921 carriers; no unlimited-air fixture or test-only carrier was
+used.
+
+The existing native acoustic organ then produced 4,000 pressure samples, 3,996
+nonzero, with absolute peak 420. The exact signed samples—not a generated tone
+or observer reconstruction—were passed through the production fourth-order
+gammatone cochlea and admitted at all 32 mounted tonotopic receptor identities.
+All 32 receptor energy residues changed, the settlement delivered 35 full DSF
+fields, 1,470 neurons physically transitioned, the successor cognitive body
+encoded, and the successor articulated body cold-round-tripped exactly. No
+cochlear gate changed in this single quiet 250 ms pressure interval; the result
+proves real sub-threshold self-hearing input, not a falsely claimed heard word.
+
+Two harness-only attempts were rejected without changing the copy. The first
+omitted each mounted cochlear site's ear and center-frequency coordinates and
+therefore could not resolve the receptor identity. The second misstated the
+independent maximum causal interval as 2.5 ms and was correctly refused because
+the pressure occurrence spans 240 ms. Restoring the exact production receptor
+identity and explicit 250 ms admission produced the passing result. Neither
+refusal is an organism or production failure.
+
+Artifact:
+`/tmp/guala-speech1429-sequence.dpHRJX/candidate47h-typed-self-hearing.json`,
+360,470 bytes, SHA-256
+`efdfb94f88af8754b25fb1a4d3d99abb963b8b9c95ee3bfbb9c1073c4130daff`.
+Focused execution: one passed, 608 filtered, 111.07 seconds. This completes the
+test-only typed tissue, finite breath, emitted pressure, self-hearing, codec,
+and copied-body causal-capacity gate. It still does not authorize production:
+the same work acceptance and source heat debit must now occur atomically inside
+the real reached-cohort settlement and pass the full regression and resource
+suite.

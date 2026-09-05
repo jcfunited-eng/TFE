@@ -1264,3 +1264,24 @@ they do not override this baseline.
   typed vocal tissue, bounded breath, pressure, self-hearing, restart, and
   resource controls. The measured 52/53-event latency remains visible and may
   not be tuned away.
+
+### 2026-09-05 — Speech attempt 47H: typed body and exact self-hearing pass
+
+- The exact copied-body vocal motors dynamically discharged 1,475 and 1,446
+  carriers, moved their real tract sections, and recruited the existing L13
+  respiratory effector for a finite 2,921-carrier discharge. No unlimited-air
+  or fixed-output fixture participated.
+- The native organ emitted 4,000 samples, 3,996 nonzero, peak 420. Those exact
+  samples changed the energy residue of every one of the 32 mounted cochlear
+  receptors in one 250 ms settlement, with 35 full DSF deliveries and 1,470
+  physically transitioned neurons. Cognitive encode and articulated-body cold
+  round-trip passed.
+- One interval was sub-threshold at the cochlear gates, so this is truthful
+  receptor-level self-hearing and not a word claim. Two rejected harness runs
+  are retained in the attempt ledger: incomplete cochlear identity, then an
+  incorrect 2.5 ms admission for a 240 ms occurrence. Exact production
+  identity plus a 250 ms admission passed.
+- Artifact: 360,470 bytes, SHA-256
+  `efdfb94f88af8754b25fb1a4d3d99abb963b8b9c95ee3bfbb9c1073c4130daff`.
+  Focused run: one passed, 608 filtered, 111.07 seconds. Production remains
+  untouched; the next gate is atomic integration in the actual settlement.
