@@ -1156,3 +1156,18 @@ they do not override this baseline.
 - Still not production authority: learned-contact control topology, actual
   source-heat debit, typed evidence, cold continuation, body pressure,
   self-hearing, and resource bounds remain open.
+
+### 2026-09-05 — Causal equivalence and computational parsimony ratified
+
+- Guala is explicitly not a molecule-for-molecule biological simulation.
+  Every mechanism must use the least computational representation that
+  preserves all capability-bearing causal, developmental, embodied, lifecycle,
+  conservation, and resource invariants.
+- Exact analytical laws, reduced-order physical organs, sparse reached-frontier
+  execution, shared stable anatomy, and multirate trajectories are preferred
+  when dynamic copied-body evidence proves equivalent successors.
+- Neither expensive non-causative biological detail nor cheap semantic/canned
+  imitation is admissible. When two mechanisms are causally equivalent, the
+  lower-cost one is mandatory; lost causal distinctions reject a cheaper path.
+- Governing law:
+  `docs/GUALA_CAUSAL_EQUIVALENCE_AND_COMPUTATIONAL_PARSIMONY_LAW_2026-09-05.md`.

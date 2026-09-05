@@ -2,6 +2,18 @@
 
 Status: permanent living design authority. Last reconciled 2026-09-05.
 
+## Governing computational architecture
+
+This voice is governed by
+`GUALA_CAUSAL_EQUIVALENCE_AND_COMPUTATIONAL_PARSIMONY_LAW_2026-09-05.md`.
+The organ must preserve organism-owned motor causation, finite work, tract
+geometry, physical timing, emitted pressure, self-hearing, developmental
+change, and bounded resources. It must not simulate microscopic biological
+detail that adds no distinct causal consequence. It equally must not replace
+that detail with a phoneme table, fixed carrier extent, target waveform,
+semantic command, or renderer intelligence. The accepted reduced-order vocal
+body and the learned-transduction repair are admitted only at that boundary.
+
 This document preserves the reusable physical lessons from the vocal-organ
 campaign. Chronological repair attempts remain the evidence record; this file
 states what later designs must preserve, what has been falsified, and what is
