@@ -2466,19 +2466,25 @@ fn integrated_motor_transduction_falsifier_json(
 
 fn allocate_source_work_by_learned_conductance(
     source_work: &BigRational,
+    source_path_conductance: ExactRational,
     routes: &[([u8; 16], ExactRational)],
 ) -> std::collections::BTreeMap<[u8; 16], BigRational> {
     let exact_to_wide = |value: ExactRational| {
         let (numerator, denominator) = value.parts();
         BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
     };
-    let total_conductance = routes
+    let learned_conductance = routes
         .iter()
         .map(|(_, conductance)| exact_to_wide(*conductance))
         .filter(|conductance| conductance > &BigRational::zero())
         .fold(BigRational::zero(), |sum, conductance| sum + conductance);
+    let source_conductance = exact_to_wide(source_path_conductance);
+    let total_conductance = &source_conductance + learned_conductance;
     let mut allocated = std::collections::BTreeMap::new();
-    if source_work <= &BigRational::zero() || total_conductance.is_zero() {
+    if source_work <= &BigRational::zero()
+        || source_conductance <= BigRational::zero()
+        || total_conductance.is_zero()
+    {
         return allocated;
     }
     for (motor, conductance) in routes {
@@ -2490,6 +2496,28 @@ fn allocate_source_work_by_learned_conductance(
             source_work * conductance / &total_conductance;
     }
     allocated
+}
+
+fn effective_conductance_for_bond(
+    state: &ResidentCognitiveFormationState,
+    bond: crate::physical_mosaic::StablePhysicalBondReference,
+) -> ExactRational {
+    let topology = state
+        .topology_index
+        .contacts
+        .iter()
+        .copied()
+        .find(|entry| entry.stable_bond == bond)
+        .expect("range-probe source bond remains mounted");
+    let edge = super::materialize_resident_contact_edge(
+        topology,
+        &state.cohorts,
+        &state.electrical_fabric,
+    )
+    .expect("range-probe source contact materializes");
+    edge.anatomy
+        .effective_conductance(&edge.state)
+        .expect("range-probe source contact state matches anatomy")
 }
 
 fn source_work_permutation_falsifier_json() -> Value {
@@ -2509,8 +2537,17 @@ fn source_work_permutation_falsifier_json() -> Value {
         (lineage(3), ExactRational::integer(0)),
     ];
     let routes_reversed = routes_forward.iter().copied().rev().collect::<Vec<_>>();
-    let forward = allocate_source_work_by_learned_conductance(&total_forward, &routes_forward);
-    let reversed = allocate_source_work_by_learned_conductance(&total_reversed, &routes_reversed);
+    let source_conductance = ExactRational::integer(7);
+    let forward = allocate_source_work_by_learned_conductance(
+        &total_forward,
+        source_conductance,
+        &routes_forward,
+    );
+    let reversed = allocate_source_work_by_learned_conductance(
+        &total_reversed,
+        source_conductance,
+        &routes_reversed,
+    );
     let encode = |allocated: &std::collections::BTreeMap<[u8; 16], BigRational>| {
         allocated
             .iter()
@@ -2526,13 +2563,16 @@ fn source_work_permutation_falsifier_json() -> Value {
         .values()
         .cloned()
         .fold(BigRational::zero(), |sum, work| sum + work);
+    let retained_source_heat = &total_forward - &allocated_total;
     json!({
         "multiple_sources": 2,
         "multiple_branches": routes_forward.len(),
         "converging_contacts_on_motor_one": 2,
         "zero_conductance_motor_absent": !forward.contains_key(&lineage(3)),
         "source_order_and_branch_order_invariant": forward == reversed,
-        "allocated_work_equals_source_work": allocated_total == total_forward,
+        "allocated_plus_retained_heat_equals_source_work":
+            &allocated_total + &retained_source_heat == total_forward,
+        "retained_source_heat_zeptojoules": wide_exact_json(&retained_source_heat),
         "forward": encode(&forward),
         "reversed": encode(&reversed),
     })
@@ -2867,10 +2907,15 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
                     original_extent,
                 )
                 .expect("copied source work is exact");
+            let source_conductance = effective_conductance_for_bond(&predecessor, source.bond);
             let routes = learned_routes
                 .get(&ordering)
                 .expect("observed bridge has retained learned route");
-            let allocation = allocate_source_work_by_learned_conductance(&source_work, routes);
+            let allocation = allocate_source_work_by_learned_conductance(
+                &source_work,
+                source_conductance,
+                routes,
+            );
             for (motor, branch_share) in allocation {
                 let motor_flat = predecessor
                     .topology_index
@@ -2892,6 +2937,8 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
                     "founding_receiver_lineage": lineage_hex(source.receiver),
                     "original_source_carriers": original_extent.to_string(),
                     "source_released_work_zeptojoules": wide_exact_json(&source_work),
+                    "source_path_effective_conductance_picosiemens":
+                        exact_json(source_conductance),
                     "motor_lineage": lineage_hex(motor),
                     "learned_contact_effective_conductance_picosiemens":
                         wide_exact_json(&motor_conductance),
@@ -2963,7 +3010,7 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
     json!({
         "measurement_only": true,
         "production_compiled": false,
-        "candidate": "47E source released work jointly pays motor pump shortfall",
+        "candidate": "47F absolute source/load conductance splits source work",
         "source_carriers_enter_motor": false,
         "a0116_transition_work_phase_reused": false,
         "recovery_material_created": false,

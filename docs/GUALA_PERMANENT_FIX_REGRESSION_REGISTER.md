@@ -606,3 +606,10 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   invariance, converging-contact aggregation, zero-conductance exclusion, and
   exhausted-motor silence. Artifact SHA-256:
   `625c8617abadb5a4a1df3149876c3ec1164746a7a3a0ab8860d1985e88b23816`.
+- Candidate 47F tested absolute source/load conductance rather than a relative
+  branch-only split. Source and learned paths are both exactly `500 pS`; at the
+  exact body's real source strength, the two vocal motors discharge zero while
+  artificial 2x source strength crosses one carrier. This permanently rejects
+  a memoryless equal-conductance divider as the speech repair and prohibits
+  tuning source strength or conductance to obtain sound. Artifact SHA-256:
+  `724fc9834e89f6091258e60bbd877d02a25957ec9defab887c69c06170d91fd3`.

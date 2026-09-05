@@ -856,3 +856,42 @@ role exactly: the source transition is the power terminal, while the learned
 contact may be a control/branch topology rather than an energy conduit. That
 role, actual settled source-heat debit, typed causal evidence, cold continuation,
 body pressure, later self-hearing, and bounded resources remain open.
+
+## Candidate 47F rejected — equal-conductance load division silences real vocal routes
+
+Candidate 47F tested one absolute-coupling interpretation without touching
+production: each learned branch received the fraction
+`g_learned / (g_source + sum(g_learned))` of exact source-transition work, and
+unallocated work remained source heat. This makes absolute source and learned
+conductance causally relevant and preserves exact work conservation.
+
+The immutable tick-`434112` task-1429 body rejects that interpretation as the
+speech repair. Every measured source path and learned path has exact effective
+conductance `500 pS`. At the real source state, 250 ms, the four reached motor
+suffixes discharged respectively `0`, `1`, `4`, and `0` carriers (`00c5`,
+`039d`, `048b`, `04fb`). The two actual vocal routes are therefore silent.
+Doubling artificial source strength makes both vocal routes discharge one
+carrier, but source scaling is a test coordinate, not repair authority; no
+gain, conductance, reservoir, or output may be tuned to cross that threshold.
+Changing represented interval from 62.5 through 500 ms does not repair the
+silence.
+
+Report:
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt47f-source-load-range.json`,
+283,411 bytes, SHA-256
+`724fc9834e89f6091258e60bbd877d02a25957ec9defab887c69c06170d91fd3`.
+The focused Rust test passed one test with 608 filtered tests in 30.01 seconds
+under the existing 8 GiB address-space, four-thread/build-job, and 900-second
+limits. AWS before and after remained one healthy completed task 1429,
+desired/running/pending `1/1/0`, with zero Guala alarms. No harness or Cargo
+process survived the run.
+
+This is a falsified physical hypothesis, not an infrastructure failure. The
+test-only absolute-conductance resolver and retained-source-heat accounting are
+preserved so the same ground cannot be retried. Candidate 47E remains only an
+energy-sufficiency result; candidate 47F proves a memoryless equal-load divider
+cannot make the current learned vocal anatomy active at its real state. The
+next candidate must investigate lawful bounded temporal integration of repeated
+real subthreshold source work, first against existing energy-residue semantics;
+it may not reuse A-011.6 contact-transition phase, invent material, or tune an
+audible threshold.

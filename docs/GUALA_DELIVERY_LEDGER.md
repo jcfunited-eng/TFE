@@ -1171,3 +1171,23 @@ they do not override this baseline.
   lower-cost one is mandatory; lost causal distinctions reject a cheaper path.
 - Governing law:
   `docs/GUALA_CAUSAL_EQUIVALENCE_AND_COMPUTATIONAL_PARSIMONY_LAW_2026-09-05.md`.
+
+### 2026-09-05 — Speech attempt 47F: absolute equal-load coupling rejected
+
+- A measurement-only candidate divided exact source-transition work by
+  `g_learned / (g_source + sum(g_learned))`; unallocated work remained source
+  heat, so conservation and absolute conductance were explicit.
+- On the immutable task-1429 body, source and learned paths are each exactly
+  `500 pS`. At real source strength and 250 ms, reached motors `00c5`, `039d`,
+  `048b`, and `04fb` discharged `0`, `1`, `4`, and `0` carriers. Both actual
+  vocal routes remained silent. Artificial 2x source strength crosses one
+  carrier on both vocal routes, but tuning source strength or conductance is
+  prohibited.
+- Artifact: 283,411 bytes, SHA-256
+  `724fc9834e89f6091258e60bbd877d02a25957ec9defab887c69c06170d91fd3`.
+  Focused test: one passed, 608 filtered, 30.01 seconds. AWS remained one
+  healthy completed task 1429 with zero Guala alarms; no test process survived.
+- 47F is rejected as speech repair. Its resolver and accounting remain as
+  falsifier history. The next measurement is bounded temporal integration of
+  repeated real subthreshold work, after proving whether any existing energy
+  residue has compatible authority; no production source changes are allowed.
