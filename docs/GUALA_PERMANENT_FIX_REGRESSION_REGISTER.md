@@ -599,3 +599,10 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   to production until absolute learned-bond coupling, actual transition heat,
   permutation, exhaustion, cold continuation, typed consequences and resource
   bounds are proved.
+- Amendment: the first ternary report flattened 490 positional Psi windings
+  into three counts. The corrected harness retains the full ordered vector and
+  reveals all seven present patterns are identical; Psi may not be used to
+  select a route or phoneme. The corrected run also closes source/branch-order
+  invariance, converging-contact aggregation, zero-conductance exclusion, and
+  exhausted-motor silence. Artifact SHA-256:
+  `625c8617abadb5a4a1df3149876c3ec1164746a7a3a0ab8860d1985e88b23816`.

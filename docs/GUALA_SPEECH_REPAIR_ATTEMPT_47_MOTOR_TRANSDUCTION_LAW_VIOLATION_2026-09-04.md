@@ -794,10 +794,16 @@ Across source scales `0`, `1/4`, `1/2`, `1`, `2`, and `4` and intervals 62.5,
 material balances. Zero source produces zero discharge. Physically severing
 all seven learned L11/L12 bonds produces zero candidate routes.
 
-The complete ordering-cell Psi witness is present, not flattened: each of the
-seven real routes reports all 490 balanced-ternary windings as 14 negative, 444
-quiescent, and 32 positive. These trits are observed control state only; they
-do not supply energy or prescribe carrier magnitude.
+Correction to the first report: its three winding counts were a reduced
+projection, not the complete ordering-cell Psi witness. They were never used
+as authority, but describing counts as "not flattened" was wrong. The amended
+harness records every one of the 490 balanced-ternary windings in positional
+order and retains the three counts only as a secondary summary. On this exact
+copied-body moment all seven ordering cells have the same full positional
+pattern (14 negative, 444 quiescent, 32 positive). Therefore current Psi state
+cannot distinguish these vocal routes; using it as a phoneme or motor selector
+would be code trickery. The trits remain observed physical state only. They do
+not supply energy or prescribe motor magnitude.
 
 Corrected report:
 `/tmp/guala-speech1429-sequence.dpHRJX/attempt47e-joint-work-grouped-range.json`,
@@ -820,3 +826,33 @@ source transition's exported heat rather than reconstructing an observation;
 and pass conductance, exhausted-material, multiple-source/branch permutation,
 cold-continuation, typed-body, pressure, self-hearing, and bounded-resource
 falsifiers. Until those close, production stays unchanged on task 1429.
+
+## Candidate 47E amendment — full trits, permutation, and exhaustion
+
+The amended measurement-only run preserves the full positional trit state and
+adds two missing controls. A two-source, four-branch synthetic falsifier is
+byte/logically identical when both source and branch iteration order reverse;
+two contacts converging on one motor aggregate once, allocated branch work
+equals source work exactly, and a zero-conductance motor receives nothing.
+Artificially exhausting both motor carrier compartments on each of the four
+real copied-body motors produces zero pumped carriers even when source work is
+offered. Across the same 96 real-state regimes, work and recovery material
+still close exactly, zero source remains silent, and severing all seven learned
+bonds still removes every route.
+
+Amended report:
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt47e-joint-work-full-trit-range.json`,
+283,685 bytes, SHA-256
+`625c8617abadb5a4a1df3149876c3ec1164746a7a3a0ab8860d1985e88b23816`.
+The focused Rust test passed one test with 608 filtered tests in 29.14 seconds
+under the same 8 GiB address-space, four-thread/build-job, and 900-second
+ceilings. AWS before and after remained one healthy completed task 1429,
+desired/running/pending `1/1/0`, with zero Guala alarms.
+
+This amendment closes the permutation, convergence, zero-conductance,
+exhausted-carrier, and non-flattened-trit observation falsifiers. It does not
+authorize production. The next contract must state the learned bond's physical
+role exactly: the source transition is the power terminal, while the learned
+contact may be a control/branch topology rather than an energy conduit. That
+role, actual settled source-heat debit, typed causal evidence, cold continuation,
+body pressure, later self-hearing, and bounded resources remain open.

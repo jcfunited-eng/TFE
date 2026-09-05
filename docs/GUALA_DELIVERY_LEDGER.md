@@ -1137,3 +1137,22 @@ they do not override this baseline.
 - This is not a deployment candidate. Absolute learned-contact coupling,
   actual source-heat debit, permutation, exhaustion, cold continuation, typed
   tissue, pressure/self-hearing, and resource falsifiers remain open.
+
+### 2026-09-05 — Speech attempt 47E amendment: full trit and joint-allocation controls
+
+- The earlier three Psi winding counts were a reduced summary, not the full
+  ternary state. The amended harness records all 490 windings in positional
+  order for every real ordering cell. All seven current copied-body patterns
+  are identical, so Psi cannot lawfully select a vocal route or phoneme here.
+- All 96 copied-body work/material regimes still pass. Zero source is silent;
+  all four artificially carrier-exhausted motors are silent; severing all seven
+  learned bonds removes all routes. A two-source/four-branch control is exactly
+  invariant to source and branch order, conserves all allocated source work,
+  aggregates converging branches, and excludes zero conductance.
+- Artifact: 283,685 bytes, SHA-256
+  `625c8617abadb5a4a1df3149876c3ec1164746a7a3a0ab8860d1985e88b23816`.
+  Focused test: one passed, 608 filtered, 29.14 seconds. AWS remained one
+  healthy completed task 1429 and zero Guala alarms before and after.
+- Still not production authority: learned-contact control topology, actual
+  source-heat debit, typed evidence, cold continuation, body pressure,
+  self-hearing, and resource bounds remain open.

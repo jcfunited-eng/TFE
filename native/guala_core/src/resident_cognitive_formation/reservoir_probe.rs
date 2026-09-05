@@ -1312,7 +1312,7 @@ fn mounted_neuron_electrical_json(
     panic!("range-probe lineage absent")
 }
 
-fn mounted_neuron_ternary_winding_counts_json(
+fn mounted_neuron_ternary_winding_state_json(
     state: &ResidentCognitiveFormationState,
     lineage: [u8; 16],
 ) -> Value {
@@ -1325,18 +1325,25 @@ fn mounted_neuron_ternary_winding_counts_json(
         else {
             continue;
         };
-        let counts = cohort.state.neurons()[neuron_index]
+        let ordered_windings = cohort.state.neurons()[neuron_index]
             .psi
             .rings()
             .iter()
-            .fold([0_u64; 3], |mut counts, ring| {
-                counts[usize::from((ring.winding() as i8 + 1) as u8)] += 1;
+            .map(|ring| ring.winding() as i8)
+            .collect::<Vec<_>>();
+        let counts = ordered_windings
+            .iter()
+            .fold([0_u64; 3], |mut counts, winding| {
+                counts[usize::from((*winding + 1) as u8)] += 1;
                 counts
             });
         return json!({
-            "negative": counts[0],
-            "quiescent": counts[1],
-            "positive": counts[2],
+            "ordered_windings": ordered_windings,
+            "summary_counts": {
+                "negative": counts[0],
+                "quiescent": counts[1],
+                "positive": counts[2],
+            },
         });
     }
     panic!("ternary-range lineage absent")
@@ -2457,6 +2464,80 @@ fn integrated_motor_transduction_falsifier_json(
     })
 }
 
+fn allocate_source_work_by_learned_conductance(
+    source_work: &BigRational,
+    routes: &[([u8; 16], ExactRational)],
+) -> std::collections::BTreeMap<[u8; 16], BigRational> {
+    let exact_to_wide = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    };
+    let total_conductance = routes
+        .iter()
+        .map(|(_, conductance)| exact_to_wide(*conductance))
+        .filter(|conductance| conductance > &BigRational::zero())
+        .fold(BigRational::zero(), |sum, conductance| sum + conductance);
+    let mut allocated = std::collections::BTreeMap::new();
+    if source_work <= &BigRational::zero() || total_conductance.is_zero() {
+        return allocated;
+    }
+    for (motor, conductance) in routes {
+        let conductance = exact_to_wide(*conductance);
+        if conductance <= BigRational::zero() {
+            continue;
+        }
+        *allocated.entry(*motor).or_insert_with(BigRational::zero) +=
+            source_work * conductance / &total_conductance;
+    }
+    allocated
+}
+
+fn source_work_permutation_falsifier_json() -> Value {
+    let lineage = |suffix: u8| {
+        let mut value = [0_u8; 16];
+        value[15] = suffix;
+        value
+    };
+    let source_a = BigRational::new(BigInt::from(3_u8), BigInt::from(7_u8));
+    let source_b = BigRational::new(BigInt::from(5_u8), BigInt::from(11_u8));
+    let total_forward = &source_a + &source_b;
+    let total_reversed = &source_b + &source_a;
+    let routes_forward = vec![
+        (lineage(1), ExactRational::integer(2)),
+        (lineage(2), ExactRational::integer(3)),
+        (lineage(1), ExactRational::integer(5)),
+        (lineage(3), ExactRational::integer(0)),
+    ];
+    let routes_reversed = routes_forward.iter().copied().rev().collect::<Vec<_>>();
+    let forward = allocate_source_work_by_learned_conductance(&total_forward, &routes_forward);
+    let reversed = allocate_source_work_by_learned_conductance(&total_reversed, &routes_reversed);
+    let encode = |allocated: &std::collections::BTreeMap<[u8; 16], BigRational>| {
+        allocated
+            .iter()
+            .map(|(motor, work)| {
+                json!({
+                    "motor_suffix": motor[15],
+                    "allocated_source_work_zeptojoules": wide_exact_json(work),
+                })
+            })
+            .collect::<Vec<_>>()
+    };
+    let allocated_total = forward
+        .values()
+        .cloned()
+        .fold(BigRational::zero(), |sum, work| sum + work);
+    json!({
+        "multiple_sources": 2,
+        "multiple_branches": routes_forward.len(),
+        "converging_contacts_on_motor_one": 2,
+        "zero_conductance_motor_absent": !forward.contains_key(&lineage(3)),
+        "source_order_and_branch_order_invariant": forward == reversed,
+        "allocated_work_equals_source_work": allocated_total == total_forward,
+        "forward": encode(&forward),
+        "reversed": encode(&reversed),
+    })
+}
+
 /// Candidate 47E's conservation-correct motor settlement on one disposable
 /// copied neuron.  The mounted pump determines direction and its whole-carrier
 /// bound.  Existing recovery material pays as much of the exact stored-work
@@ -2469,6 +2550,7 @@ fn source_work_assisted_motor_sample_json(
     motor_neuron: usize,
     offered_source_work: &BigRational,
     interval_microseconds: u32,
+    exhaust_motor_carriers: bool,
 ) -> Value {
     let exact_to_wide = |value: ExactRational| {
         let (numerator, denominator) = value.parts();
@@ -2478,7 +2560,18 @@ fn source_work_assisted_motor_sample_json(
         Some(ExactRational::new(value.numer().to_i128()?, value.denom().to_u128()?).ok()?)
     };
     let anatomy = &cohort.anatomy.neuron_anatomies()[motor_neuron];
-    let predecessor = &cohort.state.neurons()[motor_neuron];
+    let resident_predecessor = &cohort.state.neurons()[motor_neuron];
+    let exhausted_predecessor = exhaust_motor_carriers.then(|| {
+        crate::complete_neuron::with_held_membrane_and_carriers(
+            resident_predecessor,
+            resident_predecessor.membrane_state(),
+            0,
+            0,
+        )
+    });
+    let predecessor = exhausted_predecessor
+        .as_ref()
+        .unwrap_or(resident_predecessor);
     let reservoir_anatomy = cohort.anatomy.recovery_fluid_reservoir_anatomy();
     let predecessor_reservoir = cohort.state.recovery_fluid();
     let (_, spent_capacity, _) = reservoir_anatomy.capacities();
@@ -2598,6 +2691,7 @@ fn source_work_assisted_motor_sample_json(
     let recovery_material_after = recovery_material_before.clone();
     json!({
         "interval_microseconds": interval_microseconds,
+        "motor_carriers_artificially_exhausted": exhaust_motor_carriers,
         "offered_source_work_zeptojoules": wide_exact_json(&source_budget),
         "local_recovery_work_contribution_zeptojoules": wide_exact_json(&accepted_local),
         "source_work_contribution_zeptojoules": wide_exact_json(&accepted_source),
@@ -2776,38 +2870,34 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
             let routes = learned_routes
                 .get(&ordering)
                 .expect("observed bridge has retained learned route");
-            let total_conductance = routes
-                .iter()
-                .fold(BigRational::zero(), |sum, (_, conductance)| {
-                    sum + exact_to_wide(*conductance)
-                });
-
-            for (motor, conductance) in routes {
+            let allocation = allocate_source_work_by_learned_conductance(&source_work, routes);
+            for (motor, branch_share) in allocation {
                 let motor_flat = predecessor
                     .topology_index
-                    .flat_for_lineage(*motor)
+                    .flat_for_lineage(motor)
                     .expect("learned motor lineage present");
                 let (motor_cohort, motor_neuron, _) =
                     predecessor.topology_index.flat_locations[motor_flat];
-                let branch_share = if total_conductance.is_zero() {
-                    BigRational::zero()
-                } else {
-                    &source_work * exact_to_wide(*conductance) / &total_conductance
-                };
+                let motor_conductance = routes
+                    .iter()
+                    .filter(|(candidate, _)| *candidate == motor)
+                    .fold(BigRational::zero(), |sum, (_, conductance)| {
+                        sum + exact_to_wide(*conductance)
+                    });
                 let contribution = json!({
                     "active_clock": active_clock,
                     "ordering_lineage": lineage_hex(ordering),
-                    "ordering_psi_ternary_winding_counts":
-                        mounted_neuron_ternary_winding_counts_json(&predecessor, ordering),
+                    "ordering_psi_ternary_winding_state":
+                        mounted_neuron_ternary_winding_state_json(&predecessor, ordering),
                     "founding_receiver_lineage": lineage_hex(source.receiver),
                     "original_source_carriers": original_extent.to_string(),
                     "source_released_work_zeptojoules": wide_exact_json(&source_work),
-                    "motor_lineage": lineage_hex(*motor),
+                    "motor_lineage": lineage_hex(motor),
                     "learned_contact_effective_conductance_picosiemens":
-                        exact_json(*conductance),
+                        wide_exact_json(&motor_conductance),
                     "parallel_conductance_zeptojoules_share": wide_exact_json(&branch_share),
                 });
-                let entry = motor_work.entry(*motor).or_insert_with(|| {
+                let entry = motor_work.entry(motor).or_insert_with(|| {
                     (motor_cohort, motor_neuron, BigRational::zero(), Vec::new())
                 });
                 assert_eq!(entry.0, motor_cohort, "motor cohort is stable");
@@ -2837,6 +2927,7 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
                                 motor_neuron,
                                 &offered,
                                 interval_microseconds,
+                                false,
                             );
                             sample["source_scale"] =
                                 json!(format!("{scale_numerator}/{scale_denominator}"));
@@ -2845,6 +2936,13 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
                     })
                 })
                 .collect::<Vec<_>>();
+            let exhausted_motor_carriers = source_work_assisted_motor_sample_json(
+                cohort,
+                motor_neuron,
+                &total_source_work,
+                250_000,
+                true,
+            );
             route_results.push(json!({
                 "active_clock": active_clock,
                 "motor_lineage": lineage_hex(motor),
@@ -2856,6 +2954,7 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
                 "predecessor_thermal_work_zeptojoules": exact_json(thermal),
                 "available_capacity_zeptojoules": exact_json(available_capacity),
                 "spent_capacity_zeptojoules": exact_json(spent_capacity),
+                "exhausted_motor_carriers_control": exhausted_motor_carriers,
                 "samples": samples,
             }));
         }
@@ -2869,6 +2968,7 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
         "a0116_transition_work_phase_reused": false,
         "recovery_material_created": false,
         "source_work_diverted_from_heat_when_spent": true,
+        "synthetic_order_invariance": source_work_permutation_falsifier_json(),
         "route_results": route_results,
     })
 }

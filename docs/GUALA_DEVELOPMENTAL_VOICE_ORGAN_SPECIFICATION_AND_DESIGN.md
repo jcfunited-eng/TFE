@@ -275,6 +275,16 @@ exhaustion, cold continuation, and end-to-end body/self-hearing remain required
 before production code. Full balanced-ternary/Psi state remains control
 evidence only and never becomes motor energy or a magnitude table.
 
+Candidate 47E's amended harness records every balanced-ternary winding in
+positional order. All seven current ordering cells have the same complete
+490-winding pattern, so present Psi state cannot distinguish learned vocal
+routes and may never be promoted into a phoneme selector. Permutation,
+converging-branch, zero-conductance, and exhausted-motor controls now pass, but
+the learned contact's physical role still requires ratification before native
+integration: real source-transition heat is the candidate power supply; learned
+contact anatomy may govern control topology and competing branch allocation,
+but must not be falsely described as carrying energy when no carrier crosses it.
+
 Primary evidence records:
 
 - `GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md`
