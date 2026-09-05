@@ -21,14 +21,14 @@ use crate::joint_uf_source_adapter::admitted_episode_with_authored_intervals;
 use crate::recovery_fluid_contact::ReachedRecoveryFluidAnatomy;
 use crate::vestibular_neuron_path::FUNCTIONAL_VESTIBULAR_ANATOMY_CODEC_BYTES;
 use crate::virtual_articulated_body::{
-    settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
-    BodyAxis, BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal,
-    ARTICULATED_BODY_STATE_BYTES, BODY_AXES, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+    settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState, BodyAxis,
+    BodyEffectorDirection, BodyEffectorDrive, BodyEffectorTerminal, ARTICULATED_BODY_STATE_BYTES,
+    BODY_AXES, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
 };
 use crate::virtual_articulatory_body::settle_native_articulatory_interval;
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::Zero;
+use num_traits::{ToPrimitive, Zero};
 use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
@@ -851,9 +851,7 @@ impl ProbeAntagonistTissue {
         // with lifetime. The exact released work is therefore dissipated once
         // by the body transaction while the admitted conformation persists.
         self.dissipated_work += &total_work;
-        let coupled_carriers = carriers
-            .saturating_mul(coupling_numerator)
-            / coupling_denominator;
+        let coupled_carriers = carriers.saturating_mul(coupling_numerator) / coupling_denominator;
         if coupled_carriers == 0 {
             self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(carriers);
             return;
@@ -865,11 +863,10 @@ impl ProbeAntagonistTissue {
         let requested_units = coupled_carriers.saturating_mul(activation_lifetime_ms);
         let available_units = capacity_units.saturating_sub(self.activation_units[index]);
         let admitted_units = requested_units.min(available_units);
-        self.activation_units[index] = self.activation_units[index]
-            .saturating_add(admitted_units);
-        self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(
-            carriers.saturating_sub(admitted_units / activation_lifetime_ms),
-        );
+        self.activation_units[index] = self.activation_units[index].saturating_add(admitted_units);
+        self.stopped_load_quanta = self
+            .stopped_load_quanta
+            .saturating_add(carriers.saturating_sub(admitted_units / activation_lifetime_ms));
     }
 
     fn step_one_ms(&mut self, activation_lifetime_ms: u128, response_time_ms: u128) {
@@ -885,15 +882,14 @@ impl ProbeAntagonistTissue {
         let signed_activation = if toward_maximum >= toward_minimum {
             i128::try_from(toward_maximum - toward_minimum).expect("bounded positive activation")
         } else {
-            -i128::try_from(toward_minimum - toward_maximum)
-                .expect("bounded negative activation")
+            -i128::try_from(toward_minimum - toward_maximum).expect("bounded negative activation")
         };
         let unclamped_target = i128::from(self.neutral) + signed_activation;
-        let target = unclamped_target
-            .clamp(i128::from(self.minimum), i128::from(self.maximum)) as i64;
-        self.stopped_load_quanta = self.stopped_load_quanta.saturating_add(
-            unclamped_target.abs_diff(i128::from(target)),
-        );
+        let target =
+            unclamped_target.clamp(i128::from(self.minimum), i128::from(self.maximum)) as i64;
+        self.stopped_load_quanta = self
+            .stopped_load_quanta
+            .saturating_add(unclamped_target.abs_diff(i128::from(target)));
         let gap = self.position.abs_diff(target);
         if gap != 0 {
             let response = u64::try_from(response_time_ms).expect("bounded response time");
@@ -1012,7 +1008,9 @@ fn copied_body_antagonist_activation_range_json(body: Option<&ArticulatedBodySta
                         failures.push(format!("{axis:?}:one_carrier_twitch_absent"));
                     }
                     if !(16..=250).contains(&visible_ms) {
-                        failures.push(format!("{axis:?}:visible_duration_{visible_ms}_outside_16_250"));
+                        failures.push(format!(
+                            "{axis:?}:visible_duration_{visible_ms}_outside_16_250"
+                        ));
                     }
                     if tissue.position != tissue.neutral {
                         failures.push(format!("{axis:?}:did_not_return_by_512_ms"));
@@ -1071,8 +1069,8 @@ fn copied_body_antagonist_activation_range_json(body: Option<&ArticulatedBodySta
                             );
                             tissue.step_one_ms(activation_lifetime_ms, response_time_ms);
                         }
-                        let at_stop = tissue.position == tissue.minimum
-                            || tissue.position == tissue.maximum;
+                        let at_stop =
+                            tissue.position == tissue.minimum || tissue.position == tissue.maximum;
                         if rate == 1 && at_stop {
                             failures.push(format!("{axis:?}:one_per_ms_pinned"));
                         }
@@ -1312,6 +1310,36 @@ fn mounted_neuron_electrical_json(
         }
     }
     panic!("range-probe lineage absent")
+}
+
+fn mounted_neuron_ternary_winding_counts_json(
+    state: &ResidentCognitiveFormationState,
+    lineage: [u8; 16],
+) -> Value {
+    for cohort in &state.cohorts {
+        let Some(neuron_index) = cohort
+            .anatomy
+            .neuron_lineages()
+            .iter()
+            .position(|candidate| *candidate == lineage)
+        else {
+            continue;
+        };
+        let counts = cohort.state.neurons()[neuron_index]
+            .psi
+            .rings()
+            .iter()
+            .fold([0_u64; 3], |mut counts, ring| {
+                counts[usize::from((ring.winding() as i8 + 1) as u8)] += 1;
+                counts
+            });
+        return json!({
+            "negative": counts[0],
+            "quiescent": counts[1],
+            "positive": counts[2],
+        });
+    }
+    panic!("ternary-range lineage absent")
 }
 
 fn apply_probe_gradient_population(
@@ -2345,15 +2373,9 @@ fn motor_inward_preparation_energy_range_json(state: &ResidentCognitiveFormation
     })
 }
 
-/// Run the production one-carrier transduction through the complete copied-body
-/// three-clock settlement, then repeat after physically severing every learned
-/// L11/L12 bridge. Both successors are disposable in-memory copies.
-fn integrated_motor_transduction_falsifier_json(
+fn severed_learned_motor_copy(
     state: &ResidentCognitiveFormationState,
-    articulated_body: Option<&ArticulatedBodyState>,
-) -> Value {
-    let connected = retained_frontier_motor_range_json(state, articulated_body, 3);
-
+) -> (ResidentCognitiveFormationState, usize) {
     let layer_of = |lineage| state.topology_index.layer_of(lineage);
     let removed = state
         .electrical_fabric
@@ -2414,12 +2436,453 @@ fn integrated_motor_transduction_falsifier_json(
         super::ResidentTopologyIndex::build(&severed.cohorts, &severed.electrical_fabric)
             .expect("test severed topology"),
     );
+    (severed, removed.len())
+}
+
+/// Run the production one-carrier transduction through the complete copied-body
+/// three-clock settlement, then repeat after physically severing every learned
+/// L11/L12 bridge. Both successors are disposable in-memory copies.
+fn integrated_motor_transduction_falsifier_json(
+    state: &ResidentCognitiveFormationState,
+    articulated_body: Option<&ArticulatedBodyState>,
+) -> Value {
+    let connected = retained_frontier_motor_range_json(state, articulated_body, 3);
+    let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
     let disconnected = retained_frontier_motor_range_json(&severed, articulated_body, 3);
     json!({
         "production_compiled": true,
         "connected": connected,
         "severed": disconnected,
-        "severed_bridge_count": removed.len(),
+        "severed_bridge_count": severed_bridge_count,
+    })
+}
+
+/// Candidate 47E's conservation-correct motor settlement on one disposable
+/// copied neuron.  The mounted pump determines direction and its whole-carrier
+/// bound.  Existing recovery material pays as much of the exact stored-work
+/// increase as it can; exact work released by the connected L11 source pays
+/// only the shortfall.  That source contribution is therefore unavailable for
+/// heat export.  No source carrier enters L12 and available+spent recovery
+/// material is unchanged.
+fn source_work_assisted_motor_sample_json(
+    cohort: &super::ResidentReachedCohort,
+    motor_neuron: usize,
+    offered_source_work: &BigRational,
+    interval_microseconds: u32,
+) -> Value {
+    let exact_to_wide = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    };
+    let wide_to_exact = |value: &BigRational| {
+        Some(ExactRational::new(value.numer().to_i128()?, value.denom().to_u128()?).ok()?)
+    };
+    let anatomy = &cohort.anatomy.neuron_anatomies()[motor_neuron];
+    let predecessor = &cohort.state.neurons()[motor_neuron];
+    let reservoir_anatomy = cohort.anatomy.recovery_fluid_reservoir_anatomy();
+    let predecessor_reservoir = cohort.state.recovery_fluid();
+    let (_, spent_capacity, _) = reservoir_anatomy.capacities();
+    let (available, spent, thermal) = predecessor_reservoir.physical_parts();
+    let local_budget =
+        exact_to_wide(available).min(exact_to_wide(spent_capacity) - exact_to_wide(spent));
+    let source_budget = offered_source_work.clone().max(BigRational::zero());
+    let total_budget = &local_budget + &source_budget;
+    let bound = crate::complete_neuron::membrane_gradient_pump_charge_bound(
+        anatomy,
+        predecessor,
+        interval_microseconds,
+    )
+    .expect("copied motor pump bound");
+    let predecessor_work =
+        crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)
+            .expect("copied motor predecessor work");
+    let direction_negative = bound.charges.is_negative();
+    let full_magnitude = bound.charges.unsigned_abs();
+    let reversal = anatomy.gate_reversal_potential_millivolts();
+    let predecessor_drive = predecessor
+        .membrane_state()
+        .potential_millivolts(anatomy.capacitance())
+        .expect("copied motor predecessor potential")
+        .checked_sub(reversal)
+        .expect("copied motor predecessor drive");
+    let predecessor_sign = predecessor_drive.parts().0.signum();
+
+    let mut lower = 0_u128;
+    let mut upper = full_magnitude;
+    let mut accepted_state = predecessor.clone();
+    let mut accepted_work = BigRational::zero();
+    let mut accepted_local = BigRational::zero();
+    let mut accepted_source = BigRational::zero();
+    while lower < upper {
+        let middle = lower + (upper - lower + 1) / 2;
+        let magnitude = match i128::try_from(middle) {
+            Ok(value) => value,
+            Err(_) => {
+                upper = middle - 1;
+                continue;
+            }
+        };
+        let signed = if direction_negative {
+            -magnitude
+        } else {
+            magnitude
+        };
+        let candidate = crate::complete_neuron::settle_membrane_pump_transport(
+            anatomy,
+            predecessor,
+            signed,
+            (middle == full_magnitude)
+                .then_some(bound.successor_phase)
+                .flatten(),
+            interval_microseconds,
+        )
+        .expect("copied motor candidate transport");
+        let successor_drive = candidate
+            .membrane_state()
+            .potential_millivolts(anatomy.capacitance())
+            .expect("copied motor successor potential")
+            .checked_sub(reversal)
+            .expect("copied motor successor drive");
+        let successor_sign = successor_drive.parts().0.signum();
+        let stays_on_reversal_side = successor_sign == 0 || successor_sign == predecessor_sign;
+        let successor_work = crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
+            anatomy, &candidate,
+        )
+        .expect("copied motor successor work");
+        let work = successor_work - &predecessor_work;
+        if !stays_on_reversal_side || work <= BigRational::zero() || work > total_budget {
+            upper = middle - 1;
+            continue;
+        }
+        let local = work.clone().min(local_budget.clone());
+        let source = &work - &local;
+        let Some(local_exact) = wide_to_exact(&local) else {
+            upper = middle - 1;
+            continue;
+        };
+        let Ok(successor_available) = available.checked_sub(local_exact) else {
+            upper = middle - 1;
+            continue;
+        };
+        let Ok(successor_spent) = spent.checked_add(local_exact) else {
+            upper = middle - 1;
+            continue;
+        };
+        if crate::recovery_fluid_contact::RecoveryFluidReservoirState::new(
+            reservoir_anatomy,
+            successor_available,
+            successor_spent,
+            thermal,
+        )
+        .is_err()
+        {
+            upper = middle - 1;
+            continue;
+        }
+        lower = middle;
+        accepted_state = candidate;
+        accepted_work = work;
+        accepted_local = local;
+        accepted_source = source;
+    }
+
+    let terminal = crate::complete_neuron::settle_efferent_terminal_transport(
+        anatomy,
+        &accepted_state,
+        lower,
+        interval_microseconds,
+    )
+    .expect("copied motor terminal settlement");
+    let source_heat_remaining = &source_budget - &accepted_source;
+    let recovery_material_before = exact_to_wide(available) + exact_to_wide(spent);
+    let recovery_material_after = recovery_material_before.clone();
+    json!({
+        "interval_microseconds": interval_microseconds,
+        "offered_source_work_zeptojoules": wide_exact_json(&source_budget),
+        "local_recovery_work_contribution_zeptojoules": wide_exact_json(&accepted_local),
+        "source_work_contribution_zeptojoules": wide_exact_json(&accepted_source),
+        "source_heat_remaining_zeptojoules": wide_exact_json(&source_heat_remaining),
+        "pumped_elementary_carriers": if direction_negative {
+            format!("-{}", lower)
+        } else {
+            lower.to_string()
+        },
+        "pump_work_zeptojoules": wide_exact_json(&accepted_work),
+        "work_conservation_exact": accepted_work == accepted_local + accepted_source,
+        "recovery_material_before_zeptojoules": wide_exact_json(&recovery_material_before),
+        "recovery_material_after_zeptojoules": wide_exact_json(&recovery_material_after),
+        "recovery_material_conserved": recovery_material_before == recovery_material_after,
+        "terminal_discharged_carriers": terminal
+            .as_ref()
+            .map(|(_, carriers, _)| carriers.to_string()),
+    })
+}
+
+/// Measurement-only candidate-47E regime map. The copied body's retained
+/// frontier supplies each L11 founding event and its exact released work. The
+/// connected L12 motor keeps its own carrier material and uses source work
+/// only as a conserved contribution to its mounted reversal-gradient pump.
+/// No production state is changed.
+fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationState) -> Value {
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    let exact_to_wide = |value: ExactRational| {
+        let (numerator, denominator) = value.parts();
+        BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+    };
+
+    let mut learned_routes =
+        std::collections::BTreeMap::<[u8; 16], Vec<([u8; 16], ExactRational)>>::new();
+    for ((left, right), (anatomy, contact_state)) in
+        state.electrical_fabric.contact_endpoints().zip(
+            state
+                .electrical_fabric
+                .anatomy()
+                .contact_anatomies()
+                .iter()
+                .zip(state.electrical_fabric.state().contact_states()),
+        )
+    {
+        let left_lineage = state.electrical_fabric.lineages()[left];
+        let right_lineage = state.electrical_fabric.lineages()[right];
+        let route = match (
+            state.topology_index.layer_of(left_lineage),
+            state.topology_index.layer_of(right_lineage),
+        ) {
+            (Some(11), Some(12)) => Some((left_lineage, right_lineage)),
+            (Some(12), Some(11)) => Some((right_lineage, left_lineage)),
+            _ => None,
+        };
+        if let Some((ordering, motor)) = route {
+            learned_routes.entry(ordering).or_default().push((
+                motor,
+                anatomy
+                    .effective_conductance(contact_state)
+                    .expect("copied learned-contact state matches anatomy"),
+            ));
+        }
+    }
+    for routes in learned_routes.values_mut() {
+        routes.sort_unstable_by_key(|(motor, _)| *motor);
+    }
+
+    let mut successor = state.clone();
+    let mut frontier = successor.active_electrical_frontier.to_vec();
+    let mut residency = None;
+    let mut route_results = Vec::new();
+    for active_clock in 1_u64..=3 {
+        let mut reached_lineages = frontier
+            .iter()
+            .flat_map(|entry| entry.affected_lineages().into_iter().flatten())
+            .collect::<Vec<_>>();
+        reached_lineages.sort_unstable();
+        reached_lineages.dedup();
+        let predecessor = successor.clone();
+        let topology = successor.topology_index.clone();
+        let mut changed = std::collections::BTreeSet::new();
+        let resting = successor
+            .resting_population
+            .as_ref()
+            .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
+            .unwrap_or(0);
+        let observation = super::settle_internal_contact_interval(
+            &mut successor.cohorts,
+            &mut successor.electrical_fabric,
+            &topology,
+            successor.vocal_articulatory_effector_lineage,
+            &frontier,
+            &reached_lineages,
+            &reached_lineages,
+            &[],
+            &mut changed,
+            successor.generation + active_clock,
+            resting,
+            &mut residency,
+            &std::collections::BTreeMap::new(),
+            &[],
+            &[],
+            ExactRational::integer(0),
+            false,
+        )
+        .expect("copied retained frontier settles for source-work range");
+
+        let mut bad_bridge_extent = std::collections::BTreeMap::<[u8; 16], u128>::new();
+        for transfer in &observation.settled_directed_transfers {
+            if topology.layer_of(transfer.sender) == Some(11)
+                && topology.layer_of(transfer.receiver) == Some(12)
+            {
+                *bad_bridge_extent.entry(transfer.sender).or_default() = bad_bridge_extent
+                    .get(&transfer.sender)
+                    .copied()
+                    .unwrap_or(0)
+                    .checked_add(transfer.transferred_whole_carriers)
+                    .expect("test bridge extent width");
+            }
+        }
+
+        let mut motor_work =
+            std::collections::BTreeMap::<[u8; 16], (usize, usize, BigRational, Vec<Value>)>::new();
+        for (ordering, diverted_extent) in bad_bridge_extent {
+            let source_edges = observation
+                .settled_directed_transfers
+                .iter()
+                .filter(|transfer| {
+                    transfer.sender == ordering && topology.layer_of(transfer.receiver) == Some(7)
+                })
+                .collect::<Vec<_>>();
+            if source_edges.len() != 1 {
+                route_results.push(json!({
+                    "active_clock": active_clock,
+                    "ordering_lineage": lineage_hex(ordering),
+                    "error": "candidate requires an order-independent multi-source reconciliation",
+                    "source_edge_count": source_edges.len(),
+                }));
+                continue;
+            }
+            let source = source_edges[0];
+            let original_extent = source
+                .transferred_whole_carriers
+                .checked_add(diverted_extent)
+                .expect("original source extent width");
+            let ordering_flat = predecessor
+                .topology_index
+                .flat_for_lineage(ordering)
+                .expect("ordering lineage present");
+            let receiver_flat = predecessor
+                .topology_index
+                .flat_for_lineage(source.receiver)
+                .expect("source receiver lineage present");
+            let (ordering_cohort, ordering_neuron, _) =
+                predecessor.topology_index.flat_locations[ordering_flat];
+            let (receiver_cohort, receiver_neuron, _) =
+                predecessor.topology_index.flat_locations[receiver_flat];
+            let source_work =
+                crate::sparse_electrical_contact::probe_directed_contact_work_zeptojoules(
+                    &predecessor.cohorts[ordering_cohort]
+                        .anatomy
+                        .neuron_anatomies()[ordering_neuron],
+                    &predecessor.cohorts[ordering_cohort].state.neurons()[ordering_neuron],
+                    &predecessor.cohorts[receiver_cohort]
+                        .anatomy
+                        .neuron_anatomies()[receiver_neuron],
+                    &predecessor.cohorts[receiver_cohort].state.neurons()[receiver_neuron],
+                    original_extent,
+                )
+                .expect("copied source work is exact");
+            let routes = learned_routes
+                .get(&ordering)
+                .expect("observed bridge has retained learned route");
+            let total_conductance = routes
+                .iter()
+                .fold(BigRational::zero(), |sum, (_, conductance)| {
+                    sum + exact_to_wide(*conductance)
+                });
+
+            for (motor, conductance) in routes {
+                let motor_flat = predecessor
+                    .topology_index
+                    .flat_for_lineage(*motor)
+                    .expect("learned motor lineage present");
+                let (motor_cohort, motor_neuron, _) =
+                    predecessor.topology_index.flat_locations[motor_flat];
+                let branch_share = if total_conductance.is_zero() {
+                    BigRational::zero()
+                } else {
+                    &source_work * exact_to_wide(*conductance) / &total_conductance
+                };
+                let contribution = json!({
+                    "active_clock": active_clock,
+                    "ordering_lineage": lineage_hex(ordering),
+                    "ordering_psi_ternary_winding_counts":
+                        mounted_neuron_ternary_winding_counts_json(&predecessor, ordering),
+                    "founding_receiver_lineage": lineage_hex(source.receiver),
+                    "original_source_carriers": original_extent.to_string(),
+                    "source_released_work_zeptojoules": wide_exact_json(&source_work),
+                    "motor_lineage": lineage_hex(*motor),
+                    "learned_contact_effective_conductance_picosiemens":
+                        exact_json(*conductance),
+                    "parallel_conductance_zeptojoules_share": wide_exact_json(&branch_share),
+                });
+                let entry = motor_work.entry(*motor).or_insert_with(|| {
+                    (motor_cohort, motor_neuron, BigRational::zero(), Vec::new())
+                });
+                assert_eq!(entry.0, motor_cohort, "motor cohort is stable");
+                assert_eq!(entry.1, motor_neuron, "motor index is stable");
+                entry.2 += &branch_share;
+                entry.3.push(contribution);
+            }
+        }
+        for (motor, (motor_cohort, motor_neuron, total_source_work, contributions)) in motor_work {
+            let cohort = &predecessor.cohorts[motor_cohort];
+            let predecessor_reservoir = cohort.state.recovery_fluid();
+            let reservoir_anatomy = cohort.anatomy.recovery_fluid_reservoir_anatomy();
+            let (available_capacity, spent_capacity, _) = reservoir_anatomy.capacities();
+            let (available, spent, thermal) = predecessor_reservoir.physical_parts();
+            let scales = [(0_i64, 1_i64), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1)];
+            let intervals = [62_500_u32, 125_000, 250_000, 500_000];
+            let samples = scales
+                .into_iter()
+                .flat_map(|(scale_numerator, scale_denominator)| {
+                    intervals.into_iter().map({
+                        let total_source_work = total_source_work.clone();
+                        move |interval_microseconds| {
+                            let offered = total_source_work.clone() * BigInt::from(scale_numerator)
+                                / BigInt::from(scale_denominator);
+                            let mut sample = source_work_assisted_motor_sample_json(
+                                cohort,
+                                motor_neuron,
+                                &offered,
+                                interval_microseconds,
+                            );
+                            sample["source_scale"] =
+                                json!(format!("{scale_numerator}/{scale_denominator}"));
+                            sample
+                        }
+                    })
+                })
+                .collect::<Vec<_>>();
+            route_results.push(json!({
+                "active_clock": active_clock,
+                "motor_lineage": lineage_hex(motor),
+                "contributing_route_count": contributions.len(),
+                "contributing_routes": contributions,
+                "total_source_work_zeptojoules": wide_exact_json(&total_source_work),
+                "predecessor_available_work_zeptojoules": exact_json(available),
+                "predecessor_spent_work_zeptojoules": exact_json(spent),
+                "predecessor_thermal_work_zeptojoules": exact_json(thermal),
+                "available_capacity_zeptojoules": exact_json(available_capacity),
+                "spent_capacity_zeptojoules": exact_json(spent_capacity),
+                "samples": samples,
+            }));
+        }
+        frontier = observation.next_active_frontier;
+    }
+    json!({
+        "measurement_only": true,
+        "production_compiled": false,
+        "candidate": "47E source released work jointly pays motor pump shortfall",
+        "source_carriers_enter_motor": false,
+        "a0116_transition_work_phase_reused": false,
+        "recovery_material_created": false,
+        "source_work_diverted_from_heat_when_spent": true,
+        "route_results": route_results,
+    })
+}
+
+fn source_work_motor_candidate_falsifier_json(state: &ResidentCognitiveFormationState) -> Value {
+    let connected = source_work_to_motor_reservoir_range_json(state);
+    let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
+    let disconnected = source_work_to_motor_reservoir_range_json(&severed);
+    let severed_route_count = disconnected["route_results"].as_array().map_or(0, Vec::len);
+    json!({
+        "connected": connected,
+        "severed": disconnected,
+        "severed_bridge_count": severed_bridge_count,
+        "severed_route_count": severed_route_count,
     })
 }
 
@@ -2428,9 +2891,7 @@ fn integrated_motor_transduction_falsifier_json(
 /// implicated by its learned vocal routes.  This is measurement-only: every
 /// altered posture is a disposable in-memory control and no named sound,
 /// target waveform, or production state is authored.
-fn copied_body_l13_acoustic_range_json(
-    body: Option<&ArticulatedBodyState>,
-) -> Value {
+fn copied_body_l13_acoustic_range_json(body: Option<&ArticulatedBodyState>) -> Value {
     let Some(body) = body else {
         return json!({"error": "copied body absent"});
     };
@@ -2501,13 +2962,9 @@ fn copied_body_l13_acoustic_range_json(
             let work_range = [0_u128, 1, 2, 4, 8, 16]
                 .into_iter()
                 .map(|carriers| {
-                    let transition = settle_native_articulatory_interval(
-                        control.clone(),
-                        &[],
-                        carriers,
-                        4_000,
-                    )
-                    .expect("copied-body acoustic range settlement");
+                    let transition =
+                        settle_native_articulatory_interval(control.clone(), &[], carriers, 4_000)
+                            .expect("copied-body acoustic range settlement");
                     let peak = transition
                         .radiated_pressure_pcm
                         .iter()
@@ -2906,13 +3363,23 @@ fn reservoir_probe_dump() {
         let body_mechanics_range_only =
             std::env::var_os("GUALA_PROBE_BODY_MECHANICS_RANGE_ONLY").is_some();
         let artificial_unpin_only = std::env::var_os("GUALA_PROBE_ARTIFICIAL_UNPIN_ONLY").is_some();
-        let motor_work_range_only =
-            std::env::var_os("GUALA_PROBE_MOTOR_WORK_RANGE_ONLY").is_some();
+        let motor_work_range_only = std::env::var_os("GUALA_PROBE_MOTOR_WORK_RANGE_ONLY").is_some();
+        let source_work_motor_range_only =
+            std::env::var_os("GUALA_PROBE_SOURCE_WORK_MOTOR_RANGE_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
         let candidate_tissue_proof_only =
             std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
-        let record = if candidate_tissue_proof_only {
+        let record = if source_work_motor_range_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for source-work motor range");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "source_work_to_motor_reservoir_range":
+                    source_work_motor_candidate_falsifier_json(&state),
+            })
+        } else if candidate_tissue_proof_only {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state for candidate tissue proof");
             json!({

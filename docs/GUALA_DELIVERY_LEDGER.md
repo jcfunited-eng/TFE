@@ -1115,3 +1115,25 @@ they do not override this baseline.
   `docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md`
   and
   `docs/GUALA_DEVELOPMENTAL_VOICE_ORGAN_SPECIFICATION_AND_DESIGN.md`.
+
+### 2026-09-05 — Speech attempt 47D/47E: real source work closes the energy gap, coupling still open
+
+- 47D is permanently rejected: depositing exact L11 source-transition work
+  into motor `available` recovery fluid manufactured `available + spent`
+  material even though its copied-body output was nonzero.
+- 47E pays each motor pump from existing local recovery material plus only the
+  exact source-work shortfall, subtracting the same amount from source heat.
+  Its corrected harness groups four simultaneous contributors to motor `048b`
+  before one settlement rather than reusing one cohort budget four times.
+- Exact task-1429 copy result at real strength/250 ms: motor suffixes `00c5`,
+  `039d`, `048b`, and `04fb` prepare and discharge `1`, `2`, `7`, and `1`
+  carriers. All 96 dynamic samples conserve work and recovery material; zero
+  source is silent; severing all seven learned bonds leaves zero routes; all
+  seven full Psi ternary witnesses are present.
+- Artifact SHA-256:
+  `dfb2729ce6e24bdf1242b82d22e6cb102ae33d553c4c4065df1c41664847694f`.
+  AWS stayed one healthy completed task 1429 with zero Guala alarms before and
+  after the bounded test.
+- This is not a deployment candidate. Absolute learned-contact coupling,
+  actual source-heat debit, permutation, exhaustion, cold continuation, typed
+  tissue, pressure/self-hearing, and resource falsifiers remain open.

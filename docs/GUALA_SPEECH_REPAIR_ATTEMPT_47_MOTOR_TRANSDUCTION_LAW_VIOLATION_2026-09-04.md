@@ -752,3 +752,71 @@ authority. No production source changed and no AWS or organism state was
 touched. The next candidate must use either a separately authored finite
 directional-synapse state or a genuinely available postsynaptic energy path;
 it may not borrow A-011.6 transition residue under another name.
+
+## Candidate 47D rejected — source work is not recovery material
+
+The next test-only matrix used a genuinely available energy quantity: exact
+electrostatic work released by each causally active L11-to-founding-L7
+transition. On the immutable task-1429 copy, adding that work to each motor
+cohort's `available` recovery-fluid coordinate made all seven routes discharge
+and proved that the real source work is numerically sufficient to cross the
+two vocal cells' one-carrier work boundary.
+
+That green output is not a lawful repair. The reservoir's `available + spent`
+sum is conserved material-equivalent. Increasing `available` without reducing
+`spent` manufactures recovery material; neither the powered-environment nor
+the real-food law does that. Candidate 47D is therefore rejected in full. Its
+report remains diagnostic evidence only:
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt47d-source-work-range.json`,
+SHA-256 `b3285b7fb0b687e70fd13fc3d154a1b6d1834c4ecbc962d6525a69b452758e1d`.
+No production source or state changed.
+
+## Candidate 47E — direct source-work contribution, copied-body boundary
+
+Candidate 47E corrects 47D's conservation error without reusing A-011.6 state.
+The L12 motor's existing recovery reservoir first pays the exact pump work it
+can represent by moving `available -> spent`. Exact source-transition work
+pays only the remaining shortfall, and the same exact amount is subtracted
+from work that would otherwise leave the source transition as heat. The
+motor's own membrane and carrier compartments move through the existing pump;
+no L11 carrier enters L12 and `available + spent` is unchanged.
+
+Two measurement-only runs found and corrected an aggregation error in the
+harness itself. The first evaluated seven routes independently, although four
+simultaneous orderings converge on motor suffix `048b`; that would reuse the
+same local cohort budget four times. The corrected run groups every same-clock
+contribution by L12 motor before one pump settlement. On the exact tick-434112
+copy it reports four reached motors. At the real source strength and 250 ms,
+their locally prepared/terminal-discharged extents are respectively `1`, `2`,
+`7`, and `1` whole carriers for suffixes `00c5`, `039d`, `048b`, and `04fb`.
+Across source scales `0`, `1/4`, `1/2`, `1`, `2`, and `4` and intervals 62.5,
+125, 250, and 500 ms, all 96 grouped samples close both exact work and recovery-
+material balances. Zero source produces zero discharge. Physically severing
+all seven learned L11/L12 bonds produces zero candidate routes.
+
+The complete ordering-cell Psi witness is present, not flattened: each of the
+seven real routes reports all 490 balanced-ternary windings as 14 negative, 444
+quiescent, and 32 positive. These trits are observed control state only; they
+do not supply energy or prescribe carrier magnitude.
+
+Corrected report:
+`/tmp/guala-speech1429-sequence.dpHRJX/attempt47e-joint-work-grouped-range.json`,
+181,400 bytes, SHA-256
+`dfb2729ce6e24bdf1242b82d22e6cb102ae33d553c4c4065df1c41664847694f`.
+The focused Rust run passed one test with 608 filtered tests in 29.46 seconds
+under an 8 GiB address-space ceiling, four Rayon threads, four build jobs, a
+900-second timeout, and no production writer. AWS before and after remained
+one healthy task 1429 (`71ca18765ef845e48825ff96255f09d5`), desired/running/
+pending `1/1/0`, completed rollout, and zero Guala alarms. The immediately
+preceding ungrouped report is retained only as rejected harness evidence:
+`attempt47e-joint-work-range.json`, SHA-256
+`48cca5cf2a677d188d90dab746078b3ab045ff41b70b4fe9167c7853be0c2a0f`.
+
+This is an energy-sufficiency and conservation pass, not implementation or
+deployment authority. The remaining causal gate is exact: candidate 47E must
+derive the learned bond's absolute directional coupling from physical anatomy,
+not merely divide source work by relative conductance; consume the actual
+source transition's exported heat rather than reconstructing an observation;
+and pass conductance, exhausted-material, multiple-source/branch permutation,
+cold-continuation, typed-body, pressure, self-hearing, and bounded-resource
+falsifiers. Until those close, production stays unchanged on task 1429.

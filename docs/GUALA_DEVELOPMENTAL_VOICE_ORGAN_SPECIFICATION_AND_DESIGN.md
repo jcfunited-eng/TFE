@@ -262,6 +262,19 @@ later finding never silently overwrites history, and a green topology,
 conservation, restart, or health test can never substitute for the missing
 causal variable.
 
+Candidate 47D subsequently confirmed that real L11 source-transition work is
+large enough to cross the copied vocal motors' missing-work boundary, but was
+rejected because depositing that work into `available` recovery fluid created
+material. Candidate 47E instead lets real source work pay only the exact pump
+shortfall and reduces source heat by the same quantity. Its corrected grouped
+copy harness conserves work and recovery material across 96 regimes and yields
+state-varying motor extents, while zero source and seven-bond severing are
+silent. This narrows the open boundary but does not close it: the learned
+bond's absolute directional coupling, actual source-heat debit, permutation,
+exhaustion, cold continuation, and end-to-end body/self-hearing remain required
+before production code. Full balanced-ternary/Psi state remains control
+evidence only and never becomes motor energy or a magnitude table.
+
 Primary evidence records:
 
 - `GUALA_SPEECH_REPAIR_ATTEMPT_44_SEPARATE_BREATH_FROM_SWALLOW_2026-09-04.md`

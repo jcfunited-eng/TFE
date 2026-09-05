@@ -589,3 +589,13 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   phase is sub-quantum junction-channel-transition bookkeeping whose completed
   work dissipates. It may not be reinterpreted or spent as a motor-energy
   reservoir, even on a learned L11/L12 contact.
+- Candidate 47D is rejected despite nonzero copied-body output: adding real
+  source work to recovery `available` manufactures conserved recovery material.
+- Candidate 47E's grouped copied-body harness establishes a narrower surviving
+  fact: the actual source-transition work can pay the exact shortfall directly
+  while source heat falls by the same amount. Four reached motors discharge
+  state-varying extents `1,2,7,1`; 96/96 regimes conserve work and recovery
+  material; zero source and seven-bond severing are silent. Do not promote this
+  to production until absolute learned-bond coupling, actual transition heat,
+  permutation, exhaustion, cold continuation, typed consequences and resource
+  bounds are proved.
