@@ -1224,3 +1224,56 @@ and copied-body causal-capacity gate. It still does not authorize production:
 the same work acceptance and source heat debit must now occur atomically inside
 the real reached-cohort settlement and pass the full regression and resource
 suite.
+
+## Candidate 47I — real reached-cohort transduction and copied-body replay
+
+The 47H law is now integrated atomically into the production settlement code.
+An actual L11-to-L7 founding transition supplies released source heat; the
+retained L11-to-L12 contact supplies its measured conductance; their exact
+parallel-conductance share is offered to the mounted motor's intrinsic gate.
+Accepted work is debited from the source transition's exported heat in the same
+settlement. No carrier crosses the learned contact, and the learned arrival is
+kept separate from ordinary carrier-transfer and frontier evidence.
+
+On the exact immutable task-1429 tick-434112 copy, three natural retained-
+frontier intervals produced four different real learned-work preparations on
+clock 2. All offer and gate-input balances closed exactly, the four successor
+residues were nonzero, motor discharge was correctly absent after this single
+sub-threshold occurrence, and the learned-bond carrier-transfer count was
+zero. Severing all seven learned contacts produced zero routes. The unchanged
+V41 body still round-tripped byte-identically.
+
+A controlled repeated-experience falsifier then re-presented that same genuine
+copied causal occurrence while carrying only the four receiving motors' real
+physical states. Every repetition traversed the complete production sparse-
+contact and reached-neuron settlement. This is neither an autonomy nor a
+natural-frequency claim. The four motors discharged on occurrences 2, 6, 52,
+and 53; the two vocal identities were the same measured 52/53 pair. Every
+discharge was five carriers. That differs from 47H's isolated 1,446/1,475
+carrier extent because the full field also settles the motor's inter-neuron
+contact currents. The result is stereotyped action-potential extent with
+strength represented by firing latency/rate, rather than the task-1054
+contact-current magnitude being copied into the efferent terminal.
+
+Both five-carrier vocal discharges reached their typed body terminals. Tract
+section 0 moved 141 to 142 and section 7 moved 249 to 248, with no stalled
+carriers; body encode/decode remained exact. Thus the full production path is
+not silent and no longer fixed at one carrier. It is still insufficient for a
+vocal trajectory: one sparse spike from each learned occurrence is only a
+one-quantum posture change. The required next mechanism is sustained,
+organism-owned motor firing/gesture timing that lets tissue integrate a train
+of these real spikes. It may not restore a fixed carrier command, replay a
+named sound, or pretend the isolated 47H amplitude is the production result.
+
+Artifacts:
+
+- full production-path matrix and self-hearing capacity:
+  `/tmp/guala-speech1429-sequence.dpHRJX/candidate47i-production-path-v2.json`,
+  SHA-256 `b914ffab80737ef93e3b25dff873c5f1f876f4b142d68b89c48153432b37baa0`;
+- production-path repeated-occurrence and typed-tissue proof:
+  `/tmp/guala-speech1429-sequence.dpHRJX/candidate47i-production-replayed-v2.json`,
+  SHA-256 `d2ce45bd2ceef525b5d6520913d8d37043ae35c4030c769ae6065d346bd26114`.
+
+The focused full-path runs passed with 608 tests filtered. Production remained
+untouched on task 1429. Candidate 47I is retained for the next sustained-
+gesture falsifier; it is not yet authorized for deployment.

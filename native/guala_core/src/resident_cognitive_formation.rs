@@ -1490,6 +1490,32 @@ pub(crate) struct MotorPreparationTransfer {
     pub(crate) sender_layer: u32,
 }
 
+/// One transient learned-contact work arrival into a mounted layer-12 motor.
+/// No carrier crosses the learned bond. The exact accepted work is retained
+/// or delivered by the motor's own intrinsic gate; its later local membrane
+/// discharge remains the only efferent magnitude authority.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub(crate) struct LearnedMotorWorkRoute {
+    pub(crate) ordering_lineage: [u8; 16],
+    pub(crate) founding_receiver_lineage: [u8; 16],
+    pub(crate) founding_bond: StablePhysicalBondReference,
+    pub(crate) learned_bond: StablePhysicalBondReference,
+    pub(crate) offered_work_zeptojoules: BigRational,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct LearnedMotorWorkPreparation {
+    pub(crate) motor_lineage: [u8; 16],
+    pub(crate) routes: Vec<LearnedMotorWorkRoute>,
+    pub(crate) total_offered_work_zeptojoules: BigRational,
+    pub(crate) accepted_work_zeptojoules: BigRational,
+    pub(crate) predecessor_residue_zeptojoules: BigRational,
+    pub(crate) successor_residue_zeptojoules: BigRational,
+    pub(crate) delivered_gate_work_zeptojoules: BigRational,
+    pub(crate) retained_source_heat_zeptojoules: BigRational,
+    pub(crate) residue_narrowing_heat_zeptojoules: BigRational,
+}
+
 /// One transient efferent event produced by an already-mounted layer-12
 /// motor neuron. The exact outward whole-carrier membrane discharge is the
 /// authority; this value is neither persisted nor counted as a fractal,
@@ -1519,6 +1545,10 @@ pub(crate) struct MotorUnitRecruitment {
     /// than relabelled as excitation. This is transient causal evidence, not a
     /// plan, score, command, or retained action object.
     pub(crate) preparation_transfers: Vec<MotorPreparationTransfer>,
+    /// Learned preparation is work transduction, never a fabricated
+    /// inter-neuron carrier transfer. It is carried separately so observation
+    /// and respiratory co-recruitment preserve that physical distinction.
+    pub(crate) learned_work_preparations: Vec<LearnedMotorWorkPreparation>,
 }
 
 /// One transient discharge through a retained root-yaw effector mount.  Its
@@ -1567,6 +1597,7 @@ pub(crate) struct ArticulatoryUnitRecruitment {
     pub(crate) topology_index: u32,
     pub(crate) outward_elementary_carriers: u128,
     pub(crate) preparation_transfers: Vec<MotorPreparationTransfer>,
+    pub(crate) learned_work_preparations: Vec<LearnedMotorWorkPreparation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -18175,6 +18206,7 @@ struct InternalContactSettlementObservation {
     metabolically_perturbed_body_receptor_lineages: Vec<[u8; 16]>,
     affective_balance_trajectories: Vec<AffectiveBalanceTrajectoryObservation>,
     localized_fluid_chemistry: Vec<LocalizedFluidChemistryObservation>,
+    learned_motor_work_preparations: Vec<LearnedMotorWorkPreparation>,
     motor_unit_recruitments: Vec<MotorUnitRecruitment>,
     root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
@@ -18454,6 +18486,23 @@ fn exact_prepared_efferent_carriers(
         .then_some(local_outward_elementary_charges.unsigned_abs())
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct LearnedMotorWorkOffer {
+    ordering_lineage: [u8; 16],
+    founding_receiver_lineage: [u8; 16],
+    motor_lineage: [u8; 16],
+    founding_bond: StablePhysicalBondReference,
+    learned_bond: StablePhysicalBondReference,
+    source_transition_position: usize,
+    offered_work_zeptojoules: BigRational,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct LearnedSourceWorkDebit {
+    source_transition_position: usize,
+    consumed_work_zeptojoules: BigRational,
+}
+
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -18675,6 +18724,7 @@ fn settle_internal_contact_interval(
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
+            learned_motor_work_preparations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
             root_translation_unit_recruitments: Vec::new(),
@@ -18932,6 +18982,7 @@ fn settle_internal_contact_interval(
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
+            learned_motor_work_preparations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
             root_translation_unit_recruitments: Vec::new(),
@@ -19325,6 +19376,7 @@ fn settle_internal_contact_interval(
             metabolically_perturbed_body_receptor_lineages: Vec::new(),
             affective_balance_trajectories: Vec::new(),
             localized_fluid_chemistry: Vec::new(),
+            learned_motor_work_preparations: Vec::new(),
             motor_unit_recruitments: Vec::new(),
             root_yaw_unit_recruitments: Vec::new(),
             root_translation_unit_recruitments: Vec::new(),
@@ -19400,16 +19452,16 @@ fn settle_internal_contact_interval(
         }
     }
 
-    // A learned L11/L12 motor contact is not a symmetric equalizing junction.
-    // It is the body's smallest proved three-terminal transducer: when its
-    // ordering cell is physically sending at least two whole carriers into
-    // that cell's founding L7 route, exactly one of those same carriers enters
-    // the learned L12 motor. The founding route keeps at least one carrier;
-    // total charge is unchanged; and the complete selected frontier must
-    // strictly lower its exact membrane-plus-gradient work. The persisted
-    // learned contact supplies anatomy only—no label, score, timer, command,
-    // or new energy store enters this settlement.
-    let mut ordering_motor_transductions = Vec::new();
+    // A learned L11/L12 motor contact is a directed work transducer, not a
+    // symmetric equalizing junction and not a route that relabels one founding
+    // carrier as a motor carrier. The L11 cell's real descending transfer into
+    // its founding L7 route releases exact work. The source path and every
+    // reached learned branch form one parallel conductance load; each branch's
+    // exact share is offered to its L12 motor's existing input-work residue.
+    // The motor's own gate and membrane later determine whether and how many
+    // of its own carriers discharge. Unaccepted work remains source heat.
+    let mut learned_motor_work_offers =
+        BTreeMap::<[u8; 16], Vec<LearnedMotorWorkOffer>>::new();
     {
         let mut ordering_motor_bridges = Vec::new();
         for position in 0..settled.transitions.len() {
@@ -19449,10 +19501,14 @@ fn settle_internal_contact_interval(
             } else {
                 (right_flat, left_flat)
             };
+            let learned_conductance = compact_anatomy.contact_anatomies()[position]
+                .effective_conductance(&compact_predecessor.contact_states()[position])
+                .map_err(FormationError::ResidentElectricalUnavailable)?;
             ordering_motor_bridges.push((
                 ordering_flat,
                 motor_flat,
                 compact_bonds[position],
+                learned_conductance,
             ));
         }
         settled.successor_contacts = SparseElectricalState::from_contact_states(
@@ -19464,17 +19520,34 @@ fn settle_internal_contact_interval(
                 .collect::<Vec<_>>(),
         )
         .map_err(FormationError::ResidentElectricalUnavailable)?;
-        ordering_motor_bridges.sort_unstable();
-        ordering_motor_bridges.dedup();
-        for (ordering_flat, motor_flat, motor_bond) in
+        ordering_motor_bridges.sort_by(|left, right| {
+            left.0
+                .cmp(&right.0)
+                .then(left.1.cmp(&right.1))
+                .then(left.2.cmp(&right.2))
+        });
+        ordering_motor_bridges.dedup_by(|left, right| {
+            left.0 == right.0 && left.1 == right.1 && left.2 == right.2 && left.3 == right.3
+        });
+        let exact_to_wide = |value: ExactRational| {
+            let (numerator, denominator) = value.parts();
+            BigRational::new(BigInt::from(numerator), BigInt::from(denominator))
+        };
+        for (ordering_flat, motor_flat, motor_bond, learned_conductance) in
             ordering_motor_bridges.iter().copied()
         {
-            let candidate = settled
+            let total_learned_conductance = ordering_motor_bridges
+                .iter()
+                .filter(|(candidate_ordering, _, _, _)| *candidate_ordering == ordering_flat)
+                .fold(BigRational::zero(), |sum, (_, _, _, conductance)| {
+                    sum + exact_to_wide(*conductance)
+                });
+            let source_candidates = settled
                 .transitions
                 .iter()
                 .zip(compact_edge_flat_endpoints.iter().copied())
                 .enumerate()
-                .find_map(|(position, (transition, (left_flat, right_flat)))| {
+                .filter_map(|(position, (transition, (left_flat, right_flat)))| {
                     let signed = transition.outward_elementary_charges_from_left;
                     if signed == 0 {
                         return None;
@@ -19487,93 +19560,55 @@ fn settle_internal_contact_interval(
                     (sender_flat == ordering_flat
                         && is_causal_seed(ordering_flat)
                         && crosses_new_frontier_bond(ordering_flat, motor_bond)
-                        && layer_of(flat_locations[receiver_flat].2) == Some(7)
-                        && signed.unsigned_abs() >= 2)
-                        .then_some((position, receiver_flat, signed))
-                });
-            let Some((position, founding_flat, signed)) = candidate else {
-                continue;
-            };
-            let founding_coordinate = selected
-                .binary_search(&founding_flat)
-                .map_err(|_| FormationError::NoncanonicalState)?;
-            let motor_coordinate = selected
-                .binary_search(&motor_flat)
-                .map_err(|_| FormationError::NoncanonicalState)?;
-            settled.outward_elementary_charges_by_neuron[founding_coordinate] = settled
-                .outward_elementary_charges_by_neuron[founding_coordinate]
-                .checked_add(1)
-                .ok_or(FormationError::ArithmeticOverflow)?;
-            settled.outward_elementary_charges_by_neuron[motor_coordinate] = settled
-                .outward_elementary_charges_by_neuron[motor_coordinate]
-                .checked_sub(1)
-                .ok_or(FormationError::ArithmeticOverflow)?;
-            settled.transitions[position].outward_elementary_charges_from_left = if signed > 0 {
-                signed - 1
-            } else {
-                signed + 1
-            };
-            ordering_motor_transductions.push(DirectedPhysicalTransferObservation {
-                sender: flat_locations[ordering_flat].2,
-                receiver: flat_locations[motor_flat].2,
-                bond: motor_bond,
-                transferred_whole_carriers: 1,
-            });
+                        && layer_of(flat_locations[receiver_flat].2) == Some(7))
+                        .then_some((position, receiver_flat))
+                })
+                .collect::<Vec<_>>();
+            for (source_position, founding_flat) in source_candidates {
+                let source_conductance = compact_anatomy.contact_anatomies()[source_position]
+                    .effective_conductance(
+                        &compact_predecessor.contact_states()[source_position],
+                    )
+                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+                let denominator = exact_to_wide(source_conductance)
+                    + &total_learned_conductance;
+                if denominator <= BigRational::zero()
+                    || learned_conductance.parts().0 <= 0
+                    || settled.transitions[source_position]
+                        .exported_heat_zeptojoules
+                        .is_zero()
+                {
+                    continue;
+                }
+                let offered_work = &settled.transitions[source_position]
+                    .exported_heat_zeptojoules
+                    * exact_to_wide(learned_conductance)
+                    / denominator;
+                if offered_work <= BigRational::zero() {
+                    continue;
+                }
+                let motor_lineage = flat_locations[motor_flat].2;
+                learned_motor_work_offers
+                    .entry(motor_lineage)
+                    .or_default()
+                    .push(LearnedMotorWorkOffer {
+                        ordering_lineage: flat_locations[ordering_flat].2,
+                        founding_receiver_lineage: flat_locations[founding_flat].2,
+                        motor_lineage,
+                        founding_bond: compact_bonds[source_position],
+                        learned_bond: motor_bond,
+                        source_transition_position: source_position,
+                        offered_work_zeptojoules: offered_work,
+                    });
+            }
         }
-        if !ordering_motor_transductions.is_empty() {
-            let net_outward = settled
-                .outward_elementary_charges_by_neuron
-                .iter()
-                .try_fold(0_i128, |sum, outward| sum.checked_add(*outward))
-                .ok_or(FormationError::ArithmeticOverflow)?;
-            if net_outward != 0 {
-                return Err(FormationError::NoncanonicalState);
-            }
-            let mut predecessor_work = BigRational::zero();
-            let mut successor_work = BigRational::zero();
-            for (coordinate, flat) in selected.iter().copied().enumerate() {
-                let (cohort_index, neuron_index, _) = flat_locations[flat];
-                let anatomy = &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index];
-                let predecessor = &cohorts[cohort_index].state.neurons()[neuron_index];
-                predecessor_work +=
-                    crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
-                        anatomy,
-                        predecessor,
-                    )
-                    .map_err(|error| {
-                        FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                            neuron_index,
-                            error,
-                        })
-                    })?;
-                let successor = crate::complete_neuron::settle_membrane_pump_transport(
-                    anatomy,
-                    predecessor,
-                    settled.outward_elementary_charges_by_neuron[coordinate],
-                    None,
-                    interval_microseconds,
-                )
-                .map_err(|error| {
-                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                        neuron_index,
-                        error,
-                    })
-                })?;
-                successor_work +=
-                    crate::complete_neuron::membrane_and_gradient_work_zeptojoules_wide(
-                        anatomy,
-                        &successor,
-                    )
-                    .map_err(|error| {
-                        FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
-                            neuron_index,
-                            error,
-                        })
-                    })?;
-            }
-            if successor_work >= predecessor_work {
-                return Err(FormationError::NoncanonicalState);
-            }
+        for offers in learned_motor_work_offers.values_mut() {
+            offers.sort_by(|left, right| {
+                left.source_transition_position
+                    .cmp(&right.source_transition_position)
+                    .then(left.learned_bond.cmp(&right.learned_bond))
+            });
+            offers.dedup();
         }
     }
 
@@ -19866,11 +19901,6 @@ fn settle_internal_contact_interval(
     }
     settled_directed_transfers.sort_unstable();
     settled_directed_transfers.dedup();
-    if !ordering_motor_transductions.is_empty() {
-        settled_directed_transfers.extend(ordering_motor_transductions.iter().cloned());
-        settled_directed_transfers.sort_unstable();
-        settled_directed_transfers.dedup();
-    }
 
     // Retain the sparse active set for reached-frontier learning and the next
     // physical settlement. It is scheduling state, not effector authority:
@@ -20077,6 +20107,8 @@ fn settle_internal_contact_interval(
                 Vec<ArticulatoryUnitRecruitment>,
                 Vec<EmittedNeuronFractal>,
                 Vec<PendingLayerTenPlasticitySettlement>,
+                Vec<LearnedMotorWorkPreparation>,
+                Vec<LearnedSourceWorkDebit>,
             )>,
             FormationError,
         > {
@@ -20185,6 +20217,8 @@ fn settle_internal_contact_interval(
         let scaffold_wall = cohort_stopwatch.elapsed();
         let mut inputs = Vec::with_capacity(selected_members.len());
         let mut pending_layer_ten_plasticity = Vec::new();
+        let mut cohort_learned_work_preparations = Vec::new();
+        let mut cohort_learned_source_debits = Vec::new();
         for (reached_input_index, (coordinate, neuron_index)) in
             selected_members.iter().copied().enumerate()
         {
@@ -20236,7 +20270,84 @@ fn settle_internal_contact_interval(
             let gradient_changed = reached_layer_ten_gradient_settlements.iter().any(
                 |gradient| gradient.neuron_lineage == lineage && gradient.metabolic.changed(),
             );
-            let (gate_work, receptor_successor_residue) = if cohort
+            let (gate_work, receptor_successor_residue) = if let Some(offers) =
+                learned_motor_work_offers.get(&lineage)
+            {
+                let predecessor_neuron = &cohort.state.neurons()[neuron_index];
+                let predecessor_residue = predecessor_neuron
+                    .receptor_quantum_residue
+                    .energy()
+                    .clone();
+                let total_offered = offers.iter().fold(
+                    BigRational::zero(),
+                    |sum, offer| sum + &offer.offered_work_zeptojoules,
+                );
+                let prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
+                    neuron_anatomy,
+                    predecessor_neuron,
+                    &prepared_psi,
+                    total_offered.clone(),
+                )
+                .map_err(|error| {
+                    FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                        neuron_index,
+                        error,
+                    })
+                })?;
+                let consumed_source_work = &prepared.accepted_source_work_zeptojoules
+                    - &prepared.residue_narrowing_heat_zeptojoules;
+                if consumed_source_work < BigRational::zero()
+                    || total_offered <= BigRational::zero()
+                {
+                    return Err(FormationError::ArithmeticOverflow);
+                }
+                if !consumed_source_work.is_zero() {
+                    for offer in offers {
+                        cohort_learned_source_debits.push(LearnedSourceWorkDebit {
+                            source_transition_position: offer.source_transition_position,
+                            consumed_work_zeptojoules: &consumed_source_work
+                                * &offer.offered_work_zeptojoules
+                                / &total_offered,
+                        });
+                    }
+                }
+                let successor_residue = prepared
+                    .successor_residue_zeptojoules
+                    .clone()
+                    .unwrap_or_else(|| predecessor_residue.clone());
+                cohort_learned_work_preparations.push(LearnedMotorWorkPreparation {
+                    motor_lineage: lineage,
+                    routes: offers
+                        .iter()
+                        .map(|offer| LearnedMotorWorkRoute {
+                            ordering_lineage: offer.ordering_lineage,
+                            founding_receiver_lineage: offer.founding_receiver_lineage,
+                            founding_bond: offer.founding_bond,
+                            learned_bond: offer.learned_bond,
+                            offered_work_zeptojoules: offer.offered_work_zeptojoules.clone(),
+                        })
+                        .collect(),
+                    total_offered_work_zeptojoules: total_offered,
+                    accepted_work_zeptojoules: prepared
+                        .accepted_source_work_zeptojoules
+                        .clone(),
+                    predecessor_residue_zeptojoules: predecessor_residue,
+                    successor_residue_zeptojoules: successor_residue,
+                    delivered_gate_work_zeptojoules: prepared
+                        .delivered_gate_work_zeptojoules
+                        .clone(),
+                    retained_source_heat_zeptojoules: prepared
+                        .retained_source_heat_zeptojoules
+                        .clone(),
+                    residue_narrowing_heat_zeptojoules: prepared
+                        .residue_narrowing_heat_zeptojoules
+                        .clone(),
+                });
+                (
+                    prepared.gate_work,
+                    prepared.successor_residue_zeptojoules,
+                )
+            } else if cohort
                 .anatomy
                 .mounts()[neuron_index]
                 .place()
@@ -20515,9 +20626,19 @@ fn settle_internal_contact_interval(
                     })
                 })
                 .collect::<Option<Vec<_>>>()?;
+                let learned_work_preparations = cohort_learned_work_preparations
+                    .iter()
+                    .filter(|preparation| {
+                        preparation.motor_lineage == motor_lineage
+                            && preparation.accepted_work_zeptojoules > BigRational::zero()
+                    })
+                    .cloned()
+                    .collect::<Vec<_>>();
                 let outward_elementary_carriers = exact_prepared_efferent_carriers(
                     local_outward_for(*neuron_index),
-                    preparation_transfers.len(),
+                    preparation_transfers
+                        .len()
+                        .checked_add(learned_work_preparations.len())?,
                 )?;
                 (mount.source_site().is_none() && mount.place().layer() == 12).then_some(
                     MotorUnitRecruitment {
@@ -20527,6 +20648,7 @@ fn settle_internal_contact_interval(
                         body_effector_terminal,
                         body_afferent_paths: Vec::new(),
                         preparation_transfers,
+                        learned_work_preparations,
                     },
                 )
             })
@@ -20744,6 +20866,8 @@ fn settle_internal_contact_interval(
             articulatory_unit_recruitments,
             cohort_fractals,
             pending_layer_ten_plasticity,
+            cohort_learned_work_preparations,
+            cohort_learned_source_debits,
         )))
             },
         )
@@ -20780,6 +20904,8 @@ fn settle_internal_contact_interval(
     let mut articulatory_unit_recruitments = Vec::new();
     let mut emitted_neuron_fractals = Vec::new();
     let mut layer_ten_plasticity_settlements = Vec::new();
+    let mut learned_motor_work_preparations = Vec::new();
+    let mut learned_source_work_debits = Vec::new();
     for result in cohort_results {
         if let Some((
             changed_predecessors,
@@ -20789,6 +20915,8 @@ fn settle_internal_contact_interval(
             cohort_articulatory_recruitments,
             cohort_fractals,
             cohort_layer_ten_plasticity,
+            cohort_learned_work_preparations,
+            cohort_learned_source_debits,
         )) = result?
         {
             for predecessor in changed_predecessors {
@@ -20802,7 +20930,22 @@ fn settle_internal_contact_interval(
             articulatory_unit_recruitments.extend(cohort_articulatory_recruitments);
             emitted_neuron_fractals.extend(cohort_fractals);
             layer_ten_plasticity_settlements.extend(cohort_layer_ten_plasticity);
+            learned_motor_work_preparations.extend(cohort_learned_work_preparations);
+            learned_source_work_debits.extend(cohort_learned_source_debits);
         }
+    }
+    learned_source_work_debits.sort_by_key(|debit| debit.source_transition_position);
+    for debit in learned_source_work_debits {
+        let transition = settled
+            .transitions
+            .get_mut(debit.source_transition_position)
+            .ok_or(FormationError::NoncanonicalState)?;
+        if debit.consumed_work_zeptojoules < BigRational::zero()
+            || debit.consumed_work_zeptojoules > transition.exported_heat_zeptojoules
+        {
+            return Err(FormationError::ArithmeticOverflow);
+        }
+        transition.exported_heat_zeptojoules -= debit.consumed_work_zeptojoules;
     }
     if !motor_unit_recruitments.is_empty() {
         for recruitment in &mut motor_unit_recruitments {
@@ -20823,9 +20966,10 @@ fn settle_internal_contact_interval(
     // respiratory effector. The respiratory cell remains electrically
     // isolated: the rejected layer-12/layer-13 convergence hub and passive
     // layer-11/layer-13 bridge do not return. Authority is instead the exact
-    // physical sequence already settled in this interval: layer 11 transfers
-    // whole carriers into one typed vocal layer-12 motor, and that motor emits
-    // its own positive whole-carrier discharge. A layer-8 reflex—including
+    // physical sequence already settled in this interval: an L11 founding
+    // transition supplies conserved work through its learned contact to one
+    // typed vocal L12 gate, and that motor emits its own positive whole-carrier
+    // discharge. No carrier is claimed to cross the learned bond. A layer-8 reflex—including
     // the born swallowing closure—cannot satisfy this boundary.
     //
     // The control occurrence does not become respiratory energy. It limits
@@ -20833,31 +20977,20 @@ fn settle_internal_contact_interval(
     // leave through its efferent terminal. Thus cognition selects the act,
     // while the respiratory body supplies and pays for the work.
     let mut co_recruited_articulatory_flats = Vec::new();
-    let mut learned_vocal_preparations = motor_unit_recruitments
+    let mut learned_vocal_work_preparations = motor_unit_recruitments
         .iter()
         .filter(|event| event.body_effector_terminal.axis().is_vocal_articulator())
-        .flat_map(|event| {
-            event
-                .preparation_transfers
-                .iter()
-                .copied()
-                .filter(move |preparation| {
-                    preparation.sender_layer == 11
-                        && preparation.transfer.receiver == event.neuron_lineage
-                })
-        })
+        .flat_map(|event| event.learned_work_preparations.iter().cloned())
         .collect::<Vec<_>>();
-    learned_vocal_preparations.sort_unstable();
-    learned_vocal_preparations.dedup();
-    if !learned_vocal_preparations.is_empty() {
+    learned_vocal_work_preparations.sort_by_key(|preparation| preparation.motor_lineage);
+    learned_vocal_work_preparations
+        .dedup_by_key(|preparation| preparation.motor_lineage);
+    if !learned_vocal_work_preparations.is_empty() {
         let discharge_limit = motor_unit_recruitments
             .iter()
             .filter(|event| {
                 event.body_effector_terminal.axis().is_vocal_articulator()
-                    && event.preparation_transfers.iter().any(|preparation| {
-                        preparation.sender_layer == 11
-                            && preparation.transfer.receiver == event.neuron_lineage
-                    })
+                    && !event.learned_work_preparations.is_empty()
             })
             .try_fold(0_u128, |total, event| {
                 total
@@ -21015,7 +21148,8 @@ fn settle_internal_contact_interval(
                         .place()
                         .topology_index(),
                     outward_elementary_carriers: outward_carriers,
-                    preparation_transfers: learned_vocal_preparations,
+                    preparation_transfers: Vec::new(),
+                    learned_work_preparations: learned_vocal_work_preparations,
                 });
             }
         }
@@ -21166,11 +21300,6 @@ fn settle_internal_contact_interval(
                 .then_some(bond)
         })
         .collect::<Vec<_>>();
-    active_bonds.extend(
-        ordering_motor_transductions
-            .iter()
-            .map(|transfer| transfer.bond),
-    );
     active_bonds.sort_unstable();
     active_bonds.dedup();
     // Electrical settlement includes contacts among two immediate neighbours
@@ -21195,11 +21324,6 @@ fn settle_internal_contact_interval(
                 .then_some(bond)
         })
         .collect::<Vec<_>>();
-    causal_active_bonds.extend(
-        ordering_motor_transductions
-            .iter()
-            .map(|transfer| transfer.bond),
-    );
     causal_active_bonds.sort_unstable();
     causal_active_bonds.dedup();
     let mut frontier_routes = Vec::new();
@@ -21209,12 +21333,6 @@ fn settle_internal_contact_interval(
         .zip(compact_bonds.iter().copied())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
-        if ordering_motor_transductions
-            .iter()
-            .any(|transfer| transfer.bond == bond)
-        {
-            continue;
-        }
         let left_seed = is_causal_seed(left_flat);
         let right_seed = is_causal_seed(right_flat);
         if left_seed == right_seed {
@@ -21244,24 +21362,6 @@ fn settle_internal_contact_interval(
             adjacent_place: cohorts[adjacent_cohort].anatomy.mounts()[adjacent_neuron].place(),
             bond,
             outward_whole_carriers_from_seed,
-        });
-    }
-    for transfer in &ordering_motor_transductions {
-        let seed_flat = lineage_member(transfer.sender)?;
-        let adjacent_flat = lineage_member(transfer.receiver)?;
-        let (seed_cohort, seed_neuron, seed_lineage) = flat_locations[seed_flat];
-        let (adjacent_cohort, adjacent_neuron, adjacent_lineage) =
-            flat_locations[adjacent_flat];
-        frontier_routes.push(PhysicalFrontierRouteObservation {
-            seed_lineage,
-            seed_place: cohorts[seed_cohort].anatomy.mounts()[seed_neuron].place(),
-            adjacent_lineage,
-            adjacent_place: cohorts[adjacent_cohort].anatomy.mounts()[adjacent_neuron].place(),
-            bond: transfer.bond,
-            outward_whole_carriers_from_seed: i128::try_from(
-                transfer.transferred_whole_carriers,
-            )
-            .map_err(|_| FormationError::ArithmeticOverflow)?,
         });
     }
     frontier_routes.sort_unstable_by_key(|route| {
@@ -21324,14 +21424,6 @@ fn settle_internal_contact_interval(
                 transfer.transferred_whole_carriers,
             )?);
         }
-    }
-    for transfer in &ordering_motor_transductions {
-        next_active_frontier.push(ActiveElectricalFrontierEntry::caused(
-            transfer.sender,
-            transfer.receiver,
-            transfer.bond,
-            transfer.transferred_whole_carriers,
-        )?);
     }
     next_active_frontier.sort_unstable();
     next_active_frontier.dedup();
@@ -21864,6 +21956,7 @@ fn settle_internal_contact_interval(
         metabolically_perturbed_body_receptor_lineages,
         affective_balance_trajectories,
         localized_fluid_chemistry,
+        learned_motor_work_preparations,
         motor_unit_recruitments,
         root_yaw_unit_recruitments,
         root_translation_unit_recruitments,

@@ -3636,6 +3636,93 @@ impl GateWorkOccurrence {
     }
 }
 
+/// One exact preparation of an intrinsic gate by work arriving through a
+/// learned physical contact. The learned contact carries work, not membrane
+/// carriers: the receiving neuron's own gate, conductance, reversal gradient,
+/// carrier reservoirs, and elapsed interval remain the only authority for a
+/// later local discharge.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IntrinsicTransducedGateWorkPreparation {
+    pub(crate) gate_work: GateWorkOccurrence,
+    pub(crate) successor_residue_zeptojoules: Option<Exact>,
+    pub(crate) accepted_source_work_zeptojoules: Exact,
+    pub(crate) retained_source_heat_zeptojoules: Exact,
+    pub(crate) residue_narrowing_heat_zeptojoules: Exact,
+    pub(crate) delivered_gate_work_zeptojoules: Exact,
+}
+
+/// Prepare bounded learned-contact work on an intrinsic receiving gate.
+///
+/// Closed gates with dissipation headroom retain sub-threshold work on the
+/// neuron's already-persisted input-work residue. The accumulated work is
+/// presented to the unchanged free-energy gate settlement and is cleared only
+/// when that physical gate opens. Open gates and closed gates with no
+/// dissipation headroom accept no new work. Retained work is floored onto the
+/// fixed 2^96 lattice; the positive discarded sliver remains source heat.
+pub(crate) fn prepare_intrinsic_transduced_gate_work(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    prepared_psi: &PsiSettlement,
+    offered_work_zeptojoules: Exact,
+) -> Result<IntrinsicTransducedGateWorkPreparation, NeuronPhysicalError> {
+    if offered_work_zeptojoules.is_negative() {
+        return Err(GateSettlementError::InvalidAnatomy.into());
+    }
+    let predecessor_open_population = predecessor.gate.open_population;
+    let closed_without_dissipation_headroom = predecessor_open_population == 0
+        && predecessor.gate.dissipated_quanta >= anatomy.gate.dissipation_capacity_quanta;
+    let can_accept_control_work =
+        predecessor_open_population == 0 && !closed_without_dissipation_headroom;
+    if !can_accept_control_work {
+        return Ok(IntrinsicTransducedGateWorkPreparation {
+            gate_work: GateWorkOccurrence::new(Exact::zero()),
+            successor_residue_zeptojoules: None,
+            accepted_source_work_zeptojoules: Exact::zero(),
+            retained_source_heat_zeptojoules: offered_work_zeptojoules,
+            residue_narrowing_heat_zeptojoules: Exact::zero(),
+            delivered_gate_work_zeptojoules: Exact::zero(),
+        });
+    }
+
+    let accumulated_work =
+        predecessor.receptor_quantum_residue.energy() + &offered_work_zeptojoules;
+    let gate_work = GateWorkOccurrence::new(-accumulated_work.clone());
+    let prepared_gate = anatomy.prepare_gate_interval_settlement(
+        predecessor,
+        &gate_work,
+        prepared_psi,
+    )?;
+    let gate_opens = prepared_gate
+        .uncapped_population_settlement
+        .as_ref()
+        .is_some_and(|settled| settled.open_population > predecessor_open_population);
+    let delivered_gate_work_zeptojoules = if gate_opens {
+        accumulated_work.clone()
+    } else {
+        Exact::zero()
+    };
+    let retained_residue = if gate_opens {
+        Exact::zero()
+    } else {
+        accumulated_work
+    };
+    let lattice = BigInt::from(1_u128 << 96);
+    let floored_numerator = (&retained_residue * &lattice).floor().to_integer();
+    let narrowed_residue = Exact::new(floored_numerator, lattice);
+    let residue_narrowing_heat_zeptojoules = &retained_residue - &narrowed_residue;
+    if residue_narrowing_heat_zeptojoules.is_negative() {
+        return Err(GateSettlementError::ArithmeticWidth.into());
+    }
+    Ok(IntrinsicTransducedGateWorkPreparation {
+        gate_work,
+        successor_residue_zeptojoules: Some(narrowed_residue),
+        accepted_source_work_zeptojoules: offered_work_zeptojoules,
+        retained_source_heat_zeptojoules: Exact::zero(),
+        residue_narrowing_heat_zeptojoules,
+        delivered_gate_work_zeptojoules,
+    })
+}
+
 /// Deterministic two-state free-energy descent approved for virtual material.
 /// `delta_g < 0` can open finite closed conformations; `delta_g > 0` can close
 /// finite open conformations; equality retains the predecessor. Every changed

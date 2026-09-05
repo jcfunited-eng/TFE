@@ -1285,3 +1285,31 @@ they do not override this baseline.
   `efdfb94f88af8754b25fb1a4d3d99abb963b8b9c95ee3bfbb9c1073c4130daff`.
   Focused run: one passed, 608 filtered, 111.07 seconds. Production remains
   untouched; the next gate is atomic integration in the actual settlement.
+
+### 2026-09-05 — Speech attempt 47I: production-path learned work passes; sustained gesture remains
+
+- The fixed-one-carrier learned bridge is removed in candidate source. A real
+  L11 founding transition's source heat is divided by measured parallel
+  conductance, accepted by the mounted motor's intrinsic gate, and atomically
+  debited from source heat. Learned work is not fabricated carrier transfer or
+  causal-frontier evidence.
+- The exact task-1429 tick-434112 copy produced four distinct sub-threshold
+  motor work arrivals. All exact balances closed, all successor residues
+  changed, learned-bond carrier transfers were zero, and severing all seven
+  learned contacts produced zero routes.
+- Re-presenting the same genuine copied causal occurrence through the complete
+  production settlement caused the four real motors to discharge on
+  occurrences 2, 6, 52, and 53. Cold round-trip at occurrence 26 was exact.
+  Both vocal motors discharged five carriers and moved their typed tract
+  sections by one quantum with zero stall.
+- The five-carrier full-path output is not the 47H isolated 1,446/1,475 result.
+  It is a stereotyped one-channel spike; learned strength appears in firing
+  latency/rate. One sparse occurrence cannot make a usable vocal posture.
+- Artifacts: SHA-256
+  `b914ffab80737ef93e3b25dff873c5f1f876f4b142d68b89c48153432b37baa0`
+  (full matrix) and
+  `d2ce45bd2ceef525b5d6520913d8d37043ae35c4030c769ae6065d346bd26114`
+  (production replay and tissue). Production remains task 1429 and untouched.
+- The single next vocal mechanism is sustained, organism-owned motor spike
+  timing whose physical train integrates in tissue. A fixed carrier command,
+  named-sound replay, or isolated-amplitude substitution remains forbidden.

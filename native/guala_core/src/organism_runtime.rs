@@ -8671,6 +8671,7 @@ mod tests {
             body_effector_terminal: terminal,
             body_afferent_paths: paths,
             preparation_transfers: Vec::new(),
+            learned_work_preparations: Vec::new(),
         };
 
         let predecessor = ArticulatedBodyState::at_neutral();
