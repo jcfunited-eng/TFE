@@ -434,3 +434,106 @@ The permanent falsifiers added by this attempt are therefore:
    physical result; and
 5. a topology/conservation/descent pass with invariant output is a rejection,
    not acceptance.
+
+## Corrected transduction contract — local powered recruitment, not a carrier donation
+
+The census above ruled out a dormant passive inward channel, but a second
+source audit found the already-mounted active power path that the first census
+did not distinguish from passive conductance: every reached neuron owns a
+finite reversal-gradient pump.  Its exact transport is already settled by
+`membrane_gradient_pump_charge_bound` and
+`settle_membrane_gradient_transport`.  With the current `-1 mV` reversal this
+pump moves charge inward, producing the positive retained membrane displacement
+that the unchanged efferent terminal can later discharge.  The extent is not
+authored by speech code.  It follows from the neuron's membrane potential,
+reversal gradient, one-channel conductance, elapsed interval, retained carrier
+phase, finite intracellular/extracellular material, and the exact available /
+spent recovery-fluid work.
+
+The corrected learned-motor contact law is therefore:
+
+1. a nonzero, energy-descending transfer from one causally reached L11 ordering
+   cell through its real founding L7 route is the control occurrence;
+2. a retained, nonzero-conductance L11/L12 contact is the local learned anatomy
+   that admits that occurrence to its particular L12 motor cell;
+3. that admission reaches the L12 cell's own already-mounted reversal-gradient
+   pump for the same physical interval;
+4. the pump, not the L11 transfer and not a literal in the formation code,
+   determines the prepared carrier extent and pays its exact stored-work
+   increase from the L12 cohort's finite recovery-fluid reservoir; and
+5. the unchanged mounted terminal may discharge at most the exact locally
+   pumped preparation, after which proprioceptive, pressure, and self-hearing
+   consequences return through their ordinary paths.
+
+This is the artificial-entity equivalent of a presynaptic event recruiting a
+postsynaptic cell's own ion gradient.  The signal selects only already-learned
+local anatomy; the receiving cell supplies and pays for the act.  No positive
+reversal, extra carrier reservoir, phoneme parameter, word parameter, or
+waveform constant is introduced.  The earlier proposed new field-effect
+anatomy is therefore unnecessary and is not authorized.
+
+The implementation must preserve a truthful distinction between (a) the L11
+control occurrence across the learned bond and (b) the carriers moved locally
+by the L12 pump.  It may not record the latter as if those carriers crossed the
+inter-neuron contact.  Zero source transfer, zero learned-contact conductance,
+zero recovery work, an empty receiving carrier compartment, or a pump result of
+zero must each produce no motor preparation.  Multiple learned motor contacts
+remain independent local power paths; their source/control evidence must be
+permutation invariant, and each branch must pay only from its own receiving
+cohort reservoir.
+
+## Copied-production-body falsification of local pump sufficiency
+
+The exact task-1429 body at tick `434112` falsifies the preceding contract as a
+complete repair. A test-only range harness decoded the immutable copied body
+and independently settled every mounted L12 motor cell's existing gradient
+pump at `62,500`, `125,000`, `250,000`, and `500,000` microseconds. Carrier
+material was conserved and no passive return was admitted. Many non-vocal
+motors produced state-dependent extents (for example `390, 703, 703, 703` and
+`389, 778, 803, 803` elementary charges), proving that the pump itself is real
+and variable rather than a disguised constant.
+
+Both actual learned vocal endpoints failed the same range:
+
+- vocal-tract section 0 / toward maximum, lineage suffix `00c5`:
+  `0, 0, 0, 0`; and
+- vocal-tract section 7 / toward minimum, lineage suffix `04fb`:
+  `0, 0, 0, 0`.
+
+The focused Rust run passed one test with 609 filtered tests, but that is a
+diagnostic-pass / repair-reject verdict. A mechanism that is variable in other
+cells but identically unavailable in the exact two cells speech needs cannot
+replace the fixed-carrier transducer. No production code changed and no
+deployment occurred.
+
+The next item is not another output guess. The copied-body harness must expose
+the exact zero term for those two endpoints: authored pump bound, finite carrier
+compartments, recovery-fluid available/spent headroom, or reversal-side work.
+Only the missing physical term may then be repaired; the successful non-vocal
+motors and L0-L4 remain untouched.
+
+### Repair-history reconciliation
+
+This range should not have been run. `GUALA_MOTOR_ELECTRICAL_REPAIR_ATTEMPT_HISTORY_2026-09-03.md`
+Attempts 1 and 2 and its copied-body energy-feasibility section had already
+established the same boundary on the earlier exact body: powered pump scaling
+was zero, the two motor reservoirs held less work than one inward carrier
+requires, and no later attempt may repeat pump scaling without a new physical
+energy source. The task-1429 run confirms persistence of that condition but
+adds no new repair authority. Its temporary test was removed immediately so a
+redundant diagnostic does not remain in the codebase.
+
+The exact task-1429 values close the arithmetic without changing the earlier
+verdict. Motor suffix `00c5` had approximately `0.1241 zJ` available while one
+inward carrier required approximately `0.1515 zJ`; suffix `04fb` had
+approximately `0.1209 zJ` available while one carrier required approximately
+`0.1485 zJ`. Both had zero spent material, so the powered environment's
+spent-to-available conversion law delivered exactly zero. Their nonzero pump
+bounds, conductance, and carrier compartments therefore were not the blocker.
+
+The live-path repair returns to the two unresolved physical candidates already
+named by that history: a finite learned-contact work store funded by real
+presynaptic work, or a genuinely precharged postsynaptic excitatory gradient
+with explicit depletion and replenishment. The rejected one-carrier split
+cannot be used as a third candidate merely because it passed older topology
+and aggregate-work checks.
