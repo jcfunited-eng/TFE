@@ -537,3 +537,171 @@ presynaptic work, or a genuinely precharged postsynaptic excitatory gradient
 with explicit depletion and replenishment. The rejected one-carrier split
 cannot be used as a third candidate merely because it passed older topology
 and aggregate-work checks.
+
+## Candidate 47C — bounded learned-contact work transduction
+
+This is the single candidate carried forward. It uses the finite physical work
+state already persisted on every learned electrical contact; it adds no carrier
+constant, firing threshold, timer, score, motor command, speech parameter, or
+new persisted coordinate.
+
+### Existing physical constitution used without reinterpretation
+
+Each `ElectricalContactState` already retains `transition_work_phase`, a proper
+fraction of that contact's ratified finite junction-work quantum `q`. The
+approved synthetic-AE junction constitution fixes
+`q = 16822854657 / 800000000 zJ` and requires `0 <= phase < 1`. Therefore the
+exact retained contact work is `U = phase * q`, with finite capacity `q`. The
+field is already encoded, decoded, bounded, and subject to fixed-lattice
+narrowing whose dropped positive remainder leaves as heat.
+
+For ordinary symmetric contacts, its current conductance-plasticity use is
+unchanged. A learned L11/L12 motor contact is already removed from symmetric
+equalizing settlement because that physical class drives backward on the
+copied body. Candidate 47C uses the same retained junction-work quantity as the
+finite power state of that learned three-terminal contact. It does not call the
+contact a chemical synapse and adds no calcium, transmitter, receptor, or
+semantic polarity.
+
+### Exact order-invariant control and work capture
+
+For one causally reached ordering lineage `o`, collect every settled,
+energy-descending `o -> L7` founding transfer in the current interval. Let
+`W_j` be the nonnegative work from source contact `j` that its already-settled
+transition would otherwise export as heat, and let `W = sum(W_j)`. Zero `W`
+does nothing; no carrier-count threshold is used.
+
+Collect every retained learned `o -> L12` motor contact. For contact `i`, let
+`g_i` be its exact predecessor effective conductance, `U_i` its retained work,
+and `H_i = q_i - U_i` its finite headroom. With `G = sum(g_i)`, its desired
+parallel share and admitted share are:
+
+```text
+D_i = W * g_i / G
+A_i = min(D_i, H_i)
+```
+
+If `G` is zero, no path exists and all work remains heat. The total captured
+work is `A = sum(A_i)`. Source transition `j` reduces its exported heat by
+`A * W_j / W`; thus all source transitions and all learned branches settle
+jointly, and permuting either list cannot change the result. Any uncaptured
+work remains exported heat. The contact's successor work is `U_i + A_i`,
+stored through the existing bounded phase representation; any unrepresentable
+positive sliver is also exported as heat.
+
+This is a lossless, parameter-free synthetic transducer at the admitted
+boundary: only work that was already leaving the causal L11 event may enter the
+learned junction. It neither copies that work to multiple motors nor removes
+the founding L7 carrier transfer.
+
+### Exact postsynaptic output
+
+Group learned contacts by their mounted L12 motor. Their retained work is one
+joint finite budget `B`. Against the motor's exact predecessor anatomy and
+state, calculate the existing reversal-gradient pump bound for the represented
+interval. Among whole inward carrier extents from zero through that bound,
+choose the greatest extent `n` whose exact increase in
+membrane-plus-gradient work `E(n)` is no greater than `B`, stays on the authored
+reversal side, and does not exceed the motor's finite carrier material. This is
+the same monotone exact binary-search boundary already used by metabolic pump
+settlement; it is not an output-maximizing score because `B` is real retained
+work and every admitted carrier is paid exactly.
+
+Debit `E(n)` from the contributing learned-contact stores in proportion to
+their predecessor stored work, jointly and order-independently. Any fixed-width
+rounding loss is positive heat. Apply `-n` as the L12 cell's own local membrane
+transport. The unchanged efferent terminal may then discharge at most `n`
+whole carriers and deposits its exact released work through the existing
+thermal path. The L11 source carriers never appear in the L12 carrier
+compartments.
+
+Consequences are therefore dynamic: sub-carrier source events accumulate;
+larger real work can prepare more carriers; a depleted store, absent bond,
+zero-conductance bond, zero source work, exhausted L12 material, or reversal
+boundary is silent. No special case names a vowel, word, tract section, or
+pleasant output.
+
+### Truthful causal evidence
+
+The existing `DirectedPhysicalTransferObservation` cannot describe 47C because
+no carrier crosses the learned bond. Candidate evidence must separately name:
+
+- the actual L11-to-L7 control transfers and their captured work;
+- the learned L11/L12 bond and its before/after retained junction work;
+- the L12 lineage, exact locally pumped carriers, and exact work spent; and
+- the later terminal discharge and typed body consequence.
+
+The old fabricated L11-to-L12 transfer must be removed from settled-transfer
+lists, active electrical frontiers, route observations, and next-frontier
+state. The learned bond may be marked active only because its own retained
+work changed. The L12 state change is rescheduled normally; body and
+self-hearing consequences re-enter only through their ordinary receptors.
+
+### Complete causal-impact boundary before implementation
+
+- `sparse_electrical_contact.rs`: add exact bounded retain/spend operations on
+  the existing junction-work phase; ordinary contact settlement and codec stay
+  unchanged.
+- `metabolic_feeding.rs`: expose the existing monotone pump solver against an
+  explicit finite external-work budget; ordinary recovery-fluid settlement
+  continues to call the same solver.
+- `resident_cognitive_formation.rs`: replace the entire fixed carrier split,
+  settle all source/branch shares jointly, apply paid local L12 transport, and
+  carry a distinct transduction observation. Do not insert a fake electrical
+  transfer or causal-frontier entry.
+- `organism_runtime.rs` and `native_resident_organism.py`: transport the new
+  evidence as a separately typed record; do not overload the old six-field
+  carrier-transfer tuple.
+- `native_production_app.py`: accept a motor act only when exact transduction,
+  local preparation, terminal discharge, and body consequence agree. The
+  observer reports those facts read-only and never supplies authority.
+- persisted cognitive schema: unchanged because the sole retained quantity is
+  the existing bounded contact work phase; all new evidence is transient.
+- L0-L4, all seven DSF fields, neuron identity, learned contact identity,
+  sensory state, body state, world state, and the ordinary reflex motor path:
+  unchanged.
+
+### Required falsifiers before production code is authorized
+
+1. Exact copied task-1429 source-work and contact-state census, including all
+   seven learned contacts and their retained phases.
+2. A dynamic matrix varying real source work, predecessor phase, contact
+   conductance, motor potential/material, and represented interval; output must
+   vary and every energy/carrier balance must close exactly.
+3. Weak-work accumulation across cold encode/decode must eventually discharge;
+   zero work and a physically severed learned bond must remain silent.
+4. Permuting multiple source transitions, multiple learned branches, and
+   multiple contacts converging on one motor must produce byte-identical
+   successors and observations.
+5. No unrelated L12 cell, reflex preparation, active electrical frontier, or
+   learned relation may be created by the transduction.
+6. Exact copied body must move through typed tissue, return proprioception and
+   pressure/self-hearing, preserve identity and all learned state over process
+   death, and keep CPU, RAM, stored bytes, contact count, and evidence count
+   bounded.
+
+Until all six pass, 47C is a specified candidate—not a fix and not deployment
+authority.
+
+### Falsifier 1 — exact task-1429 learned-contact state census passed
+
+The immutable tick-`434112` task-1429 body was decoded with range experiments
+disabled. The read-only probe report is
+`/tmp/guala-speech1429-sequence.dpHRJX/census-with-work-phase.json`, SHA-256
+`6417a37e1da7f595b9b5da1a803a70f109c3d5d74a21182212ef1510a323af6e`.
+It passed its one focused Rust test with 608 filtered tests and did not write
+the copied body.
+
+All seven learned L11/L12 contacts independently report:
+
+- conducting channel population: exactly `50`;
+- effective conductance: exactly `500 pS`; and
+- retained transition-work phase: exactly `0/1`.
+
+The two learned speech routes remain suffix `05f6 -> 00c5` and
+`06ba -> 04fb`; the other five routes are preserved unchanged. This is a clean
+47C migration boundary: no historical contact-plasticity residue would be
+reclassified as motor energy. The only probe source change adds effective
+conductance, conducting population, and transition-work phase to the existing
+test-only electrical-fabric JSON. It changes no production-compiled physics,
+codec, state, or observer.

@@ -563,3 +563,25 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   test-supplied posture trajectory may never enter the organism as a word,
   phoneme program, sequence table, replay, or observer command. The remaining
   repair is organism-owned causal ordering of learned typed vocal motors.
+
+### R-009 repair attempt 47 — fixed learned-motor output rejected
+
+- The production task-1429 learned L11/L12 transducer assigns exactly one
+  carrier to every eligible motor branch. Exact copied-body ranges prove the
+  lawful descending region varies from one carrier to at least 64 with current
+  physical state. The literal is a developer-authored action magnitude, not a
+  developmental law.
+- Replacing one with another constant, fixed fraction, sampled maximum, or
+  output selected for audibility is permanently prohibited. Strict aggregate
+  work descent and charge conservation do not by themselves cause a nonzero
+  motor allocation.
+- The three-terminal substitute also edits endpoint carrier counts after the
+  ordinary contact transition has already fixed its phase, current, work,
+  heat, and persisted successor. It must be replaced in full, not tuned.
+- Repeating the existing motor gradient-pump range is prohibited unless a new
+  physical energy source is first named. Earlier history and the exact
+  task-1429 copy both prove the two vocal endpoints have less available work
+  than one inward carrier requires.
+- The durable governing design, accepted subsystem boundaries, rejected
+  mechanisms, test doctrine, and still-open 47C candidate are reconciled in
+  `GUALA_DEVELOPMENTAL_VOICE_ORGAN_SPECIFICATION_AND_DESIGN.md`.

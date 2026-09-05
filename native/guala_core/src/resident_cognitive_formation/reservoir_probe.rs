@@ -3067,7 +3067,18 @@ fn reservoir_probe_dump() {
                         "right_lineage": lineage_hex(right_lineage),
                         "right_layer": layer(right_lineage),
                         "conductance_picosiemens": exact_json(anatomy.conductance_picosiemens()),
+                        "effective_conductance_picosiemens": exact_json(
+                            anatomy
+                                .effective_conductance(contact_state)
+                                .expect("probe contact state matches anatomy"),
+                        ),
                         "carrier_phase": format!("{phase_numerator}/{phase_denominator}"),
+                        "conducting_channel_population": contact_state
+                            .conducting_channel_population()
+                            .to_string(),
+                        "transition_work_phase": exact_json(
+                            contact_state.transition_work_phase(),
+                        ),
                     })
                 })
                 .collect::<Vec<_>>();
