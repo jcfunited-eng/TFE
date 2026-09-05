@@ -1214,3 +1214,27 @@ they do not override this baseline.
   an AWS-wrapped, test-only dynamic copied-body range carrying true motor state
   across repeated source events, cold restart, severing, exhaustion,
   permutation, conservation, and boundedness controls.
+
+### 2026-09-05 — Speech attempt 47G rejected; task-1054 principle re-run on exact body
+
+- 47G failed before producing a sample with `GatePopulationExceeded` because
+  it applied the independent receptor-population delivery API to the exact
+  task-1429 motors' intrinsic one-conformation gates. The invariant is not
+  weakened; the candidate is rejected and production was untouched.
+- The clean task-1428 ordinary-contact path was then run against the immutable
+  task-1429 tick-434112 body with fixed transduction disabled. It restored
+  state-driven motor magnitude: four actual motors recruited at 63, 56, 31,
+  and 12 carriers and typed tissue moved with sensory return.
+- That same proof rejects deletion-only repair. The two learned vocal contacts
+  conducted backward—`00c5 -> 05f6` by 88 carriers and `04fb -> 06ba` by 82—
+  while two non-vocal learned contacts prepared motors with 12 and 17 carriers.
+- Artifact: 85,562 bytes, SHA-256
+  `613176fa2738456edf780050220191a75f60eb0e861084b76ce0386675773b83`.
+  Focused execution: one passed, 604 filtered, 13.52 seconds after compile.
+  AWS: task 1429, one running/zero pending, completed rollout, all five Guala
+  alarms `OK` before continuing.
+- The task-1054 principle—recruit from actual settled motor discharge—is
+  retained. The single remaining mechanism is a directed learned-input
+  transduction into that unchanged dynamic motor settlement; neither a fixed
+  carrier count nor the ordinary backward gap-junction current may stand in
+  for it.

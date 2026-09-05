@@ -1068,3 +1068,67 @@ learned bonds, L12 neuron states, and gate solver across a range—not one point
 Candidate 47G is now causally specified but **not accepted**. This analysis
 authorizes only the bounded test-only falsifier. It authorizes no production
 source edit, package, image, task definition, cutover, or speech claim.
+
+## Candidate 47G first execution — rejected before a result
+
+The first test-only execution did not complete its copied-body range. It
+failed at the first isolated receiving-gate settlement with
+`GatePopulationExceeded`. The failure is not a production incident and did
+not touch the copied body. It exposed a precise type mismatch in the candidate:
+`quantize_population_receptor_delivery` targets independently supported
+multi-channel receptor populations, while every exact task-1429 L12 motor has
+the ordinary intrinsic single-conformation gate (`population = 1`) and no
+independent-channel support. The harness tried to apply the receptor-population
+target mechanism to anatomy which cannot represent that target.
+
+This is not authority to relax `GatePopulationExceeded`, increase a population,
+or add a special vocal threshold. Candidate 47G as written is rejected. The
+failed uncommitted test-only code remains isolated in this worktree until this
+record is committed, after which it must be replaced rather than accumulated.
+
+The next falsifier may use only the intrinsic gate's existing exact free-energy
+descent: retain sub-threshold transduced input on the already-persisted local
+input-work residue; present the accumulated work to the unchanged one-gate
+settlement; accept and clear it only when that physical gate actually changes;
+and otherwise retain it. This has no target population and cannot prescribe a
+carrier count. Whether it produces a bounded, conserved, variable motor
+discharge is an open executable question, not an implementation claim.
+
+## Task-1054 ordinary-contact restoration on the exact task-1429 body
+
+Before authoring another transducer, the exact mature task-1429 body was run
+through the clean task-1428 settlement with the later fixed-one-carrier switch
+disabled. This restores the same ordinary symmetric-contact principle used by
+task 1054: motor recruitment is read from the motor cell's actual settled
+outward carrier discharge, never a fixed amount.
+
+The focused copied-body run passed in 13.52 seconds after compilation. Its
+artifact is
+`/tmp/guala-speech1429-sequence.dpHRJX/task1428-ordinary-dynamic-motor-work.json`,
+85,562 bytes, SHA-256
+`613176fa2738456edf780050220191a75f60eb0e861084b76ce0386675773b83`.
+The production body input remained the immutable tick-434112 copy and AWS
+remained task 1429 with one running task, completed rollout, and all five Guala
+alarms `OK`.
+
+The result is decisive but split:
+
+- ordinary settlement dynamically recruited four real motors at 63, 56, 31,
+  and 12 outward carriers and moved glottis, both grips, and right hip through
+  typed tissue with sensory return;
+- the two current learned vocal contacts did **not** prepare their motors;
+  they settled backward, transferring 88 carriers from motor `00c5` to L11
+  `05f6` and 82 carriers from motor `04fb` to L11 `06ba`;
+- two non-vocal learned contacts did settle forward, preparing motors `048b`
+  and `039d` with 12 and 17 carriers; and
+- the already-existing three-terminal diagnostic confirms that physically
+  payable vocal terminal discharge varies across 1, 2, 4, 8, 16, 24, and 32
+  carriers before the strong-state energy boundary, but that range remains a
+  capacity probe, not a rule selecting output.
+
+Therefore the task-1054 dynamic recruitment principle is still correct, but
+simply deleting the task-1429 fixed block is rejected: it would restore
+variable motor strength while making the two learned vocal routes conduct in
+the wrong direction. The missing piece is exactly the directed learned-input
+transduction into the motor's own dynamic settlement. No motor redesign,
+carrier constant, or vocal exception is authorized by this result.
