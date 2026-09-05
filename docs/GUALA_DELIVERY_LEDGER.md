@@ -1313,3 +1313,23 @@ they do not override this baseline.
 - The single next vocal mechanism is sustained, organism-owned motor spike
   timing whose physical train integrates in tissue. A fixed carrier command,
   named-sound replay, or isolated-amplitude substitution remains forbidden.
+
+### 2026-09-05 — Speech attempt 47J rejected: open gate is not a gesture hold
+
+- A candidate allowed only an already-open motor gate's positive current to
+  continue efferent output, excluding closed-gate passive return. The copied
+  body produced no such continued event; the gate had closed. The production
+  change was removed.
+- The natural continuation instead produced six new learned pulses, alternating
+  the two vocal motors every 18--20 clocks, six carriers each. Only every other
+  pulse could recruit new respiratory discharge.
+- Real tissue return dominated those sparse events: section 0 moved 141 to 137
+  despite toward-maximum pulses, and section 7 moved 249 to 254 despite toward-
+  minimum pulses. Cold body round-trip remained exact.
+- Artifact SHA-256:
+  `d097573e4907a6e360d3f3954e24688305ad9288cac83531d2d609e16847533e`.
+  Production remained healthy task 1429 and untouched.
+- Exact next item: a copy-only duration harness must run the existing persisted
+  32 ms antagonist activation on its 1 ms body clock and feed each resulting
+  posture into the 16 kHz organ. The current runtime's one-body-step/one-endpoint
+  shortcut is the boundary under test; no named or target trajectory is allowed.

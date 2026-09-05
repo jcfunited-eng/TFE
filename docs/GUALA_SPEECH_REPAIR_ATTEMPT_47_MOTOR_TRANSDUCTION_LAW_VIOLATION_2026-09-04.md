@@ -1277,3 +1277,38 @@ Artifacts:
 The focused full-path runs passed with 608 tests filtered. Production remained
 untouched on task 1429. Candidate 47I is retained for the next sustained-
 gesture falsifier; it is not yet authorized for deployment.
+
+## Candidate 47J rejected — an open motor gate does not retain the gesture
+
+A production candidate briefly allowed a positive outward motor current to
+remain efferent while the motor's intrinsic gate stayed open, without requiring
+another same-interval preparation record. Closed-gate passive membrane return
+was explicitly excluded. This tested the biological possibility that the gate
+itself retained a sustained contraction after one learned cause.
+
+The exact copied-body continuation rejected that mechanism. Across 64 natural
+post-opening clocks, no later vocal recruitment carried the retained-open-gate
+condition. The gate had already closed. Six later vocal pulses were instead
+new, genuine learned-work preparations: motor `04fb` at continuation clocks
+18, 38, and 58, and motor `00c5` at clocks 20, 40, and 60. Each pulse discharged
+six carriers. Respiratory discharge accompanied only the `04fb` pulses; the
+interleaved `00c5` pulses found the current respiratory body unable to export
+more work.
+
+The real tissue did not integrate those sparse pulses into the commanded
+directions. Starting from copied positions 141 and 249, section 0 ended at 137
+despite its toward-maximum pulses, and section 7 ended at 254 despite its
+toward-minimum pulses. Passive tissue return dominated the sparse arrivals.
+The body still cold-round-tripped exactly. Artifact:
+`/tmp/guala-speech1429-sequence.dpHRJX/candidate47j-sustained-production.json`,
+SHA-256 `d097573e4907a6e360d3f3954e24688305ad9288cac83531d2d609e16847533e`.
+
+Disposition: the retained-open-gate production change was removed. The useful
+falsifier remains. The next boundary is not another neuron gate or carrier
+multiplier: one admitted motor burst already creates 32 ms of persisted
+antagonist activation, but the runtime advances the body by only one 1 ms step
+and hands the acoustic organ one endpoint posture for an occurrence that can
+span 250 ms. The required dynamic test must unfold the existing 1 ms body law
+over the exact occurrence duration and stream those real postures into the
+16 kHz acoustic organ. It may not invent a target trajectory or retain a named
+gesture.

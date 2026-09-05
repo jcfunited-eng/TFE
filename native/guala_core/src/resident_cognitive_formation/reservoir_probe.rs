@@ -3203,6 +3203,7 @@ fn production_replayed_motor_discharge_json(
     let mut learned_bridge_carrier_transfer_count = 0_usize;
     let mut completed_events = 0_u32;
     let mut cold_midpoint_exact = false;
+    let mut natural_continuation = None;
 
     for repeated_event in 1_u32..=256 {
         let mut trial = state.clone();
@@ -3338,7 +3339,94 @@ fn production_replayed_motor_discharge_json(
             .keys()
             .any(|lineage| lineage.ends_with(&[0x04, 0xfb]));
         if vocal_c5 && vocal_4fb {
+            natural_continuation = Some((trial, frontier, residency));
             break;
+        }
+    }
+
+    let mut sustained_vocal_pulses = Vec::new();
+    let mut sustained_body = articulated_body.cloned();
+    if let Some((mut continued, mut frontier, mut residency)) = natural_continuation {
+        for continuation_clock in 1_u64..=64 {
+            let mut reached_lineages = frontier
+                .iter()
+                .flat_map(|entry| entry.affected_lineages().into_iter().flatten())
+                .collect::<Vec<_>>();
+            reached_lineages.sort_unstable();
+            reached_lineages.dedup();
+            let topology = continued.topology_index.clone();
+            let mut changed = std::collections::BTreeSet::new();
+            let resting = continued
+                .resting_population
+                .as_ref()
+                .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
+                .unwrap_or(0);
+            let observation = super::settle_internal_contact_interval(
+                &mut continued.cohorts,
+                &mut continued.electrical_fabric,
+                &topology,
+                continued.vocal_articulatory_effector_lineage,
+                &frontier,
+                &reached_lineages,
+                &reached_lineages,
+                &[],
+                &mut changed,
+                continued.generation + 2 + continuation_clock,
+                resting,
+                &mut residency,
+                &std::collections::BTreeMap::new(),
+                &[],
+                &[],
+                ExactRational::integer(0),
+                false,
+            )
+            .expect("post-opening copied motor continuation settles");
+            let vocal = observation
+                .motor_unit_recruitments
+                .iter()
+                .filter(|event| event.body_effector_terminal.axis().is_vocal_articulator())
+                .collect::<Vec<_>>();
+            let respiratory = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .try_fold(0_u128, |total, event| {
+                    total.checked_add(event.outward_elementary_carriers)
+                })
+                .expect("continued respiratory carrier width");
+            if !vocal.is_empty() || respiratory != 0 {
+                sustained_vocal_pulses.push(json!({
+                    "continuation_clock": continuation_clock,
+                    "vocal_motors": vocal.iter().map(|event| json!({
+                        "motor_lineage": lineage_hex(event.neuron_lineage),
+                        "outward_elementary_carriers":
+                            event.outward_elementary_carriers.to_string(),
+                        "terminal": format!("{:?}", event.body_effector_terminal),
+                    })).collect::<Vec<_>>(),
+                    "respiratory_efferent_carriers": respiratory.to_string(),
+                }));
+            }
+            if let Some(body) = sustained_body.as_ref() {
+                let admitted = AdmittedBodyEffectorDrives::admit(
+                    vocal
+                        .iter()
+                        .map(|event| BodyEffectorDrive {
+                            terminal: event.body_effector_terminal,
+                            outward_elementary_carriers: event.outward_elementary_carriers,
+                        })
+                        .collect(),
+                )
+                .expect("continued vocal body drives admit");
+                sustained_body = Some(
+                    settle_body_effector_drives(
+                        body,
+                        &admitted,
+                        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+                    )
+                    .expect("continued vocal body settles")
+                    .successor,
+                );
+            }
+            frontier = observation.next_active_frontier;
         }
     }
 
@@ -3395,6 +3483,14 @@ fn production_replayed_motor_discharge_json(
         "first_vocal_recruitment_count": first_vocal_recruitments.len(),
         "articulatory_recruitment_count": first_vocal_articulatory_recruitments.len(),
         "typed_body": typed_body,
+        "natural_post_opening_vocal_pulses": sustained_vocal_pulses,
+        "natural_post_opening_body": sustained_body.as_ref().map(|body| json!({
+            "vocal_tract_section_0": body.axis(BodyAxis::VocalTractSection0Area),
+            "vocal_tract_section_7": body.axis(BodyAxis::VocalTractSection7Area),
+            "cold_round_trip_exact": ArticulatedBodyState::decode(
+                &body.encode().expect("continued body encodes"),
+            ).expect("continued body decodes") == *body,
+        })),
     })
 }
 
