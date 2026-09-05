@@ -583,5 +583,9 @@ at the absent learned ordering-to-vocal-motor route and preserve the retained
   task-1429 copy both prove the two vocal endpoints have less available work
   than one inward carrier requires.
 - The durable governing design, accepted subsystem boundaries, rejected
-  mechanisms, test doctrine, and still-open 47C candidate are reconciled in
+  mechanisms, and test doctrine are reconciled in
   `GUALA_DEVELOPMENTAL_VOICE_ORGAN_SPECIFICATION_AND_DESIGN.md`.
+- Candidate 47C is rejected before implementation: the A-011.6 transition-work
+  phase is sub-quantum junction-channel-transition bookkeeping whose completed
+  work dissipates. It may not be reinterpreted or spent as a motor-energy
+  reservoir, even on a learned L11/L12 contact.

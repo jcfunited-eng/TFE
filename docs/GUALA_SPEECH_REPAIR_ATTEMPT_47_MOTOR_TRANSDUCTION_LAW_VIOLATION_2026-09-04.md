@@ -705,3 +705,50 @@ reclassified as motor energy. The only probe source change adds effective
 conductance, conducting population, and transition-work phase to the existing
 test-only electrical-fabric JSON. It changes no production-compiled physics,
 codec, state, or observer.
+
+### Tooling recurrence — missing root validator
+
+The current project-truth skill again required
+`scripts/require-guala-root.sh <path>`, but this speech branch does not contain
+that script. The invocation failed with shell status `127` before any organism
+or production access. This is the previously encountered skill/repository
+tooling mismatch, not a new substrate defect and not authority to choose a
+different worktree by name.
+
+The equivalent repository facts were resolved independently from Git and the
+already-authenticated ledger: root `/tmp/guala-speech-task1428-exact`, branch
+`sol/speech-task1428-exact`, and clean commit
+`5a71211b0ef17bc51a09549e1df33af8efbd5d75` before this entry. Do not retry the
+missing validator during this sprint unless that exact script becomes present
+in this exact branch.
+
+## Candidate 47C rejected at the ratified-physics gate
+
+Candidate 47C cannot enter a dynamic harness or implementation. The complete
+A-011.6 ratification and its executable contact law contradict the candidate's
+premise that `transition_work_phase` is a freely spendable contact-energy
+store:
+
+- A-011.6 defines it as the exact sub-quantum residue `R_i / q` accumulated
+  only toward the next bounded junction-channel transition.
+- When a whole transition occurs, that transition work is dissipated and is
+  explicitly "not counted again as stored membrane or fluid energy."
+- `settle_contact_local_conductance` implements exactly that authority: the
+  phase either remains sub-quantum bookkeeping, is consumed into a conducting-
+  channel population change, or leaves as heat at a population boundary.
+- The source comment on `narrow_phase_with_heat` likewise calls the value
+  bookkeeping toward the next transition quantum, not a reservoir that may
+  later power postsynaptic membrane work.
+
+Using the same phase to pay L12 pump work would give one physical coordinate a
+second incompatible role and could spend transition residue that the ratified
+law already commits to channel conformation. Restricting the reinterpretation
+to learned L11/L12 contacts does not cure the conflict; those contacts retain
+the same A-011.6 anatomy and codec.
+
+Disposition: 47C is architecturally rejected before test code. Its copied-body
+zero-phase census remains useful evidence but supplies no implementation
+authority. No production source changed and no AWS or organism state was
+touched. The next candidate must use either a separately authored finite
+directional-synapse state or a genuinely available postsynaptic energy path;
+it may not borrow A-011.6 transition residue under another name.

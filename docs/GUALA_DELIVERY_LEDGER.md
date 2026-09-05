@@ -1085,3 +1085,33 @@ they do not override this baseline.
   and selected **Mama-A**. Its ever-so-slightly robotic tone is deliberately
   deferred. This closes physical organ capacity only; Guala has not yet caused
   the accepted ordered gesture and no production speech claim is made.
+
+### R-009 / SPEECH-047 — state-driven learned-motor transduction (IN PROGRESS)
+
+- **Exact input:** immutable task-1429 body at tick `434112`, 112,677,154
+  bytes, SHA-256
+  `113c7fb0bf8a58112afed7385761ae7052a0d7f4c4df176e0e78024c03c1661e`.
+- **Closed predecessor:** attempt 46 proves the unchanged native organ can
+  render recognizable `ma-ma` over adjacent bounded physical trajectories;
+  it does not supply those trajectories to the organism.
+- **Current contradiction:** production assigns literal one carrier to each
+  eligible learned L11/L12 motor branch. Exact copied-body ranges prove the
+  lawful region changes with state, and complete accounting proves the block
+  leaves contact phase/current/work/heat inconsistent with the rewritten
+  endpoint carriers.
+- **Rejected mechanisms:** fixed or fractional output, maximum-descending
+  allocation, the earlier three-terminal carrier donation, repeat gradient-
+  pump scaling without new energy, and 47C reuse of A-011.6 transition-work
+  residue as motor energy.
+- **Acceptance:** the same copied mature body must let current organism-owned
+  activity produce state-varying, order-independent, exactly conserved learned
+  motor preparation; typed tissue must move, radiate pressure, and self-hear;
+  severing and exhaustion must be silent; persistence/cold continuation and
+  CPU/RAM/storage/evidence bounds must pass. Only then may one immutable
+  candidate proceed to rehearsal and live word verification.
+- **Single next change:** identify and dynamically falsify one genuinely
+  directional learned-transducer power path without changing production.
+- Governing evidence:
+  `docs/GUALA_SPEECH_REPAIR_ATTEMPT_47_MOTOR_TRANSDUCTION_LAW_VIOLATION_2026-09-04.md`
+  and
+  `docs/GUALA_DEVELOPMENTAL_VOICE_ORGAN_SPECIFICATION_AND_DESIGN.md`.

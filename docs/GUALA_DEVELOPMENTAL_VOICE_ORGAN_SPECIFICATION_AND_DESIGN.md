@@ -214,22 +214,34 @@ counts, exact process cleanup, and no production writer. Human hearing is the
 final sound-quality gate; machine metrics can reject clipping, instability,
 periodicity, or non-variation but cannot declare intelligible speech.
 
-## Active candidate boundary
+## Rejected candidate 47C and current open boundary
 
-Attempt 47C proposes using each learned contact's already-persisted finite
+Attempt 47C proposed using each learned contact's already-persisted finite
 transition-work phase as bounded work storage, funded only by real work that
 would otherwise leave the causally reached L11 founding transition as heat.
 Stored work would pay the receiving L12 motor's own exact local preparation;
-no carrier would cross the learned bond. This is currently a **candidate**, not
-ratified or implemented physics.
+no carrier would cross the learned bond.
 
-The exact task-1429 census has passed its first falsifier: all seven learned
+The exact task-1429 census passed its first falsifier: all seven learned
 L11/L12 contacts have 50 conducting channels, 500 pS effective conductance,
 and zero retained work phase, so no historical contact state would be silently
-reinterpreted. Dynamic work/phase/conductance/material/interval, cold-
-accumulation, permutation, unrelated-path, exact-body, persistence, and
-resource falsifiers remain open. No production code or deployment is
-authorized until they all pass.
+reinterpreted.
+
+The candidate nevertheless fails the earlier ratified-physics gate. A-011.6
+defines the phase only as sub-quantum bookkeeping toward a bounded conducting-
+channel transition. Completed transition work is dissipated and cannot be
+counted again as stored membrane or fluid energy. Spending the same phase on
+L12 preparation would give one state coordinate two incompatible physical
+meanings. Candidate 47C is therefore rejected before dynamic testing; it is not
+an active repair.
+
+The open boundary remains one genuinely directional learned transducer whose
+control state and power source are separately physical. The next analysis must
+choose between separately authored finite synaptic state and an already-real
+postsynaptic energy path. It may not reuse A-011.6 residue, relabel presynaptic
+carriers as motor carriers, or infer output from a fixed or selected extent.
+No production code or deployment is authorized before that mechanism has a
+complete ratified contract and dynamic copied-body proof.
 
 ## Evidence and amendment discipline
 
