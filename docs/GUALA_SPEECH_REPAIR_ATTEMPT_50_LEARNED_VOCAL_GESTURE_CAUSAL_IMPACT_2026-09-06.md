@@ -290,7 +290,7 @@ cells into recurrent multi-axis, multi-phase activity. The next range harness
 will decide whether that is unreachable developmental experience or one
 overconstrained native growth gate; it will not guess by editing production.
 
-## Attempt 50A — artificial missing-contact unblock (rejected as sufficient)
+## Attempt 50A — artificial missing-contact unblock (first ceiling inconclusive)
 
 The first test-only artificial-unblock run is complete. Its immutable input was
 the exact task-1429 copied production body
@@ -321,14 +321,13 @@ Measured exposure result:
 | 236 | all four open-phase motors together |
 | 256 | 4/8 total; no closed-phase motor |
 
-This rejects the proposition that contact coverage alone is sufficient. It
-also proves something narrower and useful: one existing organism-owned ordering
-cell can lawfully fan out through the unchanged contact, learned-work, motor,
-and gate laws and make a four-axis phase discharge simultaneously. The failure
-is now downstream of missing contact existence and upstream of a complete
-open/closed gesture: finite source work is divided among the four destinations,
-and the two ordering routes do not bring their motor groups to discharge in the
-same bounded exposure regime.
+The 256-occurrence ceiling did **not** reject contact coverage alone. It proved
+only that the closed phase had not discharged by that particular ceiling. The
+earlier wording overclaimed a finite stopped run as a universal negative; it is
+retained here as a corrected repair-history error so it cannot be repeated.
+The run did positively prove that one existing organism-owned ordering cell can
+lawfully fan out through the unchanged contact, learned-work, motor, and gate
+laws and make a four-axis phase discharge simultaneously.
 
 There was no natural continuation because the complete eight-motor criterion
 did not pass, therefore zero acoustic samples were rendered and no sound claim
@@ -344,10 +343,56 @@ Resource closure:
 - production was read-only and unchanged.
 
 Rejected repair mechanism: authoring the six missing contacts is not a repair
-and may never ship. It is now also rejected as a complete causal explanation.
-The exact next falsifier is a copied-body dynamic work-distribution range over
-the already identified open and closed ordering populations. It must determine
-whether ordinary population recruitment provides the missing simultaneous work
-or whether the current learned-work fan-out law destroys a causally relevant
-population magnitude. It must not install fixed carriers, a phoneme, a pose, a
-trajectory, a sequence cursor, or a special speech rule.
+and may never ship. The exact next falsifier extended the unchanged scale-one
+run rather than inferring failure from its first ceiling.
+
+## Attempt 50B — extended scale-one and artificial population comparison
+
+The extended scale-one run used the same exact task-1429 copied body
+`sha256:9db4d05cb4d3de3a99aef5129596c4ea82dc5552d7f00eea0c934d7673d79df1`
+and the same six test-only contacts. It made no production change. Its result is
+`sha256:ce6e592d612adec21a37e7a848948042f3299d1a29c6314ddef60c0226d331ab`.
+
+The result corrects 50A:
+
+- all four open-phase motors first discharged together at occurrence `236`;
+- all four closed-phase motors first discharged together at occurrence `335`;
+- therefore one real ordering source can eventually activate all eight routes;
+- natural continuation later repeated one four-motor open phase and one
+  four-motor closed phase; and
+- learned-work balances and both cold round trips remained exact.
+
+Contact coverage is therefore sufficient for eventual multi-axis motor
+discharge under the present source law. It is not sufficient for audible vocal
+function in the measured continuation: respiratory discharge was zero,
+all `512,000` pressure samples were zero, and the WAV
+`sha256:61480b2ca09e9d5b7b359b23869ac199fe1bbb5ae6ca1501a6151f73304f3142`
+is exact silence.
+
+A comparison arm multiplied the one source transition's offered, released, and
+exported work by four inside `cfg(test)` only. This did not construct four real
+neurons: it was an artificial energetic surrogate for four independently
+powered coactive sources. With the same six artificial contacts, the open phase
+first discharged at occurrence `59`, the closed phase at `84`, natural
+continuation produced nine four-motor pulses, respiratory work was co-recruited,
+and finite native pressure resulted (`126,681 / 512,000` nonzero samples, peak
+`426`). Its result is
+`sha256:4cbee974a7f09269304979dcdc39730507c151cb2bbc729c664ea443ca005f8e`.
+
+This is not speech and cannot ship: both arms directly authored the six missing
+contacts, and the scale-four arm created source work at a test boundary instead
+of deriving it from real cells and reservoirs. It nevertheless isolates the
+remaining causal boundary. The existing breath, motor, tissue, and pressure
+chain functions when enough causally accounted source work arrives; the living
+body currently compresses each learned four-axis vocal phase into one L11
+ordering source and has learned only one of four required motor contacts per
+phase.
+
+The production proposal is now narrower than a new speech sequencer or a tuned
+acoustic organ: let a lived multi-axis motor consequence grow the six missing
+contacts, and let its retained distributed formation recruit real coactive
+source cells whose own finite state supplies the work. A numeric source
+multiplier, authored population size, fixed carriers, named phoneme, target
+posture, trajectory, cursor, or word remains prohibited. Before implementation,
+the copied body must identify which already-retained formation members can
+provide that population without duplicating or relabelling cognition.

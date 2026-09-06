@@ -1375,7 +1375,7 @@ they do not override this baseline.
   respiratory/laryngeal gesture, constrained by primary infant-primate vocal
   development evidence—not a word table or complete-pose bootstrap.
 
-### 2026-09-06 — Speech attempt 47K closes duration; attempt 50A rejects contacts alone
+### 2026-09-06 — Speech attempt 47K closes duration; attempt 50 corrects the vocal causal boundary
 
 - Correction to the stale 47J next-item line: 47K already tested duration. The
   existing 32 ms motor pulse was unfolded over the true 1 ms tissue clock for a
@@ -1389,18 +1389,32 @@ they do not override this baseline.
   on exact task-1429 body `sha256:9db4d05c...`. This topology is diagnostic and
   prohibited from shipping. Cold topology round-trip and learned-work/gate
   conservation were exact.
-- Range result: `0/8` target motors through exposure 128; at exposure 236 all
-  four open-phase tract motors discharged together; at exposure 256 the four
-  closed-phase motors still had not discharged. Therefore missing contacts alone
-  are rejected as sufficient, while lawful learned fan-out to a simultaneous
-  four-axis phase is positively proved.
+- First range result: `0/8` target motors through exposure 128; at exposure 236
+  all four open-phase tract motors discharged together; at exposure 256 the
+  four closed-phase motors had not yet discharged. Calling that finite ceiling
+  a rejection was an analysis error. It proved latency through 256, not
+  impossibility beyond 256.
 - No complete gesture existed, so the harness deliberately rendered no sound
   and makes no speech claim. Result artifact
   `sha256:e51f3a40d93d34644dfb1edc82a8f7101a653507eaa948f3c1a53883e62faf8c`.
 - One bounded harness process peaked in the approximately 1.32--1.38 GB band
   and left no survivor. AWS before and after remained task 1429 at `1/1`, zero
   pending/failed tasks, with memory-runaway and interval-refusal alarms `OK`.
-- Exact next item: dynamically measure work distribution from the two existing
-  ordering populations into their four-motor synergies. Do not alter the vocal
-  organ, duration, pitch, phonemes, trajectories, sequence objects, or fixed
-  carrier quantities.
+- The corrected scale-one extension reached all four closed-phase motors at
+  occurrence 335 and later repeated both four-motor phases naturally. Exact
+  learned-work balance and cold round trips passed. It produced zero respiratory
+  work and exact acoustic silence. Result `sha256:ce6e592d...`; silent WAV
+  `sha256:61480b2c...`.
+- A `cfg(test)` scale-four comparison multiplied the one source transition's
+  offered and accounted work as an artificial population surrogate. It reached
+  open/closed phases at 59/84, continued for nine four-motor pulses, co-recruited
+  respiratory work, and produced bounded native pressure (`126681/512000`
+  nonzero, peak `426`). Result `sha256:4cbee974...`. It is diagnostic only: it
+  made no real neurons and cannot ship.
+- The exact causal boundary is no longer the organ, duration, or raw contact
+  fan-out. The living body has only one learned L11 source per four-axis vocal
+  phase and only one of four required motor contacts per phase. The next item is
+  to identify the existing retained formation population that can lawfully grow
+  those contacts and supply independently conserved work. No source multiplier,
+  authored population size, fixed carriers, phoneme, posture, trajectory,
+  sequence object, or cursor is authorized.

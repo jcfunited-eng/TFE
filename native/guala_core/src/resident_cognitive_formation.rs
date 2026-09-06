@@ -18453,6 +18453,30 @@ struct LearnedSourceWorkDebit {
     consumed_work_zeptojoules: BigRational,
 }
 
+#[cfg(test)]
+static ARTIFICIAL_LEARNED_MOTOR_SOURCE_POPULATION_SCALE: std::sync::atomic::AtomicU32 =
+    std::sync::atomic::AtomicU32::new(1);
+
+/// Test-process-only artificial population width. Production does not compile
+/// this authority. A probe may use it to ask whether several coactive ordering
+/// neurons, each paying its own source work, remove a measured single-cell
+/// fan-out bottleneck before any developmental law is changed.
+#[cfg(test)]
+fn replace_artificial_learned_motor_source_population_scale(scale: u32) -> u32 {
+    assert!(scale > 0, "artificial population scale must be positive");
+    ARTIFICIAL_LEARNED_MOTOR_SOURCE_POPULATION_SCALE.swap(
+        scale,
+        std::sync::atomic::Ordering::SeqCst,
+    )
+}
+
+#[cfg(test)]
+fn artificial_learned_motor_source_population_scale() -> u32 {
+    ARTIFICIAL_LEARNED_MOTOR_SOURCE_POPULATION_SCALE.load(
+        std::sync::atomic::Ordering::SeqCst,
+    )
+}
+
 #[derive(Clone)]
 struct PendingLayerTenPlasticitySettlement {
     neuron_lineage: [u8; 16],
@@ -19533,6 +19557,9 @@ fn settle_internal_contact_interval(
                     .exported_heat_zeptojoules
                     * exact_to_wide(learned_conductance)
                     / denominator;
+                #[cfg(test)]
+                let offered_work = offered_work
+                    * BigInt::from(artificial_learned_motor_source_population_scale());
                 if offered_work <= BigRational::zero() {
                     continue;
                 }
@@ -19558,6 +19585,29 @@ fn settle_internal_contact_interval(
                     .then(left.learned_bond.cmp(&right.learned_bond))
             });
             offers.dedup();
+        }
+        #[cfg(test)]
+        {
+            let population_scale = artificial_learned_motor_source_population_scale();
+            if population_scale > 1 {
+                let source_positions = learned_motor_work_offers
+                    .values()
+                    .flat_map(|offers| {
+                        offers
+                            .iter()
+                            .map(|offer| offer.source_transition_position)
+                    })
+                    .collect::<BTreeSet<_>>();
+                let population_scale = BigInt::from(population_scale);
+                for source_position in source_positions {
+                    let transition = settled
+                        .transitions
+                        .get_mut(source_position)
+                        .expect("test population source transition exists");
+                    transition.released_work_zeptojoules *= &population_scale;
+                    transition.exported_heat_zeptojoules *= &population_scale;
+                }
+            }
         }
     }
 

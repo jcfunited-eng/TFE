@@ -3742,6 +3742,28 @@ fn artificial_vocal_synergy_unblock_json(
         .encode(usize::MAX)
         .expect("artificial copied body re-encodes")
         == artificially_encoded;
+    let artificial_source_population_scale = std::env::var(
+        "GUALA_PROBE_ARTIFICIAL_VOCAL_SOURCE_POPULATION_SCALE",
+    )
+    .ok()
+    .map(|value| {
+        value
+            .parse::<u32>()
+            .expect("artificial vocal source population scale is u32")
+    })
+    .unwrap_or(1);
+    assert!(
+        (1..=16).contains(&artificial_source_population_scale),
+        "artificial vocal source population scale must be 1..=16"
+    );
+    let replaced_population_scale =
+        super::replace_artificial_learned_motor_source_population_scale(
+            artificial_source_population_scale,
+        );
+    assert_eq!(
+        replaced_population_scale, 1,
+        "artificial population scale leaked across probe"
+    );
 
     let mut carried_states = target_motors
         .iter()
@@ -3759,13 +3781,27 @@ fn artificial_vocal_synergy_unblock_json(
         .iter()
         .map(|(_, _, _, motor)| *motor)
         .collect::<std::collections::BTreeSet<_>>();
-    let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
+    let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1_024];
+    let maximum_repeated_events = std::env::var(
+        "GUALA_PROBE_ARTIFICIAL_VOCAL_MAXIMUM_REPEATED_EVENTS",
+    )
+    .ok()
+    .map(|value| {
+        value
+            .parse::<u32>()
+            .expect("artificial vocal maximum repeated events is u32")
+    })
+    .unwrap_or(256);
+    assert!(
+        (1..=1_024).contains(&maximum_repeated_events),
+        "artificial vocal maximum repeated events must be 1..=1024"
+    );
     let mut checkpoint_results = Vec::new();
     let mut first_discharge = std::collections::BTreeMap::<[u8; 16], u32>::new();
     let mut natural_continuation = None;
     let mut preparation_balances_exact = true;
 
-    for repeated_event in 1_u32..=256 {
+    for repeated_event in 1_u32..=maximum_repeated_events {
         let mut trial = artificially_bridged.clone();
         let mut replacements_by_cohort =
             std::collections::BTreeMap::<usize, Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>>::new();
@@ -3861,6 +3897,11 @@ fn artificial_vocal_synergy_unblock_json(
     let mut natural_pulses = Vec::new();
     let mut pressure = Vec::<i16>::new();
     let mut successor_body = articulated_body.cloned();
+    let mut target_axis_positions: [Vec<i32>; 4] = std::array::from_fn(|index| {
+        articulated_body
+            .map(|body| vec![body.axis(target_axes[index])])
+            .unwrap_or_default()
+    });
     if let Some((mut continued, mut frontier, mut residency, _)) = natural_continuation {
         for continuation_clock in 1_u64..=128 {
             let mut reached_lineages = frontier
@@ -3964,6 +4005,14 @@ fn artificial_vocal_synergy_unblock_json(
                 .expect("artificial synergy acoustics settle");
                 pressure.extend_from_slice(&acoustic.radiated_pressure_pcm);
                 successor_body = Some(acoustic.successor_body);
+                for (index, axis) in target_axes.iter().copied().enumerate() {
+                    target_axis_positions[index].push(
+                        successor_body
+                            .as_ref()
+                            .expect("artificial successor body retained")
+                            .axis(axis),
+                    );
+                }
             }
             frontier = observation.next_active_frontier;
         }
@@ -3974,10 +4023,43 @@ fn artificial_vocal_synergy_unblock_json(
         .max()
         .unwrap_or(0);
     let nonzero_pressure_samples = pressure.iter().filter(|sample| **sample != 0).count();
+    let pressure_wav = std::env::var("GUALA_PROBE_ARTIFICIAL_VOCAL_PRESSURE_WAV")
+        .ok()
+        .map(|path| {
+            let data_bytes = u32::try_from(pressure.len() * std::mem::size_of::<i16>())
+                .expect("artificial vocal WAV data width");
+            let mut wav = Vec::with_capacity(44 + data_bytes as usize);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&(36_u32 + data_bytes).to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16_u32.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&16_000_u32.to_le_bytes());
+            wav.extend_from_slice(&32_000_u32.to_le_bytes());
+            wav.extend_from_slice(&2_u16.to_le_bytes());
+            wav.extend_from_slice(&16_u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&data_bytes.to_le_bytes());
+            for sample in &pressure {
+                wav.extend_from_slice(&sample.to_le_bytes());
+            }
+            fs::write(&path, &wav).expect("artificial vocal pressure WAV writes");
+            json!({"path": path, "bytes": wav.len()})
+        });
+    let restored_population_scale =
+        super::replace_artificial_learned_motor_source_population_scale(1);
+    assert_eq!(
+        restored_population_scale, artificial_source_population_scale,
+        "artificial population scale changed during probe"
+    );
 
     json!({
         "measurement_only": true,
         "artificial_topology_never_ships": true,
+        "artificial_source_population_never_ships": true,
+        "artificial_source_population_scale": artificial_source_population_scale,
+        "maximum_repeated_events": maximum_repeated_events,
         "accepted_word_or_speech_claim": false,
         "open_ordering": lineage_hex(open_ordering),
         "closed_ordering": lineage_hex(closed_ordering),
@@ -4002,6 +4084,18 @@ fn artificial_vocal_synergy_unblock_json(
         "pressure_sample_count": pressure.len(),
         "nonzero_pressure_samples": nonzero_pressure_samples,
         "pressure_peak": pressure_peak,
+        "pressure_wav": pressure_wav,
+        "target_axis_ranges": target_axes.iter().copied().enumerate().map(|(index, axis)| {
+            let positions = &target_axis_positions[index];
+            json!({
+                "axis": format!("{axis:?}"),
+                "sample_count": positions.len(),
+                "predecessor": positions.first(),
+                "minimum": positions.iter().min(),
+                "maximum": positions.iter().max(),
+                "successor": positions.last(),
+            })
+        }).collect::<Vec<_>>(),
         "successor_body_cold_round_trip_exact": successor_body.as_ref().is_some_and(|body| {
             ArticulatedBodyState::decode(&body.encode().expect("artificial successor body encodes"))
                 .expect("artificial successor body decodes") == *body
