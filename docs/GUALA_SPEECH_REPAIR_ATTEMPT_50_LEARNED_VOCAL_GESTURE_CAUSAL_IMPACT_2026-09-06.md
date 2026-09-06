@@ -289,3 +289,65 @@ work. The exact missing boundary is learned integration of vocal motor-ordering
 cells into recurrent multi-axis, multi-phase activity. The next range harness
 will decide whether that is unreachable developmental experience or one
 overconstrained native growth gate; it will not guess by editing production.
+
+## Attempt 50A — artificial missing-contact unblock (rejected as sufficient)
+
+The first test-only artificial-unblock run is complete. Its immutable input was
+the exact task-1429 copied production body
+`sha256:9db4d05cb4d3de3a99aef5129596c4ea82dc5552d7f00eea0c934d7673d79df1`.
+The result body is
+`sha256:e51f3a40d93d34644dfb1edc82a8f7101a653507eaa948f3c1a53883e62faf8c`.
+No artificial state was written outside the harness and nothing was deployed.
+
+The harness found the existing learned open-ordering route through section 0
+toward maximum and the existing learned closed-ordering route through section 7
+toward minimum. On the copied body only, it added the six missing contacts
+needed for both orderings to reach both directions of sections 0, 1, 2, and 7.
+The added topology encoded and cold-decoded byte-exactly. All learned-work offer
+and gate conservation equalities remained exact.
+
+Measured exposure result:
+
+| repeated complete occurrence | target motors ever discharged |
+|---:|---:|
+| 1 | 0/8 |
+| 2 | 0/8 |
+| 4 | 0/8 |
+| 8 | 0/8 |
+| 16 | 0/8 |
+| 32 | 0/8 |
+| 64 | 0/8 |
+| 128 | 0/8 |
+| 236 | all four open-phase motors together |
+| 256 | 4/8 total; no closed-phase motor |
+
+This rejects the proposition that contact coverage alone is sufficient. It
+also proves something narrower and useful: one existing organism-owned ordering
+cell can lawfully fan out through the unchanged contact, learned-work, motor,
+and gate laws and make a four-axis phase discharge simultaneously. The failure
+is now downstream of missing contact existence and upstream of a complete
+open/closed gesture: finite source work is divided among the four destinations,
+and the two ordering routes do not bring their motor groups to discharge in the
+same bounded exposure regime.
+
+There was no natural continuation because the complete eight-motor criterion
+did not pass, therefore zero acoustic samples were rendered and no sound claim
+is permitted. This is not an acoustic failure and must not reopen the accepted
+organ, breath, tract, duration, or pressure work.
+
+Resource closure:
+
+- one harness process, approximately 1.32--1.38 GB resident memory, bounded;
+- process exited successfully with no surviving harness child;
+- AWS before and after: task 1429 desired/running `1/1`, pending `0`, failed
+  `0`; memory-runaway and interval-refusal alarms both `OK`;
+- production was read-only and unchanged.
+
+Rejected repair mechanism: authoring the six missing contacts is not a repair
+and may never ship. It is now also rejected as a complete causal explanation.
+The exact next falsifier is a copied-body dynamic work-distribution range over
+the already identified open and closed ordering populations. It must determine
+whether ordinary population recruitment provides the missing simultaneous work
+or whether the current learned-work fan-out law destroys a causally relevant
+population magnitude. It must not install fixed carriers, a phoneme, a pose, a
+trajectory, a sequence cursor, or a special speech rule.

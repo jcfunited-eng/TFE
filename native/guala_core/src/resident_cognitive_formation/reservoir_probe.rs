@@ -3589,6 +3589,426 @@ fn production_replayed_motor_discharge_json(
     })
 }
 
+/// Test-only artificial unblock for the exact copied production body.
+///
+/// The two vocal ordering routes the body actually learned are each widened
+/// to the other three tract terminals belonging to the same open/closed
+/// directional synergy. This anatomy is deliberately authored by the test and
+/// can never ship. It answers only one causal question: if the missing six
+/// learned contacts existed, would the unchanged learned-work, motor, tissue,
+/// breath, and pressure laws recruit a multi-axis vocal gesture? A negative
+/// result falsifies contact coverage as the present blocker; a positive result
+/// authorizes investigation of the developmental growth boundary, not this
+/// artificial topology.
+fn artificial_vocal_synergy_unblock_json(
+    state: &ResidentCognitiveFormationState,
+    articulated_body: Option<&ArticulatedBodyState>,
+) -> Value {
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    let target_axes = [
+        BodyAxis::VocalTractSection0Area,
+        BodyAxis::VocalTractSection1Area,
+        BodyAxis::VocalTractSection2Area,
+        BodyAxis::VocalTractSection7Area,
+    ];
+    let motor_for_terminal = |terminal: BodyEffectorTerminal| {
+        state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .filter_map(|(mount, lineage)| {
+                (mount.source_site().is_none()
+                    && mount.place().layer() == 12
+                    && mount.body_effector_terminal() == Some(terminal))
+                .then_some(*lineage)
+            })
+            .collect::<Vec<_>>()
+    };
+    let ordering_for_motor = |motor: [u8; 16]| {
+        state
+            .electrical_fabric
+            .contact_endpoints()
+            .filter_map(|(left, right)| {
+                let left = state.electrical_fabric.lineages()[left];
+                let right = state.electrical_fabric.lineages()[right];
+                match (
+                    state.topology_index.layer_of(left),
+                    state.topology_index.layer_of(right),
+                ) {
+                    (Some(11), Some(12)) if right == motor => Some(left),
+                    (Some(12), Some(11)) if left == motor => Some(right),
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>()
+    };
+
+    let open_anchor_motors = motor_for_terminal(BodyEffectorTerminal::new(
+        BodyAxis::VocalTractSection0Area,
+        BodyEffectorDirection::TowardMaximum,
+    ));
+    let [open_anchor_motor] = open_anchor_motors.as_slice() else {
+        return json!({"error": "section-0 maximum motor is not unique"});
+    };
+    let closed_anchor_motors = motor_for_terminal(BodyEffectorTerminal::new(
+        BodyAxis::VocalTractSection7Area,
+        BodyEffectorDirection::TowardMinimum,
+    ));
+    let [closed_anchor_motor] = closed_anchor_motors.as_slice() else {
+        return json!({"error": "section-7 minimum motor is not unique"});
+    };
+    let open_orderings = ordering_for_motor(*open_anchor_motor);
+    let [open_ordering] = open_orderings.as_slice() else {
+        return json!({"error": "learned open ordering route is not unique"});
+    };
+    let open_ordering = *open_ordering;
+    let closed_orderings = ordering_for_motor(*closed_anchor_motor);
+    let [closed_ordering] = closed_orderings.as_slice() else {
+        return json!({"error": "learned closed ordering route is not unique"});
+    };
+    let closed_ordering = *closed_ordering;
+
+    let mut target_motors = Vec::<(
+        &'static str,
+        BodyEffectorTerminal,
+        [u8; 16],
+        [u8; 16],
+    )>::new();
+    for axis in target_axes {
+        for (phase, direction, ordering) in [
+            ("closed", BodyEffectorDirection::TowardMinimum, closed_ordering),
+            ("open", BodyEffectorDirection::TowardMaximum, open_ordering),
+        ] {
+            let terminal = BodyEffectorTerminal::new(axis, direction);
+            let motors = motor_for_terminal(terminal);
+            let [motor] = motors.as_slice() else {
+                return json!({
+                    "error": "target vocal motor is not unique",
+                    "terminal": format!("{terminal:?}"),
+                    "count": motors.len(),
+                });
+            };
+            target_motors.push((phase, terminal, ordering, *motor));
+        }
+    }
+
+    let mut artificially_bridged = state.clone();
+    let mut additions = Vec::new();
+    for (_, _, ordering, motor) in &target_motors {
+        if !artificially_bridged
+            .electrical_fabric
+            .contains_contact(*ordering, *motor)
+        {
+            additions.push((
+                *ordering,
+                *motor,
+                ExactRational::integer(super::DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            ));
+        }
+    }
+    additions.sort_by_key(|(ordering, motor, _)| (*ordering, *motor));
+    additions.dedup_by_key(|(ordering, motor, _)| (*ordering, *motor));
+    artificially_bridged.electrical_fabric = artificially_bridged
+        .electrical_fabric
+        .append_contacts(&additions)
+        .expect("artificial copied-body contact append");
+    artificially_bridged.topology_index = std::sync::Arc::new(
+        super::ResidentTopologyIndex::build(
+            &artificially_bridged.cohorts,
+            &artificially_bridged.electrical_fabric,
+        )
+        .expect("artificial copied-body topology"),
+    );
+    let artificially_encoded = artificially_bridged
+        .encode(usize::MAX)
+        .expect("artificial copied body encodes");
+    let artificially_cold = ResidentCognitiveFormationState::decode(
+        &artificially_encoded,
+        usize::MAX,
+    )
+    .expect("artificial copied body cold-decodes");
+    let artificial_cold_exact = artificially_cold
+        .encode(usize::MAX)
+        .expect("artificial copied body re-encodes")
+        == artificially_encoded;
+
+    let mut carried_states = target_motors
+        .iter()
+        .map(|(_, _, _, motor)| {
+            let (cohort_index, neuron_index) =
+                mounted_neuron_location(&artificially_bridged, *motor);
+            (
+                *motor,
+                artificially_bridged.cohorts[cohort_index].state.neurons()[neuron_index]
+                    .clone(),
+            )
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let target_set = target_motors
+        .iter()
+        .map(|(_, _, _, motor)| *motor)
+        .collect::<std::collections::BTreeSet<_>>();
+    let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
+    let mut checkpoint_results = Vec::new();
+    let mut first_discharge = std::collections::BTreeMap::<[u8; 16], u32>::new();
+    let mut natural_continuation = None;
+    let mut preparation_balances_exact = true;
+
+    for repeated_event in 1_u32..=256 {
+        let mut trial = artificially_bridged.clone();
+        let mut replacements_by_cohort =
+            std::collections::BTreeMap::<usize, Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>>::new();
+        for (lineage, motor_state) in &carried_states {
+            let (cohort_index, neuron_index) = mounted_neuron_location(&trial, *lineage);
+            replacements_by_cohort
+                .entry(cohort_index)
+                .or_default()
+                .push((neuron_index, motor_state.clone()));
+        }
+        for (cohort_index, replacements) in replacements_by_cohort {
+            trial.cohorts[cohort_index].state = trial.cohorts[cohort_index]
+                .state
+                .with_replaced_neurons(&replacements)
+                .expect("artificial synergy motor-state carry")
+                .into();
+        }
+        let topology = trial.topology_index.clone();
+        let mut frontier = trial.active_electrical_frontier.to_vec();
+        let mut residency = None;
+        for active_clock in 1_u64..=2 {
+            let mut reached_lineages = frontier
+                .iter()
+                .flat_map(|entry| entry.affected_lineages().into_iter().flatten())
+                .collect::<Vec<_>>();
+            reached_lineages.sort_unstable();
+            reached_lineages.dedup();
+            let mut changed = std::collections::BTreeSet::new();
+            let resting = trial
+                .resting_population
+                .as_ref()
+                .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
+                .unwrap_or(0);
+            let observation = super::settle_internal_contact_interval(
+                &mut trial.cohorts,
+                &mut trial.electrical_fabric,
+                &topology,
+                trial.vocal_articulatory_effector_lineage,
+                &frontier,
+                &reached_lineages,
+                &reached_lineages,
+                &[],
+                &mut changed,
+                trial.generation + active_clock,
+                resting,
+                &mut residency,
+                &std::collections::BTreeMap::new(),
+                &[],
+                &[],
+                ExactRational::integer(0),
+            )
+            .expect("artificial synergy repeated occurrence settles");
+            for preparation in &observation.learned_motor_work_preparations {
+                preparation_balances_exact &= preparation.total_offered_work_zeptojoules
+                    == preparation.accepted_work_zeptojoules.clone()
+                        + preparation.retained_source_heat_zeptojoules.clone();
+                preparation_balances_exact &= preparation.predecessor_residue_zeptojoules.clone()
+                    + preparation.accepted_work_zeptojoules.clone()
+                    == preparation.delivered_gate_work_zeptojoules.clone()
+                        + preparation.successor_residue_zeptojoules.clone()
+                        + preparation.residue_narrowing_heat_zeptojoules.clone();
+            }
+            for recruitment in observation.motor_unit_recruitments {
+                if target_set.contains(&recruitment.neuron_lineage)
+                    && !recruitment.learned_work_preparations.is_empty()
+                {
+                    first_discharge
+                        .entry(recruitment.neuron_lineage)
+                        .or_insert(repeated_event);
+                }
+            }
+            frontier = observation.next_active_frontier;
+        }
+        for lineage in &target_set {
+            let (cohort_index, neuron_index) = mounted_neuron_location(&trial, *lineage);
+            carried_states.insert(
+                *lineage,
+                trial.cohorts[cohort_index].state.neurons()[neuron_index].clone(),
+            );
+        }
+        if checkpoints.contains(&repeated_event) {
+            checkpoint_results.push(json!({
+                "repeated_event": repeated_event,
+                "target_motors_discharged": first_discharge.len(),
+            }));
+        }
+        if first_discharge.len() == target_set.len() {
+            natural_continuation = Some((trial, frontier, residency, repeated_event));
+            break;
+        }
+    }
+
+    let mut natural_pulses = Vec::new();
+    let mut pressure = Vec::<i16>::new();
+    let mut successor_body = articulated_body.cloned();
+    if let Some((mut continued, mut frontier, mut residency, _)) = natural_continuation {
+        for continuation_clock in 1_u64..=128 {
+            let mut reached_lineages = frontier
+                .iter()
+                .flat_map(|entry| entry.affected_lineages().into_iter().flatten())
+                .collect::<Vec<_>>();
+            reached_lineages.sort_unstable();
+            reached_lineages.dedup();
+            let topology = continued.topology_index.clone();
+            let mut changed = std::collections::BTreeSet::new();
+            let resting = continued
+                .resting_population
+                .as_ref()
+                .map(|population| usize::try_from(population.resting_cell_count()).unwrap())
+                .unwrap_or(0);
+            let observation = super::settle_internal_contact_interval(
+                &mut continued.cohorts,
+                &mut continued.electrical_fabric,
+                &topology,
+                continued.vocal_articulatory_effector_lineage,
+                &frontier,
+                &reached_lineages,
+                &reached_lineages,
+                &[],
+                &mut changed,
+                continued.generation + 2 + continuation_clock,
+                resting,
+                &mut residency,
+                &std::collections::BTreeMap::new(),
+                &[],
+                &[],
+                ExactRational::integer(0),
+            )
+            .expect("artificial synergy natural continuation settles");
+            let vocal = observation
+                .motor_unit_recruitments
+                .iter()
+                .filter(|recruitment| target_set.contains(&recruitment.neuron_lineage))
+                .collect::<Vec<_>>();
+            let respiratory = observation
+                .articulatory_unit_recruitments
+                .iter()
+                .try_fold(0_u128, |total, event| {
+                    total.checked_add(event.outward_elementary_carriers)
+                })
+                .expect("artificial synergy respiratory width");
+            if !vocal.is_empty() || respiratory != 0 {
+                let phases = vocal
+                    .iter()
+                    .flat_map(|recruitment| {
+                        recruitment
+                            .learned_work_preparations
+                            .iter()
+                            .flat_map(|preparation| preparation.routes.iter())
+                            .filter_map(|route| {
+                                if route.ordering_lineage == open_ordering {
+                                    Some("open")
+                                } else if route.ordering_lineage == closed_ordering {
+                                    Some("closed")
+                                } else {
+                                    None
+                                }
+                            })
+                    })
+                    .collect::<std::collections::BTreeSet<_>>();
+                natural_pulses.push(json!({
+                    "continuation_clock": continuation_clock,
+                    "phases": phases,
+                    "vocal_motor_count": vocal.len(),
+                    "vocal_motors": vocal.iter().map(|recruitment| json!({
+                        "lineage": lineage_hex(recruitment.neuron_lineage),
+                        "terminal": format!("{:?}", recruitment.body_effector_terminal),
+                        "carriers": recruitment.outward_elementary_carriers.to_string(),
+                    })).collect::<Vec<_>>(),
+                    "respiratory_carriers": respiratory.to_string(),
+                }));
+            }
+            if let Some(body) = successor_body.take() {
+                let admitted = AdmittedBodyEffectorDrives::admit(
+                    vocal
+                        .iter()
+                        .map(|recruitment| BodyEffectorDrive {
+                            terminal: recruitment.body_effector_terminal,
+                            outward_elementary_carriers: recruitment.outward_elementary_carriers,
+                        })
+                        .collect(),
+                )
+                .expect("artificial synergy body drives admit");
+                let moved = settle_body_effector_drives(
+                    &body,
+                    &admitted,
+                    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+                )
+                .expect("artificial synergy body settles");
+                let acoustic = settle_native_articulatory_interval(
+                    moved.successor,
+                    &moved.proprioceptive_consequences,
+                    respiratory,
+                    4_000,
+                )
+                .expect("artificial synergy acoustics settle");
+                pressure.extend_from_slice(&acoustic.radiated_pressure_pcm);
+                successor_body = Some(acoustic.successor_body);
+            }
+            frontier = observation.next_active_frontier;
+        }
+    }
+    let pressure_peak = pressure
+        .iter()
+        .map(|sample| sample.unsigned_abs())
+        .max()
+        .unwrap_or(0);
+    let nonzero_pressure_samples = pressure.iter().filter(|sample| **sample != 0).count();
+
+    json!({
+        "measurement_only": true,
+        "artificial_topology_never_ships": true,
+        "accepted_word_or_speech_claim": false,
+        "open_ordering": lineage_hex(open_ordering),
+        "closed_ordering": lineage_hex(closed_ordering),
+        "target_motor_count": target_motors.len(),
+        "artificial_contact_count": additions.len(),
+        "artificial_contacts": additions.iter().map(|(ordering, motor, _)| json!({
+            "ordering": lineage_hex(*ordering),
+            "motor": lineage_hex(*motor),
+        })).collect::<Vec<_>>(),
+        "artificial_cold_round_trip_exact": artificial_cold_exact,
+        "preparation_balances_exact": preparation_balances_exact,
+        "first_discharges": target_motors.iter().map(|(phase, terminal, ordering, motor)| json!({
+            "phase": phase,
+            "terminal": format!("{terminal:?}"),
+            "ordering": lineage_hex(*ordering),
+            "motor": lineage_hex(*motor),
+            "first_repeated_event": first_discharge.get(motor),
+        })).collect::<Vec<_>>(),
+        "range_checkpoints": checkpoint_results,
+        "all_target_motors_discharged": first_discharge.len() == target_set.len(),
+        "natural_continuation_pulses": natural_pulses,
+        "pressure_sample_count": pressure.len(),
+        "nonzero_pressure_samples": nonzero_pressure_samples,
+        "pressure_peak": pressure_peak,
+        "successor_body_cold_round_trip_exact": successor_body.as_ref().is_some_and(|body| {
+            ArticulatedBodyState::decode(&body.encode().expect("artificial successor body encodes"))
+                .expect("artificial successor body decodes") == *body
+        }),
+    })
+}
+
 fn wide_exact_from_json(value: &Value) -> BigRational {
     let numerator = value["numerator"]
         .as_str()
@@ -4956,11 +5376,25 @@ fn reservoir_probe_dump() {
             std::env::var_os("GUALA_PROBE_TEMPORAL_GATE_WORK_ONLY").is_some();
         let production_replayed_motor_only =
             std::env::var_os("GUALA_PROBE_PRODUCTION_REPLAYED_MOTOR_ONLY").is_some();
+        let artificial_vocal_synergy_only =
+            std::env::var_os("GUALA_PROBE_ARTIFICIAL_VOCAL_SYNERGY_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
         let candidate_tissue_proof_only =
             std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
-        let record = if production_replayed_motor_only {
+        let record = if artificial_vocal_synergy_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for artificial vocal-synergy control");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "artificial_vocal_synergy_unblock":
+                    artificial_vocal_synergy_unblock_json(
+                        &state,
+                        articulated_body.as_ref(),
+                    ),
+            })
+        } else if production_replayed_motor_only {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state for production motor replay");
             json!({

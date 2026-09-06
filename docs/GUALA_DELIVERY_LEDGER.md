@@ -1374,3 +1374,33 @@ they do not override this baseline.
   has occurred. The next speech mechanism is sustained organism-owned
   respiratory/laryngeal gesture, constrained by primary infant-primate vocal
   development evidence—not a word table or complete-pose bootstrap.
+
+### 2026-09-06 — Speech attempt 47K closes duration; attempt 50A rejects contacts alone
+
+- Correction to the stale 47J next-item line: 47K already tested duration. The
+  existing 32 ms motor pulse was unfolded over the true 1 ms tissue clock for a
+  represented 250 ms interval. Posture changed, but acoustic occupancy and peak
+  did not materially change (`3991/4000`, peak `428`, versus `3988/4000`, peak
+  `429`). Duration remains a shell/runtime defect but is rejected as the current
+  speech blocker and must not be tested again for this repair.
+- Speech-050 completed the causal-impact analysis and exact copied-production-
+  body baseline at commit `d942b0b4`; no production code or body changed.
+- Attempt 50A artificially added only the six missing L11-to-L12 vocal contacts
+  on exact task-1429 body `sha256:9db4d05c...`. This topology is diagnostic and
+  prohibited from shipping. Cold topology round-trip and learned-work/gate
+  conservation were exact.
+- Range result: `0/8` target motors through exposure 128; at exposure 236 all
+  four open-phase tract motors discharged together; at exposure 256 the four
+  closed-phase motors still had not discharged. Therefore missing contacts alone
+  are rejected as sufficient, while lawful learned fan-out to a simultaneous
+  four-axis phase is positively proved.
+- No complete gesture existed, so the harness deliberately rendered no sound
+  and makes no speech claim. Result artifact
+  `sha256:e51f3a40d93d34644dfb1edc82a8f7101a653507eaa948f3c1a53883e62faf8c`.
+- One bounded harness process peaked in the approximately 1.32--1.38 GB band
+  and left no survivor. AWS before and after remained task 1429 at `1/1`, zero
+  pending/failed tasks, with memory-runaway and interval-refusal alarms `OK`.
+- Exact next item: dynamically measure work distribution from the two existing
+  ordering populations into their four-motor synergies. Do not alter the vocal
+  organ, duration, pitch, phonemes, trajectories, sequence objects, or fixed
+  carrier quantities.
