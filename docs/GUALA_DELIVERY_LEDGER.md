@@ -1333,3 +1333,26 @@ they do not override this baseline.
   32 ms antagonist activation on its 1 ms body clock and feed each resulting
   posture into the 16 kHz organ. The current runtime's one-body-step/one-endpoint
   shortcut is the boundary under test; no named or target trajectory is allowed.
+
+### 2026-09-06 — SPEECH-049: existing-organ-only correction authorized for copy proof
+
+- The clean speech lineage is now `sol/speech-existing-organ` at pre-pitch tip
+  `09c75f85`. It retains Candidate 47 learned-motor transduction and truthful
+  observation while excluding every Candidate 48 tension/body-schema change.
+- The old one-shot vocal calibration is both causally false and ineffective.
+  A complete body snapshot caused 12 tract-motor bindings over six sections;
+  after 32 ordinary intervals the sole new L11/L12 contact merely duplicated
+  the already-active section-0/toward-maximum motor. It added no motor coverage
+  and produced no word.
+- Complete causal impact and copied-task-1429 acceptance gates are frozen in
+  `GUALA_SPEECH_REPAIR_ATTEMPT_49_EXISTING_ORGAN_ONLY_2026-09-06.md`.
+- The only authorized candidate change is deletion of snapshot-to-vocal-motor
+  calibration authority. Production remains task 1429 and untouched. Passing
+  the removal gate will not be called speech; it exposes the genuine remaining
+  learned coordination boundary without fabricated bootstrap movement.
+- Private candidate compile is now clean. Eleven obsolete test/probe arguments
+  exposed by the first correct compile were removed; focused reactive-load and
+  exact incoming-motor-cause tests each executed once and passed. The first
+  package attempt refused the dirty tree as designed, so no candidate image or
+  copied process has yet run. Invocation errors and corrections are retained
+  in the Speech-049 attempt record rather than rediscovered.

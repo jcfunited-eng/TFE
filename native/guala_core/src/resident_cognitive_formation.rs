@@ -160,7 +160,7 @@ use crate::virtual_articulated_body::{
     BodyAxis, BodyEffectorDirection, BodyEffectorTerminal,
     ADDED_BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
     ADDED_BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET, BODY_EFFECTOR_LOAD_TOPOLOGY_OFFSET,
-    BODY_AXES, BODY_EFFECTOR_TERMINAL_COUNT, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
+    BODY_EFFECTOR_TERMINAL_COUNT, BODY_PROPRIOCEPTOR_TOPOLOGY_OFFSET,
     LEGACY_BODY_EFFECTOR_TERMINAL_COUNT,
 };
 use crate::root_yaw_terminal::{
@@ -7633,9 +7633,6 @@ impl ResidentCognitiveFormationState {
         {
             return Err(FormationError::SourceOccurrenceAbsent);
         }
-        let initial_vocal_tract_calibration = admitted_sources.iter().any(|admitted| {
-            is_complete_articulated_body_proprioceptive_admission(admitted.episode())
-        });
         let admitted_occurrence_count = admitted_sources.iter().try_fold(
             0usize,
             |count, admitted| {
@@ -9053,7 +9050,6 @@ impl ResidentCognitiveFormationState {
             &palmar_contact_onset_receptor_lineages,
             &gustatory_contact_onset_receptor_lineages,
             real_nutrition_intake_zeptojoules,
-            initial_vocal_tract_calibration,
         )?;
         let internal_contact_wall = settlement_stopwatch.elapsed();
         let passive_membrane_returned_neuron_count =
@@ -18345,58 +18341,6 @@ fn exact_articulated_body_preparation_regulations(
     regulations
 }
 
-/// Resolve the one position-sense regulation paired with a newly embodied
-/// airway-section motor. It is eligible only during the complete one-shot
-/// proprioceptive admission identified by
-/// `is_complete_articulated_body_proprioceptive_admission`; ordinary pose and
-/// later movement consequences continue to use reacted load only. This gives
-/// a new vocal tract one bounded physical calibration opportunity without a
-/// timer, random command, phoneme target, or recurring tonic drive.
-fn exact_initial_vocal_tract_calibration_regulations(
-    motor_terminal: BodyEffectorTerminal,
-    paths: &[MotorBodyAfferentPath],
-) -> Vec<[u8; 16]> {
-    if !motor_terminal.axis().is_vocal_tract_section() {
-        return Vec::new();
-    }
-    let mut regulations = paths
-        .iter()
-        .filter_map(|path| {
-            let receptor_site = &path.receptor_site;
-            let receptor_terminal = receptor_site.body_proprioceptor_terminal()?;
-            (receptor_site.physical_quantity() == ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
-                && receptor_terminal.paired_effector() == motor_terminal)
-                .then_some(path.body_regulation_lineage)
-        })
-        .collect::<Vec<_>>();
-    regulations.sort_unstable();
-    regulations.dedup();
-    regulations
-}
-
-/// Identify the body authority's exact complete, position-only admission.
-/// Sparse returned consequences carry load endings and cannot satisfy this
-/// shape. The check uses typed terminal anatomy and canonical ordinals; text
-/// labels, source IDs, and observer metadata have no authority.
-fn is_complete_articulated_body_proprioceptive_admission(
-    source: &NativeJointSourceEpisode,
-) -> bool {
-    source.joint_source_occurrences().len() == BODY_AXES.len()
-        && source.joint_source_ports().len() == BODY_EFFECTOR_TERMINAL_COUNT
-        && source
-            .joint_source_ports()
-            .iter()
-            .enumerate()
-            .all(|(ordinal, port)| {
-                port.root_yaw_proprioceptor_terminal.is_none()
-                    && port.root_translation_proprioceptor_terminal.is_none()
-                    && port.physical_quantity == ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
-                    && port
-                        .body_proprioceptor_terminal
-                        .is_some_and(|terminal| terminal.ordinal() == ordinal)
-            })
-}
-
 /// Return only whole-carrier transfers that physically arrive at one mounted
 /// root-yaw motor. A learned layer-11 route is retained causal anatomy and its
 /// exact arriving whole-carrier transfer prepares the terminal without an
@@ -18700,7 +18644,6 @@ fn settle_internal_contact_interval(
     palmar_contact_onset_receptor_lineages: &[[u8; 16]],
     gustatory_contact_onset_receptor_lineages: &[[u8; 16]],
     real_nutrition_intake_zeptojoules: ExactRational,
-    initial_vocal_tract_calibration: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
         events.matches_shape(
@@ -19966,18 +19909,12 @@ fn settle_internal_contact_interval(
         let (cohort_index, neuron_index, _) = flat_locations[motor_flat];
         let motor_mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
         if let Some(motor_terminal) = motor_mount.body_effector_terminal() {
-            let regulations = if initial_vocal_tract_calibration
-                && motor_terminal.axis().is_vocal_tract_section()
-            {
-                exact_initial_vocal_tract_calibration_regulations(motor_terminal, &paths)
-            } else {
-                exact_articulated_body_preparation_regulations(
-                    motor_terminal,
-                    &paths,
-                    palmar_contact_onset_receptor_lineages,
-                    gustatory_contact_onset_receptor_lineages,
-                )
-            };
+            let regulations = exact_articulated_body_preparation_regulations(
+                motor_terminal,
+                &paths,
+                palmar_contact_onset_receptor_lineages,
+                gustatory_contact_onset_receptor_lineages,
+            );
             if !regulations.is_empty() {
                 body_regulations_by_motor.insert(motor_lineage, regulations);
             }
@@ -27334,7 +27271,6 @@ mod tests {
                 &[],
                 &[],
                 ExactRational::integer(0),
-                false,
             )
             .unwrap();
             if let Some(plasticity) = observation
@@ -28301,73 +28237,6 @@ mod tests {
     }
 
     #[test]
-    fn vocal_tract_calibration_accepts_only_the_complete_one_shot_body_source() {
-        let body = ArticulatedBodyState::at_neutral();
-        let complete = admit_complete_articulated_body_state_source(0, &body).unwrap();
-        assert!(is_complete_articulated_body_proprioceptive_admission(
-            &complete
-        ));
-
-        let axis = BodyAxis::VocalTractSection0Area;
-        let anatomy = axis.anatomy();
-        let sparse = admit_articulated_body_consequence_source(
-            1,
-            &[BodyProprioceptiveConsequence {
-                axis,
-                unit: anatomy.unit,
-                predecessor_position: anatomy.neutral,
-                successor_position: anatomy.neutral,
-                signed_displacement: 0,
-                toward_minimum_carriers: 0,
-                toward_maximum_carriers: 0,
-                opposed_carriers_per_terminal: 0,
-                applied_displacement_quanta: 0,
-                stalled_carriers: 0,
-            }],
-        )
-        .unwrap();
-        assert!(!is_complete_articulated_body_proprioceptive_admission(
-            &sparse
-        ));
-
-        let tract_terminal = BodyEffectorTerminal::new(
-            axis,
-            BodyEffectorDirection::TowardMinimum,
-        );
-        let ordinary_terminal = BodyEffectorTerminal::new(
-            BodyAxis::LeftGripAperture,
-            BodyEffectorDirection::TowardMinimum,
-        );
-        let port = complete
-            .joint_source_ports()
-            .iter()
-            .find(|port| {
-                port.body_proprioceptor_terminal
-                    == Some(BodyProprioceptorTerminal::new(
-                        axis,
-                        BodyEffectorDirection::TowardMinimum,
-                    ))
-            })
-            .unwrap();
-        let calibration_lineage = [9_u8; 16];
-        let paths = [MotorBodyAfferentPath {
-            body_regulation_lineage: calibration_lineage,
-            integration_lineage: [8_u8; 16],
-            receptor_lineage: [7_u8; 16],
-            receptor_site: NeuronSourceSite::from_source_port(port).unwrap(),
-        }];
-        assert_eq!(
-            exact_initial_vocal_tract_calibration_regulations(tract_terminal, &paths),
-            vec![calibration_lineage]
-        );
-        assert!(exact_initial_vocal_tract_calibration_regulations(
-            ordinary_terminal,
-            &paths
-        )
-        .is_empty());
-    }
-
-    #[test]
     fn only_incoming_ordering_or_body_regulation_transfer_prepares_motor() {
         let regulation = [8_u8; 16];
         let tonic_position_regulation = [9_u8; 16];
@@ -28970,7 +28839,6 @@ mod tests {
                 &[],
                 &[],
                 ExactRational::integer(0),
-                false,
             )
             .unwrap();
             let events = residency.as_ref().expect("residency must persist");
@@ -29039,7 +28907,6 @@ mod tests {
                 &[],
                 &[],
                 ExactRational::integer(0),
-                false,
             )
             .unwrap();
         }
