@@ -140,3 +140,105 @@ the removed snapshot-to-action authority to make that development look green.
 
 These invocation errors are retained so the same ground is not repeated. They
 are harness/provenance errors, not organism-physics results.
+
+## Exact copied-production-body verdict
+
+The sealed Candidate-49 image was built from commit `2f43ab1e` and release
+receipt `b02cf6bde023e21db865b0b57bf58757487a5727c7f61deb2b66e3f37afaea3c`.
+It ran with no network, a read-only container root, two CPUs, a 4 GiB memory
+ceiling, and Docker-managed copies only.
+
+The source capture directory's `CURRENT` had already been moved by the earlier
+Candidate-48 migration from raw production V8 receipt `9db4d05c...` to private
+V9 receipt `836ad430...`. A direct startup therefore refused V9 as it should;
+this did not show that production was V9. The retained compressed
+`9db4d05c...` generation was decoded and hash-verified to its exact
+112,836,426 raw bytes, then restored directly under the task-1429 resource and
+sense flags with its exact world `613fc673...`.
+
+Across 32 ordinary whole-sensorium intervals:
+
+- the initial complete-body observation caused zero vocal motor bindings;
+- all later intervals also caused zero vocal motor bindings;
+- fourteen vocal-tissue consequences were passive return from body state and
+  were not relabelled as acts;
+- identity, 1,914 completed neurons, 194,815 resting neurons, and 181 mosaics
+  were preserved;
+- the final 112,828,807-byte checkpoint at tick 469878 had receipt
+  `d6caa768...` and restored cold to exactly the same receipt, body hash,
+  counts, and identity;
+- peak resident memory was 1,423,256 KiB under the hard ceiling; and
+- represented 250 ms intervals still cost 2,314.2--3,143.9 ms, mean 2,554.7
+  ms. This is retained as the separate shell-timing defect, not hidden by the
+  speech verdict.
+
+Artifacts:
+
+- report SHA-256
+  `5f31e632729fa603fdeed2055ef33366e126a9bfc7d8d099dc5adecf11faa672`;
+- final raw body SHA-256
+  `d6caa768ab44b4ee5373bc36a6291b04aec80c86a053b9c3e625677109a5a2be`.
+
+The ordinary range did not naturally recur a learned vocal cause. The
+unchanged Candidate-47 controlled-occurrence falsifier was therefore run on
+the original raw production body. It preserved both real learned vocal routes:
+section 0 discharged at presentation 95 and section 7 at presentation 134,
+both at five carriers. Source-offer and gate-input balances were exact, fake
+learned carrier transfer count remained zero, both typed tissues moved, and
+the natural continuation produced two later vocal pulses. Its bounded breath
+render produced 3,991 nonzero samples of 4,000 with peak 428. Cold midpoint
+and body round trips were exact. This is controlled causal-path evidence, not
+an autonomy, natural-frequency, word, or conversation claim.
+
+Replay artifact SHA-256:
+`beacb804c420c73b6ffc05ac464d9a2864dcdce5264f3b726ad146eb7d8e6a14`.
+The focused test passed one of one in 524.26 seconds with 607 filtered.
+
+### Copied-run invocation history
+
+1. A `/tmp` file bind was invisible to the Docker daemon and appeared as a
+   directory. Python exited before startup.
+2. Copying the runner into a container already declared read-only was refused.
+   Moving it into the writable proof volume corrected the boundary.
+3. Direct startup against the locally migrated `CURRENT` refused unsupported
+   V9. The prior ledger already named that local pointer mutation; the raw V8
+   production generation remained byte-exact and was used instead.
+4. The first direct raw run omitted the production `GUALA_WORLD=1` flag and
+   refused with `no world is mounted`. The corrected run inherited the exact
+   task-1429 Guala flags, except S3 was disabled and all storage was copied.
+5. The first post-range replay reached genuine vocal discharges but the old
+   diagnostic accumulated repeated commands for the same terminal and the
+   real body rejected `InvalidEffectorDrives` after 406.84 seconds. The
+   test-only collector now retains the first discharge per motor, matching its
+   name and the earlier accepted artifact; no body law was weakened.
+6. That collector correction initially needed an explicit
+   `Vec<MotorUnitRecruitment>` type. The compile failure occurred before a
+   replay. The explicit type compiled cleanly, then the final replay passed.
+
+No related process survived. Pre- and post-run AWS checks both showed exactly
+one healthy completed task 1429 and all five Guala alarms `OK`.
+
+## Biology-constrained next boundary
+
+Primary primate work supports a smaller mechanism than a cortical word
+program. Infant vocal development is constrained by respiratory effort,
+laryngeal biomechanics, and tract morphology; contingent caregiver response
+changes development without prescribing each motor waveform. The applicable
+architecture is therefore an organism-sustained respiratory/laryngeal gesture
+whose existing tissue mechanics unfold continuously, followed by ordinary
+self-hearing and social experience. It is not another complete-pose trigger,
+phoneme table, word sequencer, or independent pitch subsystem.
+
+Primary sources consulted:
+
+- Zhang and Ghazanfar, *A Hierarchy of Autonomous Systems for Vocal
+  Production*: https://pmc.ncbi.nlm.nih.gov/articles/PMC7213988/
+- Gultekin and Hage, *Limiting parental feedback disrupts vocal development in
+  marmoset monkeys*: https://pmc.ncbi.nlm.nih.gov/articles/PMC5241798/
+- Teramoto et al., *Vocal state change through laryngeal development*:
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC6785551/
+
+Verdict: the false snapshot calibration is rejected and its removal passes the
+complete copied-body causal gate. The real learned motor/body/pressure path is
+preserved. Speech is not yet proved; the remaining mechanism is sustained
+organism-owned respiratory/laryngeal coordination and learned sparse reuse.

@@ -1356,3 +1356,21 @@ they do not override this baseline.
   package attempt refused the dirty tree as designed, so no candidate image or
   copied process has yet run. Invocation errors and corrections are retained
   in the Speech-049 attempt record rather than rediscovered.
+- **COPY GATE PASSED; PRODUCTION UNCHANGED.** The exact raw task-1429 V8 body
+  `9db4d05c...` and world `613fc673...` ran 32 ordinary intervals in the sealed
+  `2f43ab1e` image. Complete-body admission caused zero vocal bindings; all 32
+  intervals caused zero vocal bindings. Passive tissue return remained honest.
+  Identity and population counts were preserved, and the tick-469878 body
+  cold-restored byte-exact at `d6caa768...`. Peak RSS was 1,423,256 KiB.
+- The post-removal controlled retained-occurrence replay preserved both real
+  learned vocal routes, exact work balances, typed tissue movement, natural
+  continuation pulses, finite breath pressure, and cold round trips. Artifact
+  `beacb804...`; one focused test passed in 524.26 seconds. It is not a word or
+  autonomy claim. All harness refusals, including the duplicate-terminal
+  diagnostic defect, are enumerated in the Speech-049 record.
+- Post-run AWS: task 1429, one running, zero pending, completed rollout; all
+  five Guala alarms `OK`; no candidate process survived. The false calibration
+  removal is now causally eligible for the release pipeline, but no deployment
+  has occurred. The next speech mechanism is sustained organism-owned
+  respiratory/laryngeal gesture, constrained by primary infant-primate vocal
+  development evidence—not a word table or complete-pose bootstrap.

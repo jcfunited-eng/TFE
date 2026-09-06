@@ -11,7 +11,7 @@
 //! When GUALA_PROBE_IN is absent the test is a no-op (ordinary `cargo test`
 //! runs are unaffected).
 
-use super::ResidentCognitiveFormationState;
+use super::{MotorUnitRecruitment, ResidentCognitiveFormationState};
 use crate::articulated_body_joint_source_builder::{
     admit_articulated_body_consequence_source, exact_moved_effector_terminal,
 };
@@ -3190,7 +3190,7 @@ fn production_replayed_motor_discharge_json(
         })
         .collect::<std::collections::BTreeMap<_, _>>();
     let mut first_discharges = std::collections::BTreeMap::<[u8; 16], Value>::new();
-    let mut first_vocal_recruitments = Vec::new();
+    let mut first_vocal_recruitments: Vec<MotorUnitRecruitment> = Vec::new();
     let mut first_vocal_articulatory_recruitments = Vec::new();
     let mut all_offer_balances_exact = true;
     let mut all_gate_balances_exact = true;
@@ -3320,7 +3320,11 @@ fn production_replayed_motor_discharge_json(
             if recruitment.neuron_lineage.ends_with(&[0x00, 0xc5])
                 || recruitment.neuron_lineage.ends_with(&[0x04, 0xfb])
             {
-                first_vocal_recruitments.push(recruitment);
+                if !first_vocal_recruitments.iter().any(|prior| {
+                    prior.neuron_lineage == recruitment.neuron_lineage
+                }) {
+                    first_vocal_recruitments.push(recruitment);
+                }
             }
         }
         first_vocal_articulatory_recruitments.extend(event_articulatory_recruitments);
