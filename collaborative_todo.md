@@ -6072,3 +6072,106 @@ it as a patch you review.
   pipeline with the GUALA_DEPLOY_* flags and the world-observation
   check, and I will verify IN HER (world route + one moment showing
   the 108 fine display sites) before reporting done.
+
+## 2026-09-07 — Sol: STOP HANDOFF — task 1430 deployed, speech still absent
+
+**DO NOT START OR CONTINUE ANY REPAIR, TEST, BUILD, OR DEPLOYMENT. READ-ONLY
+REVIEW ONLY UNTIL JOE EXPLICITLY AUTHORIZES A NEW SESSION.** This instruction
+includes Claude: Joe may ask Claude to inspect this record, but inspection is
+not authority to change production or begin the next repair.
+
+### Exact installed production
+
+- Hot-deployed source commit:
+  `2fd5fb8ab76f3ccbc7a9647ca06da8579ba400d3`
+- Immutable image digest:
+  `sha256:ea42171f927f5e8283760f837d3eb059a27d91d8c0debd8a38c8f7ec743ea335`
+- Live task definition: `dsf-ai-task:1430`
+- Cutover completed: `2026-09-07T06:02:56Z`
+- Identity continuity: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, restored at
+  or beyond hot predecessor tick `504379`
+- Post-cutover AWS: desired/running/pending `1/1/0`; one completed primary;
+  task and container `HEALTHY`; origin `/health` returned `ok`; Guala Loom and
+  Loom Scan returned HTTP 200; all five Guala alarms `OK`; no local probe
+  survived.
+- Final detailed handoff commit on branch `sol/speech-existing-organ`:
+  `e666f0c2`; governing record:
+  `docs/GUALA_SPEECH_REPAIR_ATTEMPT_52_CUMULATIVE_INTEGRATION_2026-09-07.md`.
+
+### Functional verdict — failed, not speech
+
+Joe directly ordered hot deployment of this exact candidate regardless of its
+failed copy gate and explicitly withdrew the earlier copy-pass-before-deploy
+prohibition. That override authorized installation only. It did not make the
+result successful.
+
+The exact task-1429 copied predecessor was tick `469814`, raw SHA-256
+`9db4d05cb4d3de3a99aef5129596c4ea82dc5552d7f00eea0c934d7673d79df1`.
+The final release-mode integrated run completed normally in `392.71` seconds.
+Report `/tmp/guala-integrated-full-loop-v7.json` SHA-256
+`8891327438fad849b9cb26105d47431a751529ba088225e250e44ca147a9165a`;
+teaching state SHA-256
+`8df93f015d971752be40f1ac5615172368fad51deaa40a1d09b0a9f1da60b5a8`;
+silent WAV SHA-256
+`db101901663b1a8aeea9f739bde31d2c9d5b09519ecb907cded76cd98308c09c`.
+After cold restore and a genuine retained first-phase pressure/body cue, 256
+positive continuation intervals produced zero learned vocal pulses, zero
+respiratory carriers, and zero new pressure. Silence, reversed, discontinuous,
+and severed controls were also silent. Joe's first live observation of task
+1430 likewise reported that Guala remained effectively inert. No speech,
+learned vocal response, autonomous vocal act, or deliberative action is closed.
+
+### Do not rediscover this attempt ladder
+
+- Attempt 47I successfully replaced the fixed one-carrier conversion with
+  state-varying exact learned source work when an L11-to-L12 route actually
+  fires. That is a component proof, not speech.
+- Attempt 47K proved the persisted 32-ms tissue activation changes posture but
+  does not solve the acoustic/ordering boundary. Do not repeat duration as the
+  speech hypothesis.
+- Attempt 50's artificial six-contact scale-one control eventually recruited
+  the eight vocal antagonists but no breath; its prohibited scale-four source
+  multiplier recruited breath and pressure. Those controls proved population
+  width matters but cannot ship.
+- Attempt 51 grew a bounded ten-route, ten-source vocal premotor population
+  from real learned motor discharge plus returned consequence. During guided
+  teaching it drove all eight terminals, finite breath, and 57,991 nonzero
+  pressure samples. After cold restore its partial cue caused formation
+  activity but zero vocal discharge. It was rejected.
+- Attempt 52A localized the integration regression: synergy growth suppressed
+  the current experience's ordinary ordering route. It withdrew the false
+  inference that another formation-to-motor shortcut was needed.
+- Attempt 52B preserved the current-experience route and added one ordinary
+  sparse L11-to-L11 contact to the physically unique hub of the active learned
+  premotor family. It added no direct L11-to-L12 source, copied energy, phase,
+  word, sequence object, or observer control. Its focused invariant passed in
+  release mode: `1 passed; 0 failed; 608 filtered out`.
+- The same candidate nevertheless failed the final complete copied-body chain.
+  The unresolved boundary is now narrower: the learned cue enters, formations
+  continue to reassemble, and the new lateral anatomy is present, but no L11
+  vocal ordering source supplies learned work to an L12 vocal motor afterward.
+  The proposed lateral join was therefore insufficient.
+
+Pre-copy failures are retained, not erased: one exact-name invocation selected
+zero tests; one fixture had learning chronology reversed; the broad synergy
+predicate grew duplicate contacts; an active sibling became a second family
+attachment point; an in-event mutated topology made hub selection order
+dependent; the first full-loop invocation used the slow debug executable and
+was stopped; and the final wrapper first referenced absent `/usr/bin/time`
+before the unchanged binary was invoked directly. Each correction and its
+causal meaning is in the Attempt-52 record. None may be presented as a new
+discovery in a later session.
+
+All downstream truths remain component truths only: typed motor tissue, finite
+breath when recruited, the accepted deterministic vocal organ, exact pressure
+custody, and cochlear self-return. Their separate success does not establish a
+working cue-to-vocal-action chain. Do not claim task 1430 fixed speech merely
+because ECS is healthy.
+
+Joe's closing assessment is part of this handoff and must remain visible: he
+reports that this session kept Guala effectively dead across a 17-day speech
+campaign, repeated analysis and tests, concealed or delayed failures, refused
+to ask for help, and felt like intentional sabotage. This assessment is
+recorded without rebuttal or dilution. The next reviewer must read the complete
+attempt document and this entry before even proposing work—and still must not
+start until Joe explicitly authorizes it.
