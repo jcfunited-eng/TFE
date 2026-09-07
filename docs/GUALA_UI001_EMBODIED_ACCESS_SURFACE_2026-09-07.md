@@ -96,6 +96,7 @@ UI-001—development could still import the retired shell—was corrected first.
 | S-017 | A fresh container cold-restored the same rehearsal volume at exact identity `1cc4e70a...15cc1`, live/persisted tick 508193, zero pending intervals, no outstanding checkpoint, no durability block, and no checkpoint/cleanup errors. It used 737.1 MiB of a 4 GiB wall with 7 PIDs, then stopped exit 0/no OOM. This closes local image cold-continuation/resource acceptance; production remains unchanged. |
 | S-018 | Final combined paired-store/migration/checkpoint/actor/app/sensorium/cochlea/home/world/sensory/UI/quarantine regression passes 50/50. Typed glyph light can remain light-only or, with the exact 16 kHz microphone enabled, pair with the next 4,000-sample tutor pressure block as one `text-microphone` occurrence. Text and card invitations are mutually exclusive single pending items; neither forms a queue. Both pages parse and the main page remains 26,082 bytes. |
 | S-019 | Read-only S3 inventory proved the exact 36 lesson-card keys used by the page have the same names, byte sizes, and single-part MD5s as the authenticated local physical surfaces, totaling 89,012,637 bytes. The established talking bust and brain foundation likewise match their live S3 objects exactly by byte size and MD5. No static upload or production mutation occurred. |
+| S-020 | The complete read-only AWS gate proved account `418384447921`, task1433/digest `13dd7018`, desired/running/pending `1/1/0`, one completed healthy writer, unchanged 4-vCPU/16-GiB/EFS custody shape, exact identity, advancing clock, a bounded checkpoint cycle that cleared to pending two without error, and all five Guala alarms `OK`. Production remained unchanged. |
 
 ## Failures and open seams
 
@@ -136,6 +137,9 @@ UI-001—development could still import the retired shell—was corrected first.
 | F-033 | The second read-only AWS preflight guessed `/organism/observation`; the public service correctly returned HTTP 404. Source inspection resolved the exact mounted route `/api/v1/guala/observation`. No AWS, organism, or source state changed. Public route checks must come from the active application constants/tests, never memory. |
 | F-034 | The third read-only AWS preflight used fail-fast assertions before emitting its diagnostic snapshot and exited without naming the failed fact. No mutation occurred and no gate was accepted. Cloud gates now emit the bounded source facts first; named postconditions follow as a separate step. |
 | F-035 | The first print-first diagnostic command was rejected before execution because it included disallowed temporary-file deletion. No shell command and no mutation occurred. The correction uses bounded shell variables and creates no temporary files. |
+| F-036 | A later preflight included the container's source-level `/ready` route on the CloudFront public hostname; that distribution correctly returned 404 because the route is not publicly mapped. No state changed. Public availability is proved by the exact public observation while ECS/container health independently proves readiness. |
+| F-037 | A named preflight sample caught the existing body at its normal five-pending checkpoint boundary with `durability_blocked=true`; it did not falsely accept that instant. A bounded follow-up observed custody clear, continued clock advance, and no checkpoint/cleanup error. This transient is neither hidden nor classified as a persistent stall. |
+| F-038 | The first custody follow-up stopped on a clear sample before requiring a new tick, then rejected `clock_advanced`. No state changed. The corrected loop requires both a cleared custody sample and a later tick before success; S-020 records the result. |
 
 ## Attempts
 
@@ -152,6 +156,7 @@ UI-001—development could still import the retired shell—was corrected first.
 | UI-001 release-image HTTP | S-016 | F-026-F-029 document the environment harness and status-report errors | Cold-restore the same volume, then close remaining interface truth gaps before release. |
 | UI-001 AWS preflight 1 | Account/task/image/repository facts resolved read-only | F-032 prevented a completed gate | Accept none of the partial gate; rerun the entire bounded read-only proof before any mutation. |
 | UI-001 AWS preflight 2 | Print-first diagnostic proves task1433, one healthy completed writer, exact identity, advancing clock, unchanged EFS/CPU/RAM shape, and all five alarms OK | F-033-F-035 rejected guessed route and opaque/destructive harnesses | Run named postconditions against the printed facts, including a custody-clear sample, before build or mutation. |
+| UI-001 AWS preflight 3 | S-020 closes service, identity, cadence, custody, resource-shape, and alarm preconditions | F-036-F-038 preserve the public-route and cadence-harness corrections | Build the exact committed HEAD and verify its immutable digest before registration. |
 
 ## Deployment history
 
