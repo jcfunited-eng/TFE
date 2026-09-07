@@ -3,12 +3,11 @@
 Date: 2026-09-07 UTC
 
 Status: active. Task1430 is unchanged and running. Corrected source
-`f470cce2` and its final runtime/migration images passed the complete local
-shell, route, UI, matched-state, migration, autonomous advance, bounded
-custody, graceful stop, and exact cold-restore gates. Registry push,
-production drain/migration/cutover, static publish, and live proof remain
-open. Speech is still functionally failed and is next only after truthful
-shell cutover.
+`f470cce2` and immutable runtime/migration images passed complete local gates
+and are now pushed by exact registry digest. Production drain, stopped-state
+migration, candidate/cutover, static publish, and live proof remain open.
+Speech is still functionally failed and is next only after truthful shell
+cutover.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -90,6 +89,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-041 | First final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. Superseded only at transport paths by S-042. |
 | S-042 | CloudFront `E17JT9XGBFU493` sends one `/api/*` behavior to ALB and static default to S3; live pages exactly matched repo before edit. Five routes remain five: root health/ready plus observation/occurrence/pressure at `/api/v1/guala/*`. Static Guala+Loom replaced687 lines/140,465B with197 lines/23,300B: one cache-only observation GET each, one exact pressure GET only on Guala, no write route, hidden-page suspension, explicit absent speech/vision/conversation/autonomous-choice truth. Shell/UI24/24 and physical/migration17/17 passed; JS and HTML parse passed. |
 | S-043 | Final commit `f470cce2c35702236e3e9f4a7dee9a8e57453df6`; runtime image ID `ebf0ecb7...592c3`/212,672,223B and migration image `dc211c3d...1a2d4`/212,675,712B. Migration image exact task1430 fixture507972→three-file pair; source five hashes unchanged; identity/body112,819,269B `2e8f...0fbe7`/world63,463B `3e9d...857b` exact;0 callbacks. Runtime restored same pair; correct public route200, retired root route/docs/OpenAPI404; advanced unattended to508016 and graceful CURRENT508018;113 DSF/1,256 changed/0 callbacks;7 PIDs;625MiB startup/1.011GiB running; five files225,769,229B; stop2.232s/exit0/noOOM. Cold exact tick508018/body112,833,015B `9a77...2545`/world63,475B `2083...ca8a`, predecessor508016,0 callbacks. |
+| S-044 | Unique ECR tags were absent before push. Runtime tag `guala-lean-f470cce2` resolves `sha256:ebf0ecb7...592c3`/212,668,790B; migration tag `guala-migration-f470cce2` resolves `sha256:dc211c3d...1a2d4`/212,672,090B. Both OCI indexes pushed 2026-09-07T13:04Z. Deployment will use digests, not mutable tags. |
 
 ## Failures/open seams
 
@@ -144,7 +144,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 final source/images passed local release gates but are not pushed/deployed/live-verified. |
+| D-003 | P-005 final source/images passed local release gates and are registry-verified, but are not deployed/live-verified. |
 
 ## Frozen contract and acceptance
 
@@ -191,10 +191,10 @@ exact live migration and rollback boundary.
 | health/migration | S-039/S-040 | AWS cutover open | freeze source |
 | first final artifact | S-041 | F-040/F-041 corrected | namespace public routes |
 | public route/UI | S-042 | F-042 corrected | rebuild both images |
-| final artifacts | S-043 | AWS push/cutover open | deploy once |
+| final artifacts | S-043/S-044 | AWS cutover open | deploy once |
 
-P-005 next: push exact immutable runtime/migration images; preflight task1430,
-drain it to seal CURRENT, migrate stopped exact current into absent paired root
-without altering old root, register lean task, cut over once with rollback to
-task1430 intact, publish static pages, and live verify. After P-005: F-001
-speech, Claude vision candidate, autonomy.
+P-005 next: preflight task1430, drain it to seal CURRENT, migrate stopped exact
+current into absent paired root without altering old root, register lean task,
+run one standalone candidate, cut service over once with rollback to task1430
+intact, publish static pages, and live verify. After P-005: F-001 speech,
+Claude vision candidate, autonomy.
