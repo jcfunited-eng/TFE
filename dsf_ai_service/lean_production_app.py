@@ -80,6 +80,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         ),
     )
     restored = store.restore()
+    store.reconcile(restored.pointer)
     runtime = restore_native_resident_organism(
         current_envelope=restored.body,
         max_envelope_bytes=admission.max_envelope_bytes,
@@ -142,7 +143,9 @@ def create_lean_production_app(
         observation = actor_for(request).observation()
         ready_now = bool(
             observation["available"]
+            and not observation["durability_blocked"]
             and observation["checkpoint_error"] is None
+            and observation["cleanup_error"] is None
         )
         return Response(
             content=(b'{"ready":true}' if ready_now else b'{"ready":false}'),

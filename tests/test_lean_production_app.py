@@ -96,6 +96,10 @@ class _Physical:
     def __init__(self) -> None:
         self.count = 0
 
+    @property
+    def maximum_native_intervals_per_occurrence(self) -> int:
+        return 1
+
     def settle(
         self,
         runtime: _Runtime,

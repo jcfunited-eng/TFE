@@ -14,11 +14,16 @@ from dsf_ai_service.guala_world_sensorium import (
     passive_sensorium,
     prepare_passive_world_interval,
 )
-from dsf_ai_service.lean_actor import PhysicalOccurrence, SettlementResult
+from dsf_ai_service.lean_actor import (
+    MAX_PRESSURE_BYTES,
+    PhysicalOccurrence,
+    SettlementResult,
+)
 
 
 PASSIVE_TIMES = tuple(Fraction(index, 16_000) for index in range(0, 4_001, 160))
 PASSIVE_ADMISSION = ([(250, 1_000)],)
+MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 4
 
 
 def _commit_prepared(world: Any, prepared: Any) -> Any:
@@ -70,6 +75,10 @@ def _abort_occurrence(
 
 class LeanPhysicalLoop:
     """One direct full-field interval and every immediate physical return."""
+
+    @property
+    def maximum_native_intervals_per_occurrence(self) -> int:
+        return MAX_NATIVE_INTERVALS_PER_OCCURRENCE
 
     def settle(
         self,
@@ -166,6 +175,67 @@ class LeanPhysicalLoop:
                         final = runtime.advance_vestibular_trajectory_unsealed(
                             *motor_plan.vestibular
                         )
+
+            lived_tick_delta = runtime.live_organism_tick - start_tick
+            if (
+                lived_tick_delta <= 0
+                or lived_tick_delta > MAX_NATIVE_INTERVALS_PER_OCCURRENCE
+            ):
+                raise RuntimeError("physical occurrence exceeded its interval bound")
+            pressure_body = runtime.in_flight_acoustic_pressure_s16le
+            pressure_record = None
+            if pressure_body is not None:
+                pressure_bytes = bytes(pressure_body)
+                if (
+                    not pressure_bytes
+                    or len(pressure_bytes) > MAX_PRESSURE_BYTES
+                    or len(pressure_bytes) % 2
+                ):
+                    raise RuntimeError("native pressure exceeded its transport bound")
+                pressure_record = (
+                    hashlib.sha256(pressure_bytes).hexdigest(),
+                    pressure_bytes,
+                )
+            body_consequences = tuple(primary.articulated_body_consequences)
+            result = SettlementResult(
+                native_interval_count=lived_tick_delta,
+                observation={
+                    "actual_root_motion": (
+                        (0, 0, 0)
+                        if motor_plan is None
+                        else motor_plan.actual_root_motion
+                    ),
+                    "body_consequence_count": len(body_consequences),
+                    "causal_transition_sha256": final.causal_transition_sha256,
+                    "dsf_delivery_count": final.dsf_delivery_count,
+                    "physically_transitioned_neuron_count": (
+                        final.physically_transitioned_neuron_count
+                    ),
+                    "primary_causal_transition_sha256": (
+                        primary.causal_transition_sha256
+                    ),
+                    "python_callback_count": final.python_callback_count,
+                    "requested_world_action": (
+                        None if motor_plan is None else motor_plan.requested_action
+                    ),
+                    "requested_root_motion": (
+                        (0, 0, 0)
+                        if motor_plan is None
+                        else motor_plan.requested_root_motion
+                    ),
+                    "self_hearing_source_tick": (
+                        None
+                        if pending_source_tick is None
+                        else int(pending_source_tick)
+                    ),
+                    "self_heard_sample_count": self_heard_samples,
+                    "world_action_refusal": (
+                        None if motor_plan is None else motor_plan.refusal_reason
+                    ),
+                    "world_revision": world.observation_snapshot().revision,
+                },
+                pressure=pressure_record,
+            )
         except BaseException:
             _abort_occurrence(
                 runtime=runtime,
@@ -174,55 +244,4 @@ class LeanPhysicalLoop:
                 uncommitted_prepared=uncommitted_prepared,
             )
             raise
-
-        lived_tick_delta = runtime.live_organism_tick - start_tick
-        if lived_tick_delta <= 0:
-            raise RuntimeError("physical settlement advanced no native lived time")
-        pressure_body = runtime.in_flight_acoustic_pressure_s16le
-        pressure_record = None
-        if pressure_body is not None:
-            pressure_bytes = bytes(pressure_body)
-            pressure_record = (
-                hashlib.sha256(pressure_bytes).hexdigest(),
-                pressure_bytes,
-            )
-        body_consequences = tuple(primary.articulated_body_consequences)
-        return SettlementResult(
-            native_interval_count=lived_tick_delta,
-            observation={
-                "actual_root_motion": (
-                    (0, 0, 0)
-                    if motor_plan is None
-                    else motor_plan.actual_root_motion
-                ),
-                "body_consequence_count": len(body_consequences),
-                "causal_transition_sha256": final.causal_transition_sha256,
-                "dsf_delivery_count": final.dsf_delivery_count,
-                "physically_transitioned_neuron_count": (
-                    final.physically_transitioned_neuron_count
-                ),
-                "primary_causal_transition_sha256": (
-                    primary.causal_transition_sha256
-                ),
-                "python_callback_count": final.python_callback_count,
-                "requested_world_action": (
-                    None if motor_plan is None else motor_plan.requested_action
-                ),
-                "requested_root_motion": (
-                    (0, 0, 0)
-                    if motor_plan is None
-                    else motor_plan.requested_root_motion
-                ),
-                "self_hearing_source_tick": (
-                    None
-                    if pending_source_tick is None
-                    else int(pending_source_tick)
-                ),
-                "self_heard_sample_count": self_heard_samples,
-                "world_action_refusal": (
-                    None if motor_plan is None else motor_plan.refusal_reason
-                ),
-                "world_revision": world.observation_snapshot().revision,
-            },
-            pressure=pressure_record,
-        )
+        return result

@@ -4,6 +4,9 @@ from dataclasses import dataclass
 import hashlib
 from pathlib import Path
 import threading
+import time
+
+import pytest
 
 from dsf_ai_service.lean_actor import (
     LeanOrganismActor,
@@ -102,6 +105,10 @@ class _World:
 
 
 class _Physical:
+    @property
+    def maximum_native_intervals_per_occurrence(self) -> int:
+        return 1
+
     def settle(
         self,
         runtime: _Runtime,
@@ -121,15 +128,64 @@ class _Physical:
         return self.settle(runtime, world, PhysicalOccurrence("unattended", None))
 
 
-def _actor(root: Path) -> tuple[LeanOrganismActor, _Runtime, PairedCurrentStore]:
+class _FailingPublishStore(PairedCurrentStore):
+    def __init__(self, root: Path) -> None:
+        super().__init__(root, max_body_bytes=4096, max_world_bytes=4096)
+        self.fail_publish = False
+        self.checkpoint_publish_count = 0
+
+    def publish(self, **values):  # type: ignore[no-untyped-def]
+        if self.fail_publish:
+            self.checkpoint_publish_count += 1
+            raise RuntimeError("checkpoint publish failed")
+        return super().publish(**values)
+
+
+class _BlockingPublishStore(PairedCurrentStore):
+    def __init__(self, root: Path) -> None:
+        super().__init__(root, max_body_bytes=4096, max_world_bytes=4096)
+        self.block_publish = False
+        self.checkpoint_publish_count = 0
+        self.publish_started = threading.Event()
+        self.publish_release = threading.Event()
+
+    def publish(self, **values):  # type: ignore[no-untyped-def]
+        if self.block_publish:
+            self.checkpoint_publish_count += 1
+            self.publish_started.set()
+            if not self.publish_release.wait(timeout=5):
+                raise RuntimeError("test checkpoint release was absent")
+        return super().publish(**values)
+
+
+class _FailingCleanupStore(PairedCurrentStore):
+    def __init__(self, root: Path) -> None:
+        super().__init__(root, max_body_bytes=4096, max_world_bytes=4096)
+        self.fail_cleanup = False
+        self.cleanup_count = 0
+
+    def reconcile(self, pointer=None):  # type: ignore[no-untyped-def]
+        self.cleanup_count += 1
+        if self.fail_cleanup:
+            raise RuntimeError("checkpoint cleanup failed")
+        return super().reconcile(pointer)
+
+
+def _actor(
+    root: Path,
+    *,
+    store: PairedCurrentStore | None = None,
+    checkpoint_every_intervals: int = 2,
+    unattended_interval_seconds: float = 60,
+) -> tuple[LeanOrganismActor, _Runtime, PairedCurrentStore]:
     body = b"body-10"
     world_body = b"world-10"
-    store = PairedCurrentStore(
+    held_store = store or PairedCurrentStore(
         root,
         max_body_bytes=4096,
         max_world_bytes=4096,
     )
-    pointer = store.publish(
+    pointer = held_store.publish(
         identity=IDENTITY,
         organism_tick=10,
         body=body,
@@ -141,13 +197,23 @@ def _actor(root: Path) -> tuple[LeanOrganismActor, _Runtime, PairedCurrentStore]
         runtime=runtime,
         world=_World(world_body),
         pointer=pointer,
-        store=store,
+        store=held_store,
         physical=_Physical(),
         mailbox_capacity=2,
-        checkpoint_every_intervals=2,
-        unattended_interval_seconds=60,
+        checkpoint_every_intervals=checkpoint_every_intervals,
+        unattended_interval_seconds=unattended_interval_seconds,
     )
-    return actor, runtime, store
+    return actor, runtime, held_store
+
+
+def _wait_until_unavailable(actor: LeanOrganismActor) -> dict[str, object]:
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        observation = actor.observation()
+        if observation["available"] is False:
+            return observation
+        time.sleep(0.005)
+    raise AssertionError("actor did not expose its fatal custody failure")
 
 
 def test_actor_uses_one_owner_and_distinguishes_live_from_durable_tick(
@@ -191,15 +257,88 @@ def test_one_refused_occurrence_does_not_kill_actor(tmp_path: Path) -> None:
     actor, _runtime, store = _actor(tmp_path)
     actor.start()
     try:
-        try:
+        with pytest.raises(RuntimeError, match="physical refusal"):
             actor.submit(PhysicalOccurrence("refuse", None), timeout=5)
-        except RuntimeError as error:
-            assert str(error) == "physical refusal"
-        else:
-            raise AssertionError("physical refusal was hidden")
         accepted = actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
         assert accepted.observation == {"accepted": True}
     finally:
         actor.close()
 
     assert store.restore().pointer.current.organism_tick == 11
+
+
+def test_failed_checkpoint_kills_actor_once_without_retry(tmp_path: Path) -> None:
+    failing_store = _FailingPublishStore(tmp_path)
+    actor, _runtime, store = _actor(
+        tmp_path,
+        store=failing_store,
+        checkpoint_every_intervals=1,
+        unattended_interval_seconds=0.02,
+    )
+    failing_store.fail_publish = True
+    actor.start()
+    actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
+
+    observation = _wait_until_unavailable(actor)
+    assert failing_store.checkpoint_publish_count == 1
+    assert observation["checkpoint_error"] == (
+        "RuntimeError: checkpoint publish failed"
+    )
+    assert store.restore().pointer.current.organism_tick == 10
+    with pytest.raises(RuntimeError, match="organism actor failed"):
+        actor.offer(PhysicalOccurrence("light", b"two"))
+    with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
+        actor.close()
+
+
+def test_hung_checkpoint_stops_life_before_two_custody_cadences(
+    tmp_path: Path,
+) -> None:
+    blocking_store = _BlockingPublishStore(tmp_path)
+    actor, runtime, _store = _actor(
+        tmp_path,
+        store=blocking_store,
+        checkpoint_every_intervals=1,
+    )
+    blocking_store.block_publish = True
+    actor.start()
+    actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
+    assert blocking_store.publish_started.wait(timeout=1)
+    actor.submit(PhysicalOccurrence("sound", b"two"), timeout=5)
+
+    observation = actor.observation()
+    assert observation["live_tick"] == 12
+    assert observation["pending_interval_count"] == 2
+    assert observation["durability_blocked"] is True
+    with pytest.raises(RuntimeError, match="waiting for durable custody"):
+        actor.offer(PhysicalOccurrence("touch", b"three"))
+    assert runtime.live_tick == 12
+
+    blocking_store.publish_release.set()
+    actor.close()
+    assert blocking_store.checkpoint_publish_count == 2
+    assert blocking_store.restore().pointer.current.organism_tick == 12
+
+
+def test_failed_generation_cleanup_kills_actor_after_safe_commit(
+    tmp_path: Path,
+) -> None:
+    failing_store = _FailingCleanupStore(tmp_path)
+    actor, _runtime, store = _actor(
+        tmp_path,
+        store=failing_store,
+        checkpoint_every_intervals=1,
+        unattended_interval_seconds=0.02,
+    )
+    failing_store.fail_cleanup = True
+    actor.start()
+    actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
+
+    observation = _wait_until_unavailable(actor)
+    assert failing_store.cleanup_count == 1
+    assert observation["cleanup_error"] == (
+        "RuntimeError: checkpoint cleanup failed"
+    )
+    assert store.restore().pointer.current.organism_tick == 11
+    with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
+        actor.close()

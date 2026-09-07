@@ -19,6 +19,9 @@ from dsf_ai_service.lean_checkpoint import (
 from dsf_ai_service.paired_current_store import CurrentPair, PairedCurrentStore
 
 
+MAX_PRESSURE_BYTES = 8_000
+
+
 @dataclass(frozen=True, slots=True)
 class PhysicalOccurrence:
     kind: str
@@ -33,6 +36,9 @@ class SettlementResult:
 
 
 class PhysicalSettlementBoundary(Protocol):
+    @property
+    def maximum_native_intervals_per_occurrence(self) -> int: ...
+
     def settle(
         self,
         runtime: Any,
@@ -52,6 +58,7 @@ class ActorObservation:
     persisted_body_sha256: str
     persisted_world_sha256: str
     checkpoint_outstanding: bool
+    durability_blocked: bool
     pending_interval_count: int
     last_occurrence: dict[str, object] | None
     pressure_sha256: str | None
@@ -64,6 +71,7 @@ class ActorObservation:
             "checkpoint_error": self.checkpoint_error,
             "checkpoint_outstanding": self.checkpoint_outstanding,
             "cleanup_error": self.cleanup_error,
+            "durability_blocked": self.durability_blocked,
             "identity": self.identity,
             "last_occurrence": self.last_occurrence,
             "live_tick": self.live_tick,
@@ -106,6 +114,16 @@ class LeanOrganismActor:
             raise ValueError("checkpoint interval count must be positive")
         if unattended_interval_seconds <= 0:
             raise ValueError("unattended interval duration must be positive")
+        maximum = physical.maximum_native_intervals_per_occurrence
+        if (
+            isinstance(maximum, bool)
+            or not isinstance(maximum, int)
+            or maximum <= 0
+            or maximum > checkpoint_every_intervals
+        ):
+            raise ValueError(
+                "physical occurrence bound exceeds one custody cadence"
+            )
         self._runtime = runtime
         self._world = world
         self._pointer = pointer
@@ -115,6 +133,8 @@ class LeanOrganismActor:
             maxsize=mailbox_capacity
         )
         self._checkpoint_every = checkpoint_every_intervals
+        self._pending_ceiling = checkpoint_every_intervals * 2
+        self._maximum_occurrence_intervals = maximum
         self._unattended_seconds = unattended_interval_seconds
         self._checkpoint = LeanCheckpointWorker(store)
         self._pending_intervals = 0
@@ -150,6 +170,8 @@ class LeanOrganismActor:
             if self._fatal is not None:
                 raise RuntimeError("organism actor failed") from self._fatal
             raise RuntimeError("organism actor is not running")
+        if self._observation.durability_blocked:
+            raise RuntimeError("organism is waiting for durable custody")
         if not isinstance(occurrence, PhysicalOccurrence):
             raise TypeError("actor occurrence changed type")
         future: Future[SettlementResult] = Future()
@@ -222,6 +244,12 @@ class LeanOrganismActor:
         ):
             raise RuntimeError("physical world differs from paired CURRENT")
 
+    def _durability_blocked(self) -> bool:
+        return (
+            self._pending_intervals + self._maximum_occurrence_intervals
+            > self._pending_ceiling
+        )
+
     def _run(self) -> None:
         next_unattended = time.monotonic() + self._unattended_seconds
         try:
@@ -229,6 +257,12 @@ class LeanOrganismActor:
             self._startup_complete.set()
             while True:
                 self._adopt_checkpoint_if_ready()
+                if self._durability_blocked():
+                    if not self._checkpoint.outstanding:
+                        raise RuntimeError("durability ceiling has no checkpoint")
+                    self._refresh_observation(self._live_tick())
+                    self._receive_required_checkpoint()
+                    continue
                 wait = max(0.0, next_unattended - time.monotonic())
                 try:
                     message = self._mailbox.get(timeout=wait)
@@ -277,8 +311,11 @@ class LeanOrganismActor:
     ) -> None:
         if not isinstance(result, SettlementResult):
             raise TypeError("physical settlement result changed type")
-        if result.native_interval_count <= 0:
-            raise RuntimeError("physical settlement carried no native interval")
+        if (
+            result.native_interval_count <= 0
+            or result.native_interval_count > self._maximum_occurrence_intervals
+        ):
+            raise RuntimeError("physical settlement changed its interval bound")
         pressure_sha256 = None
         if result.pressure is not None:
             pressure_sha256, pressure_body = result.pressure
@@ -286,6 +323,8 @@ class LeanOrganismActor:
                 not isinstance(pressure_sha256, str)
                 or not isinstance(pressure_body, bytes)
                 or not pressure_body
+                or len(pressure_body) > MAX_PRESSURE_BYTES
+                or len(pressure_body) % 2
                 or hashlib.sha256(pressure_body).hexdigest() != pressure_sha256
             ):
                 raise RuntimeError("physical pressure receipt changed")
@@ -295,6 +334,8 @@ class LeanOrganismActor:
             raise RuntimeError("organism identity changed after settlement")
         if live_tick - before_tick != result.native_interval_count:
             raise RuntimeError("physical settlement changed native interval count")
+        if self._pending_intervals + result.native_interval_count > self._pending_ceiling:
+            raise RuntimeError("physical settlement breached its declared interval bound")
         if result.pressure is not None:
             self._pressure = result.pressure
         self._pending_intervals += result.native_interval_count
@@ -320,6 +361,12 @@ class LeanOrganismActor:
             expected_current_body_sha256=self._pointer.current.body_sha256,
         ))
 
+    @staticmethod
+    def _outcome_failure(outcome: CheckpointOutcome) -> BaseException | None:
+        if outcome.error is not None:
+            return outcome.error
+        return outcome.cleanup_error
+
     def _adopt_checkpoint_if_ready(self) -> None:
         if not self._checkpoint.outstanding:
             return
@@ -328,6 +375,17 @@ class LeanOrganismActor:
         except TimeoutError:
             return
         self._adopt_checkpoint(outcome)
+        failure = self._outcome_failure(outcome)
+        if failure is not None:
+            raise failure
+        self._request_checkpoint_if_due()
+
+    def _receive_required_checkpoint(self) -> None:
+        outcome = self._checkpoint.receive(timeout=None)
+        self._adopt_checkpoint(outcome)
+        failure = self._outcome_failure(outcome)
+        if failure is not None:
+            raise failure
         self._request_checkpoint_if_due()
 
     def _adopt_checkpoint(self, outcome: CheckpointOutcome) -> None:
@@ -356,10 +414,7 @@ class LeanOrganismActor:
         while self._pending_intervals or self._checkpoint.outstanding:
             if not self._checkpoint.outstanding:
                 self._request_checkpoint_if_due(force=True)
-            outcome = self._checkpoint.receive(timeout=None)
-            self._adopt_checkpoint(outcome)
-            if outcome.error is not None:
-                raise outcome.error
+            self._receive_required_checkpoint()
 
     def _drain_checkpoint_after_stop(self) -> None:
         if not self._checkpoint.outstanding:
@@ -381,6 +436,7 @@ class LeanOrganismActor:
             persisted_body_sha256=current.body_sha256,
             persisted_world_sha256=current.world_sha256,
             checkpoint_outstanding=self._checkpoint.outstanding,
+            durability_blocked=self._durability_blocked(),
             pending_interval_count=self._pending_intervals,
             last_occurrence=self._last_occurrence,
             pressure_sha256=(
