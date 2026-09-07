@@ -236,6 +236,10 @@ def _write_all(descriptor: int, body: bytes) -> None:
         offset += written
 
 
+def _release_file_cache(descriptor: int) -> None:
+    os.posix_fadvise(descriptor, 0, 0, os.POSIX_FADV_DONTNEED)
+
+
 def _read_verified(path: Path, expected_size: int, expected_digest: str) -> bytes:
     if path.is_symlink() or not path.is_file():
         raise PairedCurrentStoreError(f"{path.name} is not a real file")
@@ -255,6 +259,7 @@ def _read_verified(path: Path, expected_size: int, expected_digest: str) -> byte
                 raise PairedCurrentStoreError(f"{path.name} exceeded its byte count")
             digest.update(block)
             chunks.append(block)
+        _release_file_cache(descriptor)
     finally:
         os.close(descriptor)
     if read_bytes != expected_size or digest.hexdigest() != expected_digest:
@@ -386,6 +391,7 @@ class PairedCurrentStore:
         try:
             _write_all(descriptor, body)
             os.fsync(descriptor)
+            _release_file_cache(descriptor)
         except BaseException:
             os.close(descriptor)
             try:
