@@ -2,12 +2,16 @@
 
 Date: 2026-09-07 UTC
 
-Status: active production cutover with service0/0/0. Task1431 stopped at
-15:12:30 with exit137. Exact migration task d8fa43f5 exited0 and authenticated
-gen1 tick513588 into gen2 with the same identity/raw body/world and a2,125,012B
-compressed body. No runtime writer overlaps it. Task1431/gen1 remain untouched
-rollback; task1433 has not run. The fadvise candidate remains rejected. Speech
-remains functionally failed and follows the jointly designed interactive UI.
+Status: active production cutover with service0/0/0 and exactly one isolated
+writer. Task1431 stopped at15:12:30 with exit137. Exact migration task
+d8fa43f5 exited0 and authenticated gen1 tick513588 into gen2 with the same
+identity/raw body/world and a2,125,012B compressed body. Exact runtime task
+886cec84/task1433/digest13dd7018 is ECS HEALTHY and has repeatedly advanced
+gen2 on production EFS through at least live513769/persisted513764 without a
+lasting custody stall. Graceful stop, exact cold restore, and public service
+cutover remain open. Task1431/gen1 remain untouched rollback. The fadvise
+candidate remains rejected. Speech remains functionally failed and follows the
+jointly designed interactive UI.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -49,6 +53,7 @@ only after same-condition falsification. Chat memory is not proof.
 | RF-047 | Closed by S-061: each pushed digest returned one exact OCI manifest and zero failures before registration. |
 | RF-059/RF-060 | Migration reads one stopped exact v1 CURRENT-selected body/world pair and publishes that same pair atomically to absent gen2; local fixed-predecessor proof is S-054/S-056. Production source capture remains open and may not be recopied while advancing. |
 | RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |
+| RF-063 | F-053/F-054/F-060 are harness-only repeated assumptions. Every command now performs exact executable/path/cgroup/AWS discovery in the command block; the governing skill and durable register carry the recurrence guard. |
 
 ## Task1430 baseline
 
@@ -129,6 +134,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-062 | Registered deployment-only `guala-paired-migration:2` at exact migration digest9a63c55c with command `paired-current-gen1`→`paired-current-gen2`, and runtime `dsf-ai-task:1433` at exact digest13dd7018 with `GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2`. Both preserve4vCPU/16GiB, EFS fs-0abb85854a3251b3c, roles, network, and stop timeout from their accepted predecessors. |
 | S-063 | Immediately before drain, public task1431 retained identity and113 DSF/1,436 changed/0 callbacks at live513589/persisted513584 but was custody-blocked. Service desired count was set1→0 at15:08:07; no replacement started. Exact task `21902bc7...704c` reached STOPPED at15:12:30 and service is0/0/0, establishing zero writers for migration. |
 | S-064 | Exact migration task `d8fa43f5a49b42b8bc5e15f3d2f62f4f` ran taskdef2/digest9a63c55c as the sole EFS process and exited0/no error. It authenticated final gen1 CURRENT at tick513588—never inferred from public cache—identity unchanged, raw body112,817,508B `132a3a6d...520b0`, world63,491B `c86e891c...f8e9d`,0 callbacks. Gen2 contains exactly3 files and stored body2,125,012B. Runtime task1433 has not run. |
+| S-065 | Isolated production-EFS runtime task `886cec849e6b46e892340396a6e2c066` runs exact task1433/digest13dd7018 and restored the migrated identity without genesis. Samples advanced live513605→513769 and persisted513600→513764. A caught custody window cleared513605/513600/pending5/blocked to513615/513612/pending3/unblocked; later aligned samples at epoch1788794857-4884 alternated bounded custody at513761/513756 and513765/513760 with cleared states at513762/513760 and513766/513764 in6.6-6.8s, with no checkpoint/cleanup error. Storage remained exactly5 files/4,378,462B: two bodies2,125,135-2,126,118B and two worlds63,475-63,479B. PID1 has7 threads; cleared-state cgroup memory was1,283,919,872-1,284,042,752B and custody-state1,420,640,256-1,434,386,432B. This closes the repeated-cadence production-EFS portion of RF-062; stop/cold restore/public service remain open. |
 
 ## Failures/open seams
 
@@ -193,6 +199,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-057 | First deployment-governance command looked for `scripts/require-guala-root.sh` and `collaborative_todo.md` inside the temporary worktree. The validator belongs to the project-truth skill and the shared handoff is `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. The command stopped before AWS mutation; use those exact absolute authorities. |
 | F-058 | Five AWS alarms remained OK while public task1431 was unchanged and custody-blocked for at least10s at tick513577/persisted513572. Existing alarms and ECS health do not classify minute-scale paired-store stalls; direct CURRENT/observation cadence remains mandatory live acceptance. |
 | F-059 | Draining unchanged raw-v1 task1431 took roughly264s and container exit was137 rather than graceful0. This repeats the multi-minute shutdown symptom on the rollback image itself and strengthens F-051/F-052. Atomic CURRENT remains the only accepted state; do not infer the live513589 body was durable. |
+| F-060 | The first task1433 resource census correctly observed advancing identity and a cleared custody window, then its metrics suffix assumed cgroup v2 `/sys/fs/cgroup/memory.current`; Fargate exposes cgroup v1 and that suffix aborted. No organism action failed and the observation success remains valid. Exact cgroup-file discovery then produced S-065. This repeated harness-assumption class is now RF-063 and an executable preflight rule in the governing skill. |
 
 ## Deployment truth
 
@@ -272,12 +279,13 @@ exact live migration and rollback boundary.
 | v2 task definitions | S-062 | neither run; service still1431 | drain one writer and migrate exact stopped CURRENT |
 | task1431 drain | S-063 | F-059 forced exit137 | run one exact stopped migration |
 | production v1-to-v2 migration | S-064 | runtime EFS cadence unproved | start one isolated task1433 |
+| isolated v2 production-EFS cadence | S-065 | F-060 corrected; graceful stop/cold/public open | stop exact candidate and cold-restore once |
 
-P-005 next: reread this ledger; replace paired CURRENT v1 with version2
-deterministic gzip-level3 body custody in a new generation root. Preserve the
-raw canonical body hash/byte contract after decompression, exact world pairing,
-two-generation retention, fail-closed restore, and untouched v1/task1431
-rollback. Prove v1-to-v2 deployment-only migration, exact cold continuation,
-bounded CPU/RAM/storage/I/O and no custody stalls before one-writer production
-cutover. Then jointly design the lean interactive UI before F-001 speech,
-vision, and autonomy.
+P-005 next: reread this ledger; stop exact isolated task
+886cec849e6b46e892340396a6e2c066 and require graceful exit0 plus exact final
+CURRENT. Start one fresh task1433 against that stopped gen2, require unchanged
+identity/exact cold continuation and ordinary custody, stop it, then attach the
+same task definition/digest to the one-writer public service. Verify public
+identity/cadence, bounded CPU/RAM/storage/I/O, routes, and browser truth before
+closing the shell. Then jointly design the lean interactive UI before F-001
+speech, vision, and autonomy.
