@@ -133,6 +133,9 @@ UI-001—development could still import the retired shell—was corrected first.
 | F-030 | The first cold-continuation command started/restored the image, measured 730.1 MiB/7 PIDs, and stopped exit 0/no OOM, but its heredoc `docker exec` omitted `-i`; Python received no assertions and exited 0. Cold identity/tick continuity is therefore not accepted from that run. Subsequent heredoc container probes must use the already-proved exact `docker exec -i` form and require printed result markers. |
 | F-031 | The first pre-commit handoff read guessed `collaborative_todo.md` relative to this isolated worktree even though the handoff explicitly names `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. `sed` refused and the chained command stopped before staging or committing. No state changed. Shared handoff reads/updates must use the supplied absolute workspace path, while source operations remain explicitly rooted in this worktree. |
 | F-032 | The first read-only AWS release preflight resolved the expected account, task1433/digest, one healthy writer, and real `dsf-ai` repository, but a stray `n` after the final persisted-tick assignment prevented a complete printed proof marker. No AWS mutation occurred and partial facts are not the release gate. The corrected preflight prints one bounded JSON result before separately named postconditions. |
+| F-033 | The second read-only AWS preflight guessed `/organism/observation`; the public service correctly returned HTTP 404. Source inspection resolved the exact mounted route `/api/v1/guala/observation`. No AWS, organism, or source state changed. Public route checks must come from the active application constants/tests, never memory. |
+| F-034 | The third read-only AWS preflight used fail-fast assertions before emitting its diagnostic snapshot and exited without naming the failed fact. No mutation occurred and no gate was accepted. Cloud gates now emit the bounded source facts first; named postconditions follow as a separate step. |
+| F-035 | The first print-first diagnostic command was rejected before execution because it included disallowed temporary-file deletion. No shell command and no mutation occurred. The correction uses bounded shell variables and creates no temporary files. |
 
 ## Attempts
 
@@ -148,6 +151,7 @@ UI-001—development could still import the retired shell—was corrected first.
 | UI-001 copied mature hearing | S-014 | Speech generation remains failed and outside this acceptance | Bind browser transport to the proved sensory shapes, then rehearse the release image. |
 | UI-001 release-image HTTP | S-016 | F-026-F-029 document the environment harness and status-report errors | Cold-restore the same volume, then close remaining interface truth gaps before release. |
 | UI-001 AWS preflight 1 | Account/task/image/repository facts resolved read-only | F-032 prevented a completed gate | Accept none of the partial gate; rerun the entire bounded read-only proof before any mutation. |
+| UI-001 AWS preflight 2 | Print-first diagnostic proves task1433, one healthy completed writer, exact identity, advancing clock, unchanged EFS/CPU/RAM shape, and all five alarms OK | F-033-F-035 rejected guessed route and opaque/destructive harnesses | Run named postconditions against the printed facts, including a custody-clear sample, before build or mutation. |
 
 ## Deployment history
 
