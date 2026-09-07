@@ -130,6 +130,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-058 | Same S-057 container remained clean through live508349/persisted508346, then graceful stop completed in2.248s with exit0/no OOM. Close durably settled exact tick508350/body112,826,913B `5573b184...afc844`/world63,479B `778c1a8f...3a917`, predecessor508346, exactly5 files/4,379,710B. Exact stopped-state copy is `/tmp/guala-p005-v2-runtime-final.yPc1fp/paired-current-gen2`. |
 | S-059 | Same exact runtime container restarted from S-058 with initial observation exactly tick508350/body `5573b184...afc844`/world `778c1a8f...3a917`, no last occurrence and no replay. It then advanced unattended to live508363/persisted508362 with113 DSF/1,453 changed/0 callbacks, no errors/block,7 PIDs,1.000GiB, and exactly5 files/4,376,828B. Second graceful stop completed3.614s/exit0/no OOM. Local artifact acceptance passed; EFS production behavior remains unproved. |
 | S-060 | Governing preflight at commit3b45baef revalidated exact root/branch, account418384447921, service `tfe-web-cluster/dsf-ai-service-lb`, task1431/task `21902bc7...704c`, digest ebf0ecb7,4vCPU/16GiB, desired/running/pending1/1/0, ECS HEALTHY, and both public pages200. All five Guala alarms were OK. Three public samples15:03:01-15:03:11 retained identity and113 DSF/1,457 changed/0 callbacks but stayed live513577/persisted513572/pending5/blocked. This is rollback continuity plus repeated F-051, not functional shell health. |
+| S-061 | Previously absent immutable ECR tags now resolve exact local digests: `guala-lean-f7d272b9`→`sha256:13dd7018...3634d`/212,666,254B pushed15:04:45Z; `guala-migration-f7d272b9`→`sha256:9a63c55c...6f13b`/212,669,437B pushed15:04:47Z. `batch-get-image` returned one OCI manifest and zero failures for each digest, closing RF-047. No task definition or service changed yet. |
 
 ## Failures/open seams
 
@@ -268,6 +269,7 @@ exact live migration and rollback boundary.
 | v2 cold continuation | S-059 | production EFS unproved | push immutable artifacts and stopped migration |
 | first deployment governance | none | F-057; no AWS mutation | resolve exact authority paths |
 | exact production preflight | S-060 | F-058 and production EFS candidate open | publish immutable artifacts |
+| immutable v2 publication | S-061 | no task registered or run | register exact migration/runtime definitions |
 
 P-005 next: reread this ledger; replace paired CURRENT v1 with version2
 deterministic gzip-level3 body custody in a new generation root. Preserve the
