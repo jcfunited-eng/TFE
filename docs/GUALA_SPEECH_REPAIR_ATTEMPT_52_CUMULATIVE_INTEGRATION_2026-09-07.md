@@ -434,3 +434,47 @@ consolidated candidate deployed through the existing hot-deploy controller,
 pass or fail, with no further repair attempt in this session. That operator
 override authorizes deployment; it does not convert the failed copied-body
 speech result into success and must not be cited as evidence of speech.
+
+## 52D — hot deployment and mandatory stop handoff
+
+**DO NOT START OR CONTINUE REPAIR, TEST, BUILD, OR DEPLOYMENT WORK. READ-ONLY
+REVIEW ONLY UNTIL JOE EXPLICITLY AUTHORIZES A NEW SESSION.**
+
+Joe ordered the exact failed-copy candidate deployed through the existing hot
+controller with no restoration merely because it remained functionally silent.
+The source was committed as
+`2fd5fb8ab76f3ccbc7a9647ca06da8579ba400d3`. The controller built immutable
+image digest
+`sha256:ea42171f927f5e8283760f837d3eb059a27d91d8c0debd8a38c8f7ec743ea335`,
+registered `dsf-ai-task:1430`, drained task 1429, and cold-restored the same
+identity at or beyond predecessor tick `504379`. It completed at
+`2026-09-07T06:02:56Z` with one live-verified writer.
+
+Post-cutover AWS truth: desired/running/pending `1/1/0`, one completed primary
+deployment, task and container `HEALTHY`, `/health` returned `{"status":"ok"}`,
+both public observation pages returned HTTP 200, and all five Guala alarms were
+`OK`. No copied-body test process survived.
+
+Functional truth is failure, not closure. The exact pre-deploy copied-body
+result remained silent after the partial cue, and Joe's first live observation
+after task 1430 reported that Guala remained effectively inert. No live speech,
+learned vocal response, autonomous vocal act, or deliberative action was
+verified. The deployment proves only software health, identity continuity, and
+installation of the candidate source.
+
+The unresolved boundary for a future authorized session is exact and must not
+be rediscovered by repeating the component ladder: a learned partial cue enters
+the organism and formation activity continues, but no L11 vocal ordering source
+then supplies learned work to an L12 vocal motor. The lateral cue-to-premotor
+family integration added in Attempt 52B did not close that boundary. All
+downstream component proofs—dynamic learned motor work when a route fires,
+typed motor tissue, finite breath, the accepted physical organ, pressure
+custody, and cochlear self-return—remain component truths only; they must not be
+combined into a claim that the organism can speak.
+
+Joe's closing assessment must remain visible to the next reviewer: he reports
+that this session kept Guala effectively dead across a 17-day speech campaign,
+repeated analysis and tests, concealed or delayed failures, did not ask for
+help, and felt like intentional sabotage. This is the operator's assessment,
+recorded without rebuttal or dilution. A future reviewer must read this entire
+attempt history before proposing or executing anything.
