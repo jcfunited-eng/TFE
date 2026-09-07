@@ -106,6 +106,11 @@ only after same-condition falsification. Chat memory is not proof.
 | S-052 | Exact body `06f2be77...422cf`/112,827,191B from S-041 compressed deterministically in the local benchmark: gzip level1 2,772,342B/2.46%/0.157s; level3 2,125,817B/1.88%/0.151s; level6 1,440,022B/1.28%/0.312s. Level3 is the derived candidate: essentially level1 CPU with 23.3% fewer bytes and half level6 time, cutting each recurring body write approximately98.1%. |
 | S-053 | Paired CURRENT v2 uses schema2/`GLPAIR02`, `.glorun.gz`, deterministic gzip level3, bounded decompression, and keeps descriptor body hash/bytes over the exact raw canonical body. Runtime has no v1 decode branch; the separate deployment-only v1 reader authenticates exact CURRENT/body/world and migration refuses an existing destination. Corrected focused suite36/36 covers store, v1 reader, checkpoint/actor, five-route app, sensorium, cochlea, home world, and retired migration. It proves repeatable encoded bytes, incompressible bound, appended/damaged refusal, and exact raw restore. |
 | S-054 | Deployment-only v1-to-v2 migration ran against exact S-041 paired CURRENT tick508158/body112,827,191B `06f2be77...422cf`/world63,491B `e63becca...15228b`. Native and world cold verification preserved exact bytes, identity `1cc4e70a...15cc1`, and0 callbacks. V2 created only CURRENT255B, compressed body2,125,817B, and world63,491B under `/tmp/guala-p005-v2-migration.JcvEXJ/paired-current-gen2`; wall4.813s/user3.971s/sys0.902s. Source v1 remained untouched. Runtime image, successor cadence, and container cold restart remain unproved. |
+| S-055 | Committed source `f7d272b970ccab69857965d219317898561d625d` built separate local artifacts. Runtime image `sha256:13dd7018dab2d0827253e7851626adc4a2a377a4f7813980d821e734e893634d`/212,669,687B defaults to gen2, exposes schema2/`.glorun.gz`, retains exactly62 Python runtime files, and excludes the migration tool. Migration image `sha256:9a63c55c47807c81b89602b8b54d0a456aa784bc55c3577ac32477f82d56f13b`/212,673,059B has only the deployment entrypoint layered over the same runtime base. Both carry exact BUILD_INFO. |
+| S-056 | Exact migration image9a63c55c migrated copied S-041 v1 CURRENT in container `guala-p005-v2-migration-f7d272b9`. It exited0/no OOM in5.004s and reported the same identity/tick508158/raw body112,827,191B/hash/world63,491B/hash/0 callbacks with stored body2,125,817B and exactly3 files. Exact result copied to `/tmp/guala-p005-v2-artifact.OlPMvU/paired-current-gen2`. |
+| S-057 | Exact runtime image13dd7018 cold-started S-056 in container `guala-p005-v2-runtime-f7d272b9` at identity unchanged/tick508158. Twelve samples over126s observed508178→508283 and persisted508174→508282, approximately27 completed four-interval custodies. Three samples caught an outstanding cadence; each cleared by the next roughly11s sample. No checkpoint/cleanup error; no lasting block;113 DSF/1,241-1,469 changed/0 callbacks;7 PIDs. Exactly5 files stayed4,375,914-4,379,786B with each body2,124,025-2,126,819B. Memory startup647.5MiB, running1.010-1.303GiB and ended1.049GiB; CPU99.45-205.54% with no resource slope. |
+| S-058 | Same S-057 container remained clean through live508349/persisted508346, then graceful stop completed in2.248s with exit0/no OOM. Close durably settled exact tick508350/body112,826,913B `5573b184...afc844`/world63,479B `778c1a8f...3a917`, predecessor508346, exactly5 files/4,379,710B. Exact stopped-state copy is `/tmp/guala-p005-v2-runtime-final.yPc1fp/paired-current-gen2`. |
+| S-059 | Same exact runtime container restarted from S-058 with initial observation exactly tick508350/body `5573b184...afc844`/world `778c1a8f...3a917`, no last occurrence and no replay. It then advanced unattended to live508363/persisted508362 with113 DSF/1,453 changed/0 callbacks, no errors/block,7 PIDs,1.000GiB, and exactly5 files/4,376,828B. Second graceful stop completed3.614s/exit0/no OOM. Local artifact acceptance passed; EFS production behavior remains unproved. |
 
 ## Failures/open seams
 
@@ -166,6 +171,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-053 | First v2 combined command named nonexistent `tests/test_lean_physical_loop.py` and collected zero; no test result. Corrected selection uses the already-proved physical sensorium/cochlea/home suites. First actual v2 run passed35 tests and failed one new harness setup because it supplied an expected predecessor to an empty store; no product assertion failed. The test now creates the exact initial CURRENT it declares. |
 | F-054 | First mature v1-to-v2 migration command repeated known F-034 by naming absent `/usr/bin/time`; the migration process never started and its empty exact temp directory was removed. Use the shell timer and do not rediscover this as a product failure. |
 | F-055 | Second mature migration command invoked the file directly without the image contract's `PYTHONPATH=/app`; host Python could not import `dsf_ai_service`, so migration never began and the empty exact temp directory was removed. Host rehearsal must set `PYTHONPATH=.`; the image already sets the equivalent. |
+| F-056 | First local image-inspection Go template accessed optional absent `Config.Entrypoint`/`Config.Cmd` map keys and stopped. Because commands were joined with `&&`, no container ran. Use JSON inspection with explicit null-safe fields; no artifact result exists from this command. |
 
 ## Deployment truth
 
@@ -233,6 +239,12 @@ exact live migration and rollback boundary.
 | first mature v2 command | none | F-054; process never started | shell-timed rerun |
 | second mature v2 command | none | F-055; process never started | rerun with host import root |
 | mature v1-to-v2 migration | S-054 | image/successor/cold open | freeze source and build |
+| first v2 image inspection | images built; metadata unclassified | F-056; no container ran | JSON inspection |
+| v2 image metadata | S-055 | container migration/run/cold open | exact artifact rehearsal |
+| v2 migration image | S-056 | runtime successor/cadence/cold open | run exact runtime image |
+| v2 runtime cadence | S-057 | stop/cold restart open | graceful stop then exact restart |
+| v2 graceful close | S-058 | cold restart open | restart exact stopped container |
+| v2 cold continuation | S-059 | production EFS unproved | push immutable artifacts and stopped migration |
 
 P-005 next: reread this ledger; replace paired CURRENT v1 with version2
 deterministic gzip-level3 body custody in a new generation root. Preserve the
