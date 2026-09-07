@@ -1,0 +1,201 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from dsf_ai_service.lean_actor import (
+    LeanOrganismActor,
+    PhysicalOccurrence,
+    SettlementResult,
+)
+from dsf_ai_service.lean_production_app import create_lean_production_app
+from dsf_ai_service.paired_current_store import PairedCurrentStore
+
+
+IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
+PRESSURE = b"\x01\x00\xfe\xff" * 16
+PRESSURE_SHA256 = hashlib.sha256(PRESSURE).hexdigest()
+
+
+@dataclass(slots=True)
+class _Readiness:
+    identity: str
+    organism_tick: int
+    state_sha256: str
+    state_bytes: int
+    python_callback_count: int = 0
+
+
+@dataclass(slots=True)
+class _Checkpoint:
+    organism_tick: int
+    body: bytes
+
+    @property
+    def state_sha256(self) -> str:
+        return hashlib.sha256(self.body).hexdigest()
+
+    @property
+    def state_bytes(self) -> int:
+        return len(self.body)
+
+    def encoded_generation(self) -> bytes:
+        return self.body
+
+
+@dataclass(slots=True)
+class _Snapshot:
+    organism_tick: int
+    body: bytes
+
+    def prepare_checkpoint(self) -> _Checkpoint:
+        return _Checkpoint(self.organism_tick, self.body)
+
+
+class _Runtime:
+    def __init__(self, body: bytes) -> None:
+        self.tick = 10
+        self.persisted_tick = 10
+        self.persisted = body
+
+    @property
+    def live_organism_tick(self) -> int:
+        return self.tick
+
+    def readiness(self) -> _Readiness:
+        return _Readiness(
+            IDENTITY,
+            self.persisted_tick,
+            hashlib.sha256(self.persisted).hexdigest(),
+            len(self.persisted),
+        )
+
+    def snapshot_lived_state(self) -> _Snapshot:
+        return _Snapshot(self.tick, f"body-{self.tick}".encode())
+
+    def validate_lived_checkpoint(self, checkpoint: _Checkpoint) -> None:
+        assert checkpoint.organism_tick <= self.tick
+
+    def adopt_published_lived_checkpoint(self, checkpoint: _Checkpoint) -> None:
+        self.persisted_tick = checkpoint.organism_tick
+        self.persisted = checkpoint.body
+
+
+class _World:
+    def __init__(self, body: bytes) -> None:
+        self.body = body
+
+    def encoded_snapshot(self) -> bytes:
+        return self.body
+
+
+class _Physical:
+    def __init__(self) -> None:
+        self.count = 0
+
+    def settle(
+        self,
+        runtime: _Runtime,
+        world: _World,
+        occurrence: PhysicalOccurrence,
+    ) -> SettlementResult:
+        assert occurrence == PhysicalOccurrence("unattended", None)
+        self.count += 1
+        runtime.tick += 1
+        world.body = f"world-{runtime.tick}".encode()
+        return SettlementResult(
+            native_interval_count=1,
+            observation={"causal": True},
+            pressure=(PRESSURE_SHA256, PRESSURE) if self.count == 1 else None,
+        )
+
+    def unattended(self, runtime: _Runtime, world: _World) -> SettlementResult:
+        return self.settle(runtime, world, PhysicalOccurrence("unattended", None))
+
+
+def _actor(root: Path) -> LeanOrganismActor:
+    body = b"body-10"
+    world_body = b"world-10"
+    store = PairedCurrentStore(
+        root,
+        max_body_bytes=4096,
+        max_world_bytes=4096,
+    )
+    pointer = store.publish(
+        identity=IDENTITY,
+        organism_tick=10,
+        body=body,
+        world=world_body,
+        expected_current_body_sha256=None,
+    )
+    return LeanOrganismActor(
+        runtime=_Runtime(body),
+        world=_World(world_body),
+        pointer=pointer,
+        store=store,
+        physical=_Physical(),
+        mailbox_capacity=1,
+        checkpoint_every_intervals=4,
+        unattended_interval_seconds=60,
+    )
+
+
+def test_exact_five_routes_and_one_bounded_pressure_receipt(
+    tmp_path: Path,
+) -> None:
+    actor = _actor(tmp_path)
+    application = create_lean_production_app(lambda: actor)
+    assert sorted(route.path for route in application.routes) == [
+        "/health",
+        "/observation",
+        "/occurrence",
+        "/pressure/{receipt}",
+        "/ready",
+    ]
+
+    with TestClient(application) as client:
+        assert client.get("/health").json() == {
+            "alive": True,
+            "schema": "guala.lean_health.v1",
+        }
+        assert client.get("/ready").json() == {"ready": True}
+        assert client.get("/docs").status_code == 404
+        assert client.post(
+            "/occurrence",
+            json={"kind": "unattended", "payload": None, "extra": True},
+        ).status_code == 422
+        assert client.post(
+            "/occurrence",
+            content=b"x" * 257,
+        ).status_code == 413
+
+        first = client.post(
+            "/occurrence",
+            json={"kind": "unattended", "payload": None},
+        )
+        assert first.status_code == 200
+        assert first.json()["pressure_sha256"] == PRESSURE_SHA256
+        pressure = client.get(f"/pressure/{PRESSURE_SHA256}")
+        assert pressure.status_code == 200
+        assert pressure.content == PRESSURE
+        assert pressure.headers["content-type"] == "application/octet-stream"
+        assert pressure.headers["etag"] == f'"{PRESSURE_SHA256}"'
+        assert pressure.headers["x-guala-pcm-channels"] == "1"
+        assert pressure.headers["x-guala-pcm-encoding"] == (
+            "signed-16-little-endian"
+        )
+        assert pressure.headers["x-guala-pcm-sample-rate-hz"] == "16000"
+
+        second = client.post(
+            "/occurrence",
+            json={"kind": "unattended", "payload": None},
+        )
+        assert second.status_code == 200
+        assert second.json()["pressure_sha256"] is None
+        observation = client.get("/observation").json()
+        assert observation["pressure_sha256"] == PRESSURE_SHA256
+        assert client.get(f"/pressure/{PRESSURE_SHA256}").content == PRESSURE
+        assert client.get("/pressure/not-a-receipt").status_code == 404

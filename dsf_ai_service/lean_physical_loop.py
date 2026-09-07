@@ -1,0 +1,228 @@
+"""Minimal native-world causal loop for the lean Guala shell."""
+
+from __future__ import annotations
+
+from dataclasses import replace
+from fractions import Fraction
+import hashlib
+from typing import Any
+
+from dsf_ai_service.guala_cochlea import one_self_hearing_hop
+from dsf_ai_service.guala_motor_world import prepare_motor_consequence
+from dsf_ai_service.guala_physical_sensorium import settle_physical_sensorium
+from dsf_ai_service.guala_world_sensorium import (
+    passive_sensorium,
+    prepare_passive_world_interval,
+)
+from dsf_ai_service.lean_actor import PhysicalOccurrence, SettlementResult
+
+
+PASSIVE_TIMES = tuple(Fraction(index, 16_000) for index in range(0, 4_001, 160))
+PASSIVE_ADMISSION = ([(250, 1_000)],)
+
+
+def _commit_prepared(world: Any, prepared: Any) -> Any:
+    with world.prepared_action_visibility_transaction(prepared):
+        return world.commit_prepared_action(prepared)
+
+
+def _requires_physical_return(evidence: Any) -> bool:
+    body_sources = tuple(evidence.body_proprioceptive_sources)
+    body_consequences = tuple(evidence.articulated_body_consequences)
+    if bool(body_sources) != bool(body_consequences):
+        raise RuntimeError("native body consequence lost its physical source")
+    return bool(
+        body_sources
+        or evidence.motor_unit_recruitments
+        or evidence.root_yaw_unit_recruitments
+        or evidence.root_translation_unit_recruitments
+        or evidence.articulatory_unit_recruitments
+    )
+
+
+def _abort_occurrence(
+    *,
+    runtime: Any,
+    world: Any,
+    predecessor_world: bytes,
+    uncommitted_prepared: Any | None,
+) -> None:
+    errors: list[BaseException] = []
+    if uncommitted_prepared is not None:
+        try:
+            world.discard_prepared_action(uncommitted_prepared)
+        except BaseException as error:
+            errors.append(error)
+    try:
+        runtime.abort_unsealed_trajectory()
+    except (RuntimeError, ValueError) as error:
+        if "no pending candidate" not in str(error):
+            errors.append(error)
+    try:
+        world.restore_encoded(predecessor_world)
+        if bytes(world.encoded_snapshot()) != predecessor_world:
+            raise RuntimeError("physical world rollback changed exact bytes")
+    except BaseException as error:
+        errors.append(error)
+    if errors:
+        raise RuntimeError("native/world occurrence rollback failed") from errors[0]
+
+
+class LeanPhysicalLoop:
+    """One direct full-field interval and every immediate physical return."""
+
+    def settle(
+        self,
+        runtime: Any,
+        world: Any,
+        occurrence: PhysicalOccurrence,
+    ) -> SettlementResult:
+        if occurrence.kind != "unattended" or occurrence.payload is not None:
+            raise ValueError("lean physical ingress kind is not mounted")
+        return self.unattended(runtime, world)
+
+    def unattended(self, runtime: Any, world: Any) -> SettlementResult:
+        pending_pressure = runtime.in_flight_acoustic_pressure_s16le
+        pending_body = runtime.in_flight_acoustic_body_s16le
+        pending_source_tick = runtime.in_flight_acoustic_source_tick
+        if (pending_pressure is None) != (pending_body is None) or (
+            pending_pressure is None
+        ) != (pending_source_tick is None):
+            raise RuntimeError("native in-flight acoustic state lost cardinality")
+
+        start_tick = runtime.live_organism_tick
+        before_native = runtime.readiness()
+        predecessor_world = bytes(world.encoded_snapshot())
+        primary_prepared = prepare_passive_world_interval(world)
+        uncommitted_prepared: Any | None = primary_prepared
+        self_heard_samples = 0
+        motor_plan = None
+        try:
+            primary_sensorium = passive_sensorium(
+                world=world,
+                snapshot=primary_prepared.execution_receipt.after,
+                body_axes=tuple(before_native.articulated_body_axes),
+                frame_count=len(PASSIVE_TIMES),
+                pending_execution=primary_prepared.execution_receipt,
+            )
+            if pending_pressure is not None:
+                pressure = bytes(pending_pressure)
+                body = bytes(pending_body)
+                times, legacy, cochleae, self_heard_samples = one_self_hearing_hop(
+                    pressure
+                )
+                if times != PASSIVE_TIMES:
+                    raise RuntimeError("self-hearing changed the passive clock")
+                primary_sensorium = replace(
+                    primary_sensorium,
+                    legacy_ears=(legacy, legacy),
+                    cochleae=cochleae,
+                )
+            primary_episode = settle_physical_sensorium(
+                assembly_id=(
+                    "guala-lean-unattended-"
+                    f"{before_native.identity}-{runtime.live_organism_tick + 1}"
+                ),
+                source_times=PASSIVE_TIMES,
+                sensorium=primary_sensorium,
+            )
+            if pending_pressure is None:
+                primary = runtime.advance_admitted_trajectory_unsealed(
+                    (primary_episode,), PASSIVE_ADMISSION
+                )
+            else:
+                primary = runtime.advance_in_flight_self_hearing_unsealed(
+                    (primary_episode,),
+                    PASSIVE_ADMISSION,
+                    pressure,
+                    body,
+                    False,
+                    self_heard_samples,
+                )
+            _commit_prepared(world, primary_prepared)
+            uncommitted_prepared = None
+
+            final = primary
+            if _requires_physical_return(primary):
+                successor_axes = tuple(runtime.readiness().articulated_body_axes)
+                motor_plan = prepare_motor_consequence(
+                    world=world,
+                    evidence=primary,
+                    predecessor_state_sha256=before_native.state_sha256,
+                    predecessor_body_axes=tuple(before_native.articulated_body_axes),
+                    successor_body_axes=successor_axes,
+                    passive_times=PASSIVE_TIMES,
+                )
+                uncommitted_prepared = motor_plan.prepared_world
+                with world.prepared_action_visibility_transaction(
+                    motor_plan.prepared_world
+                ):
+                    world.commit_prepared_action(motor_plan.prepared_world)
+                    uncommitted_prepared = None
+                    final = runtime.advance_coexisting_admitted_interval_unsealed(
+                        motor_plan.sources, motor_plan.admissions
+                    )
+                    if motor_plan.vestibular is not None:
+                        final = runtime.advance_vestibular_trajectory_unsealed(
+                            *motor_plan.vestibular
+                        )
+        except BaseException:
+            _abort_occurrence(
+                runtime=runtime,
+                world=world,
+                predecessor_world=predecessor_world,
+                uncommitted_prepared=uncommitted_prepared,
+            )
+            raise
+
+        lived_tick_delta = runtime.live_organism_tick - start_tick
+        if lived_tick_delta <= 0:
+            raise RuntimeError("physical settlement advanced no native lived time")
+        pressure_body = runtime.in_flight_acoustic_pressure_s16le
+        pressure_record = None
+        if pressure_body is not None:
+            pressure_bytes = bytes(pressure_body)
+            pressure_record = (
+                hashlib.sha256(pressure_bytes).hexdigest(),
+                pressure_bytes,
+            )
+        body_consequences = tuple(primary.articulated_body_consequences)
+        return SettlementResult(
+            native_interval_count=lived_tick_delta,
+            observation={
+                "actual_root_motion": (
+                    (0, 0, 0)
+                    if motor_plan is None
+                    else motor_plan.actual_root_motion
+                ),
+                "body_consequence_count": len(body_consequences),
+                "causal_transition_sha256": final.causal_transition_sha256,
+                "dsf_delivery_count": final.dsf_delivery_count,
+                "physically_transitioned_neuron_count": (
+                    final.physically_transitioned_neuron_count
+                ),
+                "primary_causal_transition_sha256": (
+                    primary.causal_transition_sha256
+                ),
+                "python_callback_count": final.python_callback_count,
+                "requested_world_action": (
+                    None if motor_plan is None else motor_plan.requested_action
+                ),
+                "requested_root_motion": (
+                    (0, 0, 0)
+                    if motor_plan is None
+                    else motor_plan.requested_root_motion
+                ),
+                "self_hearing_source_tick": (
+                    None
+                    if pending_source_tick is None
+                    else int(pending_source_tick)
+                ),
+                "self_heard_sample_count": self_heard_samples,
+                "world_action_refusal": (
+                    None if motor_plan is None else motor_plan.refusal_reason
+                ),
+                "world_revision": world.observation_snapshot().revision,
+            },
+            pressure=pressure_record,
+        )
