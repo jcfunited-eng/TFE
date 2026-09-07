@@ -22,6 +22,10 @@ CHECKPOINT_EVERY_INTERVALS = 4
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
 MAX_OCCURRENCE_BODY_BYTES = 256
+PUBLIC_API_PREFIX = "/api/v1/guala"
+OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
+OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
+PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
 
 
 class OccurrenceBody(BaseModel):
@@ -162,11 +166,11 @@ def create_lean_production_app(
             media_type="application/json",
         )
 
-    @application.get("/observation")
+    @application.get(OBSERVATION_ROUTE)
     async def observation(request: Request) -> dict[str, object]:
         return actor_for(request).observation()
 
-    @application.post("/occurrence")
+    @application.post(OCCURRENCE_ROUTE)
     async def occurrence(request: Request) -> dict[str, object]:
         body = await _occurrence_body(request)
         actor = actor_for(request)
@@ -187,7 +191,7 @@ def create_lean_production_app(
             "schema": "guala.lean_occurrence_result.v1",
         }
 
-    @application.get("/pressure/{receipt}")
+    @application.get(PRESSURE_ROUTE)
     async def pressure(receipt: str, request: Request) -> Response:
         body = actor_for(request).pressure(receipt)
         if body is None:
@@ -209,4 +213,10 @@ def create_lean_production_app(
 app = create_lean_production_app()
 
 
-__all__ = ("app", "create_lean_production_app")
+__all__ = (
+    "OBSERVATION_ROUTE",
+    "OCCURRENCE_ROUTE",
+    "PRESSURE_ROUTE",
+    "app",
+    "create_lean_production_app",
+)

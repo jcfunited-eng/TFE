@@ -3,12 +3,13 @@
 Date: 2026-09-07 UTC
 
 Status: active. Task1430 is unchanged and running. Source `8b4c3a7a` and its
-final allow-listed image passed matched passive, pressure, root action, bounded
-custody failure, five-route HTTP, autonomous soak, graceful stop, exact cold
-restore, and exact retired-to-paired migration. Production UI/API route
-reconciliation, final migration-image rehearsal, image push, cutover, and live
-proof remain open. Speech is still functionally failed and is next only after
-truthful shell cutover.
+first final allow-listed image passed matched passive, pressure, root action,
+bounded custody failure, five-route HTTP, autonomous soak, graceful stop,
+exact cold restore, and exact retired-to-paired migration. A pre-deploy audit
+then found and corrected the public CloudFront route/UI incompatibility. The
+corrected source is not yet committed or rebuilt. Final migration-image
+rehearsal, image push, cutover, and live proof remain open. Speech is still
+functionally failed and is next only after truthful shell cutover.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -87,7 +88,8 @@ only after same-condition falsification. Chat memory is not proof.
 | S-038 | Same image exact task1430 tick507972 autonomously reached durable508153. Eight samples/118s:113 DSF/0 callbacks,7 PIDs,1.001-1.158GiB, CPU100-188% unbounded host, always5 files/225.77-225.80MB. Five routes; old/docs absent;413. Stop2.705s/exit0/noOOM. Cold exact identity/tick/body/world. Current `86f23382...a782`; `/tmp/guala-p005-release-result-941dcaeb`. |
 | S-039 | `/health` now reads only cached actor availability:200 during bounded custody pause,503 after organism-owner death. `/ready` remains503 during backpressure. Focused+core custody tests20/20; combined shell30/30. AWS task1430 ECS and ALB both check `/health`; interval30/retries10/start300 and interval60/unhealthy5 respectively. |
 | S-040 | Deployment-only migration parser/authenticator2/2. Source-built image rehearsal migrated exact retired task1430 tick507972 compressed CURRENT+world association to three-file pair with exact identity/body hash+bytes/world hash+bytes, then exact native/world cold restore/0 callbacks. Runtime manifest excludes migration tool. `/tmp/guala-p005-migration-result-941dcaeb`. |
-| S-041 | Final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran 251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. |
+| S-041 | First final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. Superseded only at transport paths by S-042. |
+| S-042 | CloudFront `E17JT9XGBFU493` sends one `/api/*` behavior to ALB and static default to S3; live pages exactly matched repo before edit. Five routes remain five: root health/ready plus observation/occurrence/pressure at `/api/v1/guala/*`. Static Guala+Loom replaced687 lines/140,465B with197 lines/23,300B: one cache-only observation GET each, one exact pressure GET only on Guala, no write route, hidden-page suspension, explicit absent speech/vision/conversation/autonomous-choice truth. Shell/UI24/24 and physical/migration17/17 passed; JS and HTML parse passed. |
 
 ## Failures/open seams
 
@@ -133,6 +135,8 @@ only after same-condition falsification. Chat memory is not proof.
 | F-038 | One soak sample ready503 at pending5/outstanding, recovered200. Expected truthful backpressure; AWS health uses `/health`. |
 | F-039 | First lean `/health` proved only web transport and could stay200 after actor death. Replaced S-039 before production; no candidate containing the defect was pushed. |
 | F-040 | Final-artifact probe first used port8000 although image contract is8080; cold harness first omitted destination directory and called nonexistent `current()`. Neither was a product failure; corrected 8080 and `read_pointer()` proofs are S-041. |
+| F-041 | First final image root `/observation` was unreachable through CloudFront because only `/api/*` reaches ALB; old 140KB pages required retired route/schema/capabilities. Found before push. Corrected by S-042 without compatibility aliases or added routes. |
+| F-042 | First run of four retired static contract suites produced3 pass/25 expected failures because they mandated the deleted observer/camera/curriculum UI. Replaced those four contradictory files with one six-test lean truth/route/bounds/parser suite; S-042 is the corrected result. |
 
 ## Deployment truth
 
@@ -140,7 +144,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 final image built/rehearsed but not pushed/deployed/live-verified. |
+| D-003 | P-005 corrected source passes focused tests but final image is not rebuilt/pushed/deployed/live-verified. |
 
 ## Frozen contract and acceptance
 
@@ -154,10 +158,10 @@ fsync then atomic pointer; verify type/size/hash/identity/tick; fail closed;
 retain two. No named world/markers/associations/retry/remote hot read/DB/archive.
 Actor snapshot→one depth-one no-runtime worker→actor adoption.
 
-Five routes: health, ready, observation, occurrence, pressure receipt. Static
-UI/curriculum outside ECS; only physical assets required to authenticate the
-persisted world reside in the image. Deployment-only migration never enters
-the runtime manifest and never changes the retired source root.
+Five routes: root health and ready; `/api/v1/guala/` observation, occurrence,
+and pressure receipt. Static UI/curriculum outside ECS; only physical assets
+required to authenticate the persisted world reside in the image. Deployment-
+only migration never enters runtime manifest and never changes retired root.
 
 Acceptance: exact task1430 pair; identity/state/full DSF; equivalent successor;
 at-most-once consequence; paired cold continuation; pristine/mature; damage
@@ -185,11 +189,11 @@ exact live migration and rollback boundary.
 | final image mature | S-036/S-037 | F-037 corrected | matched soak |
 | final matched soak | S-038 | F-038/F-039 corrected | health truth |
 | health/migration | S-039/S-040 | AWS cutover open | freeze source |
-| final artifact | S-041 | F-040 corrected; UI/migration/AWS open | reconcile live route |
+| first final artifact | S-041 | F-040/F-041 corrected | namespace public routes |
+| public route/UI | S-042 | F-042 corrected; image/AWS open | commit and rebuild |
 
-P-005 next: reconcile the existing S3/CloudFront Loom with the five-route live
-contract without restoring compatibility bloat; rehearse the exact final
-migration image; then push immutable digests, drain task1430, migrate its
-stopped exact CURRENT without altering old root, register lean task, cut over
-once with rollback to1430 intact, and live verify. After P-005: F-001 speech,
-Claude vision candidate, autonomy.
+P-005 next: commit the corrected five-route/static boundary; rebuild and
+rehearse both runtime and exact migration images; then push immutable digests,
+drain task1430, migrate its stopped exact CURRENT without altering old root,
+register lean task, cut over once with rollback to1430 intact, and live verify.
+After P-005: F-001 speech, Claude vision candidate, autonomy.

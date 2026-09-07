@@ -13,7 +13,12 @@ from dsf_ai_service.lean_actor import (
     PhysicalOccurrence,
     SettlementResult,
 )
-from dsf_ai_service.lean_production_app import create_lean_production_app
+from dsf_ai_service.lean_production_app import (
+    OBSERVATION_ROUTE,
+    OCCURRENCE_ROUTE,
+    PRESSURE_ROUTE,
+    create_lean_production_app,
+)
 from dsf_ai_service.paired_current_store import PairedCurrentStore
 
 
@@ -164,11 +169,12 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
 ) -> None:
     actor = _actor(tmp_path)
     application = create_lean_production_app(lambda: actor)
+    pressure_path = PRESSURE_ROUTE.format(receipt=PRESSURE_SHA256)
     assert sorted(route.path for route in application.routes) == [
+        "/api/v1/guala/observation",
+        "/api/v1/guala/occurrence",
+        "/api/v1/guala/pressure/{receipt}",
         "/health",
-        "/observation",
-        "/occurrence",
-        "/pressure/{receipt}",
         "/ready",
     ]
 
@@ -179,22 +185,23 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         }
         assert client.get("/ready").json() == {"ready": True}
         assert client.get("/docs").status_code == 404
+        assert client.get("/observation").status_code == 404
         assert client.post(
-            "/occurrence",
+            OCCURRENCE_ROUTE,
             json={"kind": "unattended", "payload": None, "extra": True},
         ).status_code == 422
         assert client.post(
-            "/occurrence",
+            OCCURRENCE_ROUTE,
             content=b"x" * 257,
         ).status_code == 413
 
         first = client.post(
-            "/occurrence",
+            OCCURRENCE_ROUTE,
             json={"kind": "unattended", "payload": None},
         )
         assert first.status_code == 200
         assert first.json()["pressure_sha256"] == PRESSURE_SHA256
-        pressure = client.get(f"/pressure/{PRESSURE_SHA256}")
+        pressure = client.get(pressure_path)
         assert pressure.status_code == 200
         assert pressure.content == PRESSURE
         assert pressure.headers["content-type"] == "application/octet-stream"
@@ -206,15 +213,17 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         assert pressure.headers["x-guala-pcm-sample-rate-hz"] == "16000"
 
         second = client.post(
-            "/occurrence",
+            OCCURRENCE_ROUTE,
             json={"kind": "unattended", "payload": None},
         )
         assert second.status_code == 200
         assert second.json()["pressure_sha256"] is None
-        observation = client.get("/observation").json()
+        observation = client.get(OBSERVATION_ROUTE).json()
         assert observation["pressure_sha256"] == PRESSURE_SHA256
-        assert client.get(f"/pressure/{PRESSURE_SHA256}").content == PRESSURE
-        assert client.get("/pressure/not-a-receipt").status_code == 404
+        assert client.get(pressure_path).content == PRESSURE
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt="not-a-receipt")
+        ).status_code == 404
 
 
 def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
