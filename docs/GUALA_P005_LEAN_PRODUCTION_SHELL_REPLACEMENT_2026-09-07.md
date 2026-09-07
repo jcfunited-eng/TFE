@@ -2,14 +2,12 @@
 
 Date: 2026-09-07 UTC
 
-Status: active production cutover. Service task1431 was drained to zero writers
-at 2026-09-07 15:08 UTC from live513589/persisted513584 with custody blocked.
-The exact container did not stop until15:12:30 and exited137 after roughly264s.
-No migration or candidate overlaps it. Task1431/gen1 remain untouched rollback;
-task1433/gen2 have not run. The fadvise candidate task1432 remains rejected.
-The active shell defect is the raw approximately113MB body rewrite every four
-intervals. Speech remains functionally failed and follows the jointly designed
-interactive UI.
+Status: active production cutover with service0/0/0. Task1431 stopped at
+15:12:30 with exit137. Exact migration task d8fa43f5 exited0 and authenticated
+gen1 tick513588 into gen2 with the same identity/raw body/world and a2,125,012B
+compressed body. No runtime writer overlaps it. Task1431/gen1 remain untouched
+rollback; task1433 has not run. The fadvise candidate remains rejected. Speech
+remains functionally failed and follows the jointly designed interactive UI.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -129,7 +127,8 @@ only after same-condition falsification. Chat memory is not proof.
 | S-060 | Governing preflight at commit3b45baef revalidated exact root/branch, account418384447921, service `tfe-web-cluster/dsf-ai-service-lb`, task1431/task `21902bc7...704c`, digest ebf0ecb7,4vCPU/16GiB, desired/running/pending1/1/0, ECS HEALTHY, and both public pages200. All five Guala alarms were OK. Three public samples15:03:01-15:03:11 retained identity and113 DSF/1,457 changed/0 callbacks but stayed live513577/persisted513572/pending5/blocked. This is rollback continuity plus repeated F-051, not functional shell health. |
 | S-061 | Previously absent immutable ECR tags now resolve exact local digests: `guala-lean-f7d272b9`→`sha256:13dd7018...3634d`/212,666,254B pushed15:04:45Z; `guala-migration-f7d272b9`→`sha256:9a63c55c...6f13b`/212,669,437B pushed15:04:47Z. `batch-get-image` returned one OCI manifest and zero failures for each digest, closing RF-047. |
 | S-062 | Registered deployment-only `guala-paired-migration:2` at exact migration digest9a63c55c with command `paired-current-gen1`→`paired-current-gen2`, and runtime `dsf-ai-task:1433` at exact digest13dd7018 with `GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2`. Both preserve4vCPU/16GiB, EFS fs-0abb85854a3251b3c, roles, network, and stop timeout from their accepted predecessors. |
-| S-063 | Immediately before drain, public task1431 retained identity and113 DSF/1,436 changed/0 callbacks at live513589/persisted513584 but was custody-blocked. Service desired count was set1→0 at15:08:07; no replacement started. Exact task `21902bc7...704c` reached STOPPED at15:12:30 and service is0/0/0, establishing zero writers for migration. Its final CURRENT is intentionally not inferred from the earlier observation; migration must authenticate and report it. |
+| S-063 | Immediately before drain, public task1431 retained identity and113 DSF/1,436 changed/0 callbacks at live513589/persisted513584 but was custody-blocked. Service desired count was set1→0 at15:08:07; no replacement started. Exact task `21902bc7...704c` reached STOPPED at15:12:30 and service is0/0/0, establishing zero writers for migration. |
+| S-064 | Exact migration task `d8fa43f5a49b42b8bc5e15f3d2f62f4f` ran taskdef2/digest9a63c55c as the sole EFS process and exited0/no error. It authenticated final gen1 CURRENT at tick513588—never inferred from public cache—identity unchanged, raw body112,817,508B `132a3a6d...520b0`, world63,491B `c86e891c...f8e9d`,0 callbacks. Gen2 contains exactly3 files and stored body2,125,012B. Runtime task1433 has not run. |
 
 ## Failures/open seams
 
@@ -272,6 +271,7 @@ exact live migration and rollback boundary.
 | immutable v2 publication | S-061 | no task registered or run | register exact migration/runtime definitions |
 | v2 task definitions | S-062 | neither run; service still1431 | drain one writer and migrate exact stopped CURRENT |
 | task1431 drain | S-063 | F-059 forced exit137 | run one exact stopped migration |
+| production v1-to-v2 migration | S-064 | runtime EFS cadence unproved | start one isolated task1433 |
 
 P-005 next: reread this ledger; replace paired CURRENT v1 with version2
 deterministic gzip-level3 body custody in a new generation root. Preserve the
