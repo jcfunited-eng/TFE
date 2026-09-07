@@ -2,16 +2,15 @@
 
 Date: 2026-09-07 UTC
 
-Status: active production cutover with service0/0/0 and exactly one isolated
-writer. Task1431 stopped at15:12:30 with exit137. Exact migration task
-d8fa43f5 exited0 and authenticated gen1 tick513588 into gen2 with the same
-identity/raw body/world and a2,125,012B compressed body. Exact runtime task
-886cec84/task1433/digest13dd7018 is ECS HEALTHY and has repeatedly advanced
-gen2 on production EFS through at least live513769/persisted513764 without a
-lasting custody stall. Graceful stop, exact cold restore, and public service
-cutover remain open. Task1431/gen1 remain untouched rollback. The fadvise
-candidate remains rejected. Speech remains functionally failed and follows the
-jointly designed interactive UI.
+Status: active production cutover with service0/0/0 and zero writers. Exact
+migration task d8fa43f5 authenticated gen1 tick513588 into gen2 with unchanged
+identity/raw body/world and a2,125,012B compressed body. Exact isolated runtime
+task886cec84/task1433/digest13dd7018 repeatedly advanced gen2 on production EFS
+without a lasting custody stall, then stopped deliberately at15:31:21 with
+container exit0. Exact cold restore and public service cutover remain open.
+Task1431/gen1 remain untouched rollback. The fadvise candidate remains
+rejected. Speech remains functionally failed and follows the jointly designed
+interactive UI.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -135,6 +134,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-063 | Immediately before drain, public task1431 retained identity and113 DSF/1,436 changed/0 callbacks at live513589/persisted513584 but was custody-blocked. Service desired count was set1→0 at15:08:07; no replacement started. Exact task `21902bc7...704c` reached STOPPED at15:12:30 and service is0/0/0, establishing zero writers for migration. |
 | S-064 | Exact migration task `d8fa43f5a49b42b8bc5e15f3d2f62f4f` ran taskdef2/digest9a63c55c as the sole EFS process and exited0/no error. It authenticated final gen1 CURRENT at tick513588—never inferred from public cache—identity unchanged, raw body112,817,508B `132a3a6d...520b0`, world63,491B `c86e891c...f8e9d`,0 callbacks. Gen2 contains exactly3 files and stored body2,125,012B. Runtime task1433 has not run. |
 | S-065 | Isolated production-EFS runtime task `886cec849e6b46e892340396a6e2c066` runs exact task1433/digest13dd7018 and restored the migrated identity without genesis. Samples advanced live513605→513769 and persisted513600→513764. A caught custody window cleared513605/513600/pending5/blocked to513615/513612/pending3/unblocked; later aligned samples at epoch1788794857-4884 alternated bounded custody at513761/513756 and513765/513760 with cleared states at513762/513760 and513766/513764 in6.6-6.8s, with no checkpoint/cleanup error. Storage remained exactly5 files/4,378,462B: two bodies2,125,135-2,126,118B and two worlds63,475-63,479B. PID1 has7 threads; cleared-state cgroup memory was1,283,919,872-1,284,042,752B and custody-state1,420,640,256-1,434,386,432B. This closes the repeated-cadence production-EFS portion of RF-062; stop/cold restore/public service remain open. |
+| S-066 | The exact S-065 task remained the only `dsf-ai-task` writer, advanced native generations through513813 in its CloudWatch stream, received one deliberate ECS stop, completed application shutdown, and reached ECS STOPPED at15:31:21 with container exit0/no reason. Service remained0/0/0 and the family has zero running tasks. Graceful production-EFS close is accepted; final CURRENT will be authenticated by the fresh task1433 cold restore rather than inferred from the last live observation. |
 
 ## Failures/open seams
 
@@ -280,12 +280,13 @@ exact live migration and rollback boundary.
 | task1431 drain | S-063 | F-059 forced exit137 | run one exact stopped migration |
 | production v1-to-v2 migration | S-064 | runtime EFS cadence unproved | start one isolated task1433 |
 | isolated v2 production-EFS cadence | S-065 | F-060 corrected; graceful stop/cold/public open | stop exact candidate and cold-restore once |
+| isolated v2 graceful close | S-066 | exact final CURRENT/cold/public open | start one fresh task1433 with zero writer overlap |
 
-P-005 next: reread this ledger; stop exact isolated task
-886cec849e6b46e892340396a6e2c066 and require graceful exit0 plus exact final
-CURRENT. Start one fresh task1433 against that stopped gen2, require unchanged
-identity/exact cold continuation and ordinary custody, stop it, then attach the
-same task definition/digest to the one-writer public service. Verify public
+P-005 next: reread this ledger; start one fresh task1433 against
+the stopped gen2 with zero writer overlap. Require unchanged identity, an exact
+authenticated CURRENT at or beyond the prior task's final durable successor,
+and ordinary custody. Stop it gracefully, then attach the same task
+definition/digest to the one-writer public service. Verify public
 identity/cadence, bounded CPU/RAM/storage/I/O, routes, and browser truth before
 closing the shell. Then jointly design the lean interactive UI before F-001
 speech, vision, and autonomy.
