@@ -13,5 +13,11 @@
 !native/guala_core/src/**
 !uf_core/
 !uf_core/**
-**/__pycache__/
-**/*.pyc
+dsf_ai_service/**/__pycache__/
+dsf_ai_service/**/*.pyc
+guala_curriculum/cards/**/__pycache__/
+native/guala_core/src/**/__pycache__/
+native/guala_core/target/
+native/guala_core/target/**
+uf_core/**/__pycache__/
+uf_core/**/*.pyc
