@@ -2,12 +2,13 @@
 
 Date: 2026-09-07 UTC
 
-Status: active. Task1430 is unchanged and running. Corrected source
-`f470cce2` and immutable runtime/migration images passed complete local gates
-and are now pushed by exact registry digest. Production drain, stopped-state
-migration, candidate/cutover, static publish, and live proof remain open.
-Speech is still functionally failed and is next only after truthful shell
-cutover.
+Status: active. Task1430 was drained gracefully and remains the unchanged
+rollback definition/root. Exact stopped-state migration and the isolated
+task1431 production candidate succeeded; that candidate was then stopped
+gracefully with exit 0. The service is deliberately at desired/running 0/0
+before the single-writer cutover to task1431. Public service cutover, static
+publish, and live proof remain open. Speech remains functionally failed and is
+next only after truthful shell cutover.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -33,8 +34,8 @@ only after same-condition falsification. Chat memory is not proof.
 
 ## Task1430 baseline
 
-- AWS `418384447921/us-east-1`; `tfe-web-cluster/dsf-ai-service-lb` `1/1/0`;
-  `dsf-ai-task:1430/33d31671b5d34fe4bc7e67e3202fe159`.
+- AWS `418384447921/us-east-1`; `tfe-web-cluster/dsf-ai-service-lb`;
+  original `dsf-ai-task:1430/33d31671b5d34fe4bc7e67e3202fe159`.
 - Source `2fd5fb8a...ba400d3`; image `sha256:ea42171f...ea335`; identity
   `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; 4 vCPU/16 GiB.
 - Speech 0 vocal pulses/respiratory carriers/new pressure over 256.
@@ -89,7 +90,10 @@ only after same-condition falsification. Chat memory is not proof.
 | S-041 | First final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. Superseded only at transport paths by S-042. |
 | S-042 | CloudFront `E17JT9XGBFU493` sends one `/api/*` behavior to ALB and static default to S3; live pages exactly matched repo before edit. Five routes remain five: root health/ready plus observation/occurrence/pressure at `/api/v1/guala/*`. Static Guala+Loom replaced687 lines/140,465B with197 lines/23,300B: one cache-only observation GET each, one exact pressure GET only on Guala, no write route, hidden-page suspension, explicit absent speech/vision/conversation/autonomous-choice truth. Shell/UI24/24 and physical/migration17/17 passed; JS and HTML parse passed. |
 | S-043 | Final commit `f470cce2c35702236e3e9f4a7dee9a8e57453df6`; runtime image ID `ebf0ecb7...592c3`/212,672,223B and migration image `dc211c3d...1a2d4`/212,675,712B. Migration image exact task1430 fixture507972→three-file pair; source five hashes unchanged; identity/body112,819,269B `2e8f...0fbe7`/world63,463B `3e9d...857b` exact;0 callbacks. Runtime restored same pair; correct public route200, retired root route/docs/OpenAPI404; advanced unattended to508016 and graceful CURRENT508018;113 DSF/1,256 changed/0 callbacks;7 PIDs;625MiB startup/1.011GiB running; five files225,769,229B; stop2.232s/exit0/noOOM. Cold exact tick508018/body112,833,015B `9a77...2545`/world63,475B `2083...ca8a`, predecessor508016,0 callbacks. |
-| S-044 | Unique ECR tags were absent before push. Runtime tag `guala-lean-f470cce2` resolves `sha256:ebf0ecb7...592c3`/212,668,790B; migration tag `guala-migration-f470cce2` resolves `sha256:dc211c3d...1a2d4`/212,672,090B. Both OCI indexes pushed 2026-09-07T13:04Z. Deployment will use digests, not mutable tags. |
+| S-044 | Unique ECR tags were absent before push. Runtime tag `guala-lean-f470cce2` resolves `sha256:ebf0ecb7...592c3`/212,668,790B; migration tag `guala-migration-f470cce2` resolves `sha256:dc211c3d...1a2d4`/212,672,090B. Both OCI indexes pushed 2026-09-07T13:04Z. Deployment uses digests, not mutable tags. |
+| S-045 | Registered deployment-only `guala-paired-migration:1` and lean `dsf-ai-task:1431`, both by exact S-044 digest. Preflight found task1430 healthy at tick512575 with identity unchanged and paired destination absent. Service drained to0/0; task1430 stopped 2026-09-07T13:13:33Z with exit0. Migration task `0f29d193aa104f95a35b697a488e22aa` stopped exit0 at13:15:05Z and emitted exact identity, tick512609, body113,124,666B `4a96b9ef...2033`, world63,503B `273ea541...5513`, three files, and native cold verification with0 callbacks. Retired root remained the rollback source. |
+| S-046 | Isolated production task1431 candidate `213192fb9bcf495b86d76c595e754364` ran exact digest `ebf0ecb7...592c3`, ECS HEALTHY. It restored the migrated pair and advanced unattended from512609 through at least512730 with unchanged identity,113 DSF deliveries per sampled occurrence,1,254-1,462 physically changed neurons,0 Python callbacks, and monotonically increasing world revision. `/health`200; `/ready` truthfully returned503 during one custody window and recovered200. Candidate stopped deliberately/gracefully at13:24:02Z with exit0 before service cutover. |
+| S-047 | Live candidate artifact audit: BUILD_INFO exactly `f470cce2...53df6`/lean-five-route; runtime manifest is allow-listed and excludes migration;62 Python files; no retired observation/brain/presence apps; exactly GET health/ready/observation/pressure plus POST occurrence; PID1 has7 threads; persisted pair remained exactly five files/226,395,650-226,412,896B during samples. No compatibility route was admitted. |
 
 ## Failures/open seams
 
@@ -122,7 +126,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-025 | First pressure proof reported hardcoded2 vs native delta3; corrected exact delta. |
 | F-026 | Old shell fabricated requested yaw after refusal and advanced book on empty-hand opening; neither copied. |
 | F-027 | First pressure route mislabeled little-endian bytes `audio/L16`; replaced with octet stream and explicit s16le headers. |
-| F-028 | Dev HTTP44 OS threads from NumPy/OpenBLAS. Image fixes BLAS/OMP/MKL/NumExpr1 and Rayon4; final proves7 PIDs. |
+| F-028 | Dev HTTP44 OS threads from NumPy/OpenBLAS. Image fixes BLAS/OMP/MKL/NumExpr1 and Rayon4; final proves7 PID1 threads. |
 | F-029 | Exercised closure56 modules/53,056LOC; shell+store/translators3,075 including560 home. Exact62-file allow-list; no wholesale package. |
 | F-030 | Lightweight source-carrier copy did not shrink closure; removed; no duplicate retained. |
 | F-031 | First62-file image omitted36 authenticated surfaces and failed closed. Added only those exact assets. |
@@ -137,6 +141,9 @@ only after same-condition falsification. Chat memory is not proof.
 | F-040 | Final-artifact probe first used port8000 although image contract is8080; cold harness first omitted destination directory and called nonexistent `current()`. Neither was a product failure; corrected 8080 and `read_pointer()` proofs are S-041. |
 | F-041 | First final image root `/observation` was unreachable through CloudFront because only `/api/*` reaches ALB; old 140KB pages required retired route/schema/capabilities. Found before push. Corrected by S-042 without compatibility aliases or added routes. |
 | F-042 | First run of four retired static contract suites produced3 pass/25 expected failures because they mandated the deleted observer/camera/curriculum UI. Replaced those four contradictory files with one six-test lean truth/route/bounds/parser suite; S-042 is the corrected result. |
+| F-043 | First AWS registration piped jq output through `file:///dev/stdin` and AWS rejected invalid JSON; no AWS state was created. Direct JSON registration produced S-045. |
+| F-044 | First chained candidate probe received expected `/ready`503 and aborted before observation. Separate observation and later readiness probe showed truthful backpressure/recovery in S-046. |
+| F-045 | Candidate audit first assumed BUILD_INFO under `/app`; it is deliberately at image root. Two later one-line probes contained literal newline escapes, and curl is deliberately absent from the minimal image. Root-path Python/shell-free probes produced S-047; these were harness failures, not product failures. |
 
 ## Deployment truth
 
@@ -144,7 +151,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 final source/images passed local release gates and are registry-verified, but are not deployed/live-verified. |
+| D-003 | P-005 final source/images passed local release gates and registry verification. Production stopped-state migration and isolated candidate succeeded; service/static cutover and public live proof remain open. |
 
 ## Frozen contract and acceptance
 
@@ -191,10 +198,12 @@ exact live migration and rollback boundary.
 | health/migration | S-039/S-040 | AWS cutover open | freeze source |
 | first final artifact | S-041 | F-040/F-041 corrected | namespace public routes |
 | public route/UI | S-042 | F-042 corrected | rebuild both images |
-| final artifacts | S-043/S-044 | AWS cutover open | deploy once |
+| final artifacts | S-043/S-044 | AWS deployment open | deploy once |
+| stopped migration | S-045 | F-043 corrected | exact current admitted |
+| isolated production candidate | S-046/S-047 | F-044/F-045 corrected | cut service over once |
 
-P-005 next: preflight task1430, drain it to seal CURRENT, migrate stopped exact
-current into absent paired root without altering old root, register lean task,
-run one standalone candidate, cut service over once with rollback to task1430
-intact, publish static pages, and live verify. After P-005: F-001 speech,
-Claude vision candidate, autonomy.
+P-005 next: reread this ledger, update the stopped service once to task1431
+desired1, wait for ECS/ALB stability, prove the public cache-only route and
+bounded persistence, then publish and live-verify the two lean static pages.
+Rollback remains task1430 plus its untouched retired root. After P-005: F-001
+speech, Claude vision candidate, autonomy.
