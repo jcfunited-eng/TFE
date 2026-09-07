@@ -132,6 +132,7 @@ UI-001—development could still import the retired shell—was corrected first.
 | F-029 | A commentary update during F-028 incorrectly said the container had reached HTTP readiness before the command returned evidence. That statement is withdrawn. Status updates must distinguish `container started`, `native logs advancing`, and `HTTP ready proved`; only an actual successful `/ready` response may support the last phrase. |
 | F-030 | The first cold-continuation command started/restored the image, measured 730.1 MiB/7 PIDs, and stopped exit 0/no OOM, but its heredoc `docker exec` omitted `-i`; Python received no assertions and exited 0. Cold identity/tick continuity is therefore not accepted from that run. Subsequent heredoc container probes must use the already-proved exact `docker exec -i` form and require printed result markers. |
 | F-031 | The first pre-commit handoff read guessed `collaborative_todo.md` relative to this isolated worktree even though the handoff explicitly names `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. `sed` refused and the chained command stopped before staging or committing. No state changed. Shared handoff reads/updates must use the supplied absolute workspace path, while source operations remain explicitly rooted in this worktree. |
+| F-032 | The first read-only AWS release preflight resolved the expected account, task1433/digest, one healthy writer, and real `dsf-ai` repository, but a stray `n` after the final persisted-tick assignment prevented a complete printed proof marker. No AWS mutation occurred and partial facts are not the release gate. The corrected preflight prints one bounded JSON result before separately named postconditions. |
 
 ## Attempts
 
@@ -146,6 +147,7 @@ UI-001—development could still import the retired shell—was corrected first.
 | UI-001 copied mature vision | S-013 | F-022-F-025 record stale-native and harness assumptions | Preserve eyelid physics and 135-site functional distinction; proceed to copied mature hearing. |
 | UI-001 copied mature hearing | S-014 | Speech generation remains failed and outside this acceptance | Bind browser transport to the proved sensory shapes, then rehearse the release image. |
 | UI-001 release-image HTTP | S-016 | F-026-F-029 document the environment harness and status-report errors | Cold-restore the same volume, then close remaining interface truth gaps before release. |
+| UI-001 AWS preflight 1 | Account/task/image/repository facts resolved read-only | F-032 prevented a completed gate | Accept none of the partial gate; rerun the entire bounded read-only proof before any mutation. |
 
 ## Deployment history
 
