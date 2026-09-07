@@ -3,8 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 from pathlib import Path
+import time
 
 from fastapi.testclient import TestClient
+import pytest
 
 from dsf_ai_service.lean_actor import (
     LeanOrganismActor,
@@ -120,7 +122,17 @@ class _Physical:
         return self.settle(runtime, world, PhysicalOccurrence("unattended", None))
 
 
-def _actor(root: Path) -> LeanOrganismActor:
+class _FatalUnattendedPhysical(_Physical):
+    def unattended(self, runtime: _Runtime, world: _World) -> SettlementResult:
+        raise RuntimeError("unattended physical failure")
+
+
+def _actor(
+    root: Path,
+    *,
+    physical: _Physical | None = None,
+    unattended_interval_seconds: float = 60,
+) -> LeanOrganismActor:
     body = b"body-10"
     world_body = b"world-10"
     store = PairedCurrentStore(
@@ -140,10 +152,10 @@ def _actor(root: Path) -> LeanOrganismActor:
         world=_World(world_body),
         pointer=pointer,
         store=store,
-        physical=_Physical(),
+        physical=physical or _Physical(),
         mailbox_capacity=1,
         checkpoint_every_intervals=4,
-        unattended_interval_seconds=60,
+        unattended_interval_seconds=unattended_interval_seconds,
     )
 
 
@@ -203,3 +215,26 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         assert observation["pressure_sha256"] == PRESSURE_SHA256
         assert client.get(f"/pressure/{PRESSURE_SHA256}").content == PRESSURE
         assert client.get("/pressure/not-a-receipt").status_code == 404
+
+
+def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
+    actor = _actor(
+        tmp_path,
+        physical=_FatalUnattendedPhysical(),
+        unattended_interval_seconds=0.01,
+    )
+    application = create_lean_production_app(lambda: actor)
+
+    with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
+        with TestClient(application) as client:
+            deadline = time.monotonic() + 1
+            while time.monotonic() < deadline:
+                response = client.get("/health")
+                if response.status_code == 503:
+                    break
+                time.sleep(0.005)
+            assert response.status_code == 503
+            assert response.json() == {
+                "alive": False,
+                "schema": "guala.lean_health.v1",
+            }

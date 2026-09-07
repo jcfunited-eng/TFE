@@ -135,8 +135,17 @@ def create_lean_production_app(
         return actor
 
     @application.get("/health")
-    async def health() -> dict[str, object]:
-        return {"alive": True, "schema": "guala.lean_health.v1"}
+    async def health(request: Request) -> Response:
+        alive = bool(actor_for(request).observation()["available"])
+        return Response(
+            content=(
+                b'{"alive":true,"schema":"guala.lean_health.v1"}'
+                if alive
+                else b'{"alive":false,"schema":"guala.lean_health.v1"}'
+            ),
+            status_code=200 if alive else 503,
+            media_type="application/json",
+        )
 
     @application.get("/ready")
     async def ready(request: Request) -> Response:
