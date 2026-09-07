@@ -2,14 +2,17 @@
 
 Date: 2026-09-07 UTC
 
-Status: active. Production runs task1431 at desired/running/pending 1/1/0
-on the exact f470cce2 image and the two lean static pages are public. Identity,
-ticks, full DSF delivery, zero Python cognition callbacks, ECS/ALB health, and
-five-file custody are live-proved. First production metrics exposed excess
-reclaimable checkpoint file cache. Corrected source 1164ac2e and image
-05d13b49 passed the exact local comparison and cold restart; registry push,
-one-writer replacement, and live resource proof remain open. Speech is still
-functionally failed and follows the jointly designed interactive UI.
+Status: active. Production is rolled back to task1431 at
+desired/running/pending 1/1/0 on exact f470cce2 image ebf0ecb7. ECS and ALB
+report healthy, identity and native work remain intact, but the 2026-09-07
+14:29 UTC public observation was stuck at live tick 513509/persisted 513504
+with five pending intervals and custody blocked. The fadvise candidate
+1164ac2e/image 05d13b49 was deployed as task1432, rejected after repeated
+minute-scale custody stalls, and forced-stopped with exit 255. Rollback
+task1431 also exhibits long EFS custody stalls. The active shell defect is the
+raw approximately 113 MB body rewrite every four intervals; bounded file count
+did not bound I/O. Speech remains functionally failed and follows the jointly
+designed interactive UI.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -27,8 +30,9 @@ only after same-condition falsification. Chat memory is not proof.
 4. Never extend old shell/wrapper/locks/observers/custodian/retry/receipts/
    aliases/static/split-world; Python cognition; ML; scripted meaning; Chi
    identity; reduced DSF; population shell scans.
-5. One item: blank allow-listed shell + paired CURRENT + copied mature proof;
-   then speech, vision, autonomy serially.
+5. One item: replace recurring raw-body custody with compressed paired CURRENT
+   v2 while preserving exact raw hash/bytes, identity, state, and rollback.
+   Then jointly design the interactive UI before speech, vision, and autonomy.
 6. Complete joint seven-field L0-L4, never approximation.
 7. Preserve D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k, MathLoom, neurons, learned
    sensory state.
@@ -97,7 +101,9 @@ only after same-condition falsification. Chat memory is not proof.
 | S-047 | Live candidate artifact audit: BUILD_INFO exactly `f470cce2...53df6`/lean-five-route; runtime manifest is allow-listed and excludes migration;62 Python files; no retired observation/brain/presence apps; exactly GET health/ready/observation/pressure plus POST occurrence; PID1 has7 threads; persisted pair remained exactly five files/226,395,650-226,412,896B during samples. No compatibility route was admitted. |
 | S-048 | Public service cutover completed on task1431/task `77753ba56ebe4c4dbc47303aa36b011e`, exact digest `ebf0ecb7...592c3`, desired/running/pending1/1/0, ECS and ALB healthy, one completed deployment. Public observations advanced512775→512780 in15s with unchanged identity,113 DSF deliveries,1,241-1,446 changed neurons,0 callbacks, and retired route404. CloudFront invalidation `I90QMRQJYQXG5FJBJZK4S4D88T` completed; both public HTML bodies byte-match local hashes `ade4fbef...729` and `28718dea...68b`. |
 | S-049 | Completed-work retention source `b950a375`: worker now releases its local work/outcome references before blocking. A weak-reference regression fails unless the completed snapshot is released while the worker remains alive; focused4/4 and combined42/42 passed. Same-body twelve-sample comparison reduced mean PID1 RSS1,153,605→1,138,769KiB (1.29%); useful but insufficient alone. |
-| S-050 | Durable-file cache source `1164ac2e4fd67bbb9934c8f7771658435ea70b78`, local image `sha256:05d13b49...f6bc`/212,672,025B. After fsync, the store gives Linux the exact no-longer-needed cache range; verified reads do likewise. Same tick508194 body comparison held old cache226.75-228.02MB versus corrected3.047MB, exactly five files/225.766-225.786MB,7 threads, advancing ticks,0 OOM. One aligned sample was old cgroup1,426,784,256B versus corrected1,051,869,184B. Corrected graceful stop/restart restored identity and advanced to live508303/persisted508300 without errors, then exited0. Store/shell/physical/migration42/42 passed. |
+| S-050 | Durable-file cache source `1164ac2e4fd67bbb9934c8f7771658435ea70b78`, local image `sha256:05d13b49...f6bc`/212,672,025B. After fsync, the store gives Linux the exact no-longer-needed cache range; verified reads do likewise. Same tick508194 body comparison held old cache226.75-228.02MB versus corrected3.047MB, exactly five files/225.766-225.786MB,7 threads, advancing ticks,0 OOM. One aligned sample was old cgroup1,426,784,256B versus corrected1,051,869,184B. Corrected graceful stop/restart restored identity and advanced to live508303/persisted508300 without errors, then exited0. Store/shell/physical/migration42/42 passed. This remains valid local cache evidence only, not a production acceptance. |
+| S-051 | Immutable ECR tag `guala-lean-1164ac2e` resolved exact digest `sha256:05d13b49199426c1768aa9bf94bd0c375701aa20b3ee144ce0261b264cd7f6bc`/212,668,592B and task1432 used that digest. Its failed cutover preserved identity and atomic paired CURRENT. One-writer rollback restored task1431 task `21902bc7f0ce46b9b403f010b619704c`, exact digest `sha256:ebf0ecb7d2d89b07684a063ccec08138aa7cae777bdf8b582c6d385ffec592c3`, desired/running/pending1/1/0, completed deployment, ECS HEALTHY. |
+| S-052 | Exact body `06f2be77...422cf`/112,827,191B from S-041 compressed deterministically in the local benchmark: gzip level1 2,772,342B/2.46%/0.157s; level3 2,125,817B/1.88%/0.151s; level6 1,440,022B/1.28%/0.312s. Level3 is the derived candidate: essentially level1 CPU with 23.3% fewer bytes and half level6 time, cutting each recurring body write approximately98.1%. |
 
 ## Failures/open seams
 
@@ -151,6 +157,10 @@ only after same-condition falsification. Chat memory is not proof.
 | F-046 | First task1431 production minutes improved CPU to34-36% from old~47% but memory averaged7.29→8.62% with a9.23% peak versus old5.37-5.51% five-minute averages. PID1 RSS was~1.09GiB and reclaimable paired-body cache~303MB. P-005 stayed open; no lower-RAM claim was made. |
 | F-047 | Releasing the completed worker reference was a real ownership cleanup but only lowered controlled mean PID1 RSS1.29%; it did not explain the production gap. S-050 addresses the larger measured cache source; do not rediscover F-047 as the complete fix. |
 | F-048 | One local memory harness repeated known F-032 by trying a `/tmp` bind against the remote Docker daemon. No container started. Docker create+copy replaced it; the disposable216MB copy was deleted and both comparison containers later exited0/removed. |
+| F-049 | Task1432 exact fadvise candidate repeatedly held live tick513485/persisted513480 with five pending and custody blocked for more than one minute before briefly recovering, then stalled again. It was rejected; local S-050 did not predict production EFS behavior. Never redeploy this candidate as the shell fix. |
+| F-050 | Task1432 shutdown began14:16:00 UTC and never completed application shutdown. ECS forced it after three minutes; task `81da64e6dbe1412e937a7a62f5d67559` stopped at14:19:25 with exit255 and `CannotStopContainerError ... timed out after waiting 3m0s`. An exact execute-command kill attempt could not run because its execute-command agent was unavailable after stopping began; no other task was targeted. |
+| F-051 | Rolled-back task1431 also showed repeated long custody stalls: live513497/persisted513492 stayed blocked roughly50s before recovery, then the next cadence stalled; at14:29:15 and14:29:29 public truth remained live513509/persisted513504, pending5, outstanding/blocked true, with no checkpoint or cleanup error. Therefore fadvise is not the sole cause and infrastructure health is not functional health. |
+| F-052 | Paired CURRENT v1 rewrites the complete approximately113MB raw body every four native intervals and retains two body copies. Five-file bounded storage still creates approximately226MB of recurrent EFS data plus page cache and can exhaust/saturate EFS throughput. This recurring bookkeeping is the active shell defect; do not tune around it with retries, longer queues, more workers, or more locks. |
 
 ## Deployment truth
 
@@ -158,7 +168,8 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 f470cce2 runtime is publicly deployed and service/static live proof passed. Production resource evidence rejected final closure on memory; corrected1164ac2e image passed local exact comparison but is not pushed or deployed. |
+| D-003 | P-005 f470cce2 runtime remains public after rollback. Static and transport proof passed, but recurring production custody stalls reject shell completion. |
+| D-004 | Corrected1164ac2e was pushed and deployed exactly as task1432. Production rejected it under F-049/F-050. It is stopped and must not be called successful; task1431 rollback is live but still functionally custody-stalled under F-051. |
 
 ## Frozen contract and acceptance
 
@@ -210,11 +221,15 @@ exact live migration and rollback boundary.
 | isolated production candidate | S-046/S-047 | F-044/F-045 corrected | cut service over once |
 | public lean cutover | S-048 | F-046 exposed | keep live; correct RAM waste |
 | memory reference | S-049 | F-047 insufficient alone | retain cleanup; follow measured cache |
-| durable file cache | S-050 | F-048 harness corrected; AWS open | push/deploy once |
+| durable file cache local | S-050 | F-048 corrected; production F-049/F-050 | reject task1432 |
+| fadvise production/rollback | S-051 | F-049-F-051 | preserve rollback; replace raw cadence |
+| compressed custody evidence | S-052 | implementation/deployment open | build paired CURRENT v2 |
 
-P-005 next: reread this ledger; push exact image05d13b49 under an immutable
-1164ac2e tag, register one replacement task definition, perform one-writer
-service cutover, and prove CloudWatch RAM/cache reduction plus unchanged public
-identity/ticks/five-file custody. Rollback remains task1430 plus its untouched
-retired root and task1431/f470. Then jointly design the lean interactive UI
-before F-001 speech, vision, and autonomy.
+P-005 next: reread this ledger; replace paired CURRENT v1 with version2
+deterministic gzip-level3 body custody in a new generation root. Preserve the
+raw canonical body hash/byte contract after decompression, exact world pairing,
+two-generation retention, fail-closed restore, and untouched v1/task1431
+rollback. Prove v1-to-v2 deployment-only migration, exact cold continuation,
+bounded CPU/RAM/storage/I/O and no custody stalls before one-writer production
+cutover. Then jointly design the lean interactive UI before F-001 speech,
+vision, and autonomy.
