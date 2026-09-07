@@ -1,0 +1,17 @@
+**
+!dsf_ai_service/
+!dsf_ai_service/**
+!guala_curriculum/
+!guala_curriculum/cards/
+!guala_curriculum/cards/**
+!native/
+!native/guala_core/
+!native/guala_core/Cargo.lock
+!native/guala_core/Cargo.toml
+!native/guala_core/pyproject.toml
+!native/guala_core/src/
+!native/guala_core/src/**
+!uf_core/
+!uf_core/**
+**/__pycache__/
+**/*.pyc

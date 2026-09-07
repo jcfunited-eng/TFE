@@ -15,6 +15,7 @@ FROM public.ecr.aws/docker/library/python:3.11-slim AS source-allowlist
 
 WORKDIR /source
 COPY dsf_ai_service/ /source/dsf_ai_service/
+COPY guala_curriculum/cards/ /source/guala_curriculum/cards/
 COPY uf_core/ /source/uf_core/
 RUN mkdir /allowlisted \
     && while IFS= read -r path; do \
@@ -22,7 +23,7 @@ RUN mkdir /allowlisted \
          && test -f "/source/$path" \
          && cp --parents "/source/$path" /allowlisted; \
        done < /source/dsf_ai_service/lean_runtime_manifest.txt \
-    && test "$(find /allowlisted/source -type f | wc -l)" -eq 62
+    && test "$(find /allowlisted/source -type f | wc -l)" -eq 98
 
 
 FROM public.ecr.aws/docker/library/python:3.11-slim
@@ -63,7 +64,8 @@ COPY dsf_ai_service/lean_runtime_manifest.txt /LEAN_RUNTIME_MANIFEST
 
 RUN test ! -e /app/dsf_ai_service/app.py \
     && test ! -e /app/dsf_ai_service/native_production_app.py \
-    && test "$(find /app/dsf_ai_service /app/uf_core -type f -name '*.py' | wc -l)" -eq 62
+    && test "$(find /app/dsf_ai_service /app/uf_core -type f -name '*.py' | wc -l)" -eq 62 \
+    && test "$(find /app/guala_curriculum/cards -type f -name '*.png' | wc -l)" -eq 36
 
 EXPOSE 8080
 
