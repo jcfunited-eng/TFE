@@ -2,14 +2,13 @@
 
 Date: 2026-09-07 UTC
 
-Status: active. Task1430 is unchanged and running. Source `8b4c3a7a` and its
-first final allow-listed image passed matched passive, pressure, root action,
-bounded custody failure, five-route HTTP, autonomous soak, graceful stop,
-exact cold restore, and exact retired-to-paired migration. A pre-deploy audit
-then found and corrected the public CloudFront route/UI incompatibility. The
-corrected source is not yet committed or rebuilt. Final migration-image
-rehearsal, image push, cutover, and live proof remain open. Speech is still
-functionally failed and is next only after truthful shell cutover.
+Status: active. Task1430 is unchanged and running. Corrected source
+`f470cce2` and its final runtime/migration images passed the complete local
+shell, route, UI, matched-state, migration, autonomous advance, bounded
+custody, graceful stop, and exact cold-restore gates. Registry push,
+production drain/migration/cutover, static publish, and live proof remain
+open. Speech is still functionally failed and is next only after truthful
+shell cutover.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -64,7 +63,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-014 | HEAD `e666f0c2` wheel `e6d779d3...691c`, extension `98f0c44e...7dd7`; prod ancestor/no native-app diff. Receptor anatomy112 ports/448 samples/1x4/groups `(27,2,16,16,28,5,8,4,4,2)`,0 callbacks/old imports. |
 | S-015 | Compact sensorium3/3 installed/fresh; combined16/16. Byte-exact silence, explicit order, malformed fail-close; no112 Python receptor objects/field reduction. |
 | S-016 | Thermal world2/2 installed/fresh:250ms revision→112x26; explicit silence/quiescence; exact rollback. |
-| S-017 | Mature body `9db4d05c...d79df1` unmatched: restore1.365s, interval.856s,469814→469815,113 DSF/1,449 changed,0 callbacks/action/pressure. |
+| S-017 | Mature body `9db4d05c...d79df1` unmatched: restore1.365s, interval.856s,469814→469815,113 DSF/1,449 changed/0 callbacks/action/pressure. |
 | S-018 | Same copy passive hip consequence closed:469814→469816/world0→2,117 DSF/1,241 changed,1.771s. |
 | S-019 | Actor uses concrete live tick versus durable readiness;13/13. |
 | S-020 | Unmatched actor/pair/cold: submit1.854/checkpoint1.689/restore.134s; current469816/pred469814; five files/227,690,645B. |
@@ -90,6 +89,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-040 | Deployment-only migration parser/authenticator2/2. Source-built image rehearsal migrated exact retired task1430 tick507972 compressed CURRENT+world association to three-file pair with exact identity/body hash+bytes/world hash+bytes, then exact native/world cold restore/0 callbacks. Runtime manifest excludes migration tool. `/tmp/guala-p005-migration-result-941dcaeb`. |
 | S-041 | First final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. Superseded only at transport paths by S-042. |
 | S-042 | CloudFront `E17JT9XGBFU493` sends one `/api/*` behavior to ALB and static default to S3; live pages exactly matched repo before edit. Five routes remain five: root health/ready plus observation/occurrence/pressure at `/api/v1/guala/*`. Static Guala+Loom replaced687 lines/140,465B with197 lines/23,300B: one cache-only observation GET each, one exact pressure GET only on Guala, no write route, hidden-page suspension, explicit absent speech/vision/conversation/autonomous-choice truth. Shell/UI24/24 and physical/migration17/17 passed; JS and HTML parse passed. |
+| S-043 | Final commit `f470cce2c35702236e3e9f4a7dee9a8e57453df6`; runtime image ID `ebf0ecb7...592c3`/212,672,223B and migration image `dc211c3d...1a2d4`/212,675,712B. Migration image exact task1430 fixture507972→three-file pair; source five hashes unchanged; identity/body112,819,269B `2e8f...0fbe7`/world63,463B `3e9d...857b` exact;0 callbacks. Runtime restored same pair; correct public route200, retired root route/docs/OpenAPI404; advanced unattended to508016 and graceful CURRENT508018;113 DSF/1,256 changed/0 callbacks;7 PIDs;625MiB startup/1.011GiB running; five files225,769,229B; stop2.232s/exit0/noOOM. Cold exact tick508018/body112,833,015B `9a77...2545`/world63,475B `2083...ca8a`, predecessor508016,0 callbacks. |
 
 ## Failures/open seams
 
@@ -129,7 +129,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-032 | Remote Docker could not see `/tmp` bind/published port. Docker copy/in-container HTTP replaced. |
 | F-033 | First asset context admitted native target; canceled at958.11MB. Corrected context. |
 | F-034 | `/usr/bin/time` absent so first stop did not execute; shell timing then exact stop. |
-| F-035 | Original actor retried failed custody/no hung ceiling. Resolved S-035-S-038/S-041. |
+| F-035 | Original actor retried failed custody/no hung ceiling. Resolved S-035-S-038/S-041/S-043. |
 | F-036 | Two test commands had wrong import/file and collected zero. Corrected passes; zero-test runs excluded. |
 | F-037 | Host root replay schema failed: stale extension `a13034e0...47b5` versus image `21c54894...f8bf`. Rollback exact; same image replay passed S-036; no workaround. |
 | F-038 | One soak sample ready503 at pending5/outstanding, recovered200. Expected truthful backpressure; AWS health uses `/health`. |
@@ -144,7 +144,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 corrected source passes focused tests but final image is not rebuilt/pushed/deployed/live-verified. |
+| D-003 | P-005 final source/images passed local release gates but are not pushed/deployed/live-verified. |
 
 ## Frozen contract and acceptance
 
@@ -160,8 +160,8 @@ Actor snapshot→one depth-one no-runtime worker→actor adoption.
 
 Five routes: root health and ready; `/api/v1/guala/` observation, occurrence,
 and pressure receipt. Static UI/curriculum outside ECS; only physical assets
-required to authenticate the persisted world reside in the image. Deployment-
-only migration never enters runtime manifest and never changes retired root.
+required to authenticate persisted world reside in image. Deployment-only
+migration never enters runtime manifest and never changes retired root.
 
 Acceptance: exact task1430 pair; identity/state/full DSF; equivalent successor;
 at-most-once consequence; paired cold continuation; pristine/mature; damage
@@ -190,10 +190,11 @@ exact live migration and rollback boundary.
 | final matched soak | S-038 | F-038/F-039 corrected | health truth |
 | health/migration | S-039/S-040 | AWS cutover open | freeze source |
 | first final artifact | S-041 | F-040/F-041 corrected | namespace public routes |
-| public route/UI | S-042 | F-042 corrected; image/AWS open | commit and rebuild |
+| public route/UI | S-042 | F-042 corrected | rebuild both images |
+| final artifacts | S-043 | AWS push/cutover open | deploy once |
 
-P-005 next: commit the corrected five-route/static boundary; rebuild and
-rehearse both runtime and exact migration images; then push immutable digests,
-drain task1430, migrate its stopped exact CURRENT without altering old root,
-register lean task, cut over once with rollback to1430 intact, and live verify.
-After P-005: F-001 speech, Claude vision candidate, autonomy.
+P-005 next: push exact immutable runtime/migration images; preflight task1430,
+drain it to seal CURRENT, migrate stopped exact current into absent paired root
+without altering old root, register lean task, cut over once with rollback to
+task1430 intact, publish static pages, and live verify. After P-005: F-001
+speech, Claude vision candidate, autonomy.
