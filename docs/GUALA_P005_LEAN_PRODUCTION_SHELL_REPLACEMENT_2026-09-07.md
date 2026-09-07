@@ -2,13 +2,14 @@
 
 Date: 2026-09-07 UTC
 
-Status: active. Task1430 was drained gracefully and remains the unchanged
-rollback definition/root. Exact stopped-state migration and the isolated
-task1431 production candidate succeeded; that candidate was then stopped
-gracefully with exit 0. The service is deliberately at desired/running 0/0
-before the single-writer cutover to task1431. Public service cutover, static
-publish, and live proof remain open. Speech remains functionally failed and is
-next only after truthful shell cutover.
+Status: active. Production runs task1431 at desired/running/pending 1/1/0
+on the exact f470cce2 image and the two lean static pages are public. Identity,
+ticks, full DSF delivery, zero Python cognition callbacks, ECS/ALB health, and
+five-file custody are live-proved. First production metrics exposed excess
+reclaimable checkpoint file cache. Corrected source 1164ac2e and image
+05d13b49 passed the exact local comparison and cold restart; registry push,
+one-writer replacement, and live resource proof remain open. Speech is still
+functionally failed and follows the jointly designed interactive UI.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -94,6 +95,9 @@ only after same-condition falsification. Chat memory is not proof.
 | S-045 | Registered deployment-only `guala-paired-migration:1` and lean `dsf-ai-task:1431`, both by exact S-044 digest. Preflight found task1430 healthy at tick512575 with identity unchanged and paired destination absent. Service drained to0/0; task1430 stopped 2026-09-07T13:13:33Z with exit0. Migration task `0f29d193aa104f95a35b697a488e22aa` stopped exit0 at13:15:05Z and emitted exact identity, tick512609, body113,124,666B `4a96b9ef...2033`, world63,503B `273ea541...5513`, three files, and native cold verification with0 callbacks. Retired root remained the rollback source. |
 | S-046 | Isolated production task1431 candidate `213192fb9bcf495b86d76c595e754364` ran exact digest `ebf0ecb7...592c3`, ECS HEALTHY. It restored the migrated pair and advanced unattended from512609 through at least512730 with unchanged identity,113 DSF deliveries per sampled occurrence,1,254-1,462 physically changed neurons,0 Python callbacks, and monotonically increasing world revision. `/health`200; `/ready` truthfully returned503 during one custody window and recovered200. Candidate stopped deliberately/gracefully at13:24:02Z with exit0 before service cutover. |
 | S-047 | Live candidate artifact audit: BUILD_INFO exactly `f470cce2...53df6`/lean-five-route; runtime manifest is allow-listed and excludes migration;62 Python files; no retired observation/brain/presence apps; exactly GET health/ready/observation/pressure plus POST occurrence; PID1 has7 threads; persisted pair remained exactly five files/226,395,650-226,412,896B during samples. No compatibility route was admitted. |
+| S-048 | Public service cutover completed on task1431/task `77753ba56ebe4c4dbc47303aa36b011e`, exact digest `ebf0ecb7...592c3`, desired/running/pending1/1/0, ECS and ALB healthy, one completed deployment. Public observations advanced512775→512780 in15s with unchanged identity,113 DSF deliveries,1,241-1,446 changed neurons,0 callbacks, and retired route404. CloudFront invalidation `I90QMRQJYQXG5FJBJZK4S4D88T` completed; both public HTML bodies byte-match local hashes `ade4fbef...729` and `28718dea...68b`. |
+| S-049 | Completed-work retention source `b950a375`: worker now releases its local work/outcome references before blocking. A weak-reference regression fails unless the completed snapshot is released while the worker remains alive; focused4/4 and combined42/42 passed. Same-body twelve-sample comparison reduced mean PID1 RSS1,153,605→1,138,769KiB (1.29%); useful but insufficient alone. |
+| S-050 | Durable-file cache source `1164ac2e4fd67bbb9934c8f7771658435ea70b78`, local image `sha256:05d13b49...f6bc`/212,672,025B. After fsync, the store gives Linux the exact no-longer-needed cache range; verified reads do likewise. Same tick508194 body comparison held old cache226.75-228.02MB versus corrected3.047MB, exactly five files/225.766-225.786MB,7 threads, advancing ticks,0 OOM. One aligned sample was old cgroup1,426,784,256B versus corrected1,051,869,184B. Corrected graceful stop/restart restored identity and advanced to live508303/persisted508300 without errors, then exited0. Store/shell/physical/migration42/42 passed. |
 
 ## Failures/open seams
 
@@ -144,6 +148,9 @@ only after same-condition falsification. Chat memory is not proof.
 | F-043 | First AWS registration piped jq output through `file:///dev/stdin` and AWS rejected invalid JSON; no AWS state was created. Direct JSON registration produced S-045. |
 | F-044 | First chained candidate probe received expected `/ready`503 and aborted before observation. Separate observation and later readiness probe showed truthful backpressure/recovery in S-046. |
 | F-045 | Candidate audit first assumed BUILD_INFO under `/app`; it is deliberately at image root. Two later one-line probes contained literal newline escapes, and curl is deliberately absent from the minimal image. Root-path Python/shell-free probes produced S-047; these were harness failures, not product failures. |
+| F-046 | First task1431 production minutes improved CPU to34-36% from old~47% but memory averaged7.29→8.62% with a9.23% peak versus old5.37-5.51% five-minute averages. PID1 RSS was~1.09GiB and reclaimable paired-body cache~303MB. P-005 stayed open; no lower-RAM claim was made. |
+| F-047 | Releasing the completed worker reference was a real ownership cleanup but only lowered controlled mean PID1 RSS1.29%; it did not explain the production gap. S-050 addresses the larger measured cache source; do not rediscover F-047 as the complete fix. |
+| F-048 | One local memory harness repeated known F-032 by trying a `/tmp` bind against the remote Docker daemon. No container started. Docker create+copy replaced it; the disposable216MB copy was deleted and both comparison containers later exited0/removed. |
 
 ## Deployment truth
 
@@ -151,7 +158,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 final source/images passed local release gates and registry verification. Production stopped-state migration and isolated candidate succeeded; service/static cutover and public live proof remain open. |
+| D-003 | P-005 f470cce2 runtime is publicly deployed and service/static live proof passed. Production resource evidence rejected final closure on memory; corrected1164ac2e image passed local exact comparison but is not pushed or deployed. |
 
 ## Frozen contract and acceptance
 
@@ -201,9 +208,13 @@ exact live migration and rollback boundary.
 | final artifacts | S-043/S-044 | AWS deployment open | deploy once |
 | stopped migration | S-045 | F-043 corrected | exact current admitted |
 | isolated production candidate | S-046/S-047 | F-044/F-045 corrected | cut service over once |
+| public lean cutover | S-048 | F-046 exposed | keep live; correct RAM waste |
+| memory reference | S-049 | F-047 insufficient alone | retain cleanup; follow measured cache |
+| durable file cache | S-050 | F-048 harness corrected; AWS open | push/deploy once |
 
-P-005 next: reread this ledger, update the stopped service once to task1431
-desired1, wait for ECS/ALB stability, prove the public cache-only route and
-bounded persistence, then publish and live-verify the two lean static pages.
-Rollback remains task1430 plus its untouched retired root. After P-005: F-001
-speech, Claude vision candidate, autonomy.
+P-005 next: reread this ledger; push exact image05d13b49 under an immutable
+1164ac2e tag, register one replacement task definition, perform one-writer
+service cutover, and prove CloudWatch RAM/cache reduction plus unchanged public
+identity/ticks/five-file custody. Rollback remains task1430 plus its untouched
+retired root and task1431/f470. Then jointly design the lean interactive UI
+before F-001 speech, vision, and autonomy.
