@@ -6185,7 +6185,7 @@ but no longer blocks this authorized work.
 
 P-005 is complete and live. Active source worktree
 `/tmp/guala-speech-existing-organ`, branch `sol/speech-existing-organ`, shell
-closure commit `6fd42b38`; executable source remains exact commit
+closure ledger HEAD `49d9fdd6`; executable source remains exact commit
 `f7d272b970ccab69857965d219317898561d625d`. Production is
 `dsf-ai-task:1433`, task `96c1d9ce414a4dc4af469279b751d5bc`, immutable
 digest `sha256:13dd7018dab2d0827253e7851626adc4a2a377a4f7813980d821e734e893634d`,
@@ -6222,3 +6222,6 @@ to design the lean interactive interface with Joe without restoring the retired
 shell or importing locks, compatibility routes, observers, bookkeeping, or
 fabricated capability. Speech F-001 follows that interface, then vision and
 autonomy.
+
+Completion notification was checked at `2026-09-07T15:51:24Z`:
+`status=slack_sent channel=#general`.
