@@ -129,6 +129,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-057 | Exact runtime image13dd7018 cold-started S-056 in container `guala-p005-v2-runtime-f7d272b9` at identity unchanged/tick508158. Twelve samples over126s observed508178→508283 and persisted508174→508282, approximately27 completed four-interval custodies. Three samples caught an outstanding cadence; each cleared by the next roughly11s sample. No checkpoint/cleanup error; no lasting block;113 DSF/1,241-1,469 changed/0 callbacks;7 PIDs. Exactly5 files stayed4,375,914-4,379,786B with each body2,124,025-2,126,819B. Memory startup647.5MiB, running1.010-1.303GiB and ended1.049GiB; CPU99.45-205.54% with no resource slope. |
 | S-058 | Same S-057 container remained clean through live508349/persisted508346, then graceful stop completed in2.248s with exit0/no OOM. Close durably settled exact tick508350/body112,826,913B `5573b184...afc844`/world63,479B `778c1a8f...3a917`, predecessor508346, exactly5 files/4,379,710B. Exact stopped-state copy is `/tmp/guala-p005-v2-runtime-final.yPc1fp/paired-current-gen2`. |
 | S-059 | Same exact runtime container restarted from S-058 with initial observation exactly tick508350/body `5573b184...afc844`/world `778c1a8f...3a917`, no last occurrence and no replay. It then advanced unattended to live508363/persisted508362 with113 DSF/1,453 changed/0 callbacks, no errors/block,7 PIDs,1.000GiB, and exactly5 files/4,376,828B. Second graceful stop completed3.614s/exit0/no OOM. Local artifact acceptance passed; EFS production behavior remains unproved. |
+| S-060 | Governing preflight at commit3b45baef revalidated exact root/branch, account418384447921, service `tfe-web-cluster/dsf-ai-service-lb`, task1431/task `21902bc7...704c`, digest ebf0ecb7,4vCPU/16GiB, desired/running/pending1/1/0, ECS HEALTHY, and both public pages200. All five Guala alarms were OK. Three public samples15:03:01-15:03:11 retained identity and113 DSF/1,457 changed/0 callbacks but stayed live513577/persisted513572/pending5/blocked. This is rollback continuity plus repeated F-051, not functional shell health. |
 
 ## Failures/open seams
 
@@ -191,6 +192,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-055 | Second mature migration command invoked the file directly without the image contract's `PYTHONPATH=/app`; host Python could not import `dsf_ai_service`, so migration never began and the empty exact temp directory was removed. Host rehearsal must set `PYTHONPATH=.`; the image already sets the equivalent. |
 | F-056 | First local image-inspection Go template accessed optional absent `Config.Entrypoint`/`Config.Cmd` map keys and stopped. Because commands were joined with `&&`, no container ran. Use JSON inspection with explicit null-safe fields; no artifact result exists from this command. |
 | F-057 | First deployment-governance command looked for `scripts/require-guala-root.sh` and `collaborative_todo.md` inside the temporary worktree. The validator belongs to the project-truth skill and the shared handoff is `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. The command stopped before AWS mutation; use those exact absolute authorities. |
+| F-058 | Five AWS alarms remained OK while public task1431 was unchanged and custody-blocked for at least10s at tick513577/persisted513572. Existing alarms and ECS health do not classify minute-scale paired-store stalls; direct CURRENT/observation cadence remains mandatory live acceptance. |
 
 ## Deployment truth
 
@@ -265,6 +267,7 @@ exact live migration and rollback boundary.
 | v2 graceful close | S-058 | cold restart open | restart exact stopped container |
 | v2 cold continuation | S-059 | production EFS unproved | push immutable artifacts and stopped migration |
 | first deployment governance | none | F-057; no AWS mutation | resolve exact authority paths |
+| exact production preflight | S-060 | F-058 and production EFS candidate open | publish immutable artifacts |
 
 P-005 next: reread this ledger; replace paired CURRENT v1 with version2
 deterministic gzip-level3 body custody in a new generation root. Preserve the
