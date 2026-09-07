@@ -210,7 +210,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 f470cce2 runtime remains public after rollback. Static and transport proof passed, but recurring production custody stalls reject shell completion. |
+| D-003 | P-005 f470cce2 runtime was restored publicly after the rejected task1432 cutover. Static and transport proof passed, but recurring production custody stalls rejected shell completion; D-005 supersedes it. |
 | D-004 | Corrected1164ac2e was pushed and deployed exactly as task1432. Production rejected it under F-049/F-050. It is stopped and must not be called successful; task1431 rollback is live but still functionally custody-stalled under F-051. |
 | D-005 | P-005 exact sourcef7d272b9/runtime digest13dd7018/task1433 is live and shell-successful under S-061-S-068. The old20,248-line/40-route production shell is absent; core shell is1,395 lines/five routes/one actor/one depth-one custody worker/zero Python cognition callbacks. This does not claim speech, vision, conversational UI, meaningful autonomous action, or the whole-organism goal. |
 
