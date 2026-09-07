@@ -16909,6 +16909,7 @@ fn mount_reached_motor_effector_with_reach_index(
     // per-event family/terminal set so the complete cohort is authored
     // atomically and duplicate regulation paths remain idempotent.
     let motors_at_growth_boundary = motors_by_ordering.clone();
+    let lateral_at_growth_boundary = lateral_by_ordering.clone();
     let mut recruited_terminal_families =
         BTreeSet::<([[u8; 16]; 2], DevelopedMotorTerminal)>::new();
     // Directed proof material: whole-carrier transfers of this interval,
@@ -17084,7 +17085,7 @@ fn mount_reached_motor_effector_with_reach_index(
                         || directed_pairs.contains(&(regulation, *lineage)))
             })
             .collect::<BTreeSet<_>>();
-        let causal_path_ordering = ordering
+        let mut causal_path_ordering = ordering
             .iter()
             .copied()
             .filter(|lineage| {
@@ -17132,6 +17133,8 @@ fn mount_reached_motor_effector_with_reach_index(
                     || indirect(preceding_predecessor_frontier, older_predecessor_frontier)
             })
             .collect::<Vec<_>>();
+        causal_path_ordering.sort_unstable();
+        causal_path_ordering.dedup();
         // General breath/glottis/mouth/perioral consequence proves that the
         // vocal body changed, but it cannot identify which antagonist terminal
         // caused that change.  It therefore has no motor-contact authorship
@@ -17168,30 +17171,42 @@ fn mount_reached_motor_effector_with_reach_index(
                                         event.neuron_lineage == *motor
                                             && event.body_effector_terminal == *anchor
                                             && event.outward_elementary_carriers > 0
-                                            && !event.learned_work_preparations.is_empty()
+                                            && event.learned_work_preparations.iter().any(
+                                                |preparation| {
+                                                    preparation.routes.iter().any(|route| {
+                                                        route.ordering_lineage == *candidate
+                                                    })
+                                                },
+                                            )
                                     })
                             })
                         })
                     })
             }));
         }
-        // A co-moving learned anchor is the more specific cause. Do not also
-        // admit the older generic affective path for the same event: doing so
-        // recruits duplicate premotor siblings for one terminal. The older
-        // path remains the bootstrap only when no learned co-moving anchor
-        // exists yet.
+        synergy_ordering.sort_unstable();
+        synergy_ordering.dedup();
+        // A co-moving learned anchor is the more specific cause of premotor
+        // population growth.  It must not erase the independent ordering path
+        // carried by the lived sensory/body episode.  When both are present,
+        // ordinary local coactivity grows a sparse L11-to-L11 contact from the
+        // current-experience ordering cell into the active premotor family.
+        // That contact lets a later partial cue reach the already learned
+        // population without adding another L11-to-L12 motor source.  The
+        // ordinary path remains the direct motor bootstrap only when no
+        // learned co-moving anchor exists yet.
         let using_synergy = !synergy_ordering.is_empty();
         let mut proven_ordering = if !using_synergy {
-            causal_path_ordering
+            causal_path_ordering.clone()
         } else {
-            synergy_ordering
+            synergy_ordering.clone()
         };
         proven_ordering.sort_unstable();
         proven_ordering.dedup();
         if proven_ordering.is_empty() {
             continue;
         }
-        let synergy_family = if using_synergy {
+        let synergy_population = if using_synergy {
             let founding_families = proven_ordering
                 .iter()
                 .filter_map(|ordering| {
@@ -17217,8 +17232,53 @@ fn mount_reached_motor_effector_with_reach_index(
                 .next()
                 .copied()
                 .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
-            proven_ordering.truncate(1);
-            Some(family)
+            let same_family = |source: &[u8; 16]| {
+                let mut founding = founding_by_ordering
+                    .get(source)
+                    .into_iter()
+                    .flatten()
+                    .copied()
+                    .take(2)
+                    .collect::<Vec<_>>();
+                founding.sort_unstable();
+                founding.as_slice() == family
+            };
+            let family_sources = motors_at_growth_boundary
+                .keys()
+                .copied()
+                .filter(|source| same_family(source))
+                .collect::<Vec<_>>();
+            let maximum_family_degree = family_sources
+                .iter()
+                .map(|source| {
+                    lateral_at_growth_boundary
+                        .get(source)
+                        .into_iter()
+                        .flatten()
+                        .filter(|neighbour| same_family(neighbour))
+                        .count()
+                })
+                .max()
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let family_hubs = family_sources
+                .iter()
+                .copied()
+                .filter(|source| {
+                    lateral_at_growth_boundary
+                        .get(source)
+                        .into_iter()
+                        .flatten()
+                        .filter(|neighbour| same_family(neighbour))
+                        .count()
+                        == maximum_family_degree
+                })
+                .collect::<Vec<_>>();
+            let [family_hub] = family_hubs.as_slice() else {
+                continue;
+            };
+            proven_ordering.clear();
+            proven_ordering.push(*family_hub);
+            Some((family, *family_hub))
         } else {
             None
         };
@@ -17293,6 +17353,23 @@ fn mount_reached_motor_effector_with_reach_index(
         if electrical_fabric.contains_contact(regulation, motor_lineage) {
             existing_contacts.insert(canonical_lineage_pair(regulation, motor_lineage));
         }
+        if using_synergy {
+            let (_, premotor_family_hub) = synergy_population
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            for experience_ordering in &causal_path_ordering {
+                if *experience_ordering == premotor_family_hub {
+                    continue;
+                }
+                let pair = canonical_lineage_pair(*experience_ordering, premotor_family_hub);
+                if existing_contacts.insert(pair) {
+                    new_contacts.push((
+                        *experience_ordering,
+                        premotor_family_hub,
+                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                    ));
+                }
+            }
+        }
         let existing_motor_sources = motors_by_ordering
             .iter()
             .filter_map(|(source, motors)| {
@@ -17305,7 +17382,7 @@ fn mount_reached_motor_effector_with_reach_index(
         if !using_synergy && !existing_motor_sources.is_empty() {
             continue;
         }
-        if let Some(family) = synergy_family {
+        if let Some((family, _)) = synergy_population {
             let same_family = |source: &[u8; 16]| {
                 let mut founding = founding_by_ordering
                     .get(source)
@@ -31185,7 +31262,6 @@ mod tests {
             anchor,
             0,
         );
-
         let transfers = directed_transfers_from_bonds(&cohorts, &fabric);
         let frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector_with_root(
@@ -31222,6 +31298,34 @@ mod tests {
         let second_motor = motor_for(&cohorts, second_terminal);
         assert!(fabric.contains_contact(anchor, first_motor));
         assert!(!fabric.contains_contact(anchor, second_motor));
+        let affective = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.place().layer() == 10 && fabric.contains_contact(anchor, *lineage))
+                    .then_some(*lineage)
+            })
+            .unwrap();
+        let experience_ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 1),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contact(
+                affective,
+                experience_ordering,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
         let pre_guidance_contact_count = fabric.contact_count();
         let pre_guidance_lineage_count = cohorts
             .iter()
@@ -31253,6 +31357,16 @@ mod tests {
             pre_guidance_lineage_count
         );
         let unit_work = BigRational::from_integer(BigInt::from(1));
+        let bond_for = |cohorts: &[ResidentReachedCohort],
+                        fabric: &ResidentElectricalFabric,
+                        left,
+                        right| {
+            let pair = canonical_lineage_pair(left, right);
+            all_physical_bonds(cohorts, fabric)
+                .into_iter()
+                .find(|bond| bond.endpoints() == pair)
+                .unwrap()
+        };
         let anchor_discharge = MotorUnitRecruitment {
             neuron_lineage: first_motor,
             topology_index: 0,
@@ -31262,7 +31376,13 @@ mod tests {
             preparation_transfers: Vec::new(),
             learned_work_preparations: vec![LearnedMotorWorkPreparation {
                 motor_lineage: first_motor,
-                routes: Vec::new(),
+                routes: vec![LearnedMotorWorkRoute {
+                    ordering_lineage: anchor,
+                    founding_receiver_lineage: association,
+                    founding_bond: bond_for(&cohorts, &fabric, association, anchor),
+                    learned_bond: bond_for(&cohorts, &fabric, anchor, first_motor),
+                    offered_work_zeptojoules: unit_work.clone(),
+                }],
                 total_offered_work_zeptojoules: unit_work.clone(),
                 accepted_work_zeptojoules: unit_work.clone(),
                 predecessor_residue_zeptojoules: BigRational::zero(),
@@ -31318,6 +31438,10 @@ mod tests {
             .collect::<BTreeSet<_>>();
         assert_eq!(first_sources.len(), 2);
         assert_eq!(second_sources.len(), 1);
+        assert!(fabric.contains_contact(experience_ordering, anchor));
+        assert!(!ordering_to_motor
+            .iter()
+            .any(|(source, _)| *source == experience_ordering));
         let first_sibling = *first_sources.iter().find(|source| **source != anchor).unwrap();
         let second_sibling = *second_sources.iter().next().unwrap();
         assert!(fabric.contains_contact(anchor, first_sibling));
@@ -31360,6 +31484,11 @@ mod tests {
         sibling_discharge.neuron_lineage = second_motor;
         sibling_discharge.body_effector_terminal = second_terminal;
         sibling_discharge.learned_work_preparations[0].motor_lineage = second_motor;
+        sibling_discharge.learned_work_preparations[0].routes[0].ordering_lineage = second_sibling;
+        sibling_discharge.learned_work_preparations[0].routes[0].founding_bond =
+            bond_for(&cohorts, &fabric, association, second_sibling);
+        sibling_discharge.learned_work_preparations[0].routes[0].learned_bond =
+            bond_for(&cohorts, &fabric, second_sibling, second_motor);
         let transfers = directed_transfers_from_bonds(&cohorts, &fabric);
         let frontier = frontier_entries_from_bonds(&cohorts, &fabric);
         mount_reached_motor_effector_with_reach_index(

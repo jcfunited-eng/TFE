@@ -335,3 +335,102 @@ phoneme tables, and authored trajectories remain prohibited.
 Production remained task 1429 throughout, one desired/running task, zero
 pending or failed tasks. After the run every `guala-*` CloudWatch alarm was
 `OK`. No build, deployment, cutover, or production mutation occurred.
+
+## 52B — current-experience-to-premotor integration candidate
+
+At `2026-09-07T04:44:59Z`, the single active repair moved from diagnosis to one
+bounded source correction. It does not reopen the motor, breath, organ,
+pressure, hearing, or general-ordering mechanisms.
+
+The correction keeps the two independently caused developmental effects in the
+same lived event:
+
+1. the ordinary current-experience ordering route remains the physical record
+   of the sensory/body episode; and
+2. the exact learned ordering source whose work discharged the co-moving motor
+   remains the teacher for bounded premotor population growth.
+
+When both effects are present, their real coactivity grows one ordinary sparse
+L11-to-L11 contact from the current-experience ordering cell into the active
+premotor family. It does not add another L11-to-L12 motor source, copy energy,
+author a phase, or create a sequence object. A later partial cue can therefore
+reach the already learned independently powered motor population through
+resident electrical anatomy. When no learned motor discharge exists, the old
+current-experience path remains the sole direct motor bootstrap.
+
+The first source draft also exposed that the Attempt-51 synergy predicate was
+broader than its own available evidence: it accepted every ordering source
+attached to a discharged motor when `LearnedMotorWorkPreparation.routes`
+already names the exact ordering lineage that supplied work. The candidate now
+uses that exact route lineage. This prevents a later sibling from being treated
+as active merely because it shares a motor and prevents repeat-dependent
+L11-to-L11 contact growth.
+
+Authorized production file:
+`native/guala_core/src/resident_cognitive_formation.rs`. The existing
+comprehensive copied-body harness remains unchanged in
+`native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs`.
+Candidate diff fingerprint before the focused rerun:
+`c7a42e43c989affb2995f21079315629ba4c5f6792f23c9ddc6f069006d5e039`.
+
+Pre-copy execution history, retained so it cannot be repeated:
+
+- The first exact-name cargo invocation selected zero tests because the module
+  path was omitted. Exit was zero but the output said `0 passed`; it is invalid
+  evidence.
+- The chronology-wrong fixture introduced the new experience before the anchor
+  learned its motor. The lawful bootstrap therefore gave both ordering cells a
+  direct motor contact and the focused assertion observed `4` ordering-to-motor
+  contacts instead of `3`. That fixture was rejected; production chronology is
+  anchor learning first, later experience second.
+- The chronology-corrected fixture then exposed two later-added lateral
+  contacts (`22` contacts versus the retained `20`) because the broad synergy
+  predicate inferred activity from shared motor ownership. That production
+  predicate was rejected and replaced with the exact ordering lineage already
+  carried by the learned-work route.
+- The exact-route fixture next exposed that a later active sibling could become
+  a second attachment point for the same learned family (`22` contacts versus
+  the retained `20`). That draft was rejected. The integration contact now
+  terminates at the family's physically unique lateral-topology hub, never at
+  whichever sibling happened to discharge.
+- The first hub fixture exposed an event-order dependency: after the first
+  terminal grew, the mutated in-event topology no longer had a unique hub, so
+  the second terminal was skipped (`2` ordering-to-motor routes versus the
+  required `3`). That draft was rejected. Hub identity and existing motor
+  ownership now come from one frozen pre-event anatomy snapshot, matching the
+  existing atomic multi-terminal growth boundary.
+
+The corrected focused invariant completed in release mode with exactly one
+selected test and passed: the later experience acquired one bounded lateral
+contact to the stable premotor-family hub, acquired no direct motor contact,
+both returned terminals recruited once, and exact repeat plus later sibling
+discharge grew no additional anatomy. Result: `1 passed; 0 failed; 608
+filtered out`.
+
+The candidate is not accepted and cannot deploy until the one complete
+tick-469814 copied-body experiment emits post-cue learned vocal motor work,
+finite breath, new pressure, and exact self-hearing after cold restore, with
+its controls and resource envelope.
+
+## 52C — explicit operator hot-deploy override
+
+The frozen candidate fingerprint was
+`ca01f6e6735990104ae0ad27b3c7841c6d288029c31eddc0e3075a03c14aa225`.
+Its release-mode copied-body invocation completed normally in `392.71`
+seconds from the exact tick-469814 predecessor. The output report is
+`/tmp/guala-integrated-full-loop-v7.json`, SHA-256
+`8891327438fad849b9cb26105d47431a751529ba088225e250e44ca147a9165a`.
+The teaching state remained byte-identical to the earlier run, SHA-256
+`8df93f015d971752be40f1ac5615172368fad51deaa40a1d09b0a9f1da60b5a8`.
+The post-cue WAV remained silent, SHA-256
+`db101901663b1a8aeea9f739bde31d2c9d5b09519ecb907cded76cd98308c09c`:
+256 positive continuation clocks produced zero vocal pulses, zero respiratory
+carriers, and zero new pressure. All four negative controls also remained
+silent. The candidate therefore did not pass the copied-body speech gate.
+
+After receiving that factual boundary, Joe explicitly withdrew the earlier
+copy-pass-before-deploy prohibition and directly ordered this exact
+consolidated candidate deployed through the existing hot-deploy controller,
+pass or fail, with no further repair attempt in this session. That operator
+override authorizes deployment; it does not convert the failed copied-body
+speech result into success and must not be cited as evidence of speech.
