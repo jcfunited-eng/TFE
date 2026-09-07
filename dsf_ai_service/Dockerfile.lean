@@ -26,7 +26,7 @@ RUN mkdir /allowlisted \
     && test "$(find /allowlisted/source -type f | wc -l)" -eq 98
 
 
-FROM public.ecr.aws/docker/library/python:3.11-slim
+FROM public.ecr.aws/docker/library/python:3.11-slim AS runtime-base
 
 ARG GIT_SHA=unknown
 ARG BUILD_TS=unknown
@@ -39,7 +39,7 @@ RUN printf 'git_sha=%s built=%s runtime=lean-five-route\n' \
 ENV GIT_SHA=${GIT_SHA} \
     BUILD_TS=${BUILD_TS} \
     PYTHONPATH=/app \
-    GUALA_PAIRED_ROOT=/app/state/paired-current \
+    GUALA_PAIRED_ROOT=/app/state/paired-current-gen2 \
     GUALA_MAX_WORLD_BYTES=16777216 \
     OPENBLAS_NUM_THREADS=1 \
     OMP_NUM_THREADS=1 \
@@ -70,3 +70,13 @@ RUN test ! -e /app/dsf_ai_service/app.py \
 EXPOSE 8080
 
 CMD ["uvicorn", "dsf_ai_service.lean_production_app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--no-access-log"]
+
+
+FROM runtime-base AS migration
+
+COPY tools/migrate_guala_paired_v1_to_v2.py /app/tools/migrate_guala_paired_v1_to_v2.py
+ENTRYPOINT ["python", "/app/tools/migrate_guala_paired_v1_to_v2.py"]
+CMD []
+
+
+FROM runtime-base AS runtime

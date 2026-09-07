@@ -13,15 +13,17 @@ import hmac
 import os
 from pathlib import Path
 import struct
+from typing import Callable
 import uuid
+import zlib
 
 
-MAGIC = b"GLPAIR01"
-VERSION = 1
+MAGIC = b"GLPAIR02"
+VERSION = 2
 CURRENT_FILE = "CURRENT"
 BODY_DIRECTORY = "body-generations"
 WORLD_DIRECTORY = "world-generations"
-BODY_SUFFIX = ".glorun"
+BODY_SUFFIX = ".glorun.gz"
 WORLD_SUFFIX = ".glworld"
 _DIGEST_BYTES = hashlib.sha256().digest_size
 _RECORD = struct.Struct("<8sH36sQ32sQ32sQBQ32sQ32sQ")
@@ -236,10 +238,6 @@ def _write_all(descriptor: int, body: bytes) -> None:
         offset += written
 
 
-def _release_file_cache(descriptor: int) -> None:
-    os.posix_fadvise(descriptor, 0, 0, os.POSIX_FADV_DONTNEED)
-
-
 def _read_verified(path: Path, expected_size: int, expected_digest: str) -> bytes:
     if path.is_symlink() or not path.is_file():
         raise PairedCurrentStoreError(f"{path.name} is not a real file")
@@ -259,12 +257,74 @@ def _read_verified(path: Path, expected_size: int, expected_digest: str) -> byte
                 raise PairedCurrentStoreError(f"{path.name} exceeded its byte count")
             digest.update(block)
             chunks.append(block)
-        _release_file_cache(descriptor)
     finally:
         os.close(descriptor)
     if read_bytes != expected_size or digest.hexdigest() != expected_digest:
         raise PairedCurrentStoreError(f"{path.name} receipt changed")
     return b"".join(chunks)
+
+
+def _compressed_body_bound(raw_bound: int) -> int:
+    return (
+        raw_bound
+        + (raw_bound >> 12)
+        + (raw_bound >> 14)
+        + (raw_bound >> 25)
+        + 64
+    )
+
+
+def _compress_body(body: bytes) -> bytes:
+    compressor = zlib.compressobj(level=3, wbits=31)
+    return compressor.compress(body) + compressor.flush()
+
+
+def _read_compressed_verified(
+    path: Path,
+    *,
+    expected_size: int,
+    expected_digest: str,
+    max_stored_bytes: int,
+) -> bytes:
+    if path.is_symlink() or not path.is_file():
+        raise PairedCurrentStoreError(f"{path.name} is not a real file")
+    stored_size = path.stat().st_size
+    if stored_size <= 0 or stored_size > max_stored_bytes:
+        raise PairedCurrentStoreError(f"{path.name} exceeds its stored byte bound")
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    chunks: list[bytes] = []
+    read_bytes = 0
+    try:
+        while True:
+            block = os.read(descriptor, _COPY_CHUNK_BYTES)
+            if not block:
+                break
+            read_bytes += len(block)
+            if read_bytes > stored_size:
+                raise PairedCurrentStoreError(f"{path.name} exceeded its byte count")
+            chunks.append(block)
+    finally:
+        os.close(descriptor)
+    if read_bytes != stored_size:
+        raise PairedCurrentStoreError(f"{path.name} changed byte count")
+    decoder = zlib.decompressobj(wbits=31)
+    try:
+        body = decoder.decompress(b"".join(chunks), expected_size + 1)
+    except zlib.error as error:
+        raise PairedCurrentStoreError(
+            f"{path.name} compressed body is damaged"
+        ) from error
+    if (
+        not decoder.eof
+        or decoder.unconsumed_tail
+        or decoder.unused_data
+        or len(body) != expected_size
+        or not hmac.compare_digest(
+            hashlib.sha256(body).hexdigest(), expected_digest
+        )
+    ):
+        raise PairedCurrentStoreError(f"{path.name} raw body receipt changed")
+    return body
 
 
 class PairedCurrentStore:
@@ -284,6 +344,7 @@ class PairedCurrentStore:
         self._root = root
         self._max_body_bytes = max_body_bytes
         self._max_world_bytes = max_world_bytes
+        self._max_stored_body_bytes = _compressed_body_bound(max_body_bytes)
         self._bodies = root / BODY_DIRECTORY
         self._worlds = root / WORLD_DIRECTORY
 
@@ -309,10 +370,11 @@ class PairedCurrentStore:
         _require_real_directory(self._bodies, create=False)
         _require_real_directory(self._worlds, create=False)
         current = pointer.current
-        body = _read_verified(
+        body = _read_compressed_verified(
             self._bodies / f"{current.body_sha256}{BODY_SUFFIX}",
-            current.body_bytes,
-            current.body_sha256,
+            expected_size=current.body_bytes,
+            expected_digest=current.body_sha256,
+            max_stored_bytes=self._max_stored_body_bytes,
         )
         world = _read_verified(
             self._worlds / f"{current.world_sha256}{WORLD_SUFFIX}",
@@ -366,21 +428,36 @@ class PairedCurrentStore:
         elif expected_current_body_sha256 is not None:
             raise PairedCurrentStoreError("expected CURRENT is absent")
 
+        compressed_body = _compress_body(body)
+        if len(compressed_body) > self._max_stored_body_bytes:
+            raise PairedCurrentStoreError("compressed body exceeds its byte bound")
         self._write_immutable(
-            self._bodies / f"{body_digest}{BODY_SUFFIX}", body, body_digest
+            self._bodies / f"{body_digest}{BODY_SUFFIX}",
+            compressed_body,
+            lambda path: _read_compressed_verified(
+                path,
+                expected_size=len(body),
+                expected_digest=body_digest,
+                max_stored_bytes=self._max_stored_body_bytes,
+            ),
         )
         self._write_immutable(
-            self._worlds / f"{world_digest}{WORLD_SUFFIX}", world, world_digest
+            self._worlds / f"{world_digest}{WORLD_SUFFIX}",
+            world,
+            lambda path: _read_verified(path, len(world), world_digest),
         )
         pointer = CurrentPair(current=current, predecessor=predecessor)
         self._replace_current(_encode(pointer))
         return pointer
 
     def _write_immutable(
-        self, destination: Path, body: bytes, expected_digest: str
+        self,
+        destination: Path,
+        stored: bytes,
+        verify_existing: Callable[[Path], object],
     ) -> None:
         if destination.exists() or destination.is_symlink():
-            _read_verified(destination, len(body), expected_digest)
+            verify_existing(destination)
             return
         stage = destination.parent / f".stage-{uuid.uuid4()}"
         descriptor = os.open(
@@ -389,9 +466,8 @@ class PairedCurrentStore:
             0o600,
         )
         try:
-            _write_all(descriptor, body)
+            _write_all(descriptor, stored)
             os.fsync(descriptor)
-            _release_file_cache(descriptor)
         except BaseException:
             os.close(descriptor)
             try:
@@ -403,7 +479,7 @@ class PairedCurrentStore:
             os.close(descriptor)
         try:
             if destination.exists() or destination.is_symlink():
-                _read_verified(destination, len(body), expected_digest)
+                verify_existing(destination)
             else:
                 os.replace(stage, destination)
                 os.chmod(destination, 0o400)

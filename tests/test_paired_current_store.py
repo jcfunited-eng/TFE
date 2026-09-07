@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from pathlib import Path
+import zlib
 
 import pytest
 
@@ -52,6 +54,70 @@ def test_one_current_record_restores_exact_pair(tmp_path: Path) -> None:
         WORLD_DIRECTORY,
         CURRENT_FILE,
     }
+
+
+def test_body_generation_is_deterministic_gzip_with_raw_receipt(
+    tmp_path: Path,
+) -> None:
+    body = b"GLORUN01" + (b"native-state" * 300)
+    first_root = tmp_path / "first"
+    second_root = tmp_path / "second"
+    for root in (first_root, second_root):
+        _store(root).publish(
+            identity=IDENTITY,
+            organism_tick=41,
+            body=body,
+            world=b"world-one",
+            expected_current_body_sha256=None,
+        )
+    body_name = f"{hashlib.sha256(body).hexdigest()}{BODY_SUFFIX}"
+    first_stored = (first_root / BODY_DIRECTORY / body_name).read_bytes()
+    second_stored = (second_root / BODY_DIRECTORY / body_name).read_bytes()
+
+    assert first_stored == second_stored
+    assert first_stored.startswith(b"\x1f\x8b")
+    assert len(first_stored) < len(body)
+    assert zlib.decompress(first_stored, wbits=31) == body
+    pointer = PairedCurrentStore(
+        first_root,
+        max_body_bytes=4096,
+        max_world_bytes=4096,
+    ).read_pointer()
+    assert pointer.current.body_bytes == len(body)
+    assert pointer.current.body_sha256 == hashlib.sha256(body).hexdigest()
+
+
+def test_incompressible_body_remains_within_stored_bound(tmp_path: Path) -> None:
+    body = os.urandom(4096)
+    store = _store(tmp_path)
+    store.publish(
+        identity=IDENTITY,
+        organism_tick=41,
+        body=body,
+        world=b"world-zero",
+        expected_current_body_sha256=None,
+    )
+
+    assert store.restore().body == body
+
+
+def test_appended_or_damaged_compressed_body_fails_closed(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    body, _world = _publish_initial(store)
+    body_path = (
+        tmp_path
+        / BODY_DIRECTORY
+        / f"{hashlib.sha256(body).hexdigest()}{BODY_SUFFIX}"
+    )
+    original = body_path.read_bytes()
+    body_path.chmod(0o600)
+    body_path.write_bytes(original + b"trailing")
+    with pytest.raises(PairedCurrentStoreError, match="raw body receipt"):
+        store.restore()
+
+    body_path.write_bytes(original[:-1] + bytes([original[-1] ^ 1]))
+    with pytest.raises(PairedCurrentStoreError, match="damaged|raw body receipt"):
+        store.restore()
 
 
 def test_successor_carries_exact_predecessor_pair_and_tick(tmp_path: Path) -> None:

@@ -13,6 +13,8 @@
 !native/guala_core/src/**
 !uf_core/
 !uf_core/**
+!tools/
+!tools/migrate_guala_paired_v1_to_v2.py
 dsf_ai_service/**/__pycache__/
 dsf_ai_service/**/*.pyc
 guala_curriculum/cards/**/__pycache__/
