@@ -4103,6 +4103,904 @@ fn artificial_vocal_synergy_unblock_json(
     })
 }
 
+/// Copy-only developmental proof for the production motor-growth law.
+///
+/// A finite external guide moves the four already-declared tract axes through
+/// their ordinary antagonist tissue. The resulting exact proprioceptive
+/// consequences enter the unchanged full-field path while the copied body
+/// carries its own resident frontier. Guidance supplies neither a contact nor
+/// a motor command to cognition. Any new L11 -> L12 anatomy must therefore be
+/// authored by the production closure law, from resident premotor activity
+/// joined to the actually moved terminal and returned body consequence.
+struct GuidedVocalContinuation {
+    state: ResidentCognitiveFormationState,
+    body: ArticulatedBodyState,
+    pulses: Vec<Value>,
+    pressure: Vec<i16>,
+    first_audible_frame: Option<Vec<i16>>,
+    respiratory_carriers: u128,
+    internal_reassemblies: u64,
+    causal_thought_transitions: u64,
+}
+
+fn run_guided_vocal_continuation(
+    mut state: ResidentCognitiveFormationState,
+    mut body: ArticulatedBodyState,
+    initial_cue_sources: &[crate::joint_source_episode::NativeJointSourceEpisode],
+    occurrence: u64,
+    maximum_clocks: u64,
+    target_motors: &std::collections::BTreeSet<[u8; 16]>,
+    terminal_by_motor: &std::collections::BTreeMap<[u8; 16], BodyEffectorTerminal>,
+) -> GuidedVocalContinuation {
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    let mut pending_motor_consequence = None;
+    let mut pending_self_pressure = None;
+    let mut residency = None;
+    let mut pulses = Vec::new();
+    let mut pressure = Vec::<i16>::new();
+    let mut first_audible_frame = None::<Vec<i16>>;
+    let mut respiratory_carriers = 0_u128;
+    let mut internal_reassemblies = 0_u64;
+    let mut causal_thought_transitions = 0_u64;
+
+    for clock in 1..=maximum_clocks {
+        let mut admitted_sources = Vec::new();
+        if clock == 1 {
+            admitted_sources.extend(
+                initial_cue_sources
+                    .iter()
+                    .map(super::admitted_fixture_episode),
+            );
+        }
+        if let Some(source) = pending_motor_consequence.take() {
+            admitted_sources.push(super::admitted_fixture_episode(&source));
+        }
+        if let Some(source) = pending_self_pressure.take() {
+            admitted_sources.push(super::admitted_fixture_episode(&source));
+        }
+        if admitted_sources.is_empty() {
+            let silent_pressure = probe_self_hearing_episode(&[0_i16; 4_000]);
+            admitted_sources.push(super::admitted_fixture_episode(&silent_pressure));
+        }
+        let (successor, observation) = state
+            .advance_coexisting_admitted_transition_with_residency(
+                &admitted_sources,
+                usize::MAX,
+                true,
+                &mut residency,
+                ExactRational::integer(0),
+            )
+            .expect("guided vocal continuation settles");
+        internal_reassemblies = internal_reassemblies
+            .checked_add(
+                u64::try_from(observation.internally_reassembled_formation_cues.len())
+                    .expect("continuation internal reassembly count fits u64"),
+            )
+            .expect("continuation internal reassembly count remains bounded");
+        causal_thought_transitions = causal_thought_transitions
+            .checked_add(
+                observation
+                    .internally_reassembled_formation_cues
+                    .iter()
+                    .map(|cue| u64::try_from(cue.causal_predecessors.len()).unwrap())
+                    .sum::<u64>(),
+            )
+            .expect("continuation causal thought count remains bounded");
+        let vocal = observation
+            .motor_unit_recruitments
+            .iter()
+            .filter(|event| target_motors.contains(&event.neuron_lineage))
+            .collect::<Vec<_>>();
+        let respiratory = observation
+            .articulatory_unit_recruitments
+            .iter()
+            .try_fold(0_u128, |total, event| {
+                total.checked_add(event.outward_elementary_carriers)
+            })
+            .expect("continuation respiratory width");
+        respiratory_carriers = respiratory_carriers
+            .checked_add(respiratory)
+            .expect("continuation respiratory total remains bounded");
+        if !vocal.is_empty() || respiratory != 0 {
+            let directions = vocal
+                .iter()
+                .filter_map(|event| terminal_by_motor.get(&event.neuron_lineage))
+                .map(|terminal| format!("{:?}", terminal.direction()))
+                .collect::<std::collections::BTreeSet<_>>();
+            pulses.push(json!({
+                "clock": clock,
+                "motor_count": vocal.len(),
+                "directions": directions,
+                "respiratory_carriers": respiratory.to_string(),
+                "motors": vocal.iter().map(|event| json!({
+                    "lineage": lineage_hex(event.neuron_lineage),
+                    "terminal": format!("{:?}", event.body_effector_terminal),
+                    "carriers": event.outward_elementary_carriers.to_string(),
+                })).collect::<Vec<_>>(),
+            }));
+        }
+        let mut carriers_by_terminal = std::collections::BTreeMap::new();
+        for event in &observation.motor_unit_recruitments {
+            let carriers = carriers_by_terminal
+                .entry(event.body_effector_terminal)
+                .or_insert(0_u128);
+            *carriers = carriers
+                .checked_add(event.outward_elementary_carriers)
+                .expect("continuation motor carriers remain bounded");
+        }
+        let admitted = if carriers_by_terminal.is_empty() {
+            AdmittedBodyEffectorDrives::quiescent()
+        } else {
+            AdmittedBodyEffectorDrives::admit(
+                carriers_by_terminal
+                    .into_iter()
+                    .map(|(terminal, outward_elementary_carriers)| BodyEffectorDrive {
+                        terminal,
+                        outward_elementary_carriers,
+                    })
+                    .collect(),
+            )
+            .expect("continuation motor drives admit")
+        };
+        let moved = settle_body_effector_drives(
+            &body,
+            &admitted,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("continuation vocal tissue settles");
+        let acoustic = settle_native_articulatory_interval(
+            moved.successor,
+            &moved.proprioceptive_consequences,
+            respiratory,
+            4_000,
+        )
+        .expect("continuation vocal acoustics settle");
+        if first_audible_frame.is_none()
+            && acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0)
+        {
+            first_audible_frame = Some(acoustic.radiated_pressure_pcm.clone());
+        }
+        pressure.extend_from_slice(&acoustic.radiated_pressure_pcm);
+        if !moved.proprioceptive_consequences.is_empty() {
+            pending_motor_consequence = Some(
+                admit_articulated_body_consequence_source(
+                    occurrence
+                        .checked_add(clock)
+                        .and_then(|tick| tick.checked_add(1))
+                        .expect("continuation motor consequence tick"),
+                    &moved.proprioceptive_consequences,
+                )
+                .expect("continuation organism consequence source admits"),
+            );
+        }
+        if acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0) {
+            pending_self_pressure = Some(probe_self_hearing_episode(
+                &acoustic.radiated_pressure_pcm,
+            ));
+        }
+        state = successor;
+        body = acoustic.successor_body;
+    }
+
+    GuidedVocalContinuation {
+        state,
+        body,
+        pulses,
+        pressure,
+        first_audible_frame,
+        respiratory_carriers,
+        internal_reassemblies,
+        causal_thought_transitions,
+    }
+}
+
+fn guided_vocal_population_growth_json(
+    initial: &ResidentCognitiveFormationState,
+    articulated_body: Option<&ArticulatedBodyState>,
+) -> Value {
+    let Some(mut body) = articulated_body.cloned() else {
+        return json!({"error": "copied articulated body absent"});
+    };
+    let target_axes = [
+        BodyAxis::VocalTractSection0Area,
+        BodyAxis::VocalTractSection1Area,
+        BodyAxis::VocalTractSection2Area,
+        BodyAxis::VocalTractSection7Area,
+    ];
+    let target_terminals = target_axes
+        .iter()
+        .copied()
+        .flat_map(|axis| {
+            [
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum),
+            ]
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    let vocal_routes = |state: &ResidentCognitiveFormationState| {
+        state
+            .electrical_fabric
+            .contact_endpoints()
+            .filter_map(|(left, right)| {
+                let left = state.electrical_fabric.lineages()[left];
+                let right = state.electrical_fabric.lineages()[right];
+                let (ordering, motor) = match (
+                    state.topology_index.layer_of(left),
+                    state.topology_index.layer_of(right),
+                ) {
+                    (Some(11), Some(12)) => (left, right),
+                    (Some(12), Some(11)) => (right, left),
+                    _ => return None,
+                };
+                let terminal = state
+                    .cohorts
+                    .iter()
+                    .flat_map(|cohort| {
+                        cohort
+                            .anatomy
+                            .mounts()
+                            .iter()
+                            .zip(cohort.anatomy.neuron_lineages())
+                    })
+                    .find_map(|(mount, lineage)| {
+                        (*lineage == motor).then(|| mount.body_effector_terminal()).flatten()
+                    })?;
+                target_terminals
+                    .contains(&terminal)
+                    .then_some((ordering, motor, terminal))
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+
+    let before = vocal_routes(initial);
+    let mut state = initial.clone();
+    let maximum_cycles = std::env::var("GUALA_PROBE_GUIDED_VOCAL_CYCLES")
+        .ok()
+        .map(|value| value.parse::<u32>().expect("guided vocal cycles are u32"))
+        .unwrap_or(64);
+    assert!((1..=512).contains(&maximum_cycles));
+    let sequence_repetitions = std::env::var("GUALA_PROBE_GUIDED_VOCAL_SEQUENCE_REPETITIONS")
+        .ok()
+        .map(|value| {
+            value
+                .parse::<u32>()
+                .expect("guided vocal sequence repetitions are u32")
+        })
+        .unwrap_or(8);
+    assert!((1..=64).contains(&sequence_repetitions));
+    let guide_carriers = std::env::var("GUALA_PROBE_GUIDED_VOCAL_CARRIERS")
+        .ok()
+        .map(|value| value.parse::<u128>().expect("guided vocal carriers are u128"))
+        .unwrap_or(1_500);
+    assert!((1..=10_000).contains(&guide_carriers));
+    let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
+    let mut observations = Vec::new();
+    let mut occurrence = 0_u64;
+    let mut motor_discharges = 0_u64;
+    let mut guided_vocal_discharges = Vec::new();
+    let mut completed_cycles = 0_u32;
+    let mut guided_residency = None;
+    let mut pending_motor_consequence = None;
+    let mut pending_self_pressure = None;
+    let mut guided_pressure = Vec::<i16>::new();
+    let mut first_learned_phase_pressure = None::<Vec<i16>>;
+    let mut guided_respiratory_carriers = 0_u128;
+    let mut guided_internal_reassemblies = 0_u64;
+    let mut guided_causal_thought_transitions = 0_u64;
+    let mut sequence_training_steps = 0_u32;
+    let sequence_directions = [
+        BodyEffectorDirection::TowardMinimum,
+        BodyEffectorDirection::TowardMaximum,
+        BodyEffectorDirection::TowardMinimum,
+        BodyEffectorDirection::TowardMaximum,
+    ];
+    let required_sequence_steps = sequence_repetitions
+        .checked_mul(u32::try_from(sequence_directions.len()).unwrap())
+        .expect("bounded sequence training width");
+    let maximum_total_cycles = maximum_cycles
+        .checked_add(required_sequence_steps)
+        .expect("bounded guided range width");
+    'guided: for cycle in 1..=maximum_total_cycles {
+        // Assistance follows the anatomy that has not yet completed its
+        // learned population. Blind alternation is not a neutral control: the
+        // organism's own sparse discharges have an endogenous phase, and the
+        // old harness repeatedly assisted the opposite antagonist exactly
+        // when the minimum anchor fired. Holding one ordinary tissue motion
+        // until its bounded four-terminal cohort exists, then holding the
+        // other, is the physical equivalent of a tutor sustaining the gesture.
+        // It observes retained anatomy only; it neither predicts nor authors
+        // a discharge, contact, carrier count, pose, or timing value.
+        let reached_before = vocal_routes(&state)
+            .iter()
+            .map(|(_, _, terminal)| *terminal)
+            .collect::<std::collections::BTreeSet<_>>();
+        let direction_complete = |direction| {
+            target_axes.iter().copied().all(|axis| {
+                reached_before.contains(&BodyEffectorTerminal::new(axis, direction))
+            })
+        };
+        let population_complete = reached_before == target_terminals;
+        if !population_complete && cycle > maximum_cycles {
+            break 'guided;
+        }
+        let direction = if population_complete {
+            sequence_directions[usize::try_from(sequence_training_steps).unwrap()
+                % sequence_directions.len()]
+        } else if !direction_complete(BodyEffectorDirection::TowardMinimum) {
+            BodyEffectorDirection::TowardMinimum
+        } else {
+            BodyEffectorDirection::TowardMaximum
+        };
+        // Preserve the previously proved isolated-assistance boundary while
+        // the missing spatial population grows. Once all eight terminals are
+        // present, do not reset the body: the repeated antagonist phases must
+        // unfold through the carried tissue, acoustic, neuronal, and recurrent
+        // state that production itself retains.
+        if occurrence != 0 && !population_complete {
+            for _ in 0..32 {
+                body = settle_body_effector_drives(
+                    &body,
+                    &AdmittedBodyEffectorDrives::quiescent(),
+                    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+                )
+                .expect("guided vocal tissue recovery settles")
+                .successor;
+            }
+        }
+        occurrence += 1;
+        let drives = AdmittedBodyEffectorDrives::admit(
+            target_axes
+                .iter()
+                .copied()
+                .map(|axis| BodyEffectorDrive {
+                    terminal: BodyEffectorTerminal::new(axis, direction),
+                    outward_elementary_carriers: guide_carriers,
+                })
+                .collect(),
+        )
+        .expect("finite guided vocal drives admit");
+        let moved = settle_body_effector_drives(
+            &body,
+            &drives,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("guided vocal tissue settles");
+        let source = admit_articulated_body_consequence_source(
+            occurrence,
+            &moved.proprioceptive_consequences,
+        )
+        .expect("guided vocal consequence source admits");
+        let mut admitted_sources = vec![super::admitted_fixture_episode(&source)];
+        if let Some(source) = pending_motor_consequence.take() {
+            admitted_sources.push(super::admitted_fixture_episode(&source));
+        }
+        if let Some(source) = pending_self_pressure.take() {
+            admitted_sources.push(super::admitted_fixture_episode(&source));
+        }
+        let (successor, observation) = state
+            .advance_coexisting_admitted_transition_with_residency(
+                &admitted_sources,
+                usize::MAX,
+                true,
+                &mut guided_residency,
+                ExactRational::integer(0),
+            )
+            .expect("guided consequence settles through production cognition");
+        let vocal_discharges = observation
+            .motor_unit_recruitments
+            .iter()
+            .filter(|event| target_axes.contains(&event.body_effector_terminal.axis()))
+            .collect::<Vec<_>>();
+        motor_discharges += u64::try_from(vocal_discharges.len())
+            .expect("vocal motor discharge count fits u64");
+        guided_vocal_discharges.extend(vocal_discharges.into_iter().map(|event| {
+            json!({
+                "cycle": cycle,
+                "occurrence": occurrence,
+                "guided_direction": format!("{direction:?}"),
+                "terminal": format!("{:?}", event.body_effector_terminal),
+                "carriers": event.outward_elementary_carriers.to_string(),
+                "learned_work_preparation_count": event.learned_work_preparations.len(),
+            })
+        }));
+        guided_internal_reassemblies = guided_internal_reassemblies
+            .checked_add(
+                u64::try_from(observation.internally_reassembled_formation_cues.len())
+                    .expect("guided internal reassembly count fits u64"),
+            )
+            .expect("guided internal reassembly count remains bounded");
+        guided_causal_thought_transitions = guided_causal_thought_transitions
+            .checked_add(
+                observation
+                    .internally_reassembled_formation_cues
+                    .iter()
+                    .map(|cue| u64::try_from(cue.causal_predecessors.len()).unwrap())
+                    .sum::<u64>(),
+            )
+            .expect("guided causal thought transition count remains bounded");
+        let mut carriers_by_terminal = std::collections::BTreeMap::new();
+        for recruitment in &observation.motor_unit_recruitments {
+            let carriers = carriers_by_terminal
+                .entry(recruitment.body_effector_terminal)
+                .or_insert(0_u128);
+            *carriers = carriers
+                .checked_add(recruitment.outward_elementary_carriers)
+                .expect("guided motor carriers remain bounded");
+        }
+        let organism_drives = if carriers_by_terminal.is_empty() {
+            AdmittedBodyEffectorDrives::quiescent()
+        } else {
+            AdmittedBodyEffectorDrives::admit(
+                carriers_by_terminal
+                    .into_iter()
+                    .map(|(terminal, outward_elementary_carriers)| BodyEffectorDrive {
+                        terminal,
+                        outward_elementary_carriers,
+                    })
+                    .collect(),
+            )
+            .expect("guided organism motor drives admit")
+        };
+        let organism_moved = settle_body_effector_drives(
+            &moved.successor,
+            &organism_drives,
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .expect("guided organism motor consequence settles");
+        let respiratory = observation
+            .articulatory_unit_recruitments
+            .iter()
+            .try_fold(0_u128, |total, event| {
+                total.checked_add(event.outward_elementary_carriers)
+            })
+            .expect("guided respiratory width");
+        guided_respiratory_carriers = guided_respiratory_carriers
+            .checked_add(respiratory)
+            .expect("guided respiratory total remains bounded");
+        let acoustic = settle_native_articulatory_interval(
+            organism_moved.successor,
+            &organism_moved.proprioceptive_consequences,
+            respiratory,
+            4_000,
+        )
+        .expect("guided organism acoustics settle");
+        if population_complete && sequence_training_steps == 0 {
+            first_learned_phase_pressure = Some(acoustic.radiated_pressure_pcm.clone());
+        }
+        if !organism_moved.proprioceptive_consequences.is_empty() {
+            pending_motor_consequence = Some(
+                admit_articulated_body_consequence_source(
+                    occurrence
+                        .checked_add(1)
+                        .expect("guided motor consequence tick"),
+                    &organism_moved.proprioceptive_consequences,
+                )
+                .expect("guided organism consequence source admits"),
+            );
+        }
+        if acoustic
+            .radiated_pressure_pcm
+            .iter()
+            .any(|sample| *sample != 0)
+        {
+            pending_self_pressure = Some(probe_self_hearing_episode(
+                &acoustic.radiated_pressure_pcm,
+            ));
+        }
+        guided_pressure.extend_from_slice(&acoustic.radiated_pressure_pcm);
+        state = successor;
+        body = acoustic.successor_body;
+        completed_cycles = cycle;
+        let routes = vocal_routes(&state);
+        let reached = routes
+            .iter()
+            .map(|(_, _, terminal)| *terminal)
+            .collect::<std::collections::BTreeSet<_>>();
+        if checkpoints.contains(&cycle) || reached == target_terminals {
+            observations.push(json!({
+                "cycle": cycle,
+                "vocal_route_count": routes.len(),
+                "vocal_source_count": routes.iter().map(|(ordering, _, _)| *ordering).collect::<std::collections::BTreeSet<_>>().len(),
+            }));
+        }
+        if population_complete {
+            sequence_training_steps = sequence_training_steps
+                .checked_add(1)
+                .expect("guided sequence steps remain bounded");
+        }
+        if reached == target_terminals && sequence_training_steps >= required_sequence_steps {
+            break 'guided;
+        }
+    }
+    let after = vocal_routes(&state);
+    let vocal_route_formation_memberships =
+        |state: &ResidentCognitiveFormationState| {
+            after
+                .iter()
+                .map(|(ordering, motor, terminal)| {
+                    let ordering_mosaics = state
+                        .mosaics
+                        .iter()
+                        .filter(|retained| {
+                            retained
+                                .mosaic
+                                .member_lineages()
+                                .binary_search(ordering)
+                                .is_ok()
+                        })
+                        .count();
+                    let motor_mosaics = state
+                        .mosaics
+                        .iter()
+                        .filter(|retained| {
+                            retained
+                                .mosaic
+                                .member_lineages()
+                                .binary_search(motor)
+                                .is_ok()
+                        })
+                        .count();
+                    let shared_mosaics = state
+                        .mosaics
+                        .iter()
+                        .filter(|retained| {
+                            retained
+                                .mosaic
+                                .member_lineages()
+                                .binary_search(ordering)
+                                .is_ok()
+                                && retained
+                                    .mosaic
+                                    .member_lineages()
+                                    .binary_search(motor)
+                                    .is_ok()
+                        })
+                        .count();
+                    json!({
+                        "ordering": lineage_hex(*ordering),
+                        "motor": lineage_hex(*motor),
+                        "terminal": format!("{terminal:?}"),
+                        "ordering_mosaic_count": ordering_mosaics,
+                        "motor_mosaic_count": motor_mosaics,
+                        "shared_mosaic_count": shared_mosaics,
+                    })
+                })
+                .collect::<Vec<_>>()
+        };
+    let teaching_vocal_route_formation_memberships =
+        vocal_route_formation_memberships(&state);
+    let target_motors = after
+        .iter()
+        .map(|(_, motor, _)| *motor)
+        .collect::<std::collections::BTreeSet<_>>();
+    let terminal_by_motor = after
+        .iter()
+        .map(|(_, motor, terminal)| (*motor, *terminal))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let maximum_unguided_clocks = std::env::var("GUALA_PROBE_UNGUIDED_VOCAL_CLOCKS")
+        .ok()
+        .map(|value| value.parse::<u64>().expect("unguided vocal clocks are u64"))
+        .unwrap_or(128);
+    assert!((1..=1_024).contains(&maximum_unguided_clocks));
+    let teaching_encoded = state.encode(usize::MAX).expect("guided teaching state encodes");
+    let teaching_state_output = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TEACHING_STATE_OUT")
+        .ok()
+        .map(|path| {
+            fs::write(&path, &teaching_encoded).expect("guided teaching cognitive state writes");
+            json!({"path": path, "bytes": teaching_encoded.len()})
+        });
+    let teaching_cold = ResidentCognitiveFormationState::decode(&teaching_encoded, usize::MAX)
+        .expect("guided teaching state cold-decodes");
+    let teaching_cold_exact = teaching_cold
+        .encode(usize::MAX)
+        .expect("guided teaching cold re-encodes")
+        == teaching_encoded;
+    // The closed C-011/C-012 acceptance law is later partial-cue
+    // continuation, not spontaneous initiation from silence. Recreate only
+    // the first learned physical phase after cold: finite external tissue work
+    // genuinely moves the copied body, its exact proprioception is admitted,
+    // and the exact pressure Guala produced and heard during that first phase
+    // is presented once. No later phase, motor request, trajectory, or sound
+    // enters the organism. All following output must be organism-produced.
+    let first_learned_phase_pressure = first_learned_phase_pressure
+        .expect("complete learned sequence retained its first pressure phase");
+    let cue_drives = AdmittedBodyEffectorDrives::admit(
+        target_axes
+            .iter()
+            .copied()
+            .map(|axis| BodyEffectorDrive {
+                terminal: BodyEffectorTerminal::new(
+                    axis,
+                    BodyEffectorDirection::TowardMinimum,
+                ),
+                outward_elementary_carriers: guide_carriers,
+            })
+            .collect(),
+    )
+    .expect("partial-cue drives admit");
+    let cue_moved = settle_body_effector_drives(
+        &body,
+        &cue_drives,
+        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+    )
+    .expect("partial-cue tissue settles");
+    let cue_body_source = admit_articulated_body_consequence_source(
+        occurrence.checked_add(1).expect("partial-cue tick"),
+        &cue_moved.proprioceptive_consequences,
+    )
+    .expect("partial-cue body consequence admits");
+    let cue_pressure_source = probe_self_hearing_episode(&first_learned_phase_pressure);
+    let positive_cue_sources = vec![cue_body_source, cue_pressure_source];
+
+    let positive = run_guided_vocal_continuation(
+        teaching_cold.clone(),
+        cue_moved.successor.clone(),
+        &positive_cue_sources,
+        occurrence,
+        maximum_unguided_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+
+    // Negative controls run from exact clones of the same trained cold state.
+    // They are comparison branches inside this one probe invocation and never
+    // become organism state.
+    let control_clocks = maximum_unguided_clocks.min(32);
+    let silence = run_guided_vocal_continuation(
+        teaching_cold.clone(),
+        body.clone(),
+        &[],
+        occurrence,
+        control_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+    let reversed_pressure = first_learned_phase_pressure
+        .iter()
+        .rev()
+        .copied()
+        .collect::<Vec<_>>();
+    let reversed_source = probe_self_hearing_episode(&reversed_pressure);
+    let reversed = run_guided_vocal_continuation(
+        teaching_cold.clone(),
+        body.clone(),
+        &[reversed_source],
+        occurrence,
+        control_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+    let mut discontinuous_pressure = first_learned_phase_pressure.clone();
+    let discontinuous_offset = discontinuous_pressure.len() / 2;
+    discontinuous_pressure.rotate_left(discontinuous_offset);
+    let discontinuous_source = probe_self_hearing_episode(&discontinuous_pressure);
+    let discontinuous = run_guided_vocal_continuation(
+        teaching_cold.clone(),
+        body.clone(),
+        &[discontinuous_source],
+        occurrence,
+        control_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+    let (severed_state, severed_contact_count) = severed_learned_motor_copy(&teaching_cold);
+    let severed = run_guided_vocal_continuation(
+        severed_state,
+        cue_moved.successor,
+        &positive_cue_sources,
+        occurrence,
+        control_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+
+    state = positive.state;
+    let _positive_body = positive.body;
+    let unguided_pulses = positive.pulses;
+    let pressure = positive.pressure;
+    let first_audible_frame = positive.first_audible_frame;
+    let respiratory_carriers = positive.respiratory_carriers;
+    let unguided_internal_reassemblies = positive.internal_reassemblies;
+    let unguided_causal_thought_transitions = positive.causal_thought_transitions;
+    let cue_control_results = json!({
+        "control_clocks": control_clocks,
+        "silence": {
+            "pulses": silence.pulses,
+            "respiratory_carriers": silence.respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": silence.pressure.iter().filter(|sample| **sample != 0).count(),
+        },
+        "time_reversed_first_pressure": {
+            "pulses": reversed.pulses,
+            "respiratory_carriers": reversed.respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": reversed.pressure.iter().filter(|sample| **sample != 0).count(),
+        },
+        "discontinuous_first_pressure": {
+            "pulses": discontinuous.pulses,
+            "respiratory_carriers": discontinuous.respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": discontinuous.pressure.iter().filter(|sample| **sample != 0).count(),
+        },
+        "severed": {
+            "removed_learned_contact_count": severed_contact_count,
+            "pulses": severed.pulses,
+            "respiratory_carriers": severed.respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": severed.pressure.iter().filter(|sample| **sample != 0).count(),
+        },
+    });
+    let pressure_peak = pressure
+        .iter()
+        .map(|sample| sample.unsigned_abs())
+        .max()
+        .unwrap_or(0);
+    let nonzero_pressure_samples = pressure.iter().filter(|sample| **sample != 0).count();
+    let self_hearing = first_audible_frame.as_ref().map(|frame| {
+        let episode = probe_self_hearing_episode(frame);
+        let locations = episode
+            .joint_source_ports()
+            .iter()
+            .filter(|port| port.physical_quantity == "cochlear-band-pressure")
+            .map(|port| {
+                let site = super::NeuronSourceSite::from_source_port(port)
+                    .expect("unguided cochlear source site");
+                let (cohort_index, neuron_index, lineage) = state
+                    .topology_index
+                    .source_location(&site)
+                    .expect("unguided cochlear topology lookup")
+                    .expect("unguided cochlear receptor mounted");
+                let neuron = &state.cohorts[cohort_index].state.neurons()[neuron_index];
+                (
+                    cohort_index,
+                    neuron_index,
+                    lineage,
+                    neuron.receptor_quantum_residue.energy().clone(),
+                    neuron.gate.open_population(),
+                )
+            })
+            .collect::<Vec<_>>();
+        let admitted = admitted_episode_with_authored_intervals(
+            &episode,
+            &vec![(1_i64, 4_i64); 3],
+        )
+        .expect("unguided self-hearing admission");
+        let (successor, observation) = state
+            .clone()
+            .advance_admitted_transition(
+                &admitted,
+                usize::MAX,
+                false,
+                ExactRational::integer(0),
+            )
+            .expect("unguided self-hearing settles");
+        let changed = locations
+            .iter()
+            .filter(|(cohort_index, neuron_index, _, before_residue, before_gate)| {
+                let after = &successor.cohorts[*cohort_index].state.neurons()[*neuron_index];
+                after.receptor_quantum_residue.energy() != before_residue
+                    || after.gate.open_population() != *before_gate
+            })
+            .count();
+        state = successor;
+        json!({
+            "cochlear_port_count": locations.len(),
+            "changed_cochlear_count": changed,
+            "physically_transitioned_neuron_count": observation.physically_transitioned_neuron_count,
+            "dsf_delivery_count": observation.dsf_delivery_count,
+        })
+    });
+    let pressure_wav = std::env::var("GUALA_PROBE_GUIDED_VOCAL_PRESSURE_WAV")
+        .ok()
+        .map(|path| {
+            let data_bytes = u32::try_from(pressure.len() * std::mem::size_of::<i16>())
+                .expect("guided vocal WAV data width");
+            let mut wav = Vec::with_capacity(44 + data_bytes as usize);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&(36_u32 + data_bytes).to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16_u32.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&16_000_u32.to_le_bytes());
+            wav.extend_from_slice(&32_000_u32.to_le_bytes());
+            wav.extend_from_slice(&2_u16.to_le_bytes());
+            wav.extend_from_slice(&16_u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&data_bytes.to_le_bytes());
+            for sample in &pressure {
+                wav.extend_from_slice(&sample.to_le_bytes());
+            }
+            fs::write(&path, &wav).expect("guided vocal pressure WAV writes");
+            json!({"path": path, "bytes": wav.len()})
+        });
+    let encoded = state.encode(usize::MAX).expect("guided successor encodes");
+    let cold = ResidentCognitiveFormationState::decode(&encoded, usize::MAX)
+        .expect("guided successor cold-decodes");
+    let cold_exact = cold.encode(usize::MAX).expect("guided cold re-encodes") == encoded;
+    let source_to_motors = after.iter().fold(
+        std::collections::BTreeMap::<[u8; 16], std::collections::BTreeSet<[u8; 16]>>::new(),
+        |mut map, (ordering, motor, _)| {
+            map.entry(*ordering).or_default().insert(*motor);
+            map
+        },
+    );
+    let reached_terminals = after
+        .iter()
+        .map(|(_, _, terminal)| *terminal)
+        .collect::<std::collections::BTreeSet<_>>();
+    let mut result = json!({
+        "measurement_only": true,
+        "guidance_is_finite_external_tissue_work": true,
+        "guidance_authors_no_contact_directly": true,
+        "guide_carriers_per_terminal": guide_carriers.to_string(),
+        "maximum_cycles": maximum_cycles,
+        "completed_cycles": completed_cycles,
+        "sequence_repetitions": sequence_repetitions,
+        "sequence_training_steps": sequence_training_steps,
+        "continuation_cue": {
+            "kind": "one exact learned first-phase body consequence plus its exact self-pressure",
+            "body_consequence_count": positive_cue_sources[0].joint_source_ports().len(),
+            "pressure_sample_count": first_learned_phase_pressure.len(),
+            "pressure_nonzero_sample_count": first_learned_phase_pressure.iter().filter(|sample| **sample != 0).count(),
+            "cue_admitted_once": true,
+            "later_motor_commands_authored": false,
+        },
+        "cue_control_results": cue_control_results,
+        "teaching_cold_round_trip_exact": teaching_cold_exact,
+        "teaching_state_output": teaching_state_output,
+        "teaching_vocal_route_formation_memberships": teaching_vocal_route_formation_memberships,
+        "before_route_count": before.len(),
+        "after_route_count": after.len(),
+        "after_source_count": source_to_motors.len(),
+        "all_eight_routes_grown": reached_terminals == target_terminals,
+        "all_eight_terminals_reached": reached_terminals == target_terminals,
+        "every_source_has_one_motor": source_to_motors.values().all(|motors| motors.len() == 1),
+        "motor_discharges_during_guidance": motor_discharges,
+        "guided_vocal_discharges": guided_vocal_discharges,
+        "guided_respiratory_carriers": guided_respiratory_carriers.to_string(),
+        "guided_nonzero_pressure_samples": guided_pressure.iter().filter(|sample| **sample != 0).count(),
+        "guided_internal_reassemblies": guided_internal_reassemblies,
+        "guided_causal_thought_transitions": guided_causal_thought_transitions,
+    });
+    let tail = json!({
+        "maximum_unguided_clocks": maximum_unguided_clocks,
+        "unguided_pulses": unguided_pulses,
+        "unguided_respiratory_carriers": respiratory_carriers.to_string(),
+        "unguided_internal_reassemblies": unguided_internal_reassemblies,
+        "unguided_causal_thought_transitions": unguided_causal_thought_transitions,
+        "pressure_sample_count": pressure.len(),
+        "nonzero_pressure_samples": nonzero_pressure_samples,
+        "pressure_peak": pressure_peak,
+        "self_hearing": self_hearing,
+        "pressure_wav": pressure_wav,
+        "cold_round_trip_exact": cold_exact,
+        "encoded_bytes": encoded.len(),
+        "final_vocal_route_formation_memberships": vocal_route_formation_memberships(&state),
+        "checkpoints": observations,
+        "routes": after.iter().map(|(ordering, motor, terminal)| json!({
+            "ordering": lineage_hex(*ordering),
+            "motor": lineage_hex(*motor),
+            "terminal": format!("{terminal:?}"),
+        })).collect::<Vec<_>>(),
+    });
+    let Value::Object(result_fields) = &mut result else {
+        unreachable!("guided vocal result is an object")
+    };
+    let Value::Object(tail_fields) = tail else {
+        unreachable!("guided vocal result tail is an object")
+    };
+    result_fields.extend(tail_fields);
+    result
+}
+
 fn wide_exact_from_json(value: &Value) -> BigRational {
     let numerator = value["numerator"]
         .as_str()
@@ -5472,11 +6370,25 @@ fn reservoir_probe_dump() {
             std::env::var_os("GUALA_PROBE_PRODUCTION_REPLAYED_MOTOR_ONLY").is_some();
         let artificial_vocal_synergy_only =
             std::env::var_os("GUALA_PROBE_ARTIFICIAL_VOCAL_SYNERGY_ONLY").is_some();
+        let guided_vocal_population_growth_only =
+            std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_POPULATION_GROWTH_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
         let candidate_tissue_proof_only =
             std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
-        let record = if artificial_vocal_synergy_only {
+        let record = if guided_vocal_population_growth_only {
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for guided vocal population growth");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "guided_vocal_population_growth":
+                    guided_vocal_population_growth_json(
+                        &state,
+                        articulated_body.as_ref(),
+                    ),
+            })
+        } else if artificial_vocal_synergy_only {
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state for artificial vocal-synergy control");
             json!({
