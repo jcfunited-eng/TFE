@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import gc
 import hashlib
 from pathlib import Path
+import time
+import weakref
 
 import pytest
 
@@ -30,7 +33,7 @@ class _Checkpoint:
         return self.body
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, weakref_slot=True)
 class _Snapshot:
     organism_tick: int
     body: bytes
@@ -82,6 +85,31 @@ def test_worker_publishes_one_exact_pair_without_runtime_access(tmp_path: Path) 
     restored = store.restore()
     assert restored.body == b"body-fourteen"
     assert restored.world == b"world-fourteen"
+
+
+def test_worker_releases_completed_snapshot_while_idle(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    before = store.read_pointer().current
+    snapshot = _Snapshot(14, b"body-fourteen")
+    held_snapshot = weakref.ref(snapshot)
+    worker = LeanCheckpointWorker(store)
+    try:
+        worker.submit(CheckpointWork(
+            snapshot=snapshot,
+            world=b"world-fourteen",
+            identity=IDENTITY,
+            expected_current_body_sha256=before.body_sha256,
+        ))
+        del snapshot
+        assert worker.receive(timeout=5).committed is True
+        for _ in range(20):
+            gc.collect()
+            if held_snapshot() is None:
+                break
+            time.sleep(0.01)
+        assert held_snapshot() is None
+    finally:
+        worker.close()
 
 
 def test_worker_refuses_a_second_outstanding_snapshot(tmp_path: Path) -> None:

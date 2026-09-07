@@ -110,7 +110,10 @@ class LeanCheckpointWorker:
             if work is _STOP:
                 return
             assert isinstance(work, CheckpointWork)
-            self._results.put(self._execute(work))
+            outcome = self._execute(work)
+            del work
+            self._results.put(outcome)
+            del outcome
 
     def _execute(self, work: CheckpointWork) -> CheckpointOutcome:
         checkpoint = None
