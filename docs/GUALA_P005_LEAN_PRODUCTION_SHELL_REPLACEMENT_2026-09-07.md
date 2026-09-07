@@ -51,7 +51,7 @@ only after same-condition falsification. Chat memory is not proof.
 | RF-047 | Closed by S-061: each pushed digest returned one exact OCI manifest and zero failures before registration. |
 | RF-059/RF-060 | Migration reads one stopped exact v1 CURRENT-selected body/world pair and publishes that same pair atomically to absent gen2; local fixed-predecessor proof is S-054/S-056. Production source capture remains open and may not be recopied while advancing. |
 | RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |
-| RF-063 | F-053/F-054/F-060 are harness-only repeated assumptions. Every command now performs exact executable/path/cgroup/AWS discovery in the command block; the governing skill and durable register carry the recurrence guard. |
+| RF-063 | F-053/F-054/F-060/F-061 are harness-only repeated assumptions. Every command must perform exact executable/path/cgroup/AWS inventory discovery in the command block; the governing skill and durable register carry the recurrence guard. |
 
 ## Task1430 baseline
 
@@ -200,6 +200,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-058 | Five AWS alarms remained OK while public task1431 was unchanged and custody-blocked for at least10s at tick513577/persisted513572. Existing alarms and ECS health do not classify minute-scale paired-store stalls; direct CURRENT/observation cadence remains mandatory live acceptance. |
 | F-059 | Draining unchanged raw-v1 task1431 took roughly264s and container exit was137 rather than graceful0. This repeats the multi-minute shutdown symptom on the rollback image itself and strengthens F-051/F-052. Atomic CURRENT remains the only accepted state; do not infer the live513589 body was durable. |
 | F-060 | The first task1433 resource census correctly observed advancing identity and a cleared custody window, then its metrics suffix assumed cgroup v2 `/sys/fs/cgroup/memory.current`; Fargate exposes cgroup v1 and that suffix aborted. No organism action failed and the observation success remains valid. Exact cgroup-file discovery then produced S-065. This repeated harness-assumption class is now RF-063 and an executable preflight rule in the governing skill. |
+| F-061 | The first public-cutover preflight correctly proved account/service zero writers and exact task1433 image/EFS/environment, then its final read-only registry check guessed nonexistent ECR repository `dsf-ai-service` even though the task definition's image URI names `dsf-ai`. The command exited before `update-service`; production remained service0/0/0 with zero writers. Resolve the repository from enumerated ECR inventory and the exact image URI before retry; this is an RF-033/RF-063 harness failure, not an artifact failure. |
 
 ## Deployment truth
 
@@ -282,6 +283,7 @@ exact live migration and rollback boundary.
 | isolated v2 production-EFS cadence | S-065 | F-060 corrected; graceful stop/cold/public open | stop exact candidate and cold-restore once |
 | isolated v2 graceful close | S-066 | exact final CURRENT/cold/public open | start one fresh task1433 with zero writer overlap |
 | isolated v2 cold continuation | S-067 | public service cutover open | update service to exact task1433 and desired1 |
+| first public task1433 preflight | zero-writer/task/image/EFS facts preserved | F-061; no mutation | enumerate exact ECR repository, verify digest, then update once |
 
 P-005 next: reread this ledger; revalidate zero writers, exact
 account/cluster/service/task definition/image/network/EFS, then update the
