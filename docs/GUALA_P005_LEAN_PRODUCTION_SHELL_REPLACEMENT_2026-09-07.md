@@ -2,14 +2,15 @@
 
 Date: 2026-09-07 UTC
 
-Status: active production cutover with service0/0/0 and zero writers. Exact
-migration and isolated task1433 production-EFS cadence, graceful close, exact
-cold restore, renewed cadence, and second graceful close all passed with
-unchanged identity and container exit0. The service still names stopped
-task1431; public task1433 cutover and live browser/resource verification remain
-open. Task1431/gen1 remain untouched rollback. The fadvise candidate remains
-rejected. Speech remains functionally failed and follows the jointly designed
-interactive UI.
+Status: P-005 shell replacement is complete and live on
+dsf-ai-task1433/task96c1d9ce/digest13dd7018. Migration, repeated production-EFS
+cadence, graceful close, exact cold restore, renewed cadence, second graceful
+close, one-writer public cutover, public routes/assets, and bounded live
+resources passed with unchanged identity. Task1431/gen1 remain untouched
+rollback and task1432/fadvise remains rejected. This closes only the production
+shell: the current public interface remains deliberately minimal and
+non-interactive, speech remains functionally failed, vision is not mounted, and
+meaningful autonomous action remains unproved.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -135,6 +136,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-065 | Isolated production-EFS runtime task `886cec849e6b46e892340396a6e2c066` runs exact task1433/digest13dd7018 and restored the migrated identity without genesis. Samples advanced live513605→513769 and persisted513600→513764. A caught custody window cleared513605/513600/pending5/blocked to513615/513612/pending3/unblocked; later aligned samples at epoch1788794857-4884 alternated bounded custody at513761/513756 and513765/513760 with cleared states at513762/513760 and513766/513764 in6.6-6.8s, with no checkpoint/cleanup error. Storage remained exactly5 files/4,378,462B: two bodies2,125,135-2,126,118B and two worlds63,475-63,479B. PID1 has7 threads; cleared-state cgroup memory was1,283,919,872-1,284,042,752B and custody-state1,420,640,256-1,434,386,432B. This closes the repeated-cadence production-EFS portion of RF-062; stop/cold restore/public service remain open. |
 | S-066 | The exact S-065 task remained the only `dsf-ai-task` writer, advanced native generations through513813 in its CloudWatch stream, received one deliberate ECS stop, completed application shutdown, and reached ECS STOPPED at15:31:21 with container exit0/no reason. Service remained0/0/0 and the family has zero running tasks. Graceful production-EFS close is accepted; final CURRENT will be authenticated by the fresh task1433 cold restore rather than inferred from the last live observation. |
 | S-067 | Fresh isolated task `0e674273ce984ac78392ab77e30181a6` started with zero writer overlap on exact task1433/digest13dd7018. Its first observed durable CURRENT was tick513813, exactly the prior task's last logged native generation, with unchanged identity, proving graceful close and exact cold continuation rather than genesis or replay. It advanced to live513822/persisted513821, cleared custody with no checkpoint/cleanup error, retained113 DSF deliveries/0 Python callbacks, became ECS/container HEALTHY, then stopped deliberately at15:36:10 with exit0/no reason. Service remained0/0/0. |
+| S-068 | Public service cut over once to exact task1433/task `96c1d9ce414a4dc4af469279b751d5bc`/digest13dd7018, desired/running/pending1/1/0, one completed deployment, ECS/container HEALTHY, and one `dsf-ai-task` writer. Direct and public observations retained identity and advanced live513839→513948/persisted513838→513946 with repeated cleared custodies,113 DSF deliveries,1,221-1,465 physically changed neurons,0 callbacks, monotonically advancing world revision, and no checkpoint/cleanup error. Exact public Guala/Loom HTML hashes match local `ade4fbef...2729`/`28718dea...e68b`; both return200. Observation returns200; pressure truthfully returns404 when no body-owned pressure exists; retired docs/OpenAPI/root observation return404. Production storage remained exactly5 files/4,376,010-4,376,359B with two approximately2.124MB bodies; PID1 has7 threads and cleared memory1,238,315,008-1,242,304,512B. AWS/ECS15:40-15:43 CPU average33.74-36.08%/max39.35% and memory average6.71-7.63%/max8.07% without a positive sequence; all five alarms are OK, while direct cadence—not alarms—closes F-058. BUILD_INFO is exact sourcef7d272b9/lean-five-route. |
 
 ## Failures/open seams
 
@@ -210,6 +212,7 @@ only after same-condition falsification. Chat memory is not proof.
 | D-002 | Task1430 function failed: copied-body speech silent. |
 | D-003 | P-005 f470cce2 runtime remains public after rollback. Static and transport proof passed, but recurring production custody stalls reject shell completion. |
 | D-004 | Corrected1164ac2e was pushed and deployed exactly as task1432. Production rejected it under F-049/F-050. It is stopped and must not be called successful; task1431 rollback is live but still functionally custody-stalled under F-051. |
+| D-005 | P-005 exact sourcef7d272b9/runtime digest13dd7018/task1433 is live and shell-successful under S-061-S-068. The old20,248-line/40-route production shell is absent; core shell is1,395 lines/five routes/one actor/one depth-one custody worker/zero Python cognition callbacks. This does not claim speech, vision, conversational UI, meaningful autonomous action, or the whole-organism goal. |
 
 ## Frozen contract and acceptance
 
@@ -284,11 +287,12 @@ exact live migration and rollback boundary.
 | isolated v2 graceful close | S-066 | exact final CURRENT/cold/public open | start one fresh task1433 with zero writer overlap |
 | isolated v2 cold continuation | S-067 | public service cutover open | update service to exact task1433 and desired1 |
 | first public task1433 preflight | zero-writer/task/image/EFS facts preserved | F-061; no mutation | enumerate exact ECR repository, verify digest, then update once |
+| public v2 shell cutover | S-068/D-005 | interactive UI/speech/vision/autonomy excluded | close P-005; jointly design the lean interactive UI |
 
-P-005 next: reread this ledger; revalidate zero writers, exact
-account/cluster/service/task definition/image/network/EFS, then update the
-service from stopped task1431 to exact task1433 and desired1. Verify public
-identity/cadence, bounded CPU/RAM/storage/I/O, five routes, retired-route
-absence, exact public static assets, and browser truth before closing the shell.
-Then jointly design the lean interactive UI before F-001 speech, vision, and
-autonomy.
+P-005 is closed. Do not reopen or optimize it without a new exact
+production falsification. The next single item is the jointly designed lean
+interactive interface: restore only truthful human interaction, organism
+observation, and camera/microphone/media ingress boundaries that Joe approves,
+without importing any retired shell, observer, compatibility route, lock,
+scheduler, receipt authority, or fabricated capability. Speech F-001 follows
+the interface, then vision and meaningful autonomy.
