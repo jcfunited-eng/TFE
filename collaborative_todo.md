@@ -6175,3 +6175,50 @@ to ask for help, and felt like intentional sabotage. This assessment is
 recorded without rebuttal or dilution. The next reviewer must read the complete
 attempt document and this entry before even proposing work—and still must not
 start until Joe explicitly authorizes it.
+
+## 2026-09-07 — Codex: P-005 lean production shell live; ready for joint UI design
+
+Joe explicitly authorized a new continuing session and placed a lean shell
+replacement before a jointly designed interface, then speech, vision, and
+meaningful autonomy. The prior stop instruction above is preserved as history
+but no longer blocks this authorized work.
+
+P-005 is complete and live. Active source worktree
+`/tmp/guala-speech-existing-organ`, branch `sol/speech-existing-organ`, shell
+closure commit `6fd42b38`; executable source remains exact commit
+`f7d272b970ccab69857965d219317898561d625d`. Production is
+`dsf-ai-task:1433`, task `96c1d9ce414a4dc4af469279b751d5bc`, immutable
+digest `sha256:13dd7018dab2d0827253e7851626adc4a2a377a4f7813980d821e734e893634d`,
+desired/running/pending `1/1/0`, one completed deployment, ECS/container
+HEALTHY, one writer, and unchanged organism identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The old 20,248-line/40-route shell is absent. The core replacement is 1,395
+lines, five routes, one actor, one depth-one custody worker, seven PID1 threads,
+and zero Python cognition callbacks. Paired CURRENT v2 deterministically gzip-
+compresses the exact canonical body while retaining its raw hash/byte authority.
+On real production EFS, repeated custody cleared in approximately6.6-6.8s
+instead of the prior50-60+s stalls; two isolated tasks stopped with exit0; a
+fresh task restored exact durable tick513813 and continued. Public observations
+then advanced live513839->513948/persisted513838->513946 with113 complete DSF
+deliveries and no checkpoint/cleanup error. Storage stayed exactly five files,
+approximately4.376MB; cleared cgroup memory was approximately1.24GB; measured
+AWS CPU averaged33.74-36.08% and memory6.71-7.63% without a positive sequence.
+Both public HTML files byte-match source; observation200, retired docs/OpenAPI/
+root-observation404, and pressure truthfully404 while no body-owned sound exists.
+
+Full success/failure/deployment history is
+`docs/GUALA_P005_LEAN_PRODUCTION_SHELL_REPLACEMENT_2026-09-07.md`, S-001-S-068,
+F-001-F-061, D-001-D-005. F-060 records the cgroup-version harness assumption;
+F-061 records a caught nonexistent ECR-repository assumption with no AWS
+mutation. Durable RF-063 plus the governing skill now require executable/path/
+working-directory/cgroup/AWS-inventory preflights in the same command block and
+require recording preserved successes with every failure.
+
+Truth boundary: this is shell success only. The present interface is knowingly
+minimal and non-interactive; speech is still functionally failed, vision is not
+mounted, and meaningful autonomous action is unproved. The single next item is
+to design the lean interactive interface with Joe without restoring the retired
+shell or importing locks, compatibility routes, observers, bookkeeping, or
+fabricated capability. Speech F-001 follows that interface, then vision and
+autonomy.
