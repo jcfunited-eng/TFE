@@ -37,6 +37,24 @@ only after same-condition falsification. Chat memory is not proof.
 7. Preserve D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k, MathLoom, neurons, learned
    sensory state.
 
+## Applicable deployment recurrence gates
+
+| Gate | Applicability and observed evidence |
+|---|---|
+| RF-001/RF-032 | Exact worktree is first on host `PYTHONPATH`; image fixes it to `/app`. F-055 records the refused host invocation. Every later path and working directory is explicit. |
+| RF-002/RF-006 | Live task1431 environment is gen1 root plus16MiB world bound under4vCPU/16GiB. Candidate changes only root to absent gen2 and preserves256MiB body/16MiB world bounds; no anatomy/source roster changed. |
+| RF-003 | No native source changed from the accepted image. Both candidate artifacts install the wheel built from exact commit f7d272b9 and report exact BUILD_INFO; immutable-image execution is S-056-S-059. |
+| RF-004/RF-022 | Empty-store first publication and damaged/old schema refusal pass in S-053; copied mature v1 migration, recurrent v2 publication, close, and cold restart pass S-054/S-056-S-059. |
+| RF-007 | Exact Python/Docker command failures are F-053-F-057. Correct Docker targets, entrypoints, host import root, stop form, AWS account/region/cluster/service, and task-definition shapes are now resolved before live mutation. |
+| RF-010 | In-process/persisted close settled tick508350 and exact fresh boot restored it with no replay, then completed ordinary intervals: S-058/S-059. |
+| RF-012/RF-056 | Health is never acceptance. Candidate must restore production identity at or beyond the drained predecessor and repeatedly advance persisted CURRENT; any mismatch leaves zero writers and task1431/gen1 untouched. |
+| RF-016 | Active item remains P-005 compressed paired custody. Candidate diff changes persistence codec, deployment-only migration, tests, and image targets only; UI, speech, vision, autonomy, and L0-L4 remain outside this cutover. |
+| RF-024/RF-031 | F-053 records guessed-file/zero-collection prevention; corrected exact list executed36/36. |
+| RF-033 | Re-resolved account418384447921, region us-east-1, cluster `tfe-web-cluster`, service `dsf-ai-service-lb`, task1431/image ebf0ecb7, EFS fs-0abb85854a3251b3c, and distribution E17JT9XGBFU493. |
+| RF-047 | After push, `batch-get-image` must return each exact digest before registration. Still open. |
+| RF-059/RF-060 | Migration reads one stopped exact v1 CURRENT-selected body/world pair and publishes that same pair atomically to absent gen2; local fixed-predecessor proof is S-054/S-056. Production source capture remains open and may not be recopied while advancing. |
+| RF-062 | F-049-F-052 reject local cache hints and five-file count as acceptance. S-052-S-059 remove approximately98.1% of recurring body bytes. Isolated repeated-cadence proof on real production EFS remains the decisive open gate. |
+
 ## Task1430 baseline
 
 - AWS `418384447921/us-east-1`; `tfe-web-cluster/dsf-ai-service-lb`;
@@ -172,6 +190,7 @@ only after same-condition falsification. Chat memory is not proof.
 | F-054 | First mature v1-to-v2 migration command repeated known F-034 by naming absent `/usr/bin/time`; the migration process never started and its empty exact temp directory was removed. Use the shell timer and do not rediscover this as a product failure. |
 | F-055 | Second mature migration command invoked the file directly without the image contract's `PYTHONPATH=/app`; host Python could not import `dsf_ai_service`, so migration never began and the empty exact temp directory was removed. Host rehearsal must set `PYTHONPATH=.`; the image already sets the equivalent. |
 | F-056 | First local image-inspection Go template accessed optional absent `Config.Entrypoint`/`Config.Cmd` map keys and stopped. Because commands were joined with `&&`, no container ran. Use JSON inspection with explicit null-safe fields; no artifact result exists from this command. |
+| F-057 | First deployment-governance command looked for `scripts/require-guala-root.sh` and `collaborative_todo.md` inside the temporary worktree. The validator belongs to the project-truth skill and the shared handoff is `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. The command stopped before AWS mutation; use those exact absolute authorities. |
 
 ## Deployment truth
 
@@ -245,6 +264,7 @@ exact live migration and rollback boundary.
 | v2 runtime cadence | S-057 | stop/cold restart open | graceful stop then exact restart |
 | v2 graceful close | S-058 | cold restart open | restart exact stopped container |
 | v2 cold continuation | S-059 | production EFS unproved | push immutable artifacts and stopped migration |
+| first deployment governance | none | F-057; no AWS mutation | resolve exact authority paths |
 
 P-005 next: reread this ledger; replace paired CURRENT v1 with version2
 deterministic gzip-level3 body custody in a new generation root. Preserve the
