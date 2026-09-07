@@ -2,12 +2,13 @@
 
 Date: 2026-09-07 UTC
 
-Status: active. Task1430 unchanged/running. Source `941dcaeb` base plus the
-health/migration successor candidate passed matched passive, pressure, root
-action, bounded custody failure, five-route HTTP, allow-listed image,
-autonomous soak, graceful stop, exact cold restore, and exact retired-to-paired
-migration. Final image push, cutover, and live proof remain open. Speech is
-still functionally failed and is next only after truthful shell cutover.
+Status: active. Task1430 is unchanged and running. Source `8b4c3a7a` and its
+final allow-listed image passed matched passive, pressure, root action, bounded
+custody failure, five-route HTTP, autonomous soak, graceful stop, exact cold
+restore, and exact retired-to-paired migration. Production UI/API route
+reconciliation, final migration-image rehearsal, image push, cutover, and live
+proof remain open. Speech is still functionally failed and is next only after
+truthful shell cutover.
 
 Sole authority: record worked and failed parts separately. Before every design,
 build, rehearsal, deploy, or live check reread this entire file. Name exact
@@ -86,6 +87,7 @@ only after same-condition falsification. Chat memory is not proof.
 | S-038 | Same image exact task1430 tick507972 autonomously reached durable508153. Eight samples/118s:113 DSF/0 callbacks,7 PIDs,1.001-1.158GiB, CPU100-188% unbounded host, always5 files/225.77-225.80MB. Five routes; old/docs absent;413. Stop2.705s/exit0/noOOM. Cold exact identity/tick/body/world. Current `86f23382...a782`; `/tmp/guala-p005-release-result-941dcaeb`. |
 | S-039 | `/health` now reads only cached actor availability:200 during bounded custody pause,503 after organism-owner death. `/ready` remains503 during backpressure. Focused+core custody tests20/20; combined shell30/30. AWS task1430 ECS and ALB both check `/health`; interval30/retries10/start300 and interval60/unhealthy5 respectively. |
 | S-040 | Deployment-only migration parser/authenticator2/2. Source-built image rehearsal migrated exact retired task1430 tick507972 compressed CURRENT+world association to three-file pair with exact identity/body hash+bytes/world hash+bytes, then exact native/world cold restore/0 callbacks. Runtime manifest excludes migration tool. `/tmp/guala-p005-migration-result-941dcaeb`. |
+| S-041 | Final source/image `8b4c3a7a7bd6ed34896651cdc136212037b85b9a`; image ID `b416243f...1b7d`,212,671,836B. Exact task1430 tick507972 ran 251s to graceful CURRENT508158 with113 DSF/0 callbacks, five routes/no docs,7 PIDs,~1.0GiB, exactly five files/225,799,594B. Stop2.276s/exit0/noOOM. Cold exact identity, tick508158, body `06f2be77...422cf`/112,827,191B, world `e63becca...15228`/63,491B, predecessor508156, save/world exact,0 callbacks. `/tmp/guala-p005-final-result-8b4c3a7a.k8j96c`. |
 
 ## Failures/open seams
 
@@ -125,11 +127,12 @@ only after same-condition falsification. Chat memory is not proof.
 | F-032 | Remote Docker could not see `/tmp` bind/published port. Docker copy/in-container HTTP replaced. |
 | F-033 | First asset context admitted native target; canceled at958.11MB. Corrected context. |
 | F-034 | `/usr/bin/time` absent so first stop did not execute; shell timing then exact stop. |
-| F-035 | Original actor retried failed custody/no hung ceiling. Resolved S-035-S-038. |
+| F-035 | Original actor retried failed custody/no hung ceiling. Resolved S-035-S-038/S-041. |
 | F-036 | Two test commands had wrong import/file and collected zero. Corrected passes; zero-test runs excluded. |
 | F-037 | Host root replay schema failed: stale extension `a13034e0...47b5` versus image `21c54894...f8bf`. Rollback exact; same image replay passed S-036; no workaround. |
 | F-038 | One soak sample ready503 at pending5/outstanding, recovered200. Expected truthful backpressure; AWS health uses `/health`. |
 | F-039 | First lean `/health` proved only web transport and could stay200 after actor death. Replaced S-039 before production; no candidate containing the defect was pushed. |
+| F-040 | Final-artifact probe first used port8000 although image contract is8080; cold harness first omitted destination directory and called nonexistent `current()`. Neither was a product failure; corrected 8080 and `read_pointer()` proofs are S-041. |
 
 ## Deployment truth
 
@@ -137,7 +140,7 @@ only after same-condition falsification. Chat memory is not proof.
 |---|---|
 | D-001 | Task1430 installation/identity/ECS/container/LB health succeeded. |
 | D-002 | Task1430 function failed: copied-body speech silent. |
-| D-003 | P-005 image built/rehearsed but not pushed/deployed/live-verified. |
+| D-003 | P-005 final image built/rehearsed but not pushed/deployed/live-verified. |
 
 ## Frozen contract and acceptance
 
@@ -181,9 +184,12 @@ exact live migration and rollback boundary.
 | actor custody | S-035 | F-035/F-036 corrected | rebuild image |
 | final image mature | S-036/S-037 | F-037 corrected | matched soak |
 | final matched soak | S-038 | F-038/F-039 corrected | health truth |
-| health/migration | S-039/S-040 | AWS cutover open | freeze final artifact |
+| health/migration | S-039/S-040 | AWS cutover open | freeze source |
+| final artifact | S-041 | F-040 corrected; UI/migration/AWS open | reconcile live route |
 
-P-005 next: commit/rebuild final image, push exact digest, drain task1430,
-migrate its stopped exact CURRENT without altering old root, register the lean
-task, cut over once with rollback to1430 intact, then live verify. After P-005:
-F-001 speech, Claude vision candidate, autonomy.
+P-005 next: reconcile the existing S3/CloudFront Loom with the five-route live
+contract without restoring compatibility bloat; rehearse the exact final
+migration image; then push immutable digests, drain task1430, migrate its
+stopped exact CURRENT without altering old root, register lean task, cut over
+once with rollback to1430 intact, and live verify. After P-005: F-001 speech,
+Claude vision candidate, autonomy.
