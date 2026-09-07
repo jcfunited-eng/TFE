@@ -6225,3 +6225,47 @@ autonomy.
 
 Completion notification was checked at `2026-09-07T15:51:24Z`:
 `status=slack_sent channel=#general`.
+
+## 2026-09-07 — Codex: UI-001 lean embodied access live; Joe visual review next
+
+UI-001 is complete in active worktree `/tmp/guala-speech-existing-organ`,
+branch `sol/speech-existing-organ`. Runtime source is commit
+`fc381995b7e46cda09aced85c1e3ce55c5b41ec8`; closure ledger HEAD is
+`7b4e3587`. Production is `dsf-ai-task:1434`, task
+`cb396f0fe3f346ccb5070e3c0b0b83a3`, immutable image digest
+`sha256:fb194f7cd2fbee77e492cd1ed2aa01ef4ea6342b4a955138b75b976c946dce95`,
+desired/running/pending `1/1/0`, one completed healthy writer, and unchanged
+identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` continuing beyond captured
+predecessor tick518771.
+
+The retired 20,248-line shell is a ten-line fail-closed tombstone and absent
+from the 64-Python-file/five-route production image. The main page is live at
+`https://dsf-ai.com/gualaloom.html`; Loom Scan is live at
+`https://dsf-ai.com/loomscan.html`. Both public files byte-match source and
+link to each other. The main page shows the exact nine-region/nine-open-
+doorway world, exact objects and two bodies, a 135-site achromatic retina
+anchored upper right, pan/zoom/recenter, the established static Guala bust,
+camera, microphone, exact held-pressure playback, text light, paired text plus
+microphone, and compact ABC/123 cards paired with microphone. Loom highlights
+only directly observed physical evidence; thought and memory remain explicitly
+unobserved.
+
+One live camera occurrence passed with 135 external/observer retinal sites,
+221 full native DSF deliveries, 1,699 physically changed neurons, zero Python
+callbacks, and exact embodiment. This proves sensory delivery only—not
+recognition, learning, thought, or speech. Post-release custody advanced and
+cleared without error; task1434 has seven threads, about1.53GB RSS inside16GiB,
+five state files/about4.9MiB, all five alarms OK, and retired routes closed.
+
+Full success and failure history, including every rejected harness and the
+first pre-admission camera503, is
+`docs/GUALA_UI001_EMBODIED_ACCESS_SURFACE_2026-09-07.md`, S-001-S-024,
+F-001-F-044, D-001-D-002. The governing Guala skill also contains Joe's rule
+that commentary, questions, reactions, concerns, and frustration do not stop
+or redirect active work without an explicit direction; validation passed.
+
+Truth boundary: speech remains functionally failed and meaningful autonomous
+action remains unproved. The single next item is Joe's ordinary-browser visual
+review of the live interface and any concrete correction it reveals; do not
+claim the page itself proves cognition. The project goal remains paused and
+must not be silently resumed by an agent.
